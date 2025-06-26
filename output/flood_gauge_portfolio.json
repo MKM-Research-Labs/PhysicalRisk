@@ -1,0 +1,2180 @@
+{
+  "flood_gauges": [
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-bc71b283",
+          "GaugeName": "Thames Chelsea Gauge 1"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.645828541810234,
+          "HistoricalHighDate": "2024-01-12",
+          "LastDateLevelExceedLevel3": "2023-10-20",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "Campbell Scientific",
+            "InstallationDate": "2019-06-20",
+            "LastInspectionDate": "2024-02-04",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.4573,
+            "GaugeLongitude": -0.3073,
+            "GroundLevelMeters": 11.13,
+            "elevation": 11.13
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.98749712508614,
+            "FloodWarning": 5.316662833448188,
+            "SevereFloodWarning": 6.313537114719722
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 10,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-11-10"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-4254d4c8",
+          "GaugeName": "Thames Kensington Gauge 2"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.772104266973852,
+          "HistoricalHighDate": "2014-04-01",
+          "LastDateLevelExceedLevel3": "2020-11-18",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "Sutron",
+            "InstallationDate": "2011-06-22",
+            "LastInspectionDate": "2024-11-29",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Maintenance required",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.46,
+            "GaugeLongitude": -0.295,
+            "GroundLevelMeters": 10.86,
+            "elevation": 10.86
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "Email/Other"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 4.06326256018431,
+            "FloodWarning": 5.4176834135790815,
+            "SevereFloodWarning": 6.433499053625159
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-01-11"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-91819c08",
+          "GaugeName": "Thames Westminster Gauge 3"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.155004573377089,
+          "HistoricalHighDate": "2019-12-23",
+          "LastDateLevelExceedLevel3": "2021-05-08",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "In-Situ Inc.",
+            "InstallationDate": "2015-06-21",
+            "LastInspectionDate": "2025-04-18",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.463,
+            "GaugeLongitude": -0.28,
+            "GroundLevelMeters": 10.44,
+            "elevation": 10.44
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.0930027440262533,
+            "FloodWarning": 4.124003658701671,
+            "SevereFloodWarning": 4.897254344708234
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-06-14"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-4b299f3c",
+          "GaugeName": "Thames Camden Gauge 4"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.0255449670587256,
+          "HistoricalHighDate": "2016-10-08",
+          "LastDateLevelExceedLevel3": "2021-10-28",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Staff gauge",
+            "ManufacturerName": "Sutron",
+            "InstallationDate": "2010-06-22",
+            "LastInspectionDate": "2024-02-06",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Provisional",
+            "GaugeLatitude": 51.466,
+            "GaugeLongitude": -0.265,
+            "GroundLevelMeters": 10.01,
+            "elevation": 10.01
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 3.015326980235235,
+            "FloodWarning": 4.020435973646981,
+            "SevereFloodWarning": 4.774267718705789
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-10-20"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-0e10afa4",
+          "GaugeName": "Thames Islington Gauge 5"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.006388080728588,
+          "HistoricalHighDate": "2013-09-19",
+          "LastDateLevelExceedLevel3": "2022-12-12",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Staff gauge",
+            "ManufacturerName": "Sutron",
+            "InstallationDate": "2011-06-22",
+            "LastInspectionDate": "2025-06-07",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.469,
+            "GaugeLongitude": -0.25,
+            "GroundLevelMeters": 9.91,
+            "elevation": 9.91
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "Email/Other"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.6038328484371522,
+            "FloodWarning": 4.805110464582871,
+            "SevereFloodWarning": 5.706068676692158
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-10-18"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-98556fe4",
+          "GaugeName": "Thames Hackney Gauge 6"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.462063290066958,
+          "HistoricalHighDate": "2024-08-30",
+          "LastDateLevelExceedLevel3": "2025-03-08",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Shaft encoder",
+            "ManufacturerName": "Campbell Scientific",
+            "InstallationDate": "2020-06-19",
+            "LastInspectionDate": "2025-05-17",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.472,
+            "GaugeLongitude": -0.235,
+            "GroundLevelMeters": 9.04,
+            "elevation": 9.04
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.8772379740401743,
+            "FloodWarning": 5.169650632053567,
+            "SevereFloodWarning": 6.138960125563609
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-12-16"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-4156c0c5",
+          "GaugeName": "Thames Tower Hamlets Gauge 7"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.242080435474117,
+          "HistoricalHighDate": "2024-07-27",
+          "LastDateLevelExceedLevel3": "2024-05-22",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Shaft encoder",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2023-06-19",
+            "LastInspectionDate": "2023-07-27",
+            "MaintenanceSchedule": "Bi-annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.4883,
+            "GaugeLongitude": -0.2303,
+            "GroundLevelMeters": 8.01,
+            "elevation": 8.01
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "CEDA Archive",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.14524826128447,
+            "FloodWarning": 4.1936643483792935,
+            "SevereFloodWarning": 4.9799764137004106
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 10,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-08-18"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-fa1e0d61",
+          "GaugeName": "Thames Southwark Gauge 8"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.308132699211696,
+          "HistoricalHighDate": "2017-12-16",
+          "LastDateLevelExceedLevel3": "2024-09-13",
+          "FrequencyExceedLevel3": 4
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2015-06-21",
+            "LastInspectionDate": "2025-03-09",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Under review",
+            "GaugeLatitude": 51.475,
+            "GaugeLongitude": -0.2214,
+            "GroundLevelMeters": 7.91,
+            "elevation": 7.91
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 4.384879619527018,
+            "FloodWarning": 5.8465061593693575,
+            "SevereFloodWarning": 6.942726064251111
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-04-02"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-c01b1aac",
+          "GaugeName": "Thames Lambeth Gauge 9"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.685838552369655,
+          "HistoricalHighDate": "2022-01-20",
+          "LastDateLevelExceedLevel3": "2022-12-09",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Staff gauge",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2015-06-21",
+            "LastInspectionDate": "2024-09-23",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Temporarily offline",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.46694,
+            "GaugeLongitude": -0.21306,
+            "GroundLevelMeters": 7.81,
+            "elevation": 7.81
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 4.011503131421793,
+            "FloodWarning": 5.348670841895725,
+            "SevereFloodWarning": 6.3515466247511725
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-04-12"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-5ea1b190",
+          "GaugeName": "Thames Wandsworth Gauge 10"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.998778782723467,
+          "HistoricalHighDate": "2023-08-24",
+          "LastDateLevelExceedLevel3": "2024-03-08",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Bubbler system",
+            "ManufacturerName": "OTT HydroMet",
+            "InstallationDate": "2022-06-19",
+            "LastInspectionDate": "2024-09-13",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.47,
+            "GaugeLongitude": -0.198,
+            "GroundLevelMeters": 7.71,
+            "elevation": 7.71
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.59926726963408,
+            "FloodWarning": 4.799023026178774,
+            "SevereFloodWarning": 5.698839843587294
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-01-15"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-e22486fa",
+          "GaugeName": "Thames Greenwich Gauge 11"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.901919549257059,
+          "HistoricalHighDate": "2019-02-16",
+          "LastDateLevelExceedLevel3": "2020-09-09",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "SEBA Hydrometrie",
+            "InstallationDate": "2016-06-20",
+            "LastInspectionDate": "2024-06-13",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Provisional",
+            "GaugeLatitude": 51.473,
+            "GaugeLongitude": -0.185,
+            "GroundLevelMeters": 7.61,
+            "elevation": 7.61
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.5411517295542354,
+            "FloodWarning": 4.721535639405647,
+            "SevereFloodWarning": 5.606823571794206
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 10,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-09-08"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-b1844209",
+          "GaugeName": "Thames Lewisham Gauge 12"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.38828406809972,
+          "HistoricalHighDate": "2021-02-14",
+          "LastDateLevelExceedLevel3": "2020-10-01",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "OTT HydroMet",
+            "InstallationDate": "2020-06-19",
+            "LastInspectionDate": "2024-08-19",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Provisional",
+            "GaugeLatitude": 51.479134,
+            "GaugeLongitude": -0.156838,
+            "GroundLevelMeters": 7.51,
+            "elevation": 7.51
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 3.232970440859832,
+            "FloodWarning": 4.310627254479776,
+            "SevereFloodWarning": 5.118869864694734
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-01-12"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-a2f0c6ba",
+          "GaugeName": "Thames Hammersmith Gauge 13"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.8901077829075525,
+          "HistoricalHighDate": "2015-08-06",
+          "LastDateLevelExceedLevel3": "2020-07-07",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2014-06-21",
+            "LastInspectionDate": "2025-06-06",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.482,
+            "GaugeLongitude": -0.145,
+            "GroundLevelMeters": 7.41,
+            "elevation": 7.41
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 4.134064669744531,
+            "FloodWarning": 5.512086226326042,
+            "SevereFloodWarning": 6.545602393762175
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-01-11"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-2ad017a8",
+          "GaugeName": "Thames Fulham Gauge 14"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.218841481090499,
+          "HistoricalHighDate": "2012-05-25",
+          "LastDateLevelExceedLevel3": "2021-06-20",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2010-06-22",
+            "LastInspectionDate": "2024-06-16",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.485,
+            "GaugeLongitude": -0.135,
+            "GroundLevelMeters": 7.31,
+            "elevation": 7.31
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.1313048886542996,
+            "FloodWarning": 4.175073184872399,
+            "SevereFloodWarning": 4.957899407035974
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-02-21"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-e69f3510",
+          "GaugeName": "Thames Richmond Gauge 15"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.273173872878889,
+          "HistoricalHighDate": "2016-11-15",
+          "LastDateLevelExceedLevel3": "2023-11-16",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2010-06-22",
+            "LastInspectionDate": "2024-05-22",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.49,
+            "GaugeLongitude": -0.125,
+            "GroundLevelMeters": 7.21,
+            "elevation": 7.21
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.763904323727333,
+            "FloodWarning": 5.018539098303112,
+            "SevereFloodWarning": 5.959515179234944
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-12-31"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-99f3a5b9",
+          "GaugeName": "Thames Newham Gauge 16"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.811349225994942,
+          "HistoricalHighDate": "2023-07-15",
+          "LastDateLevelExceedLevel3": "2021-10-16",
+          "FrequencyExceedLevel3": 6
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2020-06-19",
+            "LastInspectionDate": "2024-02-04",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Provisional",
+            "GaugeLatitude": 51.5005,
+            "GaugeLongitude": -0.1198,
+            "GroundLevelMeters": 7.11,
+            "elevation": 7.11
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.486809535596965,
+            "FloodWarning": 4.649079380795953,
+            "SevereFloodWarning": 5.520781764695195
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-11-30"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-817d02bc",
+          "GaugeName": "Thames Barking Gauge 17"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.8298283548945475,
+          "HistoricalHighDate": "2024-10-20",
+          "LastDateLevelExceedLevel3": "2021-05-24",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "Campbell Scientific",
+            "InstallationDate": "2016-06-20",
+            "LastInspectionDate": "2024-05-14",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.503,
+            "GaugeLongitude": -0.11,
+            "GroundLevelMeters": 7.01,
+            "elevation": 7.01
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 4.697897012936728,
+            "FloodWarning": 6.263862683915638,
+            "SevereFloodWarning": 7.43833693714982
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-06-12"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-f3b078ca",
+          "GaugeName": "Thames Dagenham Gauge 18"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.050225087782707,
+          "HistoricalHighDate": "2024-08-12",
+          "LastDateLevelExceedLevel3": "2023-09-23",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Wire-weight gauge",
+            "ManufacturerName": "YSI",
+            "InstallationDate": "2021-06-19",
+            "LastInspectionDate": "2025-05-31",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.5052,
+            "GaugeLongitude": -0.1168,
+            "GroundLevelMeters": 6.91,
+            "elevation": 6.91
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 4.230135052669624,
+            "FloodWarning": 5.640180070226165,
+            "SevereFloodWarning": 6.697713833393571
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-04-18"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-3dc99269",
+          "GaugeName": "Thames Havering Gauge 19"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.475521258118501,
+          "HistoricalHighDate": "2019-12-24",
+          "LastDateLevelExceedLevel3": "2023-01-20",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Shaft encoder",
+            "ManufacturerName": "YSI",
+            "InstallationDate": "2019-06-20",
+            "LastInspectionDate": "2024-08-24",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.507,
+            "GaugeLongitude": -0.105,
+            "GroundLevelMeters": 6.81,
+            "elevation": 6.81
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.8853127548711006,
+            "FloodWarning": 5.180417006494801,
+            "SevereFloodWarning": 6.151745195212576
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-02-26"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-80df9055",
+          "GaugeName": "Thames Bexley Gauge 20"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.25452157854649,
+          "HistoricalHighDate": "2022-09-18",
+          "LastDateLevelExceedLevel3": "2022-04-30",
+          "FrequencyExceedLevel3": 10
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "Campbell Scientific",
+            "InstallationDate": "2022-06-19",
+            "LastInspectionDate": "2023-12-22",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.5097,
+            "GaugeLongitude": -0.1044,
+            "GroundLevelMeters": 6.71,
+            "elevation": 6.71
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.152712947127894,
+            "FloodWarning": 4.203617262837192,
+            "SevereFloodWarning": 4.991795499619165
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-03-09"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-6f431db1",
+          "GaugeName": "Thames Tilbury Gauge 21"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.1945575662246055,
+          "HistoricalHighDate": "2024-08-08",
+          "LastDateLevelExceedLevel3": "2021-07-13",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Wire-weight gauge",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2022-06-19",
+            "LastInspectionDate": "2024-10-15",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Maintenance required",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.51,
+            "GaugeLongitude": -0.095,
+            "GroundLevelMeters": 6.61,
+            "elevation": 6.61
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.7167345397347633,
+            "FloodWarning": 4.955646052979684,
+            "SevereFloodWarning": 5.884829687913375
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-07-31"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-b9f73313",
+          "GaugeName": "Thames Thurrock Gauge 22"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.734027430845939,
+          "HistoricalHighDate": "2024-06-16",
+          "LastDateLevelExceedLevel3": "2023-07-31",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Bubbler system",
+            "ManufacturerName": "YSI",
+            "InstallationDate": "2023-06-19",
+            "LastInspectionDate": "2023-07-06",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.5079,
+            "GaugeLongitude": -0.0878,
+            "GroundLevelMeters": 6.51,
+            "elevation": 6.51
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 4.040416458507563,
+            "FloodWarning": 5.387221944676751,
+            "SevereFloodWarning": 6.397326059303642
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-09-16"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-1efd46e7",
+          "GaugeName": "Thames Grays Gauge 23"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.642138138944776,
+          "HistoricalHighDate": "2018-07-10",
+          "LastDateLevelExceedLevel3": "2023-10-01",
+          "FrequencyExceedLevel3": 4
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "OTT HydroMet",
+            "InstallationDate": "2010-06-22",
+            "LastInspectionDate": "2023-10-06",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.505554,
+            "GaugeLongitude": -0.075278,
+            "GroundLevelMeters": 6.41,
+            "elevation": 6.41
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "CEDA Archive",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.985282883366865,
+            "FloodWarning": 5.313710511155821,
+            "SevereFloodWarning": 6.310031231997537
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-11-01"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-781ee747",
+          "GaugeName": "Thames Purfleet Gauge 24"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.425274897663246,
+          "HistoricalHighDate": "2013-01-17",
+          "LastDateLevelExceedLevel3": "2022-12-30",
+          "FrequencyExceedLevel3": 6
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2012-06-21",
+            "LastInspectionDate": "2024-02-04",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.503,
+            "GaugeLongitude": -0.065,
+            "GroundLevelMeters": 6.31,
+            "elevation": 6.31
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.855164938597947,
+            "FloodWarning": 5.140219918130597,
+            "SevereFloodWarning": 6.1040111527800835
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-11-25"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-03f14c60",
+          "GaugeName": "Thames Dartford Gauge 25"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.507764455204791,
+          "HistoricalHighDate": "2024-07-09",
+          "LastDateLevelExceedLevel3": "2021-02-05",
+          "FrequencyExceedLevel3": 7
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Wire-weight gauge",
+            "ManufacturerName": "Campbell Scientific",
+            "InstallationDate": "2021-06-19",
+            "LastInspectionDate": "2023-11-05",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Provisional",
+            "GaugeLatitude": 51.5,
+            "GaugeLongitude": -0.05,
+            "GroundLevelMeters": 6.21,
+            "elevation": 6.21
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.9046586731228743,
+            "FloodWarning": 5.206211564163834,
+            "SevereFloodWarning": 6.182376232444551
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-04-23"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-0d152ea9",
+          "GaugeName": "Thames Erith Gauge 26"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.903402301712184,
+          "HistoricalHighDate": "2024-03-18",
+          "LastDateLevelExceedLevel3": "2023-06-26",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Shaft encoder",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2020-06-19",
+            "LastInspectionDate": "2025-06-05",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Provisional",
+            "GaugeLatitude": 51.497,
+            "GaugeLongitude": -0.035,
+            "GroundLevelMeters": 6.11,
+            "elevation": 6.11
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 4.14204138102731,
+            "FloodWarning": 5.522721841369748,
+            "SevereFloodWarning": 6.558232186626574
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-03-20"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-2b853329",
+          "GaugeName": "Thames Belvedere Gauge 27"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.478689866019366,
+          "HistoricalHighDate": "2020-08-21",
+          "LastDateLevelExceedLevel3": "2024-03-05",
+          "FrequencyExceedLevel3": 4
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "OTT HydroMet",
+            "InstallationDate": "2020-06-19",
+            "LastInspectionDate": "2025-05-16",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Maintenance required",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.494,
+            "GaugeLongitude": -0.02,
+            "GroundLevelMeters": 6.01,
+            "elevation": 6.01
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 4.487213919611619,
+            "FloodWarning": 5.982951892815493,
+            "SevereFloodWarning": 7.104755372718397
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-01-29"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-b87e7a2b",
+          "GaugeName": "Thames Thamesmead Gauge 28"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.821469388295334,
+          "HistoricalHighDate": "2023-09-09",
+          "LastDateLevelExceedLevel3": "2021-06-13",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Bubbler system",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2013-06-21",
+            "LastInspectionDate": "2024-03-09",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.491,
+            "GaugeLongitude": -0.005,
+            "GroundLevelMeters": 5.91,
+            "elevation": 5.91
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.4928816329772006,
+            "FloodWarning": 4.657175510636267,
+            "SevereFloodWarning": 5.530395918880568
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-04-04"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-7532fa02",
+          "GaugeName": "Thames Abbey Wood Gauge 29"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.112617081916286,
+          "HistoricalHighDate": "2024-09-15",
+          "LastDateLevelExceedLevel3": "2023-04-14",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2013-06-21",
+            "LastInspectionDate": "2025-01-15",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.488,
+            "GaugeLongitude": 0.01,
+            "GroundLevelMeters": 5.81,
+            "elevation": 5.81
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 3.067570249149772,
+            "FloodWarning": 4.090093665533029,
+            "SevereFloodWarning": 4.856986227820472
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-01-07"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-ff8e5904",
+          "GaugeName": "Thames Woolwich Gauge 30"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.574093357936931,
+          "HistoricalHighDate": "2021-03-17",
+          "LastDateLevelExceedLevel3": "2021-07-06",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2012-06-21",
+            "LastInspectionDate": "2023-11-30",
+            "MaintenanceSchedule": "Bi-annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.477928,
+            "GaugeLongitude": -0.001545,
+            "GroundLevelMeters": 5.71,
+            "elevation": 5.71
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "CEDA Archive",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 4.544456014762159,
+            "FloodWarning": 6.0592746863495455,
+            "SevereFloodWarning": 7.195388690040084
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-05-09"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-12de08a4",
+          "GaugeName": "Thames Chelsea Gauge 31"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.2301145809865695,
+          "HistoricalHighDate": "2021-07-09",
+          "LastDateLevelExceedLevel3": "2024-10-14",
+          "FrequencyExceedLevel3": 5
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Local Authority",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "YSI",
+            "InstallationDate": "2020-06-19",
+            "LastInspectionDate": "2024-01-11",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Maintenance required",
+            "CertificationStatus": "Under review",
+            "GaugeLatitude": 51.475,
+            "GaugeLongitude": 0.015,
+            "GroundLevelMeters": 5.61,
+            "elevation": 5.61
+          },
+          "Measurements": {
+            "MeasurementFrequency": "30 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.7380687485919415,
+            "FloodWarning": 4.984091664789256,
+            "SevereFloodWarning": 5.918608851937241
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-07-13"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-a6657610",
+          "GaugeName": "Thames Kensington Gauge 32"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.583589392031816,
+          "HistoricalHighDate": "2023-11-04",
+          "LastDateLevelExceedLevel3": "2023-09-01",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "YSI",
+            "InstallationDate": "2023-06-19",
+            "LastInspectionDate": "2025-06-18",
+            "MaintenanceSchedule": "Bi-annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.472,
+            "GaugeLongitude": 0.03,
+            "GroundLevelMeters": 5.51,
+            "elevation": 5.51
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Environment Agency",
+            "FloodAlert": 4.55015363521909,
+            "FloodWarning": 6.066871513625453,
+            "SevereFloodWarning": 7.204409922430225
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-08-05"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-b86c0b57",
+          "GaugeName": "Thames Westminster Gauge 33"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.294064299244292,
+          "HistoricalHighDate": "2023-09-20",
+          "LastDateLevelExceedLevel3": "2020-08-09",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2021-06-19",
+            "LastInspectionDate": "2024-08-22",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.4977,
+            "GaugeLongitude": 0.0367,
+            "GroundLevelMeters": 5.41,
+            "elevation": 5.41
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "CEDA Archive",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.1764385795465753,
+            "FloodWarning": 4.235251439395434,
+            "SevereFloodWarning": 5.029361084282077
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 10,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-03-12"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-56eecf69",
+          "GaugeName": "Thames Camden Gauge 34"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.60620155787019,
+          "HistoricalHighDate": "2017-11-18",
+          "LastDateLevelExceedLevel3": "2025-01-15",
+          "FrequencyExceedLevel3": 1
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Shaft encoder",
+            "ManufacturerName": "Vaisala",
+            "InstallationDate": "2014-06-21",
+            "LastInspectionDate": "2025-03-18",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.4765,
+            "GaugeLongitude": 0.0539,
+            "GroundLevelMeters": 5.31,
+            "elevation": 5.31
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.9637209347221134,
+            "FloodWarning": 5.284961246296152,
+            "SevereFloodWarning": 6.275891479976679
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-05-01"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-73245053",
+          "GaugeName": "Thames Islington Gauge 35"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 6.244879955320125,
+          "HistoricalHighDate": "2023-09-03",
+          "LastDateLevelExceedLevel3": "2024-01-23",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Research Institution",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "In-Situ Inc.",
+            "InstallationDate": "2023-06-19",
+            "LastInspectionDate": "2023-09-06",
+            "MaintenanceSchedule": "Quarterly",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.47,
+            "GaugeLongitude": 0.08,
+            "GroundLevelMeters": 5.21,
+            "elevation": 5.21
+          },
+          "Measurements": {
+            "MeasurementFrequency": "15 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.746927973192075,
+            "FloodWarning": 4.995903964256101,
+            "SevereFloodWarning": 5.932635957554119
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-04-18"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-aa5583c8",
+          "GaugeName": "Thames Hackney Gauge 36"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.164930066899909,
+          "HistoricalHighDate": "2024-03-31",
+          "LastDateLevelExceedLevel3": "2023-01-20",
+          "FrequencyExceedLevel3": 0
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Met Office",
+            "GaugeType": "Radar gauge",
+            "ManufacturerName": "Campbell Scientific",
+            "InstallationDate": "2017-06-20",
+            "LastInspectionDate": "2024-06-17",
+            "MaintenanceSchedule": "Monthly",
+            "OperationalStatus": "Maintenance required",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.465,
+            "GaugeLongitude": 0.12,
+            "GroundLevelMeters": 5.11,
+            "elevation": 5.11
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Environment Agency",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 4.298958040139945,
+            "FloodWarning": 5.7319440535199275,
+            "SevereFloodWarning": 6.8066835635549126
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 9,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-09-12"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-86ee841e",
+          "GaugeName": "Thames Tower Hamlets Gauge 37"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.290896263835185,
+          "HistoricalHighDate": "2020-11-02",
+          "LastDateLevelExceedLevel3": "2021-02-04",
+          "FrequencyExceedLevel3": 2
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "In-Situ Inc.",
+            "InstallationDate": "2018-06-20",
+            "LastInspectionDate": "2025-04-03",
+            "MaintenanceSchedule": "Bi-annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.46,
+            "GaugeLongitude": 0.16,
+            "GroundLevelMeters": 5.01,
+            "elevation": 5.01
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 4.374537758301111,
+            "FloodWarning": 5.832717011068148,
+            "SevereFloodWarning": 6.926351450643425
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 10,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2024-08-14"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-8c509efb",
+          "GaugeName": "Thames Southwark Gauge 38"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.068069747954592,
+          "HistoricalHighDate": "2020-03-27",
+          "LastDateLevelExceedLevel3": "2022-12-08",
+          "FrequencyExceedLevel3": 5
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Shaft encoder",
+            "ManufacturerName": "OTT HydroMet",
+            "InstallationDate": "2016-06-20",
+            "LastInspectionDate": "2024-06-29",
+            "MaintenanceSchedule": "Bi-annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.455,
+            "GaugeLongitude": 0.2,
+            "GroundLevelMeters": 4.91,
+            "elevation": 4.91
+          },
+          "Measurements": {
+            "MeasurementFrequency": "Hourly",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "British Hydrological Society",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Natural Resources Wales",
+            "FloodAlert": 3.040841848772755,
+            "FloodWarning": 4.054455798363674,
+            "SevereFloodWarning": 4.814666260556862
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 7,
+            "FloodRiskCategory": "Very High",
+            "LastAssessmentDate": "2025-01-14"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-693967cb",
+          "GaugeName": "Thames Lambeth Gauge 39"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 7.6211257977867595,
+          "HistoricalHighDate": "2023-05-27",
+          "LastDateLevelExceedLevel3": "2024-12-12",
+          "FrequencyExceedLevel3": 3
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Environment Agency",
+            "GaugeType": "Ultrasonic gauge",
+            "ManufacturerName": "Sutron",
+            "InstallationDate": "2010-06-22",
+            "LastInspectionDate": "2023-11-24",
+            "MaintenanceSchedule": "Bi-annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.4466,
+            "GaugeLongitude": 0.2142,
+            "GroundLevelMeters": 4.81,
+            "elevation": 4.81
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Met Office",
+            "DataAccessMethod": "WebInterface"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Scottish Environment Protection Agency",
+            "FloodAlert": 4.572675478672055,
+            "FloodWarning": 6.096900638229408,
+            "SevereFloodWarning": 7.240069507897421
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 10,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2025-03-24"
+          }
+        }
+      }
+    },
+    {
+      "FloodGauge": {
+        "Header": {
+          "GaugeID": "GAUGE-135b1297",
+          "GaugeName": "Thames Wandsworth Gauge 40"
+        },
+        "SensorStats": {
+          "HistoricalHighLevel": 5.919770832855631,
+          "HistoricalHighDate": "2023-05-21",
+          "LastDateLevelExceedLevel3": "2023-07-26",
+          "FrequencyExceedLevel3": 8
+        },
+        "SensorDetails": {
+          "GaugeInformation": {
+            "DataSourceType": "SensorGauge",
+            "GaugeOwner": "Thames Water",
+            "GaugeType": "Pressure transducer",
+            "ManufacturerName": "Stevens Water",
+            "InstallationDate": "2015-06-21",
+            "LastInspectionDate": "2024-11-14",
+            "MaintenanceSchedule": "Annual",
+            "OperationalStatus": "Fully operational",
+            "CertificationStatus": "Fully certified",
+            "GaugeLatitude": 51.44,
+            "GaugeLongitude": 0.3,
+            "GroundLevelMeters": 4.0,
+            "elevation": 4.0
+          },
+          "Measurements": {
+            "MeasurementFrequency": "5 minutes",
+            "MeasurementMethod": "Automatic",
+            "DataTransmission": "Automatic",
+            "DataCurator": "Centre for Ecology & Hydrology",
+            "DataAccessMethod": "PublicAPI"
+          }
+        },
+        "FloodStage": {
+          "UK": {
+            "DecisionBody": "Department for Environment, Food and Rural Affairs",
+            "FloodAlert": 3.5518624997133785,
+            "FloodWarning": 4.735816666284506,
+            "SevereFloodWarning": 5.62378229121285
+          }
+        },
+        "ThamesInfo": {
+          "DistanceToThamesMeters": 0,
+          "FloodRiskAssessment": {
+            "FloodRiskScore": 8,
+            "FloodRiskCategory": "High",
+            "LastAssessmentDate": "2024-12-17"
+          }
+        }
+      }
+    }
+  ],
+  "generation_metadata": {
+    "generated_at": "2025-06-18T16:17:20.423182",
+    "generator_version": "Simplified v2.0",
+    "total_gauges_generated": 40,
+    "thames_points_used": 40,
+    "processing_stats": {
+      "total_gauges": 40,
+      "successful_gauges": 40,
+      "failed_gauges": 0,
+      "elevation_successes": 0,
+      "elevation_failures": 0,
+      "coordinate_conversions": 0,
+      "start_time": "2025-06-18T16:17:20.419890",
+      "end_time": null
+    }
+  }
+}

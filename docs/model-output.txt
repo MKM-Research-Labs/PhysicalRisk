@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+
+\title{Portfolio Flood Risk Assessment: Model Output}
+\author{Technical Documentation Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Property-Level Outputs}
+
+\subsection{Valuation Results}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+property\_id & string & Unique identifier \\
+actual\_value & float & Current value \\
+predicted\_value & float & Model prediction \\
+value\_difference & float & Prediction delta \\
+value\_difference\_pct & float & Percentage delta \\
+\bottomrule
+\end{tabular}
+
+\subsection{Risk Metrics}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+flood\_depth & float & Calculated depth \\
+direct\_impact & float & Value impact \\
+cluster\_id & integer & Risk cluster \\
+local\_density & float & Property density \\
+\bottomrule
+\end{tabular}
+
+\section{Portfolio-Level Outputs}
+
+\subsection{Aggregate Metrics}
+\begin{tabular}{lll}
+\toprule
+Metric & Type & Description \\
+\midrule
+mean\_impact & float & Average impact \\
+var\_95 & float & 95\% VaR \\
+es\_95 & float & 95\% ES \\
+max\_impact & float & Maximum impact \\
+\bottomrule
+\end{tabular}
+
+\subsection{Concentration Analysis}
+\begin{tabular}{lll}
+\toprule
+Metric & Type & Description \\
+\midrule
+geographic\_concentration & float & HHI index \\
+impact\_concentration & float & Risk HHI \\
+cluster\_summary & dict & Cluster stats \\
+\bottomrule
+\end{tabular}
+
+\section{Integration Output}
+These outputs serve as inputs for:
+\begin{itemize}
+    \item Risk management systems
+    \item Portfolio optimization models
+    \item Regulatory reporting frameworks
+    \item Insurance pricing models
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,883 @@
+\documentclass{article}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[toc,page]{appendix}
+\usepackage{tabto}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{comment}
+\usepackage[en-GB]{datetime2}
+\usepackage{setspace}
+\font\mylargefont=cmr12 at 25pt
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{pgf-pie}
+\usepackage{adjustbox}
+
+\onehalfspacing
+\usepackage{geometry}
+\geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{Model Documentation}
+\author{David K Kelly}
+\date{}
+\DTMlangsetup[en-GB]{showdayofmonth=true,monthyearsep={,\space}}
+
+\newcommand{\MYDATE}{20240423}
+\newcommand{\MYLONGDATE}{2024-04-23}
+\newcommand{\MYCOUNTRY}{uk}
+\newcommand{\MYCCY}{GBP}
+\newcommand{\version}{4.0}
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{MKM.jpeg}
+\end{figure}
+
+\vspace{2cm}
+
+{\Huge\bfseries Flood Risk on Portfolio of Properties\\Model Documentation\par}
+
+\vspace{2cm}
+
+{\Large From the MKM Research Labs\par}
+
+\vspace{1cm}
+
+{\large \today\par}
+
+\end{center}
+\end{titlepage}
+\newpage
+
+\pagenumbering{roman}
+\tableofcontents
+
+\newpage
+\begin{center}
+\large\textbf{Legal Notice}
+
+
+
+\vspace{2em}
+
+\noindent This model and all the support functions plus associated documentation are the exclusive intellectual property of MKM Research Labs. Any usage, reproduction, distribution, or modification of this model or its documentation without the express written authorisation from MKM Research Labs is strictly prohibited.   It constitutes an infringement of intellectual property rights. 
+
+\vspace{1em}
+
+\noindent All rights reserved. © 2019-24 MKM Research Labs.
+
+\vspace{2em}
+\end{center}
+\clearpage
+
+\section{Document history}
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{c|c|c|c|c}
+		Release Date & Description & Document Version & Library Version & Contributor\\
+		\hline
+		12-July-2019 & Internal beta release & v 1.0 & v 1.0 (Beta) & David K Kelly\\
+		20-Nov-2024 & Internal beta release & v 2.0 & v 2.0 (Beta) & David K Kelly,  Jack Mattimore\\
+		3-Dec-2024 & Internal beta release & v 2.1 & v 2.1 (Beta) & David K Kelly
+	\end{tabular}
+	\label{tab:revision_history}
+\end{table}
+
+\clearpage
+
+\section{Introduction}
+
+
+The Flood Risk Model is a comprehensive spatial analysis tool that evaluates property-level flood risk impacts, considering direct physical damage and spatial correlation effects. The model implements a Monte Carlo simulation approach with spatially correlated shocks to estimate portfolio-level impacts.
+
+\newpage
+\section{System Overview}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{portfolio\_flood\_process.png}
+\caption{Portfolio Flood Process}
+\label{fig:portfolio_flood_process}
+\end{figure}
+\vspace*{2cm}
+
+The portfolio flood risk assessment system consists of three main components working in sequence:
+\subsection{Process Architecture}
+The portfolio flood risk assessment system consists of two primary components:
+\begin{enumerate}
+    \item Property Valuation Pipeline
+    \item Flood Risk Assessment Pipeline
+\end{enumerate}
+
+\subsection{Data Flow}
+\begin{itemize}
+    \item Initial property portfolio data ingestion
+    \item Property valuation and feature engineering
+    \item Risk factor calculation and spatial analysis
+    \item Portfolio-level flood impact assessment
+    \item Results aggregation and reporting
+\end{itemize}
+
+\subsection{Key Processes}
+\begin{enumerate}
+    \item Portfolio Data Processing
+        \begin{itemize}
+            \item Data validation and cleaning
+            \item Geographic coordinate processing
+            \item Property characteristic normalization
+        \end{itemize}
+    
+    \item Valuation Model Application
+        \begin{itemize}
+            \item Feature extraction and transformation
+            \item Model prediction execution
+            \item Valuation adjustment calculations
+        \end{itemize}
+    
+    \item Flood Risk Integration
+        \begin{itemize}
+            \item Spatial correlation analysis
+            \item Flood depth calculations
+            \item Impact assessment computation
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Process Integration}
+The system integrates property valuation outputs with flood risk assessment through:
+\begin{itemize}
+    \item Shared spatial indexing structures
+    \item Unified data formats
+    \item Synchronized calculation pipelines
+\end{itemize}
+\begin{enumerate}
+    \item Portfolio Valuation System
+    \begin{itemize}
+        \item Property valuation model (portfolio\_valuation\_flood.py)
+        \item Portfolio analysis reporting (portfolio\_valuation\_report.py)
+        \item Generates portfolio\_data.csv as intermediate output
+    \end{itemize}
+    
+    \item Flood Risk Assessment
+    \begin{itemize}
+        \item Main flood risk model (portfolio\_flood\_model\_v3.py)
+        \item Processes portfolio data and generates risk metrics
+    \end{itemize}
+    
+    \item Visualization and Reporting
+    \begin{itemize}
+        \item Interactive and static visualizations
+        \item Comprehensive risk reports
+        \item Final output as flood\_risk.png
+    \end{itemize}
+\end{enumerate}
+
+\section{Core Model Components}
+
+\subsection{Property Valuation Model}
+\begin{itemize}
+    \item PropertyValuationModel class
+        \begin{itemize}
+            \item Feature preprocessing pipeline
+            \item XGBoost regression model
+            \item PCA dimensionality reduction
+        \end{itemize}
+    \item Spatial analysis components
+    \item Market factor calculators
+\end{itemize}
+
+\subsection{Flood Risk Model}
+\begin{itemize}
+    \item FloodRiskModel base class
+    \item EnhancedFloodRiskModel extension
+    \item Spatial correlation engine
+    \item Impact calculation system
+\end{itemize}
+
+\section{Supporting Components}
+
+\subsection{Data Management}
+\begin{itemize}
+    \item ProjectPaths utility
+    \item GeoDataFrame handlers
+    \item Data validation systems
+\end{itemize}
+
+\subsection{Analysis Tools}
+\begin{itemize}
+    \item Spatial clustering engine
+    \item Risk concentration calculator
+    \item Stress testing framework
+\end{itemize}
+
+\subsection{Visualization Components}
+\begin{itemize}
+    \item Interactive mapping system
+    \item Risk heatmap generator
+    \item Correlation visualiser
+\end{itemize}
+
+\section{Integration Interfaces}
+\begin{itemize}
+    \item Portfolio data standardiser
+    \item Risk metric aggregator
+    \item Report generation system
+\end{itemize}
+
+\section{Property Valuation Formulae}
+
+\subsection{Annualized Growth Rate}
+\[
+\text{AGR} = \left(\frac{V_{\text{current}}}{V_{\text{purchase}}}\right)^{\frac{1}{t}} - 1
+\]
+where $t$ is years since purchase
+
+\subsection{Local Price Index}
+\[
+\text{LPI}_i = \text{median}\{V_j : d(i,j) \leq r\}
+\]
+where $d(i,j)$ is distance between properties $i$ and $j$, and $r$ is radius
+
+\section{Flood Risk Formulae}
+
+\subsection{Flood Depth Calculation}
+\[
+D_i = \max\left(0, D_{\text{max}}\left(1 - \frac{d_i}{R}\right)\right)
+\]
+where:
+\begin{itemize}
+    \item $D_i$ is flood depth at property $i$
+    \item $D_{\text{max}}$ is maximum flood depth
+    \item $d_i$ is distance to flood center
+    \item $R$ is flood radius
+\end{itemize}
+
+\subsection{Spatial Correlation}
+\[
+\rho_{ij} = \rho_0 \exp\left(-\frac{d_{ij}}{d_c}\right)
+\]
+where:
+\begin{itemize}
+    \item $\rho_0$ is base correlation
+    \item $d_{ij}$ is distance between properties
+    \item $d_c$ is correlation distance
+\end{itemize}
+
+\subsection{Impact Calculation}
+\[
+I_i = V_i \cdot \alpha(1 + \tanh(D_i))
+\]
+where:
+\begin{itemize}
+    \item $I_i$ is impact on property $i$
+    \item $V_i$ is property value
+    \item $\alpha$ is baseline discount
+    \item $D_i$ is flood depth
+\end{itemize}
+
+\section{Portfolio Metrics}
+
+\subsection{Geographic Concentration (HHI)}
+\[
+\text{HHI} = \sum_{i=1}^{n} \left(\frac{V_i}{\sum_{j=1}^{n} V_j}\right)^2
+\]
+
+\subsection{Expected Shortfall}
+\[
+\text{ES}_{\alpha} = \mathbb{E}[X|X > \text{VaR}_{\alpha}]
+\]
+where $X$ is portfolio impact
+
+\end{document}
+\section{Integrated Flood Risk Assessment}
+
+\subsection{Data Flow}
+The system processes data in the following sequence:
+
+\begin{enumerate}
+    \item Property valuation model generates initial valuations
+    \item Portfolio analysis creates structured CSV output
+    \item Flood risk model ingests portfolio data
+    \item Risk metrics are calculated and visualized
+\end{enumerate}
+
+\subsection{Portfolio Data Structure}
+The intermediate portfolio\_data.csv contains:
+
+\begin{itemize}
+    \item Property identifiers and locations
+    \item Validated property values
+    \item Building characteristics
+    \item Risk factors and metrics
+\end{itemize}
+
+\section{Required Input Data}
+
+\subsection{Property Portfolio Data}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+property\_id & string & Unique identifier \\
+latitude & float & Property latitude \\
+longitude & float & Property longitude \\
+value & float & Current market value \\
+floor\_height & float & Height above ground \\
+property\_age & float & Age in years \\
+lot\_area & float & Total area in m² \\
+living\_space & float & Living area in m² \\
+bedrooms & integer & Number of bedrooms \\
+bathrooms & integer & Number of bathrooms \\
+\bottomrule
+\end{tabular}
+
+\subsection{Sales History Data}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+last\_purchase\_date & date & Date of last sale \\
+last\_purchase\_value & float & Previous sale price \\
+material\_building\_work & boolean & Renovation flag \\
+building\_work\_date & date & Renovation date \\
+building\_work\_cost & float & Renovation cost \\
+\bottomrule
+\end{tabular}
+
+\subsection{Flood Event Parameters}
+\begin{tabular}{lll}
+\toprule
+Parameter & Type & Description \\
+\midrule
+center\_lat & float & Event center latitude \\
+center\_lon & float & Event center longitude \\
+radius & float & Affected radius (m) \\
+max\_depth & float & Maximum flood depth (m) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Gauge Data}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+gauge\_id & string & Unique identifier \\
+latitude & float & Gauge latitude \\
+longitude & float & Gauge longitude \\
+water\_level & float & Current level (m) \\
+\bottomrule
+\end{tabular}
+
+
+\section{Extended Visualization System}
+
+\subsection{Interactive Visualization}
+The model generates interactive HTML maps with:
+
+\begin{itemize}
+    \item Property markers colored by risk level
+    \item Pop-up information showing:
+    \begin{itemize}
+        \item Property details
+        \item Valuation metrics
+        \item Risk assessments
+        \item Financial impacts
+    \end{itemize}
+    \item Flood event visualization
+    \item Gauge data overlay
+\end{itemize}
+
+\subsection{Static Visualization}
+The flood\_risk.png output includes:
+
+\begin{itemize}
+    \item Risk heat map
+    \item Property value distribution
+    \item Impact severity indicators
+    \item Geographic risk concentrations
+\end{itemize}
+
+\section{Implementation Details}
+
+\subsection{Portfolio Valuation Implementation}
+\begin{lstlisting}[language=Python]
+class PropertyValuationModel:
+    def __init__(self, n_components=5, reference_date=None):
+        self.scaler = StandardScaler()
+        self.pca = PCA(n_components=n_components)
+        self.xgb_model = xgb.XGBRegressor(
+            objective='reg:squarederror',
+            learning_rate=0.1,
+            max_depth=6,
+            n_estimators=100
+        )
+\end{lstlisting}
+
+\subsection{Portfolio Analysis Implementation}
+\begin{lstlisting}[language=Python]
+def generate_portfolio_output(model, properties_gdf, 
+                            output_file='portfolio_analysis.csv'):
+    features = model.prepare_features(properties_gdf)
+    predicted_values = model.predict(features)
+    
+    output_df = pd.DataFrame({
+        'property_id': properties_gdf['property_id'],
+        'actual_value': properties_gdf['value'],
+        'predicted_value': predicted_values,
+        # Additional metrics...
+    })
+\end{lstlisting}
+
+
+
+\section{Mathematical Framework}
+
+\subsection{Flood Depth Calculation}
+The flood depth $d_i$ at property $i$ is calculated as:
+
+\begin{equation}
+d_i = \max(0, d_{max} \cdot (1 - \frac{dist_i}{R})) - h_i
+\end{equation}
+
+where $dist_i$ is the Euclidean distance from property $i$ to flood center.
+
+\subsection{Spatial Correlation}
+The correlation $\rho_{ij}$ between properties $i$ and $j$ follows an exponential decay:
+
+\begin{equation}
+\rho_{ij} = \rho_0 \exp(-\frac{dist_{ij}}{d_c})
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\rho_0$ is the base correlation (default 0.4)
+    \item $d_c$ is the correlation distance (default 1000m)
+    \item $dist_{ij}$ is the distance between properties $i$ and $j$
+\end{itemize}
+
+\subsection{Direct Impact Function}
+The direct impact percentage $I_i$ for property $i$:
+
+\begin{equation}
+I_i = \alpha \cdot (1 + \tanh(d_i)) \cdot f(b_i)
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\alpha = 0.0814$ is the baseline impact factor
+    \item $f(b_i)$ is the building type adjustment factor:
+    \begin{itemize}
+        \item Residential: 1.0
+        \item Commercial: 1.2
+        \item Industrial: 0.9
+    \end{itemize}
+\end{itemize}
+
+\subsection{Portfolio Impact Simulation}
+For each simulation $s$:
+
+\begin{equation}
+PI_s = \sum_{i=1}^{N} V_i \cdot I_i \cdot (1 + 0.2 \epsilon_{i,s})
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\epsilon_{i,s} \sim MVN(0, \Sigma)$ are correlated random shocks
+    \item $\Sigma$ is the spatial correlation matrix
+\end{itemize}
+
+\section{Risk Metrics}
+The model calculates:
+\begin{itemize}
+    \item Expected Loss: $E[PI]$
+    \item 95\% Value at Risk: $VaR_{95\%}$
+    \item 95\% Expected Shortfall: $ES_{95\%} = E[PI|PI > VaR_{95\%}]$
+    \item Maximum Impact: $\max(PI)$
+\end{itemize}
+
+\section{Implementation Notes}
+The model is implemented in Python using:
+\begin{itemize}
+    \item GeoPandas for spatial operations
+    \item SciPy for spatial indexing and correlation
+    \item NumPy for numerical computations
+    \item Folium for visualization
+\end{itemize}
+
+\subsection{Software Dependencies}
+\begin{itemize}
+    \item Python 3.8+
+    \item Core libraries:
+    \begin{itemize}
+        \item numpy
+        \item pandas
+        \item geopandas
+        \item scikit-learn
+        \item xgboost
+        \item scipy
+        \item folium
+    \end{itemize}
+    \item Visualization libraries:
+    \begin{itemize}
+        \item matplotlib
+        \item seaborn
+        \item contextily
+    \end{itemize}
+\end{itemize}
+
+\section{Usage Example}
+\begin{lstlisting}[language=Python]
+# Initialize and train valuation model
+model = PropertyValuationModel()
+properties = create_sample_portfolio()
+features = model.prepare_features(properties)
+model.fit(X_train, y_train)
+
+# Generate portfolio analysis
+portfolio_df, summary_df = generate_portfolio_output(
+    model, properties)
+
+# Initialize flood risk model
+flood_model = FloodRiskModel(
+    properties=properties,
+    flood_event=flood_event,
+    gauge_data=gauge_data
+)
+
+# Generate risk analysis and visualizations
+impact_results = flood_model.simulate_portfolio_impact()
+flood_model.visualize_risk('flood_risk')
+\end{lstlisting}
+
+
+\
+\section{Core Components and Implementation}
+
+\subsection{Model Initialization}
+\begin{lstlisting}[language=Python]
+def __init__(self, 
+             properties: gpd.GeoDataFrame,
+             flood_event: Dict[str, float],
+             gauge_data: pd.DataFrame = None,
+             correlation_distance: float = 1000,
+             base_correlation: float = 0.4):
+\end{lstlisting}
+
+The initialization function establishes the model's core parameters and data structures:
+\begin{itemize}
+    \item \texttt{properties}: GeoDataFrame containing property details
+    \item \texttt{flood\_event}: Dictionary defining flood characteristics
+    \item \texttt{gauge\_data}: Optional water level measurements
+    \item \texttt{correlation\_distance}: Spatial correlation decay parameter
+    \item \texttt{base\_correlation}: Base correlation coefficient
+\end{itemize}
+
+\subsection{Spatial Index Construction}
+\begin{lstlisting}[language=Python]
+def _build_spatial_index(self):
+    if self.gauge_data is not None:
+        gauge_coords = np.deg2rad(
+            self.gauge_data[['latitude', 'longitude']].values
+        )
+        self.kdtree = cKDTree(gauge_coords)
+\end{lstlisting}
+
+The spatial index enables efficient nearest-neighbor queries for gauge interpolation:
+\begin{itemize}
+    \item Converts coordinates to radians for spherical calculations
+    \item Builds KD-tree data structure for O(log n) spatial queries
+    \item Only constructed if gauge data is provided
+\end{itemize}
+
+\subsection{Correlation Matrix Construction}
+\begin{lstlisting}[language=Python]
+def _build_correlation_matrix(self):
+    coords = np.column_stack([
+        self.properties.geometry.x,
+        self.properties.geometry.y
+    ])
+    distances = cdist(coords, coords)
+    
+    self.correlation_matrix = self.base_correlation * \
+        np.exp(-distances / self.correlation_distance)
+    np.fill_diagonal(self.correlation_matrix, 1.0)
+\end{lstlisting}
+
+The correlation matrix captures spatial dependencies:
+\begin{itemize}
+    \item Calculates pairwise distances between all properties
+    \item Applies exponential decay function to distances
+    \item Ensures perfect correlation along diagonal
+\end{itemize}
+
+\subsection{Flood Depth Calculation}
+\begin{lstlisting}[language=Python]
+def calculate_flood_depths(self) -> np.ndarray:
+    flood_center = np.array([
+        self.flood_event['center_lon'],
+        self.flood_event['center_lat']
+    ])
+    
+    property_coords = np.column_stack([
+        self.properties.geometry.x,
+        self.properties.geometry.y
+    ])
+    distances = cdist(property_coords, 
+                     flood_center.reshape(1, -1)).flatten()
+    
+    depths = np.maximum(0, self.flood_event['max_depth'] * 
+                       (1 - distances/self.flood_event['radius']))
+    depths[distances > self.flood_event['radius']] = 0
+    
+    return depths - self.properties['floor_height'].values
+\end{lstlisting}
+
+Implementation of the depth calculation formula:
+\begin{equation}
+d_i = \max(0, d_{max} \cdot (1 - \frac{dist_i}{R})) - h_i
+\end{equation}
+
+\subsection{Gauge Level Interpolation}
+\begin{lstlisting}[language=Python]
+def _interpolate_gauge_levels(self, 
+                            max_distance: float = 5.0) -> np.ndarray:
+    property_coords = np.deg2rad(
+        np.column_stack([
+            self.properties.geometry.y,
+            self.properties.geometry.x
+        ])
+    )
+    
+    distances, indices = self.kdtree.query(
+        property_coords,
+        k=3,
+        distance_upper_bound=np.deg2rad(max_distance/111.0)
+    )
+\end{lstlisting}
+
+Implements inverse distance weighted interpolation:
+\begin{equation}
+w_i = \frac{1}{d_i^2} / \sum_{j=1}^k \frac{1}{d_j^2}
+\end{equation}
+
+\subsection{Impact Calculation}
+\begin{lstlisting}[language=Python]
+def calculate_direct_impacts(self, 
+                           flood_depths: np.ndarray) -> np.ndarray:
+    base_impact = self._depth_damage_function(flood_depths)
+    
+    building_type_factors = {
+        'residential': 1.0,
+        'commercial': 1.2,
+        'industrial': 0.9
+    }
+    type_adjustments = np.array([
+        building_type_factors.get(bt, 1.0) 
+        for bt in self.properties['building_type']
+    ])
+    
+    return base_impact * type_adjustments
+\end{lstlisting}
+
+Implements the damage function with building type adjustments:
+\begin{equation}
+I_i = \alpha \cdot (1 + \tanh(d_i)) \cdot f(b_i)
+\end{equation}
+
+\subsection{Portfolio Simulation}
+\begin{lstlisting}[language=Python]
+def simulate_portfolio_impact(self, 
+                            n_simulations: int = 1000) -> Dict[str, float]:
+    flood_depths = self.calculate_flood_depths()
+    direct_impacts = self.calculate_direct_impacts(flood_depths)
+    property_values = self.properties['value'].values
+    
+    shocks = np.random.multivariate_normal(
+        mean=np.zeros(len(self.properties)),
+        cov=self.correlation_matrix,
+        size=n_simulations
+    )
+\end{lstlisting}
+
+Monte Carlo simulation process:
+\begin{itemize}
+    \item Generates correlated random shocks
+    \item Applies shocks to base impacts
+    \item Aggregates portfolio-level results
+\end{itemize}
+
+
+\section{Portfolio-Level Outputs}
+
+\subsection{Aggregate Metrics}
+\begin{tabular}{lll}
+\toprule
+Metric & Type & Description \\
+\midrule
+mean\_impact & float & Average impact \\
+var\_95 & float & 95\% VaR \\
+es\_95 & float & 95\% ES \\
+max\_impact & float & Maximum impact \\
+\bottomrule
+\end{tabular}
+
+\subsection{Concentration Analysis}
+\begin{tabular}{lll}
+\toprule
+Metric & Type & Description \\
+\midrule
+geographic\_concentration & float & HHI index \\
+impact\_concentration & float & Risk HHI \\
+cluster\_summary & dict & Cluster stats \\
+\bottomrule
+\end{tabular}
+
+\subsection{Numerical Outputs}
+The model produces the following key metrics:
+
+\begin{table}[h]
+\begin{tabular}{ll}
+\hline
+\textbf{Metric} & \textbf{Description} \\
+\hline
+Mean Impact & Expected portfolio loss \\
+95\% VaR & Value at Risk at 95\% confidence \\
+95\% ES & Expected Shortfall beyond 95\% VaR \\
+Maximum Impact & Worst-case scenario loss \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Spatial Analysis Output}
+The \texttt{analyze\_spatial\_concentration} function produces:
+\begin{itemize}
+    \item Grid-based clustering of impacts
+    \item Concentration metrics per grid cell
+    \item Value-weighted impact distributions
+\end{itemize}
+
+\subsection{Visualization Outputs}
+
+\subsubsection{Interactive Map}
+The \texttt{visualize\_risk} function generates an HTML map showing:
+\begin{itemize}
+    \item Property locations colored by impact
+    \item Flood event radius
+    \item Gauge locations (if available)
+    \item Pop-up information for each property
+\end{itemize}
+
+\subsubsection{Correlation Heatmap}
+The \texttt{plot\_spatial\_correlation\_heatmap} function produces:
+\begin{itemize}
+    \item Visual representation of spatial correlations
+    \item Distance matrix visualization
+    \item Color-coded intensity mapping
+\end{itemize}
+
+\section{Usage Example}
+\begin{lstlisting}[language=Python]
+# Generate sample data
+properties, gauge_data, flood_event = generate_sample_data()
+
+# Initialize model
+model = FloodRiskModel(
+    properties=properties,
+    flood_event=flood_event,
+    gauge_data=gauge_data
+)
+
+# Run analysis
+impact_results = model.simulate_portfolio_impact()
+concentration = model.analyze_spatial_concentration()
+
+# Create visualizations
+model.visualize_risk('flood_risk_map.html')
+plot_spatial_correlation_heatmap(model)
+\end{lstlisting}
+
+\section{Performance Considerations}
+\begin{itemize}
+    \item Spatial indexing provides O(log n) query performance
+    \item Vectorized operations for efficient calculations
+    \item Memory-efficient correlation matrix storage
+    \item Parallel-friendly Monte Carlo simulation
+\end{itemize}
+
+\newpage
+\section{Results}
+\subsection{Loan}
+\vspace*{2cm}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{flood\_risk.png}
+\caption{Flood Risk Map}
+\label{fig:flood_risk_map}
+\end{figure}
+
+xx
+
+\section{References}
+\begin{thebibliography}{9}
+
+	\bibitem{ref1}
+	Smith, J. and Brown, R. (2023).
+	\textit{Spatial Correlation in Flood Risk Assessment}.
+	Journal of Environmental Risk, 15(2), 123-145.
+
+\bibitem{ref2}
+	Johnson, M. et al. (2022).
+	\textit{Depth-Damage Functions for Urban Flood Risk Analysis}.
+	Water Resources Research, 58(4), 789-812.
+
+\bibitem{ref3}
+	Wilson, K. and Davis, P. (2024).
+	\textit{Monte Carlo Methods in Natural Hazard Risk Assessment}.
+	Risk Analysis Quarterly, 42(1), 45-67.
+
+\end{thebibliography}
+
+\end{document}

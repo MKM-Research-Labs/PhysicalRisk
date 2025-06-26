@@ -1,0 +1,14 @@
+{
+  "tc_events": [
+    {
+      "event_id": "TC-EVENT-4c86c42b",
+      "name": "Cyclone A",
+      "type": "Tropical Cyclone"
+    },
+    {
+      "event_id": "TC-EVENT-f574637f",
+      "name": "Cyclone B",
+      "type": "Tropical Cyclone"
+    }
+  ]
+}

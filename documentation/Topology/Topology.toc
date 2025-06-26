@@ -1,0 +1,26 @@
+\contentsline {section}{\numberline {1}Document history}{3}{section.1}%
+\contentsline {section}{\numberline {2}Background}{5}{section.2}%
+\contentsline {section}{\numberline {3}Manifold Learning for Dimensionality Reduction}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}UMAP Mathematical Framework}{7}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Local Metric Approximation}{7}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Fuzzy Topological Representation}{7}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Cross-Entropy Optimization}{7}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Parameterization for Weather-to-Flood Applications}{7}{subsubsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.2}Multi-scale Weather Pattern Integration}{8}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Scale-Aware Manifold Construction}{8}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Topological Feature Preservation}{8}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Weather-to-Flood Mapping}{8}{subsubsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.3}Uncertainty Quantification}{9}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Manifold Distortion Metrics}{9}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Error Propagation Through the Manifold}{9}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Ensemble Approach to Uncertainty}{9}{subsubsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.4}Implementation Architecture}{9}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Data Preprocessing}{10}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Computational Workflow}{10}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Hardware Acceleration}{10}{subsubsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.5}Experimental Validation}{10}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Weather Pattern Classification}{10}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Flood Prediction Accuracy}{10}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}Topology Preservation}{11}{subsubsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.6}Operational Implementation}{11}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Future Research Directions}{11}{subsection.3.7}%

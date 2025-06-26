@@ -1,0 +1,27 @@
+FLOOD RISK PORTFOLIO ANALYSIS SUMMARY
+==================================================
+
+Report Generated: 2025-06-20 10:23:24
+Total Properties Analyzed: 200
+
+PORTFOLIO OVERVIEW:
+• Total Portfolio Value: £208.9M
+• Properties at Risk: 57 (28.5%)
+• Total Value at Risk: £22.7M (10.8%)
+
+FLOOD DEPTH STATISTICS:
+• Average Flood Depth: 0.30m
+• Maximum Flood Depth: 2.83m
+• Average Impact Ratio: 8.9%
+
+RISK LEVEL BREAKDOWN:
+• Minimal Risk: 112 properties (56.0%)
+• Medium Risk: 44 properties (22.0%)
+• Low Risk: 31 properties (15.5%)
+• High Risk: 13 properties (6.5%)
+
+FLOOD ZONE ANALYSIS:
+• Zone 3a: 56 properties (28.0%), 41 at risk
+• Zone 1: 50 properties (25.0%), 0 at risk
+• Zone 3b: 47 properties (23.5%), 0 at risk
+• Zone 2: 47 properties (23.5%), 16 at risk

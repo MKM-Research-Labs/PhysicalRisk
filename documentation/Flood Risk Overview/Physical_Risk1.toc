@@ -1,0 +1,56 @@
+\contentsline {section}{\numberline {1}Document history}{4}{section.1}%
+\contentsline {section}{\numberline {2}Introduction}{6}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Background}{6}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Related Work}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Contributions}{6}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Paper Organization}{7}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Methodology}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}State Space Formulation}{7}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Weather State $W(t)$}{7}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Flood State $F(t)$}{8}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Vulnerability State $V(t)$}{9}{subsubsection.3.1.3}%
+\contentsline {section}{\numberline {4}Weather Prediction and Precipitation Modeling}{9}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Primitive-Equation Atmospheric Model}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Reynolds' Equations for Turbulence}{10}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Weather Pattern Prediction Architecture}{10}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Core AFNO Architecture}{10}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Two-Stage Prediction Process}{11}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}Precipitation Model}{11}{subsubsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.4}Complete Inference Pipeline}{11}{subsubsection.4.3.4}%
+\contentsline {subsection}{\numberline {4.4}AI-Enhanced Weather Prediction}{11}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Graph Neural Networks for Weather Forecasting}{12}{subsubsection.4.4.1}%
+\contentsline {subsubsection}{\numberline {4.4.2}Physical Consistency Constraints}{12}{subsubsection.4.4.2}%
+\contentsline {subsubsection}{\numberline {4.4.3}Data Integration Strategy}{12}{subsubsection.4.4.3}%
+\contentsline {section}{\numberline {5}Topological Analysis and Manifold Learning}{12}{section.5}%
+\contentsline {subsection}{\numberline {5.1}UMAP in Meteorological-Hydrological Modeling}{12}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}UMAP Mathematical Framework}{12}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}Fuzzy Topological Representation}{13}{subsubsection.5.1.2}%
+\contentsline {subsubsection}{\numberline {5.1.3}Multi-scale Weather Pattern Integration}{13}{subsubsection.5.1.3}%
+\contentsline {subsubsection}{\numberline {5.1.4}Topological Feature Preservation}{13}{subsubsection.5.1.4}%
+\contentsline {subsection}{\numberline {5.2}Weather-to-Flood Mapping}{14}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Uncertainty Quantification}{14}{subsection.5.3}%
+\contentsline {subsubsection}{\numberline {5.3.1}Manifold Distortion Metrics}{14}{subsubsection.5.3.1}%
+\contentsline {subsubsection}{\numberline {5.3.2}Error Propagation Through the Manifold}{14}{subsubsection.5.3.2}%
+\contentsline {subsubsection}{\numberline {5.3.3}Ensemble Approach to Uncertainty}{14}{subsubsection.5.3.3}%
+\contentsline {section}{\numberline {6}Shallow Water Hydrodynamic Modeling}{15}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Shallow Water Equations}{15}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Physical Parameter Specification}{15}{subsubsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.2}Shallow-Fluid Approximations}{16}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Numerical Solution Methods}{16}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Terrain Integration}{17}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Wetting and Drying Algorithm}{17}{subsection.6.5}%
+\contentsline {section}{\numberline {7}Portfolio Risk Assessment}{17}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Direct Impact Function}{17}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Spatial Correlation}{17}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Portfolio Impact Simulation}{18}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Geographic Concentration}{18}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Present Value Impact}{18}{subsection.7.5}%
+\contentsline {section}{\numberline {8}Implementation Architecture}{18}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Computational Architecture}{18}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Real-Time Processing Pipeline}{19}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Model Coupling Strategy}{19}{subsection.8.3}%
+\contentsline {section}{\numberline {9}Discussion}{19}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Model Capabilities and Limitations}{19}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Operational Considerations}{20}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Future Research Directions}{20}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Broader Impact}{21}{subsection.9.4}%

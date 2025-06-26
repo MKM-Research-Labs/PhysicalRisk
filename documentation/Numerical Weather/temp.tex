@@ -1,0 +1,35 @@
+\section{Overview of Numerical Methods}
+
+The growth of computing capabilities over recent decades has greatly influenced how we solve atmospheric equations numerically. This section examines the fundamental components and challenges in developing numerical solutions for the equations presented in previous sections.
+
+\subsection{Basic Principles of Numerical Solutions}
+
+Converting the continuous atmospheric equations into discrete forms suitable for computer calculations requires careful consideration of several key aspects:
+
+
+
+\subsubsection{Grid Systems and Resolution}
+
+
+
+where indices $i,j,k$ represent locations in space, $n$ denotes the time level, and $T$ represents temperature as an example variable.
+
+The vertical coordinate system often employs pressure-based levels:
+
+\begin{equation}
+\sigma = \frac{p - p_t}{p_s - p_t}
+\label{eq:60}
+\end{equation}
+
+where $p_t$ is the pressure at the model top and $p_s$ is the surface pressure.
+
+\subsubsection{Time Step Constraints}
+
+A fundamental constraint on numerical solutions is the Courant-Friedrichs-Lewy (CFL) condition:
+
+\begin{equation}
+C = \frac{U\Delta t}{\Delta x} \leq 1
+\label{eq:61}
+\end{equation}
+
+This condition ensures that information does not propagate faster than the numerical scheme can resolve, where $U$ represents the fastest wave speed in the system.

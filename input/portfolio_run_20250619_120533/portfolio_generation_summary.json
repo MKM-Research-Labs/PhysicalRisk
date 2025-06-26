@@ -1,0 +1,24 @@
+{
+  "generation_timestamp": "2025-06-19T12:05:35.195853",
+  "output_directory": "/Users/newdavid/Documents/Physrisk/input/portfolio_run_20250619_120533",
+  "generated_files": {
+    "properties": "/Users/newdavid/Documents/Physrisk/input/portfolio_run_20250619_120533/property_portfolio.json",
+    "flood_gauges": "/Users/newdavid/Documents/Physrisk/input/portfolio_run_20250619_120533/flood_gauge_portfolio.json",
+    "mortgages": "/Users/newdavid/Documents/Physrisk/input/portfolio_run_20250619_120533/mortgage_portfolio.json",
+    "tc_events": "/Users/newdavid/Documents/Physrisk/input/portfolio_run_20250619_120533/tc_events.json",
+    "gauge_time_series": "/Users/newdavid/Documents/Physrisk/input/portfolio_run_20250619_120533/gauge_floodts.json"
+  },
+  "file_sizes": {
+    "properties": 1311092,
+    "flood_gauges": 73916,
+    "mortgages": 1229071,
+    "tc_events": 247,
+    "gauge_time_series": 282091
+  },
+  "record_counts": {
+    "properties_properties": 200,
+    "flood_gauges_flood_gauges": 40,
+    "mortgages_mortgages": 200,
+    "tc_events_tc_events": 2
+  }
+}

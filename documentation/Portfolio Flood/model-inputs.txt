@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+
+\title{Portfolio Flood Risk Assessment: Model Inputs}
+\author{Technical Documentation Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Required Input Data}
+
+\subsection{Property Portfolio Data}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+property\_id & string & Unique identifier \\
+latitude & float & Property latitude \\
+longitude & float & Property longitude \\
+value & float & Current market value \\
+floor\_height & float & Height above ground \\
+property\_age & float & Age in years \\
+lot\_area & float & Total area in m² \\
+living\_space & float & Living area in m² \\
+bedrooms & integer & Number of bedrooms \\
+bathrooms & integer & Number of bathrooms \\
+\bottomrule
+\end{tabular}
+
+\subsection{Sales History Data}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+last\_purchase\_date & date & Date of last sale \\
+last\_purchase\_value & float & Previous sale price \\
+material\_building\_work & boolean & Renovation flag \\
+building\_work\_date & date & Renovation date \\
+building\_work\_cost & float & Renovation cost \\
+\bottomrule
+\end{tabular}
+
+\subsection{Flood Event Parameters}
+\begin{tabular}{lll}
+\toprule
+Parameter & Type & Description \\
+\midrule
+center\_lat & float & Event center latitude \\
+center\_lon & float & Event center longitude \\
+radius & float & Affected radius (m) \\
+max\_depth & float & Maximum flood depth (m) \\
+\bottomrule
+\end{tabular}
+
+\section{Optional Input Data}
+
+\subsection{Gauge Data}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Description \\
+\midrule
+gauge\_id & string & Unique identifier \\
+latitude & float & Gauge latitude \\
+longitude & float & Gauge longitude \\
+water\_level & float & Current level (m) \\
+\bottomrule
+\end{tabular}
+
+\end{document}
