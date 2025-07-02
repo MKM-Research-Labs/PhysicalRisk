@@ -29,8 +29,14 @@ class PhysicalRiskSwapCDM:
     Provides a standardized schema and data transformation methods
     for physical risk swap data.
     """
-    def __init__(self):
-        """Initialize the Physical Risk Swap CDM with schema definition."""
+    def __init__(self, gauge_basket_size: int = 20):
+        """
+        Initialize the Physical Risk Swap CDM with schema definition.
+        
+        Args:
+            gauge_basket_size: Number of gauges in the basket (default: 20)
+        """
+        self.gauge_basket_size = gauge_basket_size
         self.schema = {
             "PhysicalSwap": {
                 "Header": {
@@ -147,9 +153,13 @@ class PhysicalRiskSwapCDM:
                     },
                     "GaugeBasketSize": {
                         "type": "integer",
-                        "description": "number of gauges so 1 < n < GaugeBasketSize"
+                        "description": f"number of gauges so 1 < n < {self.gauge_basket_size + 1}"
                     },
                     **{f"Gauge{i}": {
+                        "GaugeIndex": {
+                            "type": "integer",
+                            "description": f"Index position of gauge {i} in portfolio"
+                        },
                         "GaugeID": {
                             "type": "text",
                             "description": f"Unique identifier for sensor {i}"
@@ -158,7 +168,7 @@ class PhysicalRiskSwapCDM:
                             "type": "decimal",
                             "description": f"Payout for reaching Severe Flood Warning for gauge {i}"
                         }
-                    } for i in range(1, 21)}
+                    } for i in range(1, self.gauge_basket_size + 1)}
                 }
             }
         }
@@ -225,13 +235,23 @@ class PhysicalRiskSwapCDM:
             if basket_size is not None and (not isinstance(basket_size, int) or basket_size <= 0):
                 gauge_errors.append("GaugeBasketSize must be a positive integer")
             
-            # Validate individual gauges (1-20)
-            for i in range(1, 21):
+            # Validate individual gauges (1 to gauge_basket_size)
+            for i in range(1, self.gauge_basket_size + 1):
                 gauge_key = f"Gauge{i}"
                 if gauge_key in gauge_set:
                     gauge_data = gauge_set[gauge_key]
                     if not gauge_data.get("GaugeID"):
                         gauge_errors.append(f"Missing GaugeID for {gauge_key}")
+                    
+                    # Validate GaugeIndex
+                    gauge_index = gauge_data.get("GaugeIndex")
+                    if gauge_index is not None:
+                        if not isinstance(gauge_index, int) or gauge_index < 1:
+                            gauge_errors.append(f"Invalid GaugeIndex for {gauge_key} - must be positive integer")
+                    else:
+                        gauge_errors.append(f"Missing GaugeIndex for {gauge_key}")
+                    
+                    # Validate PayoutSevereFlood
                     if gauge_data.get("PayoutSevereFlood") is not None:
                         try:
                             float(gauge_data["PayoutSevereFlood"])
@@ -294,12 +314,13 @@ class PhysicalRiskSwapCDM:
                 'gauge_basket_size': swap.get('PhysicalSwap', {}).get('GaugeSet', {}).get('GaugeBasketSize')
             }
             
-            # Add individual gauges (1-20)
+            # Add individual gauges (1 to gauge_basket_size)
             gauge_set_data = swap.get('PhysicalSwap', {}).get('GaugeSet', {})
-            for i in range(1, 21):
+            for i in range(1, self.gauge_basket_size + 1):
                 gauge_key = f"Gauge{i}"
                 if gauge_key in gauge_set_data:
                     gauge_data = gauge_set_data[gauge_key]
+                    swap_data[f'gauge_{i}_index'] = gauge_data.get('GaugeIndex')
                     swap_data[f'gauge_{i}_id'] = gauge_data.get('GaugeID')
                     swap_data[f'gauge_{i}_payout_severe_flood'] = gauge_data.get('PayoutSevereFlood')
             
