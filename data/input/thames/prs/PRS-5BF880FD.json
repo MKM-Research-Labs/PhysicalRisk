@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-5BF880FD",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-1349b7dd",
+      "CounterPartyName": "L&G Flood (AA+)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-09",
+      "ProtectionStart": "2026-03-11",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": true,
+      "Currency": "GBP",
+      "Notional": 5000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.030949834888842377
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-11",
+      "EndDate": "2028-05-26",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-d208bf3d",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-d208bf3d",
+          "GaugeName": "Thames Vauxhall Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 5000000
+    },
+    "Pricing": {
+      "SpreadBps": 309,
+      "FairSpreadBps": 315.16,
+      "NPV": 5244.47,
+      "PremiumLegPV": 286731.76,
+      "ProtectionLegPV": 291976.23,
+      "RiskyAnnuity": 1.852881,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

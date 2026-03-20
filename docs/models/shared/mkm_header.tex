@@ -1,0 +1,183 @@
+% MKM Research Labs — Shared Document Header
+% Usage: \input{../shared/mkm_header}  (before \begin{document})
+%
+% Required commands before \input:
+%   \newcommand{\doctitle}{...}
+%   \newcommand{\docsubtitle}{...}
+%   \newcommand{\docversion}{1.0}
+%   \newcommand{\docdate}{13-February-2026}
+%   \newcommand{\docauthor}{David K Kelly}
+
+% ─── Packages ───────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{listings}
+\usepackage{color,xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[toc,page]{appendix}
+\usepackage{tabto}
+\usepackage{float}
+\usepackage{comment}
+\usepackage[en-GB]{datetime2}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% ─── Page geometry ──────────────────────────────────────────────────────────
+\onehalfspacing
+\usepackage{geometry}
+\geometry{a4paper, total={170mm,247mm}, left=20mm, top=25mm, bottom=25mm}
+
+% ─── Headers and footers ───────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{gray}{MKM Research Labs}}
+\fancyhead[R]{\small\textcolor{gray}{\doctitle{} --- v\docversion}}
+\fancyfoot[C]{\small\textcolor{gray}{CONFIDENTIAL}}
+\fancyfoot[R]{\small\textcolor{gray}{Page \thepage\ of \pageref{LastPage}}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ─── Colours ────────────────────────────────────────────────────────────────
+\definecolor{mkmblue}{HTML}{1565C0}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% ─── Hyperref setup ─────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=mkmblue,
+    citecolor=mkmblue,
+    urlcolor=mkmblue
+}
+
+% ─── Code listings ──────────────────────────────────────────────────────────
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% ─── Section formatting ────────────────────────────────────────────────────
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+% ─── Shared macros ──────────────────────────────────────────────────────────
+\newcommand{\mkmtitlepage}{%
+    \begin{titlepage}
+    \begin{center}
+    \vspace*{1cm}
+    \begin{figure}[H]\centering
+        \includegraphics[width=0.4\textwidth]{../shared/Logos/MKM_logo.png}
+    \end{figure}
+    \vspace{1.5cm}
+    {\Huge\bfseries\textcolor{mkmblue}{\doctitle}\par}
+    \vspace{0.5cm}
+    {\Large\textcolor{gray}{\docsubtitle}\par}
+    \vspace{2cm}
+    {\large MKM Research Labs\par}
+    \vspace{0.5cm}
+    {\large Version \docversion{} --- \docdate\par}
+    \vspace{0.5cm}
+    {\large \docauthor\par}
+    \vspace{2cm}
+    \textcolor{red}{\textbf{CONFIDENTIAL --- PROPRIETARY}}
+    \end{center}
+    \end{titlepage}
+}
+
+\newcommand{\mkmlegalpage}{%
+    \clearpage
+    \thispagestyle{empty}
+    \begin{center}
+    \large\textbf{Legal Notice}
+    \vspace{1em}
+
+    \textbf{PROPRIETARY AND CONFIDENTIAL}
+    \end{center}
+
+    \noindent This document, including all algorithms, models, methodology, formulas,
+    calculations, and intellectual concepts contained herein, constitutes the exclusive
+    intellectual property and confidential trade secrets of MKM Research Labs (``MKM'').
+
+    \vspace{0.5em}
+    \noindent Any usage, reproduction, distribution, modification, or disclosure of this
+    document or any portion thereof, without the express prior written authorisation from
+    MKM Research Labs is strictly prohibited and constitutes an infringement of intellectual
+    property rights.
+
+    \vspace{0.5em}
+    \noindent The document is provided on an ``as is'' basis. MKM Research Labs makes no
+    representations or warranties of any kind, express or implied, regarding its accuracy,
+    reliability, or suitability for any particular purpose.
+
+    \vspace{1em}
+    \begin{center}
+    All rights reserved. \copyright\ 2021--2026 MKM Research Labs.
+
+    \vspace{0.5em}
+    Governed by the laws of the United Kingdom.
+    \end{center}
+    \clearpage
+}
+
+\newcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|l|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+        \label{tab:revision_history}
+    \end{table}
+    \clearpage
+}
+
+% ─── Bank validation protocol section commands ──────────────────────────────
+% Use these to ensure every model doc has the required sections.
+% They are just styled \section calls — content is provided by each doc.
+
+\newcommand{\mkmexecsummary}{\section{Executive Summary}}
+\newcommand{\mkmpurpose}{\section{Model Purpose and Scope}}
+\newcommand{\mkmframework}{\section{Mathematical Framework}}
+\newcommand{\mkminputs}{\section{Input Parameters and Calibration}}
+\newcommand{\mkmimplementation}{\section{Implementation Details}}
+\newcommand{\mkmsensitivity}{\section{Sensitivity Analysis}}
+\newcommand{\mkmvalidation}{\section{Validation and Backtesting}}
+\newcommand{\mkmtestresults}{\subsection{Automated Test Results}\input{test_results}}
+\newcommand{\mkmlimitations}{\section{Model Limitations and Known Weaknesses}}
+
+\newcommand{\mkmgovernance}{\section{Governance Validation Questions}
+\noindent The following nine questions are mandated by Chapter~5 of the
+\emph{Model Risk Governance for Vendors} handbook and must be explicitly
+addressed for every model in the inventory. Response status is tracked in the
+Model Governance Dashboard (MRC portal). \par\medskip}
+
+\newcommand{\mkmvqitem}[3]{\subsection{Q#1 --- #2}
+\noindent\textit{``#3''}\par\medskip\noindent}
+
+\newcommand{\mkmchangelog}{\section{Change History}}

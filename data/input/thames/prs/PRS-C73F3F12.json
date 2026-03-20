@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-C73F3F12",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-b8cac080",
+      "CounterPartyName": "HSBC Enviro (AAA)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-06",
+      "ProtectionStart": "2026-03-08",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 10000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.03940913269010766
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-08",
+      "EndDate": "2028-05-26",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-9e5f3ef9",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-9e5f3ef9",
+          "GaugeName": "Thames London Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 10000000
+    },
+    "Pricing": {
+      "SpreadBps": 394,
+      "FairSpreadBps": 384.89,
+      "NPV": 16914.58,
+      "PremiumLegPV": 724698.04,
+      "ProtectionLegPV": 707783.46,
+      "RiskyAnnuity": 1.838909,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

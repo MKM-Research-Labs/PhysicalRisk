@@ -1,0 +1,40 @@
+{
+  "schema_version": "2.0-multi-storm",
+  "generated_at": "2026-03-19T18:24:25.648334+00:00",
+  "num_sequences": 20000,
+  "sequence_type_counts": {
+    "isolated": 10366,
+    "cluster": 4321,
+    "doublet": 2907,
+    "persistent": 2406
+  },
+  "sequence_type_fractions": {
+    "isolated": 0.5183,
+    "cluster": 0.216,
+    "doublet": 0.1454,
+    "persistent": 0.1203
+  },
+  "storm_count_distribution": {
+    "1": 10366,
+    "2": 2907,
+    "3": 2209,
+    "4": 3345,
+    "5": 1173
+  },
+  "intensity_category_counts": {
+    "moderate": 12612,
+    "catastrophic": 3264,
+    "severe": 14984,
+    "extreme": 11192
+  },
+  "precipitation_mm": {
+    "min": 10.21,
+    "max": 1218.54,
+    "mean": 153.46
+  },
+  "duration_hours": {
+    "min": 12,
+    "max": 156.0,
+    "mean": 97.34
+  }
+}

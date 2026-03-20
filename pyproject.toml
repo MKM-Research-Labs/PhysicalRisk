@@ -1,0 +1,92 @@
+[project]
+name = "physical-risk"
+version = "1.0.0"
+description = "MKM Research Labs Physical Risk Platform"
+requires-python = ">=3.11"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E402", "E741", "F841"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["F401", "F811", "F821", "E722"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "port", "routes", "loaders", "models", "visual", "catch", "floodts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "*/static/*",
+    "src/models/intensity/__main__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 90
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.",
+    "pass$",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
+# Browser-dependent visual rendering modules (require folium map context)
+omit = [
+    "src/visual/popups/popup_builder.py",
+    "src/visual/popups/gauge_popup.py",
+    "src/visual/popups/property_popup/builder.py",
+    "src/visual/popups/property_popup/sections.py",
+    "src/visual/popups/property_popup/risk.py",
+    "src/visual/popups/property_popup/helpers.py",
+    "src/visual/layer/gauge_layer.py",
+    "src/visual/layer/property_layer/layer.py",
+    "src/visual/layer/property_layer/popup.py",
+    "src/visual/layer/property_layer/stats.py",
+    "src/visual/layer/mortgage_layer/layer.py",
+    "src/visual/layer/mortgage_layer/circles.py",
+    "src/visual/layer/mortgage_layer/popup.py",
+    "src/visual/layer/mortgage_layer/stats.py",
+    "src/visual/core/visualizer.py",
+    "src/visual/core/map_builder.py",
+    "src/visual/utils/data_extractors/gauge_extractor.py",
+    "src/visual/utils/data_extractors/property_extractor.py",
+    "src/visual/utils/data_extractors/mortgage_extractor.py",
+    "src/visual/utils/data_extractors/id_extractor.py",
+    "src/visual/utils/color_schemes.py",
+    "src/visual/utils/formatters.py",
+    "src/visual/utils/risk_assessors.py",
+    "src/models/floodrisk/risk_analytics.py",
+    "src/models/floodrisk/risk_visualization.py",
+    "src/models/floodrisk/flood_risk_model.py",
+    "src/models/hazard/pricing.py",
+    "src/models/prs/prshc.py",
+    "src/models/stress/flood_classifier.py",
+    "src/port/src/stressm/classifier.py",
+    "src/reports/property/property_page_03_gauge_time_series.py",
+    "src/reports/gauge/gauge_page_11_current_risk.py",
+    "src/reports/gauge/gauge_page_08_flood_history.py",
+]
+
+[tool.coverage.html]
+directory = "data/output/audit/coverage"
+
+[tool.coverage.xml]
+output = "data/output/audit/coverage.xml"
+
+[tool.coverage.json]
+output = "data/output/audit/coverage.json"

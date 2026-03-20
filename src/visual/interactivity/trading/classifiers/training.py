@@ -1,0 +1,175 @@
+"""
+Classifiers — training sub-module.
+
+Single-gauge training (POST + poll), batch Train All with progress bar.
+"""
+
+
+def get_js() -> str:
+    """Return JavaScript for training controls and progress."""
+    return """
+            function _clStartSingleTraining(gaugeId) {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+
+                // Update button to spinner
+                var btns = document.querySelectorAll('button[data-train-gauge="' + gaugeId + '"]');
+                for (var i = 0; i < btns.length; i++) {
+                    btns[i].disabled = true;
+                    btns[i].textContent = 'Training\\u2026';
+                    btns[i].style.background = '#90a4ae';
+                }
+
+                fetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
+                    method: 'POST',
+                    mode: 'cors'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.status === 'ready') {
+                        // Already trained
+                        loadClassifiersData();
+                        return;
+                    }
+                    // Poll for completion
+                    var pollId = setInterval(function() {
+                        fetch(baseUrl + '/api/v1/trading/stress/classifier-status/' + gaugeId, {mode: 'cors'})
+                            .then(function(r) { return r.json(); })
+                            .then(function(st) {
+                                if (st.status === 'ready') {
+                                    clearInterval(pollId);
+                                    clSelectedGaugeId = gaugeId;
+                                    loadClassifiersData();
+                                } else if (st.status === 'failed') {
+                                    clearInterval(pollId);
+                                    console.error('[Classifiers] Training failed:', st.error);
+                                    loadClassifiersData();
+                                }
+                            })
+                            .catch(function() { clearInterval(pollId); });
+                    }, 5000);
+                })
+                .catch(function(err) {
+                    console.error('[Classifiers] Train POST error:', err);
+                    loadClassifiersData();
+                });
+            }
+
+            // Batch training: Train All button handler (bound in setup)
+            (function() {
+                // Defer binding until DOM is ready
+                var _clBindTrainAll = function() {
+                    var btn = document.getElementById('cl-train-all-btn');
+                    if (btn && !btn._clBound) {
+                        btn._clBound = true;
+                        btn.addEventListener('click', function() {
+                            _clStartBatchTraining();
+                        });
+                    }
+                };
+
+                // Try binding after tab switch creates the DOM
+                var origLoad = window.loadClassifiersData || function() {};
+                var patchedLoad = function() {
+                    origLoad();
+                    setTimeout(_clBindTrainAll, 100);
+                };
+                // We override via a post-load hook instead of replacing loadClassifiersData
+                // Just call the binder after each data load
+                var _origRenderTable = _clRenderSummaryTable;
+                _clRenderSummaryTable = function(gauges) {
+                    _origRenderTable(gauges);
+                    _clBindTrainAll();
+                };
+            })();
+
+            function _clStartBatchTraining() {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                var btn = document.getElementById('cl-train-all-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Training\\u2026';
+                    btn.style.background = '#90a4ae';
+                }
+
+                // Show progress bar
+                var wrap = document.getElementById('cl-progress-wrap');
+                if (wrap) wrap.style.display = 'block';
+                _clUpdateProgress(0, 0, null, null);
+
+                fetch(baseUrl + '/api/v1/trading/classifiers/train-all', {
+                    method: 'POST',
+                    mode: 'cors'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.status === 'complete') {
+                        // All already trained
+                        _clHideProgress();
+                        loadClassifiersData();
+                        return;
+                    }
+                    // Start polling
+                    clBatchPollTimer = setInterval(function() {
+                        _clPollBatchStatus(baseUrl);
+                    }, 5000);
+                })
+                .catch(function(err) {
+                    console.error('[Classifiers] Train-all POST error:', err);
+                    _clHideProgress();
+                    loadClassifiersData();
+                });
+            }
+
+            function _clPollBatchStatus(baseUrl) {
+                fetch(baseUrl + '/api/v1/trading/classifiers/train-all/status', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        _clUpdateProgress(data.completed, data.total, data.current_gauge_id, data.eta_seconds);
+                        if (data.status === 'complete') {
+                            if (clBatchPollTimer) {
+                                clearInterval(clBatchPollTimer);
+                                clBatchPollTimer = null;
+                            }
+                            setTimeout(function() {
+                                _clHideProgress();
+                                loadClassifiersData();
+                            }, 1000);
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('[Classifiers] Poll error:', err);
+                    });
+            }
+
+            function _clUpdateProgress(completed, total, currentGauge, etaSeconds) {
+                var bar = document.getElementById('cl-progress-bar');
+                var txt = document.getElementById('cl-progress-text');
+                if (!bar || !txt) return;
+
+                var pct = total > 0 ? (completed / total * 100) : 0;
+                bar.style.width = pct + '%';
+
+                var msg = '[' + completed + '/' + total + ']';
+                if (currentGauge) msg += ' Training ' + currentGauge + '\\u2026';
+                if (etaSeconds != null && etaSeconds > 0) {
+                    if (etaSeconds < 60) msg += '  ETA ' + Math.round(etaSeconds) + 's';
+                    else if (etaSeconds < 3600) msg += '  ETA ' + (etaSeconds / 60).toFixed(1) + 'm';
+                    else msg += '  ETA ' + (etaSeconds / 3600).toFixed(1) + 'h';
+                }
+                if (completed === total && total > 0) msg = 'Complete! ' + total + ' classifiers trained.';
+                txt.textContent = msg;
+            }
+
+            function _clHideProgress() {
+                var wrap = document.getElementById('cl-progress-wrap');
+                if (wrap) wrap.style.display = 'none';
+                var btn = document.getElementById('cl-train-all-btn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Train All Untrained';
+                    btn.style.background = '#1976d2';
+                }
+            }
+"""

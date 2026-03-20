@@ -1,0 +1,62 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{float}
+
+\title{Portfolio Flood Risk Assessment: Process Overview}
+\author{Technical Documentation Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Process Architecture}
+The portfolio flood risk assessment system consists of two primary components:
+\begin{enumerate}
+    \item Property Valuation Pipeline
+    \item Flood Risk Assessment Pipeline
+\end{enumerate}
+
+\section{Data Flow}
+\begin{itemize}
+    \item Initial property portfolio data ingestion
+    \item Property valuation and feature engineering
+    \item Risk factor calculation and spatial analysis
+    \item Portfolio-level flood impact assessment
+    \item Results aggregation and reporting
+\end{itemize}
+
+\section{Key Processes}
+\begin{enumerate}
+    \item Portfolio Data Processing
+        \begin{itemize}
+            \item Data validation and cleaning
+            \item Geographic coordinate processing
+            \item Property characteristic normalization
+        \end{itemize}
+    
+    \item Valuation Model Application
+        \begin{itemize}
+            \item Feature extraction and transformation
+            \item Model prediction execution
+            \item Valuation adjustment calculations
+        \end{itemize}
+    
+    \item Flood Risk Integration
+        \begin{itemize}
+            \item Spatial correlation analysis
+            \item Flood depth calculations
+            \item Impact assessment computation
+        \end{itemize}
+\end{enumerate}
+
+\section{Process Integration}
+The system integrates property valuation outputs with flood risk assessment through:
+\begin{itemize}
+    \item Shared spatial indexing structures
+    \item Unified data formats
+    \item Synchronized calculation pipelines
+\end{itemize}
+
+\end{document}

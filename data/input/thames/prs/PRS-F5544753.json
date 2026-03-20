@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-F5544753",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-02a6b8c8",
+      "CounterPartyName": "Lloyds CS (AA)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-12",
+      "ProtectionStart": "2026-03-14",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 10000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.031137654420174125
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-14",
+      "EndDate": "2029-05-25",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-a6be4ee9",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-a6be4ee9",
+          "GaugeName": "Thames Westminster Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 10000000
+    },
+    "Pricing": {
+      "SpreadBps": 311,
+      "FairSpreadBps": 303.22,
+      "NPV": 21882.94,
+      "PremiumLegPV": 835510.15,
+      "ProtectionLegPV": 813627.21,
+      "RiskyAnnuity": 2.683279,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

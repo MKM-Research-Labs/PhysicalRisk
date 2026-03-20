@@ -1,0 +1,763 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage[toc,page]{appendix}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{adjustbox}
+\usepackage[british]{datetime2}  % Changed from en-GB to british
+\usepackage{hyperref}
+\onehalfspacing
+\usepackage{geometry}
+\geometry{
+a4paper,
+total={170mm,257mm},
+left=20mm,
+top=20mm,
+}
+
+\title{ Real-Time Probabilistic for Flood Prediction}
+\author{David K Kelly}
+\date{}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+
+\vspace*{2cm}
+
+\begin{figure}\centering
+\adjustimage{width=0.5\textwidth,keepaspectratio}{MKM.png}
+\end{figure}
+
+\vspace{2cm}
+
+{\Huge\bfseries Real-Time Probabilistic\\Flood Prediction:\\ A Hybrid Bayesian-Hydrodynamic\\Approach\par}
+
+\vspace{2cm}
+
+{\Large From the MKM Research Labs\par}
+
+\vspace{1cm}
+
+{\large \today\par}
+
+\end{center}
+\end{titlepage}
+
+\begin{abstract}
+Flood risk assessment is a critical component of property valuation and management, particularly in the context of increasing urbanisation. The interaction between changing weather patterns and urban development creates compounding effects that can lead to negative feedback loops in property risk at individual, urban clusters and portfolio levels. Traditional approaches often fail to bridge the gap between insurance metrics (e.g., 100-year return periods) and property valuation frameworks that feed into mortgage models based on the probability of default and loss given default. This disconnect is particularly acute for long-term property holders, where annual insurance coverage must be reconciled with multi-decade investment horizons.
+
+We present a novel approach to real-time flood prediction that combines Bayesian deep learning with computational fluid dynamics. Our framework integrates high-resolution weather data from HRRR with advanced hydrodynamic modeling to provide probabilistic flood timing, location, and depth forecasts. The system continuously learns from new observations while maintaining physical consistency through neural operators and physics-informed constraints. We demonstrate significant improvements in prediction accuracy and computational efficiency compared to traditional methods.
+\end{abstract}
+
+
+
+
+\section{Primitive-equation model}
+
+The basic equations that govern atmospheric motion and thermodynamics are:
+
+\begin{itemize}
+    \item The momentum equations (equations of motion)
+    \item The continuity equation 
+    \item The thermodynamic energy equation
+    \item The equation of state (ideal gas law)
+    \item The water vapor continuity equation
+\end{itemize}
+
+These coupled nonlinear partial differential equations form the fundamental basis for industry standard numerical weather prediction and climate models. Additional equations for cloud microphysics, radiation, turbulence, etc.  are often included as well through parameterisation schemes.
+
+The fundamental equations governing atmospheric motion and thermodynamics are presented below. These equations utilise the following standard meteorological variables:
+
+\subsection{Input Parameters}
+\begin{itemize}
+    \item Velocity Components:
+    \begin{itemize}
+        \item $u$ - Cartesian velocity component in x-direction
+        \item $v$ - Cartesian velocity component in y-direction
+        \item $w$ - Cartesian velocity component in z-direction
+    \end{itemize}
+    
+    \item State Variables:
+    \begin{itemize}
+        \item $p$ - Pressure
+        \item $\rho$ - Density
+        \item $T$ - Temperature
+        \item $q_v$ - Specific humidity
+    \end{itemize}
+    
+    \item Earth Parameters:
+    \begin{itemize}
+        \item $\Omega$ - Rotational frequency of Earth
+        \item $\phi$ - Latitude
+        \item $a$ - Radius of Earth
+        \item $g$ - Acceleration of gravity
+    \end{itemize}
+    
+    \item Thermodynamic Parameters:
+    \begin{itemize}
+        \item $\gamma$ - Lapse rate of temperature
+        \item $\gamma_d$ - Dry adiabatic lapse rate
+        \item $c_p$ - Specific heat of air at constant pressure
+    \end{itemize}
+    
+    \item Source/Sink Terms:
+    \begin{itemize}
+        \item $H$ - Heat gain or loss
+        \item $Q_v$ - Gain or loss of water vapor through phase changes
+        \item $Fr_x, Fr_y, Fr_z$ - Friction terms in each coordinate direction
+    \end{itemize}
+\end{itemize}
+
+\subsection{Governing Equations}
+Using these parameters, the governing equations are expressed as follows:
+
+
+\begin{equation}
+\frac{\partial u}{\partial t} + u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} + w\frac{\partial u}{\partial z} + \frac{uv\tan\phi}{a} + \frac{uw}{a} + \frac{1}{\rho}\frac{\partial p}{\partial x} + 2\Omega(w\cos\phi - v\sin\phi) = Fr_x
+\label{eq:1}
+\end{equation}
+
+
+
+\begin{equation}
+\frac{\partial v}{\partial t} + u\frac{\partial v}{\partial x} + v\frac{\partial v}{\partial y} + w\frac{\partial v}{\partial z} + \frac{u^2\tan\phi}{a} + \frac{uw}{a} + \frac{1}{\rho}\frac{\partial p}{\partial y} + 2\Omega u\sin\phi = Fr_y
+\label{eq:2}
+\end{equation}
+
+The momentum equations represent Newton's second law of motion applied to the atmosphere. These three equations, one for each component of the 3D velocity vector ($u$, $v$, $w$), relate the acceleration of air parcels to the forces acting on them including pressure gradient, Coriolis, gravitational, and frictional forces:
+
+\begin{equation}
+\frac{\partial w}{\partial t} + u\frac{\partial w}{\partial x} + v\frac{\partial w}{\partial y} + w\frac{\partial w}{\partial z} + \frac{u^2 + v^2}{a} + \frac{1}{\rho}\frac{\partial p}{\partial z} + 2\Omega u\cos\phi + g = Fr_z
+\label{eq:3}
+\end{equation}
+
+The continuity equation represents mass conservation, stating that the divergence of the mass flux balances the rate of change of density in an air parcel:
+\begin{equation}
+\frac{\partial T}{\partial t} + u\frac{\partial T}{\partial x} + v\frac{\partial T}{\partial y} + (\gamma - \gamma_d)w + \frac{1}{c_p}\frac{dH}{dt} = 0
+\label{eq:4}
+\end{equation}
+
+The thermodynamic energy equation, derived from the first law of thermodynamics, relates the temperature change rate to adiabatic processes (expansion/compression) and diabatic processes (heat sources/sinks):
+
+\begin{equation}
+\frac{\partial \rho}{\partial t} + u\frac{\partial \rho}{\partial x} + v\frac{\partial \rho}{\partial y} + w\frac{\partial \rho}{\partial z} + \rho\left(\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} + \frac{\partial w}{\partial z}\right) = 0
+\label{eq:5}
+\end{equation}
+
+The equation of state (ideal gas law) relates the pressure, density, and temperature of the air:
+
+
+\begin{equation}
+\frac{\partial q_v}{\partial t} + u\frac{\partial q_v}{\partial x} + v\frac{\partial q_v}{\partial y} + w\frac{\partial q_v}{\partial z} + Q_v = 0
+\label{eq:6}
+\end{equation}
+
+
+
+\begin{equation}
+P = \rho RT
+\label{eq:7}
+\end{equation}
+
+\section{Reynolds' Equations: Separating Unresolved Turbulence Effects}
+
+The equations presented above (Equations \ref{eq:1}--\ref{eq:7}) apply to all scales of motion, including waves and turbulence that are too small to be represented by models designed for weather processes. Since this turbulence cannot be resolved explicitly in such models, the equations must be revised to apply only to larger nonturbulent motions. This is accomplished by splitting all dependent variables into mean and turbulent parts, or equivalently, spatially resolved and unresolved components. The mean is defined as an average over a grid cell.
+
+\subsection{Variable Decomposition}
+The dependent variables are split into mean and turbulent parts as follows:
+\begin{align}
+u &= \bar{u} + u' \label{eq:8} \\
+T &= \bar{T} + T' \label{eq:9} \\
+p &= \bar{p} + p' \label{eq:10}
+\end{align}
+
+When these expressions are substituted into Equations \ref{eq:1}--\ref{eq:7}, they produce expansions such as the following for the first term on the right side of Equation \ref{eq:1}:
+
+\begin{equation}
+u\frac{\partial u}{\partial x} = (\bar{u} + u')\frac{\partial}{\partial x}(\bar{u} + u') = \bar{u}\frac{\partial \bar{u}}{\partial x} + \bar{u}\frac{\partial u'}{\partial x} + u'\frac{\partial \bar{u}}{\partial x} + u'\frac{\partial u'}{\partial x}
+\label{eq:11}
+\end{equation}
+
+\subsection{Averaging Process}
+We apply an averaging operator to all terms to make the equations pertinent to mean motion (nonturbulent weather scales).  For the term above:
+
+\begin{equation}
+\overline{u\frac{\partial u}{\partial x}} = \bar{u}\frac{\partial \bar{u}}{\partial x} + \overline{\bar{u}\frac{\partial u'}{\partial x}} + \overline{u'\frac{\partial \bar{u}}{\partial x}} + \overline{u'\frac{\partial u'}{\partial x}}
+\label{eq:12}
+\end{equation}
+
+The last term in this equation is a covariance term. Its value depends on whether the first quantity in the product covaries with the second. For example, if positive values of the first part tend to be paired with negative values of the second, the covariance (and the term) would be negative.  If the two parts of the product are not physically correlated, the mean has a value of zero. We then simplify the equations using Reynolds’ postulates (Reynolds
+1895, Bernstein 1966). For variables a and b,
+
+\subsection{Reynolds' Postulates}
+The equations are simplified using Reynolds' postulates (Reynolds 1895, Bernstein 1966). For variables $a$ and $b$:
+
+\begin{align}
+\overline{a'} &= 0 \label{eq:13} \\
+\tilde{a} &= \bar{a} \text{ and } \overline{ab} = \overline{\bar{a}\bar{b}} = \bar{a}\bar{b} \label{eq:14} \\
+\overline{ab'} &= \overline{\bar{a}b'} = \overline{b'} = 0 \label{eq:15} \\
+\bar{a} &= a \label{eq:16} \\
+\overline{\tilde{a}} &= \tilde{a} \text{ and } \overline{\tilde{a}\tilde{b}} = \tilde{a}\tilde{b} = ab \label{eq:17} \\
+\overline{\tilde{a}b'} &= \overline{\tilde{a}b'} = \overline{b'} = 0 \label{eq:18}
+\end{align}
+
+Because we can assert the mean has a value of zero so that
+
+\begin{align}
+\overline{u\frac{\partial u}{\partial x}} &= \bar{u}\frac{\partial \bar{u}}{\partial x} + \underbrace{\bar{u}\frac{\partial u'}{\partial x}}_{=0} + \underbrace{u'\frac{\partial u'}{\partial x}}_{=0} + \overline{u'\frac{\partial u'}{\partial x}} \notag \\
+&= \bar{u}\frac{\partial \bar{u}}{\partial x} + \overline{u'\frac{\partial u'}{\partial x}}
+\label{eq:19}
+\end{align}
+
+Given these postulates, and the above assertion the terms in Equation \ref{eq:12}become:
+
+
+\begin{equation}
+\overline{u\frac{\partial u}{\partial x}} = \bar{u}\frac{\partial \bar{u}}{\partial x} + \overline{u'\frac{\partial u'}{\partial x}}
+\label{eq:20}
+\end{equation}
+
+\subsection{Friction Terms}
+Revisiting Equation \ref{eq:1}, we can rewrite it with a standard term for the friction terms, $Fr_x$, without the Earth-curvature terms and with only the dominant Coriolis term.  The Coriolis term in weather forecasting refers to the influence of the Coriolis force, an apparent force caused by the Earth’s rotation. This force acts on moving air masses and fluids, causing them to deflect relative to their motion path. It is a critical factor in atmospheric dynamics and weather prediction.  Subgrid friction results only from viscous forces.
+
+\begin{equation}
+\frac{\partial u}{\partial t} + u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} + w\frac{\partial u}{\partial z} + \frac{1}{\rho}\frac{\partial p}{\partial x} - fv + \frac{1}{\rho}\left(\frac{\partial \tau_{xx}}{\partial x} + \frac{\partial \tau_{yx}}{\partial y} + \frac{\partial \tau_{zx}}{\partial z}\right) = 0
+\label{eq:21}
+\end{equation}
+
+Here, the shear stress components represent:
+\begin{itemize}
+    \item $\tau_{zx}$: Force per unit area (momentum or shearing stress)
+    \begin{itemize}
+        \item Exerted in the $x$ direction
+        \item Acts on a constant-$z$ plane
+        \item Between fluid on either side of the plane
+    \end{itemize}
+    
+    \item $\tau_{xx}$: Force per unit area in the $x$ direction
+    \begin{itemize}
+        \item Acts across the constant-$x$ plane
+        \item Represents normal stress
+    \end{itemize}
+    
+    \item $\tau_{yx}$: Force per unit area in the $x$ direction
+    \begin{itemize}
+        \item Acts across the constant-$y$ plane
+        \item Represents shearing stress
+    \end{itemize}
+\end{itemize}
+
+A typical representation for the stress is:
+
+\begin{equation}
+\tau_{zx} = \mu\frac{\partial u}{\partial z}
+\label{eq:22}
+\end{equation}
+
+where $\mu$ is dynamic viscosity coefficient. This is called Newtonian friction, or Newton's law for the stress. Substituting these expressions for the Newtonian friction into the terms for $Fr_x$ in Equation \ref{eq17}, we have:
+
+\begin{equation}
+\frac{\partial u}{\partial t} \propto \frac{1}{\rho}\left(\mu\frac{\partial^2 u}{\partial x^2} + \mu\frac{\partial^2 u}{\partial y^2} + \mu\frac{\partial^2 u}{\partial z^2}\right) = \frac{\mu}{\rho}\nabla^2 u
+\label{eq:23}
+\end{equation}
+
+Now, applying the averaging process to all terms in Equation \ref{eq:17}, using Reynolds' postulates, and the assumption that $\rho' \ll \bar{\rho}$, we obtain:
+
+\begin{equation}
+\frac{\partial \bar{u}}{\partial t} + \bar{u}\frac{\partial \bar{u}}{\partial x} + \bar{v}\frac{\partial \bar{u}}{\partial y} + \bar{w}\frac{\partial \bar{u}}{\partial z} + \frac{1}{\bar{\rho}}\frac{\partial \bar{p}}{\partial x} - f\bar{v} - \underbrace{u'\frac{\partial u'}{\partial x} + v'\frac{\partial u'}{\partial y} + w'\frac{\partial u'}{\partial z}}_{turbulent\;transport} + \frac{1}{\bar{\rho}}\left(\frac{\partial \bar{\tau}_{xx}}{\partial x} + \frac{\partial \bar{\tau}_{yx}}{\partial y} + \frac{\partial \bar{\tau}_{zx}}{\partial z}\right) = 0
+\label{eq:24}
+\end{equation}
+
+Following Stull (1988), a scale analysis shows that for turbulence scales of motion, the following continuity equation applies:
+
+\begin{equation}
+\frac{\partial u'}{\partial x} + \frac{\partial v'}{\partial y} + \frac{\partial w'}{\partial z} = 0
+\label{eq:25}
+\end{equation}
+
+Multiplying this by $u'$, averaging it, and adding it to Equation \ref{eq:24} puts the turbulent advection terms into flux form.  Turbulent advection refers to the transport of substances, energy, or momentum by the chaotic, irregular motion of turbulent fluid flows. This process occurs when a fluid (such as air or water) moves in a disordered manner, characterised by swirling eddies and rapid fluctuations in velocity, leading to enhanced mixing and transport compared to laminar flow. Here’s a detailed breakdown:
+
+\begin{equation}
+\frac{\partial \bar{u}}{\partial t} + \bar{u}\frac{\partial \bar{u}}{\partial x} + \bar{v}\frac{\partial \bar{u}}{\partial y} + \bar{w}\frac{\partial \bar{u}}{\partial z} + \frac{1}{\bar{\rho}}\frac{\partial \bar{p}}{\partial x} - f\bar{v} - \frac{\partial \overline{u'u'}}{\partial x} - \frac{\partial \overline{u'v'}}{\partial y} - \frac{\partial \overline{u'w'}}{\partial z} + \frac{1}{\bar{\rho}}\left(\frac{\partial \bar{\tau}_{xx}}{\partial x} + \frac{\partial \bar{\tau}_{yx}}{\partial y} + \frac{\partial \bar{\tau}_{zx}}{\partial z}\right) = 0
+\label{eq:26}
+\end{equation}
+
+We can switch from this molecular viscosity-related stresses, and define turbulent (Reynold) stresses:
+
+\begin{align}
+T_{xx} &= -\bar{\rho}\overline{u'u'} \label{eq:27} \\
+T_{yx} &= -\bar{\rho}\overline{u'v'} \label{eq:28} \\
+T_{zx} &= -\bar{\rho}\overline{u'w'} \label{eq:29}
+\end{align}
+
+Substituting these expressions into Equation \ref{eq:26} , and assuming that the spatial derivatives of the density are much smaller than those of the covariances, we have:
+
+\begin{equation}
+\frac{\partial u}{\partial t} + u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} + w\frac{\partial u}{\partial z} + \frac{1}{\rho}\frac{\partial p}{\partial x} = -fv + \frac{1}{\rho}\left[\frac{\partial}{\partial x}(\tau_{xx} + T_{xx}) + \frac{\partial}{\partial y}(\tau_{yx} + T_{yx}) + \frac{\partial}{\partial z}(\tau_{zx} + T_{zx})\right]
+\label{eq:30}
+\end{equation}
+
+This equation is the same as Equation \ref{eq:21}, except for the turbulent-stress terms and the mean-value symbols. The turbulent stresses are larger than the viscous stresses, so h-o-t terms are not required. Turbulent stress terms are represented symbolically as "F", referring to friction. The representation of the turbulent stresses in terms of variables predicted by the model is the subject of turbulence parameterisations for the boundary layer.
+
+
+\section{Approximations to the equations}
+There are several reasons why we might desire to use approximate sets of equations as the basis for a model:
+
+\begin{itemize}
+    \item Some approximate sets are more efficient to solve numerically than the complete equations.
+    \item The complete equations describe a physical system that is so complex that it is challenging to use them.
+    \item Elementary forms of the equations are more useful for initial testing of new numerical algorithms. 
+\end{itemize}
+
+\subsection{Hydrostatic approximation}
+The existence of relatively fast-propagating waves suggests that short time steps are required for the model's numerical solution to remain stable. Because sound waves are generally of no meteorological importance, it is desirable to use a form of the equations that does not admit them. One approach is to employ the hydrostatic approximation, wherein the complete third equation of motion (Equation \ref{eq:3}) is replaced by one containing only the gravity and vertical-pressure-gradient terms:
+
+\begin{equation}
+\frac{\partial p}{\partial z} = -\rho g
+\label{eq:31}
+\end{equation}
+
+This implies that the density is tied to the vertical pressure gradient. For the hydrostatic assumption to be valid, the sum of all the terms eliminated in the complete equation must be at least an order-of-magnitude smaller than the terms retained. Stated another way:
+
+\begin{equation}
+\left|\frac{dw}{dt}\right| \ll g
+\label{eq:32}
+\end{equation}
+
+A scale analysis of the third equation of motion (e.g., Dutton 1976, Holton 2004) shows that the hydrostatic assumption is valid for synoptic-scale motions, but becomes less so for length scales of less than about 10 km on the mesoscale and convective-scale. Thus, coarser-resolution global models will tend to be based on the hydrostatic equations, while models of mesoscale processes will not.
+
+\subsection{Boussinesq and anelastic approximations}
+
+The Boussinesq and anelastic approximations are simplifying assumptions commonly made in atmospheric and oceanic fluid dynamics to simplify the mathematical equations governing fluid flow. Here's an explanation of each:
+
+\textbf{Boussinesq Approximation:}
+
+The Boussinesq approximation neglects density variations in the inertia terms of the Navier-Stokes equations but retains the buoyancy force term associated with density differences. Specifically, it assumes that:
+\begin{itemize}
+\item Density variations are negligible everywhere except in the buoyancy force term.
+\item Density differences from the reference state are small compared to the reference density itself.
+\end{itemize}
+
+This allows the full density to be replaced by a constant reference density in the inertia terms, while retaining the variable density in the buoyancy term. The Boussinesq approximation is valid for flows where density variations are small, such as in atmospheric and oceanic motions driven by temperature differences.
+
+
+The anelastic approximation is a further refinement of the Boussinesq approximation. It accounts for the fact that density variations in the atmosphere and oceans are not negligible with height due to the exponential pressure decrease. The anelastic approximation assumes that:
+\begin{itemize}
+\item The density obeys the anelastic constraint: density variations are negligible compared to a reference state that varies with height. 
+\item Acoustic waves and their associated density fluctuations are filtered out.
+\end{itemize}
+
+This approximation allows for a background density stratification while still filtering out acoustic waves, which have high frequencies and are typically not of interest in atmospheric and oceanic modeling. The anelastic approximation is more accurate than the Boussinesq approximation for flows with significant vertical density variations.
+
+Both approximations simplify the mathematical equations by removing acoustic waves and allowing the use of a constant or specified background density profile, making numerical simulations more computationally efficient. The choice between the two depends on the specific application and the degree of density variation expected in the flow.
+
+
+The Boussinesq approximation (Boussinesq 1903) is obtained by substituting the following for Equation \ref{eq:5}, the complete continuity equation:
+
+\begin{equation}
+\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} + \frac{\partial w}{\partial z} = 0
+\label{eq:33}
+\end{equation}
+
+For the anelastic approximation (Ogura and Phillips 1962, Lipps and Hemler 1982):
+
+\begin{equation}
+\frac{\partial}{\partial x}\bar{\rho}u + \frac{\partial}{\partial y}\bar{\rho}v + \frac{\partial}{\partial z}\bar{\rho}w = 0
+\label{eq:34}
+\end{equation}
+
+Where $\bar{\rho} = \bar{\rho}(z)$ is a steady reference-state density. In addition, both approximations involve simplifications in the momentum equations (see Durran 1999, pp. 20--26). Another type of approximation in this class is the pseudo-incompressible approximation described by Durran (1989).
+
+
+
+\subsection{Shallow-fluid equations}
+
+The shallow water equations, also known as the Saint-Venant equations, are a set of hyperbolic partial differential equations that describe the flow of a shallow fluid like water over a surface. These equations are industry stnadard,  used to model flood wave propagation and inundation over floodplains and river channels.
+
+The key assumptions made in deriving the shallow water equations are:
+\begin{itemize}
+	\item The pressure is hydrostatic and negligible
+	\item The water is shallow compared to the coverage
+	\item The velocity is in the horizontal plane
+\end{itemize}
+
+Where:
+
+\begin{itemize}
+\item h = water depth
+\item u, v = x, y velocity components
+\item g = gravitational acceleration
+\item $C_f$ = friction coefficient
+\end{itemize}
+
+
+These equations account for the major forces acting on the shallow water flow - inertia, pressure, gravity, and friction. Solving them numerically allows prediction of the water depth and velocity over a 2D domain like a floodplain.  For 1D applications over river channels, the shallow water equations reduce to the 1D St. Venant equations.  The shallow water equations are challenging to solve numerically due to their non-linear, hyperbolic nature. Various numerical schemes have been developed, including finite difference, finite volume, and discontinuous Galerkin methods.
+
+The shallow-fluid equations, sometimes called the shallow-water equations, can serve as the basis for a simple model that can be used to illustrate and evaluate the properties of numerical schemes. Inertia--gravity, advective, and Rossby waves can be represented. Not only is such a valuable model for gaining experience with numerical methods, but the fact that the equations represent much of the horizontal dynamics of full baroclinic models also makes it a valuable tool for testing numerical methods in a simple framework.
+
+For a fluid assumed to be autobarotropic (barotropic by definition, not by the prevailing atmospheric conditions), homogeneous, incompressible, hydrostatic, and inviscid, we use the following parameters:
+
+\begin{itemize}
+    \item Velocity Components:
+    \begin{itemize}
+        \item $u$ - Velocity in x-direction
+        \item $v$ - Velocity in y-direction
+        \item $w$ - Velocity in z-direction
+    \end{itemize}
+    
+    \item Physical Parameters:
+    \begin{itemize}
+        \item $\rho$ - Fluid density
+        \item $p$ - Pressure
+        \item $g$ - Acceleration due to gravity
+    \end{itemize}
+    
+    \item Coriolis Parameter:
+    \begin{itemize}
+        \item $f$ - Coriolis parameter (representing Earth's rotation effects)
+    \end{itemize}
+\end{itemize}
+
+The governing equations are then expressed as:
+
+\begin{align}
+\frac{\partial u}{\partial t} + u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} + w\frac{\partial u}{\partial z} - fv + \frac{1}{\rho}\frac{\partial p}{\partial x} &= 0 \label{eq:35} \\
+\frac{\partial v}{\partial t} + u\frac{\partial v}{\partial x} + v\frac{\partial v}{\partial y} + w\frac{\partial v}{\partial z} + fu + \frac{1}{\rho}\frac{\partial p}{\partial y} &= 0 \label{eq:36} \\
+\frac{\partial p}{\partial z} &= -\rho g \label{eq:37}
+\end{align}
+
+\begin{equation}
+\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} + \frac{\partial w}{\partial z} = 0
+\label{eq:38}
+\end{equation}
+
+Now,  incompressibility and homogeneity imply:
+
+\begin{equation}
+\frac{d\rho}{dt} = 0, \text{ for } \rho = \rho_0 \text{ a constant}
+\label{eq:39}
+\end{equation}
+
+And:
+
+\begin{equation}
+\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} + \frac{\partial w}{\partial z} = 0
+\label{eq:40}
+\end{equation}
+
+The hydrostatic equation can thus be written:
+
+\begin{equation}
+\frac{\partial p}{\partial z} = -\rho_0 g
+\label{eq:41}
+\end{equation}
+
+Differentiating Eq. \ref{eq:41} with respect to x, and using the fact that the right side is a constant yields
+
+\begin{equation}
+\frac{\partial}{\partial x}\left(\frac{\partial p}{\partial z}\right) = \frac{\partial}{\partial z}\left(\frac{\partial p}{\partial x}\right) = 0,
+\label{eq:42}
+\end{equation}
+
+This means there is no horizontal variation of the vertical pressure gradient or vertical variation of the horizontal pressure gradient (the definition of barotropy). Because the pressure-gradient force generates the wind, and the resulting Coriolis force, all forces are invariant with height. Integrating Eq. \ref{eq:41} over the depth of the fluid,
+
+\begin{equation}
+\int_{z(P_S)}^{z(P_T)} \frac{\partial p}{\partial z}dz = -\rho_0g \int_{z(P_S)}^{z(P_T)} dz,
+\label{eq:43}
+\end{equation}
+
+Where $P_T$ and $P_S$ represent the pressure at the top and bottom boundaries of the fluid, respectively, yields
+
+\begin{equation}
+P_S - P_T = g\rho_0h,
+\label{eq:44}
+\end{equation}
+
+for h equal to the depth of the fluid. If $P_T = 0$, or $P_T \ll P_S$,
+
+\begin{equation}
+\frac{P_S}{\rho_0} = gh \text{ and}
+\label{eq:45}
+\end{equation}
+
+\begin{equation}
+\frac{1}{\rho_0}\frac{\partial P_S}{\partial x} = g\frac{\partial h}{\partial x}.
+\label{eq:46}
+\end{equation}
+
+This statement that the horizontal pressure gradient at the bottom of the fluid is proportional to the gradient in the depth of the fluid provides a new form of the pressure-gradient term in Eqs. \ref{eq:35} and \ref{eq:36}. The incompressible continuity equation (Eq. \ref{eq:40}) can also be rewritten by integrating it with respect to z:
+
+\begin{equation}
+\int_0^z \frac{\partial w}{\partial z}dz = w_z - w_s = -\int_0^z \left(\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y}\right)dz.
+\label{eq:47}
+\end{equation}
+
+If u and v are initially not a function of z, they will remain so because the pressure gradient is not a function of z. And, because u and v are not a function of z, neither are their derivatives, so that
+
+\begin{equation}
+w_h - w_S = -\left(\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y}\right)h
+\label{eq:48}
+\end{equation}
+
+for z = h. The kinematic boundary condition $w_S = 0$ prevails for a horizontal lower boundary.   This means that
+
+\begin{equation}
+w_h = \frac{dh}{dt}
+\label{eq:49}
+\end{equation}
+
+Leads to a new continuity equation. There are now three equations in three variables, u, v, and h.
+
+\begin{equation}
+\frac{\partial u}{\partial t} + u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} - fv + g\frac{\partial h}{\partial x} = 0,
+\label{eq:50}
+\end{equation}
+
+\begin{equation}
+\frac{\partial v}{\partial t} + u\frac{\partial v}{\partial x} + v\frac{\partial v}{\partial y} + fu + g\frac{\partial h}{\partial y} = 0,
+\label{eq:51}
+\end{equation}
+
+\begin{equation}
+\frac{\partial h}{\partial t} + u\frac{\partial h}{\partial x} + v\frac{\partial h}{\partial y} + h\left(\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y}\right) = 0.
+\label{eq:52}
+\end{equation}
+
+For simplicity,  a one-dimensional version of this system of equations is frequently used. In order to permit a mean u component on which perturbations occur, a constant pressure gradient of the desired magnitude is specified in the y direction. The one-dimensional equations are
+
+\begin{equation}
+\frac{\partial u}{\partial t} + u\frac{\partial u}{\partial x} - fv + g\frac{\partial h}{\partial x} = 0,
+\label{eq:53}
+\end{equation}
+
+\begin{equation}
+\frac{\partial v}{\partial t} + u\frac{\partial v}{\partial x} + fu + g\frac{\partial H}{\partial y} = 0,
+\label{eq:54}
+\end{equation}
+
+\begin{equation}
+\frac{\partial h}{\partial t} + u\frac{\partial h}{\partial x} + v\frac{\partial H}{\partial y} + h\frac{\partial u}{\partial x} = 0, \text{ where}
+\label{eq:55}
+\end{equation}
+
+\begin{equation}
+\frac{\partial H}{\partial y} = -\frac{f}{g}U
+\label{eq:56}
+\end{equation}
+
+Note that  $U$ is the specified, constant mean geostrophic speed on which the u perturbation is superimposed. Obviously there are limitations to the degree to which this system of equations can represent the real atmosphere, but one step toward more realism is to define the fluid depth to be consistent with the represented layer, such as the boundary layer or the troposphere. The scale height can convey the depth of the total atmosphere.
+
+\begin{equation}
+H = \frac{RT_0}{g},
+\label{eq:57}
+\end{equation}
+
+Where $T_0$ is the surface temperature and $H$ is about 8 km. If the model atmosphere is to represent the troposphere, it can be assumed that the active fluid layer of depth $h$ is surmounted by an inert layer that represents the stratosphere. This exerts a buoyant force on the lower layer that can be defined in the model by a reduced gravity. However, this would impact the geostrophic relationship, so a better approach is to reduce the depth of the active layer proportionately. This is justified by the fact that, in the linear solution for the phase speed of external gravity waves, the acceleration of gravity is multiplied by the mean depth of the fluid. The application of either method would have the same effect of decreasing the phase speed of external gravity waves to one that is more characteristic of the internal waves at the layer interface. It can be shown that the gravity or layer depth should be reduced by a factor $\alpha = (\theta_T - \theta_B)/\theta_B$, which is based on the mean potential temperatures of the top and bottom layers. For the example where the lower layer represents the troposphere, this ratio is $\sim$0.25 and the layer mean depth would be defined as 2 km.
+
+When the above nonlinear shallow-fluid equations are used as the basis for a model, an explicit numerical diffusion term will need to be added to each equation to suppress the short wavelengths that will grow through the aliasing process.
+
+
+\subsubsection{Geostrophic Speed}
+Geostrophic speed represents the theoretical wind or current velocity achieved when the Coriolis force exactly balances the horizontal pressure gradient force. This equilibrium results in flow parallel to isobars (lines of equal pressure) or depth contours in oceans, with low pressure to the left of the flow in the Northern Hemisphere and to the right in the Southern Hemisphere.
+
+\begin{itemize}
+    \item \textbf{Force Balance:} Achieved when Coriolis force ($-f \times v$) balances pressure gradient force ($-\frac{1}{\rho}\nabla p$)
+    
+    \item \textbf{Flow Direction:} Parallel to isobars/isopycnals (anti-clockwise around lows in NH)
+    
+    \item \textbf{Mathematical Formulation:}
+    \begin{equation}
+        v_g = \frac{1}{f \rho} \frac{\partial p}{\partial n},
+        \label{eq:58}
+    \end{equation}
+    where:
+    \begin{itemize}
+        \item $f = 2\Omega\sin\phi$ (Coriolis parameter)
+        \item $\rho$ = fluid density
+        \item $\frac{\partial p}{\partial n}$ = pressure gradient normal to flow
+    \end{itemize}
+\end{itemize}
+The Atmospheric Version is as follows:
+
+\begin{equation}
+    v_g = \frac{g}{f} \frac{\Delta Z}{\Delta n},
+    \label{eq:59}
+\end{equation}
+where $g$ = gravitational acceleration (9.81 m/s²), $\Delta Z$ = geopotential height difference.
+
+
+\section{Numerical Solutions for Shallow Water Equations}
+
+The dynamical core is the part of an atmospheric model that treats the resolvable (larger) scales of motion by numerically solving the governing equations like the primitive equations. It is distinct from the parameterisations that represent subgrid-scale physical processes like cumulus convection, cloud microphysics, turbulence, and radiation.
+
+Some key points about the dynamical core from the passages:
+\begin{itemize}
+\item It solves the model equations numerically for the resolvable scales of atmospheric motion.
+
+\item It is separate from the parameterisations that represent unresolved subgrid-scale physical processes.
+
+\item Factors like computational efficiency, accuracy, memory requirements, and code simplicity influence the numerical methods used in the dynamical core.
+
+\item The dynamical core directly represents processes like wave propagation, while physical processes like convection and clouds must be parameterised.
+
+\item Understanding the effects of the numerical approximations used in the dynamical core is essential for model users.
+\end{itemize}
+
+The dynamical core is the part of the atmospheric model that explicitly solves for the resolved atmospheric motions using numerical methods, distinct from the parameterized physics representations of unresolved processes.
+
+
+For complete details on the shallow-fluid equations and their numerical solution, see Kinnmark (1985) \cite{kinnmark1985}, Pedlosky (1987) \cite{pedlosky1987} , Durran (1999) \cite{durran1999}
+, and McWilliams (2006)\cite{mcwilliams2006}.
+
+The shallow water equations are a set of hyperbolic partial differential equations that describe fluid flow under the assumption that the horizontal length scale is much greater than the vertical scale. These equations are widely used to model river flows, coastal areas, and the atmosphere. The following sections outline key numerical methods and references for solving these equations.
+
+Several numerical methods are employed to solve the shallow water equations:
+
+\begin{enumerate}
+	\item Finite Difference Methods
+	\item Finite Volume Methods
+	\item Finite Element Methods
+	\item Spectral Methods
+	\item High-Order Methods
+\end{enumerate}
+
+The evolution of numerical methods in atmospheric modeling reflects both theoretical advances and practical considerations driven by computational capabilities. This section examines the fundamental approaches and challenges in implementing numerical solutions for atmospheric equations.
+
+\subsection{Basic Concepts in Numerical Implementation}
+
+\begin{equation}
+\Delta t = f(\Delta x, \Delta y, \Delta z, U)
+\label{eq:58}
+\end{equation}
+
+where $\Delta t$ represents the time step, $\Delta x$, $\Delta y$, and $\Delta z$ are the spatial grid increments, and $U$ is the characteristic velocity scale. This relationship emphasizes that the choice of time step depends critically on the spatial resolution and flow speeds.
+
+The implementation of numerical methods in atmospheric models requires careful consideration of several key aspects:
+
+\begin{equation}
+\frac{\partial \psi}{\partial t} = F(\psi, x, t)
+\label{eq:59}
+\end{equation}
+
+where $\psi$ represents any prognostic variable and $F$ encompasses all forcing terms. The numerical solution must address:
+
+\begin{itemize}
+    \item Spatial discretization techniques
+    \item Temporal integration methods
+    \item Boundary condition implementation
+    \item Numerical stability criteria
+\end{itemize}
+
+A prognostic variable is a variable that is predicted or forecasted by a numerical weather prediction (NWP) or climate model. In other words, it is a variable for which the model solves a predictive equation to obtain its future state.
+
+The predictive equations for these variables are derived from the fundamental laws of physics like the Navier-Stokes equations for fluid flow, the first law of thermodynamics for energy conservation, the continuity equation for mass conservation, and the ideal gas law. The models numerically integrate these equations forward in time to make forecasts of the prognostic variables.
+
+In contrast, diagnostic variables are those that are calculated diagnostically from the prognostic variables, rather than having a predictive equation solved for them. Examples include precipitation rate, vertical velocity (unless a non-hydrostatic equation is used), and many cloud parameterization outputs.
+
+Prognostic variables are thus those that have time-evolution equations solved by the dynamical core and physics parameterizations of the NWP or climate model to predict their future states.
+
+\subsubsection{Grid Structure and Resolution}
+
+The atmospheric domain must be divided into discrete points where the equations will be solved. For a three-dimensional domain, we express variables at specific grid points:
+
+\begin{equation}
+T_{i,j,k}^n = F(T_{i\pm1,j\pm1,k\pm1}^{n-1}, \Delta x, \Delta y, \Delta z, \Delta t)
+\label{eq:60}
+\end{equation}
+
+The choice of grid structure fundamentally affects model accuracy and efficiency. For a three-dimensional domain, the discretized form becomes:
+
+\begin{equation}
+\psi_{i,j,k}^n = F(\psi_{i\pm1,j\pm1,k\pm1}^{n-1}, \Delta x, \Delta y, \Delta z, \Delta t)
+\label{eq:61}
+\end{equation}
+
+where indices $i,j,k$ represent spatial coordinates and $n$ denotes the time level.
+
+For vertical discretization, the common approach employs terrain-following coordinates:
+
+\begin{equation}
+\sigma = \frac{p - p_t}{p_s - p_t}
+\label{eq:62}
+\end{equation}
+
+where $p_t$ is the top pressure level and $p_s$ is the surface pressure.
+
+\subsubsection{Time Step Constraints}
+
+A fundamental constraint on numerical solutions is the Courant-Friedrichs-Lewy (CFL) condition:
+
+\begin{equation}
+C = \frac{U\Delta t}{\Delta x} \leq 1
+\label{eq:63}
+\end{equation}
+
+This condition ensures that information does not propagate faster than the numerical scheme can resolve, where $U$ represents the fastest wave speed in the system.
+
+\subsubsection{Numerical Stability Considerations}
+
+The Courant-Friedrichs-Lewy (CFL) condition provides a fundamental stability criterion:
+
+\begin{equation}
+C = \frac{u\Delta t}{\Delta x} \leq C_{max}
+\label{eq:64}
+\end{equation}
+
+where $C_{max}$ typically equals 1 for explicit schemes.
+
+
+\clearpage
+
+\begin{thebibliography}{99}
+
+\bibitem{bernstein1966} Bernstein, A.B., 1966: Some Basic Characteristics of Turbulent Flow. ESSA Technical Report. Environmental Science Services Administration, U.S. Department of Commerce.
+
+\bibitem{boussinesq1903} Boussinesq, J., 1903: Théorie analytique de la chaleur: mise en harmonie avec la thermodynamique et avec la théorie mécanique de la lumière. Vol. 2, Gauthier-Villars.
+
+\bibitem{durran1989} Durran, D.R., 1989: Improving the anelastic approximation. Journal of the Atmospheric Sciences, 46(11), 1453-1461.
+
+\bibitem{durran1999} Durran, D.R., 1999: Numerical Methods for Wave Equations in Geophysical Fluid Dynamics. Springer-Verlag, New York.
+
+\bibitem{dutton1976} Dutton, J.A., 1976: The Ceaseless Wind: An Introduction to the Theory of Atmospheric Motion. McGraw-Hill, New York.
+
+\bibitem{holton2004} Holton, J.R., 2004: An Introduction to Dynamic Meteorology. 4th ed., Academic Press.
+
+\bibitem{kinnmark1985} Kinnmark, I.P.E., 1985: The Shallow Water Wave Equations: Formulation, Analysis and Application. Springer-Verlag.
+
+\bibitem{lipps1982} Lipps, F.B. and Hemler, R.S., 1982: A scale analysis of deep moist convection and some related numerical calculations. Journal of the Atmospheric Sciences, 39, 2192-2210.
+
+\bibitem{mcwilliams2006} McWilliams, J.C., 2006: Fundamentals of Geophysical Fluid Dynamics. Cambridge University Press.
+
+\bibitem{ogura1962} Ogura, Y. and Phillips, N.A., 1962: Scale analysis of deep and shallow convection in the atmosphere. Journal of the Atmospheric Sciences, 19(2), 173-179.
+
+\bibitem{pedlosky1987} Pedlosky, J., 1987: Geophysical Fluid Dynamics. 2nd ed., Springer-Verlag.
+
+\bibitem{reynolds1895} Reynolds, O., 1895: On the dynamical theory of incompressible viscous fluids and the determination of the criterion. Philosophical Transactions of the Royal Society of London A, 186, 123-164.
+
+\bibitem{stull1988} Stull, R.B., 1988: An Introduction to Boundary Layer Meteorology. Kluwer Academic Publishers.
+
+\bibitem{Vreugdenhil1994}
+Vreugdenhil, C.B. (1994). \textit{Numerical Methods for Shallow-Water Flow}. Springer Netherlands.
+
+\bibitem{Toro2009}
+Toro, E.F. (2009). \textit{Riemann Solvers and Numerical Methods for Fluid Dynamics: A Practical Introduction}. Springer-Verlag Berlin Heidelberg.
+
+\bibitem{Burgerjon2021}
+Burgerjon, L.M.A. (2021). \textit{Numerical Methods for the Shallow Water Equations}. Bachelor's Thesis, Delft University of Technology.
+
+\bibitem{Crowhurst2013}
+Crowhurst, P. (2013). \textit{Numerical Solutions of One-Dimensional Shallow Water Equations}. Project Report, University of Reading.
+
+\bibitem{Dubos2022}
+Dubos, V. (2022). \textit{Numerical methods around shallow water flows}. Doctoral Thesis, Université Paris-Est.
+
+\end{thebibliography}
+
+
+\end{document}

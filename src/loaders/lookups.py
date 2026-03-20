@@ -1,0 +1,437 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+#
+# This software is provided under license by MKM Research Labs.
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+Cross-reference lookup builders for linking related datasets.
+
+This module provides functions to build lookup tables that link
+properties, mortgages, gauges, and flood risk data together.
+"""
+
+from typing import Any, Dict, Optional, Set
+
+
+def build_mortgage_lookup(mortgage_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
+    """
+    Build property_id -> mortgage mapping.
+
+    Args:
+        mortgage_data: Raw mortgage data with 'items' key
+
+    Returns:
+        Dictionary mapping property IDs to mortgage information
+    """
+    if not mortgage_data:
+        return {}
+
+    lookup = {}
+    mortgages = mortgage_data.get("items", [])
+
+    for mortgage in mortgages:
+        mort_data = mortgage.get("Mortgage", {})
+        header = mort_data.get("Header", {})
+        property_id = header.get("PropertyID")
+
+        if property_id:
+            financial_terms = mort_data.get("FinancialTerms", {})
+            current_status = mort_data.get("CurrentStatus", {})
+            loan_details = mort_data.get("LoanDetails", {})
+
+            lookup[property_id] = {
+                "mortgage_id": header.get("MortgageID"),
+                "property_id": property_id,
+                "uprn": header.get("UPRN"),
+                "financial_terms": financial_terms,
+                "application": mort_data.get("Application", {}),
+                # Flatten key financial fields for direct access
+                "OriginalLoan": (
+                    financial_terms.get("OriginalLoan")
+                    or loan_details.get("OriginalLoanAmount")
+                    or 0
+                ),
+                "OriginalLTV": financial_terms.get("OriginalLTV", 0),
+                "OriginalLendingRate": financial_terms.get("OriginalLendingRate", 0),
+                "OriginalTerm": financial_terms.get("OriginalTerm", 0),
+                "CurrentBalance": current_status.get("OutstandingBalance", 0),
+                "CurrentLTV": current_status.get("CurrentLTV", 0),
+                "CurrentInterestRate": current_status.get("CurrentInterestRate", 0),
+            }
+
+    return lookup
+
+
+def build_gauge_flood_info(
+    gauge_data: Optional[Dict[str, Any]],
+    flood_risk_data: Optional[Dict[str, Any]]
+) -> Dict[str, Dict]:
+    """
+    Build gauge_id -> flood info mapping from hazard curve data and gauge data.
+
+    Args:
+        gauge_data: Raw gauge data with 'items' key containing FloodGauge records
+        flood_risk_data: Hazard curve data with 'hazard_curves' key (from gaugehc.json)
+
+    Returns:
+        Dictionary mapping gauge IDs to flood information
+    """
+    lookup = {}
+
+    # Extract from hazard curves (gaugehc.json) — primary source
+    if flood_risk_data:
+        hazard_curves = flood_risk_data.get("hazard_curves", {})
+        for gauge_id, hc in hazard_curves.items():
+            lookup[gauge_id] = {
+                "gauge_name": hc.get("gauge_name"),
+                "elevation": hc.get("elevation_m"),
+                "alert_level": hc.get("flood_alert_m"),
+                "warning_level": hc.get("flood_warning_m"),
+                "severe_level": hc.get("severe_flood_warning_m"),
+                "annual_flood_prob_alert": hc.get("annual_flood_prob_alert"),
+                "annual_flood_prob_warning": hc.get("annual_flood_prob_warning"),
+                "annual_flood_prob_severe": hc.get("annual_flood_prob_severe"),
+                "hazard_rate_alert": hc.get("annual_hazard_rate_alert"),
+                "hazard_rate_warning": hc.get("annual_hazard_rate_warning"),
+                "hazard_rate_severe": hc.get("annual_hazard_rate_severe"),
+            }
+
+    # Supplement with gauge data (gauge.json) if available
+    if gauge_data:
+        for gauge in gauge_data.get("items", []):
+            fg = gauge.get("FloodGauge", {})
+            header = fg.get("Header", {})
+            gauge_id = header.get("GaugeID")
+            if not gauge_id:
+                continue
+
+            flood_stages = fg.get("FloodStages", {})
+            location = fg.get("Location", {})
+            sensor_stats = fg.get("SensorStats", {})
+
+            if gauge_id not in lookup:
+                lookup[gauge_id] = {}
+
+            # Fill in fields not already set from hazard data
+            existing = lookup[gauge_id]
+            existing.setdefault("gauge_name", header.get("GaugeName"))
+            existing.setdefault("elevation", location.get("GaugeElevation"))
+            existing.setdefault("alert_level", flood_stages.get("FloodAlert"))
+            existing.setdefault("warning_level", flood_stages.get("FloodWarning"))
+            existing.setdefault("severe_level", flood_stages.get("SevereFloodWarning"))
+            existing.setdefault("max_level", sensor_stats.get("HistoricalHighLevel"))
+            existing.setdefault("max_gauge_reading", sensor_stats.get("HistoricalHighLevel"))
+
+    return lookup
+
+
+def build_property_flood_info(
+    property_data: Optional[Dict[str, Any]],
+    flood_risk_data: Optional[Dict[str, Any]],
+    property_hazard_data: Optional[Dict[str, Any]] = None
+) -> Dict[str, Dict]:
+    """
+    Build property_id -> flood info mapping from property hazard curves.
+
+    Args:
+        property_data: Raw property data with 'items' key
+        flood_risk_data: Gauge hazard data (used for gauge-level context)
+        property_hazard_data: Property hazard curve data from propertyhc.json
+
+    Returns:
+        Dictionary mapping property IDs to flood risk information
+    """
+    lookup = {}
+
+    # Extract from property hazard curves (propertyhc.json) — primary source
+    if property_hazard_data:
+        phc = property_hazard_data.get("property_hazard_curves", {})
+        for prop_id, prop_hc in phc.items():
+            location = prop_hc.get("location", {})
+            depth_thresholds = prop_hc.get("depth_thresholds", {})
+            any_flood = depth_thresholds.get("any_flood", {})
+            moderate = depth_thresholds.get("moderate", {})
+            severe = depth_thresholds.get("severe", {})
+
+            lookup[prop_id] = {
+                "property_id": prop_id,
+                "property_elevation": prop_hc.get("elevation_m"),
+                "floor_level": prop_hc.get("floor_level_m"),
+                "flood_count": prop_hc.get("flood_count", 0),
+                "annual_flood_prob": any_flood.get("annual_probability", 0),
+                "return_period_years": any_flood.get("return_period_yrs"),
+                "moderate_flood_prob": moderate.get("annual_probability", 0),
+                "severe_flood_prob": severe.get("annual_probability", 0),
+                "risk_level": _classify_property_risk(any_flood.get("annual_probability", 0)),
+                "lat": location.get("lat"),
+                "lon": location.get("lon"),
+            }
+
+    # Supplement with property data (property.json) for properties not in hazard data
+    if property_data:
+        for prop in property_data.get("items", []):
+            ph = prop.get("PropertyHeader", {})
+            header = ph.get("Header", {})
+            prop_id = header.get("PropertyID")
+            if not prop_id or prop_id in lookup:
+                continue
+
+            risk_assessment = ph.get("RiskAssessment", {})
+            location = ph.get("Location", {})
+
+            lookup[prop_id] = {
+                "property_id": prop_id,
+                "property_elevation": risk_assessment.get("GroundLevelMeters"),
+                "flood_zone": risk_assessment.get("EAFloodZone"),
+                "overall_risk": risk_assessment.get("OverallFloodRisk"),
+                "risk_level": risk_assessment.get("OverallFloodRisk", "Unknown"),
+                "lat": location.get("LatitudeDegrees"),
+                "lon": location.get("LongitudeDegrees"),
+            }
+
+    return lookup
+
+
+def _classify_property_risk(annual_prob: float) -> str:
+    """Classify property flood risk based on annual probability."""
+    if annual_prob >= 0.03:
+        return "High"
+    elif annual_prob >= 0.01:
+        return "Medium"
+    elif annual_prob > 0:
+        return "Low"
+    return "Negligible"
+
+
+def build_mortgage_risk_info(
+    mortgage_data: Optional[Dict[str, Any]],
+    flood_risk_data: Optional[Dict[str, Any]],
+    property_flood_info: Optional[Dict[str, Dict]] = None
+) -> Dict[str, Dict]:
+    """
+    Build mortgage risk lookups by combining mortgage data with property flood info.
+
+    Args:
+        mortgage_data: Raw mortgage data with 'items' key
+        flood_risk_data: Gauge hazard data (for context)
+        property_flood_info: Pre-built property flood info lookup
+
+    Returns:
+        Dictionary with 'by_mortgage_id' and 'by_property_id' sub-dicts
+    """
+    result = {
+        "by_mortgage_id": {},
+        "by_property_id": {},
+    }
+
+    if not mortgage_data:
+        return result
+
+    if property_flood_info is None:
+        property_flood_info = {}
+
+    for mortgage in mortgage_data.get("items", []):
+        mort_data = mortgage.get("Mortgage", {})
+        header = mort_data.get("Header", {})
+        mortgage_id = header.get("MortgageID")
+        property_id = header.get("PropertyID")
+
+        if not mortgage_id or not property_id:
+            continue
+
+        financial_terms = mort_data.get("FinancialTerms", {})
+        loan_details = mort_data.get("LoanDetails", {})
+        original_loan = (
+            financial_terms.get("OriginalLoan")
+            or loan_details.get("OriginalLoanAmount")
+            or 0
+        )
+
+        # Get property flood info if available
+        prop_flood = property_flood_info.get(property_id, {})
+        risk_level = prop_flood.get("risk_level", "Unknown")
+        annual_prob = prop_flood.get("annual_flood_prob", 0)
+
+        # Estimate value at risk
+        value_at_risk = original_loan * min(annual_prob * 10, 1.0) if annual_prob else 0
+
+        risk_info = {
+            "MortgageID": mortgage_id,
+            "PropertyID": property_id,
+            "mortgage_value": original_loan,
+            "flood_risk_level": risk_level,
+            "annual_flood_probability": annual_prob,
+            "mortgage_value_at_risk": value_at_risk,
+        }
+
+        result["by_mortgage_id"][mortgage_id] = risk_info
+        result["by_property_id"][property_id] = risk_info
+
+    return result
+
+
+def build_all_lookups(
+    gauge_data: Optional[Dict[str, Any]] = None,
+    property_data: Optional[Dict[str, Any]] = None,
+    mortgage_data: Optional[Dict[str, Any]] = None,
+    flood_risk_data: Optional[Dict[str, Any]] = None,
+    property_hazard_data: Optional[Dict[str, Any]] = None
+) -> Dict[str, Dict]:
+    """
+    Build all cross-reference lookups in one call.
+
+    Args:
+        gauge_data: Raw gauge data
+        property_data: Raw property data
+        mortgage_data: Raw mortgage data
+        flood_risk_data: Gauge hazard curve data (from gaugehc.json)
+        property_hazard_data: Property hazard curve data (from propertyhc.json)
+
+    Returns:
+        Dictionary containing all lookup tables
+    """
+    property_flood_info = build_property_flood_info(
+        property_data, flood_risk_data, property_hazard_data
+    )
+
+    return {
+        "mortgage_lookup": build_mortgage_lookup(mortgage_data),
+        "gauge_flood_info": build_gauge_flood_info(gauge_data, flood_risk_data),
+        "property_flood_info": property_flood_info,
+        "mortgage_risk_info": build_mortgage_risk_info(
+            mortgage_data, flood_risk_data, property_flood_info
+        ),
+    }
+
+
+# ID extraction utilities for relationship analysis
+
+def extract_property_ids(property_data: Optional[Dict[str, Any]]) -> Set[str]:
+    """Extract all property IDs from property data."""
+    if not property_data:
+        return set()
+
+    ids = set()
+    for prop in property_data.get("items", []):
+        prop_id = prop.get("PropertyHeader", {}).get("Header", {}).get("PropertyID")
+        if prop_id:
+            ids.add(prop_id)
+    return ids
+
+
+def extract_mortgage_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
+    """Extract all mortgage IDs from mortgage data."""
+    if not mortgage_data:
+        return set()
+
+    ids = set()
+    for mortgage in mortgage_data.get("items", []):
+        mort_id = mortgage.get("Mortgage", {}).get("Header", {}).get("MortgageID")
+        if mort_id:
+            ids.add(mort_id)
+    return ids
+
+
+def extract_mortgage_property_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
+    """Extract property IDs referenced in mortgage data."""
+    if not mortgage_data:
+        return set()
+
+    ids = set()
+    for mortgage in mortgage_data.get("items", []):
+        prop_id = mortgage.get("Mortgage", {}).get("Header", {}).get("PropertyID")
+        if prop_id:
+            ids.add(prop_id)
+    return ids
+
+
+def extract_gauge_ids(gauge_data: Optional[Dict[str, Any]]) -> Set[str]:
+    """Extract all gauge IDs from gauge data."""
+    if not gauge_data:
+        return set()
+
+    ids = set()
+    gauges = gauge_data.get("items", [])
+    for gauge in gauges:
+        gauge_id = gauge.get("FloodGauge", {}).get("Header", {}).get("GaugeID")
+        if gauge_id:
+            ids.add(gauge_id)
+    return ids
+
+
+def analyze_id_relationships(
+    property_data: Optional[Dict[str, Any]] = None,
+    mortgage_data: Optional[Dict[str, Any]] = None,
+    flood_risk_data: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Analyze relationships between IDs in different datasets.
+
+    Returns:
+        Dictionary with ID counts and overlap statistics
+    """
+    property_ids = extract_property_ids(property_data)
+    mortgage_property_ids = extract_mortgage_property_ids(mortgage_data)
+    mortgage_ids = extract_mortgage_ids(mortgage_data)
+
+    # Extract IDs from flood risk data (gaugehc.json has hazard_curves key)
+    flood_property_ids = set()
+    if flood_risk_data:
+        # Property IDs from property hazard curves
+        flood_property_ids = set(flood_risk_data.get("property_hazard_curves", {}).keys())
+        # Also check legacy format
+        if not flood_property_ids:
+            flood_property_ids = set(flood_risk_data.get("property_risk", {}).keys())
+
+    # Mortgages with flood risk = mortgages whose property has flood risk
+    flood_mortgage_ids = set()
+    if mortgage_data and flood_property_ids:
+        for mortgage in mortgage_data.get("items", []):
+            mort = mortgage.get("Mortgage", {}).get("Header", {})
+            prop_id = mort.get("PropertyID")
+            mort_id = mort.get("MortgageID")
+            if prop_id in flood_property_ids and mort_id:
+                flood_mortgage_ids.add(mort_id)
+
+    return {
+        "counts": {
+            "properties": len(property_ids),
+            "mortgages": len(mortgage_ids),
+            "mortgage_properties": len(mortgage_property_ids),
+            "flood_properties": len(flood_property_ids),
+            "flood_mortgages": len(flood_mortgage_ids),
+        },
+        "overlaps": {
+            "properties_with_mortgages": len(property_ids & mortgage_property_ids),
+            "properties_with_flood_risk": len(property_ids & flood_property_ids),
+            "mortgages_with_flood_risk": len(mortgage_ids & flood_mortgage_ids),
+        },
+    }

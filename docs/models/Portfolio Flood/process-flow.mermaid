@@ -1,0 +1,41 @@
+flowchart TD
+    subgraph InputData
+        A1[Portfolio Data Input]
+        A2[Flood Event Data]
+        A3[Gauge Data]
+    end
+
+    subgraph PropertyData
+        A1 --> B1[Property Features]
+        B1 --> |"property_id\nlatitude\nlongitude\nvalue\nfloor_height"| C1
+        B1 --> |"property_age\nlot_area\nliving_space\nbedrooms\nbathrooms"| C2
+        B1 --> |"last_purchase_date\nlast_purchase_value\nbuilding_work_data"| C3
+    end
+
+    subgraph FloodData
+        A2 --> B2[Flood Parameters]
+        B2 --> |"center_lat\ncenter_lon\nradius\nmax_depth"| C4
+        A3 --> B3[Gauge Readings]
+        B3 --> |"gauge_id\nlatitude\nlongitude\nwater_level"| C4
+    end
+
+    subgraph Valuation
+        C1[Location Data]
+        C2[Property Characteristics]
+        C3[Sales History]
+        C1 & C2 & C3 --> D1[Property Valuation Model]
+    end
+
+    subgraph RiskAssessment
+        C4[Flood Risk Parameters]
+        D1 --> |"property values"| D2[Flood Risk Model]
+        C4 --> D2
+        D2 --> E1[Impact Calculation]
+    end
+
+    subgraph Output
+        E1 --> F1[Property-Level Results]
+        E1 --> F2[Portfolio Metrics]
+        F1 --> |"actual_value\npredicted_value\nflood_depth\ndirect_impact"| G[Final Output]
+        F2 --> |"mean_impact\nvar_95\nes_95\nconcentration"| G
+    end

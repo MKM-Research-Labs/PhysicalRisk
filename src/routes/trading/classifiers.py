@@ -1,0 +1,305 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+# (see package __init__.py for full license text)
+
+"""Classifier management endpoints for the Trading Desk.
+
+Provides:
+  GET  /trading/classifiers/summary           — all gauges with classifier status + metrics
+  POST /trading/classifiers/train-all         — batch train all untrained gauges
+  GET  /trading/classifiers/train-all/status  — batch training progress + ETA
+"""
+
+import json
+import logging
+import threading
+import time
+from pathlib import Path
+
+from flask import jsonify
+
+from config import config
+from . import trading_bp
+from ._helpers import _load_gauge_locations
+
+logger = logging.getLogger(__name__)
+
+# ── batch training state ──────────────────────────────────────────────
+_batch_job = None      # dict or None
+_batch_lock = threading.Lock()
+
+_TIMINGS_FILENAME = "classifier_timings.json"
+
+
+def _load_timings(stressm_dir: Path) -> dict:
+    """Load historical classifier training timings."""
+    path = stressm_dir / _TIMINGS_FILENAME
+    if path.exists():
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"runs": []}
+
+
+def _save_timings(stressm_dir: Path, timings: dict) -> None:
+    """Save classifier training timings (keep last 20 runs)."""
+    timings["runs"] = timings["runs"][-20:]
+    path = stressm_dir / _TIMINGS_FILENAME
+    with open(path, "w") as f:
+        json.dump(timings, f, indent=2)
+
+
+def _avg_per_gauge_seconds(timings: dict) -> float:
+    """Return average seconds per gauge from historical runs."""
+    runs = timings.get("runs", [])
+    if not runs:
+        return 0.0
+    total_time = sum(r.get("elapsed_seconds", 0) for r in runs)
+    total_gauges = sum(r.get("num_gauges", 1) for r in runs)
+    return total_time / max(total_gauges, 1)
+
+
+# ── GET /trading/classifiers/summary ──────────────────────────────────
+
+@trading_bp.route("/trading/classifiers/summary", methods=["GET"])
+def classifiers_summary():
+    """Return all gauges with classifier status, metrics, sorted west→east."""
+    try:
+        stressm_dir = config.get_stressm_dir()
+        gauge_locations = _load_gauge_locations()
+
+        # Load training summary
+        summary_path = stressm_dir / "training_summary.json"
+        trained_map = {}
+        if summary_path.exists():
+            with open(summary_path) as f:
+                summary = json.load(f)
+            for g in summary.get("gauges", []):
+                trained_map[g["gauge_id"]] = g
+
+        # Build response for all gauges (from gauge_locations)
+        gauges = []
+        for gid, loc in gauge_locations.items():
+            has_model = (stressm_dir / f"{gid}.joblib").exists()
+            info = trained_map.get(gid, {})
+            metrics = info.get("metrics", {})
+
+            gauges.append({
+                "gauge_id": gid,
+                "gauge_name": loc.get("name", gid),
+                "lat": loc.get("lat", 0),
+                "lon": loc.get("lon", 0),
+                "has_model": has_model,
+                "status": info.get("status", "not_trained"),
+                "auc_roc": metrics.get("auc_roc"),
+                "accuracy": metrics.get("accuracy"),
+                "brier_score": metrics.get("brier_score"),
+                "log_loss": metrics.get("log_loss"),
+                "flood_rate": info.get("flood_rate"),
+                "n_samples": info.get("n_samples"),
+                "feature_importance": info.get("feature_importance"),
+                "label_threshold": info.get("label_threshold"),
+                "severe_level": info.get("severe_level"),
+                "alert_level": info.get("alert_level"),
+            })
+
+        # Sort west→east by longitude
+        gauges.sort(key=lambda g: g["lon"])
+
+        trained = [g for g in gauges if g["has_model"]]
+        avg_auc = (
+            sum(g["auc_roc"] for g in trained if g["auc_roc"] is not None)
+            / max(len([g for g in trained if g["auc_roc"] is not None]), 1)
+        )
+
+        return jsonify({
+            "status": "success",
+            "gauges": gauges,
+            "num_total": len(gauges),
+            "num_trained": len(trained),
+            "avg_auc_roc": round(avg_auc, 4) if trained else None,
+        })
+
+    except Exception as e:
+        logger.error("Classifiers summary error: %s", e, exc_info=True)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ── POST /trading/classifiers/train-all ───────────────────────────────
+
+@trading_bp.route("/trading/classifiers/train-all", methods=["POST"])
+def train_all_classifiers():
+    """Start batch training for all untrained gauges."""
+    global _batch_job
+
+    with _batch_lock:
+        if _batch_job and _batch_job["status"] == "running":
+            return jsonify({
+                "status": "running",
+                "message": "Batch training already in progress",
+                "completed": _batch_job["completed"],
+                "total": _batch_job["total"],
+            })
+
+    try:
+        stressm_dir = config.get_stressm_dir()
+        gauge_locations = _load_gauge_locations()
+
+        # Find untrained gauges
+        untrained = []
+        for gid in gauge_locations:
+            if not (stressm_dir / f"{gid}.joblib").exists():
+                untrained.append(gid)
+
+        if not untrained:
+            return jsonify({
+                "status": "complete",
+                "message": "All gauges already trained",
+                "completed": 0,
+                "total": 0,
+            })
+
+        # Load historical timings for ETA
+        timings = _load_timings(stressm_dir)
+        avg_per_gauge = _avg_per_gauge_seconds(timings)
+
+        with _batch_lock:
+            _batch_job = {
+                "status": "running",
+                "total": len(untrained),
+                "completed": 0,
+                "current_gauge_id": None,
+                "results": [],
+                "started": time.time(),
+                "avg_per_gauge": avg_per_gauge,
+                "gauge_ids": untrained,
+            }
+
+        thread = threading.Thread(
+            target=_run_batch_training,
+            args=(untrained,),
+            daemon=True,
+        )
+        thread.start()
+
+        eta = round(avg_per_gauge * len(untrained)) if avg_per_gauge > 0 else None
+
+        return jsonify({
+            "status": "running",
+            "total": len(untrained),
+            "completed": 0,
+            "eta_seconds": eta,
+            "message": f"Training {len(untrained)} classifiers...",
+        })
+
+    except Exception as e:
+        logger.error("Train-all start error: %s", e, exc_info=True)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+def _run_batch_training(gauge_ids: list):
+    """Run classifier training for multiple gauges sequentially."""
+    global _batch_job
+
+    from .stress.training import _train_single_gauge
+
+    stressm_dir = config.get_stressm_dir()
+    t_start = time.time()
+
+    for i, gid in enumerate(gauge_ids):
+        with _batch_lock:
+            if _batch_job is None:
+                return  # cancelled or reset
+            _batch_job["current_gauge_id"] = gid
+
+        try:
+            # Use the existing single-gauge training function
+            _train_single_gauge(gid)
+
+            with _batch_lock:
+                if _batch_job is None:
+                    return
+                _batch_job["completed"] = i + 1
+                _batch_job["results"].append({
+                    "gauge_id": gid,
+                    "status": "trained",
+                })
+
+        except Exception as exc:
+            logger.error("Batch training failed for %s: %s", gid, exc)
+            with _batch_lock:
+                if _batch_job is None:
+                    return
+                _batch_job["completed"] = i + 1
+                _batch_job["results"].append({
+                    "gauge_id": gid,
+                    "status": "failed",
+                    "error": str(exc),
+                })
+
+    elapsed = time.time() - t_start
+
+    with _batch_lock:
+        if _batch_job is None:
+            return
+        results = list(_batch_job.get("results", []))
+
+    # Save timing for future ETA estimates
+    timings = _load_timings(stressm_dir)
+    num_trained = sum(1 for r in results if r["status"] == "trained")
+    timings["runs"].append({
+        "num_gauges": len(gauge_ids),
+        "num_trained": num_trained,
+        "elapsed_seconds": round(elapsed, 2),
+        "avg_per_gauge_seconds": round(elapsed / max(len(gauge_ids), 1), 2),
+    })
+    _save_timings(stressm_dir, timings)
+
+    with _batch_lock:
+        if _batch_job is not None:
+            _batch_job["status"] = "complete"
+            _batch_job["current_gauge_id"] = None
+
+    logger.info("Batch training complete: %d/%d trained (%.1fs)",
+                num_trained, len(gauge_ids), elapsed)
+
+
+# ── GET /trading/classifiers/train-all/status ─────────────────────────
+
+@trading_bp.route("/trading/classifiers/train-all/status", methods=["GET"])
+def train_all_status():
+    """Return batch training progress."""
+    with _batch_lock:
+        if _batch_job is None:
+            return jsonify({"status": "idle", "message": "No batch training in progress"})
+
+        completed = _batch_job["completed"]
+        total = _batch_job["total"]
+        status = _batch_job["status"]
+        current = _batch_job.get("current_gauge_id")
+        avg_pg = _batch_job.get("avg_per_gauge", 0)
+        elapsed = time.time() - _batch_job["started"]
+
+        # Compute ETA
+        if avg_pg > 0:
+            remaining = (total - completed) * avg_pg
+        elif completed > 0:
+            remaining = (total - completed) * (elapsed / completed)
+        else:
+            remaining = None
+
+        resp = {
+            "status": status,
+            "total": total,
+            "completed": completed,
+            "current_gauge_id": current,
+            "pct": round(completed / max(total, 1) * 100, 1),
+            "elapsed_seconds": round(elapsed),
+            "eta_seconds": round(remaining) if remaining is not None else None,
+        }
+
+        if status == "complete":
+            resp["results"] = _batch_job.get("results", [])
+
+        return jsonify(resp)

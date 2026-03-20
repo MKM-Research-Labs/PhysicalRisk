@@ -1,0 +1,47 @@
+\contentsline {section}{\numberline {1}Executive Summary}{4}{section.1}%
+\contentsline {section}{\numberline {2}Model Purpose and Scope}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Objective}{5}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Scope}{5}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Regulatory Context}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Mathematical Framework}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Descriptive Statistics}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Percentile Computation}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Flood Exceedance Analysis}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Monthly Mean Decomposition}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Annual Maxima Extraction}{7}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Extreme Event Detection}{7}{subsection.3.6}%
+\contentsline {section}{\numberline {4}Input Parameters and Calibration}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Observation Data}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Flood Stage Thresholds}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Calibration}{8}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Implementation Details}{9}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Source Files}{9}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Function Architecture}{9}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Convenience Wrappers}{9}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Dependencies}{10}{subsection.5.4}%
+\contentsline {section}{\numberline {6}Sensitivity Analysis}{11}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Record Length}{11}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Flood Threshold Values}{12}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Data Quality}{12}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Validation and Backtesting}{13}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Cross-Check Against NRFA Published Statistics}{13}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Synthetic Data Validation}{13}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Consistency Checks}{13}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Model Limitations and Known Weaknesses}{14}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Nearest-Rank Percentile Method}{14}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}No Data Quality Screening}{14}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Calendar Year Partitioning}{14}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}No Uncertainty Quantification}{14}{subsection.8.4}%
+\contentsline {subsection}{\numberline {8.5}Flat Monthly Structure}{14}{subsection.8.5}%
+\contentsline {section}{\numberline {9}Governance Validation Questions}{15}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Q1 --- Ronseal Test}{15}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Q2 --- Accuracy and Stability}{15}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Q3 --- Resource Usage}{15}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Q4 --- Override Controls}{15}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Q5 --- Output Consumption}{16}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Q6 --- Model Chaining}{16}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Q7 --- Weaknesses}{16}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Q8 --- Monitoring}{16}{subsection.9.8}%
+\contentsline {subsection}{\numberline {9.9}Q9 --- Overall Risk}{16}{subsection.9.9}%
+\contentsline {section}{\numberline {10}Change History}{18}{section.10}%
+\contentsline {section}{\numberline {11}Document History}{18}{section.11}%

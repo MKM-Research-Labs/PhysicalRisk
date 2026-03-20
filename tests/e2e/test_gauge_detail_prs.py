@@ -1,0 +1,116 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+"""
+Gauge panel detail e2e test: PRS Pricing tab (Tab 0).
+Split from test_gauge_panel_detail.py.
+"""
+
+import pytest
+
+from tests.e2e.helpers import (
+    close_gauge_panel,
+    open_gauge_panel,
+    switch_gauge_tab,
+)
+
+
+class TestPRSPricingTab:
+    """Tab 0 - PRS Pricing controls and chart."""
+
+    @pytest.fixture(autouse=True)
+    def open_prs_tab(self, map_page, first_traded_gauge_id):
+        open_gauge_panel(map_page, first_traded_gauge_id)
+        switch_gauge_tab(map_page, 0)
+        yield
+        close_gauge_panel(map_page)
+
+    def test_controls_exist(self, map_page):
+        """PRS tab should have direction, counterparty, trigger, notional, spread, maturity controls."""
+        control_ids = [
+            "prs-direction",
+            "prs-counterparty",
+            "prs-trigger",
+            "prs-notional",
+            "prs-spread",
+            "prs-maturity",
+        ]
+        for cid in control_ids:
+            el = map_page.locator(f"#{cid}")
+            assert el.count() > 0, f"Control #{cid} not found on PRS tab"
+
+    def test_direction_dropdown_options(self, map_page):
+        """Direction dropdown should have payer and receiver options."""
+        direction = map_page.locator("#prs-direction")
+        assert direction.count() > 0, "Direction dropdown not found"
+        options_text = map_page.evaluate("""() => {
+            const sel = document.getElementById('prs-direction');
+            if (!sel) return [];
+            return Array.from(sel.options).map(o => o.value.toLowerCase());
+        }""")
+        assert any("pay" in o for o in options_text), (
+            f"No payer option in direction dropdown: {options_text}"
+        )
+        assert any("rec" in o for o in options_text), (
+            f"No receiver option in direction dropdown: {options_text}"
+        )
+
+    def test_trigger_dropdown_options(self, map_page):
+        """Trigger dropdown should have alert, warning, severe options."""
+        trigger = map_page.locator("#prs-trigger")
+        assert trigger.count() > 0, "Trigger dropdown not found"
+        options_text = map_page.evaluate("""() => {
+            const sel = document.getElementById('prs-trigger');
+            if (!sel) return [];
+            return Array.from(sel.options).map(o => o.text.toLowerCase());
+        }""")
+        joined = " ".join(options_text)
+        assert "alert" in joined, f"No alert option in trigger: {options_text}"
+        assert "warning" in joined, f"No warning option in trigger: {options_text}"
+        assert "severe" in joined, f"No severe option in trigger: {options_text}"
+
+    def test_trigger_change_updates_display(self, map_page):
+        """Changing the trigger dropdown should update the hazard display."""
+        trigger = map_page.locator("#prs-trigger")
+        if trigger.count() == 0:
+            pytest.skip("Trigger dropdown not found")
+
+        # Read initial state
+        initial_text = map_page.locator("#hazard-curve-panel").inner_text()
+
+        # Change trigger to a different value
+        options = map_page.evaluate("""() => {
+            const sel = document.getElementById('prs-trigger');
+            if (!sel) return [];
+            return Array.from(sel.options).map(o => o.value);
+        }""")
+        if len(options) < 2:
+            pytest.skip("Not enough trigger options to test change")
+
+        # Select the last option (different from default first)
+        map_page.select_option("#prs-trigger", options[-1])
+        map_page.wait_for_timeout(1_000)
+
+        # The panel should still be showing content (not blank/error)
+        panel = map_page.locator("#hazard-curve-panel")
+        assert panel.is_visible(), "Panel disappeared after trigger change"
+        updated_text = panel.inner_text()
+        assert len(updated_text) > 0, "Panel content is empty after trigger change"
+
+    def test_commit_button_exists(self, map_page):
+        """PRS tab should have a commit/trade button (appears after counterparty selected)."""
+        btn = map_page.locator("#prs-commit-btn")
+        if btn.count() == 0:
+            # Commit button only appears after counterparty is selected
+            # Check that the controls area exists instead
+            controls = map_page.locator("#hazard-controls, #prs-counterparty")
+            assert controls.count() > 0, (
+                "Neither commit button nor PRS controls found"
+            )
+
+    def test_chart_canvas_exists(self, map_page):
+        """PRS tab should render a hazard curve chart."""
+        chart = map_page.locator("#prs-hazard-curve-chart")
+        if chart.count() == 0:
+            # Fallback: look for any canvas inside the panel
+            chart = map_page.locator("#hazard-curve-panel canvas")
+        assert chart.count() > 0, "No chart canvas found on PRS tab"

@@ -1,0 +1,1095 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{PhysicalRisk Platform}
+\newcommand{\docsubtitle}{Developer Guide}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{14-February-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../models/shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+PhysicalRisk is a flood risk assessment and Physical Risk Swap (PRS) pricing
+platform developed by MKM Research Labs. The platform generates synthetic
+portfolios of flood gauges, residential properties, and mortgages within a
+river catchment, then simulates storm events to compute property-level flood
+hazard curves, risk-adjusted mortgage valuations, and PRS contract pricing.
+
+\subsection{Capabilities}
+
+\begin{itemize}[nosep]
+    \item \textbf{Synthetic portfolio generation} --- configurable portfolios of
+          gauges, properties, mortgages, storms, and counterparties.
+    \item \textbf{Flood simulation} --- storm-to-gauge response modelling with
+          spatial interpolation to property level using inverse distance weighting.
+    \item \textbf{Hazard curve construction} --- GEV-fitted exceedance
+          probabilities at gauge and property level.
+    \item \textbf{PRS pricing} --- CDS-equivalent quarterly pricing of Physical
+          Risk Swaps with five-component basis waterfall analysis.
+    \item \textbf{Mortgage pricing} --- risk-adjusted mortgage valuation with
+          affordability, LTV, and flood risk credit spread adjustments.
+    \item \textbf{Interactive visualisation} --- Folium-based map with tabbed
+          analysis panels, context menus, flood animation, and PDF report
+          generation.
+    \item \textbf{REST API} --- Flask server exposing all data and analytics
+          via JSON endpoints.
+    \item \textbf{PDF reporting} --- automated property, gauge, risk portfolio,
+          and PRS trade confirmation reports.
+\end{itemize}
+
+\subsection{Architecture Overview}
+
+\begin{lstlisting}[language={},caption={Platform architecture}]
+app.py (CLI)
+  |-- server      --> src/server.py --> src/routes/*.py (Flask API)
+  |-- port        --> src/port/src/*.py (generators)
+  |                    |-- src/port/cdm/*.py (schemas)
+  |                    |-- src/port/rand/thames/*.py (random modules)
+  |                    |-- src/models/*.py (analytical models)
+  |-- visual      --> src/visual/ (Folium map + interactivity)
+  |-- check       --> dependency verification
+  |-- config      --> configuration display
+
+config.py         --> PortfolioConfig (singleton, paths, catchment)
+data/
+  |-- input/thames/   (generated portfolios + timeseries)
+  |-- output/         (PDF reports, PRS trades)
+  |-- results/        (interactive visualisation HTML)
+\end{lstlisting}
+
+% ===================================================================
+% 2. INSTALLATION AND SETUP
+% ===================================================================
+\section{Installation and Setup}
+
+\subsection{Prerequisites}
+
+\begin{itemize}[nosep]
+    \item Python 3.13 or later
+    \item GDAL system library (for geospatial operations)
+    \item QuantLib (optional, for CDS pricing --- analytical fallback available)
+    \item Node.js and npm (optional, for JavaScript tests)
+    \item \LaTeX{} distribution (optional, for building documentation PDFs)
+\end{itemize}
+
+\subsection{Installation}
+
+\begin{lstlisting}[language=bash,caption={Installation steps}]
+# Clone repository
+git clone <repository-url> PhysicalRisk
+cd PhysicalRisk
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Verify installation
+python app.py check
+\end{lstlisting}
+
+The \texttt{check} command verifies all required packages: \texttt{flask},
+\texttt{flask\_cors}, \texttt{folium}, \texttt{pandas}, \texttt{numpy},
+\texttt{geopandas}, \texttt{reportlab}, \texttt{scipy}, \texttt{sklearn},
+\texttt{rasterio}, \texttt{geopy}, \texttt{shapely}, \texttt{matplotlib},
+\texttt{seaborn}. Each is reported as \texttt{OK} or \texttt{MISSING}.
+
+\subsection{Environment Variables}
+
+All settings have sensible defaults but can be overridden:
+
+\begin{table}[H]
+    \centering
+    \caption{Environment variable configuration}
+    \label{tab:env_vars}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Variable} & \textbf{Default} & \textbf{Description} \\
+        \midrule
+        \texttt{MKM\_SERVER\_HOST}  & \texttt{127.0.0.1} & Server bind address \\
+        \texttt{MKM\_SERVER\_PORT}  & \texttt{5013}       & Server port \\
+        \texttt{MKM\_DEBUG}         & \texttt{false}      & Flask debug mode \\
+        \texttt{MKM\_CATCHMENT}     & \texttt{thames}     & Active catchment ID \\
+        \texttt{MKM\_PROJECT\_ROOT} & Auto-detected       & Override project root \\
+        \texttt{MKM\_INPUT\_DIR}    & \texttt{data/input}  & Override input directory \\
+        \texttt{MKM\_OUTPUT\_DIR}   & \texttt{data/output} & Override output directory \\
+        \texttt{MKM\_RESULTS\_DIR}  & \texttt{data/results}& Override results directory \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% ===================================================================
+% 3. CONFIGURATION
+% ===================================================================
+\section{Configuration}
+
+\subsection{Configuration System}
+
+The platform uses two configuration classes in \texttt{config.py}:
+
+\begin{itemize}[nosep]
+    \item \texttt{Config} --- simple class with server settings as class
+          attributes. Used by Flask for host/port/debug/CORS.
+    \item \texttt{PortfolioConfig} --- singleton managing catchment, directory
+          paths, and module loading. The global \texttt{config} instance is
+          available via \texttt{from config import config}.
+\end{itemize}
+
+\begin{lstlisting}[language=bash,caption={View current configuration}]
+$ python app.py config
+Project root:   /path/to/PhysicalRisk
+Catchment:      thames
+Input dir:      /path/to/PhysicalRisk/data/input/thames
+Output dir:     /path/to/PhysicalRisk/data/output
+Reports dir:    /path/to/PhysicalRisk/data/output
+Results dir:    /path/to/PhysicalRisk/data/results
+Server URL:     http://127.0.0.1:5013
+Debug:          False
+\end{lstlisting}
+
+\subsection{Directory Structure}
+
+\begin{lstlisting}[language={},caption={Project directory layout}]
+PhysicalRisk/
+  app.py                    CLI entry point
+  config.py                 Configuration (adds src/ to sys.path)
+  requirements.txt          Python dependencies
+  Dockerfile                Container image
+  docker-compose.yml        Container orchestration
+  src/
+    server.py               Flask application factory
+    routes/                 API endpoint blueprints
+    visual/                 Map visualisation + interactivity
+    models/                 Analytical models (centralised)
+    loaders/                Data loading classes
+    port/                   Portfolio generators + CDM + random
+    reports/                PDF report generators
+    static/                 Web assets (HTML, JS)
+    catch/                  Catchment definitions
+    floodts/                Flood timeseries utilities
+  data/
+    input/<catchment>/      Generated portfolio data
+    output/                 PDF reports and PRS trades
+    results/                Interactive visualisation HTML
+  tests/                    Python and JavaScript tests
+  docs/                     Documentation (LaTeX)
+\end{lstlisting}
+
+\subsection{Catchment System}
+
+Each catchment defines its geographic region in \texttt{data/catch/<id>.py},
+inheriting from \texttt{BaseCatchment}:
+
+\begin{itemize}[nosep]
+    \item \texttt{CATCHMENT\_ID} --- unique identifier (e.g.\ \texttt{thames})
+    \item \texttt{GAUGE\_POINTS} --- list of \texttt{(lat, lon, elevation\_m)} tuples
+    \item \texttt{AREAS} --- region/borough names for labelling
+    \item \texttt{CENTER\_LAT}, \texttt{CENTER\_LON} --- map centre coordinates
+    \item \texttt{generate\_synchronized\_locations(count)} --- produce property
+          locations consistent with catchment geography
+\end{itemize}
+
+The Thames catchment defines 40 gauge points along the river from Richmond to
+Tilbury (elevations 4--11m) across 30 London boroughs. Additional catchments
+(Rhine, Mississippi, Danube, etc.) are defined but not yet populated with
+random modules.
+
+% ===================================================================
+% 4. CLI REFERENCE
+% ===================================================================
+\section{CLI Reference}
+
+All commands are invoked via \texttt{python app.py <command> [options]}.
+
+\subsection{server --- Start Web Server}
+
+\begin{lstlisting}[language=bash]
+python app.py server [--host HOST] [--port PORT] [--debug]
+\end{lstlisting}
+
+Starts the Flask web server. Registers all API route blueprints and serves
+the interactive visualisation. Default: \texttt{http://127.0.0.1:5013}.
+
+\subsection{port --- Generate Portfolio Data}
+
+\begin{lstlisting}[language=bash]
+python app.py port [SEGMENTS] [OPTIONS]
+\end{lstlisting}
+
+Generates synthetic portfolio data. Segments must be run in dependency order
+(see Section~\ref{sec:pipeline}).
+
+\subsubsection{Segment Flags}
+
+\begin{table}[H]
+    \centering
+    \caption{Portfolio generation segment flags}
+    \label{tab:port_segments}
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Flag} & \textbf{Short} & \textbf{Output} & \textbf{Description} \\
+        \midrule
+        \texttt{-{}-gauges}        & \texttt{-{}-ga}  & \texttt{gauge.json}     & Flood gauge stations \\
+        \texttt{-{}-properties}    & \texttt{-{}-pr}  & \texttt{property.json}  & Property portfolio \\
+        \texttt{-{}-mortgages}     & \texttt{-{}-mo}  & \texttt{mortgage.json}  & Mortgage data \\
+        \texttt{-{}-gaugets}       & \texttt{-{}-gt}  & \texttt{gaugets/*.json} & Gauge flood simulations \\
+        \texttt{-{}-storms}        & \texttt{-{}-st}  & \texttt{storms.json}    & Storm scenarios \\
+        \texttt{-{}-gaugehd}       & \texttt{-{}-hd}  & \texttt{gaugehd/*.json} & Historical daily data \\
+        \texttt{-{}-hazard}        & \texttt{-{}-hz}  & \texttt{gaugehc.json}   & Gauge hazard curves \\
+        \texttt{-{}-propertyts}    & \texttt{-{}-pt}  & \texttt{propertyts/*.json} & Property flood events \\
+        \texttt{-{}-propertyhc}    & \texttt{-{}-phc} & \texttt{propertyhc.json} & Property hazard + PRS \\
+        \texttt{-{}-counterparties}& \texttt{-{}-ctpy}& \texttt{counterparty.json} & Swap counterparties \\
+        \texttt{-{}-all}           & \texttt{-a}      & All above                 & Run all segments \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection{Global Options}
+
+\begin{table}[H]
+    \centering
+    \caption{Portfolio generation options}
+    \label{tab:port_options}
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Flag} & \textbf{Short} & \textbf{Default} & \textbf{Description} \\
+        \midrule
+        \texttt{-{}-num-properties} & \texttt{-np} & 200    & Number of properties \\
+        \texttt{-{}-num-gauges}     & \texttt{-ng} & 40     & Number of gauges \\
+        \texttt{-{}-num-storms}     & \texttt{-ns} & 10,000 & Number of storm scenarios \\
+        \texttt{-{}-simulation-hours}&             & 60     & Flood simulation duration \\
+        \texttt{-{}-history-years}  & \texttt{-hy} & 50     & Historical data years \\
+        \texttt{-{}-tail-weight}    & \texttt{-tw} & 2.0    & Storm intensity tail weight \\
+        \texttt{-{}-distribution}   & \texttt{-d}  & \texttt{gev} & Hazard distribution (\texttt{gev}$|$\texttt{gumbel}) \\
+        \texttt{-{}-no-backup}      &              & false  & Skip automatic data backup \\
+        \texttt{-{}-verbose}        & \texttt{-v}  & false  & Verbose output \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{visual --- Generate Interactive Map}
+
+\begin{lstlisting}[language=bash]
+python app.py visual [--no-browser]
+\end{lstlisting}
+
+Generates an interactive Folium map at
+\texttt{data/results/interactive\_visualization.html} and opens it in the
+default browser (unless \texttt{-{}-no-browser} is specified).
+
+\subsection{check --- Verify Dependencies}
+
+\begin{lstlisting}[language=bash]
+python app.py check
+\end{lstlisting}
+
+Reports the status of each required Python package. Exits with code 1 if any
+packages are missing.
+
+\subsection{config --- Show Configuration}
+
+\begin{lstlisting}[language=bash]
+python app.py config
+\end{lstlisting}
+
+Displays current project root, catchment, directory paths, server URL, and
+debug mode.
+
+% ===================================================================
+% 5. DATA PIPELINE
+% ===================================================================
+\section{Data Pipeline}
+\label{sec:pipeline}
+
+\subsection{Generation Sequence}
+
+Segments must be generated in dependency order. Each segment reads from the
+output of earlier segments:
+
+\begin{lstlisting}[language={},caption={Data pipeline dependency chain}]
+gauges --> properties --> mortgages
+             |
+gauges --> gaugets --> storms --> gaugehd --> hazard
+             |                                |
+             +----------> propertyts -------> propertyhc
+                                                |
+                          counterparties --------+
+\end{lstlisting}
+
+Running \texttt{python app.py port -{}-all} executes all segments in the
+correct order. When regenerating specific segments, ensure upstream
+dependencies exist.
+
+\subsection{Data Backup}
+
+Before generating new data, the existing input directory is automatically
+backed up to \texttt{audit/<catchment>\_YYYYMMDD\_HHMMSS/}. This preserves an
+audit trail of all data changes. Use \texttt{-{}-no-backup} to skip.
+
+\subsection{Segment Details}
+
+\subsubsection{Gauges}
+
+Generates flood gauge stations with location, elevation, and flood stage
+thresholds (Alert, Warning, Severe). Uses catchment-defined gauge points.
+Each gauge includes sensor metadata (type, owner, installation date) and
+historical statistics.
+
+\textbf{Output:} \texttt{gauge.json} containing \texttt{flood\_gauges[]}
+array.
+
+\subsubsection{Properties}
+
+Generates residential properties with location, construction details, and
+multi-factor valuation. Property value is computed as:
+
+\begin{equation*}
+V = \text{area} \times \frac{\text{price}}{\text{sqm}} \times f_{\text{location}} \times f_{\text{age}} \times f_{\text{condition}} \times f_{\text{flood}} \times f_{\text{EPC}} \times f_{\text{proximity}}
+\end{equation*}
+
+The critical \texttt{FloorLevelMeters} field determines whether a property
+floods --- only water above this threshold (relative to ground elevation)
+counts as internal flooding.
+
+\textbf{Output:} \texttt{property.json} containing \texttt{properties[]}
+array.
+
+\subsubsection{Mortgages}
+
+Generates mortgage instruments linked to properties by \texttt{PropertyID}.
+Includes loan principal, interest rate, term, borrower income, and computes
+affordability ratio and LTV. Each mortgage carries a
+\texttt{FloodRiskCategory} (Very Low through Very High).
+
+\textbf{Output:} \texttt{mortgage.json} containing \texttt{mortgages[]} array.
+
+\subsubsection{Gauge Time Series (gaugets)}
+
+Simulates 60-hour flood events for each gauge. Produces hourly water level
+readings showing baseline, storm rise, peak, and recession. Also generates
+storm response records linking storms to gauge-level peak levels.
+
+\textbf{Output:} \texttt{gaugets/GAUGE-xxx.json} per gauge, containing
+\texttt{flood\_simulation} (hourly readings) and \texttt{storm\_responses}.
+
+\subsubsection{Storms}
+
+Generates storm scenarios using a Hybrid Normal-Pareto intensity distribution.
+Most storms are benign; rare events cause significant gauge responses. Each
+storm has spatial extent, track, duration, and intensity parameters.
+
+\textbf{Output:} \texttt{storms.json} containing \texttt{storms[]} array
+(default 10,000 events, $\sim$6~MB).
+
+\subsubsection{Gauge Historical Data (gaugehd)}
+
+Generates daily water level records spanning the configured number of years
+(default 50). Computes percentiles (p5--p99), annual maxima, and flood
+exceedance counts. Can also parse NRFA GDF CSV format.
+
+\textbf{Output:} \texttt{gaugehd/GAUGE-xxx.json} per gauge, containing
+\texttt{daily\_observations[]} and \texttt{statistics}.
+
+\subsubsection{Hazard Curves}
+
+Reads storms and gauge time series, simulates storm-to-gauge responses,
+extracts peak levels, and fits a GEV (Generalised Extreme Value) distribution.
+Computes exceedance probabilities at return periods (1, 5, 10, 25, 50, 100
+years) and prices gauge-level PRS contracts.
+
+\textbf{Output:} \texttt{gaugehc.json} containing per-gauge GEV parameters,
+hazard curve points, return period levels, and PRS term structures.
+
+\subsubsection{Property Time Series (propertyts)}
+
+For each property, identifies the three nearest gauges and interpolates flood
+depth using inverse distance weighting ($1/d^2$). Applies elevation
+differentials and floor level thresholds. Uses Manning's equation for travel
+time and attenuation. Computes damage ratio via depth-damage curve.
+
+\textbf{Output:} \texttt{propertyts/PROP-xxx.json} per property, containing
+\texttt{flood\_events[]} with depth, damage ratio, arrival time, and hourly
+readings. Also \texttt{portfolio\_flood\_summary.json} with aggregate
+statistics.
+
+\subsubsection{Property Hazard Curves (propertyhc)}
+
+Fits GEV to property flood depths (requires $\geq 3$ events). Computes
+exceedance probabilities at three depth thresholds ($>$0m, $>$0.5m, $>$1.0m).
+Prices property-level PRS via analytical CDS model. Computes five-component
+basis waterfall (distance, elevation, terrain, composition, model uncertainty).
+
+\textbf{Output:} \texttt{propertyhc.json} containing per-property GEV
+parameters, hazard curves, PRS spreads, and basis analysis.
+
+\subsubsection{Counterparties}
+
+Generates synthetic counterparty entities (banks, insurers, reinsurers) with
+credit ratings, exposure limits, and collateral requirements. Used for PRS
+trade management.
+
+\textbf{Output:} \texttt{counterparty.json}.
+
+\subsection{Common Data Model (CDM)}
+
+All entities follow standardised schemas defined in \texttt{src/port/cdm/}:
+
+\begin{table}[H]
+    \centering
+    \caption{CDM schema registry}
+    \label{tab:cdm}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{CDM Class} & \textbf{File} & \textbf{Key Sections} \\
+        \midrule
+        \texttt{FloodGaugeCDM}        & \texttt{gauge.py}    & Header, Location, FloodStages, SensorDetails \\
+        \texttt{PropertyCDM}          & \texttt{property.py} & Header, Location, Valuation, Construction \\
+        \texttt{MortgageCDM}          & \texttt{mortgage.py} & Header, FinancialTerms, Borrower, Risk \\
+        \texttt{StormEventCDM}        & \texttt{storm.py}    & StormHeader, Intensity, Spatial, Timing \\
+        \texttt{StormTimeSeriesCDM}   & \texttt{stormts.py}  & TimeseriesHeader, Readings \\
+        \texttt{PhysicalRiskSwapCDM}  & \texttt{prs.py}      & SwapHeader, Pricing, Basis \\
+        \texttt{CounterpartyCDM}      & \texttt{ctpy.py}     & EntityHeader, Exposure, Collateral \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+All CDMs inherit from \texttt{BaseCDM} and provide \texttt{validate(data)},
+\texttt{create\_mapping(data)}, and a \texttt{schema} property.
+
+% ===================================================================
+% 6. WEB SERVER AND API REFERENCE
+% ===================================================================
+\section{Web Server and API Reference}
+
+\subsection{Starting the Server}
+
+\begin{lstlisting}[language=bash]
+python app.py server --port 5013 --debug
+\end{lstlisting}
+
+The server registers route blueprints and serves both the API and the
+interactive visualisation.
+
+\subsection{Blueprint Organisation}
+
+\begin{table}[H]
+    \centering
+    \caption{API route blueprints}
+    \label{tab:blueprints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Blueprint} & \textbf{Prefix} & \textbf{Purpose} \\
+        \midrule
+        \texttt{health\_bp}       & \texttt{/}          & Health check, root route \\
+        \texttt{catchment\_bp}    & \texttt{/}          & Catchment selector page \\
+        \texttt{visualization\_bp}& \texttt{/}          & Interactive map generation \\
+        \texttt{properties\_bp}   & \texttt{/api/v1}    & Property endpoints \\
+        \texttt{gauges\_bp}       & \texttt{/api/v1}    & Gauge endpoints \\
+        \texttt{propertyts\_bp}   & \texttt{/api/v1}    & Property flood timeseries \\
+        \texttt{propertyhc\_bp}   & \texttt{/api/v1}    & Property hazard curves \\
+        \texttt{counterparty\_bp} & \texttt{/api/v1}    & Counterparty data \\
+        \texttt{prs\_bp}          & \texttt{/api/v1}    & PRS trade management \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Response Format}
+
+All API responses use a consistent JSON envelope:
+
+\begin{lstlisting}[language={},caption={Standard API response format}]
+// Success
+{"status": "success", "data": {...}}
+
+// Error
+{"status": "error", "message": "Description of error"}
+\end{lstlisting}
+
+HTTP status codes: 200 (success), 400 (bad request), 404 (not found),
+500 (server error), 503 (missing dependencies).
+
+\subsection{Health and System Endpoints}
+
+\begin{table}[H]
+    \centering
+    \caption{Health and system endpoints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Method} & \textbf{Path} & \textbf{Description} \\
+        \midrule
+        GET  & \texttt{/} or \texttt{/health}     & Basic health status \\
+        GET  & \texttt{/health/detailed}           & Detailed health with file checks \\
+        GET  & \texttt{/select-catchment}          & Catchment selection HTML page \\
+        POST & \texttt{/api/set-catchment}         & Set active catchment \\
+        GET  & \texttt{/visualization}             & Generate and serve interactive map \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Property Endpoints}
+
+\begin{table}[H]
+    \centering
+    \caption{Property API endpoints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Method} & \textbf{Path} & \textbf{Description} \\
+        \midrule
+        GET  & \texttt{/api/v1/properties}                   & List all properties \\
+        GET  & \texttt{/api/v1/properties/<id>}               & Single property details \\
+        GET  & \texttt{/api/v1/properties/<id>/mortgage}      & Mortgage for property \\
+        POST & \texttt{/api/v1/properties/report}             & Generate property PDF \\
+        POST & \texttt{/api/v1/properties/mortgage-report}    & Generate mortgage PDF \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Gauge Endpoints}
+
+\begin{table}[H]
+    \centering
+    \caption{Gauge API endpoints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Method} & \textbf{Path} & \textbf{Description} \\
+        \midrule
+        GET  & \texttt{/api/v1/gauges}                       & List all gauges \\
+        GET  & \texttt{/api/v1/gauges/<id>}                   & Single gauge details \\
+        GET  & \texttt{/api/v1/gauges/<id>/history}           & Historical daily data \\
+        GET  & \texttt{/api/v1/gauges/<id>/timeseries}        & Flood simulation readings \\
+        GET  & \texttt{/api/v1/gauges/<id>/storms}            & Storm scenario analysis \\
+        GET  & \texttt{/api/v1/gauges/<id>/hazard}            & Hazard curve data \\
+        GET  & \texttt{/api/v1/gauges/<id>/statistics}        & Reading statistics \\
+        POST & \texttt{/api/v1/gauges/report}                 & Generate gauge PDF \\
+        POST & \texttt{/api/v1/price\_prs}                    & Price a PRS contract \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Property Flood Timeseries Endpoints}
+
+\begin{table}[H]
+    \centering
+    \caption{Property flood timeseries endpoints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Method} & \textbf{Path} & \textbf{Description} \\
+        \midrule
+        GET & \texttt{/api/v1/propertyts/summary}             & Portfolio flood summary \\
+        GET & \texttt{/api/v1/properties/<id>/floods}          & Flood events for property \\
+        GET & \texttt{/api/v1/properties/<id>/storms}          & Storm analysis with readings \\
+        GET & \texttt{/api/v1/propertyts/storms}               & Storms causing property floods \\
+        GET & \texttt{/api/v1/propertyts/animate/<storm\_id>}  & Animation frames (60 hours) \\
+        GET & \texttt{/api/v1/propertyts/animate/composite}    & Worst-case composite animation \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Property Hazard Curve Endpoints}
+
+\begin{table}[H]
+    \centering
+    \caption{Property hazard curve endpoints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Method} & \textbf{Path} & \textbf{Description} \\
+        \midrule
+        GET & \texttt{/api/v1/propertyhc/summary}              & Portfolio hazard summary \\
+        GET & \texttt{/api/v1/properties/<id>/hazard}           & Property hazard + PRS pricing \\
+        GET & \texttt{/api/v1/propertyhc/basis}                 & Basis analysis table \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Counterparty and PRS Endpoints}
+
+\begin{table}[H]
+    \centering
+    \caption{Counterparty and PRS trade endpoints}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Method} & \textbf{Path} & \textbf{Description} \\
+        \midrule
+        GET  & \texttt{/api/v1/counterparties}                & List counterparties \\
+        GET  & \texttt{/api/v1/counterparties/<id>}            & Counterparty details \\
+        POST & \texttt{/api/v1/prs/commit}                     & Commit a PRS trade \\
+        GET  & \texttt{/api/v1/prs/trades}                     & List committed trades \\
+        GET  & \texttt{/api/v1/prs/trades/<swap\_id>/pdf}      & Download trade PDF \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% ===================================================================
+% 7. INTERACTIVE VISUALISATION
+% ===================================================================
+\section{Interactive Visualisation}
+
+\subsection{Map Generation}
+
+\begin{lstlisting}[language=bash]
+python app.py visual
+\end{lstlisting}
+
+Generates an interactive Folium HTML map with all portfolio data overlaid.
+The map includes tile layer controls, measurement tools, fullscreen toggle,
+and a scale indicator.
+
+\subsection{Map Layers}
+
+\subsubsection{Gauge Layer}
+
+Gauge markers use water-droplet icons colour-coded by operational status
+(green = operational, orange = maintenance, red = offline). Tooltips show
+gauge ID and flood frequency. Click popups display equipment details, sensor
+data, flood thresholds (alert/warning/severe levels), and historical context.
+A RAG indicator shows flood frequency risk.
+
+\subsubsection{Property Layer}
+
+Property markers use home icons colour-coded by flood frequency from simulated
+storms (red = high, orange = medium, green = low). Mortgaged properties show
+a bank icon variant. Click popups display property details, elevation and flood
+zone information, and mortgage details where applicable.
+
+\subsubsection{Mortgage Layer}
+
+Optional overlay showing translucent circles around mortgaged properties.
+Circle size correlates with loan amount; colour indicates flood risk level.
+High-leverage properties (LTV $> 80\%$) show a filled indicator.
+
+\subsection{Context Menus}
+
+Right-clicking a marker opens a context menu with actions:
+
+\textbf{Property context menu:}
+\begin{enumerate}[nosep]
+    \item Property Details --- view full property information
+    \item Mortgage Details --- open mortgage detail panel
+    \item View Storm Scenarios --- open Property Storm Analysis panel
+    \item Physical Risk Swap --- open hazard curve and PRS pricing panel
+    \item Generate Property Report --- create and view PDF report
+    \item Generate Mortgage Report --- create mortgage-focused PDF
+\end{enumerate}
+
+\textbf{Gauge context menu:}
+\begin{enumerate}[nosep]
+    \item View History --- show historical water level chart
+    \item View Storm Scenarios --- open Gauge Storm Analysis panel
+    \item Physical Risk Swap --- open gauge hazard curve and PRS pricing
+    \item Generate Gauge Report --- create and view PDF report
+\end{enumerate}
+
+\subsection{Interactive Panels}
+
+\subsubsection{Property Storm Analysis}
+\label{sec:prop_storm}
+
+Five-tab panel (780$\times$560px) loaded from
+\texttt{/api/v1/properties/\{id\}/storms}:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Distribution} --- flood depth histogram (0.2m bins) with
+          event count, mean/max depth, gauge-to-property conversion rate.
+    \item \textbf{Flood Timeline} --- 60-hour hydrograph for selected storm
+          showing water surface elevation, property floor threshold, gauge
+          reference lines, and red shading where water exceeds floor level.
+          Storm selector dropdown. Stats: peak above floor, damage ratio,
+          arrival/peak hours, flooded duration.
+    \item \textbf{Worst Storms} --- horizontal bar chart of top 20 storms by
+          flood depth, colour-coded by severity. Click a bar to switch to
+          Timeline tab for that storm.
+    \item \textbf{Flood History} --- scrollable table of all flood events
+          (storm ID, depth, damage \%) alongside a bar chart. Click rows to
+          view timelines.
+    \item \textbf{Mortgage Impact} --- stacked bar chart showing retained
+          property value (blue) and damage loss (red) per storm. Outstanding
+          balance shown as dashed horizontal line. Summary: property value,
+          outstanding balance, current LTV, worst loss, worst post-damage LTV,
+          negative equity count.
+\end{enumerate}
+
+\subsubsection{Gauge Storm Analysis}
+
+Three-tab panel (780$\times$560px) loaded from
+\texttt{/api/v1/gauges/\{id\}/storms}:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Distribution} --- storm peak level histogram.
+    \item \textbf{Flood Timeline} --- water level hydrograph with flood stage
+          thresholds (alert, warning, severe).
+    \item \textbf{Worst Storms} --- top 20 storms by peak level.
+\end{enumerate}
+
+\subsubsection{Property Hazard Curve and PRS Pricing}
+
+Four-tab panel (1100$\times$750px) loaded from
+\texttt{/api/v1/properties/\{id\}/hazard}:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Hazard Curve} --- log-log exceedance curve with 1-in-10,
+          1-in-50, 1-in-100 year flood markers.
+    \item \textbf{Term Structure} --- annual flood probability over 1--30 years.
+    \item \textbf{PRS Pricing} --- six-component pricing breakdown with basis
+          waterfall. Shows base rate, depth threshold components ($>$0m,
+          $>$0.5m, $>$1.0m), and contingent pricing.
+    \item \textbf{Basis Analysis} --- gauge spread vs property spread
+          comparison. Basis = gauge spread $-$ property spread (positive =
+          gauge more expensive, expected).
+\end{enumerate}
+
+\subsubsection{Gauge Hazard Curve}
+
+Five-tab panel (1100$\times$750px) loaded from
+\texttt{/api/v1/gauges/\{id\}/hazard}:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Hazard Curve} --- exceedance probabilities for gauge.
+    \item \textbf{Annual Exceedance} --- annual probability by depth.
+    \item \textbf{Return Period} --- return period curves (1-in-$X$ years).
+    \item \textbf{PRS Pricing} --- QuantLib CDS pricing for gauge-level PRS.
+    \item \textbf{Flood Probability} --- probability at different thresholds.
+\end{enumerate}
+
+\subsubsection{Gauge Historical Data}
+
+Single-chart panel (700$\times$500px) showing historical daily water levels
+with flood stage thresholds as horizontal reference lines. Loaded from
+\texttt{/api/v1/gauges/\{id\}/history}.
+
+\subsubsection{Flood Animation}
+
+60-frame animation panel (860$\times$620px) showing storm progression.
+Loaded from \texttt{/api/v1/propertyts/animate/\{storm\_id\}}.
+
+\begin{itemize}[nosep]
+    \item Storm selector dropdown for all available storms.
+    \item Play/Pause controls with speed adjustment (1x/2x/5x).
+    \item Scrubber bar to jump to any hour.
+    \item Gauge markers change colour by water level (green $\to$ red).
+    \item Expanding translucent circles from flooded gauges.
+    \item Property markers appear when flood front arrives.
+    \item Stats bar updates per frame: hour, gauges flooded, properties flooded.
+\end{itemize}
+
+\subsubsection{Mortgage Detail Panel}
+
+Single-section panel (600$\times$520px) loaded from
+\texttt{/api/v1/properties/\{id\}/mortgage}. Displays five sections: Loan
+Summary, Financial Terms, Current Status, Borrower, and Risk Assessment.
+
+\subsubsection{PDF Report Viewers}
+
+Embedded iframe panels (850px wide, 90\% viewport height) for viewing
+generated PDF reports. Include download and print buttons.
+
+\subsection{Notification System}
+
+Toast-style notifications provide user feedback for all actions:
+
+\begin{itemize}[nosep]
+    \item \textbf{Info} (blue) --- general information
+    \item \textbf{Success} (green) --- operation completed
+    \item \textbf{Warning} (orange) --- caution
+    \item \textbf{Error} (red) --- operation failed
+    \item \textbf{Loading} (grey) --- operation in progress
+\end{itemize}
+
+Auto-dismiss after 5 seconds. Maximum 5 visible simultaneously. Configurable
+position (default: top-right).
+
+\subsection{Backend Communication}
+
+Frontend panels communicate with the Flask API via the
+\texttt{window.\_\_BACKEND\_CONFIG} object, which stores the server URL and
+endpoint mappings. The backend handler (\texttt{src/static/js/backend-handler.js})
+manages fetch requests with CORS support and 30-second timeout.
+
+% ===================================================================
+% 8. PDF REPORTS
+% ===================================================================
+\section{PDF Reports}
+
+Reports are generated via the API (POST endpoints) or via context menu actions
+in the interactive map. All reports use ReportLab and follow a consistent
+branded template.
+
+\subsection{Property Reports}
+
+15-page comprehensive property analysis:
+
+\begin{enumerate}[nosep]
+    \item Title and overview
+    \item Location (map, coordinates, flood zone)
+    \item Property attributes (type, construction, value)
+    \item Construction details (materials, age, storeys)
+    \item Risk assessment (flood depth, damage analysis)
+    \item Financial (valuation factors, insurance)
+    \item Flood protection and insurance
+    \item Energy and EPC rating
+    \item Transaction history
+    \item Timeline
+    \item Mortgage overview (three sub-pages: details, costs, regulatory)
+    \item Current status
+    \item Risk analysis
+    \item Borrower profile
+    \item Data summary
+\end{enumerate}
+
+Generated by \texttt{PropertyReportGenerator} in \texttt{src/reports/property/}.
+
+\subsection{Gauge Reports}
+
+11-page gauge analysis:
+
+\begin{enumerate}[nosep]
+    \item Title and overview
+    \item Sensor details (type, owner, certification)
+    \item Location (map, coordinates, ground elevation)
+    \item Measurements (frequency, method, transmission)
+    \item Flood stages (alert/warning/severe thresholds)
+    \item Risk assessment (flood probability, frequency)
+    \item Data summary
+    \item Flood history (past events, timeline)
+    \item Hazard curves (exceedance probability charts)
+    \item PRS pricing (credit swap valuation)
+    \item Current risk assessment
+\end{enumerate}
+
+Generated by \texttt{GaugeReportGenerator} in \texttt{src/reports/gauge/}.
+
+\subsection{Risk Portfolio Reports}
+
+7-page portfolio-level analysis:
+
+\begin{enumerate}[nosep]
+    \item Title page
+    \item Executive summary (key metrics, highlights)
+    \item Portfolio overview (property and gauge distribution)
+    \item Risk analysis (aggregate flood risk, concentration)
+    \item Mortgage analysis (LTV distribution, vulnerability)
+    \item Property details (ranked risk list)
+    \item Appendix (technical details, methodology)
+\end{enumerate}
+
+Generated by \texttt{RiskReportGenerator} in \texttt{src/reports/risk/}.
+
+\subsection{PRS Trade Confirmations}
+
+Generated when a PRS trade is committed via \texttt{POST /api/v1/prs/commit}.
+Stored in \texttt{data/output/prs/} as both JSON (CDM record) and PDF
+(trade confirmation). Downloadable via
+\texttt{GET /api/v1/prs/trades/<swap\_id>/pdf}.
+
+% ===================================================================
+% 9. ANALYTICAL MODELS REFERENCE
+% ===================================================================
+\section{Analytical Models Reference}
+
+All analytical functions are centralised in \texttt{src/models/}. Portfolio
+generators and visualisation components are thin wrappers delegating to these
+models.
+
+\subsection{Hazard Models}
+
+\begin{table}[H]
+    \centering
+    \caption{Hazard model modules}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Module} & \textbf{Purpose} \\
+        \midrule
+        \texttt{hazard/gev.py}            & GEV fitting, exceedance, return levels, term structure \\
+        \texttt{hazard/response\_model.py} & Gauge response to storms (spatial decay) \\
+        \texttt{hazard/builder.py}         & End-to-end hazard curve construction \\
+        \texttt{hazard/pricing.py}         & QuantLib CDS pricing (optional) \\
+        \texttt{hazard/prs\_analytical.py}  & Analytical PRS pricing, basis waterfall \\
+        \texttt{hazard/io.py}              & Hazard curve file I/O \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Flood Risk Models}
+
+\begin{table}[H]
+    \centering
+    \caption{Flood risk model modules}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Module} & \textbf{Purpose} \\
+        \midrule
+        \texttt{floodrisk/depth\_damage.py}   & Depth-damage curves (UK-calibrated) \\
+        \texttt{floodrisk/spatial.py}          & Haversine, IDW, KDTree, correlation \\
+        \texttt{floodrisk/velocity.py}         & Manning's equation, travel time, attenuation \\
+        \texttt{floodrisk/risk\_analytics.py}  & Monte Carlo VaR/ES, HHI, clustering \\
+        \texttt{floodrisk/flood\_risk\_model.py}& Unified flood risk pipeline \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Valuation and Risk Models}
+
+\begin{table}[H]
+    \centering
+    \caption{Valuation, risk, and pricing modules}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Module} & \textbf{Purpose} \\
+        \midrule
+        \texttt{valuation/property\_value.py} & Multi-factor property valuation \\
+        \texttt{valuation/insurance.py}        & Insurance premium calculation \\
+        \texttt{risk/risk\_assessor.py}        & Risk scoring, vulnerability, VaR \\
+        \texttt{mortgage\_pricer.py}           & Amortisation, credit spread, expected loss \\
+        \texttt{prs\_with\_hazard\_curve.py}   & PRS pricing via QuantLib CDS \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Statistics and Intensity Models}
+
+\begin{table}[H]
+    \centering
+    \caption{Statistics, intensity, and storm-gauge modules}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Module} & \textbf{Purpose} \\
+        \midrule
+        \texttt{statistics/timeseries.py}     & Percentiles, annual maxima, exceedances \\
+        \texttt{statistics/synthetic.py}       & Stochastic water level generation \\
+        \texttt{intensity/distribution.py}     & Hybrid Normal-Pareto storm intensity \\
+        \texttt{stormgauge/forward\_model.py}  & Storm-gauge spatial decay, intensity-to-level \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Model Documentation}
+
+Detailed mathematical specifications with sensitivity analysis are available
+as separate PDFs in \texttt{docs/models/}. Each model document follows the MKM
+bank validation protocol with sections for executive summary, purpose, mathematical
+framework, inputs, implementation, sensitivity, validation, and limitations.
+
+% ===================================================================
+% 10. DOCKER DEPLOYMENT
+% ===================================================================
+\section{Docker Deployment}
+
+\subsection{Container Image}
+
+The \texttt{Dockerfile} builds a production image based on
+\texttt{python:3.13-slim} with GDAL system libraries:
+
+\begin{lstlisting}[language=bash,caption={Docker build and run}]
+# Build image
+docker build -t physicalrisk .
+
+# Run container
+docker run -p 5001:5001 -v ./data:/app/data physicalrisk
+\end{lstlisting}
+
+The container exposes port 5001 and runs
+\texttt{python app.py server -{}-host 0.0.0.0 -{}-port 5001}.
+
+\subsection{Docker Compose}
+
+\begin{lstlisting}[language=bash,caption={Docker Compose usage}]
+docker-compose up              # Start service
+docker-compose up --build      # Rebuild and start
+docker-compose down            # Stop service
+docker-compose logs -f         # Stream logs
+\end{lstlisting}
+
+Configuration:
+\begin{itemize}[nosep]
+    \item Port mapping: \texttt{5001:5001}
+    \item Volume: \texttt{./data:/app/data} (persists data outside container)
+    \item Environment: \texttt{FLASK\_ENV=production},
+          \texttt{CATCHMENT\_ID=thames}
+    \item Restart policy: \texttt{unless-stopped}
+\end{itemize}
+
+% ===================================================================
+% 11. TESTING
+% ===================================================================
+\section{Testing}
+
+\subsection{Test Architecture}
+
+The platform has comprehensive test coverage:
+
+\begin{itemize}[nosep]
+    \item \textbf{518 Python tests} across \texttt{tests/} (6 skipped)
+    \item \textbf{51 JavaScript tests} in \texttt{tests/js/}
+\end{itemize}
+
+\subsection{Running Tests}
+
+\begin{lstlisting}[language=bash,caption={Test execution}]
+# All Python tests
+python -m pytest tests/ -v
+
+# Specific module
+python -m pytest tests/models/test_mortgage_pricer.py -v
+
+# JavaScript tests (requires Node.js)
+npx jest
+
+# With coverage
+python -m pytest tests/ --cov=src --cov-report=html
+\end{lstlisting}
+
+\subsection{Test Conventions}
+
+\begin{itemize}[nosep]
+    \item Tests use \texttt{tmp\_path} fixture for file isolation.
+    \item Random output is tested with range assertions, not exact values.
+    \item \texttt{tests/port/conftest.py} provides shared fixtures for random
+          modules, sample locations, and synthetic data.
+    \item \texttt{tests/js/} uses Jest for frontend component testing
+          (notifications, backend handler, context menus).
+    \item \texttt{tests/reports/test\_pdf\_generation.py} has 28 tests for PDF
+          report generation.
+\end{itemize}
+
+% ===================================================================
+% 12. APPENDIX: DATA FILE REFERENCE
+% ===================================================================
+\clearpage
+\section*{Appendix A: Data File Reference}
+\addcontentsline{toc}{section}{Appendix A: Data File Reference}
+
+\begin{longtable}{@{}lll@{}}
+    \toprule
+    \textbf{File / Directory} & \textbf{Format} & \textbf{Key Fields} \\
+    \midrule
+    \endhead
+    \texttt{gauge.json}           & JSON array & GaugeID, lat/lon, elevation, flood stages \\
+    \texttt{property.json}        & JSON array & PropertyID, lat/lon, elevation, floor level, value \\
+    \texttt{mortgage.json}        & JSON array & MortgageID, PropertyID, loan, rate, LTV, income \\
+    \texttt{storms.json}          & JSON array & storm\_id, intensity, duration, spatial extent \\
+    \texttt{counterparty.json}    & JSON array & entity ID, type, credit rating, limits \\
+    \texttt{gaugehc.json}         & JSON array & gauge\_id, GEV params, hazard points, PRS spreads \\
+    \texttt{propertyhc.json}      & JSON array & property\_id, GEV params, PRS pricing, basis \\
+    \midrule
+    \texttt{gaugets/GAUGE-*.json} & Per-gauge  & flood\_simulation (hourly readings), storm\_responses \\
+    \texttt{gaugehd/GAUGE-*.json} & Per-gauge  & daily\_observations, statistics, percentiles \\
+    \texttt{propertyts/PROP-*.json}& Per-property & flood\_events (depth, damage, readings) \\
+    \midrule
+    \texttt{output/property/*.pdf} & PDF & Property analysis reports (15 pages) \\
+    \texttt{output/gauge/*.pdf}    & PDF & Gauge analysis reports (11 pages) \\
+    \texttt{output/prs/*.json}     & JSON & PRS trade CDM records \\
+    \texttt{output/prs/*.pdf}      & PDF & PRS trade confirmations \\
+    \texttt{results/*.html}        & HTML & Interactive Folium visualisation \\
+    \bottomrule
+\end{longtable}
+
+% ===================================================================
+% CHANGE HISTORY
+% ===================================================================
+\mkmhistorypage{14-Feb-2026 & 1.0 & Initial user guide & D. Kelly \\}
+
+\end{document}

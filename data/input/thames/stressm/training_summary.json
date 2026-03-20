@@ -1,0 +1,32 @@
+{
+  "num_gauges": 1,
+  "num_trained": 1,
+  "num_skipped": 0,
+  "avg_auc_roc": 0.9925,
+  "gauges": [
+    {
+      "gauge_id": "GAUGE-a6be4ee9",
+      "status": "trained",
+      "alert_level": 3.18,
+      "severe_level": 5.04,
+      "n_samples": 3393600,
+      "n_positive": 306064,
+      "n_negative": 3087536,
+      "flood_rate": 0.0902,
+      "test_size": 678720,
+      "metrics": {
+        "accuracy": 0.9768,
+        "auc_roc": 0.9925,
+        "brier_score": 0.0174,
+        "log_loss": 0.0607
+      },
+      "feature_importance": {
+        "log_h_s": 0.7655,
+        "log_t_end": 0.1652,
+        "delta_log_h": 0.066,
+        "delta2_log_h": 0.0034
+      },
+      "model_path": "/Users/newdavid/Documents/PhysicalRisk/data/input/thames/stressm/GAUGE-a6be4ee9.joblib"
+    }
+  ]
+}

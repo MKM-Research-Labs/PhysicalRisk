@@ -1,0 +1,433 @@
+{
+  "storm_id": "STORM-f3f329b9",
+  "name": "Omicron-287",
+  "intensity_category": "baseline",
+  "duration_hours": 168,
+  "peak_position": 0.5,
+  "effective_precipitation_mm": 0.0,
+  "trigger_summary": {
+    "gauges_alert": 43,
+    "gauges_warning": 1,
+    "gauges_severe": 0,
+    "gauges_impacted": 43,
+    "max_trigger": "warning"
+  },
+  "gauge_responses": [
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.894,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-066fc60e"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.793,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-085522ee"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.274,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-08fd7695"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.317,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-0a26e0ec"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.578,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-12dddcd7"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.211,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-13033a1d"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.239,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-13dbbe14"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.695,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-14733fc0"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.079,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-1aaf8b08"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.818,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-1d061d70"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.252,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-1f4e46a9"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.81,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-22675be2"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.391,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-2d4ab78a"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.979,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-3324d948"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.633,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-387ba06b"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.214,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-41246a02"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.871,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-4c57aa15"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 5.008,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-5cc1a4bd"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.944,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-62fc58e6"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.892,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-63447c32"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.14,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-64eb43b5"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.772,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-66c641fe"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.942,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-71d96002"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.127,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-744e70ef"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.888,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-77f0e67b"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.065,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-7cce1cc8"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.255,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-7e07133d"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.954,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-87b9ac03"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.498,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-8be2e7e8"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.16,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-966d392e"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.184,
+      "exceeded_alert": true,
+      "exceeded_warning": true,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-9e5f3ef9"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.015,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-9fffb377"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.429,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-a03e456e"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.677,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-a6be4ee9"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.879,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-acc1b9cc"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.471,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-b19c8a6a"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.299,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-b2dbe58b"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.269,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-ba93206b"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 5.134,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-bc801f07"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.031,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-c0fbc443"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.225,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-c8783553"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.221,
+      "exceeded_alert": false,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-c97ef762"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.212,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-ca0c20c2"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.597,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-d208bf3d"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.373,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-dc5e88fb"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.409,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-e042fc97"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.888,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-e404c1ff"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.531,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-ebfdb692"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.371,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-ef0f808c"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 3.69,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-ef53398c"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.447,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-ef7f75ec"
+    },
+    {
+      "storm_id": "STORM-f3f329b9",
+      "peak_level_m": 4.749,
+      "exceeded_alert": true,
+      "exceeded_warning": false,
+      "exceeded_severe": false,
+      "gauge_id": "GAUGE-f8629444"
+    }
+  ]
+}
