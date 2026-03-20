@@ -1,8 +1,8 @@
 {
-  "num_gauges": 1,
-  "num_trained": 1,
+  "num_gauges": 2,
+  "num_trained": 2,
   "num_skipped": 0,
-  "avg_auc_roc": 0.9925,
+  "avg_auc_roc": 0.9928,
   "gauges": [
     {
       "gauge_id": "GAUGE-a6be4ee9",
@@ -27,6 +27,32 @@
         "delta2_log_h": 0.0034
       },
       "model_path": "/Users/newdavid/Documents/PhysicalRisk/data/input/thames/stressm/GAUGE-a6be4ee9.joblib"
+    },
+    {
+      "gauge_id": "GAUGE-c0fbc443",
+      "status": "trained",
+      "alert_level": 3.54,
+      "severe_level": 5.6,
+      "n_samples": 3393600,
+      "n_positive": 247127,
+      "n_negative": 3146473,
+      "flood_rate": 0.0728,
+      "test_size": 678720,
+      "metrics": {
+        "accuracy": 0.9795,
+        "auc_roc": 0.9931,
+        "brier_score": 0.0153,
+        "log_loss": 0.0532
+      },
+      "feature_importance": {
+        "log_h_s": 0.7584,
+        "log_t_end": 0.1715,
+        "delta_log_h": 0.0659,
+        "delta2_log_h": 0.0041
+      },
+      "model_path": "/Users/newdavid/Documents/PhysicalRisk/data/output/stressm/GAUGE-c0fbc443.joblib",
+      "label_threshold": "severe_warning",
+      "label_level_m": 5.6
     }
   ]
 }
