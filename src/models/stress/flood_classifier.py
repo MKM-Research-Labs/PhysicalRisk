@@ -143,7 +143,9 @@ class FloodClassifierTrainer:
         importance = {fn: round(float(fi[i]), 4)
                       for i, fn in enumerate(feature_names)}
 
-        # Save model
+        # Save model — strip random_state to avoid numpy BitGenerator
+        # pickle incompatibilities across scikit-learn / numpy versions.
+        model.random_state = 42
         model_path = self.output_dir / f"{gauge_id}.joblib"
         joblib.dump(model, model_path)
 
@@ -224,7 +226,14 @@ class FloodPredictor:
             if not path.exists():
                 raise FileNotFoundError(
                     f"No trained model for {gauge_id}")
-            self._models[gauge_id] = joblib.load(path)
+            try:
+                self._models[gauge_id] = joblib.load(path)
+            except (ValueError, ModuleNotFoundError) as exc:
+                raise RuntimeError(
+                    f"Cannot load classifier for {gauge_id}: {exc}. "
+                    f"The model was saved with a different scikit-learn/numpy "
+                    f"version. Delete {path.name} and retrain the gauge."
+                ) from exc
         return self._models[gauge_id]
 
     def _load_summary(self) -> dict:

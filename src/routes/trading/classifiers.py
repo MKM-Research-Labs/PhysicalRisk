@@ -21,6 +21,8 @@ from config import config
 from . import trading_bp
 from ._helpers import _load_gauge_locations
 
+import glob as _glob
+
 logger = logging.getLogger(__name__)
 
 # ── batch training state ──────────────────────────────────────────────
@@ -123,6 +125,42 @@ def classifiers_summary():
 
     except Exception as e:
         logger.error("Classifiers summary error: %s", e, exc_info=True)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ── POST /trading/classifiers/clear-all ───────────────────────────────
+
+@trading_bp.route("/trading/classifiers/clear-all", methods=["POST"])
+def clear_all_classifiers():
+    """Delete all trained classifier models and training summary."""
+    try:
+        stressm_dir = config.get_stressm_dir()
+        removed = 0
+
+        # Remove all .joblib model files
+        for p in stressm_dir.glob("*.joblib"):
+            p.unlink()
+            removed += 1
+
+        # Remove training summary
+        summary_path = stressm_dir / "training_summary.json"
+        if summary_path.exists():
+            summary_path.unlink()
+
+        # Remove timings
+        timings_path = stressm_dir / _TIMINGS_FILENAME
+        if timings_path.exists():
+            timings_path.unlink()
+
+        logger.info("Cleared %d classifier models from %s", removed, stressm_dir)
+        return jsonify({
+            "status": "success",
+            "removed": removed,
+            "message": f"Cleared {removed} classifier(s)",
+        })
+
+    except Exception as e:
+        logger.error("Clear classifiers error: %s", e, exc_info=True)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
