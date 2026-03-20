@@ -1,0 +1,55 @@
+\contentsline {section}{\numberline {1}Executive Summary}{4}{section.1}%
+\contentsline {section}{\numberline {2}Model Purpose and Scope}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Purpose}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Scope}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Regulatory Context}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Mathematical Framework}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Amortisation Schedule}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Credit Spread Model}{5}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Affordability Ratio}{5}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Base Credit Spread Interpolation}{6}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Term Structure Adjustment}{6}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Zero-Income Fallback}{6}{subsubsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.3}Loan-to-Value Risk Adjustment}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Flood Risk Adjustment}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Default and Survival Probabilities}{7}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Loss Given Default}{8}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Expected Cashflows and Expected Losses}{8}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Present Value and Fair Value}{8}{subsection.3.8}%
+\contentsline {subsection}{\numberline {3.9}Portfolio Aggregation}{9}{subsection.3.9}%
+\contentsline {section}{\numberline {4}Input Parameters and Calibration}{9}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Model Inputs}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Input Validation and Bounds}{10}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Calibration}{10}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Credit Spread Schedule}{10}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Recovery Haircut}{10}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}Tax Rate}{10}{subsubsection.4.3.3}%
+\contentsline {section}{\numberline {5}Implementation Details}{11}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Software Architecture}{11}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Dependencies}{11}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Numerical Considerations}{11}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Computational Complexity}{11}{subsection.5.4}%
+\contentsline {section}{\numberline {6}Sensitivity Analysis}{12}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Interest Rate Sensitivity}{13}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Affordability Ratio Sensitivity}{13}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Recovery Haircut Sensitivity}{13}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Term Structure Sensitivity}{13}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Validation and Backtesting}{14}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Unit Testing}{14}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Analytical Benchmarks}{14}{subsection.7.2}%
+\contentsline {subsubsection}{\numberline {7.2.1}Par Recovery}{14}{subsubsection.7.2.1}%
+\contentsline {subsubsection}{\numberline {7.2.2}Maximum Loss Bound}{14}{subsubsection.7.2.2}%
+\contentsline {subsection}{\numberline {7.3}Backtesting Protocol}{14}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Model Limitations and Known Weaknesses}{14}{section.8}%
+\contentsline {section}{\numberline {9}Governance Validation Questions}{15}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Q1 --- Ronseal Test}{15}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Q2 --- Accuracy and Stability}{16}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Q3 --- Resource Usage}{16}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Q4 --- Override Controls}{16}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Q5 --- Output Consumption}{16}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Q6 --- Model Chaining}{16}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Q7 --- Weaknesses}{17}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Q8 --- Monitoring}{17}{subsection.9.8}%
+\contentsline {subsection}{\numberline {9.9}Q9 --- Overall Risk}{17}{subsection.9.9}%
+\contentsline {section}{\numberline {10}Change History}{18}{section.10}%
+\contentsline {section}{\numberline {11}Document History}{18}{section.11}%

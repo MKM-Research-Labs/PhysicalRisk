@@ -1,0 +1,1816 @@
+{
+  "counterparties": [
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-9d348156",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Barclays Flood Risk Trading",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Bank - Barclays FRT",
+              "BusinessUnitId": "BU-CTPY-9d348156"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-9d348156-GBP",
+              "AccountDescription": "GBP trading/settlement - Barclays FRT",
+              "AccountCurrency": "GBP",
+              "SortCode": "20-00-00",
+              "AccountNumber": "49600341",
+              "IBAN": "GB81ERXE20000049600341",
+              "BIC": "XXNEGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-9d348156-COLL",
+              "AccountDescription": "Collateral account - Barclays FRT",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "james.richardson@barclaysfrt.co.uk",
+            "PrimaryPhone": "+44 20 7951 6895",
+            "AddressLine1": "1 Churchill Place",
+            "AddressLine2": "Canary Wharf",
+            "City": "London",
+            "PostCode": "E14 5HP",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-962891",
+              "FirstName": "James",
+              "LastName": "Richardson",
+              "Role": "Head of Trading",
+              "Email": "james.richardson@barclaysfrt.co.uk",
+              "Phone": "+44 20 7161 5677",
+              "SymphonyID": "james.richardson@barclaysfrt.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-9d348156",
+            "ExternalPartyId": "358400WZ1MIERMGFZU8C",
+            "BookingAccountRef": "ACC-CTPY-9d348156-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Barclays FRT",
+          "PartyType": "Bank",
+          "LEI": "358400WZ1MIERMGFZU8C",
+          "SWIFT_BIC": "XXNEGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A+",
+          "RatingAgency": "S&P",
+          "CreditLimit": 25000000,
+          "CurrentExposure": 247958.88,
+          "CollateralPosted": 391371.09,
+          "MaxTenor": 30,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-b8cac080",
+          "PartyIdScheme": "Internal",
+          "PartyName": "HSBC Environmental Markets",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Bank - HSBC Enviro",
+              "BusinessUnitId": "BU-CTPY-b8cac080"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-b8cac080-GBP",
+              "AccountDescription": "GBP trading/settlement - HSBC Enviro",
+              "AccountCurrency": "GBP",
+              "SortCode": "20-32-53",
+              "AccountNumber": "57052136",
+              "IBAN": "GB14YQIS20325357052136",
+              "BIC": "JXRCGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-b8cac080-COLL",
+              "AccountDescription": "Collateral account - HSBC Enviro",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "sarah.chen@hsbcenviro.co.uk",
+            "PrimaryPhone": "+44 20 7985 9191",
+            "AddressLine1": "8 Canada Square",
+            "AddressLine2": "Canary Wharf",
+            "City": "London",
+            "PostCode": "E14 5HQ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-f9eaf8",
+              "FirstName": "Sarah",
+              "LastName": "Chen",
+              "Role": "Senior Trader",
+              "Email": "sarah.chen@hsbcenviro.co.uk",
+              "Phone": "+44 20 7264 8969",
+              "SymphonyID": "sarah.chen@hsbcenviro.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-b8cac080",
+            "ExternalPartyId": "784600J2IVAZU726AKID",
+            "BookingAccountRef": "ACC-CTPY-b8cac080-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "HSBC Enviro",
+          "PartyType": "Bank",
+          "LEI": "784600J2IVAZU726AKID",
+          "SWIFT_BIC": "JXRCGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AAA",
+          "RatingAgency": "S&P",
+          "CreditLimit": 500000000,
+          "CurrentExposure": 1965844.49,
+          "CollateralPosted": 48523247.92,
+          "MaxTenor": 10,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-02a6b8c8",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Lloyds Climate Solutions",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Bank - Lloyds CS",
+              "BusinessUnitId": "BU-CTPY-02a6b8c8"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-02a6b8c8-GBP",
+              "AccountDescription": "GBP trading/settlement - Lloyds CS",
+              "AccountCurrency": "GBP",
+              "SortCode": "30-94-28",
+              "AccountNumber": "82423445",
+              "IBAN": "GB48VOCU30942882423445",
+              "BIC": "ETBAGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-02a6b8c8-COLL",
+              "AccountDescription": "Collateral account - Lloyds CS",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "michael.okonkwo@lloydscs.co.uk",
+            "PrimaryPhone": "+44 20 7627 3958",
+            "AddressLine1": "25 Canada Square",
+            "AddressLine2": "Canary Wharf",
+            "City": "London",
+            "PostCode": "E14 5LB",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-17f972",
+              "FirstName": "Michael",
+              "LastName": "Okonkwo",
+              "Role": "Portfolio Manager",
+              "Email": "michael.okonkwo@lloydscs.co.uk",
+              "Phone": "+44 20 7101 1845",
+              "SymphonyID": "michael.okonkwo@lloydscs.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-02a6b8c8",
+            "ExternalPartyId": "889000970VKSUGTSBTKS",
+            "BookingAccountRef": "ACC-CTPY-02a6b8c8-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Lloyds CS",
+          "PartyType": "Bank",
+          "LEI": "889000970VKSUGTSBTKS",
+          "SWIFT_BIC": "ETBAGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA",
+          "RatingAgency": "Moody's",
+          "CreditLimit": 100000000,
+          "CurrentExposure": 28644749.7,
+          "CollateralPosted": 6539233.58,
+          "MaxTenor": 20,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-19b8061a",
+          "PartyIdScheme": "Internal",
+          "PartyName": "NatWest Natural Capital",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Bank - NatWest NC",
+              "BusinessUnitId": "BU-CTPY-19b8061a"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-19b8061a-GBP",
+              "AccountDescription": "GBP trading/settlement - NatWest NC",
+              "AccountCurrency": "GBP",
+              "SortCode": "40-05-15",
+              "AccountNumber": "73740216",
+              "IBAN": "GB87SDRM40051573740216",
+              "BIC": "PAIXGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-19b8061a-COLL",
+              "AccountDescription": "Collateral account - NatWest NC",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "emma.thompson@natwestnc.co.uk",
+            "PrimaryPhone": "+44 20 7377 2462",
+            "AddressLine1": "10 Upper Bank Street",
+            "AddressLine2": "Canary Wharf",
+            "City": "London",
+            "PostCode": "E14 5JJ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-b70c66",
+              "FirstName": "Emma",
+              "LastName": "Thompson",
+              "Role": "Director, Climate Risk",
+              "Email": "emma.thompson@natwestnc.co.uk",
+              "Phone": "+44 20 7182 6161",
+              "SymphonyID": "emma.thompson@natwestnc.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-19b8061a",
+            "ExternalPartyId": "249300OFN4DR99UIEJJI",
+            "BookingAccountRef": "ACC-CTPY-19b8061a-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "NatWest NC",
+          "PartyType": "Bank",
+          "LEI": "249300OFN4DR99UIEJJI",
+          "SWIFT_BIC": "PAIXGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA+",
+          "RatingAgency": "Moody's",
+          "CreditLimit": 150000000,
+          "CurrentExposure": 4824979.96,
+          "CollateralPosted": 5502544.63,
+          "MaxTenor": 30,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-cc6bfe9b",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Standard Chartered Cat Risk",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Bank - StanChart CR",
+              "BusinessUnitId": "BU-CTPY-cc6bfe9b"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-cc6bfe9b-GBP",
+              "AccountDescription": "GBP trading/settlement - StanChart CR",
+              "AccountCurrency": "GBP",
+              "SortCode": "60-01-73",
+              "AccountNumber": "49232150",
+              "IBAN": "GB74PYFJ60017349232150",
+              "BIC": "XEIYGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-cc6bfe9b-COLL",
+              "AccountDescription": "Collateral account - StanChart CR",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "david.patel@stanchartcr.co.uk",
+            "PrimaryPhone": "+44 20 7887 8356",
+            "AddressLine1": "40 Bank Street",
+            "AddressLine2": "Canary Wharf",
+            "City": "London",
+            "PostCode": "E14 5NR",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-199a2e",
+              "FirstName": "David",
+              "LastName": "Patel",
+              "Role": "VP Structured Products",
+              "Email": "david.patel@stanchartcr.co.uk",
+              "Phone": "+44 20 7581 4431",
+              "SymphonyID": "david.patel@stanchartcr.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-cc6bfe9b",
+            "ExternalPartyId": "7695003X7CNS6XD4H31Z",
+            "BookingAccountRef": "ACC-CTPY-cc6bfe9b-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "StanChart CR",
+          "PartyType": "Bank",
+          "LEI": "7695003X7CNS6XD4H31Z",
+          "SWIFT_BIC": "XEIYGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AAA",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 50000000,
+          "CurrentExposure": 13105668.7,
+          "CollateralPosted": 4128807.97,
+          "MaxTenor": 30,
+          "MaxNotional": 10000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-139258f7",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Aviva Climate Risk",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Insurer - Aviva CR",
+              "BusinessUnitId": "BU-CTPY-139258f7"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-139258f7-GBP",
+              "AccountDescription": "GBP trading/settlement - Aviva CR",
+              "AccountCurrency": "GBP",
+              "SortCode": "15-10-00",
+              "AccountNumber": "68284337",
+              "IBAN": "GB89HXTG15100068284337",
+              "BIC": "IYCRGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-139258f7-COLL",
+              "AccountDescription": "Collateral account - Aviva CR",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "rebecca.walsh@avivacr.co.uk",
+            "PrimaryPhone": "+44 20 7946 3309",
+            "AddressLine1": "25 Cabot Square",
+            "AddressLine2": "Canary Wharf",
+            "City": "London",
+            "PostCode": "E14 4QA",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-d4dea2",
+              "FirstName": "Rebecca",
+              "LastName": "Walsh",
+              "Role": "Head of Cat Risk",
+              "Email": "rebecca.walsh@avivacr.co.uk",
+              "Phone": "+44 20 7610 3430",
+              "SymphonyID": "rebecca.walsh@avivacr.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-139258f7",
+            "ExternalPartyId": "649300TFFM9KV10YE303",
+            "BookingAccountRef": "ACC-CTPY-139258f7-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Aviva CR",
+          "PartyType": "Insurer",
+          "LEI": "649300TFFM9KV10YE303",
+          "SWIFT_BIC": "IYCRGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AAA",
+          "RatingAgency": "S&P",
+          "CreditLimit": 100000000,
+          "CurrentExposure": 14349185.74,
+          "CollateralPosted": 6678431.65,
+          "MaxTenor": 15,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-1349b7dd",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Legal & General Flood Re",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Insurer - L&G Flood",
+              "BusinessUnitId": "BU-CTPY-1349b7dd"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-1349b7dd-GBP",
+              "AccountDescription": "GBP trading/settlement - L&G Flood",
+              "AccountCurrency": "GBP",
+              "SortCode": "23-05-80",
+              "AccountNumber": "64681209",
+              "IBAN": "GB38ZOTK23058064681209",
+              "BIC": "HBRBGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-1349b7dd-COLL",
+              "AccountDescription": "Collateral account - L&G Flood",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "andrew.kim@lgflood.co.uk",
+            "PrimaryPhone": "+44 20 7888 3006",
+            "AddressLine1": "1 Poultry",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2R 8EJ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-78dee6",
+              "FirstName": "Andrew",
+              "LastName": "Kim",
+              "Role": "Senior Analyst",
+              "Email": "andrew.kim@lgflood.co.uk",
+              "Phone": "+44 20 7724 4845",
+              "SymphonyID": "andrew.kim@lgflood.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-1349b7dd",
+            "ExternalPartyId": "4392007EH2OSXRIKSLXO",
+            "BookingAccountRef": "ACC-CTPY-1349b7dd-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "L&G Flood",
+          "PartyType": "Insurer",
+          "LEI": "4392007EH2OSXRIKSLXO",
+          "SWIFT_BIC": "HBRBGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA+",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 25000000,
+          "CurrentExposure": 4976117.81,
+          "CollateralPosted": 7133.55,
+          "MaxTenor": 20,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-fc818e59",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Zurich Environmental Risk",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Insurer - Zurich ER",
+              "BusinessUnitId": "BU-CTPY-fc818e59"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-fc818e59-GBP",
+              "AccountDescription": "GBP trading/settlement - Zurich ER",
+              "AccountCurrency": "GBP",
+              "SortCode": "30-12-18",
+              "AccountNumber": "72949192",
+              "IBAN": "GB70SFWQ30121872949192",
+              "BIC": "ETVFGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-fc818e59-COLL",
+              "AccountDescription": "Collateral account - Zurich ER",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "laura.martinez@zuricher.co.uk",
+            "PrimaryPhone": "+44 20 7047 3591",
+            "AddressLine1": "25 Ropemaker Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2Y 9LY",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-b9547e",
+              "FirstName": "Laura",
+              "LastName": "Martinez",
+              "Role": "Managing Director",
+              "Email": "laura.martinez@zuricher.co.uk",
+              "Phone": "+44 20 7957 5663",
+              "SymphonyID": "laura.martinez@zuricher.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-fc818e59",
+            "ExternalPartyId": "26920008KWH2VHVTML8D",
+            "BookingAccountRef": "ACC-CTPY-fc818e59-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Zurich ER",
+          "PartyType": "Insurer",
+          "LEI": "26920008KWH2VHVTML8D",
+          "SWIFT_BIC": "ETVFGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA+",
+          "RatingAgency": "Moody's",
+          "CreditLimit": 100000000,
+          "CurrentExposure": 2124912.02,
+          "CollateralPosted": 8491021.74,
+          "MaxTenor": 20,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-32a36341",
+          "PartyIdScheme": "Internal",
+          "PartyName": "AXA Nat Cat Desk",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Insurer - AXA NatCat",
+              "BusinessUnitId": "BU-CTPY-32a36341"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-32a36341-GBP",
+              "AccountDescription": "GBP trading/settlement - AXA NatCat",
+              "AccountCurrency": "GBP",
+              "SortCode": "40-47-34",
+              "AccountNumber": "90408799",
+              "IBAN": "GB60ULUG40473490408799",
+              "BIC": "PZOXGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-32a36341-COLL",
+              "AccountDescription": "Collateral account - AXA NatCat",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "thomas.wright@axanatcat.co.uk",
+            "PrimaryPhone": "+44 20 7946 2353",
+            "AddressLine1": "100 Bishopsgate",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2N 4AG",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-5071ed",
+              "FirstName": "Thomas",
+              "LastName": "Wright",
+              "Role": "Head of ILS",
+              "Email": "thomas.wright@axanatcat.co.uk",
+              "Phone": "+44 20 7697 2938",
+              "SymphonyID": "thomas.wright@axanatcat.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-32a36341",
+            "ExternalPartyId": "935700W1WW1TRWVEU173",
+            "BookingAccountRef": "ACC-CTPY-32a36341-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "AXA NatCat",
+          "PartyType": "Insurer",
+          "LEI": "935700W1WW1TRWVEU173",
+          "SWIFT_BIC": "PZOXGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A-",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 500000000,
+          "CurrentExposure": 141355490.76,
+          "CollateralPosted": 25437428.53,
+          "MaxTenor": 5,
+          "MaxNotional": 10000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-da017c85",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Hiscox Flood Markets",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Insurer - Hiscox FM",
+              "BusinessUnitId": "BU-CTPY-da017c85"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-da017c85-GBP",
+              "AccountDescription": "GBP trading/settlement - Hiscox FM",
+              "AccountCurrency": "GBP",
+              "SortCode": "56-00-49",
+              "AccountNumber": "77656045",
+              "IBAN": "GB46JONK56004977656045",
+              "BIC": "CHLTGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-da017c85-COLL",
+              "AccountDescription": "Collateral account - Hiscox FM",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "hannah.burke@hiscoxfm.co.uk",
+            "PrimaryPhone": "+44 20 7798 9889",
+            "AddressLine1": "20 Moorgate",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2R 6DA",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-823f97",
+              "FirstName": "Hannah",
+              "LastName": "Burke",
+              "Role": "Director, Nat Cat",
+              "Email": "hannah.burke@hiscoxfm.co.uk",
+              "Phone": "+44 20 7508 7434",
+              "SymphonyID": "hannah.burke@hiscoxfm.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-da017c85",
+            "ExternalPartyId": "584000CY45WQ283L24G4",
+            "BookingAccountRef": "ACC-CTPY-da017c85-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Hiscox FM",
+          "PartyType": "Insurer",
+          "LEI": "584000CY45WQ283L24G4",
+          "SWIFT_BIC": "CHLTGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A+",
+          "RatingAgency": "S&P",
+          "CreditLimit": 500000000,
+          "CurrentExposure": 91589351.76,
+          "CollateralPosted": 46835118.38,
+          "MaxTenor": 20,
+          "MaxNotional": 10000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-6365a132",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Swiss Re Cat Bonds",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Reinsurer - Swiss Re CB",
+              "BusinessUnitId": "BU-CTPY-6365a132"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-6365a132-GBP",
+              "AccountDescription": "GBP trading/settlement - Swiss Re CB",
+              "AccountCurrency": "GBP",
+              "SortCode": "20-00-00",
+              "AccountNumber": "85891685",
+              "IBAN": "GB22HEAR20000085891685",
+              "BIC": "WPAYGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-6365a132-COLL",
+              "AccountDescription": "Collateral account - Swiss Re CB",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "robert.singh@swissrecb.co.uk",
+            "PrimaryPhone": "+44 20 7009 8735",
+            "AddressLine1": "60 Threadneedle Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2R 8HP",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-fc334e",
+              "FirstName": "Robert",
+              "LastName": "Singh",
+              "Role": "VP Credit Trading",
+              "Email": "robert.singh@swissrecb.co.uk",
+              "Phone": "+44 20 7830 9058",
+              "SymphonyID": "robert.singh@swissrecb.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-6365a132",
+            "ExternalPartyId": "211400OYNEF18LO3DY6I",
+            "BookingAccountRef": "ACC-CTPY-6365a132-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Swiss Re CB",
+          "PartyType": "Reinsurer",
+          "LEI": "211400OYNEF18LO3DY6I",
+          "SWIFT_BIC": "WPAYGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA+",
+          "RatingAgency": "S&P",
+          "CreditLimit": 25000000,
+          "CurrentExposure": 5190050.55,
+          "CollateralPosted": 2404804.34,
+          "MaxTenor": 30,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-cd41932e",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Munich Re Flood ILS",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Reinsurer - Munich Re ILS",
+              "BusinessUnitId": "BU-CTPY-cd41932e"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-cd41932e-GBP",
+              "AccountDescription": "GBP trading/settlement - Munich Re ILS",
+              "AccountCurrency": "GBP",
+              "SortCode": "20-32-53",
+              "AccountNumber": "43528634",
+              "IBAN": "GB49LJEV20325343528634",
+              "BIC": "YYRDGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-cd41932e-COLL",
+              "AccountDescription": "Collateral account - Munich Re ILS",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "catherine.moore@munichreils.co.uk",
+            "PrimaryPhone": "+44 20 7447 1993",
+            "AddressLine1": "1 Bartholomew Lane",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2N 2AX",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-533e35",
+              "FirstName": "Catherine",
+              "LastName": "Moore",
+              "Role": "Head of Derivatives",
+              "Email": "catherine.moore@munichreils.co.uk",
+              "Phone": "+44 20 7093 3380",
+              "SymphonyID": "catherine.moore@munichreils.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-cd41932e",
+            "ExternalPartyId": "696000NRUZOR4J3ODFP2",
+            "BookingAccountRef": "ACC-CTPY-cd41932e-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Munich Re ILS",
+          "PartyType": "Reinsurer",
+          "LEI": "696000NRUZOR4J3ODFP2",
+          "SWIFT_BIC": "YYRDGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA+",
+          "RatingAgency": "S&P",
+          "CreditLimit": 200000000,
+          "CurrentExposure": 3871706.07,
+          "CollateralPosted": 13180428.37,
+          "MaxTenor": 30,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-058bbe90",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Hannover Re Climate",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Reinsurer - Hannover Clim",
+              "BusinessUnitId": "BU-CTPY-058bbe90"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-058bbe90-GBP",
+              "AccountDescription": "GBP trading/settlement - Hannover Clim",
+              "AccountCurrency": "GBP",
+              "SortCode": "30-94-28",
+              "AccountNumber": "94080430",
+              "IBAN": "GB84ZCFN30942894080430",
+              "BIC": "DUZRGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-058bbe90-COLL",
+              "AccountDescription": "Collateral account - Hannover Clim",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "william.scott@hannoverclim.co.uk",
+            "PrimaryPhone": "+44 20 7359 4709",
+            "AddressLine1": "51 Lime Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3M 7DQ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-8b5c75",
+              "FirstName": "William",
+              "LastName": "Scott",
+              "Role": "Senior Portfolio Manager",
+              "Email": "william.scott@hannoverclim.co.uk",
+              "Phone": "+44 20 7968 1686",
+              "SymphonyID": "william.scott@hannoverclim.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-058bbe90",
+            "ExternalPartyId": "65690096LRMNLDUS3TW3",
+            "BookingAccountRef": "ACC-CTPY-058bbe90-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Hannover Clim",
+          "PartyType": "Reinsurer",
+          "LEI": "65690096LRMNLDUS3TW3",
+          "SWIFT_BIC": "DUZRGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 50000000,
+          "CurrentExposure": 5140917.03,
+          "CollateralPosted": 2779101.7,
+          "MaxTenor": 5,
+          "MaxNotional": 50000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-293c7fe0",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Thames Water Utilities",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Utility - Thames Water",
+              "BusinessUnitId": "BU-CTPY-293c7fe0"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-293c7fe0-GBP",
+              "AccountDescription": "GBP trading/settlement - Thames Water",
+              "AccountCurrency": "GBP",
+              "SortCode": "40-05-15",
+              "AccountNumber": "62032356",
+              "IBAN": "GB90IPCA40051562032356",
+              "BIC": "HMHFGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-293c7fe0-COLL",
+              "AccountDescription": "Collateral account - Thames Water",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "jennifer.blake@thameswater.co.uk",
+            "PrimaryPhone": "+44 20 7057 6857",
+            "AddressLine1": "30 St Mary Axe",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3A 8BF",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-5c2b19",
+              "FirstName": "Jennifer",
+              "LastName": "Blake",
+              "Role": "Director, ESG Trading",
+              "Email": "jennifer.blake@thameswater.co.uk",
+              "Phone": "+44 20 7515 4884",
+              "SymphonyID": "jennifer.blake@thameswater.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-293c7fe0",
+            "ExternalPartyId": "7017004UUYU48ZQH03GD",
+            "BookingAccountRef": "ACC-CTPY-293c7fe0-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Thames Water",
+          "PartyType": "Utility",
+          "LEI": "7017004UUYU48ZQH03GD",
+          "SWIFT_BIC": "HMHFGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A-",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 50000000,
+          "CurrentExposure": 4111978.54,
+          "CollateralPosted": 1350548.77,
+          "MaxTenor": 20,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": false,
+          "NettingAgreement": false,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-64b21472",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Environment Agency Trading",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Government Agency - EA Trading",
+              "BusinessUnitId": "BU-CTPY-64b21472"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-64b21472-GBP",
+              "AccountDescription": "GBP trading/settlement - EA Trading",
+              "AccountCurrency": "GBP",
+              "SortCode": "60-01-73",
+              "AccountNumber": "75079341",
+              "IBAN": "GB67TBTZ60017375079341",
+              "BIC": "TZAOGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-64b21472-COLL",
+              "AccountDescription": "Collateral account - EA Trading",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "christopher.adams@eatrading.co.uk",
+            "PrimaryPhone": "+44 20 7029 5620",
+            "AddressLine1": "22 Bishopsgate",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC2N 4BQ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-186143",
+              "FirstName": "Christopher",
+              "LastName": "Adams",
+              "Role": "Head of Risk Transfer",
+              "Email": "christopher.adams@eatrading.co.uk",
+              "Phone": "+44 20 7607 5041",
+              "SymphonyID": "christopher.adams@eatrading.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-64b21472",
+            "ExternalPartyId": "667900GHSO5EKGLDOADM",
+            "BookingAccountRef": "ACC-CTPY-64b21472-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "EA Trading",
+          "PartyType": "Government Agency",
+          "LEI": "667900GHSO5EKGLDOADM",
+          "SWIFT_BIC": "TZAOGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 100000000,
+          "CurrentExposure": 5269754.62,
+          "CollateralPosted": 5206508.72,
+          "MaxTenor": 15,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": false,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-381e6b22",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Flood Re Ltd",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Insurer - Flood Re",
+              "BusinessUnitId": "BU-CTPY-381e6b22"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-381e6b22-GBP",
+              "AccountDescription": "GBP trading/settlement - Flood Re",
+              "AccountCurrency": "GBP",
+              "SortCode": "15-10-00",
+              "AccountNumber": "69049548",
+              "IBAN": "GB11WHGV15100069049548",
+              "BIC": "ZFETGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-381e6b22-COLL",
+              "AccountDescription": "Collateral account - Flood Re",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "olivia.turner@floodre.co.uk",
+            "PrimaryPhone": "+44 20 7963 3592",
+            "AddressLine1": "1 Undershaft",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3P 3DQ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-f73ce3",
+              "FirstName": "Olivia",
+              "LastName": "Turner",
+              "Role": "VP Environmental Markets",
+              "Email": "olivia.turner@floodre.co.uk",
+              "Phone": "+44 20 7276 7497",
+              "SymphonyID": "olivia.turner@floodre.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-381e6b22",
+            "ExternalPartyId": "249800G1SIFD10IC3FVH",
+            "BookingAccountRef": "ACC-CTPY-381e6b22-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Flood Re",
+          "PartyType": "Insurer",
+          "LEI": "249800G1SIFD10IC3FVH",
+          "SWIFT_BIC": "ZFETGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A+",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 150000000,
+          "CurrentExposure": 21800549.84,
+          "CollateralPosted": 5004757.54,
+          "MaxTenor": 30,
+          "MaxNotional": 50000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-86148ed6",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Citadel Climate Strategies",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Hedge Fund - Citadel CS",
+              "BusinessUnitId": "BU-CTPY-86148ed6"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-86148ed6-GBP",
+              "AccountDescription": "GBP trading/settlement - Citadel CS",
+              "AccountCurrency": "GBP",
+              "SortCode": "23-05-80",
+              "AccountNumber": "37018008",
+              "IBAN": "GB89UEVS23058037018008",
+              "BIC": "FOCNGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-86148ed6-COLL",
+              "AccountDescription": "Collateral account - Citadel CS",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "daniel.cooper@citadelcs.co.uk",
+            "PrimaryPhone": "+44 20 7950 1219",
+            "AddressLine1": "Willis Building, 51 Lime Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3M 7DQ",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-7a9039",
+              "FirstName": "Daniel",
+              "LastName": "Cooper",
+              "Role": "Senior Structurer",
+              "Email": "daniel.cooper@citadelcs.co.uk",
+              "Phone": "+44 20 7512 9660",
+              "SymphonyID": "daniel.cooper@citadelcs.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-86148ed6",
+            "ExternalPartyId": "789300KHT6JMA7YWULE7",
+            "BookingAccountRef": "ACC-CTPY-86148ed6-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Citadel CS",
+          "PartyType": "Hedge Fund",
+          "LEI": "789300KHT6JMA7YWULE7",
+          "SWIFT_BIC": "FOCNGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A+",
+          "RatingAgency": "S&P",
+          "CreditLimit": 25000000,
+          "CurrentExposure": 5839635.14,
+          "CollateralPosted": 419829.11,
+          "MaxTenor": 10,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": false,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-97685861",
+          "PartyIdScheme": "Internal",
+          "PartyName": "BlueCrest Nat Cat Fund",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Hedge Fund - BlueCrest NC",
+              "BusinessUnitId": "BU-CTPY-97685861"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-97685861-GBP",
+              "AccountDescription": "GBP trading/settlement - BlueCrest NC",
+              "AccountCurrency": "GBP",
+              "SortCode": "30-12-18",
+              "AccountNumber": "98643179",
+              "IBAN": "GB82BQOI30121898643179",
+              "BIC": "KEWRGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-97685861-COLL",
+              "AccountDescription": "Collateral account - BlueCrest NC",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "sophie.evans@bluecrestnc.co.uk",
+            "PrimaryPhone": "+44 20 7043 1636",
+            "AddressLine1": "Leadenhall Building, 122 Leadenhall Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3V 4AB",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-73d5aa",
+              "FirstName": "Sophie",
+              "LastName": "Evans",
+              "Role": "Head of Pricing",
+              "Email": "sophie.evans@bluecrestnc.co.uk",
+              "Phone": "+44 20 7779 9633",
+              "SymphonyID": "sophie.evans@bluecrestnc.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-97685861",
+            "ExternalPartyId": "96220016SGQSAYRB925R",
+            "BookingAccountRef": "ACC-CTPY-97685861-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "BlueCrest NC",
+          "PartyType": "Hedge Fund",
+          "LEI": "96220016SGQSAYRB925R",
+          "SWIFT_BIC": "KEWRGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA-",
+          "RatingAgency": "Moody's",
+          "CreditLimit": 100000000,
+          "CurrentExposure": 19865387.92,
+          "CollateralPosted": 3274649.43,
+          "MaxTenor": 20,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": false,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-581136e1",
+          "PartyIdScheme": "Internal",
+          "PartyName": "USS Pension Climate",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Pension Fund - USS Climate",
+              "BusinessUnitId": "BU-CTPY-581136e1"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-581136e1-GBP",
+              "AccountDescription": "GBP trading/settlement - USS Climate",
+              "AccountCurrency": "GBP",
+              "SortCode": "40-47-34",
+              "AccountNumber": "34422381",
+              "IBAN": "GB44WUHK40473434422381",
+              "BIC": "OZGVGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-581136e1-COLL",
+              "AccountDescription": "Collateral account - USS Climate",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "matthew.lee@ussclimate.co.uk",
+            "PrimaryPhone": "+44 20 7274 3682",
+            "AddressLine1": "One New Change",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC4M 9AF",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-ce7fbc",
+              "FirstName": "Matthew",
+              "LastName": "Lee",
+              "Role": "Director, Flood Risk",
+              "Email": "matthew.lee@ussclimate.co.uk",
+              "Phone": "+44 20 7480 2901",
+              "SymphonyID": "matthew.lee@ussclimate.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-581136e1",
+            "ExternalPartyId": "159100M9LWP55FC9EVDX",
+            "BookingAccountRef": "ACC-CTPY-581136e1-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "USS Climate",
+          "PartyType": "Pension Fund",
+          "LEI": "159100M9LWP55FC9EVDX",
+          "SWIFT_BIC": "OZGVGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "AA-",
+          "RatingAgency": "Fitch",
+          "CreditLimit": 50000000,
+          "CurrentExposure": 9365833.59,
+          "CollateralPosted": 1791394.52,
+          "MaxTenor": 10,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": false,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-dff09f1a",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Local Government Pension",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Pension Fund - LGPS Climate",
+              "BusinessUnitId": "BU-CTPY-dff09f1a"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-dff09f1a-GBP",
+              "AccountDescription": "GBP trading/settlement - LGPS Climate",
+              "AccountCurrency": "GBP",
+              "SortCode": "56-00-49",
+              "AccountNumber": "59744993",
+              "IBAN": "GB26XRMQ56004959744993",
+              "BIC": "HPCNGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-dff09f1a-COLL",
+              "AccountDescription": "Collateral account - LGPS Climate",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "emily.foster@lgpsclimate.co.uk",
+            "PrimaryPhone": "+44 20 7936 4612",
+            "AddressLine1": "55 Gracechurch Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3V 0EE",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-62c1b1",
+              "FirstName": "Emily",
+              "LastName": "Foster",
+              "Role": "VP Cat Bonds",
+              "Email": "emily.foster@lgpsclimate.co.uk",
+              "Phone": "+44 20 7352 3406",
+              "SymphonyID": "emily.foster@lgpsclimate.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-dff09f1a",
+            "ExternalPartyId": "561600LXHRYGM1Z0V5SB",
+            "BookingAccountRef": "ACC-CTPY-dff09f1a-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "LGPS Climate",
+          "PartyType": "Pension Fund",
+          "LEI": "561600LXHRYGM1Z0V5SB",
+          "SWIFT_BIC": "HPCNGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "BBB",
+          "RatingAgency": "Moody's",
+          "CreditLimit": 50000000,
+          "CurrentExposure": 9947889.45,
+          "CollateralPosted": 1967780.95,
+          "MaxTenor": 10,
+          "MaxNotional": 25000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    },
+    {
+      "CounterpartySet": {
+        "Party": {
+          "PartyID": "CTPY-0dd05e32",
+          "PartyIdScheme": "Internal",
+          "PartyName": "Surrey County Council",
+          "BusinessUnits": [
+            {
+              "BusinessUnitName": "Local Authority - Surrey CC",
+              "BusinessUnitId": "BU-CTPY-0dd05e32"
+            }
+          ],
+          "Accounts": [
+            {
+              "AccountID": "ACC-CTPY-0dd05e32-GBP",
+              "AccountDescription": "GBP trading/settlement - Surrey CC",
+              "AccountCurrency": "GBP",
+              "SortCode": "20-00-00",
+              "AccountNumber": "59012389",
+              "IBAN": "GB29JIAW20000059012389",
+              "BIC": "FENPGB2L"
+            },
+            {
+              "AccountID": "ACC-CTPY-0dd05e32-COLL",
+              "AccountDescription": "Collateral account - Surrey CC",
+              "AccountCurrency": "GBP"
+            }
+          ],
+          "ContactInformation": {
+            "PrimaryEmail": "james.richardson@surreycc.co.uk",
+            "PrimaryPhone": "+44 20 7341 5851",
+            "AddressLine1": "71 Lombard Street",
+            "AddressLine2": "City of London",
+            "City": "London",
+            "PostCode": "EC3P 3BS",
+            "Country": "GB"
+          },
+          "NaturalPersons": [
+            {
+              "PersonID": "NP-3d8b30",
+              "FirstName": "James",
+              "LastName": "Richardson",
+              "Role": "Head of Trading",
+              "Email": "james.richardson@surreycc.co.uk",
+              "Phone": "+44 20 7069 2662",
+              "SymphonyID": "james.richardson@surreycc.symphony.com"
+            }
+          ]
+        },
+        "Counterparties": [
+          {
+            "CounterpartyRole": "Party1",
+            "PartyRef": "MKM-RESEARCH-LABS",
+            "ExternalPartyId": "MKM-001",
+            "BookingAccountRef": "ACC-MKM-GBP"
+          },
+          {
+            "CounterpartyRole": "Party2",
+            "PartyRef": "CTPY-0dd05e32",
+            "ExternalPartyId": "703600YBSSNX90HTVC66",
+            "BookingAccountRef": "ACC-CTPY-0dd05e32-GBP"
+          }
+        ],
+        "AncillaryParties": [],
+        "_platform": {
+          "ShortName": "Surrey CC",
+          "PartyType": "Local Authority",
+          "LEI": "703600YBSSNX90HTVC66",
+          "SWIFT_BIC": "FENPGB2L",
+          "Jurisdiction": "UK",
+          "Status": "Active",
+          "CatchmentID": "thames",
+          "CreditRating": "A",
+          "RatingAgency": "S&P",
+          "CreditLimit": 500000000,
+          "CurrentExposure": 51529134.25,
+          "CollateralPosted": 8236289.87,
+          "MaxTenor": 10,
+          "MaxNotional": 100000000,
+          "ISDAMasterAgreement": true,
+          "CSAAgreement": true,
+          "NettingAgreement": true,
+          "PreferredCurrency": "GBP"
+        }
+      }
+    }
+  ],
+  "generation_metadata": {
+    "generated_at": "2026-03-20T09:06:00.588269",
+    "generator_version": "v1.0",
+    "catchment": "thames",
+    "total_generated": 21
+  }
+}

@@ -1,0 +1,77 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+
+\title{Portfolio Flood Risk Assessment: Key Formulae}
+\author{Technical Documentation Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Property Valuation Formulae}
+
+\subsection{Annualized Growth Rate}
+\[
+\text{AGR} = \left(\frac{V_{\text{current}}}{V_{\text{purchase}}}\right)^{\frac{1}{t}} - 1
+\]
+where $t$ is years since purchase
+
+\subsection{Local Price Index}
+\[
+\text{LPI}_i = \text{median}\{V_j : d(i,j) \leq r\}
+\]
+where $d(i,j)$ is distance between properties $i$ and $j$, and $r$ is radius
+
+\section{Flood Risk Formulae}
+
+\subsection{Flood Depth Calculation}
+\[
+D_i = \max\left(0, D_{\text{max}}\left(1 - \frac{d_i}{R}\right)\right)
+\]
+where:
+\begin{itemize}
+    \item $D_i$ is flood depth at property $i$
+    \item $D_{\text{max}}$ is maximum flood depth
+    \item $d_i$ is distance to flood center
+    \item $R$ is flood radius
+\end{itemize}
+
+\subsection{Spatial Correlation}
+\[
+\rho_{ij} = \rho_0 \exp\left(-\frac{d_{ij}}{d_c}\right)
+\]
+where:
+\begin{itemize}
+    \item $\rho_0$ is base correlation
+    \item $d_{ij}$ is distance between properties
+    \item $d_c$ is correlation distance
+\end{itemize}
+
+\subsection{Impact Calculation}
+\[
+I_i = V_i \cdot \alpha(1 + \tanh(D_i))
+\]
+where:
+\begin{itemize}
+    \item $I_i$ is impact on property $i$
+    \item $V_i$ is property value
+    \item $\alpha$ is baseline discount
+    \item $D_i$ is flood depth
+\end{itemize}
+
+\section{Portfolio Metrics}
+
+\subsection{Geographic Concentration (HHI)}
+\[
+\text{HHI} = \sum_{i=1}^{n} \left(\frac{V_i}{\sum_{j=1}^{n} V_j}\right)^2
+\]
+
+\subsection{Expected Shortfall}
+\[
+\text{ES}_{\alpha} = \mathbb{E}[X|X > \text{VaR}_{\alpha}]
+\]
+where $X$ is portfolio impact
+
+\end{document}

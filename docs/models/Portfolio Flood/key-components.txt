@@ -1,0 +1,65 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\title{Portfolio Flood Risk Assessment: Key Components}
+\author{Technical Documentation Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Core Model Components}
+
+\subsection{Property Valuation Model}
+\begin{itemize}
+    \item PropertyValuationModel class
+        \begin{itemize}
+            \item Feature preprocessing pipeline
+            \item XGBoost regression model
+            \item PCA dimensionality reduction
+        \end{itemize}
+    \item Spatial analysis components
+    \item Market factor calculators
+\end{itemize}
+
+\subsection{Flood Risk Model}
+\begin{itemize}
+    \item FloodRiskModel base class
+    \item EnhancedFloodRiskModel extension
+    \item Spatial correlation engine
+    \item Impact calculation system
+\end{itemize}
+
+\section{Supporting Components}
+
+\subsection{Data Management}
+\begin{itemize}
+    \item ProjectPaths utility
+    \item GeoDataFrame handlers
+    \item Data validation systems
+\end{itemize}
+
+\subsection{Analysis Tools}
+\begin{itemize}
+    \item Spatial clustering engine
+    \item Risk concentration calculator
+    \item Stress testing framework
+\end{itemize}
+
+\subsection{Visualization Components}
+\begin{itemize}
+    \item Interactive mapping system
+    \item Risk heatmap generator
+    \item Correlation visualizer
+\end{itemize}
+
+\section{Integration Interfaces}
+\begin{itemize}
+    \item Portfolio data standardizer
+    \item Risk metric aggregator
+    \item Report generation system
+\end{itemize}
+
+\end{document}

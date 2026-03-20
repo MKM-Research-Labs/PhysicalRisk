@@ -1,0 +1,44 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+Property flood timeseries endpoints for MKM Research Labs PRS Platform.
+
+Sub-modules:
+- core: Portfolio summary, per-property floods/storms, storm list
+- animation: Storm and composite animation frame endpoints
+- financial: Portfolio impact (damage, LTV, negative equity)
+- risk: Portfolio VaR/ES distributions
+- claim: Property flood damage claim report PDF
+"""
+
+from flask import Blueprint
+
+from ._helpers import _get_propertyts_dir  # noqa: F401
+
+propertyts_bp = Blueprint('propertyts', __name__)
+
+# Import sub-modules to register their routes on propertyts_bp.
+# These must come after propertyts_bp is defined to avoid circular imports.
+from . import core        # noqa: E402, F401
+from . import animation   # noqa: E402, F401
+from . import financial   # noqa: E402, F401
+from . import risk        # noqa: E402, F401
+from . import claim       # noqa: E402, F401

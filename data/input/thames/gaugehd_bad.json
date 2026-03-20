@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "data_type": "GaugeHistoricalDaily",
+  "generated_at": "2026-03-20T15:06:33.156391",
+  "generator": "gaugehd",
+  "years_included": 50,
+  "station_metadata": {
+    "station_id": "bad",
+    "station_name": "",
+    "grid_reference": "",
+    "description_summary": "",
+    "description_general": "",
+    "description_hydrometry": "",
+    "description_flow_record": "",
+    "description_catchment": "",
+    "description_flow_regime": "",
+    "data_type_id": "",
+    "data_type_name": "",
+    "parameter": "",
+    "units": "",
+    "period": "",
+    "measurement_type": "",
+    "full_record_first": "",
+    "full_record_last": "",
+    "database_id": "",
+    "database_name": ""
+  },
+  "statistics": {},
+  "daily_flows": []
+}

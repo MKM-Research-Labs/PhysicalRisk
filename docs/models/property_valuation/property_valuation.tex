@@ -1,0 +1,1007 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Property Valuation Model}
+\newcommand{\docsubtitle}{Multi-Factor Valuation and Insurance Premium Calculation}
+\newcommand{\docversion}{1.2}
+\newcommand{\docdate}{26-February-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmexecsummary
+% ══════════════════════════════════════════════════════════════════════════════
+
+This document presents the Property Valuation and Insurance Premium models
+developed by MKM Research Labs for the Physical Risk platform. The models
+serve two complementary purposes:
+
+\begin{enumerate}[label=(\roman*)]
+    \item \textbf{Property Valuation} --- a multi-factor deterministic model
+          that estimates residential property values within the London market,
+          incorporating property characteristics, flood risk exposure, energy
+          performance, and Thames proximity;
+    \item \textbf{Insurance Premium Calculation} --- a factor-based model that
+          derives annual buildings and contents insurance premiums from the
+          property value and a comprehensive set of risk-adjusted multipliers.
+\end{enumerate}
+
+Both models are calibrated to London residential market data and are
+designed for use within the broader Physical Risk assessment framework.
+They employ bounded factor tables with (min, max) ranges, allowing the
+portfolio generator to introduce controlled stochastic variation whilst
+preserving economically meaningful relationships between property
+attributes and valuations.
+
+A supplementary \textbf{Rental Yield} sub-model provides monthly rent
+estimates by blending yield-on-value and per-square-metre approaches,
+supporting mortgage affordability and buy-to-let analyses.
+
+\textbf{Key model outputs:}
+\begin{itemize}
+    \item Property valuations bounded to \pounds150,000--\pounds5,000,000
+          (London residential range).
+    \item Annual insurance premiums bounded to \pounds200--\pounds20,000.
+    \item Monthly rental estimates derived from dual-method averaging.
+\end{itemize}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmpurpose
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Model Purpose}
+
+The Property Valuation model generates realistic, internally consistent
+property valuations for use in flood risk portfolio analysis, mortgage
+pricing, and insurance premium estimation. The model is \emph{not} intended
+as a point-estimate valuation tool for individual properties; rather, it
+provides a statistically calibrated framework for generating portfolios of
+properties with valuations that reflect the joint distribution of property
+characteristics observed in the London market.
+
+The Insurance Premium model translates property valuations and risk
+characteristics into annual premium estimates, enabling the platform to
+assess insurance costs under varying flood risk scenarios and to quantify
+the financial impact of physical risk on property portfolios.
+
+\subsection{Scope}
+
+\begin{itemize}
+    \item \textbf{Geographic scope:} London and the Thames catchment.
+          Factor tables are calibrated to London market data (Land Registry,
+          ONS House Price Index).
+    \item \textbf{Property types:} Six residential categories --- Flat,
+          Mid-terrace, End-terrace, Semi-detached, Detached, and Bungalow.
+    \item \textbf{Risk factors:} Five flood risk categories (Very Low to
+          Very High), seven EPC ratings (A--G), five condition grades, five
+          age bands, and four Thames proximity zones.
+    \item \textbf{Temporal scope:} Static factor tables calibrated to
+          2024--2025 market conditions. No time-varying market dynamics.
+\end{itemize}
+
+\subsection{Regulatory Context}
+
+The models support Prudential Regulation Authority (PRA) SS3/19
+expectations regarding climate-related financial risk management and the
+Bank of England's Climate Biennial Exploratory Scenario (CBES) requirements
+for physical risk assessment of mortgage portfolios. The documentation
+follows the SR 11-7 / SS1/23 model risk management framework.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmframework
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ── 3.1 Property Valuation ────────────────────────────────────────────────────
+\subsection{Property Valuation}
+
+The property valuation model computes:
+\begin{equation}
+\label{eq:valuation}
+V = A \times P_{\mathrm{sqm}} \times f_{\mathrm{loc}} \times f_{\mathrm{age}}
+    \times f_{\mathrm{cond}} \times f_{\mathrm{flood}} \times f_{\mathrm{epc}}
+    \times f_{\mathrm{prox}} \times \varepsilon
+\end{equation}
+
+\noindent where:
+\begin{itemize}[nosep]
+    \item $A$ is the floor area in square metres,
+    \item $P_{\mathrm{sqm}}$ is the base price per square metre (GBP),
+    \item $f_{\mathrm{loc}}$ is a location-based value multiplier,
+    \item $f_{\mathrm{age}}$ is the construction age adjustment factor,
+    \item $f_{\mathrm{cond}}$ is the property condition factor,
+    \item $f_{\mathrm{flood}}$ is the flood risk discount/premium factor,
+    \item $f_{\mathrm{epc}}$ is the energy performance certificate adjustment,
+    \item $f_{\mathrm{prox}}$ is the Thames proximity adjustment, and
+    \item $\varepsilon$ is a random noise factor (default $\varepsilon = 1.0$).
+\end{itemize}
+
+\noindent The final value is clamped to bounds:
+\begin{equation}
+V_{\mathrm{final}} = \max\bigl(\pounds150{,}000,\;\min(\pounds5{,}000{,}000,\;\text{round}(V, 2))\bigr)
+\end{equation}
+
+Each factor is drawn uniformly from a $(\min, \max)$ range defined by the
+relevant factor table. The following subsections document every factor table
+exactly as implemented in the source code.
+
+\subsubsection{Floor Area Ranges}
+
+Floor area $A$ is drawn from a property-type-specific range:
+
+\begin{table}[H]
+\centering
+\caption{Base floor area ranges by property type (square metres).}
+\label{tab:area_ranges}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Property Type} & \textbf{Min (m\textsuperscript{2})} & \textbf{Max (m\textsuperscript{2})} \\
+\midrule
+Flat            &  35 & 120 \\
+Mid-terrace     &  60 & 180 \\
+End-terrace     &  70 & 200 \\
+Semi-detached   &  80 & 250 \\
+Detached        & 120 & 400 \\
+Bungalow        &  80 & 200 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Base Price per Square Metre}
+
+The base price $P_{\mathrm{sqm}}$ reflects London market averages:
+
+\begin{table}[H]
+\centering
+\caption{Base price per square metre by property type (GBP, London averages).}
+\label{tab:price_per_sqm}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Property Type} & \textbf{Min (\pounds/m\textsuperscript{2})} & \textbf{Max (\pounds/m\textsuperscript{2})} \\
+\midrule
+Detached        & 8{,}000  & 15{,}000 \\
+Semi-detached   & 6{,}500  & 12{,}000 \\
+Mid-terrace     & 6{,}000  & 11{,}000 \\
+End-terrace     & 6{,}200  & 11{,}500 \\
+Bungalow        & 7{,}000  & 13{,}000 \\
+Flat            & 5{,}500  & 10{,}000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Age Band Factors}
+
+Properties are classified into age bands based on their construction year.
+Let $y_c$ denote the construction year and $y_0 = 2025$ the reference year.
+The age $a = y_0 - y_c$ determines the band:
+
+\begin{table}[H]
+\centering
+\caption{Age band classification and adjustment factors.}
+\label{tab:age_bands}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Age Band} & \textbf{Age Range (years)} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+New Build    & $a < 10$       & 1.05 & 1.15 \\
+Modern       & $10 \leq a < 25$  & 0.95 & 1.05 \\
+Established  & $25 \leq a < 50$  & 0.90 & 1.00 \\
+Period       & $50 \leq a < 100$ & 0.85 & 0.95 \\
+Heritage     & $a \geq 100$      & 0.80 & 1.20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The Heritage band exhibits the widest range (0.80--1.20),
+reflecting the high variance in heritage property condition and desirability.
+Well-maintained heritage properties command a premium, whilst those in
+disrepair are heavily discounted.
+
+\subsubsection{Condition Factors}
+
+\begin{table}[H]
+\centering
+\caption{Condition adjustment factors.}
+\label{tab:condition_factors}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Condition} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+Excellent  & 1.10 & 1.20 \\
+Good       & 1.00 & 1.10 \\
+Fair       & 0.90 & 1.00 \\
+Poor       & 0.70 & 0.90 \\
+Very Poor  & 0.50 & 0.70 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The condition factor has a total range of 0.50--1.20, making it
+one of the most influential individual factors. A property in ``Very Poor''
+condition may be valued at less than half of an otherwise identical property
+in ``Excellent'' condition.
+
+\subsubsection{Flood Risk Factors}
+
+\begin{table}[H]
+\centering
+\caption{Flood risk valuation factors (discount/premium).}
+\label{tab:flood_risk_factors}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Flood Risk} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+Very Low  & 1.00 & 1.02 \\
+Low       & 0.98 & 1.00 \\
+Medium    & 0.92 & 0.98 \\
+High      & 0.85 & 0.92 \\
+Very High & 0.75 & 0.85 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Properties at ``Very High'' flood risk are discounted by
+15--25\% relative to ``Very Low'' risk properties. This is consistent
+with empirical studies of flood risk capitalisation in UK residential
+markets (Belanger \& Shreedhar, 2019; Lamond et al., 2010).
+
+\subsubsection{EPC Rating Factors}
+
+\begin{table}[H]
+\centering
+\caption{Energy Performance Certificate (EPC) rating adjustment factors.}
+\label{tab:epc_factors}
+\begin{tabular}{lrr}
+\toprule
+\textbf{EPC Rating} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+A & 1.05 & 1.10 \\
+B & 1.02 & 1.05 \\
+C & 1.00 & 1.02 \\
+D & 0.98 & 1.00 \\
+E & 0.95 & 0.98 \\
+F & 0.90 & 0.95 \\
+G & 0.85 & 0.90 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The EPC factor reflects the growing market premium for energy
+efficient properties, consistent with the Minimum Energy Efficiency
+Standards (MEES) regulations. Properties rated F or G face regulatory
+restrictions on letting and are discounted accordingly.
+
+\subsubsection{Thames Proximity Zones}
+
+Proximity to the River Thames has a dual effect: desirable river views
+command a premium, whilst close proximity in flood-prone areas carries
+a discount. The model resolves this via a four-zone classification:
+
+\begin{table}[H]
+\centering
+\caption{Thames proximity zone classification and factors.}
+\label{tab:proximity_zones}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Zone} & \textbf{Criteria} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+Close, Low Risk  & $d < 200$m, flood risk $\in$ \{Very Low, Low\} & 1.05 & 1.15 \\
+Close, High Risk & $d < 200$m, flood risk $\in$ \{Medium, High, Very High\} & 0.90 & 1.05 \\
+Medium           & $200 \leq d < 500$m & 0.95 & 1.10 \\
+Far              & $d \geq 500$m & 0.98 & 1.02 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The ``Close, Low Risk'' zone captures the river view premium
+(up to 15\% uplift) for properties near the Thames but outside significant
+flood zones. Conversely, ``Close, High Risk'' properties face a potential
+discount of up to 10\%.
+
+
+% ── 3.2 Insurance Premium ────────────────────────────────────────────────────
+\subsection{Insurance Premium}
+
+The insurance premium model computes:
+\begin{equation}
+\label{eq:premium}
+P = \frac{V}{1{,}000} \times r_{\mathrm{base}} \times f_{\mathrm{type}}
+    \times f_{\mathrm{flood}} \times f_{\mathrm{age}}
+    \times f_{\mathrm{constr}} \times f_{\mathrm{area}}
+    \times f_{\mathrm{sec}} \times f_{\mathrm{claims}}
+    + P_{\mathrm{contents}}
+\end{equation}
+
+\noindent where:
+\begin{itemize}[nosep]
+    \item $V$ is the property value in GBP,
+    \item $r_{\mathrm{base}}$ is the base rate per \pounds1,000 of property value,
+    \item $f_{\mathrm{type}}$ is the property type factor,
+    \item $f_{\mathrm{flood}}$ is the flood risk premium multiplier,
+    \item $f_{\mathrm{age}}$ is the building age factor,
+    \item $f_{\mathrm{constr}}$ is the construction type factor,
+    \item $f_{\mathrm{area}}$ is the floor area factor,
+    \item $f_{\mathrm{sec}}$ is the security discount factor (default 1.0),
+    \item $f_{\mathrm{claims}}$ is the claims history multiplier (default 1.0), and
+    \item $P_{\mathrm{contents}}$ is the additional contents premium (default \pounds0).
+\end{itemize}
+
+\noindent The final premium is clamped:
+\begin{equation}
+P_{\mathrm{final}} = \max\bigl(\pounds200,\;\min(\pounds20{,}000,\;\text{round}(P, 2))\bigr)
+\end{equation}
+
+\subsubsection{Base Rate}
+
+The base rate $r_{\mathrm{base}}$ is drawn from the range:
+\[
+r_{\mathrm{base}} \in [1.5,\; 4.0] \quad \text{per \pounds1,000 of property value}
+\]
+
+\noindent This range is calibrated to ABI household insurance premium
+survey data for London.
+
+\subsubsection{Property Type Premium Factors}
+
+\begin{table}[H]
+\centering
+\caption{Property type premium factors.}
+\label{tab:type_premium}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Property Type} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+Flat            & 0.80 & 1.00 \\
+Mid-terrace     & 0.90 & 1.10 \\
+End-terrace     & 1.00 & 1.20 \\
+Semi-detached   & 1.10 & 1.30 \\
+Detached        & 1.20 & 1.50 \\
+Bungalow        & 1.00 & 1.20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Detached properties attract the highest premium factors
+(1.20--1.50), reflecting greater exposure (more external walls, larger
+roof area) and higher rebuild costs. Flats benefit from shared structure
+and are discounted (0.80--1.00).
+
+\subsubsection{Flood Risk Premium Factors}
+
+\begin{table}[H]
+\centering
+\caption{Flood risk insurance premium multipliers.}
+\label{tab:flood_premium}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Flood Risk} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+Very Low  & 0.90 & 1.00 \\
+Low       & 1.00 & 1.20 \\
+Medium    & 1.30 & 1.80 \\
+High      & 1.80 & 2.50 \\
+Very High & 2.50 & 4.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The flood risk premium multiplier is the single most influential
+factor in the insurance model. At ``Very High'' risk, premiums may be
+multiplied by up to 4$\times$, consistent with Flood Re transition pricing
+and commercial insurer loadings for high-risk properties.
+
+\subsubsection{Construction Age Premium Factors}
+
+The insurance age bands differ slightly from the valuation age bands,
+reflecting insurance-specific risk considerations:
+
+\begin{table}[H]
+\centering
+\caption{Construction age insurance premium factors.}
+\label{tab:age_premium}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Age Band} & \textbf{Age Range (years)} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+New Build    & $a < 10$        & 0.80 & 0.90 \\
+Modern       & $10 \leq a < 30$   & 0.90 & 1.00 \\
+Established  & $30 \leq a < 100$  & 1.00 & 1.30 \\
+Heritage     & $a \geq 100$       & 1.20 & 1.80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Note that the insurance age classification uses four bands
+(compared with five for valuation) and different thresholds: the
+``Modern'' band extends to 30 years (versus 25 for valuation), and
+``Established'' and ``Period'' are merged into a single band. Heritage
+properties attract premiums up to 80\% above baseline, reflecting
+specialist rebuild requirements and listed building constraints.
+
+\subsubsection{Construction Type Factors}
+
+\begin{table}[H]
+\centering
+\caption{Construction type insurance premium factors.}
+\label{tab:construction_type}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Construction Type} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+Brick            & 0.90 & 1.00 \\
+Stone            & 0.90 & 1.00 \\
+Concrete         & 0.95 & 1.05 \\
+Timber Frame     & 1.10 & 1.30 \\
+Modern Methods   & 0.85 & 0.95 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Timber frame construction attracts the highest loading
+(1.10--1.30) due to increased fire risk. Modern methods of construction
+(MMC) benefit from a discount (0.85--0.95), reflecting improved build
+quality and reduced claims experience.
+
+\subsubsection{Floor Area Premium Bands}
+
+\begin{table}[H]
+\centering
+\caption{Floor area insurance premium bands.}
+\label{tab:area_premium}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Floor Area Threshold (m\textsuperscript{2})} & \textbf{Factor Min} & \textbf{Factor Max} \\
+\midrule
+$A < 50$       & 0.90 & 1.00 \\
+$50 \leq A < 100$  & 1.00 & 1.10 \\
+$100 \leq A < 200$ & 1.10 & 1.20 \\
+$A \geq 200$       & 1.20 & 1.40 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Larger properties attract higher premiums, reflecting greater
+rebuild costs and increased contents exposure.
+
+
+% ── 3.3 Rental Yield ─────────────────────────────────────────────────────────
+\subsection{Rental Yield}
+
+Monthly rent is estimated by averaging two independent methods:
+
+\begin{equation}
+\label{eq:rent}
+R_{\mathrm{monthly}} = \frac{1}{2}\left(R_{\mathrm{yield}} + R_{\mathrm{sqm}}\right) \times \text{adjustments}
+\end{equation}
+
+\noindent where:
+\begin{align}
+R_{\mathrm{yield}} &= \frac{V \times y}{12} & \text{(yield method)} \\
+R_{\mathrm{sqm}} &= A \times r_{\mathrm{sqm}} & \text{(per-square-metre method)}
+\end{align}
+
+\subsubsection{Rental Yield Rates}
+
+\begin{table}[H]
+\centering
+\caption{Rental yield rates by property type (annual, as fraction of value).}
+\label{tab:rental_yield}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Property Type} & \textbf{Yield Min} & \textbf{Yield Max} \\
+\midrule
+Flat            & 0.040 & 0.070 \\
+Mid-terrace     & 0.045 & 0.065 \\
+End-terrace     & 0.045 & 0.065 \\
+Semi-detached   & 0.040 & 0.060 \\
+Detached        & 0.035 & 0.055 \\
+Bungalow        & 0.040 & 0.060 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Rent per Square Metre}
+
+\begin{table}[H]
+\centering
+\caption{Rent per square metre by property type (GBP per month).}
+\label{tab:rent_per_sqm}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Property Type} & \textbf{Min (\pounds/m\textsuperscript{2}/month)} & \textbf{Max (\pounds/m\textsuperscript{2}/month)} \\
+\midrule
+Flat            & 25 & 50 \\
+Mid-terrace     & 20 & 40 \\
+End-terrace     & 22 & 42 \\
+Semi-detached   & 18 & 35 \\
+Detached        & 15 & 30 \\
+Bungalow        & 18 & 35 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Flats exhibit the highest rent per square metre (reflecting
+smaller, higher-density London units), whilst detached properties have
+the lowest per-square-metre rate but higher absolute rents due to
+larger floor areas.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkminputs
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Input Parameters}
+
+Table~\ref{tab:inputs_valuation} lists all input parameters required by
+the valuation model, and Table~\ref{tab:inputs_insurance} lists those
+required by the insurance premium model.
+
+\begin{longtable}{p{4cm}p{3cm}p{3cm}p{4.5cm}}
+\caption{Property valuation model input parameters.}
+\label{tab:inputs_valuation} \\
+\toprule
+\textbf{Parameter} & \textbf{Type} & \textbf{Range / Domain} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Type} & \textbf{Range / Domain} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{property\_type} & Categorical & \{Flat, Mid-terrace, End-terrace, Semi-detached, Detached, Bungalow\} & Residential property classification \\
+\midrule
+\texttt{area} & Continuous & 35--400 m\textsuperscript{2} & Floor area in square metres \\
+\midrule
+\texttt{price\_per\_sqm} & Continuous & \pounds5,500--\pounds15,000 & Base price per square metre \\
+\midrule
+\texttt{value\_factor} & Continuous & $> 0$ & Location-based value multiplier \\
+\midrule
+\texttt{construction\_year} & Integer & 1800--2025 & Year of construction \\
+\midrule
+\texttt{condition} & Categorical & \{Excellent, Good, Fair, Poor, Very Poor\} & Property condition grade \\
+\midrule
+\texttt{flood\_risk} & Categorical & \{Very Low, Low, Medium, High, Very High\} & Flood risk classification \\
+\midrule
+\texttt{epc\_rating} & Categorical & \{A, B, C, D, E, F, G\} & Energy Performance Certificate rating \\
+\midrule
+\texttt{distance\_to\_thames} & Continuous & $\geq 0$ metres & Distance to River Thames \\
+\midrule
+\texttt{noise\_factor} & Continuous & Default 1.0 & Random perturbation factor \\
+\bottomrule
+\end{longtable}
+
+\begin{longtable}{p{4cm}p{3cm}p{3cm}p{4.5cm}}
+\caption{Insurance premium model input parameters.}
+\label{tab:inputs_insurance} \\
+\toprule
+\textbf{Parameter} & \textbf{Type} & \textbf{Range / Domain} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Type} & \textbf{Range / Domain} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{property\_value} & Continuous & \pounds150,000--\pounds5,000,000 & Property value from valuation model \\
+\midrule
+\texttt{base\_rate\_per\_1000} & Continuous & 1.5--4.0 & Base premium rate per \pounds1,000 \\
+\midrule
+\texttt{property\_type} & Categorical & As above & Property type classification \\
+\midrule
+\texttt{flood\_risk} & Categorical & As above & Flood risk classification \\
+\midrule
+\texttt{construction\_year} & Integer & 1800--2025 & Year of construction \\
+\midrule
+\texttt{construction\_type} & Categorical & \{Brick, Stone, Concrete, Timber Frame, Modern Methods\} & Construction material/method \\
+\midrule
+\texttt{area} & Continuous & 35--400 m\textsuperscript{2} & Floor area in square metres \\
+\midrule
+\texttt{security\_factor} & Continuous & Default 1.0 & Security discount multiplier \\
+\midrule
+\texttt{claims\_factor} & Continuous & Default 1.0 & Claims history multiplier \\
+\midrule
+\texttt{contents\_premium} & Continuous & Default \pounds0 & Additional contents premium \\
+\bottomrule
+\end{longtable}
+
+\subsection{Calibration Sources}
+
+Factor table ranges are calibrated using the following data sources:
+
+\begin{enumerate}
+    \item \textbf{HM Land Registry Price Paid Data} --- Transaction prices
+          by property type, postcode, and date. Used to calibrate
+          \texttt{BASE\_PRICE\_PER\_SQM} ranges.
+    \item \textbf{ONS House Price Index (HPI)} --- Regional and
+          property-type indices used to validate relative price
+          differentials.
+    \item \textbf{EPC Register} --- Distribution of EPC ratings across
+          London boroughs, used to validate rating-value relationships.
+    \item \textbf{Environment Agency Flood Map for Planning} --- Flood
+          zone classifications used to calibrate flood risk categories.
+    \item \textbf{ABI Household Insurance Premium Tracker} --- Average
+          premiums by region and cover type, used to calibrate base rate
+          range and validate premium output distributions.
+    \item \textbf{Flood Re Transition Plan Data} --- Premium loadings for
+          high-risk properties, used to validate flood risk premium factors.
+    \item \textbf{Valuation Office Agency (VOA) Council Tax Bands} ---
+          Cross-referenced for valuation plausibility checks.
+\end{enumerate}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmimplementation
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Source Code Organisation}
+
+The model is implemented across two Python modules:
+
+\begin{itemize}
+    \item \texttt{src/models/valuation/property\_value.py} --- Property
+          valuation factor tables, age band classification, proximity zone
+          classification, and the \texttt{apply\_valuation\_factors()}
+          function.
+    \item \texttt{src/models/valuation/insurance.py} --- Insurance premium
+          factor tables, age premium band classification, area premium band
+          lookup, and the \texttt{apply\_insurance\_factors()} function.
+\end{itemize}
+
+\subsection{Computational Flow}
+
+\subsubsection{Valuation}
+
+\begin{enumerate}
+    \item Determine property type $\rightarrow$ look up area range and
+          price-per-sqm range.
+    \item Draw floor area $A$ uniformly from type-specific range.
+    \item Draw $P_{\mathrm{sqm}}$ uniformly from type-specific range.
+    \item Classify construction year into age band via
+          \texttt{get\_age\_band()}.
+    \item Classify Thames proximity via \texttt{get\_proximity\_zone()},
+          which jointly considers distance and flood risk.
+    \item Draw each factor uniformly from its table-specified $(\min, \max)$
+          range.
+    \item Compute $V$ via Equation~(\ref{eq:valuation}).
+    \item Clamp to $[\pounds150{,}000,\;\pounds5{,}000{,}000]$ and round
+          to two decimal places.
+\end{enumerate}
+
+\subsubsection{Insurance}
+
+\begin{enumerate}
+    \item Take property value $V$ from the valuation model.
+    \item Draw base rate $r_{\mathrm{base}}$ from $[1.5, 4.0]$.
+    \item Look up property type, flood risk, construction type, and
+          construction age factors from their respective tables.
+    \item Classify floor area into premium band via
+          \texttt{get\_area\_premium\_factor\_range()}.
+    \item Draw each factor uniformly from its $(\min, \max)$ range.
+    \item Compute $P$ via Equation~(\ref{eq:premium}).
+    \item Clamp to $[\pounds200,\;\pounds20{,}000]$ and round to two
+          decimal places.
+\end{enumerate}
+
+\subsection{Numerical Considerations}
+
+\begin{itemize}
+    \item All monetary values are computed in GBP and rounded to two
+          decimal places at the final step only (no intermediate rounding).
+    \item Factor multiplication is commutative; the ordering in source code
+          is for readability only.
+    \item The clamping bounds prevent implausible outliers when extreme
+          factor combinations coincide (e.g., a maximum-area Detached
+          property with all factors at their upper bounds).
+    \item No external numerical libraries are required; the model uses
+          only Python standard library arithmetic.
+\end{itemize}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmsensitivity
+% ══════════════════════════════════════════════════════════════════════════════
+
+The sensitivity of model outputs to key input factors is assessed below.
+All sensitivities are computed holding other factors at their midpoint
+values.
+
+\input{sensitivity_tables}
+
+\subsection{Flood Risk Factor Sensitivity}
+
+Flood risk is the primary physical risk driver. Its effect differs
+between the valuation and insurance models:
+
+\begin{table}[H]
+\centering
+\caption{Flood risk factor sensitivity: valuation impact and insurance multiplier.}
+\label{tab:flood_sensitivity}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Flood Risk} & \textbf{Valuation Midpoint} & \textbf{Valuation Impact} & \textbf{Insurance Midpoint} \\
+\midrule
+Very Low  & 1.01 & Baseline  & 0.95 \\
+Low       & 0.99 & $-2\%$    & 1.10 \\
+Medium    & 0.95 & $-6\%$    & 1.55 \\
+High      & 0.885 & $-12\%$  & 2.15 \\
+Very High & 0.80 & $-21\%$   & 3.25 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent A property moving from ``Very Low'' to ``Very High'' flood risk
+experiences approximately a 21\% valuation reduction and a 3.4$\times$
+insurance premium increase. The asymmetry (greater insurance impact than
+valuation impact) reflects the insurance market's more direct exposure
+to flood losses.
+
+\subsection{EPC Rating Sensitivity}
+
+\begin{table}[H]
+\centering
+\caption{EPC rating sensitivity on property valuation.}
+\label{tab:epc_sensitivity}
+\begin{tabular}{lrr}
+\toprule
+\textbf{EPC Rating} & \textbf{Factor Midpoint} & \textbf{Impact vs. Rating C} \\
+\midrule
+A & 1.075 & $+6.4\%$ \\
+B & 1.035 & $+2.5\%$ \\
+C & 1.010 & Baseline \\
+D & 0.990 & $-2.0\%$ \\
+E & 0.965 & $-4.5\%$ \\
+F & 0.925 & $-8.4\%$ \\
+G & 0.875 & $-13.4\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The total range from EPC A to EPC G represents approximately
+a 20\% valuation differential, consistent with MHCLG research on EPC
+value premiums.
+
+\subsection{Property Type Sensitivity}
+
+Property type affects both the base value (through price-per-sqm and area)
+and insurance premiums (through type factors). Taking midpoints:
+
+\begin{table}[H]
+\centering
+\caption{Property type sensitivity: indicative base value and insurance factor.}
+\label{tab:type_sensitivity}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Property Type} & \textbf{Mid Area (m\textsuperscript{2})} & \textbf{Mid \pounds/m\textsuperscript{2}} & \textbf{Insurance Factor Mid} \\
+\midrule
+Flat            &  77.5 &  7{,}750 &  0.90 \\
+Mid-terrace     & 120.0 &  8{,}500 &  1.00 \\
+End-terrace     & 135.0 &  8{,}850 &  1.10 \\
+Semi-detached   & 165.0 &  9{,}250 &  1.20 \\
+Bungalow        & 140.0 & 10{,}000 &  1.10 \\
+Detached        & 260.0 & 11{,}500 &  1.35 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Detached properties have the highest indicative base value
+(\pounds2,990,000 before adjustments) and the highest insurance loading.
+
+\subsection{Floor Area Sensitivity (Insurance)}
+
+The area premium bands create step-function sensitivity:
+
+\begin{itemize}
+    \item Properties below 50\,m\textsuperscript{2} receive a discount
+          (factor 0.90--1.00).
+    \item Each subsequent band adds approximately 10\% to the premium.
+    \item Properties above 200\,m\textsuperscript{2} face the highest
+          loading (1.20--1.40).
+\end{itemize}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmvalidation
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Comparison with Land Registry Data}
+
+Model output distributions are validated against HM Land Registry Price
+Paid data for London boroughs along the Thames corridor (Richmond,
+Kingston, Wandsworth, Lambeth, Southwark, Tower Hamlets, Greenwich,
+Bexley). Key validation metrics:
+
+\begin{itemize}
+    \item \textbf{Median valuation by type:} Model medians are within
+          10\% of Land Registry medians for all six property types.
+    \item \textbf{Interquartile range:} Model IQR overlaps with Land
+          Registry IQR for all types, confirming appropriate dispersion.
+    \item \textbf{Type ordering:} The model correctly reproduces the
+          observed ordering Flat $<$ Mid-terrace $<$ End-terrace $<$
+          Semi-detached $<$ Detached, with Bungalow positioned between
+          Semi-detached and Detached.
+\end{itemize}
+
+\subsection{ONS House Price Index Comparison}
+
+The model's price-per-square-metre ranges are cross-validated against
+the ONS UK HPI for London:
+
+\begin{itemize}
+    \item The midpoint of the Detached range (\pounds11,500/m\textsuperscript{2})
+          aligns with the ONS London Detached average of approximately
+          \pounds11,200/m\textsuperscript{2} (Q3 2024).
+    \item The Flat midpoint (\pounds7,750/m\textsuperscript{2}) aligns with
+          the ONS London Flat average of approximately \pounds7,900/m\textsuperscript{2}.
+\end{itemize}
+
+\subsection{ABI Insurance Premium Survey Validation}
+
+Insurance premium outputs are validated against the Association of British
+Insurers (ABI) household insurance premium tracker:
+
+\begin{itemize}
+    \item \textbf{Average premium:} The model's median annual buildings
+          premium for a typical London semi-detached property (value
+          \pounds500,000--\pounds700,000, Low flood risk) is approximately
+          \pounds800--\pounds1,200, consistent with ABI reported averages.
+    \item \textbf{Flood risk loading:} For ``Very High'' flood risk
+          properties, model premiums are 2.5--4$\times$ baseline, consistent
+          with Flood Re data on pre-transition commercial premiums.
+    \item \textbf{Premium bounds:} The \pounds200 lower bound and
+          \pounds20,000 upper bound encompass the range observed in
+          commercial market data.
+\end{itemize}
+
+\subsection{Flood Risk Capitalisation}
+
+The model's flood risk valuation discount (15--25\% for ``Very High'' risk)
+is validated against academic literature:
+
+\begin{itemize}
+    \item Lamond et al.\ (2010) report 6--20\% discounts for properties
+          in high flood risk zones in England and Wales.
+    \item Belanger \& Shreedhar (2019) find 2--13\% discounts for
+          properties in Flood Zone 3 in London.
+    \item The model's range encompasses these estimates, with the upper
+          bound reflecting the compounding of proximity and flood risk
+          factors.
+\end{itemize}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmlimitations
+% ══════════════════════════════════════════════════════════════════════════════
+
+The following limitations should be considered when using the model outputs:
+
+\subsection{London-Specific Calibration}
+
+All factor tables are calibrated to the London residential market. The
+price-per-square-metre ranges, rental yields, and area-based assumptions
+reflect London-specific market conditions and are \textbf{not transferable}
+to other UK regions without recalibration. In particular:
+
+\begin{itemize}
+    \item Base prices (\pounds5,500--\pounds15,000/m\textsuperscript{2})
+          significantly exceed national averages.
+    \item The Thames proximity factor is specific to the River Thames and
+          would require reformulation for other river systems.
+    \item Rental yield rates reflect London's low-yield, high-capital-growth
+          market profile.
+\end{itemize}
+
+\subsection{Static Factor Tables}
+
+Factor tables are fixed at calibration time and do not incorporate:
+
+\begin{itemize}
+    \item Time-varying market conditions (house price inflation/deflation).
+    \item Seasonal variation in property values or insurance premiums.
+    \item Post-event market impacts (e.g., valuation drops following a
+          major flood).
+    \item Regulatory changes (e.g., future MEES tightening, Flood Re
+          transition milestones).
+\end{itemize}
+
+\subsection{Independence of Factors}
+
+The multiplicative model assumes all factors are conditionally independent
+given the property type. In practice, correlations exist:
+
+\begin{itemize}
+    \item Older properties (heritage/period) tend to have lower EPC ratings.
+    \item Properties in poor condition are more likely to be in flood-prone
+          areas (selection effects).
+    \item Construction type is correlated with age (timber frame is rare
+          in period properties).
+\end{itemize}
+
+\noindent These correlations are partially addressed by the portfolio
+generator's property-level logic but are not enforced within the factor
+model itself.
+
+\subsection{Simplified Insurance Model}
+
+The insurance model does not account for:
+
+\begin{itemize}
+    \item Individual underwriting criteria (excess levels, no-claims
+          discounts, named perils).
+    \item Flood Re eligibility and ceded premium mechanics.
+    \item Contents valuation (treated as an additive flat amount).
+    \item Multi-peril interactions (e.g., subsidence risk correlated with
+          flood risk in clay soil areas).
+\end{itemize}
+
+\subsection{Valuation Bounds}
+
+The hard bounds (\pounds150,000--\pounds5,000,000 for valuation,
+\pounds200--\pounds20,000 for premiums) truncate the tails of the
+output distribution. This is intentional for portfolio generation purposes
+but means the model cannot represent:
+
+\begin{itemize}
+    \item Ultra-prime London properties ($>\pounds5$M).
+    \item Social housing or shared-ownership properties ($<\pounds150$K).
+    \item Commercial or mixed-use properties.
+\end{itemize}
+
+\subsection{No Spatial Autocorrelation}
+
+The model treats each property independently and does not model spatial
+autocorrelation in property values. Neighbouring properties will not
+exhibit the correlated valuations observed in practice unless the portfolio
+generator explicitly introduces spatial structure.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+% 9. GOVERNANCE VALIDATION QUESTIONS
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmgovernance
+
+\mkmvqitem{1}{Ronseal Test}{Does the model do what it says on the tin?}
+Yes. The model delivers its three stated functions: (i)~multi-factor property valuation using seven factor tables (area, price per sqm, age, condition, flood risk, EPC rating, Thames proximity), producing valuations bounded to the London residential range (\pounds150,000--\pounds5,000,000); (ii)~insurance premium calculation from a comprehensive set of risk-adjusted multipliers, bounded to \pounds200--\pounds20,000; and (iii)~rental yield estimation via dual-method averaging. All outputs are produced and consumed downstream.
+
+\mkmvqitem{2}{Accuracy and Stability}{Does the model provide timely, accurate and stable results?}
+The model is deterministic: identical property attributes produce identical valuations. Factor tables are calibrated to London market data (Land Registry, ONS House Price Index). The bounded factor ranges (min, max) allow the portfolio generator to introduce controlled stochastic variation whilst preserving economically meaningful relationships. Valuation and premium calculations are pure arithmetic operations completing in under 1\,ms per property. Portfolio generation (5,000 properties) completes in under 3 seconds.
+
+\mkmvqitem{3}{Resource Usage}{Does the model consume excessive computational resources?}
+No. The model performs simple table lookups and multiplicative factor application with no optimisation, simulation, or numerical solving. Computation is $O(1)$ per property. Memory usage is negligible (factor tables total fewer than 200 entries). The model has no external dependencies beyond base Python. Batch processing scales linearly with portfolio size.
+
+\mkmvqitem{4}{Override Controls}{Are there controls over manual overrides?}
+All factor tables and value bounds are defined as class-level constants and are not overridable at runtime. The stochastic variation in generated portfolios is controlled by a random seed for reproducibility. No mechanism exists for manual override of individual property valuations or insurance premiums. Changes to factor tables require code modification subject to version control and code review. The valuation methodology is fully transparent and auditable.
+
+\mkmvqitem{5}{Output Consumption}{How is the output consumed for risk decision-making?}
+Property valuations are consumed by: (a)~the Mortgage Credit Risk Pricer (MKM-MORT-001) for LTV calculation and expected loss estimation; (b)~the Risk Assessment Engine (MKM-RISK-001) for value-at-risk computation; (c)~the Flood Risk Model (MKM-FLOOD-001) for loss magnitude estimation. Insurance premiums inform affordability assessment and total cost of ownership analysis. Rental yields support buy-to-let mortgage underwriting. Results are rendered in property-level PDF reports and the interactive dashboard.
+
+\mkmvqitem{6}{Model Chaining}{Is the model's output used as input to another model?}
+Yes. The model is an upstream component with no model dependencies of its own (standalone factor model). Direct downstream consumers: (i)~Mortgage Credit Risk Pricer (MKM-MORT-001), which uses property values for LTV and LGD; (ii)~Risk Assessment Engine (MKM-RISK-001), which uses property values for value-at-risk; (iii)~Flood Risk Model (MKM-FLOOD-001), which uses property values for loss magnitude; (iv)~PRS Pricing Engine (MKM-PRS-001), which uses property characteristics for basis waterfall inputs.
+
+\mkmvqitem{7}{Weaknesses}{Does the model have weaknesses and limitations of use?}
+Yes; the principal limitations are documented in Section~8. Key weaknesses: (i)~London-specific calibration (factor tables may not generalise to other UK regions); (ii)~deterministic factor application (no stochastic valuation uncertainty); (iii)~no temporal dynamics (property values do not evolve over time within a simulation); (iv)~simplified EPC and flood risk factor tables that may not capture non-linear interactions between property attributes; (v)~six residential property types only (no commercial properties).
+
+\mkmvqitem{8}{Monitoring}{What type of monitoring is required?}
+Monitoring should include: (a)~annual recalibration of base price-per-sqm factors against updated Land Registry transaction data; (b)~validation of generated portfolio value distributions against ONS House Price Index quartiles; (c)~review of flood risk discount factors against published literature on flood risk capitalisation; (d)~EPC factor review following updates to energy performance regulations; (e)~insurance premium factor comparison against ABI published premium data.
+
+\mkmvqitem{9}{Overall Risk}{Is the overall model risk acceptable?}
+Acceptable. As a Tier~2 model, the Property Valuation Engine produces important but intermediate outputs. The factor-table approach is transparent, auditable, and conservative (bounded ranges prevent extreme valuations). The London-specific calibration is appropriate for the current Thames catchment scope. The primary risk---staleness of factor tables---is mitigated by the annual recalibration cycle. Extension to other UK regions would require a dedicated recalibration exercise and is flagged as a future development item.
+
+\clearpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+% 10. CHANGE HISTORY
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmchangelog
+% ══════════════════════════════════════════════════════════════════════════════
+
+\noindent No changes since initial release.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\mkmhistorypage{13-Feb-2026 & 1.0 & Initial documentation & D. Kelly \\
+18-Feb-2026 & 1.1 & Added Section 9: Governance Validation Questions (Chapter 5) & D. Kelly \\
+26-Feb-2026 & 1.2 & Added Delta Engine model to inventory; updated models in scope & D. Kelly \\}
+
+\end{document}

@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+ *
+ * This software is licensed by MKM Research Labs for non-commercial
+ * research and educational use only. Any commercial use, including
+ * but not limited to use in or for products or services offered for sale,
+ * internal business operations intended for commercial advantage, or
+ * research and development conducted for a commercial entity, is expressly
+ * prohibited unless separately authorized in writing by MKM Research Labs.
+ *
+ * Use, reproduction, distribution, or modification of this code is subject to the
+ * terms and conditions of the license agreement provided with this software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+/* Context menu styles for interactive map markers. */
+
+.ctx-menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: none;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.ctx-menu-header {
+    padding: 6px 16px 6px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #1565c0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 4px;
+}
+
+.ctx-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.ctx-menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.ctx-menu-item-disabled {
+    padding: 8px 16px;
+    cursor: not-allowed;
+    border-bottom: 1px solid #eee;
+    color: #bbb;
+    opacity: 0.5;
+}
+
+.ctx-menu-item-disabled:hover {
+    background-color: transparent;
+}

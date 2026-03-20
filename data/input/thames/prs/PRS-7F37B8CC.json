@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-7F37B8CC",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-19b8061a",
+      "CounterPartyName": "NatWest NC (AA+)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-03",
+      "ProtectionStart": "2026-03-05",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 5000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.0390861068408162
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-05",
+      "EndDate": "2027-05-28",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-9e5f3ef9",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-9e5f3ef9",
+          "GaugeName": "Thames London Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 5000000
+    },
+    "Pricing": {
+      "SpreadBps": 391,
+      "FairSpreadBps": 384.65,
+      "NPV": 2967.87,
+      "PremiumLegPV": 186739.96,
+      "ProtectionLegPV": 183772.09,
+      "RiskyAnnuity": 0.955531,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

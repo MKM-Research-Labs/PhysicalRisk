@@ -1,0 +1,271 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+Book generator — Thames Central trading book.
+
+50-trade portfolio across 10 inner London gauges with:
+- Core short position on Westminster hedged by longs on neighbours
+- Calendar spreads (long 5Y / short 1-2Y on same gauge)
+- Gauge spreads (long one gauge / short adjacent)
+- Heavy sub-3Y tenor weighting (1Y, 2Y, 3Y, 5Y)
+"""
+
+import json
+import logging
+import random
+import uuid
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from models.hazard.prs_analytical import compute_prs_spread
+
+from .book_common import (
+    DEFAULT_YIELD_CURVE,
+    RECOVERY,
+    SPREAD_OFFSET_MAX,
+    SPREAD_OFFSET_MIN,
+    _build_cdm_record,
+    _compute_leg_pvs,
+    _load_counterparties,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# 10 Thames Central gauges used by the trade specs.
+# Each entry maps the trade-spec label → gauge name substring for matching.
+# These correspond to gauge points 10, 11, 13, 14, 15, 16, 20, 7, 12, 8
+# i.e. the inner London reach from Chelsea Bridge to London Bridge.
+THAMES_CENTRAL_AREAS = [
+    'Chelsea', 'Kensington', 'Westminster', 'Camden', 'Islington',
+    'Hackney', 'Tower Hamlets', 'Southwark', 'Lambeth', 'Wandsworth',
+]
+
+# Map trade-spec area labels to gauge name substrings for matching in gaugehc.json
+_AREA_TO_GAUGE_NAME = {
+    'Chelsea': 'Chelsea Bridge',
+    'Kensington': 'Vauxhall Bridge',
+    'Westminster': 'Westminster Bridge',
+    'Camden': 'Hungerford Bridge',
+    'Islington': 'Waterloo Bridge',
+    'Hackney': 'Blackfriars Bridge',
+    'Tower Hamlets': 'London Bridge',
+    'Southwark': 'Putney Bridge',
+    'Lambeth': 'Lambeth Bridge',
+    'Wandsworth': 'Wandsworth Bridge',
+}
+
+# Trade specs: gauge area name, tenor, notional, is_payer
+# 50 trades across 10 gauges with tenors 1-5Y (heavier sub-3Y weighting)
+_THAMES_TRADE_SPECS = [
+    # ── Westminster Core Short: large net receiver book ──────────
+    {'gauge': 'Westminster', 'tenor': 5, 'notional': 15_000_000, 'is_payer': False},
+    {'gauge': 'Westminster', 'tenor': 5, 'notional': 12_000_000, 'is_payer': False},
+    {'gauge': 'Westminster', 'tenor': 3, 'notional': 10_000_000, 'is_payer': False},
+    {'gauge': 'Westminster', 'tenor': 3, 'notional': 12_000_000, 'is_payer': False},
+    {'gauge': 'Westminster', 'tenor': 2, 'notional': 8_000_000, 'is_payer': False},
+    {'gauge': 'Westminster', 'tenor': 1, 'notional': 5_000_000, 'is_payer': False},
+    {'gauge': 'Westminster', 'tenor': 1, 'notional': 5_000_000, 'is_payer': True},
+    # ── Calendar spreads: Pay long tenor / Rcv short tenor ──────
+    # Lambeth 5Y/2Y
+    {'gauge': 'Lambeth', 'tenor': 5, 'notional': 10_000_000, 'is_payer': True},
+    {'gauge': 'Lambeth', 'tenor': 2, 'notional': 10_000_000, 'is_payer': False},
+    # Lambeth 3Y/1Y
+    {'gauge': 'Lambeth', 'tenor': 3, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Lambeth', 'tenor': 1, 'notional': 5_000_000, 'is_payer': False},
+    # Southwark 5Y/2Y
+    {'gauge': 'Southwark', 'tenor': 5, 'notional': 10_000_000, 'is_payer': True},
+    {'gauge': 'Southwark', 'tenor': 2, 'notional': 8_000_000, 'is_payer': False},
+    # Southwark 3Y/1Y
+    {'gauge': 'Southwark', 'tenor': 3, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Southwark', 'tenor': 1, 'notional': 5_000_000, 'is_payer': False},
+    # Kensington 5Y/2Y
+    {'gauge': 'Kensington', 'tenor': 5, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Kensington', 'tenor': 2, 'notional': 8_000_000, 'is_payer': False},
+    # Camden 3Y/1Y
+    {'gauge': 'Camden', 'tenor': 3, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Camden', 'tenor': 1, 'notional': 8_000_000, 'is_payer': False},
+    # Hackney 5Y/3Y
+    {'gauge': 'Hackney', 'tenor': 5, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Hackney', 'tenor': 3, 'notional': 8_000_000, 'is_payer': False},
+    # Tower Hamlets 5Y/2Y
+    {'gauge': 'Tower Hamlets', 'tenor': 5, 'notional': 10_000_000, 'is_payer': True},
+    {'gauge': 'Tower Hamlets', 'tenor': 2, 'notional': 10_000_000, 'is_payer': False},
+    # ── Gauge spreads: long one gauge / short adjacent ──────────
+    # Chelsea vs Wandsworth 5Y
+    {'gauge': 'Chelsea', 'tenor': 5, 'notional': 10_000_000, 'is_payer': True},
+    {'gauge': 'Wandsworth', 'tenor': 5, 'notional': 10_000_000, 'is_payer': False},
+    # Tower Hamlets vs Southwark 3Y
+    {'gauge': 'Tower Hamlets', 'tenor': 3, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Southwark', 'tenor': 3, 'notional': 8_000_000, 'is_payer': False},
+    # Kensington vs Islington 2Y
+    {'gauge': 'Kensington', 'tenor': 2, 'notional': 5_000_000, 'is_payer': True},
+    {'gauge': 'Islington', 'tenor': 2, 'notional': 5_000_000, 'is_payer': False},
+    # Camden vs Hackney 1Y
+    {'gauge': 'Camden', 'tenor': 1, 'notional': 5_000_000, 'is_payer': True},
+    {'gauge': 'Hackney', 'tenor': 1, 'notional': 5_000_000, 'is_payer': False},
+    # Chelsea vs Westminster 3Y (adds to core short)
+    {'gauge': 'Chelsea', 'tenor': 3, 'notional': 10_000_000, 'is_payer': True},
+    {'gauge': 'Westminster', 'tenor': 3, 'notional': 10_000_000, 'is_payer': False},
+    # Lambeth vs Wandsworth 2Y
+    {'gauge': 'Lambeth', 'tenor': 2, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Wandsworth', 'tenor': 2, 'notional': 8_000_000, 'is_payer': False},
+    # ── Hedges: long protection near core short ─────────────────
+    {'gauge': 'Chelsea', 'tenor': 2, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Tower Hamlets', 'tenor': 5, 'notional': 12_000_000, 'is_payer': True},
+    {'gauge': 'Lambeth', 'tenor': 5, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Islington', 'tenor': 2, 'notional': 5_000_000, 'is_payer': True},
+    {'gauge': 'Hackney', 'tenor': 1, 'notional': 5_000_000, 'is_payer': True},
+    {'gauge': 'Camden', 'tenor': 3, 'notional': 8_000_000, 'is_payer': True},
+    # ── Outright positions ──────────────────────────────────────
+    {'gauge': 'Wandsworth', 'tenor': 2, 'notional': 10_000_000, 'is_payer': True},
+    {'gauge': 'Kensington', 'tenor': 1, 'notional': 5_000_000, 'is_payer': True},
+    {'gauge': 'Southwark', 'tenor': 2, 'notional': 8_000_000, 'is_payer': True},
+    {'gauge': 'Islington', 'tenor': 3, 'notional': 8_000_000, 'is_payer': False},
+    {'gauge': 'Tower Hamlets', 'tenor': 1, 'notional': 5_000_000, 'is_payer': False},
+    {'gauge': 'Camden', 'tenor': 2, 'notional': 5_000_000, 'is_payer': False},
+    {'gauge': 'Wandsworth', 'tenor': 1, 'notional': 8_000_000, 'is_payer': False},
+    {'gauge': 'Hackney', 'tenor': 2, 'notional': 5_000_000, 'is_payer': False},
+    {'gauge': 'Chelsea', 'tenor': 1, 'notional': 5_000_000, 'is_payer': False},
+]
+
+
+def generate_thames_central_book(
+    gaugehc_path: Path,
+    counterparty_path: Path,
+    output_dir: Path,
+    catchment_id: str = 'thames',
+    seed: Optional[int] = 42,
+) -> List[Dict]:
+    """
+    Generate a Thames Central trading book across inner London gauges.
+
+    Creates a realistic 50-trade portfolio with:
+    - Core short position on Westminster hedged by longs on neighbours
+    - Calendar spreads (long 5Y / short 1-2Y on same gauge)
+    - Gauge spreads (long one gauge / short adjacent)
+    - Heavy sub-3Y tenor weighting (1Y, 2Y, 3Y, 5Y)
+
+    Args:
+        gaugehc_path: Path to gaugehc.json
+        counterparty_path: Path to counterparty.json
+        output_dir: Directory to write trade JSON files
+        catchment_id: Catchment identifier
+        seed: Random seed for reproducibility
+
+    Returns:
+        List of generated CDM records
+    """
+    if seed is not None:
+        random.seed(seed)
+
+    # Load gauge hazard curves
+    with open(gaugehc_path) as f:
+        gaugehc_data = json.load(f)
+
+    curves = gaugehc_data.get('hazard_curves', {})
+    if not curves:
+        raise ValueError('No hazard curves found in gaugehc.json')
+
+    # Build area name → (gauge_id, curve_data) lookup by matching gauge names
+    gauge_lookup = {}
+    for gauge_id, curve_data in curves.items():
+        gname = curve_data.get('gauge_name', '')
+        for area in THAMES_CENTRAL_AREAS:
+            target = _AREA_TO_GAUGE_NAME.get(area, area)
+            if area not in gauge_lookup and target.lower() in gname.lower():
+                gauge_lookup[area] = (gauge_id, curve_data)
+                break
+
+    for area in THAMES_CENTRAL_AREAS:
+        if area not in gauge_lookup:
+            logger.warning('Area %s not matched to any gauge in hazard curves', area)
+
+    # Load counterparties
+    counterparties = _load_counterparties(counterparty_path)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    trades = []
+    ctpy_idx = 0
+    base_date = datetime.now() - timedelta(days=random.randint(5, 30))
+
+    for spec in _THAMES_TRADE_SPECS:
+        area = spec['gauge']
+        if area not in gauge_lookup:
+            logger.warning('Skipping trade spec for %s — gauge not found', area)
+            continue
+
+        gauge_id, gauge_data = gauge_lookup[area]
+        gauge_name = gauge_data.get('gauge_name', gauge_id)
+        tenor = spec['tenor']
+        notional = spec['notional']
+        is_payer = spec['is_payer']
+
+        hazard_rate = gauge_data.get('annual_hazard_rate_severe', 0.025)
+        fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY, yield_curve=DEFAULT_YIELD_CURVE)
+
+        swap_id = f'PRS-{uuid.uuid4().hex[:8].upper()}'
+        offset = random.uniform(SPREAD_OFFSET_MIN, SPREAD_OFFSET_MAX)
+        trade_spread = fair_spread - offset if is_payer else fair_spread + offset
+
+        pvs = _compute_leg_pvs(hazard_rate, trade_spread, tenor, notional)
+        direction = 1.0 if is_payer else -1.0
+        npv = (pvs['protection_leg_pv'] - pvs['premium_leg_pv']) * direction
+
+        ctpy = counterparties[ctpy_idx % len(counterparties)]
+        ctpy_idx += 1
+
+        td = base_date + timedelta(days=random.randint(0, 20))
+
+        record = _build_cdm_record(
+            swap_id=swap_id,
+            gauge_id=gauge_id,
+            gauge_name=gauge_name,
+            catchment_id=catchment_id,
+            counterparty_id=ctpy['id'],
+            counterparty_name=ctpy['name'],
+            is_payer=is_payer,
+            notional=notional,
+            tenor=tenor,
+            trigger='severe',
+            trade_spread_bps=trade_spread,
+            fair_spread_bps=fair_spread,
+            npv=npv,
+            premium_leg_pv=pvs['premium_leg_pv'],
+            protection_leg_pv=pvs['protection_leg_pv'],
+            risky_annuity=pvs['risky_annuity'],
+            trade_date=td,
+        )
+
+        json_path = output_dir / f'{swap_id}.json'
+        with open(json_path, 'w') as f:
+            json.dump(record, f, indent=2)
+
+        trades.append(record)
+        dir_label = 'PAY' if is_payer else 'RCV'
+        logger.info(
+            '%s %s %-12s %dY %s %.1f/%.1f bps MTM=%.0f',
+            swap_id, dir_label, area, tenor, 'severe',
+            trade_spread, fair_spread, npv
+        )
+
+    return trades

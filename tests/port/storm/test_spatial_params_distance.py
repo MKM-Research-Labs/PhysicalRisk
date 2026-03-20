@@ -1,0 +1,194 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+Tests for spatial correlation parameters, distance matrix, config file,
+and gauge portfolio file loading.
+
+Spec validation criteria:
+  - Distance matrix: symmetric, diagonal = 0, values plausible for Thames
+  - Config file round-trip and constants validation
+"""
+
+import json
+
+import numpy as np
+import pytest
+
+from port.src.storm_multi.models.spatial_correlation import (
+    SpatialCorrelationModel,
+    SpatialCorrelationParams,
+    save_spatial_correlation_config,
+)
+
+from .conftest import SYNTHETIC_LOCATIONS, THAMES_GAUGE_PATH
+
+
+# ---------------------------------------------------------------------------
+# SpatialCorrelationParams
+# ---------------------------------------------------------------------------
+
+class TestSpatialCorrelationParams:
+
+    def test_defaults(self):
+        p = SpatialCorrelationParams()
+        assert p.base_range_km == 40.0
+        assert p.nugget == 0.05
+        assert p.rho_intensity == 0.40
+        assert p.sigma_lognormal == 0.40
+
+    def test_from_dict(self):
+        d = {
+            "spatial_correlation": {
+                "base_range_km": 50.0,
+                "nugget": 0.10,
+                "rho_intensity": 0.5,
+                "sigma_lognormal": 0.3,
+            }
+        }
+        p = SpatialCorrelationParams.from_dict(d)
+        assert p.base_range_km == 50.0
+        assert p.nugget == 0.10
+
+    def test_load_from_file(self, tmp_path):
+        path = tmp_path / "sc.json"
+        save_spatial_correlation_config(path)
+        p = SpatialCorrelationParams.load(path)
+        assert p.base_range_km == 40.0
+        assert p.nugget == 0.05
+
+
+# ---------------------------------------------------------------------------
+# Distance matrix
+# ---------------------------------------------------------------------------
+
+class TestDistanceMatrix:
+
+    def test_shape(self, small_model):
+        D = small_model.dist_matrix
+        n = small_model.n_gauges
+        assert D.shape == (n, n)
+
+    def test_diagonal_zero(self, small_model):
+        D = small_model.dist_matrix
+        assert np.allclose(np.diag(D), 0.0)
+
+    def test_symmetric(self, small_model):
+        D = small_model.dist_matrix
+        assert np.allclose(D, D.T)
+
+    def test_positive_off_diagonal(self, small_model):
+        D = small_model.dist_matrix
+        n = small_model.n_gauges
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    assert D[i, j] > 0.0
+
+    def test_thames_max_distance_plausible(self, thames_model):
+        """Thames gauges span ~80km corridor (Reading to Purfleet)."""
+        max_d = thames_model.dist_matrix.max()
+        assert 10.0 < max_d < 120.0, f"Max Thames distance {max_d:.1f}km seems implausible"
+
+    def test_thames_n_gauges(self, thames_model):
+        assert thames_model.n_gauges == 52
+
+    def test_haversine_known_distance(self):
+        """51.5N 0.0 -> 51.5N 1.0E is approximately 69km."""
+        d = SpatialCorrelationModel.haversine_km(51.5, 0.0, 51.5, 1.0)
+        assert 65.0 < d < 75.0
+
+
+# ---------------------------------------------------------------------------
+# from_gauge_portfolio_file
+# ---------------------------------------------------------------------------
+
+class TestFromGaugePortfolioFile:
+
+    def test_loads_52_gauges(self, thames_model):
+        assert thames_model.n_gauges == 52
+
+    def test_distance_matrix_built(self, thames_model):
+        assert thames_model.dist_matrix.shape == (52, 52)
+
+    def test_from_dict(self):
+        with open(THAMES_GAUGE_PATH) as f:
+            portfolio = json.load(f)
+        model = SpatialCorrelationModel.from_gauge_portfolio(portfolio)
+        if model.n_gauges < 52:
+            pytest.skip("gauge.json not yet regenerated with 52 gauges — run port --gauges first")
+        assert model.n_gauges == 52
+
+
+# ---------------------------------------------------------------------------
+# Config file
+# ---------------------------------------------------------------------------
+
+class TestConfigFile:
+
+    def test_save_creates_file(self, tmp_path):
+        path = tmp_path / "sc.json"
+        save_spatial_correlation_config(path)
+        assert path.exists()
+
+    def test_config_structure(self, tmp_path):
+        path = tmp_path / "sc.json"
+        save_spatial_correlation_config(path)
+        with open(path) as f:
+            d = json.load(f)
+        sc = d["spatial_correlation"]
+        assert sc["enabled"] is True
+        assert sc["model_type"] == "exponential"
+        assert sc["base_range_km"] == 40.0
+        assert sc["nugget"] == 0.05
+        assert sc["num_gauges"] == 52
+
+    def test_round_trip_params(self, tmp_path):
+        path = tmp_path / "sc.json"
+        orig = SpatialCorrelationParams(base_range_km=35.0, nugget=0.08)
+        save_spatial_correlation_config(path, params=orig)
+        loaded = SpatialCorrelationParams.load(path)
+        assert loaded.base_range_km == 35.0
+        assert loaded.nugget == 0.08
+
+    def test_config_constants_valid(self):
+        """Spatial correlation constants in config.port must be self-consistent."""
+        from config.port import (
+            SPATIAL_CORR_BASE_RANGE_KM,
+            SPATIAL_CORR_ENABLED,
+            SPATIAL_CORR_MODEL_TYPE,
+            SPATIAL_CORR_NUGGET,
+            SPATIAL_CORR_NUM_GAUGES,
+            SPATIAL_CORR_RHO_INTENSITY,
+            SPATIAL_CORR_SIGMA_LOGNORMAL,
+        )
+        assert SPATIAL_CORR_ENABLED is True
+        assert SPATIAL_CORR_MODEL_TYPE == "exponential"
+        assert SPATIAL_CORR_BASE_RANGE_KM == 40.0
+        assert SPATIAL_CORR_NUGGET == 0.05
+        assert SPATIAL_CORR_RHO_INTENSITY == 0.40
+        assert SPATIAL_CORR_SIGMA_LOGNORMAL == 0.40
+        assert SPATIAL_CORR_NUM_GAUGES == 52
+        # Defaults on the dataclass must match config constants
+        p = SpatialCorrelationParams()
+        assert p.base_range_km == SPATIAL_CORR_BASE_RANGE_KM
+        assert p.nugget == SPATIAL_CORR_NUGGET
+        assert p.rho_intensity == SPATIAL_CORR_RHO_INTENSITY
+        assert p.sigma_lognormal == SPATIAL_CORR_SIGMA_LOGNORMAL

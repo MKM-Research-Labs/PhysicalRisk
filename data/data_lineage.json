@@ -1,0 +1,503 @@
+{
+  "runs": {
+    "run-20260319-084414": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-110109": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260319-110550": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260319-144559": [
+      "propertyhc",
+      "blotter"
+    ],
+    "run-20260319-150011": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-151736": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-161550": [
+      "stressm"
+    ],
+    "run-20260319-165538": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-182259": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-083149": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-083158": [
+      "stressm"
+    ],
+    "run-20260320-083250": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-083256": [
+      "stressm"
+    ],
+    "run-20260320-115917": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-115918": [
+      "stressm"
+    ],
+    "run-20260320-121152": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-130940": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-133715": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-134257": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-142514": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142546": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142559": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142725": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142735": [
+      "stressm"
+    ],
+    "run-20260320-142854": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142915": [
+      "stressm"
+    ],
+    "run-20260320-150357": [
+      "propertyts"
+    ],
+    "run-20260320-150715": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-151201": [
+      "propertyhc"
+    ]
+  },
+  "steps": {
+    "gauges": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.041673",
+      "generator": "port.src.gauge.GaugePortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "num_gauges": 2
+      },
+      "inputs": {},
+      "outputs": {
+        "gauge.json": {
+          "hash": "e0232fe4aa942c2d23f988392a2924ce955806ed104eb05fdeceee33a9bab357",
+          "type": "file"
+        }
+      }
+    },
+    "properties": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.048208",
+      "generator": "port.src.property.PropertyPortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "num_properties": 2
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "e0232fe4aa942c2d23f988392a2924ce955806ed104eb05fdeceee33a9bab357",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "property.json": {
+          "hash": "3d6285a3a5e6552cc2c9ec69961a322e00d1cee7648970faa3708b34ac4749ff",
+          "type": "file"
+        }
+      }
+    },
+    "mortgages": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.055079",
+      "generator": "port.src.mortgage.MortgagePortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {
+        "property.json": {
+          "hash": "3d6285a3a5e6552cc2c9ec69961a322e00d1cee7648970faa3708b34ac4749ff",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "mortgage.json": {
+          "hash": "0d1709d44c90d9b82474b7b683366c2115de0fe53e80acbf799b03f8e17fe920",
+          "type": "file"
+        }
+      }
+    },
+    "gaugehd": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.067166",
+      "generator": "port.src.gauge.gaugehd",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "history_years": 1
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "e0232fe4aa942c2d23f988392a2924ce955806ed104eb05fdeceee33a9bab357",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "gaugehd/": {
+          "hash": "87eaeca49d8e471cf08c36cc88aa7766f165c2e42c5909626c6aaf72e624eaae",
+          "file_count": 5,
+          "type": "directory"
+        }
+      }
+    },
+    "stressm": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.196593",
+      "generator": "port.src.stressm.generate_stressm",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "num_storms": 10
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "e0232fe4aa942c2d23f988392a2924ce955806ed104eb05fdeceee33a9bab357",
+          "type": "file"
+        },
+        "gaugehd/": {
+          "hash": "87eaeca49d8e471cf08c36cc88aa7766f165c2e42c5909626c6aaf72e624eaae",
+          "file_count": 5,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "gaugets/": {
+          "hash": "1472bfd2b2165a1db9919b90989c0b006563f7b6547e6a7aeaa054637245510c",
+          "file_count": 5,
+          "type": "directory"
+        },
+        "stress_storms/": {
+          "hash": null,
+          "type": "missing"
+        },
+        "storm_sequences.json": {
+          "hash": "e589126305c05437d203e21e08837be44279375a6a368912e8e7b5efbc150b24",
+          "type": "file"
+        },
+        "sequence_gauge_summary.json": {
+          "hash": null,
+          "type": "missing"
+        }
+      }
+    },
+    "hazard": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.074427",
+      "generator": "port.src.hazard.build_hazard_curves",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "distribution": "gev"
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "e0232fe4aa942c2d23f988392a2924ce955806ed104eb05fdeceee33a9bab357",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "1472bfd2b2165a1db9919b90989c0b006563f7b6547e6a7aeaa054637245510c",
+          "file_count": 5,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "gaugehc.json": {
+          "hash": "2b510d1f8f137589901e076608d2712b16cb1cb71b358f2c42fd80ecef15df7f",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "1472bfd2b2165a1db9919b90989c0b006563f7b6547e6a7aeaa054637245510c",
+          "file_count": 5,
+          "type": "directory"
+        }
+      }
+    },
+    "propertyts": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.081508",
+      "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {
+        "property.json": {
+          "hash": "3d6285a3a5e6552cc2c9ec69961a322e00d1cee7648970faa3708b34ac4749ff",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "e0232fe4aa942c2d23f988392a2924ce955806ed104eb05fdeceee33a9bab357",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "1472bfd2b2165a1db9919b90989c0b006563f7b6547e6a7aeaa054637245510c",
+          "file_count": 5,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "propertyts/": {
+          "hash": "b2fe6759c91e49030de7dffe040d9e093129edcc951e88c4b652bdb087138ed3",
+          "file_count": 6,
+          "type": "directory"
+        }
+      }
+    },
+    "propertyhc": {
+      "run_id": "run-20260320-151201",
+      "timestamp": "2026-03-20T15:12:12.769017",
+      "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator",
+      "status": "success",
+      "elapsed_seconds": 11.058,
+      "parameters": {},
+      "inputs": {
+        "propertyts/": {
+          "hash": "7e59e11dd634e097084b2ed93564e274dc7d2e7e2b7d1a40ebf2ae7cfccde3a9",
+          "file_count": 201,
+          "type": "directory"
+        },
+        "gaugehc.json": {
+          "hash": "4d5d92840f7331717bc03a8ce4aeb921cceee93a7b42617aa96b213ceed8cacf",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "117a15d3d8966ec8c29e35457e0f025d31046fafc1ebf376381a908f8ccd6dbe",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "propertyhc.json": {
+          "hash": "c2136e7d011c09b5f0bfcfd709313146c9bb1b3e36bb89be281d416b41eaa5f7",
+          "type": "file"
+        }
+      }
+    },
+    "counterparties": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.095428",
+      "generator": "port.src.counterparty.CounterpartyPortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {},
+      "outputs": {
+        "counterparty.json": {
+          "hash": "cc9ef885ad7fb39a288f89354179fb453d69b10138a60582d8b5499c7ae2429f",
+          "type": "file"
+        }
+      }
+    },
+    "blotter": {
+      "run_id": "run-20260320-150715",
+      "timestamp": "2026-03-20T15:07:15.137443",
+      "generator": "port.src.book.generate_thames_central_book",
+      "status": "success",
+      "elapsed_seconds": 0.009,
+      "parameters": {},
+      "inputs": {
+        "gaugehc.json": {
+          "hash": "2b510d1f8f137589901e076608d2712b16cb1cb71b358f2c42fd80ecef15df7f",
+          "type": "file"
+        },
+        "counterparty.json": {
+          "hash": "cc9ef885ad7fb39a288f89354179fb453d69b10138a60582d8b5499c7ae2429f",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "prs/": {
+          "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "file_count": 0,
+          "type": "directory"
+        }
+      }
+    }
+  }
+}

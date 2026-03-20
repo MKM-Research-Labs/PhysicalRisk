@@ -1,0 +1,4817 @@
+{
+  "generated_at": "2026-03-20T15:05:27.355495",
+  "catchment": "thames",
+  "summary": {
+    "total_properties": 200,
+    "total_gauges": 52,
+    "properties_with_floods": 40,
+    "total_flood_events": 452,
+    "gauge_flood_events": 386874,
+    "property_flood_events": 452,
+    "gauge_to_property_ratio_pct": 0.1,
+    "max_depth_m": 2.8813,
+    "max_damage_ratio": 0.7322
+  },
+  "properties": [
+    {
+      "property_id": "PROP-bcdf693e",
+      "elevation_m": 7.26,
+      "floor_level_m": 3.23,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 513.0
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 864.6
+        },
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 1440.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1685,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f8d7dc0e",
+      "elevation_m": 9.26,
+      "floor_level_m": 6.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 961.6
+        },
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 1215.9
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 1769.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1927,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3caed3b5",
+      "elevation_m": 8.4,
+      "floor_level_m": 0.28,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 295.5
+        },
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 367.1
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1087.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1807,
+      "floods_at_property": 18,
+      "gauge_to_property_ratio": 1.0,
+      "max_depth_m": 2.8141,
+      "max_damage_ratio": 0.7221
+    },
+    {
+      "property_id": "PROP-e4c1c6be",
+      "elevation_m": 7.48,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 785.2
+        },
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 1259.3
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 1315.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1927,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-febf6ab2",
+      "elevation_m": 9.03,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 672.4
+        },
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 1415.9
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1422.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1531,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3d59e260",
+      "elevation_m": 9.77,
+      "floor_level_m": 0.45,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 1067.7
+        },
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 1456.4
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 1549.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1927,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3bcdd8c4",
+      "elevation_m": 19.35,
+      "floor_level_m": 15.22,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 649.0
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 2651.2
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 2973.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d69f6a4a",
+      "elevation_m": 14.64,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1052.2
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1266.3
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1361.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-b5c3112c",
+      "elevation_m": 48.66,
+      "floor_level_m": 6.01,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 3554.5
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 6715.5
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 11133.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-01abe2fa",
+      "elevation_m": 11.4,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 767.4
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1455.0
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1509.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1707,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-35f7f540",
+      "elevation_m": 11.76,
+      "floor_level_m": 0.18,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 786.3
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 796.7
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1374.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-dbfe871f",
+      "elevation_m": 27.91,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 584.2
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 5523.5
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 6540.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1595,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-cd4bc5c5",
+      "elevation_m": 19.24,
+      "floor_level_m": 0.5,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 836.6
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 2825.4
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 3181.5
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-96cba530",
+      "elevation_m": 10.32,
+      "floor_level_m": 0.27,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 948.6
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 1287.2
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1500.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1400,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-443b1d68",
+      "elevation_m": 7.33,
+      "floor_level_m": 2.72,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 1020.9
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 1348.0
+        },
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 1601.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-40668bd0",
+      "elevation_m": 8.48,
+      "floor_level_m": 0.08,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 715.4
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 756.8
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1496.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5b6d3494",
+      "elevation_m": 13.62,
+      "floor_level_m": 0.31,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1517.3
+        },
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 2590.2
+        },
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 2989.6
+        }
+      ],
+      "floods_at_nearest_gauge": 2464,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-85ad90d7",
+      "elevation_m": 34.15,
+      "floor_level_m": 0.33,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 939.1
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 3560.4
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 5884.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a97f39c2",
+      "elevation_m": 9.02,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 645.6
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 748.9
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 984.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2339,
+      "floods_at_property": 1,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0144,
+      "max_damage_ratio": 0.0144
+    },
+    {
+      "property_id": "PROP-11663a05",
+      "elevation_m": 8.47,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 516.0
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 516.2
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 644.5
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-4eddf85c",
+      "elevation_m": 37.84,
+      "floor_level_m": 0.38,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 1668.9
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 8009.1
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 10682.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-afc26030",
+      "elevation_m": 7.98,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 1446.5
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 2053.5
+        },
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 5634.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1762,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0b820f2c",
+      "elevation_m": 7.93,
+      "floor_level_m": 0.22,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 416.6
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 643.9
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 1027.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2339,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.5216,
+      "max_damage_ratio": 0.2565
+    },
+    {
+      "property_id": "PROP-1a3957cd",
+      "elevation_m": 7.58,
+      "floor_level_m": 0.12,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 419.2
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 649.6
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 666.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 2,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.459,
+      "max_damage_ratio": 0.2318
+    },
+    {
+      "property_id": "PROP-90b72fd7",
+      "elevation_m": 25.87,
+      "floor_level_m": 0.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 2689.5
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 3725.4
+        },
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 4924.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2063,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ad6a4684",
+      "elevation_m": 9.78,
+      "floor_level_m": 0.39,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 1192.1
+        },
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 1560.7
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1595.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1531,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-b8f1efa1",
+      "elevation_m": 20.54,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 622.3
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 5284.1
+        },
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 5448.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2063,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-4a05c393",
+      "elevation_m": 7.89,
+      "floor_level_m": 0.12,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 794.0
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 955.7
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1749.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-1741c8bf",
+      "elevation_m": 6.61,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 559.8
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 661.5
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 743.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 4,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 0.6677,
+      "max_damage_ratio": 0.3003
+    },
+    {
+      "property_id": "PROP-46d67479",
+      "elevation_m": 18.76,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1129.2
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 1343.5
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 1671.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-b8e5dc0f",
+      "elevation_m": 42.65,
+      "floor_level_m": 0.31,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 1380.9
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 8317.2
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 9823.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7eff2f93",
+      "elevation_m": 7.89,
+      "floor_level_m": -0.26,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 900.7
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 1020.7
+        },
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 1023.0
+        }
+      ],
+      "floods_at_nearest_gauge": 2458,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-8a48035c",
+      "elevation_m": 7.28,
+      "floor_level_m": 0.16,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 418.9
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 902.3
+        },
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 1386.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 17,
+      "gauge_to_property_ratio": 0.9,
+      "max_depth_m": 2.3037,
+      "max_damage_ratio": 0.6456
+    },
+    {
+      "property_id": "PROP-a29e4606",
+      "elevation_m": 9.29,
+      "floor_level_m": 15.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 813.2
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 953.7
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1104.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1400,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ac43d7ab",
+      "elevation_m": 6.78,
+      "floor_level_m": 0.22,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 567.7
+        },
+        {
+          "gauge_id": "GAUGE-ba93206b",
+          "distance_m": 3309.2
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 3592.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1541,
+      "floods_at_property": 7,
+      "gauge_to_property_ratio": 0.5,
+      "max_depth_m": 0.9628,
+      "max_damage_ratio": 0.3888
+    },
+    {
+      "property_id": "PROP-70cf52e5",
+      "elevation_m": 18.29,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 1484.7
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 3177.3
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 3911.0
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d68ef658",
+      "elevation_m": 6.21,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 270.0
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 363.8
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 419.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 42,
+      "gauge_to_property_ratio": 2.4,
+      "max_depth_m": 2.2018,
+      "max_damage_ratio": 0.6303
+    },
+    {
+      "property_id": "PROP-c49027e4",
+      "elevation_m": 8.23,
+      "floor_level_m": 0.11,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 406.2
+        },
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 531.2
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 1193.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2339,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7cd0d174",
+      "elevation_m": 9.67,
+      "floor_level_m": 0.35,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 775.7
+        },
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 809.1
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 915.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0cdeb736",
+      "elevation_m": 25.27,
+      "floor_level_m": 0.01,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 2573.0
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 6451.5
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 8398.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1617,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-46256ac1",
+      "elevation_m": 9.7,
+      "floor_level_m": 0.29,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 828.0
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1173.8
+        },
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 1560.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1685,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-dd8be383",
+      "elevation_m": 9.37,
+      "floor_level_m": 0.07,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 736.6
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 848.0
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1175.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1465,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-134ddb3e",
+      "elevation_m": 9.91,
+      "floor_level_m": 0.11,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1129.9
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1442.9
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1489.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5219fa79",
+      "elevation_m": 9.54,
+      "floor_level_m": 0.18,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 763.9
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1113.7
+        },
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 1506.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1685,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-00b7495e",
+      "elevation_m": 18.64,
+      "floor_level_m": 0.38,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1232.7
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 1764.8
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 3156.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-4836c07e",
+      "elevation_m": 6.4,
+      "floor_level_m": -0.18,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 300.8
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 457.5
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 490.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 42,
+      "gauge_to_property_ratio": 2.4,
+      "max_depth_m": 2.2615,
+      "max_damage_ratio": 0.6392
+    },
+    {
+      "property_id": "PROP-6af1c1b8",
+      "elevation_m": 9.36,
+      "floor_level_m": 0.4,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 644.4
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 1162.7
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1181.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1400,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-883d71bc",
+      "elevation_m": 39.81,
+      "floor_level_m": 0.46,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 2794.1
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 6360.8
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 11868.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-80ce34f7",
+      "elevation_m": 7.94,
+      "floor_level_m": 0.23,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 1049.8
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 1291.2
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 1491.8
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-c63327d1",
+      "elevation_m": 5.35,
+      "floor_level_m": 0.24,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 912.3
+        },
+        {
+          "gauge_id": "GAUGE-ba93206b",
+          "distance_m": 2369.5
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 4505.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1541,
+      "floods_at_property": 26,
+      "gauge_to_property_ratio": 1.7,
+      "max_depth_m": 1.554,
+      "max_damage_ratio": 0.5108
+    },
+    {
+      "property_id": "PROP-36c17bf0",
+      "elevation_m": 11.13,
+      "floor_level_m": 3.15,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 554.9
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1068.3
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1443.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-e7e4706c",
+      "elevation_m": 6.38,
+      "floor_level_m": 12.0,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 332.8
+        },
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 364.1
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 385.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d977cd0a",
+      "elevation_m": 31.32,
+      "floor_level_m": 0.26,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 2497.8
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 3744.7
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 5617.8
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-100d0f0d",
+      "elevation_m": 10.67,
+      "floor_level_m": 0.18,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1022.6
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1073.6
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 1485.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1465,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-531d1571",
+      "elevation_m": 8.79,
+      "floor_level_m": 0.15,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 730.2
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1341.9
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1797.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-9bd2bb8e",
+      "elevation_m": 8.18,
+      "floor_level_m": 0.4,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 460.2
+        },
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 813.2
+        },
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 847.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1917,
+      "floods_at_property": 4,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 0.7298,
+      "max_damage_ratio": 0.3189
+    },
+    {
+      "property_id": "PROP-02a54676",
+      "elevation_m": 26.67,
+      "floor_level_m": 0.07,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 1979.7
+        },
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 6114.9
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 7581.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1722,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a5a4da36",
+      "elevation_m": 27.52,
+      "floor_level_m": 0.45,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 676.0
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 5414.1
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 6631.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1595,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-e265eef1",
+      "elevation_m": 20.78,
+      "floor_level_m": 0.25,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 1053.6
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 2007.6
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 3010.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-065788f0",
+      "elevation_m": 12.91,
+      "floor_level_m": 0.42,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 463.1
+        },
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 778.7
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 3353.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1671,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-47e603e0",
+      "elevation_m": 32.88,
+      "floor_level_m": 0.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 2309.5
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 3867.0
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 5505.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-8e28aaba",
+      "elevation_m": 12.87,
+      "floor_level_m": 0.03,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 478.4
+        },
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 811.5
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 2600.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1671,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-4ad33db7",
+      "elevation_m": 9.88,
+      "floor_level_m": 0.12,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 848.4
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 1015.1
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 1036.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-29961ef9",
+      "elevation_m": 12.67,
+      "floor_level_m": 5.85,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 808.6
+        },
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 1217.2
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 3316.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2464,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a0296e12",
+      "elevation_m": 7.49,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 1235.3
+        },
+        {
+          "gauge_id": "GAUGE-ba93206b",
+          "distance_m": 2500.8
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 4558.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1541,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-b2f4ddb1",
+      "elevation_m": 6.58,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 1108.6
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 1747.6
+        },
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 5359.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1762,
+      "floods_at_property": 7,
+      "gauge_to_property_ratio": 0.4,
+      "max_depth_m": 1.0303,
+      "max_damage_ratio": 0.4061
+    },
+    {
+      "property_id": "PROP-14c9f200",
+      "elevation_m": 12.65,
+      "floor_level_m": 0.3,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 665.6
+        },
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 935.6
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 2327.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1671,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d28894a1",
+      "elevation_m": 22.53,
+      "floor_level_m": 0.18,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 562.8
+        },
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 6221.7
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 8465.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1722,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-8d4180fc",
+      "elevation_m": 8.89,
+      "floor_level_m": 0.26,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 793.4
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 826.5
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1243.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1465,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-4f73d411",
+      "elevation_m": 8.96,
+      "floor_level_m": 0.16,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 402.5
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 811.6
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 1210.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1400,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d3500df4",
+      "elevation_m": 9.8,
+      "floor_level_m": 0.44,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 761.7
+        },
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 1148.2
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1253.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-6757a36b",
+      "elevation_m": 13.92,
+      "floor_level_m": 0.22,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1136.8
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1548.6
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1729.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1651,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a1f208e1",
+      "elevation_m": 8.46,
+      "floor_level_m": 0.47,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 823.1
+        },
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 1182.8
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 1410.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ea1f0cd0",
+      "elevation_m": 9.29,
+      "floor_level_m": 0.21,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 568.7
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 940.6
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 1230.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1297,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5d8f0fac",
+      "elevation_m": 8.46,
+      "floor_level_m": 8.88,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 376.7
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1142.1
+        },
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 1846.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1545,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a80baaa3",
+      "elevation_m": 10.5,
+      "floor_level_m": 0.39,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 838.8
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 891.3
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1513.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1707,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-9ccb9c56",
+      "elevation_m": 7.14,
+      "floor_level_m": 0.29,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 881.6
+        },
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 1299.3
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 1700.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.2964,
+      "max_damage_ratio": 0.1595
+    },
+    {
+      "property_id": "PROP-099dcd51",
+      "elevation_m": 12.17,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 810.8
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1075.0
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1081.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-e553e31a",
+      "elevation_m": 34.87,
+      "floor_level_m": 3.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 876.0
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 4245.9
+        },
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 8838.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a90e9c8d",
+      "elevation_m": 9.32,
+      "floor_level_m": 0.25,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 291.5
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 316.7
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1181.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1807,
+      "floods_at_property": 6,
+      "gauge_to_property_ratio": 0.3,
+      "max_depth_m": 1.6772,
+      "max_damage_ratio": 0.5354
+    },
+    {
+      "property_id": "PROP-35c3b2b5",
+      "elevation_m": 9.36,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 432.7
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1514.6
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 2137.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1445,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-bb9471ec",
+      "elevation_m": 16.35,
+      "floor_level_m": 0.2,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 994.7
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 1449.2
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 1648.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3d3c4f79",
+      "elevation_m": 30.84,
+      "floor_level_m": 0.13,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 1006.0
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 4592.3
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 4994.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-67cbc268",
+      "elevation_m": 9.51,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 808.6
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 968.8
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 991.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1980,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7d8d338f",
+      "elevation_m": 16.9,
+      "floor_level_m": 0.15,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 992.1
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 1594.9
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1625.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-2c21eb12",
+      "elevation_m": 11.74,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 1109.6
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 1214.5
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 1233.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1980,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f7ca971b",
+      "elevation_m": 11.51,
+      "floor_level_m": 0.34,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 573.4
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 957.6
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1514.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-2c7bd739",
+      "elevation_m": 9.06,
+      "floor_level_m": 0.5,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 573.5
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 824.6
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 852.8
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 2,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.4572,
+      "max_damage_ratio": 0.231
+    },
+    {
+      "property_id": "PROP-1f140373",
+      "elevation_m": 9.19,
+      "floor_level_m": 0.31,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 729.1
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 729.4
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 818.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-2add2306",
+      "elevation_m": 6.2,
+      "floor_level_m": 0.42,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 1513.4
+        },
+        {
+          "gauge_id": "GAUGE-ba93206b",
+          "distance_m": 1815.2
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 5088.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1541,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-320611f4",
+      "elevation_m": 8.67,
+      "floor_level_m": 2.84,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 455.8
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 611.9
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 894.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1400,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a0bd4feb",
+      "elevation_m": 9.97,
+      "floor_level_m": 0.44,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 351.5
+        },
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 463.2
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 935.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1807,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 0.7894,
+      "max_damage_ratio": 0.3368
+    },
+    {
+      "property_id": "PROP-77d24dd7",
+      "elevation_m": 9.02,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 747.7
+        },
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 1092.9
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1223.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1395,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-016ce428",
+      "elevation_m": 39.68,
+      "floor_level_m": -0.07,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 2244.7
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 4817.8
+        },
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 7782.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a4ea62cc",
+      "elevation_m": 9.97,
+      "floor_level_m": 0.34,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 892.3
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1294.4
+        },
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 1353.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f187491a",
+      "elevation_m": 20.07,
+      "floor_level_m": 0.14,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 596.2
+        },
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 5482.9
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 5953.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2064,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-661cd7f4",
+      "elevation_m": 9.36,
+      "floor_level_m": 0.41,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 944.6
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1119.7
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1807.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-93a518c9",
+      "elevation_m": 20.79,
+      "floor_level_m": 0.47,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 1477.0
+        },
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 4587.1
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 6706.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2064,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-dcfbd930",
+      "elevation_m": 7.79,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 424.2
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 437.1
+        },
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 677.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1980,
+      "floods_at_property": 1,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.3556,
+      "max_damage_ratio": 0.1858
+    },
+    {
+      "property_id": "PROP-502950fd",
+      "elevation_m": 9.23,
+      "floor_level_m": 0.41,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 748.4
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 755.3
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 766.8
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0f0dd557",
+      "elevation_m": 7.31,
+      "floor_level_m": 0.17,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 539.9
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 556.1
+        },
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 795.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2458,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.6397,
+      "max_damage_ratio": 0.2919
+    },
+    {
+      "property_id": "PROP-4dd7ca6e",
+      "elevation_m": 8.46,
+      "floor_level_m": 0.14,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 1184.3
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 1588.2
+        },
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 1600.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-c934e264",
+      "elevation_m": 8.89,
+      "floor_level_m": 0.34,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 641.2
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 647.0
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 661.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1980,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0a44b94c",
+      "elevation_m": 9.94,
+      "floor_level_m": 0.07,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 894.5
+        },
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 1145.4
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1199.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1395,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5585bd6a",
+      "elevation_m": 32.58,
+      "floor_level_m": 0.47,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 1858.6
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 5383.5
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 6031.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1595,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5f6da2e9",
+      "elevation_m": 31.14,
+      "floor_level_m": 3.21,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 1749.2
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 4714.2
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 6717.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1595,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-2ba02e50",
+      "elevation_m": 6.66,
+      "floor_level_m": 8.71,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 2384.7
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 2841.1
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 3667.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d1e1779b",
+      "elevation_m": 42.96,
+      "floor_level_m": 0.24,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 1453.5
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 8581.3
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 9506.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-9daf26c7",
+      "elevation_m": 9.08,
+      "floor_level_m": 0.42,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 2485.5
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 2752.9
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 3467.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-375e8970",
+      "elevation_m": 8.69,
+      "floor_level_m": -0.22,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 1043.9
+        },
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 1288.3
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1468.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1395,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-1ae64c6c",
+      "elevation_m": 7.64,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 680.7
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1082.3
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1527.4
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 7,
+      "gauge_to_property_ratio": 0.3,
+      "max_depth_m": 1.3499,
+      "max_damage_ratio": 0.47
+    },
+    {
+      "property_id": "PROP-ef975237",
+      "elevation_m": 10.36,
+      "floor_level_m": 0.42,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 782.6
+        },
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 1025.6
+        },
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 1113.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1917,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f08c0b59",
+      "elevation_m": 9.57,
+      "floor_level_m": 0.29,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 631.5
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1819.2
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 1952.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1445,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ee31f27c",
+      "elevation_m": 10.86,
+      "floor_level_m": 0.11,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 684.1
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1410.2
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1438.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1707,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-99ca4f50",
+      "elevation_m": 9.23,
+      "floor_level_m": 0.15,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 755.6
+        },
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 1258.3
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1576.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1236,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-9310522e",
+      "elevation_m": 35.66,
+      "floor_level_m": 15.0,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 2068.3
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 5653.9
+        },
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 7602.8
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-e48b8433",
+      "elevation_m": 12.01,
+      "floor_level_m": 0.11,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 1078.4
+        },
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 1390.7
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1900.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1671,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-08a7d582",
+      "elevation_m": 9.54,
+      "floor_level_m": 0.33,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 476.3
+        },
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 1135.3
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1261.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-df5c4cdd",
+      "elevation_m": 12.72,
+      "floor_level_m": 0.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1064.8
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1449.2
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1987.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-98eaea16",
+      "elevation_m": 9.39,
+      "floor_level_m": 0.45,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 551.2
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 916.1
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 1109.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1465,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-e2830814",
+      "elevation_m": 8.6,
+      "floor_level_m": 0.15,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 376.7
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1142.1
+        },
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 1846.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1545,
+      "floods_at_property": 5,
+      "gauge_to_property_ratio": 0.3,
+      "max_depth_m": 0.587,
+      "max_damage_ratio": 0.2761
+    },
+    {
+      "property_id": "PROP-578c832a",
+      "elevation_m": 9.17,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 677.3
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 681.9
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 730.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-60acf383",
+      "elevation_m": 9.09,
+      "floor_level_m": 0.28,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 437.1
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 451.0
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1185.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1807,
+      "floods_at_property": 4,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 1.2633,
+      "max_damage_ratio": 0.4527
+    },
+    {
+      "property_id": "PROP-86042985",
+      "elevation_m": 10.92,
+      "floor_level_m": 0.42,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 432.7
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 820.3
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1202.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-c87acab4",
+      "elevation_m": 20.78,
+      "floor_level_m": 0.11,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 1684.1
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 4417.4
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 5688.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2511,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ad61643b",
+      "elevation_m": 40.02,
+      "floor_level_m": 0.46,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 2272.5
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 6884.5
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 11667.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-8ac5a9ed",
+      "elevation_m": 7.92,
+      "floor_level_m": 0.05,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 485.8
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 616.3
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 875.5
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 2,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.5987,
+      "max_damage_ratio": 0.2796
+    },
+    {
+      "property_id": "PROP-b2ecaec1",
+      "elevation_m": 7.01,
+      "floor_level_m": 0.19,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 606.1
+        },
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 1313.8
+        },
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 3318.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1762,
+      "floods_at_property": 19,
+      "gauge_to_property_ratio": 1.1,
+      "max_depth_m": 1.4329,
+      "max_damage_ratio": 0.4866
+    },
+    {
+      "property_id": "PROP-aeb8d5ba",
+      "elevation_m": 7.92,
+      "floor_level_m": 0.08,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 916.2
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 1000.3
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 1238.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-22a57b96",
+      "elevation_m": 12.42,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 650.5
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 916.6
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 969.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3c9c7f3a",
+      "elevation_m": 25.59,
+      "floor_level_m": 0.41,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 2133.3
+        },
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 4483.9
+        },
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 8517.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2063,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-edc7b66f",
+      "elevation_m": 8.45,
+      "floor_level_m": 0.18,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 472.6
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 857.6
+        },
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 1002.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1395,
+      "floods_at_property": 2,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.3338,
+      "max_damage_ratio": 0.1761
+    },
+    {
+      "property_id": "PROP-250460b9",
+      "elevation_m": 11.4,
+      "floor_level_m": 0.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 1024.8
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 1200.5
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 1222.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1980,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5c486e68",
+      "elevation_m": 9.56,
+      "floor_level_m": 0.09,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 757.3
+        },
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 1121.4
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1227.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0d08b3ea",
+      "elevation_m": 44.73,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 4541.5
+        },
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 5401.4
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 12455.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ac05f0d5",
+      "elevation_m": 14.48,
+      "floor_level_m": 0.41,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1097.8
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1404.0
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1784.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ab702e9a",
+      "elevation_m": 7.11,
+      "floor_level_m": 0.07,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 478.4
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 762.9
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 919.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 11,
+      "gauge_to_property_ratio": 0.4,
+      "max_depth_m": 1.2851,
+      "max_damage_ratio": 0.457
+    },
+    {
+      "property_id": "PROP-948ff376",
+      "elevation_m": 6.8,
+      "floor_level_m": 0.3,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 817.8
+        },
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 1395.5
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 1589.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 4,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 0.9107,
+      "max_damage_ratio": 0.3732
+    },
+    {
+      "property_id": "PROP-15bf96cb",
+      "elevation_m": 26.99,
+      "floor_level_m": 0.08,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 1543.0
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 7055.1
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 7814.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1617,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f8fb3f62",
+      "elevation_m": 8.87,
+      "floor_level_m": 0.4,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 953.4
+        },
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 1106.8
+        },
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 1323.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1917,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3e512607",
+      "elevation_m": 40.6,
+      "floor_level_m": 0.4,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ef7f75ec",
+          "distance_m": 4451.3
+        },
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 4700.8
+        },
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 13598.6
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-910b669a",
+      "elevation_m": 9.15,
+      "floor_level_m": 0.49,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 512.4
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 648.7
+        },
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 1086.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 2,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.5999,
+      "max_damage_ratio": 0.28
+    },
+    {
+      "property_id": "PROP-d1c7cb62",
+      "elevation_m": 7.98,
+      "floor_level_m": 0.06,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 454.7
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 454.9
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 593.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.6161,
+      "max_damage_ratio": 0.2848
+    },
+    {
+      "property_id": "PROP-7d6ef965",
+      "elevation_m": 7.48,
+      "floor_level_m": 0.03,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 402.8
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 651.9
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 1045.6
+        }
+      ],
+      "floods_at_nearest_gauge": 2339,
+      "floods_at_property": 10,
+      "gauge_to_property_ratio": 0.4,
+      "max_depth_m": 1.2163,
+      "max_damage_ratio": 0.4433
+    },
+    {
+      "property_id": "PROP-ea2d9500",
+      "elevation_m": 11.96,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 761.8
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1007.3
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1045.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-537aed86",
+      "elevation_m": 8.33,
+      "floor_level_m": 0.5,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1020.6
+        },
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 1188.6
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 1510.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1467,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-9473a2fc",
+      "elevation_m": 14.96,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1543.5
+        },
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 2665.5
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 2675.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5338b485",
+      "elevation_m": 8.65,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 776.1
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 779.5
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 1141.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-fa1c5e56",
+      "elevation_m": 26.02,
+      "floor_level_m": 2.8,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 1235.7
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 7187.0
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 7834.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1617,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-08252cb1",
+      "elevation_m": 8.91,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 739.5
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 1116.9
+        },
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 1528.2
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d9fcbb53",
+      "elevation_m": 12.82,
+      "floor_level_m": 0.24,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 931.3
+        },
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 1124.4
+        },
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 2914.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1671,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-c57b2974",
+      "elevation_m": 6.94,
+      "floor_level_m": 0.16,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 2060.3
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 2825.3
+        },
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 5740.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1748,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7db5c174",
+      "elevation_m": 6.34,
+      "floor_level_m": 0.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 411.1
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 570.5
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 715.6
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 80,
+      "gauge_to_property_ratio": 3.3,
+      "max_depth_m": 2.8813,
+      "max_damage_ratio": 0.7322
+    },
+    {
+      "property_id": "PROP-369b2534",
+      "elevation_m": 6.32,
+      "floor_level_m": 0.03,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 429.0
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 690.4
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 871.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 43,
+      "gauge_to_property_ratio": 1.8,
+      "max_depth_m": 2.3009,
+      "max_damage_ratio": 0.6451
+    },
+    {
+      "property_id": "PROP-27b2d374",
+      "elevation_m": 14.64,
+      "floor_level_m": 3.29,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 904.0
+        },
+        {
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1253.8
+        },
+        {
+          "gauge_id": "GAUGE-1f4e46a9",
+          "distance_m": 1668.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1669,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-5863fff7",
+      "elevation_m": 7.81,
+      "floor_level_m": 0.21,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 295.7
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 492.4
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 545.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 2,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.5629,
+      "max_damage_ratio": 0.2689
+    },
+    {
+      "property_id": "PROP-01914b68",
+      "elevation_m": 8.01,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 605.6
+        },
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 910.0
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 989.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-11f7d37b",
+      "elevation_m": 7.93,
+      "floor_level_m": 0.15,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 565.4
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 737.6
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 1178.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1297,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-a4340e92",
+      "elevation_m": 10.74,
+      "floor_level_m": 0.04,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 737.1
+        },
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1656.4
+        },
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 1746.0
+        }
+      ],
+      "floods_at_nearest_gauge": 1531,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-67dd9657",
+      "elevation_m": 8.16,
+      "floor_level_m": 6.26,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 571.0
+        },
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 770.0
+        },
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 1079.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1917,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3781ddbf",
+      "elevation_m": 8.3,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 412.3
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 419.2
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 622.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3295a5f0",
+      "elevation_m": 9.6,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 1169.1
+        },
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 1540.5
+        },
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 3286.2
+        }
+      ],
+      "floods_at_nearest_gauge": 1762,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-18922223",
+      "elevation_m": 9.58,
+      "floor_level_m": 0.33,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 1116.8
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 1129.7
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 1350.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7d89757b",
+      "elevation_m": 11.66,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1114.7
+        },
+        {
+          "gauge_id": "GAUGE-d208bf3d",
+          "distance_m": 1303.6
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1346.1
+        }
+      ],
+      "floods_at_nearest_gauge": 1465,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f875d3f1",
+      "elevation_m": 8.52,
+      "floor_level_m": 0.19,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 945.9
+        },
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 1616.6
+        },
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 3224.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1762,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-d9fc6fea",
+      "elevation_m": 14.28,
+      "floor_level_m": 0.0,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 1062.4
+        },
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 1289.2
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 3421.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2464,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-50537f13",
+      "elevation_m": 23.09,
+      "floor_level_m": 5.75,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 1709.8
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 4435.6
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 5689.8
+        }
+      ],
+      "floods_at_nearest_gauge": 2511,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-869c67f5",
+      "elevation_m": 8.42,
+      "floor_level_m": 0.42,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 605.1
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 731.5
+        },
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 1132.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 1.0885,
+      "max_damage_ratio": 0.4177
+    },
+    {
+      "property_id": "PROP-058458a0",
+      "elevation_m": 11.74,
+      "floor_level_m": 0.16,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1193.4
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1360.9
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1397.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1707,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-473ef13d",
+      "elevation_m": 35.04,
+      "floor_level_m": 0.46,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-bc801f07",
+          "distance_m": 952.7
+        },
+        {
+          "gauge_id": "GAUGE-3324d948",
+          "distance_m": 4156.8
+        },
+        {
+          "gauge_id": "GAUGE-066fc60e",
+          "distance_m": 8839.5
+        }
+      ],
+      "floods_at_nearest_gauge": 2021,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-21cc5b6c",
+      "elevation_m": 11.46,
+      "floor_level_m": 14.94,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1069.8
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1162.6
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1432.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1707,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-34d111b8",
+      "elevation_m": 7.69,
+      "floor_level_m": 0.23,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 359.8
+        },
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 752.6
+        },
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 988.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2339,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-99f9e503",
+      "elevation_m": 23.27,
+      "floor_level_m": 14.77,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 2376.6
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 3822.0
+        },
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 5082.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2063,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-beb4db4a",
+      "elevation_m": 8.36,
+      "floor_level_m": 0.19,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 871.7
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 877.0
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1108.3
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7492b08d",
+      "elevation_m": 6.62,
+      "floor_level_m": 0.09,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 1086.1
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 2915.9
+        },
+        {
+          "gauge_id": "GAUGE-13dbbe14",
+          "distance_m": 3702.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1762,
+      "floods_at_property": 1,
+      "gauge_to_property_ratio": 0.1,
+      "max_depth_m": 0.2726,
+      "max_damage_ratio": 0.1489
+    },
+    {
+      "property_id": "PROP-d767c938",
+      "elevation_m": 8.36,
+      "floor_level_m": 0.23,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 303.4
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 972.1
+        },
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 1399.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1236,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-65136ef8",
+      "elevation_m": 8.21,
+      "floor_level_m": 0.2,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9e5f3ef9",
+          "distance_m": 525.6
+        },
+        {
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 798.4
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 831.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1982,
+      "floods_at_property": 4,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 0.8177,
+      "max_damage_ratio": 0.3453
+    },
+    {
+      "property_id": "PROP-4924a25e",
+      "elevation_m": 22.95,
+      "floor_level_m": 0.08,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 1760.1
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 4662.2
+        },
+        {
+          "gauge_id": "GAUGE-966d392e",
+          "distance_m": 4740.6
+        }
+      ],
+      "floods_at_nearest_gauge": 2063,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-7454e9ba",
+      "elevation_m": 8.51,
+      "floor_level_m": 0.38,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 298.0
+        },
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 375.5
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1070.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1807,
+      "floods_at_property": 13,
+      "gauge_to_property_ratio": 0.7,
+      "max_depth_m": 2.5991,
+      "max_damage_ratio": 0.6899
+    },
+    {
+      "property_id": "PROP-adc0d209",
+      "elevation_m": 9.81,
+      "floor_level_m": 0.43,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 955.9
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1475.5
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1848.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1545,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-8b8b8dd4",
+      "elevation_m": 6.22,
+      "floor_level_m": 0.31,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 419.4
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 539.5
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 581.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 21,
+      "gauge_to_property_ratio": 1.2,
+      "max_depth_m": 1.5173,
+      "max_damage_ratio": 0.5035
+    },
+    {
+      "property_id": "PROP-010147d3",
+      "elevation_m": 11.19,
+      "floor_level_m": 0.08,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-08fd7695",
+          "distance_m": 932.9
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1056.5
+        },
+        {
+          "gauge_id": "GAUGE-1d061d70",
+          "distance_m": 1059.6
+        }
+      ],
+      "floods_at_nearest_gauge": 1837,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0b8998b5",
+      "elevation_m": 9.12,
+      "floor_level_m": 0.07,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 824.6
+        },
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 853.6
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1119.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-1817841e",
+      "elevation_m": 6.3,
+      "floor_level_m": 0.46,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-5cc1a4bd",
+          "distance_m": 356.5
+        },
+        {
+          "gauge_id": "GAUGE-63447c32",
+          "distance_m": 487.8
+        },
+        {
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 501.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1734,
+      "floods_at_property": 15,
+      "gauge_to_property_ratio": 0.9,
+      "max_depth_m": 1.4779,
+      "max_damage_ratio": 0.4956
+    },
+    {
+      "property_id": "PROP-d464711c",
+      "elevation_m": 9.58,
+      "floor_level_m": 0.41,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-22675be2",
+          "distance_m": 2417.4
+        },
+        {
+          "gauge_id": "GAUGE-ef0f808c",
+          "distance_m": 2902.5
+        },
+        {
+          "gauge_id": "GAUGE-c97ef762",
+          "distance_m": 3713.8
+        }
+      ],
+      "floods_at_nearest_gauge": 1915,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-0f19889f",
+      "elevation_m": 22.99,
+      "floor_level_m": 9.26,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 1873.1
+        },
+        {
+          "gauge_id": "GAUGE-ebfdb692",
+          "distance_m": 6938.4
+        },
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 7088.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1722,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-82f1110b",
+      "elevation_m": 8.31,
+      "floor_level_m": 3.14,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-77f0e67b",
+          "distance_m": 601.8
+        },
+        {
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 623.3
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 1465.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ce5e47fe",
+      "elevation_m": 29.83,
+      "floor_level_m": 8.77,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-a03e456e",
+          "distance_m": 1589.9
+        },
+        {
+          "gauge_id": "GAUGE-acc1b9cc",
+          "distance_m": 4918.8
+        },
+        {
+          "gauge_id": "GAUGE-e042fc97",
+          "distance_m": 9968.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1617,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-efa39df2",
+      "elevation_m": 10.37,
+      "floor_level_m": 0.1,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 548.6
+        },
+        {
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1264.7
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1399.5
+        }
+      ],
+      "floods_at_nearest_gauge": 1707,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-c6b1fce4",
+      "elevation_m": 7.81,
+      "floor_level_m": 0.24,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 253.1
+        },
+        {
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1106.3
+        },
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 1203.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1236,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-f9cb11e7",
+      "elevation_m": 8.86,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-62fc58e6",
+          "distance_m": 730.0
+        },
+        {
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 892.6
+        },
+        {
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 912.9
+        }
+      ],
+      "floods_at_nearest_gauge": 2600,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-dc4ebc23",
+      "elevation_m": 8.97,
+      "floor_level_m": 0.02,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 923.6
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 1139.7
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 1349.7
+        }
+      ],
+      "floods_at_nearest_gauge": 1297,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-44158f15",
+      "elevation_m": 9.57,
+      "floor_level_m": 0.45,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-085522ee",
+          "distance_m": 548.2
+        },
+        {
+          "gauge_id": "GAUGE-f8629444",
+          "distance_m": 773.7
+        },
+        {
+          "gauge_id": "GAUGE-ef53398c",
+          "distance_m": 1386.4
+        }
+      ],
+      "floods_at_nearest_gauge": 1297,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-cda0c447",
+      "elevation_m": 7.73,
+      "floor_level_m": 0.36,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 490.3
+        },
+        {
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 499.6
+        },
+        {
+          "gauge_id": "GAUGE-0a26e0ec",
+          "distance_m": 513.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2349,
+      "floods_at_property": 7,
+      "gauge_to_property_ratio": 0.3,
+      "max_depth_m": 1.3625,
+      "max_damage_ratio": 0.4725
+    },
+    {
+      "property_id": "PROP-a2c0cabd",
+      "elevation_m": 7.5,
+      "floor_level_m": 0.46,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-87b9ac03",
+          "distance_m": 1078.9
+        },
+        {
+          "gauge_id": "GAUGE-71d96002",
+          "distance_m": 1559.7
+        },
+        {
+          "gauge_id": "GAUGE-13033a1d",
+          "distance_m": 1634.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2457,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-ebd4e268",
+      "elevation_m": 16.87,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 920.1
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1591.3
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 1727.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-3579d3e0",
+      "elevation_m": 9.53,
+      "floor_level_m": 12.27,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-1aaf8b08",
+          "distance_m": 562.1
+        },
+        {
+          "gauge_id": "GAUGE-8be2e7e8",
+          "distance_m": 1500.9
+        },
+        {
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 2088.9
+        }
+      ],
+      "floods_at_nearest_gauge": 1545,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-4d37bbf7",
+      "elevation_m": 6.95,
+      "floor_level_m": 0.19,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-e404c1ff",
+          "distance_m": 681.7
+        },
+        {
+          "gauge_id": "GAUGE-7e07133d",
+          "distance_m": 3260.5
+        },
+        {
+          "gauge_id": "GAUGE-ba93206b",
+          "distance_m": 3635.3
+        }
+      ],
+      "floods_at_nearest_gauge": 1541,
+      "floods_at_property": 3,
+      "gauge_to_property_ratio": 0.2,
+      "max_depth_m": 0.555,
+      "max_damage_ratio": 0.2665
+    },
+    {
+      "property_id": "PROP-5c6db496",
+      "elevation_m": 14.16,
+      "floor_level_m": 0.32,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-64eb43b5",
+          "distance_m": 1053.1
+        },
+        {
+          "gauge_id": "GAUGE-744e70ef",
+          "distance_m": 1427.1
+        },
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 3437.1
+        }
+      ],
+      "floods_at_nearest_gauge": 2464,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    },
+    {
+      "property_id": "PROP-462837ae",
+      "elevation_m": 17.36,
+      "floor_level_m": 0.37,
+      "nearest_gauges": [
+        {
+          "gauge_id": "GAUGE-387ba06b",
+          "distance_m": 1295.5
+        },
+        {
+          "gauge_id": "GAUGE-c8783553",
+          "distance_m": 1600.9
+        },
+        {
+          "gauge_id": "GAUGE-2d4ab78a",
+          "distance_m": 3091.7
+        }
+      ],
+      "floods_at_nearest_gauge": 2521,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
+    }
+  ]
+}
