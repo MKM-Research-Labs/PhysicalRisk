@@ -66,6 +66,13 @@ def get_js() -> str:
                             _clStartBatchTraining();
                         });
                     }
+                    var clearBtn = document.getElementById('cl-clear-all-btn');
+                    if (clearBtn && !clearBtn._clBound) {
+                        clearBtn._clBound = true;
+                        clearBtn.addEventListener('click', function() {
+                            _clClearAll();
+                        });
+                    }
                 };
 
                 // Try binding after tab switch creates the DOM
@@ -171,5 +178,46 @@ def get_js() -> str:
                     btn.textContent = 'Train All Untrained';
                     btn.style.background = '#1976d2';
                 }
+            }
+
+            function _clClearAll() {
+                if (!confirm('Delete all trained classifiers? You will need to retrain them.')) return;
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                var btn = document.getElementById('cl-clear-all-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Clearing\\u2026';
+                    btn.style.background = '#90a4ae';
+                }
+
+                fetch(baseUrl + '/api/v1/trading/classifiers/clear-all', {
+                    method: 'POST',
+                    mode: 'cors'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Clear All';
+                        btn.style.background = '#e53935';
+                    }
+                    clSelectedGaugeId = null;
+                    var detailPane = document.getElementById('cl-detail-pane');
+                    if (detailPane) {
+                        detailPane.innerHTML =
+                            '<div style="text-align:center;color:#999;font-size:12px;padding-top:40px;">' +
+                            'Select a gauge to view classifier details</div>';
+                    }
+                    loadClassifiersData();
+                })
+                .catch(function(err) {
+                    console.error('[Classifiers] Clear error:', err);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Clear All';
+                        btn.style.background = '#e53935';
+                    }
+                });
             }
 """

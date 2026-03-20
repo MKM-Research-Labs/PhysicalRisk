@@ -42,6 +42,9 @@ def _get_setup_js() -> str:
                     '<button id="cl-train-all-btn" style="padding:5px 14px;font-size:11px;font-weight:600;' +
                     'background:#1976d2;color:white;border:none;border-radius:3px;cursor:pointer;">' +
                     'Train All Untrained</button>' +
+                    '<button id="cl-clear-all-btn" style="padding:5px 14px;font-size:11px;font-weight:600;' +
+                    'background:#e53935;color:white;border:none;border-radius:3px;cursor:pointer;">' +
+                    'Clear All</button>' +
                     '<span id="cl-summary-stats" style="flex:1;font-size:11px;color:#666;text-align:right;"></span>';
                 view.appendChild(topBar);
 
