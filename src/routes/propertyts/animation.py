@@ -28,7 +28,7 @@ with gauge water levels and property flood states.
 import json
 import logging
 
-STORM_HOURS = 168  # 7-day storm window — must match routes/trading/stress.py
+from config.port import EVENT_WINDOW_HOURS as STORM_HOURS  # 7-day storm window
 
 from flask import jsonify, request
 

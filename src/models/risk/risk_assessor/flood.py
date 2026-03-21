@@ -5,13 +5,7 @@
 
 from typing import Any, Dict, Optional
 
-FLOOD_DEPTH_THRESHOLDS = {
-    'very_low': 0.0,
-    'low': 0.1,
-    'medium': 0.5,
-    'high': 1.0,
-    'very_high': 2.0
-}
+from config.models import FLOOD_DEPTH_THRESHOLDS
 
 
 def assess_flood_risk_level(flood_depth: float) -> str:

@@ -32,16 +32,15 @@ from pathlib import Path
 
 import numpy as np
 
-# Log-transform constants
-_LOG_END = 168.0
-_LOG_EPS = 1e-8
-_NUM_HOURS = 168
-
-# Near-miss augmentation: number of synthetic sub-severe hydrographs per gauge
-_NEARMISS_COUNT = 200
-# Near-miss peak range as fraction of severe level
-_NEARMISS_LOW = 0.80
-_NEARMISS_HIGH = 0.99
+# Log-transform & near-miss constants — centralised in config/port.py
+from config.port import (
+    LOG_END as _LOG_END,
+    LOG_EPS as _LOG_EPS,
+    NUM_CLASSIFIER_HOURS as _NUM_HOURS,
+    NEARMISS_COUNT as _NEARMISS_COUNT,
+    NEARMISS_LOW as _NEARMISS_LOW,
+    NEARMISS_HIGH as _NEARMISS_HIGH,
+)
 
 
 def _generate_nearmiss_vectors(
