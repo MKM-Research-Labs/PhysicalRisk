@@ -44,6 +44,8 @@ def register_parser(subparsers):
                     help="Multi-storm stress test (sequence-based, replaces --stress)")
     sp.add_argument("--gauge-id", "--gid", type=str, default=None,
                     help="Restrict --stressm to a single gauge ID")
+    sp.add_argument("--train-classifiers", "--tc", action="store_true",
+                    help="Batch-train GBM classifiers for all untrained gauges (low-memory mode)")
     sp.add_argument("--pdf", action="store_true",
                     help="Generate portfolio report PDF after generation")
     sp.add_argument("--all", "-a", action="store_true", help="Run all segments")
@@ -100,7 +102,7 @@ def cmd_port(args):
         args.gauges, args.properties, args.mortgages,
         args.gaugets, args.gaugehd, args.hazard,
         args.propertyts, args.propertyhc, args.counterparties,
-        args.blotter, args.stressm,
+        args.blotter, args.stressm, args.train_classifiers,
     ]
     run_all = args.all or not any(segment_flags)
     
@@ -332,6 +334,23 @@ def cmd_port(args):
                     print(f"  ⚠ Dependencies require update: {', '.join(stale)}")
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
+        print()
+
+    if args.train_classifiers:
+        print("5b. Batch Classifier Training (low-memory mode)...")
+        from port.src.stressm.batch_train import batch_train_classifiers
+        t_step = time.time()
+        tc_result = batch_train_classifiers(
+            input_dir=output_dir,
+            output_dir=config.get_output_dir(),
+            seed=42,
+            verbose=args.verbose,
+        )
+        elapsed_step = time.time() - t_step
+        print(f"   Trained: {tc_result['trained']}  "
+              f"Skipped: {tc_result['skipped']}  "
+              f"Failed: {tc_result['failed']}  "
+              f"({elapsed_step / 60:.1f} min)")
         print()
 
     if run_all or args.hazard:
