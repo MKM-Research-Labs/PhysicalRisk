@@ -21,6 +21,7 @@ known-first-party = ["config", "port", "routes", "loaders", "models", "visual", 
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+norecursedirs = ["e2e"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

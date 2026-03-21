@@ -187,7 +187,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
         print('  Skipped: tests/e2e/ directory not found')
         return None
 
-    # Check if playwright is installed
+    # Check if playwright Python package is installed
     check = sp.run(
         [python_exe, '-c', 'import playwright'],
         capture_output=True, cwd=str(project_root),
@@ -206,6 +206,43 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
         except Exception:
             pass
         return summary
+
+    # Ensure Chromium browser binary is installed (the pip package alone
+    # is not enough — the binary must be downloaded separately).
+    # Quick sanity check: try to launch a browser context.  If the binary
+    # is missing playwright raises BrowserNotInstalled / Error.
+    browser_check = sp.run(
+        [python_exe, '-c',
+         'from playwright.sync_api import sync_playwright; '
+         'p = sync_playwright().start(); '
+         'b = p.chromium.launch(headless=True); b.close(); p.stop()'],
+        capture_output=True, text=True, cwd=str(project_root),
+        timeout=30,
+    )
+    needs_install = browser_check.returncode != 0
+    if needs_install:
+        print('  Installing Chromium browser for Playwright...')
+        install_result = sp.run(
+            [python_exe, '-m', 'playwright', 'install', 'chromium'],
+            capture_output=True, text=True, cwd=str(project_root),
+        )
+        if install_result.returncode != 0:
+            msg = (install_result.stderr or install_result.stdout or '')[:300]
+            print(f'  Warning: Chromium install failed: {msg}')
+            summary = {
+                'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
+                'status': 'SKIPPED',
+                'reason': f'Chromium install failed: {msg[:200]}',
+                'failures': [],
+            }
+            report_path = os.path.join(audit_dir, 'e2e_results.json')
+            try:
+                with open(report_path, 'w') as f:
+                    json.dump(summary, f, indent=2)
+            except Exception:
+                pass
+            return summary
+        print('  Chromium installed successfully.')
 
     # Omit --headed to run headless (default for pytest-playwright)
     cmd = [
@@ -350,9 +387,11 @@ def cmd_test(args):
         _venv_python = os.path.join(str(project_root), 'venv', 'bin', 'python')
         _python_exe = _venv_python if os.path.isfile(_venv_python) else sys.executable
 
+        e2e_dir = os.path.join(tests_dir, 'e2e')
         pytest_cmd = [
             _python_exe, '-m', 'pytest',
             tests_dir,
+            f'--ignore={e2e_dir}',
             f'--junitxml={junit_xml}',
             '--cov=src',
             f'--cov-report=html:{cov_html}',
