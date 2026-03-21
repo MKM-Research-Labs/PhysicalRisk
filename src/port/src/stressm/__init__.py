@@ -30,6 +30,7 @@ from .gauge_parser import (
     _extract_gauges, _parse_gauge, _load_gaugehd_baselines, _seasonal_base_level,
 )
 from .reporting import _print_gauge_progression
+from .batch_train import batch_train_classifiers
 
 __all__ = [
     'generate_stressm',
@@ -43,4 +44,5 @@ __all__ = [
     '_parse_gauge',
     '_print_classifier_result',
     '_print_gauge_progression',
+    'batch_train_classifiers',
 ]
