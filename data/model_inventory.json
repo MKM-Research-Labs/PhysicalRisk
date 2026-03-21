@@ -3597,7 +3597,7 @@
         "gbm_max_depth"
       ],
       "input_data": "Storm sequences (MKM-SS-001), gauge metadata (gauge.json), seasonal baselines from gaugehd",
-      "output_data": "stress_storms.json, stress_vectors.json, trained GBM classifiers (.joblib), training_summary.json",
+      "output_data": "stress_storms.json, trained GBM classifiers (.joblib), training_summary.json",
       "downstream_models": [
         "MKM-FC-001",
         "MKM-DE-001"
