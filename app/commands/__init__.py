@@ -22,6 +22,6 @@
 CLI command implementations.
 """
 
-from . import server, port, visual, check, config, book, classifier
+from . import server, port, visual, check, config, book
 
-__all__ = ['server', 'port', 'visual', 'check', 'config', 'book', 'classifier']
+__all__ = ['server', 'port', 'visual', 'check', 'config', 'book']
