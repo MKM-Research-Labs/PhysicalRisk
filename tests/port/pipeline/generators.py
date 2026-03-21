@@ -149,7 +149,7 @@ class TestNostressFlag:
             gaugets=False, gaugehd=False, hazard=False,
             propertyts=False, propertyhc=False, counterparties=False,
             blotter=False, stressm=False, nostress=False,
-            gauge_id=None, stress_vectors=False, strict=False, pdf=False,
+            gauge_id=None, strict=False, pdf=False,
             num_properties=2, num_gauges=2, num_storms=10,
             simulation_hours=12, history_years=1,
             tail_weight=2.0, distribution='gev', verbose=False,

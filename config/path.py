@@ -155,15 +155,6 @@ class PortfolioPaths:
         gaugets_dir.mkdir(exist_ok=True, parents=True)
         return gaugets_dir
 
-    def get_stress_vectors_dir(self) -> Path:
-        """Get stress vector directory (per-gauge training vectors).
-
-        Path: data/input/<catchment>/stress_vectors/
-        """
-        sv_dir = self.input_dir / 'stress_vectors'
-        sv_dir.mkdir(exist_ok=True, parents=True)
-        return sv_dir
-
     def get_stressm_dir(self) -> Path:
         """Get multi-storm classifier directory (GBM .joblib models per gauge).
 
