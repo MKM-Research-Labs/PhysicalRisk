@@ -99,8 +99,21 @@ def trained_model_dir(tmp_path, vectors_file) -> Path:
     model_dir = tmp_path / "models"
     trainer = FloodClassifierTrainer(vectors_file, model_dir)
     data = json.loads(vectors_file.read_text())
+    results = []
     for gid, gdata in data["gauges"].items():
-        trainer.train_gauge(gid, gdata)
+        result = trainer.train_gauge(gid, gdata)
+        results.append({
+            "gauge_id": gid,
+            "status": result["status"],
+            "severe_level": gdata.get("severe_level", 5.0),
+        })
+    # Write training_summary.json so FloodPredictor._load_summary() works
+    summary = {
+        "num_gauges": len(results),
+        "num_trained": sum(1 for r in results if r["status"] == "trained"),
+        "gauges": results,
+    }
+    (model_dir / "training_summary.json").write_text(json.dumps(summary))
     return model_dir
 
 

@@ -43,9 +43,18 @@ def _right_click_property_marker(page):
         }""")
         pytest.skip(f"No property markers on map. Diagnostics: {diag}")
 
-    # Use force=True because overlapping markers can intercept each other's clicks
-    markers.first.click(button="right", force=True)
-    page.wait_for_timeout(1_000)
+    # Dispatch the right-click at the marker's centre coordinates so the
+    # event propagates through Leaflet's event system (force=True on the
+    # DOM element can bypass Leaflet's L.Marker contextmenu listener).
+    box = markers.first.bounding_box()
+    if box:
+        cx = box["x"] + box["width"] / 2
+        cy = box["y"] + box["height"] / 2
+        page.mouse.click(cx, cy, button="right")
+    else:
+        # Fallback: direct Playwright right-click with force
+        markers.first.click(button="right", force=True)
+    page.wait_for_timeout(1_500)
 
 
 class TestPropertyContextMenu:
