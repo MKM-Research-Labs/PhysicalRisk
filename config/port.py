@@ -102,6 +102,19 @@ BUMP_1BP: float = 0.0001
 # Storm horizon denominator for log-transform: ln((t+1) / LOG_END)
 LOG_END: float = 168.0
 
+# Epsilon for log-transform numerical stability
+LOG_EPS: float = 1e-8
+
+# Classifier feature-vector length (hours in a storm window)
+NUM_CLASSIFIER_HOURS: int = 168
+
+# Near-miss augmentation: synthetic sub-severe hydrographs per gauge
+NEARMISS_COUNT: int = 200
+
+# Near-miss peak range as fraction of severe level
+NEARMISS_LOW: float = 0.80
+NEARMISS_HIGH: float = 0.99
+
 
 # ===========================================================================
 # Gauge Random Generator  (port/rand/thames/gauge/gauge_random.py)
@@ -178,6 +191,9 @@ N_NEAREST_GAUGES: int = 3
 # Duration of the analysis window used for multi-storm sequences (hours = 7 days)
 EVENT_WINDOW_HOURS: int = 168
 
+# Minimum drainage tail required after last precipitation event (hours)
+MIN_DRAINAGE_WINDOW_HOURS: int = 12
+
 
 # ===========================================================================
 # Storm Multi — Intensity Sampler  (storm_multi/generators/intensity_sampler.py)
@@ -225,6 +241,30 @@ CATCHMENT_BASE_PRECIP: Dict[str, float] = {
     "rhine": 40.0,
     "danube": 45.0,
     "mississippi": 55.0,
+}
+
+
+# ===========================================================================
+# Data Lineage  (lineage/manifest.py, routes/governance/lineage.py)
+# ===========================================================================
+
+# Chunk size for streaming SHA-256 file hashing (bytes)
+LINEAGE_CHUNK_SIZE: int = 65536
+
+# Pipeline staleness threshold — steps older than this are flagged (hours)
+LINEAGE_STALE_HOURS: int = 72
+
+
+# ===========================================================================
+# Trading — Severity Ordering  (routes/trading/port_stress.py)
+# ===========================================================================
+
+# Sort key for gauge stress results (lower = more severe)
+SEVERITY_ORDER: Dict[str, int] = {
+    'severe': 0,
+    'warning': 1,
+    'alert': 2,
+    'clean': 3,
 }
 
 

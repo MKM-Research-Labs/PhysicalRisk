@@ -50,8 +50,8 @@ _PIPELINE_STEPS = [
     {"step": "blotter", "generator": "port (step 10)", "output": "prs/"},
 ]
 
-# Staleness threshold: data older than this is considered stale
-_STALE_HOURS = 72
+# Staleness threshold — centralised in config/port.py
+from config.port import LINEAGE_STALE_HOURS as _STALE_HOURS
 
 
 def _check_staleness(lineage):

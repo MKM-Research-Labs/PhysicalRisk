@@ -36,6 +36,28 @@ Subsections:
 from typing import Dict, List, Tuple
 
 # ===========================================================================
+# Risk Assessment Thresholds  (models/risk/risk_assessor/)
+# ===========================================================================
+
+# Flood depth risk bands (metres) — used to classify property flood exposure
+FLOOD_DEPTH_THRESHOLDS: Dict[str, float] = {
+    'very_low': 0.0,
+    'low': 0.1,
+    'medium': 0.5,
+    'high': 1.0,
+    'very_high': 2.0,
+}
+
+# Loan-to-value risk bands — used to classify mortgage credit exposure
+LTV_RISK_THRESHOLDS: Dict[str, float] = {
+    'low': 0.6,
+    'moderate': 0.8,
+    'high': 0.95,
+    'critical': 1.0,
+}
+
+
+# ===========================================================================
 # Storm Simulation
 # ===========================================================================
 

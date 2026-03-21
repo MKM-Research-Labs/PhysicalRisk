@@ -76,7 +76,7 @@ STEP_IO = {
 # ---------------------------------------------------------------------------
 # Hashing helpers
 # ---------------------------------------------------------------------------
-_CHUNK = 65536  # 64 KB
+from config.port import LINEAGE_CHUNK_SIZE as _CHUNK  # 64 KB
 
 
 def hash_file(path: Path) -> str:

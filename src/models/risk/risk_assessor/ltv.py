@@ -5,12 +5,7 @@
 
 from typing import Optional
 
-LTV_RISK_THRESHOLDS = {
-    'low': 0.6,
-    'moderate': 0.8,
-    'high': 0.95,
-    'critical': 1.0
-}
+from config.models import LTV_RISK_THRESHOLDS
 
 
 def assess_ltv_risk_level(ltv_ratio: float) -> str:

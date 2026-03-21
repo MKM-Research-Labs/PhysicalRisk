@@ -133,8 +133,8 @@ def get_portfolio_storms():
 # Portfolio Stress Run
 # ------------------------------------------------------------------
 
-# Severity ordering for sorting gauge results
-_SEVERITY_ORDER = {'severe': 0, 'warning': 1, 'alert': 2, 'clean': 3}
+# Severity ordering — centralised in config/port.py
+from config.port import SEVERITY_ORDER as _SEVERITY_ORDER
 
 
 @trading_bp.route("/trading/stress/portfolio-run", methods=["POST"])

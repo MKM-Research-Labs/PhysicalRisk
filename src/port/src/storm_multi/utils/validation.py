@@ -27,11 +27,8 @@ temporal ordering, and structural consistency rules from the spec.
 
 from typing import List
 
-from config.port import EVENT_WINDOW_HOURS
+from config.port import EVENT_WINDOW_HOURS, MIN_DRAINAGE_WINDOW_HOURS
 from ..core.data_structures import SequenceType, StormSequence
-
-# EVENT_WINDOW_HOURS imported from config/port.py (Spec Section 3.4)
-MIN_DRAINAGE_WINDOW_HOURS = 12
 MAX_PRECIP_END_HOUR = EVENT_WINDOW_HOURS - MIN_DRAINAGE_WINDOW_HOURS  # 156
 
 VALID_SEQUENCE_TYPES = {"isolated", "doublet", "cluster", "persistent"}

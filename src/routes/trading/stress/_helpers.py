@@ -12,8 +12,8 @@ from config import config
 
 logger = logging.getLogger(__name__)
 
-# Storm simulation horizon: 168 hours (7 days) — industry standard
-STORM_HOURS = 168
+# Storm simulation horizon — centralised in config/port.py
+from config.port import EVENT_WINDOW_HOURS as STORM_HOURS
 
 # Module-level caches
 _stress_index_cache = None
