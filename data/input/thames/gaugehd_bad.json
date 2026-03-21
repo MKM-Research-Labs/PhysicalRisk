@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "data_type": "GaugeHistoricalDaily",
-  "generated_at": "2026-03-20T15:06:33.156391",
+  "generated_at": "2026-03-21T07:51:44.734458",
   "generator": "gaugehd",
   "years_included": 50,
   "station_metadata": {

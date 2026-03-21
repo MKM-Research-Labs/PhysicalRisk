@@ -2,17 +2,18 @@
 \contentsline {subsection}{\numberline {1.1}Test Environment}{3}{subsection.1.1}%
 \contentsline {subsection}{\numberline {1.2}Results by Model}{3}{subsection.1.2}%
 \contentsline {section}{\numberline {2}Test Traceability Matrix}{4}{section.2}%
-\contentsline {section}{\numberline {3}Flood Risk (Depth-Damage) (MKM-DD-001)}{138}{section.3}%
-\contentsline {section}{\numberline {4}GEV Hazard Model (MKM-GH-001)}{144}{section.4}%
-\contentsline {section}{\numberline {5}Mortgage Pricer (MKM-MP-001)}{146}{section.5}%
-\contentsline {section}{\numberline {6}PRS Pricing Model (MKM-PR-001)}{150}{section.6}%
-\contentsline {section}{\numberline {7}Property Valuation (MKM-PV-001)}{154}{section.7}%
-\contentsline {paragraph}{test\_generate\_field\_value\_text}{156}{section*.12}%
-\contentsline {section}{\numberline {8}Storm-Gauge Response Model (MKM-SG-001)}{157}{section.8}%
-\contentsline {section}{\numberline {9}Storm Intensity Distribution (MKM-SI-001)}{161}{section.9}%
-\contentsline {section}{\numberline {10}Storm Sequence Generator (MKM-SS-001)}{167}{section.10}%
-\contentsline {section}{\numberline {11}Trading Desk (MKM-TD-001)}{170}{section.11}%
-\contentsline {section}{\numberline {12}CDM Schema Validation (CDM-ALL)}{185}{section.12}%
-\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{190}{appendix.A}%
-\contentsline {paragraph}{test\_eod\_snapshots\_exist}{408}{section*.20}%
-\contentsline {paragraph}{test\_returns\_script\_tag}{408}{section*.21}%
+\contentsline {section}{\numberline {3}Flood Risk (Depth-Damage) (MKM-DD-001)}{147}{section.3}%
+\contentsline {section}{\numberline {4}GEV Hazard Model (MKM-GH-001)}{153}{section.4}%
+\contentsline {section}{\numberline {5}Mortgage Pricer (MKM-MP-001)}{155}{section.5}%
+\contentsline {section}{\numberline {6}PRS Pricing Model (MKM-PR-001)}{159}{section.6}%
+\contentsline {section}{\numberline {7}Property Valuation (MKM-PV-001)}{163}{section.7}%
+\contentsline {section}{\numberline {8}Storm-Gauge Response Model (MKM-SG-001)}{166}{section.8}%
+\contentsline {section}{\numberline {9}Storm Intensity Distribution (MKM-SI-001)}{170}{section.9}%
+\contentsline {section}{\numberline {10}Storm Sequence Generator (MKM-SS-001)}{176}{section.10}%
+\contentsline {section}{\numberline {11}Trading Desk (MKM-TD-001)}{179}{section.11}%
+\contentsline {section}{\numberline {12}CDM Schema Validation (CDM-ALL)}{194}{section.12}%
+\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{199}{appendix.A}%
+\contentsline {paragraph}{test\_propertyts\_storms\_from\_sequences}{433}{section*.18}%
+\contentsline {paragraph}{test\_eod\_snapshots\_exist}{433}{section*.19}%
+\contentsline {paragraph}{test\_predict\_high\_level\_higher\_probability}{433}{section*.20}%
+\contentsline {paragraph}{test\_load\_summary}{433}{section*.21}%
