@@ -202,8 +202,14 @@ class PnLEngine:
                 new_trade_pnl = 0.0
                 prev_mtm = prev.get('running_pnl', 0)
                 market_pnl = running_pnl - prev_mtm
+            elif not previous_eod:
+                # First-ever EOD — no prior snapshot exists.
+                # Treat entire MTM as market move (opening-day mark).
+                new_trade_pnl = 0.0
+                market_pnl = running_pnl
             else:
-                # Not in EOD and not new — no reference point
+                # Trade exists in book but wasn't in previous EOD
+                # (e.g. back-dated trade) — no reference point
                 new_trade_pnl = 0.0
                 market_pnl = 0.0
 
