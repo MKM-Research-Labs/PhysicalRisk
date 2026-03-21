@@ -148,7 +148,7 @@ class TestNostressFlag:
             all=False, gauges=False, properties=False, mortgages=False,
             gaugets=False, gaugehd=False, hazard=False,
             propertyts=False, propertyhc=False, counterparties=False,
-            blotter=False, stressm=False, nostress=False,
+            blotter=False, stressm=False, train_classifiers=False, nostress=False,
             gauge_id=None, strict=False, pdf=False,
             num_properties=2, num_gauges=2, num_storms=10,
             simulation_hours=12, history_years=1,
