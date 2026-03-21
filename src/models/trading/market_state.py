@@ -112,14 +112,47 @@ class MarketStateManager:
         """
         Load current market state. If none exists, initialise from base curves.
 
+        Reconciles with gaugehc.json on every load so newly-added gauges
+        (e.g. from classifier training) appear automatically.
+
         Returns:
             Market state dictionary with gauge_adjustments, base_rates, metadata.
         """
-        if self.state_file.exists():
-            with open(self.state_file) as f:
-                return json.load(f)
+        if not self.state_file.exists():
+            return self._initialize()
 
-        return self._initialize()
+        with open(self.state_file) as f:
+            state = json.load(f)
+
+        # Reconcile: add any gauges present in gaugehc.json but missing
+        # from the persisted state (happens when classifiers add new gauges).
+        current_base = self._load_base_curves()
+        existing_base = state.get('base_rates', {})
+        hazard_ts = state.get('hazard_term_structure', {})
+
+        added = 0
+        for gauge_id, base in current_base.items():
+            if gauge_id not in existing_base:
+                existing_base[gauge_id] = base
+                # Build default term structure for the new gauge
+                hazard_ts[gauge_id] = {}
+                for trigger in ['alert', 'warning', 'severe']:
+                    rate_key = f'annual_hazard_rate_{trigger}'
+                    base_rate = base.get(rate_key, 0.02)
+                    hazard_ts[gauge_id][trigger] = {
+                        str(t): round(base_rate * (1 + 0.05 * t), 6)
+                        for t in range(1, 6)
+                    }
+                added += 1
+
+        if added:
+            state['base_rates'] = existing_base
+            state['hazard_term_structure'] = hazard_ts
+            self._save(state)
+            logger.info("Reconciled market state: added %d new gauges "
+                        "(now %d total)", added, len(existing_base))
+
+        return state
 
     # Default yield curve — centralised in config.port
     DEFAULT_YIELD_CURVE = _DEFAULT_YIELD_CURVE
