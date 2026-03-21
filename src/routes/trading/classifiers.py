@@ -21,8 +21,6 @@ from config import config
 from . import trading_bp
 from ._helpers import _load_gauge_locations
 
-import glob as _glob
-
 logger = logging.getLogger(__name__)
 
 # ── batch training state ──────────────────────────────────────────────
@@ -128,6 +126,38 @@ def classifiers_summary():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# ── GET /trading/classifiers/readiness ────────────────────────────────
+
+@trading_bp.route("/trading/classifiers/readiness", methods=["GET"])
+def classifiers_readiness():
+    """Check whether all gauges have trained classifiers."""
+    try:
+        stressm_dir = config.get_stressm_dir()
+        gauge_locations = _load_gauge_locations()
+
+        total = len(gauge_locations)
+        trained = sum(
+            1 for gid in gauge_locations
+            if (stressm_dir / f"{gid}.joblib").exists()
+        )
+        missing = [
+            gid for gid in gauge_locations
+            if not (stressm_dir / f"{gid}.joblib").exists()
+        ]
+
+        return jsonify({
+            "status": "success",
+            "ready": trained == total and total > 0,
+            "total": total,
+            "trained": trained,
+            "missing": len(missing),
+        })
+
+    except Exception as e:
+        logger.error("Classifiers readiness error: %s", e, exc_info=True)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # ── POST /trading/classifiers/clear-all ───────────────────────────────
 
 @trading_bp.route("/trading/classifiers/clear-all", methods=["POST"])
@@ -151,6 +181,13 @@ def clear_all_classifiers():
         timings_path = stressm_dir / _TIMINGS_FILENAME
         if timings_path.exists():
             timings_path.unlink()
+
+        # Invalidate cached predictor so port stress reloads fresh models
+        try:
+            from .port_stress import invalidate_stressm_predictor
+            invalidate_stressm_predictor()
+        except ImportError:
+            pass
 
         logger.info("Cleared %d classifier models from %s", removed, stressm_dir)
         return jsonify({
