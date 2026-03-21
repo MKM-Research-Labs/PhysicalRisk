@@ -12,4 +12,4 @@ cache/
 coverage.json
 .coverage
 .claude/
-data/input/thames/stress_vectors/
+

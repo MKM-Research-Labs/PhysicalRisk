@@ -35,8 +35,8 @@ thresholds and introduces natural monotonicity: ln(w/s)=0 exactly when water
 equals severe level, negative below, positive above.
 
 Usage:
-    trainer = FloodClassifierTrainer(vectors_path, output_dir)
-    results = trainer.train_all()
+    trainer = FloodClassifierTrainer(output_dir)
+    result = trainer.train_gauge('GAUGE-abc123', gauge_data)
 
     predictor = FloodPredictor(output_dir)
     prob = predictor.predict('GAUGE-abc123', water_level=4.2, hour=36,
@@ -72,18 +72,6 @@ class FloodClassifierTrainer:
         self.vectors_path = Path(vectors_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
-    def _load_vectors(self) -> dict:
-        """Load vectors — supports chunked directory or legacy single file."""
-        p = Path(self.vectors_path)
-        if p.is_dir():
-            from port.src.stress_vectors import load_gauge_vectors, list_available_gauges
-            gauges = {}
-            for gid in list_available_gauges(p):
-                gauges[gid] = load_gauge_vectors(p, gid)
-            return {"gauges": gauges}
-        with open(p) as f:
-            return json.load(f)
 
     def train_gauge(self, gauge_id: str, gauge_data: dict,
                     test_size: float = 0.2) -> dict:
@@ -169,41 +157,6 @@ class FloodClassifierTrainer:
             'model_path': str(model_path),
         }
 
-    def train_all(self, test_size: float = 0.2) -> dict:
-        """Train classifiers for all gauges. Returns summary."""
-        data = self._load_vectors()
-        gauges = data['gauges']
-
-        results = []
-        for gauge_id, gauge_data in sorted(gauges.items()):
-            result = self.train_gauge(gauge_id, gauge_data, test_size)
-            results.append(result)
-            status = result['status']
-            if status == 'trained':
-                m = result['metrics']
-                logger.info("%s: AUC=%.3f  Acc=%.3f  Brier=%.4f  "
-                            "flood_rate=%.2f",
-                            gauge_id, m['auc_roc'], m['accuracy'],
-                            m['brier_score'], result['flood_rate'])
-
-        trained = [r for r in results if r['status'] == 'trained']
-        avg_auc = (sum(r['metrics']['auc_roc'] for r in trained)
-                   / len(trained)) if trained else 0
-
-        summary = {
-            'num_gauges': len(results),
-            'num_trained': len(trained),
-            'num_skipped': len(results) - len(trained),
-            'avg_auc_roc': round(avg_auc, 4),
-            'gauges': results,
-        }
-
-        # Save summary
-        summary_path = self.output_dir / 'training_summary.json'
-        with open(summary_path, 'w') as f:
-            json.dump(summary, f, indent=2)
-
-        return summary
 
 
 class FloodPredictor:

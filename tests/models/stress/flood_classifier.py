@@ -21,7 +21,7 @@
 """
 Tests for models.stress.flood_classifier — FloodClassifierTrainer and FloodPredictor.
 
-Covers: train_gauge (normal, single-class skip), train_all, predict,
+Covers: train_gauge (normal, single-class skip), predict,
 predict_series, predict_surface, available_gauges.
 """
 
@@ -96,9 +96,12 @@ def vectors_file(tmp_path) -> Path:
 @pytest.fixture
 def trained_model_dir(tmp_path, vectors_file) -> Path:
     from models.stress.flood_classifier import FloodClassifierTrainer
-    trainer = FloodClassifierTrainer(vectors_file, tmp_path / "models")
-    trainer.train_all()
-    return tmp_path / "models"
+    model_dir = tmp_path / "models"
+    trainer = FloodClassifierTrainer(vectors_file, model_dir)
+    data = json.loads(vectors_file.read_text())
+    for gid, gdata in data["gauges"].items():
+        trainer.train_gauge(gid, gdata)
+    return model_dir
 
 
 # ===========================================================================
@@ -149,40 +152,6 @@ class TestFloodClassifierTrainer:
         assert result["status"] == "skipped"
         assert result["reason"] == "single_class"
 
-    def test_train_all_returns_summary(self, tmp_path, vectors_file):
-        from models.stress.flood_classifier import FloodClassifierTrainer
-        trainer = FloodClassifierTrainer(vectors_file, tmp_path / "models")
-        summary = trainer.train_all()
-        assert "num_gauges" in summary
-        assert "num_trained" in summary
-        assert summary["num_gauges"] >= 1
-
-    def test_train_all_creates_summary_file(self, tmp_path, vectors_file):
-        from models.stress.flood_classifier import FloodClassifierTrainer
-        model_dir = tmp_path / "models"
-        trainer = FloodClassifierTrainer(vectors_file, model_dir)
-        trainer.train_all()
-        assert (model_dir / "training_summary.json").exists()
-
-    def test_train_all_avg_auc_in_range(self, tmp_path, vectors_file):
-        from models.stress.flood_classifier import FloodClassifierTrainer
-        trainer = FloodClassifierTrainer(vectors_file, tmp_path / "models")
-        summary = trainer.train_all()
-        assert 0.0 <= summary["avg_auc_roc"] <= 1.0
-
-    def test_train_all_with_mixed_gauges(self, tmp_path):
-        """Some gauges trained, some skipped."""
-        from models.stress.flood_classifier import FloodClassifierTrainer
-        data = {**_make_vectors(), **{"gauges": {
-            **_make_vectors()["gauges"],
-            **_make_single_class_vectors()["gauges"],
-        }}}
-        vectors_path = tmp_path / "mixed.json"
-        vectors_path.write_text(json.dumps(data))
-        trainer = FloodClassifierTrainer(vectors_path, tmp_path / "models")
-        summary = trainer.train_all()
-        assert summary["num_trained"] >= 1
-        assert summary["num_skipped"] >= 1
 
 
 # ===========================================================================

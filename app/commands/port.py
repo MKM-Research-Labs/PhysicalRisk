@@ -42,10 +42,8 @@ def register_parser(subparsers):
     sp.add_argument("--blotter", "--bl", action="store_true")
     sp.add_argument("--stressm", action="store_true",
                     help="Multi-storm stress test (sequence-based, replaces --stress)")
-    sp.add_argument("--stress-vectors", "--sv", action="store_true",
-                    help="Build stress vectors for classifier training")
     sp.add_argument("--gauge-id", "--gid", type=str, default=None,
-                    help="Restrict --stressm/--stress-vectors to a single gauge ID")
+                    help="Restrict --stressm to a single gauge ID")
     sp.add_argument("--pdf", action="store_true",
                     help="Generate portfolio report PDF after generation")
     sp.add_argument("--all", "-a", action="store_true", help="Run all segments")
@@ -102,7 +100,7 @@ def cmd_port(args):
         args.gauges, args.properties, args.mortgages,
         args.gaugets, args.gaugehd, args.hazard,
         args.propertyts, args.propertyhc, args.counterparties,
-        args.blotter, args.stressm, args.stress_vectors,
+        args.blotter, args.stressm,
     ]
     run_all = args.all or not any(segment_flags)
     
@@ -334,29 +332,6 @@ def cmd_port(args):
                     print(f"  ⚠ Dependencies require update: {', '.join(stale)}")
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
-        print()
-
-    # Step 5b: Build stress vectors (training data for classifier)
-    if (run_all and not args.nostress) or args.stress_vectors:
-        sv_dir = config.get_stress_vectors_dir()
-        print("5b. Building Stress Vectors...")
-        from port.src.stress_vectors import generate_stress_vectors
-        t_step = time.time()
-        sv_summary = generate_stress_vectors(
-            input_dir=output_dir,
-            output_dir=sv_dir,
-            count=args.num_storms,
-            catchment_id=catchment,
-            seed=42,
-            gauge_id=args.gauge_id,
-            verbose=args.verbose,
-        )
-        elapsed_step = time.time() - t_step
-        n_sv = sv_summary["num_gauges"]
-        total_v = sv_summary["total_vectors"]
-        print(f"  {n_sv} gauges  |  {total_v:,} total vectors  →  stress_vectors/  "
-              f"({elapsed_step / 60:.1f} min)")
-        print(f"  Train classifiers: python3 app.py classifier --all")
         print()
 
     if run_all or args.hazard:
