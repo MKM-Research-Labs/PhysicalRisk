@@ -461,7 +461,16 @@ def cmd_test(args):
         )
 
         # ------------------------------------------------------------------
-        # 7c. Generate full consolidated audit report
+        # 7c. Generate data lineage report (BCBS 239)
+        # ------------------------------------------------------------------
+        print('\nGenerating data lineage report (BCBS 239)...')
+        sp.run(
+            [sys.executable, '-m', 'docs.models.data_lineage'],
+            cwd=str(project_root),
+        )
+
+        # ------------------------------------------------------------------
+        # 7d. Generate full consolidated audit report
         # ------------------------------------------------------------------
         print('\nGenerating full audit report...')
         sp.run(
@@ -488,6 +497,7 @@ def cmd_test(args):
         ('Large Test Report TXT',  os.path.join(audit_dir, 'large_test_report.txt')),
         ('Code Duplication PDF',   os.path.join(audit_dir, 'code_duplication_report.pdf')),
         ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
+        ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
         ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
     ]
     for label, path in artefacts:
