@@ -142,6 +142,26 @@ def _get_setup_js() -> str:
             }
 
             function loadPortStressData() {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+
+                // Check classifier readiness before loading storms
+                fetch(baseUrl + '/api/v1/trading/classifiers/readiness', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.status === 'success' && !data.ready) {
+                            _psShowClassifierGate(data);
+                            return;
+                        }
+                        _psLoadStorms();
+                    })
+                    .catch(function() {
+                        // If readiness check fails, proceed anyway
+                        _psLoadStorms();
+                    });
+            }
+
+            function _psLoadStorms() {
                 if (window._tdPrePortStorms) {
                     var cached = window._tdPrePortStorms;
                     window._tdPrePortStorms = null;
@@ -156,6 +176,95 @@ def _get_setup_js() -> str:
                     .catch(function(err) {
                         console.error('[PortStress] Storm list error:', err);
                     });
+            }
+
+            function _psShowClassifierGate(data) {
+                var content = document.getElementById('ps-content');
+                if (!content) return;
+
+                var trained = data.trained || 0;
+                var total = data.total || 0;
+                var missing = data.missing || 0;
+
+                content.innerHTML =
+                    '<div style="text-align:center;padding:60px 40px;max-width:480px;margin:0 auto;">' +
+                    '<div style="font-size:36px;margin-bottom:16px;">\\u26a0\\ufe0f</div>' +
+                    '<div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">' +
+                    'Classifiers Required</div>' +
+                    '<div style="font-size:12px;color:#666;margin-bottom:20px;line-height:1.5;">' +
+                    'Portfolio stress requires a trained flood classifier for every gauge. ' +
+                    'Currently <b>' + trained + ' of ' + total + '</b> gauges have classifiers ' +
+                    '(' + missing + ' missing).</div>' +
+                    '<button id="ps-train-all-btn" style="padding:8px 24px;font-size:12px;font-weight:600;' +
+                    'background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;">' +
+                    'Train All Classifiers</button>' +
+                    '<div id="ps-train-progress" style="margin-top:16px;font-size:11px;color:#666;display:none;"></div>' +
+                    '</div>';
+
+                // Hide the storm selector bar — not relevant until classifiers are ready
+                var stormBar = document.getElementById('ps-storm-bar');
+                if (stormBar) stormBar.style.display = 'none';
+
+                var btn = document.getElementById('ps-train-all-btn');
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        _psStartTrainAll(btn);
+                    });
+                }
+            }
+
+            function _psStartTrainAll(btn) {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                btn.disabled = true;
+                btn.textContent = 'Training\\u2026';
+                btn.style.background = '#90a4ae';
+
+                var progress = document.getElementById('ps-train-progress');
+                if (progress) progress.style.display = 'block';
+
+                fetch(baseUrl + '/api/v1/trading/classifiers/train-all', {
+                    method: 'POST',
+                    mode: 'cors'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.status === 'complete') {
+                        // All already trained — reload
+                        loadPortStressData();
+                        return;
+                    }
+                    // Poll for completion
+                    var pollId = setInterval(function() {
+                        fetch(baseUrl + '/api/v1/trading/classifiers/train-all/status', {mode: 'cors'})
+                            .then(function(r) { return r.json(); })
+                            .then(function(st) {
+                                if (progress) {
+                                    var msg = st.completed + '/' + st.total + ' trained';
+                                    if (st.current_gauge_id) msg += ' \\u2014 ' + st.current_gauge_id;
+                                    if (st.eta_seconds > 0) {
+                                        if (st.eta_seconds < 60) msg += ' (ETA ' + Math.round(st.eta_seconds) + 's)';
+                                        else msg += ' (ETA ' + (st.eta_seconds / 60).toFixed(1) + 'm)';
+                                    }
+                                    progress.textContent = msg;
+                                }
+                                if (st.status === 'complete') {
+                                    clearInterval(pollId);
+                                    // Restore storm bar and reload
+                                    var stormBar = document.getElementById('ps-storm-bar');
+                                    if (stormBar) stormBar.style.display = 'flex';
+                                    loadPortStressData();
+                                }
+                            })
+                            .catch(function() { clearInterval(pollId); });
+                    }, 5000);
+                })
+                .catch(function(err) {
+                    console.error('[PortStress] Train-all error:', err);
+                    btn.disabled = false;
+                    btn.textContent = 'Train All Classifiers';
+                    btn.style.background = '#1976d2';
+                });
             }
 
             function psStormChanged() {

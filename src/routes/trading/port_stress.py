@@ -43,6 +43,12 @@ logger = logging.getLogger(__name__)
 _stressm_predictor_cache = None
 
 
+def invalidate_stressm_predictor():
+    """Clear the cached predictor (call after classifier clear/retrain)."""
+    global _stressm_predictor_cache
+    _stressm_predictor_cache = None
+
+
 def _get_stressm_predictor():
     """Load and cache FloodPredictor — tries stressm first, falls back to stress."""
     global _stressm_predictor_cache
