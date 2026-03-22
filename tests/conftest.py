@@ -24,7 +24,8 @@ Pytest configuration for MKM Research Labs PRS Platform.
 Submodules are in tests/conftest/:
   collection.py       — pytest_collect_file hook and non-prefixed dir registry
   data.py             — SAMPLE_* test data constants
-  fixtures_files.py   — temp dir and portfolio file fixtures
+  fixtures_files_basic.py    — temp dir and basic portfolio file fixtures
+  fixtures_files_advanced.py — advanced data dir fixtures (propertyts, hazard curves, storms)
   fixtures_loaders.py — data loader fixtures
   fixtures_flask.py   — Flask app and test client fixtures
   helpers.py          — assertion helpers and file utilities
@@ -51,7 +52,7 @@ from data import (  # noqa: F401, E402
     SAMPLE_TIMESERIES, SAMPLE_STORM,
 )
 
-from fixtures_files import (  # noqa: F401, E402
+from fixtures_files_basic import (  # noqa: F401, E402
     temp_data_dir,
     sample_property_file,
     sample_mortgage_file,
@@ -59,6 +60,9 @@ from fixtures_files import (  # noqa: F401, E402
     sample_timeseries_file,
     sample_storm_file,
     populated_data_dir,
+)
+
+from fixtures_files_advanced import (  # noqa: F401, E402
     sample_propertyts_dir,
     sample_propertyhc_file,
     sample_gaugehc_file,
