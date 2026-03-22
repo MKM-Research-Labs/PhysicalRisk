@@ -141,6 +141,7 @@ MODEL_INFO = {
     'MKM-SS-001': {'name': 'Storm Sequence Generator',          'dir': 'storm_multi'},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
+    'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
     'PLATFORM':   {'name': 'Platform Infrastructure',           'dir': None},
 }
 
@@ -150,4 +151,5 @@ MODEL_ALIASES = {
     'PR': 'MKM-PR-001', 'DD': 'MKM-DD-001', 'SP': 'MKM-SP-001',
     'PV': 'MKM-PV-001', 'IP': 'MKM-IP-001', 'MP': 'MKM-MP-001',
     'RA': 'MKM-RA-001', 'FC': 'MKM-FC-001', 'SS': 'MKM-SS-001', 'TD': 'MKM-TD-001',
+    'E2E': 'E2E-ALL',
 }
