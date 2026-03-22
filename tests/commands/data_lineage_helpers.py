@@ -101,6 +101,32 @@ SAMPLE_LINEAGE_RESULTS = {
     ],
 }
 
+SAMPLE_LINEAGE_RESULTS_STALE = {
+    "total": 19,
+    "passed": 15,
+    "failed": 1,
+    "skipped": 3,
+    "failures": [
+        {
+            "name": "test_no_stale_inputs",
+            "message": "1 pipeline steps have stale inputs: ['propertyhc']",
+        },
+    ],
+}
+
+SAMPLE_LINEAGE_RESULTS_MULTI_FAIL = {
+    "total": 19,
+    "passed": 9,
+    "failed": 10,
+    "skipped": 0,
+    "failures": [
+        {"name": "test_no_stale_inputs",
+         "message": "2 pipeline steps have stale inputs"},
+        {"name": "test_gauge_id_consistency",
+         "message": "3 orphan IDs in gaugehc.json"},
+    ],
+}
+
 SAMPLE_LINEAGE_RESULTS_CLEAN = {
     "total": 15,
     "passed": 15,

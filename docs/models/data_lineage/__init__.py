@@ -78,6 +78,128 @@ STALE_HOURS = 72   # 3 days
 RETENTION_DAYS = 365  # 1 year minimum
 
 # ---------------------------------------------------------------------------
+# Step ownership — BCBS 239 Principle 2 (clear responsibility)
+# ---------------------------------------------------------------------------
+
+STEP_OWNERS = {
+    'gauges':         'Data Engineering',
+    'properties':     'Data Engineering',
+    'mortgages':      'Data Engineering',
+    'gaugehd':        'Quantitative Analytics',
+    'stressm':        'Quantitative Analytics',
+    'hazard':         'Quantitative Analytics',
+    'propertyts':     'Quantitative Analytics',
+    'propertyhc':     'Quantitative Analytics',
+    'counterparties': 'Data Engineering',
+    'blotter':        'Trading / Risk',
+}
+
+# ---------------------------------------------------------------------------
+# BCBS principle mapping for reconciliation checks
+# ---------------------------------------------------------------------------
+
+FAILURE_METADATA = {
+    'test_gauge_id_consistency': {
+        'principle': 'P3 (Accuracy)',
+        'description': 'Every gauge in gauge.json has a matching hazard curve; '
+                       'no orphan IDs in gaugehc.json.',
+        'remediation': 'Re-run python app.py port to regenerate gauge and '
+                       'hazard curve data.',
+    },
+    'test_trade_gauge_references': {
+        'principle': 'P3, P4 (Completeness)',
+        'description': 'Every traded gauge_id exists in the gauge master file.',
+        'remediation': 'Re-run python app.py port to regenerate trade blotter '
+                       'with current gauge data.',
+    },
+    'test_trade_hazard_curves': {
+        'principle': 'P3, P4 (Completeness)',
+        'description': 'Every traded gauge_id has an associated hazard curve.',
+        'remediation': 'Re-run python app.py port to regenerate hazard curves.',
+    },
+    'test_property_id_consistency': {
+        'principle': 'P3 (Accuracy)',
+        'description': 'Property time-series files reference valid property IDs.',
+        'remediation': 'Re-run python app.py port to regenerate property '
+                       'time-series.',
+    },
+    'test_storm_id_consistency': {
+        'principle': 'P3 (Accuracy)',
+        'description': 'All storm IDs in time-series originate from storm '
+                       'sequences.',
+        'remediation': 'Re-run python app.py port to regenerate stress/storm '
+                       'data.',
+    },
+    'test_classifier_gauge_alignment': {
+        'principle': 'P3, P7 (Comprehensiveness)',
+        'description': 'Classifier model files reference current gauge IDs.',
+        'remediation': 'Retrain classifiers via the gauge classifier UI.',
+    },
+    'test_manifest_hash_verification': {
+        'principle': 'P3 (Integrity)',
+        'description': 'Recorded output hashes match current file content on '
+                       'disk.',
+        'remediation': 'Re-run the affected pipeline step to update manifest '
+                       'hashes.',
+    },
+    'test_no_stale_inputs': {
+        'principle': 'P3, P6 (Timeliness)',
+        'description': 'No pipeline step consumes data older than the '
+                       f'configured {STALE_HOURS}-hour staleness threshold.',
+        'remediation': 'Re-run python app.py port to regenerate stale inputs '
+                       'before using these data for risk reporting.',
+    },
+    'test_deterministic_ids': {
+        'principle': 'P3, P7 (Clarity)',
+        'description': 'Gauge IDs are derived from location, not randomly '
+                       'generated.',
+        'remediation': 'Regenerate gauge data with deterministic ID scheme.',
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Overall verdict helpers
+# ---------------------------------------------------------------------------
+
+def _compute_verdict(chain_result: dict, lineage_results: dict) -> str:
+    """Derive overall BCBS 239 verdict from chain + test results.
+
+    Most conservative status wins.
+    """
+    chain_ok = chain_result.get('is_consistent', False)
+    tests_failed = lineage_results.get('failed', 0)
+    tests_total = lineage_results.get('total', 0)
+    missing = len(chain_result.get('missing_steps', []))
+
+    if chain_ok and tests_failed == 0 and tests_total > 0 and missing == 0:
+        return 'COMPLIANT'
+    if not chain_ok or missing > 0 or (tests_total > 0 and
+                                        tests_failed > tests_total * 0.5):
+        return 'NON-COMPLIANT'
+    return 'PARTIALLY COMPLIANT'
+
+
+def _compute_health(chain_result: dict, lineage_results: dict) -> str:
+    """Pipeline health badge — worst-case wins."""
+    chain_ok = chain_result.get('is_consistent', False)
+    tests_failed = lineage_results.get('failed', 0)
+    tests_total = lineage_results.get('total', 0)
+    stale = len(chain_result.get('stale_steps', []))
+
+    if chain_ok and tests_failed == 0 and stale == 0:
+        return 'CONSISTENT'
+    if not chain_ok:
+        return 'INCONSISTENT'
+    return 'DEGRADED'
+
+
+def _health_colour(health: str):
+    """Colour for pipeline health badge."""
+    return {'CONSISTENT': GREEN, 'DEGRADED': AMBER,
+            'INCONSISTENT': RED}.get(health, RED)
+
+
+# ---------------------------------------------------------------------------
 # Data collection
 # ---------------------------------------------------------------------------
 
@@ -265,8 +387,9 @@ def _build_cover(data: dict, story: list, S: dict):
     story.append(Spacer(1, 0.3 * inch))
 
     chain = data['chain_result']
-    health = 'CONSISTENT' if chain['is_consistent'] else 'ACTION REQUIRED'
-    health_col = GREEN if chain['is_consistent'] else RED
+    lr = data.get('lineage_results', {})
+    health = _compute_health(chain, lr)
+    health_col = _health_colour(health)
 
     story.append(Paragraph(
         f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
@@ -355,6 +478,42 @@ def _build_exec_summary(data: dict, story: list, S: dict):
     tbl.setStyle(ts)
     story.append(tbl)
 
+    # Overall BCBS 239 verdict
+    verdict = _compute_verdict(chain, lr)
+    verdict_col = (GREEN if verdict == 'COMPLIANT' else
+                   AMBER if verdict == 'PARTIALLY COMPLIANT' else RED)
+
+    story.append(Spacer(1, 0.15 * inch))
+    verdict_data = [
+        ['Overall BCBS 239 Data Lineage Verdict'],
+        [verdict],
+    ]
+    v_tbl = Table(verdict_data, colWidths=[4.5 * inch])
+    v_tbl.setStyle(TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, 0), NAVY),
+        ('TEXTCOLOR',     (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME',      (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE',      (0, 0), (0, 0), 9),
+        ('FONTSIZE',      (0, 1), (0, 1), 14),
+        ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
+        ('TEXTCOLOR',     (0, 1), (0, 1), verdict_col),
+        ('BACKGROUND',    (0, 1), (0, 1), colors.HexColor('#FAFAFA')),
+        ('BOX',           (0, 0), (-1, -1), 1, NAVY),
+        ('TOPPADDING',    (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(v_tbl)
+
+    # Run history summary
+    if data.get('num_runs', 0) > 0:
+        story.append(Spacer(1, 0.1 * inch))
+        story.append(Paragraph(
+            f"<b>Run History:</b> {data['num_runs']} pipeline executions "
+            f"recorded in manifest. BCBS 239 emphasises ongoing capability, "
+            f"not single-run compliance; a sustained history of successful "
+            f"runs demonstrates operational reliability.",
+            S['note']))
+
     story.append(Spacer(1, 0.15 * inch))
     story.append(Paragraph(
         "This report addresses the following BCBS 239 requirements:<br/>"
@@ -384,15 +543,17 @@ def _build_topology(data: dict, story: list, S: dict):
     story.append(Spacer(1, 0.1 * inch))
 
     # Dependency table
-    topo_data = [['Step', 'Depends On', 'Inputs', 'Outputs']]
+    topo_data = [['Step', 'Depends On', 'Inputs', 'Outputs', 'Owner']]
     for sd in data['step_details']:
         deps = ', '.join(sd['dependencies']) if sd['dependencies'] else '(root)'
         inputs = ', '.join(sd['inputs']) if sd['inputs'] else '(none)'
         outputs = ', '.join(sd['outputs']) if sd['outputs'] else '(none)'
-        topo_data.append([sd['step'], deps, inputs, outputs])
+        owner = STEP_OWNERS.get(sd['step'], '\u2014')
+        topo_data.append([sd['step'], deps, inputs, outputs, owner])
 
     tbl = Table(topo_data,
-                colWidths=[1.3 * inch, 1.5 * inch, 1.8 * inch, 1.9 * inch])
+                colWidths=[1.1 * inch, 1.3 * inch, 1.5 * inch,
+                           1.6 * inch, 1.0 * inch])
     tbl.setStyle(_header_style())
     story.append(tbl)
 
@@ -494,39 +655,50 @@ def _build_reconciliation(data: dict, story: list, S: dict):
 
     # Reconciliation checks documented
     recon_checks = [
-        ['Check', 'Files Reconciled', 'Validation Rule'],
+        ['Check', 'Files Reconciled', 'Validation Rule',
+         'BCBS Principle(s)'],
         ['Gauge ID consistency',
          'gauge.json \u2194 gaugehc.json',
          'Every gauge in gauge.json has a matching hazard curve; '
-         'no orphan IDs in gaugehc.json'],
+         'no orphan IDs in gaugehc.json',
+         'P3 (Accuracy)'],
         ['Trade gauge references',
          'prs/*.json \u2194 gauge.json',
-         'Every traded gauge_id exists in the gauge master file'],
+         'Every traded gauge_id exists in the gauge master file',
+         'P3, P4 (Completeness)'],
         ['Trade hazard curves',
          'prs/*.json \u2194 gaugehc.json',
-         'Every traded gauge_id has an associated hazard curve'],
+         'Every traded gauge_id has an associated hazard curve',
+         'P3, P4 (Completeness)'],
         ['Property ID consistency',
          'property.json \u2194 propertyts/',
-         'Property time-series files reference valid property IDs'],
+         'Property time-series files reference valid property IDs',
+         'P3 (Accuracy)'],
         ['Storm ID consistency',
          'storm_sequences.json \u2194 gaugets/ \u2194 propertyts/',
-         'All storm IDs in time-series originate from storm sequences'],
+         'All storm IDs in time-series originate from storm sequences',
+         'P3 (Accuracy)'],
         ['Classifier gauge alignment',
          'GAUGE-*.joblib \u2194 gauge.json',
-         'Classifier model files reference current gauge IDs'],
+         'Classifier model files reference current gauge IDs',
+         'P3, P7 (Comprehensiveness)'],
         ['Manifest hash verification',
          'data_lineage.json \u2194 filesystem',
-         'Recorded output hashes match current file content on disk'],
+         'Recorded output hashes match current file content on disk',
+         'P3 (Integrity)'],
         ['Dependency chain integrity',
          'data_lineage.json (all steps)',
-         'No step has stale inputs; all upstream steps are recorded'],
+         'No step has stale inputs; all upstream steps are recorded',
+         'P3, P6 (Timeliness)'],
         ['Deterministic IDs',
          'gauge.json',
-         'Gauge IDs are derived from location, not randomly generated'],
+         'Gauge IDs are derived from location, not randomly generated',
+         'P3, P7 (Clarity)'],
     ]
 
     tbl = Table(recon_checks,
-                colWidths=[1.6 * inch, 1.6 * inch, 3.3 * inch])
+                colWidths=[1.4 * inch, 1.3 * inch, 2.4 * inch,
+                           1.4 * inch])
     tbl.setStyle(_header_style())
     story.append(tbl)
 
@@ -558,7 +730,7 @@ def _build_reconciliation(data: dict, story: list, S: dict):
         rtbl.setStyle(rts)
         story.append(rtbl)
 
-        # Show failures if any
+        # Show failures with structured BCBS breakdown
         failures = lr.get('failures', [])
         if failures:
             story.append(Spacer(1, 0.1 * inch))
@@ -566,10 +738,29 @@ def _build_reconciliation(data: dict, story: list, S: dict):
             for f in failures[:15]:
                 name = f.get('name', 'unknown')
                 msg = f.get('message', '')
-                if len(msg) > 150:
-                    msg = msg[:150] + '...'
-                story.append(Paragraph(
-                    f"&bull; <b>{name}:</b> {msg}", S['note']))
+                if len(msg) > 200:
+                    msg = msg[:200] + '...'
+                meta = FAILURE_METADATA.get(name)
+                if meta:
+                    fail_data = [
+                        ['Property', 'Detail'],
+                        ['Check', name],
+                        ['BCBS Principle', meta['principle']],
+                        ['Description', meta['description']],
+                        ['Result', msg or 'FAIL'],
+                        ['Remediation', meta['remediation']],
+                    ]
+                    ftbl = Table(fail_data,
+                                 colWidths=[1.3 * inch, 5.2 * inch])
+                    fts = _header_style()
+                    fts.add('TEXTCOLOR', (1, 4), (1, 4), RED)
+                    fts.add('FONTNAME', (1, 4), (1, 4), 'Helvetica-Bold')
+                    ftbl.setStyle(fts)
+                    story.append(ftbl)
+                    story.append(Spacer(1, 0.06 * inch))
+                else:
+                    story.append(Paragraph(
+                        f"&bull; <b>{name}:</b> {msg}", S['note']))
     else:
         story.append(Spacer(1, 0.1 * inch))
         story.append(Paragraph(
@@ -712,6 +903,15 @@ def _build_retention_policy(data: dict, story: list, S: dict):
 
     story.append(Spacer(1, 0.15 * inch))
     story.append(Paragraph(
+        "<b>BCBS 239 Principle 5/6 — Reproducibility:</b> "
+        "The retention policy ensures that all data inputs, model outputs, "
+        "and lineage records are preserved for a sufficient period to "
+        "reproduce historical risk reports on demand, satisfying the BCBS 239 "
+        "requirement for timely and accurate risk data aggregation.",
+        S['body']))
+
+    story.append(Spacer(1, 0.15 * inch))
+    story.append(Paragraph(
         "<b>Archival Procedure:</b> Pipeline data older than the retention "
         "period should be archived to a separate read-only store. The "
         "lineage manifest preserves the SHA-256 hash of archived data, "
@@ -727,29 +927,89 @@ def _build_remediation(data: dict, story: list, S: dict):
     _section_rule(story)
 
     chain = data['chain_result']
+    lr = data.get('lineage_results', {})
+    verdict = _compute_verdict(chain, lr)
+    tests_failed = lr.get('failed', 0)
+    tests_skipped = lr.get('skipped', 0)
 
-    if chain['is_consistent'] and not chain.get('missing_steps'):
+    # Overall BCBS 239 assessment
+    story.append(Paragraph(
+        "<b>Overall BCBS 239 Data Lineage Assessment</b>", S['h3']))
+
+    verdict_col = (GREEN if verdict == 'COMPLIANT' else
+                   AMBER if verdict == 'PARTIALLY COMPLIANT' else RED)
+    story.append(Paragraph(
+        f"<b>Status: <font color='{verdict_col.hexval()}'>"
+        f"{verdict}</font></b>", S['body']))
+    story.append(Spacer(1, 0.08 * inch))
+
+    # Strengths
+    story.append(Paragraph(
+        "<b>Strengths:</b> Complete pipeline topology with declared "
+        "dependencies, SHA-256 hash-based provenance at every boundary, "
+        f"automated staleness threshold ({STALE_HOURS}h), "
+        "deterministic ID generation, data retention policy aligned with "
+        "FCA/PRA requirements.",
+        S['body']))
+    story.append(Spacer(1, 0.06 * inch))
+
+    # Weaknesses (only if any)
+    weaknesses = []
+    if chain.get('stale_steps'):
+        weaknesses.append(
+            f"{len(chain['stale_steps'])} stale-input failure(s): "
+            f"{', '.join(chain['stale_steps'])}")
+    if chain.get('missing_steps'):
+        weaknesses.append(
+            f"{len(chain['missing_steps'])} unrecorded step(s): "
+            f"{', '.join(chain['missing_steps'])}")
+    if tests_failed > 0:
+        weaknesses.append(
+            f"{tests_failed} reconciliation test failure(s)")
+    if tests_skipped > 0:
+        weaknesses.append(
+            f"{tests_skipped} skipped check(s)")
+
+    if weaknesses:
         story.append(Paragraph(
-            "<b>RESULT: COMPLIANT.</b> All pipeline steps are recorded, "
-            "content hashes are consistent, and no stale data detected. "
-            "No remediation required.",
+            "<b>Weaknesses:</b> " + '; '.join(weaknesses) + '.',
+            S['body']))
+        story.append(Spacer(1, 0.06 * inch))
+
+    # Run-specific conclusion
+    story.append(Spacer(1, 0.08 * inch))
+    story.append(Paragraph(
+        "<b>Run-Specific Conclusion</b>", S['h3']))
+
+    if verdict == 'COMPLIANT':
+        story.append(Paragraph(
+            "All pipeline steps are recorded, content hashes are consistent, "
+            "and all reconciliation tests pass. This run is suitable for "
+            "regulatory risk reporting.",
             S['body']))
         return
 
     story.append(Paragraph(
-        "The following remediation steps are recommended:", S['body']))
-    story.append(Spacer(1, 0.08 * inch))
+        "<b>This run is not suitable for regulatory risk reporting</b> "
+        "until the issues below are resolved and all checks pass.",
+        S['body']))
+    story.append(Spacer(1, 0.1 * inch))
+
+    # Concrete remediation steps
+    story.append(Paragraph(
+        "<b>Remediation Steps</b>", S['h3']))
 
     steps = []
     if chain.get('missing_steps'):
         steps.append(
-            f"<b>Missing steps ({len(chain['missing_steps'])}):</b> "
-            f"Run the pipeline for: {', '.join(chain['missing_steps'])}. "
+            f"<b>[P1 — High] Missing steps ({len(chain['missing_steps'])}):"
+            f"</b> Run the pipeline for: "
+            f"{', '.join(chain['missing_steps'])}. "
             f"Use <i>python app.py port</i> with the appropriate flags.")
 
     if chain.get('stale_steps'):
         steps.append(
-            f"<b>Stale data ({len(chain['stale_steps'])}):</b> "
+            f"<b>[P1 — High] Stale data ({len(chain['stale_steps'])}):</b> "
             f"Regenerate: {', '.join(chain['stale_steps'])}. "
             f"Upstream inputs have changed since these steps were last run. "
             f"Use <i>python app.py port --strict</i> to enforce freshness.")
@@ -757,11 +1017,22 @@ def _build_remediation(data: dict, story: list, S: dict):
     if chain.get('details'):
         for step_name, issues in chain['details'].items():
             for issue in issues:
-                steps.append(f"<b>{step_name}:</b> {issue}")
+                steps.append(f"<b>[P2 — Medium] {step_name}:</b> {issue}")
+
+    if tests_failed > 0:
+        failures = lr.get('failures', [])
+        for f in failures[:10]:
+            name = f.get('name', 'unknown')
+            meta = FAILURE_METADATA.get(name)
+            if meta:
+                steps.append(
+                    f"<b>[P2 — Medium] {name} ({meta['principle']}):</b> "
+                    f"{meta['remediation']}")
 
     steps.append(
-        "<b>Verify fix:</b> Run <i>python app.py test --audit</i> to "
-        "regenerate this report and confirm all checks pass.")
+        "<b>[P3 — Verify] Re-run validation:</b> Execute "
+        "<i>python app.py test --audit</i> to regenerate this report and "
+        "confirm all checks pass.")
 
     for step in steps:
         story.append(Paragraph(f"&bull; {step}", S['body']))
