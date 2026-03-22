@@ -19,6 +19,7 @@ from lineage.manifest import (
 )
 from lineage.validation import (
     check_inputs_fresh,
+    check_pipeline_complete,
     check_step_prerequisites,
     get_stale_downstream,
     validate_full_chain,
@@ -39,6 +40,7 @@ __all__ = [
     "get_current_run_id",
     "record_step",
     "check_inputs_fresh",
+    "check_pipeline_complete",
     "check_step_prerequisites",
     "get_stale_downstream",
     "validate_full_chain",

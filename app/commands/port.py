@@ -44,8 +44,6 @@ def register_parser(subparsers):
                     help="Multi-storm stress test (sequence-based, replaces --stress)")
     sp.add_argument("--gauge-id", "--gid", type=str, default=None,
                     help="Restrict --stressm to a single gauge ID")
-    sp.add_argument("--train-classifiers", "--tc", action="store_true",
-                    help="Batch-train GBM classifiers for all untrained gauges (low-memory mode)")
     sp.add_argument("--pdf", action="store_true",
                     help="Generate portfolio report PDF after generation")
     sp.add_argument("--all", "-a", action="store_true", help="Run all segments")
@@ -102,7 +100,7 @@ def cmd_port(args):
         args.gauges, args.properties, args.mortgages,
         args.gaugets, args.gaugehd, args.hazard,
         args.propertyts, args.propertyhc, args.counterparties,
-        args.blotter, args.stressm, args.train_classifiers,
+        args.blotter, args.stressm,
     ]
     run_all = args.all or not any(segment_flags)
     
@@ -277,6 +275,19 @@ def cmd_port(args):
         from port.src.stressm import generate_stressm, GAUGE_SUMMARY_FILENAME
         from port.src.storm_multi.utils.serialization import SEQUENCES_FILENAME, SUMMARY_FILENAME
 
+        # Clean stale classifiers — they were trained against old storm data
+        # and will fail to load with "not a known BitGenerator module" errors
+        from pathlib import Path as _Path
+        _stressm_dir = _Path(config.get_stressm_dir())
+        _stale_joblibs = list(_stressm_dir.glob("*.joblib"))
+        if _stale_joblibs:
+            print(f"  Cleaning {len(_stale_joblibs)} stale classifier(s) from stressm/...")
+            for jf in _stale_joblibs:
+                jf.unlink()
+            _summary_path = _stressm_dir / "training_summary.json"
+            if _summary_path.exists():
+                _summary_path.unlink()
+
         t_step = time.time()
         summary = generate_stressm(
             input_dir=output_dir,
@@ -334,23 +345,6 @@ def cmd_port(args):
                     print(f"  ⚠ Dependencies require update: {', '.join(stale)}")
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
-        print()
-
-    if args.train_classifiers:
-        print("5b. Batch Classifier Training (low-memory mode)...")
-        from port.src.stressm.batch_train import batch_train_classifiers
-        t_step = time.time()
-        tc_result = batch_train_classifiers(
-            input_dir=output_dir,
-            output_dir=config.get_output_dir(),
-            seed=42,
-            verbose=args.verbose,
-        )
-        elapsed_step = time.time() - t_step
-        print(f"   Trained: {tc_result['trained']}  "
-              f"Skipped: {tc_result['skipped']}  "
-              f"Failed: {tc_result['failed']}  "
-              f"({elapsed_step / 60:.1f} min)")
         print()
 
     if run_all or args.hazard:
