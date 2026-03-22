@@ -144,8 +144,10 @@ FAILURE_METADATA = {
     },
     'test_no_stale_inputs': {
         'principle': 'P3, P6 (Timeliness)',
-        'description': 'No pipeline step consumes data older than the '
-                       f'configured {STALE_HOURS}-hour staleness threshold.',
+        'description': 'No pipeline step consumes inputs whose SHA-256 hash '
+                       'differs from the upstream producer\'s current output '
+                       'hash — i.e. upstream data has not changed since this '
+                       'step last ran.',
         'remediation': 'Re-run python app.py port to regenerate stale inputs '
                        'before using these data for risk reporting.',
     },
@@ -576,16 +578,20 @@ def _build_quality_metrics(data: dict, story: list, S: dict):
         "<b>BCBS 239 Principle 3 — Accuracy &amp; Integrity:</b> "
         "Data quality is monitored through three complementary mechanisms:"
         "<br/><br/>"
-        "<b>a) Content-hash verification:</b> Every pipeline step records "
-        "SHA-256 hashes of its inputs and outputs. Downstream consumers "
-        "compare their input hashes against the upstream producer's output "
-        "hash to detect drift.<br/><br/>"
+        "<b>a) Content-hash freshness:</b> Every pipeline step records "
+        "SHA-256 hashes of its inputs and outputs at execution time. "
+        "A step is marked <b>STALE</b> when the hash it recorded for an "
+        "input no longer matches the current output hash from the upstream "
+        "producer — i.e. the upstream data has been regenerated since this "
+        "step last ran. The <i>Freshness</i> column below reflects this "
+        "hash-based check.<br/><br/>"
         "<b>b) Cross-file ID consistency:</b> Automated tests verify that "
         "gauge IDs, property IDs, storm IDs, and trade references are "
         "consistent across all data files in the pipeline.<br/><br/>"
-        "<b>c) Staleness monitoring:</b> A 72-hour staleness threshold "
-        "flags data that has not been refreshed, with live health checks "
-        "available via the governance API.",
+        "<b>c) Time-based staleness:</b> A separate 72-hour staleness "
+        "threshold (enforced via the governance API and the "
+        "<i>--strict</i> CLI flag) flags data that has not been refreshed "
+        "within the configured window, regardless of hash state.",
         S['body']))
     story.append(Spacer(1, 0.1 * inch))
 
