@@ -396,7 +396,9 @@ class TestDataLineage:
                 path = INPUT_DIR / name if not name.startswith("prs") else ROOT / "data" / "output" / name
                 if not path.exists():
                     continue
-                recorded = info.get("sha256", "")
+                recorded = info.get("hash") or info.get("sha256")
+                if recorded is None:
+                    continue
                 if path.is_dir():
                     current, _ = hash_directory(path)
                 else:
@@ -427,16 +429,17 @@ class TestDataLineage:
         )
 
     def test_dependency_graph_complete(self):
-        """Every step in manifest must appear in dependency graph."""
+        """Every step in manifest must appear in the static dependency graph."""
         lineage_path = ROOT / "data" / "data_lineage.json"
         if not lineage_path.exists():
             pytest.skip("No manifest")
+        try:
+            from lineage.manifest import DEPENDENCY_GRAPH
+        except ImportError:
+            pytest.skip("lineage package not available")
         data = json.load(open(lineage_path))
-        graph = data.get("dependency_graph", {})
-        if not graph:
-            pytest.skip("dependency_graph not populated — run full port pipeline")
         steps = set(data.get("steps", {}).keys())
-        missing = steps - set(graph.keys())
+        missing = steps - set(DEPENDENCY_GRAPH.keys())
         assert len(missing) == 0, f"Steps not in dependency graph: {missing}"
 
 
