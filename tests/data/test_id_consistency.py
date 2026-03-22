@@ -365,6 +365,37 @@ class TestStormIDConsistency:
         )
 
 
+class TestPipelineCompleteness:
+    """Every pipeline output must exist on disk — no skipping, no fallbacks."""
+
+    def test_all_pipeline_outputs_exist(self):
+        """FAIL if any output from STEP_IO is missing or empty on disk."""
+        from lineage.validation import check_pipeline_complete
+        result = check_pipeline_complete(INPUT_DIR)
+        if not result["complete"]:
+            lines = [
+                f"Pipeline incomplete: {len(result['missing'])} output(s) missing "
+                f"({result['present']}/{result['total']} present):"
+            ]
+            for m in result["missing"]:
+                kind = "empty directory" if m["type"] == "empty_directory" else "missing"
+                lines.append(
+                    f"  - [{m['step']}] {m['output']} ({kind})"
+                )
+            lines.append("Fix: python app.py port")
+            pytest.fail("\n".join(lines))
+
+    def test_no_empty_output_directories(self):
+        """Directories that exist but are empty are just as broken as missing."""
+        from lineage.validation import check_pipeline_complete
+        result = check_pipeline_complete(INPUT_DIR)
+        empty = [m for m in result["missing"] if m["type"] == "empty_directory"]
+        assert not empty, (
+            f"Empty output directories: "
+            + ", ".join(f"{m['step']}/{m['output']}" for m in empty)
+        )
+
+
 class TestDataLineage:
     """Data lineage manifest must be consistent (BCBS 239 P2/P3)."""
 

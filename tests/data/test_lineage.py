@@ -399,6 +399,73 @@ class TestGetStaleDownstream:
         assert "propertyts" in downstream
 
 
+class TestCheckPipelineComplete:
+    """check_pipeline_complete: verify all pipeline outputs exist on disk."""
+
+    def test_complete_pipeline(self, tmp_path):
+        """All outputs present → complete."""
+        from lineage.validation import check_pipeline_complete
+        from lineage.manifest import STEP_IO
+        # Create every output
+        for step, io in STEP_IO.items():
+            for output in io["outputs"]:
+                if output.endswith("/"):
+                    d = tmp_path / output
+                    d.mkdir(parents=True, exist_ok=True)
+                    (d / "dummy.json").write_text("{}")
+                else:
+                    (tmp_path / output).write_text("{}")
+        result = check_pipeline_complete(tmp_path)
+        assert result["complete"]
+        assert result["missing"] == []
+        assert result["present"] == result["total"]
+
+    def test_missing_file(self, tmp_path):
+        """Missing gauge.json → incomplete."""
+        from lineage.validation import check_pipeline_complete
+        # Create nothing
+        result = check_pipeline_complete(tmp_path)
+        assert not result["complete"]
+        missing_outputs = [m["output"] for m in result["missing"]]
+        assert "gauge.json" in missing_outputs
+        assert "propertyts/" in missing_outputs
+        assert "stress_storms/" in missing_outputs
+
+    def test_empty_directory_detected(self, tmp_path):
+        """Empty directory is as broken as missing."""
+        from lineage.validation import check_pipeline_complete
+        from lineage.manifest import STEP_IO
+        # Create all outputs but leave propertyts/ empty
+        for step, io in STEP_IO.items():
+            for output in io["outputs"]:
+                if output.endswith("/"):
+                    d = tmp_path / output
+                    d.mkdir(parents=True, exist_ok=True)
+                    if output != "propertyts/":
+                        (d / "dummy.json").write_text("{}")
+                else:
+                    (tmp_path / output).write_text("{}")
+        result = check_pipeline_complete(tmp_path)
+        assert not result["complete"]
+        empty = [m for m in result["missing"] if m["type"] == "empty_directory"]
+        assert len(empty) == 1
+        assert empty[0]["output"] == "propertyts/"
+        assert empty[0]["step"] == "propertyts"
+
+    def test_partial_pipeline(self, tmp_path):
+        """Only root steps present → reports downstream as missing."""
+        from lineage.validation import check_pipeline_complete
+        (tmp_path / "gauge.json").write_text("{}")
+        (tmp_path / "counterparty.json").write_text("{}")
+        result = check_pipeline_complete(tmp_path)
+        assert not result["complete"]
+        assert result["present"] == 2
+        missing_outputs = [m["output"] for m in result["missing"]]
+        assert "property.json" in missing_outputs
+        assert "stress_storms/" in missing_outputs
+        assert "propertyts/" in missing_outputs
+
+
 class TestValidateFullChain:
     """validate_full_chain: end-to-end consistency check."""
 

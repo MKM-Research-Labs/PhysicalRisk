@@ -1,3119 +1,5 @@
 [
   {
-    "timestamp": "2026-03-21T07:25:59.753033",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1347381.77,
-      "final_premium": 10256.47
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:25:59.840990",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "synthetic_generation",
-    "parameters": {
-      "gauge_id": "GAUGE-ef7f75ec",
-      "years": 5,
-      "observations": 1826
-    },
-    "context": "Synthetic timeseries generation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:25:59.886007",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "level_statistics",
-    "parameters": {
-      "gauge_id": "GAUGE-ef7f75ec",
-      "num_observations": 1826,
-      "mean_level": 1.175,
-      "max_level": 5.14
-    },
-    "context": "Gauge level statistics calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:25:59.940093",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "synthetic_generation",
-    "parameters": {
-      "gauge_id": "GAUGE-066fc60e",
-      "years": 5,
-      "observations": 1826
-    },
-    "context": "Synthetic timeseries generation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.019223",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "level_statistics",
-    "parameters": {
-      "gauge_id": "GAUGE-066fc60e",
-      "num_observations": 1826,
-      "mean_level": 1.344,
-      "max_level": 5.341
-    },
-    "context": "Gauge level statistics calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.073257",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "synthetic_generation",
-    "parameters": {
-      "gauge_id": "GAUGE-bc801f07",
-      "years": 5,
-      "observations": 1826
-    },
-    "context": "Synthetic timeseries generation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.121542",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "level_statistics",
-    "parameters": {
-      "gauge_id": "GAUGE-bc801f07",
-      "num_observations": 1826,
-      "mean_level": 2.101,
-      "max_level": 7.561
-    },
-    "context": "Gauge level statistics calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.175167",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "synthetic_generation",
-    "parameters": {
-      "gauge_id": "GAUGE-3324d948",
-      "years": 5,
-      "observations": 1826
-    },
-    "context": "Synthetic timeseries generation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.223270",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "level_statistics",
-    "parameters": {
-      "gauge_id": "GAUGE-3324d948",
-      "num_observations": 1826,
-      "mean_level": 2.174,
-      "max_level": 7.93
-    },
-    "context": "Gauge level statistics calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.276275",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "synthetic_generation",
-    "parameters": {
-      "gauge_id": "GAUGE-acc1b9cc",
-      "years": 5,
-      "observations": 1826
-    },
-    "context": "Synthetic timeseries generation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.323482",
-    "model_id": "MKM-GH-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "level_statistics",
-    "parameters": {
-      "gauge_id": "GAUGE-acc1b9cc",
-      "num_observations": 1826,
-      "mean_level": 1.189,
-      "max_level": 5.04
-    },
-    "context": "Gauge level statistics calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.491473",
-    "model_id": "MKM-DD-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "depth_damage_batch",
-    "parameters": {
-      "properties_processed": 5,
-      "properties_with_floods": 0,
-      "total_flood_events": 0,
-      "max_depth_m": 0.0,
-      "max_damage_ratio": 0.0
-    },
-    "context": "Property flood timeseries batch complete",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:00.536477",
-    "model_id": "MKM-SP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "idw_interpolation_batch",
-    "parameters": {
-      "properties_processed": 5,
-      "gauges_available": 5
-    },
-    "context": "IDW spatial interpolation batch complete",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:01.433960",
-    "model_id": "MKM-PR-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "prs_spread",
-    "parameters": {
-      "property_id": "PROP-043ec6e5",
-      "pricing_method": "floor",
-      "flood_count": 0,
-      "spread_5yr_any_bps": 2.01,
-      "base_rate": 0.0
-    },
-    "context": "Property PRS spread calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:01.509093",
-    "model_id": "MKM-PR-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "prs_spread",
-    "parameters": {
-      "property_id": "PROP-87985529",
-      "pricing_method": "floor",
-      "flood_count": 0,
-      "spread_5yr_any_bps": 2.01,
-      "base_rate": 0.0
-    },
-    "context": "Property PRS spread calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:01.550398",
-    "model_id": "MKM-PR-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "prs_spread",
-    "parameters": {
-      "property_id": "PROP-bad57fd0",
-      "pricing_method": "floor",
-      "flood_count": 0,
-      "spread_5yr_any_bps": 2.01,
-      "base_rate": 0.0
-    },
-    "context": "Property PRS spread calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:01.593806",
-    "model_id": "MKM-PR-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "prs_spread",
-    "parameters": {
-      "property_id": "PROP-d5fa768a",
-      "pricing_method": "floor",
-      "flood_count": 0,
-      "spread_5yr_any_bps": 2.01,
-      "base_rate": 0.0
-    },
-    "context": "Property PRS spread calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:01.641618",
-    "model_id": "MKM-PR-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "prs_spread",
-    "parameters": {
-      "property_id": "PROP-dcc15452",
-      "pricing_method": "floor",
-      "flood_count": 0,
-      "spread_5yr_any_bps": 2.01,
-      "base_rate": 0.0
-    },
-    "context": "Property PRS spread calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:01.967312",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 48.0,
-      "final_value": 192931.09
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.010892",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 48.0,
-      "final_value": 197616.89
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.054538",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 192931.09,
-      "final_premium": 447.57
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.096188",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 78.7,
-      "final_value": 503477.97
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.140963",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 78.7,
-      "final_value": 648787.63
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.183665",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 503477.97,
-      "final_premium": 1561.14
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.226432",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 166.8,
-      "final_value": 687025.92
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.268332",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 166.8,
-      "final_value": 1228094.76
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.311927",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 687025.92,
-      "final_premium": 4707.02
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.356933",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 167.9,
-      "final_value": 2263999.51
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.397716",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 167.9,
-      "final_value": 2608826.5
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.443998",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2263999.51,
-      "final_premium": 9461.18
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.489331",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 154.9,
-      "final_value": 1930450.3
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.530432",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 154.9,
-      "final_value": 1494729.3
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.590646",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1930450.3,
-      "final_premium": 8876.37
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.638065",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 130.8,
-      "final_value": 803051.35
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.683347",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 130.8,
-      "final_value": 750870.68
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.727502",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 803051.35,
-      "final_premium": 2833.6
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.773879",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 176.7,
-      "final_value": 1791871.92
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.815812",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 176.7,
-      "final_value": 1533774.04
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.859785",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1791871.92,
-      "final_premium": 6766.21
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.932000",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 51.3,
-      "final_value": 313814.15
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:02.981513",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 51.3,
-      "final_value": 327642.97
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.030837",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 313814.15,
-      "final_premium": 1302.13
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.073976",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 146.7,
-      "final_value": 613672.62
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.115769",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 146.7,
-      "final_value": 1268766.6
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.160764",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 613672.62,
-      "final_premium": 1823.8
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.204761",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 183.5,
-      "final_value": 1261194.62
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.245964",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 183.5,
-      "final_value": 1233764.72
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.290045",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1261194.62,
-      "final_premium": 5464.0
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.333223",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 171.2,
-      "final_value": 2480767.61
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.377111",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 171.2,
-      "final_value": 1328631.23
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.422561",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2480767.61,
-      "final_premium": 20000
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.464637",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 140.5,
-      "final_value": 1384099.95
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.507400",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 140.5,
-      "final_value": 1202194.41
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.548929",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1384099.95,
-      "final_premium": 9535.17
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.593867",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 199.8,
-      "final_value": 1971971.61
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.638008",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 199.8,
-      "final_value": 1228981.57
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.678370",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1971971.61,
-      "final_premium": 12273.06
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.724034",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 275.9,
-      "final_value": 2658008.22
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.766041",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 275.9,
-      "final_value": 1523854.41
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.809612",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2658008.22,
-      "final_premium": 15810.76
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.856064",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 103.1,
-      "final_value": 683686.05
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.899006",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 103.1,
-      "final_value": 622135.42
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:03.978359",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 683686.05,
-      "final_premium": 1997.98
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.021633",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 122.9,
-      "final_value": 1182621.06
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.068313",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 122.9,
-      "final_value": 669949.67
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.113935",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1182621.06,
-      "final_premium": 4683.3
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.156815",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 142.5,
-      "final_value": 1329312.84
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.198622",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 142.5,
-      "final_value": 1259544.31
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.242688",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1329312.84,
-      "final_premium": 11980.4
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.323490",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 166.2,
-      "final_value": 2023492.69
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.364728",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 166.2,
-      "final_value": 2325962.85
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.408788",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2023492.69,
-      "final_premium": 11797.71
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.452663",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 155.9,
-      "final_value": 761225.32
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.493955",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 155.9,
-      "final_value": 1300771.21
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.538453",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 761225.32,
-      "final_premium": 3606.58
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.580598",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 177.3,
-      "final_value": 1399680.6
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.626660",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 177.3,
-      "final_value": 1077836.31
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.689162",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1399680.6,
-      "final_premium": 11408.85
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.738468",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 198.8,
-      "final_value": 2410449.84
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.784485",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 198.8,
-      "final_value": 2510209.43
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.829888",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2410449.84,
-      "final_premium": 14045.66
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.876573",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 161.4,
-      "final_value": 2356357.36
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.923326",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 161.4,
-      "final_value": 1234529.05
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:04.999360",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2356357.36,
-      "final_premium": 20000
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.045535",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 195.7,
-      "final_value": 1778094.82
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.091088",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 195.7,
-      "final_value": 1669286.31
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.137231",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1778094.82,
-      "final_premium": 6735.42
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.180246",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 115.8,
-      "final_value": 820524.84
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.225348",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 115.8,
-      "final_value": 1162976.62
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.269781",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 820524.84,
-      "final_premium": 2886.55
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.313817",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 243.9,
-      "final_value": 1957357.0
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.359929",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 243.9,
-      "final_value": 2235612.58
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.405888",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1957357.0,
-      "final_premium": 15923.76
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.452746",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 189.7,
-      "final_value": 2177577.54
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.498768",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 189.7,
-      "final_value": 2421860.73
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.543663",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2177577.54,
-      "final_premium": 10963.88
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.592234",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 189.2,
-      "final_value": 1290678.47
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.647705",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 189.2,
-      "final_value": 2085596.14
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.696707",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1290678.47,
-      "final_premium": 7428.23
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.741433",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 174.0,
-      "final_value": 756044.83
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.785395",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 174.0,
-      "final_value": 1324052.76
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.828559",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 756044.83,
-      "final_premium": 2452.88
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.873510",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 132.3,
-      "final_value": 819169.64
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.916649",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 132.3,
-      "final_value": 580348.63
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:05.961910",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 819169.64,
-      "final_premium": 4309.4
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.036417",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 199.7,
-      "final_value": 1732219.43
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.081858",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 199.7,
-      "final_value": 1602364.66
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.133072",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1732219.43,
-      "final_premium": 7337.48
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.206981",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 140.5,
-      "final_value": 1176926.74
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.253116",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 140.5,
-      "final_value": 563163.22
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.298259",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1176926.74,
-      "final_premium": 6185.23
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.346804",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 370.4,
-      "final_value": 4174015.12
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.393287",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 370.4,
-      "final_value": 2805069.7
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.439645",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 4174015.12,
-      "final_premium": 20000
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.484698",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 131.5,
-      "final_value": 1455955.27
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.530230",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 131.5,
-      "final_value": 974819.3
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.576200",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1455955.27,
-      "final_premium": 5789.44
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.623239",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 99.7,
-      "final_value": 943868.79
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.668563",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 99.7,
-      "final_value": 379644.81
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.714862",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 943868.79,
-      "final_premium": 6888.38
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.761610",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 151.3,
-      "final_value": 1066998.46
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.808245",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 151.3,
-      "final_value": 1521906.24
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.854101",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1066998.46,
-      "final_premium": 1923.92
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.902099",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 111.8,
-      "final_value": 1078724.03
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.945838",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 111.8,
-      "final_value": 1551320.51
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:06.992738",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1078724.03,
-      "final_premium": 4050.58
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.067001",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 196.2,
-      "final_value": 1041469.15
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.112173",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 196.2,
-      "final_value": 584993.04
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.159262",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1041469.15,
-      "final_premium": 4476.67
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.204924",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 98.9,
-      "final_value": 454946.58
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.248640",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 98.9,
-      "final_value": 515218.96
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.295226",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 454946.58,
-      "final_premium": 1737.8
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.341064",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 245.3,
-      "final_value": 2178912.61
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.385182",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 245.3,
-      "final_value": 2183003.38
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.463722",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2178912.61,
-      "final_premium": 9727.12
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.510215",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 172.9,
-      "final_value": 697778.02
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.556870",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 172.9,
-      "final_value": 869907.52
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.600385",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 697778.02,
-      "final_premium": 2902.33
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.645295",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 103.9,
-      "final_value": 715178.87
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.692639",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 103.9,
-      "final_value": 945327.85
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.740045",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 715178.87,
-      "final_premium": 3090.29
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.787774",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 156.1,
-      "final_value": 873140.13
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.833727",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 156.1,
-      "final_value": 871607.51
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.879472",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 873140.13,
-      "final_premium": 2473.22
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.923163",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 43.6,
-      "final_value": 264961.36
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:07.969961",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 43.6,
-      "final_value": 277011.88
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.017815",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 264961.36,
-      "final_premium": 1236.44
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.093827",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 117.9,
-      "final_value": 519671.83
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.138902",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 117.9,
-      "final_value": 886153.31
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.182760",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 519671.83,
-      "final_premium": 1773.07
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.226117",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 123.6,
-      "final_value": 651940.11
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.270247",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 123.6,
-      "final_value": 1113864.16
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.330791",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 651940.11,
-      "final_premium": 3003.18
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.379476",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 84.5,
-      "final_value": 586675.33
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.425087",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 84.5,
-      "final_value": 468389.29
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.484581",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 586675.33,
-      "final_premium": 1577.71
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.527642",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 350.6,
-      "final_value": 3704829.85
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.572653",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 350.6,
-      "final_value": 2187829.88
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.616773",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 3704829.85,
-      "final_premium": 16526.57
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.659996",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 144.0,
-      "final_value": 717567.5
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.703984",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 144.0,
-      "final_value": 505415.36
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.748068",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 717567.5,
-      "final_premium": 5448.47
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.792254",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 162.8,
-      "final_value": 1175677.89
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.836827",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 162.8,
-      "final_value": 1616880.93
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.879299",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1175677.89,
-      "final_premium": 9006.91
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.925798",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 185.3,
-      "final_value": 1133531.25
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:08.974736",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 185.3,
-      "final_value": 972134.81
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.019599",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1133531.25,
-      "final_premium": 7355.09
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.073089",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 162.0,
-      "final_value": 1073398.73
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.149017",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 162.0,
-      "final_value": 920893.22
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.195267",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1073398.73,
-      "final_premium": 8425.59
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.241553",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 234.0,
-      "final_value": 1545474.72
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.287889",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 234.0,
-      "final_value": 2285029.91
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.332546",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1545474.72,
-      "final_premium": 8741.22
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.378469",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 343.8,
-      "final_value": 3755298.57
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.425271",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 343.8,
-      "final_value": 2442024.45
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.472412",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 3755298.57,
-      "final_premium": 20000
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.519553",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 110.6,
-      "final_value": 1159513.03
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.564135",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 110.6,
-      "final_value": 612345.65
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.610651",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1159513.03,
-      "final_premium": 2557.95
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.657793",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 70.0,
-      "final_value": 292870.56
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.703321",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 70.0,
-      "final_value": 394595.75
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.748918",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 292870.56,
-      "final_premium": 937.39
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.800165",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 100.0,
-      "final_value": 722844.72
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.848926",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 100.0,
-      "final_value": 811216.95
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.896846",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 100.0,
-      "final_value": 880268.66
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.941147",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 880268.66,
-      "final_premium": 5797.15
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:09.988324",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 500000,
-      "final_premium": 2908.18
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.034330",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 400000,
-      "final_premium": 2986.8
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.080404",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 325.6,
-      "final_value": 4258711.27
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.159637",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 109.8,
-      "final_value": 794811.73
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.207209",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 2308516.28
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.252904",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 2656057.36
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.296957",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 1957272.26
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.343776",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 2106245.78
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.390848",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 2269749.43
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.434839",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 2458163.85
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.481780",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 1296849.8
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.528594",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 1806129.12
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.576357",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 2911802.81
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.622390",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 237.4,
-      "final_value": 3485464.04
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.671308",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 500000,
-      "final_premium": 4216.06
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.718154",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 278.8,
-      "final_value": 3176409.79
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.763624",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 107.8,
-      "final_value": 1098891.02
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.810240",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 107.8,
-      "final_value": 1332563.19
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:10.960643",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 122.7,
-      "final_value": 2208879.13
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.006331",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 122.7,
-      "final_value": 1484200.86
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.051280",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 2208879.13,
-      "final_premium": 10985.57
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.097056",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 160.1,
-      "final_value": 1080225.79
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.144438",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 160.1,
-      "final_value": 970068.36
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.224381",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1080225.79,
-      "final_premium": 7372.29
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.272394",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 117.2,
-      "final_value": 1142280.31
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.318221",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 117.2,
-      "final_value": 853975.75
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.364051",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1142280.31,
-      "final_premium": 12603.3
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.409908",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 117.2,
-      "final_value": 719451.0
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.456320",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 117.2,
-      "final_value": 475257.33
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.517823",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 719451.0,
-      "final_premium": 3259.66
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.566759",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 82.9,
-      "final_value": 540649.58
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.612592",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 82.9,
-      "final_value": 691708.69
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.659973",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 540649.58,
-      "final_premium": 3413.24
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.705994",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 114.9,
-      "final_value": 1042575.44
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.750581",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 114.9,
-      "final_value": 683221.63
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.796962",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1042575.44,
-      "final_premium": 4147.2
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.847623",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 177.1,
-      "final_value": 1518750.7
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.894263",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 177.1,
-      "final_value": 2394569.12
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.941517",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1518750.7,
-      "final_premium": 5402.51
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:11.988664",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 129.1,
-      "final_value": 729201.44
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.033021",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 129.1,
-      "final_value": 1626524.51
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.080292",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 729201.44,
-      "final_premium": 6508.25
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.136274",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 108.1,
-      "final_value": 808764.9
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.209193",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 108.1,
-      "final_value": 661649.74
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.255837",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 808764.9,
-      "final_premium": 4431.01
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.301319",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 99.7,
-      "final_value": 1274810.39
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.346565",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 99.7,
-      "final_value": 1232184.88
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.393205",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1274810.39,
-      "final_premium": 12440.83
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.441930",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 337.0,
-      "final_value": 2254639.22
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:26:12.488008",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 337.0,
-      "final_value": 3168456.02
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
     "timestamp": "2026-03-21T07:26:12.535337",
     "model_id": "MKM-IP-001",
     "event_type": "usage",
@@ -138668,5 +135554,3794 @@
     },
     "context": "Gauge level statistics calculation",
     "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:04.492710",
+    "model_id": "MKM-DD-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "depth_damage_batch",
+    "parameters": {
+      "properties_processed": 200,
+      "properties_with_floods": 45,
+      "total_flood_events": 1461,
+      "max_depth_m": 4.9512,
+      "max_damage_ratio": 0.9451
+    },
+    "context": "Property flood timeseries batch complete",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:04.596862",
+    "model_id": "MKM-SP-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "idw_interpolation_batch",
+    "parameters": {
+      "properties_processed": 200,
+      "gauges_available": 52
+    },
+    "context": "IDW spatial interpolation batch complete",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:06.090272",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-0026f90b",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:06.382538",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-005c4bb0",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:06.503584",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-00670ab4",
+      "pricing_method": "floor",
+      "flood_count": 2,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 4.8e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:06.720035",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-04738a48",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:06.927021",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-04d36f3e",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.074545",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-0531cc78",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.212976",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-058b15bf",
+      "pricing_method": "floor",
+      "flood_count": 1,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 2.4e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.345169",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-077d101a",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.471464",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-086bf3a9",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.609795",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-09204888",
+      "flood_count": 9,
+      "shape": -0.089834,
+      "loc": 0.457609,
+      "scale": 0.389149
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.721063",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-09204888",
+      "pricing_method": "gev",
+      "flood_count": 9,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000214
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.837675",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-0bedfed4",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:07.949992",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-0cd23386",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.101988",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-0e856cbb",
+      "flood_count": 6,
+      "shape": 1.04542,
+      "loc": 0.810186,
+      "scale": 0.449336
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.205319",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-0e856cbb",
+      "pricing_method": "gev",
+      "flood_count": 6,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000143
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.379785",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-0eae3533",
+      "pricing_method": "floor",
+      "flood_count": 2,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 4.8e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.487748",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1028028f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.607298",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-11907742",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.720711",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-13a154d7",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.833145",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-15f23e58",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:08.949050",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-197376e0",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.061151",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1a5a3874",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.172499",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1aa34db2",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.290881",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1b5c4041",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.421282",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-1be60cdb",
+      "flood_count": 7,
+      "shape": -1.819759,
+      "loc": 0.187089,
+      "scale": 0.096521
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.526740",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1be60cdb",
+      "pricing_method": "gev",
+      "flood_count": 7,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000166
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.655589",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1d940368",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.797734",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-1ff28aee",
+      "pricing_method": "floor",
+      "flood_count": 1,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 2.4e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:09.920128",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-202cd863",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.065931",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-21324fb0",
+      "flood_count": 48,
+      "shape": -0.364378,
+      "loc": 0.332507,
+      "scale": 0.333066
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.183289",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-21324fb0",
+      "pricing_method": "gev",
+      "flood_count": 48,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001141
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.304092",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-232e53eb",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.422638",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2352ec68",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.534832",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-24751d26",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.650436",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2523ed52",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.802231",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-2535bcc9",
+      "flood_count": 288,
+      "shape": -0.397871,
+      "loc": 0.4372,
+      "scale": 0.414585
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:10.909009",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2535bcc9",
+      "pricing_method": "gev",
+      "flood_count": 288,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.006849
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.011267",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-25b748d8",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.114137",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-26640cc3",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.213699",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-26e5dbdd",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.325062",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-27d5c346",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.438538",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2863a6e8",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.546210",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2adbcc48",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.667054",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2b38aaf5",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.774788",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2c06220b",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.886454",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2d716fb9",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:11.998531",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2e1a2aef",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.105885",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-2ff135b6",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.211042",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-304677ca",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.307498",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-34bd9a93",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.458815",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3532440e",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.560542",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3631082b",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.689110",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-382aed6b",
+      "flood_count": 6,
+      "shape": -0.123838,
+      "loc": 0.258765,
+      "scale": 0.254487
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.784803",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-382aed6b",
+      "pricing_method": "gev",
+      "flood_count": 6,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000143
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.894976",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-38680b5f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:12.998489",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-39ef4ab3",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.105035",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3c5d5303",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.206188",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3cff7f33",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.310093",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3d3d8a56",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.432841",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-3d49f4a4",
+      "flood_count": 17,
+      "shape": -0.208011,
+      "loc": 0.441875,
+      "scale": 0.36018
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.531416",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3d49f4a4",
+      "pricing_method": "gev",
+      "flood_count": 17,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000404
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.639413",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3f709fcd",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.743172",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-3f9acbb5",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:13.888663",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-400fea96",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.014503",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-423284b0",
+      "flood_count": 5,
+      "shape": 0.027548,
+      "loc": 0.529275,
+      "scale": 0.367299
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.118921",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-423284b0",
+      "pricing_method": "gev",
+      "flood_count": 5,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000119
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.234172",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-442716a7",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.338209",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4577e473",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.440772",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-45fd233f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.545134",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4696b917",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.651277",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-46e8a831",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.753357",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-47cc8592",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.859890",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4807c163",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:14.968861",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4885944d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.082050",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-49845b9d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.192548",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4bf91c9d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.321135",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4cba4d21",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.432906",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4eb06560",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.540088",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-4edb36c5",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.732666",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-50ab8bfd",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.864612",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-50e577b1",
+      "flood_count": 50,
+      "shape": -0.452512,
+      "loc": 0.337259,
+      "scale": 0.344128
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:15.966542",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-50e577b1",
+      "pricing_method": "gev",
+      "flood_count": 50,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001189
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.085315",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-50ef594e",
+      "flood_count": 34,
+      "shape": -0.191602,
+      "loc": 0.446589,
+      "scale": 0.393179
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.183894",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-50ef594e",
+      "pricing_method": "gev",
+      "flood_count": 34,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000809
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.314080",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-5322e73c",
+      "flood_count": 12,
+      "shape": -0.03488,
+      "loc": 0.404984,
+      "scale": 0.28741
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.415315",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5322e73c",
+      "pricing_method": "gev",
+      "flood_count": 12,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000285
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.569273",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-53c832b6",
+      "flood_count": 4,
+      "shape": 1.065219,
+      "loc": 0.56798,
+      "scale": 0.181428
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.674791",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-53c832b6",
+      "pricing_method": "gev",
+      "flood_count": 4,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 9.5e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.783884",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5403947d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:16.895881",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-54355193",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.006972",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5485dcc1",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.108589",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-55895d92",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.219336",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-566c7bb5",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.331284",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-568069b1",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.490952",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-570f4d20",
+      "flood_count": 3,
+      "shape": -2.427631,
+      "loc": 0.0334,
+      "scale": 0.0
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.587844",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-570f4d20",
+      "pricing_method": "gev",
+      "flood_count": 3,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 7.1e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.737882",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-59bc6102",
+      "flood_count": 66,
+      "shape": -0.866422,
+      "loc": 0.269803,
+      "scale": 0.298295
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.842576",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-59bc6102",
+      "pricing_method": "gev",
+      "flood_count": 66,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001569
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:17.971739",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-5ad1561c",
+      "flood_count": 24,
+      "shape": -0.169633,
+      "loc": 0.427034,
+      "scale": 0.407396
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.073617",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5ad1561c",
+      "pricing_method": "gev",
+      "flood_count": 24,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000571
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.189030",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5aeb04b3",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.302868",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5b25a59a",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.414518",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5d849d11",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.524544",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-5f2fc391",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.632138",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6077ad43",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.736387",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-61b443be",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.840693",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-62da3dfe",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:18.948252",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6786f1e8",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.060468",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-688e0054",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.186698",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-691dae36",
+      "flood_count": 15,
+      "shape": -0.192912,
+      "loc": 0.395727,
+      "scale": 0.344662
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.296876",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-691dae36",
+      "pricing_method": "gev",
+      "flood_count": 15,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000357
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.424097",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-69768971",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.572343",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6a142858",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.691199",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6d816078",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.817725",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6d93b997",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:19.934287",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6eabed81",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.048020",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-6f1c94f4",
+      "flood_count": 8,
+      "shape": -0.171041,
+      "loc": 0.487076,
+      "scale": 0.378224
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.144388",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6f1c94f4",
+      "pricing_method": "gev",
+      "flood_count": 8,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.00019
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.256488",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6f6caa31",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.367731",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-6f9166ac",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.480561",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-70036dcf",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.591016",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-7232339e",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.697351",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-741cafb7",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.822260",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-745a6a0a",
+      "flood_count": 17,
+      "shape": -0.92959,
+      "loc": 0.307013,
+      "scale": 0.177607
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:20.922352",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-745a6a0a",
+      "pricing_method": "gev",
+      "flood_count": 17,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000404
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.026856",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-76be772c",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.132014",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-7a636a14",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.244678",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-7ad5fda8",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.355617",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-7c758270",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.473599",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-7fd641e8",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.587766",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-80afb84f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.697307",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-831e0a5a",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.811790",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-83ea872d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:21.918650",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-86fd5721",
+      "pricing_method": "floor",
+      "flood_count": 1,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 2.4e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.020634",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-88611964",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.125090",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-893a8da6",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.235546",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-8b6217e0",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.344175",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-8b8ba327",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.454000",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-8d2cada0",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.563482",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-908488b1",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.673943",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-91be2865",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.785396",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-91d8866e",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:22.898635",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-94bdea02",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.015064",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-959ce804",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.132443",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-96b6070a",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.243783",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-97da40f0",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.352069",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-9b23d7e4",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.512867",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-9b95f167",
+      "flood_count": 175,
+      "shape": -0.578346,
+      "loc": 0.331373,
+      "scale": 0.351987
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.616910",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-9b95f167",
+      "pricing_method": "gev",
+      "flood_count": 175,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.004162
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.727213",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-9f47771d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.849572",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-9f80e111",
+      "pricing_method": "floor",
+      "flood_count": 1,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 2.4e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:23.958592",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-9fcde55a",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.075802",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-9ffe5be7",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.188823",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-a46c991f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.303155",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-a5bd1f0b",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.425192",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-a60384dc",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.558935",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-a7e7d626",
+      "pricing_method": "floor",
+      "flood_count": 2,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 4.8e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.717599",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-a9b1a844",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:24.858982",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-aa951d8e",
+      "pricing_method": "floor",
+      "flood_count": 2,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 4.8e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.012177",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-aaae6c7b",
+      "flood_count": 10,
+      "shape": 0.172858,
+      "loc": 0.457953,
+      "scale": 0.320919
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.126308",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-aaae6c7b",
+      "pricing_method": "gev",
+      "flood_count": 10,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000238
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.265983",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-ad95a42e",
+      "flood_count": 73,
+      "shape": -0.479297,
+      "loc": 0.288116,
+      "scale": 0.277258
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.370890",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ad95a42e",
+      "pricing_method": "gev",
+      "flood_count": 73,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001736
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.536023",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-adc20320",
+      "flood_count": 5,
+      "shape": -5.345324,
+      "loc": 0.027414,
+      "scale": 0.006488
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.634878",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-adc20320",
+      "pricing_method": "gev",
+      "flood_count": 5,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000119
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.747674",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-adc94fa4",
+      "pricing_method": "floor",
+      "flood_count": 2,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 4.8e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:25.874499",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-add46853",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.009554",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ae519c85",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.179501",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-af2870bc",
+      "flood_count": 3,
+      "shape": -6.540964,
+      "loc": 0.159468,
+      "scale": 0.214332
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.285960",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-af2870bc",
+      "pricing_method": "gev",
+      "flood_count": 3,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 7.1e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.408993",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-b0c72c6c",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.534216",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-b0e321d3",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.648572",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-b242ea49",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.766455",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-b5cde61f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.880472",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-b717997d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:26.998509",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-b763a6c1",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.112663",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-bb332e90",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.244191",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-bce3602f",
+      "flood_count": 44,
+      "shape": -0.458257,
+      "loc": 0.255813,
+      "scale": 0.262632
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.358308",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-bce3602f",
+      "pricing_method": "gev",
+      "flood_count": 44,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001046
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.482795",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-bd75ce7f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.598917",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-bef2bbd2",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.719508",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c0931ebe",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.835072",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c2c2e4fa",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:27.953082",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c301b9b4",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.075424",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c33c2536",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.192320",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c3837ea6",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.308422",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c6829778",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.420768",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-c6b1f241",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.538531",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-cb74febf",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.649076",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-cdf18c58",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.751532",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ce8238ee",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.855226",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-cf72f225",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:28.968001",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d16c5b1b",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.073471",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d637ac8f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.176362",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d641dc7c",
+      "pricing_method": "floor",
+      "flood_count": 2,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 4.8e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.307870",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-d6c30909",
+      "flood_count": 72,
+      "shape": -0.406921,
+      "loc": 0.397661,
+      "scale": 0.367567
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.414299",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d6c30909",
+      "pricing_method": "gev",
+      "flood_count": 72,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001712
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.522507",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d6f13a5f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.626264",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d81af38f",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.737112",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d9976d80",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.840803",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-d9c17214",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:29.944311",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-dadf5a62",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.066594",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-db066977",
+      "flood_count": 4,
+      "shape": 0.191844,
+      "loc": 0.309523,
+      "scale": 0.280431
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.164508",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-db066977",
+      "pricing_method": "gev",
+      "flood_count": 4,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 9.5e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.270530",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-db43ea4c",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.377652",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ddd140fa",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.486644",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e08132d4",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.588938",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e1512556",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.713830",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-e16fef7b",
+      "flood_count": 54,
+      "shape": -0.449658,
+      "loc": 0.349883,
+      "scale": 0.346311
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.820283",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e16fef7b",
+      "pricing_method": "gev",
+      "flood_count": 54,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001284
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:30.936351",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e1c42b2a",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.045158",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e244260d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.161720",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e6319a9b",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.276639",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e6b69ddf",
+      "pricing_method": "floor",
+      "flood_count": 1,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 2.4e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.405566",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-e85879a3",
+      "flood_count": 44,
+      "shape": -0.638357,
+      "loc": 0.265667,
+      "scale": 0.304423
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.511973",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e85879a3",
+      "pricing_method": "gev",
+      "flood_count": 44,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001046
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.674193",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-e985385b",
+      "flood_count": 246,
+      "shape": -0.486779,
+      "loc": 0.364565,
+      "scale": 0.373836
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.782596",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e985385b",
+      "pricing_method": "gev",
+      "flood_count": 246,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.00585
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:31.916143",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-e9a9f375",
+      "flood_count": 8,
+      "shape": -0.570127,
+      "loc": 0.464964,
+      "scale": 0.281272
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:32.133095",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-e9a9f375",
+      "pricing_method": "gev",
+      "flood_count": 8,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.00019
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:32.269876",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ebd1f042",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:32.431346",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ed214725",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:32.723162",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-edd4f2ee",
+      "flood_count": 3,
+      "shape": -5.664627,
+      "loc": 0.287227,
+      "scale": 0.00412
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:32.840258",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-edd4f2ee",
+      "pricing_method": "gev",
+      "flood_count": 3,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 7.1e-05
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:32.965073",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-ee07ca93",
+      "flood_count": 8,
+      "shape": -0.202626,
+      "loc": 0.370223,
+      "scale": 0.354916
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.073628",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ee07ca93",
+      "pricing_method": "gev",
+      "flood_count": 8,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.00019
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.183999",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-ef9eac55",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.312969",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-f0651b61",
+      "flood_count": 63,
+      "shape": -0.356945,
+      "loc": 0.435395,
+      "scale": 0.40914
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.417073",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-f0651b61",
+      "pricing_method": "gev",
+      "flood_count": 63,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.001498
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.520665",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-f0f29a85",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.631629",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-f2e989a7",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.746939",
+    "model_id": "MKM-GH-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "gev_fit",
+    "parameters": {
+      "property_id": "PROP-f58521b5",
+      "flood_count": 13,
+      "shape": -0.005347,
+      "loc": 0.380458,
+      "scale": 0.316339
+    },
+    "context": "Property hazard curve GEV fit",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.845134",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-f58521b5",
+      "pricing_method": "gev",
+      "flood_count": 13,
+      "spread_5yr_any_bps": 101.01,
+      "base_rate": 0.000309
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T18:54:33.948984",
+    "model_id": "MKM-PR-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "prs_spread",
+    "parameters": {
+      "property_id": "PROP-fe9ac89d",
+      "pricing_method": "floor",
+      "flood_count": 0,
+      "spread_5yr_any_bps": 2.01,
+      "base_rate": 0.0
+    },
+    "context": "Property PRS spread calculation",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-22T19:03:31.682833",
+    "model_id": "MKM-RA-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "portfolio_var",
+    "parameters": {
+      "num_properties": 200,
+      "num_storms": 20000,
+      "var_95": 0.0,
+      "es_95": 2502556.6,
+      "var_999": 7515422.09
+    },
+    "context": "Portfolio VaR computation",
+    "source": "api"
   }
 ]
