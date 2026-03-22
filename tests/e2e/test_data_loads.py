@@ -179,6 +179,73 @@ class TestHazardCurveDataLoads:
         assert has_data["canvasCount"] > 0, "No chart canvas found on hazard curve tab"
 
 
+class TestStressStormDataLoads:
+    """Verify stress storm data loads — these are required for storm scenario analysis."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, map_page):
+        _close_all_panels(map_page)
+        yield
+        _close_all_panels(map_page)
+
+    def test_stress_storms_api_returns_data(self, map_page):
+        """Stress storms API must return 200 with storm data."""
+        result = map_page.evaluate("""async () => {
+            try {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                var resp = await fetch(baseUrl + '/api/v1/trading/stress/storms');
+                var data = await resp.json();
+                return {
+                    http_status: resp.status,
+                    storm_count: (data.storms || []).length,
+                    message: data.message || null
+                };
+            } catch (e) {
+                return { error: e.message };
+            }
+        }""")
+        assert "error" not in result, f"Stress storms API failed: {result.get('error')}"
+        assert result["http_status"] == 200, (
+            f"Stress storms API returned HTTP {result['http_status']}: {result.get('message')}. "
+            f"Run: python app.py port --stressm"
+        )
+        assert result["storm_count"] > 0, (
+            "Stress storms API returned zero storms. "
+            "Run: python app.py port --stressm"
+        )
+
+    def test_portfolio_storms_api_returns_data(self, map_page):
+        """Portfolio storms API must return 200 with storm data."""
+        result = map_page.evaluate("""async () => {
+            try {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                var resp = await fetch(
+                    baseUrl + '/api/v1/trading/stress/portfolio-storms'
+                );
+                var data = await resp.json();
+                return {
+                    http_status: resp.status,
+                    storm_count: (data.storms || []).length,
+                    message: data.message || null
+                };
+            } catch (e) {
+                return { error: e.message };
+            }
+        }""")
+        assert "error" not in result, (
+            f"Portfolio storms API failed: {result.get('error')}"
+        )
+        assert result["http_status"] == 200, (
+            f"Portfolio storms API returned HTTP {result['http_status']}: "
+            f"{result.get('message')}. Run: python app.py port --stressm"
+        )
+        assert result["storm_count"] > 0, (
+            "Portfolio storms API returned zero storms"
+        )
+
+
 class TestPropertyDataLoads:
     """Verify property storm data loads correctly."""
 
@@ -188,8 +255,37 @@ class TestPropertyDataLoads:
         yield
         _close_all_panels(map_page)
 
+    def test_propertyts_summary_api_returns_data(self, map_page):
+        """Property TS summary API must return 200 — not 404."""
+        result = map_page.evaluate("""async () => {
+            try {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                var resp = await fetch(baseUrl + '/api/v1/propertyts/summary');
+                var data = await resp.json();
+                return {
+                    http_status: resp.status,
+                    has_summary: !!(data.data && data.data.summary),
+                    properties_with_floods: data.data && data.data.summary
+                        ? data.data.summary.properties_with_floods : 0,
+                    message: data.message || null
+                };
+            } catch (e) {
+                return { error: e.message };
+            }
+        }""")
+        assert "error" not in result, f"PropertyTS API failed: {result.get('error')}"
+        assert result["http_status"] == 200, (
+            f"PropertyTS summary API returned HTTP {result['http_status']}: "
+            f"{result.get('message')}. Run: python app.py port --propertyts"
+        )
+        assert result["has_summary"], "PropertyTS summary missing from response"
+        assert result["properties_with_floods"] > 0, (
+            "Zero properties with flood events"
+        )
+
     def test_property_storm_api_returns_data(self, map_page, first_property_id):
-        """Fetch property storm data and verify API returns success."""
+        """Fetch property storm data and verify API returns success — NOT skip on 404."""
         result = map_page.evaluate(f"""async () => {{
             try {{
                 var cfg = window.__BACKEND_CONFIG || {{}};
@@ -197,9 +293,6 @@ class TestPropertyDataLoads:
                 var resp = await fetch(
                     baseUrl + '/api/v1/propertyts/{first_property_id}/flood-events'
                 );
-                if (resp.status === 404) {{
-                    return {{ http_status: 404, message: 'endpoint not found' }};
-                }}
                 var data = await resp.json();
                 return {{
                     http_status: resp.status,
@@ -211,11 +304,10 @@ class TestPropertyDataLoads:
                 return {{ error: e.message }};
             }}
         }}""")
-        if result.get("http_status") == 404:
-            pytest.skip("Property flood-events endpoint not found")
         assert "error" not in result, f"Property API failed: {result.get('error')}"
         assert result["http_status"] == 200, (
-            f"Property API returned HTTP {result['http_status']}: {result.get('message')}"
+            f"Property flood-events API returned HTTP {result['http_status']}: "
+            f"{result.get('message')}. Run: python app.py port --propertyts"
         )
 
     def test_property_panel_loads_without_errors(self, map_page, first_property_id):
