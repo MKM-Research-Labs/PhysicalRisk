@@ -143,3 +143,86 @@ class TestClassifiersTab:
         wrap = map_page.locator("#cl-progress-wrap")
         assert wrap.count() > 0, "No #cl-progress-wrap found"
         assert not wrap.is_visible(), "Progress bar should be hidden initially"
+
+
+class TestClassifierAvailability:
+    """Trained classifiers must be loadable by the stress test tab."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, map_page):
+        _close_all_panels(map_page)
+        yield
+        _close_all_panels(map_page)
+
+    def test_classifier_summary_api_returns_data(self, map_page):
+        """Classifiers summary API must return gauge list with model status."""
+        result = map_page.evaluate("""async () => {
+            try {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var baseUrl = cfg.url || '';
+                var resp = await fetch(baseUrl + '/api/v1/trading/classifiers/summary');
+                var data = await resp.json();
+                var trained = (data.gauges || []).filter(g => g.has_model);
+                return {
+                    http_status: resp.status,
+                    total_gauges: (data.gauges || []).length,
+                    trained_count: trained.length,
+                    avg_auc: data.avg_auc_roc,
+                    message: data.message || null
+                };
+            } catch (e) {
+                return { error: e.message };
+            }
+        }""")
+        assert "error" not in result, (
+            f"Classifiers summary API failed: {result.get('error')}"
+        )
+        assert result["http_status"] == 200, (
+            f"Classifiers summary returned HTTP {result['http_status']}"
+        )
+        assert result["total_gauges"] > 0, "No gauges in classifier summary"
+
+    def test_trained_classifiers_loadable_in_stress_tab(self, map_page, first_gauge_id):
+        """A trained classifier must be usable by the stress test endpoint.
+
+        This catches the scenario where .joblib files exist but were trained
+        against old storm data (BitGenerator/version mismatch).
+        """
+        result = map_page.evaluate(f"""async () => {{
+            try {{
+                var cfg = window.__BACKEND_CONFIG || {{}};
+                var baseUrl = cfg.url || '';
+                // Check if this gauge has a classifier
+                var statusResp = await fetch(
+                    baseUrl + '/api/v1/trading/stress/classifier-status/{first_gauge_id}'
+                );
+                var statusData = await statusResp.json();
+                if (statusData.status !== 'ready') {{
+                    return {{ skip: true, reason: 'No classifier for ' + '{first_gauge_id}' }};
+                }}
+                // Try to use it via the stress endpoint
+                var stressResp = await fetch(
+                    baseUrl + '/api/v1/trading/stress/storms?gauge_id={first_gauge_id}'
+                );
+                var stressData = await stressResp.json();
+                return {{
+                    classifier_status: statusData.status,
+                    stress_http: stressResp.status,
+                    stress_status: stressData.status,
+                    storm_count: (stressData.storms || []).length,
+                    message: stressData.message || null
+                }};
+            }} catch (e) {{
+                return {{ error: e.message }};
+            }}
+        }}""")
+        if result.get("skip"):
+            pytest.skip(result["reason"])
+        assert "error" not in result, (
+            f"Stress tab API failed: {result.get('error')}"
+        )
+        assert result["stress_http"] == 200, (
+            f"Stress storms returned HTTP {result['stress_http']}: "
+            f"{result.get('message')}. "
+            f"Classifier may be stale — retrain: python3 app.py classifier"
+        )

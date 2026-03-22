@@ -395,6 +395,41 @@ class TestPipelineCompleteness:
             + ", ".join(f"{m['step']}/{m['output']}" for m in empty)
         )
 
+    def test_classifiers_match_storm_data(self):
+        """If classifiers exist, they must be from the current storm run.
+
+        The training_summary.json records which storm data was used.
+        If stress_storms/ has been regenerated since training, the classifiers
+        are stale and will fail with BitGenerator/version errors.
+        """
+        stressm_dir = INPUT_DIR / "stressm"
+        if not stressm_dir.exists():
+            pytest.skip("No stressm directory")
+        joblibs = list(stressm_dir.glob("*.joblib"))
+        if not joblibs:
+            pytest.skip("No trained classifiers")
+        # If classifiers exist, stress_storms must also exist
+        stress_storms_dir = INPUT_DIR / "stress_storms"
+        assert stress_storms_dir.exists(), (
+            f"{len(joblibs)} classifier(s) found but stress_storms/ is missing. "
+            f"Classifiers are stale. Fix: python3 app.py classifier"
+        )
+        # training_summary must exist and list the trained gauges
+        summary_path = stressm_dir / "training_summary.json"
+        assert summary_path.exists(), (
+            f"{len(joblibs)} .joblib file(s) but no training_summary.json. "
+            f"Summary is out of sync. Fix: python3 app.py classifier"
+        )
+        summary = json.load(open(summary_path))
+        summary_ids = {g["gauge_id"] for g in summary.get("gauges", [])}
+        joblib_ids = {j.stem for j in joblibs}
+        undocumented = joblib_ids - summary_ids
+        assert not undocumented, (
+            f"{len(undocumented)} classifier(s) not in training_summary.json: "
+            f"{sorted(undocumented)[:5]}. Summary is stale. "
+            f"Fix: python3 app.py classifier"
+        )
+
 
 class TestDataLineage:
     """Data lineage manifest must be consistent (BCBS 239 P2/P3)."""
