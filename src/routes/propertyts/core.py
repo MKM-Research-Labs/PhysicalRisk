@@ -333,7 +333,11 @@ def list_flood_storms():
         'moderate': 3, 'baseline': 4,
     }
 
-    storms = sorted(storm_set.values(), key=lambda s: (
+    # Only include storms that actually cause property flooding — storms
+    # with zero affected properties would produce errors in portfolio-impact.
+    flooding_storms = [s for s in storm_set.values() if s['properties_flooded'] > 0]
+
+    storms = sorted(flooding_storms, key=lambda s: (
         -s['gauges_severe'],
         -s['properties_flooded'],
         -s['max_depth_m'],

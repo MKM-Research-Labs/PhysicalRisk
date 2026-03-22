@@ -168,6 +168,27 @@ def pts_env(tmp_path, monkeypatch):
     }
     (tmp_path / "storm_sequences.json").write_text(json.dumps(sequences_data))
 
+    # stress_storms/_index.json — used by /propertyts/storms primary code path
+    ss_dir = tmp_path / "stress_storms"
+    ss_dir.mkdir()
+    ss_index = {
+        "storms": [{
+            "storm_id": SEQ_ID,
+            "name": "Moderate",
+            "intensity_category": "moderate",
+            "effective_precipitation_mm": 55.0,
+            "duration_hours": 24.0,
+            "peak_position": 0.5,
+            "trigger_summary": {
+                "gauges_severe": 1,
+                "gauges_warning": 1,
+                "gauges_alert": 1,
+                "gauges_impacted": 1,
+            },
+        }],
+    }
+    (ss_dir / "_index.json").write_text(json.dumps(ss_index))
+
     gauge_data = {"flood_gauges": [{"FloodGauge": {
         "Header": {"GaugeID": "GAUGE-001", "GaugeName": "Test Gauge"},
         "SensorDetails": {"GaugeInformation": {
