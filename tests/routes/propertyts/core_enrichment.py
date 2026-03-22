@@ -48,6 +48,12 @@ class TestListFloodStormsEnrichment:
         }
         (gaugets_dir / "GAUGE-001.json").write_text(json.dumps(gauge_ts))
 
+        # Property flood data so STORM-A has properties_flooded > 0
+        prop_data = {"property_id": "PROP-001",
+                     "flood_events": [{"storm_id": "STORM-A",
+                                       "flood_depth_m": 0.5, "damage_ratio": 0.1}]}
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
+
         # No metadata files
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
@@ -80,6 +86,12 @@ class TestListFloodStormsEnrichment:
         (gaugets_dir / "GAUGE-001.json").write_text(json.dumps(good))
         (gaugets_dir / "GAUGE-BAD.json").write_text("{invalid json")
 
+        # Property flood data so STORM-B has properties_flooded > 0
+        prop_data = {"property_id": "PROP-001",
+                     "flood_events": [{"storm_id": "STORM-B",
+                                       "flood_depth_m": 0.3, "damage_ratio": 0.05}]}
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
+
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
         monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
@@ -106,6 +118,12 @@ class TestListFloodStormsEnrichment:
         gauge_ts = {"gauge_id": "G1", "storm_responses": {"responses": [
             {"storm_id": "STORM-C", "exceeded_severe": True}]}}
         (gaugets_dir / "GAUGE-001.json").write_text(json.dumps(gauge_ts))
+
+        # Property flood data so STORM-C has properties_flooded > 0
+        prop_data = {"property_id": "PROP-001",
+                     "flood_events": [{"storm_id": "STORM-C",
+                                       "flood_depth_m": 0.6, "damage_ratio": 0.15}]}
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
 
         # storms.json with 'storms' key (not 'sequences')
         storms_meta = {"storms": [
@@ -154,6 +172,13 @@ class TestListFloodStormsEnrichment:
                 gauge_ts = {"gauge_id": gid,
                             "storm_responses": {"responses": responses}}
                 (gaugets_dir / f"{gid}.json").write_text(json.dumps(gauge_ts))
+
+        # Property flood data so storms have properties_flooded > 0
+        for i, sid in enumerate(storm_ids):
+            prop_data = {"property_id": f"PROP-{i:03d}",
+                         "flood_events": [{"storm_id": sid,
+                                           "flood_depth_m": 0.5, "damage_ratio": 0.1}]}
+            (pts_dir / f"PROP-{i:03d}.json").write_text(json.dumps(prop_data))
 
         # No metadata files → classification happens on lines 254-266
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
@@ -218,7 +243,7 @@ class TestListFloodStormsEnrichment:
         assert storms["STORM-D"]["max_damage_ratio"] == 0.35
 
     def test_property_not_in_valued_ids_skipped(self, tmp_path, monkeypatch):
-        """Line 288: property not in valued_ids is skipped."""
+        """Line 288: property not in valued_ids is skipped; storm filtered out."""
         from config import config
 
         gaugets_dir = tmp_path / "gaugets"
@@ -255,12 +280,12 @@ class TestListFloodStormsEnrichment:
         client = app.test_client()
 
         r = client.get("/api/v1/propertyts/storms")
-        storms = {s["storm_id"]: s for s in r.get_json()["storms"]}
-        # PROP-B was skipped, so properties_flooded should be 0
-        assert storms["STORM-E"]["properties_flooded"] == 0
+        storm_ids = [s["storm_id"] for s in r.get_json()["storms"]]
+        # PROP-B was skipped → properties_flooded=0 → storm filtered out
+        assert "STORM-E" not in storm_ids
 
     def test_zero_flood_depth_skipped(self, tmp_path, monkeypatch):
-        """Line 292: flood events with depth <= 0 are skipped."""
+        """Line 292: flood events with depth <= 0 are skipped; storm filtered out."""
         from config import config
 
         gaugets_dir = tmp_path / "gaugets"
@@ -296,8 +321,9 @@ class TestListFloodStormsEnrichment:
         client = app.test_client()
 
         r = client.get("/api/v1/propertyts/storms")
-        storms = {s["storm_id"]: s for s in r.get_json()["storms"]}
-        assert storms["STORM-F"]["properties_flooded"] == 0
+        storm_ids = [s["storm_id"] for s in r.get_json()["storms"]]
+        # Zero depth → properties_flooded=0 → storm filtered out
+        assert "STORM-F" not in storm_ids
 
     def test_property_json_read_error_continues(self, tmp_path, monkeypatch):
         """Lines 280-281: property.json read error triggers except pass."""
@@ -315,6 +341,13 @@ class TestListFloodStormsEnrichment:
         # property.json with invalid JSON → triggers except pass
         (tmp_path / "property.json").write_text("{bad json")
 
+        # Property flood data — valued_ids is empty due to bad property.json,
+        # so all PROP files are checked; STORM-G gets properties_flooded > 0
+        prop_data = {"property_id": "PROP-001",
+                     "flood_events": [{"storm_id": "STORM-G",
+                                       "flood_depth_m": 0.4, "damage_ratio": 0.08}]}
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
+
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
         monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
@@ -326,9 +359,9 @@ class TestListFloodStormsEnrichment:
 
         r = client.get("/api/v1/propertyts/storms")
         assert r.status_code == 200
-        # valued_ids is empty → no properties skipped, all PROP files checked
         data = r.get_json()
         assert data["status"] == "success"
+        assert data["count"] >= 1
 
     def test_metadata_json_read_error_continues(self, tmp_path, monkeypatch):
         """Lines 235-239: invalid metadata JSON triggers except continue."""
@@ -342,6 +375,12 @@ class TestListFloodStormsEnrichment:
         gauge_ts = {"gauge_id": "G1", "storm_responses": {"responses": [
             {"storm_id": "STORM-H", "exceeded_severe": False}]}}
         (gaugets_dir / "GAUGE-001.json").write_text(json.dumps(gauge_ts))
+
+        # Property flood data so STORM-H has properties_flooded > 0
+        prop_data = {"property_id": "PROP-001",
+                     "flood_events": [{"storm_id": "STORM-H",
+                                       "flood_depth_m": 0.3, "damage_ratio": 0.05}]}
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
 
         # Invalid storm_sequences.json
         (tmp_path / "storm_sequences.json").write_text("{broken")
