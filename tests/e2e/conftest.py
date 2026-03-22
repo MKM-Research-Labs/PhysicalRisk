@@ -146,6 +146,7 @@ def map_page(_browser_page):
             'prop-storm-panel',
             'mortgage-detail-panel',
             'mg-panel',
+            'property-pdf-panel',
         ];
         panels.forEach(id => {
             const el = document.getElementById(id);
