@@ -37,6 +37,7 @@ import argparse
 import os
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 from datetime import datetime
 
@@ -51,6 +52,55 @@ from .compiler import compile_model_pdf
 
 _project_root = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+
+
+def _parse_e2e_junit(junit_path):
+    """Parse a JUnit XML file from E2E tests into collector-compatible dicts."""
+    results = []
+    if not junit_path or not os.path.exists(junit_path):
+        return results
+
+    tree = ET.parse(junit_path)
+    root = tree.getroot()
+
+    for tc in root.findall('.//testcase'):
+        name = tc.get('name', '')
+        classname = tc.get('classname', '')
+        time_s = float(tc.get('time', '0') or '0')
+
+        failure_el = tc.find('failure')
+        if failure_el is None:
+            failure_el = tc.find('error')
+        skip_el = tc.find('skipped')
+        if failure_el is not None:
+            outcome = 'failed'
+            longrepr = failure_el.get('message', '') or (failure_el.text or '')[:500]
+        elif skip_el is not None:
+            outcome = 'skipped'
+            longrepr = ''
+        else:
+            outcome = 'passed'
+            longrepr = ''
+
+        # Build a nodeid compatible with the rest of the report
+        file_part = classname.replace('.', '/') + '.py' if classname else 'tests/e2e/unknown.py'
+        nodeid = f'{file_part}::{name}'
+
+        results.append({
+            'nodeid': nodeid,
+            'file': file_part,
+            'class': '',
+            'name': name,
+            'model_id': 'E2E-ALL',
+            'outcome': outcome,
+            'duration': round(time_s, 4),
+            'longrepr': longrepr,
+            'description': '',
+            'docstring': '',
+            'params': '',
+        })
+
+    return results
 
 
 def run_tests(model_filter=None):
@@ -129,6 +179,8 @@ def main():
     parser.add_argument('--coverage-pct', dest='coverage_pct', type=float,
                         default=None,
                         help='Line coverage percentage to embed in report')
+    parser.add_argument('--e2e-junit', dest='e2e_junit', default=None,
+                        help='Path to E2E JUnit XML to include in report')
     args = parser.parse_args()
 
     print('=' * 60)
@@ -137,6 +189,17 @@ def main():
     print()
 
     results, duration = run_tests(args.model)
+
+    # Merge E2E results from pre-collected JUnit XML (E2E tests run
+    # separately via Playwright and cannot be collected by pytest.main).
+    if args.e2e_junit:
+        e2e_results = _parse_e2e_junit(args.e2e_junit)
+        if e2e_results:
+            results.extend(e2e_results)
+            n_e2e = len(e2e_results)
+            n_pass = sum(1 for r in e2e_results if r['outcome'] == 'passed')
+            print(f'\nMerged {n_e2e} E2E browser test results '
+                  f'({n_pass} passed) from {args.e2e_junit}')
 
     if not results:
         print('\nNo test results collected.')

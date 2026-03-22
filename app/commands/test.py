@@ -77,7 +77,9 @@ def _write_failures_report(junit_xml_path: str, audit_dir: str) -> None:
             xml_root = tree.getroot()
             for tc in xml_root.findall('.//testcase'):
                 summary['total'] += 1
-                failure_el = tc.find('failure') or tc.find('error')
+                failure_el = tc.find('failure')
+                if failure_el is None:
+                    failure_el = tc.find('error')
                 skip_el = tc.find('skipped')
                 if failure_el is not None:
                     summary['failed'] += 1
@@ -142,7 +144,9 @@ def _run_data_lineage_tests(project_root, audit_dir):
             xml_root = tree.getroot()
             for tc in xml_root.findall('.//testcase'):
                 summary['total'] += 1
-                failure_el = tc.find('failure') or tc.find('error')
+                failure_el = tc.find('failure')
+                if failure_el is None:
+                    failure_el = tc.find('error')
                 skip_el = tc.find('skipped')
                 if failure_el is not None:
                     summary['failed'] += 1
@@ -273,7 +277,9 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
             xml_root = tree.getroot()
             for tc in xml_root.findall('.//testcase'):
                 summary['total'] += 1
-                failure_el = tc.find('failure') or tc.find('error')
+                failure_el = tc.find('failure')
+                if failure_el is None:
+                    failure_el = tc.find('error')
                 skip_el = tc.find('skipped')
                 if failure_el is not None:
                     summary['failed'] += 1
@@ -458,6 +464,11 @@ def cmd_test(args):
             doc_cmd.extend(['--git-sha', git_sha])
         if coverage_pct is not None:
             doc_cmd.extend(['--coverage-pct', f'{coverage_pct:.2f}'])
+
+        # Include E2E browser test results in the report
+        e2e_xml = os.path.join(audit_dir, 'e2e_junit.xml')
+        if os.path.exists(e2e_xml):
+            doc_cmd.extend(['--e2e-junit', e2e_xml])
 
         sp.run(doc_cmd, cwd=str(project_root))
 
