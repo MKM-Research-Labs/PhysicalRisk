@@ -15,7 +15,7 @@ def _close_all_panels(page):
     """Close all panels and context menus to reset state."""
     page.evaluate("""() => {
         ['trading-desk-panel','hazard-curve-panel','property-hc-panel',
-         'prop-storm-panel','mortgage-detail-panel','mg-panel'].forEach(id => {
+         'prop-storm-panel','mortgage-detail-panel','mg-panel','property-pdf-panel'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });

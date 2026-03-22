@@ -21,6 +21,7 @@ PANEL_IDS_TO_CLOSE = [
     "prop-storm-panel",
     "mortgage-detail-panel",
     "mg-panel",
+    "property-pdf-panel",
 ]
 
 CLOSE_PANELS_JS = """() => {
