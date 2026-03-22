@@ -84,6 +84,7 @@ def get_js() -> str:
             window._prePropertyTS     = null;
             window._preGaugeHist      = null;
             window._preMortgages      = null;
+            window._preAuditReports   = null;
 
             // Flag read by trading/preloader.py — on window so it is accessible
             // from any IIFE scope (var declaration would be local to this IIFE)
@@ -105,6 +106,7 @@ def get_js() -> str:
                 ['_prePropertyTS',     'Property flood TS',    '/api/v1/propertyts/summary'],
                 ['_preGaugeHist',      'Gauge history',        '/api/v1/gauges/history/summary'],
                 ['_preMortgages',      'Mortgages',            '/api/v1/mortgages'],
+                ['_preAuditReports',   'Audit reports',        '/api/v1/governance/audit-reports'],
             ];
 
             function _startupDetail(key, data) {
@@ -118,11 +120,12 @@ def get_js() -> str:
                 if (key === '_tdPreYieldCurve'    && data.yield_curve)  return Object.keys(data.yield_curve).length + ' tenors';
                 if (key === '_tdPreGovDocs'       && data.documents)    return data.documents.length + ' docs';
                 if (key === '_preStorms'          && data.storms)       return data.storms.length + ' storms';
-                if (key === '_preGovAudit'        && data.events)       return data.events.length + ' events';
+                if (key === '_preGovAudit'        && data.entries)       return data.total_entries + ' events';
                 if (key === '_preGovBib'          && data.references)   return data.references.length + ' refs';
-                if (key === '_prePropertyTS'      && data.data && data.data.summary) return data.data.summary.total_properties + ' properties';
+                if (key === '_prePropertyTS'      && data.data && data.data.summary) return data.data.summary.properties_with_floods + ' flooded';
                 if (key === '_preGaugeHist'       && data.count != null) return data.count + ' gauges';
                 if (key === '_preMortgages'       && data.mortgages)     return data.mortgages.length + ' mortgages';
+                if (key === '_preAuditReports'    && data.reports)       return data.reports.filter(function(r){return r.filename.endsWith('.pdf');}).length + ' PDFs';
                 return null;
             }
 
@@ -249,7 +252,22 @@ def get_js() -> str:
                             if (settled === total) {
                                 // Mark trading desk preload as done — it uses the same cache vars
                                 window._tdPreloadDone = true;
-                                setTimeout(function() { popup.remove(); }, 600);
+                                // Shrink and move to bottom-left corner, stay for 10s
+                                popup.style.transition = 'all 0.6s ease';
+                                popup.style.top = 'auto';
+                                popup.style.left = '16px';
+                                popup.style.bottom = '16px';
+                                popup.style.transform = 'none';
+                                popup.style.minWidth = '280px';
+                                popup.style.padding = '14px 18px';
+                                popup.style.fontSize = '11px';
+                                popup.style.opacity = '0.92';
+                                popup.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+                                setTimeout(function() {
+                                    popup.style.transition = 'opacity 0.8s ease';
+                                    popup.style.opacity = '0';
+                                    setTimeout(function() { popup.remove(); }, 800);
+                                }, 10000);
                             }
                         });
                 });
