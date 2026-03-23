@@ -7,6 +7,8 @@ Each step records its inputs, outputs, parameters, and timing so that
 downstream consumers can verify data freshness (BCBS 239 Principle 3).
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
@@ -188,3 +190,101 @@ def record_step(
     manifest["runs"].setdefault(run_id, []).append(step_name)
     save_manifest(manifest)
     return entry
+
+
+# ---------------------------------------------------------------------------
+# Manifest repair
+# ---------------------------------------------------------------------------
+
+def repair_manifest(data_dir: str | Path | None = None) -> dict:
+    """Re-hash all on-disk artifacts and rebuild a consistent manifest.
+
+    Walks every step in ``STEP_IO`` in topological order.  For each step
+    whose outputs exist on disk, hashes all inputs and outputs and writes
+    (or overwrites) the manifest entry so that the recorded hashes match
+    the current state of the files.  Steps whose outputs are missing are
+    skipped with a warning.
+
+    Existing metadata (run_id, timestamp, generator, parameters) is
+    preserved when the step already has a manifest entry; otherwise
+    sensible defaults are used.
+
+    Returns a summary dict: ``{"repaired": [...], "skipped": [...]}``.
+    """
+    from graphlib import TopologicalSorter
+
+    if data_dir is None:
+        try:
+            from config import PortfolioConfig
+            data_dir = Path(PortfolioConfig().get_input_dir())
+        except (ImportError, AttributeError):
+            data_dir = Path(__file__).resolve().parents[2] / "data" / "input" / "thames"
+    else:
+        data_dir = Path(data_dir)
+
+    manifest = load_manifest()
+    run_id = datetime.now().strftime("repair-%Y%m%d-%H%M%S")
+    ts_now = datetime.now().isoformat()
+
+    # Topological order
+    sorter = TopologicalSorter(DEPENDENCY_GRAPH)
+    topo_order = list(sorter.static_order())
+
+    repaired: list[str] = []
+    skipped: list[str] = []
+
+    for step_name in topo_order:
+        io = STEP_IO.get(step_name)
+        if io is None:
+            continue
+
+        # Check all outputs exist
+        all_outputs_present = True
+        for out in io["outputs"]:
+            path = data_dir / out
+            if out.endswith("/"):
+                if not path.is_dir() or not any(path.iterdir()):
+                    all_outputs_present = False
+                    break
+            else:
+                if not path.is_file():
+                    all_outputs_present = False
+                    break
+
+        if not all_outputs_present:
+            skipped.append(step_name)
+            continue
+
+        # Hash inputs
+        input_hashes = {}
+        for inp in io["inputs"]:
+            path = data_dir / inp
+            input_hashes[inp] = _hash_artifact(path)
+
+        # Hash outputs
+        output_hashes = {}
+        for out in io["outputs"]:
+            path = data_dir / out
+            output_hashes[out] = _hash_artifact(path)
+
+        # Preserve existing metadata or use defaults
+        existing = manifest.get("steps", {}).get(step_name, {})
+        entry = {
+            "run_id": existing.get("run_id", run_id),
+            "timestamp": existing.get("timestamp", ts_now),
+            "generator": existing.get("generator", "unknown"),
+            "status": "success",
+            "elapsed_seconds": existing.get("elapsed_seconds", 0.0),
+            "parameters": existing.get("parameters", {}),
+            "inputs": input_hashes,
+            "outputs": output_hashes,
+        }
+
+        manifest["steps"][step_name] = entry
+        repaired.append(step_name)
+
+    # Update runs index
+    manifest["runs"][run_id] = repaired
+    save_manifest(manifest)
+
+    return {"repaired": repaired, "skipped": skipped}
