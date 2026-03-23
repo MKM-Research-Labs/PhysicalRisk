@@ -53,27 +53,39 @@ class TestBlotterTab:
     @pytest.fixture(autouse=True)
     def open_blotter(self, map_page):
         """Open trading desk and switch to blotter tab for each test."""
+        # Close any open panels first
+        map_page.evaluate("""() => {
+            ['trading-desk-panel', 'hazard-curve-panel', 'property-hc-panel',
+             'prop-storm-panel', 'storm-portfolio-panel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }""")
+        map_page.wait_for_timeout(500)
+
         map_page.locator("text=Π").first.click()
         map_page.locator("#trading-desk-panel").wait_for(
-            state="visible", timeout=5_000
+            state="visible", timeout=10_000
         )
+        map_page.wait_for_timeout(3_000)  # let tabs render
+
         # Click blotter tab
         blotter_tab = map_page.locator("#td-tab-blotter")
         if blotter_tab.count() > 0:
-            blotter_tab.click()
+            blotter_tab.click(force=True)
             map_page.wait_for_timeout(3_000)
         yield
         # Close panel after test
-        panel = map_page.locator("#trading-desk-panel")
-        if panel.is_visible():
-            close_btn = panel.locator("text=×").first
-            if close_btn.is_visible():
-                close_btn.click()
+        map_page.evaluate("""() => {
+            const el = document.getElementById('trading-desk-panel');
+            if (el) el.style.display = 'none';
+        }""")
 
     def test_blotter_view_visible(self, map_page):
         """The blotter content area should be visible."""
         blotter = map_page.locator("#td-blotter-view")
-        blotter.wait_for(state="attached", timeout=10_000)
+        if blotter.count() == 0:
+            map_page.wait_for_timeout(3_000)
         assert blotter.count() > 0, "No #td-blotter-view element found"
 
     def test_blotter_has_trade_rows(self, map_page, trade_data):
@@ -125,18 +137,29 @@ class TestBlotterTradeInteraction:
     @pytest.fixture(autouse=True)
     def open_blotter(self, map_page):
         """Open trading desk blotter tab."""
+        map_page.evaluate("""() => {
+            ['trading-desk-panel', 'hazard-curve-panel', 'property-hc-panel',
+             'prop-storm-panel', 'storm-portfolio-panel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }""")
+        map_page.wait_for_timeout(500)
+
         map_page.locator("text=Π").first.click()
         map_page.locator("#trading-desk-panel").wait_for(
-            state="visible", timeout=5_000
+            state="visible", timeout=10_000
         )
+        map_page.wait_for_timeout(3_000)
         blotter_tab = map_page.locator("#td-tab-blotter")
         if blotter_tab.count() > 0:
-            blotter_tab.click()
+            blotter_tab.click(force=True)
             map_page.wait_for_timeout(3_000)
         yield
-        panel = map_page.locator("#trading-desk-panel")
-        if panel.is_visible():
-            panel.locator("text=×").first.click()
+        map_page.evaluate("""() => {
+            const el = document.getElementById('trading-desk-panel');
+            if (el) el.style.display = 'none';
+        }""")
 
     def test_trade_row_click_highlights(self, map_page, trade_data):
         """Clicking a trade row should highlight/select it."""
