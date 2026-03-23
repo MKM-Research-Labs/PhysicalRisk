@@ -321,3 +321,144 @@ class TestGetPredictorLoadPaths:
         assert result is None
         mock_logger.warning.assert_called_once()
         stress_helpers._predictor_cache = None  # cleanup
+
+
+class TestLegacyFallbackPaths:
+    """Lines 61-73: legacy stress_storms.json fallback loading."""
+
+    def test_legacy_file_loaded_when_no_index(self, stress_env):
+        """Lines 61-73: falls back to stress_storms.json when _index.json absent."""
+        import routes.trading.stress._helpers as stress_helpers
+        stress_helpers._stress_index_cache = None
+        stress_helpers._stress_index_mtime = None
+
+        # Remove the _index.json so directory path fails
+        index_path = stress_env['input_dir'] / 'stress_storms' / '_index.json'
+        if index_path.exists():
+            index_path.unlink()
+        # Remove the stress_storms dir so directory path is skipped
+        ss_dir = stress_env['input_dir'] / 'stress_storms'
+        if ss_dir.exists():
+            import shutil
+            shutil.rmtree(ss_dir)
+
+        # Create legacy single file
+        legacy_path = stress_env['input_dir'] / 'stress_storms.json'
+        legacy_data = {"storms": [{"storm_id": "LEGACY-001", "severity": "severe"}]}
+        legacy_path.write_text(json.dumps(legacy_data))
+
+        result = stress_helpers._load_stress_storms()
+        assert result is not None
+        assert result["storms"][0]["storm_id"] == "LEGACY-001"
+
+        # Cleanup
+        stress_helpers._stress_index_cache = None
+        stress_helpers._stress_index_mtime = None
+
+    def test_legacy_cache_reuse(self, stress_env):
+        """Lines 67-68: legacy file uses mtime cache — second call returns cached."""
+        import routes.trading.stress._helpers as stress_helpers
+        stress_helpers._stress_index_cache = None
+        stress_helpers._stress_index_mtime = None
+
+        # Remove directory-based layout
+        ss_dir = stress_env['input_dir'] / 'stress_storms'
+        if ss_dir.exists():
+            import shutil
+            shutil.rmtree(ss_dir)
+
+        # Create legacy file
+        legacy_path = stress_env['input_dir'] / 'stress_storms.json'
+        legacy_data = {"storms": [{"storm_id": "LEGACY-002"}]}
+        legacy_path.write_text(json.dumps(legacy_data))
+
+        # First load
+        r1 = stress_helpers._load_stress_storms()
+        assert r1["storms"][0]["storm_id"] == "LEGACY-002"
+
+        # Second load (same mtime) should return cached
+        r2 = stress_helpers._load_stress_storms()
+        assert r2 is r1  # same object — cache hit
+
+        # Cleanup
+        stress_helpers._stress_index_cache = None
+        stress_helpers._stress_index_mtime = None
+
+    def test_legacy_stat_oserror_returns_cache(self, stress_env):
+        """Lines 64-66: OSError on legacy file stat returns existing cache."""
+        import routes.trading.stress._helpers as stress_helpers
+        stress_helpers._stress_index_cache = {"storms": [{"storm_id": "cached-legacy"}]}
+        stress_helpers._stress_index_mtime = 99999.0
+
+        # Remove directory layout so we hit the legacy path
+        ss_dir = stress_env['input_dir'] / 'stress_storms'
+        if ss_dir.exists():
+            import shutil
+            shutil.rmtree(ss_dir)
+
+        # Create legacy file
+        legacy_path = stress_env['input_dir'] / 'stress_storms.json'
+        legacy_path.write_text('{"storms": []}')
+
+        # exists() calls stat() internally, so we need to let the first
+        # stat() call through (for exists()) and fail on the second (explicit stat()).
+        real_stat = type(legacy_path).stat
+        legacy_stat_calls = [0]
+        def stat_side_effect(self_path, *a, **kw):
+            if str(self_path).endswith('stress_storms.json'):
+                legacy_stat_calls[0] += 1
+                if legacy_stat_calls[0] >= 2:
+                    # Second call is the explicit stat() on line 64
+                    raise OSError('disk')
+            return real_stat(self_path, *a, **kw)
+
+        with patch('pathlib.PosixPath.stat', stat_side_effect):
+            result = stress_helpers._load_stress_storms()
+        assert result == {"storms": [{"storm_id": "cached-legacy"}]}
+
+        # Cleanup
+        stress_helpers._stress_index_cache = None
+        stress_helpers._stress_index_mtime = None
+
+
+class TestLoadStressStormLegacySearch:
+    """Line 95: _load_stress_storm searches legacy monolithic file."""
+
+    def test_single_storm_from_legacy_file(self, stress_env):
+        """Lines 90-96: storm loaded by searching legacy storms list."""
+        import routes.trading.stress._helpers as stress_helpers
+
+        # _load_stress_storm first checks stress_storms/{storm_id}.json on disk.
+        # Ensure it doesn't exist so it falls through to the legacy search.
+        ss_dir = stress_env['input_dir'] / 'stress_storms'
+        storm_file = ss_dir / 'LEGACY-STORM-001.json'
+        if storm_file.exists():
+            storm_file.unlink()
+
+        # Mock _load_stress_storms to return legacy data (avoids file I/O)
+        legacy_data = {
+            "storms": [
+                {"storm_id": "LEGACY-STORM-001", "severity": "severe"},
+                {"storm_id": "LEGACY-STORM-002", "severity": "minor"},
+            ]
+        }
+        with patch.object(stress_helpers, '_load_stress_storms', return_value=legacy_data):
+            result = stress_helpers._load_stress_storm("LEGACY-STORM-001")
+        assert result is not None
+        assert result["storm_id"] == "LEGACY-STORM-001"
+
+        # Not found
+        with patch.object(stress_helpers, '_load_stress_storms', return_value=legacy_data):
+            result2 = stress_helpers._load_stress_storm("NONEXISTENT")
+        assert result2 is None
+
+
+class TestInvalidatePredictorCache:
+    """Line 159: _invalidate_predictor_cache resets cache."""
+
+    def test_invalidate_clears_cache(self, stress_env):
+        import routes.trading.stress._helpers as stress_helpers
+        stress_helpers._predictor_cache = MagicMock()
+        assert stress_helpers._predictor_cache is not None
+        stress_helpers._invalidate_predictor_cache()
+        assert stress_helpers._predictor_cache is None
