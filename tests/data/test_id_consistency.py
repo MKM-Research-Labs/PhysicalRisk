@@ -288,7 +288,12 @@ class TestStormIDConsistency:
     """Storm IDs must be consistent across stress_storms, propertyts, and gaugets."""
 
     def test_propertyts_storms_from_sequences(self):
-        """Storm IDs in propertyts must come from storm_sequences.json."""
+        """Storm IDs in propertyts must come from storm_sequences.json.
+
+        propertyts groups individual storms by sequence_id, so the
+        storm_id written into flood_events is actually the sequence_id.
+        Compare against sequence-level IDs, not individual storm IDs.
+        """
         seq_path = INPUT_DIR / "storm_sequences.json"
         pts_dir = INPUT_DIR / "propertyts"
         if not seq_path.exists():
@@ -297,12 +302,12 @@ class TestStormIDConsistency:
             pytest.skip("propertyts/ not generated yet")
 
         seq_data = json.load(open(seq_path))
-        seq_storm_ids = set()
+        # propertyts groups by sequence_id, so compare at sequence level
+        seq_ids = set()
         for s in seq_data.get("sequences", []):
-            for st in s.get("storms", []):
-                sid = st.get("storm_id", "")
-                if sid:
-                    seq_storm_ids.add(sid)
+            sid = s.get("sequence_id", "")
+            if sid:
+                seq_ids.add(sid)
 
         prop_storm_ids = set()
         for f in pts_dir.glob("PROP-*.json"):
@@ -318,9 +323,9 @@ class TestStormIDConsistency:
         if not prop_storm_ids:
             pytest.skip("No flood events in propertyts")
 
-        overlap = prop_storm_ids & seq_storm_ids
+        overlap = prop_storm_ids & seq_ids
         assert len(overlap) > 0, (
-            f"ZERO storm ID overlap between storm_sequences.json ({len(seq_storm_ids)} storms) "
+            f"ZERO storm ID overlap between storm_sequences.json ({len(seq_ids)} sequences) "
             f"and propertyts/ ({len(prop_storm_ids)} storms). "
             f"Data is from different generation runs. "
             f"Fix: python app.py port --propertyts"
