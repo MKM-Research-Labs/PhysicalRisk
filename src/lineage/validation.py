@@ -135,6 +135,101 @@ def get_stale_downstream(step_name: str) -> list:
     return result
 
 
+# ---------------------------------------------------------------------------
+# Prerequisite resolution
+# ---------------------------------------------------------------------------
+
+def _outputs_exist(step_name: str, data_dir: Path) -> bool:
+    """Check whether all outputs of a step exist on disk (non-empty)."""
+    io = STEP_IO.get(step_name)
+    if io is None:
+        return False
+    for output in io["outputs"]:
+        path = data_dir / output
+        if output.endswith("/"):
+            if not path.is_dir() or not any(path.iterdir()):
+                return False
+        else:
+            if not path.is_file():
+                return False
+    return True
+
+
+def resolve_prerequisites(
+    target_steps: list[str],
+    data_dir: Path | str | None = None,
+) -> list[str]:
+    """Return prerequisite steps that need to run before *target_steps*,
+    in topological order.
+
+    A prerequisite needs to run if:
+    - It has never been recorded in the manifest AND its outputs are
+      missing/empty on disk, OR
+    - Its inputs are stale (producer hashes changed since last run).
+
+    Skips steps whose outputs already exist on disk even without a
+    manifest entry (handles pre-lineage data).
+
+    Args:
+        target_steps: Step names the user wants to execute.
+        data_dir:     Root data directory (e.g. ``data/input/thames``).
+
+    Returns:
+        Ordered list of prerequisite step names that need to run first.
+        Empty list if everything is fresh.
+    """
+    from graphlib import TopologicalSorter
+
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+
+    # 1. Collect transitive prerequisites (excluding targets themselves)
+    targets = set(target_steps)
+    needed: set[str] = set()
+    queue: deque[str] = deque()
+    for t in target_steps:
+        queue.extend(DEPENDENCY_GRAPH.get(t, []))
+    while queue:
+        dep = queue.popleft()
+        if dep not in needed:
+            needed.add(dep)
+            queue.extend(DEPENDENCY_GRAPH.get(dep, []))
+    # Remove targets — we only want prerequisites, not the steps themselves
+    needed -= targets
+
+    if not needed:
+        return []
+
+    # 2. Filter to only those that are stale or missing
+    manifest = load_manifest()
+    stale: list[str] = []
+
+    for step in needed:
+        step_entry = manifest.get("steps", {}).get(step)
+        if step_entry is None:
+            # Never recorded — check if outputs exist on disk
+            if data_dir and _outputs_exist(step, data_dir):
+                continue  # files present, assume OK
+            stale.append(step)
+        else:
+            # Recorded — check if inputs are still fresh
+            fresh, _ = check_inputs_fresh(step)
+            if not fresh:
+                stale.append(step)
+
+    if not stale:
+        return []
+
+    # 3. Topological sort of stale steps
+    ts = TopologicalSorter()
+    for step in stale:
+        deps_in_stale = [d for d in DEPENDENCY_GRAPH.get(step, [])
+                         if d in stale]
+        ts.add(step, *deps_in_stale)
+
+    return list(ts.static_order())
+
+
 def check_pipeline_complete(data_dir: Path | str | None = None) -> dict:
     """Verify every pipeline output exists on disk.
 
