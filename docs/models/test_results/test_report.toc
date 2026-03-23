@@ -13,10 +13,5 @@
 \contentsline {section}{\numberline {11}Trading Desk (MKM-TD-001)}{178}{section.11}%
 \contentsline {section}{\numberline {12}CDM Schema Validation (CDM-ALL)}{193}{section.12}%
 \contentsline {section}{\numberline {A}Platform Infrastructure Tests}{198}{appendix.A}%
-\contentsline {paragraph}{test\_propertyts\_storms\_from\_sequences}{442}{section*.18}%
-\contentsline {paragraph}{test\_classifiers\_match\_storm\_data}{442}{section*.19}%
-\contentsline {paragraph}{test\_eod\_snapshots\_exist}{442}{section*.20}%
-\contentsline {paragraph}{test\_list\_flood\_storms}{442}{section*.21}%
-\contentsline {paragraph}{test\_list\_flood\_storms\_includes\_non\_flooding}{442}{section*.22}%
-\contentsline {paragraph}{test\_gov\_audit\_stat\_uses\_events\_length}{443}{section*.23}%
-\contentsline {paragraph}{test\_property\_ts\_stat\_uses\_total\_properties}{443}{section*.24}%
+\contentsline {paragraph}{test\_propertyts\_storms\_from\_sequences}{443}{section*.18}%
+\contentsline {paragraph}{test\_eod\_snapshots\_exist}{443}{section*.19}%
