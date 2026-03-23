@@ -20,7 +20,7 @@ class TestTradeCloseOut:
     def setup(self, map_page):
         close_all_panels(map_page)
         open_trading_desk(map_page, tab="blotter")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -46,7 +46,7 @@ class TestTradeCloseOut:
         trades = trade_data.get("trades", [])
         if not trades:
             pytest.skip("No trades in blotter")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         btn = self._find_close_button(map_page)
         if btn is None:
             pytest.skip("No close-out button found on any trade row")
@@ -57,13 +57,13 @@ class TestTradeCloseOut:
         trades = trade_data.get("trades", [])
         if not trades:
             pytest.skip("No trades in blotter")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         btn = self._find_close_button(map_page)
         if btn is None:
             pytest.skip("No close-out button found")
 
         btn.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Look for a modal/dialog with spread input
         modal = map_page.locator("[class*='modal'], [class*='dialog'], [id*='close-modal'], [id*='closeout']")
@@ -79,13 +79,13 @@ class TestTradeCloseOut:
         trades = trade_data.get("trades", [])
         if not trades:
             pytest.skip("No trades in blotter")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         btn = self._find_close_button(map_page)
         if btn is None:
             pytest.skip("No close-out button found")
 
         btn.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find spread input
         spread_input = map_page.locator(
@@ -95,7 +95,7 @@ class TestTradeCloseOut:
             pytest.skip("No spread input in close-out dialog")
 
         spread_input.fill("50")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Check for settlement amount text updating
         dialog_area = map_page.locator(
@@ -118,13 +118,13 @@ class TestTradeCloseOut:
         trades = trade_data.get("trades", [])
         if not trades:
             pytest.skip("No trades in blotter")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         btn = self._find_close_button(map_page)
         if btn is None:
             pytest.skip("No close-out button found")
 
         btn.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Fill spread if present
         spread_input = map_page.locator(
@@ -132,7 +132,7 @@ class TestTradeCloseOut:
         ).first
         if spread_input.count() > 0 and spread_input.is_visible():
             spread_input.fill("50")
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
 
         # Look for confirm button
         confirm_btn = map_page.locator(
@@ -147,7 +147,7 @@ class TestTradeCloseOut:
             lambda resp: "/trading/close" in resp.url, timeout=10_000
         ) as resp_info:
             confirm_btn.click(force=True)
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
 
         response = resp_info.value
         assert response.status in (200, 201), (

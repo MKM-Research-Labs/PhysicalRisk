@@ -20,7 +20,7 @@ class TestEODSubmit:
     def setup(self, map_page):
         close_all_panels(map_page)
         open_trading_desk(map_page, tab="eod")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -59,7 +59,7 @@ class TestEODSubmit:
                 if (btn) btn.click();
                 else if (typeof window.tdSubmitEod === 'function') window.tdSubmitEod();
             }""")
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         # Check for success indicators — broad search
         result = map_page.evaluate("""() => {

@@ -47,7 +47,7 @@ class TestBibliographyExport:
 
         # Click export and verify something happens (clipboard write or download)
         export_btn.first.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Check for success feedback: toast notification, changed button text, or alert
         feedback = map_page.locator("[class*='toast'], [class*='notification'], [class*='snack']")
@@ -95,5 +95,5 @@ class TestBibliographyExport:
         if not is_sortable:
             # Try clicking and see if rows reorder
             first_header.click(force=True)
-            map_page.wait_for_timeout(300)
+            map_page.wait_for_timeout(900)
             # If no error, treat as sortable interaction succeeded

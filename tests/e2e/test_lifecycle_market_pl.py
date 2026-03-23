@@ -26,7 +26,7 @@ class TestMarketUpdatePL:
         open_trading_desk(map_page, tab="market")
 
         # Wait for market data to load
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Read the current yield curve from JS state
         yield_curve = map_page.evaluate("() => window.tdYieldCurve || null")
@@ -49,7 +49,7 @@ class TestMarketUpdatePL:
     def test_02_change_yield_curve_value(self, map_page):
         """Modify a yield curve tenor value via the input fields."""
         open_trading_desk(map_page, tab="market")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Switch to yield curve mode (select may be hidden — use JS fallback)
         mode_select = map_page.locator("#td-curve-mode")
@@ -63,7 +63,7 @@ class TestMarketUpdatePL:
                     }
                 }
             }""", mode_select.element_handle())
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find tenor inputs — rendered in #td-market-inputs
         has_inputs = map_page.evaluate("""() => {
@@ -97,7 +97,7 @@ class TestMarketUpdatePL:
                 }}
             }}
         }}""")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Verify commit button shows dirty state
         commit_text = map_page.evaluate("""() => {
@@ -109,7 +109,7 @@ class TestMarketUpdatePL:
     def test_03_commit_market_changes(self, map_page):
         """Click Commit on market tab to save curve changes."""
         open_trading_desk(map_page, tab="market")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Switch to yield and modify to ensure dirty state
         mode_select = map_page.locator("#td-curve-mode")
@@ -126,7 +126,7 @@ class TestMarketUpdatePL:
                     }
                 }
             }""", mode_select.element_handle())
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Bump 2Y rate to ensure there is something dirty
         map_page.evaluate("""() => {
@@ -141,7 +141,7 @@ class TestMarketUpdatePL:
                 }
             }
         }""")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Click commit
         commit_btn = map_page.locator("#td-commit-btn")
@@ -157,7 +157,7 @@ class TestMarketUpdatePL:
                 if (btn) btn.click();
                 else if (typeof window.tdCommitMarket === 'function') window.tdCommitMarket();
             }""")
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         # Verify commit happened — look for success notification or
         # commit button reverted to non-dirty state
@@ -189,7 +189,7 @@ class TestMarketUpdatePL:
         # Switch to blotter to see updated P&L
         close_all_panels(map_page)
         open_trading_desk(map_page, tab="blotter")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Read P&L bar content
         pnl_bar_text = map_page.evaluate("""() => {

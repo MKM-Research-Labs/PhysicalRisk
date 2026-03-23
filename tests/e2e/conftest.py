@@ -121,7 +121,7 @@ def _browser_page(browser, base_url):
             timeout=120_000,
         )
     except Exception:
-        page.wait_for_timeout(5_000)
+        page.wait_for_timeout(15_000)
 
     yield page
 

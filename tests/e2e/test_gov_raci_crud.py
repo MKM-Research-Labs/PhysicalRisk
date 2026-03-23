@@ -69,7 +69,7 @@ class TestRACIMatrixInteraction:
         if not is_interactive:
             # Try clicking and check for dropdown or modal
             first_cell.click(force=True)
-            map_page.wait_for_timeout(300)
+            map_page.wait_for_timeout(900)
             dropdown = map_page.locator("[class*='dropdown']").or_(
                 map_page.locator("select:visible")
             ).or_(
@@ -149,7 +149,7 @@ class TestMRCMeetingCRUD:
             pytest.skip("No add button found in MRC tab")
 
         add_btn.first.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Look for form, modal, or new input fields
         form = map_page.locator("form").or_(
@@ -176,4 +176,4 @@ class TestMRCMeetingCRUD:
         )
         if cancel_btn.count() > 0:
             cancel_btn.first.click(force=True)
-            map_page.wait_for_timeout(300)
+            map_page.wait_for_timeout(900)

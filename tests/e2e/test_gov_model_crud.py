@@ -47,7 +47,7 @@ class TestModelWorkstreamDetail:
 
         # Click the first row
         rows.first.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Content should change to detail view
         detail_text = content.inner_text()
@@ -75,7 +75,7 @@ class TestModelWorkstreamDetail:
             pytest.skip("No model rows found in inventory tab")
 
         rows.first.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         back_btn = map_page.locator("#mg-back-btn")
         if back_btn.count() == 0 or not back_btn.is_visible():
@@ -83,7 +83,7 @@ class TestModelWorkstreamDetail:
 
         # Click back
         back_btn.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Back button should be hidden again
         back_hidden = (

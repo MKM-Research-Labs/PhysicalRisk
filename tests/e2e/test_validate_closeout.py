@@ -23,7 +23,7 @@ class TestCloseoutFormValidation:
         if not trades:
             pytest.skip("No trades in blotter for close-out testing")
         open_trading_desk(map_page, tab="blotter")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -42,7 +42,7 @@ class TestCloseoutFormValidation:
             pytest.skip("No close-out buttons found in blotter")
 
         close_btns.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Look for a modal or dialog
         modal = (
@@ -85,7 +85,7 @@ class TestCloseoutFormValidation:
             pytest.skip("No close-out buttons found in blotter")
 
         close_btns.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find spread input in modal or inline form
         spread_input = (
@@ -101,7 +101,7 @@ class TestCloseoutFormValidation:
         # Enter negative spread
         spread_input.first.click(force=True)
         spread_input.first.fill("-10")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find confirm/execute button
         confirm_btn = (

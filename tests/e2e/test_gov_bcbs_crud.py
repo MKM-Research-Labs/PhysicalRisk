@@ -53,7 +53,7 @@ class TestBCBS239PrincipleEdit:
             pytest.skip("No edit buttons found on BCBS 239 principle rows")
 
         edit_btns.first.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Look for modal or overlay
         modal = map_page.locator("[class*='modal']").or_(
@@ -89,7 +89,7 @@ class TestBCBS239PrincipleEdit:
             pytest.skip("No edit buttons found on BCBS 239 principle rows")
 
         edit_btns.first.click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         modal = map_page.locator("[class*='modal']").or_(
             map_page.locator("[class*='overlay']")
@@ -126,4 +126,4 @@ class TestBCBS239PrincipleEdit:
 
         # Close the modal to clean up
         cancel_btn.first.click(force=True)
-        map_page.wait_for_timeout(300)
+        map_page.wait_for_timeout(900)

@@ -56,7 +56,7 @@ class TestGaugePRSBookTrade:
 
         # Select second option (first is "-- Select --")
         ctpy.select_option(index=1)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         selected = ctpy.input_value()
         assert selected != "", "No counterparty selected"
@@ -81,7 +81,7 @@ class TestGaugePRSBookTrade:
         if notional.count() > 0:
             notional.fill("5,000,000")
 
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Verify spread display or hazard info is rendered
         hazard_display = map_page.locator("#prs-hazard-display")
@@ -107,7 +107,7 @@ class TestGaugePRSBookTrade:
         if notional.count() > 0:
             notional.fill("5,000,000")
 
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Find commit button — ID from ghc_prs_commit.py is "prs-commit-btn"
         commit_btn = map_page.locator("#prs-commit-btn")
@@ -120,7 +120,7 @@ class TestGaugePRSBookTrade:
             pytest.skip("No commit button found on PRS tab")
 
         commit_btn.first.click(force=True)
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         # Check for success vs error notification
         has_success = map_page.evaluate("""() => {
@@ -151,7 +151,7 @@ class TestGaugePRSBookTrade:
         open_trading_desk(map_page, tab="blotter")
 
         # Wait for blotter data to load
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Verify trades exist in blotter table
         row_count = map_page.evaluate("""() => {

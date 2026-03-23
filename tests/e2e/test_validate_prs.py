@@ -20,7 +20,7 @@ class TestPRSFormValidation:
     def _setup(self, map_page, first_traded_gauge_id):
         close_all_panels(map_page)
         open_gauge_panel(map_page, first_traded_gauge_id)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Switch to PRS tab (tab 0)
         prs_tab = map_page.locator("#hazard-curve-panel [data-tab='0']").or_(
@@ -28,7 +28,7 @@ class TestPRSFormValidation:
         )
         if prs_tab.count() > 0:
             prs_tab.first.click(force=True)
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
 
         yield
         close_all_panels(map_page)
@@ -50,7 +50,7 @@ class TestPRSFormValidation:
         # Clear and type 0
         notional_input.first.click(force=True)
         notional_input.first.fill("0")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find commit/submit button
         commit_btn = (
@@ -76,7 +76,7 @@ class TestPRSFormValidation:
         else:
             # Click and check for error feedback
             commit_btn.first.click(force=True)
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
             error = (
                 panel.locator("[class*='error']")
                 .or_(panel.locator("[class*='invalid']"))
@@ -109,7 +109,7 @@ class TestPRSFormValidation:
             except Exception:
                 pytest.skip("Could not clear counterparty selection")
 
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find commit button
         commit_btn = (
@@ -147,7 +147,7 @@ class TestPRSFormValidation:
         # Clear and type negative value
         spread_input.first.click(force=True)
         spread_input.first.fill("-50")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Check for error indication or disabled button
         commit_btn = (

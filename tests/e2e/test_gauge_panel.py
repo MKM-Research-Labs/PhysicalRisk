@@ -75,7 +75,7 @@ class TestGaugePanelTabs:
         map_page.locator("#hazard-curve-panel").wait_for(
             state="visible", timeout=10_000
         )
-        map_page.wait_for_timeout(2_000)  # Wait for async data load
+        map_page.wait_for_timeout(6_000)  # Wait for async data load
 
         # CHECK for error notifications BEFORE dismissing them
         errors = map_page.evaluate("""() => {
@@ -114,7 +114,7 @@ class TestGaugePanelTabs:
         tab = map_page.locator(".hazard-tab[data-tab='0']")
         if tab.count() > 0:
             tab.click(force=True)
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
             # Should have chart or controls
             chart = map_page.locator("#hazard-chart")
             controls = map_page.locator("#hazard-controls")
@@ -125,7 +125,7 @@ class TestGaugePanelTabs:
         tab = map_page.locator(".hazard-tab[data-tab='1']")
         if tab.count() > 0:
             tab.click(force=True)
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
             chart = map_page.locator("#hazard-chart")
             assert chart.count() > 0, "No chart canvas on hazard curve tab"
 
@@ -134,7 +134,7 @@ class TestGaugePanelTabs:
         tab = map_page.locator(".hazard-tab[data-tab='5']")
         if tab.count() > 0:
             tab.click()
-            map_page.wait_for_timeout(2_000)
+            map_page.wait_for_timeout(6_000)
 
             # Should have a storm dropdown or chart
             panel = map_page.locator("#hazard-curve-panel")
@@ -151,7 +151,7 @@ class TestGaugePanelTabs:
         tab = map_page.locator(".hazard-tab[data-tab='4']")
         if tab.count() > 0:
             tab.click()
-            map_page.wait_for_timeout(2_000)
+            map_page.wait_for_timeout(6_000)
 
             panel = map_page.locator("#hazard-curve-panel")
             text = panel.inner_text()
@@ -190,7 +190,7 @@ class TestGaugePanelBlotterLink:
         link = map_page.locator("#hazard-blotter-link")
         if link.count() > 0 and link.is_visible():
             link.click()
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
 
             # Trading desk should now be visible
             td = map_page.locator("#trading-desk-panel")

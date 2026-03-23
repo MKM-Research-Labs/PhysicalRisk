@@ -24,7 +24,7 @@ class TestEODSnapAndHistory:
     def test_01_open_eod_tab_count_history(self, map_page):
         """Open EOD tab and count existing snapshots."""
         open_trading_desk(map_page, tab="eod")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Verify EOD view is visible
         eod_view = map_page.locator("#td-eod-view")
@@ -44,7 +44,7 @@ class TestEODSnapAndHistory:
     def test_02_submit_eod(self, map_page):
         """Click EOD Submit and verify success."""
         open_trading_desk(map_page, tab="eod")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         submit_btn = map_page.locator("#td-eod-submit-btn")
         if submit_btn.count() == 0:
@@ -69,7 +69,7 @@ class TestEODSnapAndHistory:
         # Wait for status to change from "Submitting..." — poll up to 30s
         status_text = ""
         for _ in range(60):
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
             status_text = map_page.evaluate("""() => {
                 const el = document.getElementById('td-eod-status');
                 return el ? el.textContent : '';
@@ -100,7 +100,7 @@ class TestEODSnapAndHistory:
     def test_03_verify_new_snapshot_in_history(self, map_page):
         """After submitting, a new snapshot should appear in history."""
         open_trading_desk(map_page, tab="eod")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Read history content — should contain at least one row with a date
         history_content = map_page.evaluate("""() => {

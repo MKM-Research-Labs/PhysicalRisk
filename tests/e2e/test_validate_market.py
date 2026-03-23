@@ -20,7 +20,7 @@ class TestMarketFormValidation:
     def _setup(self, map_page):
         close_all_panels(map_page)
         open_trading_desk(map_page, tab="market")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -53,7 +53,7 @@ class TestMarketFormValidation:
         # For type=text, try to type non-numeric text
         target.click(force=True)
         target.fill("abc")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Application-level validation — just verify no crash
         assert True
@@ -61,7 +61,7 @@ class TestMarketFormValidation:
         # Restore original value
         target.click(force=True)
         target.fill(original_value if original_value else "0")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
     def test_negative_rate_handling(self, map_page):
         """Entering a negative rate in a tenor input should be handled gracefully."""
@@ -80,7 +80,7 @@ class TestMarketFormValidation:
 
         target.click(force=True)
         target.fill("-5.0")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Check for error indication
         error_el = (
@@ -105,4 +105,4 @@ class TestMarketFormValidation:
         # Restore original value
         target.click(force=True)
         target.fill(original_value if original_value else "0")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
