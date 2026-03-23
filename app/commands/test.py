@@ -132,9 +132,9 @@ def _run_data_lineage_tests(project_root, audit_dir):
         _python_exe, '-m', 'pytest',
         lineage_test,
         f'--junitxml={lineage_xml}',
-        '-v', '--tb=short', '-q',
+        '-v', '--tb=short',
     ]
-    result = sp.run(cmd, cwd=str(project_root), capture_output=True, text=True, timeout=300)
+    result = sp.run(cmd, cwd=str(project_root), timeout=300)
 
     summary = {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0, 'failures': []}
 
