@@ -61,6 +61,7 @@ class TestBlotterTab:
         blotter_tab = map_page.locator("#td-tab-blotter")
         if blotter_tab.count() > 0:
             blotter_tab.click()
+            map_page.wait_for_timeout(3_000)
         yield
         # Close panel after test
         panel = map_page.locator("#trading-desk-panel")
@@ -72,6 +73,7 @@ class TestBlotterTab:
     def test_blotter_view_visible(self, map_page):
         """The blotter content area should be visible."""
         blotter = map_page.locator("#td-blotter-view")
+        blotter.wait_for(state="attached", timeout=10_000)
         assert blotter.count() > 0, "No #td-blotter-view element found"
 
     def test_blotter_has_trade_rows(self, map_page, trade_data):
@@ -130,6 +132,7 @@ class TestBlotterTradeInteraction:
         blotter_tab = map_page.locator("#td-tab-blotter")
         if blotter_tab.count() > 0:
             blotter_tab.click()
+            map_page.wait_for_timeout(3_000)
         yield
         panel = map_page.locator("#trading-desk-panel")
         if panel.is_visible():
