@@ -56,7 +56,8 @@ class TestBlotterTab:
         # Close any open panels first
         map_page.evaluate("""() => {
             ['trading-desk-panel', 'hazard-curve-panel', 'property-hc-panel',
-             'prop-storm-panel', 'storm-portfolio-panel'].forEach(id => {
+             'prop-storm-panel', 'storm-portfolio-panel', 'gauge-pdf-panel',
+             'mortgage-detail-panel', 'mg-panel', 'property-pdf-panel'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
@@ -139,7 +140,8 @@ class TestBlotterTradeInteraction:
         """Open trading desk blotter tab."""
         map_page.evaluate("""() => {
             ['trading-desk-panel', 'hazard-curve-panel', 'property-hc-panel',
-             'prop-storm-panel', 'storm-portfolio-panel'].forEach(id => {
+             'prop-storm-panel', 'storm-portfolio-panel', 'gauge-pdf-panel',
+             'mortgage-detail-panel', 'mg-panel', 'property-pdf-panel'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });

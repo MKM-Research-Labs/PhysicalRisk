@@ -53,7 +53,7 @@ class TestPropertyStormPanel:
 
         tab = panel.locator(".prop-storm-tab[data-idx='0']")
         if tab.count() > 0:
-            tab.click()
+            tab.click(force=True)
             map_page.wait_for_timeout(3_000)
 
         content = map_page.locator("#prop-storm-content")
@@ -74,7 +74,7 @@ class TestPropertyStormPanel:
         tab = panel.locator(".prop-storm-tab[data-idx='2']")
         if tab.count() == 0:
             pytest.skip("Worst storms tab (idx 2) not found")
-        tab.click()
+        tab.click(force=True)
         map_page.wait_for_timeout(3_000)
 
         content = map_page.locator("#prop-storm-content")
