@@ -1,0 +1,626 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.1, pytest-8.3.4, pluggy-1.6.0 -- /Users/newdavid/Documents/PhysicalRisk/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/newdavid/Documents/PhysicalRisk
+configfile: pyproject.toml
+plugins: playwright-0.7.2, base-url-2.1.0, cov-7.0.0
+collecting ... collected 196 items
+
+tests/e2e/test_context_menus.py::TestGaugeContextMenu::test_right_click_gauge_shows_menu[chromium] PASSED [  0%]
+tests/e2e/test_context_menus.py::TestGaugeContextMenu::test_context_menu_has_items[chromium] PASSED [  1%]
+tests/e2e/test_context_menus.py::TestGaugeContextMenu::test_context_menu_has_header[chromium] PASSED [  1%]
+tests/e2e/test_context_menus.py::TestGaugeContextMenu::test_click_away_closes_menu[chromium] PASSED [  2%]
+tests/e2e/test_context_menus.py::TestContextMenuNavigation::test_hazard_curve_item_opens_gauge_panel[chromium] PASSED [  2%]
+tests/e2e/test_cross_panel_flows.py::TestFS01ToBlotter::test_fs01_tab_shows_risk_grid[chromium] PASSED [  3%]
+tests/e2e/test_cross_panel_flows.py::TestFS01ToBlotter::test_fs01_cell_click_filters_blotter[chromium] SKIPPED [  3%]
+tests/e2e/test_cross_panel_flows.py::TestGaugeBlotterFlow::test_gauge_panel_blotter_link_opens_trading_desk[chromium] PASSED [  4%]
+tests/e2e/test_cross_panel_flows.py::TestGaugeBlotterFlow::test_trading_desk_blotter_visible_after_gauge_link[chromium] PASSED [  4%]
+tests/e2e/test_cross_panel_flows.py::TestContextMenuToTradingDesk::test_right_click_gauge_shows_context_menu[chromium] PASSED [  5%]
+tests/e2e/test_cross_panel_flows.py::TestContextMenuToTradingDesk::test_gauge_blotter_menu_item_opens_trading_desk[chromium] PASSED [  5%]
+tests/e2e/test_cross_panel_flows.py::TestHistoricalToStress::test_historical_tab_has_content[chromium] PASSED [  6%]
+tests/e2e/test_cross_panel_flows.py::TestHistoricalToStress::test_storm_scenario_click_activates_stress_tab[chromium] SKIPPED [  6%]
+tests/e2e/test_data_loads.py::TestNoErrorNotifications::test_no_error_notifications_after_clearing[chromium] PASSED [  7%]
+tests/e2e/test_data_loads.py::TestHazardCurveDataLoads::test_hazard_api_returns_success[chromium] PASSED [  7%]
+tests/e2e/test_data_loads.py::TestHazardCurveDataLoads::test_gauge_panel_loads_data_not_error[chromium] PASSED [  8%]
+tests/e2e/test_data_loads.py::TestHazardCurveDataLoads::test_hazard_curve_tab_has_real_data[chromium] PASSED [  8%]
+tests/e2e/test_data_loads.py::TestPropertyDataLoads::test_property_storm_api_returns_data[chromium] SKIPPED [  9%]
+tests/e2e/test_data_loads.py::TestPropertyDataLoads::test_property_panel_loads_without_errors[chromium] PASSED [  9%]
+tests/e2e/test_data_loads.py::TestTradingDataLoads::test_blotter_api_returns_trades[chromium] PASSED [ 10%]
+tests/e2e/test_data_loads.py::TestTradingDataLoads::test_market_state_api_returns_data[chromium] PASSED [ 10%]
+tests/e2e/test_data_loads.py::TestTradingDataLoads::test_risk_grid_api_returns_data[chromium] PASSED [ 11%]
+tests/e2e/test_error_handling.py::TestInvalidGaugeId::test_nonexistent_gauge_shows_error[chromium] PASSED [ 11%]
+tests/e2e/test_error_handling.py::TestInvalidGaugeId::test_nonexistent_gauge_does_not_crash_page[chromium] PASSED [ 12%]
+tests/e2e/test_error_handling.py::TestInvalidPropertyId::test_nonexistent_property_shows_error[chromium] PASSED [ 12%]
+tests/e2e/test_error_handling.py::TestInvalidPropertyId::test_nonexistent_property_does_not_crash_page[chromium] PASSED [ 13%]
+tests/e2e/test_error_handling.py::TestEscapeKeyClosesPanels::test_escape_closes_gauge_panel[chromium] PASSED [ 13%]
+tests/e2e/test_error_handling.py::TestEscapeKeyClosesPanels::test_escape_closes_trading_desk[chromium] PASSED [ 14%]
+tests/e2e/test_error_handling.py::TestEscapeKeyClosesPanels::test_escape_closes_governance_panel[chromium] PASSED [ 14%]
+tests/e2e/test_error_handling.py::TestMapLayerControls::test_layer_control_exists[chromium] PASSED [ 15%]
+tests/e2e/test_error_handling.py::TestMapLayerControls::test_layer_toggle_changes_markers[chromium] PASSED [ 15%]
+tests/e2e/test_gauge_detail_hazard.py::TestHazardCurveTab::test_chart_canvas_rendered[chromium] PASSED [ 16%]
+tests/e2e/test_gauge_detail_hazard.py::TestHazardCurveTab::test_stats_bar_shows_data[chromium] PASSED [ 16%]
+tests/e2e/test_gauge_detail_hazard.py::TestHazardCurveTab::test_tab_title_updates[chromium] PASSED [ 17%]
+tests/e2e/test_gauge_detail_hazard.py::TestReturnPeriodTab::test_chart_rendered[chromium] PASSED [ 17%]
+tests/e2e/test_gauge_detail_hazard.py::TestReturnPeriodTab::test_content_shows_return_period_data[chromium] PASSED [ 18%]
+tests/e2e/test_gauge_detail_hazard.py::TestFloodProbabilityTab::test_chart_rendered[chromium] PASSED [ 18%]
+tests/e2e/test_gauge_detail_hazard.py::TestFloodProbabilityTab::test_content_shows_probability_data[chromium] PASSED [ 19%]
+tests/e2e/test_gauge_detail_history.py::TestHistoricalTab::test_content_loads_with_timeseries_data[chromium] PASSED [ 19%]
+tests/e2e/test_gauge_detail_history.py::TestHistoricalTab::test_storm_scenarios_list_exists[chromium] PASSED [ 20%]
+tests/e2e/test_gauge_detail_history.py::TestHistoricalTab::test_content_mentions_historical_context[chromium] PASSED [ 20%]
+tests/e2e/test_gauge_detail_history.py::TestStressTestTab::test_storm_dropdown_exists[chromium] PASSED [ 21%]
+tests/e2e/test_gauge_detail_history.py::TestStressTestTab::test_charts_render[chromium] SKIPPED [ 21%]
+tests/e2e/test_gauge_detail_history.py::TestStressTestTab::test_content_mentions_stress_concepts[chromium] PASSED [ 22%]
+tests/e2e/test_gauge_detail_history.py::TestStressTestTab::test_auto_selects_worst_case_storm[chromium] PASSED [ 22%]
+tests/e2e/test_gauge_detail_prs.py::TestPRSPricingTab::test_controls_exist[chromium] PASSED [ 23%]
+tests/e2e/test_gauge_detail_prs.py::TestPRSPricingTab::test_direction_dropdown_options[chromium] PASSED [ 23%]
+tests/e2e/test_gauge_detail_prs.py::TestPRSPricingTab::test_trigger_dropdown_options[chromium] PASSED [ 24%]
+tests/e2e/test_gauge_detail_prs.py::TestPRSPricingTab::test_trigger_change_updates_display[chromium] PASSED [ 25%]
+tests/e2e/test_gauge_detail_prs.py::TestPRSPricingTab::test_commit_button_exists[chromium] PASSED [ 25%]
+tests/e2e/test_gauge_detail_prs.py::TestPRSPricingTab::test_chart_canvas_exists[chromium] PASSED [ 26%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelOpens::test_open_gauge_panel_via_js[chromium] PASSED [ 26%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelOpens::test_panel_title_shows_gauge_name[chromium] PASSED [ 27%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelOpens::test_panel_has_tab_bar[chromium] PASSED [ 27%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelTabs::test_prs_tab_renders[chromium] PASSED [ 28%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelTabs::test_hazard_curve_tab_renders[chromium] PASSED [ 28%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelTabs::test_stress_tab_renders[chromium] PASSED [ 29%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelTabs::test_historical_tab_renders[chromium] PASSED [ 29%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelBlotterLink::test_blotter_link_exists[chromium] PASSED [ 30%]
+tests/e2e/test_gauge_panel.py::TestGaugePanelBlotterLink::test_blotter_link_opens_trading_desk[chromium] PASSED [ 30%]
+tests/e2e/test_gov_bcbs_crud.py::TestBCBS239PrincipleEdit::test_edit_buttons_on_principles[chromium] PASSED [ 31%]
+tests/e2e/test_gov_bcbs_crud.py::TestBCBS239PrincipleEdit::test_edit_opens_modal[chromium] SKIPPED [ 31%]
+tests/e2e/test_gov_bcbs_crud.py::TestBCBS239PrincipleEdit::test_modal_has_confirm_cancel[chromium] SKIPPED [ 32%]
+tests/e2e/test_gov_bibliography_crud.py::TestBibliographyExport::test_bibtex_export_button[chromium] PASSED [ 32%]
+tests/e2e/test_gov_bibliography_crud.py::TestBibliographyExport::test_reference_table_sortable[chromium] PASSED [ 33%]
+tests/e2e/test_gov_documents_crud.py::TestDocumentUploadDownload::test_upload_area_exists[chromium] PASSED [ 33%]
+tests/e2e/test_gov_documents_crud.py::TestDocumentUploadDownload::test_document_list_renders[chromium] PASSED [ 34%]
+tests/e2e/test_gov_documents_crud.py::TestDocumentUploadDownload::test_download_buttons_clickable[chromium] SKIPPED [ 34%]
+tests/e2e/test_gov_model_crud.py::TestModelWorkstreamDetail::test_model_row_opens_detail[chromium] PASSED [ 35%]
+tests/e2e/test_gov_model_crud.py::TestModelWorkstreamDetail::test_back_button_returns_to_list[chromium] PASSED [ 35%]
+tests/e2e/test_gov_raci_crud.py::TestRACIMatrixInteraction::test_matrix_grid_renders[chromium] PASSED [ 36%]
+tests/e2e/test_gov_raci_crud.py::TestRACIMatrixInteraction::test_cells_interactive[chromium] SKIPPED [ 36%]
+tests/e2e/test_gov_raci_crud.py::TestMRCMeetingCRUD::test_meeting_list_renders[chromium] PASSED [ 37%]
+tests/e2e/test_gov_raci_crud.py::TestMRCMeetingCRUD::test_add_meeting_button_exists[chromium] PASSED [ 37%]
+tests/e2e/test_gov_raci_crud.py::TestMRCMeetingCRUD::test_add_button_opens_form[chromium] PASSED [ 38%]
+tests/e2e/test_governance.py::TestGovernancePanelOpens::test_panel_is_visible[chromium] PASSED [ 38%]
+tests/e2e/test_governance.py::TestGovernancePanelOpens::test_has_tab_buttons[chromium] PASSED [ 39%]
+tests/e2e/test_governance.py::TestGovernancePanelOpens::test_has_content_area[chromium] PASSED [ 39%]
+tests/e2e/test_governance.py::TestModelInventoryTab::test_tab_content_loads[chromium] PASSED [ 40%]
+tests/e2e/test_governance.py::TestModelInventoryTab::test_content_mentions_model[chromium] PASSED [ 40%]
+tests/e2e/test_governance.py::TestBCBS239Tab::test_tab_content_loads[chromium] PASSED [ 41%]
+tests/e2e/test_governance.py::TestBCBS239Tab::test_content_mentions_bcbs[chromium] PASSED [ 41%]
+tests/e2e/test_governance.py::TestRACITab::test_tab_content_loads[chromium] PASSED [ 42%]
+tests/e2e/test_governance.py::TestRACITab::test_content_mentions_raci[chromium] PASSED [ 42%]
+tests/e2e/test_governance.py::TestMRCTab::test_tab_content_loads[chromium] PASSED [ 43%]
+tests/e2e/test_governance.py::TestMRCTab::test_content_mentions_mrc[chromium] PASSED [ 43%]
+tests/e2e/test_governance.py::TestDocumentsTab::test_tab_content_loads[chromium] PASSED [ 44%]
+tests/e2e/test_governance.py::TestDocumentsTab::test_content_area_exists[chromium] PASSED [ 44%]
+tests/e2e/test_governance.py::TestBibliographyTab::test_tab_content_loads[chromium] PASSED [ 45%]
+tests/e2e/test_governance.py::TestBibliographyTab::test_content_mentions_bibliography[chromium] PASSED [ 45%]
+tests/e2e/test_governance.py::TestAuditTab::test_tab_content_loads[chromium] PASSED [ 46%]
+tests/e2e/test_governance.py::TestAuditTab::test_content_mentions_audit[chromium] PASSED [ 46%]
+tests/e2e/test_lifecycle_closeout.py::TestCloseOutTradePL::test_01_open_blotter_and_count_trades[chromium] PASSED [ 47%]
+tests/e2e/test_lifecycle_closeout.py::TestCloseOutTradePL::test_02_click_close_button_opens_modal[chromium] PASSED [ 47%]
+tests/e2e/test_lifecycle_closeout.py::TestCloseOutTradePL::test_03_enter_closeout_spread_and_confirm[chromium] PASSED [ 48%]
+tests/e2e/test_lifecycle_closeout.py::TestCloseOutTradePL::test_04_verify_closed_trade_in_blotter[chromium] PASSED [ 48%]
+tests/e2e/test_lifecycle_eod.py::TestEODSnapAndHistory::test_01_open_eod_tab_count_history[chromium] PASSED [ 49%]
+tests/e2e/test_lifecycle_eod.py::TestEODSnapAndHistory::test_02_submit_eod[chromium] PASSED [ 50%]
+tests/e2e/test_lifecycle_eod.py::TestEODSnapAndHistory::test_03_verify_new_snapshot_in_history[chromium] PASSED [ 50%]
+tests/e2e/test_lifecycle_gauge_prs.py::TestGaugePRSBookTrade::test_01_open_prs_and_verify_controls[chromium] PASSED [ 51%]
+tests/e2e/test_lifecycle_gauge_prs.py::TestGaugePRSBookTrade::test_02_select_counterparty[chromium] PASSED [ 51%]
+tests/e2e/test_lifecycle_gauge_prs.py::TestGaugePRSBookTrade::test_03_set_trade_parameters[chromium] PASSED [ 52%]
+tests/e2e/test_lifecycle_gauge_prs.py::TestGaugePRSBookTrade::test_04_commit_trade[chromium] PASSED [ 52%]
+tests/e2e/test_lifecycle_gauge_prs.py::TestGaugePRSBookTrade::test_05_new_trade_appears_in_blotter[chromium] PASSED [ 53%]
+tests/e2e/test_lifecycle_market_pl.py::TestMarketUpdatePL::test_01_open_market_tab_record_yield[chromium] PASSED [ 53%]
+tests/e2e/test_lifecycle_market_pl.py::TestMarketUpdatePL::test_02_change_yield_curve_value[chromium] PASSED [ 54%]
+tests/e2e/test_lifecycle_market_pl.py::TestMarketUpdatePL::test_03_commit_market_changes[chromium] PASSED [ 54%]
+tests/e2e/test_lifecycle_market_pl.py::TestMarketUpdatePL::test_04_verify_pnl_after_curve_change[chromium] PASSED [ 55%]
+tests/e2e/test_lifecycle_property_prs.py::TestPropertyPRSBookTrade::test_01_open_property_prs_and_verify_controls[chromium] PASSED [ 55%]
+tests/e2e/test_lifecycle_property_prs.py::TestPropertyPRSBookTrade::test_02_set_property_trade_parameters[chromium] PASSED [ 56%]
+tests/e2e/test_lifecycle_property_prs.py::TestPropertyPRSBookTrade::test_03_commit_property_trade[chromium] SKIPPED [ 56%]
+tests/e2e/test_map_smoke.py::TestMapLoads::test_leaflet_container_exists[chromium] PASSED [ 57%]
+tests/e2e/test_map_smoke.py::TestMapLoads::test_map_tiles_loaded[chromium] PASSED [ 57%]
+tests/e2e/test_map_smoke.py::TestMapLoads::test_zoom_controls_present[chromium] PASSED [ 58%]
+tests/e2e/test_map_smoke.py::TestMarkers::test_markers_present[chromium] PASSED [ 58%]
+tests/e2e/test_map_smoke.py::TestMarkers::test_marker_count_reasonable[chromium] PASSED [ 59%]
+tests/e2e/test_map_smoke.py::TestCoreControls::test_pi_button_exists[chromium] PASSED [ 59%]
+tests/e2e/test_map_smoke.py::TestCoreControls::test_governance_button_exists[chromium] PASSED [ 60%]
+tests/e2e/test_map_smoke.py::TestCoreControls::test_startup_preloader_completed[chromium] PASSED [ 60%]
+tests/e2e/test_property_context_menu.py::TestPropertyContextMenu::test_right_click_property_shows_menu[chromium] FAILED [ 61%]
+tests/e2e/test_property_context_menu.py::TestPropertyContextMenu::test_menu_has_property_items[chromium] SKIPPED [ 61%]
+tests/e2e/test_property_context_menu.py::TestPropertyContextMenu::test_menu_header_shows_property_info[chromium] SKIPPED [ 62%]
+tests/e2e/test_property_context_menu.py::TestPropertyContextMenu::test_storm_scenarios_opens_panel[chromium] SKIPPED [ 62%]
+tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_panel_opens_with_title[chromium] PASSED [ 63%]
+tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_panel_has_tab_buttons[chromium] PASSED [ 63%]
+tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_distribution_tab_has_content[chromium] FAILED [ 64%]
+tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_worst_storms_tab_shows_data[chromium] FAILED [ 64%]
+tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_status_bar_shows_flood_counts[chromium] PASSED [ 65%]
+tests/e2e/test_property_panel.py::TestPropertyHazardPanel::test_panel_opens_with_title[chromium] PASSED [ 65%]
+tests/e2e/test_property_panel.py::TestPropertyHazardPanel::test_panel_has_four_tabs[chromium] PASSED [ 66%]
+tests/e2e/test_property_panel.py::TestPropertyHazardPanel::test_hazard_curve_chart_renders[chromium] PASSED [ 66%]
+tests/e2e/test_property_panel.py::TestPropertyHazardPanel::test_prs_pricing_tab_has_controls[chromium] PASSED [ 67%]
+tests/e2e/test_property_panel.py::TestPropertyHazardPanel::test_basis_analysis_tab_shows_content[chromium] PASSED [ 67%]
+tests/e2e/test_property_panel.py::TestMortgageDetail::test_mortgage_panel_opens[chromium] PASSED [ 68%]
+tests/e2e/test_property_panel.py::TestMortgageDetail::test_mortgage_content_shows_data[chromium] PASSED [ 68%]
+tests/e2e/test_td_blotter.py::TestTradingDeskOpens::test_click_pi_opens_panel[chromium] PASSED [ 69%]
+tests/e2e/test_td_blotter.py::TestTradingDeskOpens::test_panel_has_tab_bar[chromium] PASSED [ 69%]
+tests/e2e/test_td_blotter.py::TestTradingDeskOpens::test_close_button_hides_panel[chromium] PASSED [ 70%]
+tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_view_visible[chromium] ERROR [ 70%]
+tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_has_trade_rows[chromium] ERROR [ 71%]
+tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_filter_dropdowns_exist[chromium] ERROR [ 71%]
+tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_shows_net_notional[chromium] ERROR [ 72%]
+tests/e2e/test_td_blotter.py::TestBlotterTradeInteraction::test_trade_row_click_highlights[chromium] ERROR [ 72%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_classifiers_view_visible[chromium] FAILED [ 73%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_train_all_button[chromium] FAILED [ 73%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_summary_stats[chromium] FAILED [ 74%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_table_pane[chromium] FAILED [ 75%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_detail_pane[chromium] PASSED [ 75%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_summary_table_has_rows[chromium] FAILED [ 76%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_table_has_action_buttons[chromium] FAILED [ 76%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_row_click_populates_detail[chromium] PASSED [ 77%]
+tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_progress_bar_hidden_initially[chromium] PASSED [ 77%]
+tests/e2e/test_td_tabs.py::TestMarketTab::test_market_view_visible[chromium] FAILED [ 78%]
+tests/e2e/test_td_tabs.py::TestMarketTab::test_has_yield_curve_content[chromium] PASSED [ 78%]
+tests/e2e/test_td_tabs.py::TestMarketTab::test_has_hazard_term_structure[chromium] PASSED [ 79%]
+tests/e2e/test_td_tabs.py::TestMarketTab::test_has_charts_or_inputs[chromium] PASSED [ 79%]
+tests/e2e/test_td_tabs.py::TestFS01Tab::test_risk_view_visible[chromium] FAILED [ 80%]
+tests/e2e/test_td_tabs.py::TestFS01Tab::test_has_risk_grid[chromium] PASSED [ 80%]
+tests/e2e/test_td_tabs.py::TestFS01Tab::test_content_mentions_risk_keywords[chromium] PASSED [ 81%]
+tests/e2e/test_td_tabs.py::TestAggregateTab::test_map_view_visible[chromium] FAILED [ 81%]
+tests/e2e/test_td_tabs.py::TestAggregateTab::test_has_leaflet_or_svg[chromium] FAILED [ 82%]
+tests/e2e/test_td_tabs.py::TestEODTab::test_eod_view_visible[chromium] FAILED [ 82%]
+tests/e2e/test_td_tabs.py::TestEODTab::test_has_history_list_or_table[chromium] PASSED [ 83%]
+tests/e2e/test_td_tabs.py::TestEODTab::test_content_mentions_eod_keywords[chromium] PASSED [ 83%]
+tests/e2e/test_td_tabs.py::TestCurvesTab::test_curves_view_visible[chromium] FAILED [ 84%]
+tests/e2e/test_td_tabs.py::TestCurvesTab::test_has_chart_or_curve_content[chromium] PASSED [ 84%]
+tests/e2e/test_td_tabs.py::TestStressTab::test_stress_view_visible[chromium] FAILED [ 85%]
+tests/e2e/test_td_tabs.py::TestStressTab::test_has_gauge_dropdown[chromium] PASSED [ 85%]
+tests/e2e/test_td_tabs.py::TestStressTab::test_has_storm_dropdown[chromium] PASSED [ 86%]
+tests/e2e/test_validate_closeout.py::TestCloseoutFormValidation::test_close_button_opens_modal[chromium] SKIPPED [ 86%]
+tests/e2e/test_validate_closeout.py::TestCloseoutFormValidation::test_negative_closeout_spread_handling[chromium] SKIPPED [ 87%]
+tests/e2e/test_validate_market.py::TestMarketFormValidation::test_non_numeric_tenor_input[chromium] SKIPPED [ 87%]
+tests/e2e/test_validate_market.py::TestMarketFormValidation::test_negative_rate_handling[chromium] FAILED [ 88%]
+tests/e2e/test_validate_prs.py::TestPRSFormValidation::test_zero_notional_disables_commit[chromium] SKIPPED [ 88%]
+tests/e2e/test_validate_prs.py::TestPRSFormValidation::test_empty_counterparty_disables_commit[chromium] SKIPPED [ 89%]
+tests/e2e/test_validate_prs.py::TestPRSFormValidation::test_negative_spread_handling[chromium] PASSED [ 89%]
+tests/e2e/test_workflow_closeout.py::TestTradeCloseOut::test_blotter_has_close_button[chromium] PASSED [ 90%]
+tests/e2e/test_workflow_closeout.py::TestTradeCloseOut::test_close_button_opens_dialog[chromium] PASSED [ 90%]
+tests/e2e/test_workflow_closeout.py::TestTradeCloseOut::test_spread_input_updates_settlement[chromium] SKIPPED [ 91%]
+tests/e2e/test_workflow_closeout.py::TestTradeCloseOut::test_confirm_closeout_posts[chromium] SKIPPED [ 91%]
+tests/e2e/test_workflow_eod.py::TestEODSubmit::test_eod_submit_button_exists[chromium] SKIPPED [ 92%]
+tests/e2e/test_workflow_eod.py::TestEODSubmit::test_eod_submit_creates_snapshot[chromium] SKIPPED [ 92%]
+tests/e2e/test_workflow_eod.py::TestEODSubmit::test_eod_history_has_pdf_link[chromium] PASSED [ 93%]
+tests/e2e/test_workflow_gauge_prs.py::TestGaugePRSCommit::test_counterparty_dropdown_has_options[chromium] PASSED [ 93%]
+tests/e2e/test_workflow_gauge_prs.py::TestGaugePRSCommit::test_selecting_counterparty_enables_commit[chromium] PASSED [ 94%]
+tests/e2e/test_workflow_gauge_prs.py::TestGaugePRSCommit::test_fill_notional_and_spread[chromium] PASSED [ 94%]
+tests/e2e/test_workflow_gauge_prs.py::TestGaugePRSCommit::test_commit_triggers_response[chromium] PASSED [ 95%]
+tests/e2e/test_workflow_market.py::TestMarketStateCommit::test_yield_curve_inputs_exist[chromium] PASSED [ 95%]
+tests/e2e/test_workflow_market.py::TestMarketStateCommit::test_tenor_inputs_accept_values[chromium] SKIPPED [ 96%]
+tests/e2e/test_workflow_market.py::TestMarketStateCommit::test_dirty_state_indicator[chromium] SKIPPED [ 96%]
+tests/e2e/test_workflow_market.py::TestMarketStateCommit::test_save_button_commits_changes[chromium] SKIPPED [ 97%]
+tests/e2e/test_workflow_market.py::TestMarketStateReset::test_reset_button_exists[chromium] SKIPPED [ 97%]
+tests/e2e/test_workflow_market.py::TestMarketStateReset::test_reset_restores_defaults[chromium] SKIPPED [ 98%]
+tests/e2e/test_workflow_property_prs.py::TestPropertyPRSCommit::test_prs_controls_exist[chromium] PASSED [ 98%]
+tests/e2e/test_workflow_property_prs.py::TestPropertyPRSCommit::test_fill_prs_values[chromium] PASSED [ 99%]
+tests/e2e/test_workflow_property_prs.py::TestPropertyPRSCommit::test_commit_button_state[chromium] SKIPPED [100%]
+
+==================================== ERRORS ====================================
+_____ ERROR at setup of TestBlotterTab.test_blotter_view_visible[chromium] _____
+tests/e2e/test_td_blotter.py:63: in open_blotter
+    blotter_tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#td-tab-blotter")
+E       - locator resolved to <button id="td-tab-blotter">Blotter</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       567 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+E       - waiting for element to be visible, enabled and stable
+____ ERROR at setup of TestBlotterTab.test_blotter_has_trade_rows[chromium] ____
+tests/e2e/test_td_blotter.py:63: in open_blotter
+    blotter_tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#td-tab-blotter")
+E       - locator resolved to <button id="td-tab-blotter">Blotter</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       563 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+_ ERROR at setup of TestBlotterTab.test_blotter_filter_dropdowns_exist[chromium] _
+tests/e2e/test_td_blotter.py:63: in open_blotter
+    blotter_tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#td-tab-blotter")
+E       - locator resolved to <button id="td-tab-blotter">Blotter</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       564 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+__ ERROR at setup of TestBlotterTab.test_blotter_shows_net_notional[chromium] __
+tests/e2e/test_td_blotter.py:63: in open_blotter
+    blotter_tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#td-tab-blotter")
+E       - locator resolved to <button id="td-tab-blotter">Blotter</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       564 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+_ ERROR at setup of TestBlotterTradeInteraction.test_trade_row_click_highlights[chromium] _
+tests/e2e/test_td_blotter.py:132: in open_blotter
+    blotter_tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#td-tab-blotter")
+E       - locator resolved to <button id="td-tab-blotter">Blotter</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       579 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+=================================== FAILURES ===================================
+____ TestPropertyContextMenu.test_right_click_property_shows_menu[chromium] ____
+tests/e2e/test_property_context_menu.py:80: in test_right_click_property_shows_menu
+    assert False, (
+E   AssertionError: No .ctx-menu found after right-click. Elements with menu/ctx classes: []
+E   assert False
+______ TestPropertyStormPanel.test_distribution_tab_has_content[chromium] ______
+tests/e2e/test_property_panel.py:55: in test_distribution_tab_has_content
+    tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#prop-storm-panel").locator(".prop-storm-tab[data-idx='0']")
+E       - locator resolved to <button data-idx="0" class="prop-storm-tab">Distribution</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       562 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+______ TestPropertyStormPanel.test_worst_storms_tab_shows_data[chromium] _______
+tests/e2e/test_property_panel.py:75: in test_worst_storms_tab_shows_data
+    tab.click()
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 300000ms exceeded.
+E   Call log:
+E     - waiting for locator("#prop-storm-panel").locator(".prop-storm-tab[data-idx='2']")
+E       - locator resolved to <button data-idx="2" class="prop-storm-tab">Worst Storms</button>
+E     - attempting click action
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E       - waiting 20ms
+E       2 × waiting for element to be visible, enabled and stable
+E         - element is visible, enabled and stable
+E         - scrolling into view if needed
+E         - done scrolling
+E         - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E       - retrying click action
+E         - waiting 100ms
+E       564 × waiting for element to be visible, enabled and stable
+E           - element is visible, enabled and stable
+E           - scrolling into view if needed
+E           - done scrolling
+E           - <iframe id="property-pdf-iframe" src="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNyAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0Zv…></iframe> from <div id="property-pdf-panel">…</div> subtree intercepts pointer events
+E         - retrying click action
+E           - waiting 500ms
+__________ TestClassifiersTab.test_classifiers_view_visible[chromium] __________
+tests/e2e/test_td_classifiers.py:76: in test_classifiers_view_visible
+    assert view.is_visible(), "#td-classifiers-view is not visible"
+E   AssertionError: #td-classifiers-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-classifiers-view'>.is_visible
+____________ TestClassifiersTab.test_has_train_all_button[chromium] ____________
+tests/e2e/test_td_classifiers.py:82: in test_has_train_all_button
+    assert btn.is_visible(), "Train All button is not visible"
+E   AssertionError: Train All button is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#cl-train-all-btn'>.is_visible
+_____________ TestClassifiersTab.test_has_summary_stats[chromium] ______________
+tests/e2e/test_td_classifiers.py:89: in test_has_summary_stats
+    assert "trained" in text.lower(), (
+E   AssertionError: Expected 'trained' in stats, got: 
+E   assert 'trained' in ''
+E    +  where '' = <built-in method lower of str object at 0x100f7c6e8>()
+E    +    where <built-in method lower of str object at 0x100f7c6e8> = ''.lower
+_______________ TestClassifiersTab.test_has_table_pane[chromium] _______________
+tests/e2e/test_td_classifiers.py:100: in test_has_table_pane
+    assert tables.count() > 0 or "gauge" in text or "no gauges" in text, (
+E   AssertionError: No table or gauge content in table pane
+E   assert (0 > 0 or 'gauge' in '' or 'no gauges' in '')
+E    +  where 0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#cl-table-pane >> table'>.count
+___________ TestClassifiersTab.test_summary_table_has_rows[chromium] ___________
+tests/e2e/test_td_classifiers.py:116: in test_summary_table_has_rows
+    assert rows.count() > 0, "No gauge rows in summary table"
+E   AssertionError: No gauge rows in summary table
+E   assert 0 > 0
+E    +  where 0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#cl-table-pane >> tr[data-gauge-id]'>.count
+__________ TestClassifiersTab.test_table_has_action_buttons[chromium] __________
+tests/e2e/test_td_classifiers.py:123: in test_table_has_action_buttons
+    assert btns.count() > 0, "No train/retrain buttons found"
+E   AssertionError: No train/retrain buttons found
+E   assert 0 > 0
+E    +  where 0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#cl-table-pane >> button[data-train-gauge]'>.count
+_______________ TestMarketTab.test_market_view_visible[chromium] _______________
+tests/e2e/test_td_tabs.py:80: in test_market_view_visible
+    assert view.is_visible(), "#td-market-view is not visible"
+E   AssertionError: #td-market-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-market-view'>.is_visible
+_________________ TestFS01Tab.test_risk_view_visible[chromium] _________________
+tests/e2e/test_td_tabs.py:131: in test_risk_view_visible
+    assert view.is_visible(), "#td-risk-view is not visible"
+E   AssertionError: #td-risk-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-risk-view'>.is_visible
+_______________ TestAggregateTab.test_map_view_visible[chromium] _______________
+tests/e2e/test_td_tabs.py:171: in test_map_view_visible
+    assert view.is_visible(), "#td-map-view is not visible"
+E   AssertionError: #td-map-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-map-view'>.is_visible
+______________ TestAggregateTab.test_has_leaflet_or_svg[chromium] ______________
+tests/e2e/test_td_tabs.py:180: in test_has_leaflet_or_svg
+    assert (
+E   AssertionError: No Leaflet map, SVG, circle, or canvas found in aggregate view
+E   assert (0 > 0 or 0 > 0 or 0 > 0 or 0 > 0)
+E    +  where 0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-map-view >> .leaflet-container'>.count
+E    +  and   0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-map-view >> svg'>.count
+E    +  and   0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-map-view >> circle'>.count
+E    +  and   0 = count()
+E    +    where count = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-map-view >> canvas'>.count
+__________________ TestEODTab.test_eod_view_visible[chromium] __________________
+tests/e2e/test_td_tabs.py:209: in test_eod_view_visible
+    assert view.is_visible(), "#td-eod-view is not visible"
+E   AssertionError: #td-eod-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-eod-view'>.is_visible
+_______________ TestCurvesTab.test_curves_view_visible[chromium] _______________
+tests/e2e/test_td_tabs.py:252: in test_curves_view_visible
+    assert view.is_visible(), "#td-curves-view is not visible"
+E   AssertionError: #td-curves-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-curves-view'>.is_visible
+_______________ TestStressTab.test_stress_view_visible[chromium] _______________
+tests/e2e/test_td_tabs.py:287: in test_stress_view_visible
+    assert view.is_visible(), "#td-stress-view is not visible"
+E   AssertionError: #td-stress-view is not visible
+E   assert False
+E    +  where False = is_visible()
+E    +    where is_visible = <Locator frame=<Frame name= url='http://127.0.0.1:49594/visualization'> selector='#td-stress-view'>.is_visible
+________ TestMarketFormValidation.test_negative_rate_handling[chromium] ________
+tests/e2e/test_validate_market.py:81: in test_negative_rate_handling
+    target.click(force=True)
+.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.Error: Locator.click: Element is not visible
+E   Call log:
+E     - waiting for locator("#td-market-view").locator("input[type='number']").or_(locator("#td-market-view").locator("input[type='text']")).first
+E       - locator resolved to <input min="0" max="20" step="0.05" value="0.50" type="number" data-tenor="1" data-mode="yield" oninput="tdCurveInputChanged(this)" onchange="tdCurveInputChanged(this)"/>
+E     - attempting click action
+E       - scrolling into view if needed
+=========================== short test summary info ============================
+FAILED tests/e2e/test_property_context_menu.py::TestPropertyContextMenu::test_right_click_property_shows_menu[chromium]
+FAILED tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_distribution_tab_has_content[chromium]
+FAILED tests/e2e/test_property_panel.py::TestPropertyStormPanel::test_worst_storms_tab_shows_data[chromium]
+FAILED tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_classifiers_view_visible[chromium]
+FAILED tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_train_all_button[chromium]
+FAILED tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_summary_stats[chromium]
+FAILED tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_has_table_pane[chromium]
+FAILED tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_summary_table_has_rows[chromium]
+FAILED tests/e2e/test_td_classifiers.py::TestClassifiersTab::test_table_has_action_buttons[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestMarketTab::test_market_view_visible[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestFS01Tab::test_risk_view_visible[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestAggregateTab::test_map_view_visible[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestAggregateTab::test_has_leaflet_or_svg[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestEODTab::test_eod_view_visible[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestCurvesTab::test_curves_view_visible[chromium]
+FAILED tests/e2e/test_td_tabs.py::TestStressTab::test_stress_view_visible[chromium]
+FAILED tests/e2e/test_validate_market.py::TestMarketFormValidation::test_negative_rate_handling[chromium]
+ERROR tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_view_visible[chromium]
+ERROR tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_has_trade_rows[chromium]
+ERROR tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_filter_dropdowns_exist[chromium]
+ERROR tests/e2e/test_td_blotter.py::TestBlotterTab::test_blotter_shows_net_notional[chromium]
+ERROR tests/e2e/test_td_blotter.py::TestBlotterTradeInteraction::test_trade_row_click_highlights[chromium]
+====== 17 failed, 147 passed, 27 skipped, 5 errors in 2514.83s (0:41:54) =======

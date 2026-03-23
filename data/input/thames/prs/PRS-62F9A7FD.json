@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-62F9A7FD",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-2590ad40",
+      "CounterPartyName": "StanChart CR (A)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-14",
+      "ProtectionStart": "2026-03-16",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 5000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.033200986269627156
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-16",
+      "EndDate": "2028-05-26",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-ef53398c",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-ef53398c",
+          "GaugeName": "Thames Hungerford Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 5000000
+    },
+    "Pricing": {
+      "SpreadBps": 332,
+      "FairSpreadBps": 328.03,
+      "NPV": 3679.69,
+      "PremiumLegPV": 307157.19,
+      "ProtectionLegPV": 303477.5,
+      "RiskyAnnuity": 1.85029,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}
