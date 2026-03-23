@@ -59,11 +59,38 @@ def register_parser(subparsers):
     sp.add_argument("--history-years", "-hy", type=int, default=50)
     sp.add_argument("--tail-weight", "-tw", type=float, default=2.0)
     sp.add_argument("--distribution", "-d", choices=["gev", "gumbel"], default="gev")
+    sp.add_argument("--repair-manifest", action="store_true",
+                    help="Re-hash all pipeline artifacts and rebuild a consistent manifest")
     sp.set_defaults(func=cmd_port)
 
 
 def cmd_port(args):
     """Generate synthetic portfolio data."""
+    catchment = 'thames'
+    config.catchment_id = catchment
+    output_dir = config.get_input_dir()
+    input_dir = output_dir  # alias for clarity in lineage mappings
+
+    # --- Repair manifest (standalone mode) --------------------------------
+    # Checked before heavy imports so it works without pandas/scipy etc.
+    if getattr(args, 'repair_manifest', False):
+        try:
+            from lineage.manifest import repair_manifest
+        except ImportError:
+            print("ERROR: lineage package not available")
+            return
+        print(f"\nMKM Portfolio Generator — Manifest Repair")
+        print(f"Catchment: {catchment}")
+        print(f"Data dir:  {output_dir}\n")
+        result = repair_manifest(data_dir=output_dir)
+        for step in result["repaired"]:
+            print(f"  ✓ {step}")
+        for step in result["skipped"]:
+            print(f"  ⚠ {step} (outputs missing — skipped)")
+        print(f"\nRepaired {len(result['repaired'])} steps, "
+              f"skipped {len(result['skipped'])}.")
+        return
+
     import time
     from port.src import gauge, mortgage, hazard, counterparty
     from port.src import property as prop_gen
@@ -81,11 +108,6 @@ def cmd_port(args):
         check_inputs_fresh = None
         get_stale_downstream = None
         resolve_prerequisites = None
-
-    catchment = 'thames'
-    config.catchment_id = catchment
-    output_dir = config.get_input_dir()
-    input_dir = output_dir  # alias for clarity in lineage mappings
 
     run_id = None
     if get_current_run_id is not None:
@@ -128,8 +150,9 @@ def cmd_port(args):
             try:
                 prereqs = resolve_prerequisites(requested, data_dir=output_dir)
                 if prereqs:
+                    arrow = ' \u2192 '
                     print(f"  Auto-running prerequisites: "
-                          f"{' \u2192 '.join(prereqs)}\n")
+                          f"{arrow.join(prereqs)}\n")
                     for step in prereqs:
                         setattr(args, _step_flag[step], True)
             except Exception as e:

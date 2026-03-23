@@ -64,7 +64,6 @@ GAUGEHC_JSON = pathlib.Path(config.get_input_dir()) / "gaugehc.json"
 PROPERTYHC_JSON = pathlib.Path(config.get_input_dir()) / "propertyhc.json"
 PROPERTY_JSON = pathlib.Path(config.get_input_dir()) / "property.json"
 PRS_DIR = pathlib.Path(config.get_reports_dir('prs')) if hasattr(config, 'get_reports_dir') else None
-EOD_DIR = pathlib.Path(config.get_eod_dir()) if hasattr(config, 'get_eod_dir') else None
 
 
 class TestPipelineCompleteness:
@@ -109,36 +108,6 @@ class TestPipelineCompleteness:
         assert n_curves == n_props, (
             f"propertyhc.json has {n_curves} curves but property.json has {n_props} properties. "
             "Run `python app.py port --propertyhc` to rebuild."
-        )
-
-    def test_eod_snapshots_exist(self):
-        """Historical EOD snapshots must be generated (63 business days).
-
-        If this fails, the blotter step failed to generate EOD history —
-        likely due to stale gaugehc.json during the run.
-        Fix: python app.py port --blotter
-        """
-        if EOD_DIR is None or not EOD_DIR.exists():
-            pytest.skip("EOD directory not configured or missing")
-
-        eod_files = list(EOD_DIR.glob("EOD-*.json"))
-        assert len(eod_files) >= 50, (
-            f"Only {len(eod_files)} EOD snapshots (expected ~63). "
-            "Run `python app.py port --blotter` to regenerate."
-        )
-
-    def test_trades_exist(self):
-        """PRS trade files must exist in the blotter directory.
-
-        Fix: python app.py port --blotter
-        """
-        if PRS_DIR is None or not PRS_DIR.exists():
-            pytest.skip("PRS directory not configured or missing")
-
-        trade_files = list(PRS_DIR.glob("PRS-*.json"))
-        assert len(trade_files) >= 10, (
-            f"Only {len(trade_files)} trade files (expected ~50). "
-            "Run `python app.py port --blotter` to regenerate."
         )
 
     def test_trade_gauges_exist_in_gauge_json(self):

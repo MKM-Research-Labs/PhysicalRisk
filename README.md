@@ -145,6 +145,13 @@ You can run individual segments instead of the full pipeline:
 | Property hazard curves | `--propertyhc` | `--phc` |
 | Counterparties | `--counterparties` | `--ctpy` |
 | Trading blotter | `--blotter` | `--bl` |
+| Repair manifest | `--repair-manifest` | — |
+
+Use `--repair-manifest` after partial pipeline runs or when the lineage manifest (`data/data_lineage.json`) has become inconsistent. It re-hashes all on-disk artifacts without regenerating any data, making the manifest match the current file state.
+
+```bash
+python3 app.py port --repair-manifest
+```
 
 ### Classifier Flags
 
