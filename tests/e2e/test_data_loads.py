@@ -291,7 +291,7 @@ class TestPropertyDataLoads:
                 var cfg = window.__BACKEND_CONFIG || {{}};
                 var baseUrl = cfg.url || '';
                 var resp = await fetch(
-                    baseUrl + '/api/v1/propertyts/{first_property_id}/flood-events'
+                    baseUrl + '/api/v1/properties/{first_property_id}/floods'
                 );
                 var data = await resp.json();
                 return {{

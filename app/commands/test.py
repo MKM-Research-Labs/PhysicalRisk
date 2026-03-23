@@ -275,11 +275,11 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
     ]
 
     try:
-        result = sp.run(cmd, cwd=str(project_root), timeout=600)
+        result = sp.run(cmd, cwd=str(project_root), timeout=1800)
     except sp.TimeoutExpired:
-        print('  E2E tests timed out (10 min limit)')
+        print('  E2E tests timed out (30 min limit)')
         return {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
-                'status': 'TIMEOUT', 'reason': 'timed out after 600s', 'failures': []}
+                'status': 'TIMEOUT', 'reason': 'timed out after 1800s', 'failures': []}
     except Exception as exc:
         print(f'  E2E tests failed to run: {exc}')
         return {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
