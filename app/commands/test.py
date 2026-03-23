@@ -191,32 +191,47 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
         print('  Skipped: tests/e2e/ directory not found')
         return None
 
-    # Check if playwright Python package is installed
+    # Check if playwright Python package is installed.
+    # Use sys.executable (the Python that launched app.py) rather than the
+    # venv python — playwright is typically installed in the user's base env.
+    _pw_python = sys.executable
     check = sp.run(
-        [python_exe, '-c', 'import playwright'],
+        [_pw_python, '-c', 'import playwright'],
         capture_output=True, cwd=str(project_root),
     )
     if check.returncode != 0:
-        print('  Skipped: playwright not installed (pip install playwright && playwright install)')
-        summary = {
-            'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
-            'status': 'SKIPPED', 'reason': 'playwright not installed',
-            'failures': [],
-        }
-        report_path = os.path.join(audit_dir, 'e2e_results.json')
-        try:
-            with open(report_path, 'w') as f:
-                json.dump(summary, f, indent=2)
-        except Exception:
-            pass
-        return summary
+        # Fall back to venv python in case playwright is there instead
+        check2 = sp.run(
+            [python_exe, '-c', 'import playwright'],
+            capture_output=True, cwd=str(project_root),
+        )
+        if check2.returncode != 0:
+            print(f'  Skipped: playwright not installed')
+            print(f'    Checked: {_pw_python}')
+            print(f'    Checked: {python_exe}')
+            print(f'    Fix: pip install playwright && playwright install')
+            summary = {
+                'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
+                'status': 'SKIPPED', 'reason': 'playwright not installed',
+                'failures': [],
+            }
+            report_path = os.path.join(audit_dir, 'e2e_results.json')
+            try:
+                with open(report_path, 'w') as f:
+                    json.dump(summary, f, indent=2)
+            except Exception:
+                pass
+            return summary
+        else:
+            # playwright found in venv python, use that
+            _pw_python = python_exe
 
     # Ensure Chromium browser binary is installed (the pip package alone
     # is not enough — the binary must be downloaded separately).
     # Quick sanity check: try to launch a browser context.  If the binary
     # is missing playwright raises BrowserNotInstalled / Error.
     browser_check = sp.run(
-        [python_exe, '-c',
+        [_pw_python, '-c',
          'from playwright.sync_api import sync_playwright; '
          'p = sync_playwright().start(); '
          'b = p.chromium.launch(headless=True); b.close(); p.stop()'],
@@ -227,7 +242,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
     if needs_install:
         print('  Installing Chromium browser for Playwright...')
         install_result = sp.run(
-            [python_exe, '-m', 'playwright', 'install', 'chromium'],
+            [_pw_python, '-m', 'playwright', 'install', 'chromium'],
             capture_output=True, text=True, cwd=str(project_root),
         )
         if install_result.returncode != 0:
@@ -248,17 +263,17 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
             return summary
         print('  Chromium installed successfully.')
 
-    # Omit --headed to run headless (default for pytest-playwright)
+    # Run e2e tests with verbose output streamed to terminal
     cmd = [
-        python_exe, '-m', 'pytest',
+        _pw_python, '-m', 'pytest',
         e2e_dir,
         f'--junitxml={e2e_xml}',
         '--browser', 'chromium',
-        '-v', '--tb=short', '-q',
+        '-v', '--tb=short',
     ]
 
     try:
-        result = sp.run(cmd, cwd=str(project_root), capture_output=True, text=True, timeout=600)
+        result = sp.run(cmd, cwd=str(project_root), timeout=600)
     except sp.TimeoutExpired:
         print('  E2E tests timed out (10 min limit)')
         return {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
