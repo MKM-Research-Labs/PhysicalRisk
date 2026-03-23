@@ -23,6 +23,9 @@ class TestDocumentUploadDownload:
         close_all_panels(map_page)
         open_governance(map_page)
         switch_governance_tab(map_page, "documents")
+        # Documents tab fetches /api/v1/governance/documents then renders —
+        # wait for the upload area to appear after the async load
+        map_page.wait_for_timeout(6_000)
         yield
         close_all_panels(map_page)
 
