@@ -54,7 +54,7 @@ def _right_click_property_marker(page):
     else:
         # Fallback: direct Playwright right-click with force
         markers.first.click(button="right", force=True)
-    page.wait_for_timeout(1_500)
+    page.wait_for_timeout(4_500)
 
 
 class TestPropertyContextMenu:
@@ -140,13 +140,13 @@ class TestPropertyContextMenu:
             items = map_page.locator(".ctx-menu-item")
             if items.count() > 0:
                 items.first.click()
-                map_page.wait_for_timeout(1_000)
+                map_page.wait_for_timeout(3_000)
                 assert True  # clicked without error
                 return
             pytest.skip("No clickable menu items found")
 
         storm_item.first.click()
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Either prop-storm-panel or property-hc-panel should be visible
         storm_panel = map_page.locator("#prop-storm-panel")

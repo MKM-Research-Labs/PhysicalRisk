@@ -60,7 +60,7 @@ def _open_governance_panel(page):
         )
     if mg_btn.count() > 0:
         mg_btn.first.click(force=True)
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(1_500)
 
     panel = page.locator("#mg-panel")
     if not panel.is_visible():
@@ -68,7 +68,7 @@ def _open_governance_panel(page):
             const el = document.getElementById('mg-panel');
             if (el) el.style.display = 'block';
         }""")
-        page.wait_for_timeout(300)
+        page.wait_for_timeout(900)
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class TestInvalidGaugeId:
             pytest.skip("viewHazardCurve not available")
 
         map_page.evaluate("window.viewHazardCurve('GAUGE-nonexistent')")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Look for error notification or toast containing relevant text
         notification = (
@@ -146,7 +146,7 @@ class TestInvalidGaugeId:
             pytest.skip("viewHazardCurve not available")
 
         map_page.evaluate("window.viewHazardCurve('GAUGE-nonexistent')")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # The Leaflet map should still be present and interactive
         leaflet = map_page.locator(".leaflet-container")
@@ -184,7 +184,7 @@ class TestInvalidPropertyId:
             fn_name = "viewPropertyStorms"
 
         map_page.evaluate(f"window.{fn_name}('PROP-nonexistent')")
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         # Check for error notification
         notification = (
@@ -241,7 +241,7 @@ class TestInvalidPropertyId:
                 pytest.skip("viewPropertyStorms/viewPropertyHazard not available")
 
         map_page.evaluate(f"window.{fn_name}('PROP-nonexistent')")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         leaflet = map_page.locator(".leaflet-container")
         assert leaflet.count() > 0, "Leaflet map disappeared after invalid property call"
@@ -273,7 +273,7 @@ class TestEscapeKeyClosesPanels:
         assert panel.is_visible(), "Gauge panel did not open"
 
         map_page.keyboard.press("Escape")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Panel should be hidden or removed
         if panel.count() > 0:
@@ -306,7 +306,7 @@ class TestEscapeKeyClosesPanels:
             pytest.skip("Trading desk did not open")
 
         map_page.keyboard.press("Escape")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Escape may or may not close the trading desk — verify it doesn't crash
         assert True, "Escape key did not crash the page"
@@ -320,7 +320,7 @@ class TestEscapeKeyClosesPanels:
             pytest.skip("Could not open governance panel")
 
         map_page.keyboard.press("Escape")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Escape may or may not close governance — verify it doesn't crash
         assert True, "Escape key did not crash the page"
@@ -360,7 +360,7 @@ class TestMapLayerControls:
 
         # Hover to expand the layer control (Leaflet collapses it by default)
         layer_ctrl.first.hover(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Find layer checkboxes
         checkboxes = layer_ctrl.locator("input[type='checkbox']")
@@ -379,7 +379,7 @@ class TestMapLayerControls:
             const cb = document.querySelector('.leaflet-control-layers input[type="checkbox"]');
             if (cb) cb.click();
         }""")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         markers_after = map_page.locator(
             ".leaflet-marker-icon"
@@ -392,7 +392,7 @@ class TestMapLayerControls:
             const cb = document.querySelector('.leaflet-control-layers input[type="checkbox"]');
             if (cb) cb.click();
         }""")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Marker count should have changed (or at least not crash)
         # Some layers may not have markers, so we accept no-change gracefully

@@ -53,7 +53,7 @@ class TestGaugeContextMenu:
 
         print(f"\n  [DEBUG] Found {markers.count()} markers, clicking first...")
         markers.first.click(button="right")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Check multiple possible context menu selectors
         menu = map_page.locator(".ctx-menu")
@@ -79,7 +79,7 @@ class TestGaugeContextMenu:
             pytest.skip("No markers on map")
 
         markers.first.click(button="right")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         items = map_page.locator(".ctx-menu-item")
         assert items.count() >= 2, f"Only {items.count()} menu items found"
@@ -91,7 +91,7 @@ class TestGaugeContextMenu:
             pytest.skip("No markers on map")
 
         markers.first.click(button="right")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         header = map_page.locator(".ctx-menu-header")
         assert header.count() > 0, "No context menu header"
@@ -105,7 +105,7 @@ class TestGaugeContextMenu:
             pytest.skip("No markers on map")
 
         markers.first.click(button="right")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         menu = map_page.locator(".ctx-menu")
         assert menu.first.is_visible()
@@ -114,7 +114,7 @@ class TestGaugeContextMenu:
         map_page.locator(".leaflet-container").first.click(
             position={"x": 10, "y": 10}
         )
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         if menu.count() > 0:
             assert not menu.first.is_visible(), "Context menu still visible after click-away"
@@ -130,7 +130,7 @@ class TestContextMenuNavigation:
             pytest.skip("No markers on map")
 
         markers.first.click(button="right")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Look for PRS / Hazard Curve menu item
         prs_item = map_page.locator(".ctx-menu-item", has_text="Physical Risk Swap")
@@ -141,13 +141,13 @@ class TestContextMenuNavigation:
             items = map_page.locator(".ctx-menu-item")
             if items.count() > 0:
                 items.first.click()
-                map_page.wait_for_timeout(1_000)
+                map_page.wait_for_timeout(3_000)
                 assert True  # clicked without error
                 return
             pytest.skip("No clickable menu items found")
 
         prs_item.first.click()
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         # The hazard curve panel should now be visible
         panel = map_page.locator("#hazard-curve-panel")

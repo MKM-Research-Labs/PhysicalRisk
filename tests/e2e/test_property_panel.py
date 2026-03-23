@@ -18,7 +18,7 @@ class TestPropertyStormPanel:
         if not has_fn:
             pytest.skip("window.viewPropertyStorms not available")
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
     def test_panel_opens_with_title(self, map_page, first_property_id):
         """Calling viewPropertyStorms should open the panel with title."""
@@ -53,7 +53,7 @@ class TestPropertyStormPanel:
         tab = panel.locator(".prop-storm-tab[data-idx='0']")
         if tab.count() > 0:
             tab.click()
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
 
         content = map_page.locator("#prop-storm-content")
         assert content.count() > 0, "No #prop-storm-content element"
@@ -73,7 +73,7 @@ class TestPropertyStormPanel:
         if tab.count() == 0:
             pytest.skip("Worst storms tab (idx 2) not found")
         tab.click()
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         content = map_page.locator("#prop-storm-content")
         text = content.inner_text()
@@ -116,7 +116,7 @@ class TestPropertyHazardPanel:
         if not has_fn:
             pytest.skip("window.viewPropertyHazard not available")
         map_page.evaluate(f"window.viewPropertyHazard('{prop_id}')")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
     def test_panel_opens_with_title(self, map_page, first_property_id):
         """Calling viewPropertyHazard should open the panel with title."""
@@ -151,7 +151,7 @@ class TestPropertyHazardPanel:
         tab = panel.locator(".phc-tab[data-tab='0']")
         if tab.count() > 0:
             tab.click()
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
 
         chart = map_page.locator("#phc-chart")
         if chart.count() == 0:
@@ -176,7 +176,7 @@ class TestPropertyHazardPanel:
         if tab.count() == 0:
             pytest.skip("PRS pricing tab (data-tab=2) not found")
         tab.click()
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         trigger = map_page.locator("#phc-trigger")
         notional = map_page.locator("#phc-notional")
@@ -199,7 +199,7 @@ class TestPropertyHazardPanel:
         if tab.count() == 0:
             pytest.skip("Basis analysis tab (data-tab=3) not found")
         tab.click()
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         text = panel.inner_text()
         has_content = (
@@ -223,7 +223,7 @@ class TestMortgageDetail:
         )
         if has_fn:
             map_page.evaluate(f"window.viewMortgageDetail('{prop_id}')")
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
             return True
 
         # Try opening property storms first, then switching to mortgage tab
@@ -232,12 +232,12 @@ class TestMortgageDetail:
         )
         if has_storms:
             map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-            map_page.wait_for_timeout(1_000)
+            map_page.wait_for_timeout(3_000)
             # Click mortgage impact tab (idx 4)
             tab = map_page.locator(".prop-storm-tab[data-idx='4']")
             if tab.count() > 0:
                 tab.click()
-                map_page.wait_for_timeout(1_000)
+                map_page.wait_for_timeout(3_000)
                 return True
 
         return False

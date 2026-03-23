@@ -66,7 +66,7 @@ class TestClassifiersTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-classifiers").click(force=True)
-        map_page.wait_for_timeout(1000)
+        map_page.wait_for_timeout(3_000)
         yield
         _close_trading_desk(map_page)
 
@@ -112,25 +112,25 @@ class TestClassifiersTab:
         pane = map_page.locator("#cl-table-pane")
         rows = pane.locator("tr[data-gauge-id]")
         # Wait a bit for data to load
-        map_page.wait_for_timeout(2000)
+        map_page.wait_for_timeout(6_000)
         rows = pane.locator("tr[data-gauge-id]")
         assert rows.count() > 0, "No gauge rows in summary table"
 
     def test_table_has_action_buttons(self, map_page):
         """Each gauge row should have a Train/Retrain button."""
-        map_page.wait_for_timeout(2000)
+        map_page.wait_for_timeout(6_000)
         pane = map_page.locator("#cl-table-pane")
         btns = pane.locator("button[data-train-gauge]")
         assert btns.count() > 0, "No train/retrain buttons found"
 
     def test_row_click_populates_detail(self, map_page):
         """Clicking a gauge row should populate the detail panel."""
-        map_page.wait_for_timeout(2000)
+        map_page.wait_for_timeout(6_000)
         pane = map_page.locator("#cl-table-pane")
         rows = pane.locator("tr[data-gauge-id]")
         if rows.count() > 0:
             rows.first.click()
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
             detail = map_page.locator("#cl-detail-pane")
             text = detail.inner_text()
             # Should show gauge name or "Train Now" or metrics

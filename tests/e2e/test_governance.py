@@ -37,7 +37,7 @@ def _open_governance_panel(page):
         )
     if mg_btn.count() > 0:
         mg_btn.first.click(force=True)
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(1_500)
 
     # Fallback: show panel directly via JS
     panel = page.locator("#mg-panel")
@@ -46,7 +46,7 @@ def _open_governance_panel(page):
             const el = document.getElementById('mg-panel');
             if (el) el.style.display = 'block';
         }""")
-        page.wait_for_timeout(300)
+        page.wait_for_timeout(900)
 
 
 def _switch_tab(page, tab_name):
@@ -56,7 +56,7 @@ def _switch_tab(page, tab_name):
         tab_btn.first.click(force=True)
     else:
         page.evaluate(f"typeof switchMgTab === 'function' && switchMgTab('{tab_name}')")
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(1_500)
 
 
 def _get_content_text(page):

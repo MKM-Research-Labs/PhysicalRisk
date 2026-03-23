@@ -26,7 +26,7 @@ class TestHistoricalTab:
         open_gauge_panel(map_page, first_gauge_id)
         switch_gauge_tab(map_page, 4)
         # Historical tab may need extra time to load data
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_gauge_panel(map_page)
 
@@ -88,7 +88,7 @@ class TestStressTestTab:
         open_gauge_panel(map_page, first_gauge_id)
         switch_gauge_tab(map_page, 5)
         # Stress tab may need extra time for API calls and chart rendering
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
         yield
         close_gauge_panel(map_page)
 

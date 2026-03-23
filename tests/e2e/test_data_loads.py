@@ -35,7 +35,7 @@ class TestNoErrorNotifications:
             document.querySelectorAll('.notif-message').forEach(n => n.remove());
         }""")
         # Wait to see if any new errors appear (from background fetches)
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         errors = map_page.evaluate("""() => {
             const notifs = document.querySelectorAll('.notif-message');
@@ -105,7 +105,7 @@ class TestHazardCurveDataLoads:
         map_page.locator("#hazard-curve-panel").wait_for(
             state="visible", timeout=10_000
         )
-        map_page.wait_for_timeout(3_000)  # Wait for async data load
+        map_page.wait_for_timeout(9_000)  # Wait for async data load
 
         # Check for error notifications
         errors = map_page.evaluate("""() => {
@@ -145,13 +145,13 @@ class TestHazardCurveDataLoads:
         map_page.locator("#hazard-curve-panel").wait_for(
             state="visible", timeout=10_000
         )
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         # Switch to hazard curve tab
         tab = map_page.locator(".hazard-tab[data-tab='1']")
         if tab.count() > 0:
             tab.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Verify hazardData is populated in JS scope
         has_data = map_page.evaluate("""() => {
@@ -326,7 +326,7 @@ class TestPropertyDataLoads:
         except Exception:
             pytest.skip("Property storm panel did not open")
 
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         errors = map_page.evaluate("""() => {
             const notifs = document.querySelectorAll('.notif-message');

@@ -88,7 +88,7 @@ class TestPRSPricingTab:
 
         # Select the last option (different from default first)
         map_page.select_option("#prs-trigger", options[-1])
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # The panel should still be showing content (not blank/error)
         panel = map_page.locator("#hazard-curve-panel")

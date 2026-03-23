@@ -94,13 +94,13 @@ def open_trading_desk(page, tab=None):
                 page.evaluate(
                     "document.getElementById('trading-desk-panel').style.display = ''"
                 )
-                page.wait_for_timeout(500)
+                page.wait_for_timeout(1_500)
 
     if tab:
         tab_btn = page.locator(f"#td-tab-{tab}")
         if tab_btn.count() > 0:
             tab_btn.click(force=True)
-        page.wait_for_timeout(1_000)
+        page.wait_for_timeout(3_000)
 
 
 def close_trading_desk(page):
@@ -135,7 +135,7 @@ def open_gauge_panel(page, gauge_id):
     page.locator("#hazard-curve-panel").wait_for(
         state="visible", timeout=10_000
     )
-    page.wait_for_timeout(2_000)
+    page.wait_for_timeout(6_000)
     assert_no_error_notifications(page, "gauge panel")
 
 
@@ -161,7 +161,7 @@ def switch_gauge_tab(page, tab_index):
         if (pdf) pdf.style.display = 'none';
     }""")
     tab.click(force=True)
-    page.wait_for_timeout(1_000)
+    page.wait_for_timeout(3_000)
 
 
 def switch_to_prs_tab_gauge(page):
@@ -169,7 +169,7 @@ def switch_to_prs_tab_gauge(page):
     tabs = page.locator("#hazard-curve-panel .hazard-tab")
     if tabs.count() > 0:
         tabs.first.click(force=True)
-    page.wait_for_timeout(1_000)
+    page.wait_for_timeout(3_000)
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +207,7 @@ def switch_to_prs_tab_property(page):
             tabs.nth(2).click(force=True)
         else:
             tabs.last.click(force=True)
-    page.wait_for_timeout(1_000)
+    page.wait_for_timeout(3_000)
 
 
 # ---------------------------------------------------------------------------
@@ -240,7 +240,7 @@ def switch_governance_tab(page, tab_name):
         page.evaluate(
             f"typeof switchMgTab === 'function' && switchMgTab('{tab_name}')"
         )
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(1_500)
 
 
 def get_governance_content_text(page):

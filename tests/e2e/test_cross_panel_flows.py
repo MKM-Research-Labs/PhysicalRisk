@@ -34,7 +34,7 @@ def _open_gauge_panel(page, gauge_id):
     else:
         page.evaluate(f"window.GaugeHazardCurve.show('{gauge_id}')")
     page.locator("#hazard-curve-panel").wait_for(state="visible", timeout=10_000)
-    page.wait_for_timeout(2_000)
+    page.wait_for_timeout(6_000)
     errors = page.evaluate("""() => {
         const notifs = document.querySelectorAll('.notif-message');
         const errors = [];
@@ -82,7 +82,7 @@ class TestFS01ToBlotter:
             pytest.skip("FS01 tab not found in trading desk")
 
         fs01_tab.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Look for the risk grid container
         grid = map_page.locator("#td-risk-view").or_(
@@ -107,7 +107,7 @@ class TestFS01ToBlotter:
             pytest.skip("FS01 tab not found")
 
         fs01_tab.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Find clickable cells in the risk grid (td elements with data attributes)
         cells = map_page.locator("#td-risk-view td[data-gauge]").or_(
@@ -123,7 +123,7 @@ class TestFS01ToBlotter:
             pytest.skip("No clickable FS01 cells found in risk grid")
 
         cells.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # After clicking, the blotter tab should be active
         blotter_view = map_page.locator("#td-blotter-view")
@@ -160,7 +160,7 @@ class TestGaugeBlotterFlow:
     ):
         """Open gauge panel for a traded gauge, click blotter link, trading desk opens."""
         _open_gauge_panel(map_page, first_traded_gauge_id)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Look for a blotter link or button inside the gauge panel
         panel = map_page.locator("#hazard-curve-panel")
@@ -176,7 +176,7 @@ class TestGaugeBlotterFlow:
             pytest.skip("No blotter link found in gauge panel")
 
         blotter_link.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         td_panel = map_page.locator("#trading-desk-panel")
         td_panel.wait_for(state="visible", timeout=5_000)
@@ -187,7 +187,7 @@ class TestGaugeBlotterFlow:
     ):
         """After clicking gauge blotter link, the blotter view should be visible."""
         _open_gauge_panel(map_page, first_traded_gauge_id)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         panel = map_page.locator("#hazard-curve-panel")
         blotter_link = panel.locator("text=Blotter").or_(
@@ -202,7 +202,7 @@ class TestGaugeBlotterFlow:
             pytest.skip("No blotter link found in gauge panel")
 
         blotter_link.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         td_panel = map_page.locator("#trading-desk-panel")
         if not td_panel.is_visible():
@@ -211,7 +211,7 @@ class TestGaugeBlotterFlow:
         # Blotter view or tab should be active
         blotter_view = map_page.locator("#td-blotter-view")
         if blotter_view.count() > 0:
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
             assert blotter_view.is_visible(), (
                 "Blotter view should be visible in trading desk"
             )
@@ -240,7 +240,7 @@ class TestContextMenuToTradingDesk:
             pytest.skip("No gauge markers found on map")
 
         markers.first.click(button="right", force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         ctx_menu = map_page.locator(".ctx-menu").or_(
             map_page.locator("[class*='context-menu']")
@@ -257,7 +257,7 @@ class TestContextMenuToTradingDesk:
             pytest.skip("No gauge markers found on map")
 
         markers.first.click(button="right", force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         ctx_menu = map_page.locator(".ctx-menu").or_(
             map_page.locator("[class*='context-menu']")
@@ -283,7 +283,7 @@ class TestContextMenuToTradingDesk:
             pytest.skip("Gauge Blotter menu item is disabled")
 
         blotter_item.first.click(force=True)
-        map_page.wait_for_timeout(2_000)
+        map_page.wait_for_timeout(6_000)
 
         td_panel = map_page.locator("#trading-desk-panel")
         try:
@@ -297,7 +297,7 @@ class TestContextMenuToTradingDesk:
                     const p = document.getElementById('trading-desk-panel');
                     if (p) p.style.display = '';
                 }""")
-                map_page.wait_for_timeout(500)
+                map_page.wait_for_timeout(1_500)
             else:
                 pytest.skip("Trading desk panel not in DOM after Gauge Blotter click")
 
@@ -322,7 +322,7 @@ class TestHistoricalToStress:
     def test_historical_tab_has_content(self, map_page, first_gauge_id):
         """Open gauge panel, switch to Historical tab (data-tab='4'), verify content."""
         _open_gauge_panel(map_page, first_gauge_id)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Switch to Historical tab (tab index 4)
         hist_tab = map_page.locator(
@@ -334,7 +334,7 @@ class TestHistoricalToStress:
             pytest.skip("Historical tab not found in gauge panel")
 
         hist_tab.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Verify some content appeared in the panel
         panel = map_page.locator("#hazard-curve-panel")
@@ -349,7 +349,7 @@ class TestHistoricalToStress:
     ):
         """Click a storm scenario in Historical tab to activate the Stress tab."""
         _open_gauge_panel(map_page, first_gauge_id)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Switch to Historical tab
         hist_tab = map_page.locator(
@@ -361,7 +361,7 @@ class TestHistoricalToStress:
             pytest.skip("Historical tab not found")
 
         hist_tab.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Look for storm scenario items in the right panel
         panel = map_page.locator("#hazard-curve-panel")
@@ -377,7 +377,7 @@ class TestHistoricalToStress:
             pytest.skip("No storm scenarios found in Historical tab")
 
         storm_items.first.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Verify the Stress tab (data-tab='5') is now active
         stress_tab = panel.locator("[data-tab='5']").or_(

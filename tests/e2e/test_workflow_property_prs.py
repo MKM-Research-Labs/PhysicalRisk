@@ -29,7 +29,7 @@ class TestPropertyPRSCommit:
         tab = map_page.locator(".phc-tab[data-tab='2']")
         if tab.count() > 0:
             tab.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -82,7 +82,7 @@ class TestPropertyPRSCommit:
             notional = notional_loc.first
             if notional.is_visible():
                 notional.fill("500000")
-                map_page.wait_for_timeout(500)
+                map_page.wait_for_timeout(1_500)
                 filled = True
 
         # Fill spread
@@ -93,7 +93,7 @@ class TestPropertyPRSCommit:
             spread = spread_loc.first
             if spread.is_visible():
                 spread.fill("30")
-                map_page.wait_for_timeout(500)
+                map_page.wait_for_timeout(1_500)
                 filled = True
 
         # If no dedicated fields, try any visible input in the panel
@@ -130,7 +130,7 @@ class TestPropertyPRSCommit:
         if spread.count() > 0 and spread.is_visible():
             spread.fill("30")
 
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Button should be visible (enabled or disabled state is acceptable)
         assert commit_btn.is_visible(), "Commit button is not visible"

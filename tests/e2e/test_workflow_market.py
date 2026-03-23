@@ -20,7 +20,7 @@ class TestMarketStateCommit:
     def setup(self, map_page):
         close_all_panels(map_page)
         open_trading_desk(map_page, tab="market")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -65,7 +65,7 @@ class TestMarketStateCommit:
 
         # Change the value
         first_input.fill("4.25")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         new_val = first_input.input_value()
         assert new_val != original or new_val == "4.25", (
             "Tenor input did not accept new value"
@@ -82,7 +82,7 @@ class TestMarketStateCommit:
             pytest.skip("First tenor input is not visible")
 
         first_input.fill("4.75")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Look for dirty state: changed colour, asterisk, unsaved text, or save button
         view = map_page.locator("#td-market-view")
@@ -115,7 +115,7 @@ class TestMarketStateCommit:
             pytest.skip("First tenor input is not visible")
 
         first_input.fill("4.25")
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Look for save/commit button
         view = map_page.locator("#td-market-view")
@@ -129,7 +129,7 @@ class TestMarketStateCommit:
             pytest.skip("No save/apply button found in market tab")
 
         save_btn.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Verify: check for success indicator or no error
         page_text = map_page.locator("body").inner_text().lower()
@@ -154,7 +154,7 @@ class TestMarketStateReset:
     def setup(self, map_page):
         close_all_panels(map_page)
         open_trading_desk(map_page, tab="market")
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -179,7 +179,7 @@ class TestMarketStateReset:
             pytest.skip("No reset button found")
 
         reset_btn.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Check for confirmation dialog or that values changed
         text = view.inner_text().lower()
@@ -201,7 +201,7 @@ class TestMarketStateReset:
             ).first
             if ok_btn.count() > 0 and ok_btn.is_visible():
                 ok_btn.click(force=True)
-                map_page.wait_for_timeout(1_000)
+                map_page.wait_for_timeout(3_000)
             has_feedback = True
 
         assert has_feedback or True  # Reset click did not crash

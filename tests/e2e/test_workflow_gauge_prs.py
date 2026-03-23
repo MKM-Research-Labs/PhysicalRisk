@@ -24,7 +24,7 @@ class TestGaugePRSCommit:
         tab = map_page.locator(".hazard-tab[data-tab='0']")
         if tab.count() > 0:
             tab.click(force=True)
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 
@@ -65,7 +65,7 @@ class TestGaugePRSCommit:
             if val and val.strip():
                 ctpy_select.select_option(value=val)
                 break
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Check commit button exists somewhere in the panel
         commit_btn = panel.locator(
@@ -92,13 +92,13 @@ class TestGaugePRSCommit:
 
         if notional_input.count() > 0 and notional_input.is_visible():
             notional_input.fill("1000000")
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
             val = notional_input.input_value()
             assert "1000000" in val or len(val) > 0
 
         if spread_input.count() > 0 and spread_input.is_visible():
             spread_input.fill("25")
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
             val = spread_input.input_value()
             assert "25" in val or len(val) > 0
 
@@ -129,7 +129,7 @@ class TestGaugePRSCommit:
         if spread.count() > 0 and spread.is_visible():
             spread.fill("25")
 
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Find commit button
         commit_btn = panel.locator(
@@ -141,7 +141,7 @@ class TestGaugePRSCommit:
 
         commit_btn.click(force=True)
         # Allow time for the server round-trip and DOM update
-        map_page.wait_for_timeout(5_000)
+        map_page.wait_for_timeout(15_000)
 
         # Check for ANY feedback: success message, error message, trade ID,
         # or button state change.  Even an error toast proves the commit

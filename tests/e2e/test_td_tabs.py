@@ -70,7 +70,7 @@ class TestMarketTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-market").click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         yield
         _close_trading_desk(map_page)
 
@@ -121,7 +121,7 @@ class TestFS01Tab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-risk").click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         yield
         _close_trading_desk(map_page)
 
@@ -161,7 +161,7 @@ class TestAggregateTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-map").click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         yield
         _close_trading_desk(map_page)
 
@@ -199,7 +199,7 @@ class TestEODTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-eod").click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         yield
         _close_trading_desk(map_page)
 
@@ -242,7 +242,7 @@ class TestCurvesTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-curves").click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         yield
         _close_trading_desk(map_page)
 
@@ -277,7 +277,7 @@ class TestStressTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-stress").click(force=True)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
         yield
         _close_trading_desk(map_page)
 

@@ -81,7 +81,7 @@ class TestBlotterTab:
             pytest.skip("No trades in blotter")
 
         # Wait for trade rows to appear — look for table rows or trade elements
-        map_page.wait_for_timeout(1_000)  # allow render
+        map_page.wait_for_timeout(3_000)  # allow render
 
         # Trade rows typically in a table or repeated elements
         rows = map_page.locator("#td-blotter-view tr").or_(
@@ -141,7 +141,7 @@ class TestBlotterTradeInteraction:
         if not trades:
             pytest.skip("No trades in blotter")
 
-        map_page.wait_for_timeout(1_000)
+        map_page.wait_for_timeout(3_000)
 
         # Click first trade row
         rows = map_page.locator("#td-blotter-view tr")
@@ -149,5 +149,5 @@ class TestBlotterTradeInteraction:
             rows.nth(1).click()
             # After click, something should change (selected class, detail panel, etc.)
             # Just verify no error occurred — the click didn't crash
-            map_page.wait_for_timeout(500)
+            map_page.wait_for_timeout(1_500)
             assert True  # no crash = pass

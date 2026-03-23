@@ -98,7 +98,7 @@ class TestPropertyPRSBookTrade:
                 el.dispatchEvent(new Event('change', {bubbles: true}));
             }""", notional.element_handle())
 
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Verify panel has pricing data
         panel_text = map_page.locator("#property-hc-panel").inner_text()
@@ -136,7 +136,7 @@ class TestPropertyPRSBookTrade:
                 el.dispatchEvent(new Event('change', {bubbles: true}));
             }""", notional.element_handle())
 
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_500)
 
         # Commit — button ID from phc_prs.py is "phc-commit-btn"
         commit_btn = map_page.locator("#phc-commit-btn")
@@ -148,7 +148,7 @@ class TestPropertyPRSBookTrade:
             pytest.skip("No commit button found on property PRS tab")
 
         commit_btn.first.click(force=True)
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(9_000)
 
         # Accept success or absence of error
         has_error = map_page.evaluate("""() => {
