@@ -354,7 +354,7 @@ class TestStartupDetailStats:
     def test_gov_audit_stat_uses_events_length(self):
         src = self._src()
         assert "key === '_preGovAudit'" in src
-        assert "data.events.length + ' events'" in src
+        assert "data.total_entries + ' events'" in src
 
     def test_gov_bib_stat_uses_references_length(self):
         src = self._src()
@@ -364,8 +364,8 @@ class TestStartupDetailStats:
     def test_property_ts_stat_uses_total_properties(self):
         src = self._src()
         assert "key === '_prePropertyTS'" in src
-        assert 'data.data.summary.total_properties' in src
-        assert "' properties'" in src
+        assert 'data.data.summary.properties_with_floods' in src
+        assert "' flooded'" in src
 
     def test_gauge_hist_stat_uses_count(self):
         src = self._src()
