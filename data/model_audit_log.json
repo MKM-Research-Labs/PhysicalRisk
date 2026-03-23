@@ -1,31 +1,5 @@
 [
   {
-    "timestamp": "2026-03-21T07:41:48.154023",
-    "model_id": "MKM-PV-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "property_valuation",
-    "parameters": {
-      "area": 147.3,
-      "final_value": 1250235.19
-    },
-    "context": "Property valuation calculation",
-    "source": "platform"
-  },
-  {
-    "timestamp": "2026-03-21T07:41:48.626607",
-    "model_id": "MKM-IP-001",
-    "event_type": "usage",
-    "user": "system",
-    "action": "insurance_premium",
-    "parameters": {
-      "property_value": 1128750.42,
-      "final_premium": 4098.67
-    },
-    "context": "Insurance premium calculation",
-    "source": "platform"
-  },
-  {
     "timestamp": "2026-03-21T07:41:49.103102",
     "model_id": "MKM-PV-001",
     "event_type": "usage",
@@ -139163,5 +139137,34 @@
     },
     "context": "Portfolio VaR computation",
     "source": "api"
+  },
+  {
+    "timestamp": "2026-03-23T07:20:12.112717",
+    "model_id": "MKM-DD-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "depth_damage_batch",
+    "parameters": {
+      "properties_processed": 200,
+      "properties_with_floods": 45,
+      "total_flood_events": 1461,
+      "max_depth_m": 4.9512,
+      "max_damage_ratio": 0.9451
+    },
+    "context": "Property flood timeseries batch complete",
+    "source": "platform"
+  },
+  {
+    "timestamp": "2026-03-23T07:20:12.200747",
+    "model_id": "MKM-SP-001",
+    "event_type": "usage",
+    "user": "system",
+    "action": "idw_interpolation_batch",
+    "parameters": {
+      "properties_processed": 200,
+      "gauges_available": 52
+    },
+    "context": "IDW spatial interpolation batch complete",
+    "source": "platform"
   }
 ]
