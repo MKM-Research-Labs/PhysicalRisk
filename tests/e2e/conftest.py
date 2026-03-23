@@ -148,6 +148,7 @@ def map_page(_browser_page):
             'mg-panel',
             'property-pdf-panel',
             'storm-portfolio-panel',
+            'gauge-pdf-panel',
         ];
         panels.forEach(id => {
             const el = document.getElementById(id);
