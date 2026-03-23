@@ -49,6 +49,7 @@ class TestPropertyStormPanel:
 
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
+        map_page.wait_for_timeout(6_000)  # wait for storm data API
 
         tab = panel.locator(".prop-storm-tab[data-idx='0']")
         if tab.count() > 0:
@@ -68,6 +69,7 @@ class TestPropertyStormPanel:
 
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
+        map_page.wait_for_timeout(6_000)  # wait for storm data API
 
         tab = panel.locator(".prop-storm-tab[data-idx='2']")
         if tab.count() == 0:

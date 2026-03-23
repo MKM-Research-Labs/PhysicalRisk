@@ -54,7 +54,7 @@ def _right_click_property_marker(page):
     else:
         # Fallback: direct Playwright right-click with force
         markers.first.click(button="right", force=True)
-    page.wait_for_timeout(4_500)
+    page.wait_for_timeout(9_000)
 
 
 class TestPropertyContextMenu:
