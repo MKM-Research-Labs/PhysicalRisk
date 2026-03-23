@@ -125,7 +125,9 @@ def _run_data_lineage_tests(project_root, audit_dir):
         print('  Skipped: tests/data/test_id_consistency.py not found')
         return None
 
-    _venv_python = os.path.join(str(project_root), 'venv', 'bin', 'python')
+    _venv_python = os.path.join(str(project_root), '.venv', 'bin', 'python')
+    if not os.path.isfile(_venv_python):
+        _venv_python = os.path.join(str(project_root), 'venv', 'bin', 'python')
     _python_exe = _venv_python if os.path.isfile(_venv_python) else sys.executable
 
     cmd = [
@@ -405,7 +407,9 @@ def cmd_test(args):
 
         # Prefer the project venv's Python so pytest and all dependencies
         # are available regardless of which Python launched this script.
-        _venv_python = os.path.join(str(project_root), 'venv', 'bin', 'python')
+        _venv_python = os.path.join(str(project_root), '.venv', 'bin', 'python')
+        if not os.path.isfile(_venv_python):
+            _venv_python = os.path.join(str(project_root), 'venv', 'bin', 'python')
         _python_exe = _venv_python if os.path.isfile(_venv_python) else sys.executable
 
         e2e_dir = os.path.join(tests_dir, 'e2e')
