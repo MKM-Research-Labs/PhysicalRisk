@@ -22,6 +22,7 @@ from lineage.validation import (
     check_pipeline_complete,
     check_step_prerequisites,
     get_stale_downstream,
+    resolve_prerequisites,
     validate_full_chain,
 )
 from lineage.query import (
@@ -43,6 +44,7 @@ __all__ = [
     "check_pipeline_complete",
     "check_step_prerequisites",
     "get_stale_downstream",
+    "resolve_prerequisites",
     "validate_full_chain",
     "trace_data_point",
     "get_file_lineage",

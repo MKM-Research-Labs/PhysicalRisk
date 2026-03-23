@@ -72,12 +72,15 @@ def cmd_port(args):
 
     try:
         from lineage.manifest import record_step, get_current_run_id
-        from lineage.validation import check_inputs_fresh, get_stale_downstream
+        from lineage.validation import (
+            check_inputs_fresh, get_stale_downstream, resolve_prerequisites,
+        )
     except ImportError:
         record_step = None
         get_current_run_id = None
         check_inputs_fresh = None
         get_stale_downstream = None
+        resolve_prerequisites = None
 
     catchment = 'thames'
     config.catchment_id = catchment
@@ -103,7 +106,35 @@ def cmd_port(args):
         args.blotter, args.stressm,
     ]
     run_all = args.all or not any(segment_flags)
-    
+
+    # --- Auto-prerequisite resolution (single-step mode only) -----------
+    # When running individual steps (not --all, not --strict), detect
+    # missing or stale upstream steps and enable their flags so they
+    # execute automatically in the existing sequential order.
+    if not run_all and not args.strict and resolve_prerequisites is not None:
+        _step_flag = {
+            "gauges": "gauges", "properties": "properties",
+            "mortgages": "mortgages", "gaugehd": "gaugehd",
+            "stressm": "stressm", "hazard": "hazard",
+            "propertyts": "propertyts", "propertyhc": "propertyhc",
+            "counterparties": "counterparties", "blotter": "blotter",
+        }
+        requested = [
+            name for name, attr in _step_flag.items()
+            if getattr(args, attr, False)
+                or (name == "stressm" and getattr(args, "gaugets", False))
+        ]
+        if requested:
+            try:
+                prereqs = resolve_prerequisites(requested, data_dir=output_dir)
+                if prereqs:
+                    print(f"  Auto-running prerequisites: "
+                          f"{' \u2192 '.join(prereqs)}\n")
+                    for step in prereqs:
+                        setattr(args, _step_flag[step], True)
+            except Exception as e:
+                print(f"  [lineage] Prerequisite check: {e}")
+
     if run_all or args.gauges:
         if args.strict and check_inputs_fresh is not None:
             try:
