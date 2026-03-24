@@ -60,12 +60,20 @@ class FloodMixin:
                     alpha, ga_id, gb_id, gaugets)
                 gaugets[synth_gauge['gauge_id']] = synth_gt
 
-            # Build result: 2 flanking real gauges + 1 synthetic
-            result = []
-            for gid in (ga_id, gb_id):
-                ginfo = gauge_lookup[gid]
+            # Pick 2 nearest REAL gauges by haversine (same as original
+            # approach) — don't force flanking gauges which may be far away.
+            # The synthetic gauge replaces the 3rd-most-distant real gauge.
+            real_distances = []
+            for gid, ginfo in gauge_lookup.items():
+                if gid.startswith(SYNTH_PREFIX):
+                    continue
                 dist = haversine_distance(
                     prop_lat, prop_lon, ginfo['lat'], ginfo['lon'])
+                real_distances.append((gid, dist, ginfo))
+            real_distances.sort(key=lambda x: x[1])
+
+            result = []
+            for gid, dist, ginfo in real_distances[:n - 1]:
                 result.append({
                     'gauge_id': gid,
                     'distance_m': dist,
