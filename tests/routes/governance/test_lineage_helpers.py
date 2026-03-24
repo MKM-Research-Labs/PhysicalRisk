@@ -2,6 +2,8 @@
 
 import pathlib
 
+import pytest
+
 from tests.routes.governance.lineage_shared import (
     SAMPLE_LINEAGE,
     create_fresh_file,
@@ -156,64 +158,122 @@ class TestCheckStaleness:
 
 
 class TestTraceData:
-    """Unit tests for _trace_data helper."""
+    """Unit tests for _trace_data helper.
 
-    def test_none_lineage_returns_empty(self):
-        from routes.governance.lineage import _trace_data
-        assert _trace_data(None, "gauge", "GAUGE-001") == []
+    The trace function now searches actual data files on disk, so these
+    tests use tmp_path + monkeypatch to provide isolated test data.
+    """
 
-    def test_direct_trace_found(self):
-        from routes.governance.lineage import _trace_data
-        result = _trace_data(SAMPLE_LINEAGE, "gauge", "GAUGE-001")
-        assert len(result) == 2
-        assert result[0]["step"] == "gauges"
-        assert result[1]["step"] == "hazard"
+    @pytest.fixture
+    def trace_env(self, tmp_path, monkeypatch):
+        """Create a minimal data directory for trace testing."""
+        import json
+        from config import config
 
-    def test_trace_type_not_found(self):
+        input_dir = tmp_path / "input"
+        input_dir.mkdir()
+        classifiers_dir = tmp_path / "classifiers"
+        classifiers_dir.mkdir()
+        blotter_dir = tmp_path / "blotter"
+        blotter_dir.mkdir()
+        (blotter_dir / "eod").mkdir()
+
+        monkeypatch.setattr(config, "get_input_dir", lambda: input_dir)
+        monkeypatch.setattr(config, "get_classifiers_dir", lambda: classifiers_dir)
+        monkeypatch.setattr(config, "get_trading_dir", lambda: blotter_dir)
+
+        # gauge.json with one gauge
+        with open(input_dir / "gauge.json", "w") as f:
+            json.dump({"flood_gauges": [
+                {"FloodGauge": {"Header": {"GaugeID": "GAUGE-TEST01"}}}
+            ]}, f)
+
+        # gaugehc.json referencing the gauge
+        with open(input_dir / "gaugehc.json", "w") as f:
+            json.dump({"hazard_curves": {"GAUGE-TEST01": {"gev": {}}}}, f)
+
+        # gaugets/ per-gauge file
+        (input_dir / "gaugets").mkdir()
+        with open(input_dir / "gaugets" / "GAUGE-TEST01.json", "w") as f:
+            json.dump({"gauge_id": "GAUGE-TEST01"}, f)
+
+        # classifier .joblib
+        (classifiers_dir / "GAUGE-TEST01.joblib").write_bytes(b"fake")
+
+        # property.json
+        with open(input_dir / "property.json", "w") as f:
+            json.dump({"properties": [
+                {"PropertyHeader": {"Header": {"PropertyID": "PROP-TEST01"}}}
+            ]}, f)
+
+        # propertyts/
+        (input_dir / "propertyts").mkdir()
+        with open(input_dir / "propertyts" / "PROP-TEST01.json", "w") as f:
+            json.dump({"property_id": "PROP-TEST01"}, f)
+
+        # prs/ trade
+        (input_dir / "prs").mkdir()
+        with open(input_dir / "prs" / "PRS-TEST01.json", "w") as f:
+            json.dump({"PhysicalSwap": {
+                "Header": {"SwapID": "PRS-TEST01"},
+                "GaugeSet": {"GaugeBasket": [{"GaugeID": "GAUGE-TEST01"}]},
+            }}, f)
+
+        return {"input_dir": input_dir}
+
+    def test_none_lineage_returns_empty(self, trace_env):
+        """None lineage with no matching files returns empty."""
         from routes.governance.lineage import _trace_data
-        result = _trace_data(SAMPLE_LINEAGE, "nonexistent", "X")
+        result = _trace_data(None, "gauge", "GAUGE-NONEXISTENT")
         assert result == []
 
-    def test_trace_id_not_found(self):
+    def test_gauge_trace_finds_multiple_steps(self, trace_env):
+        """Gauge trace should find origin + derived + consumed steps."""
         from routes.governance.lineage import _trace_data
-        result = _trace_data(SAMPLE_LINEAGE, "gauge", "GAUGE-999")
+        result = _trace_data(None, "gauge", "GAUGE-TEST01")
+        assert len(result) >= 3, f"Expected >=3 steps, got {len(result)}"
+        steps = [r["step"] for r in result]
+        assert "gauges" in steps, "Missing gauges origin step"
+        assert "hazard" in steps, "Missing hazard derived step"
+
+    def test_gauge_trace_has_context(self, trace_env):
+        """Each trace entry should have a context description."""
+        from routes.governance.lineage import _trace_data
+        result = _trace_data(None, "gauge", "GAUGE-TEST01")
+        for r in result:
+            assert r.get("context"), f"Missing context for step {r['step']}"
+
+    def test_property_trace_finds_steps(self, trace_env):
+        """Property trace should find origin and derived steps."""
+        from routes.governance.lineage import _trace_data
+        result = _trace_data(None, "property", "PROP-TEST01")
+        assert len(result) >= 2
+        steps = [r["step"] for r in result]
+        assert "properties" in steps
+
+    def test_trade_trace_finds_origin(self, trace_env):
+        """Trade trace should find the PRS file as origin."""
+        from routes.governance.lineage import _trace_data
+        result = _trace_data(None, "trade", "PRS-TEST01")
+        assert len(result) >= 1
+        assert result[0]["role"] == "origin"
+
+    def test_nonexistent_gauge_returns_empty(self, trace_env):
+        """Non-existent gauge returns empty trace."""
+        from routes.governance.lineage import _trace_data
+        result = _trace_data(None, "gauge", "GAUGE-ZZZZZZZ")
         assert result == []
 
-    def test_fallback_scan_finds_in_outputs(self):
-        """When no direct trace exists, scan step outputs for the ID."""
+    def test_gauge_trace_includes_classifier(self, trace_env):
+        """Gauge with trained classifier should show classifiers step."""
         from routes.governance.lineage import _trace_data
-        lineage = {
-            "steps": {
-                "gauges": {"outputs": ["gauge.json", "GAUGE-ABC.json"]},
-                "hazard": {"outputs": ["gaugehc.json"], "inputs": ["GAUGE-ABC.json"]},
-            },
-        }
-        result = _trace_data(lineage, "gauge", "GAUGE-ABC")
-        assert len(result) == 2
-        roles = {r["role"] for r in result}
-        assert "output" in roles
-        assert "input" in roles
+        result = _trace_data(None, "gauge", "GAUGE-TEST01")
+        steps = [r["step"] for r in result]
+        assert "classifiers" in steps
 
-    def test_fallback_scan_no_match(self):
+    def test_gauge_trace_includes_prs_trades(self, trace_env):
+        """Gauge referenced in PRS trades should show blotter step."""
         from routes.governance.lineage import _trace_data
-        lineage = {
-            "steps": {
-                "gauges": {"outputs": ["gauge.json"]},
-            },
-        }
-        result = _trace_data(lineage, "gauge", "GAUGE-ZZZ")
-        assert result == []
-
-    def test_fallback_scan_with_non_string_output(self):
-        """Non-string outputs are converted via str() for matching."""
-        from routes.governance.lineage import _trace_data
-        lineage = {
-            "steps": {
-                "gauges": {"outputs": [{"file": "GAUGE-007.json", "count": 5}]},
-            },
-        }
-        result = _trace_data(lineage, "gauge", "GAUGE-007")
-        assert len(result) == 1
-        assert result[0]["role"] == "output"
-        # Non-string output is str()-ified in the file field
-        assert isinstance(result[0]["file"], str)
+        result = _trace_data(None, "gauge", "GAUGE-TEST01")
+        consumed = [r for r in result if r["role"] == "consumed"]
+        assert len(consumed) >= 1, "No consumed (trade) entries found"
