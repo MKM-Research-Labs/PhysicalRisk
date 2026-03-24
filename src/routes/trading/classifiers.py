@@ -99,23 +99,44 @@ def classifiers_summary():
             info = trained_map.get(gid, {})
             metrics = info.get("metrics", {})
 
+            # Only show metrics if the .joblib model actually exists on disk.
+            # Prevents stale metrics appearing after Clear All or port re-run.
+            if has_model:
+                status = info.get("status", "trained")
+                auc_roc = metrics.get("auc_roc")
+                accuracy = metrics.get("accuracy")
+                brier_score = metrics.get("brier_score")
+                log_loss = metrics.get("log_loss")
+                flood_rate = info.get("flood_rate")
+                n_samples = info.get("n_samples")
+                feature_importance = info.get("feature_importance")
+                label_threshold = info.get("label_threshold")
+                severe_level = info.get("severe_level")
+                alert_level = info.get("alert_level")
+            else:
+                status = "not_trained"
+                auc_roc = accuracy = brier_score = log_loss = None
+                flood_rate = n_samples = None
+                feature_importance = None
+                label_threshold = severe_level = alert_level = None
+
             gauges.append({
                 "gauge_id": gid,
                 "gauge_name": loc.get("name", gid),
                 "lat": loc.get("lat", 0),
                 "lon": loc.get("lon", 0),
                 "has_model": has_model,
-                "status": info.get("status", "not_trained"),
-                "auc_roc": metrics.get("auc_roc"),
-                "accuracy": metrics.get("accuracy"),
-                "brier_score": metrics.get("brier_score"),
-                "log_loss": metrics.get("log_loss"),
-                "flood_rate": info.get("flood_rate"),
-                "n_samples": info.get("n_samples"),
-                "feature_importance": info.get("feature_importance"),
-                "label_threshold": info.get("label_threshold"),
-                "severe_level": info.get("severe_level"),
-                "alert_level": info.get("alert_level"),
+                "status": status,
+                "auc_roc": auc_roc,
+                "accuracy": accuracy,
+                "brier_score": brier_score,
+                "log_loss": log_loss,
+                "flood_rate": flood_rate,
+                "n_samples": n_samples,
+                "feature_importance": feature_importance,
+                "label_threshold": label_threshold,
+                "severe_level": severe_level,
+                "alert_level": alert_level,
             })
 
         # Sort west→east by longitude
