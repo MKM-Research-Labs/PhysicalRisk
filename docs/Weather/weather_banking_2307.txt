@@ -1,0 +1,161 @@
+23.7 Model Governance in Production
+================================================================
+
+SECTION PURPOSE
+---------------
+Show how the PoC's governance framework operates as a live system in production,
+not just a documentation exercise. Detail the model inventory, audit trail,
+MRC cycle, and data lineage as they function day-to-day.
+
+THE MODEL INVENTORY AS A LIVE SYSTEM
+--------------------------------------
+The PoC's model inventory is not a static spreadsheet. It is an API-accessible,
+auditable registry with 16 models tracked in real time:
+
+  Per-Model Metadata (maintained continuously):
+  - Model ID, name, category, tier (1-3 by materiality)
+  - Lifecycle stage: Development -> Validation -> Production -> Retired
+  - Validation status: Initial | Pending | Validated | Conditionally Approved | Rejected
+  - RAG rating: Green | Amber | Red (with effective risk rating and overrides)
+  - Owner, peer reviewer, assigned responsibilities
+  - Review dates: next review, last review, MRC signoff, recertification
+  - Review frequency and status: Overdue | Due Soon | Upcoming | On Track
+  - Upstream/downstream model dependencies (the "string of pearls")
+  - Known limitations, assumptions, remediation steps
+
+  All changes logged:
+  - Timestamp of change
+  - User who made the change
+  - Reason provided
+  - Old value and new value
+  - Whether change was auto-detected or manually entered
+
+This is the same model inventory infrastructure banks maintain for credit and
+market risk models under SR 11-7. Adding PRS models to the existing inventory
+is a registration exercise, not a system build.
+
+RISK RATING AND OVERRIDES
+---------------------------
+Each model carries a composite risk rating derived from:
+- Model complexity (mathematical sophistication, data dependencies)
+- Materiality (does it feed capital, pricing, or operational decisions?)
+- Validation confidence (how thoroughly has it been independently challenged?)
+
+The MRC can override the computed rating with documented rationale. Overrides
+are logged in the audit trail with the committee decision reference. This
+mirrors how banks handle model risk rating overrides for credit models --
+the committee retains authority to elevate or reduce model risk classifications
+based on contextual judgment.
+
+MRC MEETING LIFECYCLE
+-----------------------
+The PoC implements the complete MRC meeting workflow:
+
+  Meeting Creation:
+  - Schedule date, set agenda, invite participants
+  - Participants: model owners, validators, risk management, business sponsors
+
+  Agenda Management:
+  - Add, reorder, update, delete agenda items
+  - Standard items: new model approvals, periodic reviews, remediation tracking,
+    validation findings, recertification decisions
+
+  During Meeting:
+  - Minutes captured with structured discussion points
+  - Decisions recorded with rationale and conditions
+  - Action items assigned with owners and deadlines
+
+  Post-Meeting:
+  - Actions tracked to completion
+  - Decision outcomes applied to model inventory (status changes, RAG updates)
+  - Documents uploaded and linked to meeting record
+  - Full audit trail maintained
+
+  Periodic Cycle:
+  - New PRS models: initial presentation, validation findings, approval decision
+  - Existing models: annual review, recertification, remediation status
+  - Ad hoc: post-event review if a model performed unexpectedly during a flood
+
+This MRC process is identical to what banks run for their existing model
+inventory. PRS models join the same committee cycle.
+
+AUDIT TRAIL IN PRACTICE
+-------------------------
+Every model interaction generates an audit event:
+
+  Event types:
+  - Model parameter change (who changed what, when, why)
+  - RAG rating change or override
+  - Validation status update
+  - Lifecycle stage transition
+  - Remediation step opened or closed
+  - Data source change or recalibration
+
+  Audit trail query:
+  - By model: show all events for MKM-FC-001 (Flood Classifier)
+  - By time: show all events in last 30 days
+  - By user: show all changes by a specific model owner
+  - By event type: show all RAG overrides across inventory
+
+This satisfies the "effective challenge" requirement from SR 11-7: regulators
+can trace any model decision back to its authorisation, rationale, and context.
+
+DATA LINEAGE IN PRODUCTION
+----------------------------
+The PoC tracks data lineage at two levels:
+
+  Source-to-Output Lineage:
+  EA gauge API -> raw timeseries -> GEV parameter fitting -> hazard curve
+  -> exceedance probability -> hazard rate -> pricing engine -> fair spread
+  -> MTM -> P&L -> EOD report -> regulatory disclosure
+
+  Field-Level Lineage:
+  gauge.water_level -> hazard.annual_max -> gev.location_mu -> hazard_curve.
+  exceedance_probability -> pricing.annual_hazard_rate -> delta.fair_spread_bps
+  -> pnl.market_pnl
+
+  Staleness Monitoring:
+  - When was each data element last refreshed?
+  - Are hazard curves current or stale?
+  - When was the classifier last retrained?
+  - Are storm scenarios up to date with recent events?
+
+This data lineage directly satisfies BCBS 239 requirements and provides the
+transparency that Chapter 19 identified as essential for the model stack
+governance problem.
+
+ONGOING MONITORING
+--------------------
+Production governance includes continuous monitoring:
+
+  Model Performance:
+  - Do hazard curves accurately predict exceedance events?
+  - Are classifier AUC scores stable over time (model drift detection)?
+  - Do stress test results align with actual flood event impacts?
+
+  Data Quality:
+  - Are EA gauge feeds arriving on schedule?
+  - Are there gaps in timeseries data?
+  - Have any gauge stations been relocated or recalibrated?
+
+  Override Tracking:
+  - How often are model outputs manually overridden by traders?
+  - Are overrides concentrated in specific gauges or tenors?
+  - Do overrides improve or degrade model accuracy?
+
+  Remediation:
+  - Open remediation items tracked by severity and owner
+  - Escalation if remediation deadlines pass without closure
+  - Connection to model risk rating (unresolved remediation -> Amber/Red RAG)
+
+WHAT THIS MEANS FOR INTEGRATION
+---------------------------------
+A bank does not build "PRS governance" as a separate system. It:
+1. Registers 16 new models in the existing SR 11-7 inventory
+2. Assigns model owners and peer reviewers from appropriate teams
+3. Schedules initial MRC review using pre-built documentation packages
+4. Connects PRS data lineage to existing data governance infrastructure
+5. Adds PRS models to the existing monitoring and remediation cycle
+
+The governance overhead is proportional to the number of new models (16),
+not to the complexity of a new governance framework.
