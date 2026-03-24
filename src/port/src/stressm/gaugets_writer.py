@@ -72,9 +72,13 @@ def populate_gaugets(
         severes = rec["severe"]
 
         for gid, idx in gid_to_idx.items():
+            base = gauge_params_list[idx].get("base_level", 0.0)
+            peak = peaks[idx]
             gauge_responses[gid].append({
                 "storm_id": seq_id,
-                "peak_level_m": peaks[idx],
+                "base_level_m": base,
+                "peak_level_m": peak,
+                "level_change_m": round(peak - base, 4),
                 "exceeded_alert": alerts[idx],
                 "exceeded_warning": warnings[idx],
                 "exceeded_severe": severes[idx],

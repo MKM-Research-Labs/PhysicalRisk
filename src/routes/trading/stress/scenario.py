@@ -107,9 +107,12 @@ def run_stress_scenario():
 
         # Fallback to synthesized hydrograph if gaugets unavailable
         if hydrograph is None:
+            base_m = gauge_resp.get('base_level_m', 0.0)
+            peak_m = gauge_resp.get('peak_level_m', 0.0)
+            change_m = gauge_resp.get('level_change_m', peak_m - base_m)
             hydrograph = _synthesize_hydrograph(
-                gauge_resp['base_level_m'],
-                gauge_resp['level_change_m'],
+                base_m,
+                change_m,
                 storm['duration_hours'],
                 storm['peak_position'],
             )
@@ -292,9 +295,9 @@ def run_stress_scenario():
             'warning_level': warning_level,
             'severe_level': severe_level,
             'hydrograph_source': (
-                f"Gauge response: base={gauge_resp['base_level_m']:.2f}m, "
-                f"rise=+{gauge_resp['level_change_m']:.2f}m, "
-                f"peak={gauge_resp['peak_level_m']:.2f}m, "
+                f"Gauge response: base={gauge_resp.get('base_level_m', 0.0):.2f}m, "
+                f"rise=+{gauge_resp.get('level_change_m', gauge_resp.get('peak_level_m', 0.0) - gauge_resp.get('base_level_m', 0.0)):.2f}m, "
+                f"peak={gauge_resp.get('peak_level_m', 0.0):.2f}m, "
                 f"{storm['duration_hours']}h storm"),
             'trades': trade_summary,
             'hourly': hourly,
