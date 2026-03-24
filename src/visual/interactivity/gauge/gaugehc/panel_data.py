@@ -133,8 +133,9 @@ def get_data_js() -> str:
 
                             var titleEl = document.getElementById('hazard-panel-title');
                             if (titleEl) {
+                                var gName = hazardData.gauge_name || '';
                                 var dirLabel = td.is_payer ? 'Pay' : 'Rcv';
-                                titleEl.textContent = 'Close Out: ' + dirLabel + ' | ' + gaugeId;
+                                titleEl.textContent = (gName ? gName + ' (' + gaugeId + ')' : gaugeId) + ' — Close Out: ' + dirLabel;
                             }
                         } else {
                             // TRADE REVIEW MODE: ALL inputs disabled, read-only
@@ -153,8 +154,9 @@ def get_data_js() -> str:
 
                             var titleEl = document.getElementById('hazard-panel-title');
                             if (titleEl) {
+                                var gName = hazardData.gauge_name || '';
                                 var dirLabel = td.is_payer ? 'Pay' : 'Rcv';
-                                titleEl.textContent = td.swap_id + ' | ' + dirLabel + ' | ' + gaugeId;
+                                titleEl.textContent = (gName ? gName + ' (' + gaugeId + ')' : gaugeId) + ' — ' + td.swap_id + ' | ' + dirLabel;
                             }
                         }
 
