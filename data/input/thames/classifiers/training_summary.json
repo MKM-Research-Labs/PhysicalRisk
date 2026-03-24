@@ -26,7 +26,7 @@
         "delta_log_h": 0.0695,
         "delta2_log_h": 0.0047
       },
-      "model_path": "/Users/newdavid/Documents/PhysicalRisk/data/output/stressm/GAUGE-a6be4ee9.joblib",
+      "model_path": "/Users/newdavid/Documents/PhysicalRisk/data/input/thames/classifiers/GAUGE-a6be4ee9.joblib",
       "label_threshold": "severe_warning",
       "label_level_m": 6.8
     }
