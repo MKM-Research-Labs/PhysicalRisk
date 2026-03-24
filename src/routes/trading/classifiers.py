@@ -80,7 +80,7 @@ def _avg_per_gauge_seconds(timings: dict) -> float:
 def classifiers_summary():
     """Return all gauges with classifier status, metrics, sorted west→east."""
     try:
-        stressm_dir = config.get_stressm_dir()
+        stressm_dir = config.get_classifiers_dir()
         gauge_locations = _load_gauge_locations()
 
         # Load training summary
@@ -147,7 +147,7 @@ def classifiers_summary():
 def classifiers_readiness():
     """Check whether all gauges have trained classifiers."""
     try:
-        stressm_dir = config.get_stressm_dir()
+        stressm_dir = config.get_classifiers_dir()
         gauge_locations = _load_gauge_locations()
 
         total = len(gauge_locations)
@@ -179,7 +179,7 @@ def classifiers_readiness():
 def clear_all_classifiers():
     """Delete all trained classifier models and training summary."""
     try:
-        stressm_dir = config.get_stressm_dir()
+        stressm_dir = config.get_classifiers_dir()
         removed = 0
 
         # Remove all .joblib model files
@@ -233,7 +233,7 @@ def train_all_classifiers():
             })
 
     try:
-        stressm_dir = config.get_stressm_dir()
+        stressm_dir = config.get_classifiers_dir()
         gauge_locations = _load_gauge_locations()
 
         # Find untrained gauges
@@ -294,7 +294,7 @@ def _run_batch_training(gauge_ids: list):
 
     from .stress.training import _train_single_gauge
 
-    stressm_dir = config.get_stressm_dir()
+    stressm_dir = config.get_classifiers_dir()
     t_start = time.time()
 
     for i, gid in enumerate(gauge_ids):
