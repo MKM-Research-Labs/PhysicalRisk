@@ -6,17 +6,11 @@
 """Property pricing and basis calculation mixin for PropertyHazardCurveGenerator."""
 
 import json
-import logging
 import math
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
-
-from port.src.property.ts.synthetic import (
-    SYNTH_PREFIX,
-    create_synthetic_hazard_curve,
-)
 
 from .constants import (
     DEPTH_THRESHOLDS,
@@ -28,8 +22,6 @@ from .constants import (
     compute_basis_waterfall,
     compute_prs_spread,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class PricingMixin:
@@ -133,14 +125,6 @@ class PricingMixin:
         for ng in nearest_gauges_data:
             gid = ng['gauge_id']
             gauge_hc = gauge_hazard.get(gid)
-
-            # Create synthetic hazard curve on-the-fly if needed
-            if not gauge_hc and gid.startswith(SYNTH_PREFIX):
-                gauge_hc = self._resolve_synthetic_hazard_curve(
-                    ng, gauge_hazard)
-                if gauge_hc:
-                    gauge_hazard[gid] = gauge_hc
-
             if not gauge_hc:
                 continue
 
@@ -256,25 +240,6 @@ class PricingMixin:
             'basis_waterfall': basis_waterfall,
             'summary': summary_data,
         }
-
-    @staticmethod
-    def _resolve_synthetic_hazard_curve(ng: Dict, gauge_hazard: Dict) -> Optional[Dict]:
-        """Create a synthetic hazard curve from flanking gauge data."""
-        flanking = ng.get('flanking_gauges', [])
-        alpha = ng.get('alpha', 0.5)
-        if len(flanking) < 2:
-            logger.warning("Synthetic gauge %s missing flanking_gauges", ng['gauge_id'])
-            return None
-
-        hc_a = gauge_hazard.get(flanking[0])
-        hc_b = gauge_hazard.get(flanking[1])
-        if not hc_a or not hc_b:
-            logger.warning(
-                "Flanking gauge hazard curves not found for %s: %s",
-                ng['gauge_id'], flanking)
-            return None
-
-        return create_synthetic_hazard_curve(alpha, hc_a, hc_b)
 
     def _compute_basis_waterfall(self, pdata: Dict, nearest_gauges_data: List[Dict]) -> Dict:
         """Delegate to models.hazard.prs_analytical.compute_basis_waterfall."""
