@@ -28,6 +28,7 @@ def _get_setup_js() -> str:
             var clSelectedGaugeId = null;
             var clFeatureChart = null;
             var clBatchPollTimer = null;
+            var clDataVersion = null;  // tracks classifier state on disk
 
             function createClassifiersView() {
                 var view = document.createElement('div');
@@ -62,6 +63,14 @@ def _get_setup_js() -> str:
                     '</div>';
                 view.appendChild(progressWrap);
 
+                // Progress results table (hidden by default, shown during batch training)
+                var progressResults = document.createElement('div');
+                progressResults.id = 'cl-progress-results';
+                progressResults.style.cssText = 'display:none;max-height:140px;overflow-y:auto;' +
+                    'font-family:monospace;font-size:10px;line-height:1.6;padding:4px 16px;' +
+                    'background:#fafbfc;border-bottom:1px solid #eee;flex-shrink:0;';
+                view.appendChild(progressResults);
+
                 // Main body: table (left) + detail (right)
                 var body = document.createElement('div');
                 body.style.cssText = 'flex:1;display:flex;overflow:hidden;';
@@ -92,6 +101,11 @@ def _get_setup_js() -> str:
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status === 'success') {
+                            // Detect data change (port run or retrain in another session)
+                            if (clDataVersion && data.data_version && clDataVersion !== data.data_version) {
+                                console.info('[Classifiers] Data changed on disk — refreshing');
+                            }
+                            clDataVersion = data.data_version || null;
                             clSummary = data;
                             _clUpdateStatsBar(data);
                             _clRenderSummaryTable(data.gauges || []);

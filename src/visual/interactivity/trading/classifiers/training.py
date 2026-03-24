@@ -134,6 +134,7 @@ def get_js() -> str:
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         _clUpdateProgress(data.completed, data.total, data.current_gauge_id, data.eta_seconds);
+                        _clUpdateProgressResults(data.results || [], data.avg_auc, data.num_trained, data.num_failed, data.num_skipped);
                         if (data.status === 'complete') {
                             if (clBatchPollTimer) {
                                 clearInterval(clBatchPollTimer);
@@ -169,9 +170,41 @@ def get_js() -> str:
                 txt.textContent = msg;
             }
 
+            function _clUpdateProgressResults(results, avgAuc, numTrained, numFailed, numSkipped) {
+                var el = document.getElementById('cl-progress-results');
+                if (!el) return;
+                if (results.length === 0) { el.style.display = 'none'; return; }
+                el.style.display = 'block';
+
+                // Summary line
+                var summ = '<div style="margin-bottom:4px;font-weight:600;font-family:sans-serif;">';
+                if (avgAuc != null) summ += 'Avg AUC: ' + avgAuc.toFixed(4) + '  \\u00b7  ';
+                summ += (numTrained || 0) + ' trained';
+                if (numFailed) summ += ', <span style="color:#c62828;">' + numFailed + ' failed</span>';
+                if (numSkipped) summ += ', ' + numSkipped + ' skipped';
+                summ += '</div>';
+
+                // Per-gauge rows (most recent first)
+                var rows = '';
+                for (var i = results.length - 1; i >= 0; i--) {
+                    var r = results[i];
+                    var icon = r.status === 'trained' ? '\\u2713' : r.status === 'failed' ? '\\u2717' : '\\u2298';
+                    var color = r.status === 'trained' ? '#2e7d32' : r.status === 'failed' ? '#c62828' : '#f57f17';
+                    var timeStr = r.elapsed_seconds != null ? r.elapsed_seconds.toFixed(1) + 's' : '\\u2014';
+                    var aucStr = r.auc_roc != null ? 'AUC ' + r.auc_roc.toFixed(3) : (r.error ? r.error.substring(0, 30) : '\\u2014');
+                    rows += '<div style="color:' + color + ';">' +
+                        icon + ' ' + r.gauge_id + '  ' + timeStr + '  ' + aucStr + '</div>';
+                }
+                el.innerHTML = summ + rows;
+                // Auto-scroll to top (latest result)
+                el.scrollTop = 0;
+            }
+
             function _clHideProgress() {
                 var wrap = document.getElementById('cl-progress-wrap');
                 if (wrap) wrap.style.display = 'none';
+                var results = document.getElementById('cl-progress-results');
+                if (results) results.style.display = 'none';
                 var btn = document.getElementById('cl-train-all-btn');
                 if (btn) {
                     btn.disabled = false;
