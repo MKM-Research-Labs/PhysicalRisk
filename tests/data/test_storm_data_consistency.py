@@ -33,7 +33,7 @@ STRESS_STORMS_INDEX = STRESS_STORMS_DIR / "_index.json"
 # Legacy single-file fallback
 STRESS_STORMS_PATH  = pathlib.Path(config.get_input_dir()) / "stress_storms.json"
 GAUGETS_DIR         = pathlib.Path(config.get_gaugets_dir())
-STRESS_MODEL_DIR    = pathlib.Path(config.get_stressm_dir())
+STRESS_MODEL_DIR    = pathlib.Path(config.get_classifiers_dir())
 TRAINING_SUMMARY    = STRESS_MODEL_DIR / "training_summary.json"
 GAUGEHC_PATH        = pathlib.Path(config.get_input_dir()) / "gaugehc.json"
 
