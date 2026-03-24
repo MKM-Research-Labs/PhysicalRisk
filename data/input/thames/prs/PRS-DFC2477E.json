@@ -9,7 +9,12 @@
       "PartyId": "MKM-RESEARCH-001",
       "ValuationDate": "2026-03-15",
       "ProtectionStart": "2026-03-17",
-      "TradeStatus": "Committed"
+      "TradeStatus": "Committed",
+      "CloseOutDate": "2026-03-24",
+      "CloseOutSpread": 50.0,
+      "SettlementAmount": 784600.97,
+      "SettlementDirection": "Payable",
+      "SettlementDate": "2026-03-26"
     },
     "LegData": {
       "LegType": "Fixed",
