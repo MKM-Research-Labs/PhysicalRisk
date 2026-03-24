@@ -68,8 +68,8 @@ class TestTrainClassifier:
 
     def test_train_already_trained_returns_ready(self, trading_env, trading_client):
         """If joblib already exists, POST returns ready immediately."""
-        stressm_dir = trading_env['stressm_dir']
-        (stressm_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"model")
+        classifiers_dir = trading_env['classifiers_dir']
+        (classifiers_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"model")
 
         resp = trading_client.post(
             f"/api/v1/trading/stress/train/{GAUGE_WESTMINSTER}"

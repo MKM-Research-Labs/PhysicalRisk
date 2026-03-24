@@ -332,13 +332,13 @@ def cmd_port(args):
         # Clean stale classifiers — they were trained against old storm data
         # and will fail to load with "not a known BitGenerator module" errors
         from pathlib import Path as _Path
-        _stressm_dir = _Path(config.get_stressm_dir())
-        _stale_joblibs = list(_stressm_dir.glob("*.joblib"))
+        _cls_dir = _Path(config.get_classifiers_dir())
+        _stale_joblibs = list(_cls_dir.glob("*.joblib"))
         if _stale_joblibs:
-            print(f"  Cleaning {len(_stale_joblibs)} stale classifier(s) from stressm/...")
+            print(f"  Cleaning {len(_stale_joblibs)} stale classifier(s) from classifiers/...")
             for jf in _stale_joblibs:
                 jf.unlink()
-            _summary_path = _stressm_dir / "training_summary.json"
+            _summary_path = _cls_dir / "training_summary.json"
             if _summary_path.exists():
                 _summary_path.unlink()
 

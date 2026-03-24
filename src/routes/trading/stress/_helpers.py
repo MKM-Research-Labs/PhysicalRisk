@@ -133,19 +133,13 @@ def _get_predictor():
     global _predictor_cache
     if _predictor_cache is None:
         from models.stress.flood_classifier import FloodPredictor
-        # Primary: multi-storm classifiers in data/input/<catchment>/stressm/
-        stressm_dir = config.get_stressm_dir()
-        if list(stressm_dir.glob('GAUGE-*.joblib')):
-            _predictor_cache = FloodPredictor(stressm_dir)
-            logger.info("FloodPredictor loaded from stressm dir (%s)", stressm_dir)
+        # Classifiers in data/input/<catchment>/classifiers/
+        cls_dir = config.get_classifiers_dir()
+        if list(cls_dir.glob('GAUGE-*.joblib')):
+            _predictor_cache = FloodPredictor(cls_dir)
+            logger.info("FloodPredictor loaded from classifiers dir (%s)", cls_dir)
             return _predictor_cache
-        # Legacy fallback: data/output/stress/
-        legacy_dir = Path(config.get_output_dir()) / 'stress'
-        if legacy_dir.exists() and list(legacy_dir.glob('GAUGE-*.joblib')):
-            _predictor_cache = FloodPredictor(legacy_dir)
-            logger.info("FloodPredictor loaded from legacy stress dir (%s)", legacy_dir)
-            return _predictor_cache
-        logger.warning("No flood classifier models found in stressm or stress directories")
+        logger.warning("No flood classifier models found in classifiers directory")
     return _predictor_cache
 
 

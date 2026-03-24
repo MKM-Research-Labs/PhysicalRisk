@@ -52,11 +52,11 @@ class TestClassifiersSummary:
 
     def test_trained_gauge_shows_metrics(self, trading_env, trading_client):
         """When training_summary.json + .joblib exist, metrics appear."""
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
 
         # Create a fake trained model + summary
         gid = GAUGE_WESTMINSTER
-        (stressm_dir / f"{gid}.joblib").write_bytes(b"fake_model")
+        (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake_model")
         summary = {
             "num_gauges": 1,
             "num_trained": 1,
@@ -84,11 +84,11 @@ class TestClassifiersSummary:
                     "delta_log_h": 0.066,
                     "delta2_log_h": 0.0034,
                 },
-                "model_path": str(stressm_dir / f"{gid}.joblib"),
+                "model_path": str(classifiers_dir / f"{gid}.joblib"),
                 "label_threshold": "severe_warning",
             }],
         }
-        with open(stressm_dir / "training_summary.json", "w") as f:
+        with open(classifiers_dir / "training_summary.json", "w") as f:
             json.dump(summary, f)
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
@@ -110,9 +110,9 @@ class TestClassifiersSummary:
         assert lons == sorted(lons)
 
     def test_avg_auc_computed(self, trading_env, trading_client):
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         gid = GAUGE_WESTMINSTER
-        (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
+        (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
         summary = {
             "gauges": [{
                 "gauge_id": gid,
@@ -123,7 +123,7 @@ class TestClassifiersSummary:
                 "n_samples": 1000,
             }],
         }
-        with open(stressm_dir / "training_summary.json", "w") as f:
+        with open(classifiers_dir / "training_summary.json", "w") as f:
             json.dump(summary, f)
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
@@ -235,9 +235,9 @@ class TestBatchTraining:
         import routes.trading.classifiers as cl_mod
         cl_mod._batch_job = None
 
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         for gid in ALL_TEST_GAUGE_IDS:
-            (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
+            (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
 
         resp = trading_client.post("/api/v1/trading/classifiers/train-all")
         data = resp.get_json()
@@ -307,9 +307,9 @@ class TestClassifiersReadiness:
 
     def test_readiness_partial(self, trading_env, trading_client):
         """Some gauges trained → ready=False, correct counts."""
-        stressm_dir = trading_env["stressm_dir"]
-        (stressm_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"fake")
-        (stressm_dir / f"{GAUGE_CHELSEA}.joblib").write_bytes(b"fake")
+        classifiers_dir = trading_env["classifiers_dir"]
+        (classifiers_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"fake")
+        (classifiers_dir / f"{GAUGE_CHELSEA}.joblib").write_bytes(b"fake")
 
         resp = trading_client.get("/api/v1/trading/classifiers/readiness")
         data = resp.get_json()
@@ -319,9 +319,9 @@ class TestClassifiersReadiness:
 
     def test_readiness_all_trained(self, trading_env, trading_client):
         """All gauges have .joblib → ready=True."""
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         for gid in ALL_TEST_GAUGE_IDS:
-            (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
+            (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
 
         resp = trading_client.get("/api/v1/trading/classifiers/readiness")
         data = resp.get_json()
@@ -332,7 +332,7 @@ class TestClassifiersReadiness:
     def test_readiness_error(self, trading_client, monkeypatch):
         """Internal error → 500 with error status."""
         from config import config
-        monkeypatch.setattr(config, "get_stressm_dir",
+        monkeypatch.setattr(config, "get_classifiers_dir",
                             lambda: (_ for _ in ()).throw(RuntimeError("boom")))
 
         resp = trading_client.get("/api/v1/trading/classifiers/readiness")
@@ -355,11 +355,11 @@ class TestClearAllClassifiers:
 
     def test_clear_removes_models(self, trading_env, trading_client):
         """Clears .joblib files and training_summary.json."""
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         for gid in [GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH]:
-            (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
-        (stressm_dir / "training_summary.json").write_text("{}")
-        (stressm_dir / "classifier_timings.json").write_text("{}")
+            (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
+        (classifiers_dir / "training_summary.json").write_text("{}")
+        (classifiers_dir / "classifier_timings.json").write_text("{}")
 
         resp = trading_client.post("/api/v1/trading/classifiers/clear-all")
         data = resp.get_json()
@@ -367,14 +367,14 @@ class TestClearAllClassifiers:
         assert data["removed"] == 3
 
         # Verify files are gone
-        assert not list(stressm_dir.glob("*.joblib"))
-        assert not (stressm_dir / "training_summary.json").exists()
-        assert not (stressm_dir / "classifier_timings.json").exists()
+        assert not list(classifiers_dir.glob("*.joblib"))
+        assert not (classifiers_dir / "training_summary.json").exists()
+        assert not (classifiers_dir / "classifier_timings.json").exists()
 
     def test_clear_error(self, trading_client, monkeypatch):
         """Internal error → 500."""
         from config import config
-        monkeypatch.setattr(config, "get_stressm_dir",
+        monkeypatch.setattr(config, "get_classifiers_dir",
                             lambda: (_ for _ in ()).throw(RuntimeError("disk")))
 
         resp = trading_client.post("/api/v1/trading/classifiers/clear-all")
@@ -444,15 +444,15 @@ class TestSummaryEdgeCases:
 
     def test_trained_without_auc(self, trading_env, trading_client):
         """Gauge with .joblib but no auc_roc in summary still counted as trained."""
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         gid = GAUGE_WESTMINSTER
-        (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
+        (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
         summary = {"gauges": [{
             "gauge_id": gid,
             "status": "trained",
             "metrics": {},
         }]}
-        with open(stressm_dir / "training_summary.json", "w") as f:
+        with open(classifiers_dir / "training_summary.json", "w") as f:
             json.dump(summary, f)
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
@@ -464,7 +464,7 @@ class TestSummaryEdgeCases:
     def test_summary_error(self, trading_client, monkeypatch):
         """Internal error → 500."""
         from config import config
-        monkeypatch.setattr(config, "get_stressm_dir",
+        monkeypatch.setattr(config, "get_classifiers_dir",
                             lambda: (_ for _ in ()).throw(RuntimeError("oops")))
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
@@ -474,17 +474,17 @@ class TestSummaryEdgeCases:
 
     def test_multiple_trained_avg_auc(self, trading_env, trading_client):
         """avg_auc_roc averages correctly over multiple trained gauges."""
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         gauges_data = []
         for gid, auc in [(GAUGE_WESTMINSTER, 0.90), (GAUGE_CHELSEA, 0.80)]:
-            (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
+            (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
             gauges_data.append({
                 "gauge_id": gid,
                 "status": "trained",
                 "metrics": {"auc_roc": auc, "accuracy": 0.9,
                              "brier_score": 0.02, "log_loss": 0.05},
             })
-        with open(stressm_dir / "training_summary.json", "w") as f:
+        with open(classifiers_dir / "training_summary.json", "w") as f:
             json.dump({"gauges": gauges_data}, f)
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
@@ -494,9 +494,9 @@ class TestSummaryEdgeCases:
 
     def test_gauge_all_fields_present(self, trading_env, trading_client):
         """Verify all expected gauge fields are in the response."""
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         gid = GAUGE_WESTMINSTER
-        (stressm_dir / f"{gid}.joblib").write_bytes(b"fake")
+        (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
         summary = {"gauges": [{
             "gauge_id": gid,
             "status": "trained",
@@ -509,7 +509,7 @@ class TestSummaryEdgeCases:
             "severe_level": 5.0,
             "alert_level": 3.0,
         }]}
-        with open(stressm_dir / "training_summary.json", "w") as f:
+        with open(classifiers_dir / "training_summary.json", "w") as f:
             json.dump(summary, f)
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
@@ -531,7 +531,7 @@ class TestRunBatchTraining:
         """Batch trains gauges and records timings."""
         import routes.trading.classifiers as cl_mod
 
-        stressm_dir = trading_env["stressm_dir"]
+        classifiers_dir = trading_env["classifiers_dir"]
         gauge_ids = [GAUGE_WESTMINSTER, GAUGE_CHELSEA]
 
         with cl_mod._batch_lock:
@@ -555,7 +555,7 @@ class TestRunBatchTraining:
         assert all(r["status"] == "trained" for r in cl_mod._batch_job["results"])
 
         # Check timings were saved
-        timings_path = stressm_dir / "classifier_timings.json"
+        timings_path = classifiers_dir / "classifier_timings.json"
         assert timings_path.exists()
         with open(timings_path) as f:
             timings = json.load(f)

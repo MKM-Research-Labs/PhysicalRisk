@@ -99,6 +99,9 @@ def trading_env(tmp_path, monkeypatch):
     stressm_dir = input_dir / 'stressm'
     stressm_dir.mkdir(exist_ok=True)
     monkeypatch.setattr(config, 'get_stressm_dir', lambda: stressm_dir)
+    classifiers_dir = input_dir / 'classifiers'
+    classifiers_dir.mkdir(exist_ok=True)
+    monkeypatch.setattr(config, 'get_classifiers_dir', lambda: classifiers_dir)
 
     try:
         import routes.trading.stress._helpers as stress_helpers
@@ -116,6 +119,7 @@ def trading_env(tmp_path, monkeypatch):
         'prs_dir': prs_dir,
         'gaugets_dir': gaugets_dir,
         'stressm_dir': stressm_dir,
+        'classifiers_dir': classifiers_dir,
     }
 
 
@@ -166,6 +170,9 @@ def empty_trading_env(tmp_path, monkeypatch):
     stressm_dir = input_dir / 'stressm'
     stressm_dir.mkdir(exist_ok=True)
     monkeypatch.setattr(config, 'get_stressm_dir', lambda: stressm_dir)
+    classifiers_dir = input_dir / 'classifiers'
+    classifiers_dir.mkdir(exist_ok=True)
+    monkeypatch.setattr(config, 'get_classifiers_dir', lambda: classifiers_dir)
 
     return {
         'tmp_path': tmp_path,
@@ -174,6 +181,7 @@ def empty_trading_env(tmp_path, monkeypatch):
         'trading_dir': trading_dir,
         'eod_dir': eod_dir,
         'prs_dir': prs_dir,
+        'classifiers_dir': classifiers_dir,
     }
 
 

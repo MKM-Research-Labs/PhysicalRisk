@@ -55,7 +55,7 @@ def _get_stressm_predictor():
     if _stressm_predictor_cache is None:
         try:
             from models.stress.flood_classifier import FloodPredictor
-            model_dir = config.get_stressm_dir()  # data/input/<catchment>/stressm/
+            model_dir = config.get_classifiers_dir()  # data/input/<catchment>/classifiers/
             if model_dir.exists():
                 _stressm_predictor_cache = FloodPredictor(model_dir)
                 return _stressm_predictor_cache

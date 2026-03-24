@@ -34,7 +34,7 @@ _training_lock = threading.Lock()
 @trading_bp.route("/trading/stress/classifier-status/<gauge_id>", methods=["GET"])
 def classifier_status(gauge_id):
     """Check whether a trained classifier exists for a gauge."""
-    stressm_dir = config.get_stressm_dir()
+    stressm_dir = config.get_classifiers_dir()
     joblib_path = stressm_dir / f"{gauge_id}.joblib"
 
     if joblib_path.exists():
@@ -67,7 +67,7 @@ def classifier_status(gauge_id):
 @trading_bp.route("/trading/stress/train/<gauge_id>", methods=["POST"])
 def train_classifier(gauge_id):
     """Start background training for a single gauge classifier."""
-    stressm_dir = config.get_stressm_dir()
+    stressm_dir = config.get_classifiers_dir()
 
     # Already trained?
     if (stressm_dir / f"{gauge_id}.joblib").exists():
@@ -234,7 +234,7 @@ def _train_single_gauge(gauge_id: str):
 
 def _update_training_summary(result: dict):
     """Merge a single gauge training result into training_summary.json."""
-    stressm_dir = config.get_stressm_dir()
+    stressm_dir = config.get_classifiers_dir()
     summary_path = stressm_dir / "training_summary.json"
 
     # Load existing summary or create empty

@@ -41,12 +41,12 @@ class TestStressmPredictorLoadsFromDir:
     """Lines 51-54: _get_stressm_predictor loads from stressm dir when it has models."""
 
     def test_stressm_dir_with_joblib_loads_predictor(self, port_stress_env):
-        """When stressm dir has .joblib files, predictor is loaded from it."""
+        """When classifiers dir has .joblib files, predictor is loaded from it."""
         import routes.trading.port_stress as ps_mod
         ps_mod._stressm_predictor_cache = None
 
-        stressm_dir = port_stress_env['stressm_dir']
-        (stressm_dir / 'GAUGE-001.joblib').write_bytes(b'fake')
+        classifiers_dir = port_stress_env['classifiers_dir']
+        (classifiers_dir / 'GAUGE-001.joblib').write_bytes(b'fake')
 
         mock_predictor = MagicMock()
         mock_fp_class = MagicMock(return_value=mock_predictor)
@@ -57,7 +57,7 @@ class TestStressmPredictorLoadsFromDir:
             result = ps_mod._get_stressm_predictor()
 
         assert result is mock_predictor
-        mock_fp_class.assert_called_once_with(stressm_dir)
+        mock_fp_class.assert_called_once_with(classifiers_dir)
         ps_mod._stressm_predictor_cache = None
 
 

@@ -68,7 +68,7 @@ class TestUpdateTrainingSummary:
         """Creates training_summary.json when it does not exist."""
         from routes.trading.stress.training import _update_training_summary
 
-        stressm_dir = trading_env['stressm_dir']
+        classifiers_dir = trading_env['classifiers_dir']
         result = {
             "gauge_id": GAUGE_WESTMINSTER,
             "status": "trained",
@@ -76,7 +76,7 @@ class TestUpdateTrainingSummary:
         }
         _update_training_summary(result)
 
-        summary_path = stressm_dir / "training_summary.json"
+        summary_path = classifiers_dir / "training_summary.json"
         assert summary_path.exists()
         summary = json.loads(summary_path.read_text())
         assert summary["num_gauges"] == 1
@@ -90,7 +90,7 @@ class TestUpdateTrainingSummary:
         """Merges a new gauge result into an existing summary."""
         from routes.trading.stress.training import _update_training_summary
 
-        stressm_dir = trading_env['stressm_dir']
+        classifiers_dir = trading_env['classifiers_dir']
         # Write initial summary with one gauge
         initial = {
             "num_gauges": 1,
@@ -105,7 +105,7 @@ class TestUpdateTrainingSummary:
                 }
             ],
         }
-        (stressm_dir / "training_summary.json").write_text(json.dumps(initial))
+        (classifiers_dir / "training_summary.json").write_text(json.dumps(initial))
 
         # Add a second gauge
         result = {
@@ -116,7 +116,7 @@ class TestUpdateTrainingSummary:
         _update_training_summary(result)
 
         summary = json.loads(
-            (stressm_dir / "training_summary.json").read_text()
+            (classifiers_dir / "training_summary.json").read_text()
         )
         assert summary["num_gauges"] == 2
         assert summary["num_trained"] == 2
@@ -128,7 +128,7 @@ class TestUpdateTrainingSummary:
         """Re-training a gauge replaces its entry, not duplicates it."""
         from routes.trading.stress.training import _update_training_summary
 
-        stressm_dir = trading_env['stressm_dir']
+        classifiers_dir = trading_env['classifiers_dir']
         initial = {
             "num_gauges": 1,
             "num_trained": 1,
@@ -142,7 +142,7 @@ class TestUpdateTrainingSummary:
                 }
             ],
         }
-        (stressm_dir / "training_summary.json").write_text(json.dumps(initial))
+        (classifiers_dir / "training_summary.json").write_text(json.dumps(initial))
 
         # Re-train with improved AUC
         result = {
@@ -153,7 +153,7 @@ class TestUpdateTrainingSummary:
         _update_training_summary(result)
 
         summary = json.loads(
-            (stressm_dir / "training_summary.json").read_text()
+            (classifiers_dir / "training_summary.json").read_text()
         )
         assert summary["num_gauges"] == 1
         assert summary["num_trained"] == 1
@@ -164,7 +164,7 @@ class TestUpdateTrainingSummary:
         """A 'skipped' gauge does not contribute to avg_auc_roc."""
         from routes.trading.stress.training import _update_training_summary
 
-        stressm_dir = trading_env['stressm_dir']
+        classifiers_dir = trading_env['classifiers_dir']
         initial = {
             "num_gauges": 1,
             "num_trained": 1,
@@ -178,7 +178,7 @@ class TestUpdateTrainingSummary:
                 }
             ],
         }
-        (stressm_dir / "training_summary.json").write_text(json.dumps(initial))
+        (classifiers_dir / "training_summary.json").write_text(json.dumps(initial))
 
         # Add a skipped gauge
         result = {
@@ -189,7 +189,7 @@ class TestUpdateTrainingSummary:
         _update_training_summary(result)
 
         summary = json.loads(
-            (stressm_dir / "training_summary.json").read_text()
+            (classifiers_dir / "training_summary.json").read_text()
         )
         assert summary["num_gauges"] == 2
         assert summary["num_trained"] == 1
@@ -208,9 +208,9 @@ class TestUpdateTrainingSummary:
         }
         _update_training_summary(result)
 
-        stressm_dir = trading_env['stressm_dir']
+        classifiers_dir = trading_env['classifiers_dir']
         summary = json.loads(
-            (stressm_dir / "training_summary.json").read_text()
+            (classifiers_dir / "training_summary.json").read_text()
         )
         assert summary["num_trained"] == 0
         assert summary["avg_auc_roc"] == 0.0
