@@ -3,10 +3,14 @@
 
 """Panel data loading — loadHazardData() async function."""
 
+from config.format import gauge_title_js as _gauge_title_js
+
+_GAUGE_TITLE = _gauge_title_js('gName', 'gaugeId')
+
 
 def get_data_js() -> str:
     """Return JS that defines the loadHazardData() async function."""
-    return """
+    return ("""
             // ================================================================
             // Data loading
             // ================================================================
@@ -135,7 +139,7 @@ def get_data_js() -> str:
                             if (titleEl) {
                                 var gName = hazardData.gauge_name || '';
                                 var dirLabel = td.is_payer ? 'Pay' : 'Rcv';
-                                titleEl.textContent = (gName ? gName + ' (' + gaugeId + ')' : gaugeId) + ' — Close Out: ' + dirLabel;
+                                titleEl.textContent = __GAUGE_TITLE__ + ' — Close Out: ' + dirLabel;
                             }
                         } else {
                             // TRADE REVIEW MODE: ALL inputs disabled, read-only
@@ -156,7 +160,7 @@ def get_data_js() -> str:
                             if (titleEl) {
                                 var gName = hazardData.gauge_name || '';
                                 var dirLabel = td.is_payer ? 'Pay' : 'Rcv';
-                                titleEl.textContent = (gName ? gName + ' (' + gaugeId + ')' : gaugeId) + ' — ' + td.swap_id + ' | ' + dirLabel;
+                                titleEl.textContent = __GAUGE_TITLE__ + ' — ' + td.swap_id + ' | ' + dirLabel;
                             }
                         }
 
@@ -171,7 +175,7 @@ def get_data_js() -> str:
                     var titleEl = document.getElementById('hazard-panel-title');
                     if (titleEl && !isTradeReview && !isCloseOut) {
                         var gName = hazardData.gauge_name || '';
-                        titleEl.textContent = gName ? gName + ' (' + gaugeId + ')' : gaugeId;
+                        titleEl.textContent = __GAUGE_TITLE__;
                     }
 
                     switchTab(activeTab);
@@ -182,4 +186,4 @@ def get_data_js() -> str:
                     if (window.showError) window.showError('Failed to load hazard curve data');
                 }
             }
-"""
+""".replace('__GAUGE_TITLE__', _GAUGE_TITLE))
