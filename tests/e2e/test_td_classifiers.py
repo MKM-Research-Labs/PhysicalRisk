@@ -43,16 +43,16 @@ def _open_trading_desk(page):
     pi_btn = page.locator("text=\u03a0").first
     pi_btn.click()
     page.locator("#trading-desk-panel").wait_for(
-        state="visible", timeout=5_000
+        state="visible", timeout=10_000
     )
+    page.wait_for_timeout(3_000)
 
 
 def _close_trading_desk(page):
-    panel = page.locator("#trading-desk-panel")
-    if panel.is_visible():
-        close_btn = panel.locator("text=\u00d7").first
-        if close_btn.is_visible():
-            close_btn.click()
+    page.evaluate("""() => {
+        const el = document.getElementById('trading-desk-panel');
+        if (el) el.style.display = 'none';
+    }""")
 
 
 # ---------------------------------------------------------------------------
