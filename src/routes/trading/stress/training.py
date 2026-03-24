@@ -196,7 +196,7 @@ def _train_single_gauge(gauge_id: str):
         seq_path = input_dir / "storm_sequences.json"
         sequences = load_sequences(seq_path)
 
-        # Train
+        # Train — write classifier to classifiers/ dir (not output/stressm/)
         result = train_gauge_stressm_classifier(
             sequences=sequences,
             gauge=target[0],
@@ -204,14 +204,20 @@ def _train_single_gauge(gauge_id: str):
             target_spatial_index=target_idx,
             output_dir=output_dir,
             rng=np.random.RandomState(42),
+            classifiers_dir=config.get_classifiers_dir(),
         )
 
         # Update training_summary.json (merge with existing)
         _update_training_summary(result)
 
-        # Invalidate the cached predictor so next request picks up the new model
+        # Invalidate ALL cached predictors so next request picks up the new model
         from ._helpers import _invalidate_predictor_cache
         _invalidate_predictor_cache()
+        try:
+            from routes.trading.port_stress import invalidate_stressm_predictor
+            invalidate_stressm_predictor()
+        except ImportError:
+            pass
 
         with _training_lock:
             _training_jobs[gauge_id] = {
