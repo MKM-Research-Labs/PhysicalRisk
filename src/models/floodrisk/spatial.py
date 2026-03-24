@@ -25,8 +25,9 @@ KDTree construction, correlation matrix, haversine distance,
 and inverse-distance-weighted interpolation.
 """
 
+import math
 from math import atan2, cos, radians, sin, sqrt
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -77,6 +78,76 @@ def haversine_distance(lat1: float, lon1: float,
     a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
+
+
+def nearest_point_on_segment(
+    px: float, py: float,
+    ax: float, ay: float,
+    bx: float, by: float,
+) -> Tuple[float, float, float, float]:
+    """
+    Project point P onto segment AB using flat-Earth approximation
+    with cos(lat) longitude correction.
+
+    Args:
+        px, py: Point latitude, longitude (degrees)
+        ax, ay: Segment start latitude, longitude (degrees)
+        bx, by: Segment end latitude, longitude (degrees)
+
+    Returns:
+        (nx, ny, dist_m, t) where:
+            nx, ny  = nearest point on segment (degrees)
+            dist_m  = haversine distance from P to nearest point (meters)
+            t       = parameter along segment (0.0 = at A, 1.0 = at B)
+    """
+    cos_lat = math.cos(math.radians(px))
+    dx = bx - ax
+    dy = (by - ay) * cos_lat
+    seg2 = dx * dx + dy * dy
+    if seg2 < 1e-18:
+        return ax, ay, haversine_distance(px, py, ax, ay), 0.0
+    t = max(0.0, min(1.0,
+            ((px - ax) * dx + (py - ay) * cos_lat * dy) / seg2))
+    nx = ax + t * (bx - ax)
+    ny = ay + t * (by - ay)
+    return nx, ny, haversine_distance(px, py, nx, ny), t
+
+
+def nearest_point_on_polyline(
+    lat: float, lon: float,
+    polyline: List[Tuple[float, float]],
+) -> Tuple[float, float, float, int, float]:
+    """
+    Find the closest point on a polyline to (lat, lon).
+
+    Args:
+        lat, lon: Query point (degrees)
+        polyline: Ordered list of (lat, lon, ...) tuples; extra elements ignored.
+
+    Returns:
+        (nx, ny, dist_m, seg_idx, t) where:
+            nx, ny   = nearest point on polyline (degrees)
+            dist_m   = haversine distance to nearest point (meters)
+            seg_idx  = index of the segment (between polyline[seg_idx] and [seg_idx+1])
+            t        = parameter along that segment (0.0 = at start, 1.0 = at end)
+    """
+    best_dist = float('inf')
+    best_nx = polyline[0][0]
+    best_ny = polyline[0][1]
+    best_seg = 0
+    best_t = 0.0
+
+    for i in range(len(polyline) - 1):
+        ax, ay = polyline[i][0], polyline[i][1]
+        bx, by = polyline[i + 1][0], polyline[i + 1][1]
+        nx, ny, d, t = nearest_point_on_segment(lat, lon, ax, ay, bx, by)
+        if d < best_dist:
+            best_dist = d
+            best_nx, best_ny = nx, ny
+            best_seg = i
+            best_t = t
+
+    return best_nx, best_ny, best_dist, best_seg, best_t
 
 
 def spatial_interpolate_wse(target_lat: float, target_lon: float,
