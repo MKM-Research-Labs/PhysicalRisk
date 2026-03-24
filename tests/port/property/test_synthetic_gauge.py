@@ -362,3 +362,27 @@ class TestFindNearestGaugesWithPolyline:
         assert len(lookup) == original_count + 1
         synth_ids = [k for k in lookup if k.startswith(SYNTH_PREFIX)]
         assert len(synth_ids) == 1
+
+    def test_real_gauges_are_two_nearest_by_haversine(self):
+        """The 2 real gauges should be the 2 nearest to the property,
+        not necessarily the flanking gauges from the polyline segment."""
+        mixin = self._make_flood_mixin()
+        # Add a 4th gauge that is close to the property but NOT on the
+        # flanking segment
+        lookup = dict(GAUGE_LOOKUP)
+        lookup["GAUGE-DDD00004"] = {
+            "gauge_id": "GAUGE-DDD00004",
+            "lat": 51.455, "lon": -0.41,  # very close to property
+            "elevation": 3.5,
+            "alert_level": 3.8, "warning_level": 4.8, "severe_level": 5.5,
+        }
+        # Extended polyline including the new gauge
+        polyline = list(POLYLINE) + [(51.455, -0.41, 3.5, "GAUGE-DDD00004")]
+
+        prop_lat, prop_lon = 51.455, -0.40
+        result = mixin._find_nearest_gauges(
+            prop_lat, prop_lon, lookup, gauge_polyline=polyline)
+
+        real_ids = [r['gauge_id'] for r in result if not r.get('is_synthetic')]
+        # GAUGE-DDD00004 is very close and should be one of the 2 real gauges
+        assert "GAUGE-DDD00004" in real_ids
