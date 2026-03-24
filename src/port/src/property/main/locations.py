@@ -9,6 +9,12 @@ import math
 import random
 from typing import Dict, List, Tuple
 
+from src.models.floodrisk.spatial import (
+    haversine_distance as _haversine_shared,
+    nearest_point_on_segment as _nearest_on_segment_shared,
+    nearest_point_on_polyline as _nearest_on_polyline_shared,
+)
+
 
 class LocationsMixin:
     """Mixin providing spatial/location generation methods."""
@@ -207,38 +213,17 @@ class LocationsMixin:
     @staticmethod
     def _nearest_on_segment(px, py, ax, ay, bx, by):
         """Project point P onto segment AB.  Returns (nx, ny, dist_m)."""
-        cos_lat = math.cos(math.radians(px))
-        dx = bx - ax
-        dy = (by - ay) * cos_lat
-        seg2 = dx * dx + dy * dy
-        if seg2 < 1e-18:
-            return ax, ay, LocationsMixin._haversine(px, py, ax, ay)
-        t = max(0.0, min(1.0,
-                ((px - ax) * dx + (py - ay) * cos_lat * dy) / seg2))
-        nx = ax + t * (bx - ax)
-        ny = ay + t * (by - ay)
-        return nx, ny, LocationsMixin._haversine(px, py, nx, ny)
+        nx, ny, dist_m, _t = _nearest_on_segment_shared(px, py, ax, ay, bx, by)
+        return nx, ny, dist_m
 
     @staticmethod
     def _haversine(lat1, lon1, lat2, lon2):
-        R = 6_371_000
-        dlat = math.radians(lat2 - lat1)
-        dlon = math.radians(lon2 - lon1)
-        a = (math.sin(dlat / 2) ** 2 +
-             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
-             math.sin(dlon / 2) ** 2)
-        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return _haversine_shared(lat1, lon1, lat2, lon2)
 
     def _min_river_distance(self, lat, lon, gauge_points) -> float:
         """Return minimum distance (m) from (lat, lon) to the river centreline."""
-        best = float('inf')
-        for i in range(len(gauge_points) - 1):
-            ax, ay = gauge_points[i][0], gauge_points[i][1]
-            bx, by = gauge_points[i + 1][0], gauge_points[i + 1][1]
-            _, _, d = self._nearest_on_segment(lat, lon, ax, ay, bx, by)
-            if d < best:
-                best = d
-        return best
+        _, _, dist_m, _, _ = _nearest_on_polyline_shared(lat, lon, gauge_points)
+        return dist_m
 
     def _ensure_off_river(self, lat, lon, gauge_points) -> Tuple[float, float]:
         """
