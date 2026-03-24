@@ -132,6 +132,101 @@ class TestClassifiersSummary:
         assert data["avg_auc_roc"] == 0.95
 
 
+class TestStaleMetricsSupressed:
+    """Metrics must not leak through when .joblib is missing."""
+
+    def test_no_model_hides_stale_metrics(self, trading_env, trading_client):
+        """Gauge with summary entry but NO .joblib should show null metrics."""
+        classifiers_dir = trading_env["classifiers_dir"]
+        gid = GAUGE_CHELSEA
+
+        # Write a training summary entry but NO .joblib file
+        summary = {
+            "gauges": [{
+                "gauge_id": gid,
+                "status": "trained",
+                "metrics": {"auc_roc": 0.99, "accuracy": 0.98,
+                             "brier_score": 0.01, "log_loss": 0.04},
+                "flood_rate": 0.05,
+                "n_samples": 5000,
+            }],
+        }
+        with open(classifiers_dir / "training_summary.json", "w") as f:
+            json.dump(summary, f)
+
+        # Ensure no .joblib for this gauge
+        joblib_path = classifiers_dir / f"{gid}.joblib"
+        if joblib_path.exists():
+            joblib_path.unlink()
+
+        resp = trading_client.get("/api/v1/trading/classifiers/summary")
+        data = resp.get_json()
+
+        gauge = [g for g in data["gauges"] if g["gauge_id"] == gid][0]
+        assert gauge["has_model"] is False
+        assert gauge["status"] == "not_trained"
+        assert gauge["auc_roc"] is None, "Stale AUC leaked through"
+        assert gauge["accuracy"] is None, "Stale accuracy leaked through"
+        assert gauge["flood_rate"] is None, "Stale flood_rate leaked through"
+        assert gauge["n_samples"] is None, "Stale n_samples leaked through"
+
+    def test_model_present_shows_metrics(self, trading_env, trading_client):
+        """Gauge with both .joblib AND summary entry should show metrics."""
+        classifiers_dir = trading_env["classifiers_dir"]
+        gid = GAUGE_LAMBETH
+
+        (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
+        summary = {
+            "gauges": [{
+                "gauge_id": gid,
+                "status": "trained",
+                "metrics": {"auc_roc": 0.91, "accuracy": 0.90,
+                             "brier_score": 0.03, "log_loss": 0.08},
+                "flood_rate": 0.12,
+                "n_samples": 2000,
+            }],
+        }
+        with open(classifiers_dir / "training_summary.json", "w") as f:
+            json.dump(summary, f)
+
+        resp = trading_client.get("/api/v1/trading/classifiers/summary")
+        data = resp.get_json()
+
+        gauge = [g for g in data["gauges"] if g["gauge_id"] == gid][0]
+        assert gauge["has_model"] is True
+        assert gauge["status"] == "trained"
+        assert gauge["auc_roc"] == 0.91
+        assert gauge["accuracy"] == 0.90
+
+    def test_clear_all_removes_all_metrics(self, trading_env, trading_client):
+        """After clear-all, every gauge should show null metrics."""
+        classifiers_dir = trading_env["classifiers_dir"]
+
+        # Create some trained gauges
+        for gid in (GAUGE_WESTMINSTER, GAUGE_CHELSEA):
+            (classifiers_dir / f"{gid}.joblib").write_bytes(b"fake")
+        summary = {"gauges": [
+            {"gauge_id": GAUGE_WESTMINSTER, "status": "trained",
+             "metrics": {"auc_roc": 0.95}},
+            {"gauge_id": GAUGE_CHELSEA, "status": "trained",
+             "metrics": {"auc_roc": 0.93}},
+        ]}
+        with open(classifiers_dir / "training_summary.json", "w") as f:
+            json.dump(summary, f)
+
+        # Clear all
+        resp = trading_client.post("/api/v1/trading/classifiers/clear-all")
+        assert resp.get_json()["status"] == "success"
+
+        # Now summary should show all null
+        resp = trading_client.get("/api/v1/trading/classifiers/summary")
+        data = resp.get_json()
+        for g in data["gauges"]:
+            assert g["has_model"] is False, f"{g['gauge_id']} still has model"
+            assert g["auc_roc"] is None, f"{g['gauge_id']} has stale AUC"
+            assert g["status"] == "not_trained", f"{g['gauge_id']} status not reset"
+
+
 class TestBatchTraining:
     """POST /trading/classifiers/train-all + GET status."""
 
