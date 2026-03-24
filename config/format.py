@@ -92,3 +92,22 @@ def storm_option_js(var: str = 's',
         parts.append(f"+ ' | peak ' + ({v}.peak_level_m || 0).toFixed(2) + 'm'")
 
     return ' '.join(parts)
+
+
+def gauge_title_js(name_var: str = 'gName', id_var: str = 'gaugeId') -> str:
+    """
+    Return the JavaScript expression that builds a gauge panel title.
+
+    Canonical format:
+        {GaugeName} ({GaugeID})
+
+    Falls back to just {GaugeID} if name is empty.
+
+    Args:
+        name_var: JavaScript variable holding the gauge name string.
+        id_var:   JavaScript variable holding the gauge ID string.
+
+    Returns:
+        JavaScript expression string, safe for embedding directly in JS source.
+    """
+    return f"({name_var} ? {name_var} + ' (' + {id_var} + ')' : {id_var})"
