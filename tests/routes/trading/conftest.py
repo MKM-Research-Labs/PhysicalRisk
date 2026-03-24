@@ -262,10 +262,20 @@ def port_stress_env(trading_env):
     with open(ss_dir / '_index.json', 'w') as f:
         json.dump({'total_storms': len(storms), 'storms': index_entries}, f)
 
+    # Remove any gaugets files from trading_env so the port stress code
+    # uses the flat hydrograph fallback (peak_level_m from storm data).
+    # This ensures threshold classification matches the storm data exactly.
+    gaugets_dir = trading_env['input_dir'] / 'gaugets'
+    gaugets_dir.mkdir(exist_ok=True)
+    import shutil
+    for gf in gaugets_dir.glob('*.json'):
+        gf.unlink()
+
     import routes.trading.stress._helpers as stress_helpers
     stress_helpers._stress_index_cache = None
     import routes.trading.port_stress as ps_mod
     ps_mod._stressm_predictor_cache = None
+    trading_env['gaugets_dir'] = gaugets_dir
     return trading_env
 
 

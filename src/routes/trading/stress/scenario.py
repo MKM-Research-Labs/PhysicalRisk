@@ -16,7 +16,6 @@ from ._helpers import (
     STORM_HOURS,
     _load_stress_storms,
     _load_stress_storm,
-    _synthesize_hydrograph,
     _get_predictor,
 )
 
@@ -105,17 +104,16 @@ def run_stress_scenario():
                 logger.warning("Failed to load gaugets for %s, using fallback",
                                gauge_id)
 
-        # Fallback to synthesized hydrograph if gaugets unavailable
+        # Gaugets data is required — stress scenarios are tail events
+        # that need real timeseries data, not synthetic approximations
         if hydrograph is None:
-            base_m = gauge_resp.get('base_level_m', 0.0)
-            peak_m = gauge_resp.get('peak_level_m', 0.0)
-            change_m = gauge_resp.get('level_change_m', peak_m - base_m)
-            hydrograph = _synthesize_hydrograph(
-                base_m,
-                change_m,
-                storm['duration_hours'],
-                storm['peak_position'],
-            )
+            return jsonify({
+                "status": "error",
+                "message": (
+                    f"No gaugets data for {gauge_id}. "
+                    "Run: python app.py port --stressm"
+                ),
+            }), 404
 
         # 4. Load flood predictor
         predictor = _get_predictor()
@@ -295,9 +293,7 @@ def run_stress_scenario():
             'warning_level': warning_level,
             'severe_level': severe_level,
             'hydrograph_source': (
-                f"Gauge response: base={gauge_resp.get('base_level_m', 0.0):.2f}m, "
-                f"rise=+{gauge_resp.get('level_change_m', gauge_resp.get('peak_level_m', 0.0) - gauge_resp.get('base_level_m', 0.0)):.2f}m, "
-                f"peak={gauge_resp.get('peak_level_m', 0.0):.2f}m, "
+                f"Gauge response: peak={gauge_resp.get('peak_level_m', 0.0):.2f}m, "
                 f"{storm['duration_hours']}h storm"),
             'trades': trade_summary,
             'hourly': hourly,

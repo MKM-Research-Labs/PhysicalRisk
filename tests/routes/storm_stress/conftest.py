@@ -21,6 +21,7 @@
 """Shared storm data and integration fixture for storm/stress integration tests."""
 
 import json
+import math
 import pytest
 
 
@@ -95,6 +96,15 @@ def integration_env(tmp_path, monkeypatch):
     prs_dir.mkdir()
     gaugets_dir = input_dir / 'gaugets'
     gaugets_dir.mkdir()
+    # Default gaugets file for GAUGE-001 — stress scenarios require real
+    # timeseries data (no synthetic fallback)
+    _default_readings = [
+        {"hour": h, "waterLevel": round(2.0 + 3.5 * math.sin(math.pi * h / 84), 4)}
+        for h in range(168)
+    ]
+    (gaugets_dir / 'GAUGE-001.json').write_text(json.dumps({
+        "flood_simulation": {"readings": _default_readings},
+    }))
     gaugehd_dir = input_dir / 'gaugehd'
     gaugehd_dir.mkdir()
 

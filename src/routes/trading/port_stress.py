@@ -32,7 +32,6 @@ from ._helpers import _get_engines, _load_open_trades, _load_gauge_locations
 from .stress._helpers import (
     _load_stress_storms,
     _load_stress_storm,
-    _synthesize_hydrograph,
     _get_predictor,
     STORM_HOURS,
 )
@@ -248,12 +247,9 @@ def run_portfolio_stress():
                             "Failed to load gaugets for %s, using fallback", gid)
 
                 if hydrograph is None:
-                    hydrograph = _synthesize_hydrograph(
-                        gauge_resp.get('base_level_m', 0),
-                        gauge_resp.get('level_change_m', 0),
-                        storm['duration_hours'],
-                        storm['peak_position'],
-                    )
+                    logger.warning(
+                        "No gaugets data for %s — using flat hydrograph", gid)
+                    hydrograph = [gauge_resp.get('peak_level_m', 0.0)] * STORM_HOURS
 
             # Determine peak water level and P(flood)
             peak_wl = 0.0
