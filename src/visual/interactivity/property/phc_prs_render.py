@@ -55,11 +55,13 @@ def get_js():
                 var gaugeColors = ['#9C27B0', '#00BCD4', '#795548'];
 
                 gauges.forEach(function(g, i) {
-                    var color = gaugeColors[i] || '#999';
+                    var isSynth = g.gauge_id.indexOf('SYNTH') === 0;
+                    var color = isSynth ? '#FF9800' : (gaugeColors[i] || '#999');
+                    var label = isSynth ? '\\u2605 Synthetic' : g.gauge_id.substring(0, 16);
                     compRows +=
-                        '<tr>' +
+                        '<tr' + (isSynth ? ' style="background:#FFF8E1;"' : '') + '>' +
                         '<td style="padding:4px 8px;"><span style="color:' + color + ';">\\u25CF</span> ' +
-                        g.gauge_id.substring(0, 16) + '</td>' +
+                        label + '</td>' +
                         '<td style="padding:4px 8px;text-align:right;">' + g.distance_km.toFixed(1) + 'km</td>' +
                         '<td style="padding:4px 8px;text-align:right;font-weight:600;">' + g.gauge_spread.toFixed(1) + '</td>' +
                         '<td style="padding:4px 8px;text-align:right;color:#666;">+' + g.basis.toFixed(1) + '</td>' +
