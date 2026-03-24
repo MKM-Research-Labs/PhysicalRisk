@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-03-23T07:20:12.090014",
+  "generated_at": "2026-03-24T15:14:01.586631",
   "catchment": "thames",
   "summary": {
     "total_properties": 200,
     "total_gauges": 52,
-    "properties_with_floods": 45,
-    "total_flood_events": 1461,
-    "gauge_flood_events": 391615,
-    "property_flood_events": 1461,
-    "gauge_to_property_ratio_pct": 0.4,
-    "max_depth_m": 4.9512,
-    "max_damage_ratio": 0.9451
+    "properties_with_floods": 3,
+    "total_flood_events": 70,
+    "gauge_flood_events": 380309,
+    "property_flood_events": 70,
+    "gauge_to_property_ratio_pct": 0.0,
+    "max_depth_m": 2.434,
+    "max_damage_ratio": 0.6651
   },
   "properties": [
     {
@@ -19,23 +19,23 @@
       "floor_level_m": 0.47,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 354.7
+        },
+        {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 543.2
         },
         {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 557.3
-        },
-        {
-          "gauge_id": "GAUGE-5cc1a4bd",
-          "distance_m": 800.0
         }
       ],
-      "floods_at_nearest_gauge": 1841,
-      "floods_at_property": 44,
-      "gauge_to_property_ratio": 2.4,
-      "max_depth_m": 2.3085,
-      "max_damage_ratio": 0.6463
+      "floods_at_nearest_gauge": 1892,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-6d816078",
@@ -43,16 +43,16 @@
       "floor_level_m": 0.18,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-08fd7695-1d061d70",
+          "distance_m": 822.9
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 890.3
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 1422.7
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1554.5
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -67,23 +67,23 @@
       "floor_level_m": 0.21,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c97ef762-ef0f808c",
+          "distance_m": 672.0
+        },
+        {
           "gauge_id": "GAUGE-c97ef762",
           "distance_m": 698.7
         },
         {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 924.8
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 1215.8
         }
       ],
-      "floods_at_nearest_gauge": 2390,
-      "floods_at_property": 10,
-      "gauge_to_property_ratio": 0.4,
-      "max_depth_m": 1.2572,
-      "max_damage_ratio": 0.4514
+      "floods_at_nearest_gauge": 2369,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-15f23e58",
@@ -91,16 +91,16 @@
       "floor_level_m": 0.2,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-08fd7695-1d061d70",
+          "distance_m": 193.7
+        },
+        {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 461.6
         },
         {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 600.2
-        },
-        {
-          "gauge_id": "GAUGE-1d061d70",
-          "distance_m": 1098.6
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -115,19 +115,19 @@
       "floor_level_m": 0.26,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 268.5
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 4360.3
         },
         {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 4791.8
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 13286.2
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -139,16 +139,16 @@
       "floor_level_m": 0.17,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 651.3
+        },
+        {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 1047.9
         },
         {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 1314.2
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 3315.0
         }
       ],
       "floods_at_nearest_gauge": 2480,
@@ -163,23 +163,23 @@
       "floor_level_m": 0.11,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7cce1cc8-63447c32",
+          "distance_m": 741.8
+        },
+        {
           "gauge_id": "GAUGE-63447c32",
           "distance_m": 816.3
         },
         {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 1062.4
-        },
-        {
-          "gauge_id": "GAUGE-66c641fe",
-          "distance_m": 1258.4
         }
       ],
-      "floods_at_nearest_gauge": 2399,
-      "floods_at_property": 7,
-      "gauge_to_property_ratio": 0.3,
-      "max_depth_m": 1.0478,
-      "max_damage_ratio": 0.4096
+      "floods_at_nearest_gauge": 2404,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-b0e321d3",
@@ -191,12 +191,12 @@
           "distance_m": 891.4
         },
         {
-          "gauge_id": "GAUGE-12dddcd7",
-          "distance_m": 1006.6
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 891.4
         },
         {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 1080.9
+          "gauge_id": "GAUGE-12dddcd7",
+          "distance_m": 1006.6
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -215,15 +215,15 @@
           "distance_m": 863.2
         },
         {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1474.8
+          "gauge_id": "SYNTH-b2dbe58b-dc5e88fb",
+          "distance_m": 863.2
         },
         {
-          "gauge_id": "GAUGE-08fd7695",
-          "distance_m": 1605.4
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1474.8
         }
       ],
-      "floods_at_nearest_gauge": 1886,
+      "floods_at_nearest_gauge": 1066,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -235,19 +235,19 @@
       "floor_level_m": 0.5,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 805.4
+        },
+        {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 807.0
         },
         {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 814.1
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 982.9
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 1847,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -259,16 +259,16 @@
       "floor_level_m": 0.24,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-22675be2-13dbbe14",
+          "distance_m": 503.1
+        },
+        {
           "gauge_id": "GAUGE-13dbbe14",
           "distance_m": 1990.5
         },
         {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 2762.3
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 5808.8
         }
       ],
       "floods_at_nearest_gauge": 1926,
@@ -283,16 +283,16 @@
       "floor_level_m": 0.44,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-bc801f07-3324d948",
+          "distance_m": 428.4
+        },
+        {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 949.4
         },
         {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 3104.4
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 8414.7
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -307,23 +307,23 @@
       "floor_level_m": 0.16,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7e07133d-e404c1ff",
+          "distance_m": 553.3
+        },
+        {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 766.1
         },
         {
           "gauge_id": "GAUGE-13dbbe14",
           "distance_m": 1494.2
-        },
-        {
-          "gauge_id": "GAUGE-e404c1ff",
-          "distance_m": 3159.8
         }
       ],
       "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 17,
-      "gauge_to_property_ratio": 0.8,
-      "max_depth_m": 1.9478,
-      "max_damage_ratio": 0.5896
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-4807c163",
@@ -331,19 +331,19 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 744.5
+        },
+        {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 1001.7
         },
         {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 1014.3
-        },
-        {
-          "gauge_id": "GAUGE-5cc1a4bd",
-          "distance_m": 1214.8
         }
       ],
-      "floods_at_nearest_gauge": 1841,
+      "floods_at_nearest_gauge": 1892,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -355,16 +355,16 @@
       "floor_level_m": -0.13,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-22675be2-13dbbe14",
+          "distance_m": 837.5
+        },
+        {
           "gauge_id": "GAUGE-22675be2",
           "distance_m": 2266.9
         },
         {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 2745.9
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 3566.0
         }
       ],
       "floods_at_nearest_gauge": 2390,
@@ -379,16 +379,16 @@
       "floor_level_m": 0.05,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-12dddcd7-1f4e46a9",
+          "distance_m": 1021.7
+        },
+        {
           "gauge_id": "GAUGE-b19c8a6a",
           "distance_m": 1032.1
         },
         {
           "gauge_id": "GAUGE-1f4e46a9",
           "distance_m": 1053.7
-        },
-        {
-          "gauge_id": "GAUGE-12dddcd7",
-          "distance_m": 1091.8
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -403,23 +403,23 @@
       "floor_level_m": 0.39,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 686.0
+        },
+        {
           "gauge_id": "GAUGE-14733fc0",
           "distance_m": 726.4
         },
         {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 956.4
-        },
-        {
-          "gauge_id": "GAUGE-62fc58e6",
-          "distance_m": 1148.2
         }
       ],
-      "floods_at_nearest_gauge": 2224,
-      "floods_at_property": 1,
+      "floods_at_nearest_gauge": 2101,
+      "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
-      "max_depth_m": 0.3097,
-      "max_damage_ratio": 0.1654
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-13a154d7",
@@ -427,16 +427,16 @@
       "floor_level_m": 0.0,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 554.9
+        },
+        {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 588.2
         },
         {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 894.7
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 2629.0
         }
       ],
       "floods_at_nearest_gauge": 2454,
@@ -451,16 +451,16 @@
       "floor_level_m": 0.25,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 523.6
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 626.3
         },
         {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 857.6
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 1083.3
         }
       ],
       "floods_at_nearest_gauge": 1424,
@@ -475,19 +475,19 @@
       "floor_level_m": 0.3,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-8be2e7e8-1aaf8b08",
+          "distance_m": 500.6
+        },
+        {
           "gauge_id": "GAUGE-1aaf8b08",
           "distance_m": 504.1
         },
         {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 1559.4
-        },
-        {
-          "gauge_id": "GAUGE-d208bf3d",
-          "distance_m": 2054.9
         }
       ],
-      "floods_at_nearest_gauge": 1716,
+      "floods_at_nearest_gauge": 1671,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -499,16 +499,16 @@
       "floor_level_m": 0.01,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 428.9
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 617.0
         },
         {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 743.8
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 950.7
         }
       ],
       "floods_at_nearest_gauge": 1424,
@@ -523,23 +523,23 @@
       "floor_level_m": 0.28,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-63447c32-71d96002",
+          "distance_m": 264.5
+        },
+        {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 265.5
         },
         {
           "gauge_id": "GAUGE-63447c32",
           "distance_m": 400.5
-        },
-        {
-          "gauge_id": "GAUGE-66c641fe",
-          "distance_m": 572.0
         }
       ],
       "floods_at_nearest_gauge": 2399,
-      "floods_at_property": 175,
-      "gauge_to_property_ratio": 7.3,
-      "max_depth_m": 4.248,
-      "max_damage_ratio": 0.8748
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-9b23d7e4",
@@ -547,16 +547,16 @@
       "floor_level_m": 12.27,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-22675be2-13dbbe14",
+          "distance_m": 867.5
+        },
+        {
           "gauge_id": "GAUGE-22675be2",
           "distance_m": 2064.3
         },
         {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 2547.4
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 3362.7
         }
       ],
       "floods_at_nearest_gauge": 2390,
@@ -571,23 +571,23 @@
       "floor_level_m": 0.37,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef53398c-085522ee",
+          "distance_m": 252.1
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 456.1
         },
         {
           "gauge_id": "GAUGE-ef53398c",
           "distance_m": 857.1
-        },
-        {
-          "gauge_id": "GAUGE-f8629444",
-          "distance_m": 1049.4
         }
       ],
       "floods_at_nearest_gauge": 1425,
-      "floods_at_property": 1,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.4256,
-      "max_damage_ratio": 0.2169
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-5485dcc1",
@@ -595,19 +595,19 @@
       "floor_level_m": 0.02,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-8be2e7e8-1aaf8b08",
+          "distance_m": 815.5
+        },
+        {
           "gauge_id": "GAUGE-1aaf8b08",
           "distance_m": 1041.3
         },
         {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 1206.4
-        },
-        {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1558.0
         }
       ],
-      "floods_at_nearest_gauge": 1672,
+      "floods_at_nearest_gauge": 1671,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -623,15 +623,15 @@
           "distance_m": 893.3
         },
         {
-          "gauge_id": "GAUGE-4c57aa15",
-          "distance_m": 1006.0
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 893.3
         },
         {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 1023.5
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 1006.0
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 1424,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -643,19 +643,19 @@
       "floor_level_m": 11.89,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-066fc60e-bc801f07",
+          "distance_m": 696.5
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 1562.5
         },
         {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 8264.6
-        },
-        {
-          "gauge_id": "GAUGE-ef7f75ec",
-          "distance_m": 9952.7
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1628,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -667,19 +667,19 @@
       "floor_level_m": 0.12,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-62fc58e6-ca0c20c2",
+          "distance_m": 711.4
+        },
+        {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 793.9
         },
         {
           "gauge_id": "GAUGE-ca0c20c2",
           "distance_m": 818.5
-        },
-        {
-          "gauge_id": "GAUGE-14733fc0",
-          "distance_m": 1506.0
         }
       ],
-      "floods_at_nearest_gauge": 2189,
+      "floods_at_nearest_gauge": 2077,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -691,16 +691,16 @@
       "floor_level_m": 0.45,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c97ef762-ef0f808c",
+          "distance_m": 1120.1
+        },
+        {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 1156.0
         },
         {
           "gauge_id": "GAUGE-22675be2",
           "distance_m": 1224.2
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 1243.8
         }
       ],
       "floods_at_nearest_gauge": 2390,
@@ -715,23 +715,23 @@
       "floor_level_m": 0.13,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 354.7
+        },
+        {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 611.0
         },
         {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 652.8
-        },
-        {
-          "gauge_id": "GAUGE-5cc1a4bd",
-          "distance_m": 928.1
         }
       ],
-      "floods_at_nearest_gauge": 1841,
-      "floods_at_property": 24,
-      "gauge_to_property_ratio": 1.3,
-      "max_depth_m": 1.9076,
-      "max_damage_ratio": 0.5815
+      "floods_at_nearest_gauge": 1892,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-ddd140fa",
@@ -739,16 +739,16 @@
       "floor_level_m": 0.2,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 339.6
+        },
+        {
           "gauge_id": "GAUGE-b19c8a6a",
           "distance_m": 448.7
         },
         {
           "gauge_id": "GAUGE-12dddcd7",
           "distance_m": 831.8
-        },
-        {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 1402.3
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -763,16 +763,16 @@
       "floor_level_m": 0.02,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-13033a1d-c97ef762",
+          "distance_m": 1086.7
+        },
+        {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 1103.3
         },
         {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 1261.8
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 1646.0
         }
       ],
       "floods_at_nearest_gauge": 1846,
@@ -787,19 +787,19 @@
       "floor_level_m": -0.03,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 1640.8
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 2454.6
         },
         {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 7493.6
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 10422.0
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -811,16 +811,16 @@
       "floor_level_m": 5.74,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-22675be2-13dbbe14",
+          "distance_m": 495.3
+        },
+        {
           "gauge_id": "GAUGE-13dbbe14",
           "distance_m": 1843.2
         },
         {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 2613.2
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 5958.1
         }
       ],
       "floods_at_nearest_gauge": 1926,
@@ -835,16 +835,16 @@
       "floor_level_m": 0.41,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 859.1
+        },
+        {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1238.9
         },
         {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 2017.0
-        },
-        {
-          "gauge_id": "GAUGE-64eb43b5",
-          "distance_m": 3292.7
         }
       ],
       "floods_at_nearest_gauge": 2481,
@@ -859,19 +859,19 @@
       "floor_level_m": 0.31,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c97ef762-ef0f808c",
+          "distance_m": 1074.9
+        },
+        {
           "gauge_id": "GAUGE-c97ef762",
           "distance_m": 1129.6
         },
         {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 1176.9
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 1319.3
         }
       ],
-      "floods_at_nearest_gauge": 2390,
+      "floods_at_nearest_gauge": 2369,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -883,23 +883,23 @@
       "floor_level_m": 0.4,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7cce1cc8-63447c32",
+          "distance_m": 552.8
+        },
+        {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 555.5
         },
         {
           "gauge_id": "GAUGE-77f0e67b",
           "distance_m": 898.3
-        },
-        {
-          "gauge_id": "GAUGE-5cc1a4bd",
-          "distance_m": 1632.3
         }
       ],
-      "floods_at_nearest_gauge": 1792,
-      "floods_at_property": 63,
-      "gauge_to_property_ratio": 3.5,
-      "max_depth_m": 3.9817,
-      "max_damage_ratio": 0.8482
+      "floods_at_nearest_gauge": 2384,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-232e53eb",
@@ -907,19 +907,19 @@
       "floor_level_m": 0.02,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 268.5
+        },
+        {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 4543.4
         },
         {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 4608.7
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 13514.0
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -931,23 +931,23 @@
       "floor_level_m": 0.03,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7e07133d-e404c1ff",
+          "distance_m": 949.0
+        },
+        {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 982.9
         },
         {
           "gauge_id": "GAUGE-13dbbe14",
           "distance_m": 1533.4
-        },
-        {
-          "gauge_id": "GAUGE-e404c1ff",
-          "distance_m": 3515.3
         }
       ],
       "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 1,
+      "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
-      "max_depth_m": 0.0858,
-      "max_damage_ratio": 0.0659
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-e9a9f375",
@@ -955,23 +955,23 @@
       "floor_level_m": 0.03,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7cce1cc8-63447c32",
+          "distance_m": 489.3
+        },
+        {
           "gauge_id": "GAUGE-77f0e67b",
           "distance_m": 568.8
         },
         {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 635.0
-        },
-        {
-          "gauge_id": "GAUGE-63447c32",
-          "distance_m": 1396.8
         }
       ],
       "floods_at_nearest_gauge": 2384,
-      "floods_at_property": 8,
-      "gauge_to_property_ratio": 0.3,
-      "max_depth_m": 2.0169,
-      "max_damage_ratio": 0.6025
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-e985385b",
@@ -979,23 +979,23 @@
       "floor_level_m": 0.04,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-63447c32-71d96002",
+          "distance_m": 243.6
+        },
+        {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 246.7
         },
         {
           "gauge_id": "GAUGE-63447c32",
           "distance_m": 375.1
-        },
-        {
-          "gauge_id": "GAUGE-66c641fe",
-          "distance_m": 551.9
         }
       ],
       "floods_at_nearest_gauge": 2399,
-      "floods_at_property": 246,
-      "gauge_to_property_ratio": 10.3,
-      "max_depth_m": 4.5797,
-      "max_damage_ratio": 0.908
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-2c06220b",
@@ -1003,19 +1003,19 @@
       "floor_level_m": 0.29,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 1052.4
+        },
+        {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 1261.0
         },
         {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 1573.5
-        },
-        {
-          "gauge_id": "GAUGE-71d96002",
-          "distance_m": 1860.9
         }
       ],
-      "floods_at_nearest_gauge": 1981,
+      "floods_at_nearest_gauge": 1841,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1027,19 +1027,19 @@
       "floor_level_m": 0.06,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ebfdb692-966d392e",
+          "distance_m": 738.7
+        },
+        {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 2122.3
         },
         {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 3992.7
-        },
-        {
-          "gauge_id": "GAUGE-e042fc97",
-          "distance_m": 5277.3
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1736,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1055,15 +1055,15 @@
           "distance_m": 404.9
         },
         {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1088.8
+          "gauge_id": "SYNTH-a6be4ee9-ef53398c",
+          "distance_m": 404.9
         },
         {
-          "gauge_id": "GAUGE-085522ee",
-          "distance_m": 1407.7
+          "gauge_id": "GAUGE-a6be4ee9",
+          "distance_m": 1088.8
         }
       ],
-      "floods_at_nearest_gauge": 1889,
+      "floods_at_nearest_gauge": 1876,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1075,16 +1075,16 @@
       "floor_level_m": 0.13,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-bc801f07-3324d948",
+          "distance_m": 354.2
+        },
+        {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 672.8
         },
         {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 3368.4
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 6626.0
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -1099,16 +1099,16 @@
       "floor_level_m": 0.16,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 1109.3
+        },
+        {
           "gauge_id": "GAUGE-ca0c20c2",
           "distance_m": 1347.8
         },
         {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 1481.8
-        },
-        {
-          "gauge_id": "GAUGE-77f0e67b",
-          "distance_m": 1519.0
         }
       ],
       "floods_at_nearest_gauge": 1839,
@@ -1123,19 +1123,19 @@
       "floor_level_m": 0.16,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-62fc58e6-ca0c20c2",
+          "distance_m": 949.2
+        },
+        {
           "gauge_id": "GAUGE-ca0c20c2",
           "distance_m": 1000.9
         },
         {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 1046.2
-        },
-        {
-          "gauge_id": "GAUGE-14733fc0",
-          "distance_m": 1226.5
         }
       ],
-      "floods_at_nearest_gauge": 2189,
+      "floods_at_nearest_gauge": 2077,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1147,19 +1147,19 @@
       "floor_level_m": 0.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-8be2e7e8-1aaf8b08",
+          "distance_m": 792.4
+        },
+        {
           "gauge_id": "GAUGE-1aaf8b08",
           "distance_m": 870.2
         },
         {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 1418.7
-        },
-        {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1846.3
         }
       ],
-      "floods_at_nearest_gauge": 1672,
+      "floods_at_nearest_gauge": 1671,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1171,23 +1171,23 @@
       "floor_level_m": 0.37,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e404c1ff-ba93206b",
+          "distance_m": 612.0
+        },
+        {
           "gauge_id": "GAUGE-e404c1ff",
           "distance_m": 969.5
         },
         {
           "gauge_id": "GAUGE-ba93206b",
           "distance_m": 2509.3
-        },
-        {
-          "gauge_id": "GAUGE-7e07133d",
-          "distance_m": 4450.3
         }
       ],
-      "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 73,
-      "gauge_to_property_ratio": 3.4,
-      "max_depth_m": 2.7386,
-      "max_damage_ratio": 0.7108
+      "floods_at_nearest_gauge": 2112,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-94bdea02",
@@ -1195,16 +1195,16 @@
       "floor_level_m": 3.27,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1d061d70-b2dbe58b",
+          "distance_m": 525.5
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 709.3
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 1165.0
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1274.0
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -1219,16 +1219,16 @@
       "floor_level_m": 5.87,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 676.6
+        },
+        {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 688.9
         },
         {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 700.4
-        },
-        {
-          "gauge_id": "GAUGE-9e5f3ef9",
-          "distance_m": 840.2
         }
       ],
       "floods_at_nearest_gauge": 1847,
@@ -1243,19 +1243,19 @@
       "floor_level_m": 0.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 959.4
+        },
+        {
           "gauge_id": "GAUGE-1f4e46a9",
           "distance_m": 1005.5
         },
         {
           "gauge_id": "GAUGE-12dddcd7",
           "distance_m": 1302.8
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 1683.4
         }
       ],
-      "floods_at_nearest_gauge": 2096,
+      "floods_at_nearest_gauge": 2173,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1271,15 +1271,15 @@
           "distance_m": 340.4
         },
         {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 858.3
+          "gauge_id": "SYNTH-f8629444-4c57aa15",
+          "distance_m": 340.4
         },
         {
-          "gauge_id": "GAUGE-085522ee",
-          "distance_m": 932.0
+          "gauge_id": "GAUGE-9fffb377",
+          "distance_m": 858.3
         }
       ],
-      "floods_at_nearest_gauge": 1424,
+      "floods_at_nearest_gauge": 975,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1295,12 +1295,12 @@
           "distance_m": 351.9
         },
         {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 521.1
+          "gauge_id": "SYNTH-b19c8a6a-12dddcd7",
+          "distance_m": 351.9
         },
         {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 908.7
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 521.1
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -1315,16 +1315,16 @@
       "floor_level_m": 0.24,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-bc801f07-3324d948",
+          "distance_m": 1089.3
+        },
+        {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 1341.5
         },
         {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 3322.9
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 6051.3
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -1343,19 +1343,19 @@
           "distance_m": 633.5
         },
         {
-          "gauge_id": "GAUGE-7cce1cc8",
-          "distance_m": 758.8
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 633.5
         },
         {
-          "gauge_id": "GAUGE-63447c32",
-          "distance_m": 1450.1
+          "gauge_id": "GAUGE-7cce1cc8",
+          "distance_m": 758.8
         }
       ],
-      "floods_at_nearest_gauge": 2384,
-      "floods_at_property": 3,
+      "floods_at_nearest_gauge": 1839,
+      "floods_at_property": 1,
       "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.8489,
-      "max_damage_ratio": 0.3547
+      "max_depth_m": 0.1325,
+      "max_damage_ratio": 0.0867
     },
     {
       "property_id": "PROP-cb74febf",
@@ -1363,19 +1363,19 @@
       "floor_level_m": 0.45,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-966d392e-2d4ab78a",
+          "distance_m": 810.7
+        },
+        {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 1292.9
         },
         {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 4497.5
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 5921.4
         }
       ],
-      "floods_at_nearest_gauge": 2018,
+      "floods_at_nearest_gauge": 1747,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1387,16 +1387,16 @@
       "floor_level_m": 0.07,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-acc1b9cc-a03e456e",
+          "distance_m": 1046.8
+        },
+        {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 1642.9
         },
         {
           "gauge_id": "GAUGE-a03e456e",
           "distance_m": 4833.5
-        },
-        {
-          "gauge_id": "GAUGE-3324d948",
-          "distance_m": 6607.3
         }
       ],
       "floods_at_nearest_gauge": 1799,
@@ -1411,23 +1411,23 @@
       "floor_level_m": 0.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c97ef762-ef0f808c",
+          "distance_m": 1025.3
+        },
+        {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 1031.5
         },
         {
           "gauge_id": "GAUGE-c97ef762",
           "distance_m": 1249.4
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 1310.9
         }
       ],
-      "floods_at_nearest_gauge": 2390,
-      "floods_at_property": 1,
+      "floods_at_nearest_gauge": 2369,
+      "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
-      "max_depth_m": 0.1649,
-      "max_damage_ratio": 0.1011
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-f58521b5",
@@ -1435,23 +1435,23 @@
       "floor_level_m": 0.08,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e404c1ff-ba93206b",
+          "distance_m": 566.2
+        },
+        {
           "gauge_id": "GAUGE-e404c1ff",
           "distance_m": 1131.5
         },
         {
           "gauge_id": "GAUGE-ba93206b",
           "distance_m": 2277.3
-        },
-        {
-          "gauge_id": "GAUGE-7e07133d",
-          "distance_m": 4668.3
         }
       ],
-      "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 13,
-      "gauge_to_property_ratio": 0.6,
-      "max_depth_m": 1.5069,
-      "max_damage_ratio": 0.5014
+      "floods_at_nearest_gauge": 2112,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-2535bcc9",
@@ -1459,23 +1459,23 @@
       "floor_level_m": 0.42,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7e07133d-e404c1ff",
+          "distance_m": 404.5
+        },
+        {
           "gauge_id": "GAUGE-e404c1ff",
           "distance_m": 422.8
         },
         {
           "gauge_id": "GAUGE-ba93206b",
           "distance_m": 3321.6
-        },
-        {
-          "gauge_id": "GAUGE-7e07133d",
-          "distance_m": 3541.4
         }
       ],
       "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 288,
-      "gauge_to_property_ratio": 13.4,
-      "max_depth_m": 4.9512,
-      "max_damage_ratio": 0.9451
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-2d716fb9",
@@ -1483,19 +1483,19 @@
       "floor_level_m": 3.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef53398c-085522ee",
+          "distance_m": 252.1
+        },
+        {
           "gauge_id": "GAUGE-ef53398c",
           "distance_m": 272.2
         },
         {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 1125.3
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1163.6
         }
       ],
-      "floods_at_nearest_gauge": 1889,
+      "floods_at_nearest_gauge": 1425,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1507,16 +1507,16 @@
       "floor_level_m": 0.32,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 284.0
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 535.4
         },
         {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 599.3
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 884.9
         }
       ],
       "floods_at_nearest_gauge": 1424,
@@ -1531,23 +1531,23 @@
       "floor_level_m": 0.45,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-87b9ac03-13033a1d",
+          "distance_m": 414.8
+        },
+        {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 439.3
         },
         {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 639.4
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 1690.3
         }
       ],
-      "floods_at_nearest_gauge": 1846,
-      "floods_at_property": 4,
-      "gauge_to_property_ratio": 0.2,
-      "max_depth_m": 0.8875,
-      "max_damage_ratio": 0.3663
+      "floods_at_nearest_gauge": 1841,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-2352ec68",
@@ -1559,15 +1559,15 @@
           "distance_m": 820.0
         },
         {
-          "gauge_id": "GAUGE-14733fc0",
-          "distance_m": 1231.6
+          "gauge_id": "SYNTH-14733fc0-62fc58e6",
+          "distance_m": 820.0
         },
         {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 1295.2
+          "gauge_id": "GAUGE-14733fc0",
+          "distance_m": 1231.6
         }
       ],
-      "floods_at_nearest_gauge": 2189,
+      "floods_at_nearest_gauge": 2175,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1579,19 +1579,19 @@
       "floor_level_m": 3.18,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1aaf8b08-d208bf3d",
+          "distance_m": 567.6
+        },
+        {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 625.0
         },
         {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 1072.2
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1618.1
         }
       ],
-      "floods_at_nearest_gauge": 2145,
+      "floods_at_nearest_gauge": 2064,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1603,19 +1603,19 @@
       "floor_level_m": 0.16,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1aaf8b08-d208bf3d",
+          "distance_m": 654.4
+        },
+        {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 782.4
         },
         {
           "gauge_id": "GAUGE-1aaf8b08",
           "distance_m": 1680.3
-        },
-        {
-          "gauge_id": "GAUGE-c0fbc443",
-          "distance_m": 1715.2
         }
       ],
-      "floods_at_nearest_gauge": 2064,
+      "floods_at_nearest_gauge": 1503,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1627,19 +1627,19 @@
       "floor_level_m": 0.45,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 709.1
+        },
+        {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 980.0
         },
         {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 1952.8
-        },
-        {
-          "gauge_id": "GAUGE-2d4ab78a",
-          "distance_m": 3076.7
         }
       ],
-      "floods_at_nearest_gauge": 2011,
+      "floods_at_nearest_gauge": 2481,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1651,23 +1651,23 @@
       "floor_level_m": 0.16,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-d208bf3d-c0fbc443",
+          "distance_m": 401.6
+        },
+        {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 433.0
         },
         {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 901.5
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 949.1
         }
       ],
-      "floods_at_nearest_gauge": 2145,
-      "floods_at_property": 5,
-      "gauge_to_property_ratio": 0.2,
-      "max_depth_m": 1.4317,
-      "max_damage_ratio": 0.4863
+      "floods_at_nearest_gauge": 2064,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-53c832b6",
@@ -1675,23 +1675,23 @@
       "floor_level_m": 0.26,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-14733fc0-62fc58e6",
+          "distance_m": 440.3
+        },
+        {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 470.0
         },
         {
           "gauge_id": "GAUGE-14733fc0",
           "distance_m": 751.4
-        },
-        {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 811.1
         }
       ],
-      "floods_at_nearest_gauge": 2189,
-      "floods_at_property": 4,
-      "gauge_to_property_ratio": 0.2,
-      "max_depth_m": 0.7383,
-      "max_damage_ratio": 0.3215
+      "floods_at_nearest_gauge": 2175,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-bef2bbd2",
@@ -1699,16 +1699,16 @@
       "floor_level_m": 0.0,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-2d4ab78a-c8783553",
+          "distance_m": 732.5
+        },
+        {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 1055.5
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1353.6
-        },
-        {
-          "gauge_id": "GAUGE-c8783553",
-          "distance_m": 1860.4
         }
       ],
       "floods_at_nearest_gauge": 2011,
@@ -1723,19 +1723,19 @@
       "floor_level_m": 0.26,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-966d392e-2d4ab78a",
+          "distance_m": 964.1
+        },
+        {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 1283.3
         },
         {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 3457.4
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 3659.7
         }
       ],
-      "floods_at_nearest_gauge": 2011,
+      "floods_at_nearest_gauge": 1858,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1747,16 +1747,16 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-dc5e88fb-8be2e7e8",
+          "distance_m": 603.1
+        },
+        {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 770.6
         },
         {
           "gauge_id": "GAUGE-dc5e88fb",
           "distance_m": 849.6
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1526.5
         }
       ],
       "floods_at_nearest_gauge": 1645,
@@ -1771,19 +1771,19 @@
       "floor_level_m": 0.24,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ebfdb692-966d392e",
+          "distance_m": 1216.4
+        },
+        {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 1933.6
         },
         {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 4574.7
-        },
-        {
-          "gauge_id": "GAUGE-e042fc97",
-          "distance_m": 4665.9
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1736,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1795,19 +1795,19 @@
       "floor_level_m": 0.14,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-966d392e-2d4ab78a",
+          "distance_m": 899.4
+        },
+        {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 1520.3
         },
         {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 4301.4
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 6272.2
         }
       ],
-      "floods_at_nearest_gauge": 2018,
+      "floods_at_nearest_gauge": 1747,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1819,19 +1819,19 @@
       "floor_level_m": 0.2,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c8783553-387ba06b",
+          "distance_m": 305.7
+        },
+        {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 685.3
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1618.9
-        },
-        {
-          "gauge_id": "GAUGE-2d4ab78a",
-          "distance_m": 1944.0
         }
       ],
-      "floods_at_nearest_gauge": 2011,
+      "floods_at_nearest_gauge": 2008,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -1843,16 +1843,16 @@
       "floor_level_m": 0.41,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1aaf8b08-d208bf3d",
+          "distance_m": 312.0
+        },
+        {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 413.6
         },
         {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 1371.6
-        },
-        {
-          "gauge_id": "GAUGE-1aaf8b08",
-          "distance_m": 1733.5
         }
       ],
       "floods_at_nearest_gauge": 2064,
@@ -1867,16 +1867,16 @@
       "floor_level_m": 12.21,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef53398c-085522ee",
+          "distance_m": 533.7
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 717.6
         },
         {
           "gauge_id": "GAUGE-ef53398c",
           "distance_m": 896.0
-        },
-        {
-          "gauge_id": "GAUGE-f8629444",
-          "distance_m": 1248.8
         }
       ],
       "floods_at_nearest_gauge": 1425,
@@ -1891,16 +1891,16 @@
       "floor_level_m": 2.98,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 1048.4
+        },
+        {
           "gauge_id": "GAUGE-14733fc0",
           "distance_m": 1052.6
         },
         {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 1260.1
-        },
-        {
-          "gauge_id": "GAUGE-41246a02",
-          "distance_m": 1325.2
         }
       ],
       "floods_at_nearest_gauge": 2224,
@@ -1915,16 +1915,16 @@
       "floor_level_m": 0.07,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 948.4
+        },
+        {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1839.5
         },
         {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 2552.0
-        },
-        {
-          "gauge_id": "GAUGE-64eb43b5",
-          "distance_m": 2669.4
         }
       ],
       "floods_at_nearest_gauge": 2481,
@@ -1939,23 +1939,23 @@
       "floor_level_m": 0.27,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-22675be2-13dbbe14",
+          "distance_m": 426.3
+        },
+        {
           "gauge_id": "GAUGE-22675be2",
           "distance_m": 949.4
         },
         {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 1434.9
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 2247.1
         }
       ],
       "floods_at_nearest_gauge": 2390,
-      "floods_at_property": 48,
-      "gauge_to_property_ratio": 2.0,
-      "max_depth_m": 2.1971,
-      "max_damage_ratio": 0.6296
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-4cba4d21",
@@ -1963,16 +1963,16 @@
       "floor_level_m": 0.44,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-acc1b9cc-a03e456e",
+          "distance_m": 342.8
+        },
+        {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 731.8
         },
         {
           "gauge_id": "GAUGE-a03e456e",
           "distance_m": 5349.9
-        },
-        {
-          "gauge_id": "GAUGE-3324d948",
-          "distance_m": 6332.3
         }
       ],
       "floods_at_nearest_gauge": 1799,
@@ -1987,16 +1987,16 @@
       "floor_level_m": 0.38,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-bc801f07-3324d948",
+          "distance_m": 1456.9
+        },
+        {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 2061.7
         },
         {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 2862.0
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 7488.0
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -2011,19 +2011,19 @@
       "floor_level_m": 0.22,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-3324d948-acc1b9cc",
+          "distance_m": 1138.7
+        },
+        {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 1350.0
         },
         {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 5353.7
-        },
-        {
-          "gauge_id": "GAUGE-a03e456e",
-          "distance_m": 6096.9
         }
       ],
-      "floods_at_nearest_gauge": 1799,
+      "floods_at_nearest_gauge": 1046,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2035,19 +2035,19 @@
       "floor_level_m": 2.87,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-a6be4ee9-ef53398c",
+          "distance_m": 683.3
+        },
+        {
           "gauge_id": "GAUGE-ef53398c",
           "distance_m": 772.2
         },
         {
           "gauge_id": "GAUGE-a6be4ee9",
           "distance_m": 885.7
-        },
-        {
-          "gauge_id": "GAUGE-c0fbc443",
-          "distance_m": 1058.3
         }
       ],
-      "floods_at_nearest_gauge": 2145,
+      "floods_at_nearest_gauge": 1876,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2059,19 +2059,19 @@
       "floor_level_m": 0.08,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 517.9
+        },
+        {
           "gauge_id": "GAUGE-1f4e46a9",
           "distance_m": 528.3
         },
         {
           "gauge_id": "GAUGE-12dddcd7",
           "distance_m": 875.0
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 1259.0
         }
       ],
-      "floods_at_nearest_gauge": 2096,
+      "floods_at_nearest_gauge": 2173,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2083,16 +2083,16 @@
       "floor_level_m": 0.32,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 647.8
+        },
+        {
           "gauge_id": "GAUGE-ca0c20c2",
           "distance_m": 856.4
         },
         {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 1273.9
-        },
-        {
-          "gauge_id": "GAUGE-77f0e67b",
-          "distance_m": 1401.7
         }
       ],
       "floods_at_nearest_gauge": 2081,
@@ -2107,23 +2107,23 @@
       "floor_level_m": 0.1,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7cce1cc8-63447c32",
+          "distance_m": 605.3
+        },
+        {
           "gauge_id": "GAUGE-63447c32",
           "distance_m": 639.7
         },
         {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 872.9
-        },
-        {
-          "gauge_id": "GAUGE-66c641fe",
-          "distance_m": 1078.8
         }
       ],
-      "floods_at_nearest_gauge": 2399,
-      "floods_at_property": 17,
-      "gauge_to_property_ratio": 0.7,
-      "max_depth_m": 1.8797,
-      "max_damage_ratio": 0.5759
+      "floods_at_nearest_gauge": 2404,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-e6319a9b",
@@ -2131,16 +2131,16 @@
       "floor_level_m": 0.12,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-b19c8a6a-12dddcd7",
+          "distance_m": 700.3
+        },
+        {
           "gauge_id": "GAUGE-12dddcd7",
           "distance_m": 700.4
         },
         {
           "gauge_id": "GAUGE-b19c8a6a",
           "distance_m": 792.9
-        },
-        {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 1221.2
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -2155,16 +2155,16 @@
       "floor_level_m": 0.07,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-2d4ab78a-c8783553",
+          "distance_m": 103.6
+        },
+        {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 420.3
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1938.8
-        },
-        {
-          "gauge_id": "GAUGE-2d4ab78a",
-          "distance_m": 2065.5
         }
       ],
       "floods_at_nearest_gauge": 2011,
@@ -2179,23 +2179,23 @@
       "floor_level_m": 0.18,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7e07133d-e404c1ff",
+          "distance_m": 491.4
+        },
+        {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 1062.8
         },
         {
           "gauge_id": "GAUGE-13dbbe14",
           "distance_m": 1838.2
-        },
-        {
-          "gauge_id": "GAUGE-e404c1ff",
-          "distance_m": 2743.0
         }
       ],
       "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 6,
-      "gauge_to_property_ratio": 0.3,
-      "max_depth_m": 1.0619,
-      "max_damage_ratio": 0.4124
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-c6b1f241",
@@ -2207,15 +2207,15 @@
           "distance_m": 621.9
         },
         {
-          "gauge_id": "GAUGE-4c57aa15",
-          "distance_m": 774.6
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 621.9
         },
         {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 796.9
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 774.6
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 1424,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2227,19 +2227,19 @@
       "floor_level_m": 0.2,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e042fc97-ebfdb692",
+          "distance_m": 543.5
+        },
+        {
           "gauge_id": "GAUGE-e042fc97",
           "distance_m": 725.8
         },
         {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 5215.1
-        },
-        {
-          "gauge_id": "GAUGE-966d392e",
-          "distance_m": 8214.4
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1644,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2251,19 +2251,19 @@
       "floor_level_m": 0.38,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-b2dbe58b-dc5e88fb",
+          "distance_m": 904.4
+        },
+        {
           "gauge_id": "GAUGE-dc5e88fb",
           "distance_m": 1004.9
         },
         {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 1109.9
-        },
-        {
-          "gauge_id": "GAUGE-08fd7695",
-          "distance_m": 1171.3
         }
       ],
-      "floods_at_nearest_gauge": 1886,
+      "floods_at_nearest_gauge": 1066,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2275,16 +2275,16 @@
       "floor_level_m": 0.33,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 528.3
+        },
+        {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 912.1
         },
         {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 1204.1
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 2089.7
         }
       ],
       "floods_at_nearest_gauge": 2454,
@@ -2299,16 +2299,16 @@
       "floor_level_m": 0.23,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-066fc60e-bc801f07",
+          "distance_m": 351.8
+        },
+        {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 2065.4
         },
         {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 5651.6
-        },
-        {
-          "gauge_id": "GAUGE-066fc60e",
-          "distance_m": 7605.7
         }
       ],
       "floods_at_nearest_gauge": 1628,
@@ -2323,16 +2323,16 @@
       "floor_level_m": 3.26,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-d208bf3d-c0fbc443",
+          "distance_m": 911.3
+        },
+        {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 932.9
         },
         {
           "gauge_id": "GAUGE-a6be4ee9",
           "distance_m": 1185.6
-        },
-        {
-          "gauge_id": "GAUGE-d208bf3d",
-          "distance_m": 1192.8
         }
       ],
       "floods_at_nearest_gauge": 2145,
@@ -2347,23 +2347,23 @@
       "floor_level_m": 0.21,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-d208bf3d-c0fbc443",
+          "distance_m": 433.1
+        },
+        {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 495.6
         },
         {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 847.1
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1033.2
         }
       ],
-      "floods_at_nearest_gauge": 2145,
-      "floods_at_property": 8,
-      "gauge_to_property_ratio": 0.4,
-      "max_depth_m": 1.7414,
-      "max_damage_ratio": 0.5483
+      "floods_at_nearest_gauge": 2064,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-0531cc78",
@@ -2371,19 +2371,19 @@
       "floor_level_m": 0.36,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-966d392e-2d4ab78a",
+          "distance_m": 863.0
+        },
+        {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 1235.8
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 2514.1
-        },
-        {
-          "gauge_id": "GAUGE-c8783553",
-          "distance_m": 3461.4
         }
       ],
-      "floods_at_nearest_gauge": 2011,
+      "floods_at_nearest_gauge": 2018,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2395,16 +2395,16 @@
       "floor_level_m": 0.12,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-22675be2-13dbbe14",
+          "distance_m": 608.0
+        },
+        {
           "gauge_id": "GAUGE-13dbbe14",
           "distance_m": 2260.4
         },
         {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 3029.4
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 5569.1
         }
       ],
       "floods_at_nearest_gauge": 1926,
@@ -2419,23 +2419,23 @@
       "floor_level_m": 0.28,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 354.7
+        },
+        {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 370.5
         },
         {
           "gauge_id": "GAUGE-5cc1a4bd",
           "distance_m": 529.8
-        },
-        {
-          "gauge_id": "GAUGE-71d96002",
-          "distance_m": 552.3
         }
       ],
-      "floods_at_nearest_gauge": 1841,
-      "floods_at_property": 50,
-      "gauge_to_property_ratio": 2.7,
-      "max_depth_m": 2.4641,
-      "max_damage_ratio": 0.6696
+      "floods_at_nearest_gauge": 1689,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-adc20320",
@@ -2443,23 +2443,23 @@
       "floor_level_m": 0.25,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 520.3
+        },
+        {
           "gauge_id": "GAUGE-14733fc0",
           "distance_m": 520.8
         },
         {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 1017.3
-        },
-        {
-          "gauge_id": "GAUGE-41246a02",
-          "distance_m": 1024.1
         }
       ],
       "floods_at_nearest_gauge": 2224,
-      "floods_at_property": 5,
-      "gauge_to_property_ratio": 0.2,
-      "max_depth_m": 0.9177,
-      "max_damage_ratio": 0.3753
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-db43ea4c",
@@ -2467,19 +2467,19 @@
       "floor_level_m": 5.78,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7cce1cc8-63447c32",
+          "distance_m": 1021.9
+        },
+        {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 1101.2
         },
         {
           "gauge_id": "GAUGE-5cc1a4bd",
           "distance_m": 1334.8
-        },
-        {
-          "gauge_id": "GAUGE-77f0e67b",
-          "distance_m": 1454.1
         }
       ],
-      "floods_at_nearest_gauge": 1792,
+      "floods_at_nearest_gauge": 2384,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2495,19 +2495,19 @@
           "distance_m": 525.9
         },
         {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 965.2
+          "gauge_id": "SYNTH-14733fc0-62fc58e6",
+          "distance_m": 525.9
         },
         {
-          "gauge_id": "GAUGE-14733fc0",
-          "distance_m": 1107.6
+          "gauge_id": "GAUGE-ca0c20c2",
+          "distance_m": 965.2
         }
       ],
       "floods_at_nearest_gauge": 2189,
-      "floods_at_property": 2,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.3032,
-      "max_damage_ratio": 0.1625
+      "floods_at_property": 1,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.258,
+      "max_damage_ratio": 0.1424
     },
     {
       "property_id": "PROP-91d8866e",
@@ -2515,16 +2515,16 @@
       "floor_level_m": 0.18,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-9e5f3ef9-41246a02",
+          "distance_m": 637.3
+        },
+        {
           "gauge_id": "GAUGE-9e5f3ef9",
           "distance_m": 647.7
         },
         {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 768.9
-        },
-        {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 917.7
         }
       ],
       "floods_at_nearest_gauge": 2034,
@@ -2539,19 +2539,19 @@
       "floor_level_m": 0.13,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef53398c-085522ee",
+          "distance_m": 621.6
+        },
+        {
           "gauge_id": "GAUGE-ef53398c",
           "distance_m": 625.7
         },
         {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 1287.8
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1423.4
         }
       ],
-      "floods_at_nearest_gauge": 1889,
+      "floods_at_nearest_gauge": 1425,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2563,19 +2563,19 @@
       "floor_level_m": 0.3,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-3324d948-acc1b9cc",
+          "distance_m": 1049.7
+        },
+        {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 2048.3
         },
         {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 4326.7
-        },
-        {
-          "gauge_id": "GAUGE-a03e456e",
-          "distance_m": 7097.9
         }
       ],
-      "floods_at_nearest_gauge": 1799,
+      "floods_at_nearest_gauge": 1046,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2587,19 +2587,19 @@
       "floor_level_m": 0.38,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-d208bf3d-c0fbc443",
+          "distance_m": 1149.4
+        },
+        {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 1229.6
         },
         {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 1266.6
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1591.4
         }
       ],
-      "floods_at_nearest_gauge": 2145,
+      "floods_at_nearest_gauge": 2064,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2611,16 +2611,16 @@
       "floor_level_m": 0.45,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-bc801f07-3324d948",
+          "distance_m": 1730.0
+        },
+        {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 2274.1
         },
         {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 2996.4
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 7395.3
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -2635,16 +2635,16 @@
       "floor_level_m": 0.31,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-13033a1d-c97ef762",
+          "distance_m": 1073.3
+        },
+        {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 1085.5
         },
         {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 1233.2
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 1659.0
         }
       ],
       "floods_at_nearest_gauge": 1846,
@@ -2659,19 +2659,19 @@
       "floor_level_m": 0.46,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-8be2e7e8-1aaf8b08",
+          "distance_m": 524.7
+        },
+        {
           "gauge_id": "GAUGE-1aaf8b08",
           "distance_m": 547.1
         },
         {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 1477.7
-        },
-        {
-          "gauge_id": "GAUGE-d208bf3d",
-          "distance_m": 2235.9
         }
       ],
-      "floods_at_nearest_gauge": 1716,
+      "floods_at_nearest_gauge": 1671,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2687,12 +2687,12 @@
           "distance_m": 1034.5
         },
         {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 1199.6
+          "gauge_id": "SYNTH-b19c8a6a-12dddcd7",
+          "distance_m": 1034.5
         },
         {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 1419.5
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1199.6
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -2707,23 +2707,23 @@
       "floor_level_m": 0.15,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-d208bf3d-c0fbc443",
+          "distance_m": 559.1
+        },
+        {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 576.3
         },
         {
           "gauge_id": "GAUGE-d208bf3d",
           "distance_m": 1000.0
-        },
-        {
-          "gauge_id": "GAUGE-a6be4ee9",
-          "distance_m": 1021.7
         }
       ],
-      "floods_at_nearest_gauge": 2145,
-      "floods_at_property": 3,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.9308,
-      "max_damage_ratio": 0.3792
+      "floods_at_nearest_gauge": 2064,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-3cff7f33",
@@ -2731,16 +2731,16 @@
       "floor_level_m": 0.12,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef53398c-085522ee",
+          "distance_m": 450.9
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 462.7
         },
         {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 864.2
-        },
-        {
-          "gauge_id": "GAUGE-ef53398c",
-          "distance_m": 1184.4
         }
       ],
       "floods_at_nearest_gauge": 1425,
@@ -2755,19 +2755,19 @@
       "floor_level_m": 0.22,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 919.2
+        },
+        {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 953.1
         },
         {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 1140.7
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 2139.8
         }
       ],
-      "floods_at_nearest_gauge": 1846,
+      "floods_at_nearest_gauge": 1841,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2779,16 +2779,16 @@
       "floor_level_m": 8.9,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1aaf8b08-d208bf3d",
+          "distance_m": 801.9
+        },
+        {
           "gauge_id": "GAUGE-1aaf8b08",
           "distance_m": 802.0
         },
         {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 1803.9
-        },
-        {
-          "gauge_id": "GAUGE-d208bf3d",
-          "distance_m": 2123.0
         }
       ],
       "floods_at_nearest_gauge": 1716,
@@ -2803,16 +2803,16 @@
       "floor_level_m": 0.44,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 903.4
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 1215.1
         },
         {
           "gauge_id": "GAUGE-1f4e46a9",
           "distance_m": 1249.4
-        },
-        {
-          "gauge_id": "GAUGE-08fd7695",
-          "distance_m": 1533.8
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -2827,19 +2827,19 @@
       "floor_level_m": 0.01,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 1011.3
+        },
+        {
           "gauge_id": "GAUGE-1f4e46a9",
           "distance_m": 1068.7
         },
         {
           "gauge_id": "GAUGE-12dddcd7",
           "distance_m": 1370.9
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 1751.2
         }
       ],
-      "floods_at_nearest_gauge": 2096,
+      "floods_at_nearest_gauge": 2173,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2851,23 +2851,23 @@
       "floor_level_m": 0.17,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e404c1ff-ba93206b",
+          "distance_m": 911.3
+        },
+        {
           "gauge_id": "GAUGE-e404c1ff",
           "distance_m": 1187.5
         },
         {
           "gauge_id": "GAUGE-ba93206b",
           "distance_m": 2589.5
-        },
-        {
-          "gauge_id": "GAUGE-7e07133d",
-          "distance_m": 4517.8
         }
       ],
-      "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 12,
-      "gauge_to_property_ratio": 0.6,
-      "max_depth_m": 1.4681,
-      "max_damage_ratio": 0.4936
+      "floods_at_nearest_gauge": 2112,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-5aeb04b3",
@@ -2875,19 +2875,19 @@
       "floor_level_m": 0.32,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 395.9
+        },
+        {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 404.1
         },
         {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 408.2
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 594.0
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 1847,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2899,16 +2899,16 @@
       "floor_level_m": 0.14,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-08fd7695-1d061d70",
+          "distance_m": 667.4
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 906.3
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 1110.1
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1240.8
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -2927,15 +2927,15 @@
           "distance_m": 614.2
         },
         {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1275.0
+          "gauge_id": "SYNTH-b2dbe58b-dc5e88fb",
+          "distance_m": 614.2
         },
         {
-          "gauge_id": "GAUGE-08fd7695",
-          "distance_m": 1410.7
+          "gauge_id": "GAUGE-b2dbe58b",
+          "distance_m": 1275.0
         }
       ],
-      "floods_at_nearest_gauge": 1886,
+      "floods_at_nearest_gauge": 1066,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2947,19 +2947,19 @@
       "floor_level_m": 0.4,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-9fffb377-f8629444",
+          "distance_m": 340.4
+        },
+        {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 352.1
         },
         {
           "gauge_id": "GAUGE-9fffb377",
           "distance_m": 776.6
-        },
-        {
-          "gauge_id": "GAUGE-085522ee",
-          "distance_m": 974.3
         }
       ],
-      "floods_at_nearest_gauge": 1424,
+      "floods_at_nearest_gauge": 940,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2971,19 +2971,19 @@
       "floor_level_m": 0.38,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 568.9
+        },
+        {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 729.6
         },
         {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 1137.1
-        },
-        {
-          "gauge_id": "GAUGE-71d96002",
-          "distance_m": 1796.1
         }
       ],
-      "floods_at_nearest_gauge": 1981,
+      "floods_at_nearest_gauge": 1841,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -2995,16 +2995,16 @@
       "floor_level_m": 2.81,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1d061d70-b2dbe58b",
+          "distance_m": 675.3
+        },
+        {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 964.1
         },
         {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 1041.7
-        },
-        {
-          "gauge_id": "GAUGE-1d061d70",
-          "distance_m": 1080.8
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -3023,12 +3023,12 @@
           "distance_m": 517.4
         },
         {
-          "gauge_id": "GAUGE-c0fbc443",
-          "distance_m": 1000.2
+          "gauge_id": "SYNTH-c0fbc443-a6be4ee9",
+          "distance_m": 517.4
         },
         {
-          "gauge_id": "GAUGE-ef53398c",
-          "distance_m": 1191.1
+          "gauge_id": "GAUGE-c0fbc443",
+          "distance_m": 1000.2
         }
       ],
       "floods_at_nearest_gauge": 2145,
@@ -3043,19 +3043,19 @@
       "floor_level_m": 0.32,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 881.4
+        },
+        {
           "gauge_id": "GAUGE-87b9ac03",
           "distance_m": 960.8
         },
         {
           "gauge_id": "GAUGE-13033a1d",
           "distance_m": 1219.7
-        },
-        {
-          "gauge_id": "GAUGE-71d96002",
-          "distance_m": 2009.7
         }
       ],
-      "floods_at_nearest_gauge": 1981,
+      "floods_at_nearest_gauge": 1841,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3067,19 +3067,19 @@
       "floor_level_m": 0.14,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-acc1b9cc-a03e456e",
+          "distance_m": 729.7
+        },
+        {
           "gauge_id": "GAUGE-a03e456e",
           "distance_m": 734.5
         },
         {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 5947.4
-        },
-        {
-          "gauge_id": "GAUGE-e042fc97",
-          "distance_m": 8901.1
         }
       ],
-      "floods_at_nearest_gauge": 1868,
+      "floods_at_nearest_gauge": 1799,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3091,23 +3091,23 @@
       "floor_level_m": 0.32,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-a6be4ee9-ef53398c",
+          "distance_m": 439.8
+        },
+        {
           "gauge_id": "GAUGE-a6be4ee9",
           "distance_m": 474.4
         },
         {
           "gauge_id": "GAUGE-ef53398c",
           "distance_m": 865.6
-        },
-        {
-          "gauge_id": "GAUGE-c0fbc443",
-          "distance_m": 1108.9
         }
       ],
-      "floods_at_nearest_gauge": 2145,
-      "floods_at_property": 6,
-      "gauge_to_property_ratio": 0.3,
-      "max_depth_m": 1.24,
-      "max_damage_ratio": 0.448
+      "floods_at_nearest_gauge": 1876,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-9ffe5be7",
@@ -3115,16 +3115,16 @@
       "floor_level_m": 0.36,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 982.6
+        },
+        {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 1400.0
         },
         {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 1424.9
-        },
-        {
-          "gauge_id": "GAUGE-87b9ac03",
-          "distance_m": 1636.1
         }
       ],
       "floods_at_nearest_gauge": 1892,
@@ -3139,23 +3139,23 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 406.9
+        },
+        {
           "gauge_id": "GAUGE-77f0e67b",
           "distance_m": 582.4
         },
         {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 931.0
-        },
-        {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 1444.8
         }
       ],
       "floods_at_nearest_gauge": 1839,
-      "floods_at_property": 9,
-      "gauge_to_property_ratio": 0.5,
-      "max_depth_m": 1.7614,
-      "max_damage_ratio": 0.5523
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-2863a6e8",
@@ -3163,19 +3163,19 @@
       "floor_level_m": 0.39,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 268.5
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 4250.5
         },
         {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 4901.6
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 13185.8
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3187,23 +3187,23 @@
       "floor_level_m": 0.25,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 545.2
+        },
+        {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 545.4
         },
         {
           "gauge_id": "GAUGE-9e5f3ef9",
           "distance_m": 790.5
-        },
-        {
-          "gauge_id": "GAUGE-14733fc0",
-          "distance_m": 1047.8
         }
       ],
       "floods_at_nearest_gauge": 2153,
-      "floods_at_property": 2,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.9316,
-      "max_damage_ratio": 0.3795
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-59bc6102",
@@ -3211,23 +3211,23 @@
       "floor_level_m": 0.26,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c97ef762-ef0f808c",
+          "distance_m": 541.9
+        },
+        {
           "gauge_id": "GAUGE-c97ef762",
           "distance_m": 546.7
         },
         {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 928.5
-        },
-        {
-          "gauge_id": "GAUGE-22675be2",
-          "distance_m": 1278.5
         }
       ],
-      "floods_at_nearest_gauge": 2390,
-      "floods_at_property": 66,
-      "gauge_to_property_ratio": 2.8,
-      "max_depth_m": 3.0233,
-      "max_damage_ratio": 0.7523
+      "floods_at_nearest_gauge": 2369,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-d641dc7c",
@@ -3235,23 +3235,23 @@
       "floor_level_m": 0.38,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-9e5f3ef9-41246a02",
+          "distance_m": 621.1
+        },
+        {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 633.3
         },
         {
           "gauge_id": "GAUGE-9e5f3ef9",
           "distance_m": 750.9
-        },
-        {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 1170.6
         }
       ],
       "floods_at_nearest_gauge": 2034,
-      "floods_at_property": 2,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.7339,
-      "max_damage_ratio": 0.3202
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-5b25a59a",
@@ -3263,12 +3263,12 @@
           "distance_m": 750.2
         },
         {
-          "gauge_id": "GAUGE-41246a02",
-          "distance_m": 954.1
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 750.2
         },
         {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 1017.1
+          "gauge_id": "GAUGE-41246a02",
+          "distance_m": 954.1
         }
       ],
       "floods_at_nearest_gauge": 2034,
@@ -3283,19 +3283,19 @@
       "floor_level_m": 0.19,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 936.8
+        },
+        {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 1106.6
         },
         {
           "gauge_id": "GAUGE-63447c32",
           "distance_m": 1116.1
-        },
-        {
-          "gauge_id": "GAUGE-66c641fe",
-          "distance_m": 1411.7
         }
       ],
-      "floods_at_nearest_gauge": 2399,
+      "floods_at_nearest_gauge": 2400,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3307,16 +3307,16 @@
       "floor_level_m": 3.03,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1d061d70-b2dbe58b",
+          "distance_m": 256.1
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 636.8
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 960.9
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1084.7
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -3331,19 +3331,19 @@
       "floor_level_m": 0.27,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 424.0
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 1503.0
         },
         {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 7706.1
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 10615.6
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3355,16 +3355,16 @@
       "floor_level_m": 0.46,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 725.8
+        },
+        {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 1007.9
         },
         {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 1245.4
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 2189.7
         }
       ],
       "floods_at_nearest_gauge": 2454,
@@ -3379,16 +3379,16 @@
       "floor_level_m": 0.11,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 263.1
+        },
+        {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 564.4
         },
         {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 970.1
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 3581.5
         }
       ],
       "floods_at_nearest_gauge": 2480,
@@ -3407,15 +3407,15 @@
           "distance_m": 674.2
         },
         {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1588.9
+          "gauge_id": "SYNTH-dc5e88fb-8be2e7e8",
+          "distance_m": 674.2
         },
         {
-          "gauge_id": "GAUGE-1aaf8b08",
-          "distance_m": 1811.7
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1588.9
         }
       ],
-      "floods_at_nearest_gauge": 1672,
+      "floods_at_nearest_gauge": 1645,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3427,16 +3427,16 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-a03e456e-e042fc97",
+          "distance_m": 837.5
+        },
+        {
           "gauge_id": "GAUGE-a03e456e",
           "distance_m": 858.7
         },
         {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 6072.3
-        },
-        {
-          "gauge_id": "GAUGE-e042fc97",
-          "distance_m": 8779.6
         }
       ],
       "floods_at_nearest_gauge": 1868,
@@ -3451,16 +3451,16 @@
       "floor_level_m": 11.95,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 462.6
+        },
+        {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 500.6
         },
         {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 824.4
-        },
-        {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 2614.9
         }
       ],
       "floods_at_nearest_gauge": 2454,
@@ -3475,16 +3475,16 @@
       "floor_level_m": 0.35,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 982.5
+        },
+        {
           "gauge_id": "GAUGE-9e5f3ef9",
           "distance_m": 990.3
         },
         {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 1104.0
-        },
-        {
-          "gauge_id": "GAUGE-4c57aa15",
-          "distance_m": 1116.3
         }
       ],
       "floods_at_nearest_gauge": 1847,
@@ -3499,23 +3499,23 @@
       "floor_level_m": 2.94,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-71d96002-5cc1a4bd",
+          "distance_m": 295.7
+        },
+        {
           "gauge_id": "GAUGE-5cc1a4bd",
           "distance_m": 295.7
         },
         {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 492.4
-        },
-        {
-          "gauge_id": "GAUGE-63447c32",
-          "distance_m": 545.2
         }
       ],
-      "floods_at_nearest_gauge": 2374,
-      "floods_at_property": 2,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.283,
-      "max_damage_ratio": 0.1536
+      "floods_at_nearest_gauge": 1841,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-76be772c",
@@ -3523,16 +3523,16 @@
       "floor_level_m": 0.22,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-a03e456e-e042fc97",
+          "distance_m": 312.5
+        },
+        {
           "gauge_id": "GAUGE-e042fc97",
           "distance_m": 1279.3
         },
         {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 6430.2
-        },
-        {
-          "gauge_id": "GAUGE-a03e456e",
-          "distance_m": 7694.4
         }
       ],
       "floods_at_nearest_gauge": 1871,
@@ -3547,16 +3547,16 @@
       "floor_level_m": 0.31,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 1094.9
+        },
+        {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 1103.3
         },
         {
           "gauge_id": "GAUGE-9e5f3ef9",
           "distance_m": 1303.7
-        },
-        {
-          "gauge_id": "GAUGE-14733fc0",
-          "distance_m": 1338.4
         }
       ],
       "floods_at_nearest_gauge": 2153,
@@ -3571,19 +3571,19 @@
       "floor_level_m": 0.42,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e042fc97-ebfdb692",
+          "distance_m": 1199.9
+        },
+        {
           "gauge_id": "GAUGE-e042fc97",
           "distance_m": 2168.3
         },
         {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 4043.8
-        },
-        {
-          "gauge_id": "GAUGE-966d392e",
-          "distance_m": 8042.5
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1644,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3595,23 +3595,23 @@
       "floor_level_m": 0.02,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 873.7
+        },
+        {
           "gauge_id": "GAUGE-77f0e67b",
           "distance_m": 933.2
         },
         {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 1279.0
-        },
-        {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 1714.3
         }
       ],
       "floods_at_nearest_gauge": 1839,
-      "floods_at_property": 1,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.0609,
-      "max_damage_ratio": 0.0548
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-d9c17214",
@@ -3619,16 +3619,16 @@
       "floor_level_m": 6.04,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c0fbc443-a6be4ee9",
+          "distance_m": 453.9
+        },
+        {
           "gauge_id": "GAUGE-a6be4ee9",
           "distance_m": 492.0
         },
         {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 652.0
-        },
-        {
-          "gauge_id": "GAUGE-ef53398c",
-          "distance_m": 871.8
         }
       ],
       "floods_at_nearest_gauge": 2145,
@@ -3643,23 +3643,23 @@
       "floor_level_m": 0.47,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c97ef762-ef0f808c",
+          "distance_m": 809.5
+        },
+        {
           "gauge_id": "GAUGE-ef0f808c",
           "distance_m": 811.4
         },
         {
           "gauge_id": "GAUGE-22675be2",
           "distance_m": 1092.5
-        },
-        {
-          "gauge_id": "GAUGE-c97ef762",
-          "distance_m": 1118.4
         }
       ],
       "floods_at_nearest_gauge": 2390,
-      "floods_at_property": 34,
-      "gauge_to_property_ratio": 1.4,
-      "max_depth_m": 2.3009,
-      "max_damage_ratio": 0.6451
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-69768971",
@@ -3667,16 +3667,16 @@
       "floor_level_m": 0.48,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 490.9
+        },
+        {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 695.4
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 734.0
-        },
-        {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1309.3
         }
       ],
       "floods_at_nearest_gauge": 1886,
@@ -3691,23 +3691,23 @@
       "floor_level_m": 0.3,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 354.7
+        },
+        {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 727.9
         },
         {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 825.4
-        },
-        {
-          "gauge_id": "GAUGE-63447c32",
-          "distance_m": 1050.3
         }
       ],
-      "floods_at_nearest_gauge": 2399,
-      "floods_at_property": 15,
-      "gauge_to_property_ratio": 0.6,
-      "max_depth_m": 1.6057,
-      "max_damage_ratio": 0.5211
+      "floods_at_nearest_gauge": 1892,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-b5cde61f",
@@ -3715,19 +3715,19 @@
       "floor_level_m": 0.24,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 268.3
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 378.0
         },
         {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 8874.1
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 9697.4
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3739,16 +3739,16 @@
       "floor_level_m": 0.3,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 263.3
+        },
+        {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1035.4
         },
         {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 2905.5
-        },
-        {
-          "gauge_id": "GAUGE-64eb43b5",
-          "distance_m": 3080.9
         }
       ],
       "floods_at_nearest_gauge": 2481,
@@ -3763,16 +3763,16 @@
       "floor_level_m": 0.32,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-a03e456e-e042fc97",
+          "distance_m": 312.2
+        },
+        {
           "gauge_id": "GAUGE-a03e456e",
           "distance_m": 347.8
         },
         {
           "gauge_id": "GAUGE-acc1b9cc",
           "distance_m": 6202.0
-        },
-        {
-          "gauge_id": "GAUGE-e042fc97",
-          "distance_m": 8780.2
         }
       ],
       "floods_at_nearest_gauge": 1868,
@@ -3787,23 +3787,23 @@
       "floor_level_m": 0.45,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7e07133d-e404c1ff",
+          "distance_m": 855.7
+        },
+        {
           "gauge_id": "GAUGE-e404c1ff",
           "distance_m": 928.4
         },
         {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 3390.4
-        },
-        {
-          "gauge_id": "GAUGE-ba93206b",
-          "distance_m": 3669.9
         }
       ],
       "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 2,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.5545,
-      "max_damage_ratio": 0.2663
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-ef9eac55",
@@ -3811,19 +3811,19 @@
       "floor_level_m": 0.28,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c8783553-387ba06b",
+          "distance_m": 83.6
+        },
+        {
           "gauge_id": "GAUGE-c8783553",
           "distance_m": 480.2
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1732.1
-        },
-        {
-          "gauge_id": "GAUGE-2d4ab78a",
-          "distance_m": 2199.1
         }
       ],
-      "floods_at_nearest_gauge": 2011,
+      "floods_at_nearest_gauge": 2008,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3835,19 +3835,19 @@
       "floor_level_m": 5.74,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-f8629444-4c57aa15",
+          "distance_m": 469.8
+        },
+        {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 507.7
         },
         {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 509.9
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 616.5
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 1256,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3859,19 +3859,19 @@
       "floor_level_m": 0.25,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ebfdb692-966d392e",
+          "distance_m": 396.2
+        },
+        {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 793.4
         },
         {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 5241.2
-        },
-        {
-          "gauge_id": "GAUGE-e042fc97",
-          "distance_m": 5303.0
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1736,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -3883,16 +3883,16 @@
       "floor_level_m": 0.29,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 893.7
+        },
+        {
           "gauge_id": "GAUGE-ca0c20c2",
           "distance_m": 904.3
         },
         {
           "gauge_id": "GAUGE-62fc58e6",
           "distance_m": 1478.9
-        },
-        {
-          "gauge_id": "GAUGE-77f0e67b",
-          "distance_m": 1890.0
         }
       ],
       "floods_at_nearest_gauge": 2081,
@@ -3907,16 +3907,16 @@
       "floor_level_m": 5.76,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-9e5f3ef9-41246a02",
+          "distance_m": 759.0
+        },
+        {
           "gauge_id": "GAUGE-9e5f3ef9",
           "distance_m": 776.7
         },
         {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 849.0
-        },
-        {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 1032.3
         }
       ],
       "floods_at_nearest_gauge": 2034,
@@ -3931,16 +3931,16 @@
       "floor_level_m": 0.39,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 263.2
+        },
+        {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 1091.9
         },
         {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 1499.4
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 3022.8
         }
       ],
       "floods_at_nearest_gauge": 2480,
@@ -3959,12 +3959,12 @@
           "distance_m": 376.7
         },
         {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1142.1
+          "gauge_id": "SYNTH-8be2e7e8-1aaf8b08",
+          "distance_m": 376.7
         },
         {
-          "gauge_id": "GAUGE-1aaf8b08",
-          "distance_m": 1846.9
+          "gauge_id": "GAUGE-dc5e88fb",
+          "distance_m": 1142.1
         }
       ],
       "floods_at_nearest_gauge": 1672,
@@ -3979,19 +3979,19 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-f8629444-4c57aa15",
+          "distance_m": 366.5
+        },
+        {
           "gauge_id": "GAUGE-9fffb377",
           "distance_m": 490.1
         },
         {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 524.6
-        },
-        {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 540.1
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 975,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4003,16 +4003,16 @@
       "floor_level_m": 0.05,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 393.5
+        },
+        {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 514.3
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 556.0
-        },
-        {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1220.3
         }
       ],
       "floods_at_nearest_gauge": 1886,
@@ -4027,23 +4027,23 @@
       "floor_level_m": -0.18,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-c0fbc443-a6be4ee9",
+          "distance_m": 534.7
+        },
+        {
           "gauge_id": "GAUGE-c0fbc443",
           "distance_m": 615.6
         },
         {
           "gauge_id": "GAUGE-a6be4ee9",
           "distance_m": 640.6
-        },
-        {
-          "gauge_id": "GAUGE-ef53398c",
-          "distance_m": 1019.5
         }
       ],
       "floods_at_nearest_gauge": 2145,
-      "floods_at_property": 8,
-      "gauge_to_property_ratio": 0.4,
-      "max_depth_m": 1.5115,
-      "max_damage_ratio": 0.5023
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-bce3602f",
@@ -4051,23 +4051,23 @@
       "floor_level_m": 0.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-7e07133d-e404c1ff",
+          "distance_m": 355.8
+        },
+        {
           "gauge_id": "GAUGE-e404c1ff",
           "distance_m": 1196.5
         },
         {
           "gauge_id": "GAUGE-7e07133d",
           "distance_m": 2523.9
-        },
-        {
-          "gauge_id": "GAUGE-13dbbe14",
-          "distance_m": 3307.0
         }
       ],
       "floods_at_nearest_gauge": 2150,
-      "floods_at_property": 44,
-      "gauge_to_property_ratio": 2.0,
-      "max_depth_m": 2.2171,
-      "max_damage_ratio": 0.6326
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-24751d26",
@@ -4075,16 +4075,16 @@
       "floor_level_m": 14.73,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 611.0
+        },
+        {
           "gauge_id": "GAUGE-77f0e67b",
           "distance_m": 663.5
         },
         {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 1012.0
-        },
-        {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 1660.9
         }
       ],
       "floods_at_nearest_gauge": 1839,
@@ -4099,16 +4099,16 @@
       "floor_level_m": 0.47,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef53398c-085522ee",
+          "distance_m": 456.1
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 476.9
         },
         {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 912.5
-        },
-        {
-          "gauge_id": "GAUGE-ef53398c",
-          "distance_m": 1153.9
         }
       ],
       "floods_at_nearest_gauge": 1425,
@@ -4123,16 +4123,16 @@
       "floor_level_m": 0.06,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 1187.8
+        },
+        {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 1210.0
         },
         {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 1221.2
-        },
-        {
-          "gauge_id": "GAUGE-9e5f3ef9",
-          "distance_m": 1252.5
         }
       ],
       "floods_at_nearest_gauge": 1847,
@@ -4147,19 +4147,19 @@
       "floor_level_m": -0.06,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e042fc97-ebfdb692",
+          "distance_m": 947.9
+        },
+        {
           "gauge_id": "GAUGE-e042fc97",
           "distance_m": 1166.2
         },
         {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 5077.7
-        },
-        {
-          "gauge_id": "GAUGE-966d392e",
-          "distance_m": 8419.5
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1644,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4171,16 +4171,16 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-3324d948-acc1b9cc",
+          "distance_m": 266.7
+        },
+        {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 732.2
         },
         {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 4339.9
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 5281.9
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -4195,23 +4195,23 @@
       "floor_level_m": 0.19,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 354.7
+        },
+        {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 370.4
         },
         {
           "gauge_id": "GAUGE-5cc1a4bd",
           "distance_m": 529.8
-        },
-        {
-          "gauge_id": "GAUGE-71d96002",
-          "distance_m": 552.3
         }
       ],
-      "floods_at_nearest_gauge": 1841,
-      "floods_at_property": 54,
-      "gauge_to_property_ratio": 2.9,
-      "max_depth_m": 2.5341,
-      "max_damage_ratio": 0.6801
+      "floods_at_nearest_gauge": 1689,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-570f4d20",
@@ -4219,23 +4219,23 @@
       "floor_level_m": 0.35,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 553.8
+        },
+        {
           "gauge_id": "GAUGE-14733fc0",
           "distance_m": 557.3
         },
         {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 1008.1
-        },
-        {
-          "gauge_id": "GAUGE-62fc58e6",
-          "distance_m": 1069.2
         }
       ],
-      "floods_at_nearest_gauge": 2224,
-      "floods_at_property": 3,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.523,
-      "max_damage_ratio": 0.2569
+      "floods_at_nearest_gauge": 2101,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-47cc8592",
@@ -4247,15 +4247,15 @@
           "distance_m": 528.9
         },
         {
-          "gauge_id": "GAUGE-4c57aa15",
-          "distance_m": 763.5
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 528.9
         },
         {
-          "gauge_id": "GAUGE-0a26e0ec",
-          "distance_m": 791.1
+          "gauge_id": "GAUGE-4c57aa15",
+          "distance_m": 763.5
         }
       ],
-      "floods_at_nearest_gauge": 1262,
+      "floods_at_nearest_gauge": 1424,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4271,19 +4271,19 @@
           "distance_m": 295.7
         },
         {
-          "gauge_id": "GAUGE-66c641fe",
-          "distance_m": 492.4
+          "gauge_id": "SYNTH-5cc1a4bd-66c641fe",
+          "distance_m": 295.7
         },
         {
-          "gauge_id": "GAUGE-63447c32",
-          "distance_m": 545.2
+          "gauge_id": "GAUGE-66c641fe",
+          "distance_m": 492.4
         }
       ],
-      "floods_at_nearest_gauge": 2374,
-      "floods_at_property": 72,
-      "gauge_to_property_ratio": 3.0,
-      "max_depth_m": 2.713,
-      "max_damage_ratio": 0.7069
+      "floods_at_nearest_gauge": 1423,
+      "floods_at_property": 68,
+      "gauge_to_property_ratio": 4.8,
+      "max_depth_m": 2.434,
+      "max_damage_ratio": 0.6651
     },
     {
       "property_id": "PROP-6a142858",
@@ -4291,16 +4291,16 @@
       "floor_level_m": 0.22,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-dc5e88fb-8be2e7e8",
+          "distance_m": 519.0
+        },
+        {
           "gauge_id": "GAUGE-dc5e88fb",
           "distance_m": 550.5
         },
         {
           "gauge_id": "GAUGE-8be2e7e8",
           "distance_m": 1034.1
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1111.8
         }
       ],
       "floods_at_nearest_gauge": 1645,
@@ -4315,19 +4315,19 @@
       "floor_level_m": 0.15,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 393.5
+        },
+        {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 611.6
         },
         {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 737.4
-        },
-        {
-          "gauge_id": "GAUGE-1d061d70",
-          "distance_m": 1135.0
         }
       ],
-      "floods_at_nearest_gauge": 1930,
+      "floods_at_nearest_gauge": 1886,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4339,16 +4339,16 @@
       "floor_level_m": 0.01,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-a03e456e-e042fc97",
+          "distance_m": 497.3
+        },
+        {
           "gauge_id": "GAUGE-a03e456e",
           "distance_m": 1568.5
         },
         {
           "gauge_id": "GAUGE-e042fc97",
           "distance_m": 7456.7
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 7543.6
         }
       ],
       "floods_at_nearest_gauge": 1868,
@@ -4363,19 +4363,19 @@
       "floor_level_m": 0.21,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-966d392e-2d4ab78a",
+          "distance_m": 1076.3
+        },
+        {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 1232.6
         },
         {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 4948.5
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 6278.9
         }
       ],
-      "floods_at_nearest_gauge": 2018,
+      "floods_at_nearest_gauge": 1747,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4387,23 +4387,23 @@
       "floor_level_m": 0.39,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-41246a02-14733fc0",
+          "distance_m": 598.5
+        },
+        {
           "gauge_id": "GAUGE-41246a02",
           "distance_m": 645.3
         },
         {
           "gauge_id": "GAUGE-14733fc0",
           "distance_m": 893.9
-        },
-        {
-          "gauge_id": "GAUGE-9e5f3ef9",
-          "distance_m": 978.3
         }
       ],
-      "floods_at_nearest_gauge": 2153,
-      "floods_at_property": 2,
-      "gauge_to_property_ratio": 0.1,
-      "max_depth_m": 0.4754,
-      "max_damage_ratio": 0.2391
+      "floods_at_nearest_gauge": 2101,
+      "floods_at_property": 0,
+      "gauge_to_property_ratio": 0.0,
+      "max_depth_m": 0.0,
+      "max_damage_ratio": 0.0
     },
     {
       "property_id": "PROP-a5bd1f0b",
@@ -4411,19 +4411,19 @@
       "floor_level_m": 0.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-e042fc97-ebfdb692",
+          "distance_m": 910.0
+        },
+        {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 1806.3
         },
         {
           "gauge_id": "GAUGE-e042fc97",
           "distance_m": 4206.8
-        },
-        {
-          "gauge_id": "GAUGE-966d392e",
-          "distance_m": 5209.5
         }
       ],
-      "floods_at_nearest_gauge": 1809,
+      "floods_at_nearest_gauge": 1644,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4435,16 +4435,16 @@
       "floor_level_m": 0.42,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-2d4ab78a-c8783553",
+          "distance_m": 997.8
+        },
+        {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 1148.0
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 1245.9
-        },
-        {
-          "gauge_id": "GAUGE-c8783553",
-          "distance_m": 2148.2
         }
       ],
       "floods_at_nearest_gauge": 2011,
@@ -4459,16 +4459,16 @@
       "floor_level_m": 0.48,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1d061d70-b2dbe58b",
+          "distance_m": 431.2
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 818.0
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 928.1
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1035.8
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -4483,16 +4483,16 @@
       "floor_level_m": 0.1,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-3324d948-acc1b9cc",
+          "distance_m": 266.7
+        },
+        {
           "gauge_id": "GAUGE-3324d948",
           "distance_m": 514.5
         },
         {
           "gauge_id": "GAUGE-bc801f07",
           "distance_m": 4433.0
-        },
-        {
-          "gauge_id": "GAUGE-acc1b9cc",
-          "distance_m": 5523.2
         }
       ],
       "floods_at_nearest_gauge": 1616,
@@ -4507,16 +4507,16 @@
       "floor_level_m": 0.49,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-744e70ef-b19c8a6a",
+          "distance_m": 918.4
+        },
+        {
           "gauge_id": "GAUGE-b19c8a6a",
           "distance_m": 1083.9
         },
         {
           "gauge_id": "GAUGE-12dddcd7",
           "distance_m": 1468.0
-        },
-        {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 1995.5
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -4531,16 +4531,16 @@
       "floor_level_m": 0.34,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-085522ee-9fffb377",
+          "distance_m": 530.7
+        },
+        {
           "gauge_id": "GAUGE-085522ee",
           "distance_m": 594.1
         },
         {
           "gauge_id": "GAUGE-f8629444",
           "distance_m": 887.2
-        },
-        {
-          "gauge_id": "GAUGE-9fffb377",
-          "distance_m": 1154.2
         }
       ],
       "floods_at_nearest_gauge": 1424,
@@ -4555,19 +4555,19 @@
       "floor_level_m": 12.15,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 354.7
+        },
+        {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 388.1
         },
         {
           "gauge_id": "GAUGE-71d96002",
           "distance_m": 541.4
-        },
-        {
-          "gauge_id": "GAUGE-5cc1a4bd",
-          "distance_m": 572.3
         }
       ],
-      "floods_at_nearest_gauge": 1841,
+      "floods_at_nearest_gauge": 1892,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4579,16 +4579,16 @@
       "floor_level_m": 0.05,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1d061d70-b2dbe58b",
+          "distance_m": 676.1
+        },
+        {
           "gauge_id": "GAUGE-1d061d70",
           "distance_m": 900.8
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 1148.3
-        },
-        {
-          "gauge_id": "GAUGE-b2dbe58b",
-          "distance_m": 1241.9
         }
       ],
       "floods_at_nearest_gauge": 1930,
@@ -4607,12 +4607,12 @@
           "distance_m": 995.7
         },
         {
-          "gauge_id": "GAUGE-b19c8a6a",
-          "distance_m": 1186.9
+          "gauge_id": "SYNTH-b19c8a6a-12dddcd7",
+          "distance_m": 995.7
         },
         {
-          "gauge_id": "GAUGE-1f4e46a9",
-          "distance_m": 1350.4
+          "gauge_id": "GAUGE-b19c8a6a",
+          "distance_m": 1186.9
         }
       ],
       "floods_at_nearest_gauge": 2096,
@@ -4627,19 +4627,19 @@
       "floor_level_m": 0.27,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-66c641fe-87b9ac03",
+          "distance_m": 686.4
+        },
+        {
           "gauge_id": "GAUGE-66c641fe",
           "distance_m": 719.5
         },
         {
           "gauge_id": "GAUGE-5cc1a4bd",
           "distance_m": 834.3
-        },
-        {
-          "gauge_id": "GAUGE-71d96002",
-          "distance_m": 865.8
         }
       ],
-      "floods_at_nearest_gauge": 1841,
+      "floods_at_nearest_gauge": 1689,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4651,16 +4651,16 @@
       "floor_level_m": 0.12,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-387ba06b-64eb43b5",
+          "distance_m": 263.1
+        },
+        {
           "gauge_id": "GAUGE-64eb43b5",
           "distance_m": 801.6
         },
         {
           "gauge_id": "GAUGE-744e70ef",
           "distance_m": 1210.2
-        },
-        {
-          "gauge_id": "GAUGE-387ba06b",
-          "distance_m": 3324.3
         }
       ],
       "floods_at_nearest_gauge": 2480,
@@ -4675,19 +4675,19 @@
       "floor_level_m": 0.46,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ef7f75ec-066fc60e",
+          "distance_m": 1494.5
+        },
+        {
           "gauge_id": "GAUGE-066fc60e",
           "distance_m": 1880.5
         },
         {
           "gauge_id": "GAUGE-ef7f75ec",
           "distance_m": 8134.3
-        },
-        {
-          "gauge_id": "GAUGE-bc801f07",
-          "distance_m": 9855.8
         }
       ],
-      "floods_at_nearest_gauge": 1712,
+      "floods_at_nearest_gauge": 1558,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4699,16 +4699,16 @@
       "floor_level_m": 0.09,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-0a26e0ec-9e5f3ef9",
+          "distance_m": 1177.3
+        },
+        {
           "gauge_id": "GAUGE-0a26e0ec",
           "distance_m": 1192.7
         },
         {
           "gauge_id": "GAUGE-4c57aa15",
           "distance_m": 1202.9
-        },
-        {
-          "gauge_id": "GAUGE-9e5f3ef9",
-          "distance_m": 1255.6
         }
       ],
       "floods_at_nearest_gauge": 1847,
@@ -4723,16 +4723,16 @@
       "floor_level_m": 0.28,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-1f4e46a9-08fd7695",
+          "distance_m": 393.5
+        },
+        {
           "gauge_id": "GAUGE-b2dbe58b",
           "distance_m": 514.8
         },
         {
           "gauge_id": "GAUGE-08fd7695",
           "distance_m": 556.4
-        },
-        {
-          "gauge_id": "GAUGE-dc5e88fb",
-          "distance_m": 1220.7
         }
       ],
       "floods_at_nearest_gauge": 1886,
@@ -4747,19 +4747,19 @@
       "floor_level_m": 0.15,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-966d392e-2d4ab78a",
+          "distance_m": 943.0
+        },
+        {
           "gauge_id": "GAUGE-2d4ab78a",
           "distance_m": 1600.5
         },
         {
           "gauge_id": "GAUGE-387ba06b",
           "distance_m": 2860.5
-        },
-        {
-          "gauge_id": "GAUGE-c8783553",
-          "distance_m": 3877.2
         }
       ],
-      "floods_at_nearest_gauge": 2011,
+      "floods_at_nearest_gauge": 2018,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
@@ -4771,16 +4771,16 @@
       "floor_level_m": 0.37,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ca0c20c2-77f0e67b",
+          "distance_m": 1018.5
+        },
+        {
           "gauge_id": "GAUGE-7cce1cc8",
           "distance_m": 1066.0
         },
         {
           "gauge_id": "GAUGE-77f0e67b",
           "distance_m": 1173.0
-        },
-        {
-          "gauge_id": "GAUGE-ca0c20c2",
-          "distance_m": 1590.4
         }
       ],
       "floods_at_nearest_gauge": 1839,
@@ -4795,19 +4795,19 @@
       "floor_level_m": 0.38,
       "nearest_gauges": [
         {
+          "gauge_id": "SYNTH-ebfdb692-966d392e",
+          "distance_m": 912.4
+        },
+        {
           "gauge_id": "GAUGE-966d392e",
           "distance_m": 1025.1
         },
         {
           "gauge_id": "GAUGE-ebfdb692",
           "distance_m": 5522.9
-        },
-        {
-          "gauge_id": "GAUGE-2d4ab78a",
-          "distance_m": 6120.8
         }
       ],
-      "floods_at_nearest_gauge": 1760,
+      "floods_at_nearest_gauge": 1736,
       "floods_at_property": 0,
       "gauge_to_property_ratio": 0.0,
       "max_depth_m": 0.0,
