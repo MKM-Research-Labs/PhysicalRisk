@@ -1,0 +1,126 @@
+23.5 Stress Testing as Operational Discipline
+================================================================
+
+SECTION PURPOSE
+---------------
+Show how stress testing operates as a daily discipline for the PRS desk, not
+just a regulatory exercise. Cover pre-trade stress, portfolio stress, classifier
+management, and scenario design.
+
+PRE-TRADE STRESS
+-----------------
+Before committing a new PRS position, the trader stress-tests the proposed trade
+against the historical storm catalogue:
+
+  1. Select the gauge and trigger level of the proposed trade
+  2. Run the 260 alert-breaching storm scenarios through the classifier
+  3. For each scenario: compute stressed P(flood) at each hour of the 168-hour
+     storm horizon
+  4. CDS-in-stress valuation:
+     cash_price = notional x P(flood_at_peak) x direction
+     stress_pnl = cash_price - current_mtm
+  5. Summary: worst-case scenario P&L, average stressed P&L, scenario distribution
+
+This tells the trader: "if I take this position and the worst historical storm
+hits, what is my maximum loss?" -- identical to how a CDS desk stress-tests a
+new position against credit spread shock scenarios before execution.
+
+DAILY PORTFOLIO STRESS
+-----------------------
+The full PRS book is stressed daily or weekly against the storm catalogue:
+
+  For each storm scenario in the catalogue:
+    1. Hydrograph synthesis: generate realistic flood profile from storm parameters
+    2. For each gauge referenced in the portfolio:
+       - GBM classifier produces P(flood) time series over 168 hours
+       - Peak P(flood) used for CDS-in-stress revaluation
+    3. Portfolio-level aggregation:
+       - Sum stressed P&L across all positions
+       - Account for spatial correlation between gauges
+       - Identify which scenarios produce the worst portfolio outcomes
+    4. Compare against risk limits
+
+  Output: stress P&L waterfall showing contribution by position and scenario,
+  summary statistics (mean, median, 95th percentile, worst case).
+
+GBM CLASSIFIER MANAGEMENT
+---------------------------
+The flood classifiers are the core stress testing models. The PoC provides
+a complete management interface:
+
+  Training:
+  - Per-gauge GradientBoostingClassifier
+  - 4 log-transformed features from gauge timeseries data
+  - 1,000 training storms per gauge (260 alert + 740 sub-alert)
+  - Stratified 80/20 train/test split, random_state=42 for reproducibility
+  - Metrics: accuracy, AUC-ROC, Brier score, log-loss, feature importance
+
+  Monitoring:
+  - Classifier readiness status per gauge (trained / untrained / stale)
+  - Aggregate training readiness across portfolio
+  - Feature importance tracking for model drift detection
+
+  Retraining:
+  - Triggered when new flood data arrives (post-event recalibration)
+  - Train individual gauges or bulk-train all gauges
+  - Training progress tracking for bulk operations
+  - Clear-all option for fresh start
+
+  Production Governance:
+  - Model saved as .joblib with training_summary.json metadata
+  - Severe_level stored per gauge for feature normalisation
+  - Falls back to severe_level=1.0 if metadata missing
+  - All training decisions auditable through governance interface
+
+PROBABILITY SURFACES
+---------------------
+The classifier produces 2D probability grids:
+  F(water_level, hour) -> P(flood)
+
+This surface shows the trader:
+- At what water level does P(flood) become significant?
+- How quickly does probability ramp up as the storm progresses?
+- Where is the transition from "manageable" to "severe"?
+
+These surfaces are the PRS equivalent of credit migration probability matrices
+-- they show how the underlying risk evolves over time under different conditions.
+
+STORM SCENARIO DESIGN
+-----------------------
+The PoC's storm catalogue contains:
+- 260 storms that breached alert level at one or more gauges
+- 740 sub-alert storms providing balanced training data
+- Each storm: per-gauge water level time series over 168 hours (7 days)
+
+Scenarios can be extended with:
+- New historical events: as floods occur, add to catalogue
+- Synthetic scenarios: Gumbel-adjusted tail exploration
+- Compound scenarios: sequential storms testing cumulative portfolio degradation
+- Climate-conditioned scenarios: adjusted return periods (with governance caveats
+  from Chapter 18 about historical vs climate-projected methodologies)
+
+SEQUENTIAL STORM ANALYSIS
+---------------------------
+The PoC supports multi-storm sequences that test cumulative portfolio degradation:
+- Storm 1 hits: damage, LTV adjustment, PD increase
+- Storm 2 hits (weeks later): additional damage on already-weakened portfolio
+- Properties not yet recovered face amplified impact
+- Insurance gaps widen as claims accumulate
+- Portfolio capital position deteriorates non-linearly
+
+This sequential analysis captures what single-event stress testing misses:
+the compounding effect of repeated physical events on a mortgage book that
+has not recovered from the prior event. It is analogous to multi-default
+stress testing in CDS portfolios, where sequential defaults in correlated
+names create cascade losses.
+
+INTEGRATION WITH RISK LIMITS
+------------------------------
+Stress testing results feed directly into risk management:
+- Maximum FS01 per gauge: prevent concentration at a single trigger point
+- Maximum portfolio stress loss: cap worst-case scenario P&L
+- Minimum diversification ratio: require exposure across multiple gauges
+- Maximum sequential storm impact: limit cumulative degradation exposure
+
+These limits mirror CDS risk limits (single-name concentration, sector limits,
+portfolio VaR limits) and are managed through the same risk governance framework.

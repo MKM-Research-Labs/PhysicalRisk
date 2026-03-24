@@ -1,0 +1,151 @@
+23.4 Flood Event Response
+================================================================
+
+SECTION PURPOSE
+---------------
+Detail what happens operationally when a gauge breaches its trigger level --
+the real-time event response that distinguishes PRS from CDS. Show the dual
+notification cascade: gauge-level (PRS settlement) and property-level
+(mortgage book impact).
+
+THE TRIGGER EVENT
+------------------
+A PRS trigger event occurs when an EA gauge reading exceeds the severe flood
+warning threshold specified in the GaugeSet of an open PRS trade.
+
+Unlike CDS credit events, PRS triggers are:
+- Binary: the gauge either exceeded the threshold or it did not
+- Objective: measured by government-calibrated instruments
+- Verifiable: published in real time by the Environment Agency (15-min intervals)
+- Immediate: no Determination Committee adjudication required
+- Auditable: full historical record maintained by EA
+
+This simplicity is a structural advantage over CDS, where credit event
+determination for restructuring events requires subjective Determination
+Committee adjudication (15 members: 10 dealers + 5 buy-side, per Big Bang
+Protocol). PRS settlement is closer to CDS bankruptcy triggers, which are
+also binary and factual.
+
+GAUGE-LEVEL RESPONSE (PRS Settlement)
+---------------------------------------
+When a gauge breaches its severe threshold:
+
+  1. DETECTION
+     - Gauge monitor service receives 15-minute update from EA API
+     - Current reading compared against trigger levels in all open GaugeSets
+     - Alert raised if reading >= severe_threshold for any referenced gauge
+
+  2. GAUGESET EVALUATION
+     For each open PRS referencing the breached gauge:
+     - Retrieve GaugeSet from PhysicalSwap CDM record
+     - Apply trigger logic:
+       * "Any": single gauge breach triggers payout (most common, PoC default)
+       * "All": every gauge in basket must breach
+       * "Weighted": weighted sum of breached gauges exceeds threshold
+       * "Majority": more than half of basket must breach
+     - If trigger conditions met: position enters settlement
+
+  3. PAYOUT CALCULATION
+     - Payout amount = PayoutSevereFlood from GaugeSet for the breached gauge
+     - For tiered payouts:
+       * Alert level payout (lowest tier)
+       * Warning level payout (middle tier)
+       * Severe level payout (highest tier, full notional)
+     - Settlement amount determined by which tier was breached
+
+  4. SETTLEMENT
+     - T+2 cash settlement (standard CDS convention)
+     - Protection seller pays payout amount to protection buyer
+     - Trade status updated to "Triggered" then "Settled"
+     - CDM record updated with event timestamp, gauge reading, settlement amount
+     - Confirmation PDF generated documenting the trigger event
+
+  5. POST-SETTLEMENT
+     - No further premiums due from protection buyer (contract terminated)
+     - No further protection from seller
+     - Final P&L computed and recorded in trade marks
+     - Position removed from active blotter
+
+PROPERTY-LEVEL RESPONSE (Mortgage Book Impact)
+------------------------------------------------
+Simultaneously with PRS settlement, the flood event cascades through the
+mortgage book:
+
+  1. SPATIAL PROPAGATION
+     - Spatial model maps gauge breach to property-level flood depths
+     - KDTree identifies all properties within the affected zone
+     - IDW interpolation estimates flood depth at each property location
+     - Properties within ~1000m of gauge share strongly correlated impacts
+     - Distance decay function reduces estimated depth with distance
+
+  2. DAMAGE ESTIMATION
+     - Depth-damage functions (JRC, MCM, or calibrated library) convert
+       estimated flood depth to damage ratio (0-1) per property
+     - Damage ratio x property value = estimated structural loss
+     - Contents loss estimated separately (typically 30-50% of structural)
+     - Business interruption duration estimated from depth and property type
+
+  3. MORTGAGE IMPACT
+     - For each affected property with a linked mortgage:
+       * Property value adjusted: value_post_flood = value - damage
+       * LTV recalculated: new_LTV = outstanding_balance / value_post_flood
+       * If new_LTV > 100%: property in negative equity
+       * Affordability ratio adjusted for increased insurance costs
+       * Borrower PD updated via the capital markets approach (Chapter 11)
+       * LGD updated via Frye-Jacobs (Chapter 17):
+         cLGD = Phi((Phi^-1(EL/PD) - sqrt(rho) x Phi^-1(cDR)) / sqrt(1-rho))
+
+  4. PORTFOLIO IMPACT
+     - Aggregate across all affected mortgages:
+       * Total collateral impairment
+       * Number of properties in negative equity
+       * Portfolio-level PD and LGD shifts
+       * ECL adjustment = Sum(cPD x cLGD x EAD) across affected loans
+       * Capital impact: change in RWA from updated PD/LGD
+     - If PRS protection is in place:
+       * PRS payout offsets collateral impairment
+       * Adjusted LGD = max(0, base_LGD - PRS_recovery / EAD)
+       * Capital relief quantified
+
+  5. CLAIMS REPORTING
+     - The PoC generates automated claim reports per property:
+       * Property details (from Property CDM)
+       * Estimated flood depth and damage ratio
+       * Structural and contents loss estimates
+       * Mortgage impact (LTV change, negative equity status)
+       * Recovery timeline estimate
+
+THE DUAL CASCADE IN PRACTICE
+------------------------------
+When the Reading gauge breaches 7.25m (severe flood warning):
+
+  Gauge-level:
+  - All open PRS referencing Reading with severe trigger are evaluated
+  - Trigger type "Any": single gauge breach -> payout activated
+  - Protection buyers receive PayoutSevereFlood amount (T+2)
+  - Positions settle and close
+
+  Property-level:
+  - Spatial model estimates flood depths across ~200 properties near Reading
+  - Properties within 500m: estimated 0.5-1.5m depth
+  - Properties within 1km: estimated 0.1-0.5m depth
+  - Depth-damage: 0.5m depth -> ~15-25% damage ratio on residential
+  - A GBP 350K property with 0.5m flooding loses ~GBP 60-90K value
+  - LTV on a GBP 250K mortgage: 71% -> 92% (or into negative equity at 1m+)
+  - Frye-Jacobs: if portfolio conditional PD rises from 1.5% to 6%,
+    cLGD rises from 25% to ~38%, ECL nearly doubles
+
+  The PRS payout arrives at T+2 to the protection buyer (the mortgage lender),
+  providing immediate recovery that reduces the Frye-Jacobs LGD adjustment
+  and stabilises the portfolio capital position.
+
+COMPARISON TO CDS CREDIT EVENT
+---------------------------------
+  Aspect              | CDS                        | PRS
+  --------------------|----------------------------|---------------------------
+  Trigger detection   | DC adjudication (weeks)    | Gauge reading (immediate)
+  Objectivity         | Subjective for restructuring| Binary, verifiable
+  Settlement timing   | Auction + T+3              | T+2
+  Recovery rate       | Market-determined auction   | Pre-defined by tier
+  Notification chain  | DC -> participants         | EA -> gauge monitor -> desk
+  Secondary impact    | Sector contagion           | Property-level cascade

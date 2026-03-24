@@ -1,0 +1,136 @@
+23.6 Portfolio and Mortgage Book Interaction
+================================================================
+
+SECTION PURPOSE
+---------------
+Show the dual perspective: PRS as a trading product AND as a hedge for the
+mortgage book's physical risk exposure. Detail the linkage from gauge events
+through property damage to mortgage portfolio impact, and how PRS payouts
+offset the capital hit.
+
+THE DUAL PERSPECTIVE
+---------------------
+A bank trading PRS holds two related but distinct views:
+
+  TRADING DESK VIEW:
+  - PRS is a derivative position with mark-to-market, Greeks, and P&L
+  - Risk is measured in FS01 (flood spread sensitivity)
+  - Portfolio management is by gauge, trigger, and tenor
+  - Profit comes from bid-offer, curve positioning, and flow intermediation
+
+  MORTGAGE BOOK VIEW:
+  - PRS is protection against physical risk to mortgage collateral
+  - Risk is measured in stressed LGD and portfolio ECL
+  - Exposure is by property, catchment, and flood zone
+  - Value comes from capital relief and loss reduction under stress
+
+The PoC connects these views through the CDM data model: Property CDM links
+to Mortgage CDM via PropertyID/UPRN, and both link to Flood Gauge CDM via
+geographic proximity. PhysicalSwap CDM references the same gauges.
+
+PROPERTY FLOOD RESPONSE
+-------------------------
+The property flood response model (MKM-PF-001) links gauge behaviour to
+property-level impact:
+
+  Gauge reading -> flood depth at property (via spatial model):
+  - KDTree identifies nearest gauge(s) to each property
+  - IDW interpolation estimates property-level flood depth from gauge readings
+  - Elevation difference between gauge and property modifies depth estimate
+  - EA flood zone classification (Zone 1/2/3/3a/3b) provides prior probability
+
+  Flood depth -> property damage (via depth-damage functions):
+  - Input: estimated flood depth at ground floor level
+  - Output: damage ratio (0-1) for structural and contents
+  - Functions vary by property type (residential, commercial, industrial)
+  - Resilience measures (flood doors, raised electrics) reduce damage ratio
+
+MORTGAGE IMPACT CASCADE
+-------------------------
+When a flood event occurs, the mortgage impact unfolds:
+
+  1. PROPERTY VALUE ADJUSTMENT
+     - pre_flood_value: from Property CDM valuation section
+     - structural_damage = depth_damage_ratio x pre_flood_value
+     - contents_damage = contents_ratio x contents_value
+     - post_flood_value = pre_flood_value - structural_damage
+     - Market stigma: additional 10-50% discount for 4-7 years (Belanger &
+       Bourdeau-Brien, Chapter 8.1)
+
+  2. LTV RECALCULATION
+     - pre_flood_LTV = outstanding_balance / pre_flood_value
+     - post_flood_LTV = outstanding_balance / post_flood_value
+     - If post_flood_LTV > 100%: property in negative equity
+     - Negative equity drives strategic default risk ("keys on the table")
+
+  3. AFFORDABILITY IMPACT
+     - Insurance premium increase (if insurer doesn't withdraw entirely)
+     - Repair costs affecting household cash flow
+     - Potential income disruption if property is business-related
+     - Updated affordability ratio feeds the capital markets approach (Ch 11):
+       higher ratio -> steeper credit spread -> higher hazard rate
+
+  4. DEFAULT PROBABILITY ADJUSTMENT
+     - Via the CDS-style affordability framework from Chapter 11
+     - Piecewise: linear at low ratios, steepening 15-30%, exponential above 30%
+     - Flood events push borrowers into the steepening or exponential zone
+
+  5. LOSS GIVEN DEFAULT ADJUSTMENT (Frye-Jacobs)
+     - Chapter 17's central result: physical events create compounding PD-LGD
+     - cLGD = Phi((Phi^-1(EL/PD) - sqrt(rho) x Phi^-1(cDR)) / sqrt(1-rho))
+     - Worked example: PD rises from 1.5% to 8% under flood scenario:
+       baseline LGD 25% -> conditional LGD 43% (72% relative increase)
+       ECL: 2.0% -> 3.4% of exposure (nearly doubles)
+     - LGD adjustment contributes 30-50% of incremental scenario losses
+
+  6. PORTFOLIO AGGREGATION
+     - Sum ECL adjustments across all affected loans
+     - VaR and Expected Shortfall from Monte Carlo (1,000 paths)
+     - Spatial correlation: properties within 1000m are strongly correlated
+     - 95% VaR for concentrated portfolio: 2-3x higher than diversified
+
+PRS AS HEDGE: THE CAPITAL RELIEF CALCULATION
+----------------------------------------------
+When PRS protection is in place, the payout offsets collateral impairment:
+
+  WITHOUT PRS:
+  - Flood event -> collateral impairment -> LTV breach -> PD increase
+  - Frye-Jacobs cLGD amplifies the impact
+  - ECL increases -> capital increases -> CET1 ratio deteriorates
+
+  WITH PRS:
+  - Flood event -> PRS trigger -> T+2 payout to protection buyer (the bank)
+  - Payout offsets collateral impairment:
+    adjusted_LGD = max(0, base_LGD - PRS_payout / EAD)
+  - Reduced LGD -> reduced ECL -> reduced capital requirement
+  - Capital relief = delta(credit risk capital) - [counterparty + CVA + market
+    risk capital on PRS position] (Chapter 16 formula)
+
+  The PRS payout arrives before the Frye-Jacobs PD-LGD correlation fully
+  materialises, providing recovery certainty at the point of physical event --
+  analogous to how CDS provides recovery certainty at credit event.
+
+CLAIMS REPORTING
+-----------------
+The PoC generates automated flood damage claim reports per property:
+- Property identification (from Property CDM: UPRN, address, type)
+- Estimated flood depth and source gauge
+- Damage ratio and loss estimate (structural + contents)
+- Mortgage details (from Mortgage CDM: outstanding balance, current LTV)
+- Post-flood LTV and negative equity assessment
+- Recovery timeline estimate
+- PRS coverage status and payout amount if applicable
+
+SEQUENTIAL STORM ANALYSIS
+---------------------------
+The PoC supports analysis of cumulative portfolio degradation from multiple
+storm events:
+- First storm: initial damage, LTV adjustment, PD increase
+- Interval: partial recovery, repair progress, insurance claims processing
+- Second storm: additional damage on weakened portfolio
+- Cumulative: properties not yet recovered face amplified damage ratios,
+  insurance gaps widen, portfolio capital position deteriorates non-linearly
+
+This captures the mortgage book reality that single-event stress misses:
+physical risk is not a one-off shock but a recurring threat where recovery
+timelines matter as much as event severity.
