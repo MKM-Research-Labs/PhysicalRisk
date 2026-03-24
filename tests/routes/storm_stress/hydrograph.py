@@ -86,8 +86,11 @@ class TestGaugetsHydrographIntegration:
             "'level' field fallback not working"
 
     @patch('routes.trading.stress.scenario._get_predictor')
-    def test_fallback_synthesis_when_no_gaugets(self, mock_pred, integration_env):
-        """When no gaugets file exists, hydrograph falls back to synthesis."""
+    def test_missing_gaugets_returns_404(self, mock_pred, integration_env):
+        """When no gaugets file exists, stress run returns 404.
+
+        Stress scenarios are tail events requiring real timeseries data.
+        """
         pred = MagicMock()
         pred.predict.return_value = 0.3
         pred._load_summary.return_value = {'gauges': []}
@@ -102,11 +105,9 @@ class TestGaugetsHydrographIntegration:
                            json={'gauge_id': 'GAUGE-001',
                                  'storm_id': 'STORM-SEVERE-001'})
         data = json.loads(resp.data)
-        assert resp.status_code == 200, \
-            "Stress run must succeed even without gaugets file (fall back to synthesis)"
-        water_levels = [h['water_level'] for h in data['hourly']]
-        assert max(water_levels) > min(water_levels), \
-            "Synthesized hydrograph must have water level variation"
+        assert resp.status_code == 404, \
+            "Stress run must fail when gaugets data is missing"
+        assert "No gaugets data" in data.get('message', '')
 
 
 class TestActualHydrographFunction:
