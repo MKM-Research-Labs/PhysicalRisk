@@ -236,6 +236,34 @@ def cmd_port(args):
                 print(f"  [lineage] Warning: {e}")
         print()
 
+    # 2.5 Synthetic Gauges — create virtual gauges on the river centreline
+    # for each property, so stressm/gaugehc process them as real gauges.
+    if run_all or args.gauges or args.properties:
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        print("2.5 Generating Synthetic Gauges...")
+        t_step = time.time()
+        r = SyntheticGaugeGenerator(output_dir).generate()
+        elapsed_step = time.time() - t_step
+        n = r.get("count", 0)
+        print(f"   {n} synthetic gauges  →  gauge.json (updated)")
+        if record_step is not None:
+            try:
+                record_step(
+                    step_name="synthetic_gauges",
+                    generator="port.src.gauge.synthetic.SyntheticGaugeGenerator",
+                    inputs={
+                        "gauge.json": input_dir / "gauge.json",
+                        "property.json": input_dir / "property.json",
+                    },
+                    outputs={"gauge.json": input_dir / "gauge.json"},
+                    parameters={},
+                    elapsed_seconds=elapsed_step,
+                    run_id=run_id,
+                )
+            except Exception as e:
+                print(f"  [lineage] Warning: {e}")
+        print()
+
     if run_all or args.mortgages:
         if args.strict and check_inputs_fresh is not None:
             try:
