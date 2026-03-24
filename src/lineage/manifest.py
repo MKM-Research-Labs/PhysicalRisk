@@ -72,7 +72,9 @@ STEP_IO = {
     "counterparties": {"inputs": [],
                        "outputs": ["counterparty.json"]},
     "blotter":        {"inputs": ["gaugehc.json", "counterparty.json"],
-                       "outputs": ["prs/"]},
+                       "outputs": ["prs/", "blotter/eod/",
+                                   "blotter/market_state.json",
+                                   "blotter/trade_marks.json"]},
 }
 
 # ---------------------------------------------------------------------------

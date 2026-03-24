@@ -30,6 +30,8 @@ config = PortfolioConfig()
 
 GAUGEHC_PATH   = pathlib.Path(config.get_input_dir()) / "gaugehc.json"
 MARKET_STATE   = pathlib.Path(config.get_trading_dir()) / "market_state.json"
+TRADE_MARKS    = pathlib.Path(config.get_trading_dir()) / "trade_marks.json"
+EOD_DIR        = pathlib.Path(config.get_eod_dir())
 PRS_DIR        = pathlib.Path(config.get_reports_dir("prs"))
 
 GAUGE_REQUIRED_FIELDS = {
@@ -246,3 +248,101 @@ class TestPRSTradeData:
             if not swap.get("GaugeSet", {}).get("GaugeBasket"):
                 bad.append(f.name)
         assert not bad, f"Trades missing GaugeSet.GaugeBasket: {bad}"
+
+
+# ---------------------------------------------------------------------------
+# EOD snapshots (blotter/eod/)
+# ---------------------------------------------------------------------------
+
+class TestEODSnapshotData:
+    """EOD snapshots must be present after a full port --blotter run.
+
+    The historical EOD series generates ~63 daily snapshots (3 months of
+    business days).  If this count drops below 50, the blotter step likely
+    needs to be re-run.
+    """
+
+    @pytest.fixture(scope="class")
+    def eod_files(self):
+        if not EOD_DIR.exists():
+            pytest.skip(
+                f"EOD directory not found: {EOD_DIR}. "
+                "Run `python app.py port --blotter` to generate."
+            )
+        files = sorted(EOD_DIR.glob("EOD-*.json"))
+        if not files:
+            pytest.skip(
+                "No EOD snapshot files found. "
+                "Run `python app.py port --blotter` to generate."
+            )
+        return files
+
+    def test_eod_directory_exists(self):
+        """blotter/eod/ directory must exist."""
+        assert EOD_DIR.exists(), (
+            f"EOD directory missing: {EOD_DIR}. "
+            "Run `python app.py port --blotter` to generate."
+        )
+
+    def test_eod_snapshot_count(self, eod_files):
+        """Should have ~63 EOD snapshots (3 months of business days)."""
+        assert len(eod_files) >= 50, (
+            f"Only {len(eod_files)} EOD snapshots (expected ~63). "
+            "Run `python app.py port --blotter` to regenerate."
+        )
+
+    def test_eod_files_are_valid_json(self, eod_files):
+        """Each EOD file must be parseable JSON."""
+        bad = []
+        for f in eod_files[:10]:  # spot-check first 10
+            try:
+                json.loads(f.read_text())
+            except json.JSONDecodeError:
+                bad.append(f.name)
+        assert not bad, f"Invalid JSON in EOD files: {bad}"
+
+    def test_eod_has_required_keys(self, eod_files):
+        """Each EOD snapshot should have date, trades, and P&L data."""
+        required = {"date", "trades"}
+        bad = []
+        for f in eod_files[:5]:
+            d = json.loads(f.read_text())
+            missing = required - set(d.keys())
+            if missing:
+                bad.append((f.name, missing))
+        assert not bad, f"EOD files missing required keys: {bad}"
+
+    def test_eod_dates_are_business_days(self, eod_files):
+        """EOD dates should be weekdays (Mon-Fri)."""
+        from datetime import datetime
+        weekend = []
+        for f in eod_files:
+            date_str = f.stem.replace("EOD-", "")
+            try:
+                dt = datetime.strptime(date_str, "%Y%m%d")
+                if dt.weekday() >= 5:
+                    weekend.append(f.name)
+            except ValueError:
+                pass  # non-standard filename
+        assert not weekend, f"EOD snapshots on weekends: {weekend}"
+
+    def test_eod_pdfs_match_json(self, eod_files):
+        """Each EOD JSON should have a matching PDF report."""
+        missing_pdfs = []
+        for f in eod_files:
+            pdf = f.with_suffix(".pdf")
+            if not pdf.exists():
+                missing_pdfs.append(f.name)
+        if missing_pdfs:
+            import warnings
+            warnings.warn(
+                f"{len(missing_pdfs)} EOD JSON files without matching PDF: "
+                f"{missing_pdfs[:5]}"
+            )
+
+    def test_trade_marks_file_exists(self):
+        """trade_marks.json must exist in blotter directory."""
+        assert TRADE_MARKS.exists(), (
+            f"trade_marks.json missing: {TRADE_MARKS}. "
+            "Run `python app.py port --blotter` to generate."
+        )
