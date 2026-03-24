@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-427833DF",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-ebafb99b",
+      "CounterPartyName": "Hannover Clim (A+)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-09",
+      "ProtectionStart": "2026-03-11",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 8000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.030686219826512384
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-11",
+      "EndDate": "2028-05-26",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-b2dbe58b",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-b2dbe58b",
+          "GaugeName": "Thames Putney Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 8000000
+    },
+    "Pricing": {
+      "SpreadBps": 307,
+      "FairSpreadBps": 298.98,
+      "NPV": 11711.5,
+      "PremiumLegPV": 455664.85,
+      "ProtectionLegPV": 443953.35,
+      "RiskyAnnuity": 1.856146,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

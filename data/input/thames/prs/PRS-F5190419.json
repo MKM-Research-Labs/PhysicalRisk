@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-F5190419",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-40c1af1a",
+      "CounterPartyName": "Citadel CS (A)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-10",
+      "ProtectionStart": "2026-03-12",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 8000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.03674610526266042
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-12",
+      "EndDate": "2028-05-26",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-d208bf3d",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-d208bf3d",
+          "GaugeName": "Thames Vauxhall Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 8000000
+    },
+    "Pricing": {
+      "SpreadBps": 367,
+      "FairSpreadBps": 363.78,
+      "NPV": 5421.75,
+      "PremiumLegPV": 541820.32,
+      "ProtectionLegPV": 536398.57,
+      "RiskyAnnuity": 1.843122,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

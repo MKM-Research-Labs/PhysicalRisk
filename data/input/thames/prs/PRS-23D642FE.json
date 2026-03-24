@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-23D642FE",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-789a6592",
+      "CounterPartyName": "Surrey CC (BBB-)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-03-08",
+      "ProtectionStart": "2026-03-10",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": false,
+      "Currency": "GBP",
+      "Notional": 8000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.02996694019854939
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-10",
+      "EndDate": "2029-05-25",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-9fffb377",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-9fffb377",
+          "GaugeName": "Thames Blackfriars Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 8000000
+    },
+    "Pricing": {
+      "SpreadBps": 300,
+      "FairSpreadBps": 296.12,
+      "NPV": 7632.35,
+      "PremiumLegPV": 643986.08,
+      "ProtectionLegPV": 636353.73,
+      "RiskyAnnuity": 2.686236,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}

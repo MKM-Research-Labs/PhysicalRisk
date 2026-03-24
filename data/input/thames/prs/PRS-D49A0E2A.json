@@ -1,0 +1,68 @@
+{
+  "PhysicalSwap": {
+    "Header": {
+      "SwapID": "PRS-D49A0E2A",
+      "CatchmentID": "thames",
+      "TradeType": "PRS",
+      "CounterParty": "CTPY-40c1af1a",
+      "CounterPartyName": "Citadel CS (A)",
+      "PartyId": "MKM-RESEARCH-001",
+      "ValuationDate": "2026-02-28",
+      "ProtectionStart": "2026-03-02",
+      "TradeStatus": "Committed"
+    },
+    "LegData": {
+      "LegType": "Fixed",
+      "Payer": true,
+      "Currency": "GBP",
+      "Notional": 8000000,
+      "DayCounter": "ACT/360",
+      "FixedLegRate": 0.04189954540533679
+    },
+    "ScheduleData": {
+      "StartDate": "2026-03-02",
+      "EndDate": "2031-05-30",
+      "Tenor": "6M",
+      "Calendar": "London"
+    },
+    "GaugeSet": {
+      "GaugeSetID": "GSET-GAUGE-c0fbc443",
+      "CatchmentID": "thames",
+      "GaugeCount": 1,
+      "GaugeBasket": [
+        {
+          "GaugeID": "GAUGE-c0fbc443",
+          "GaugeName": "Thames Lambeth Bridge",
+          "Weight": 1.0,
+          "TriggerLevel": "severe"
+        }
+      ]
+    },
+    "Triggers": {
+      "TriggerType": "Any",
+      "TriggerThreshold": 1
+    },
+    "Payouts": {
+      "Currency": "GBP",
+      "MaxPayout": 8000000
+    },
+    "Pricing": {
+      "SpreadBps": 419,
+      "FairSpreadBps": 426.79,
+      "NPV": 25194.86,
+      "PremiumLegPV": 1354739.07,
+      "ProtectionLegPV": 1379933.93,
+      "RiskyAnnuity": 4.041628,
+      "YieldCurve": {
+        "1": 0.035,
+        "2": 0.04,
+        "3": 0.043,
+        "4": 0.045,
+        "5": 0.04,
+        "6": 0.04
+      },
+      "Recovery": 0.0,
+      "TriggerLevel": "severe"
+    }
+  }
+}
