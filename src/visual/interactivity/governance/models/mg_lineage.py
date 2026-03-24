@@ -135,8 +135,9 @@ function _drawLineagePanel(data) {
     html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">';
     html += '<select id="lineage-trace-type" style="padding:5px 8px;font-size:11px;border:1px solid #ddd;border-radius:4px;">';
     html += '<option value="gauge">Gauge</option>';
-    html += '<option value="storm">Storm</option>';
     html += '<option value="property">Property</option>';
+    html += '<option value="trade">Trade (PRS)</option>';
+    html += '<option value="counterparty">Counterparty</option>';
     html += '</select>';
     html += '<input id="lineage-trace-id" type="text" placeholder="e.g. GAUGE-clf001" style="flex:1;padding:5px 8px;font-size:11px;border:1px solid #ddd;border-radius:4px;" />';
     html += '<button onclick="window._lineageTrace()" style="padding:5px 14px;font-size:11px;font-weight:600;border:1px solid #1976d2;border-radius:4px;background:#1976d2;color:white;cursor:pointer;">Trace</button>';
@@ -168,22 +169,42 @@ window._lineageTrace = function() {
                 resultDiv.innerHTML = '<div style="font-size:11px;color:#888;">No provenance records found for <b>' + dataType + '/' + dataId + '</b>.</div>';
                 return;
             }
-            // Render breadcrumb trail
-            var html = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;">';
+            // Render visual provenance trail
+            var roleColors = {origin: '#1565c0', derived: '#2e7d32', consumed: '#e65100', found: '#616161'};
+            var roleIcons = {origin: '\\u25cf', derived: '\\u2192', consumed: '\\u25b6', found: '\\u2605'};
+            var html = '<div style="padding:8px 0;">';
+            html += '<div style="font-size:11px;color:#333;margin-bottom:8px;font-weight:600;">' +
+                data.trace.length + ' provenance step' + (data.trace.length > 1 ? 's' : '') +
+                ' for <span style="font-family:monospace;color:#1565c0;">' + dataId + '</span></div>';
+
+            // Breadcrumb arrows
+            html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:12px;">';
             data.trace.forEach(function(t, i) {
-                var roleColor = t.role === 'input' ? '#1976d2' : '#4caf50';
-                html += '<div style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid ' + roleColor + ';border-radius:14px;background:' + roleColor + '11;font-size:10px;">';
-                html += '<span style="font-weight:700;color:' + roleColor + ';">' + t.step + '</span>';
-                html += '<span style="color:#888;">(' + t.role + ')</span>';
-                if (t.file) {
-                    html += '<span style="color:#666;font-family:monospace;font-size:9px;">' + t.file + '</span>';
-                }
-                html += '</div>';
-                if (i < data.trace.length - 1) {
-                    html += '<span style="color:#999;">\\u2192</span>';
-                }
+                var col = roleColors[t.role] || '#616161';
+                html += '<div style="padding:3px 10px;border-radius:12px;background:' + col + ';color:white;font-size:10px;font-weight:600;">' + t.step + '</div>';
+                if (i < data.trace.length - 1) html += '<span style="color:#bbb;font-size:14px;">\\u25b8</span>';
             });
             html += '</div>';
+
+            // Detail table
+            html += '<table style="width:100%;font-size:10px;border-collapse:collapse;">';
+            html += '<thead><tr style="background:#eceff1;">';
+            html += '<th style="padding:5px 8px;text-align:left;">Step</th>';
+            html += '<th style="padding:5px 8px;text-align:left;">Role</th>';
+            html += '<th style="padding:5px 8px;text-align:left;">File</th>';
+            html += '<th style="padding:5px 8px;text-align:left;">Context</th>';
+            html += '</tr></thead><tbody>';
+            data.trace.forEach(function(t, i) {
+                var col = roleColors[t.role] || '#616161';
+                var bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+                html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
+                html += '<td style="padding:5px 8px;font-weight:600;color:' + col + ';">' + (roleIcons[t.role] || '') + ' ' + t.step + '</td>';
+                html += '<td style="padding:5px 8px;color:#666;">' + t.role + '</td>';
+                html += '<td style="padding:5px 8px;font-family:monospace;font-size:9px;color:#555;">' + (t.file || '') + '</td>';
+                html += '<td style="padding:5px 8px;color:#888;">' + (t.context || '') + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
             resultDiv.innerHTML = html;
         })
         .catch(function(err) {
