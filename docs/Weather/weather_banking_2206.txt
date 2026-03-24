@@ -1,0 +1,117 @@
+22.6 The Model Stack: What Must Be Built
+================================================================
+
+SECTION PURPOSE
+---------------
+Inventory every model required for PRS, classify each as reuse/adapt/build,
+map upstream/downstream dependencies, and show that the "build" list is bounded.
+
+THE 16-MODEL INVENTORY
+------------------------
+The PoC implements and documents 16 analytical models, each assigned a model ID,
+tier, materiality rating, and lifecycle stage under SR 11-7 governance:
+
+  Model ID    | Name                    | Category    | Classification
+  ------------|-------------------------|-------------|----------------
+  MKM-GH-001 | GEV Hazard Curve        | Hazard      | ADAPT
+  MKM-PR-001 | PRS Pricing             | Pricing     | ADAPT
+  MKM-SI-001 | Storm Intensity         | Hazard      | BUILD
+  MKM-SG-001 | Storm-Gauge Response    | Hazard      | BUILD
+  MKM-DD-001 | Depth-Damage Functions  | Flood Risk  | ADAPT
+  MKM-PV-001 | Property Valuation      | Valuation   | REUSE
+  MKM-MP-001 | Mortgage Pricer         | Valuation   | REUSE
+  MKM-RA-001 | Risk Assessment         | Risk        | REUSE
+  MKM-DE-001 | Delta Engine (Greeks)   | Trading     | REUSE
+  MKM-SP-001 | Spatial Model           | Flood Risk  | BUILD
+  MKM-IP-001 | Insurance Premium       | Valuation   | REUSE
+  MKM-FC-001 | Flood Classifier (GBM)  | Stress      | BUILD
+  MKM-SS-001 | Storm Multi-Gauge       | Stress      | BUILD
+  MKM-GHD-001| GaugeHD Synthetic       | Data        | BUILD
+  MKM-ST-001 | Stress Pipeline         | Stress      | ADAPT
+  MKM-PF-001 | Property Flood Response | Flood Risk  | BUILD
+
+CLASSIFICATION RATIONALE
+--------------------------
+
+REUSE (5 models -- minimal effort):
+These use the same mathematical framework as existing CDS/credit models with
+a different underlying risk factor:
+- Delta Engine: FS01 computed by bumping hazard rates, identical to CS01
+- Property Valuation: standard real estate valuation, already in mortgage systems
+- Mortgage Pricer: DCF with PD/LGD, OAS -- standard bank credit models
+- Risk Assessment: multi-dimensional risk scoring, existing framework
+- Insurance Premium: GLM-based rating, standard actuarial infrastructure
+
+ADAPT (4 models -- moderate effort):
+These use established mathematical frameworks requiring new calibration or
+parameterisation for flood risk:
+- GEV Hazard Curve: GEV fitting is textbook extreme value statistics; new
+  calibration is to EA gauge data rather than credit default data
+- PRS Pricing: CDS pricing engine with flood hazard rates -- the pricing
+  mathematics are identical, only the hazard source changes
+- Depth-Damage Functions: established libraries exist (JRC, MCM, HEC-FIA);
+  adaptation is selecting and calibrating to portfolio-specific property types
+- Stress Pipeline: existing stress testing framework extended with storm
+  scenarios instead of credit spread shocks
+
+BUILD (7 models -- significant but bounded):
+These are genuinely new capabilities with no direct CDS analogue:
+- Storm Intensity: distribution fitting for storm parameters
+- Storm-Gauge Response: how weather events propagate to gauge readings
+  (the physical equivalent of credit event correlation)
+- Spatial Model: geographic flood propagation via KDTree and IDW interpolation
+  (base correlation = 0.4, distance decay)
+- Flood Classifier: GBM per gauge with 4 log-transformed features
+  (n_estimators=300, max_depth=3, learning_rate=0.05, min_samples_leaf=50)
+  Average AUC: 0.92-0.95. Trained on 1,000 storms per gauge.
+- Storm Multi-Gauge: spatial correlation across gauges during storm events
+- GaugeHD Synthetic: synthetic data generation for gauge hazard distributions
+- Property Flood Response: linking property exposure to gauge behaviour
+  for basis pricing
+
+MODEL DEPENDENCIES (The Stack)
+-------------------------------
+The model stack flows downstream:
+
+  Weather Data (Ch 2)
+      |
+  Storm Intensity (MKM-SI-001) -----> Storm-Gauge Response (MKM-SG-001)
+      |                                        |
+  GEV Hazard Curve (MKM-GH-001) <-------------+
+      |
+  PRS Pricing (MKM-PR-001) -------> Delta Engine (MKM-DE-001)
+      |                                        |
+  Property Flood Response (MKM-PF-001)    P&L / Risk Grid
+      |
+  Depth-Damage (MKM-DD-001) ----------> Mortgage Pricer (MKM-MP-001)
+      |                                        |
+  Spatial Model (MKM-SP-001)          Property Valuation (MKM-PV-001)
+      |
+  Flood Classifier (MKM-FC-001) ----> Stress Pipeline (MKM-ST-001)
+      |
+  Storm Multi-Gauge (MKM-SS-001)
+
+This is the "string of pearls" dependency pattern from Chapter 19. Each model's
+output feeds the next. Governance must operate at both component and system level.
+
+WHAT THIS MEANS FOR A BANK
+----------------------------
+Of 16 models:
+- 5 are reuse (existing bank infrastructure with configuration)
+- 4 are adapt (established mathematics with new calibration)
+- 7 are build (genuinely new, but each is well-defined and bounded)
+
+The "build" models are concentrated in the physical risk science layer -- the
+upstream part of the stack that converts weather/gauge data into hazard rates.
+Once hazard rates are produced, everything downstream (pricing, Greeks, P&L,
+risk management) reuses existing CDS infrastructure.
+
+The PoC provides working implementations of all 16 models, with:
+- Full model documentation (LaTeX/PDF) for each
+- Parameter inventory cataloguing all thresholds, rates, conventions
+- 6,047 automated tests with coverage reporting
+- Model risk ratings and validation status tracking
+- Audit trail for all model changes
+
+A bank adopting PRS inherits this model stack as a starting point, not a
+blank page.

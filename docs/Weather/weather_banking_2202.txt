@@ -1,0 +1,108 @@
+22.2 Pricing Engine Integration
+================================================================
+
+SECTION PURPOSE
+---------------
+Show that PRS pricing reuses the CDS engine with a different hazard rate source.
+Detail the hazard curve construction from gauge data, the QuantLib integration
+path, and the basis waterfall that adjusts index pricing to portfolio-specific risk.
+
+WHAT THE BANK ALREADY HAS
+---------------------------
+- QuantLib CDS pricing engine (or equivalent proprietary library)
+- ISDA standard conventions: Actual/360 day count, TARGET calendar, quarterly
+  schedule, TwentiethIMM date generation, Following business day convention
+- Yield curve infrastructure: construction, interpolation, management
+- Recovery rate framework per asset class
+- Spread sensitivity (CS01/DV01) calculation infrastructure
+
+WHAT PRS ADDS: HAZARD CURVE CONSTRUCTION
+------------------------------------------
+In CDS, hazard rates derive from credit spread curves observed in the market. In
+PRS, hazard rates derive from flood exceedance probabilities fitted to gauge data.
+
+The PoC constructs hazard curves using GEV (Generalised Extreme Value) fitting:
+- Input: Environment Agency annual maximum water level records (30-100+ years)
+- Fitting: GEV parameters (location mu, scale sigma, shape xi) via MLE
+- Standard thresholds: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0] metres
+- Return periods: [2, 5, 10, 20, 50, 100] years
+- Exceedance probability floor: 1% (100-year return period)
+- Term structure: max 5 years for forward curves
+
+The conversion from exceedance probability to CDS-compatible hazard rate:
+  lambda = -ln(1 - annual_exceedance_probability)
+For small probabilities (p < 10%), lambda approximately equals p.
+
+This hazard rate plugs directly into the standard CDS survival curve:
+  S(t) = exp(-lambda x t)
+and from there into the premium and protection leg calculations that any CDS
+engine already implements.
+
+THE BASIS WATERFALL
+-------------------
+Index PRS prices at the gauge level. Portfolio PRS adjusts for property-specific
+risk via a five-component basis waterfall (as implemented in the PoC):
+
+  Component              | Range        | Source
+  -----------------------|-------------|----------------------------------
+  Model uncertainty      | +2bp fixed   | Irreducible model risk
+  Distance to gauge      | +0.5bp/km    | Capped at +6bp (12km max)
+  Elevation difference   | -0.2bp/m     | Capped at -3bp benefit
+  Terrain / flood zone   | -1 to +3bp   | EA flood zone classification
+  Asset composition      | -1 to +2bp   | Property type + construction year
+
+  Example: 55bp index + 2bp model + 3bp distance - 1bp elevation + 2bp terrain
+           + 0bp composition = 61bp portfolio-specific spread
+
+The basis waterfall is analogous to CDS basis adjustments for name-specific risk
+(e.g., CDS-bond basis, liquidity adjustments, recovery rate assumptions).
+
+QUANTLIB INTEGRATION PATH
+---------------------------
+The PoC includes prepared but not yet live QuantLib functions:
+- hazard_points_to_credit_curve(): converts conditional default probabilities to
+  a SurvivalProbabilityCurve using Actual365Fixed, TARGET calendar
+- create_cds_pricing_engines(): returns ISDA, Integral, and Midpoint engines
+- create_hazard_rate_curve_approach(): piecewise constant hazard rates
+
+For production, the integration path is:
+1. GEV hazard curve -> hazard rate term structure
+2. Hazard rates -> QuantLib SurvivalProbabilityCurve
+3. Survival curve + yield curve -> QuantLib CDS pricing engine
+4. Engine produces: fair spread, NPV, premium leg PV, protection leg PV,
+   risky annuity, CS01
+
+This is the same QuantLib call sequence a bank uses for CDS. The only new input
+is the hazard rate source -- flood exceedance rather than credit spread.
+
+RECOVERY RATE CONVENTIONS
+---------------------------
+The PoC uses flood-severity-tiered recovery rates:
+  any_flood (>0m):      R = 0.85
+  moderate (>0.5m):     R = 0.70
+  severe (>1.0m):       R = 0.50
+
+These map to the same recovery rate parameter in CDS pricing -- the (1-R) factor
+in the protection leg. A bank's recovery rate infrastructure handles this without
+modification.
+
+MULTI-YEAR PRICING
+-------------------
+Chapter 14 established the Gumbel-adjusted multi-year accumulation formula:
+  P(event in t years) = 1 - (1 - p x (1 + 0.77 x ln(t)))^t
+
+This produces 75-120% higher multi-year probabilities than simple exponential
+scaling, which is financially material (Chapter 15 showed Reading 5-year: simple
+15.45% vs Gumbel 31.88%). The pricing engine must use the Gumbel-adjusted survival
+curve rather than the naive (1-p)^t approximation for multi-year contracts.
+
+WHAT THIS MEANS FOR INTEGRATION
+---------------------------------
+A bank does not need a new pricing engine for PRS. It needs:
+1. A GEV hazard curve builder that consumes EA gauge data (new, bounded)
+2. A basis waterfall calculator (new, straightforward)
+3. A feed from (1) and (2) into the existing QuantLib CDS engine (configuration)
+4. Multi-year Gumbel adjustment in the survival curve (minor extension)
+
+Total integration effort: a new hazard rate source and a basis adjustment layer
+feeding into an unchanged pricing engine.

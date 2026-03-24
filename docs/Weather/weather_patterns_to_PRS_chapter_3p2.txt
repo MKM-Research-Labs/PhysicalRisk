@@ -1,0 +1,72 @@
+Chapter 3.2: Weather - Stochastic Evolution (pp. 110-116)
+================================================================
+
+CORE THESIS
+-----------
+Given the physics-informed prior from 3.1, this chapter specifies how atmospheric
+states evolve forward in time using a stochastic differential equation (SDE). The
+drift term encodes deterministic atmospheric physics; the diffusion term captures
+irreducible uncertainty from initial condition errors, model approximations, and
+chaotic amplification. Numerical integration via the Euler-Maruyama scheme, repeated
+with different initial conditions and random perturbations, generates the ensemble
+of weather trajectories -- the "cloud of possibilities."
+
+KEY MATHEMATICAL MODELS
+-----------------------
+1. Core SDE
+   - dX(t) = a(X(t), t) dt + b(X(t), t) dW(t)
+   - This is the master equation: deterministic physics plus stochastic uncertainty
+
+2. Drift Term a(X,t) -- The Deterministic Physics
+   - Thermal dynamics: dT/dt = -v.grad(T) - w(dT/dz) + Q/c_p
+   - Pressure gradient forces
+   - Moisture transport
+   - Terrain interactions (orographic forcing)
+   - Combined advection-diffusion: dC/dt = -v.grad(C) + D nabla^2 C
+   - Peclet number Pe = vL/D governs relative importance of advection vs diffusion
+
+3. Diffusion Term b(X,t) dW(t) -- The Uncertainty
+   - W(t) is a Wiener process: E[dW]=0, Var[dW]=dt, independent increments
+   - b(X,t) scales and correlates random fluctuations
+   - Grows with forecast lead time (reflecting chaotic error amplification)
+
+4. Euler-Maruyama Discretization
+   - X_{n+1} = X_n + a(X_n, t_n) Delta_t + b(X_n, t_n) Delta_W_n
+   - Delta_W_n ~ N(0, Delta_t . I)
+   - Milstein's method mentioned for strongly nonlinear regimes
+
+5. Ensemble Generation
+   - Repeated SDE integration with different initial states and random perturbations
+   - Each trajectory is one member of the ensemble
+   - Ensemble spread represents forecast uncertainty
+
+FORWARD REFERENCES
+------------------
+- The SDE provides temporal propagation between Bayesian update cycles in Ch 3.4
+  (the "propagate-update-propagate" loop)
+- The ensemble generated here is the raw material that Ch 3.3 samples efficiently
+  and Ch 3.5 converts into catchment-scale rainfall
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. The SDE is continuous-time; banking systems operate in discrete time (daily P&L,
+   intraday risk reports, regulatory snapshots). Chapter 22 must specify how the
+   continuous ensemble evolution maps to the bank's operational time grid.
+
+2. Model risk: drift and diffusion parameterizations embed meteorological assumptions
+   requiring validation and governance. Who owns the SDE parameters? How often are
+   they recalibrated?
+
+3. What happens when the diffusion term systematically under-predicts ensemble spread
+   (leading to overconfident risk estimates)?
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+STRONGEST POINT OF ALIGNMENT: The SDE ensemble generation is computationally
+analogous to Monte Carlo VaR engines that banks already run for market risk. The
+concept of running thousands of scenarios forward in time is standard practice on
+derivatives desks.
+
+The complication: atmospheric SDEs are much higher-dimensional than typical
+market-risk factor models, and the drift term requires domain-specific meteorological
+knowledge rather than calibration to market prices.

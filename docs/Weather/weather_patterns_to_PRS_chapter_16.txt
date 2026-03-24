@@ -1,0 +1,77 @@
+Chapter 16: Banking Supervisory Capital (pp. 417-436)
+================================================================
+
+CORE THESIS
+-----------
+The Basel three-pillar framework provides the regulatory architecture for PRS, but the
+progression from Pillar 3 disclosure to Pillar 2 capital charges has stalled due to
+fundamental methodological incompatibilities (1-3 year stress horizons vs multi-decade
+physical risks). This impasse creates the opportunity for market-based solutions: PRS
+producing short-term quantifiable risk metrics compatible with existing Pillar 1 frameworks.
+
+PRS are positioned not as a new risk category but as derivatives whose cashflows transmit
+physical risk through existing credit, market, counterparty, and liquidity risk channels --
+aligned with BCBS's view that climate risks are drivers of existing categories.
+
+KEY ARGUMENTS
+-------------
+1. Pillar 3 is operational but Pillar 2 has stalled
+   - EBA ITS made disclosure mandatory; Basel Committee June 2025 became voluntary
+   - Fewer than half include scenario analysis in Pillar 2 processes
+
+2. BCBS 530: 18 principles that PRS satisfies structurally
+   - Climate risks are "risk drivers that materialise through traditional categories"
+
+3. PRS capital treatment maps to existing CDS capital logic
+   - Pillar 1 credit: lower LGD/EL on hedged mortgage book (IRB)
+   - Pillar 1 counterparty/CVA: same as CDS
+   - Pillar 1 market: hazard-rate shocks analogous to spread shocks
+   - Capital relief if credit risk reduction > counterparty + CVA + market risk capital
+
+4. Pillar 2 requires supervisory conditions
+   - Clear gauge-to-portfolio loss mapping
+   - PRS payouts captured in capital projections and stress tests
+   - Robust ISDA documentation, trigger verification
+
+5. IFRS 9 hedge accounting creates practical challenges
+   - Timing mismatch: continuous MTM vs infrequent trigger payouts
+   - Basis risk: gauge triggers vs property-level damage
+   - Designation: fair value hedge vs cash flow hedge
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- Basel III three-pillar framework; BCBS 530 (18 principles)
+- PRS capital formula: relief = delta(credit) - [counterparty + CVA + market]
+- IFRS 9 hedge effectiveness testing
+- EBA ITS disclosure templates (10 templates)
+- Three lines of defence; SR 11-7
+
+FORWARD REFERENCES
+------------------
+- "The same logic that justified capital relief for CDS portfolios can be applied
+  to PRS hedges"
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Demonstrate platform outputs mappable to Pillar 1 capital calculations
+2. Show PRS integration into Pillar 2 ICAAP/stress testing
+3. Support Pillar 3 disclosure generation
+4. Address IFRS 9 hedge accounting challenge
+5. Demonstrate model risk governance compliance (three lines of defence)
+6. Show gauge-to-trigger-to-portfolio mapping robust enough for supervisory acceptance
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+The regulatory validation of the CDS analogy. Capital treatment explicitly mapped:
+counterparty and CVA charges "in exactly the same way as a CDS." Market risk uses
+"hazard-rate shocks analogous to spread shocks." Capital relief logic "mirrors early CDS
+capital trades." Key complication: basis risk between gauge readings and portfolio losses
+(CDS references a specific entity; PRS references a gauge that may not perfectly
+correlate with the hedged exposure).
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: Basel IRB formulas, counterparty risk, CVA, ISDA documentation,
+three lines of defence, Pillar 3 templates -- all exist for CDS
+Novel/new-build: Gauge-to-portfolio loss mapping, IFRS 9 hedge methodology for physical
+triggers, climate Pillar 2 buffer sizing, regulatory acceptance pathway (no precedent)

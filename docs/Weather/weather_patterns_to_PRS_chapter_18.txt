@@ -1,0 +1,84 @@
+Chapter 18: Forward or Backwards? (pp. 463-475)
+================================================================
+
+CORE THESIS
+-----------
+Catastrophe insurance modelling should prioritise OASIS-type approaches -- historical
+weather event catalogues combined with synthetic scenario generation and near-term weather
+forecasting -- over climate model integration. Weather prediction and climate projection
+are fundamentally different scientific endeavours (initial-value vs boundary-value problems)
+and must not be conflated.
+
+The chapter attacks IPCC scenario construction (SSPs/RCPs) as socio-economic narratives
+disconnected from climate physics, arguing the chain from SSP storyline through emissions
+to temperature to circulation to precipitation compounds uncertainties at every link.
+
+KEY ARGUMENTS
+-------------
+1. The temporal disconnect is fundamental, not computational
+   - Weather = initial-value problem (7-14 days, validated against observations)
+   - Climate = boundary-value problem (decades-centuries, cannot be validated until arrival)
+   - The S2S "predictability desert" reflects physical limits, not computational ones
+
+2. Cloud feedback is irreducible uncertainty
+   - Largest source of inter-model spread in climate sensitivity
+   - Models disagree on sign of key cloud feedbacks
+   - Only ~4 decades of satellite observations -- too short for trend detection
+
+3. Historical-synthetic approaches are superior for pricing
+   - Grounded in verified observations with documented loss impacts
+   - Monte Carlo/copula/EVT extensions introduce quantifiable statistical uncertainty
+   - Computationally tractable (10K-100K events, GPU-accelerated, minutes not hours)
+   - Backtesting, spatial correlation verification accessible validation
+
+4. IPCC scenarios are unsuitable for insurance pricing
+   - SSPs are stakeholder-constructed narratives, not physics-constrained projections
+   - Historical scenario performance has been poor
+
+5. Near-term weather has a proper but limited role
+   - Dynamic risk management: temporary defences, early warnings, claims reserves
+   - Must NOT extend to fundamental pricing adjustments
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- OASIS-type historical-synthetic catastrophe modelling
+- Monte Carlo with copula-based dependence; EVT for tail extrapolation
+- Clausius-Clapeyron thermodynamic relationship
+- IPCC SSP/RCP framework (critiqued)
+- Change-point detection and trend analysis
+- Backtesting validation framework
+
+FORWARD REFERENCES
+------------------
+- No explicit reference to Ch 22, but implicitly demands that the integration
+  architecture operationalise historical-synthetic catalogues and near-term forecasts
+  rather than climate model projections
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Show how historical-synthetic event catalogues feed PRS pricing concretely
+2. Demonstrate near-term forecasts connecting to dynamic risk management within PRS
+   operations without contaminating pricing methodology
+3. Show governed pattern-evolution analysis updating event catalogues
+4. Reconcile this chapter's climate-model scepticism with any forward-looking PRS elements
+5. Produce audit trail, backtesting evidence, and transparent documentation
+
+HANDOFF TO CHAPTER 22
+----------------------
+Reader is convinced PRS pricing should rest on historical event catalogues with rigorous
+statistics. They expect this philosophy operationalised as a concrete data pipeline.
+Sceptical of any climate-model-dependent component.
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Strengthens the analogy by constraining PRS to observable events. Just as CDS avoids
+pricing off corporate earnings models and uses market spreads, PRS should use observed
+hazard data, not climate projections. This mirrors how CDS credit events are legal/factual
+determinations based on observable occurrences.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: Historical event catalogues, gauge observations, EVT, Monte Carlo,
+GPU-accelerated simulation
+Novel/new-build: Pattern evolution analysis connecting trend detection to catalogue updates,
+bridge between weather forecast systems and PRS operational risk management

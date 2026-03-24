@@ -1,0 +1,150 @@
+Chapter 2: Weather Data (pp. 53-86)
+================================================================
+
+CORE THESIS
+-----------
+Weather data is the raw material for the entire PRS framework, but banks should NOT
+consume it directly. The chapter provides a comprehensive survey of operational NWP
+systems (HRRR, ECMWF, GFS), their tradeoffs, data formats, and standardisation,
+before concluding that the connection between atmospheric science and credit spreads
+requires a disciplined translation pipeline. Weather data speaks in Kelvin, Pascals,
+and kg/m2/s; banks speak in credit spreads and default probabilities. The purpose of
+subsequent chapters is to bridge these two worlds.
+
+KEY ARGUMENTS
+-------------
+1. Weather vs Climate Distinction
+   - Weather: state of atmosphere at a specific time and place (hours-days)
+   - Climate: statistics of weather variables over 30-year averages
+   - This distinction matters because banks need near-term event distributions
+     (weather-scale), not century-scale climate projections
+
+2. The Three NWP Systems (Hierarchical Approach)
+
+   HRRR (High-Resolution Rapid Refresh):
+   - 3km resolution, hourly updates, convection-allowing
+   - Covers CONUS only, 18-48 hour forecast horizon
+   - ~2 million surface grid points, 50 elevation levels
+   - Assimilates radar data every 15 minutes
+   - Primary data source for the book's flood risk framework
+   - ~100MB per forecast hour in GRIB2 format
+
+   ECMWF (European Centre for Medium-Range Weather Forecasts):
+   - 9km global resolution (TCo1279 cubic octahedral grid)
+   - 137 vertical levels, 10-15 day forecast horizon
+   - 51-member ensemble (ENS) for probabilistic forecasting
+   - 4D-Var data assimilation: 800M observations daily, 60M assimilated
+   - AIFS (AI Forecasting System) went operational Feb 2025
+   - Consistently the most accurate medium-range forecaster globally
+   - Hurricane Sandy 2012: only centre to predict the westward turn
+
+   GFS (Global Forecast System):
+   - 13km global resolution, 16-day forecast horizon
+   - 127 vertical levels, 31-member ensemble (GEFS)
+   - Completely free, unrestricted public access (key differentiator)
+   - Trails ECMWF by ~1-2 days in forecast skill
+   - Strong tropical cyclone track prediction
+   - FV3 dynamical core since 2019
+
+3. The Fundamental NWP Tradeoffs
+   - Resolution vs computational cost (halving grid = 100x compute)
+   - Domain coverage vs spatial detail
+   - Forecast horizon vs update frequency
+   - No single system optimises for all three
+
+4. Data Formats: GRIB2 vs Zarr
+   - GRIB2: traditional standard, ~100MB per file, must download entire domain
+   - Zarr: cloud-optimised, chunked storage, ~40x more efficient for subsetting
+   - Both available via NOAA Big Data Programme on AWS
+   - Zarr enables selective extraction (e.g., 1MB vs 140MB for Alabama temp)
+
+5. AI/ML Weather Prediction
+   - ECMWF AIFS: 10x faster, 1000x less energy than physics-based models
+   - NVIDIA Earth-2/CorrDiff: downscales 25km GEFS to 3km HRRR-equivalent
+   - 1000x faster and 3000x less energy than conventional models
+   - StormCast: ~10% more accurate than operational HRRR for extreme events
+   - Operational adoption: Weather Company, Taiwan CWA, energy companies
+
+6. WMO Standardisation
+   - Universal parameter definitions across all NWP systems globally
+   - 175+ nations, standardised instruments and methods
+   - Enables seamless comparison and integration across systems
+   - Banks can "stand on the shoulders of meteorological giants"
+
+FRAMEWORKS AND STANDARDS INTRODUCED
+------------------------------------
+- WMO standardised atmospheric parameters (temperature, pressure, humidity, wind,
+  precipitation, radiation, surface/boundary layer variables)
+- GRIB2 and Zarr data formats
+- ERA5 Reanalysis (1940-present, 31km, 137 levels)
+- NOAA Big Data Programme (cloud-native access)
+- Herbie Python package (programmatic NWP access via xarray)
+
+THE CRITICAL CLOSING ARGUMENT (pp. 85-86)
+------------------------------------------
+The chapter's most important section for Chapter 22 is the closing: "Weather Data and
+the Banking Risk Architecture Challenge." It makes the explicit argument that:
+
+- Banks should NOT position themselves as consumers of raw weather data
+- The expertise to convert atmospheric forecasts into credit risk metrics (GIS,
+  hydrology, damage assessment, actuarial analysis) falls outside core banking
+  competencies
+- Building infrastructure to ingest weather data streams would burden risk
+  architectures with information that rarely translates directly into actionable
+  risk management decisions
+- "A borrower's creditworthiness changes when their factory floods, not when
+  precipitation rates exceed certain thresholds in GRIB2 files"
+- The connection between weather data and credit spreads is sparse because the
+  causal chain passes through physical damage, business interruption, and financial
+  distress -- intermediate steps that weather models do not directly quantify
+
+This is a crucial framing: it establishes that the translation pipeline (Chapters 3-8)
+is what creates banking-usable outputs from weather data. Banks consume the translated
+outputs, not the raw data.
+
+FORWARD REFERENCES
+------------------
+- "The challenge for risk assessment applications lies in properly combining information
+  across different resolutions, forecast horizons, and uncertainty characterisations --
+  a challenge addressed through the frameworks described in subsequent chapters"
+- ECMWF's 51-member ensemble is "insufficient for robustly estimating low-probability
+  events, necessitating the distribution modelling approaches described in subsequent
+  chapters" -> Chapter 3 (Probabilistic Weather)
+- Closing quote explicitly states the journey through ISDA and FINOS/CDM will bridge
+  weather data and credit spreads, "ultimately arriving at Physical Risk Swaps"
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Chapter 22 does NOT need to show banks ingesting raw weather data. The chapter
+   explicitly argues against this. Instead, Chapter 22 must show banks consuming
+   translated outputs: hazard curves, flood probabilities, PRS spreads.
+
+2. The data standardisation argument (WMO, GRIB2, Zarr) supports the integration
+   thesis: the raw data layer is already standardised and interoperable. The
+   translation pipeline adds CDM standardisation on top.
+
+3. The hierarchical NWP approach (global context -> regional detail -> reanalysis
+   for training) maps to a service architecture where a specialist provider runs
+   the weather-to-flood pipeline and delivers CDM-formatted outputs to banks.
+   This is the same model as Markit providing CDS pricing data -- banks don't
+   run their own credit models from raw corporate filings.
+
+4. ECMWF licensing complexities for commercial/financial product use are flagged
+   as a consideration. GFS's free access removes this barrier. Chapter 22 should
+   note that the data feed for PRS can use freely available sources.
+
+5. The AI acceleration (CorrDiff, AIFS) dramatically reduces the computational
+   cost of high-resolution weather prediction, making the translation pipeline
+   economically viable at scale -- a point Chapter 22 can cite when addressing
+   operational cost concerns.
+
+INTEGRATION COST SIGNALS
+-------------------------
+- Standard: WMO standardisation means weather data is already interoperable
+- Standard: GRIB2/Zarr formats well-supported by open-source tooling
+- Standard: All three NWP systems are operational, validated, and accessible
+- Novel: Banks should NOT build weather data infrastructure -- they need the
+  translation layer (the book's core contribution)
+- Novel: ECMWF licensing may constrain commercial use
+- Key insight: competitive advantage in banking has never been in raw data
+  access but in analytical infrastructure built on top of it

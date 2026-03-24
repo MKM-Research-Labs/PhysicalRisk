@@ -1,0 +1,133 @@
+22.5 Risk and P&L Systems
+================================================================
+
+SECTION PURPOSE
+---------------
+Show that daily mark-to-market, Greeks, P&L decomposition, EOD workflow, and
+close-out settlement for PRS are structurally identical to CDS. Detail the
+DeltaEngine and PnLEngine implementations as evidence.
+
+DAILY MARK-TO-MARKET
+----------------------
+The PoC's DeltaEngine revalues every open PRS position against current hazard rates:
+
+  MTM = (fair_spread - trade_spread) / 10,000 x risky_annuity x notional x direction
+
+Where:
+- fair_spread: current model-implied spread from updated hazard curve
+- trade_spread: the spread at which the trade was executed
+- risky_annuity: Sum(dt x S(t) x DF(t)) over quarterly periods
+- direction: +1 for protection buyer (payer), -1 for protection seller
+
+This is identical to CDS mark-to-market:
+  CDS MTM = (market_spread - trade_spread) / 10,000 x risky_annuity x notional
+
+The only difference is the source of "market spread": in CDS it comes from
+observed market quotes; in PRS it comes from the hazard curve builder. As PRS
+markets develop and traded spreads become available, PRS MTM will converge to
+market-observable pricing -- exactly as CDS evolved.
+
+GREEKS (SENSITIVITIES)
+-----------------------
+The PoC computes two sensitivities per position:
+
+  Gauge FS01 (Flood Spread 01):
+  - Sensitivity to a 1bp parallel shift in the gauge's hazard rate
+  - Computed by bumping: (spread(lambda+1bp) - spread(lambda)) / 10,000
+    x annuity x notional
+  - Analogous to CS01 (Credit Spread 01) in CDS
+
+  Basis DV01:
+  - Sensitivity to a 1bp change in the property-to-gauge basis spread
+  - Under the PoC's constant-basis assumption, basis_dv01 ~ gauge_dv01
+  - Analogous to CDS-bond basis sensitivity
+
+The risk grid aggregates FS01 across gauge x trigger level dimensions, providing
+a portfolio heat map of flood-spread exposure ordered geographically (west to east
+along the catchment). This is structurally identical to a CDS risk grid showing
+CS01 by reference entity x maturity.
+
+P&L DECOMPOSITION
+------------------
+The PoC's PnLEngine decomposes daily P&L into:
+
+  new_trade_pnl:  full MTM if traded today, else 0
+  market_pnl:     today's MTM minus yesterday's MTM (hazard curve moves)
+  daily_pnl:      new_trade + market
+  running_pnl:    cumulative from inception
+  realized_pnl:   final P&L on closed trades
+
+This is the standard P&L attribution used on any derivatives desk:
+- New trade P&L: day-one P&L from trading at off-market levels
+- Market move P&L: P&L from changes in hazard rates (flood risk repricing)
+- Running P&L: inception-to-date cumulative
+
+A bank's existing P&L infrastructure can process PRS P&L in the same format
+it uses for CDS, with "hazard curve move" replacing "credit spread move" as
+the market risk factor.
+
+CLOSE-OUT MECHANICS
+--------------------
+The PoC implements close-out as a reverse trade:
+
+  1. Find original trade by SwapID
+  2. Compute full revaluation MTM at close-out spread:
+     settlement = (closeout_spread - trade_spread) / 10,000 x annuity x notional x direction
+  3. Update trade status to "Closed"
+  4. Save: close_date, close_spread_bps, final_pnl, settlement_amount
+  5. Compute T+2 settlement date (skip weekends)
+  6. Generate close-out confirmation PDF
+  7. New CDM record created with CloseOutOf referencing original SwapID
+
+This mirrors CDS unwind mechanics: bilateral agreement on a close-out spread,
+computation of settlement amount based on the difference from original trade
+spread, T+2 cash settlement.
+
+EOD WORKFLOW
+-------------
+The PoC generates daily EOD snapshots:
+
+  EOD Snapshot:
+  +-- eod_id: "EOD-YYYYMMDD"
+  +-- date: snapshot date
+  +-- market_state_snapshot: hazard rates, yield curve, basis adjustments
+  +-- portfolio_summary: total notional, daily P&L by source, running P&L
+  +-- positions: per-trade detail (fair spread, deltas, MTM, P&L)
+
+  EOD submission triggers:
+  - Revaluation of all open trades at EOD hazard rates
+  - Portfolio P&L summary computation
+  - JSON snapshot saved to eod_dir/
+  - PDF report generated with position detail and P&L time series chart
+
+This EOD process is identical to what a CDS desk runs: end-of-day revaluation,
+P&L sign-off, position reporting, snapshot for regulatory and audit purposes.
+
+FRYE-JACOBS LGD INTEGRATION
+-----------------------------
+Chapter 17 established that physical events create compounding PD-LGD dynamics
+via the Frye-Jacobs model:
+  cLGD = Phi((Phi^-1(EL/PD) - sqrt(rho) x Phi^-1(cDR)) / sqrt(1-rho))
+
+PRS directly addresses this by providing a payout at the point of physical event
+-- before the PD-LGD correlation fully materialises. When computing capital
+relief, the PRS payout reduces conditional LGD:
+  adjusted_LGD = max(0, base_LGD - PRS_recovery_amount / EAD)
+
+This feeds into the capital relief formula from Chapter 16:
+  Capital relief = delta(credit risk capital) - [counterparty + CVA + market risk capital on PRS]
+
+The risk system must integrate PRS payouts into the Frye-Jacobs framework for
+stress scenarios, showing that PRS reduces the compounding PD-LGD effect that
+drives 30-50% of incremental scenario losses.
+
+WHAT THIS MEANS FOR INTEGRATION
+---------------------------------
+Every component of PRS risk management -- MTM, Greeks, P&L decomposition,
+close-out, EOD -- uses the same mathematical operations and data flows as CDS.
+A bank does not need new risk infrastructure for PRS. It needs to:
+1. Add "flood hazard rate" as a new risk factor type (alongside credit spread)
+2. Configure P&L attribution to recognise hazard curve moves
+3. Add PRS positions to existing EOD revaluation batch
+4. Extend the stress testing framework with storm scenarios (section 22.7)
+5. Integrate PRS payouts into Frye-Jacobs LGD calculations for capital relief
