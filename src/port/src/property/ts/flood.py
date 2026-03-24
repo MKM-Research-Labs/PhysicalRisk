@@ -20,23 +20,81 @@ from models.floodrisk.velocity import (
 
 from .constants import N_NEAREST_GAUGES
 from .encoder import DateTimeEncoder
+from .synthetic import SYNTH_PREFIX, create_synthetic_gauge, create_synthetic_gaugets
 
 
 class FloodMixin:
     """Mixin providing flood propagation and property processing methods."""
 
-    def _find_nearest_gauges(self, prop_lat: float, prop_lon: float,
-                              gauge_lookup: Dict, n: int = N_NEAREST_GAUGES
-                              ) -> List[Dict]:
-        """Find the n nearest gauges to a property, with distance info."""
+    def _find_nearest_gauges(
+        self,
+        prop_lat: float,
+        prop_lon: float,
+        gauge_lookup: Dict,
+        gaugets: Optional[Dict] = None,
+        gauge_polyline: Optional[List] = None,
+        n: int = N_NEAREST_GAUGES,
+    ) -> List[Dict]:
+        """
+        Find the n nearest gauges to a property.
+
+        When *gauge_polyline* is provided, a synthetic gauge is created at
+        the nearest point on the river centreline and replaces the most
+        distant of the three gauges.  The two flanking real gauges are
+        always included.
+        """
+        synth_result = None
+        if gauge_polyline and len(gauge_polyline) >= 2:
+            synth_result = create_synthetic_gauge(
+                prop_lat, prop_lon, gauge_lookup, gauge_polyline)
+
+        if synth_result is not None:
+            synth_gauge, ga_id, gb_id, perp_dist, alpha = synth_result
+
+            # Inject synthetic gauge into gauge_lookup for downstream code
+            gauge_lookup[synth_gauge['gauge_id']] = synth_gauge
+
+            # Inject synthetic gaugets if available
+            if gaugets is not None:
+                synth_gt = create_synthetic_gaugets(
+                    alpha, ga_id, gb_id, gaugets)
+                gaugets[synth_gauge['gauge_id']] = synth_gt
+
+            # Build result: 2 flanking real gauges + 1 synthetic
+            result = []
+            for gid in (ga_id, gb_id):
+                ginfo = gauge_lookup[gid]
+                dist = haversine_distance(
+                    prop_lat, prop_lon, ginfo['lat'], ginfo['lon'])
+                result.append({
+                    'gauge_id': gid,
+                    'distance_m': dist,
+                    'gauge_info': ginfo,
+                })
+
+            result.append({
+                'gauge_id': synth_gauge['gauge_id'],
+                'distance_m': perp_dist,
+                'gauge_info': synth_gauge,
+                'is_synthetic': True,
+                'alpha': alpha,
+                'flanking_gauges': [ga_id, gb_id],
+            })
+
+            # Sort so closest gauge is first (synthetic will typically be closest)
+            result.sort(key=lambda x: x['distance_m'])
+            return result
+
+        # Fallback: original haversine 3-nearest approach
         distances = []
         for gid, ginfo in gauge_lookup.items():
+            if gid.startswith(SYNTH_PREFIX):
+                continue
             dist = haversine_distance(prop_lat, prop_lon, ginfo['lat'], ginfo['lon'])
             distances.append((gid, dist, ginfo))
         distances.sort(key=lambda x: x[1])
         result = []
         for gid, dist, ginfo in distances[:n]:
-            slope = compute_slope(ginfo['elevation'], 0, dist)  # placeholder, real elev below
             result.append({
                 'gauge_id': gid,
                 'distance_m': dist,
@@ -66,7 +124,10 @@ class FloodMixin:
         if not prop_id or prop_lat == 0:
             return None
 
-        nearest = self._find_nearest_gauges(prop_lat, prop_lon, gauge_lookup)
+        gauge_polyline = getattr(self, '_gauge_polyline', None)
+        nearest = self._find_nearest_gauges(
+            prop_lat, prop_lon, gauge_lookup,
+            gaugets=gaugets, gauge_polyline=gauge_polyline)
         if not nearest:
             return None
 
@@ -141,11 +202,7 @@ class FloodMixin:
             'construction_year': attrs.get('ConstructionYear', 2000),
             'property_period': attrs.get('PropertyPeriod', '2000-2008'),
             'nearest_gauges': [
-                {
-                    'gauge_id': ng['gauge_id'],
-                    'distance_m': round(ng['distance_m'], 1),
-                    'gauge_elevation_m': round(ng['gauge_info']['elevation'], 2),
-                }
+                self._nearest_gauge_entry(ng)
                 for ng in nearest
             ],
             'flood_events': flood_events,
@@ -284,6 +341,20 @@ class FloodMixin:
             event['readings'] = readings
 
         return event
+
+    @staticmethod
+    def _nearest_gauge_entry(ng: Dict) -> Dict:
+        """Build a nearest_gauge dict for propertyts JSON output."""
+        entry = {
+            'gauge_id': ng['gauge_id'],
+            'distance_m': round(ng['distance_m'], 1),
+            'gauge_elevation_m': round(ng['gauge_info']['elevation'], 2),
+        }
+        if ng.get('is_synthetic'):
+            entry['is_synthetic'] = True
+            entry['alpha'] = round(ng['alpha'], 6)
+            entry['flanking_gauges'] = ng['flanking_gauges']
+        return entry
 
     @staticmethod
     def _depth_to_damage(depth: float) -> float:
