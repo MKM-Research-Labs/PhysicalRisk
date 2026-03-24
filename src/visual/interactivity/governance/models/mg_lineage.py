@@ -133,27 +133,109 @@ function _drawLineagePanel(data) {
     // Trace search
     html += '<div style="font-size:11px;font-weight:600;color:#555;margin:24px 0 8px;">Provenance Trace</div>';
     html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">';
-    html += '<select id="lineage-trace-type" style="padding:5px 8px;font-size:11px;border:1px solid #ddd;border-radius:4px;">';
+    html += '<select id="lineage-trace-type" onchange="window._lineagePopulateIds()" style="padding:5px 8px;font-size:11px;border:1px solid #ddd;border-radius:4px;">';
     html += '<option value="gauge">Gauge</option>';
     html += '<option value="property">Property</option>';
     html += '<option value="trade">Trade (PRS)</option>';
     html += '<option value="counterparty">Counterparty</option>';
     html += '</select>';
-    html += '<input id="lineage-trace-id" type="text" placeholder="e.g. GAUGE-clf001" style="flex:1;padding:5px 8px;font-size:11px;border:1px solid #ddd;border-radius:4px;" />';
+    html += '<select id="lineage-trace-id" style="flex:1;padding:5px 8px;font-size:11px;border:1px solid #ddd;border-radius:4px;">';
+    html += '<option value="">Loading...</option>';
+    html += '</select>';
     html += '<button onclick="window._lineageTrace()" style="padding:5px 14px;font-size:11px;font-weight:600;border:1px solid #1976d2;border-radius:4px;background:#1976d2;color:white;cursor:pointer;">Trace</button>';
     html += '</div>';
     html += '<div id="lineage-trace-result"></div>';
+
+    // Populate the ID dropdown on first render
+    setTimeout(function() { window._lineagePopulateIds(); }, 100);
 
     html += '</div>';
     content.innerHTML = html;
 }
 
+// Cache for entity ID lists (avoid re-fetching on each type switch)
+var _lineageIdCache = {};
+
+window._lineagePopulateIds = function() {
+    var typeSelect = document.getElementById('lineage-trace-type');
+    var idSelect = document.getElementById('lineage-trace-id');
+    if (!typeSelect || !idSelect) return;
+    var dataType = typeSelect.value;
+
+    // Return cached if available
+    if (_lineageIdCache[dataType]) {
+        _lineageRenderIdOptions(idSelect, _lineageIdCache[dataType]);
+        return;
+    }
+
+    idSelect.innerHTML = '<option value="">Loading...</option>';
+    var baseUrl = getBaseUrl();
+
+    // Fetch entity list based on type
+    var url;
+    if (dataType === 'gauge') url = baseUrl + '/api/v1/gauges';
+    else if (dataType === 'property') url = baseUrl + '/api/v1/properties';
+    else if (dataType === 'trade') url = baseUrl + '/api/v1/trading/blotter';
+    else if (dataType === 'counterparty') url = baseUrl + '/api/v1/counterparties';
+    else { idSelect.innerHTML = '<option value="">Select type first</option>'; return; }
+
+    fetch(url, {mode: 'cors'})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var items = [];
+            if (dataType === 'gauge') {
+                (data.gauges || data.flood_gauges || []).forEach(function(g) {
+                    var fg = g.FloodGauge || g;
+                    var hdr = (fg.Header || fg.header || g);
+                    var id = hdr.GaugeID || hdr.gauge_id || g.gauge_id || '';
+                    var name = hdr.GaugeName || hdr.gauge_name || hdr.name || '';
+                    if (id) items.push({id: id, label: name ? id + ' — ' + name : id});
+                });
+            } else if (dataType === 'property') {
+                (data.properties || []).forEach(function(p) {
+                    var hdr = (p.PropertyHeader || {}).Header || p.Header || p;
+                    var id = hdr.PropertyID || hdr.property_id || '';
+                    var addr = (p.PropertyHeader || {}).Location || {};
+                    var label = addr.Street || addr.AddressLine1 || '';
+                    if (id) items.push({id: id, label: label ? id + ' — ' + label : id});
+                });
+            } else if (dataType === 'trade') {
+                (data.trades || []).forEach(function(t) {
+                    var id = t.swap_id || t.SwapID || '';
+                    var gauge = t.gauge_name || t.gauge_id || '';
+                    if (id) items.push({id: id, label: gauge ? id + ' — ' + gauge : id});
+                });
+            } else if (dataType === 'counterparty') {
+                (data.counterparties || []).forEach(function(c) {
+                    var id = c.counterparty_id || '';
+                    var name = c.short_name || c.name || '';
+                    if (id) items.push({id: id, label: name ? id + ' — ' + name : id});
+                });
+            }
+            items.sort(function(a, b) { return a.label.localeCompare(b.label); });
+            _lineageIdCache[dataType] = items;
+            _lineageRenderIdOptions(idSelect, items);
+        })
+        .catch(function() {
+            idSelect.innerHTML = '<option value="">Failed to load</option>';
+        });
+};
+
+function _lineageRenderIdOptions(selectEl, items) {
+    var html = '<option value="">— Select (' + items.length + ') —</option>';
+    items.forEach(function(item) {
+        html += '<option value="' + item.id + '">' + item.label + '</option>';
+    });
+    selectEl.innerHTML = html;
+}
+
 window._lineageTrace = function() {
     var dataType = document.getElementById('lineage-trace-type').value;
-    var dataId = document.getElementById('lineage-trace-id').value.trim();
+    var idSelect = document.getElementById('lineage-trace-id');
+    var dataId = idSelect ? idSelect.value : '';
     var resultDiv = document.getElementById('lineage-trace-result');
     if (!dataId) {
-        resultDiv.innerHTML = '<div style="font-size:11px;color:#f44336;">Please enter an ID to trace.</div>';
+        resultDiv.innerHTML = '<div style="font-size:11px;color:#f44336;">Please select an entity to trace.</div>';
         return;
     }
     resultDiv.innerHTML = '<div style="font-size:11px;color:#888;">Tracing...</div>';
