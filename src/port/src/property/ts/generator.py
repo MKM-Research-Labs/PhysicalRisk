@@ -96,12 +96,6 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
                 'severe_level': flood_stage.get('SevereFloodWarning', 0),
             }
 
-        # Build ordered gauge polyline from catchment params for
-        # synthetic gauge creation.  Each entry is (lat, lon, elev, gauge_id).
-        self._gauge_polyline = self._build_gauge_polyline(gauge_lookup)
-        if self._gauge_polyline:
-            self.log(f"Gauge polyline: {len(self._gauge_polyline)} points")
-
         pts_dir = self.output_dir / 'propertyts'
         pts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -188,39 +182,3 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
         }, context="IDW spatial interpolation batch complete")
 
         return summary_stats
-
-    def _build_gauge_polyline(self, gauge_lookup: Dict) -> list:
-        """
-        Build an ordered gauge polyline from catchment GAUGE_POINTS.
-
-        Matches each catchment point (lat, lon, elev) to a gauge_id in
-        gauge_lookup by closest lat/lon.  Returns list of
-        (lat, lon, elevation, gauge_id) tuples, or empty list if
-        GAUGE_POINTS is not available.
-        """
-        from models.floodrisk.spatial import haversine_distance
-
-        params = config.load_params_module()
-        gauge_points = getattr(params, 'GAUGE_POINTS',
-                               getattr(params, 'GAUGEPOINTS', None))
-        if not gauge_points or len(gauge_points) < 2:
-            return []
-
-        polyline = []
-        for pt in gauge_points:
-            pt_lat, pt_lon = pt[0], pt[1]
-            pt_elev = pt[2] if len(pt) > 2 else 0.0
-
-            # Find the gauge_id whose lat/lon is closest to this point
-            best_gid = None
-            best_dist = float('inf')
-            for gid, ginfo in gauge_lookup.items():
-                d = haversine_distance(pt_lat, pt_lon, ginfo['lat'], ginfo['lon'])
-                if d < best_dist:
-                    best_dist = d
-                    best_gid = gid
-
-            if best_gid is not None and best_dist < 500:  # within 500m
-                polyline.append((pt_lat, pt_lon, pt_elev, best_gid))
-
-        return polyline
