@@ -103,7 +103,7 @@ def synth_env(tmp_path, monkeypatch):
     mock_params.GAUGE_POINTS = GAUGE_POINTS
     del mock_params.GAUGEPOINTS  # avoid attribute clash
 
-    import config.config as cfg
+    from config import config as cfg
     monkeypatch.setattr(cfg, "load_params_module", lambda: mock_params)
     monkeypatch.setattr(cfg, "CATCHMENT", "thames")
 
