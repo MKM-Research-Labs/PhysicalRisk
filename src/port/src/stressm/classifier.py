@@ -107,6 +107,7 @@ def train_gauge_stressm_classifier(
     target_spatial_index: int,
     output_dir: Path,
     rng,
+    classifiers_dir: Path = None,
 ) -> dict:
     """
     Train a GBM flood classifier for one gauge using compound 168h hydrographs.
@@ -148,7 +149,7 @@ def train_gauge_stressm_classifier(
         severe_warning=severe_l,
     )
 
-    stressm_dir = output_dir / "stressm"
+    stressm_dir = classifiers_dir if classifiers_dir else output_dir / "stressm"
     stressm_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n  Training multi-storm GBM classifier for {gid}...", flush=True)
