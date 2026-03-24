@@ -1,0 +1,82 @@
+Chapter 8.1: From Hazard to Damage (pp. 273-293)
+================================================================
+
+CORE THESIS
+-----------
+Physical flood hazard becomes useful for banking only when translated through a
+transparent, auditable chain into asset-level damage distributions and portfolio-level
+loss tails. The chapter builds this chain: hazard curves describing frequency and
+intensity, vulnerability/damage functions converting intensities into loss distributions,
+and spatial clustering dynamics turning independent asset risks into correlated portfolio
+losses with fat tails.
+
+Hazard curves are positioned as the natural analogue of hazard rates in a CDS framework,
+explicitly stated as feeding into expected loss and tail loss calculations in
+mathematically familiar form.
+
+KEY ARGUMENTS
+-------------
+1. Hazard curves are the interface between flood models and banking risk engines
+   - Exceedance probability: P(X^h_t >= 1) = 1 - e^(-t/tau)
+   - Translate "1-in-X-year" into continuous probability distributions
+   - OS-Climate/FINOS framework constructs from WRI Aqueduct and regional datasets
+
+2. Vulnerability curves complete the hazard-to-damage translation
+   - Conditional probability f_{D|S}(d,s) maps intensity to damage distribution
+   - Effective impact: f_D(d) = integral of f_S(s) * f_{D|S}(d,s) ds
+   - Approaches: expert-derived, statistical (Random Forest), parametric (Beta)
+
+3. Uncertainty is structured, not monolithic
+   - Aleatory: irreducible variability (two identical buildings, same depth, different damage)
+   - Epistemic: reducible through data (building characteristics, calibration gaps)
+
+4. Property clustering creates correlated, fat-tailed portfolio losses
+   - Properties within ~1000m share strongly correlated impacts
+   - Shared infrastructure creates systemic vulnerability amplification
+   - Market contagion: 10-50% post-flood discounts, 4-7 year recovery
+   - 95% VaR for concentrated portfolio can be 2-3x higher than diversified
+
+5. Credit impact metrics are the entry points for physical risk into banking
+   - PD: income disruption, expense increase -> higher defaults
+   - LGD: collateral damage, insurance withdrawal -> lower recoveries
+   - EAD: drawdown of undrawn lines -> higher exposure at default
+   - RWA/CET1: systematic shifts in PD/LGD/EAD -> higher capital
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- Hazard curve: P(X^h_t >= 1) = 1 - e^(-t/tau)
+- Vulnerability curve: f_{D|S}(d,s) conditional probability density
+- Beta distribution for parametric vulnerability (OS-Climate)
+- OS-Climate/FINOS physrisk engine; WRI Aqueduct
+- Basel III: PD, LGD, EAD, RWA, CET1; IFRS 9 provisioning
+
+FORWARD REFERENCES
+------------------
+- Hazard curves described as "the natural analogue of hazard rates in a CDS framework"
+- Can be "re-expressed in the same hazard-rate language used for CDS"
+- Next chapter builds directly on this to translate damage into PD/LGD/EAD/capital
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Show how hazard curves feed PRS spread calculation in CDS-compatible language
+2. Demonstrate how portfolio loss tails (VaR, ES) inform PRS attachment/detachment
+3. Address basis risk between parametric trigger and actual correlated portfolio loss
+4. Show how aleatory/epistemic uncertainty propagates into PRS pricing bands
+5. Explain how PRS hedges the LGD channel specifically (collateral damage)
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Strongest direct support so far. Hazard curves are explicitly described as analogous to
+CDS hazard rates. Exceedance probability formulas mirror default probability term
+structures. The chain hazard -> vulnerability -> damage -> portfolio loss parallels
+reference entity -> recovery rate -> loss distribution -> portfolio CDS pricing.
+
+Complication: spatial correlation and clustering effects (~1000m correlation distance)
+introduce a geographic dimension that standard CDS models don't handle.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: Hazard curve construction (open-source), exceedance probability
+math (identical to credit survival analysis), PD/LGD/EAD/RWA framework, VaR/ES
+Novel/new-build: Vulnerability curve calibration per asset type, spatial correlation
+matrices, epistemic/aleatory uncertainty propagation, market stigma modelling for LGD

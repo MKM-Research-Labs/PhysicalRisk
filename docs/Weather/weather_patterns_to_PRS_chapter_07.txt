@@ -1,0 +1,73 @@
+Chapter 7: Flood Risk Assessment (pp. 238-272)
+================================================================
+
+CORE THESIS
+-----------
+Flood risk assessment is the analytical layer bridging raw hydrological modelling and
+financial decision-making. Flood risk is the product of hazard probability and
+vulnerability/consequence, decomposed into four stacked layers -- hazard, exposure,
+vulnerability, and decision/pricing -- before it becomes useful for banking.
+
+The chapter makes an explicit case that flood risk assessment only becomes "decision-useful"
+when mapped to banking levers: loan origination, collateral valuation, portfolio
+concentration limits, and PRS hedge design. The chain hazard -> property risk score ->
+loan term <-> PRS hedge is stated directly as the organising logic.
+
+KEY ARGUMENTS
+-------------
+1. Flood classification must go beyond source-based categories
+   - Multi-parameter, compound-event, and infrastructure-failure classifications needed
+   - Compound events (e.g., Hurricane Harvey) create amplified impacts
+
+2. Regulatory frameworks create standardised hazard layers
+   - EU Floods Directive, US NFIP, UK Flood Re, Australian ARR Guidelines
+   - UK Hazard Rating: HR = d x (v + 0.5) + DF
+
+3. Property positioning analysis translates hazard into site-specific exposure
+   - Five-step workflow producing a 0-100 exposure index
+   - Plugs directly into loss models, pricing tools, and portfolio dashboards
+
+4. Environmental resilience factors (wetlands, forests, soil) modify depth-damage curves
+   - Nature-based solutions can link to PRS coupons (green bond KPI analogy)
+
+5. Property-specific resilience scoring completes the chain
+   - Structural vulnerability and adaptation measures are scorable
+   - Flood Performance Certificates close the information gap for risk-based pricing
+
+6. From assessment to transaction: analytical layers feed into portfolio loss curves,
+   then PRS trigger metrics and attachment points
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- UK Hazard Rating: HR = d x (v + 0.5) + DF
+- EU Floods Directive (2007/60/EC), US NFIP, UK Flood Re
+- Exposure index (0-100) from five-step positioning workflow
+- Multi-criteria resilience scoring and Flood Performance Certificates
+
+FORWARD REFERENCES
+------------------
+- "Hazard -> property risk score -> loan term <-> PRS hedge" prepares reader for
+  structuring chapters
+- PRS coupons conditional on nature-based solutions anticipated
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Show how exposure index and resilience scores become PRS trigger/attachment inputs
+2. Define how PRS coupons can be conditional on resilience measures
+3. Explain how standardised indices enable scaling PRS from bespoke to programmatic
+4. Address PRS tranching for resilient vs high-risk sub-portfolios
+5. Connect five-step positioning workflow to PRS pricing engine data feeds
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Hazard -> exposure -> vulnerability -> pricing parallels credit event -> recovery rate ->
+spread calculation. The 0-100 exposure index is analogous to a credit score feeding a
+CDS spread model. Compound-event complexity goes beyond single-name CDS, and Ch 22
+must reconcile this with simpler trigger mechanics.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: National hazard maps (free), LiDAR DEMs, regulatory flood zones,
+multi-criteria scoring (parallels credit rating)
+Novel/new-build: 0-100 exposure index pipeline, Flood Performance Certificates,
+PRS coupon conditionality on resilience, CDM fields for resilience measures

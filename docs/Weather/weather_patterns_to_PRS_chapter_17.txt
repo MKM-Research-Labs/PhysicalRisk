@@ -1,0 +1,87 @@
+Chapter 17: Climate Stress Testing (pp. 437-462)
+================================================================
+
+CORE THESIS
+-----------
+The climate stress testing landscape is fragmented across dozens of institutions, but two
+specific contributions are operationally useful: the UNEP FI credit risk methodology
+(representative borrower approach, climate credit quality index) and the Frye-Jacobs LGD
+model. Frye-Jacobs is the centrepiece: it derives scenario-conditional LGD from through-
+the-cycle parameters already maintained for Basel IRB compliance.
+
+The core insight: physical climate events generate conditions where PD and LGD move
+together most severely. Flooding simultaneously impairs creditworthiness AND destroys
+collateral, while insurance gaps transfer losses to lenders. LGD adjustments typically
+contribute 30-50% of incremental scenario losses beyond PD-only models.
+
+KEY ARGUMENTS
+-------------
+1. Institutional landscape is specialised but creates implementation burden
+   - FSB coordinates; NGFS develops scenarios; UNEP FI provides credit methodology
+   - Banks must build reusable components, not parallel processes per framework
+
+2. UNEP FI bridges climate scenarios to credit risk
+   - Representative borrower approach; climate credit quality index
+   - Scenario-adjusted PD = Phi(Phi^-1(TTC_PD) + beta*Phi^-1(rho*Climate_Index))
+
+3. Traditional LGD treatment is doubly inadequate for physical climate risk
+   - 2008 crisis was demand collapse, not physical destruction
+   - Katrina: recovery rates below 30% in worst areas
+   - Thailand 2011: commercial recovery 20-30 cents on the pound
+
+4. Frye-Jacobs provides systematic PD-LGD link
+   - cLGD = Phi((Phi^-1(EL/PD) - sqrt(rho)*Phi^-1(cDR)) / sqrt(1-rho))
+   - Uses only Basel IRB parameters (PD, ELGD, rho)
+   - Worked example: coastal mortgage portfolio, baseline PD=1.5%, ELGD=25%,
+     rho=15%. Flood scenario cPD=8% -> cLGD=43% (72% increase from 25% baseline)
+     ECL jumps from 2.0% to 3.4% of exposure
+
+5. Physical events amplify PD-LGD correlation through unique channels
+   - Simultaneous collateral destruction, insurance gaps, secondary market evaporation
+   - Persistent: flood-affected properties show impaired recovery for 3-5 years
+
+6. Validation requires alternative approaches since backtesting is impossible
+   - Theoretical soundness, parameter reasonableness, historical benchmarking
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- Frye-Jacobs: cLGD = Phi((Phi^-1(EL/PD) - sqrt(rho)*Phi^-1(cDR)) / sqrt(1-rho))
+- LGD Risk Index: k = (Phi^-1(EL) - sqrt(rho)*Phi^-1(PD)) / sqrt(1-rho)
+- UNEP FI Climate Credit Quality Index
+- Basel IRB asset correlation formula
+- ECL = Conditional_PD x Conditional_LGD x EAD
+
+FORWARD REFERENCES
+------------------
+- Frye-Jacobs-adjusted loss projections integrate into capital planning frameworks
+- UNEP FI methodology "established the foundation upon which subsequent developments
+  have built"
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Implement Frye-Jacobs in the platform (Basel IRB inputs -> conditional LGD)
+2. Show how conditional PD from hazard chain feeds into Frye-Jacobs
+3. Demonstrate capital impact: ECL = cPD x cLGD x EAD (materiality of LGD adjustment)
+4. Handle geographic data challenge: facility-level geocoding linked to hazard databases
+5. Address validation framework: benchmarking against Katrina, Queensland, Thailand
+6. Integrate PRS as mitigation: PRS payouts reducing conditional LGD
+7. Model insurance gap impact on baseline ELGD
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Provides loss-modelling justification for PRS. Frye-Jacobs shows physical events create
+compounding PD-LGD dynamics unmanageable through traditional credit tools. PRS directly
+addresses this by providing payout at point of physical event -- before PD-LGD correlation
+fully materialises. Analogous to how CDS provides recovery certainty at credit event,
+preventing workout uncertainty.
+
+Complication: CDS pays based on actual credit event of reference entity; PRS pays on
+gauge trigger that may not perfectly correlate with borrower's actual loss (basis risk).
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: Frye-Jacobs function (single formula, standard normal CDF/inverse),
+Basel IRB parameters, Vasicek portfolio model, ECL framework -- all exist in Basel banks
+Novel/new-build: Physical hazard-to-conditional-PD transmission chain, facility-level
+geocoding, insurance coverage modelling in LGD, climate validation methodology,
+PRS payout integration into Frye-Jacobs recovery calculation

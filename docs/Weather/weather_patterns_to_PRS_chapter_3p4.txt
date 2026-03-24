@@ -1,0 +1,98 @@
+Chapter 3.4: Weather - Bayesian Update Cycle (pp. 126-132)
+================================================================
+
+CORE THESIS
+-----------
+This chapter formalizes the mechanism that transforms the static ensemble into a
+"living distribution." As new observations arrive (surface stations, radar,
+radiosondes, satellites), Bayes' theorem adjusts the distribution: scenarios
+consistent with data gain weight, inconsistent ones lose weight. The Ensemble
+Kalman Filter (EnKF) provides a computationally tractable approximation, scaling
+linearly with ensemble size O(nN) rather than cubically with state dimension O(n^3).
+The propagate-update cycle runs continuously, with the posterior from each cycle
+becoming the prior for the next.
+
+KEY MATHEMATICAL MODELS
+-----------------------
+1. Bayes' Theorem (Core)
+   - p(theta|y) proportional to p(y|theta) x p(theta)
+   - p(theta|y) = [p(y|theta) x p(theta)] / integral p(y|theta) p(theta) d_theta
+
+2. Observation Operator
+   - H: X -> y_predicted, mapping state vector to what sensors would measure
+   - Different for each sensor type (surface stations, radar, satellites)
+   - Satellite operators involve complex radiative transfer calculations
+
+3. Likelihood Function
+   - p(y|theta) = N(y | H(X), R)
+   - R = observation error covariance (instrument precision + representativeness
+     errors + forward model errors)
+
+4. Ensemble Kalman Filter (EnKF)
+   - Kalman gain: K = P^f H^T (H P^f H^T + R)^{-1}
+   - P^f = forecast error covariance estimated from ensemble spread
+   - Update: X_i^a = X_i^f + K(y + epsilon_i - H(X_i^f))
+   - epsilon_i = perturbed observations maintaining ensemble spread
+   - Posterior covariance: P^a = (I - KH) P^f
+   - Computational scaling: O(nN) where n=state dim, N=ensemble size
+
+5. Temporal Propagation Between Updates
+   - Uses SDE from Ch 3.2: dX(t) = a(X,t) dt + b(X,t) dW(t)
+   - Between observation times, ensemble members evolve under physics + uncertainty
+
+6. Adaptive Ensemble Management
+   - Inflation: (X_i - X_bar) -> (1 + alpha)(X_i - X_bar), alpha in [0.05, 0.20]
+     Prevents ensemble collapse (underestimation of uncertainty)
+   - Localization: limits observation influence to 200-500 km
+     Suppresses spurious long-range correlations from finite ensemble size
+
+7. The Continuous Update Cycle
+   - Update -> Propagate -> Update -> Propagate -> ... (sequential filtering)
+   - Runs at cadence of incoming observations (hourly or more frequent)
+   - Posterior always becomes next prior
+
+FORWARD REFERENCES
+------------------
+- Dynamically updated scenario weights consumed by Ch 3.5 for exceedance
+  probability curves and IDF statistics
+- The "living distribution" is the central promise that trading (PRS pricing) and
+  risk management chapters depend on
+- Without continuous Bayesian updating, the entire real-time hedging proposition
+  collapses
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+This is perhaps the MOST demanding chapter for Chapter 22. The Bayesian update
+cycle is inherently continuous and real-time. Chapter 22 must specify:
+
+1. How does the bank's risk reporting infrastructure consume a distribution that
+   changes hourly?
+
+2. How do regulatory capital calculations (inherently point-in-time) interact with
+   a continuously updating distribution?
+
+3. What happens when the update cycle fails (ensemble collapse, divergence, data
+   feed dropout)? How does the system degrade gracefully?
+
+4. Audit trail: regulators will want to see the history of prior-to-posterior
+   transitions and understand why risk estimates changed
+
+5. Operational resilience requirements for a system that must run continuously
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Conceptually analogous to mark-to-market on a CDS portfolio -- both involve
+continuously updating valuations as new information arrives.
+
+BUT: CDS MTM consumes a single observable (spread); the EnKF consumes
+high-dimensional observational vectors from heterogeneous sources. The operational
+complexity is orders of magnitude greater.
+
+The chapter's claim that banking risk systems can respond to weather with the same
+agility as trading desks respond to market news is aspirational. Market data arrives
+as clean price ticks; weather data arrives as spatially distributed, multi-modal
+sensor readings requiring complex observation operators.
+
+The EnKF is battle-tested in meteorology but deploying it within a bank's IT
+infrastructure (with banking-grade latency, availability, and audit requirements)
+is a substantial engineering challenge.

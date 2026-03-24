@@ -1,0 +1,76 @@
+Chapter 12: Credit Default Swaps (pp. 372-383)
+================================================================
+
+CORE THESIS
+-----------
+The CDS market's thirty-year evolution -- from JPMorgan's 1994 capital relief innovation
+through the $62.2T peak, the 2008 crisis, and comprehensive post-crisis reform -- is
+presented not as history but as a proven template PRS must follow. Every piece of CDS
+infrastructure is catalogued and declared available for PRS reuse. The critical lesson:
+PRS can skip the crisis phase entirely by adopting mature infrastructure from day one.
+
+KEY ARGUMENTS
+-------------
+1. Origin as capital relief tool: JPMorgan's 1994 CDS transferred Exxon credit risk to
+   EBRD, freeing $384M in Basel I capital. BISTRO (1997) scaled to $9.7B portfolio
+   coverage. Capital relief is the same driver for PRS adoption by mortgage lenders.
+
+2. Growth outpaced infrastructure: $632B to $62.2T (2001-2007). Confirmation backlogs
+   hit 21 business days. PRS must launch with infrastructure, not add it later.
+
+3. Markit as pricing/reference infrastructure: RED codes (6-digit entity, 9-digit pair),
+   ~2,200 priced entities, CDX/iTraxx index administration with semi-annual rolls.
+   PRS equivalent: gauge reference database, PRS pricing data, physical risk indices.
+
+4. ISDA legal standardisation: 2003 Definitions, Big Bang Protocol (March 2009):
+   auction settlement hardwiring, Determination Committees (10 dealers + 5 buy-side),
+   fixed coupons (100bp IG / 500bp HY), quarterly IMM dates (20th Mar/Jun/Sep/Dec),
+   60-day credit event lookback, 90-day succession lookback. 2014 Definitions:
+   Senior/Sub split, Asset Package Delivery, Universal Successor.
+
+5. Central clearing: ICE Clear Credit (March 2009), LCH CDSClear. 75-80% now cleared.
+   ICE processed $1.1T in single day (Sept 2024).
+
+6. Compression: TriOptima eliminated $524T+ by 2015. Lehman auction: $400B gross to
+   $5.2B net (recovery 8.625%). Market: $62.2T to ~$9.3T through compression.
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- CDS pricing: premium leg vs protection leg, par spread
+- Big Bang Protocol: 100bp/500bp coupons, IMM dates, auction settlement, DCs
+- Markit RED codes, CDX/iTraxx indices
+- ICE Clear Credit / LCH CDSClear
+- TriOptima triReduce compression
+- ISDA 2003 and 2014 Credit Derivatives Definitions
+- DTCC Trade Information Warehouse
+
+FORWARD REFERENCES
+------------------
+- "PRS adopts identical pricing mechanics -- hazard rates, survival probabilities,
+  premium and protection legs -- enabling banks to process flood risk using existing
+  credit risk systems"
+- "The legal framework established by ISDA extends naturally to physical risk triggers.
+  The CDM provides data standardisation. Central clearing stands ready."
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Specify PRS equivalents for every CDS infrastructure component: gauge reference DB,
+   pricing agent, Determination Committee, ISDA definitions, clearing criteria
+2. Define fixed coupon conventions for PRS and standard payment dates
+3. Address whether PRS positions can be compressed like credit positions
+4. Show capital relief calculation: PRS reducing mortgage portfolio regulatory capital
+5. Address Determination Committee structure (though PRS triggers are more objective)
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+This chapter IS the analogy. Written specifically to catalogue CDS infrastructure and
+declare it available for PRS. PRS has a structural advantage: can launch with mature
+infrastructure. Gauge-based triggers (binary, verifiable) are simpler than CDS credit
+event determination (subjective Determination Committee adjudication for restructuring).
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: ISDA Master Agreement, DTCC TIW, ICE/LCH clearing, TriOptima
+compression, IMM dates, fixed coupons, DCs, margin/collateral frameworks
+Novel/new-build: Gauge reference entity database, PRS pricing data service,
+physical risk ISDA definitions, PRS index construction, trigger verification protocols

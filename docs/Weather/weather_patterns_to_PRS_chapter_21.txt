@@ -1,0 +1,106 @@
+Chapter 21: Banking Interoperability (pp. 502-511)
+================================================================
+
+CORE THESIS
+-----------
+Before PRS can function as a market instrument, a fundamental technical prerequisite
+must be satisfied: banking desktop applications must communicate through standardised
+protocols. FDC3 (Financial Desktop Connectivity and Collaboration Consortium), governed
+under FINOS, provides this infrastructure. Combined with CDM for data semantics and
+TraderX as reference implementation, FDC3 creates a complete open-source stack.
+
+The chapter documents concrete industry adoption and explicitly hands off to Chapter 22
+with a specific promise about "Phase 6."
+
+KEY ARGUMENTS
+-------------
+1. Application silos are the fundamental barrier
+   - N applications require N(N-1)/2 bilateral integrations (125,000 for 500 apps)
+   - Physical risk requires orchestrating weather, hydrology, property, mortgage,
+     and credit risk systems
+   - FDC3 transforms quadratic scaling to hub-and-spoke
+
+2. FDC3 five-component architecture
+   - Desktop Agent: central router maintaining application state
+   - Intents: standardised verbs (ViewChart, ViewQuote, ViewAnalysis)
+   - Context Data: standardised nouns with extensible schemas
+   - Channels: selective context sharing (system + application channels)
+   - App Directory: REST-based discovery catalogue
+
+3. FDC3 2.2 enables browser-based deployment
+   - Web Connection Protocol (WCP), Desktop Agent Communication Protocol (DACP)
+   - Cloud-hosted risk analytics deliver results via FDC3
+
+4. Industry adoption is mature
+   - BlackRock Aladdin FDC3 2.0 conformant (Sept 2024)
+   - Morgan Stanley: open-source ComposeUI with .NET bindings
+   - BMO: 73 applications, 50% faster development cycles
+   - Citi, UBS, NatWest, State Street all using FDC3
+
+5. FDC3 + CDM = complete interoperability
+   - FDC3 = how applications talk; CDM = what they exchange
+   - TraderX + CDM integration demonstrated at FINOS hackathon
+   - CDM generates executable libraries in Java, Python, TypeScript, C++, DAML
+
+6. Security: signed contexts, encrypted channels for sensitive data
+   - Essential for property-level risk assessments and portfolio exposure
+   - Desktop Agent Bridging (FDC3 2.1) connects legacy systems
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- FDC3 standard (five specifications)
+- FDC3 2.0 (transactional), 2.1 (bridging), 2.2 (browser via WCP/DACP)
+- FINOS governance under Linux Foundation
+- CDM with Rune DSL
+- TraderX reference implementation
+- NatWest BackPlane (open-source bridge)
+- FIX protocol (historical precedent analogy)
+
+FORWARD REFERENCES
+------------------
+EXPLICIT (final paragraph, p.511): "With this interoperability infrastructure understood,
+the following chapter examines Phase 6 of the MKM Bayesian Monte Carlo framework: the
+specific mechanisms through which precipitation forecasts transform into banking risk
+metrics, leveraging these interoperability standards to achieve operational deployment
+within existing banking infrastructure."
+
+Also (p.510): "The entire Phase 6 integration layer, which transforms meteorological
+analysis into banking risk metrics, can leverage these standards rather than requiring
+custom integration engineering."
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Deliver "Phase 6 of the MKM Bayesian Monte Carlo framework" -- explicit promise
+2. Define custom FDC3 context types for physical risk (flood scores, gauge readings,
+   catchment IDs, weather events) and custom intents
+3. Demonstrate the cascade: weather alert -> FDC3 intent -> flood recalculation ->
+   FDC3 context with risk scores -> property valuation -> capital impact
+4. Show CDM objects flowing as FDC3 context payloads
+5. Address Desktop Agent Bridging for legacy systems
+6. Demonstrate BMO-scale efficiency gains (not just theoretical capability)
+7. Address security for property-level risk data in PRS workflow
+8. Show TraderX patterns applying to PRS integration
+
+HANDOFF TO CHAPTER 22
+----------------------
+Reader has complete understanding of FDC3 + CDM + FINOS + TraderX. They have industry
+adoption evidence. The explicit final paragraph creates a direct contractual obligation
+for Chapter 22. Reader expects to see precipitation forecasts entering FDC3 channels,
+triggering CDM object transformations, cascading through bank applications, and producing
+capital-relevant risk metrics -- all within governed, standardised infrastructure.
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Reinforces at the technology layer. Same platforms (Aladdin, ComposeUI) that process CDS
+now support FDC3, meaning PRS integration literally runs on the same technology stack.
+FIX protocol analogy: FIX transformed trading from bilateral to standardised communication.
+FDC3 aims to do the same for desktop workflows. PRS benefits without having to build it.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: FDC3 standard (open-source), FINOS CDM with code generation,
+Desktop Agent implementations, TraderX architecture, BackPlane bridge, existing FDC3
+deployments at major banks, Aladdin FDC3 conformance
+Novel/new-build: Custom FDC3 context types for physical risk, custom intents,
+FDC3-to-CDM binding for FloodGauge/PhysicalSwap, security configuration, Desktop Agent
+Bridge for legacy physical risk systems, the Phase 6 pipeline itself

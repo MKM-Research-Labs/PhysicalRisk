@@ -1,0 +1,93 @@
+Chapter 20: CDM and Data Framework (pp. 493-501)
+================================================================
+
+CORE THESIS
+-----------
+PRS can only become a true market if hazards, exposures, and payouts are described in a
+Common Domain Model that every participant interprets identically. The chapter translates
+the CDS deal lifecycle into CDM structures for PRS, showing how each CDS phase (pre-trade,
+execution, lifecycle, termination) has a direct PRS analogue grounded in CDM objects.
+
+Three-layer CDM architecture: hazard observation (Flood Gauge CDM), exposure (Property +
+Mortgage CDM), and contract (Physical Risk Swap CDM with GaugeSet). PhysicalSwap reuses
+familiar derivatives constructs (Header, LegData, ScheduleData) while introducing GaugeSet
+as the distinctive physical-risk element.
+
+KEY ARGUMENTS
+-------------
+1. CDS lifecycle provides complete operational template for PRS
+   - Pre-trade: reference data (GaugeID ~ RED codes), standard terms, pricing
+   - Execution: electronic confirmation against standardised documentation
+   - Lifecycle: premiums, event-driven triggers, collateral/clearing
+   - Termination: novation, compression, portfolio maintenance
+
+2. CDM is essential because fragmentation makes PRS impossible without it
+   - Vendors use incompatible hazard metrics, opaque assumptions
+   - Without common language: cannot aggregate risk, compare suppliers, design scalable instruments
+
+3. Three-layer CDM architecture
+   - Hazard: Flood Gauge CDM (GaugeID, SensorStats, SensorDetails, FloodStage thresholds)
+   - Exposure: Property CDM (UPRN, location, construction, flood attributes) +
+     Mortgage CDM (loan terms, LTV, linked to PropertyID)
+   - Contract: Physical Risk Swap CDM (Header, LegData, ScheduleData, GaugeSet)
+   - GaugeSet: basket of gauges with indices and PayoutSevereFlood amounts
+
+4. PRS lifecycle is a sequence of CDM data transformations
+   - Origination -> Validation (validate_gauge, validate_swap) -> Daily Valuation ->
+     Trigger/Settlement -> Closeout
+   - CDM audit trail through every lifecycle stage
+
+5. Central clearing is natural progression
+   - CDM-compliant PRS inherently suitable for CCP novation
+
+6. FINOS open governance prevents vendor lock-in
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- ISDA/ICMA/ISLA CDM, hosted at FINOS; Rune DSL
+- Flood Gauge CDM: Header (GaugeID), SensorStats, SensorDetails, FloodStage
+- Property CDM: UPRN, geocoding, construction, EA flood zones, elevation
+- Mortgage CDM: linked to PropertyID, loan terms, LTV, arrears
+- PhysicalSwap CDM: Header, LegData, ScheduleData, GaugeSet
+- validate_gauge and validate_swap functions
+- CDS lifecycle as operational template
+
+FORWARD REFERENCES
+------------------
+EXPLICIT (p.501): "The next chapter builds on this foundation by showing how banks can
+embed these CDM objects into their integration fabric -- using FDC3 and related standards
+-- to achieve real-time hazard awareness, automated PRS lifecycle processing and seamless
+linkage between physical risk, mortgage portfolios and capital markets hedging."
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Show CDM objects flowing through FDC3 channels as live payloads
+2. Demonstrate "Phase 6" transformation: precipitation forecasts -> banking risk metrics
+3. Show GaugeSet trigger cascade: observation -> CDM update -> evaluation -> payout
+4. Address daily valuation infrastructure consuming CDM objects at scale
+5. Show central clearing readiness maintained
+6. Demonstrate Property/Mortgage CDM updates as loans amortise and assets revalue
+7. Show validate_gauge/validate_swap in pre-trade workflow
+
+HANDOFF TO CHAPTER 22
+----------------------
+Reader has detailed CDM schemas and lifecycle-as-data-transformations model. Lacks the
+operational integration: how objects move through bank systems, what triggers creation/
+update, how FDC3 coordinates applications. Ready for integration chapter making static
+schemas dynamic -- showing complete flow from weather observation to capital adjustment.
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Most explicit and systematic analogy in the book. GaugeID = RED codes; flood stages =
+credit events; GaugeSet baskets = reference entity portfolios; premium legs = identical
+conventions. Core claim: PRS intentionally designed to behave like CDS operationally
+while natively tied to physical risk data. Strongest evidence that PRS integrates into
+existing CDS infrastructure with minimal friction.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: ISDA CDM patterns (Header, LegData, ScheduleData), FINOS governance,
+existing CDS booking/valuation engines, CSA/clearing margin, schema validation
+Novel/new-build: Flood Gauge CDM (entirely new), GaugeSet mechanism, Property/Mortgage
+CDM extensions, gauge telemetry to CDM bridge, PayoutSevereFlood logic, multi-hazard
+GaugeSet generalisation

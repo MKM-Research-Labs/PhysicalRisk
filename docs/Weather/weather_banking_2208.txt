@@ -1,0 +1,162 @@
+22.8 Regulatory and Governance Readiness
+================================================================
+
+SECTION PURPOSE
+---------------
+Demonstrate that the governance overhead for PRS is not additional -- it is the
+same SR 11-7 framework applied to new models. The PoC provides pre-built governance
+artefacts that satisfy model risk, regulatory, and audit requirements.
+
+THE GOVERNANCE FRAMEWORK IS NOT NEW
+-------------------------------------
+Chapter 19 established that flood/PRS models must comply with SR 11-7. The key
+principle: outsourcing model development does not outsource model risk responsibility.
+Banks must inventory, validate, monitor, and govern every model in the PRS stack.
+
+The PoC implements this governance framework with the same tools and processes a
+bank uses for CDS and market risk models:
+
+MODEL INVENTORY
+----------------
+16 models tracked with full metadata:
+- model_id, name, category, tier, materiality, complexity
+- lifecycle_stage: Development | Validation | Production | Retired
+- validation_status: Initial | Pending | Validated | Conditionally Approved | Rejected
+- rag_rating: Green | Amber | Red (with effective risk rating)
+- owner, peer_reviewer, review dates (next, last, MRC signoff, recertification)
+- review_frequency, review_status (Overdue | Due Soon | Upcoming | On Track)
+- upstream_models, downstream_models (dependency mapping)
+- limitations, assumptions, remediation_steps
+
+All fields are editable via API with full audit trail (timestamp, user, reason,
+old/new values).
+
+MODEL RISK COMMITTEE (MRC) WORKFLOW
+-------------------------------------
+The PoC implements a complete MRC meeting lifecycle:
+- Meeting management: create, schedule, add participants
+- Agenda items: add, update, delete, reorder
+- Decisions: record with rationale, conditions, follow-up
+- Action items: assign, track status, update, close
+- Minutes: structured minutes with discussion points
+- Documents: upload/download supporting materials
+
+This mirrors how banks run MRC meetings for credit and market risk models.
+The PRS model inventory feeds directly into the same committee structure.
+
+BCBS 239 COMPLIANCE
+---------------------
+The PoC generates principle-by-principle BCBS 239 self-assessment evidence:
+- Data accuracy and integrity
+- Completeness across risk types
+- Timeliness of reporting
+- Adaptability to changing requirements
+- Each principle with evidence documentation and compliance status
+
+The BCBS 239 assessment covers the full data chain from gauge telemetry through
+hazard curve construction to PRS pricing and portfolio risk reporting.
+
+MODEL DOCUMENTATION
+---------------------
+38 document generators produce LaTeX/PDF documentation:
+
+  Primary model docs (with Makefiles for PDF compilation):
+  - GEV hazard curve model documentation
+  - PRS pricing / CDS model documentation
+  - Storm intensity distribution model
+  - Flood risk and depth-damage model
+  - Storm-gauge spatial response model
+  - Mortgage pricing model
+  - Property valuation model
+  - Timeseries statistical models
+  - Risk assessment models
+  - Flood classifier (GBM) documentation
+  - Storm multi-gauge analysis
+  - Gauge HD synthetic data generation
+  - Stress test pipeline documentation
+  - Property flood response model
+  - Delta engine documentation
+
+  Governance/inventory generators:
+  - Parameter inventory: all hardcoded thresholds, rates, conventions across
+    all models (scaling basis, CDS conventions, recovery rates, GBM hyperparameters)
+  - MRC Terms of Reference
+  - BCBS 239 self-assessment
+  - Test results report (coverage, pass/fail)
+
+PARAMETER INVENTORY
+---------------------
+All model parameters are catalogued with:
+- Model ID (e.g., MKM-PR-001 for PRS, MKM-GH-001 for GEV)
+- Parameter name, value, units
+- Source (calibration, convention, assumption)
+- Sensitivity classification
+- Change history
+
+Examples from the PRS pricing model:
+  MODEL_UNCERTAINTY_BPS = 2.0
+  DISTANCE_RATE_BPS_PER_KM = 0.5
+  ELEVATION_RATE_BPS_PER_M = 0.2
+  MIN_PRS_SPREAD_BPS = 2.0
+  CONSTRUCTION_YEAR_CUTOFF = 2000
+
+Examples from the flood classifier:
+  n_estimators = 300
+  max_depth = 3
+  learning_rate = 0.05
+  subsample = 0.8
+  min_samples_leaf = 50
+  LOG_EPS = 1e-8
+  LOG_END = 168 hours
+
+DATA LINEAGE
+--------------
+The PoC tracks data flow at two levels:
+- Source-to-output: which data sources feed which model outputs
+- Field-level: which input field maps to which output field (column-to-column)
+- Staleness monitoring: when was each data element last refreshed
+
+This satisfies the data lineage requirements from Chapter 20 (CDM and Data
+Framework) and BCBS 239 Principle 2 (data accuracy and integrity).
+
+AUDIT TRAIL
+-------------
+Every model change is logged with:
+- Timestamp
+- User identity
+- Reason for change
+- Old and new values
+- Approval status
+
+This provides the "effective challenge" evidence that SR 11-7 requires and that
+Chapter 19 identified as essential for the model stack problem.
+
+RACI MATRIX
+-------------
+Clear assignment of model governance responsibilities:
+- Responsible: model developer/owner
+- Accountable: senior management
+- Consulted: model risk, business stakeholders
+- Informed: audit, regulatory reporting
+
+TEST COVERAGE
+--------------
+6,047 automated tests with coverage reporting:
+- Route testing with Flask test client
+- Model testing for all analytical modules
+- Integration tests for end-to-end workflows
+- 53 E2E JavaScript tests for UI functionality
+
+WHAT THIS MEANS FOR INTEGRATION
+---------------------------------
+A bank adopting PRS inherits:
+1. A governed model inventory that plugs into existing MRC processes
+2. Pre-built documentation for every model (same format as credit/market risk docs)
+3. Parameter inventories that satisfy model validation team requirements
+4. BCBS 239 compliance evidence ready for regulatory review
+5. Data lineage tracking that extends to gauge and flood data sources
+6. Audit trails compatible with existing model change management processes
+7. Test suites that provide ongoing regression assurance
+
+The governance overhead is not "PRS governance on top of CDS governance" -- it is
+the same governance framework with new models added to the existing inventory.

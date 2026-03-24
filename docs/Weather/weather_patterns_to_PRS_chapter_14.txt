@@ -1,0 +1,70 @@
+Chapter 14: Extreme Flood Events (pp. 400-408)
+================================================================
+
+CORE THESIS
+-----------
+The Gumbel distribution (Type I extreme value) provides the mathematically rigorous
+foundation for modelling flood extremes and bridging hydrological science to PRS pricing.
+Classical insurance uses a one-year horizon, but PRS spans multiple years, requiring
+understanding of how extreme-event probabilities accumulate -- and why naive exponential
+models systematically underestimate that accumulation.
+
+A "Gumbel-adjusted" multi-year formula produces 75-120% higher multi-year exceedance
+probabilities than simple Poisson approaches, validated against 50-year Thames records.
+
+KEY ARGUMENTS
+-------------
+1. Gumbel is the industry standard for flood frequency analysis
+   - Heavy right tail, fixed positive skewness (~1.14), two parameters (mu, beta)
+   - 1-in-100-year flood level ~ mu + 1.527*beta
+
+2. Return period interpretation connects hydrology to finance
+   - Return period T -> annual exceedance probability p = 1/T
+   - Design flood level scales logarithmically: x_T ~ mu + beta*ln(T)
+
+3. Multi-year hazard accumulation requires heavy-tail correction
+   - Simple Poisson: P = 1 - (1-p)^t underestimates
+   - Gumbel-adjusted: P = 1 - (1 - p*(1 + alpha*ln(t)))^t, alpha ~ 0.77
+   - 75-120% higher multi-year probabilities
+
+4. GEV unifies all extreme value types
+   - Gumbel (xi=0), Frechet (xi>0), Weibull (xi<0)
+
+5. Stationarity assumption is the key limitation
+   - Climate change introduces non-stationary mu(t), beta(t)
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- Gumbel PDF: f(x) = (1/beta)*exp(-(x-mu)/beta)*exp[-exp(-(x-mu)/beta)]
+- Gumbel CDF: F(x) = exp[-exp(-(x-mu)/beta)]
+- Quantile: F^-1(p) = mu - beta*ln(-ln(p))
+- Multi-year Gumbel-adjusted: P(t) = 1 - (1 - p*(1+0.77*ln(t)))^t
+- GEV unified: F(x) = exp(-(1+xi*(x-mu)/sigma)^(-1/xi))
+- Parameter estimation: MLE (Newton-Raphson) and PWM
+- Data: EA annual maximum water level records (30-100 years)
+
+FORWARD REFERENCES
+------------------
+- Sets up Chapter 15 (Thames Valley worked pricing example)
+- Multi-year formula feeds directly into PRS pricing engine
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Operationalise Gumbel hazard curve: which gauges, parameter fitting, multi-year formula
+2. Address non-stationarity: dynamic hazard curve updates as mu/beta shift
+3. Handle spatial correlation across gauges via copula/multivariate extensions
+4. Show whether alpha=0.77 is configurable per basin
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Gumbel hazard curve is directly analogous to credit spread curve: both convert event
+probability into a term structure of prices. Multi-year accumulation formula is the flood
+equivalent of a CDS survival curve. Standardisation of distribution parallels
+standardisation of credit models enabling CDS market growth.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: Gumbel fitting, MLE/PWM, return period calculation (established
+hydrology with existing software libraries)
+Novel/new-build: Gumbel-adjusted multi-year formula (alpha=0.77, book-specific),
+non-stationarity handling, spatial correlation via copulas

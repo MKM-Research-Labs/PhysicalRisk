@@ -1,0 +1,149 @@
+22.3 Trade Capture and Booking
+================================================================
+
+SECTION PURPOSE
+---------------
+Show that a PRS trade creates a CDM-compliant record that flows through existing
+OTC booking systems with the GaugeSet as the only structurally new element.
+Detail the CDM schemas for PRS, properties, mortgages, gauges, and counterparties.
+
+THE PHYSICAL SWAP CDM RECORD
+------------------------------
+Every PRS trade committed in the PoC creates a PhysicalSwap CDM record:
+
+  PhysicalSwap
+  +-- Header
+  |   +-- SwapID: "PRS-{uuid}" (unique trade identifier)
+  |   +-- CatchmentID: catchment scope
+  |   +-- TradeType: "PRS"
+  |   +-- CounterParty: party identifier
+  |   +-- PartyId: booking entity
+  |   +-- ValuationDate: trade date
+  |   +-- ProtectionStart: T+2 settlement (standard CDS convention)
+  |   +-- TradeStatus: "Committed" | "Open" | "Closed"
+  |   +-- CloseOutOf: original SwapID (for close-out trades)
+  |
+  +-- LegData
+  |   +-- LegType: "Fixed" (premium leg)
+  |   +-- Payer: direction (protection buyer pays fixed)
+  |   +-- Currency: "GBP"
+  |   +-- Notional: trade size
+  |   +-- DayCounter: "ACT/360" (standard CDS convention)
+  |   +-- FixedLegRate: spread_bps / 10,000
+  |
+  +-- ScheduleData
+  |   +-- StartDate: protection start (T+2)
+  |   +-- EndDate: maturity (semi-annual roll convention)
+  |   +-- Tenor: "6M"
+  |   +-- Calendar: "London"
+  |
+  +-- GaugeSet  <-- THE NEW ELEMENT
+  |   +-- GaugeSetID: "GSET-{gauge_id}"
+  |   +-- GaugeCount: number of gauges in basket
+  |   +-- GaugeBasket: array of {GaugeID, GaugeName, Weight, TriggerLevel}
+  |
+  +-- Triggers
+  |   +-- TriggerType: "Any" | "All" | "Weighted" | "Majority"
+  |   +-- TriggerThreshold: number of gauges that must breach
+  |
+  +-- Payouts
+  |   +-- Currency: "GBP"
+  |   +-- MaxPayout: maximum notional payout
+  |
+  +-- Pricing
+      +-- SpreadBps: traded spread
+      +-- FairSpreadBps: model fair value at trade time
+      +-- NPV: mark-to-market
+      +-- PremiumLegPV, ProtectionLegPV, RiskyAnnuity
+      +-- YieldCurve: curve used for valuation
+      +-- Recovery: recovery rate assumption
+      +-- TriggerLevel: "alert" | "warning" | "severe"
+
+WHAT MAPS DIRECTLY TO CDS BOOKING
+-----------------------------------
+Header, LegData, ScheduleData, and Pricing sections use identical field structures
+to OTC CDS booking. A bank's trade capture system already handles:
+- Unique trade identifiers (SwapID ~ CDS trade reference)
+- Counterparty linkage (CounterParty ~ CDS reference entity)
+- Fixed leg specification (ACT/360, quarterly, semi-annual roll)
+- T+2 settlement dates
+- Direction (payer/receiver)
+- Mark-to-market and premium/protection leg PVs
+- Trade status lifecycle (Committed -> Open -> Closed)
+- Close-out referencing (CloseOutOf ~ CDS unwind reference)
+
+WHAT IS NEW: THE GAUGESET
+---------------------------
+The GaugeSet is the distinctive PRS element. It binds the contract to physical
+hazard measurements by specifying:
+- Which gauges form the reference basket (GaugeBasket)
+- What weight each gauge carries
+- What flood level triggers a payout at each gauge (TriggerLevel)
+- How many gauges must breach to trigger (TriggerType: Any/All/Weighted/Majority)
+
+This is analogous to a basket CDS referencing multiple entities -- the basket
+structure and trigger logic (first-to-default, nth-to-default) are familiar
+concepts in credit derivatives. A GaugeSet is structurally a basket of reference
+entities where the "credit event" is a gauge exceeding its trigger level.
+
+SUPPORTING CDM ENTITIES
+-------------------------
+The PoC maintains CDM records for the full ecosystem:
+
+  Flood Gauge CDM: GaugeID, location, alert/warning/severe thresholds,
+    historical statistics (max level, exceedance frequency), sensor metadata
+    (type, owner, manufacturer, calibration, operational status)
+
+  Property CDM: 136 fields across 17 sections (UPRN, location, valuation,
+    construction, elevation, EA flood zone, distance to water bodies, ground
+    level). Links to gauges via geographic proximity.
+
+  Mortgage CDM: MortgageID linked to PropertyID/UPRN, loan terms (original
+    amount, LTV, rate, term), current status (balance, arrears, revaluation),
+    borrower details, risk assessment fields.
+
+  Counterparty CDM: Party1/Party2 roles following FINOS CDM patterns, with
+    business units, accounts, contact information, credit rating, trading limits.
+
+  Storm Event CDM: StormEventID, storm attributes (wind speed, pressure, surge),
+    warnings, triggers, anticipated damage, affected gauges.
+
+PRE-TRADE VALIDATION
+----------------------
+Before a PRS trade is booked, the PoC runs schema-aware validation:
+- validate_gauge: confirms GaugeID exists, has valid flood stage thresholds,
+  and passes data quality checks
+- validate_swap: confirms required fields present, menu values valid, basket
+  size plausible, each GaugeID in GaugeSet corresponds to a valid FloodGauge
+
+Only CDM-conformant trades proceed to execution. This mirrors how CDS booking
+systems validate reference entity data (Markit RED code existence, seniority,
+currency) before trade capture.
+
+TRADE LIFECYCLE VIA CDM
+-------------------------
+The CDM record serves as the golden source through every lifecycle stage:
+
+  1. Origination: normalise raw data into CDM forms, create PhysicalSwap
+  2. Validation: schema-aware checks (validate_gauge, validate_swap)
+  3. Commit: save JSON to data/output/prs/, generate confirmation PDF
+  4. Daily Valuation: DeltaEngine revalues against updated hazard rates
+  5. Trigger: gauge crosses threshold -> evaluate GaugeSet -> activate payout
+  6. Close-out: new trade referencing original via CloseOutOf, settlement
+  7. EOD: snapshot all positions, P&L, market state
+
+This lifecycle is identical to CDS trade processing. The CDM record flows
+through the same systems: trade capture, risk engine, collateral management,
+regulatory reporting, accounting.
+
+INTEGRATION PATH FOR A BANK
+-----------------------------
+1. Register PhysicalSwap as a new product type in the booking system
+2. Add GaugeSet fields to the trade capture schema (basket structure exists)
+3. Create gauge reference data feed (analogous to Markit RED code feed)
+4. Configure pre-trade validation for gauge existence and CDM conformance
+5. Link PRS trades to existing counterparty, collateral, and settlement systems
+
+The booking system change is an extension, not a replacement. It adds a new
+product type using existing infrastructure patterns (baskets, triggers, fixed
+legs, T+2 settlement).

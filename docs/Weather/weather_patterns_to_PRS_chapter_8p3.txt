@@ -1,0 +1,68 @@
+Chapter 8.3: Quantifying Resilience (pp. 303-311)
+================================================================
+
+CORE THESIS
+-----------
+Resilience is not a vague aspiration but an operationally measurable quantity that bends
+damage curves, shortens downtime, and stabilises cash flows. Standard Operating Procedures
+(SOPs) provide the most concrete mechanism: they can be inventoried, weighted, scored, and
+translated into adjustments to vulnerability functions, business interruption durations,
+and clustering dynamics.
+
+A worked example shows a property with 75% SOP implementation transforming a 1-in-100-year
+event (1m depth, 4 months recovery) into 1-in-25-year impact (0.25m effective depth,
+1.5 months recovery).
+
+KEY ARGUMENTS
+-------------
+1. SOP coverage provides a normalised, auditable resilience metric
+   - S = (Implemented + Excluded) / Total Recommended x 100
+   - Phase-specific: preparedness, protection, response, recovery
+
+2. SOP scores translate to hazard reduction and return period adjustment
+   - H_reduced = H_baseline x (1 - R_eff)
+   - T_adjusted = T_baseline x f(R_eff)
+
+3. Total property resilience combines four weighted dimensions
+   - R_total = w1*S + w2*P + w3*A + w4*T
+   - S=SOP, P=physical infrastructure, A=adaptive/financial, T=technological/local
+
+4. Beyond SOP: structural, financial, and local system resilience
+   - Structural measures shift/flatten vulnerability curve before procedures fire
+   - Financial measures (insurance, emergency credit) determine whether temporary
+     loss becomes permanent impairment
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- SOP coverage: S = (Implemented + Excluded) / Total x 100
+- Hazard reduction: H_reduced = H_baseline x (1 - R_eff)
+- Return period adjustment: T_adjusted = T_baseline x f(R_eff)
+- Total resilience: R_total = w1*S + w2*P + w3*A + w4*T
+
+FORWARD REFERENCES
+------------------
+- Resilience fields must be included in CDM design
+- Modest procedural investments unlock disproportionate reductions in expected
+  and tail losses across portfolios
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Show how R_total modifies PRS pricing (lower premium or altered attachment)
+2. Define whether PRS can include resilience covenants (CDS covenant analogy)
+3. Address moral hazard: does PRS reduce incentive to invest in resilience?
+4. Specify how resilience data flows into PRS pricing engine via CDM
+5. Demonstrate resilience-differentiated tranching within a single PRS
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Resilience scoring maps to credit enhancement / covenant structures. R_total parallels
+composite credit scores. Return period adjustment (1-in-100 becoming 1-in-25 in impact)
+is analogous to a ratings upgrade. Existing covenant and trigger-adjustment mechanisms
+can accommodate resilience conditionality without new architecture.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: SOP inventory methodology, weighted scoring, hazard curve infrastructure
+Novel/new-build: Standardised SOP inventories per property type, independent certification
+infrastructure, CDM fields for resilience, automated re-pricing pipeline, calibration of
+f(R_eff) from empirical data (largely nonexistent)

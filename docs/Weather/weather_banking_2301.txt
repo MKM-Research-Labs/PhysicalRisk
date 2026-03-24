@@ -1,0 +1,115 @@
+23.1 The Trader's Day
+================================================================
+
+SECTION PURPOSE
+---------------
+Chapter 22 showed where PRS fits in bank infrastructure. This chapter shows how
+it runs day-to-day. This section uses the PoC's 7-tab trader workstation as the
+operational template for what a PRS market-maker actually does.
+
+THE WORKSTATION
+----------------
+The PoC provides a complete trader's workstation with seven functional tabs,
+each mapping to a specific phase of the trading day:
+
+  Tab 1: TRADE BLOTTER
+  The trader's primary view. Shows all open PRS positions with:
+  - SwapID, gauge, trigger level, notional, direction (payer/receiver)
+  - Trade spread vs current fair spread
+  - Mark-to-market (MTM)
+  - Gauge FS01 (sensitivity to 1bp hazard rate move)
+  - Basis DV01 (sensitivity to basis spread change)
+  - Daily P&L (new trade + market move)
+  - Running P&L (inception-to-date cumulative)
+  - Counterparty name and trade date
+
+  Summary bar: total notional, aggregate daily P&L, aggregate running P&L,
+  broken down by new trade vs market move contribution.
+
+  Tab 2: RISK GRID
+  P&L exposure by gauge x trigger level, ordered geographically (west to east
+  along the catchment). Heat map showing concentration risk:
+  - Which gauges carry the most FS01 exposure
+  - Where the portfolio is long vs short flood risk
+  - Where a single storm event creates correlated losses
+
+  Tab 3: TRADE MAP
+  Geographic overlay of positions on the catchment map. Visual identification
+  of spatial concentration, proximity to gauges, and overlap with property
+  portfolios. Connects trading positions to the physical geography.
+
+  Tab 4: YIELD CURVE & HAZARD TERM STRUCTURE
+  Curve management interface:
+  - View and adjust yield curve used for discounting
+  - View and adjust hazard term structure per gauge
+  - Commit curve changes (saved) or reset to base case
+  - Curve history showing adjustment timeline
+
+  Intraday: trader adjusts hazard rates based on weather information, EA flood
+  alerts, or market intelligence. This is analogous to a CDS trader adjusting
+  credit spread assumptions as new information arrives.
+
+  Tab 5: P&L TIME SERIES & CURVE HISTORY
+  Historical view:
+  - Daily P&L per swap over time
+  - Cumulative P&L evolution
+  - Curve adjustment history (when were hazard rates bumped, by how much)
+  - Attribution: how much P&L came from new trades vs market moves
+
+  Tab 6: END-OF-DAY (EOD)
+  EOD submission workflow:
+  - Trigger EOD snapshot at close of business
+  - All positions revalued at EOD hazard rates
+  - Portfolio P&L summary computed and signed off
+  - EOD report PDF generated (position detail, P&L chart, market state)
+  - Historical EOD submissions viewable for audit trail
+
+  Tab 7: STRESS TESTING
+  Storm scenario analysis:
+  - Select gauge and storm scenario from catalogue
+  - View classifier training status per gauge
+  - Run stress: storm -> hydrograph -> P(flood) -> stressed P&L
+  - Portfolio-level stress across all positions
+  - Stress waterfall chart and summary statistics
+
+A TYPICAL TRADING DAY
+-----------------------
+
+  07:30 MORNING REVIEW
+  - Open blotter (Tab 1): review overnight MTM changes
+  - Check which gauges moved: did any EA alerts fire overnight?
+  - Review daily P&L attribution: what drove yesterday's P&L?
+  - Check risk grid (Tab 2): any concentration limits approaching?
+
+  08:00-09:00 MARKET ASSESSMENT
+  - Review weather forecasts and EA flood outlook
+  - Assess hazard term structure (Tab 4): do current hazard rates reflect
+    latest information?
+  - If significant weather change: adjust hazard rates intraday
+  - Revalue portfolio against updated rates
+
+  09:00-16:00 INTRADAY TRADING
+  - Receive pricing enquiries from counterparties
+  - Price new PRS: select gauge, trigger level, tenor, notional
+  - Pricing engine produces: fair spread, basis adjustments, indicative price
+  - Negotiate spread with counterparty
+  - Commit trade: CDM record created, confirmation PDF generated
+  - Monitor blotter as positions update with new fair spreads
+
+  16:00-17:00 CLOSE-OUT AND EOD
+  - Close-out any positions being unwound (reverse trade at agreed spread)
+  - Review full day's P&L
+  - Submit EOD (Tab 6): snapshot, sign-off, report generation
+  - Run daily stress (Tab 7): check portfolio against storm catalogue
+
+  AD HOC: FLOOD EVENT
+  - EA issues severe flood warning at a gauge
+  - Gauge monitor service alerts the desk
+  - Evaluate GaugeSet: does this breach trigger any open PRS positions?
+  - If triggered: initiate settlement process
+  - Simultaneously: assess portfolio impact via property-level cascade
+
+This daily workflow mirrors a CDS trading desk. The trader thinks in spreads,
+manages risk via sensitivities (FS01 instead of CS01), attributes P&L to market
+moves, and submits EOD snapshots. The only operationally new element is the
+gauge monitoring service and the weather-driven hazard rate assessment.

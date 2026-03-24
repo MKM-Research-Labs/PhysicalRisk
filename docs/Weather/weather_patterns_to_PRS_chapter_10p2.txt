@@ -1,0 +1,60 @@
+Chapter 10.2: OASIS and Parametric Insurance (pp. 348-359)
+================================================================
+
+CORE THESIS
+-----------
+OASIS LMF provides a credible, industry-accepted catastrophe modelling platform that can
+get Thames parametric insurance to "first base" in capital markets. Its four-stage
+architecture is generally straightforward for extreme tail events. However, adapting OASIS
+for gauge-based parametric triggers exposes limitations: standard outputs focus on damage
+ratios rather than trigger probabilities, computational demands escalate for daily MTM
+pricing, and gauge correlation modelling strains the framework.
+
+OASIS is "good enough to get to first base" but purpose-built platforms will likely
+replace it as the PRS market matures.
+
+KEY ARGUMENTS
+-------------
+1. OASIS architecture maps to the CSD taxonomy
+2. Parametric adaptation requires OED extensions (TriggerGaugeID, BasisRiskFactor,
+   ElevationAOD, TriggerThreshold, PayoutStructure, AggregateLimit)
+3. Computational bottlenecks emerge for daily pricing (gauge correlation matrices
+   overwhelm OASIS for continuous pricing)
+4. Data quality is the binding constraint (EA gauge validation, historical
+   discontinuities, extreme event scarcity)
+5. Staged implementation: public EA data -> commercial weather -> real-time integration
+6. Multi-year contracts expose OASIS's one-year-horizon framework limits
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- OASIS LMF Core Engine (BSD 3-Clause)
+- OED standard with parametric extensions
+- Monte Carlo with copula-based dependence
+- EA real-time flood monitoring API (15-minute updates)
+- Staged data strategy: public -> commercial -> real-time
+
+FORWARD REFERENCES
+------------------
+- Anticipates purpose-built PRS pricing platforms replacing OASIS
+- "Pricing data from PRS will provide calibration foundations that historical
+  flood records alone cannot support"
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Specify what replaces OASIS for production PRS pricing
+2. Address gauge correlation scaling beyond OASIS's histogram approach
+3. Show how OED parametric extensions map into CDM trade representations
+4. Explain transition from OASIS-based pricing to market-implied calibration
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Complicates the analogy slightly: OASIS is an insurance tool being adapted for capital
+markets. CDS was born in capital markets. PRS needs its own "Markit equivalent" rather
+than adapted catastrophe models. However, gauge-based triggers are simpler and more
+objective than CDS credit event determination, partially offsetting modelling complexity.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: OASIS framework, EA gauge API, OED standard, Monte Carlo methodology
+Novel/new-build: Parametric OED extensions, custom trigger probability outputs,
+daily pricing engine, gauge correlation matrices, real-time data integration

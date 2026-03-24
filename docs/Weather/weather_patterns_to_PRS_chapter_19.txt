@@ -1,0 +1,94 @@
+Chapter 19: Model Risk Governance (pp. 476-492)
+================================================================
+
+CORE THESIS
+-----------
+As flood risk models move from informational disclosure tools into solvency-relevant
+banking infrastructure (PRS pricing, ICAAP, capital models), they must be subjected to
+full SR 11-7 model risk governance. The central challenge is the "model stack problem":
+a chain of models (weather -> hydrology -> hydraulics -> vulnerability -> economic impact
+-> capital) where each output becomes the next input, compounding uncertainties and
+creating cascading dependencies that single-model governance cannot address.
+
+The model stack is structurally analogous to the "string of pearls" already familiar in
+banking (market data -> pricing -> risk -> capital), but with additional cross-disciplinary
+complexity spanning climate science, hydrology, engineering, and finance.
+
+KEY ARGUMENTS
+-------------
+1. SR 11-7 is the universal standard and flood models fall squarely in scope
+   - Any quantitative method with inputs, processing, outputs used for decisions
+   - Outsourcing does not outsource model risk responsibility
+
+2. Six-stage model lifecycle must be applied to flood/PRS models
+   - Define -> Develop -> Validate -> Implement -> Monitor -> Manage/Decommission
+   - Both physical system and regulatory environment evolve continuously
+
+3. Validation is fundamentally different from testing
+   - Testing: does it work as specified?
+   - Validation: is this the right model, used the right way?
+   - Independent validation with "effective challenge" mandatory
+
+4. Nine central validation questions structure effective challenge
+   - Does it do what it says? Timely/accurate/stable? Resource use?
+   - Override controls? How output consumed? Used as input to another model? (#6 critical)
+   - Weaknesses/limitations? Monitoring? Overall risk acceptable?
+
+5. The model stack problem demands system-level governance
+   - Cascading dependencies amplify uncertainty
+   - Cross-disciplinary validation gaps at model boundaries
+   - Temporal mismatches (hours for weather, decades for climate)
+   - Emergent properties elude component-level governance
+
+6. Vendor due diligence is a core model-risk control
+   - Classify by materiality and complexity
+   - Tier 1 for high-materiality (flood-loss engines driving PRS)
+   - Four dimensions: governance, methodology, data, operations
+
+KEY MODELS AND FRAMEWORKS
+--------------------------
+- SR 11-7 (OCC/Federal Reserve, April 2011)
+- Six-stage model lifecycle
+- Nine central validation questions
+- Model tiering by materiality and complexity
+- RACI framework; Model Risk Committee governance
+- CFTC Litterman Report (September 2020)
+- Four-dimension vendor due diligence framework
+- String-of-pearls dependency pattern
+
+FORWARD REFERENCES
+------------------
+- Vendor governance quality "will determine which vendors can cross from climate
+  storytelling into solvency-relevant risk infrastructure"
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Show model stack governed end-to-end (system-level, not just component validation)
+2. Demonstrate model inventory and tiering mapped to PRS integration components
+3. Address uncertainty propagation tracking through CDM/FDC3 integration
+4. Show vendor outputs validated and monitored as in-scope models with audit trails
+5. Demonstrate nine validation questions answered operationally
+6. Address controlled propagation of model changes through integration stack
+
+HANDOFF TO CHAPTER 22
+----------------------
+Reader understands full governance requirements but has no picture of how they manifest
+in system architecture. They know what questions MRC will ask but not how the system
+provides answers. Primed for Ch 20 (CDM as governable data structure) and Ch 21 (FDC3
+supporting governance workflows).
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+String-of-pearls analogy explicitly drawn: flood model stack mirrors CDS model chain
+(market data -> pricing -> risk -> capital). Banks already have governance for model
+stacks. Challenge is extending to incorporate physical risk models with cross-disciplinary
+complexity. Physical science models at front of PRS chain have no analogue in CDS chain
+and require specialised validation expertise.
+
+INTEGRATION COST SIGNALS
+-------------------------
+Standard/reusable: SR 11-7 framework, model inventory/tiering, RACI templates, MRC
+structure, vendor due diligence framework, model lifecycle management
+Novel/new-build: Cross-disciplinary validation expertise (hydrology + finance), system-
+level validation for physical risk stack, uncertainty propagation infrastructure, model
+boundary governance, vendor-specific PRS contractual frameworks

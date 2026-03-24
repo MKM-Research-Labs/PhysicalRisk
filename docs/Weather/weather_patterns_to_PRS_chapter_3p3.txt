@@ -1,0 +1,87 @@
+Chapter 3.3: Weather - Sampling and Dependence (pp. 117-125)
+================================================================
+
+CORE THESIS
+-----------
+Naive Monte Carlo in a million-dimensional atmospheric state space is both
+computationally prohibitive and meteorologically unrealistic. This chapter solves the
+problem through three techniques: (a) quasi-Monte Carlo sampling using Sobol sequences
+for more uniform coverage, (b) dimension reduction via Empirical Orthogonal Functions
+(EOFs) to concentrate sampling on the 50-200 atmospheric patterns capturing 90%+ of
+variance, and (c) copula-based dependence structures (especially vine copulas) to
+ensure that when one variable signals storm conditions, correlated variables behave
+consistently. A Hidden Markov Model over weather regimes adds temporal persistence
+and regime-dependent dependence.
+
+KEY MATHEMATICAL MODELS
+-----------------------
+1. Sobol Quasi-Monte Carlo Sequences
+   - Low-discrepancy points in [0,1]^d
+   - Convergence rate O(N^{-1}) vs O(N^{-1/2}) for pseudo-random
+   - Dramatically more efficient exploration of high-dimensional uncertainty space
+
+2. Inverse CDF Mapping
+   - X = F^{-1}(U) for marginals
+   - For multivariate normal: X_0 = mu_0 + L . Phi^{-1}(U), L = Cholesky(Sigma_0)
+
+3. EOF Dimension Reduction
+   - X_0 = mu_0 + sum_{i=1}^{K} alpha_i e_i
+   - e_i are empirical orthogonal functions (principal modes of atmospheric variability)
+   - K ~ 100-200 retained modes capture 90%+ of variance
+   - alpha_i coefficients sampled via Sobol sequences
+   - Reduces effective dimensionality from millions to hundreds
+
+4. Copula Framework
+   - Sklar's theorem: separate marginals from dependence structure
+   - Copula families: Gaussian (symmetric), Student-t (symmetric, heavier tails),
+     Gumbel (upper tail dependence), Clayton (lower tail dependence)
+
+5. Vine Copulas
+   - Hierarchical decomposition of d-dimensional copula into bivariate building blocks
+   - Tree 1: direct pairwise relationships (T-p, T-q, u-v)
+   - Tree 2: conditional dependencies (q-P|T, w-P|q)
+   - Tree 3+: higher-order conditional dependencies
+   - Sampling: Sobol uniforms -> vine transform -> correlated uniforms -> inverse
+     marginal CDFs -> physical variables
+   - Enables realistic multivariate tail dependence without assuming Gaussian copula
+
+6. Hidden Markov Model for Weather Regimes
+   - Transition matrix A_0 = [a_{ij}] where a_{ij} = P(regime j at t+1 | regime i at t)
+   - Regimes identified from historical clustering: dry continental, moist maritime,
+     frontal, convective
+   - Copula parameters and SDE drift/diffusion are regime-dependent
+   - Seasonal variation in transition probabilities
+   - Adds temporal persistence: weather regimes tend to persist for days
+
+FORWARD REFERENCES
+------------------
+- Initial ensemble D_0 feeds into Ch 3.4's Bayesian update cycle
+- HMM regime structure carries through to Ch 3.5's precipitation mapping (different
+  regimes produce different rainfall characteristics)
+- Vine copula structures ensure updated ensemble members maintain physically coherent
+  multivariate relationships
+
+WHAT THIS CHAPTER DEMANDS OF CHAPTER 22
+-----------------------------------------
+1. Governance of copula family selection and recalibration: wrong copula for a critical
+   pair (e.g., T-q under convective regime) biases tail dependence and flood
+   probabilities
+
+2. HMM regime definitions must be validated and the transition matrix updated.
+   How is model risk around regime classification managed?
+
+3. EOF basis functions require periodic recomputation as climate evolves. Who owns
+   this recalibration cycle?
+
+CDS INFRASTRUCTURE ANALOGY
+---------------------------
+Copulas are VERY familiar to structured credit desks -- they were central (and
+infamous) in CDO pricing. The vine copula machinery here is more sophisticated than
+the Gaussian copula models that caused problems in 2008.
+
+Banks have hard-won experience with copula model risk from the credit crisis, which
+could be an institutional advantage in deploying this framework -- or a source of
+institutional skepticism.
+
+The HMM regime structure maps reasonably well to credit cycle regime models already
+used in some banks' ECL frameworks.
