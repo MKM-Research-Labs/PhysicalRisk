@@ -63,7 +63,7 @@ def get_nav_js() -> str:
                 console.log('[GaugeHazard] Opening panel for', gaugeId);
                 var panel = createPanel();
                 panel.dataset.gaugeId = gaugeId;
-                document.getElementById('hazard-panel-title').textContent = gaugeId;
+                document.getElementById('hazard-panel-title').textContent = 'Loading ' + gaugeId + '\u2026';
                 document.getElementById('hazard-status').textContent = 'Loading...';
                 panel.style.display = 'flex';
                 activeTab = 0;
