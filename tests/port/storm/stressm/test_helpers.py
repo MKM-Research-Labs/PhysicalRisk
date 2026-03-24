@@ -18,8 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for _extract_gauges, _parse_gauge, and _build_summary helpers."""
+"""Tests for _extract_gauges, _parse_gauge, _build_summary, and storm response fields."""
 
+import json
 import pytest
 
 from port.src.stressm.gauge_parser import _extract_gauges, _parse_gauge
@@ -150,3 +151,82 @@ class TestBuildSummary:
         assert s["alert_sequences"] == 0
         assert s["warning_sequences"] == 0
         assert s["severe_sequences"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Storm response fields (base_level_m / level_change_m)
+# ---------------------------------------------------------------------------
+
+class TestStormResponseFields:
+    """Verify populate_gaugets writes base_level_m and level_change_m."""
+
+    def _build_responses(self):
+        """Build storm responses using the same logic as gaugets_writer."""
+        gauge_ids = ["GAUGE-A", "GAUGE-B"]
+        gauge_params_list = [
+            {"gauge_id": "GAUGE-A", "base_level": 1.5},
+            {"gauge_id": "GAUGE-B", "base_level": 2.0},
+        ]
+        sequence_records = [
+            {
+                "sequence_id": "STORM-001",
+                "peaks_m": [5.0, 7.0],
+                "alert": [True, True],
+                "warning": [True, True],
+                "severe": [False, True],
+            },
+        ]
+        gid_to_idx = {gid: i for i, gid in enumerate(gauge_ids)}
+        responses = {gid: [] for gid in gauge_ids}
+        for rec in sequence_records:
+            for gid, idx in gid_to_idx.items():
+                base = gauge_params_list[idx].get("base_level", 0.0)
+                peak = rec["peaks_m"][idx]
+                responses[gid].append({
+                    "storm_id": rec["sequence_id"],
+                    "base_level_m": base,
+                    "peak_level_m": peak,
+                    "level_change_m": round(peak - base, 4),
+                    "exceeded_alert": rec["alert"][idx],
+                    "exceeded_warning": rec["warning"][idx],
+                    "exceeded_severe": rec["severe"][idx],
+                })
+        return responses, gauge_params_list
+
+    def test_response_has_base_level_m(self):
+        responses, _ = self._build_responses()
+        for gid, resps in responses.items():
+            for r in resps:
+                assert "base_level_m" in r, f"Missing base_level_m in {gid}"
+
+    def test_response_has_level_change_m(self):
+        responses, _ = self._build_responses()
+        for gid, resps in responses.items():
+            for r in resps:
+                assert "level_change_m" in r, f"Missing level_change_m in {gid}"
+
+    def test_base_level_matches_gauge_params(self):
+        responses, params = self._build_responses()
+        assert responses["GAUGE-A"][0]["base_level_m"] == pytest.approx(1.5)
+        assert responses["GAUGE-B"][0]["base_level_m"] == pytest.approx(2.0)
+
+    def test_level_change_is_peak_minus_base(self):
+        responses, _ = self._build_responses()
+        for gid, resps in responses.items():
+            for r in resps:
+                expected = round(r["peak_level_m"] - r["base_level_m"], 4)
+                assert r["level_change_m"] == pytest.approx(expected)
+
+    def test_gauge_a_values(self):
+        responses, _ = self._build_responses()
+        r = responses["GAUGE-A"][0]
+        assert r["base_level_m"] == pytest.approx(1.5)
+        assert r["peak_level_m"] == pytest.approx(5.0)
+        assert r["level_change_m"] == pytest.approx(3.5)
+
+    def test_gauge_b_values(self):
+        responses, _ = self._build_responses()
+        r = responses["GAUGE-B"][0]
+        assert r["base_level_m"] == pytest.approx(2.0)
+        assert r["peak_level_m"] == pytest.approx(7.0)
+        assert r["level_change_m"] == pytest.approx(5.0)
