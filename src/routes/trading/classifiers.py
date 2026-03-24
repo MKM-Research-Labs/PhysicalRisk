@@ -9,6 +9,7 @@ Provides:
   GET  /trading/classifiers/train-all/status  — batch training progress + ETA
 """
 
+import hashlib
 import json
 import logging
 import threading
@@ -28,6 +29,19 @@ _batch_job = None      # dict or None
 _batch_lock = threading.Lock()
 
 _TIMINGS_FILENAME = "classifier_timings.json"
+
+
+def _compute_data_version(stressm_dir: Path) -> str:
+    """Compute a short hash reflecting current classifier state on disk.
+
+    Changes when .joblib files are added/removed or training_summary.json
+    is updated.  Used by the frontend to detect stale cached data.
+    """
+    parts = sorted(p.name for p in stressm_dir.glob("GAUGE-*.joblib"))
+    summary_path = stressm_dir / "training_summary.json"
+    mtime = str(summary_path.stat().st_mtime) if summary_path.exists() else "0"
+    raw = "|".join(parts) + "|" + mtime
+    return hashlib.sha256(raw.encode()).hexdigest()[:12]
 
 
 def _load_timings(stressm_dir: Path) -> dict:
@@ -119,6 +133,7 @@ def classifiers_summary():
             "num_total": len(gauges),
             "num_trained": len(trained),
             "avg_auc_roc": round(avg_auc, 4) if trained else None,
+            "data_version": _compute_data_version(stressm_dir),
         })
 
     except Exception as e:
@@ -290,7 +305,23 @@ def _run_batch_training(gauge_ids: list):
 
         try:
             # Use the existing single-gauge training function
+            t_gauge = time.time()
             _train_single_gauge(gid)
+            gauge_elapsed = time.time() - t_gauge
+
+            # Read back metrics from training_summary.json
+            gauge_metrics = {}
+            try:
+                summary_path = stressm_dir / "training_summary.json"
+                if summary_path.exists():
+                    with open(summary_path) as _f:
+                        _summary = json.load(_f)
+                    for _g in _summary.get("gauges", []):
+                        if _g.get("gauge_id") == gid:
+                            gauge_metrics = _g.get("metrics", {})
+                            break
+            except Exception:
+                pass
 
             with _batch_lock:
                 if _batch_job is None:
@@ -299,10 +330,14 @@ def _run_batch_training(gauge_ids: list):
                 _batch_job["results"].append({
                     "gauge_id": gid,
                     "status": "trained",
+                    "elapsed_seconds": round(gauge_elapsed, 1),
+                    "auc_roc": gauge_metrics.get("auc_roc"),
+                    "accuracy": gauge_metrics.get("accuracy"),
                 })
 
         except Exception as exc:
             logger.error("Batch training failed for %s: %s", gid, exc)
+            gauge_elapsed = time.time() - t_gauge
             with _batch_lock:
                 if _batch_job is None:
                     return
@@ -310,6 +345,7 @@ def _run_batch_training(gauge_ids: list):
                 _batch_job["results"].append({
                     "gauge_id": gid,
                     "status": "failed",
+                    "elapsed_seconds": round(gauge_elapsed, 1),
                     "error": str(exc),
                 })
 
@@ -364,6 +400,23 @@ def train_all_status():
         else:
             remaining = None
 
+        results = list(_batch_job.get("results", []))
+
+        # Running averages from trained gauges
+        trained_results = [r for r in results if r.get("status") == "trained"]
+        avg_auc = None
+        avg_accuracy = None
+        if trained_results:
+            aucs = [r["auc_roc"] for r in trained_results if r.get("auc_roc") is not None]
+            accs = [r["accuracy"] for r in trained_results if r.get("accuracy") is not None]
+            if aucs:
+                avg_auc = round(sum(aucs) / len(aucs), 4)
+            if accs:
+                avg_accuracy = round(sum(accs) / len(accs), 4)
+
+        num_failed = sum(1 for r in results if r.get("status") == "failed")
+        num_skipped = sum(1 for r in results if r.get("status") == "skipped")
+
         resp = {
             "status": status,
             "total": total,
@@ -372,9 +425,12 @@ def train_all_status():
             "pct": round(completed / max(total, 1) * 100, 1),
             "elapsed_seconds": round(elapsed),
             "eta_seconds": round(remaining) if remaining is not None else None,
+            "results": results,
+            "avg_auc": avg_auc,
+            "avg_accuracy": avg_accuracy,
+            "num_trained": len(trained_results),
+            "num_failed": num_failed,
+            "num_skipped": num_skipped,
         }
-
-        if status == "complete":
-            resp["results"] = _batch_job.get("results", [])
 
         return jsonify(resp)
