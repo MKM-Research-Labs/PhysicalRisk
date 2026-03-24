@@ -105,6 +105,14 @@ def get_js() -> str:
                 if (wrap) wrap.style.display = 'block';
                 _clUpdateProgress(0, 0, null, null);
 
+                // Inform user this will take a while
+                if (window.showSuccess) {
+                    window.showSuccess(
+                        'Training started. This will take approximately 10\\u201320 minutes. ' +
+                        'Feel free to navigate elsewhere \\u2014 you will be notified when complete.'
+                    );
+                }
+
                 fetch(baseUrl + '/api/v1/trading/classifiers/train-all', {
                     method: 'POST',
                     mode: 'cors'
@@ -139,6 +147,14 @@ def get_js() -> str:
                             if (clBatchPollTimer) {
                                 clearInterval(clBatchPollTimer);
                                 clBatchPollTimer = null;
+                            }
+                            // Notify the user (works even if they navigated away)
+                            if (window.showSuccess) {
+                                window.showSuccess(
+                                    'Classifier training complete! ' +
+                                    data.completed + '/' + data.total + ' gauges trained.' +
+                                    (data.avg_auc ? ' Avg AUC: ' + data.avg_auc.toFixed(4) : '')
+                                );
                             }
                             setTimeout(function() {
                                 _clHideProgress();

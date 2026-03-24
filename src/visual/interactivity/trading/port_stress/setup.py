@@ -221,7 +221,14 @@ def _get_setup_js() -> str:
                 btn.style.background = '#90a4ae';
 
                 var progress = document.getElementById('ps-train-progress');
-                if (progress) progress.style.display = 'block';
+                if (progress) {
+                    progress.style.display = 'block';
+                    progress.innerHTML =
+                        '<div style="color:#1976d2;font-weight:600;margin-bottom:4px;">Training in progress\u2026</div>' +
+                        '<div style="color:#888;line-height:1.5;">This will take approximately 10\u201320 minutes for all gauges. ' +
+                        'Feel free to navigate elsewhere \u2014 training continues in the background ' +
+                        'and you will be notified when it completes.</div>';
+                }
 
                 fetch(baseUrl + '/api/v1/trading/classifiers/train-all', {
                     method: 'POST',
@@ -250,6 +257,14 @@ def _get_setup_js() -> str:
                                 }
                                 if (st.status === 'complete') {
                                     clearInterval(pollId);
+                                    // Notify the user
+                                    if (window.showSuccess) {
+                                        window.showSuccess(
+                                            'Classifier training complete! ' +
+                                            st.completed + '/' + st.total + ' gauges trained. ' +
+                                            'Portfolio stress is now available.'
+                                        );
+                                    }
                                     // Restore storm bar and reload
                                     var stormBar = document.getElementById('ps-storm-bar');
                                     if (stormBar) stormBar.style.display = 'flex';
