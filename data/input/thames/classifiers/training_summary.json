@@ -1,0 +1,60 @@
+{
+  "num_gauges": 2,
+  "num_trained": 2,
+  "num_skipped": 0,
+  "avg_auc_roc": 0.9885,
+  "gauges": [
+    {
+      "gauge_id": "GAUGE-test002",
+      "status": "trained",
+      "alert_level": 4.0,
+      "severe_level": 6.1,
+      "n_samples": 36960,
+      "n_positive": 168,
+      "n_negative": 36792,
+      "flood_rate": 0.0045,
+      "test_size": 7392,
+      "metrics": {
+        "accuracy": 0.9982,
+        "auc_roc": 0.9825,
+        "brier_score": 0.0015,
+        "log_loss": 0.0083
+      },
+      "feature_importance": {
+        "log_h_s": 0.4686,
+        "log_t_end": 0.3123,
+        "delta_log_h": 0.1054,
+        "delta2_log_h": 0.1137
+      },
+      "model_path": "/private/var/folders/dq/hdkqzjj11qx6f053f49pkh900000gp/T/pytest-of-newdavid/pytest-312/test_single_gauge_classifier_r0/stressm/GAUGE-test002.joblib",
+      "label_threshold": "severe_warning",
+      "label_level_m": 6.1
+    },
+    {
+      "gauge_id": "GAUGE-ef53398c",
+      "status": "trained",
+      "alert_level": 4.37,
+      "severe_level": 6.91,
+      "n_samples": 3393600,
+      "n_positive": 104385,
+      "n_negative": 3289215,
+      "flood_rate": 0.0308,
+      "test_size": 678720,
+      "metrics": {
+        "accuracy": 0.9896,
+        "auc_roc": 0.9945,
+        "brier_score": 0.0079,
+        "log_loss": 0.0289
+      },
+      "feature_importance": {
+        "log_h_s": 0.7164,
+        "log_t_end": 0.2222,
+        "delta_log_h": 0.057,
+        "delta2_log_h": 0.0045
+      },
+      "model_path": "/Users/newdavid/Documents/PhysicalRisk/data/output/stressm/GAUGE-ef53398c.joblib",
+      "label_threshold": "severe_warning",
+      "label_level_m": 6.91
+    }
+  ]
+}

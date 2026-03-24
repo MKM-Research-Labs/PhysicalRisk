@@ -260,43 +260,17 @@ class TestHydrographRemainingZeroExact:
 
 
 class TestGetPredictorLoadPaths:
-    """Lines 86-97: _get_predictor loads from stressm dir, legacy dir, or warns."""
+    """_get_predictor loads from classifiers dir or warns."""
 
-    def test_predictor_loads_from_stressm_dir(self, stress_env):
-        """Lines 86-90: stressm dir with joblib files loads predictor."""
+    def test_predictor_loads_from_classifiers_dir(self, stress_env):
+        """Classifiers dir with joblib files loads predictor."""
         import sys
         import routes.trading.stress._helpers as stress_helpers
         stress_helpers._predictor_cache = None
 
-        # Create a fake joblib file in stressm dir
-        stressm_dir = stress_env['stressm_dir']
-        (stressm_dir / 'GAUGE-001.joblib').write_bytes(b'fake')
-
-        mock_predictor = MagicMock()
-        mock_fp_class = MagicMock(return_value=mock_predictor)
-        mock_module = MagicMock(FloodPredictor=mock_fp_class)
-
-        # The import `from models.stress.flood_classifier import FloodPredictor`
-        # is inside the function, so we patch the module in sys.modules
-        with patch.dict(sys.modules, {'models.stress.flood_classifier': mock_module}):
-            stress_helpers._predictor_cache = None
-            result = stress_helpers._get_predictor()
-
-        assert result is mock_predictor
-        mock_fp_class.assert_called_once_with(stressm_dir)
-        stress_helpers._predictor_cache = None  # cleanup
-
-    def test_predictor_falls_back_to_legacy_dir(self, stress_env):
-        """Lines 91-96: empty stressm dir falls back to legacy stress/ dir."""
-        import sys
-        import routes.trading.stress._helpers as stress_helpers
-        stress_helpers._predictor_cache = None
-
-        # stressm dir is empty (no joblib files)
-        # Create legacy stress dir with joblib
-        legacy_dir = stress_env['output_dir'] / 'stress'
-        legacy_dir.mkdir(exist_ok=True)
-        (legacy_dir / 'GAUGE-001.joblib').write_bytes(b'fake')
+        # Create a fake joblib file in classifiers dir
+        classifiers_dir = stress_env['classifiers_dir']
+        (classifiers_dir / 'GAUGE-001.joblib').write_bytes(b'fake')
 
         mock_predictor = MagicMock()
         mock_fp_class = MagicMock(return_value=mock_predictor)
@@ -307,15 +281,14 @@ class TestGetPredictorLoadPaths:
             result = stress_helpers._get_predictor()
 
         assert result is mock_predictor
-        mock_fp_class.assert_called_once_with(legacy_dir)
+        mock_fp_class.assert_called_once_with(classifiers_dir)
         stress_helpers._predictor_cache = None  # cleanup
 
     def test_predictor_warns_when_no_models(self, stress_env):
-        """Line 97: no models in either directory logs warning, returns None."""
+        """No models in classifiers directory logs warning, returns None."""
         import routes.trading.stress._helpers as stress_helpers
         stress_helpers._predictor_cache = None
 
-        # Both dirs empty (stressm already empty, no legacy dir)
         with patch('routes.trading.stress._helpers.logger') as mock_logger:
             result = stress_helpers._get_predictor()
         assert result is None

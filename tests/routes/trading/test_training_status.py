@@ -68,8 +68,8 @@ class TestClassifierStatus:
 
     def test_status_ready_when_joblib_exists(self, trading_env, trading_client):
         """If a .joblib file exists for the gauge, status is 'ready'."""
-        stressm_dir = trading_env['stressm_dir']
-        (stressm_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"fake")
+        classifiers_dir = trading_env['classifiers_dir']
+        (classifiers_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"fake")
 
         resp = trading_client.get(
             f"/api/v1/trading/stress/classifier-status/{GAUGE_WESTMINSTER}"
@@ -177,8 +177,8 @@ class TestClassifierStatus:
             "started": time.time(),
             "error": None,
         }
-        stressm_dir = trading_env['stressm_dir']
-        (stressm_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"model")
+        classifiers_dir = trading_env['classifiers_dir']
+        (classifiers_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"model")
 
         resp = trading_client.get(
             f"/api/v1/trading/stress/classifier-status/{GAUGE_WESTMINSTER}"
@@ -215,8 +215,8 @@ class TestEdgeCases:
         self, trading_env, trading_client
     ):
         """If joblib appears between status check and train call, returns ready."""
-        stressm_dir = trading_env['stressm_dir']
-        (stressm_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"model")
+        classifiers_dir = trading_env['classifiers_dir']
+        (classifiers_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"model")
 
         resp = trading_client.post(
             f"/api/v1/trading/stress/train/{GAUGE_WESTMINSTER}"

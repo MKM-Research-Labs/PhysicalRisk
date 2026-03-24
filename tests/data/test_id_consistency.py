@@ -190,10 +190,10 @@ class TestClassifierConsistency:
 
     def test_classifiers_exist(self):
         """At least one trained classifier must exist."""
-        stressm_dir = INPUT_DIR / "stressm"
-        if not stressm_dir.exists():
-            pytest.skip("stressm/ not generated yet")
-        classifiers = list(stressm_dir.glob("*.joblib"))
+        classifiers_dir = INPUT_DIR / "classifiers"
+        if not classifiers_dir.exists():
+            pytest.skip("classifiers/ not generated yet")
+        classifiers = list(classifiers_dir.glob("*.joblib"))
         assert len(classifiers) > 0, (
             "No trained classifiers found. Run: python app.py port --classifier-only"
         )
@@ -201,10 +201,10 @@ class TestClassifierConsistency:
     def test_classifier_gauge_ids_match(self):
         """Classifiers that exist should reference current gauge IDs."""
         gauge_ids = _load_gauge_ids()
-        stressm_dir = INPUT_DIR / "stressm"
-        if not stressm_dir.exists():
-            pytest.skip("stressm/ not generated yet")
-        classifiers = list(stressm_dir.glob("GAUGE-*.joblib"))
+        classifiers_dir = INPUT_DIR / "classifiers"
+        if not classifiers_dir.exists():
+            pytest.skip("classifiers/ not generated yet")
+        classifiers = list(classifiers_dir.glob("GAUGE-*.joblib"))
         if not classifiers:
             pytest.skip("No classifiers found — run: python3 app.py classifier --all")
         clf_ids = {f.stem for f in classifiers}
@@ -219,10 +219,10 @@ class TestClassifierConsistency:
 
     def test_training_summary_exists(self):
         """training_summary.json must exist alongside classifiers."""
-        stressm_dir = INPUT_DIR / "stressm"
-        if not stressm_dir.exists():
-            pytest.skip("stressm/ not generated yet")
-        summary = stressm_dir / "training_summary.json"
+        classifiers_dir = INPUT_DIR / "classifiers"
+        if not classifiers_dir.exists():
+            pytest.skip("classifiers/ not generated yet")
+        summary = classifiers_dir / "training_summary.json"
         if not summary.exists():
             pytest.skip("training_summary.json missing — run: python3 app.py classifier --all")
 
@@ -409,10 +409,10 @@ class TestPipelineCompleteness:
         This test checks that at least one classifier is current — stale extras
         are flagged as a warning, not a failure.
         """
-        stressm_dir = INPUT_DIR / "stressm"
-        if not stressm_dir.exists():
-            pytest.skip("No stressm directory")
-        joblibs = list(stressm_dir.glob("*.joblib"))
+        classifiers_dir = INPUT_DIR / "classifiers"
+        if not classifiers_dir.exists():
+            pytest.skip("No classifiers directory")
+        joblibs = list(classifiers_dir.glob("*.joblib"))
         if not joblibs:
             pytest.skip("No trained classifiers")
         # If classifiers exist, stress_storms must also exist
@@ -422,7 +422,7 @@ class TestPipelineCompleteness:
             f"Classifiers are stale. Fix: python3 app.py classifier"
         )
         # training_summary must exist
-        summary_path = stressm_dir / "training_summary.json"
+        summary_path = classifiers_dir / "training_summary.json"
         assert summary_path.exists(), (
             f"{len(joblibs)} .joblib file(s) but no training_summary.json. "
             f"Summary is out of sync. Fix: python3 app.py classifier"

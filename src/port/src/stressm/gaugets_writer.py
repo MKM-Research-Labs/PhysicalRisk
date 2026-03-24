@@ -131,7 +131,7 @@ def write_classifier_summary(results: list) -> None:
         'avg_auc_roc': round(avg_auc, 4),
         'gauges': results,
     }
-    path = _cfg.get_stressm_dir() / 'training_summary.json'
+    path = _cfg.get_classifiers_dir() / 'training_summary.json'
     with open(path, 'w') as f:
         json.dump(summary, f, indent=2)
     print(

@@ -1,0 +1,10 @@
+{
+  "PRS-CCFA0A30": {
+    "trade_status": "Closed",
+    "close_date": "2026-03-23",
+    "close_spread_bps": 50.0,
+    "final_pnl": -1464302.48,
+    "settlement_amount": 1464302.48,
+    "original_notional": 10000000
+  }
+}
