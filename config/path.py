@@ -156,14 +156,24 @@ class PortfolioPaths:
         return gaugets_dir
 
     def get_stressm_dir(self) -> Path:
-        """Get multi-storm classifier directory (GBM .joblib models per gauge).
+        """Get multi-storm stress data directory (storm sequences, gauge summaries).
 
-        Classifiers live alongside the input data so they are catchment-specific
-        and portable.  Path: data/input/<catchment>/stressm/
+        Path: data/input/<catchment>/stressm/
+        Note: classifiers have moved to get_classifiers_dir().
         """
         stressm_dir = self.input_dir / 'stressm'
         stressm_dir.mkdir(exist_ok=True, parents=True)
         return stressm_dir
+
+    def get_classifiers_dir(self) -> Path:
+        """Get flood classifier directory (GBM .joblib models per gauge).
+
+        Separated from stressm so classifiers are clearly distinct from
+        storm sequence data.  Path: data/input/<catchment>/classifiers/
+        """
+        cls_dir = self.input_dir / 'classifiers'
+        cls_dir.mkdir(exist_ok=True, parents=True)
+        return cls_dir
 
     def get_reports_dir(self, report_type: str = None) -> Path:
         """Get reports directory, optionally for a specific report type.
@@ -198,8 +208,12 @@ class PortfolioPaths:
         return self.project_root / 'data' / 'results'
 
     def get_trading_dir(self) -> Path:
-        """Get trading data directory (market state, trade marks, EOD snapshots)."""
-        trading_dir = self.project_root / 'data' / 'output' / 'trading'
+        """Get trading data directory (market state, trade marks, EOD snapshots).
+
+        Now lives under data/input/<catchment>/blotter/ so that trading
+        desk data is git-tracked and available on fresh clones.
+        """
+        trading_dir = self.input_dir / 'blotter'
         trading_dir.mkdir(exist_ok=True, parents=True)
         return trading_dir
 
