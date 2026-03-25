@@ -95,7 +95,7 @@ from config.models import (
     DAMAGE_POINTS,
     # Velocity / Manning
     DEFAULT_ROUGHNESS,
-    DEFAULT_ATTENUATION_LENGTH,
+    DEFAULT_RETENTION_LENGTH,
     MIN_SLOPE,
     DEFAULT_RECESSION_FACTOR,
     # Property Valuation

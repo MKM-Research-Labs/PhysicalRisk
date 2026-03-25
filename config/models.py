@@ -132,8 +132,13 @@ DAMAGE_POINTS: List[float] = [0, 0.05, 0.25, 0.4, 0.5, 0.6, 0.75, 0.85, 0.95, 1.
 # Default Manning's roughness coefficient for urban floodplain
 DEFAULT_ROUGHNESS: float = 0.04
 
-# Default attenuation length scale (meters)
-DEFAULT_ATTENUATION_LENGTH: float = 2000.0
+# Default retention length scale (meters).  Controls the exponential
+# decay of peak WSE with distance from river.  At d = L the retention
+# factor is 1/e ≈ 0.37; at d = 0 retention is 1.0 (full signal).
+# 10 km means a property 1 km from the river retains ~90 % of peak WSE,
+# consistent with near-field hydraulic guidance (little attenuation for
+# properties within a few hundred metres of the channel).
+DEFAULT_RETENTION_LENGTH: float = 10_000.0
 
 # Minimum slope to avoid division instability
 MIN_SLOPE: float = 0.001
