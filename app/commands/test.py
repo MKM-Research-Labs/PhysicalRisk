@@ -27,7 +27,7 @@ Runs the full pytest suite under tests/ and produces:
   - JUnit XML
   - Coverage XML + HTML
   - LaTeX / PDF model documentation
-All artefacts are written to reports/audit/.
+All artefacts are written to data/output/audit/.
 """
 
 import os
@@ -44,7 +44,7 @@ def register_parser(subparsers):
         "test", help="Run tests and produce full audit evidence package")
     sp_test.add_argument(
         "--audit", action="store_true",
-        help="Produce JUnit XML + coverage + LaTeX report in reports/audit/")
+        help="Produce JUnit XML + coverage + LaTeX report in data/output/audit/")
     sp_test.add_argument(
         "--test", action="store_true",
         help="Run pytest suite only (JUnit XML + coverage), skip doc generators")
@@ -336,7 +336,7 @@ def cmd_test(args):
     """Run tests and produce a full audit evidence package."""
     project_root = config.get_project_root()
 
-    # All artefacts land in the catchment reports/audit/ directory
+    # All artefacts land in the catchment data/output/audit/ directory
     audit_dir = str(config.get_reports_dir('audit'))
     os.makedirs(audit_dir, exist_ok=True)
 

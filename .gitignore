@@ -10,9 +10,3 @@ coverage.json
 .coverage
 .claude/
 
-# Legacy output dirs — all port output now lives under data/input/<catchment>/
-data/output/
-data/results/
-data/governance_docs/
-data/mrc_uploads/
-

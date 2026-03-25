@@ -30,7 +30,7 @@ and imported at every use site.  Hard-coding distributes parameters across
 files, making them easy to miss when recalibration or deployment changes
 are required.
 
-Output:  data/input/<catchment>/reports/audit/hardcoding_report.pdf
+Output:  data/output/audit/hardcoding_report.pdf
 
 Usage:
     python -m docs.models.hardcoding
