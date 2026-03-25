@@ -20,7 +20,7 @@ Data sources:
   - src/lineage/manifest.py        — DEPENDENCY_GRAPH, STEP_IO
   - src/lineage/validation.py      — validate_full_chain()
 
-Output:  data/output/audit/data_lineage_report.pdf
+Output:  data/input/<catchment>/reports/audit/data_lineage_report.pdf
 
 Usage:
     python -m docs.models.data_lineage
@@ -66,7 +66,8 @@ HEADER_BG = colors.HexColor('#E8EAF6')
 # Paths
 # ---------------------------------------------------------------------------
 
-AUDIT_DIR = _root / 'data' / 'output' / 'audit'
+from config import config
+AUDIT_DIR = config.get_reports_dir('audit')
 OUTPUT_PDF = AUDIT_DIR / 'data_lineage_report.pdf'
 LINEAGE_PATH = _root / 'data' / 'data_lineage.json'
 
@@ -869,7 +870,7 @@ def _build_retention_policy(data: dict, story: list, S: dict):
          'FCA COBS 9A — suitability records'],
         ['EOD snapshots\n(daily P&L, market state)',
          '5 years\n(minimum)',
-         'data/output/trading/eod/',
+         'data/input/<catchment>/blotter/eod/',
          'FCA SUP 17 — transaction reporting'],
         ['Lineage manifest\n(data_lineage.json)',
          f'{RETENTION_DAYS} days\n(minimum)',
@@ -877,11 +878,11 @@ def _build_retention_policy(data: dict, story: list, S: dict):
          'BCBS 239 P6 — timeliness evidence'],
         ['Audit evidence\n(test reports, coverage)',
          '3 years\n(minimum)',
-         'data/output/audit/',
+         'data/input/<catchment>/reports/audit/',
          'SS1/23 §5.14 — validation evidence'],
         ['Classifier models\n(*.joblib, training summaries)',
          'Model lifetime\n+ 1 year',
-         'data/output/gauge/',
+         'data/input/<catchment>/classifiers/',
          'SR 11-7 — model inventory'],
     ]
 

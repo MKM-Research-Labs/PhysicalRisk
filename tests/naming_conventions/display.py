@@ -142,7 +142,7 @@ class TestStormDisplayFormat:
 
 
 class TestBlotterTradeExistence:
-    """The blotter must return trades when trade files exist in data/output/prs/."""
+    """The blotter must return trades when trade files exist in data/input/<catchment>/prs/."""
 
     def test_blotter_returns_trades_with_fixture(self, tmp_path):
         """When PRS trade files are present, GET /trading/blotter returns them."""
@@ -175,7 +175,7 @@ class TestBlotterTradeExistence:
         found = list(prs_dir.glob('PRS-*.json'))
         assert len(found) == 1, (
             "PRS-*.json glob found no files — blotter would return empty trades. "
-            "Check that trade files exist in data/output/prs/ (run: python app.py book)."
+            "Check that trade files exist in data/input/<catchment>/prs/ (run: python app.py book)."
         )
 
     def test_blotter_glob_pattern_matches_prs_id_protocol(self):

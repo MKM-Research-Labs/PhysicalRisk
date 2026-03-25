@@ -80,7 +80,7 @@ class JSONFileConfig:
     HISTORICAL_GAUGES = 'historical_gauge_data.json'
     STORM_CATALOG = 'historical_storm_catalog.json'
 
-    # Trading desk files (stored in data/output/trading/)
+    # Trading desk files (stored in data/input/<catchment>/blotter/)
     MARKET_STATE = 'market_state.json'
     TRADE_MARKS = 'trade_marks.json'
     EOD_SNAPSHOTS = 'eod'  # Directory of EOD-YYYYMMDD.json files

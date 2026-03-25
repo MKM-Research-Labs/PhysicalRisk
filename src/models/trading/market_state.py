@@ -61,7 +61,7 @@ class MarketStateManager:
         Initialize market state manager.
 
         Args:
-            trading_dir: Path to data/output/trading/
+            trading_dir: Path to data/input/<catchment>/blotter/
             input_dir: Path to data/input/<catchment>/
         """
         self.trading_dir = Path(trading_dir)

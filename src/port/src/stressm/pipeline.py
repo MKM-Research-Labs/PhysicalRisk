@@ -79,7 +79,7 @@ def generate_stressm(
 
     Args:
         input_dir:         data/input/<catchment>/
-        output_dir:        data/output/ — used for classifier model output
+        output_dir:        data/input/<catchment>/ — used for classifier model output
         count:             Number of sequences to generate (default 10,000)
         catchment_id:      Catchment identifier string
         seed:              Random seed for reproducibility

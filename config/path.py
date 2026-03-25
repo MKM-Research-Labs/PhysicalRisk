@@ -52,32 +52,41 @@ class ConfigPaths:
 
         return Path(__file__).resolve().parent.parent
 
+    def _get_catchment_input_dir(self) -> Path:
+        """Get catchment-specific input directory."""
+        catchment = os.getenv('MKM_CATCHMENT', 'thames')
+        return self._get_project_root() / os.getenv('MKM_INPUT_DIR', 'data/input') / catchment
+
     def get_input_dir(self) -> Path:
         """Get input data directory."""
         return self._get_project_root() / os.getenv('MKM_INPUT_DIR', 'data/input')
 
     def get_output_dir(self) -> Path:
-        """Get output directory."""
-        return self._get_project_root() / os.getenv('MKM_OUTPUT_DIR', 'data/output')
+        """Get output directory (now under catchment input dir for git tracking)."""
+        return self._get_catchment_input_dir()
 
     def get_reports_dir(self, report_type: str = None) -> Path:
         """Get reports directory, optionally for a specific report type."""
-        base = self._get_project_root() / 'data' / 'output'
+        base = self._get_catchment_input_dir() / 'reports'
         if report_type:
             return base / report_type
         return base
 
     def get_property_reports_dir(self) -> Path:
         """Get property reports directory."""
-        return self._get_project_root() / 'data' / 'output' / 'property'
+        return self._get_catchment_input_dir() / 'reports' / 'property'
 
     def get_gauge_reports_dir(self) -> Path:
         """Get gauge reports directory."""
-        return self._get_project_root() / 'data' / 'output' / 'gauge'
+        return self._get_catchment_input_dir() / 'reports' / 'gauge'
 
     def get_results_dir(self) -> Path:
         """Get results directory."""
-        return self._get_project_root() / os.getenv('MKM_RESULTS_DIR', 'data/results')
+        return self._get_catchment_input_dir() / 'results'
+
+    def get_project_root(self) -> Path:
+        """Get project root directory (public accessor)."""
+        return self._get_project_root()
 
 
 class PortfolioPaths:
@@ -92,7 +101,7 @@ class PortfolioPaths:
 
         # Data directories under data/
         self.input_dir = self.project_root / 'data' / 'input' / catchment_id
-        self.results_dir = self.project_root / 'data' / 'results'
+        self.results_dir = self.input_dir / 'results'
 
         # Catchment definitions under data/
         self.catchments_dir = self.project_root / 'data' / 'catch'
@@ -178,34 +187,38 @@ class PortfolioPaths:
     def get_reports_dir(self, report_type: str = None) -> Path:
         """Get reports directory, optionally for a specific report type.
 
-        PRS trade files are stored under data/input/<catchment>/prs/ so they
-        are tracked by git and survive fresh checkouts.  All other report types
-        remain under data/output/ as before.
+        All reports are stored under data/input/<catchment>/reports/ so they
+        are tracked by git and survive fresh checkouts.
         """
-        if report_type == 'prs':
-            prs_dir = self.input_dir / 'prs'
-            prs_dir.mkdir(exist_ok=True, parents=True)
-            return prs_dir
-        base = self.project_root / 'data' / 'output'
+        base = self.input_dir / 'reports'
         if report_type:
-            return base / report_type
+            d = base / report_type
+            d.mkdir(exist_ok=True, parents=True)
+            return d
+        base.mkdir(exist_ok=True, parents=True)
         return base
 
     def get_property_reports_dir(self) -> Path:
         """Get property reports directory."""
-        return self.project_root / 'data' / 'output' / 'property'
+        d = self.input_dir / 'reports' / 'property'
+        d.mkdir(exist_ok=True, parents=True)
+        return d
 
     def get_gauge_reports_dir(self) -> Path:
         """Get gauge reports directory."""
-        return self.project_root / 'data' / 'output' / 'gauge'
+        d = self.input_dir / 'reports' / 'gauge'
+        d.mkdir(exist_ok=True, parents=True)
+        return d
 
     def get_output_dir(self) -> Path:
-        """Get output directory."""
-        return self.project_root / 'data' / 'output'
+        """Get output directory (now under input dir for git tracking)."""
+        return self.input_dir
 
     def get_results_dir(self) -> Path:
         """Get results directory."""
-        return self.project_root / 'data' / 'results'
+        d = self.input_dir / 'results'
+        d.mkdir(exist_ok=True, parents=True)
+        return d
 
     def get_trading_dir(self) -> Path:
         """Get trading data directory (market state, trade marks, EOD snapshots).

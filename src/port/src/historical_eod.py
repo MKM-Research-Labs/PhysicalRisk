@@ -68,9 +68,9 @@ def generate_historical_eod_series(
 
     Args:
         trades: List of trade dicts (from book generator)
-        trading_dir: Path to data/output/trading/
+        trading_dir: Path to data/input/<catchment>/blotter/
         input_dir: Path to data/input/<catchment>/
-        prs_dir: Path to data/output/prs/ (PRS trade files)
+        prs_dir: Path to data/input/<catchment>/prs/ (PRS trade files)
         seed: Random seed for reproducibility
 
     Returns:

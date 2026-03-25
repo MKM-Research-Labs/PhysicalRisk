@@ -3,9 +3,6 @@ __pycache__/
 *.pyc
 .DS_Store
 .venv/
-data/output/
-data/results/
-audit/
 cache/
 *.egg-info/
 .pytest_cache/
@@ -13,6 +10,9 @@ coverage.json
 .coverage
 .claude/
 
+# Legacy output dirs — all port output now lives under data/input/<catchment>/
+data/output/
+data/results/
 data/governance_docs/
 data/mrc_uploads/
 

@@ -20,7 +20,7 @@
 
 """Code duplication analysis report generator.
 
-Runs jscpd on src/ and produces a PDF summary saved to data/output/audit/.
+Runs jscpd on src/ and produces a PDF summary saved to reports/audit/.
 
 Usage:
     python -m docs.models.duplication
@@ -58,9 +58,10 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
+from config import config
 ROOT_DIR = _root
 SRC_DIR = ROOT_DIR / 'src'
-AUDIT_DIR = ROOT_DIR / 'data' / 'output' / 'audit'
+AUDIT_DIR = config.get_reports_dir('audit')
 OUTPUT_PDF = AUDIT_DIR / 'code_duplication_report.pdf'
 
 MIN_LINES = 8
