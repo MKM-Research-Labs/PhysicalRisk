@@ -181,10 +181,23 @@ class TestSyntheticGaugeGenerator:
         for sg in synth:
             loc = sg["FloodGauge"]["Location"]
             lat, lon = loc["GaugeLatitude"], loc["GaugeLongitude"]
-            # Should be very close to one of the polyline segments
-            from models.floodrisk.spatial import nearest_point_on_polyline
-            _, _, dist_m, _, _ = nearest_point_on_polyline(lat, lon, GAUGE_POINTS)
-            assert dist_m < 1.0, f"Synthetic gauge at ({lat}, {lon}) is {dist_m}m from polyline"
+            # Should be on the river polyline (if available) or close to
+            # the gauge polyline.  River-snapped gauges may be up to a few
+            # km from the coarse gauge polyline at river bends.
+            from port.src.gauge.synthetic import _load_river_polyline
+            river = _load_river_polyline()
+            if river and len(river) >= 2:
+                from models.floodrisk.spatial import nearest_point_on_polyline
+                _, _, dist_m, _, _ = nearest_point_on_polyline(lat, lon, river)
+                assert dist_m < 50.0, (
+                    f"Synthetic gauge at ({lat}, {lon}) is {dist_m}m from river"
+                )
+            else:
+                from models.floodrisk.spatial import nearest_point_on_polyline
+                _, _, dist_m, _, _ = nearest_point_on_polyline(lat, lon, GAUGE_POINTS)
+                assert dist_m < 1.0, (
+                    f"Synthetic gauge at ({lat}, {lon}) is {dist_m}m from polyline"
+                )
 
     def test_interpolated_elevation(self, synth_env):
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
