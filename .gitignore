@@ -10,3 +10,20 @@ coverage.json
 .coverage
 .claude/
 
+# Port-generated data — receivers run `python app.py port` locally
+data/input/
+data/output/
+data/governance_docs/
+data/results/
+data/data_lineage.json
+data/model_audit_log.json
+data/mrc_meetings.json
+
+# Keep catchment configs and metadata schemas tracked
+!data/catch/
+!data/bcbs239_assessment.json
+!data/bibliography.json
+!data/field_lineage_registry.json
+!data/governance_documents.json
+!data/model_inventory.json
+!data/raci_matrix.json
