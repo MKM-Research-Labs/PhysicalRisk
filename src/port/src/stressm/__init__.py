@@ -22,7 +22,7 @@
 
 from .pipeline import (
     generate_stressm,
-    GAUGE_SUMMARY_FILENAME, SCHEMA_VERSION_SPATIAL,
+    GAUGE_SUMMARY_FILENAME, GAUGE_SUMMARY_DIR, SCHEMA_VERSION_SPATIAL,
 )
 from .gaugets_writer import populate_gaugets, write_classifier_summary, build_summary
 from .classifier import train_gauge_stressm_classifier, _print_classifier_result
@@ -39,6 +39,7 @@ __all__ = [
     'build_summary',
     'train_gauge_stressm_classifier',
     'GAUGE_SUMMARY_FILENAME',
+    'GAUGE_SUMMARY_DIR',
     'SCHEMA_VERSION_SPATIAL',
     '_extract_gauges',
     '_parse_gauge',

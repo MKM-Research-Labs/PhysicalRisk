@@ -82,7 +82,7 @@ class TestStressClassifiers:
         )
 
     def test_classifier_filenames_well_formed(self, classifier_files):
-        bad = [f.name for f in classifier_files if not f.stem.startswith("GAUGE-")]
+        bad = [f.name for f in classifier_files if not f.stem.startswith(("GAUGE-", "SYNTH-"))]
         assert not bad, f"Classifier files with unexpected names: {bad}"
 
     def test_classifiers_not_empty(self, classifier_files):
@@ -142,7 +142,7 @@ class TestGaugetsData:
         assert gaugets_files, f"No .json files found in {GAUGETS_DIR}"
 
     def test_gaugets_gauge_id_format(self, gaugets_files):
-        bad = [f.name for f in gaugets_files if not f.stem.startswith("GAUGE-")]
+        bad = [f.name for f in gaugets_files if not f.stem.startswith(("GAUGE-", "SYNTH-"))]
         assert not bad, f"gaugets files with unexpected names: {bad}"
 
     def test_each_file_has_required_keys(self, gaugets_files):

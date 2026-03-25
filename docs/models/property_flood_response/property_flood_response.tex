@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Property Flood Response Model}
 \newcommand{\docsubtitle}{Gauge-to-Property Flood Propagation, Damage Estimation, and Portfolio Loss Analytics}
-\newcommand{\docversion}{1.0}
-\newcommand{\docdate}{18-Mar-2026}
+\newcommand{\docversion}{1.1}
+\newcommand{\docdate}{25-March-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -195,10 +195,11 @@ flagged as flooded when $d_j > 0$. Properties with higher floor levels require
 proportionally deeper flooding before interior damage commences, reflecting the
 physical protection afforded by raised ground floors.
 
-\subsubsection{Exponential Distance Attenuation}
+\subsubsection{Exponential Distance Retention}
 \label{sec:attenuation}
 
-The WSE decays exponentially with distance from the river channel or gauge:
+The fraction of peak WSE retained at the property decays exponentially with
+distance from the river channel or gauge:
 
 \begin{equation}
     a(r) = \exp\!\left(-\frac{r}{\ell}\right)
@@ -206,11 +207,12 @@ The WSE decays exponentially with distance from the river channel or gauge:
 \end{equation}
 
 \noindent where $r$ is the distance (metres) from the nearest gauge to the property
-and $\ell = 2{,}000\,$m is the characteristic attenuation length scale. At $r = 0$
-the factor is 1.0 (no attenuation); at $r = \ell$ it is $e^{-1} \approx 0.37$; at
-$r = 3\ell$ it is $e^{-3} \approx 0.05$. The attenuation captures the physical
-reality that floodwater depth decreases with lateral distance from the river as
-water spreads across the floodplain and is absorbed by terrain features.
+and $\ell = 10{,}000\,$m is the characteristic retention length scale. At $r = 0$
+the retention factor is 1.0 (full signal, no loss); at $r = 1\,$km it is $\approx 0.90$;
+at $r = \ell$ it is $e^{-1} \approx 0.37$. The large length scale reflects
+near-field hydraulic guidance: for properties within a few hundred metres to
+$\sim$1\,km of the channel, peak WSE attenuation is negligible in the absence
+of significant floodplain storage or topographic barriers.
 
 % -------------------------------------------------------------------
 % 3.3 Velocity and Travel Time

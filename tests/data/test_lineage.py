@@ -621,7 +621,7 @@ class TestValidateFullChain:
         with patch("lineage.validation.load_manifest", return_value=_make_manifest({})):
             result = validate_full_chain()
         assert not result["is_consistent"]
-        assert len(result["missing_steps"]) == 10  # all steps missing
+        assert len(result["missing_steps"]) == 11  # all steps missing (incl synthetic_gauges)
 
     def test_consistent_chain(self):
         from lineage.validation import validate_full_chain
@@ -632,6 +632,10 @@ class TestValidateFullChain:
             "properties": {
                 "inputs": {"gauge.json": {"hash": "a"}},
                 "outputs": {"property.json": {"hash": "c"}},
+            },
+            "synthetic_gauges": {
+                "inputs": {"gauge.json": {"hash": "a"}, "property.json": {"hash": "c"}},
+                "outputs": {},
             },
             "mortgages": {
                 "inputs": {"property.json": {"hash": "c"}},
@@ -647,7 +651,7 @@ class TestValidateFullChain:
                     "gaugets/": {"hash": "f"},
                     "stress_storms/": {"hash": "g"},
                     "storm_sequences.json": {"hash": "h"},
-                    "sequence_gauge_summary.json": {"hash": "i"},
+                    "sequence_gauge/": {"hash": "i"},
                 },
             },
             "hazard": {

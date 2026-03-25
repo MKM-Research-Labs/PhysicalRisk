@@ -177,7 +177,7 @@ class TestAnimateCompositePropertyState:
             "flood_events": [{
                 "storm_id": STORM_ID, "flood_depth_m": 0.5, "damage_ratio": 0.1,
                 "arrival_time_hrs": 2, "peak_time_hrs": 5,
-                "travel_time_hrs": 2, "attenuation_factor": 0.9,
+                "travel_time_hrs": 2, "retention_factor": 0.9,
                 "readings": [{"depth_m": 0.3, "flooded": True}] * 8,
             }],
         }

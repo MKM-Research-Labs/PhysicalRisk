@@ -75,8 +75,10 @@ class TestGaugehcData:
         assert not missing, f"Gauges missing required fields: {missing}"
 
     def test_gauge_ids_are_well_formed(self, gaugehc):
-        bad = [gid for gid in gaugehc["hazard_curves"] if not gid.startswith("GAUGE-")]
-        assert not bad, f"Gauge IDs not in GAUGE-xxxx format: {bad[:5]}"
+        valid_prefixes = ("GAUGE-", "SYNTH-")
+        bad = [gid for gid in gaugehc["hazard_curves"]
+               if not gid.startswith(valid_prefixes)]
+        assert not bad, f"Gauge IDs not in GAUGE-/SYNTH-xxxx format: {bad[:5]}"
 
     def test_flood_trigger_ordering(self, gaugehc):
         """alert < warning < severe for every gauge."""

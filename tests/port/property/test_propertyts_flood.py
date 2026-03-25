@@ -187,7 +187,7 @@ class TestBuildFloodEvent:
             5.0, 0.3, "GAUGE-001", gaugets, self._nearest()
         )
         for key in ("storm_id", "flood_depth_m", "damage_ratio",
-                    "flooded", "attenuation_factor"):
+                    "flooded", "retention_factor"):
             assert key in result
         # readings only present when flooded
         if result["flooded"]:

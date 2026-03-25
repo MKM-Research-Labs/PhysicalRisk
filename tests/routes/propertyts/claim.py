@@ -43,7 +43,7 @@ PROP_FLOOD_DATA = {
         "arrival_time_hrs": 5,
         "peak_time_hrs": 12,
         "travel_time_hrs": 5,
-        "attenuation_factor": 0.9,
+        "retention_factor": 0.9,
         "readings": [{"wse_m": 3.4, "depth_m": 0.2, "flooded": True}],
     }],
 }

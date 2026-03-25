@@ -83,9 +83,10 @@ RETENTION_DAYS = 365  # 1 year minimum
 # ---------------------------------------------------------------------------
 
 STEP_OWNERS = {
-    'gauges':         'Data Engineering',
-    'properties':     'Data Engineering',
-    'mortgages':      'Data Engineering',
+    'gauges':             'Data Engineering',
+    'properties':         'Data Engineering',
+    'synthetic_gauges':   'Quantitative Analytics',
+    'mortgages':          'Data Engineering',
     'gaugehd':        'Quantitative Analytics',
     'stressm':        'Quantitative Analytics',
     'hazard':         'Quantitative Analytics',

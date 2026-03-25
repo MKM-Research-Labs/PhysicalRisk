@@ -38,16 +38,17 @@ LINEAGE_PATH = _project_root / "data" / "data_lineage.json"
 # Static pipeline topology
 # ---------------------------------------------------------------------------
 DEPENDENCY_GRAPH = {
-    "gauges":         [],
-    "properties":     ["gauges"],
-    "mortgages":      ["properties"],
-    "gaugehd":        ["gauges"],
-    "stressm":        ["gauges", "gaugehd"],
-    "hazard":         ["gauges", "stressm"],
-    "propertyts":     ["properties", "stressm"],
-    "propertyhc":     ["propertyts", "hazard"],
-    "counterparties": [],
-    "blotter":        ["hazard", "counterparties"],
+    "gauges":             [],
+    "properties":         ["gauges"],
+    "synthetic_gauges":   ["gauges", "properties"],
+    "mortgages":          ["properties"],
+    "gaugehd":            ["gauges", "synthetic_gauges"],
+    "stressm":            ["synthetic_gauges", "gaugehd"],
+    "hazard":             ["synthetic_gauges", "stressm"],
+    "propertyts":         ["properties", "stressm"],
+    "propertyhc":         ["propertyts", "hazard"],
+    "counterparties":     [],
+    "blotter":            ["hazard", "counterparties"],
 }
 
 STEP_IO = {
@@ -57,12 +58,14 @@ STEP_IO = {
                        "outputs": ["property.json"]},
     "mortgages":      {"inputs": ["property.json"],
                        "outputs": ["mortgage.json"]},
+    "synthetic_gauges": {"inputs": ["gauge.json", "property.json"],
+                        "outputs": []},
     "gaugehd":        {"inputs": ["gauge.json"],
                        "outputs": ["gaugehd/"]},
     "stressm":        {"inputs": ["gauge.json", "gaugehd/"],
                        "outputs": ["gaugets/", "stress_storms/",
                                    "storm_sequences.json",
-                                   "sequence_gauge_summary.json"]},
+                                   "sequence_gauge/"]},
     "hazard":         {"inputs": ["gauge.json", "gaugets/"],
                        "outputs": ["gaugehc.json", "gaugets/"]},
     "propertyts":     {"inputs": ["property.json", "gauge.json", "gaugets/"],

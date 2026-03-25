@@ -44,7 +44,10 @@ class TestOutputsExist:
         (tmp_path / "stress_storms").mkdir()
         (tmp_path / "stress_storms" / "_index.json").write_text("{}")
         (tmp_path / "storm_sequences.json").write_text("{}")
-        (tmp_path / "sequence_gauge_summary.json").write_text("{}")
+        sg_dir = tmp_path / "sequence_gauge"
+        sg_dir.mkdir()
+        (sg_dir / "_index.json").write_text("{}")
+        (sg_dir / "GAUGE-001.json").write_text("{}")
         assert _outputs_exist("stressm", tmp_path)
 
     def test_dir_output_empty(self, tmp_path):
@@ -52,8 +55,9 @@ class TestOutputsExist:
         (tmp_path / "gaugets").mkdir()
         (tmp_path / "stress_storms").mkdir()
         (tmp_path / "storm_sequences.json").write_text("{}")
-        (tmp_path / "sequence_gauge_summary.json").write_text("{}")
-        # gaugets/ is empty → should fail
+        sg_dir = tmp_path / "sequence_gauge"
+        sg_dir.mkdir()
+        # sequence_gauge/ is empty → should fail
         assert not _outputs_exist("stressm", tmp_path)
 
     def test_dir_output_missing(self, tmp_path):
@@ -68,7 +72,7 @@ class TestOutputsExist:
     def test_partial_outputs_missing(self, tmp_path):
         from lineage.validation import _outputs_exist
         # stressm needs gaugets/, stress_storms/, storm_sequences.json,
-        # sequence_gauge_summary.json — only provide some
+        # sequence_gauge/ — only provide some
         d = tmp_path / "gaugets"
         d.mkdir()
         (d / "GAUGE-001.json").write_text("{}")
@@ -105,6 +109,10 @@ class TestResolvePrerequisites:
                 "inputs": {"gauge.json": {"hash": "aaa"}},
                 "outputs": {"property.json": {"hash": "bbb"}},
             },
+            "synthetic_gauges": {
+                "inputs": {"gauge.json": {"hash": "aaa"}, "property.json": {"hash": "bbb"}},
+                "outputs": {},
+            },
             "gaugehd": {
                 "inputs": {"gauge.json": {"hash": "aaa"}},
                 "outputs": {"gaugehd/": {"hash": "ccc"}},
@@ -118,7 +126,7 @@ class TestResolvePrerequisites:
                     "gaugets/": {"hash": "ddd"},
                     "stress_storms/": {"hash": "eee"},
                     "storm_sequences.json": {"hash": "fff"},
-                    "sequence_gauge_summary.json": {"hash": "ggg"},
+                    "sequence_gauge/": {"hash": "ggg"},
                 },
             },
         })
@@ -293,6 +301,7 @@ class TestPortPrereqIntegration:
         from lineage.validation import resolve_prerequisites
         _step_flag = {
             "gauges": "gauges", "properties": "properties",
+            "synthetic_gauges": "synthetic_gauges",
             "mortgages": "mortgages", "gaugehd": "gaugehd",
             "stressm": "stressm", "hazard": "hazard",
             "propertyts": "propertyts", "propertyhc": "propertyhc",

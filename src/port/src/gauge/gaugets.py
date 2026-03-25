@@ -170,8 +170,10 @@ class GaugeTimeSeriesGenerator:
         gaugets_dir = self.output_dir / "gaugets"
         gaugets_dir.mkdir(parents=True, exist_ok=True)
 
-        # Remove stale GAUGE-*.json files from previous runs
+        # Remove stale gauge files from previous runs (GAUGE-* and SYNTH-*)
         for stale in gaugets_dir.glob('GAUGE-*.json'):
+            stale.unlink()
+        for stale in gaugets_dir.glob('SYNTH-*.json'):
             stale.unlink()
 
         # Build per-gauge readings from the interleaved timestep data

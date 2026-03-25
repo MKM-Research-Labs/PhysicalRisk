@@ -416,7 +416,7 @@ def cmd_port(args):
                         "gaugets/": input_dir / "gaugets",
                         "stress_storms/": input_dir / "stress_storms",
                         "storm_sequences.json": input_dir / "storm_sequences.json",
-                        "sequence_gauge_summary.json": input_dir / "sequence_gauge_summary.json",
+                        "sequence_gauge/": input_dir / "sequence_gauge",
                     },
                     parameters={"num_storms": args.num_storms},
                     elapsed_seconds=elapsed_step,
@@ -772,7 +772,15 @@ def _print_port_summary(output_dir):
     pcurve_count = _count_key(output_dir / 'propertyhc.json', 'property_hazard_curves')
 
     seq_summary = _load(output_dir / 'sequences_summary.json')
-    gauge_summary = _load(output_dir / 'sequence_gauge_summary.json')
+    # sequence_gauge: load from split directory or legacy single file
+    _sg_index_path = output_dir / 'sequence_gauge' / '_index.json'
+    _sg_legacy_path = output_dir / 'sequence_gauge_summary.json'
+    if _sg_index_path.exists():
+        gauge_summary = _load(_sg_index_path)
+    elif _sg_legacy_path.exists():
+        gauge_summary = _load(_sg_legacy_path)
+    else:
+        gauge_summary = {}
     # stress_storms: load index from directory or legacy single file
     _ss_index_path = output_dir / 'stress_storms' / '_index.json'
     _ss_legacy_path = output_dir / 'stress_storms.json'

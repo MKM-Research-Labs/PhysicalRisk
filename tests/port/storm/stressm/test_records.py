@@ -22,7 +22,8 @@
 
 import pytest
 
-from port.src.stressm import GAUGE_SUMMARY_FILENAME
+from port.src.stressm import GAUGE_SUMMARY_DIR
+from pathlib import Path
 from port.src.storm_multi.core.data_structures import StormSequence
 from port.src.storm_multi.generators.batch_generator import generate_event_set
 from port.src.storm_multi.utils.serialization import SEQUENCES_FILENAME, load_sequences
@@ -38,9 +39,22 @@ class TestSequenceRecordStructure:
 
     @pytest.fixture(scope="class")
     def records(self, gauge_dir, full_run):  # full_run ensures gauge_dir is populated
-        with open(gauge_dir / GAUGE_SUMMARY_FILENAME) as f:
+        with open(gauge_dir / GAUGE_SUMMARY_DIR / "_index.json") as f:
             d = json.load(f)
         return d["sequences"]
+
+    @pytest.fixture(scope="class")
+    def gauge_records(self, gauge_dir, full_run):
+        """Load per-gauge sequence files from the split directory."""
+        sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
+        gauges = {}
+        for p in sg_dir.iterdir():
+            if p.name == "_index.json":
+                continue
+            with open(p) as f:
+                gd = json.load(f)
+            gauges[gd["gauge_id"]] = gd["sequences"]
+        return gauges
 
     def test_all_have_sequence_id(self, records):
         assert all("sequence_id" in r for r in records)
@@ -57,41 +71,46 @@ class TestSequenceRecordStructure:
         assert all("total_precip_mm" in r for r in records)
         assert all(r["total_precip_mm"] > 0 for r in records)
 
-    def test_peaks_length_matches_num_gauges(self, records):
-        assert all(len(r["peaks_m"]) == 3 for r in records)
+    def test_gauge_file_count_matches_num_gauges(self, gauge_records):
+        assert len(gauge_records) == 3
 
-    def test_peak_hours_length_matches_num_gauges(self, records):
-        assert all(len(r["peak_hours"]) == 3 for r in records)
+    def test_per_gauge_sequence_count(self, records, gauge_records):
+        for gid, seqs in gauge_records.items():
+            assert len(seqs) == len(records), f"{gid} has {len(seqs)} seqs, expected {len(records)}"
 
-    def test_alert_flags_length_matches_num_gauges(self, records):
-        assert all(len(r["alert"]) == 3 for r in records)
+    def test_per_gauge_records_have_peak(self, gauge_records):
+        for gid, seqs in gauge_records.items():
+            assert all("peak_m" in s for s in seqs), f"{gid} missing peak_m"
 
-    def test_warning_flags_length_matches_num_gauges(self, records):
-        assert all(len(r["warning"]) == 3 for r in records)
+    def test_per_gauge_records_have_peak_hour(self, gauge_records):
+        for gid, seqs in gauge_records.items():
+            assert all("peak_hour" in s for s in seqs), f"{gid} missing peak_hour"
 
-    def test_severe_flags_length_matches_num_gauges(self, records):
-        assert all(len(r["severe"]) == 3 for r in records)
+    def test_per_gauge_records_have_alert_flags(self, gauge_records):
+        for gid, seqs in gauge_records.items():
+            assert all("alert" in s for s in seqs), f"{gid} missing alert"
 
-    def test_peak_hours_in_valid_range(self, records):
-        for r in records:
-            assert all(0 <= h <= 167 for h in r["peak_hours"])
+    def test_peak_hours_in_valid_range(self, gauge_records):
+        for gid, seqs in gauge_records.items():
+            for s in seqs:
+                assert 0 <= s["peak_hour"] <= 167, f"{gid} peak_hour {s['peak_hour']} out of range"
 
-    def test_peaks_positive(self, records):
-        for r in records:
-            assert all(p > 0 for p in r["peaks_m"])
+    def test_peaks_positive(self, gauge_records):
+        for gid, seqs in gauge_records.items():
+            assert all(s["peak_m"] > 0 for s in seqs), f"{gid} has non-positive peak"
 
-    def test_warning_implies_alert(self, records):
+    def test_warning_implies_alert(self, gauge_records):
         """Every sequence that breached warning must also have breached alert."""
-        for r in records:
-            for i in range(3):
-                if r["warning"][i]:
-                    assert r["alert"][i]
+        for gid, seqs in gauge_records.items():
+            for s in seqs:
+                if s["warning"]:
+                    assert s["alert"], f"{gid} {s['sequence_id']} warning without alert"
 
-    def test_severe_implies_warning(self, records):
-        for r in records:
-            for i in range(3):
-                if r["severe"][i]:
-                    assert r["warning"][i]
+    def test_severe_implies_warning(self, gauge_records):
+        for gid, seqs in gauge_records.items():
+            for s in seqs:
+                if s["severe"]:
+                    assert s["warning"], f"{gid} {s['sequence_id']} severe without warning"
 
 
 # ---------------------------------------------------------------------------

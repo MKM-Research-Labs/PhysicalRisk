@@ -72,7 +72,7 @@ def make_prop_file(property_id, storm_id, flood_depth=0.5, damage_ratio=0.1,
             "arrival_time_hrs": arrival,
             "peak_time_hrs": peak,
             "travel_time_hrs": 5,
-            "attenuation_factor": 0.9,
+            "retention_factor": 0.9,
             "readings": readings,
         }],
     }
@@ -229,7 +229,7 @@ def pts_env(tmp_path, monkeypatch):
             "arrival_time_hrs": 5,
             "peak_time_hrs": 12,
             "travel_time_hrs": 5,
-            "attenuation_factor": 0.9,
+            "retention_factor": 0.9,
             "readings": [
                 {"wse_m": 3.4 + 0.01 * h, "depth_m": max(0, 0.2 - 0.005 * h),
                  "flooded": h < 20}

@@ -43,7 +43,7 @@ class TestGaugeLoaderBasics:
         for gauge in gauges:
             gauge_id = gauge_loader.get_entity_id(gauge)
             assert gauge_id is not None
-            assert gauge_id.startswith("GAUGE-")
+            assert gauge_id.startswith(("GAUGE-", "SYNTH-"))
 
     def test_entity_summary(self, gauge_loader):
         """Test gauge summary generation."""

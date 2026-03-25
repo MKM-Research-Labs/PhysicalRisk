@@ -57,8 +57,9 @@ from .classifier import train_gauge_stressm_classifier, _print_classifier_result
 
 logger = logging.getLogger(__name__)
 
-GAUGE_SUMMARY_FILENAME = "sequence_gauge_summary.json"
-SCHEMA_VERSION_SPATIAL = "2.1-spatial"
+GAUGE_SUMMARY_FILENAME = "sequence_gauge_summary.json"  # legacy
+GAUGE_SUMMARY_DIR = "sequence_gauge"
+SCHEMA_VERSION_SPATIAL = "3.0-split"
 
 # Default HydrologyParams — calibrated for Thames (see Phase 3)
 _DEFAULT_HYDRO_PARAMS = None  # None → HydrologyModel uses its own defaults
@@ -314,25 +315,82 @@ def generate_stressm(
     # ------------------------------------------------------------------
     # Stage 5: Write output + optional single-gauge progression report
     # ------------------------------------------------------------------
-    summary_doc = {
-        "schema_version": SCHEMA_VERSION_SPATIAL,
-        "catchment_id": catchment_id,
-        "num_sequences": count,
-        "num_gauges": n_gauges,
-        "gauge_ids": gauge_ids,
-        "sequences": sequence_records,
-    }
+    if single_gauge_mode:
+        # Single-gauge mode: write one file (used by classifier training)
+        summary_doc = {
+            "schema_version": SCHEMA_VERSION_SPATIAL,
+            "catchment_id": catchment_id,
+            "num_sequences": count,
+            "num_gauges": n_gauges,
+            "gauge_ids": gauge_ids,
+            "sequences": sequence_records,
+        }
+        out_path = input_dir / f"sequence_gauge_{gauge_id}.json"
+        with open(out_path, "w") as f:
+            json.dump(summary_doc, f, indent=2)
+        size_mb = out_path.stat().st_size / 1_048_576
+        print(f"  →  {out_path.name}  ({size_mb:.1f} MB)", flush=True)
+    else:
+        # Split mode: write sequence_gauge/ directory
+        sg_dir = input_dir / GAUGE_SUMMARY_DIR
+        if sg_dir.exists():
+            import shutil
+            shutil.rmtree(sg_dir)
+        sg_dir.mkdir(parents=True)
 
-    out_filename = (
-        f"sequence_gauge_{gauge_id}.json" if single_gauge_mode else GAUGE_SUMMARY_FILENAME
-    )
-    out_path = input_dir / out_filename
-    with open(out_path, "w") as f:
-        json.dump(summary_doc, f, indent=2 if single_gauge_mode else None,
-                  separators=(None if single_gauge_mode else (",", ":")))
+        # Write _index.json (metadata only — no per-gauge arrays)
+        index_doc = {
+            "schema_version": SCHEMA_VERSION_SPATIAL,
+            "catchment_id": catchment_id,
+            "num_sequences": count,
+            "num_gauges": n_gauges,
+            "gauge_ids": gauge_ids,
+            "sequences": [
+                {
+                    "sequence_id": r["sequence_id"],
+                    "sequence_type": r["sequence_type"],
+                    "intensity_category": r["intensity_category"],
+                    "num_storms": r["num_storms"],
+                    "total_precip_mm": r["total_precip_mm"],
+                }
+                for r in sequence_records
+            ],
+        }
+        index_path = sg_dir / "_index.json"
+        with open(index_path, "w") as f:
+            json.dump(index_doc, f, separators=(",", ":"))
 
-    size_mb = out_path.stat().st_size / 1_048_576
-    print(f"  →  {out_filename}  ({size_mb:.1f} MB)", flush=True)
+        # Write per-gauge files
+        for gi, gid in enumerate(gauge_ids):
+            gauge_doc = {
+                "gauge_id": gid,
+                "num_sequences": count,
+                "sequences": [
+                    {
+                        "sequence_id": r["sequence_id"],
+                        "peak_m": r["peaks_m"][gi],
+                        "peak_hour": r["peak_hours"][gi],
+                        "alert": r["alert"][gi],
+                        "warning": r["warning"][gi],
+                        "severe": r["severe"][gi],
+                    }
+                    for r in sequence_records
+                ],
+            }
+            gauge_path = sg_dir / f"{gid}.json"
+            with open(gauge_path, "w") as f:
+                json.dump(gauge_doc, f, separators=(",", ":"))
+
+        # Remove legacy monolithic file if present
+        legacy_path = input_dir / GAUGE_SUMMARY_FILENAME
+        if legacy_path.exists():
+            legacy_path.unlink()
+
+        total_mb = sum(
+            p.stat().st_size for p in sg_dir.iterdir()
+        ) / 1_048_576
+        print(f"  →  {GAUGE_SUMMARY_DIR}/  ({n_gauges + 1} files, "
+              f"{total_mb:.1f} MB)", flush=True)
 
     if single_gauge_mode:
         _print_gauge_progression(gauge_params_list[0], sequence_records, count)
