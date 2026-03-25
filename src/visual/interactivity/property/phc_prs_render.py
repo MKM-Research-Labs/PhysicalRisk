@@ -57,9 +57,18 @@ def get_js():
                 gauges.forEach(function(g, i) {
                     var isSynth = g.gauge_id.indexOf('SYNTH') === 0;
                     var color = isSynth ? '#FF9800' : (gaugeColors[i] || '#999');
-                    var label = isSynth ? '\\u2605 Synthetic' : g.gauge_id.substring(0, 16);
+                    var label = isSynth
+                        ? '\\u2605 ' + g.gauge_id.substring(0, 14)
+                        : g.gauge_id.substring(0, 16);
+                    var clickAttr = '';
+                    var rowStyle = isSynth ? ' style="background:#FFF8E1;"' : '';
+                    if (!isSynth && window.GaugeHazardCurve && window.GaugeHazardCurve.show) {
+                        clickAttr = ' onclick="window.GaugeHazardCurve.show(\\'' + g.gauge_id + '\\')" ' +
+                            'title="Open gauge PRS pricer"';
+                        rowStyle = ' style="cursor:pointer;" onmouseover="this.style.background=\\\'#E3F2FD\\\'" onmouseout="this.style.background=\\\'\\\'"';
+                    }
                     compRows +=
-                        '<tr' + (isSynth ? ' style="background:#FFF8E1;"' : '') + '>' +
+                        '<tr' + rowStyle + clickAttr + '>' +
                         '<td style="padding:4px 8px;"><span style="color:' + color + ';">\\u25CF</span> ' +
                         label + '</td>' +
                         '<td style="padding:4px 8px;text-align:right;">' + g.distance_km.toFixed(1) + 'km</td>' +
