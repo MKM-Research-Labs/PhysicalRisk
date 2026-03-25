@@ -13,7 +13,7 @@ from models.floodrisk.depth_damage import scalar_depth_damage
 from models.floodrisk.spatial import haversine_distance, idw_interpolate_from_gauges
 from models.floodrisk.velocity import (
     build_property_hydrograph,
-    compute_attenuation,
+    compute_retention,
     compute_slope,
     compute_travel_time,
 )
@@ -219,16 +219,16 @@ class FloodMixin:
 
         closest = nearest[0]
         dist = closest['distance_m']
-        attenuation = compute_attenuation(dist)
+        retention = compute_retention(dist)
 
         return self._build_flood_event(
-            storm_id, interpolated_wse, dist, attenuation,
+            storm_id, interpolated_wse, dist, retention,
             prop_elevation, floor_level,
             closest['gauge_id'], gaugets, closest
         )
 
     def _build_flood_event(self, storm_id: str, interpolated_wse: float,
-                            distance_m: float, attenuation: float,
+                            distance_m: float, retention: float,
                             prop_elevation: float, floor_level: float,
                             source_gauge_id: str, gaugets: Dict,
                             nearest_gauge: Dict) -> Dict:
@@ -239,8 +239,8 @@ class FloodMixin:
 
         # Water height above gauge ground level
         water_above_gauge = max(0.0, interpolated_wse - g_elev)
-        # Propagate to property location with distance attenuation
-        water_at_property = water_above_gauge * attenuation
+        # Propagate to property location with distance-based retention
+        water_at_property = water_above_gauge * retention
         # Property floods when water exceeds the elevation difference + floor step
         height_diff = max(0.0, prop_elevation - g_elev)
         flood_threshold = height_diff + floor_level
@@ -259,16 +259,16 @@ class FloodMixin:
         readings = []
         if gauge_readings:
             mapped_readings = []
-            for r in gauge_readings:
+            for idx, r in enumerate(gauge_readings):
                 mapped_readings.append({
-                    'hour': r.get('hour', 0),
+                    'hour': r.get('hour', idx),
                     'water_level_m': r.get('waterLevel', r.get('water_level_m', 0)),
                 })
             readings = build_property_hydrograph(
                 mapped_readings,
                 interpolated_wse,
                 travel_time,
-                attenuation,
+                retention,
                 prop_elevation,
                 floor_level,
             )
@@ -296,7 +296,7 @@ class FloodMixin:
             'arrival_time_hrs': arrival_time,
             'peak_time_hrs': peak_time,
             'travel_time_hrs': round(travel_time, 2),
-            'attenuation_factor': round(attenuation, 4),
+            'retention_factor': round(retention, 4),
         }
 
         # Only store 168-hour readings for events that actually flood the

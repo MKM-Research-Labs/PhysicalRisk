@@ -194,7 +194,7 @@ def get_parameter_sections():
                 ('Manning Velocity Model', [
                     ('DEFAULT_ROUGHNESS', '0.04', 'Manning n for urban floodplain', 'floodrisk/velocity.py:15'),
                     ('MIN_SLOPE', '0.001', 'Minimum slope clamp', 'floodrisk/velocity.py:21'),
-                    ('DEFAULT_ATTENUATION_LENGTH', '2,000', 'Exponential decay length (m)', 'floodrisk/velocity.py:18'),
+                    ('DEFAULT_RETENTION_LENGTH', '10,000', 'Exponential retention length (m)', 'floodrisk/velocity.py:18'),
                     ('DEFAULT_RECESSION_FACTOR', '1.5', 'Recession limb multiplier', 'floodrisk/velocity.py:24'),
                 ]),
             ],

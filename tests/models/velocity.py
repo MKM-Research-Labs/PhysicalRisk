@@ -28,6 +28,7 @@ from models.floodrisk.velocity import (
     MIN_SLOPE,
     build_property_hydrograph,
     compute_attenuation,
+    compute_retention,
     compute_manning_velocity,
     compute_slope,
     compute_travel_time,
@@ -112,32 +113,46 @@ class TestTravelTime:
         assert t == 0.0
 
 
-class TestAttenuation:
-    """Tests for compute_attenuation (exponential spatial decay)."""
+class TestRetention:
+    """Tests for compute_retention (distance-based signal retention)."""
 
     def test_zero_distance_full_strength(self):
-        """At zero distance, attenuation factor must be 1.0 (no decay)."""
-        assert compute_attenuation(0) == 1.0
+        """At zero distance, retention must be 1.0 (full signal)."""
+        assert compute_retention(0) == 1.0
 
     def test_at_length_scale(self):
         """At distance = characteristic length, factor must equal 1/e ≈ 0.368.
         This is the definition of exponential decay length."""
-        # At distance = length, factor = 1/e ≈ 0.368
-        f = compute_attenuation(2000, 2000)
+        f = compute_retention(10000, 10000)
         assert abs(f - 1.0 / math.e) < 0.001
 
+    def test_near_river_high_retention(self):
+        """At 800m with default 10km length scale, retention >= 0.92.
+        Near-field hydraulic guidance: negligible attenuation."""
+        f = compute_retention(800)
+        assert f >= 0.92
+
+    def test_one_km_retention(self):
+        """At 1km with default 10km length scale, retention >= 0.90."""
+        f = compute_retention(1000)
+        assert f >= 0.90
+
     def test_far_distance_near_zero(self):
-        """At 5x the decay length, attenuation should be < 1% (e^-5 ≈ 0.0067)."""
-        f = compute_attenuation(10000, 2000)
+        """At 5x the decay length, retention should be < 1%."""
+        f = compute_retention(50000, 10000)
         assert f < 0.01
 
     def test_negative_distance(self):
         """Negative distance is clamped to zero; must return 1.0."""
-        assert compute_attenuation(-100) == 1.0
+        assert compute_retention(-100) == 1.0
 
     def test_zero_length(self):
-        """Zero decay length means instant decay; must return 0.0 for any distance > 0."""
-        assert compute_attenuation(100, 0) == 0.0
+        """Zero decay length means instant decay; must return 0.0."""
+        assert compute_retention(100, 0) == 0.0
+
+    def test_backwards_compat_alias(self):
+        """compute_attenuation is a backwards-compatible alias."""
+        assert compute_attenuation(800) == compute_retention(800)
 
 
 class TestComputeSlope:

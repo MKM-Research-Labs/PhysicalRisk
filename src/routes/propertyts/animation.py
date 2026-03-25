@@ -108,7 +108,8 @@ def animate_storm(storm_id: str):
                     'arrival_time_hrs': event.get('arrival_time_hrs'),
                     'peak_time_hrs': event.get('peak_time_hrs'),
                     'travel_time_hrs': event.get('travel_time_hrs', 0),
-                    'attenuation_factor': event.get('attenuation_factor', 1),
+                    'retention_factor': event.get('retention_factor',
+                                                      event.get('attenuation_factor', 1)),
                     'readings': event.get('readings', []),
                 })
                 break

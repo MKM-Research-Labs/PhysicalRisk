@@ -27,7 +27,7 @@ def generate():
     """Generate flood risk sensitivity tables."""
     from models.floodrisk.depth_damage import scalar_depth_damage
     from models.floodrisk.velocity import (
-        compute_manning_velocity, compute_attenuation
+        compute_manning_velocity, compute_retention
     )
 
     # Table 1: Depth-damage curve
@@ -55,18 +55,18 @@ def generate():
         'sens_manning_roughness', headers, rows,
     )
 
-    # Table 3: Attenuation by distance and decay length
+    # Table 3: Retention factor by distance and length scale
     distances = [0, 500, 1000, 2000, 5000, 10000]
-    decay_lengths = [1000, 2000, 3000, 5000]
-    headers = ['Distance (m)'] + [f'$L={l}$m' for l in decay_lengths]
+    retention_lengths = [3000, 5000, 10000, 20000]
+    headers = ['Distance (m)'] + [f'$L={l}$m' for l in retention_lengths]
     rows = []
     for d in distances:
-        atts = [round(compute_attenuation(d, length=l), 4) for l in decay_lengths]
-        rows.append([d] + atts)
+        rets = [round(compute_retention(d, length=l), 4) for l in retention_lengths]
+        rows.append([d] + rets)
 
     t3 = latex_table(
-        'Attenuation factor by distance and characteristic length.',
-        'sens_attenuation', headers, rows,
+        'Retention factor by distance and characteristic length.',
+        'sens_retention', headers, rows,
     )
 
     write_tables('flood_risk', '\n\n'.join([t1, t2, t3]))

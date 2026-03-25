@@ -30,7 +30,7 @@ import math
 from typing import Dict, List
 
 from config.models import (
-    DEFAULT_ATTENUATION_LENGTH,
+    DEFAULT_RETENTION_LENGTH,
     DEFAULT_RECESSION_FACTOR,
     DEFAULT_ROUGHNESS,
     MIN_SLOPE,
@@ -81,25 +81,34 @@ def compute_travel_time(distance_m: float, depth_m: float,
     return (distance_m / velocity) / 3600.0
 
 
-def compute_attenuation(distance_m: float,
-                         length: float = DEFAULT_ATTENUATION_LENGTH) -> float:
+def compute_retention(distance_m: float,
+                       length: float = DEFAULT_RETENTION_LENGTH) -> float:
     """
-    Compute distance-based attenuation factor for water surface elevation.
+    Compute distance-based retention factor for water surface elevation.
 
-    Uses exponential decay: factor = exp(-distance / length)
+    Uses exponential decay: retention = exp(-distance / length).
+    A retention of 1.0 means the full gauge WSE reaches the property
+    (no loss); 0.0 means total loss.  For near-river properties
+    (< ~1 km) with a 10 km length scale, retention is >= 0.90,
+    consistent with hydraulic guidance that near-field attenuation
+    is negligible.
 
     Args:
         distance_m: Distance from river/gauge in meters
-        length: Characteristic decay length in meters (default 2000)
+        length: Characteristic retention length in meters (default 10000)
 
     Returns:
-        Attenuation factor between 0 and 1
+        Retention factor between 0 and 1 (1 = full signal, 0 = no signal)
     """
     if distance_m <= 0:
         return 1.0
     if length <= 0:
         return 0.0
     return math.exp(-distance_m / length)
+
+
+# Backwards compatibility alias
+compute_attenuation = compute_retention
 
 
 def compute_slope(gauge_elevation: float, property_elevation: float,
@@ -213,7 +222,9 @@ def build_property_hydrograph(gauge_readings: List[Dict],
         else:
             scale = 0.0
 
-        prop_wse = gauge_base + (peak_wse - gauge_base) * scale * attenuation
+        # Retention already applied by caller (_build_flood_event) when
+        # computing water_at_property; do NOT multiply again here.
+        prop_wse = gauge_base + (peak_wse - gauge_base) * scale
 
         # Flood depth above floor level
         depth = max(0.0, prop_wse - flood_threshold)
