@@ -56,12 +56,12 @@ def get_js():
 
                 gauges.forEach(function(g, i) {
                     var isSynth = g.gauge_id.indexOf('SYNTH') === 0;
-                    var color = isSynth ? '#FF9800' : (gaugeColors[i] || '#999');
+                    var color = isSynth ? '#9E9E9E' : (gaugeColors[i] || '#999');
                     var label = isSynth
                         ? '\\u2605 ' + g.gauge_id.substring(0, 14)
                         : g.gauge_id.substring(0, 16);
                     var clickAttr = '';
-                    var rowStyle = isSynth ? ' style="background:#FFF8E1;"' : '';
+                    var rowStyle = isSynth ? ' style="background:#F5F5F5;"' : '';
                     if (!isSynth && window.GaugeHazardCurve && window.GaugeHazardCurve.show) {
                         clickAttr = ' onclick="window.GaugeHazardCurve.show(\\'' + g.gauge_id + '\\')" ' +
                             'title="Open gauge PRS pricer"';
