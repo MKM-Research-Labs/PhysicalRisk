@@ -62,27 +62,27 @@ class ConfigPaths:
         return self._get_project_root() / os.getenv('MKM_INPUT_DIR', 'data/input')
 
     def get_output_dir(self) -> Path:
-        """Get output directory (now under catchment input dir for git tracking)."""
-        return self._get_catchment_input_dir()
+        """Get output directory for UI-generated reports."""
+        return self._get_project_root() / os.getenv('MKM_OUTPUT_DIR', 'data/output')
 
     def get_reports_dir(self, report_type: str = None) -> Path:
         """Get reports directory, optionally for a specific report type."""
-        base = self._get_catchment_input_dir() / 'reports'
+        base = self._get_project_root() / 'data' / 'output'
         if report_type:
             return base / report_type
         return base
 
     def get_property_reports_dir(self) -> Path:
         """Get property reports directory."""
-        return self._get_catchment_input_dir() / 'reports' / 'property'
+        return self._get_project_root() / 'data' / 'output' / 'property'
 
     def get_gauge_reports_dir(self) -> Path:
         """Get gauge reports directory."""
-        return self._get_catchment_input_dir() / 'reports' / 'gauge'
+        return self._get_project_root() / 'data' / 'output' / 'gauge'
 
     def get_results_dir(self) -> Path:
         """Get results directory."""
-        return self._get_catchment_input_dir() / 'results'
+        return self._get_project_root() / 'data' / 'output' / 'results'
 
     def get_project_root(self) -> Path:
         """Get project root directory (public accessor)."""
@@ -101,7 +101,7 @@ class PortfolioPaths:
 
         # Data directories under data/
         self.input_dir = self.project_root / 'data' / 'input' / catchment_id
-        self.results_dir = self.input_dir / 'results'
+        self.results_dir = self.project_root / 'data' / 'output' / 'results'
 
         # Catchment definitions under data/
         self.catchments_dir = self.project_root / 'data' / 'catch'
@@ -187,10 +187,15 @@ class PortfolioPaths:
     def get_reports_dir(self, report_type: str = None) -> Path:
         """Get reports directory, optionally for a specific report type.
 
-        All reports are stored under data/input/<catchment>/reports/ so they
-        are tracked by git and survive fresh checkouts.
+        PRS trade files are stored under data/input/<catchment>/prs/ so they
+        are tracked by git.  All other report types (UI-generated) live under
+        data/output/.
         """
-        base = self.input_dir / 'reports'
+        if report_type == 'prs':
+            prs_dir = self.input_dir / 'prs'
+            prs_dir.mkdir(exist_ok=True, parents=True)
+            return prs_dir
+        base = self.project_root / 'data' / 'output'
         if report_type:
             d = base / report_type
             d.mkdir(exist_ok=True, parents=True)
@@ -200,23 +205,23 @@ class PortfolioPaths:
 
     def get_property_reports_dir(self) -> Path:
         """Get property reports directory."""
-        d = self.input_dir / 'reports' / 'property'
+        d = self.project_root / 'data' / 'output' / 'property'
         d.mkdir(exist_ok=True, parents=True)
         return d
 
     def get_gauge_reports_dir(self) -> Path:
         """Get gauge reports directory."""
-        d = self.input_dir / 'reports' / 'gauge'
+        d = self.project_root / 'data' / 'output' / 'gauge'
         d.mkdir(exist_ok=True, parents=True)
         return d
 
     def get_output_dir(self) -> Path:
-        """Get output directory (now under input dir for git tracking)."""
-        return self.input_dir
+        """Get output directory for UI-generated reports."""
+        return self.project_root / 'data' / 'output'
 
     def get_results_dir(self) -> Path:
         """Get results directory."""
-        d = self.input_dir / 'results'
+        d = self.project_root / 'data' / 'output' / 'results'
         d.mkdir(exist_ok=True, parents=True)
         return d
 

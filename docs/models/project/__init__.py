@@ -24,11 +24,11 @@ Code File Size Analysis — Project Modularisation Reports.
 Produces two artefacts:
 
   large_file_report.pdf   — PDF scanning root/src/ for files exceeding 300
-                            lines.  Written to reports/audit/.
+                            lines.  Written to data/output/audit/.
 
   large_test_report.txt   — Plain-text equivalent scanning root/tests/ for
                             files exceeding 300 lines.  Written to
-                            reports/audit/.
+                            data/output/audit/.
 
 Usage:
     python -m docs.models.project

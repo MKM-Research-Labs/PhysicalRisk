@@ -20,7 +20,7 @@ Data sources:
   - src/lineage/manifest.py        — DEPENDENCY_GRAPH, STEP_IO
   - src/lineage/validation.py      — validate_full_chain()
 
-Output:  data/input/<catchment>/reports/audit/data_lineage_report.pdf
+Output:  data/output/audit/data_lineage_report.pdf
 
 Usage:
     python -m docs.models.data_lineage
@@ -878,7 +878,7 @@ def _build_retention_policy(data: dict, story: list, S: dict):
          'BCBS 239 P6 — timeliness evidence'],
         ['Audit evidence\n(test reports, coverage)',
          '3 years\n(minimum)',
-         'data/input/<catchment>/reports/audit/',
+         'data/output/audit/',
          'SS1/23 §5.14 — validation evidence'],
         ['Classifier models\n(*.joblib, training summaries)',
          'Model lifetime\n+ 1 year',
