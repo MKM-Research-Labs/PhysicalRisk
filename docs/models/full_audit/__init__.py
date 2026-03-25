@@ -14,7 +14,7 @@ Consolidates all audit data into a single executive-level PDF:
   5. Hard-Coding Audit (parameter governance)
   6. Remediation Roadmap
 
-Data sources (all must exist in data/output/audit/):
+Data sources (all must exist in reports/audit/):
   - junit.xml        — test counts, pass/fail/skip
   - coverage.xml     — line coverage by package
 
@@ -22,7 +22,7 @@ Also runs fresh live scans via existing audit modules:
   - docs.models.hardcoding  — parameter governance
   - docs.models.project     — file size analysis
 
-Output:  data/output/audit/full_audit_report.pdf
+Output:  data/input/<catchment>/reports/audit/full_audit_report.pdf
 
 Usage:
     python -m docs.models.full_audit
@@ -60,7 +60,8 @@ except ImportError:
 # Paths
 # ---------------------------------------------------------------------------
 
-AUDIT_DIR = _root / 'data' / 'output' / 'audit'
+from config import config
+AUDIT_DIR = config.get_reports_dir('audit')
 SRC_DIR = _root / 'src'
 OUTPUT_PDF = AUDIT_DIR / 'full_audit_report.pdf'
 
@@ -1227,7 +1228,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
          'See Section 4 for the current priority list.'),
         ('P5', 'LOW',
          'Review code duplication hotspots',
-         'See code_duplication_report.pdf in data/output/audit/ '
+         'See code_duplication_report.pdf in reports/audit/ '
          'for clone-pair details and refactoring recommendations.'),
         ('P6', 'LOW',
          'Run full audit before each model governance review',
@@ -1267,7 +1268,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
     elems.append(HRFlowable(width='100%', thickness=0.5, color=GREY))
     elems.append(Spacer(1, 3 * mm))
     elems.append(Paragraph(
-        'Supporting artefacts in data/output/audit/: '
+        'Supporting artefacts in reports/audit/: '
         'test_report.pdf &nbsp;|&nbsp; '
         'large_file_report.pdf &nbsp;|&nbsp; large_test_report.txt &nbsp;|&nbsp; '
         'code_duplication_report.pdf &nbsp;|&nbsp; '
@@ -1354,7 +1355,7 @@ def _header_footer(canvas, doc):
 # ---------------------------------------------------------------------------
 
 def create_pdf_report() -> Path:
-    """Generate the full audit PDF and save to data/output/audit/."""
+    """Generate the full audit PDF and save to reports/audit/."""
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
 
     report_date = datetime.now()

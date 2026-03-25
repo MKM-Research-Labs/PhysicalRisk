@@ -48,7 +48,7 @@ def _load_hazard_curve_ids() -> set:
 
 def _load_trade_gauge_ids() -> set:
     """Load all gauge IDs referenced by open trades."""
-    # Trades live in data/input/<catchment>/prs/ (not data/output/prs/)
+    # Trades live in data/input/<catchment>/prs/
     prs_dir = INPUT_DIR / "prs"
     if not prs_dir.exists():
         # Fallback to legacy location

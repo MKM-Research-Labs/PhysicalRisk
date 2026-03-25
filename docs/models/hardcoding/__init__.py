@@ -30,7 +30,7 @@ and imported at every use site.  Hard-coding distributes parameters across
 files, making them easy to miss when recalibration or deployment changes
 are required.
 
-Output:  data/output/audit/hardcoding_report.pdf
+Output:  data/input/<catchment>/reports/audit/hardcoding_report.pdf
 
 Usage:
     python -m docs.models.hardcoding
@@ -627,7 +627,8 @@ def main():
     root = here.parent.parent.parent                 # project root
 
     src_dir   = root / 'src'
-    audit_dir = root / 'data' / 'output' / 'audit'
+    from config import config
+    audit_dir = config.get_reports_dir('audit')
     audit_dir.mkdir(parents=True, exist_ok=True)
     output_path = audit_dir / 'hardcoding_report.pdf'
 

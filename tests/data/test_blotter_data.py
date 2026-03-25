@@ -169,7 +169,7 @@ class TestMarketStateData:
 
 
 # ---------------------------------------------------------------------------
-# PRS trade files (data/output/prs/)
+# PRS trade files (data/input/<catchment>/prs/)
 # ---------------------------------------------------------------------------
 
 class TestPRSTradeData:
