@@ -114,10 +114,10 @@ class TestHydrographPadding:
         assert len(data['hourly']) == 168
 
     @patch('routes.trading.stress.scenario._get_predictor')
-    def test_gaugets_bad_json_falls_back(self, mock_predictor,
-                                           stress_client, stress_env):
-        """When gaugets JSON is corrupt, exception caught (lines 109-110),
-        falls back to synthesized hydrograph."""
+    def test_gaugets_bad_json_returns_404(self, mock_predictor,
+                                          stress_client, stress_env):
+        """When gaugets JSON is corrupt, route returns 404 — stress scenarios
+        require real timeseries data, not synthetic approximations."""
         pred = MagicMock()
         pred.predict.return_value = 0.3
         pred._load_summary.return_value = {'gauges': []}
@@ -129,10 +129,10 @@ class TestHydrographPadding:
         resp = stress_client.post('/api/v1/trading/stress/run',
                                    json={'gauge_id': 'GAUGE-001',
                                          'storm_id': STORM_SEVERE})
+        assert resp.status_code == 404
         data = json.loads(resp.data)
-        assert resp.status_code == 200
-        assert data['status'] == 'success'
-        assert len(data['hourly']) == 168
+        assert data['status'] == 'error'
+        assert 'gaugets' in data['message'].lower()
 
 
 class TestPredictorNotFound:

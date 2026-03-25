@@ -190,7 +190,7 @@ class TestClassifierConsistency:
 
     def test_classifiers_exist(self):
         """At least one trained classifier must exist."""
-        classifiers_dir = INPUT_DIR / "classifiers"
+        classifiers_dir = INPUT_DIR / "stressm"
         if not classifiers_dir.exists():
             pytest.skip("classifiers/ not generated yet")
         classifiers = list(classifiers_dir.glob("*.joblib"))
@@ -201,7 +201,7 @@ class TestClassifierConsistency:
     def test_classifier_gauge_ids_match(self):
         """Classifiers that exist should reference current gauge IDs."""
         gauge_ids = _load_gauge_ids()
-        classifiers_dir = INPUT_DIR / "classifiers"
+        classifiers_dir = INPUT_DIR / "stressm"
         if not classifiers_dir.exists():
             pytest.skip("classifiers/ not generated yet")
         classifiers = list(classifiers_dir.glob("GAUGE-*.joblib"))
@@ -219,7 +219,7 @@ class TestClassifierConsistency:
 
     def test_training_summary_exists(self):
         """training_summary.json must exist alongside classifiers."""
-        classifiers_dir = INPUT_DIR / "classifiers"
+        classifiers_dir = INPUT_DIR / "stressm"
         if not classifiers_dir.exists():
             pytest.skip("classifiers/ not generated yet")
         summary = classifiers_dir / "training_summary.json"
@@ -409,7 +409,7 @@ class TestPipelineCompleteness:
         This test checks that at least one classifier is current — stale extras
         are flagged as a warning, not a failure.
         """
-        classifiers_dir = INPUT_DIR / "classifiers"
+        classifiers_dir = INPUT_DIR / "stressm"
         if not classifiers_dir.exists():
             pytest.skip("No classifiers directory")
         joblibs = list(classifiers_dir.glob("*.joblib"))

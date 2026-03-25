@@ -33,7 +33,7 @@ STRESS_STORMS_INDEX = STRESS_STORMS_DIR / "_index.json"
 # Legacy single-file fallback
 STRESS_STORMS_PATH  = pathlib.Path(config.get_input_dir()) / "stress_storms.json"
 GAUGETS_DIR         = pathlib.Path(config.get_gaugets_dir())
-STRESS_MODEL_DIR    = pathlib.Path(config.get_classifiers_dir())
+STRESS_MODEL_DIR    = pathlib.Path(config.get_stressm_dir())
 TRAINING_SUMMARY    = STRESS_MODEL_DIR / "training_summary.json"
 GAUGEHC_PATH        = pathlib.Path(config.get_input_dir()) / "gaugehc.json"
 
@@ -65,7 +65,9 @@ class TestStressClassifiers:
     @pytest.fixture(scope="class")
     def classifier_files(self):
         assert STRESS_MODEL_DIR.exists(), f"Stress model dir not found: {STRESS_MODEL_DIR}"
-        return list(STRESS_MODEL_DIR.glob("GAUGE-*.joblib"))
+        gauge = list(STRESS_MODEL_DIR.glob("GAUGE-*.joblib"))
+        synth = list(STRESS_MODEL_DIR.glob("SYNTH-*.joblib"))
+        return gauge + synth
 
     @pytest.fixture(scope="class")
     def summary(self):
