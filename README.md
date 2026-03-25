@@ -60,7 +60,25 @@ pip install -r requirements.txt
 
 This installs the full dependency set including NumPy, pandas, SciPy, scikit-learn, GeoPandas, folium, QuantLib, Flask, ReportLab, and pytest.
 
-### 5. Verify Configuration
+### 5. Generate Portfolio Data
+
+The repository does not include generated data. After cloning, run the port pipeline to create your local dataset:
+
+```bash
+# Quick start — full pipeline without classifier training (~30 min)
+python3 app.py port --all --nostress
+
+# Full pipeline including classifiers (~2–4 hours, best run overnight)
+python3 app.py port --all --train-classifier
+```
+
+Then run the audit to verify data integrity:
+
+```bash
+python3 app.py test --audit
+```
+
+### 6. Verify Configuration
 
 Check that the platform can locate all required directories:
 
@@ -74,21 +92,21 @@ This prints the resolved project root, catchment, input/output directories, and 
 
 ## Running the Platform
 
-The recommended sequence is: **port → visual → server**, with classifier training left to run overnight once the platform is up.
+The recommended sequence is: **port → audit → visual → server**, with classifier training left to run overnight once the platform is up.
 
-> **First time running?** Use `--all --nostress` to get the platform up quickly. The multi-storm stress test and GBM classifier training (step 6) generates 10,000 storm sequences and trains one classifier per gauge — approximately 2–4 hours total for 52 gauges. Get the platform running first, then leave `--all --train-classifier` to run overnight.
+> **First time running?** You must run `python3 app.py port` before starting the server — the repository does not include generated data. Use `--all --nostress` to get the platform up quickly. The multi-storm stress test and GBM classifier training (step 6) generates 20,000 storm sequences and trains one classifier per gauge — approximately 2–4 hours total. Get the platform running first, then leave `--all --train-classifier` to run overnight.
 
 ### Step 1 — Generate the Portfolio
 
-**Recommended overnight run** — full pipeline including storm sequences and all 52 GBM flood classifiers:
+**Recommended overnight run** — full pipeline including storm sequences and all GBM flood classifiers:
 
 ```bash
 python3 app.py port --all --train-classifier
 ```
 
 Approximate timing:
-- Steps 1–5 (gauges, properties, mortgages, time series, historical data): ~5–10 min
-- Step 6 stressm (10,000 sequences × 52 gauges + 52 classifiers): ~2–4 hours
+- Steps 1–5 (gauges, properties, synthetic gauges, mortgages, historical data): ~5–10 min
+- Step 6 stressm (20,000 sequences × 219 gauges + classifiers): ~2–4 hours
 - Steps 7–11 (hazard curves, property risk, counterparties, blotter): ~10–20 min
 
 **Quick daytime run** — skip the stress test entirely to get the platform up in minutes:
@@ -114,19 +132,21 @@ The full `--all` pipeline runs the following steps in order:
 
 | Step | Flag | Output |
 |---|---|---|
-| 1 | `--gauges` | `gauge.json` — 52 gauge locations |
+| 1 | `--gauges` | `gauge.json` — 52 real gauge locations |
 | 2 | `--properties` | `property.json` — synthetic property portfolio |
+| 2.5 | *(automatic)* | Synthetic gauges — virtual gauges on river centreline nearest each property |
 | 3 | `--mortgages` | `mortgage.json` — mortgage book |
-| 4 | `--gaugets` | `gaugets/` — per-gauge flood time series |
-| 5 | `--gaugehd` | `gaugehd/` — per-gauge historical daily data |
-| 6 | `--stressm` | `storm_sequences.json` — 10,000 multi-storm sequences + classifiers |
-| 7 | `--hazard` | `gaugehc.json` — GEV/Gumbel hazard curves per gauge |
-| 8 | `--propertyts` | `propertyts/` — per-property flood time series |
-| 9 | `--propertyhc` | `propertyhc.json` — property hazard curves + PRS pricing |
-| 10 | `--counterparties` | `counterparty.json` |
-| 11 | `--blotter` | Trade PDFs + 3 months of EOD snapshots |
+| 4 | `--gaugehd` | `gaugehd/` — per-gauge historical daily data |
+| 5 | `--stressm` | `storm_sequences.json`, `gaugets/`, `sequence_gauge/` — 20,000 multi-storm sequences + classifiers |
+| 6 | `--hazard` | `gaugehc.json` — GEV/Gumbel hazard curves per gauge |
+| 7 | `--propertyts` | `propertyts/` — per-property flood time series |
+| 8 | `--propertyhc` | `propertyhc.json` — property hazard curves + PRS pricing |
+| 9 | `--counterparties` | `counterparty.json` |
+| 10 | `--blotter` | Trade PDFs + 3 months of EOD snapshots |
 
-> **Dependency note:** Step 7 (hazard curves) reads from `storm_sequences.json` produced by step 6. If you skip step 6 with `--nostress`, an existing `storm_sequences.json` from a previous run is used. If no file exists yet, run `--stressm` separately first.
+> **Dependency note:** Step 6 (hazard curves) reads from `storm_sequences.json` produced by step 5. If you skip step 5 with `--nostress`, an existing `storm_sequences.json` from a previous run is used. If no file exists yet, run `--stressm` separately first.
+>
+> **Synthetic gauges:** Step 2.5 runs automatically after property generation. For each property, a synthetic gauge is created at the nearest point on the river centreline, with properties interpolated from the two real gauges either side. Nearby properties (within 50m) share a synthetic gauge. These synthetic gauges flow through stressm, hazard curves, and PRS pricing as first-class entities.
 
 ### Segment Flags
 
@@ -136,8 +156,8 @@ You can run individual segments instead of the full pipeline:
 |---|---|---|
 | Flood gauges | `--gauges` | `--ga` |
 | Properties | `--properties` | `--pr` |
+| Synthetic gauges | *(runs automatically after properties)* | — |
 | Mortgages | `--mortgages` | `--mo` |
-| Gauge time series | `--gaugets` | `--gt` |
 | Gauge historical data | `--gaugehd` | `--hd` |
 | Multi-storm sequences + classifiers | `--stressm` | — |
 | Hazard curves | `--hazard` | `--hz` |
@@ -410,13 +430,13 @@ All configuration values can be overridden via environment variables:
 
 ### Catchments and Portfolio Generation
 
-The platform is built around the concept of a catchment — a geographic river system used as the basis for flood risk modelling. The Thames catchment is the primary implementation, with architecture in place to support additional catchments. Within a catchment, the platform synthesises a complete portfolio of flood gauges, properties, and mortgages. The Thames catchment covers 52 gauge locations: 12 upstream non-tidal gauges from Reading to Teddington Lock, and 40 tidal gauges from Richmond to Purfleet. Properties are distributed across the catchment and assigned flood risk characteristics based on their proximity to gauges. Mortgages are then generated against the property portfolio, linking physical flood risk to financial exposure.
+The platform is built around the concept of a catchment — a geographic river system used as the basis for flood risk modelling. The Thames catchment is the primary implementation, with architecture in place to support additional catchments. Within a catchment, the platform synthesises a complete portfolio of flood gauges, properties, and mortgages. The Thames catchment covers 52 real gauge locations: 12 upstream non-tidal gauges from Reading to Teddington Lock, and 40 tidal gauges from Richmond to Purfleet. For each property, a synthetic gauge is created at the nearest point on the river centreline, with hydrological properties interpolated from the two flanking real gauges. This gives each property a dedicated nearby gauge with physically meaningful storm responses, rather than relying on distant real gauges. Properties within 50m of the same river point share a synthetic gauge. A typical 200-property portfolio produces ~170 synthetic gauges, giving a total of ~220 gauges in the network. Mortgages are then generated against the property portfolio, linking physical flood risk to financial exposure.
 
 ### Storm Modelling
 
 Storm scenarios are generated using the `storm_multi` sequence generator, which produces compound multi-storm events rather than independent scenarios. The generator supports four sequence types: isolated single storms, doublets (two storms in close succession), clusters (three to four storms), and persistent systems (four to five storms). All sequences are constrained to a 168-hour (seven-day) event window, with precipitation required to end by hour 156 — matching the insurance industry's standard loss aggregation clause. Sequence durations, intensities, and inter-storm gaps are stochastically sampled using calibrated distributions across six intensity categories from minimal through to catastrophic. Each sequence is written to `storm_sequences.json` in the portfolio input directory.
 
-The `stressm` pipeline runs the full multi-storm forward model: for each sequence, a spatial correlation model translates storm intensities into per-gauge precipitation, which drives the hydrological forward model to produce water level responses at all 52 gauges. The resulting gauge response matrix is used both to build hazard curves and to train the GBM flood classifiers.
+The `stressm` pipeline runs the full multi-storm forward model: for each sequence, a spatial correlation model translates storm intensities into per-gauge precipitation, which drives the hydrological forward model to produce water level responses at all gauges (real and synthetic). Per-gauge responses are written to individual files under `sequence_gauge/` to keep file sizes under version control limits. The resulting gauge response matrix is used both to build hazard curves and to train the GBM flood classifiers.
 
 ### Hazard Curves and Flood Classification
 
