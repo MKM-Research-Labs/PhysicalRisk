@@ -37,7 +37,7 @@ def batch_train_classifiers(
 
     Args:
         input_dir:   data/input/<catchment>/  (contains gauge.json, storm_sequences.json)
-        output_dir:  data/output/             (stressm/ subdir for .joblib files)
+        output_dir:  data/input/<catchment>/   (classifiers/ subdir for .joblib files)
         seed:        Base random seed (each gauge gets seed + index).
         verbose:     Print per-gauge detail.
 

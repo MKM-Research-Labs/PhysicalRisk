@@ -11,10 +11,12 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+from config import config
+
 _root = Path(__file__).resolve().parents[3]
 
 DATA_DIR = _root / 'data'
-AUDIT_DIR = _root / 'data' / 'output' / 'audit'
+AUDIT_DIR = config.get_reports_dir('audit')
 OUTPUT_PDF = AUDIT_DIR / 'model_risk_report.pdf'
 
 

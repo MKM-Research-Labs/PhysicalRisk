@@ -63,8 +63,8 @@ class PnLEngine:
     def __init__(self, trading_dir: Path, prs_dir: Path):
         """
         Args:
-            trading_dir: Path to data/output/trading/
-            prs_dir: Path to data/output/prs/ (existing PRS trades)
+            trading_dir: Path to data/input/<catchment>/blotter/
+            prs_dir: Path to data/input/<catchment>/prs/ (existing PRS trades)
         """
         self.trading_dir = Path(trading_dir)
         self.prs_dir = Path(prs_dir)

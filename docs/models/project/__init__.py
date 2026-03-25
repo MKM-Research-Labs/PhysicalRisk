@@ -24,11 +24,11 @@ Code File Size Analysis — Project Modularisation Reports.
 Produces two artefacts:
 
   large_file_report.pdf   — PDF scanning root/src/ for files exceeding 300
-                            lines.  Written to data/output/audit/.
+                            lines.  Written to reports/audit/.
 
   large_test_report.txt   — Plain-text equivalent scanning root/tests/ for
                             files exceeding 300 lines.  Written to
-                            data/output/audit/.
+                            reports/audit/.
 
 Usage:
     python -m docs.models.project
@@ -488,12 +488,13 @@ def generate_txt_report(scan_root: Path, output_path: Path,
 
 
 def main():
-    """Run both large-file reports and write them to data/output/audit/."""
+    """Run both large-file reports and write them to the audit reports directory."""
+    from config import config
     # Resolve project root: this file is at docs/models/project/__init__.py
     here = Path(__file__).resolve().parent          # docs/models/project/
     project_root = here.parent.parent.parent        # project root
 
-    audit_dir = project_root / 'data' / 'output' / 'audit'
+    audit_dir = config.get_reports_dir('audit')
     audit_dir.mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
