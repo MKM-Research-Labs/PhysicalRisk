@@ -25,7 +25,7 @@ import json
 import pytest
 
 from port.src.stressm import (
-    GAUGE_SUMMARY_FILENAME,
+    GAUGE_SUMMARY_DIR,
     SCHEMA_VERSION_SPATIAL,
     generate_stressm,
 )
@@ -80,32 +80,39 @@ class TestGenerateStressmFiles:
     def test_summary_json_written(self, gauge_dir, full_run):
         assert (gauge_dir / SUMMARY_FILENAME).exists()
 
-    def test_gauge_summary_json_written(self, gauge_dir, full_run):
-        assert (gauge_dir / GAUGE_SUMMARY_FILENAME).exists()
+    def test_gauge_summary_dir_written(self, gauge_dir, full_run):
+        sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
+        assert sg_dir.is_dir(), f"Expected directory {sg_dir}"
 
     def test_sequences_file_loadable(self, gauge_dir, full_run):
         seqs = load_sequences(gauge_dir / SEQUENCES_FILENAME)
         assert len(seqs) == 40
 
     def test_gauge_summary_schema_version(self, gauge_dir, full_run):
-        with open(gauge_dir / GAUGE_SUMMARY_FILENAME) as f:
+        sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
+        meta = sg_dir / "_index.json"
+        assert meta.exists(), "Expected _index.json in sequence_gauge/"
+        with open(meta) as f:
             d = json.load(f)
         assert d["schema_version"] == SCHEMA_VERSION_SPATIAL
 
     def test_gauge_summary_num_gauges(self, gauge_dir, full_run):
-        with open(gauge_dir / GAUGE_SUMMARY_FILENAME) as f:
+        sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
+        with open(sg_dir / "_index.json") as f:
             d = json.load(f)
         assert d["num_gauges"] == 3
 
     def test_gauge_summary_gauge_ids(self, gauge_dir, full_run):
-        with open(gauge_dir / GAUGE_SUMMARY_FILENAME) as f:
+        sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
+        with open(sg_dir / "_index.json") as f:
             d = json.load(f)
         assert len(d["gauge_ids"]) == 3
 
     def test_gauge_summary_sequence_count(self, gauge_dir, full_run):
-        with open(gauge_dir / GAUGE_SUMMARY_FILENAME) as f:
-            d = json.load(f)
-        assert len(d["sequences"]) == 40
+        sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
+        # Count per-gauge files (excluding _index.json)
+        gauge_files = [f for f in sg_dir.iterdir() if f.name != "_index.json"]
+        assert len(gauge_files) == 3
 
 
 # ---------------------------------------------------------------------------

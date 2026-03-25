@@ -191,10 +191,21 @@ def _trace_data(lineage, data_type, data_id):
             _add("stressm", ts_file, "derived",
                  "168h storm simulation time series")
 
-        # Step 5: stressm/ (storm sequences)
-        seq_summary = input_dir / "stressm" / "sequence_gauge_summary.json"
-        if seq_summary.exists() and _search_json(seq_summary, data_id):
-            _add("stressm", seq_summary, "derived",
+        # Step 5: stressm/ (storm sequences — split per-gauge directory)
+        sg_dir = input_dir / "sequence_gauge"
+        sg_legacy = input_dir / "sequence_gauge_summary.json"
+        if sg_dir.is_dir():
+            # Search per-gauge file matching data_id
+            sg_file = sg_dir / f"{data_id}.json"
+            if sg_file.exists():
+                _add("stressm", sg_file, "derived",
+                     "Per-sequence peak water levels & flood flags")
+            elif (sg_dir / "_index.json").exists() and _search_json(
+                    sg_dir / "_index.json", data_id):
+                _add("stressm", sg_dir / "_index.json", "derived",
+                     "Per-sequence peak water levels & flood flags")
+        elif sg_legacy.exists() and _search_json(sg_legacy, data_id):
+            _add("stressm", sg_legacy, "derived",
                  "Per-sequence peak water levels & flood flags")
 
         # Step 6: gaugehc.json (hazard curves)

@@ -33,9 +33,11 @@ def generate_all_gauge_histories(years: int = 50) -> List[str]:
     gauges = load_gauge_portfolio()
     logger.info("Found %d gauges in portfolio", len(gauges))
 
-    # Remove stale gauge_GAUGE-*_hd.json files from previous runs
+    # Remove stale gauge history files from previous runs (GAUGE-* and SYNTH-*)
     gaugehd_dir = config.get_gaugehd_dir()
     for stale in gaugehd_dir.glob('gauge_GAUGE-*_hd.json'):
+        stale.unlink()
+    for stale in gaugehd_dir.glob('gauge_SYNTH-*_hd.json'):
         stale.unlink()
 
     logger.info("Output directory: %s", gaugehd_dir)

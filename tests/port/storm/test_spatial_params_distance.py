@@ -132,9 +132,11 @@ class TestFromGaugePortfolioFile:
         with open(THAMES_GAUGE_PATH) as f:
             portfolio = json.load(f)
         model = SpatialCorrelationModel.from_gauge_portfolio(portfolio)
-        if model.n_gauges < 52:
-            pytest.skip("gauge.json not yet regenerated with 52 gauges — run port --gauges first")
-        assert model.n_gauges == 52
+        # 52 real gauges + synthetic gauges (count varies with property portfolio)
+        assert model.n_gauges >= 52, (
+            f"Expected at least 52 gauges, got {model.n_gauges} — "
+            "run port --gauges first"
+        )
 
 
 # ---------------------------------------------------------------------------

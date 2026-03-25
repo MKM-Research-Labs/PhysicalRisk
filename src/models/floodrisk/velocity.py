@@ -133,7 +133,7 @@ def compute_slope(gauge_elevation: float, property_elevation: float,
 def build_property_hydrograph(gauge_readings: List[Dict],
                                peak_wse: float,
                                travel_time_hrs: float,
-                               attenuation: float,
+                               retention: float,
                                prop_elevation: float,
                                floor_level: float,
                                recession_factor: float = DEFAULT_RECESSION_FACTOR
@@ -141,17 +141,20 @@ def build_property_hydrograph(gauge_readings: List[Dict],
     """
     Build a property-level hydrograph from gauge timeseries.
 
-    Takes the gauge's hourly readings, shifts by travel time, scales
-    the peak by attenuation, and computes flood depth at the property
-    accounting for elevation and floor level (step).
+    Takes the gauge's hourly readings, shifts by travel time, and
+    computes flood depth at the property accounting for elevation
+    and floor level (step).  Retention is applied by the caller
+    before computing peak_wse; it is accepted here only for API
+    compatibility and logging but is NOT re-applied to the WSE.
 
     Args:
         gauge_readings: List of dicts with 'hour' and 'water_level_m' keys
-            (typically 60 hourly readings from flood simulation)
+            (typically 168 hourly readings from flood simulation)
         peak_wse: Peak water surface elevation at the property location
-            (already IDW-interpolated and attenuated)
+            (already IDW-interpolated; retention already applied by caller)
         travel_time_hrs: Hours for flood front to reach property
-        attenuation: Distance attenuation factor (0-1)
+        retention: Distance retention factor (0-1). NOT applied here;
+            retained for API compatibility.
         prop_elevation: Property ground level (meters AOD)
         floor_level: Property floor level / step height (meters)
         recession_factor: Multiplier for recession limb duration (default 1.5)

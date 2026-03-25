@@ -146,9 +146,9 @@ class TestStressStormsFile:
         for s in storms:
             for gr in s.get("gauge_responses", []):
                 gid = gr.get("gauge_id", "")
-                if not gid.startswith("GAUGE-"):
+                if not gid.startswith(("GAUGE-", "SYNTH-")):
                     bad.add(gid)
-        assert not bad, f"gauge_response gauge_ids not in GAUGE-xxxx format: {list(bad)[:5]}"
+        assert not bad, f"gauge_response gauge_ids not in GAUGE-/SYNTH-xxxx format: {list(bad)[:5]}"
 
     def test_peak_levels_positive(self, storms):
         violations = []
@@ -228,17 +228,17 @@ class TestStressStormsFile:
         )
 
     def test_all_gauge_ids_use_gauge_prefix(self, storms):
-        """All gauge_id values in gauge_responses must match GAUGE-xxxx format."""
-        from config.port import GAUGE_ID_PREFIX
+        """All gauge_id values in gauge_responses must match GAUGE-/SYNTH-xxxx format."""
+        valid_prefixes = ("GAUGE-", "SYNTH-")
         bad = set()
         for s in storms:
             for gr in s.get("gauge_responses", []):
                 gid = gr.get("gauge_id", "")
-                if not gid.startswith(f"{GAUGE_ID_PREFIX}-"):
+                if not gid.startswith(valid_prefixes):
                     bad.add(gid)
         assert not bad, (
             f"gauge_response entries with wrong gauge_id prefix "
-            f"(expected '{GAUGE_ID_PREFIX}-'): {list(bad)[:5]}"
+            f"(expected GAUGE-/SYNTH-): {list(bad)[:5]}"
         )
 
     def test_all_storm_ids_use_valid_prefix(self, storms):

@@ -166,7 +166,9 @@ class TestPipelineCompleteness:
         with open(GAUGE_JSON) as f:
             n_gauges = len(json.load(f).get("flood_gauges", []))
 
-        n_files = len(list(gaugets_dir.glob("GAUGE-*.json")))
+        gauge_files = list(gaugets_dir.glob("GAUGE-*.json"))
+        synth_files = list(gaugets_dir.glob("SYNTH-*.json"))
+        n_files = len(gauge_files) + len(synth_files)
         assert n_files == n_gauges, (
             f"gaugets/ has {n_files} files but gauge.json has {n_gauges} gauges. "
             "Run `python app.py port --stressm` to rebuild."

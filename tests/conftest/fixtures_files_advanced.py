@@ -45,7 +45,7 @@ def sample_propertyts_dir(temp_data_dir):
             {
                 "storm_id": "STORM-001", "flood_depth_m": 0.8, "damage_ratio": 0.25,
                 "flooded": True, "arrival_time_hrs": 5, "peak_time_hrs": 12,
-                "travel_time_hrs": 3, "attenuation_factor": 0.85,
+                "travel_time_hrs": 3, "retention_factor": 0.85,
                 "readings": [{"hour": h, "wse_m": 3.5 + (0.8 if 5 <= h <= 20 else 0),
                               "depth_m": 0.8 if 5 <= h <= 20 else 0,
                               "flooded": 5 <= h <= 20} for h in range(24)]
@@ -53,7 +53,7 @@ def sample_propertyts_dir(temp_data_dir):
             {
                 "storm_id": "STORM-002", "flood_depth_m": 1.2, "damage_ratio": 0.4,
                 "flooded": True, "arrival_time_hrs": 3, "peak_time_hrs": 10,
-                "travel_time_hrs": 2, "attenuation_factor": 0.9,
+                "travel_time_hrs": 2, "retention_factor": 0.9,
                 "readings": [{"hour": h, "wse_m": 3.5 + (1.2 if 3 <= h <= 18 else 0),
                               "depth_m": 1.2 if 3 <= h <= 18 else 0,
                               "flooded": 3 <= h <= 18} for h in range(24)]
@@ -61,13 +61,13 @@ def sample_propertyts_dir(temp_data_dir):
             {
                 "storm_id": "STORM-003", "flood_depth_m": 0.3, "damage_ratio": 0.08,
                 "flooded": True, "arrival_time_hrs": 8, "peak_time_hrs": 15,
-                "travel_time_hrs": 4, "attenuation_factor": 0.7,
+                "travel_time_hrs": 4, "retention_factor": 0.7,
                 "readings": []
             },
             {
                 "storm_id": "STORM-004", "flood_depth_m": 0.5, "damage_ratio": 0.15,
                 "flooded": True, "arrival_time_hrs": 6, "peak_time_hrs": 14,
-                "travel_time_hrs": 3.5, "attenuation_factor": 0.8,
+                "travel_time_hrs": 3.5, "retention_factor": 0.8,
                 "readings": []
             },
         ],
@@ -89,7 +89,7 @@ def sample_propertyts_dir(temp_data_dir):
             {
                 "storm_id": "STORM-002", "flood_depth_m": 0.2, "damage_ratio": 0.05,
                 "flooded": True, "arrival_time_hrs": 10, "peak_time_hrs": 18,
-                "travel_time_hrs": 5, "attenuation_factor": 0.6,
+                "travel_time_hrs": 5, "retention_factor": 0.6,
                 "readings": []
             }
         ],
