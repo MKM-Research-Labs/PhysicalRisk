@@ -187,16 +187,16 @@ window._lineagePopulateIds = function() {
                 (data.gauges || data.flood_gauges || []).forEach(function(g) {
                     var fg = g.FloodGauge || g;
                     var hdr = (fg.Header || fg.header || g);
-                    var id = hdr.GaugeID || hdr.gauge_id || g.gauge_id || '';
-                    var name = hdr.GaugeName || hdr.gauge_name || hdr.name || '';
+                    var id = hdr.GaugeID || hdr.gauge_id || g.gaugeId || g.gauge_id || '';
+                    var name = hdr.GaugeName || hdr.gauge_name || g.name || hdr.name || '';
                     if (id) items.push({id: id, label: name ? id + ' — ' + name : id});
                 });
             } else if (dataType === 'property') {
                 (data.properties || []).forEach(function(p) {
                     var hdr = (p.PropertyHeader || {}).Header || p.Header || p;
-                    var id = hdr.PropertyID || hdr.property_id || '';
-                    var addr = (p.PropertyHeader || {}).Location || {};
-                    var label = addr.Street || addr.AddressLine1 || '';
+                    var id = hdr.PropertyID || hdr.property_id || p.propertyId || '';
+                    var addr = (p.PropertyHeader || {}).Location || p;
+                    var label = addr.Street || addr.AddressLine1 || addr.address || addr.county || '';
                     if (id) items.push({id: id, label: label ? id + ' — ' + label : id});
                 });
             } else if (dataType === 'trade') {
