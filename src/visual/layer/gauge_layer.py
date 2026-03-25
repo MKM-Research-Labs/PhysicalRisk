@@ -325,8 +325,13 @@ class GaugeLayer:
             return "Low"
 
     def _get_gauge_icon(self, gauge_info: Dict[str, Any], flood_info: Dict[str, Any]) -> folium.Icon:
-        """Get icon colored by flood frequency RAG."""
+        """Get icon colored by flood frequency RAG.  Synthetic gauges are grey."""
         gauge_id = gauge_info.get('gauge_id', '')
+
+        # Synthetic gauges always grey — visually distinct from real gauges
+        if gauge_id.startswith('SYNTH-'):
+            return folium.Icon(color='gray', icon='tint', prefix='fa')
+
         flood_count = self._get_gauge_flood_count(gauge_id)
 
         if flood_count > GAUGE_FLOOD_HIGH:
