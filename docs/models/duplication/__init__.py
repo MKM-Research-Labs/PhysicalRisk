@@ -20,7 +20,7 @@
 
 """Code duplication analysis report generator.
 
-Runs jscpd on src/ and produces a PDF summary saved to reports/audit/.
+Runs jscpd on src/ and produces a PDF summary saved to data/output/audit/.
 
 Usage:
     python -m docs.models.duplication

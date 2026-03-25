@@ -30,19 +30,19 @@ import os
 from config import config
 
 _data_dir = str(config.get_project_root() / "data")
-_input_dir = str(config.get_output_dir())  # catchment input dir (e.g. data/input/thames)
+_output_dir = str(config.get_output_dir())
 _docs_dir = str(config.get_project_root() / "docs" / "models")
 
 INVENTORY_PATH = os.path.join(_data_dir, "model_inventory.json")
 AUDIT_LOG_PATH = os.path.join(_data_dir, "model_audit_log.json")
 MRC_MEETINGS_PATH = os.path.join(_data_dir, "mrc_meetings.json")
-MRC_UPLOADS_DIR = os.path.join(_input_dir, "mrc_uploads")
+MRC_UPLOADS_DIR = os.path.join(_data_dir, "mrc_uploads")
 BCBS239_PATH = os.path.join(_data_dir, "bcbs239_assessment.json")
 RACI_PATH = os.path.join(_data_dir, "raci_matrix.json")
 BIBLIOGRAPHY_PATH = os.path.join(_data_dir, "bibliography.json")
 GOV_DOCUMENTS_PATH = os.path.join(_data_dir, "governance_documents.json")
-GOV_DOCUMENTS_DIR = os.path.join(_input_dir, "governance_docs")
-AUDIT_REPORTS_DIR = os.path.join(_input_dir, "reports", "audit")
+GOV_DOCUMENTS_DIR = os.path.join(_data_dir, "governance_docs")
+AUDIT_REPORTS_DIR = os.path.join(_output_dir, "audit")
 LINEAGE_PATH = os.path.join(_data_dir, "data_lineage.json")
 FIELD_LINEAGE_PATH = os.path.join(_data_dir, "field_lineage_registry.json")
 

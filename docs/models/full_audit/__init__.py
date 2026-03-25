@@ -14,7 +14,7 @@ Consolidates all audit data into a single executive-level PDF:
   5. Hard-Coding Audit (parameter governance)
   6. Remediation Roadmap
 
-Data sources (all must exist in reports/audit/):
+Data sources (all must exist in data/output/audit/):
   - junit.xml        — test counts, pass/fail/skip
   - coverage.xml     — line coverage by package
 
@@ -22,7 +22,7 @@ Also runs fresh live scans via existing audit modules:
   - docs.models.hardcoding  — parameter governance
   - docs.models.project     — file size analysis
 
-Output:  data/input/<catchment>/reports/audit/full_audit_report.pdf
+Output:  data/input/<catchment>/data/output/audit/full_audit_report.pdf
 
 Usage:
     python -m docs.models.full_audit
@@ -1228,7 +1228,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
          'See Section 4 for the current priority list.'),
         ('P5', 'LOW',
          'Review code duplication hotspots',
-         'See code_duplication_report.pdf in reports/audit/ '
+         'See code_duplication_report.pdf in data/output/audit/ '
          'for clone-pair details and refactoring recommendations.'),
         ('P6', 'LOW',
          'Run full audit before each model governance review',
@@ -1268,7 +1268,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
     elems.append(HRFlowable(width='100%', thickness=0.5, color=GREY))
     elems.append(Spacer(1, 3 * mm))
     elems.append(Paragraph(
-        'Supporting artefacts in reports/audit/: '
+        'Supporting artefacts in data/output/audit/: '
         'test_report.pdf &nbsp;|&nbsp; '
         'large_file_report.pdf &nbsp;|&nbsp; large_test_report.txt &nbsp;|&nbsp; '
         'code_duplication_report.pdf &nbsp;|&nbsp; '
@@ -1355,7 +1355,7 @@ def _header_footer(canvas, doc):
 # ---------------------------------------------------------------------------
 
 def create_pdf_report() -> Path:
-    """Generate the full audit PDF and save to reports/audit/."""
+    """Generate the full audit PDF and save to data/output/audit/."""
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
 
     report_date = datetime.now()
