@@ -28,6 +28,72 @@ logger = logging.getLogger(__name__)
 
 SYNTH_PREFIX = "SYNTH"
 DEDUP_DISTANCE_M = 50  # merge synthetic gauges within this distance
+_RIVER_POLYLINE_CACHE = None  # cached high-res river polyline
+
+
+def _load_river_polyline() -> Optional[List[Tuple]]:
+    """Load high-resolution river polyline from cached JSON.
+
+    Falls back to None if the cache file doesn't exist, in which case
+    synthetic gauges use the coarser gauge-point polyline coordinates.
+    """
+    global _RIVER_POLYLINE_CACHE
+    if _RIVER_POLYLINE_CACHE is not None:
+        return _RIVER_POLYLINE_CACHE
+
+    cache_path = Path(__file__).resolve().parents[4] / "data" / "catch" / (
+        f"{config.CATCHMENT}_river_polyline.json"
+    )
+    if not cache_path.exists():
+        logger.info("No river polyline cache at %s — using gauge points", cache_path)
+        return None
+
+    with open(cache_path) as f:
+        points = json.load(f)
+    _RIVER_POLYLINE_CACHE = [(p[0], p[1]) for p in points]
+    logger.info("Loaded river polyline: %d points from %s",
+                len(_RIVER_POLYLINE_CACHE), cache_path.name)
+    return _RIVER_POLYLINE_CACHE
+
+
+def _snap_to_river(lat: float, lon: float) -> Tuple[float, float]:
+    """Snap coordinates to the high-resolution river polyline.
+
+    Returns the snapped (lat, lon) or the original coordinates if
+    no river polyline is available.
+    """
+    river = _load_river_polyline()
+    if river is None or len(river) < 2:
+        return lat, lon
+
+    import math
+    best_lat, best_lon = lat, lon
+    best_dist = float("inf")
+
+    for i in range(len(river) - 1):
+        ax, ay = river[i]
+        bx, by = river[i + 1]
+
+        # Project point onto segment (locally scaled Cartesian)
+        cos_lat = math.cos(math.radians(lat))
+        dx = bx - ax
+        dy = (by - ay) * cos_lat
+        seg_len_sq = dx * dx + dy * dy
+        if seg_len_sq < 1e-18:
+            continue
+
+        t = ((lat - ax) * dx + (lon - ay) * cos_lat * dy) / seg_len_sq
+        t = max(0.0, min(1.0, t))
+        nx = ax + t * (bx - ax)
+        ny = ay + t * (by - ay)
+
+        d = haversine_distance(lat, lon, nx, ny)
+        if d < best_dist:
+            best_dist = d
+            best_lat = nx
+            best_lon = ny
+
+    return round(best_lat, 6), round(best_lon, 6)
 
 
 def _lerp(a: float, b: float, t: float) -> float:
@@ -199,6 +265,10 @@ class SyntheticGaugeGenerator:
             return None
         if seg_idx == len(polyline) - 2 and t > 1 - 1e-6:
             return None
+
+        # Snap to high-resolution river polyline so the gauge sits
+        # on the actual river, not on the coarse gauge-point polyline
+        nx, ny = _snap_to_river(nx, ny)
 
         ga_id = polyline[seg_idx][3]
         gb_id = polyline[seg_idx + 1][3]
