@@ -205,13 +205,13 @@ class TestClassifierFailurePortfolioMode:
             pass
 
         with patch(
-            "port.src.stressm.pipeline.train_gauge_stressm_classifier",
+            "port.src.stressm.pipeline.stages.train_gauge_stressm_classifier",
             side_effect=mock_train,
         ), patch(
-            "port.src.stressm.pipeline._print_classifier_result",
+            "port.src.stressm.pipeline.stages._print_classifier_result",
             side_effect=mock_print,
         ), patch(
-            "port.src.stressm.pipeline.write_classifier_summary",
+            "port.src.stressm.pipeline.stages.write_classifier_summary",
             side_effect=mock_write_summary,
         ):
             result = generate_stressm(
