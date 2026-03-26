@@ -28,7 +28,8 @@ hazard curves, risk-adjusted mortgage valuations, and PRS contract pricing.
     \item \textbf{Synthetic portfolio generation} --- configurable portfolios of
           gauges, properties, mortgages, storms, and counterparties.
     \item \textbf{Flood simulation} --- storm-to-gauge response modelling with
-          spatial interpolation to property level using inverse distance weighting.
+          nearest-gauge flood propagation to property level via synthetic gauges on the
+          river centreline (v2.1).
     \item \textbf{Hazard curve construction} --- GEV-fitted exceedance
           probabilities at gauge and property level.
     \item \textbf{PRS pricing} --- CDS-equivalent quarterly pricing of Physical
@@ -407,10 +408,11 @@ hazard curve points, return period levels, and PRS term structures.
 
 \subsubsection{Property Time Series (propertyts)}
 
-For each property, identifies the three nearest gauges and interpolates flood
-depth using inverse distance weighting ($1/d^2$). Applies elevation
-differentials and floor level thresholds. Uses Manning's equation for travel
-time and attenuation. Computes damage ratio via depth-damage curve.
+For each property, identifies the three nearest gauges (1 synthetic + 2 real)
+and takes the flood WSE from the nearest gauge only (v2.1). Applies elevation
+differentials and floor level thresholds. Near-field properties ($d < 2$\,km)
+use retention = 1.0. Uses Manning's equation for travel time. Computes damage
+ratio via depth-damage curve.
 
 \textbf{Output:} \texttt{propertyts/PROP-xxx.json} per property, containing
 \texttt{flood\_events[]} with depth, damage ratio, arrival time, and hourly
@@ -923,8 +925,8 @@ models.
         \textbf{Module} & \textbf{Purpose} \\
         \midrule
         \texttt{floodrisk/depth\_damage.py}   & Depth-damage curves (UK-calibrated) \\
-        \texttt{floodrisk/spatial.py}          & Haversine, IDW, KDTree, correlation \\
-        \texttt{floodrisk/velocity.py}         & Manning's equation, travel time, attenuation \\
+        \texttt{floodrisk/spatial.py}          & Haversine, KDTree, correlation (IDW deprecated v2.1) \\
+        \texttt{floodrisk/velocity.py}         & Manning's equation, travel time, retention \\
         \texttt{floodrisk/risk\_analytics.py}  & Monte Carlo VaR/ES, HHI, clustering \\
         \texttt{floodrisk/flood\_risk\_model.py}& Unified flood risk pipeline \\
         \bottomrule

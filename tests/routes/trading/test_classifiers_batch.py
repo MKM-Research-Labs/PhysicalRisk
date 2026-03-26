@@ -28,7 +28,7 @@ class TestBatchTraining:
     def test_train_all_status_idle(self, trading_client):
         """Status endpoint returns idle when no batch is running."""
         # Reset batch job state
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         cl_mod._batch_job = None
 
         resp = trading_client.get("/api/v1/trading/classifiers/train-all/status")
@@ -37,7 +37,7 @@ class TestBatchTraining:
 
     def test_train_all_status_fields(self, trading_client):
         """Status endpoint returns expected fields when batch is running."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         import time
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
@@ -65,7 +65,7 @@ class TestBatchTraining:
 
     def test_train_all_complete_includes_results(self, trading_client):
         """Complete status includes results list."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         import time
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
@@ -91,7 +91,7 @@ class TestBatchTraining:
 
     def test_train_all_already_running(self, trading_client):
         """POST while batch is running returns current progress without starting new job."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
                 "status": "running",
@@ -114,7 +114,7 @@ class TestBatchTraining:
 
     def test_train_all_all_already_trained(self, trading_env, trading_client):
         """POST when every gauge has a .joblib returns 'complete'."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         cl_mod._batch_job = None
 
         classifiers_dir = trading_env["classifiers_dir"]
@@ -130,7 +130,7 @@ class TestBatchTraining:
 
     def test_status_eta_fallback_from_elapsed(self, trading_client):
         """ETA computed from elapsed/completed when avg_per_gauge is 0."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
                 "status": "running",
@@ -153,7 +153,7 @@ class TestBatchTraining:
 
     def test_status_eta_none_when_zero_completed(self, trading_client):
         """ETA is None when no gauges completed yet and no historical avg."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
                 "status": "running",

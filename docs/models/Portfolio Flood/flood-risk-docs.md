@@ -28,12 +28,13 @@ Where:
 - `radius`: Affected radius of the flood event
 - `distance(x,y)`: Distance from point (x,y) to flood center
 
-For locations with gauge data, depths are interpolated using inverse distance weighting:
+For locations with gauge data, depths are taken from the **nearest hydraulically connected gauge** (v2.1). The nearest gauge is typically a synthetic gauge placed at the closest point on the river centreline to the property. Two additional flanking gauges are retained for PRS pricing and audit but do not contribute to the flood WSE calculation.
 
 ```
-interpolated_depth = Σ(wi * di) / Σ(wi)
-where wi = 1/distance_i²
+flood_wse = nearest_gauge_peak_wse    (single gauge, no averaging)
 ```
+
+*Note: v2.0 used inverse distance weighting (IDW) across 3 gauges. This was replaced in v2.1 as IDW caused signal dilution — see flood_propagation_model.md §3.2.*
 
 ### 3. Impact Assessment
 

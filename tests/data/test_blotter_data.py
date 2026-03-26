@@ -305,7 +305,7 @@ class TestEODSnapshotData:
 
     def test_eod_has_required_keys(self, eod_files):
         """Each EOD snapshot should have date, trades, and P&L data."""
-        required = {"date", "trades"}
+        required = {"date", "positions"}
         bad = []
         for f in eod_files[:5]:
             d = json.loads(f.read_text())

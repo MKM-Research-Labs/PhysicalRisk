@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Flood Risk Model}
 \newcommand{\docsubtitle}{Depth-Damage, Spatial Interpolation, Velocity, and Portfolio Risk Analytics}
-\newcommand{\docversion}{1.3}
-\newcommand{\docdate}{25-March-2026}
+\newcommand{\docversion}{1.4}
+\newcommand{\docdate}{26-March-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -23,9 +23,9 @@ four tightly integrated components:
 \begin{enumerate}[nosep]
     \item \textbf{Depth-Damage Model} --- UK-calibrated vulnerability curve mapping inundation
           depth to structural damage ratio, with property type and floor level adjustments.
-    \item \textbf{Spatial Model} --- Haversine geodesic distance, inverse-distance-weighted
-          (IDW) water surface elevation interpolation, KDTree spatial indexing, and exponential
-          spatial correlation matrix construction.
+    \item \textbf{Spatial Model} --- Haversine geodesic distance, nearest-gauge flood WSE
+          propagation (v2.1; replaces IDW interpolation), KDTree spatial indexing, synthetic
+          gauge placement on river centreline, and exponential spatial correlation matrix construction.
     \item \textbf{Velocity Model} --- Manning's equation for overbank flow velocity, flood
           front travel time, exponential distance attenuation, and property-level hydrograph
           construction with recession modelling.
@@ -216,30 +216,36 @@ For efficient nearest-neighbour queries, gauge coordinates are converted to radi
 indexed using a \texttt{scipy.spatial.cKDTree}. This provides $O(\log N)$ query time
 for gauge lookup, critical when interpolating WSE across large property portfolios.
 
-\subsubsection{Inverse-Distance-Weighted Interpolation}
+\subsubsection{Nearest-Gauge WSE Propagation (v2.1)}
 
-The water surface elevation at a target location is interpolated from surrounding gauge
-observations using inverse-distance weighting (IDW). Given $N_g$ gauges, each at distance
-$d_i$ from the target with observed WSE $W_i$:
+\textbf{Change notice (v2.1, 26-Mar-2026):} IDW interpolation across multiple gauges has
+been replaced by a nearest-gauge-only approach. The flood WSE at a property is taken from
+the single nearest hydraulically connected gauge --- typically a synthetic gauge placed at
+the closest point on the river centreline to the property. Two additional flanking gauges
+are retained for PRS pricing and audit display but do not contribute to the flood
+calculation. This change was made because IDW caused signal dilution: one high gauge
+combined with two low gauges produced an unrealistically low interpolated WSE (see
+\texttt{flood\_propagation\_model.md} \S3.2).
 
+The flood WSE at the property is:
 \begin{equation}
-    \hat{W} = \frac{\sum_{i=1}^{N_g} w_i \cdot W_i}{\sum_{i=1}^{N_g} w_i}, \qquad
-    w_i = \frac{1}{d_i^p}
-    \label{eq:idw}
+    \hat{W} = W_{\text{nearest}}
+    \label{eq:nearest_wse}
 \end{equation}
 
-\noindent where $p = 2$ (inverse-square weighting) is the default IDW exponent. A minimum
-distance threshold $d_{\min} = 1.0\,$m is enforced: if any gauge lies within $d_{\min}$
-of the target, its WSE is returned directly without interpolation, avoiding singularity
-in the weight function.
-
-The gauge WSE is computed as:
+\noindent where $W_{\text{nearest}}$ is the peak WSE at the nearest gauge. The gauge WSE
+is computed as:
 \begin{equation}
     W_i = d_i^{\text{flood}} + e_i^{\text{gauge}}
     \label{eq:gauge_wse}
 \end{equation}
 \noindent where $d_i^{\text{flood}}$ is the observed flood depth at gauge $i$ and
 $e_i^{\text{gauge}}$ is the gauge ground elevation (metres AOD).
+
+\paragraph{Legacy IDW (v2.0, deprecated).} The previous approach used inverse-distance
+weighting: $\hat{W} = \sum w_i W_i / \sum w_i$ with $w_i = 1/d_i^2$. This remains
+available in \texttt{spatial.py:idw\_interpolate\_from\_gauges()} but is no longer called
+in the flood propagation pipeline.
 
 \subsubsection{Spatial Correlation Matrix}
 
@@ -353,8 +359,9 @@ property WSE is computed by sampling the gauge timeseries at time $t - t_{\text{
 
 \noindent where $s(t) = (W_{\text{gauge}}(t - t_{\text{travel}}) - W_{\text{base}}) /
 (W_{\text{gauge,peak}} - W_{\text{base}})$ is the normalised gauge hydrograph shape,
-$W_{\text{peak,prop}}$ is the peak WSE at the property (from IDW interpolation),
-$W_{\text{base}}$ is the gauge base level, and $a$ is the distance attenuation factor.
+$W_{\text{peak,prop}}$ is the peak WSE at the property (from nearest gauge, v2.1),
+$W_{\text{base}}$ is the gauge base level, and $a$ is the distance retention factor
+(1.0 for near-field $d < 2\,$km; $\exp(-d/L)$ otherwise, with $L = 10\,$km).
 
 \paragraph{Recession limb.} For hours after the shifted peak, time is stretched by the
 recession factor $\gamma$ (default 1.5) to model slower drainage:
@@ -525,13 +532,13 @@ The model computes a comprehensive set of portfolio-level metrics:
     \textbf{Parameter} & \textbf{Symbol} & \textbf{Default} & \textbf{Description} \\
     \midrule
     Manning's roughness      & $n$        & 0.04       & Urban floodplain roughness coefficient \\
-    Attenuation length       & $\ell$     & 2{,}000\,m & Exponential WSE decay distance \\
+    Retention length scale   & $L$        & 10{,}000\,m & Exponential retention decay (beyond near-field) \\
+    Near-field threshold     &            & 2{,}000\,m & Below this, retention = 1.0 (v2.1) \\
     Minimum slope            & $S_{\min}$ & 0.001      & Floor to prevent division instability \\
     Recession factor         & $\gamma$   & 1.5        & Recession-to-rising limb duration ratio \\
-    Correlation distance     & $L$        & Configurable & Spatial correlation decay length \\
+    Correlation distance     & $L_c$      & Configurable & Spatial correlation decay length \\
     Base correlation         & $\rho_0$   & Configurable & Off-diagonal correlation at $d = 0$ \\
-    IDW power                & $p$        & 2          & Inverse-distance exponent \\
-    IDW minimum distance     & $d_{\min}$ & 1.0\,m     & Singularity avoidance threshold \\
+    Synthetic dedup distance &            & 50\,m      & Properties sharing a synthetic gauge \\
     Monte Carlo simulations  & $M$        & 1{,}000    & Number of portfolio loss scenarios \\
     Shock dispersion         & ---        & 0.2        & Standard deviation scaling of shocks \\
     Distance decay limit     & $r_{\max}$ & 25{,}000\,m & Maximum flood influence radius \\

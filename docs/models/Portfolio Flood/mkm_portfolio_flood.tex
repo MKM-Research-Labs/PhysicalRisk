@@ -558,10 +558,9 @@ def _interpolate_gauge_levels(self,
     )
 \end{lstlisting}
 
-Implements inverse distance weighted interpolation:
-\begin{equation}
-w_i = \frac{1}{d_i^2} / \sum_{j=1}^k \frac{1}{d_j^2}
-\end{equation}
+As of v2.1, flood WSE is taken from the \textbf{nearest hydraulically connected gauge} (typically a synthetic gauge on the river centreline). IDW interpolation across multiple gauges was removed due to signal dilution. The two flanking gauges are retained for PRS pricing and audit only.
+
+\textit{Note: v2.0 used inverse distance weighted interpolation $w_i = d_i^{-2} / \sum_j d_j^{-2}$. See flood\_propagation\_model.md \S3.2 for change rationale.}
 
 \subsection{Impact Calculation}
 \begin{lstlisting}[language=Python]

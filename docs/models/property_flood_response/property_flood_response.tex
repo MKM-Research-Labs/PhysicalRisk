@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Property Flood Response Model}
 \newcommand{\docsubtitle}{Gauge-to-Property Flood Propagation, Damage Estimation, and Portfolio Loss Analytics}
-\newcommand{\docversion}{1.1}
-\newcommand{\docdate}{25-March-2026}
+\newcommand{\docversion}{1.2}
+\newcommand{\docdate}{26-March-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -23,12 +23,13 @@ translates gauge-level flood events into property-level damage and financial los
 through five integrated stages:
 
 \begin{enumerate}[nosep]
-    \item \textbf{Spatial Interpolation} --- Inverse-distance-weighted (IDW)
-          interpolation of water surface elevation (WSE) from the nearest $k = 3$
-          gauges to each property location, using Haversine geodesic distance.
-    \item \textbf{Flood Depth Calculation} --- Conversion of interpolated WSE to
-          property flood depth, accounting for property ground elevation, floor level,
-          and exponential distance attenuation.
+    \item \textbf{Nearest-Gauge WSE Propagation (v2.1)} --- Flood WSE is taken from the
+          single nearest hydraulically connected gauge (typically a synthetic gauge on
+          the river centreline). Two additional flanking gauges are retained for PRS
+          pricing only. \textit{(Replaces IDW interpolation from v1.0--1.1.)}
+    \item \textbf{Flood Depth Calculation} --- Conversion of gauge WSE to property flood
+          depth, accounting for property ground elevation, floor level, and near-field
+          retention bypass ($d < 2$\,km $\Rightarrow$ retention = 1.0).
     \item \textbf{Velocity and Travel Time} --- Manning's equation for lateral overbank
           flow velocity, travel time estimation, and property-level hydrograph
           construction with recession modelling.
@@ -47,11 +48,16 @@ catchment. The model operates on per-gauge storm response timeseries
 (\texttt{gaugets/}) and property metadata (\texttt{property.json}), producing
 per-property flood event files in \texttt{propertyts/} and a portfolio flood summary.
 
-\textbf{Key risk:} The depth-damage curve and the IDW spatial interpolation are the
-two most material model components. A $\pm$10\% shift in the vulnerability curve
-propagates to approximately $\pm$8\% in expected portfolio loss. IDW interpolation
-error at ungauged locations averages 0.18\,m in WSE, which can shift the binary
-flood/no-flood classification for properties near the flood threshold.
+\textbf{Key risk:} The depth-damage curve is the single most material model component. A
+$\pm$10\% shift in the vulnerability curve propagates to approximately $\pm$8\% in
+expected portfolio loss. The v2.1 nearest-gauge approach eliminates IDW interpolation
+error but introduces dependence on the quality of synthetic gauge placement and the
+assumption that the nearest river point controls the flood boundary condition.
+
+\textbf{v2.1 change notice (26-Mar-2026):} IDW interpolation replaced by nearest-gauge
+propagation. Near-field retention bypass added ($d < 2$\,km). Synthetic gauges placed on
+river centreline. Properties with flood events increased from 21/200 (10.5\%) to 100/200
+(50\%). See \texttt{flood\_propagation\_model.md} for full change rationale.
 
 % ===================================================================
 % 2. MODEL PURPOSE AND SCOPE
@@ -137,28 +143,29 @@ even if the nearest gauge did not trigger but a nearby gauge did. The union of
 alert-exceeding storms across the $k$ gauges defines the set of candidate flood
 events for the property.
 
-\subsubsection{Inverse-Distance-Weighted WSE Interpolation}
+\subsubsection{Nearest-Gauge WSE Propagation (v2.1)}
 
-The water surface elevation (WSE) at the property location is interpolated from the
-peak water levels observed at the nearest gauges during each storm event. Given
-$N_g \leq k$ gauges that responded to a particular storm, each at distance $d_i$
-from the property with observed peak WSE $W_i$:
+\textbf{Change (v2.1):} The water surface elevation (WSE) at the property is taken from
+the single nearest hydraulically connected gauge. This is typically a \emph{synthetic
+gauge} placed at the closest point on the river centreline to the property (see
+Section~\ref{sec:synthetic_gauges} below). The two flanking real gauges are retained
+for PRS pricing and audit only.
 
 \begin{equation}
-    \hat{W} = \frac{\sum_{i=1}^{N_g} w_i \cdot W_i}{\sum_{i=1}^{N_g} w_i}, \qquad
-    w_i = \frac{1}{d_i^p}
-    \label{eq:idw}
+    \hat{W} = W_{\text{nearest}}
+    \label{eq:nearest_wse}
 \end{equation}
 
-\noindent where $p = 2$ (inverse-square weighting) is the default IDW exponent. A
-minimum distance threshold $d_{\min} = 1.0\,$m is enforced: if any gauge lies within
-$d_{\min}$ of the property, its WSE is returned directly without interpolation,
-avoiding singularity in the weight function.
+\noindent This replaces v1.0--1.1's IDW interpolation, which averaged WSE across $k = 3$
+gauges using inverse-square weighting. IDW caused signal dilution when one gauge showed
+high water and two showed low water, producing an unrealistically low interpolated WSE.
+The nearest-gauge approach aligns with Book~210's requirement for flow-aligned
+propagation rather than isotropic spatial averaging.
 
-The inverse-square weighting ensures that the closest gauge dominates the
-interpolation, while more distant gauges provide a smoothing effect. This is
-physically appropriate because WSE varies gradually across a floodplain but can
-change rapidly near confluences or channel constrictions.
+\paragraph{Legacy IDW (deprecated).} The IDW function remains available in
+\texttt{spatial.py:idw\_interpolate\_from\_gauges()} for reference:
+$\hat{W} = \sum w_i W_i / \sum w_i$ with $w_i = 1/d_i^2$. It is no longer called
+in the flood propagation pipeline.
 
 % -------------------------------------------------------------------
 % 3.2 Flood Depth Calculation
@@ -176,8 +183,8 @@ interpolated WSE and the property ground elevation:
     \label{eq:raw_depth}
 \end{equation}
 
-\noindent where $\hat{W}_j$ is the IDW-interpolated WSE at the property,
-$a(r_j)$ is the distance attenuation factor (Section~\ref{sec:attenuation}),
+\noindent where $\hat{W}_j$ is the nearest-gauge WSE at the property (v2.1),
+$a(r_j)$ is the distance retention factor (Section~\ref{sec:attenuation}),
 and $e_j$ is the property ground elevation in metres above ordnance datum (AOD).
 
 \subsubsection{Floor Level Adjustment}
@@ -545,9 +552,10 @@ The generator computes and persists the following portfolio-level statistics:
     \toprule
     \textbf{Parameter} & \textbf{Symbol} & \textbf{Default} & \textbf{Description} \\
     \midrule
-    Nearest gauges       & $k$        & 3          & Number of gauges used for IDW \\
-    IDW power            & $p$        & 2          & Inverse-distance exponent \\
-    IDW minimum distance & $d_{\min}$ & 1.0\,m     & Singularity avoidance threshold \\
+    Nearest gauges       & $k$        & 3          & 1 synthetic + 2 real (flood uses nearest only) \\
+    Retention length     & $L$        & 10{,}000\,m & Exponential decay (beyond near-field) \\
+    Near-field threshold &            & 2{,}000\,m & Below this, retention = 1.0 (v2.1) \\
+    Synthetic dedup      &            & 50\,m      & Properties sharing a synthetic gauge \\
     Manning's roughness  & $n$        & 0.04       & Urban floodplain roughness coefficient \\
     Attenuation length   & $\ell$     & 2{,}000\,m & Exponential WSE decay distance \\
     Minimum slope        & $S_{\min}$ & 0.001      & Floor to prevent division instability \\
@@ -668,7 +676,7 @@ pipeline:
         \item For each candidate storm:
         \begin{enumerate}[nosep]
             \item IDW-interpolate peak WSE from responding gauges.
-            \item Compute distance attenuation factor.
+            \item Compute distance retention factor.
             \item Estimate ground slope and Manning velocity.
             \item Compute travel time.
             \item Build property hydrograph (rising + recession limbs).
@@ -690,7 +698,7 @@ pipeline:
     \item Nearest gauge list with distances.
     \item Array of flood events, each with: storm ID, interpolated WSE, attenuated
           WSE, flood depth, damage ratio, arrival time, peak time, travel time,
-          attenuation factor, and hourly hydrograph readings (for flooded events
+          retention factor, and hourly hydrograph readings (for flooded events
           only, to control file size).
 \end{itemize}
 

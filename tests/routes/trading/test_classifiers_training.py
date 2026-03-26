@@ -19,7 +19,7 @@ class TestRunBatchTraining:
 
     def test_successful_batch(self, trading_env):
         """Batch trains gauges and records timings."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         classifiers_dir = trading_env["classifiers_dir"]
         gauge_ids = [GAUGE_WESTMINSTER, GAUGE_CHELSEA]
@@ -56,7 +56,7 @@ class TestRunBatchTraining:
 
     def test_batch_with_failure(self, trading_env):
         """Failed gauge training is recorded as 'failed' in results."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         gauge_ids = [GAUGE_WESTMINSTER, GAUGE_CHELSEA]
 
@@ -90,7 +90,7 @@ class TestRunBatchTraining:
 
     def test_batch_cancelled_mid_run(self, trading_env):
         """Setting _batch_job to None mid-run stops processing."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         gauge_ids = [GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH]
 
