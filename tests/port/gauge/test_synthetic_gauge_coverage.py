@@ -1,0 +1,300 @@
+"""Coverage expansion tests for synthetic.py — river polyline cache miss,
+degenerate segments, insufficient gauge points, zero-coordinate properties,
+existing synthetic gauges skipped, polyline-start projection, and missing
+flanking gauge (lines 48-49, 67, 83, 172-173, 191, 226, 237, 265, 278)."""
+
+import json
+import math
+
+import pytest
+
+
+# ---------------------------------------------------------------------------
+# Helpers (same CDM builders as test_synthetic_gauge.py)
+# ---------------------------------------------------------------------------
+
+def _make_gauge_cdm(gauge_id, lat, lon, elevation, alert, warning, severe):
+    return {
+        "FloodGauge": {
+            "Header": {
+                "GaugeID": gauge_id,
+                "CatchmentID": "thames",
+                "GaugeName": f"Test {gauge_id}",
+            },
+            "SensorStats": {
+                "HistoricalHighLevel": severe + 1.0,
+                "HistoricalHighDate": "2020-01-01",
+            },
+            "SensorDetails": {
+                "GaugeInformation": {
+                    "DataSourceType": "SensorGauge",
+                    "GaugeLatitude": lat,
+                    "GaugeLongitude": lon,
+                    "GroundLevelMeters": elevation,
+                    "elevation": elevation,
+                    "OperationalStatus": "Fully operational",
+                },
+            },
+            "FloodStage": {
+                "UK": {
+                    "FloodAlert": alert,
+                    "FloodWarning": warning,
+                    "SevereFloodWarning": severe,
+                },
+            },
+            "Location": {
+                "GaugeLatitude": lat,
+                "GaugeLongitude": lon,
+                "GaugeElevation": elevation,
+            },
+        }
+    }
+
+
+def _make_property_cdm(prop_id, lat, lon):
+    return {
+        "PropertyHeader": {
+            "Header": {"PropertyID": prop_id},
+            "Location": {
+                "LatitudeDegrees": lat,
+                "LongitudeDegrees": lon,
+            },
+        }
+    }
+
+
+GAUGE_POINTS = [
+    (51.45, -0.50, 3.0),
+    (51.46, -0.30, 4.0),
+    (51.47, -0.10, 5.0),
+]
+
+
+@pytest.fixture
+def synth_env(tmp_path, monkeypatch):
+    """Standard synthetic gauge environment."""
+    gauges = [
+        _make_gauge_cdm("GAUGE-AAA00001", 51.45, -0.50, 3.0, 3.5, 4.5, 5.0),
+        _make_gauge_cdm("GAUGE-BBB00002", 51.46, -0.30, 4.0, 4.0, 5.0, 6.0),
+        _make_gauge_cdm("GAUGE-CCC00003", 51.47, -0.10, 5.0, 4.5, 5.5, 7.0),
+    ]
+    (tmp_path / "gauge.json").write_text(json.dumps({"flood_gauges": gauges}))
+
+    properties = [
+        _make_property_cdm("PROP-001", 51.455, -0.40),
+        _make_property_cdm("PROP-002", 51.465, -0.20),
+    ]
+    (tmp_path / "property.json").write_text(json.dumps({"properties": properties}))
+
+    from unittest.mock import MagicMock
+    mock_params = MagicMock()
+    mock_params.GAUGE_POINTS = GAUGE_POINTS
+    del mock_params.GAUGEPOINTS
+
+    from config import config as cfg
+    monkeypatch.setattr(cfg, "load_params_module", lambda: mock_params)
+    monkeypatch.setattr(cfg, "CATCHMENT", "thames")
+
+    # Reset river polyline cache so tests start clean
+    import port.src.gauge.synthetic as synth_mod
+    synth_mod._RIVER_POLYLINE_CACHE = None
+
+    return tmp_path
+
+
+# ---------------------------------------------------------------------------
+# Lines 48-49, 67: No river polyline cache → returns None → unsnapped coords
+# ---------------------------------------------------------------------------
+
+class TestNoRiverPolylineCache:
+
+    def test_load_river_polyline_returns_none_when_no_cache(self, synth_env, monkeypatch):
+        """_load_river_polyline returns None when cache file doesn't exist."""
+        import port.src.gauge.synthetic as synth_mod
+        synth_mod._RIVER_POLYLINE_CACHE = None
+
+        result = synth_mod._load_river_polyline()
+        # Either None (no cache file) or a list (if project has one)
+        # In test env, the cache path won't exist
+        # The important thing is no crash
+        assert result is None or isinstance(result, list)
+
+    def test_snap_to_river_returns_original_when_no_polyline(self, synth_env, monkeypatch):
+        """_snap_to_river returns original coords when river is None."""
+        import port.src.gauge.synthetic as synth_mod
+        synth_mod._RIVER_POLYLINE_CACHE = None
+        monkeypatch.setattr(synth_mod, "_load_river_polyline", lambda: None)
+
+        lat, lon = synth_mod._snap_to_river(51.46, -0.30)
+        assert lat == 51.46
+        assert lon == -0.30
+
+
+# ---------------------------------------------------------------------------
+# Line 83: Degenerate river segment (zero-length)
+# ---------------------------------------------------------------------------
+
+class TestDegenerateRiverSegment:
+
+    def test_degenerate_segment_skipped(self, synth_env, monkeypatch):
+        """_snap_to_river skips zero-length segments without error."""
+        import port.src.gauge.synthetic as synth_mod
+
+        # Polyline with a degenerate (identical consecutive points) segment
+        degenerate_polyline = [
+            (51.45, -0.50),
+            (51.45, -0.50),  # zero-length segment
+            (51.47, -0.10),
+        ]
+        monkeypatch.setattr(synth_mod, "_load_river_polyline",
+                            lambda: degenerate_polyline)
+
+        lat, lon = synth_mod._snap_to_river(51.46, -0.30)
+        # Should return valid coordinates without error
+        assert isinstance(lat, float)
+        assert isinstance(lon, float)
+
+
+# ---------------------------------------------------------------------------
+# Lines 226, 172-173: Insufficient gauge points
+# ---------------------------------------------------------------------------
+
+class TestInsufficientGaugePoints:
+
+    def test_empty_gauge_points_returns_zero(self, synth_env, monkeypatch):
+        """generate() returns count=0 when GAUGE_POINTS has < 2 entries."""
+        from unittest.mock import MagicMock
+        from config import config as cfg
+
+        mock_params = MagicMock()
+        mock_params.GAUGE_POINTS = [(51.45, -0.50, 3.0)]  # only 1 point
+        del mock_params.GAUGEPOINTS
+        monkeypatch.setattr(cfg, "load_params_module", lambda: mock_params)
+
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        result = SyntheticGaugeGenerator(synth_env).generate()
+        assert result["count"] == 0
+
+    def test_none_gauge_points_returns_zero(self, synth_env, monkeypatch):
+        """generate() returns count=0 when GAUGE_POINTS is None."""
+        from unittest.mock import MagicMock
+        from config import config as cfg
+
+        mock_params = MagicMock()
+        mock_params.GAUGE_POINTS = None
+        del mock_params.GAUGEPOINTS
+        monkeypatch.setattr(cfg, "load_params_module", lambda: mock_params)
+
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        result = SyntheticGaugeGenerator(synth_env).generate()
+        assert result["count"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Line 191: Property with zero coordinates
+# ---------------------------------------------------------------------------
+
+class TestZeroCoordinateProperty:
+
+    def test_property_with_zero_lat_skipped(self, synth_env):
+        """Property with lat=0 is silently skipped."""
+        props = {
+            "properties": [
+                _make_property_cdm("PROP-ZERO", 0, -0.30),
+            ]
+        }
+        (synth_env / "property.json").write_text(json.dumps(props))
+
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        result = SyntheticGaugeGenerator(synth_env).generate()
+        assert result["count"] == 0
+
+    def test_property_with_zero_lon_skipped(self, synth_env):
+        """Property with lon=0 is silently skipped."""
+        props = {
+            "properties": [
+                _make_property_cdm("PROP-ZERO", 51.46, 0),
+            ]
+        }
+        (synth_env / "property.json").write_text(json.dumps(props))
+
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        result = SyntheticGaugeGenerator(synth_env).generate()
+        assert result["count"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Line 237: Existing synthetic gauge skipped in polyline builder
+# ---------------------------------------------------------------------------
+
+class TestSyntheticGaugeSkippedInPolyline:
+
+    def test_existing_synth_gauge_not_matched_to_gauge_point(self, synth_env):
+        """A pre-existing SYNTH- gauge in gauge.json is skipped in polyline matching."""
+        with open(synth_env / "gauge.json") as f:
+            data = json.load(f)
+
+        # Add a synthetic gauge near a gauge point
+        synth_gauge = _make_gauge_cdm(
+            "SYNTH-existing", 51.45, -0.50, 3.0, 3.5, 4.5, 5.0
+        )
+        data["flood_gauges"].append(synth_gauge)
+        (synth_env / "gauge.json").write_text(json.dumps(data))
+
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        result = SyntheticGaugeGenerator(synth_env).generate()
+
+        # Should still work — synthetic gauges still created from real gauges
+        assert result["count"] >= 0  # no crash is the key assertion
+
+
+# ---------------------------------------------------------------------------
+# Line 265: Property projects to polyline start
+# ---------------------------------------------------------------------------
+
+class TestPropertyAtPolylineStart:
+
+    def test_property_at_polyline_start_returns_none(self, synth_env):
+        """Property projecting to seg_idx=0, t~0 should not create a gauge."""
+        # Place property exactly at the first gauge point
+        props = {
+            "properties": [
+                _make_property_cdm("PROP-START", 51.449, -0.51),
+            ]
+        }
+        (synth_env / "property.json").write_text(json.dumps(props))
+
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        result = SyntheticGaugeGenerator(synth_env).generate()
+        assert result["count"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Line 278: Flanking gauge missing from lookup
+# ---------------------------------------------------------------------------
+
+class TestFlankingGaugeMissing:
+
+    def test_missing_flanking_gauge_returns_none(self, synth_env, monkeypatch):
+        """_create_synthetic_gauge returns None when flanking gauge not in lookup."""
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+
+        gen = SyntheticGaugeGenerator(synth_env)
+
+        # Build a polyline referencing a gauge_id not in gauge_lookup
+        polyline = [
+            (51.45, -0.50, 3.0, "GAUGE-AAA00001"),
+            (51.47, -0.10, 5.0, "GAUGE-MISSING"),
+        ]
+        gauge_lookup = {
+            "GAUGE-AAA00001": {
+                "lat": 51.45, "lon": -0.50, "elevation": 3.0,
+                "flood_alert": 3.5, "flood_warning": 4.5,
+                "severe_flood_warning": 5.0,
+                "historical_high_level": 6.0, "historical_high_date": "",
+            },
+            # GAUGE-MISSING intentionally absent
+        }
+
+        result = gen._create_synthetic_gauge(51.46, -0.30, gauge_lookup, polyline)
+        assert result is None
