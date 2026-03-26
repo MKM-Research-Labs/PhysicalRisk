@@ -123,7 +123,8 @@
       "Bash(/tmp/summary_table.csv:*)",
       "Bash(PYTHONPATH=src venv/bin/python -c \":*)",
       "Bash(for d:*)",
-      "Bash(rsync -av --ignore-existing /Users/newdavid/Documents/PhysicalRisk/data1/ /Users/newdavid/Documents/PhysicalRisk/data/)"
+      "Bash(rsync -av --ignore-existing /Users/newdavid/Documents/PhysicalRisk/data1/ /Users/newdavid/Documents/PhysicalRisk/data/)",
+      "Bash(PYTHONPATH=src:. python -c \"from docs.models.sensitivities.hydrograph.generator import generate; generate\\(\\)\")"
     ]
   }
 }

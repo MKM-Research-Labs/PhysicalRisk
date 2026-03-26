@@ -209,8 +209,11 @@ def get_parameter_sections():
             'subsections': [
                 ('Spatial Parameters', [
                     ('Earth radius', '6,371,000', 'Haversine radius (m)', 'floodrisk/spatial.py:53'),
-                    ('IDW power', '2.0', 'Inverse distance weighting exponent', 'floodrisk/spatial.py:114'),
-                    ('IDW min_distance', '1.0', 'Minimum distance floor (m)', 'floodrisk/spatial.py:115'),
+                    ('IDW power (deprecated v2.1)', '2.0', 'Legacy IDW exponent (no longer used in flood pipeline)', 'floodrisk/spatial.py:114'),
+                    ('IDW min_distance (deprecated v2.1)', '1.0', 'Legacy IDW distance floor (m)', 'floodrisk/spatial.py:115'),
+                    ('Near-field threshold', '2,000', 'Retention = 1.0 below this distance (m)', 'models/floodrisk/velocity.py'),
+                    ('Retention length scale', '10,000', 'Exponential decay length (m), beyond near-field', 'models/floodrisk/velocity.py'),
+                    ('Synthetic dedup distance', '50', 'Properties sharing a synthetic gauge (m)', 'port/src/gauge/synthetic.py'),
                     ('distance_km to degrees', '111.0', 'km per degree latitude', 'floodrisk/spatial.py:40'),
                 ]),
             ],

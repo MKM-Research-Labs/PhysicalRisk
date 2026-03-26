@@ -68,6 +68,7 @@ from .lookups import (
     build_property_flood_info,
     extract_gauge_ids,
     extract_mortgage_ids,
+    extract_mortgage_property_ids,
     extract_property_ids,
 )
 from .mortgage_loader import MortgageLoader
@@ -96,6 +97,7 @@ __all__ = [
     "build_all_lookups",
     "extract_property_ids",
     "extract_mortgage_ids",
+    "extract_mortgage_property_ids",
     "extract_gauge_ids",
     "analyze_id_relationships",
 ]

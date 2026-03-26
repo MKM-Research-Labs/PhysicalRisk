@@ -105,10 +105,10 @@ def compute_retention(distance_m: float,
     """
     if distance_m <= 0:
         return 1.0
-    if distance_m < near_field_m:
-        return 1.0
     if length <= 0:
         return 0.0
+    if distance_m < near_field_m:
+        return 1.0
     return math.exp(-distance_m / length)
 
 

@@ -23,8 +23,9 @@ class TestClearAllImportErrorFallback:
         (classifiers_dir / f"{GAUGE_WESTMINSTER}.joblib").write_bytes(b"fake")
 
         # Make the import raise ImportError
-        import routes.trading.classifiers as cl_mod
-        original_clear = cl_mod.clear_all_classifiers
+        import routes.trading.classifiers.batch_training as cl_mod
+        import routes.trading.classifiers.summary as cl_summary
+        original_clear = cl_summary.clear_all_classifiers
 
         def patched_import(*args, **kwargs):
             raise ImportError("no port_stress")
@@ -54,7 +55,7 @@ class TestTrainAllStartError:
 
     def test_train_all_returns_500_on_setup_error(self, trading_client, monkeypatch):
         """POST train-all returns 500 when config.get_classifiers_dir raises."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
         cl_mod._batch_job = None  # ensure not "already running"
 
         from config import config
@@ -74,7 +75,7 @@ class TestBatchCancelledBeforeFirstGauge:
     """Line 324: return at top of loop when _batch_job is None."""
 
     def test_batch_returns_immediately_when_cancelled_before_start(self, trading_env):
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         gauge_ids = [GAUGE_WESTMINSTER, GAUGE_CHELSEA]
 
@@ -112,7 +113,7 @@ class TestBatchReadsMetrics:
     """Lines 338-344: reading back metrics from training_summary.json."""
 
     def test_successful_batch_reads_metrics_from_summary(self, trading_env):
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         classifiers_dir = trading_env["classifiers_dir"]
         gauge_ids = [GAUGE_WESTMINSTER]
@@ -155,7 +156,7 @@ class TestBatchCancelledAfterLoop:
     """Line 377: post-loop cancellation check."""
 
     def test_post_loop_cancellation_returns_early(self, trading_env):
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         gauge_ids = [GAUGE_WESTMINSTER]
 
@@ -194,7 +195,7 @@ class TestStatusRunningAverages:
     """Lines 434, 436: avg_auc and avg_accuracy computed from results."""
 
     def test_status_computes_avg_auc_and_accuracy(self, trading_client):
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
@@ -223,7 +224,7 @@ class TestStatusRunningAverages:
 
     def test_status_avg_none_when_no_metrics(self, trading_client):
         """avg_auc/avg_accuracy are None when results have no metrics."""
-        import routes.trading.classifiers as cl_mod
+        import routes.trading.classifiers.batch_training as cl_mod
 
         with cl_mod._batch_lock:
             cl_mod._batch_job = {

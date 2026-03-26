@@ -302,7 +302,7 @@ class TestRouteErrorHandlers:
         self, lineage_env, lineage_client, monkeypatch
     ):
         """GET /governance/data-lineage gracefully handles _check_staleness error."""
-        from routes.governance import lineage as lineage_mod
+        from routes.governance.lineage import data_lineage as lineage_mod
         monkeypatch.setattr(
             lineage_mod, "_check_staleness",
             lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("boom")),
@@ -316,7 +316,7 @@ class TestRouteErrorHandlers:
         self, lineage_env, lineage_client, monkeypatch
     ):
         """GET /governance/data-lineage/trace returns 500 on _trace_data error."""
-        from routes.governance import lineage as lineage_mod
+        from routes.governance.lineage import data_lineage as lineage_mod
         monkeypatch.setattr(
             lineage_mod, "_trace_data",
             lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("trace boom")),
@@ -334,7 +334,7 @@ class TestRouteErrorHandlers:
         self, lineage_env, lineage_client, monkeypatch
     ):
         """GET /governance/data-lineage/staleness returns 500 on error."""
-        from routes.governance import lineage as lineage_mod
+        from routes.governance.lineage import data_lineage as lineage_mod
         monkeypatch.setattr(
             lineage_mod, "_check_staleness",
             lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("stale boom")),

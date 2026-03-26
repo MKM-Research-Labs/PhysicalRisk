@@ -357,18 +357,26 @@ def cmd_port(args):
         from port.src.stressm import generate_stressm, GAUGE_SUMMARY_FILENAME
         from port.src.storm_multi.utils.serialization import SEQUENCES_FILENAME, SUMMARY_FILENAME
 
-        # Clean stale classifiers — they were trained against old storm data
-        # and will fail to load with "not a known BitGenerator module" errors
+        # Clean ALL classifiers — they were trained against old storm data
+        # and must be retrained per-gauge via the UI after a fresh port run.
         from pathlib import Path as _Path
-        _cls_dir = _Path(config.get_classifiers_dir())
-        _stale_joblibs = list(_cls_dir.glob("*.joblib"))
-        if _stale_joblibs:
-            print(f"  Cleaning {len(_stale_joblibs)} stale classifier(s) from classifiers/...")
-            for jf in _stale_joblibs:
-                jf.unlink()
+        _clean_dirs = [
+            _Path(config.get_classifiers_dir()),
+            _Path(config.get_output_dir()) / "stressm",
+            output_dir / "stressm" if output_dir else None,
+        ]
+        for _cls_dir in _clean_dirs:
+            if _cls_dir is None or not _cls_dir.exists():
+                continue
+            _stale_joblibs = list(_cls_dir.glob("*.joblib"))
+            if _stale_joblibs:
+                print(f"  Cleaning {len(_stale_joblibs)} stale classifier(s) from {_cls_dir.name}/...")
+                for jf in _stale_joblibs:
+                    jf.unlink()
             _summary_path = _cls_dir / "training_summary.json"
             if _summary_path.exists():
                 _summary_path.unlink()
+                print(f"  Removed training_summary.json from {_cls_dir.name}/")
 
         t_step = time.time()
         summary = generate_stressm(
