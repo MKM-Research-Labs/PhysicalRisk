@@ -187,12 +187,16 @@ class FloodMixin:
         """
         Compute property-level flood for a single storm.
 
-        Uses IDW from nearest gauges (models.floodrisk.spatial) to
-        interpolate WSE at property, applies attenuation, and builds
-        hydrograph if flooded.
-        """
-        gauge_wse_values = []
+        Uses the nearest hydraulically connected gauge (typically the
+        synthetic gauge on the river centreline) as the controlling
+        boundary condition.  The remaining gauges are retained in the
+        property record for PRS pricing and audit but are NOT averaged
+        into the flood WSE — Book 210 requires flow-aligned propagation,
+        not isotropic IDW averaging which dilutes the signal.
 
+        v2.1: Replaced multi-gauge IDW with single nearest gauge.
+        """
+        # Use the nearest gauge as the single controlling boundary
         for ng in nearest:
             gid = ng['gauge_id']
             dist = ng['distance_m']
@@ -202,30 +206,15 @@ class FloodMixin:
                 continue
 
             gauge_wse = resp.get('peak_level_m', 0)
+            retention = compute_retention(dist)
 
-            if dist < 1.0:
-                return self._build_flood_event(
-                    storm_id, gauge_wse, 0.0, 1.0,
-                    prop_elevation, floor_level,
-                    gid, gaugets, ng
-                )
+            return self._build_flood_event(
+                storm_id, gauge_wse, dist, retention,
+                prop_elevation, floor_level,
+                gid, gaugets, ng
+            )
 
-            gauge_wse_values.append((dist, gauge_wse))
-
-        if not gauge_wse_values:
-            return None
-
-        interpolated_wse = idw_interpolate_from_gauges(gauge_wse_values)
-
-        closest = nearest[0]
-        dist = closest['distance_m']
-        retention = compute_retention(dist)
-
-        return self._build_flood_event(
-            storm_id, interpolated_wse, dist, retention,
-            prop_elevation, floor_level,
-            closest['gauge_id'], gaugets, closest
-        )
+        return None
 
     def _build_flood_event(self, storm_id: str, interpolated_wse: float,
                             distance_m: float, retention: float,

@@ -82,25 +82,30 @@ def compute_travel_time(distance_m: float, depth_m: float,
 
 
 def compute_retention(distance_m: float,
-                       length: float = DEFAULT_RETENTION_LENGTH) -> float:
+                       length: float = DEFAULT_RETENTION_LENGTH,
+                       near_field_m: float = 2000.0) -> float:
     """
     Compute distance-based retention factor for water surface elevation.
 
-    Uses exponential decay: retention = exp(-distance / length).
-    A retention of 1.0 means the full gauge WSE reaches the property
-    (no loss); 0.0 means total loss.  For near-river properties
-    (< ~1 km) with a 10 km length scale, retention is >= 0.90,
-    consistent with hydraulic guidance that near-field attenuation
-    is negligible.
+    For near-field properties (within ``near_field_m`` of the gauge on
+    the same reach), retention is 1.0 — Book 210 treats attenuation as
+    negligible over short distances and relies on elevation differences
+    alone.  Beyond the near-field threshold, exponential decay applies:
+    retention = exp(-distance / length).
+
+    v2.1: Added near-field bypass (retention = 1.0 for d < 2 km).
 
     Args:
         distance_m: Distance from river/gauge in meters
         length: Characteristic retention length in meters (default 10000)
+        near_field_m: Distance below which retention is 1.0 (default 2000)
 
     Returns:
         Retention factor between 0 and 1 (1 = full signal, 0 = no signal)
     """
     if distance_m <= 0:
+        return 1.0
+    if distance_m < near_field_m:
         return 1.0
     if length <= 0:
         return 0.0
