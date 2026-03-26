@@ -1,0 +1,434 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Hydrograph Superposition Model}
+\newcommand{\docsubtitle}{v2.2 Sensitivity Analysis --- Compound Storm Propagation}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{26-March-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+This document presents the sensitivity analysis of the Hydrograph Superposition
+Model (v2.2) implemented in \texttt{src/models/floodrisk/hydrograph.py}.  The
+v2.2 model replaces the single-peak / single-shape hydrograph approach (v2.1)
+with per-pulse gamma-shaped templates, antecedent saturation scaling, linear
+superposition, and flow-path infiltration.
+
+The analysis uses a synthetic property at varying distances and elevations from a
+flooding gauge, exercised under both isolated (single storm) and doublet (two
+storm) sequences.  Four sensitivity axes are examined:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Peak WSE at gauge} --- the primary driver of flood depth.
+    \item \textbf{Distance from gauge} --- controls retention and travel time.
+    \item \textbf{Elevation above gauge} --- controls the flood threshold.
+    \item \textbf{Pulse duration} --- controls hydrograph breadth and flooded hours.
+\end{enumerate}
+
+\noindent\textbf{Key findings:}
+\begin{itemize}[nosep]
+    \item Doublet sequences produce materially higher flood depths and longer
+          durations than isolated storms at the same peak WSE, confirming that
+          compound effects are captured by the v2.2 superposition.
+    \item Distance sensitivity is flat within the 2\,km near-field (retention = 1.0),
+          then degrades gradually --- consistent with the Book~210 near-field bypass.
+    \item Elevation is the dominant control on whether a property floods at all;
+          a 3\,m elevation difference eliminates flooding for events up to 10\,m WSE.
+    \item Pulse duration primarily affects flooded hours rather than peak depth,
+          which is governed by the gamma shape peak.
+\end{itemize}
+
+% ===================================================================
+% 2. MODEL PURPOSE AND SCOPE
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+The Hydrograph Superposition Model (v2.2) constructs property-level flood
+hydrographs from individual storm pulses within a 168-hour (7-day) event window.
+It addresses a critical gap in v2.1 where multi-storm sequences (doublets,
+clusters, persistent patterns) were reduced to their single worst pulse, losing
+temporal compounding effects.
+
+\subsection{Scope of This Analysis}
+\begin{itemize}[nosep]
+    \item \textbf{In scope:} Sensitivity of peak depth, flood duration, arrival
+          time, and damage ratio to gauge peak WSE, distance, elevation, pulse
+          duration, and sequence type (isolated vs doublet).
+    \item \textbf{Out of scope:} Cluster and persistent sequences (4+ pulses);
+          calibration of gamma shape parameters; portfolio-level impact; PRS
+          pricing sensitivity.
+\end{itemize}
+
+% ===================================================================
+% 3. MATHEMATICAL FRAMEWORK
+% ===================================================================
+\mkmframework
+
+\subsection{Gamma Shape Template}
+Each pulse $i$ in a sequence of type $T$ uses a normalised gamma-like shape:
+\begin{equation}
+    \phi_T(u) = \frac{1}{\alpha^{\alpha}} \left(\frac{u}{\alpha}\right)^{\alpha}
+    \exp\!\left(\alpha - \frac{u}{\alpha}\right), \quad u = \frac{h - t_i}{D_i} \in (0, 1]
+    \label{eq:gamma_shape}
+\end{equation}
+where $\alpha = \alpha_T$ is the shape parameter for sequence type $T$, $t_i$ is
+the pulse start hour, and $D_i$ is the pulse duration.  The shape peaks at
+$u = \alpha^2$ with $\phi(\alpha^2) = 1$.
+
+\begin{table}[H]
+    \centering
+    \caption{Gamma shape parameters by sequence type.}
+    \label{tab:alpha_params}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{Sequence type} & \textbf{$\alpha$} & \textbf{Peak at $u$} & \textbf{Character} \\
+        \midrule
+        Isolated  & 0.3 & 0.09 & Fast rise, long tail \\
+        Doublet   & 0.3 & 0.09 & Fast rise, long tail \\
+        Cluster   & 0.7 & 0.49 & Broad peak \\
+        Persistent & 1.0 & 1.00 & Very broad, sustained \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Per-Pulse Gauge Hydrograph}
+The water surface elevation at the gauge for pulse $i$ is:
+\begin{equation}
+    \mathrm{WSE}_{g,i}(h) = B_g + \bigl(\tilde{P}_i - B_g\bigr)\,\phi_T\!\left(\frac{h - t_i}{D_i}\right)
+\end{equation}
+where $B_g$ is the gauge base level and $\tilde{P}_i$ is the saturation-adjusted
+peak for pulse $i$.
+
+\subsection{Antecedent Saturation}
+Later pulses are amplified by prior precipitation:
+\begin{equation}
+    s_i = 1 + \beta \ln\!\left(1 + \frac{A_i}{P_0}\right), \qquad
+    \tilde{P}_i = B_g + (P_i - B_g)\,s_i
+\end{equation}
+where $A_i = \sum_{j < i} \mathrm{precip}_j$ (mm), $\beta = 0.2$, $P_0 = 50$\,mm.
+
+\subsection{Superposition}
+Pulses are linearly superimposed above the base level:
+\begin{equation}
+    \mathrm{WSE}_g^{(s)}(h) = B_g + \sum_{i} \bigl(\mathrm{WSE}_{g,i}(h) - B_g\bigr)
+\end{equation}
+with an optional cap at $C = 2.5 \times (\text{severe threshold} - B_g)$.
+
+\subsection{Property Propagation}
+The gauge hydrograph is time-shifted by Manning's travel time $\bar{\tau}$ and the
+flood depth at the property is:
+\begin{equation}
+    d_p(t) = \max\!\left(0,\; \bigl[\mathrm{WSE}_g(t - \bar{\tau}) - z_g\bigr] \cdot r
+    - (\Delta z + z_{\mathrm{floor}})\right)
+\end{equation}
+where $r$ is the distance retention factor, $\Delta z = z_p - z_g$ is the
+elevation difference, and $z_{\mathrm{floor}}$ is the property floor step.
+
+\subsection{Flow-Path Infiltration}
+A cumulative infiltration bucket reduces flood depth in early hours:
+\begin{equation}
+    \ell_k = \min\!\bigl(\kappa \cdot d_p^{\mathrm{raw}}(t_k),\; Y_{\max} - Y_{\mathrm{inf}}(t_{k-1})\bigr),
+    \qquad
+    d_p(t_k) = d_p^{\mathrm{raw}}(t_k) - \ell_k
+\end{equation}
+where $Y_{\max} = (1 - f_{\mathrm{imperv}}) \times 0.10$\,m and
+$\kappa = 0.005$\,hr$^{-1}$.  Once $Y_{\mathrm{inf}} = Y_{\max}$ the ground is
+saturated and all subsequent water passes through unchanged.
+
+% ===================================================================
+% 4. SYNTHETIC TEST CONFIGURATION
+% ===================================================================
+\section{Synthetic Test Configuration}
+
+All scenarios use a single synthetic property and gauge with the following
+baseline parameters:
+
+\begin{table}[H]
+    \centering
+    \caption{Baseline scenario configuration.}
+    \label{tab:baseline_config}
+    \begin{tabular}{llr}
+        \toprule
+        \textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\
+        \midrule
+        Gauge base level & $B_g$ & 3.0\,m AOD \\
+        Gauge ground elevation & $z_g$ & 5.0\,m AOD \\
+        Property floor step & $z_{\mathrm{floor}}$ & 0.3\,m \\
+        Manning's roughness & $n$ & 0.04 \\
+        Impervious fraction & $f_{\mathrm{imperv}}$ & 0.4 \\
+        Infiltration rate & $\kappa$ & 0.005\,hr$^{-1}$ \\
+        Simulation window & & 168\,h \\
+        \midrule
+        \multicolumn{3}{l}{\textit{Baseline property position}} \\
+        Distance to gauge & $d$ & 636\,m \\
+        Elevation above gauge & $\Delta z$ & 1.42\,m \\
+        Flood threshold & $\Delta z + z_{\mathrm{floor}}$ & 1.72\,m \\
+        \midrule
+        \multicolumn{3}{l}{\textit{Doublet configuration}} \\
+        Pulse 1 peak & & $0.8 \times P$ \\
+        Pulse 2 peak & & $P$ (full peak) \\
+        Inter-pulse gap & & $\max(12, 0.5 D)$\,h \\
+        Pulse 1 precip & & 60\,mm \\
+        Pulse 2 precip & & 80\,mm \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent Each axis of variation is tested independently while holding all other
+parameters at their baseline values.  Tables~\ref{tab:sens_hydro_peak_iso}
+through~\ref{tab:sens_hydro_iso_vs_dbl} present the results.
+
+% ===================================================================
+% 5. SENSITIVITY RESULTS
+% ===================================================================
+\mkmsensitivity
+
+\subsection{Peak WSE Sensitivity}
+
+Tables~\ref{tab:sens_hydro_peak_iso} and~\ref{tab:sens_hydro_peak_dbl} show how
+flood depth and duration vary with the gauge peak WSE for isolated and doublet
+storms respectively.
+
+\input{sensitivity_tables}
+
+\subsection{Interpretation}
+
+\subsubsection{Peak WSE}
+Flood depth scales approximately linearly with peak WSE above the flood threshold.
+The doublet consistently produces deeper flooding than the isolated storm at the
+same nominal peak because: (a) antecedent saturation from Pulse~1 amplifies Pulse~2's
+effective peak by $s_2 = 1 + 0.2\ln(1 + 60/50) \approx 1.16$ (16\% boost), and
+(b) if any temporal overlap exists, superposition raises the combined level above
+either individual pulse.
+
+\subsubsection{Distance}
+Within the 2\,km near-field, retention is 1.0 and distance has no effect on depth
+--- only travel time increases.  Beyond 2\,km, exponential decay reduces the
+effective WSE: at 5\,km, retention is 0.61, reducing depth by approximately 40\%.
+This behaviour is consistent with Book~210's near-field bypass recommendation.
+
+\subsubsection{Elevation}
+Elevation above the gauge is the single strongest control.  A 0.5\,m elevation
+difference admits deep flooding (depth $>$3\,m at 10\,m WSE); a 5\,m difference
+eliminates flooding entirely.  This confirms that the elevation threshold
+dominates the property-level flood decision, as intended by the v2.1/v2.2 design.
+
+\subsubsection{Pulse Duration}
+Longer pulses increase flooded hours substantially (from $\sim$5\,hrs at $D=12$h
+to $\sim$50\,hrs at $D=120$h for isolated storms) but have almost no impact on
+peak depth or damage ratio.  Table~\ref{tab:sens_hydro_dur_iso} shows depth locked
+at 3.26\,m and damage at 77.6\% across all durations.  This is a direct consequence
+of two model properties: (a)~the gamma shape is normalised to $\max\phi = 1$
+regardless of duration, so the peak WSE always reaches the full pulse peak; and
+(b)~the depth-damage curve (\texttt{scalar\_depth\_damage}) uses only peak depth,
+not flood duration.
+
+\textbf{This is a known limitation.}  In reality, a property submerged for 50
+hours suffers materially more structural damage than one submerged for 5 hours at
+the same depth --- sustained saturation degrades building fabric, electrical
+systems, and contents progressively.  The current depth-only damage function does
+not capture this.  A duration-weighted damage adjustment is identified as a
+priority enhancement (see~\S\ref{sec:iterations}).
+
+The doublet amplifies the duration effect: longer pulses create wider recession
+tails that overlap with the second pulse, further extending flood duration.
+
+\subsubsection{Isolated vs Doublet Comparison}
+Table~\ref{tab:sens_hydro_iso_vs_dbl} directly compares the two sequence types.
+Key observations:
+\begin{itemize}[nosep]
+    \item At moderate peaks (7--9\,m), the doublet produces 0.6--0.9\,m additional
+          depth versus the isolated storm.
+    \item At high peaks ($\geq$10\,m), the depth differential increases to
+          $>$1\,m.
+    \item Flood duration is consistently 60--100\% longer for doublets.
+    \item The doublet can produce flooding at peaks where the isolated storm does
+          not (e.g.\ at 6\,m WSE: isolated $=$ 0\,m, doublet $=$ 0\,m; but at
+          7\,m the doublet floods where both do).
+\end{itemize}
+
+\noindent These results validate that v2.2 superposition materially changes the
+flood risk profile for compound events, which represent approximately 60\% of
+severe+ sequences in the Thames catchment.
+
+% ===================================================================
+% 6. LIMITATIONS
+% ===================================================================
+\mkmlimitations
+
+\begin{enumerate}[nosep]
+    \item \textbf{Depth-damage curve is peak-only.}  The current
+          \texttt{scalar\_depth\_damage()} function maps peak depth to a damage
+          ratio with no duration component.  As Table~\ref{tab:sens_hydro_dur_iso}
+          demonstrates, this makes the damage ratio entirely insensitive to pulse
+          duration (77.6\% at both 12\,h and 120\,h), which is not physically
+          realistic.  Sustained inundation causes progressive degradation of
+          building fabric, services, and contents beyond what peak depth alone
+          captures.  This is the most material limitation identified by this
+          analysis.
+    \item \textbf{One-at-a-time sensitivity only.}  This analysis varies each axis
+          independently while holding others at baseline.  This is a standard
+          first-stage approach but does not capture parameter interactions.  An
+          external validator would expect a global sensitivity analysis (e.g.\
+          Sobol indices or Morris screening) to quantify how much variance in
+          depth, duration, and damage is attributable to each parameter group and
+          their interactions.
+    \item \textbf{Gamma shape parameters are illustrative.}  The $\alpha$ values
+          (0.3, 0.7, 1.0) are taken from the Book~210 recommendation and have not
+          been calibrated to observed Thames hydrographs.  A $\pm$0.1 shift in
+          $\alpha$ would change peak timing and breadth but not the peak WSE itself.
+    \item \textbf{Saturation parameters are defaults.}  $\beta = 0.2$ and
+          $P_0 = 50$\,mm are reasonable but uncalibrated.  Higher $\beta$ would
+          amplify the doublet advantage further.
+    \item \textbf{Infiltration is a screening model.}  The constant-rate bucket
+          ($\kappa = 0.005$, $Y_{\max} = 0.06$\,m for urban) provides only a small
+          reduction.  A Green--Ampt or Philip model would be more physically
+          grounded for permeable catchments.
+    \item \textbf{Only isolated and doublet tested.}  Cluster (3--4 pulses) and
+          persistent (4--5 pulses) sequences would show even larger compound
+          effects.
+    \item \textbf{Fixed inter-pulse gap.}  The doublet gap is set at
+          $\max(12, 0.5D)$ hours.  Shorter gaps would increase superposition;
+          longer gaps would reduce it.
+    \item \textbf{No tidal interaction.}  Thames tidal lock-out effects are not
+          modelled in the recession limb.
+    \item \textbf{No observed-event validation.}  All scenarios are synthetic.
+          Validation against observed compound flood events with known hydrographs
+          at gauged sites is required before production use.
+\end{enumerate}
+
+% ===================================================================
+% 7. PLANNED ITERATIONS
+% ===================================================================
+\section{Planned Iterations}
+\label{sec:iterations}
+
+The following enhancements are identified based on this sensitivity analysis and
+external review feedback.
+
+\subsection{Iteration 1: Duration-Weighted Damage (Q2 2026)}
+
+The most material gap.  Extend the depth-damage function to include a duration
+multiplier:
+
+\begin{equation}
+    D_{\mathrm{adj}} = D_{\mathrm{peak}} \times \left(1 + \gamma \,\ln\!\left(1 + \frac{T_{\mathrm{flood}}}{T_0}\right)\right)
+\end{equation}
+
+\noindent where $D_{\mathrm{peak}}$ is the current peak-depth damage ratio,
+$T_{\mathrm{flood}}$ is the number of hours above threshold, $T_0$ is a reference
+duration (e.g.\ 6\,h), and $\gamma$ is a calibration parameter controlling
+duration sensitivity.  This would make Table~\ref{tab:sens_hydro_dur_iso} show
+increasing damage with duration as physically expected.  Candidate calibration
+sources: UK Multi-Coloured Manual damage curves which include a duration dimension.
+
+\subsection{Iteration 2: Global Sensitivity Analysis (Q2--Q3 2026)}
+
+Replace the one-at-a-time sweep with a variance-based global sensitivity study:
+
+\begin{itemize}[nosep]
+    \item \textbf{Method:} Morris screening to identify non-influential parameters,
+          followed by Sobol first-order and total-effect indices for the material
+          parameters.
+    \item \textbf{Parameter space:} $\alpha$ (gamma shape), $\beta$ and $P_0$
+          (saturation), $\kappa$ and $Y_{\max}$ (infiltration), retention length
+          $L$, near-field threshold, inter-pulse gap, and the new duration-damage
+          $\gamma$.
+    \item \textbf{Outputs:} Variance decomposition of peak depth, flooded hours,
+          and damage ratio.  Ranking of parameter importance.
+    \item \textbf{Tool:} SALib (Python) integrated into the sensitivity generator
+          framework.
+\end{itemize}
+
+\subsection{Iteration 3: Observed-Event Validation (Q3 2026)}
+
+Replay well-documented Thames flood events through the v2.2 model and compare
+modelled vs observed depth and duration at properties with known outcomes:
+
+\begin{itemize}[nosep]
+    \item \textbf{Event selection:} 2--3 events with clear compound behaviour
+          (multi-peak hydrographs) and available gauge data.
+    \item \textbf{Calibration:} Fit $\alpha$, $\beta$, $P_0$ to observed
+          hydrograph shapes and peak amplification.
+    \item \textbf{Cross-check:} Compare distance-retention curve against
+          Muskingum--Cunge routing calibrated to the same reach.
+    \item \textbf{Deliverable:} Updated sensitivity tables with calibrated
+          parameters; model validation report for MRC review.
+\end{itemize}
+
+\noindent Per MRC action A-001, independent validation of Tier~1 models is
+targeted for Q3~2026.  Iterations 1--3 are designed to support that milestone.
+
+% ===================================================================
+% 8. GOVERNANCE
+% ===================================================================
+\mkmgovernance
+
+\subsection{Model Registration}
+The Hydrograph Superposition Model (v2.2) is registered in
+\texttt{data/model\_inventory.json} as a component of the Flood Risk Model suite
+(Model ID: \texttt{MOD-003}).
+
+\subsection{Change Control}
+\begin{itemize}[nosep]
+    \item \textbf{v2.0 $\to$ v2.1:} IDW removal, nearest-gauge-only, near-field
+          retention bypass.  Approved MRC 2026-Q1.
+    \item \textbf{v2.1 $\to$ v2.2:} Per-pulse superposition, antecedent saturation,
+          flow-path infiltration.  Pending MRC 2026-Q2 review.
+\end{itemize}
+
+\subsection{Validation Status}
+This sensitivity analysis constitutes the initial validation of the v2.2
+hydrograph model.  Independent validation against observed compound flood events
+is planned for Q3~2026 per MRC action A-001.
+
+\subsection{Parameter Governance}
+All v2.2 parameters are centralised in \texttt{config/models.py} and registered
+in the parameter inventory (\texttt{docs/models/parameter\_inventory/}).  Any
+change requires a governance change-reason entry and MRC notification.
+
+% ===================================================================
+% APPENDIX
+% ===================================================================
+\begin{appendices}
+\section{Source Code Reference}
+\begin{table}[H]
+    \centering
+    \caption{Key source files for the v2.2 hydrograph model.}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Component} & \textbf{File} \\
+        \midrule
+        Gamma templates, saturation, superposition, infiltration &
+            \texttt{src/models/floodrisk/hydrograph.py} \\
+        Per-pulse peak extraction &
+            \texttt{src/port/src/stressm/pipeline.py} \\
+        Compound flood event builder &
+            \texttt{src/port/src/property/ts/flood.py} \\
+        Gaugets pulse data writer &
+            \texttt{src/port/src/stressm/gaugets\_writer.py} \\
+        Model constants &
+            \texttt{config/models.py} \\
+        Sensitivity generator &
+            \texttt{docs/models/sensitivities/hydrograph/} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\end{appendices}
+
+\vfill
+\noindent\rule{\textwidth}{0.4pt}\\[2pt]
+{\small\textit{Document generated 26-March-2026.  Model version 2.2.
+Sensitivity tables auto-generated by
+\texttt{python -m docs.models.sensitivities.hydrograph.generator}.}}
+
+\end{document}

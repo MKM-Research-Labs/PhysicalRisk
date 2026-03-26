@@ -148,6 +148,37 @@ DEFAULT_RECESSION_FACTOR: float = 1.5
 
 
 # ===========================================================================
+# Hydrograph Superposition v2.2  (floodrisk/hydrograph.py)
+# ===========================================================================
+
+# Gamma shape parameter α by sequence type.  Controls rise/fall balance:
+# small α → fast rise, long tail (flashy); large α → broad symmetric peak.
+HYDRO_ALPHA: Dict[str, float] = {
+    'isolated':   0.3,
+    'doublet':    0.3,
+    'cluster':    0.7,
+    'persistent': 1.0,
+}
+
+# Antecedent saturation: s_i = 1 + β × log(1 + A_i / P_0)
+# β controls how much prior rainfall amplifies later peaks.
+SATURATION_BETA: float = 0.2
+SATURATION_P0_MM: float = 50.0
+
+# Flow-path infiltration parameters
+# κ: hourly rate at which flood water is absorbed along the path (1/hr)
+INFILTRATION_RATE_PER_HOUR: float = 0.005
+# Y_0: reference max infiltrable depth for fully pervious ground (m)
+INFILTRATION_YMAX_REF_M: float = 0.10
+# Default fraction impervious surface (urban Thames corridor)
+DEFAULT_IMPERV_FRACTION: float = 0.4
+
+# Superposition cap: max exceedance above base = factor × (severe − base).
+# Prevents unrealistic compound peaks exceeding physical channel capacity.
+SUPERPOSITION_CAP_FACTOR: float = 2.5
+
+
+# ===========================================================================
 # Property Valuation  (valuation/property_value.py)
 # ===========================================================================
 

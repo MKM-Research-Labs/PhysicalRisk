@@ -71,10 +71,14 @@ def populate_gaugets(
         warnings = rec["warning"]
         severes = rec["severe"]
 
+        pulse_peaks_all = rec.get("pulse_peaks", [])
+        seq_type = rec.get("sequence_type", "isolated")
+        num_storms = rec.get("num_storms", 1)
+
         for gid, idx in gid_to_idx.items():
             base = gauge_params_list[idx].get("base_level", 0.0)
             peak = peaks[idx]
-            gauge_responses[gid].append({
+            resp = {
                 "storm_id": seq_id,
                 "base_level_m": base,
                 "peak_level_m": peak,
@@ -82,7 +86,13 @@ def populate_gaugets(
                 "exceeded_alert": alerts[idx],
                 "exceeded_warning": warnings[idx],
                 "exceeded_severe": severes[idx],
-            })
+                "sequence_type": seq_type,
+                "num_storms": num_storms,
+            }
+            # v2.2: per-pulse peaks for compound hydrograph superposition
+            if pulse_peaks_all and idx < len(pulse_peaks_all):
+                resp["pulse_peaks"] = pulse_peaks_all[idx]
+            gauge_responses[gid].append(resp)
 
     # Step 3: Merge storm_responses into each gaugets file
     gaugets_dir = input_dir / "gaugets"
