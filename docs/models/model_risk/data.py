@@ -117,10 +117,28 @@ def list_sensitivity_generators() -> list[str]:
     )
 
 
+_MODEL_DOC_DIRS = {
+    'MKM-SI-001': 'storm_intensity',
+    'MKM-SG-001': 'storm_gauge',
+    'MKM-GH-001': 'gev_hazard',
+    'MKM-PR-001': 'prs_pricing',
+    'MKM-DD-001': 'flood_risk',
+    'MKM-PV-001': 'property_valuation',
+    'MKM-MP-001': 'mortgage_pricer',
+    'MKM-RA-001': 'risk_assessment',
+    'MKM-DE-001': 'delta_engine',
+    'MKM-SP-001': 'spatial_model',
+    'MKM-IP-001': 'insurance_premium',
+    'MKM-FC-001': 'flood_classifier',
+    'MKM-SS-001': 'storm_multi',
+    'MKM-GHD-001': 'gaugehd_synthetic',
+    'MKM-ST-001': 'stressm_pipeline',
+    'MKM-PF-001': 'property_flood_response',
+}
+
+
 def scan_model_documentation() -> list[dict]:
     """Scan documentation completeness for each registered model."""
-    from src.routes.governance._constants import _MODEL_DOC_DIRS
-
     docs_dir = _root / 'docs' / 'models'
     results = []
     for model_id, doc_dir in _MODEL_DOC_DIRS.items():
