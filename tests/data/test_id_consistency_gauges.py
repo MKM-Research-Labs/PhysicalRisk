@@ -108,7 +108,7 @@ class TestClassifierConsistency:
 
     def test_classifiers_exist(self):
         """At least one trained classifier must exist."""
-        classifiers_dir = INPUT_DIR / "stressm"
+        classifiers_dir = INPUT_DIR / "classifiers"
         if not classifiers_dir.exists():
             pytest.skip("classifiers/ not generated yet")
         classifiers = list(classifiers_dir.glob("*.joblib"))
@@ -119,7 +119,7 @@ class TestClassifierConsistency:
     def test_classifier_gauge_ids_match(self):
         """Classifiers that exist should reference current gauge IDs."""
         gauge_ids = _load_gauge_ids()
-        classifiers_dir = INPUT_DIR / "stressm"
+        classifiers_dir = INPUT_DIR / "classifiers"
         if not classifiers_dir.exists():
             pytest.skip("classifiers/ not generated yet")
         classifiers = list(classifiers_dir.glob("GAUGE-*.joblib"))
