@@ -160,7 +160,6 @@ class ModelGovernancePanel:
 
                 if (tab === 'inventory') renderInventory();
                 else if (tab === 'chain') renderModelChain();
-                else if (tab === 'params') renderParameterInventory();
                 else if (tab === 'bcbs239') renderBCBS239();
                 else if (tab === 'raci') renderRACITab();
                 else if (tab === 'mrc') renderMRC();

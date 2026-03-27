@@ -353,16 +353,6 @@ def get_model_analysis_pdf(model_id):
     return send_file(pdf_path, mimetype="application/pdf")
 
 
-@governance_bp.route("/governance/parameter-inventory/pdf", methods=["GET"])
-def get_parameter_inventory_pdf():
-    """Serve the parameter inventory PDF."""
-    pdf_path = os.path.join(_docs_dir, "parameter_inventory", "parameter_inventory.pdf")
-    if not os.path.isfile(pdf_path):
-        return jsonify({"status": "error", "message": "Parameter inventory PDF not yet generated. Run: python app.py check params --pdf"}), 404
-
-    return send_file(pdf_path, mimetype="application/pdf")
-
-
 @governance_bp.route("/governance/mrc/terms-of-reference/pdf", methods=["GET"])
 def get_mrc_tor_pdf():
     """Serve the MRC Terms of Reference PDF."""
