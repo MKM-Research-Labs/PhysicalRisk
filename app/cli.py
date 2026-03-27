@@ -25,7 +25,7 @@ CLI argument parser and subcommand registration.
 """
 
 import argparse
-from app.commands import server, port, visual, test, check, config, book
+from app.commands import server, port, visual, test, config, book
 
 
 def build_parser():
@@ -41,7 +41,6 @@ def build_parser():
     server.register_parser(subparsers)
     port.register_parser(subparsers)
     visual.register_parser(subparsers)
-    check.register_parser(subparsers)
     book.register_parser(subparsers)
     config.register_parser(subparsers)
     test.register_parser(subparsers)

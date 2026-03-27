@@ -30,6 +30,7 @@ Runs the full pytest suite under tests/ and produces:
 All artefacts are written to data/output/audit/.
 """
 
+import argparse
 import os
 import sys
 import shutil
@@ -41,23 +42,55 @@ from config import config
 def register_parser(subparsers):
     """Register the 'test' subcommand."""
     sp_test = subparsers.add_parser(
-        "test", help="Run tests and produce full audit evidence package")
-    sp_test.add_argument(
+        "test", help="Run tests and produce audit evidence package",
+        formatter_class=_HelpFormatter)
+
+    # Suite selectors — pick any combination
+    suites = sp_test.add_argument_group("suite selectors (pick any combination)")
+    suites.add_argument(
+        "--unit", action="store_true",
+        help="Unit/model tests with coverage (~7 000 tests)")
+    suites.add_argument(
+        "--e2e", action="store_true",
+        help="Playwright E2E browser tests (~300 tests)")
+    suites.add_argument(
+        "--lineage", action="store_true",
+        help="Data lineage consistency checks (BCBS 239)")
+    suites.add_argument(
+        "--all", action="store_true", dest="run_all",
+        help="All three suites (default when no suite flag given)")
+
+    # Output options
+    outputs = sp_test.add_argument_group("output options")
+    outputs.add_argument(
         "--audit", action="store_true",
-        help="Produce JUnit XML + coverage + LaTeX report in data/output/audit/")
-    sp_test.add_argument(
-        "--test", action="store_true",
-        help="Run pytest suite only (JUnit XML + coverage), skip doc generators")
-    sp_test.add_argument(
-        "--code", action="store_true",
-        help="Run doc generators only (modularisation, duplication, hardcoding, full audit), skip pytest")
-    sp_test.add_argument(
+        help="Generate audit reports (modularisation, duplication, hardcoding, full audit)")
+    outputs.add_argument(
         "--pdf", action="store_true",
-        help="Compile LaTeX report to PDF")
-    sp_test.add_argument(
+        help="Compile LaTeX reports to PDF")
+    outputs.add_argument(
+        "--params", action="store_true",
+        help="Generate parameter inventory report")
+    outputs.add_argument(
+        "--check-deps", action="store_true",
+        help="Verify required Python dependencies are installed")
+    outputs.add_argument(
         "--model", nargs="+",
-        help="Filter by model alias (e.g. MP GH TD)")
+        help="Filter unit tests by model alias (e.g. MP GH TD)")
+
+    # Hidden backward-compat aliases (deprecated)
+    sp_test.add_argument("--test", action="store_true", dest="_compat_test",
+                         help=argparse.SUPPRESS)
+    sp_test.add_argument("--code", action="store_true", dest="_compat_code",
+                         help=argparse.SUPPRESS)
+
     sp_test.set_defaults(func=cmd_test)
+
+
+class _HelpFormatter(argparse.RawDescriptionHelpFormatter,
+                      argparse.ArgumentDefaultsHelpFormatter):
+    """Combined formatter for nicer help output."""
+    pass
 
 
 def _write_failures_report(junit_xml_path: str, audit_dir: str) -> None:
@@ -332,11 +365,73 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
     return summary
 
 
+def _check_deps():
+    """Verify required Python dependencies are installed."""
+    required = [
+        "flask", "flask_cors", "folium", "pandas", "numpy",
+        "geopandas", "reportlab", "scipy", "sklearn",
+        "rasterio", "geopy", "shapely", "matplotlib", "seaborn"
+    ]
+
+    print("Checking Python dependencies...")
+    missing = []
+    for package in required:
+        try:
+            __import__(package)
+            print(f"  ✓ {package}")
+        except ImportError:
+            missing.append(package)
+            print(f"  ✗ {package}")
+
+    if missing:
+        print(f"\nMissing packages: {missing}")
+        print(f"Install with: pip install {' '.join(missing)}")
+        return 1
+    print("\n✓ All dependencies satisfied")
+    return 0
+
+
+def _resolve_python(project_root):
+    """Return the project venv Python if available, else sys.executable."""
+    for venv_dir in ('.venv', 'venv'):
+        candidate = os.path.join(str(project_root), venv_dir, 'bin', 'python')
+        if os.path.isfile(candidate):
+            return candidate
+    return sys.executable
+
+
 def cmd_test(args):
-    """Run tests and produce a full audit evidence package."""
+    """Run tests and produce audit evidence package.
+
+    Suite selectors: --unit, --e2e, --lineage, --all
+    Output options:  --audit, --pdf, --params, --check-deps
+    Filters:         --model X Y Z
+    """
+    # ---- Backward compatibility for deprecated flags ----
+    if getattr(args, '_compat_test', False):
+        print('WARNING: --test is deprecated, use --unit instead', file=sys.stderr)
+        args.unit = True
+    if getattr(args, '_compat_code', False):
+        print('WARNING: --code is deprecated, use --audit instead', file=sys.stderr)
+        args.audit = True
+
+    # ---- Handle --check-deps early exit ----
+    if getattr(args, 'check_deps', False):
+        return _check_deps()
+
+    # ---- Handle --params early exit ----
+    if getattr(args, 'params', False):
+        print('Generating parameter inventory...')
+        cmd = [sys.executable, '-m', 'docs.models.parameter_inventory.generator']
+        if getattr(args, 'pdf', False):
+            cmd.append('--pdf')
+        project_root = config.get_project_root()
+        result = sp.run(cmd, cwd=str(project_root))
+        return result.returncode
+
     project_root = config.get_project_root()
 
-    # All artefacts land in the catchment data/output/audit/ directory
+    # All artefacts land in data/output/audit/
     audit_dir = str(config.get_reports_dir('audit'))
     os.makedirs(audit_dir, exist_ok=True)
 
@@ -344,17 +439,23 @@ def cmd_test(args):
     cov_html  = os.path.join(audit_dir, 'coverage')
     cov_xml   = os.path.join(audit_dir, 'coverage.xml')
 
-    # Determine which phases to run
-    run_tests = getattr(args, 'test', False)
-    run_code  = getattr(args, 'code', False)
-    run_all   = getattr(args, 'audit', False) or (not run_tests and not run_code)
+    # ---- Resolve which suites and outputs to run ----
+    has_suite = (getattr(args, 'unit', False) or getattr(args, 'e2e', False)
+                 or getattr(args, 'lineage', False) or getattr(args, 'run_all', False))
+    has_output = getattr(args, 'audit', False)
 
-    do_tests = run_all or run_tests
-    do_code  = run_all or run_code
+    if not has_suite and not has_output:
+        # No flags at all → default to everything
+        args.run_all = True
+        args.audit = True
 
-    # ------------------------------------------------------------------
-    # 1. Capture git commit SHA
-    # ------------------------------------------------------------------
+    do_unit    = getattr(args, 'run_all', False) or getattr(args, 'unit', False)
+    do_e2e     = getattr(args, 'run_all', False) or getattr(args, 'e2e', False)
+    do_lineage = getattr(args, 'run_all', False) or getattr(args, 'lineage', False)
+    do_audit   = getattr(args, 'audit', False)
+    do_pdf     = getattr(args, 'pdf', False)
+
+    # ---- Capture git commit SHA ----
     git_sha = None
     try:
         result = sp.run(
@@ -366,30 +467,36 @@ def cmd_test(args):
     except FileNotFoundError:
         pass
 
+    # ---- Banner ----
     print('=' * 60)
-    print('MKM Research Labs — Audit Evidence Package')
+    print('MKM Research Labs — Test & Audit')
     print('=' * 60)
     if git_sha:
         print(f' Git SHA : {git_sha[:12]}')
     print(f' Output  : {audit_dir}')
     phases = []
-    if do_tests:
-        phases.append('tests')
-    if do_code:
-        phases.append('code')
+    if do_lineage:
+        phases.append('lineage')
+    if do_unit:
+        phases.append('unit')
+    if do_e2e:
+        phases.append('e2e')
+    if do_audit:
+        phases.append('audit reports')
     print(f' Phases  : {", ".join(phases)}')
     print()
 
+    _python_exe = _resolve_python(project_root)
     pytest_ok = True
     coverage_pct = None
     data_lineage_results = None
     e2e_results = None
 
-    if do_tests:
-        # ------------------------------------------------------------------
-        # 1b. Pre-flight: Data lineage consistency checks (BCBS 239 P3)
-        # ------------------------------------------------------------------
-        print('Running data lineage consistency checks (pre-flight)...')
+    # ------------------------------------------------------------------
+    # 1. Data lineage consistency checks (BCBS 239 P3)
+    # ------------------------------------------------------------------
+    if do_lineage:
+        print('Running data lineage consistency checks...')
         data_lineage_results = _run_data_lineage_tests(project_root, audit_dir)
         if data_lineage_results and data_lineage_results.get('failed', 0) > 0:
             print()
@@ -398,20 +505,13 @@ def cmd_test(args):
             print('  Regenerate data in order: port --gauge → port --stressm → port --hazard → port --blotter')
             print()
 
-        # ------------------------------------------------------------------
-        # 2. Run pytest against the full tests/ tree at project root
-        # ------------------------------------------------------------------
-        print('Running test suite with coverage...')
+    # ------------------------------------------------------------------
+    # 2. Unit / model tests with coverage
+    # ------------------------------------------------------------------
+    if do_unit:
+        print('Running unit/model tests with coverage...')
 
         tests_dir = os.path.join(str(project_root), 'tests')
-
-        # Prefer the project venv's Python so pytest and all dependencies
-        # are available regardless of which Python launched this script.
-        _venv_python = os.path.join(str(project_root), '.venv', 'bin', 'python')
-        if not os.path.isfile(_venv_python):
-            _venv_python = os.path.join(str(project_root), 'venv', 'bin', 'python')
-        _python_exe = _venv_python if os.path.isfile(_venv_python) else sys.executable
-
         e2e_dir = os.path.join(tests_dir, 'e2e')
         pytest_cmd = [
             _python_exe, '-m', 'pytest',
@@ -433,9 +533,7 @@ def cmd_test(args):
         pytest_ok = pytest_result.returncode == 0
         print()
 
-        # ------------------------------------------------------------------
-        # 3. Parse coverage percentage from coverage.xml
-        # ------------------------------------------------------------------
+        # Parse coverage percentage
         if os.path.exists(cov_xml):
             try:
                 import xml.etree.ElementTree as ET
@@ -447,53 +545,47 @@ def cmd_test(args):
             except Exception:
                 pass
 
-        # ------------------------------------------------------------------
-        # 3b. Write test_failures_report.json
-        # ------------------------------------------------------------------
+        # Write test failures report
         _write_failures_report(junit_xml, audit_dir)
 
-        # ------------------------------------------------------------------
-        # 3c. E2E browser tests (Playwright)
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # 3. E2E browser tests (Playwright)
+    # ------------------------------------------------------------------
+    if do_e2e:
         print('\nRunning E2E browser tests (Playwright)...')
         e2e_results = _run_e2e_tests(project_root, audit_dir, _python_exe)
 
-    elif os.path.exists(cov_xml):
-        # code-only run: read existing coverage.xml so doc generators get the %
-        try:
-            import xml.etree.ElementTree as ET
-            tree = ET.parse(cov_xml)
-            root = tree.getroot()
-            line_rate = float(root.get('line-rate', 0))
-            coverage_pct = line_rate * 100
-            print(f' Coverage (from existing xml): {coverage_pct:.1f}%')
-        except Exception:
-            pass
+    # ------------------------------------------------------------------
+    # 4. Audit reports (doc generators)
+    # ------------------------------------------------------------------
+    if do_audit:
+        # If we didn't run unit tests this time, try to read existing coverage
+        if coverage_pct is None and os.path.exists(cov_xml):
+            try:
+                import xml.etree.ElementTree as ET
+                tree = ET.parse(cov_xml)
+                root = tree.getroot()
+                line_rate = float(root.get('line-rate', 0))
+                coverage_pct = line_rate * 100
+                print(f' Coverage (from existing xml): {coverage_pct:.1f}%')
+            except Exception:
+                pass
 
-    if do_code:
-        # ------------------------------------------------------------------
-        # 4. Generate LaTeX / PDF documentation via existing generator
-        # ------------------------------------------------------------------
+        # 4a. Model test documentation (LaTeX)
         print('\nGenerating model documentation...')
         doc_cmd = [_python_exe, '-m', 'docs.models.test_results.generator']
-
-        if getattr(args, 'pdf', False):
+        if do_pdf:
             doc_cmd.append('--pdf')
         if git_sha:
             doc_cmd.extend(['--git-sha', git_sha])
         if coverage_pct is not None:
             doc_cmd.extend(['--coverage-pct', f'{coverage_pct:.2f}'])
-
-        # Include E2E browser test results in the report
         e2e_xml = os.path.join(audit_dir, 'e2e_junit.xml')
         if os.path.exists(e2e_xml):
             doc_cmd.extend(['--e2e-junit', e2e_xml])
-
         sp.run(doc_cmd, cwd=str(project_root))
 
-        # ------------------------------------------------------------------
-        # 5. Copy generated PDF into audit directory
-        # ------------------------------------------------------------------
+        # Copy generated PDF into audit directory
         _test_report_pdf = os.path.join(
             str(project_root),
             'docs', 'models', 'test_results', 'test_results', 'test_report.pdf')
@@ -502,53 +594,28 @@ def cmd_test(args):
             shutil.copy2(_test_report_pdf, dest)
             print(f' Copied test_report.pdf → {dest}')
 
-        # ------------------------------------------------------------------
-        # 6. Generate code modularisation analysis report
-        # ------------------------------------------------------------------
+        # 4b. Code modularisation analysis
         print('\nGenerating code modularisation analysis...')
-        sp.run(
-            [sys.executable, '-m', 'docs.models.project'],
-            cwd=str(project_root),
-        )
+        sp.run([sys.executable, '-m', 'docs.models.project'], cwd=str(project_root))
 
-        # ------------------------------------------------------------------
-        # 7. Generate code duplication report
-        # ------------------------------------------------------------------
+        # 4c. Code duplication report
         print('\nGenerating code duplication analysis...')
-        sp.run(
-            [sys.executable, '-m', 'docs.models.duplication'],
-            cwd=str(project_root),
-        )
+        sp.run([sys.executable, '-m', 'docs.models.duplication'], cwd=str(project_root))
 
-        # ------------------------------------------------------------------
-        # 7b. Generate hard-coding audit report
-        # ------------------------------------------------------------------
+        # 4d. Hard-coding parameter audit
         print('\nGenerating hard-coding parameter audit...')
-        sp.run(
-            [sys.executable, '-m', 'docs.models.hardcoding'],
-            cwd=str(project_root),
-        )
+        sp.run([sys.executable, '-m', 'docs.models.hardcoding'], cwd=str(project_root))
 
-        # ------------------------------------------------------------------
-        # 7c. Generate data lineage report (BCBS 239)
-        # ------------------------------------------------------------------
+        # 4e. Data lineage report (BCBS 239)
         print('\nGenerating data lineage report (BCBS 239)...')
-        sp.run(
-            [sys.executable, '-m', 'docs.models.data_lineage'],
-            cwd=str(project_root),
-        )
+        sp.run([sys.executable, '-m', 'docs.models.data_lineage'], cwd=str(project_root))
 
-        # ------------------------------------------------------------------
-        # 7d. Generate full consolidated audit report
-        # ------------------------------------------------------------------
+        # 4f. Full consolidated audit report
         print('\nGenerating full audit report...')
-        sp.run(
-            [sys.executable, '-m', 'docs.models.full_audit'],
-            cwd=str(project_root),
-        )
+        sp.run([sys.executable, '-m', 'docs.models.full_audit'], cwd=str(project_root))
 
     # ------------------------------------------------------------------
-    # 8. Print audit package summary
+    # 5. Summary
     # ------------------------------------------------------------------
     print('\n' + '=' * 60)
     print('Audit Package Contents')
@@ -577,5 +644,5 @@ def cmd_test(args):
         status = 'OK' if exists else 'MISSING'
         print(f' [{status}] {label}: {path}{size}')
     print()
-    if do_tests:
+    if do_unit:
         print('Status:', 'ALL PASS' if pytest_ok else 'TEST FAILURES — see junit.xml')
