@@ -45,6 +45,13 @@ MODEL_REGISTRY = {
     'ts': ('Timeseries Statistics Model', 'timeseries_statistics', 'MKM-TS-001'),
     'classifier': ('Flood Classifier Model', 'flood_classifier', 'MKM-FC-001'),
     'hydrograph': ('Hydrograph Model', 'hydrograph', 'MKM-HG-001'),
+    'spatial': ('Spatial Interpolation Model', 'spatial_model', 'MKM-SP-001'),
+    'insurance': ('Insurance Premium Model', 'insurance_premium', 'MKM-IP-001'),
+    'delta': ('Delta Engine', 'delta_engine', 'MKM-DE-001'),
+    'stormmulti': ('Storm Sequence Generator', 'storm_multi', 'MKM-SS-001'),
+    'gaugehd': ('GaugeHD Synthetic', 'gaugehd_synthetic', 'MKM-GHD-001'),
+    'stress': ('Stress Test Pipeline', 'stressm_pipeline', 'MKM-ST-001'),
+    'propflood': ('Property Flood Response', 'property_flood_response', 'MKM-PF-001'),
 }
 
 _docs_models = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
