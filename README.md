@@ -371,41 +371,59 @@ python3 app.py book --style market-making --num-gauges 20 --pdf --seed 42 --clea
 | `--seed` | Random seed for reproducibility |
 | `--verbose` | Detailed output |
 
-### Test Audit
+### Testing and Audit
 
-Run the full test suite and generate a regulatory-grade audit evidence package:
+The `test` command provides a unified interface for running test suites and generating audit evidence. With no flags, it runs all suites and generates audit reports.
+
+#### Suite Selectors
+
+Run specific test suites individually or in combination:
 
 ```bash
+# Run everything (default) — all suites + audit reports
+python3 app.py test
+
+# Unit/model tests only (~7,000 tests)
+python3 app.py test --unit
+
+# E2E browser tests only (Playwright, ~300 tests)
+python3 app.py test --e2e
+
+# Data lineage consistency checks (BCBS 239)
+python3 app.py test --lineage
+
+# All three suites explicitly
+python3 app.py test --all
+
+# Combine suites
+python3 app.py test --unit --e2e
+```
+
+#### Output Options
+
+```bash
+# Generate audit reports (modularisation, duplication, hardcoding, full audit)
 python3 app.py test --audit
-```
 
-To also compile a PDF test evidence report (requires a LaTeX installation):
-
-```bash
+# Compile LaTeX reports to PDF (requires a LaTeX installation)
 python3 app.py test --audit --pdf
+
+# Generate parameter inventory
+python3 app.py test --params --pdf
+
+# Verify Python dependencies are installed
+python3 app.py test --check-deps
 ```
 
-You can filter tests to a specific model using its alias:
+#### Filtering
+
+Filter unit tests to specific models using their alias:
 
 ```bash
-python3 app.py test --audit --model hazard prs
+python3 app.py test --unit --model hazard prs
 ```
 
-Audit outputs are written to `data/output/audit/` and include a JUnit XML report, coverage XML and HTML, a LaTeX test report, a code analysis report, and a duplication report.
-
-### Check Dependencies
-
-Verify all Python dependencies are installed and importable:
-
-```bash
-python3 app.py check
-```
-
-To generate a parameter inventory document:
-
-```bash
-python3 app.py check params
-```
+All test and audit outputs are written to `data/output/audit/` and include JUnit XML, coverage XML and HTML, LaTeX test reports, code analysis, duplication reports, hardcoding audits, data lineage reports, and a consolidated full audit PDF.
 
 ---
 
