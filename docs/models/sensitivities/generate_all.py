@@ -53,6 +53,11 @@ GENERATORS = {
     'risk': ('Risk Assessment', 'docs.models.sensitivities.risk_assessment.generator'),
     'ts': ('Timeseries Statistics', 'docs.models.sensitivities.timeseries_statistics.generator'),
     'classifier': ('Flood Classifier', 'docs.models.sensitivities.flood_classifier.generator'),
+    'spatial': ('Spatial Interpolation', 'docs.models.sensitivities.spatial_model.generator'),
+    'insurance': ('Insurance Premium', 'docs.models.sensitivities.insurance_premium.generator'),
+    'delta': ('Delta Engine', 'docs.models.sensitivities.delta_engine.generator'),
+    'stormmulti': ('Storm Sequence', 'docs.models.sensitivities.storm_multi.generator'),
+    'gaugehd': ('GaugeHD Synthetic', 'docs.models.sensitivities.gaugehd_synthetic.generator'),
 }
 
 

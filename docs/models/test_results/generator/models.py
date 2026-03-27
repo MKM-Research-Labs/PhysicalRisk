@@ -116,6 +116,45 @@ TEST_MODEL_MAP = {
     'tests/visual/trading/market_detail.py':            'MKM-TD-001',
 
     # ---------------------------------------------------------------------------
+    # MKM-SP-001  Spatial Interpolation
+    # ---------------------------------------------------------------------------
+    'tests/models/floodrisk/spatial.py':                'MKM-SP-001',
+    'tests/models/floodrisk/test_spatial_coverage.py':  'MKM-SP-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-IP-001  Insurance Premium
+    # ---------------------------------------------------------------------------
+    'tests/models/valuation/insurance.py':              'MKM-IP-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-GHD-001  GaugeHD Synthetic
+    # ---------------------------------------------------------------------------
+    'tests/models/synthetic.py':                        'MKM-GHD-001',
+    'tests/models/hazard/test_synthetic_coverage.py':   'MKM-GHD-001',
+    'tests/port/gauge/test_synthetic_gauge.py':         'MKM-GHD-001',
+    'tests/port/gauge/test_synthetic_gauge_coverage.py': 'MKM-GHD-001',
+    'tests/port/gauge/test_gaugehd_runner.py':          'MKM-GHD-001',
+    'tests/port/gauge/test_gaugehd_module.py':          'MKM-GHD-001',
+    'tests/port/gauge/test_synthetic_gauge_lineage.py': 'MKM-GHD-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-ST-001  Stress Test Pipeline
+    # ---------------------------------------------------------------------------
+    'tests/port/storm/stressm/test_batch_train.py':    'MKM-ST-001',
+    'tests/port/storm/stressm/test_generate.py':       'MKM-ST-001',
+    'tests/port/storm/stressm/test_records.py':        'MKM-ST-001',
+    'tests/port/storm/stressm/test_single_gauge.py':   'MKM-ST-001',
+    'tests/port/storm/stressm/test_gauge_parser.py':   'MKM-ST-001',
+    'tests/port/storm/stressm/test_helpers.py':        'MKM-ST-001',
+    'tests/port/storm/stressm/test_pipeline_coverage.py': 'MKM-ST-001',
+    'tests/port/storm/stressm/test_classifier.py':     'MKM-ST-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-PF-001  Property Flood Response
+    # ---------------------------------------------------------------------------
+    'tests/models/risk/risk_assessor.py':               'MKM-PF-001',
+
+    # ---------------------------------------------------------------------------
     # CDM-ALL  CDM Schema Validation
     # ---------------------------------------------------------------------------
     'tests/port/cdm/schemas.py':                        'CDM-ALL',
@@ -132,13 +171,17 @@ MODEL_INFO = {
     'MKM-GH-001': {'name': 'GEV Hazard Model',                  'dir': 'gev_hazard'},
     'MKM-PR-001': {'name': 'PRS Pricing Model',                 'dir': 'prs_pricing'},
     'MKM-DD-001': {'name': 'Flood Risk (Depth-Damage)',         'dir': 'flood_risk'},
-    'MKM-SP-001': {'name': 'Spatial Interpolation',             'dir': None},
+    'MKM-SP-001': {'name': 'Spatial Interpolation',             'dir': 'spatial_model'},
     'MKM-PV-001': {'name': 'Property Valuation',                'dir': 'property_valuation'},
-    'MKM-IP-001': {'name': 'Insurance Premium',                 'dir': None},
+    'MKM-IP-001': {'name': 'Insurance Premium',                 'dir': 'insurance_premium'},
     'MKM-MP-001': {'name': 'Mortgage Pricer',                   'dir': 'mortgage_pricer'},
     'MKM-RA-001': {'name': 'Risk Analytics',                    'dir': 'risk_assessment'},
     'MKM-FC-001': {'name': 'Flood Probability Classifier',      'dir': 'flood_classifier'},
     'MKM-SS-001': {'name': 'Storm Sequence Generator',          'dir': 'storm_multi'},
+    'MKM-GHD-001': {'name': 'GaugeHD Synthetic',                'dir': 'gaugehd_synthetic'},
+    'MKM-ST-001': {'name': 'Stress Test Pipeline',              'dir': 'stressm_pipeline'},
+    'MKM-PF-001': {'name': 'Property Flood Response',           'dir': 'property_flood_response'},
+    'MKM-DE-001': {'name': 'Delta Engine',                      'dir': 'delta_engine'},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
     'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
@@ -151,5 +194,7 @@ MODEL_ALIASES = {
     'PR': 'MKM-PR-001', 'DD': 'MKM-DD-001', 'SP': 'MKM-SP-001',
     'PV': 'MKM-PV-001', 'IP': 'MKM-IP-001', 'MP': 'MKM-MP-001',
     'RA': 'MKM-RA-001', 'FC': 'MKM-FC-001', 'SS': 'MKM-SS-001', 'TD': 'MKM-TD-001',
+    'GHD': 'MKM-GHD-001', 'ST': 'MKM-ST-001', 'PF': 'MKM-PF-001',
+    'DE': 'MKM-DE-001',
     'E2E': 'E2E-ALL',
 }

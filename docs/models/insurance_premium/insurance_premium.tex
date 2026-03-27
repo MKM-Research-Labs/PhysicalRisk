@@ -1,0 +1,206 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Insurance Premium Model}
+\newcommand{\docsubtitle}{Multi-Factor Flood Insurance Premium Calculation}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{27-March-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+The Insurance Premium Model calculates flood insurance premiums using a
+deterministic multi-factor approach. A base rate per \pounds1,000 of property
+value is multiplied by seven factor loadings drawn from configuration tables,
+each representing a distinct risk dimension.
+
+The premium formula is:
+\[
+    P = \frac{V}{1000} \times r_{\text{base}}
+        \times f_{\text{type}} \times f_{\text{flood}} \times f_{\text{age}}
+        \times f_{\text{construction}} \times f_{\text{area}}
+        \times f_{\text{security}} \times f_{\text{claims}}
+        + P_{\text{contents}}
+\]
+where $V$ is the property value, $r_{\text{base}}$ is the base rate, and each
+$f$ is a multiplicative factor from the corresponding lookup table.
+
+The final premium is clamped to configurable bounds (\texttt{MIN\_PREMIUM},
+\texttt{MAX\_PREMIUM}) to ensure commercial viability and regulatory compliance.
+
+\textbf{Key risk:} Factors are independent with no interaction terms. Cross-effects
+(e.g.\ flood zone \texttimes{} construction type) are not captured.
+
+
+% ===================================================================
+% 2. MODEL PURPOSE AND SCOPE
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+
+The model serves two primary functions:
+\begin{itemize}[nosep]
+    \item \textbf{Premium quotation}: Compute annual flood insurance premiums for
+          individual residential properties.
+    \item \textbf{Portfolio pricing}: Support bulk premium calculation across
+          property portfolios for underwriting and reserving.
+\end{itemize}
+
+\subsection{Scope}
+
+The model covers UK residential properties with flood exposure. Factor tables
+are calibrated to UK market conditions and EA flood zone classifications.
+
+
+% ===================================================================
+% 3. METHODOLOGY
+% ===================================================================
+\section{Methodology}
+
+\subsection{Factor Structure}
+
+Seven independent multiplicative factors adjust the base premium:
+
+\begin{table}[H]
+    \centering
+    \caption{Premium factor dimensions.}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Factor} & \textbf{Input} & \textbf{Source Table} \\
+        \midrule
+        Property type & Detached / Semi / Terrace / Flat & \texttt{PROPERTY\_TYPE\_PREMIUM\_FACTORS} \\
+        Flood risk zone & EA flood zone classification & \texttt{FLOOD\_RISK\_PREMIUM\_FACTORS} \\
+        Building age & Construction year $\to$ band & \texttt{AGE\_PREMIUM\_FACTORS} \\
+        Construction type & Brick / Timber / Concrete / Steel & \texttt{CONSTRUCTION\_TYPE\_FACTORS} \\
+        Floor area & $m^2$ banded & \texttt{AREA\_PREMIUM\_BANDS} \\
+        Security & Alarm / locks / flood gates & Fixed discount \\
+        Claims history & Prior claims count & Loading multiplier \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Age Banding}
+
+Properties are classified into four age bands based on construction year:
+\begin{itemize}[nosep]
+    \item \textbf{New build}: age $< 10$ years
+    \item \textbf{Modern}: $10 \leq$ age $< 30$ years
+    \item \textbf{Established}: $30 \leq$ age $< 100$ years
+    \item \textbf{Heritage}: age $\geq 100$ years
+\end{itemize}
+
+Each band maps to a factor range $(f_{\min}, f_{\max})$ from configuration.
+
+\subsection{Premium Bounds}
+
+The calculated premium is clamped:
+\[
+    P_{\text{final}} = \max\!\big(P_{\min},\; \min(P_{\max},\; P_{\text{raw}})\big)
+\]
+ensuring that no premium falls below the minimum viable level or exceeds the
+regulatory cap.
+
+
+% ===================================================================
+% 4. INPUTS AND OUTPUTS
+% ===================================================================
+\section{Inputs and Outputs}
+
+\subsection{Inputs}
+\begin{itemize}[nosep]
+    \item Property value (\pounds).
+    \item Base rate per \pounds1,000 (from \texttt{BASE\_RATE\_RANGE}).
+    \item Property type, flood zone, construction year, construction type, floor area.
+    \item Security features (boolean flags).
+    \item Claims history count.
+    \item Contents premium add-on (optional).
+\end{itemize}
+
+\subsection{Outputs}
+\begin{itemize}[nosep]
+    \item Annual insurance premium (\pounds), clamped to bounds.
+\end{itemize}
+
+
+% ===================================================================
+% 5. ASSUMPTIONS AND LIMITATIONS
+% ===================================================================
+\section{Assumptions and Limitations}
+
+\subsection{Assumptions}
+\begin{enumerate}[nosep]
+    \item All premium factors are independent (no interaction effects).
+    \item Factor tables are calibrated to current UK market conditions.
+    \item Property value is an accurate reflection of rebuilding cost.
+    \item EA flood zone classifications are current and accurate.
+\end{enumerate}
+
+\subsection{Limitations}
+\begin{enumerate}[nosep]
+    \item No cross-factor interactions (e.g.\ flood zone $\times$ age).
+    \item Factor tables are static and require periodic recalibration.
+    \item No explicit modelling of climate change trends on flood premiums.
+    \item Contents premium is an additive flat amount, not risk-adjusted.
+\end{enumerate}
+
+
+% ===================================================================
+% 6. SENSITIVITY ANALYSIS
+% ===================================================================
+\mkmsensitivity
+
+This section analyses the sensitivity of the insurance premium to each factor.
+
+\input{sensitivity_tables}
+
+
+% ===================================================================
+% 7. VALIDATION QUESTIONS (HANDBOOK CHAPTER 5)
+% ===================================================================
+\section{Validation Questions}
+
+\mkmvqitem{1}{Purpose}{Is the model being used for its intended purpose?}
+Yes. The model calculates flood insurance premiums for UK residential properties,
+consistent with its design scope.
+
+\mkmvqitem{2}{Conceptual Soundness}{Is the model conceptually sound?}
+The multiplicative factor approach is standard actuarial practice for property
+insurance rating. Factor independence is a simplification but is well-understood.
+
+\mkmvqitem{3}{Data Quality}{Is the data quality adequate?}
+Factor tables are derived from industry data and EA classifications. Property
+data quality depends on upstream data feeds.
+
+\mkmvqitem{4}{Developmental Evidence}{Is there adequate developmental evidence?}
+Factor tables are sourced from published industry rating guides. Unit tests
+verify calculation correctness and boundary clamping.
+
+\mkmvqitem{5}{Outcomes Analysis}{Are outcomes reasonable?}
+Premium outputs are validated against market benchmarks for representative
+property archetypes.
+
+\mkmvqitem{6}{Ongoing Monitoring}{What ongoing monitoring is required?}
+Annual review of factor tables against market loss experience. Quarterly
+monitoring of premium distribution statistics.
+
+\mkmvqitem{7}{Benchmarking}{Has the model been benchmarked?}
+Premiums are compared against Flood Re pricing and commercial insurance quotes
+for representative properties.
+
+\mkmvqitem{8}{Monitoring}{What type of monitoring is required?}
+Monitor premium adequacy ratios (premium / expected loss) by flood zone.
+Track claims frequency and severity against premium assumptions.
+
+\mkmvqitem{9}{Overall Risk}{Is the overall model risk acceptable?}
+The model is a standard actuarial rating tool. Risk is Low provided factor
+tables are recalibrated annually.
+
+\end{document}
