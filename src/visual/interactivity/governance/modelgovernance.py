@@ -264,6 +264,7 @@ class ModelGovernancePanel:
                 hide: hideMgPanel,
                 showDetail: showModelDetail,
                 switchDetailTab: switchDetailTab,
+                switchDocsSection: switchDocsSection,
                 openEdit: openEditModal,
                 toggleSort: mgToggleSort,
                 setFilter: mgSetFilter,

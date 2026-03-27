@@ -106,8 +106,7 @@ function renderModelDetail(m, auditEntries) {
         {id: 'changes', label: 'Changes'},
         {id: 'validation', label: 'Validation (' + _vqAddr + '/' + _vqAppl + ')'},
         {id: 'riskrating', label: 'Risk Rating'},
-        {id: 'docs', label: 'Documentation'},
-        {id: 'testresults', label: 'Test Results'},
+        {id: 'docs', label: 'Docs'},
         {id: 'modelaudit', label: 'Audit (' + (auditEntries || []).length + ')'},
     ];
     detailTabs.forEach(function(t, i) {
@@ -128,7 +127,7 @@ function renderModelDetail(m, auditEntries) {
 }
 
 function switchDetailTab(tabId) {
-    var allTabs = ['overview', 'remediation', 'versions', 'limits', 'assumptions', 'changes', 'validation', 'riskrating', 'docs', 'testresults', 'modelaudit'];
+    var allTabs = ['overview', 'remediation', 'versions', 'limits', 'assumptions', 'changes', 'validation', 'riskrating', 'docs', 'modelaudit'];
     allTabs.forEach(function(t) {
         var btn = document.getElementById('mg-dtab-' + t);
         if (btn) {
@@ -148,7 +147,6 @@ function switchDetailTab(tabId) {
     else if (tabId === 'limits') dc.innerHTML = renderLimitationsTab(m);
     else if (tabId === 'assumptions') dc.innerHTML = renderAssumptionsTab(m);
     else if (tabId === 'changes') dc.innerHTML = renderChangesTab(m);
-    else if (tabId === 'testresults') dc.innerHTML = renderTestResultsTab(m);
     else if (tabId === 'modelaudit') dc.innerHTML = renderAuditTab(auditEntries);
     else if (tabId === 'validation') dc.innerHTML = renderValidationTab(m);
     else if (tabId === 'riskrating') { dc.innerHTML = renderRiskRatingTab(m); refreshRiskRating(m.model_id); }

@@ -339,6 +339,20 @@ def get_model_test_results_pdf(model_id):
     return send_file(pdf_path, mimetype="application/pdf")
 
 
+@governance_bp.route("/governance/models/<model_id>/analysis/pdf", methods=["GET"])
+def get_model_analysis_pdf(model_id):
+    """Serve per-model analysis PDF (sensitivity analysis, stress testing)."""
+    doc_dir = _MODEL_DOC_DIRS.get(model_id)
+    if not doc_dir:
+        return jsonify({"status": "error", "message": f"No documentation directory for {model_id}"}), 404
+
+    pdf_path = os.path.join(_docs_dir, doc_dir, "analysis.pdf")
+    if not os.path.isfile(pdf_path):
+        return jsonify({"status": "error", "message": "Analysis PDF not yet generated. Run: python -m docs.models.sensitivities.generate_all_analysis"}), 404
+
+    return send_file(pdf_path, mimetype="application/pdf")
+
+
 @governance_bp.route("/governance/parameter-inventory/pdf", methods=["GET"])
 def get_parameter_inventory_pdf():
     """Serve the parameter inventory PDF."""
