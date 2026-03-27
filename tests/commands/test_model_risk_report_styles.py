@@ -225,5 +225,5 @@ class TestDataLoaders:
             result = data_mod.collect_all()
         expected_keys = {'inventory', 'models', 'meetings', 'bcbs', 'raci',
                          'audit_log', 'junit', 'coverage_pct', 'audit_files',
-                         'sensitivity_generators'}
+                         'sensitivity_generators', 'doc_completeness'}
         assert expected_keys == set(result.keys())
