@@ -117,6 +117,25 @@ def list_sensitivity_generators() -> list[str]:
     )
 
 
+def scan_model_documentation() -> list[dict]:
+    """Scan documentation completeness for each registered model."""
+    from src.routes.governance._constants import _MODEL_DOC_DIRS
+
+    docs_dir = _root / 'docs' / 'models'
+    results = []
+    for model_id, doc_dir in _MODEL_DOC_DIRS.items():
+        model_path = docs_dir / doc_dir
+        results.append({
+            'model_id': model_id,
+            'doc_dir': doc_dir,
+            'has_core_doc': (model_path / f'{doc_dir}.pdf').is_file(),
+            'has_test_results': (model_path / 'test_results.pdf').is_file(),
+            'has_sensitivity': (model_path / 'sensitivity_tables.tex').is_file(),
+            'has_analysis': (model_path / 'analysis.pdf').is_file(),
+        })
+    return results
+
+
 def collect_all() -> dict:
     """Load all data sources into a single dict."""
     inventory = load_inventory()
@@ -133,4 +152,5 @@ def collect_all() -> dict:
         'coverage_pct': load_coverage(),
         'audit_files': list_audit_files(),
         'sensitivity_generators': list_sensitivity_generators(),
+        'doc_completeness': scan_model_documentation(),
     }
