@@ -2,14 +2,19 @@
 \contentsline {subsection}{\numberline {1.1}Test Environment}{3}{subsection.1.1}%
 \contentsline {subsection}{\numberline {1.2}Results by Model}{3}{subsection.1.2}%
 \contentsline {section}{\numberline {2}Test Traceability Matrix}{4}{section.2}%
-\contentsline {section}{\numberline {3}Flood Risk (Depth-Damage) (MKM-DD-001)}{151}{section.3}%
-\contentsline {section}{\numberline {4}GEV Hazard Model (MKM-GH-001)}{153}{section.4}%
-\contentsline {section}{\numberline {5}Mortgage Pricer (MKM-MP-001)}{155}{section.5}%
-\contentsline {section}{\numberline {6}PRS Pricing Model (MKM-PR-001)}{159}{section.6}%
-\contentsline {section}{\numberline {7}Property Valuation (MKM-PV-001)}{163}{section.7}%
-\contentsline {section}{\numberline {8}Storm-Gauge Response Model (MKM-SG-001)}{166}{section.8}%
-\contentsline {section}{\numberline {9}Storm Intensity Distribution (MKM-SI-001)}{170}{section.9}%
-\contentsline {section}{\numberline {10}Storm Sequence Generator (MKM-SS-001)}{176}{section.10}%
-\contentsline {section}{\numberline {11}Trading Desk (MKM-TD-001)}{179}{section.11}%
-\contentsline {section}{\numberline {12}CDM Schema Validation (CDM-ALL)}{194}{section.12}%
-\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{199}{appendix.A}%
+\contentsline {section}{\numberline {3}Flood Risk (Depth-Damage) (MKM-DD-001)}{154}{section.3}%
+\contentsline {section}{\numberline {4}GEV Hazard Model (MKM-GH-001)}{157}{section.4}%
+\contentsline {section}{\numberline {5}Mortgage Pricer (MKM-MP-001)}{159}{section.5}%
+\contentsline {section}{\numberline {6}PRS Pricing Model (MKM-PR-001)}{163}{section.6}%
+\contentsline {section}{\numberline {7}Property Valuation (MKM-PV-001)}{167}{section.7}%
+\contentsline {section}{\numberline {8}Storm-Gauge Response Model (MKM-SG-001)}{170}{section.8}%
+\contentsline {section}{\numberline {9}Storm Intensity Distribution (MKM-SI-001)}{174}{section.9}%
+\contentsline {section}{\numberline {10}Storm Sequence Generator (MKM-SS-001)}{180}{section.10}%
+\contentsline {section}{\numberline {11}Trading Desk (MKM-TD-001)}{183}{section.11}%
+\contentsline {section}{\numberline {12}CDM Schema Validation (CDM-ALL)}{198}{section.12}%
+\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{203}{appendix.A}%
+\contentsline {paragraph}{test\_classifiers\_exist}{456}{section*.18}%
+\contentsline {paragraph}{test\_no\_stale\_inputs}{456}{section*.19}%
+\contentsline {paragraph}{test\_classifier\_count}{456}{section*.20}%
+\contentsline {paragraph}{test\_training\_summary\_exists}{457}{section*.21}%
+\contentsline {paragraph}{test\_gauge\_count\_propagates}{457}{section*.22}%

@@ -3832,20 +3832,20 @@
       },
       "overall_risk_rating": {
         "calculated_rating": "Conditional",
-        "calculated_score": 0.5,
+        "calculated_score": 0.65,
         "component_scores": {
           "validation_coverage": 0.0,
           "remediation_health": 1.0,
           "review_currency": 1.0,
-          "assumption_risk": 0.5,
-          "limitation_risk": 0.5
+          "assumption_risk": 0.8,
+          "limitation_risk": 0.8
         },
         "effective_rating": "Conditional",
         "mrc_override": null,
         "mrc_override_reason": null,
         "mrc_override_date": null,
         "mrc_override_by": null,
-        "last_calculated": "2026-03-18T00:00:00"
+        "last_calculated": "2026-03-27T09:47:25.961251"
       }
     }
   ],
