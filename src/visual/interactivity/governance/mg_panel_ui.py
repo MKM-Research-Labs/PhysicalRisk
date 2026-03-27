@@ -73,7 +73,6 @@ def get_js():
                 var tabs = [
                     {id: 'inventory', label: 'Inventory'},
                     {id: 'chain', label: 'Model Chain'},
-                    {id: 'params', label: 'Parameters'},
                     {id: 'bcbs239', label: 'BCBS 239'},
                     {id: 'raci', label: 'RACI'},
                     {id: 'mrc', label: 'MRC'},

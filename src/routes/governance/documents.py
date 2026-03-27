@@ -34,14 +34,24 @@ from werkzeug.utils import secure_filename
 
 from . import governance_bp
 from ._constants import GOV_DOCUMENTS_DIR
-from ._helpers import _load_gov_documents, _save_gov_documents
+from ._helpers import (
+    _load_gov_documents, _save_gov_documents,
+    _discover_audit_docs, _discover_model_docs,
+)
 
 
 @governance_bp.route("/governance/documents", methods=["GET"])
 def get_documents():
-    """List all governance documents."""
-    docs = _load_gov_documents()
-    return jsonify({"status": "success", "documents": docs})
+    """List all governance documents (uploaded + auto-discovered)."""
+    uploaded = _load_gov_documents()
+    for doc in uploaded:
+        doc.setdefault("source", "uploaded")
+
+    audit_docs = _discover_audit_docs()
+    model_docs = _discover_model_docs()
+
+    all_docs = uploaded + audit_docs + model_docs
+    return jsonify({"status": "success", "documents": all_docs})
 
 
 @governance_bp.route("/governance/documents/upload", methods=["POST"])
