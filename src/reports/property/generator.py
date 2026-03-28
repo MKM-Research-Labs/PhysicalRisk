@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from reportlab.lib import colors
 
-from src.reports.shared import BaseReportGenerator
+from reports.shared import BaseReportGenerator
 
 from .property_page_01_title_overview import TitleOverviewPage
 from .property_page_02_location import LocationPage

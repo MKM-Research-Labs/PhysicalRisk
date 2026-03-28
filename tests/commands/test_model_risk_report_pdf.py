@@ -23,9 +23,12 @@
 import pytest
 from unittest.mock import MagicMock, patch
 
-from tests.commands.model_risk_helpers import (
-    _full_data, _make_model, _make_meeting, _make_bcbs, _make_principle,
+from tests.commands.model_risk_helpers_part1 import (
+    _make_model, _make_meeting, _make_bcbs, _make_principle,
     _make_raci, _make_role,
+)
+from tests.commands.model_risk_helpers_part2 import (
+    _full_data,
     SAMPLE_RISK_RATING, SAMPLE_JUNIT_EMPTY, SAMPLE_JUNIT_CLEAN,
     SAMPLE_ASSUMPTIONS, SAMPLE_TEST_COVERAGE,
 )

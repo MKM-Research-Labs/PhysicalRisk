@@ -135,10 +135,9 @@ DEFAULT_ROUGHNESS: float = 0.04
 # Default retention length scale (meters).  Controls the exponential
 # decay of peak WSE with distance from river.  At d = L the retention
 # factor is 1/e ≈ 0.37; at d = 0 retention is 1.0 (full signal).
-# 10 km means a property 1 km from the river retains ~90 % of peak WSE,
-# consistent with near-field hydraulic guidance (little attenuation for
-# properties within a few hundred metres of the channel).
-DEFAULT_RETENTION_LENGTH: float = 10_000.0
+# 3 km e-folding length: at 600 m retention ≈ 0.82, at 2 km ≈ 0.51,
+# at 5 km ≈ 0.19.  No near-field bypass — attenuation applies from 0 m.
+DEFAULT_RETENTION_LENGTH: float = 3_000.0
 
 # Minimum slope to avoid division instability
 MIN_SLOPE: float = 0.001

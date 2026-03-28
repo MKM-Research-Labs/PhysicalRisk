@@ -171,6 +171,17 @@ def _hash_artifact(path: Path) -> dict:
     return {"hash": None, "type": "missing"}
 
 
+def pre_hash_inputs(inputs: dict) -> dict:
+    """Hash input artifacts *before* a pipeline step runs.
+
+    Call this before the step executes, then pass the result as
+    ``input_hashes`` to :func:`record_step`.  This is essential for
+    steps that mutate their own input files (e.g. ``synthetic_gauges``
+    overwrites ``gauge.json``, ``hazard`` writes back to ``gaugets/``).
+    """
+    return {k: _hash_artifact(Path(v)) for k, v in inputs.items()}
+
+
 def record_step(
     step_name: str,
     generator: str,
@@ -180,16 +191,23 @@ def record_step(
     elapsed_seconds: float,
     status: str = "success",
     run_id: str | None = None,
+    input_hashes: dict | None = None,
 ) -> dict:
     """Record a pipeline step execution in the manifest.
 
     *inputs* and *outputs* map logical names to Path objects.
+
+    If *input_hashes* is provided it is used directly (pre-computed hashes
+    captured **before** the step ran, which is essential for steps that
+    mutate their own input files).  Otherwise inputs are hashed now.
+
     Returns the step entry that was written.
     """
     run_id = run_id or get_current_run_id()
     manifest = load_manifest()
 
-    input_hashes = {k: _hash_artifact(Path(v)) for k, v in inputs.items()}
+    if input_hashes is None:
+        input_hashes = {k: _hash_artifact(Path(v)) for k, v in inputs.items()}
     output_hashes = {k: _hash_artifact(Path(v)) for k, v in outputs.items()}
 
     entry = {

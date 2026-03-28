@@ -42,7 +42,7 @@ from typing import Any, Dict, List
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 
-from src.reports.shared import ReportBasePage
+from reports.shared import ReportBasePage
 
 
 class PropertyBasePage(ReportBasePage):

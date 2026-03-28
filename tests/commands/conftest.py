@@ -22,8 +22,10 @@
 
 import pytest
 
-from tests.commands.model_risk_helpers import (
+from tests.commands.model_risk_helpers_part1 import (
     _make_model, _make_bcbs, _make_raci, _make_role, _make_principle,
+)
+from tests.commands.model_risk_helpers_part2 import (
     _full_data, SAMPLE_JUNIT_EMPTY, SAMPLE_VQ, SAMPLE_REMEDIATION,
     SAMPLE_ASSUMPTIONS, SAMPLE_TEST_COVERAGE, SAMPLE_RISK_RATING,
 )
@@ -77,3 +79,25 @@ def empty_data():
         audit_files=[],
         sensitivity_generators=[],
     )
+
+
+# ---------------------------------------------------------------------------
+# Shared fixtures for data lineage report tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def dl_mod():
+    from tests.commands.data_lineage_helpers import get_dl_mod
+    return get_dl_mod()
+
+
+@pytest.fixture
+def sample_data_consistent(dl_mod):
+    from tests.commands.data_lineage_helpers import make_sample_data_consistent
+    return make_sample_data_consistent()
+
+
+@pytest.fixture
+def sample_data_issues(sample_data_consistent):
+    from tests.commands.data_lineage_helpers import make_sample_data_issues
+    return make_sample_data_issues(sample_data_consistent)

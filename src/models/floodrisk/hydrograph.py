@@ -264,6 +264,7 @@ def build_compound_property_hydrograph(
     f_imperv: float = DEFAULT_IMPERV_FRACTION,
     cap: Optional[float] = None,
     n_hours: int = STORM_SIMULATION_HOURS,
+    severe_level: float = 0.0,
 ) -> List[Dict]:
     """Build a compound property hydrograph from per-pulse peaks.
 
@@ -336,7 +337,9 @@ def build_compound_property_hydrograph(
         src = t - shift
         if src < 0 or src >= n_hours:
             continue
-        water_above_gauge = max(0.0, gauge_wse[src] - gauge_elevation)
+        # gauge_wse values are stage readings; flood depth at gauge =
+        # reading − severe_level (flooding starts at severe threshold).
+        water_above_gauge = max(0.0, gauge_wse[src] - severe_level)
         water_at_property = water_above_gauge * retention
         depth_above_floor = water_at_property - prop_threshold_above_gauge
         if depth_above_floor > 0:

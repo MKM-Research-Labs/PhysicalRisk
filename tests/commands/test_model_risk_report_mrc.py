@@ -22,9 +22,12 @@
 
 import pytest
 
-from tests.commands.model_risk_helpers import (
-    _full_data, _make_model, _make_meeting, _make_bcbs, _make_principle,
+from tests.commands.model_risk_helpers_part1 import (
+    _make_model, _make_meeting, _make_bcbs, _make_principle,
     _make_raci, _make_role,
+)
+from tests.commands.model_risk_helpers_part2 import (
+    _full_data,
     SAMPLE_DECISIONS, SAMPLE_ACTIONS, SAMPLE_ASSUMPTIONS,
 )
 

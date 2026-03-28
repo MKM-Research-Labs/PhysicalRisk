@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -26,141 +26,13 @@ import pathlib
 
 import pytest
 
-
-_BASE_MODEL = {
-    "model_id": "MKM-TEST-001",
-    "name": "Test Model",
-    "short_name": "Test",
-    "description": "A test model",
-    "category": "Hazard",
-    "tier": 2,
-    "materiality": "Medium",
-    "complexity": "Medium",
-    "tier_rationale": "Test rationale",
-    "status": "Active",
-    "lifecycle_stage": "Production",
-    "version": "1.0.0",
-    "owner": "Test Owner",
-    "model_owner_role": "Tester",
-    "peer_reviewer": "TBD",
-    "source_module": "src/models/test.py",
-    "methodology": "Test methodology",
-    "validation_status": "Validated",
-    "next_review_date": "2027-01-15",
-    "last_review_date": "2026-02-01",
-    "rag_rating": "Green",
-    "mrc_signoff_date": "2026-02-01",
-    "recertification_date": "2027-02-01",
-    "review_frequency": "Annual",
-    "assumptions": [
-        {"id": "T-A1", "description": "Test assumption", "impact": "High",
-         "monitoring": "Check regularly", "mitigation": "Adjust if needed"},
-    ],
-    "limitations": [
-        {"id": "T-L1", "description": "Test limitation", "impact": "High",
-         "monitoring_trigger": "Threshold breach", "compensating_control": "Manual review"},
-    ],
-    "remediation_steps": [
-        {"id": "T-R1", "description": "Fix something", "owner": "Test Owner",
-         "priority": "High", "due_date": "2026-06-01", "status": "Open"},
-    ],
-    "validation_questions": [
-        {"question_id": i, "short_label": f"Q{i}", "question": f"Question {i}?",
-         "handbook_ref": f"Ch5 Q{i}", "status": "Not Addressed",
-         "evidence": "", "last_reviewed": None, "reviewed_by": None}
-        for i in range(1, 10)
-    ],
-    "overall_risk_rating": {
-        "calculated_rating": "Not Rated",
-        "calculated_score": None,
-        "component_scores": {
-            "validation_coverage": None, "remediation_health": None,
-            "review_currency": None, "assumption_risk": None,
-            "limitation_risk": None,
-        },
-        "effective_rating": "Not Rated",
-        "mrc_override": None, "mrc_override_reason": None,
-        "mrc_override_date": None, "mrc_override_by": None,
-        "last_calculated": None,
-    },
-    "upstream_models": [],
-    "downstream_models": [],
-    "test_coverage": {"unit_tests": True, "integration_tests": False,
-                      "benchmark_tests": False, "test_file": "tests/test.py"},
-    "change_history": [],
-    "version_history": [],
-    "documents": [],
-    "known_failure_modes": [],
-    "key_parameters": [],
-    "input_data": "",
-    "output_data": "",
-    "methodology_rationale": "",
-    "alternatives_considered": [],
-}
-
-_BASE_INVENTORY = {
-    "metadata": {
-        "framework": "Test Framework",
-        "version": "1.0.0",
-        "last_updated": "2026-02-18",
-        "handbook_reference": "Test Handbook",
-        "tiering_methodology": "Test methodology",
-    },
-    "models": [copy.deepcopy(_BASE_MODEL)],
-    "model_chain": {"description": "Test chain", "links": []},
-    "tiering_matrix": {"description": "Test matrix", "matrix": {}},
-    "audit_trail": [],
-}
-
-_BASE_RACI = {
-    "metadata": {
-        "framework": "Test RACI",
-        "version": "1.0.0",
-        "last_updated": "2026-02-18",
-        "handbook_reference": "Chapter 10",
-    },
-    "roles": [
-        {
-            "role_id": "operations_lead",
-            "label": "Operations Lead",
-            "raci_code": "R",
-            "description": "Responsible",
-            "assigned_to": "TBD",
-            "backup": None,
-        },
-        {
-            "role_id": "model_owner",
-            "label": "Model Owner",
-            "raci_code": "A",
-            "description": "Accountable",
-            "assigned_to": "Test Owner",
-            "backup": None,
-        },
-    ],
-    "activities": [
-        {
-            "activity_id": "ACT-01",
-            "category": "Production Operations",
-            "activity": "Rerun failed jobs",
-            "R": "operations_lead",
-            "A": "model_owner",
-            "C": None,
-            "I": None,
-            "tier_emphasis": None,
-            "notes": "Routine",
-        },
-    ],
-    "escalation_triggers": [
-        {
-            "trigger_id": "ESC-01",
-            "trigger": "Results outside normal ranges",
-            "from_role": "operations_lead",
-            "to_role": "model_owner",
-            "tier_threshold": {"1": "Immediate", "2": "Same day", "3": "Next business day"},
-            "response_required": "Investigation",
-        },
-    ],
-}
+from tests.routes.governance._helpers import (
+    _BASE_MODEL,
+    _BASE_INVENTORY,
+    _BASE_RACI,
+    # Re-export so existing `from tests.routes.governance.conftest import X` works
+    create_meeting,
+)
 
 
 @pytest.fixture
@@ -244,17 +116,6 @@ def mrc_client(mrc_env, monkeypatch):
     return app.test_client()
 
 
-def create_meeting(client, **overrides):
-    """Helper: POST to create a meeting and return parsed JSON."""
-    data = {"title": "Test MRC Meeting", "date": "2026-03-07", **overrides}
-    r = client.post(
-        "/api/v1/governance/mrc/meetings",
-        json=data,
-        content_type="application/json",
-    )
-    return r, r.get_json()
-
-
 # ── Lineage fixtures ─────────────────────────────────────────────
 
 @pytest.fixture
@@ -300,3 +161,112 @@ def lineage_client(lineage_env, monkeypatch):
     return app.test_client()
 
 
+# ── Full trace env (shared by test_lineage_coverage_part*.py) ────
+
+
+@pytest.fixture
+def full_trace_env(tmp_path, monkeypatch):
+    """Trace environment with gaugehd, sequence_gauge, mortgage,
+    propertyhc, trade_marks, eod, counterparty, classifier summary,
+    and market_state files."""
+    from config import config
+
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+    classifiers_dir = tmp_path / "classifiers"
+    classifiers_dir.mkdir()
+    blotter_dir = tmp_path / "blotter"
+    blotter_dir.mkdir()
+    (blotter_dir / "eod").mkdir()
+
+    monkeypatch.setattr(config, "get_input_dir", lambda: input_dir)
+    monkeypatch.setattr(config, "get_classifiers_dir", lambda: classifiers_dir)
+    monkeypatch.setattr(config, "get_trading_dir", lambda: blotter_dir)
+
+    # gauge.json
+    with open(input_dir / "gauge.json", "w") as f:
+        json.dump({"flood_gauges": [
+            {"FloodGauge": {"Header": {"GaugeID": "GAUGE-FULL01"}}}
+        ]}, f)
+
+    # gaugehc.json
+    with open(input_dir / "gaugehc.json", "w") as f:
+        json.dump({"hazard_curves": {"GAUGE-FULL01": {"gev": {}}}}, f)
+
+    # gaugets/ per-gauge file
+    (input_dir / "gaugets").mkdir()
+    with open(input_dir / "gaugets" / "GAUGE-FULL01.json", "w") as f:
+        json.dump({"gauge_id": "GAUGE-FULL01"}, f)
+
+    # gaugehd/ historical daily observations
+    (input_dir / "gaugehd").mkdir()
+    with open(input_dir / "gaugehd" / "GAUGE-FULL01_daily.csv", "w") as f:
+        f.write("date,level\n2026-01-01,3.5\n")
+
+    # sequence_gauge/ per-gauge split files
+    sg_dir = input_dir / "sequence_gauge"
+    sg_dir.mkdir()
+    with open(sg_dir / "GAUGE-FULL01.json", "w") as f:
+        json.dump({"gauge_id": "GAUGE-FULL01", "peaks": [4.1]}, f)
+    with open(sg_dir / "_index.json", "w") as f:
+        json.dump({"gauge_ids": ["GAUGE-FULL01"]}, f)
+
+    # classifier .joblib + training_summary.json
+    (classifiers_dir / "GAUGE-FULL01.joblib").write_bytes(b"fake")
+    with open(classifiers_dir / "training_summary.json", "w") as f:
+        json.dump({"gauges": [{"gauge_id": "GAUGE-FULL01", "auc": 0.95}]}, f)
+
+    # market_state.json referencing gauge
+    with open(blotter_dir / "market_state.json", "w") as f:
+        json.dump({"hazard_curves": {"GAUGE-FULL01": {}}}, f)
+
+    # property.json
+    with open(input_dir / "property.json", "w") as f:
+        json.dump({"properties": [
+            {"PropertyHeader": {"Header": {"PropertyID": "PROP-FULL01"}}}
+        ]}, f)
+
+    # propertyts/
+    (input_dir / "propertyts").mkdir()
+    with open(input_dir / "propertyts" / "PROP-FULL01.json", "w") as f:
+        json.dump({"property_id": "PROP-FULL01"}, f)
+
+    # mortgage.json
+    with open(input_dir / "mortgage.json", "w") as f:
+        json.dump({"mortgages": [{"property_id": "PROP-FULL01", "ltv": 0.75}]}, f)
+
+    # propertyhc.json
+    with open(input_dir / "propertyhc.json", "w") as f:
+        json.dump({"property_curves": {"PROP-FULL01": {"depth": 1.2}}}, f)
+
+    # propertyshd.json / propertyshe.json
+    with open(input_dir / "propertyshd.json", "w") as f:
+        json.dump({"property_hazard_curves": {"PROP-FULL01": {"shd": True}}}, f)
+    with open(input_dir / "propertyshe.json", "w") as f:
+        json.dump({"property_hazard_curves": {"PROP-FULL01": {"she": True}}}, f)
+
+    # prs/ trades
+    (input_dir / "prs").mkdir()
+    with open(input_dir / "prs" / "PRS-FULL01.json", "w") as f:
+        json.dump({"PhysicalSwap": {
+            "Header": {"SwapID": "PRS-FULL01"},
+            "GaugeSet": {"GaugeBasket": [{"GaugeID": "GAUGE-FULL01"}]},
+            "Counterparty": "CTPY-FULL01",
+        }}, f)
+
+    # trade_marks.json
+    with open(blotter_dir / "trade_marks.json", "w") as f:
+        json.dump({"marks": [{"trade_id": "PRS-FULL01", "mtm": 1000}]}, f)
+
+    # eod snapshot referencing trade
+    with open(blotter_dir / "eod" / "2026-03-25_PRS-FULL01.json", "w") as f:
+        json.dump({"trade_id": "PRS-FULL01", "pnl": 500}, f)
+
+    # counterparty.json
+    with open(input_dir / "counterparty.json", "w") as f:
+        json.dump({"counterparties": [
+            {"counterparty_id": "CTPY-FULL01", "name": "Test Bank"}
+        ]}, f)
+
+    return {"input_dir": input_dir, "classifiers_dir": classifiers_dir,
+            "blotter_dir": blotter_dir}
