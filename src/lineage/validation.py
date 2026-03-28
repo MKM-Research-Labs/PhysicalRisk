@@ -28,12 +28,61 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def _output_step_map() -> dict:
-    """Map each output filename to the step that produces it."""
+    """Map each output filename to the step that produces it.
+
+    When multiple steps produce the same artifact (e.g. ``gauges`` and
+    ``synthetic_gauges`` both output ``gauge.json``), the *last* writer
+    in topological order wins — that step's recorded hash is the one
+    downstream consumers should match.
+    """
+    from graphlib import TopologicalSorter
+
+    sorter = TopologicalSorter(DEPENDENCY_GRAPH)
+    topo_order = list(sorter.static_order())
+
     mapping: dict[str, str] = {}
-    for step, io in STEP_IO.items():
+    for step in topo_order:
+        io = STEP_IO.get(step)
+        if io is None:
+            continue
         for out in io["outputs"]:
-            mapping[out] = step
+            mapping[out] = step      # later writers overwrite earlier ones
     return mapping
+
+
+def _find_producer(step_name: str, artifact: str) -> str | None:
+    """Find the correct producer of *artifact* for *step_name*.
+
+    When multiple steps output the same file (e.g. ``gauge.json`` is
+    written by both ``gauges`` and ``synthetic_gauges``), the producer
+    is the **latest upstream dependency** of *step_name* that outputs
+    the artifact.  This ensures each consumer is validated against the
+    version of the file it actually consumed at pipeline runtime.
+    """
+    from graphlib import TopologicalSorter
+
+    # All transitive dependencies of this step
+    deps: set[str] = set()
+    queue = list(DEPENDENCY_GRAPH.get(step_name, []))
+    while queue:
+        dep = queue.pop()
+        if dep not in deps:
+            deps.add(dep)
+            queue.extend(DEPENDENCY_GRAPH.get(dep, []))
+
+    # Among dependencies, find all that produce this artifact
+    candidates = []
+    sorter = TopologicalSorter(DEPENDENCY_GRAPH)
+    topo_order = list(sorter.static_order())
+
+    for step in topo_order:
+        if step in deps:
+            io = STEP_IO.get(step, {})
+            if artifact in io.get("outputs", []):
+                candidates.append(step)
+
+    # Last in topo order = latest writer among our dependencies
+    return candidates[-1] if candidates else None
 
 
 def _current_hash(artifact_name: str, manifest_step: dict) -> str | None:
@@ -59,11 +108,13 @@ def check_inputs_fresh(step_name: str) -> tuple:
     if step_io is None:
         return False, [f"Unknown step: {step_name}"]
 
+    # Fallback map for artifacts with no dependency-graph producer
     output_map = _output_step_map()
     issues: list[str] = []
 
     for inp in step_io["inputs"]:
-        producer = output_map.get(inp)
+        # Prefer dependency-aware producer; fall back to global map
+        producer = _find_producer(step_name, inp) or output_map.get(inp)
         if producer is None:
             issues.append(f"No producer found for input '{inp}'")
             continue
