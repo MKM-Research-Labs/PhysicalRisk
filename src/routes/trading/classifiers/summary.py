@@ -165,13 +165,6 @@ def clear_all_classifiers():
         if timings_path.exists():
             timings_path.unlink()
 
-        # Invalidate cached predictor so port stress reloads fresh models
-        try:
-            from routes.trading.port_stress import invalidate_stressm_predictor
-            invalidate_stressm_predictor()
-        except ImportError:
-            pass
-
         logger.info("Cleared %d classifier models from %s", removed, stressm_dir)
         return jsonify({
             "status": "success",

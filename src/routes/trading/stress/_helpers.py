@@ -18,7 +18,6 @@ from config.port import EVENT_WINDOW_HOURS as STORM_HOURS
 # Module-level caches
 _stress_index_cache = None
 _stress_index_mtime = None   # last-seen mtime of _index.json; cache invalidated when it changes
-_predictor_cache = None
 # Keep old names alive so test teardown code (stress_helpers._stress_storms_cache = None) doesn't crash
 _stress_storms_cache = None
 
@@ -123,31 +122,3 @@ def _synthesize_hydrograph(base_level, level_change, duration_hours,
     return levels
 
 
-def _get_predictor():
-    """Load and cache the FloodPredictor.
-
-    Tries the multi-storm classifiers (stressm) first — they are the canonical
-    models trained by ``port --stressm``.  Falls back to the legacy single-storm
-    ``stress/`` directory if the stressm directory is absent (e.g. first run).
-    """
-    global _predictor_cache
-    if _predictor_cache is None:
-        from models.stress.flood_classifier import FloodPredictor
-        # Classifiers in data/input/<catchment>/classifiers/
-        cls_dir = config.get_classifiers_dir()
-        if list(cls_dir.glob('GAUGE-*.joblib')):
-            _predictor_cache = FloodPredictor(cls_dir)
-            logger.info("FloodPredictor loaded from classifiers dir (%s)", cls_dir)
-            return _predictor_cache
-        logger.warning("No flood classifier models found in classifiers directory")
-    return _predictor_cache
-
-
-def _invalidate_predictor_cache():
-    """Reset the predictor cache so the next request loads fresh models.
-
-    Called after on-demand classifier training completes — the new .joblib
-    file needs to be picked up by the predictor.
-    """
-    global _predictor_cache
-    _predictor_cache = None
