@@ -24,81 +24,28 @@ import json
 
 import pytest
 
-
-STORM_ID = "STORM-0001"
-SEQ_ID = "STORM-seq0001"
-PROP_ID = "PROP-001"
-STORM_HOURS = 168
-
-
-# ---------------------------------------------------------------------------
-# Builder helpers — used by animation test files
-# ---------------------------------------------------------------------------
-
-def make_gauge_json(gauge_id="GAUGE-001", alert=4.0, warning=4.5, severe=5.0):
-    return {"flood_gauges": [{"FloodGauge": {
-        "Header": {"GaugeID": gauge_id, "GaugeName": "Test Gauge"},
-        "SensorDetails": {"GaugeInformation": {
-            "GaugeLatitude": 51.5, "GaugeLongitude": -0.1, "GroundLevelMeters": 3.0,
-        }},
-        "FloodStage": {"UK": {
-            "FloodAlert": alert, "FloodWarning": warning, "SevereFloodWarning": severe,
-        }},
-    }}]}
-
-
-def make_gaugets_json(gauge_id="GAUGE-001", level=4.2, n=STORM_HOURS, key="waterLevel"):
-    return {
-        "gauge_id": gauge_id,
-        "flood_simulation": {"readings": [{key: level}] * n},
-    }
-
-
-def make_prop_file(property_id, storm_id, flood_depth=0.5, damage_ratio=0.1,
-                   arrival=5, peak=12, n_readings=STORM_HOURS):
-    readings = [
-        {"wse_m": 3.4, "depth_m": max(0, flood_depth - 0.01 * h), "flooded": h < 20}
-        for h in range(n_readings)
-    ]
-    return {
-        "property_id": property_id,
-        "location": {"lat": 51.5, "lon": -0.12},
-        "elevation_m": 3.0,
-        "floor_level_m": 3.2,
-        "flood_events": [{
-            "storm_id": storm_id,
-            "flood_depth_m": flood_depth,
-            "damage_ratio": damage_ratio,
-            "arrival_time_hrs": arrival,
-            "peak_time_hrs": peak,
-            "travel_time_hrs": 5,
-            "retention_factor": 0.9,
-            "readings": readings,
-        }],
-    }
-
-
-def make_anim_client(tmp_path, monkeypatch, *,
-                     pts_dir=True, gauge_json=None, gaugets=None, prop_files=None):
-    """Build a minimal test client for animation routes."""
-    from config import config
-    if pts_dir:
-        (tmp_path / "propertyts").mkdir(exist_ok=True)
-    gaugets_dir = tmp_path / "gaugets"
-    gaugets_dir.mkdir(exist_ok=True)
-    if gauge_json is not None:
-        (tmp_path / "gauge.json").write_text(json.dumps(gauge_json))
-    for fname, data in (gaugets or {}).items():
-        (gaugets_dir / fname).write_text(json.dumps(data))
-    for fname, data in (prop_files or {}).items():
-        (tmp_path / "propertyts" / fname).write_text(json.dumps(data))
-    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-    monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
-    monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
-    from server import create_app
-    app = create_app()
-    app.config["TESTING"] = True
-    return app.test_client()
+from tests.routes.propertyts._helpers import (
+    STORM_ID,
+    SEQ_ID,
+    PROP_ID,
+    STORM_HOURS,
+    # Re-export so existing `from .conftest import X` / absolute imports work
+    CLAIM_PROP_ID,
+    CLAIM_PROP_FLOOD_DATA,
+    CLAIM_PROPERTY_JSON,
+    CLAIM_MORTGAGE_JSON,
+    CLAIM_SEQUENCES_JSON,
+    make_gauge_json,
+    make_gaugets_json,
+    make_prop_file,
+    make_anim_client,
+    make_storm_sequences,
+    make_prop_flood,
+    make_property_json,
+    make_mortgage_json,
+    make_risk_client,
+    PORTFOLIO_VAR_URL,
+)
 
 
 @pytest.fixture
@@ -120,12 +67,12 @@ def pts_env(tmp_path, monkeypatch):
     Flask test client with a minimal propertyts directory and supporting data.
 
     Creates:
-      tmp_path/propertyts/PROP-001.json   — one property with one flood event
-      tmp_path/storm_sequences.json     — one sequence with one storm
-      tmp_path/gauge.json                 — one gauge
-      tmp_path/gaugets/GAUGE-001.json     — minimal gauge timeseries
-      tmp_path/property.json              — property valuation
-      tmp_path/mortgage.json              — mortgage data
+      tmp_path/propertyts/PROP-001.json   -- one property with one flood event
+      tmp_path/storm_sequences.json       -- one sequence with one storm
+      tmp_path/gauge.json                 -- one gauge
+      tmp_path/gaugets/GAUGE-001.json     -- minimal gauge timeseries
+      tmp_path/property.json              -- property valuation
+      tmp_path/mortgage.json              -- mortgage data
 
     Returns: dict with keys 'client', 'storm_id', 'seq_id'
     """

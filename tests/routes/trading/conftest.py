@@ -14,12 +14,14 @@ import json
 
 import pytest
 
-from ._data import (  # noqa: F401 — re-export for test files that import from conftest
+from ._data_part1 import (  # noqa: F401 — re-export for test files that import from conftest
     GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
     GAUGE_VAUXHALL, GAUGE_WATERLOO, GAUGE_BLACKFRIARS, GAUGE_LONDON,
     ALL_TEST_GAUGE_IDS,
     make_trade, make_gauge_entry,
     SAMPLE_GAUGEHC, SAMPLE_GAUGE_JSON,
+)
+from ._data_part2 import (  # noqa: F401
     CORE_TRADES, EXTENDED_TRADES, ALL_TRADES, TOTAL_TRADES,
     STORM_PORT_SEVERE, STORM_PORT_ALERT, SAMPLE_PORT_STRESS_STORMS,
     STORM_SEVERE, STORM_WARNING, SAMPLE_STRESS_STORMS,

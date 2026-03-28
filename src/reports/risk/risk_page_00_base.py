@@ -43,7 +43,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 
-from src.reports.shared import ReportBasePage
+from reports.shared import ReportBasePage
 
 
 class RiskBasePage(ReportBasePage):

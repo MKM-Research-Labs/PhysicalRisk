@@ -29,7 +29,8 @@ class TestOutputToStep:
     def test_known_outputs(self):
         from lineage.query import _output_to_step
         m = _output_to_step()
-        assert m["gauge.json"] == "gauges"
+        # synthetic_gauges is the last writer of gauge.json in STEP_IO order
+        assert m["gauge.json"] == "synthetic_gauges"
         assert m["property.json"] == "properties"
         assert m["gaugehd/"] == "gaugehd"
 
@@ -115,11 +116,13 @@ class TestGetFileLineage:
         from lineage.query import get_file_lineage
         manifest = _make_manifest({
             "gauges": {"run_id": "r1", "timestamp": "t1"},
+            "synthetic_gauges": {"run_id": "r2", "timestamp": "t2"},
         })
         with patch("lineage.query.load_manifest", return_value=manifest):
             result = get_file_lineage("gauge.json")
-        assert result["produced_by"] == "gauges"
-        assert result["producer_run_id"] == "r1"
+        # synthetic_gauges is the last writer of gauge.json in STEP_IO order
+        assert result["produced_by"] == "synthetic_gauges"
+        assert result["producer_run_id"] == "r2"
         assert "properties" in result["consumed_by"]
 
     def test_unknown_file(self):
@@ -135,7 +138,8 @@ class TestGetFileLineage:
         from lineage.query import get_file_lineage
         with patch("lineage.query.load_manifest", return_value=_make_manifest({})):
             result = get_file_lineage("gauge.json")
-        assert result["produced_by"] == "gauges"
+        # synthetic_gauges is the last writer of gauge.json in topo order
+        assert result["produced_by"] == "synthetic_gauges"
         assert result["producer_run_id"] is None  # not in manifest
 
 

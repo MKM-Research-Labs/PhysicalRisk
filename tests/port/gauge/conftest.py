@@ -64,6 +64,24 @@ def write_nrfa_csv(path: Path, station_id: str = "39001",
     return p
 
 
+import pytest
+
+
+def setup_gauge_env(tmp_path, monkeypatch, gauge_entries=None):
+    """Set up gauge.json and gaugehd dir, returns (gauge_file, gaugehd_dir)."""
+    from config import config
+    if gauge_entries is None:
+        gauge_entries = [SAMPLE_GAUGE_ENTRY]
+    gauge_data = {"flood_gauges": gauge_entries}
+    gauge_file = tmp_path / "gauge.json"
+    gauge_file.write_text(json.dumps(gauge_data))
+    gaugehd_dir = tmp_path / "gaugehd"
+    gaugehd_dir.mkdir()
+    monkeypatch.setattr(config, "get_input_path", lambda f: gauge_file)
+    monkeypatch.setattr(config, "get_gaugehd_dir", lambda: gaugehd_dir)
+    return gauge_file, gaugehd_dir
+
+
 SAMPLE_GAUGE_ENTRY = {
     "FloodGauge": {
         "Header": {

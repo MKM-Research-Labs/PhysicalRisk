@@ -91,7 +91,11 @@ STEP_OWNERS = {
     'stressm':        'Quantitative Analytics',
     'hazard':         'Quantitative Analytics',
     'propertyts':     'Quantitative Analytics',
+    'propertytsd':    'Quantitative Analytics',
+    'propertytse':    'Quantitative Analytics',
     'propertyhc':     'Quantitative Analytics',
+    'propertyshd':    'Quantitative Analytics',
+    'propertyshe':    'Quantitative Analytics',
     'counterparties': 'Data Engineering',
     'blotter':        'Trading / Risk',
 }

@@ -268,8 +268,12 @@ class FloodMixin:
 
         slope = compute_slope(g_elev, prop_elevation, distance_m)
 
-        # Water height above gauge ground level
-        water_above_gauge = max(0.0, interpolated_wse - g_elev)
+        # peak_level_m is a gauge stage reading (height above gauge zero
+        # datum).  Flooding begins when the reading exceeds the severe
+        # flood warning threshold — at that point depth at the gauge is 0.
+        # Flood depth at the gauge = reading − severe_level.
+        severe_level = nearest_gauge['gauge_info'].get('severe_level', 0)
+        water_above_gauge = max(0.0, interpolated_wse - severe_level)
         # Propagate to property location with distance-based retention
         water_at_property = water_above_gauge * retention
         # Property floods when water exceeds the elevation difference + floor step
@@ -287,6 +291,11 @@ class FloodMixin:
         gt = gaugets.get(source_gauge_id, {})
         gauge_readings = gt.get('flood_simulation', {}).get('readings', [])
 
+        # Convert gauge flood depth to absolute WSE for hydrograph scaling.
+        # Flood depth at gauge = reading − severe_level; absolute WSE at
+        # property = gauge_ground + flood_depth_at_gauge.
+        absolute_peak_wse = g_elev + water_above_gauge
+
         readings = []
         if gauge_readings:
             mapped_readings = []
@@ -297,7 +306,7 @@ class FloodMixin:
                 })
             readings = build_property_hydrograph(
                 mapped_readings,
-                interpolated_wse,
+                absolute_peak_wse,
                 travel_time,
                 retention,
                 prop_elevation,
@@ -358,8 +367,10 @@ class FloodMixin:
         slope = compute_slope(g_elev, prop_elevation, distance_m)
 
         # Estimate travel time from overall peak (same as v2.1)
+        # Flood depth at gauge = reading − severe threshold
+        severe_level = nearest_gauge['gauge_info'].get('severe_level', 0)
         overall_peak = resp.get('peak_level_m', 0)
-        water_above = max(0.0, overall_peak - g_elev)
+        water_above = max(0.0, overall_peak - severe_level)
         water_at_prop = water_above * retention
         height_diff = max(0.0, prop_elevation - g_elev)
         est_depth = max(0.0, water_at_prop - (height_diff + floor_level))
@@ -388,6 +399,7 @@ class FloodMixin:
             floor_level=floor_level,
             travel_time_hrs=travel_time,
             retention=retention,
+            severe_level=severe_level,
             cap=cap,
         )
 

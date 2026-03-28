@@ -25,7 +25,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from src.reports.shared import BaseReportGenerator
+from reports.shared import BaseReportGenerator
 
 logger = logging.getLogger(__name__)
 

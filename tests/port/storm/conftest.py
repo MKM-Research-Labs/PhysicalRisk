@@ -75,3 +75,29 @@ def rng():
 @pytest.fixture(scope="module")
 def small_batch():
     return generate_event_set(count=50, seed=99)
+
+
+# ---------------------------------------------------------------------------
+# Fixtures for sequence_response_hydro tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def default_gauge():
+    from port.src.storm_multi.models.sequence_response import SequenceGaugeParams
+    return SequenceGaugeParams.default_thames()
+
+
+@pytest.fixture(scope="module")
+def doublet_batch():
+    """200 forced-doublet sequences for compounding validation."""
+    return generate_event_set(count=200, force_sequence_type="doublet", seed=42)
+
+
+@pytest.fixture(scope="module")
+def severe_batch():
+    """200 severe sequences (natural type mix)."""
+    return generate_event_set(
+        count=200,
+        intensity_weights={"severe": 1.0},
+        seed=7,
+    )

@@ -106,13 +106,14 @@ def cmd_port(args):
     from port.src.property import propertyts, propertyhc
 
     try:
-        from lineage.manifest import record_step, get_current_run_id
+        from lineage.manifest import record_step, get_current_run_id, pre_hash_inputs
         from lineage.validation import (
             check_inputs_fresh, get_stale_downstream, resolve_prerequisites,
         )
     except ImportError:
         record_step = None
         get_current_run_id = None
+        pre_hash_inputs = None
         check_inputs_fresh = None
         get_stale_downstream = None
         resolve_prerequisites = None
@@ -221,6 +222,8 @@ def cmd_port(args):
             except Exception:
                 pass
         print("2. Generating Properties...")
+        _prop_inputs = {"gauge.json": input_dir / "gauge.json"}
+        _prop_pre = pre_hash_inputs(_prop_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = prop_gen.PropertyPortfolioGenerator(output_dir).generate(args.num_properties)
         elapsed_step = time.time() - t_step
@@ -234,11 +237,12 @@ def cmd_port(args):
                 record_step(
                     step_name="properties",
                     generator="port.src.property.PropertyPortfolioGenerator",
-                    inputs={"gauge.json": input_dir / "gauge.json"},
+                    inputs=_prop_inputs,
                     outputs={"property.json": input_dir / "property.json"},
                     parameters={"num_properties": args.num_properties},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_prop_pre,
                 )
                 stale = get_stale_downstream("properties")
                 if stale:
@@ -252,6 +256,11 @@ def cmd_port(args):
     if run_all or args.gauges or args.properties:
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         print("2.5 Generating Synthetic Gauges...")
+        _sg_inputs = {
+            "gauge.json": input_dir / "gauge.json",
+            "property.json": input_dir / "property.json",
+        }
+        _sg_pre = pre_hash_inputs(_sg_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = SyntheticGaugeGenerator(output_dir).generate()
         elapsed_step = time.time() - t_step
@@ -262,14 +271,12 @@ def cmd_port(args):
                 record_step(
                     step_name="synthetic_gauges",
                     generator="port.src.gauge.synthetic.SyntheticGaugeGenerator",
-                    inputs={
-                        "gauge.json": input_dir / "gauge.json",
-                        "property.json": input_dir / "property.json",
-                    },
+                    inputs=_sg_inputs,
                     outputs={"gauge.json": input_dir / "gauge.json"},
                     parameters={},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_sg_pre,
                 )
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
@@ -288,6 +295,8 @@ def cmd_port(args):
             except Exception:
                 pass
         print("3. Generating Mortgages...")
+        _mtg_inputs = {"property.json": input_dir / "property.json"}
+        _mtg_pre = pre_hash_inputs(_mtg_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = mortgage.MortgagePortfolioGenerator(output_dir).generate()
         elapsed_step = time.time() - t_step
@@ -301,11 +310,12 @@ def cmd_port(args):
                 record_step(
                     step_name="mortgages",
                     generator="port.src.mortgage.MortgagePortfolioGenerator",
-                    inputs={"property.json": input_dir / "property.json"},
+                    inputs=_mtg_inputs,
                     outputs={"mortgage.json": input_dir / "mortgage.json"},
                     parameters={},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_mtg_pre,
                 )
                 stale = get_stale_downstream("mortgages")
                 if stale:
@@ -327,6 +337,8 @@ def cmd_port(args):
             except Exception:
                 pass
         print("4. Generating Gauge Historical Data...")
+        _ghd_inputs = {"gauge.json": input_dir / "gauge.json"}
+        _ghd_pre = pre_hash_inputs(_ghd_inputs) if pre_hash_inputs else None
         t_step = time.time()
         files = gaugehd.generate_all_gauge_histories(years=args.history_years)
         elapsed_step = time.time() - t_step
@@ -337,11 +349,12 @@ def cmd_port(args):
                 record_step(
                     step_name="gaugehd",
                     generator="port.src.gauge.gaugehd",
-                    inputs={"gauge.json": input_dir / "gauge.json"},
+                    inputs=_ghd_inputs,
                     outputs={"gaugehd/": input_dir / "gaugehd"},
                     parameters={"history_years": args.history_years},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_ghd_pre,
                 )
                 stale = get_stale_downstream("gaugehd")
                 if stale:
@@ -389,6 +402,8 @@ def cmd_port(args):
                 _summary_path.unlink()
                 print(f"  Removed training_summary.json from {_cls_dir.name}/")
 
+        _sm_inputs = {"gauge.json": input_dir / "gauge.json", "gaugehd/": input_dir / "gaugehd"}
+        _sm_pre = pre_hash_inputs(_sm_inputs) if pre_hash_inputs else None
         t_step = time.time()
         summary = generate_stressm(
             input_dir=output_dir,
@@ -430,7 +445,7 @@ def cmd_port(args):
                 record_step(
                     step_name="stressm",
                     generator="port.src.stressm.generate_stressm",
-                    inputs={"gauge.json": input_dir / "gauge.json", "gaugehd/": input_dir / "gaugehd"},
+                    inputs=_sm_inputs,
                     outputs={
                         "gaugets/": input_dir / "gaugets",
                         "stress_storms/": input_dir / "stress_storms",
@@ -440,6 +455,7 @@ def cmd_port(args):
                     parameters={"num_storms": args.num_storms},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_sm_pre,
                 )
                 stale = get_stale_downstream("stressm")
                 if stale:
@@ -461,6 +477,8 @@ def cmd_port(args):
             except Exception:
                 pass
         print("6. Building Hazard Curves...")
+        _hz_inputs = {"gauge.json": input_dir / "gauge.json", "gaugets/": input_dir / "gaugets"}
+        _hz_pre = pre_hash_inputs(_hz_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = hazard.build_hazard_curves(
             output_dir=output_dir, catchment_id=catchment,
@@ -482,9 +500,10 @@ def cmd_port(args):
                 record_step(
                     step_name="hazard",
                     generator="port.src.hazard.build_hazard_curves",
-                    inputs={"gauge.json": input_dir / "gauge.json", "gaugets/": input_dir / "gaugets"},
+                    inputs=_hz_inputs,
                     outputs={"gaugehc.json": input_dir / "gaugehc.json", "gaugets/": input_dir / "gaugets"},
                     parameters={"distribution": args.distribution},
+                    input_hashes=_hz_pre,
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
                 )
@@ -508,6 +527,12 @@ def cmd_port(args):
             except Exception:
                 pass
         print("7. Generating Property Flood Time Series...")
+        _pts_inputs = {
+            "property.json": input_dir / "property.json",
+            "gauge.json": input_dir / "gauge.json",
+            "gaugets/": input_dir / "gaugets",
+        }
+        _pts_pre = pre_hash_inputs(_pts_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = propertyts.PropertyTimeSeriesGenerator(output_dir, verbose=args.verbose).generate()
         elapsed_step = time.time() - t_step
@@ -523,15 +548,12 @@ def cmd_port(args):
                 record_step(
                     step_name="propertyts",
                     generator="port.src.property.propertyts.PropertyTimeSeriesGenerator",
-                    inputs={
-                        "property.json": input_dir / "property.json",
-                        "gauge.json": input_dir / "gauge.json",
-                        "gaugets/": input_dir / "gaugets",
-                    },
+                    inputs=_pts_inputs,
                     outputs={"propertyts/": input_dir / "propertyts"},
                     parameters={},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_pts_pre,
                 )
                 stale = get_stale_downstream("propertyts")
                 if stale:
@@ -575,6 +597,12 @@ def cmd_port(args):
             except Exception:
                 pass
         print("8. Building Property Hazard Curves + PRS Pricing...")
+        _phc_inputs = {
+            "propertyts/": input_dir / "propertyts",
+            "gaugehc.json": input_dir / "gaugehc.json",
+            "gauge.json": input_dir / "gauge.json",
+        }
+        _phc_pre = pre_hash_inputs(_phc_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose).generate()
         elapsed_step = time.time() - t_step
@@ -591,11 +619,8 @@ def cmd_port(args):
                 record_step(
                     step_name="propertyhc",
                     generator="port.src.property.propertyhc.PropertyHazardCurveGenerator",
-                    inputs={
-                        "propertyts/": input_dir / "propertyts",
-                        "gaugehc.json": input_dir / "gaugehc.json",
-                        "gauge.json": input_dir / "gauge.json",
-                    },
+                    inputs=_phc_inputs,
+                    input_hashes=_phc_pre,
                     outputs={"propertyhc.json": input_dir / "propertyhc.json"},
                     parameters={},
                     elapsed_seconds=elapsed_step,
@@ -723,6 +748,11 @@ def cmd_port(args):
         if market_path.exists():
             market_path.unlink()
 
+        _bl_inputs = {
+            "gaugehc.json": input_dir / "gaugehc.json",
+            "counterparty.json": input_dir / "counterparty.json",
+        }
+        _bl_pre = pre_hash_inputs(_bl_inputs) if pre_hash_inputs else None
         t_step = time.time()
         trades = generate_thames_central_book(
             gaugehc_path=config.get_input_dir() / 'gaugehc.json',
@@ -757,14 +787,12 @@ def cmd_port(args):
                 record_step(
                     step_name="blotter",
                     generator="port.src.book.generate_thames_central_book",
-                    inputs={
-                        "gaugehc.json": input_dir / "gaugehc.json",
-                        "counterparty.json": input_dir / "counterparty.json",
-                    },
+                    inputs=_bl_inputs,
                     outputs={"prs/": input_dir / "prs"},
                     parameters={},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,
+                    input_hashes=_bl_pre,
                 )
                 stale = get_stale_downstream("blotter")
                 if stale:

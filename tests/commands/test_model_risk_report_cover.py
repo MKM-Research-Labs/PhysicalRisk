@@ -22,8 +22,9 @@
 
 import pytest
 
-from tests.commands.model_risk_helpers import (
-    _full_data, _make_model,
+from tests.commands.model_risk_helpers_part1 import _make_model
+from tests.commands.model_risk_helpers_part2 import (
+    _full_data,
     SAMPLE_VQ, SAMPLE_REMEDIATION, SAMPLE_ASSUMPTIONS,
     SAMPLE_TEST_COVERAGE, SAMPLE_RISK_RATING,
     SAMPLE_JUNIT_CLEAN, SAMPLE_JUNIT_EMPTY,

@@ -114,3 +114,58 @@ def make_gauge_ts_file(gaugets_dir: Path, gauge_id="GAUGE-001") -> Path:
     }
     f.write_text(json.dumps(data))
     return f
+
+
+# ---------------------------------------------------------------------------
+# Storm loader fixtures (shared by storm_loader_part*.py)
+# ---------------------------------------------------------------------------
+
+def make_storm(event_id, name, category=2, basin="ATL", season=2024,
+               track=None, impact=None):
+    return {
+        "TCEvent": {
+            "Header": {
+                "EventID": event_id,
+                "EventName": name,
+                "Category": category,
+                "Basin": basin,
+                "Season": season,
+                "StartDate": "2024-08-01",
+                "EndDate": "2024-08-10",
+                "PeakIntensity": 120,
+            },
+            "Track": track or [{"Latitude": 25.0, "Longitude": -80.0}],
+            "Impact": impact or {"TotalDamage": 1_000_000},
+        }
+    }
+
+
+STORM_FILENAME = "storm_events.json"
+
+
+def write_storms(directory, storms):
+    path = directory / STORM_FILENAME
+    path.write_text(json.dumps({"storms": storms}))
+    return path
+
+
+@pytest.fixture
+def storm_dir(tmp_path):
+    storms = [
+        make_storm("EVT-001", "Harvey", category=4, basin="ATL", season=2017,
+                    track=[{"Latitude": 29.7, "Longitude": -95.4}]),
+        make_storm("EVT-002", "Katrina", category=5, basin="ATL", season=2005,
+                    track=[{"Latitude": 29.9, "Longitude": -90.1}]),
+        make_storm("EVT-003", "Typhoon Hagibis", category=3, basin="WPAC", season=2019,
+                    track=[{"Latitude": 35.0, "Longitude": 140.0}]),
+        make_storm("EVT-004", "Tropical Storm Alpha", category=1, basin="ATL", season=2024,
+                    track=[{"Latitude": 40.0, "Longitude": -60.0}]),
+    ]
+    write_storms(tmp_path, storms)
+    return tmp_path
+
+
+@pytest.fixture
+def storm_loader(storm_dir):
+    from loaders.storm_loader import StormLoader
+    return StormLoader(storm_dir)

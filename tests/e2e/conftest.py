@@ -8,37 +8,35 @@ pre-navigated to the map, and tears everything down after the session.
 """
 
 import json
-import socket
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[2]
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _free_port() -> int:
-    """Find an available TCP port."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-
-def _wait_for_server(port: int, timeout: float = 30.0) -> bool:
-    """Block until the server accepts TCP connections or timeout."""
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            with socket.create_connection(("127.0.0.1", port), timeout=1):
-                return True
-        except OSError:
-            time.sleep(0.3)
-    return False
+from tests.e2e._helpers import (
+    ROOT,
+    _free_port,
+    _wait_for_server,
+    # Re-export helpers so existing `from tests.e2e.conftest import X` works
+    get_first_meeting_id,
+    open_meeting_detail,
+    close_all_data_panels,
+    PANEL_IDS_TO_CLOSE,
+    CLOSE_PANELS_JS,
+    close_all_storm_panels,
+    open_storm_portfolio,
+    close_storm_portfolio,
+    cpf_close_all_panels,
+    cpf_open_gauge_panel,
+    cpf_open_trading_desk,
+    ps_close_all_panels,
+    ps_open_trading_desk,
+    ps_close_trading_desk,
+    td_close_all_panels,
+    td_open_trading_desk,
+    td_close_trading_desk,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -198,12 +196,7 @@ def trade_data(base_url):
 
 @pytest.fixture(scope="session")
 def first_traded_gauge_id():
-    """Return a gauge ID that has open (non-closed) trades.
-
-    This is the primary gauge fixture — tests that open gauge panels,
-    check blotter links, or price PRS trades need a gauge with real
-    outstanding positions.
-    """
+    """Return a gauge ID that has open (non-closed) trades."""
     # Trades live in data/input/<catchment>/prs/
     prs_dir = ROOT / "data" / "input" / "thames" / "prs"
     if not prs_dir.exists():
@@ -231,12 +224,7 @@ def first_traded_gauge_id():
 
 @pytest.fixture(scope="session")
 def first_gauge_id(first_traded_gauge_id):
-    """Return a gauge ID for targeted tests.
-
-    Delegates to first_traded_gauge_id so ALL gauge panel tests use a
-    gauge that has open trades. This ensures blotter links, PRS pricing,
-    and P&L tests have real data to work with.
-    """
+    """Return a gauge ID for targeted tests."""
     return first_traded_gauge_id
 
 
