@@ -111,44 +111,65 @@ def get_js():
                     '</tr></thead>' +
                     '<tbody>' + compRows + '</tbody></table>';
 
-                // ---- Basis Waterfall (Spec Section 4) ----
-                var bw = phcData.basis_waterfall || {};
-                var wfRows = '';
-                var wfItems = [
-                    ['Model Uncertainty', bw.model_uncertainty_bp || 0, '\\u00B12bp fixed'],
-                    ['Distance', bw.distance_bp || 0, (bw.weighted_distance_km || 0).toFixed(1) + 'km weighted'],
-                    ['Elevation', bw.elevation_bp || 0, (bw.elevation_diff_m || 0).toFixed(1) + 'm diff'],
-                    ['Terrain', bw.terrain_bp || 0, bw.flood_zone || 'Zone 1'],
-                    ['Composition', bw.composition_bp || 0, (bw.property_type || 'Detached') + (bw.construction_year < 2000 ? ' (pre-2000)' : '')]
-                ];
-                wfItems.forEach(function(item) {
-                    var val = item[1];
-                    var sign = val >= 0 ? '+' : '';
-                    var color = val > 0 ? '#E65100' : val < 0 ? '#2E7D32' : '#666';
-                    wfRows +=
-                        '<tr>' +
-                        '<td style="padding:2px 6px;font-size:10px;">' + item[0] + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + color + ';">' + sign + val.toFixed(1) + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">' + item[2] + '</td>' +
-                        '</tr>';
-                });
-                var totalBasis = bw.total_basis_bp || 0;
-                var totalSign = totalBasis >= 0 ? '+' : '';
-                wfRows +=
-                    '<tr style="border-top:2px solid #333;font-weight:bold;background:#FFF3E0;">' +
-                    '<td style="padding:3px 6px;">Total Basis</td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:#E65100;">' + totalSign + totalBasis.toFixed(1) + ' bp</td>' +
-                    '<td style="padding:3px 6px;text-align:right;font-size:9px;">Recovery: ' + (result.recovery * 100).toFixed(0) + '%</td>' +
-                    '</tr>';
+                // ---- Spread Decomposition ----
+                var sd = phcData.spread_decomposition || {};
+                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var propSpread = sd.property_spread_bps || 0;
+                var shdSpread = sd.shd_spread_bps || 0;
+                var sheSpread = sd.she_spread_bps || 0;
+                var df = sd.distance_first || {};
+                var ef = sd.elevation_first || {};
+
+                var totalBasis = propSpread - gaugeSpread;
+
+                var sdRows = '';
+                // Path 1: Distance first
+                sdRows +=
+                    '<tr style="background:#E3F2FD;">' +
+                    '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:#1565C0;">Path 1: Distance First</td></tr>';
+                sdRows +=
+                    '<tr><td style="padding:2px 6px;font-size:10px;">Gauge Spread</td>' +
+                    '<td style="padding:2px 6px;text-align:right;font-weight:600;">' + gaugeSpread.toFixed(1) + '</td>' +
+                    '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">baseline</td></tr>';
+                var distEff1 = df.distance_effect_bps || 0;
+                sdRows +=
+                    '<tr><td style="padding:2px 6px;font-size:10px;">Distance Effect</td>' +
+                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (distEff1 < 0 ? '#2E7D32' : '#E65100') + ';">' + (distEff1 >= 0 ? '+' : '') + distEff1.toFixed(1) + '</td>' +
+                    '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">SHE=' + sheSpread.toFixed(1) + 'bp</td></tr>';
+                var elevEff1 = df.elevation_effect_bps || 0;
+                sdRows +=
+                    '<tr><td style="padding:2px 6px;font-size:10px;">Elevation Effect</td>' +
+                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (elevEff1 < 0 ? '#2E7D32' : '#E65100') + ';">' + (elevEff1 >= 0 ? '+' : '') + elevEff1.toFixed(1) + '</td>' +
+                    '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">\\u2192 property</td></tr>';
+                // Path 2: Elevation first
+                sdRows +=
+                    '<tr style="background:#FFF3E0;">' +
+                    '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:#E65100;">Path 2: Elevation First</td></tr>';
+                var elevEff2 = ef.elevation_effect_bps || 0;
+                sdRows +=
+                    '<tr><td style="padding:2px 6px;font-size:10px;">Elevation Effect</td>' +
+                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (elevEff2 < 0 ? '#2E7D32' : '#E65100') + ';">' + (elevEff2 >= 0 ? '+' : '') + elevEff2.toFixed(1) + '</td>' +
+                    '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">SHD=' + shdSpread.toFixed(1) + 'bp</td></tr>';
+                var distEff2 = ef.distance_effect_bps || 0;
+                sdRows +=
+                    '<tr><td style="padding:2px 6px;font-size:10px;">Distance Effect</td>' +
+                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (distEff2 < 0 ? '#2E7D32' : '#E65100') + ';">' + (distEff2 >= 0 ? '+' : '') + distEff2.toFixed(1) + '</td>' +
+                    '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">\\u2192 property</td></tr>';
+                // Property row
+                sdRows +=
+                    '<tr style="border-top:2px solid #333;font-weight:bold;background:#E8F5E9;">' +
+                    '<td style="padding:3px 6px;">Property Spread</td>' +
+                    '<td style="padding:3px 6px;text-align:right;color:#1976D2;">' + propSpread.toFixed(1) + ' bp</td>' +
+                    '<td style="padding:3px 6px;text-align:right;font-size:9px;">Recovery: ' + (result.recovery * 100).toFixed(0) + '%</td></tr>';
 
                 var waterfallTable =
                     '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:monospace;margin-top:4px;">' +
                     '<thead><tr style="background:#FFF8E1;border-bottom:1px solid #FFE082;">' +
-                    '<th style="padding:2px 6px;text-align:left;font-size:10px;">Basis Component</th>' +
-                    '<th style="padding:2px 6px;text-align:right;font-size:10px;">Adj (bp)</th>' +
+                    '<th style="padding:2px 6px;text-align:left;font-size:10px;">Spread Decomposition</th>' +
+                    '<th style="padding:2px 6px;text-align:right;font-size:10px;">bps</th>' +
                     '<th style="padding:2px 6px;text-align:right;font-size:10px;">Detail</th>' +
                     '</tr></thead>' +
-                    '<tbody>' + wfRows + '</tbody></table>';
+                    '<tbody>' + sdRows + '</tbody></table>';
 
                 // ---- Right side: Cashflow table + bar chart ----
                 var cfRows = '';
@@ -280,13 +301,13 @@ def get_js():
                     '<span style="color:' + npvColor + ';"><b>NPV:</b> ' + fmtMoney(result.npv) + ' (' + npvLabel + ')</span>',
                     '<span><b>Premium:</b> ' + fmtMoney(result.totalPremPV) + '</span>',
                     '<span><b>Protection:</b> ' + fmtMoney(result.totalProtPV) + '</span>',
-                    '<span><b>Waterfall:</b> <span style="color:#E65100;">+' + totalBasis.toFixed(1) + 'bp</span></span>',
+                    '<span><b>Spread:</b> <span style="color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span> / Gauge: ' + gaugeSpread.toFixed(1) + 'bp</span>',
                     '<span><b>Recovery:</b> ' + (result.recovery * 100).toFixed(0) + '%</span>',
                     commitBtn
                 ].join('');
 
                 document.getElementById('phc-status').textContent =
                     triggerLabel + ' trigger | ' + result.tenor + 'yr | Fair=' +
-                    result.fairSpreadBps.toFixed(1) + 'bps | Waterfall=+' + totalBasis.toFixed(1) + 'bp | R=' + (result.recovery * 100).toFixed(0) + '%';
+                    result.fairSpreadBps.toFixed(1) + 'bps | Prop=' + propSpread.toFixed(1) + 'bp | Gauge=' + gaugeSpread.toFixed(1) + 'bp | R=' + (result.recovery * 100).toFixed(0) + '%';
             }
 """

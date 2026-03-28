@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -38,6 +38,74 @@ from . import propertyts_bp, _get_propertyts_dir
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+def _build_gauge_lookup(gauge_data):
+    """Parse gauge JSON into a lookup dict keyed by GaugeID."""
+    gauge_lookup = {}
+    for g in gauge_data.get('flood_gauges', []):
+        fg = g.get('FloodGauge', {})
+        hdr = fg.get('Header', {})
+        sensor = fg.get('SensorDetails', {}).get('GaugeInformation', {})
+        flood_stage = fg.get('FloodStage', {}).get('UK', {})
+        gid = hdr.get('GaugeID')
+        gauge_lookup[gid] = {
+            'gauge_id': gid,
+            'name': hdr.get('GaugeName', ''),
+            'lat': sensor.get('GaugeLatitude', 0),
+            'lon': sensor.get('GaugeLongitude', 0),
+            'elevation': sensor.get('GroundLevelMeters', 0),
+            'alert_level': flood_stage.get('FloodAlert', 0),
+            'warning_level': flood_stage.get('FloodWarning', 0),
+            'severe_level': flood_stage.get('SevereFloodWarning', 0),
+        }
+    return gauge_lookup
+
+
+def _load_gauge_readings(gaugets_dir):
+    """Load gauge timeseries readings from GAUGE-*.json files."""
+    gauge_readings = {}
+    for gf in gaugets_dir.glob('GAUGE-*.json'):
+        with open(gf, 'r') as f:
+            gdata = json.load(f)
+        gid = gdata.get('gauge_id', gf.stem)
+        readings = gdata.get('flood_simulation', {}).get('readings', [])
+        gauge_readings[gid] = readings
+    return gauge_readings
+
+
+def _build_gauge_frame(gauge_lookup, gauge_readings, hour):
+    """Build gauge states for a single animation frame."""
+    gauge_states = []
+    for gid, ginfo in gauge_lookup.items():
+        readings = gauge_readings.get(gid, [])
+        level = 0
+        if hour < len(readings):
+            r = readings[hour]
+            level = r.get('waterLevel', r.get('water_level_m', 0))
+        gauge_states.append({
+            'gauge_id': gid,
+            'name': ginfo.get('name', ''),
+            'lat': ginfo['lat'],
+            'lon': ginfo['lon'],
+            'water_level_m': level,
+            'alert_level': ginfo['alert_level'],
+            'status': (
+                'severe' if level >= ginfo['severe_level'] else
+                'warning' if level >= ginfo['warning_level'] else
+                'alert' if level >= ginfo['alert_level'] else
+                'normal'
+            ),
+        })
+    return gauge_states
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+
 @propertyts_bp.route('/propertyts/animate/<storm_id>', methods=['GET', 'OPTIONS'])
 def animate_storm(storm_id: str):
     """
@@ -56,38 +124,13 @@ def animate_storm(storm_id: str):
             'message': 'Property flood timeseries not yet generated'
         }), 404
 
-    # Load gauge data for positions and flood stages
+    # Load gauge data and readings
     gauge_path = config.get_input_path('gauge.json')
     with open(gauge_path, 'r') as f:
         gauge_data = json.load(f)
 
-    gauge_lookup = {}
-    for g in gauge_data.get('flood_gauges', []):
-        fg = g.get('FloodGauge', {})
-        hdr = fg.get('Header', {})
-        sensor = fg.get('SensorDetails', {}).get('GaugeInformation', {})
-        flood_stage = fg.get('FloodStage', {}).get('UK', {})
-        gid = hdr.get('GaugeID')
-        gauge_lookup[gid] = {
-            'gauge_id': gid,
-            'name': hdr.get('GaugeName', ''),
-            'lat': sensor.get('GaugeLatitude', 0),
-            'lon': sensor.get('GaugeLongitude', 0),
-            'elevation': sensor.get('GroundLevelMeters', 0),
-            'alert_level': flood_stage.get('FloodAlert', 0),
-            'warning_level': flood_stage.get('FloodWarning', 0),
-            'severe_level': flood_stage.get('SevereFloodWarning', 0),
-        }
-
-    # Load gauge timeseries for this storm's gauge readings
-    gaugets_dir = config.get_gaugets_dir()
-    gauge_readings = {}
-    for gf in gaugets_dir.glob('GAUGE-*.json'):
-        with open(gf, 'r') as f:
-            gdata = json.load(f)
-        gid = gdata.get('gauge_id', gf.stem)
-        readings = gdata.get('flood_simulation', {}).get('readings', [])
-        gauge_readings[gid] = readings
+    gauge_lookup = _build_gauge_lookup(gauge_data)
+    gauge_readings = _load_gauge_readings(config.get_gaugets_dir())
 
     # Collect all properties affected by this storm
     property_events = []
@@ -124,28 +167,7 @@ def animate_storm(storm_id: str):
     n_hours = STORM_HOURS
     frames = []
     for hour in range(n_hours):
-        gauge_states = []
-        for gid, ginfo in gauge_lookup.items():
-            readings = gauge_readings.get(gid, [])
-            if hour < len(readings):
-                r = readings[hour]
-                level = r.get('waterLevel', r.get('water_level_m', 0))
-            else:
-                level = 0
-            gauge_states.append({
-                'gauge_id': gid,
-                'name': ginfo.get('name', ''),
-                'lat': ginfo['lat'],
-                'lon': ginfo['lon'],
-                'water_level_m': level,
-                'alert_level': ginfo['alert_level'],
-                'status': (
-                    'severe' if level >= ginfo['severe_level'] else
-                    'warning' if level >= ginfo['warning_level'] else
-                    'alert' if level >= ginfo['alert_level'] else
-                    'normal'
-                ),
-            })
+        gauge_states = _build_gauge_frame(gauge_lookup, gauge_readings, hour)
 
         prop_states = []
         for pe in property_events:
@@ -213,37 +235,13 @@ def animate_composite():
             'message': 'Property flood timeseries not yet generated'
         }), 404
 
-    # Load gauge data
+    # Load gauge data and readings
     gauge_path = config.get_input_path('gauge.json')
     with open(gauge_path, 'r') as f:
         gauge_data = json.load(f)
 
-    gauge_lookup = {}
-    for g in gauge_data.get('flood_gauges', []):
-        fg = g.get('FloodGauge', {})
-        hdr = fg.get('Header', {})
-        sensor = fg.get('SensorDetails', {}).get('GaugeInformation', {})
-        flood_stage = fg.get('FloodStage', {}).get('UK', {})
-        gid = hdr.get('GaugeID')
-        gauge_lookup[gid] = {
-            'gauge_id': gid,
-            'name': hdr.get('GaugeName', ''),
-            'lat': sensor.get('GaugeLatitude', 0),
-            'lon': sensor.get('GaugeLongitude', 0),
-            'alert_level': flood_stage.get('FloodAlert', 0),
-            'warning_level': flood_stage.get('FloodWarning', 0),
-            'severe_level': flood_stage.get('SevereFloodWarning', 0),
-        }
-
-    # Load gauge readings (use first available set)
-    gaugets_dir = config.get_gaugets_dir()
-    gauge_readings = {}
-    for gf in gaugets_dir.glob('GAUGE-*.json'):
-        with open(gf, 'r') as f:
-            gdata = json.load(f)
-        gid = gdata.get('gauge_id', gf.stem)
-        readings = gdata.get('flood_simulation', {}).get('readings', [])
-        gauge_readings[gid] = readings
+    gauge_lookup = _build_gauge_lookup(gauge_data)
+    gauge_readings = _load_gauge_readings(config.get_gaugets_dir())
 
     # For each property, find worst storm event
     property_events = []
@@ -278,26 +276,7 @@ def animate_composite():
     n_hours = STORM_HOURS
     frames = []
     for hour in range(n_hours):
-        gauge_states = []
-        for gid, ginfo in gauge_lookup.items():
-            readings = gauge_readings.get(gid, [])
-            level = 0
-            if hour < len(readings):
-                r = readings[hour]
-                level = r.get('waterLevel', r.get('water_level_m', 0))
-            gauge_states.append({
-                'gauge_id': gid,
-                'name': ginfo.get('name', ''),
-                'lat': ginfo['lat'],
-                'lon': ginfo['lon'],
-                'water_level_m': level,
-                'status': (
-                    'severe' if level >= ginfo['severe_level'] else
-                    'warning' if level >= ginfo['warning_level'] else
-                    'alert' if level >= ginfo['alert_level'] else
-                    'normal'
-                ),
-            })
+        gauge_states = _build_gauge_frame(gauge_lookup, gauge_readings, hour)
 
         prop_states = []
         for pe in property_events:

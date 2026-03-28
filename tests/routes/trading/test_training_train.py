@@ -238,8 +238,6 @@ class TestTrainSingleGauge:
             "port.src.storm_multi.utils.serialization": __import__("unittest.mock", fromlist=["MagicMock"]).MagicMock(),
         }), patch(
             "routes.trading.stress.training._update_training_summary"
-        ), patch(
-            "routes.trading.stress._helpers._invalidate_predictor_cache"
         ):
             from unittest.mock import MagicMock
 

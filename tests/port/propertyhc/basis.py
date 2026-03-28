@@ -1,156 +1,107 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
-# internal business operations intended for commercial advantage, or
-# research and development conducted for a commercial entity, is expressly
-# prohibited unless separately authorized in writing by MKM Research Labs.
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only.
 
-# Use, reproduction, distribution, or modification of this code is subject to the
-# terms and conditions of the license agreement provided with this software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""Tests for basis waterfall calculation and edge cases."""
+"""Tests for spread decomposition (replaces old basis waterfall tests)."""
 
 import json
 
 import pytest
 
-from port.src.property.propertyhc import (
-    COMPOSITION_BASIS_BPS,
-    DISTANCE_MAX_BPS,
-    ELEVATION_MAX_BENEFIT_BPS,
-    MODEL_UNCERTAINTY_BPS,
-    TERRAIN_BASIS_BPS,
-    PropertyHazardCurveGenerator,
-)
+from port.src.property.propertyhc import PropertyHazardCurveGenerator
 
 
-class TestBasisWaterfall:
-    """Test the 5-component basis waterfall calculation."""
+class TestSpreadDecomposition:
+    """Test the data-driven spread decomposition."""
 
-    def _make_pdata(self, **overrides):
-        pdata = {
-            "elevation_m": 4.0,
-            "flood_zone": "Zone 1",
-            "property_type": "Detached",
-            "construction_year": 2005,
-        }
-        pdata.update(overrides)
-        return pdata
-
-    def _make_gauges(self, distances_m=None, gauge_elevs=None):
-        if distances_m is None:
-            distances_m = [1000]
-        if gauge_elevs is None:
-            gauge_elevs = [3.5]
-        return [
-            {"gauge_id": f"G-{i}", "distance_m": d, "gauge_elevation_m": e}
-            for i, (d, e) in enumerate(zip(distances_m, gauge_elevs))
-        ]
-
-    def test_model_uncertainty_is_fixed(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(self._make_pdata(), self._make_gauges())
-        assert result["model_uncertainty_bp"] == MODEL_UNCERTAINTY_BPS
-
-    def test_distance_basis_scales_linearly(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(), self._make_gauges(distances_m=[2000]))
-        assert result["distance_bp"] == pytest.approx(1.0, abs=0.1)
-
-    def test_distance_basis_capped(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(), self._make_gauges(distances_m=[20000]))
-        assert result["distance_bp"] == DISTANCE_MAX_BPS
-
-    def test_elevation_above_gauge_reduces_spread(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(elevation_m=8.5), self._make_gauges(gauge_elevs=[3.5]))
-        assert result["elevation_bp"] == pytest.approx(-1.0, abs=0.1)
-
-    def test_elevation_below_gauge_no_benefit(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(elevation_m=2.0), self._make_gauges(gauge_elevs=[3.5]))
-        assert result["elevation_bp"] == 0.0
-
-    def test_elevation_capped_at_3bp(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(elevation_m=33.5), self._make_gauges(gauge_elevs=[3.5]))
-        assert result["elevation_bp"] == -ELEVATION_MAX_BENEFIT_BPS
-
-    def test_terrain_zone3_high_risk(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(flood_zone="Zone 3a"), self._make_gauges())
-        assert result["terrain_bp"] == TERRAIN_BASIS_BPS["Zone 3a"]
-
-    def test_terrain_zone1_low_risk(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(flood_zone="Zone 1"), self._make_gauges())
-        assert result["terrain_bp"] == 0.0
-
-    def test_composition_flat_penalty(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(property_type="Flat", construction_year=2005),
-            self._make_gauges())
-        assert result["composition_bp"] == COMPOSITION_BASIS_BPS["Flat"]
-
-    def test_composition_pre2000_penalty(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        result = gen._compute_basis_waterfall(
-            self._make_pdata(property_type="Detached", construction_year=1990),
-            self._make_gauges())
-        assert result["composition_bp"] == 1.0
-
-    def test_total_basis_sums_components(self, output_dir):
-        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        pdata = self._make_pdata(
-            elevation_m=5.5, flood_zone="Zone 2",
-            property_type="Flat", construction_year=1990
-        )
-        result = gen._compute_basis_waterfall(
-            pdata, self._make_gauges(distances_m=[4000], gauge_elevs=[3.5]))
-
-        expected_total = (
-            result["model_uncertainty_bp"] + result["distance_bp"] +
-            result["elevation_bp"] + result["terrain_bp"] + result["composition_bp"]
-        )
-        assert result["total_basis_bp"] == pytest.approx(expected_total, abs=0.1)
-
-    def test_basis_waterfall_in_generated_output(self, output_dir):
+    def test_decomposition_attached_after_post_processing(self, output_dir):
+        """After attach_spread_decomposition, propertyhc.json has decomposition."""
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gen.generate()
+
+        # Generate shd and she variants
+        shd_gen = PropertyHazardCurveGenerator(output_dir, verbose=False, mode="shd")
+        she_gen = PropertyHazardCurveGenerator(output_dir, verbose=False, mode="she")
+
+        # Create propertytsd and propertytse dirs (copy from propertyts)
+        import shutil
+        pts_dir = output_dir / "propertyts"
+        for variant in ["propertytsd", "propertytse"]:
+            dest = output_dir / variant
+            if not dest.exists():
+                shutil.copytree(pts_dir, dest)
+
+        shd_gen.generate()
+        she_gen.generate()
+
+        # Now attach decomposition
+        gen.attach_spread_decomposition()
 
         with open(output_dir / "propertyhc.json") as f:
             data = json.load(f)
 
-        bw1 = data["property_hazard_curves"]["PROP-001"]["basis_waterfall"]
-        assert bw1["model_uncertainty_bp"] == 2.0
-        assert bw1["terrain_bp"] == 2.0
-        assert bw1["flood_zone"] == "Zone 2"
-        assert bw1["property_type"] == "Semi-detached"
-        assert bw1["construction_year"] == 1995
-        assert bw1["composition_bp"] == 1.0
+        for prop_id, pc in data["property_hazard_curves"].items():
+            assert "spread_decomposition" in pc, f"{prop_id} missing decomposition"
+            sd = pc["spread_decomposition"]
+            assert "gauge_spread_bps" in sd
+            assert "property_spread_bps" in sd
+            assert "shd_spread_bps" in sd
+            assert "she_spread_bps" in sd
+            assert "distance_first" in sd
+            assert "elevation_first" in sd
 
-        bw3 = data["property_hazard_curves"]["PROP-003"]["basis_waterfall"]
-        assert bw3["terrain_bp"] == 3.0
-        assert bw3["composition_bp"] == 3.0
+    def test_decomposition_paths_sum_correctly(self, output_dir):
+        """Both decomposition paths should arrive at the property spread."""
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        import shutil
+        pts_dir = output_dir / "propertyts"
+        for variant in ["propertytsd", "propertytse"]:
+            dest = output_dir / variant
+            if not dest.exists():
+                shutil.copytree(pts_dir, dest)
+
+        PropertyHazardCurveGenerator(output_dir, verbose=False, mode="shd").generate()
+        PropertyHazardCurveGenerator(output_dir, verbose=False, mode="she").generate()
+        gen.attach_spread_decomposition()
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        for prop_id, pc in data["property_hazard_curves"].items():
+            sd = pc["spread_decomposition"]
+            gauge = sd["gauge_spread_bps"]
+            prop = sd["property_spread_bps"]
+
+            # Path 1: gauge + distance_effect + elevation_effect = property
+            df = sd["distance_first"]
+            path1 = gauge + df["distance_effect_bps"] + df["elevation_effect_bps"]
+            assert abs(path1 - prop) < 0.1, f"{prop_id}: distance-first path {path1} != {prop}"
+
+            # Path 2: gauge + elevation_effect + distance_effect = property
+            ef = sd["elevation_first"]
+            path2 = gauge + ef["elevation_effect_bps"] + ef["distance_effect_bps"]
+            assert abs(path2 - prop) < 0.1, f"{prop_id}: elevation-first path {path2} != {prop}"
+
+    def test_decomposition_without_synthetic_files(self, output_dir):
+        """Without shd/she files, decomposition still works (zeros)."""
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        # Don't generate shd/she — attach_spread_decomposition should handle gracefully
+        n = gen.attach_spread_decomposition()
+        assert n > 0
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        for prop_id, pc in data["property_hazard_curves"].items():
+            sd = pc["spread_decomposition"]
+            # shd and she spreads should be 0 (files not found)
+            assert sd["shd_spread_bps"] == 0.0
+            assert sd["she_spread_bps"] == 0.0
 
 
 class TestEdgeCases:

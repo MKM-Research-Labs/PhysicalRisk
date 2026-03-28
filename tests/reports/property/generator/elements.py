@@ -33,49 +33,49 @@ class TestGenerateElements:
 
     def test_returns_list(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
-        elements = gen._generate_elements(prop_data, None, ["title_overview"])
+        elements = gen._generate_elements(["title_overview"], property_data=prop_data, mortgage_data=None)
         assert isinstance(elements, list)
 
     def test_empty_page_list(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
-        assert gen._generate_elements(prop_data, None, []) == []
+        assert gen._generate_elements([], property_data=prop_data, mortgage_data=None) == []
 
     def test_unknown_page_skipped(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
-        elements = gen._generate_elements(prop_data, None, ["totally_bogus_xyz"])
+        elements = gen._generate_elements(["totally_bogus_xyz"], property_data=prop_data, mortgage_data=None)
         assert len(elements) == 0
 
     def test_multiple_pages_have_page_breaks(self, tmp_path, prop_data):
         from reportlab.platypus import PageBreak
         gen = make_generator(tmp_path)
-        elements = gen._generate_elements(prop_data, None, ["title_overview", "location"])
+        elements = gen._generate_elements(["title_overview", "location"], property_data=prop_data, mortgage_data=None)
         assert any(isinstance(e, PageBreak) for e in elements)
 
     def test_first_page_no_page_break(self, tmp_path, prop_data):
         from reportlab.platypus import PageBreak
         gen = make_generator(tmp_path)
-        elements = gen._generate_elements(prop_data, None, ["title_overview"])
+        elements = gen._generate_elements(["title_overview"], property_data=prop_data, mortgage_data=None)
         assert not any(isinstance(e, PageBreak) for e in elements)
 
     def test_exception_in_page_module_continues(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
         bad = MagicMock()
         bad.generate_elements.side_effect = RuntimeError("page exploded")
-        gen.property_pages["_bad"] = bad
-        elements = gen._generate_elements(prop_data, None, ["_bad", "title_overview"])
+        gen.pages["_bad"] = bad
+        elements = gen._generate_elements(["_bad", "title_overview"], property_data=prop_data, mortgage_data=None)
         assert isinstance(elements, list)
         assert len(elements) > 0
 
     def test_mortgage_data_passed_to_page(self, tmp_path, prop_data, mort_data):
         gen = make_generator(tmp_path)
-        spy = MagicMock(wraps=gen.property_pages["title_overview"])
-        gen.property_pages["title_overview"] = spy
-        gen._generate_elements(prop_data, mort_data, ["title_overview"])
-        spy.generate_elements.assert_called_once_with(prop_data, mort_data)
+        spy = MagicMock(wraps=gen.pages["title_overview"])
+        gen.pages["title_overview"] = spy
+        gen._generate_elements(["title_overview"], property_data=prop_data, mortgage_data=mort_data)
+        spy.generate_elements.assert_called_once_with(property_data=prop_data, mortgage_data=mort_data)
 
     def test_mixed_valid_and_unknown_pages(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
-        elements = gen._generate_elements(prop_data, None, ["title_overview", "bogus_page_abc"])
+        elements = gen._generate_elements(["title_overview", "bogus_page_abc"], property_data=prop_data, mortgage_data=None)
         assert len(elements) > 0
 
 

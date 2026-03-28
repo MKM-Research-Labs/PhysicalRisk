@@ -131,22 +131,22 @@ class TestSpecialisedReportMethods:
 
     def test_mortgage_focused_includes_mortgage_overview(self, tmp_path, prop_data, mort_data):
         gen = make_generator(tmp_path)
-        spy = MagicMock(wraps=gen.property_pages["mortgage_overview"])
-        gen.property_pages["mortgage_overview"] = spy
+        spy = MagicMock(wraps=gen.pages["mortgage_overview"])
+        gen.pages["mortgage_overview"] = spy
         gen.generate_mortgage_focused_report(prop_data, mort_data)
         spy.generate_elements.assert_called_once()
 
     def test_risk_focused_with_mortgage_includes_current_status(self, tmp_path, prop_data, mort_data):
         gen = make_generator(tmp_path)
-        spy = MagicMock(wraps=gen.property_pages["current_status"])
-        gen.property_pages["current_status"] = spy
+        spy = MagicMock(wraps=gen.pages["current_status"])
+        gen.pages["current_status"] = spy
         gen.generate_risk_focused_report(prop_data, mort_data)
         spy.generate_elements.assert_called_once()
 
     def test_risk_focused_without_mortgage_excludes_current_status(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
-        spy = MagicMock(wraps=gen.property_pages["current_status"])
-        gen.property_pages["current_status"] = spy
+        spy = MagicMock(wraps=gen.pages["current_status"])
+        gen.pages["current_status"] = spy
         gen.generate_risk_focused_report(prop_data)
         spy.generate_elements.assert_not_called()
 
@@ -179,7 +179,7 @@ class TestEdgeCases:
 
     def test_report_with_all_pages(self, tmp_path, prop_data, mort_data):
         gen = make_generator(tmp_path)
-        all_pages = list(gen.property_pages.keys())
+        all_pages = list(gen.pages.keys())
         path = gen.generate_report(prop_data, mortgage_data=mort_data, pages_to_include=all_pages)
         assert path.exists()
         assert path.stat().st_size > 0

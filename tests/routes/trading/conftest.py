@@ -224,7 +224,6 @@ def stress_env(trading_env):
     # Clear cached data
     import routes.trading.stress._helpers as stress_helpers
     stress_helpers._stress_index_cache = None
-    stress_helpers._predictor_cache = None
 
     return trading_env
 
@@ -272,8 +271,6 @@ def port_stress_env(trading_env):
 
     import routes.trading.stress._helpers as stress_helpers
     stress_helpers._stress_index_cache = None
-    import routes.trading.port_stress as ps_mod
-    ps_mod._stressm_predictor_cache = None
     trading_env['gaugets_dir'] = gaugets_dir
     return trading_env
 

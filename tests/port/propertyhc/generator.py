@@ -76,16 +76,7 @@ class TestPropertyHazardCurveGenerator:
         assert "depth_thresholds" in prop1
         assert "term_structure" in prop1
         assert "nearest_gauges" in prop1
-        assert "basis_waterfall" in prop1
         assert "summary" in prop1
-
-        bw = prop1["basis_waterfall"]
-        assert "model_uncertainty_bp" in bw
-        assert "distance_bp" in bw
-        assert "elevation_bp" in bw
-        assert "terrain_bp" in bw
-        assert "composition_bp" in bw
-        assert "total_basis_bp" in bw
 
         prop2 = curves["PROP-002"]
         assert prop2["has_gev"] is False

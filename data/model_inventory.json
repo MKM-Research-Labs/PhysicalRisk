@@ -3847,6 +3847,190 @@
         "mrc_override_by": null,
         "last_calculated": "2026-03-27T09:47:25.961251"
       }
+    },
+    {
+      "model_id": "MKM-FPO-001",
+      "name": "Flood Polynomial Model",
+      "short_name": "Flood Poly",
+      "description": "Logistic sigmoid with quadratic polynomial kernel approximating the GBM flood classifier. Maps log-space water level ln(w/s) and storm time ln((t+1)/T) to P(flood) via six fitted coefficients. R\u00b2=0.94 against the full GBM surface. Used for portfolio stress (time-independent variant) and single-gauge stress scenarios.",
+      "category": "Stress Testing",
+      "tier": 3,
+      "materiality": "Low",
+      "complexity": "Low",
+      "tier_rationale": "Low materiality: approximation of existing GBM classifier for portfolio-level stress. Low complexity: closed-form logistic sigmoid with 6 fixed coefficients, no training required.",
+      "status": "Active",
+      "lifecycle_stage": "Development",
+      "version": "1.0.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/models/stress/flood_poly.py",
+      "methodology": "Nonlinear least-squares fit of logistic sigmoid to GBM probability surface",
+      "alternatives_considered": [
+        "Linear interpolation",
+        "Step function",
+        "Cubic polynomial",
+        "Full GBM classifier"
+      ],
+      "methodology_rationale": "Quadratic sigmoid captures the essential water level \u00d7 time interaction with only 6 parameters. Linear interpolation loses the time dimension; step functions create discontinuities; cubic adds marginal accuracy (MAE 0.033 vs 0.046) with more parameters; full GBM requires per-gauge trained models which are not always available.",
+      "assumptions": [
+        {
+          "id": "FPO-A1",
+          "description": "Coefficients fitted from a single gauge are generalizable across gauges",
+          "impact": "Medium",
+          "monitoring": "Compare polynomial P(flood) vs GBM P(flood) across multiple gauges",
+          "mitigation": "Refit coefficients on a panel of gauges if cross-gauge error exceeds 10%"
+        },
+        {
+          "id": "FPO-A2",
+          "description": "Quadratic polynomial is sufficient to approximate the GBM decision surface",
+          "impact": "Low",
+          "monitoring": "Track R\u00b2 and MAE against GBM surface at each retraining cycle",
+          "mitigation": "Upgrade to cubic polynomial if R\u00b2 drops below 0.90"
+        },
+        {
+          "id": "FPO-A3",
+          "description": "Delta features (velocity, acceleration) can be ignored without material loss of accuracy",
+          "impact": "Low",
+          "monitoring": "Compare polynomial predictions against 4-feature GBM at steady-state (\u0394w=0)",
+          "mitigation": "Add derivative interaction terms if steady-state assumption proves inadequate"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "FPO-L1",
+          "description": "Fitted from a single gauge (GAUGE-dc5e88fb) \u2014 may not generalize to all catchments",
+          "impact": "Medium",
+          "monitoring_trigger": "Cross-gauge MAE exceeds 0.10 against GBM baseline",
+          "compensating_control": "Use full GBM classifier where trained models are available"
+        },
+        {
+          "id": "FPO-L2",
+          "description": "Does not capture gauge-specific behaviour (catchment shape, response time)",
+          "impact": "Low",
+          "monitoring_trigger": "Systematic bias for specific gauge types (tidal, flashy, regulated)",
+          "compensating_control": "Manual review of polynomial vs GBM divergence during stress reporting"
+        }
+      ],
+      "known_failure_modes": [
+        "Extrapolation beyond the fitted water level range may produce implausible probabilities",
+        "At extreme early hours (hour 0-2), the polynomial may diverge from GBM predictions"
+      ],
+      "key_parameters": [
+        {
+          "name": "a (log_h_s)",
+          "value": 28.9582,
+          "description": "Coefficient for log water level h = ln(w/s)"
+        },
+        {
+          "name": "b (log_t)",
+          "value": -11.6351,
+          "description": "Coefficient for log storm time t = ln((hour+1)/168)"
+        },
+        {
+          "name": "c (h*t interaction)",
+          "value": 26.549,
+          "description": "Coefficient for water level \u00d7 time interaction"
+        },
+        {
+          "name": "d (h\u00b2 quadratic)",
+          "value": -22.8893,
+          "description": "Coefficient for quadratic water level term"
+        },
+        {
+          "name": "e (t\u00b2 quadratic)",
+          "value": -7.0794,
+          "description": "Coefficient for quadratic time term"
+        },
+        {
+          "name": "f (intercept)",
+          "value": -0.8872,
+          "description": "Intercept (bias) term"
+        }
+      ],
+      "input_data": "Water level (m AOD), storm hour index, severe flood threshold (m AOD) per gauge",
+      "output_data": "P(flood) probability estimate between 0 and 1",
+      "downstream_models": [],
+      "upstream_models": [
+        "MKM-FC-001"
+      ],
+      "validation_status": "Initial",
+      "validation_date": null,
+      "next_review_date": "2026-09-28",
+      "recertification_date": "2027-03-28",
+      "review_frequency": "Semi-annual",
+      "documents": [
+        {
+          "type": "Model Documentation",
+          "name": "Flood Polynomial Model Documentation",
+          "path": "docs/models/flood_poly/flood_poly.pdf"
+        }
+      ],
+      "change_history": [
+        {
+          "version": "1.0.0",
+          "date": "2026-03-28",
+          "author": "David K Kelly",
+          "type": "Initial",
+          "description": "Initial implementation of logistic sigmoid polynomial approximation to GBM flood classifier"
+        }
+      ],
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": false,
+        "benchmark_tests": false,
+        "test_file": "tests/models/stress/test_flood_poly.py"
+      },
+      "last_review_date": "2026-03-28",
+      "rag_rating": "Green",
+      "mrc_signoff_date": null,
+      "remediation_steps": [
+        {
+          "id": "FPO-R1",
+          "description": "Validate polynomial predictions against GBM on at least 10 additional gauges",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": "2026-06-30",
+          "status": "Open"
+        }
+      ],
+      "version_history": [
+        {
+          "version": "1.0.0",
+          "date": "2026-03-28",
+          "author": "David K Kelly",
+          "description": "Initial polynomial flood model fitted from GAUGE-dc5e88fb GBM classifier",
+          "document": "flood_poly.pdf"
+        }
+      ],
+      "governance_questions": {
+        "q1_ronseal": "Not Addressed",
+        "q2_accuracy": "Not Addressed",
+        "q3_resources": "Not Addressed",
+        "q4_overrides": "Not Addressed",
+        "q5_consumption": "Not Addressed",
+        "q6_chaining": "Not Addressed",
+        "q7_weaknesses": "Not Addressed",
+        "q8_monitoring": "Not Addressed",
+        "q9_overall_risk": "Not Addressed"
+      },
+      "overall_risk_rating": {
+        "calculated_rating": "Acceptable",
+        "calculated_score": 0.72,
+        "component_scores": {
+          "validation_coverage": 0.0,
+          "remediation_health": 1.0,
+          "review_currency": 1.0,
+          "assumption_risk": 0.9,
+          "limitation_risk": 0.9
+        },
+        "effective_rating": "Acceptable",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": "2026-03-28T09:00:00.000000"
+      }
     }
   ],
   "model_chain": {

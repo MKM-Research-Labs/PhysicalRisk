@@ -177,7 +177,6 @@ def integration_env(tmp_path, monkeypatch):
 
     import routes.trading.stress._helpers as stress_helpers
     stress_helpers._stress_index_cache = None
-    stress_helpers._predictor_cache = None
 
     from server import create_app
     app = create_app()

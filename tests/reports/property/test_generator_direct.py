@@ -101,7 +101,7 @@ class TestPropertyReportGeneratorDirect:
     def test_generate_elements_skips_unknown(self, tmp_path):
         """Lines 198-199: unknown page -> skip."""
         gen = self._gen(tmp_path)
-        elements = gen._generate_elements(_PROP_DATA, None, ["bogus"])
+        elements = gen._generate_elements(["bogus"], property_data=_PROP_DATA, mortgage_data=None)
         assert isinstance(elements, list)
 
     def test_generate_elements_exception_continues(self, tmp_path):
@@ -109,8 +109,8 @@ class TestPropertyReportGeneratorDirect:
         gen = self._gen(tmp_path)
         bad = MagicMock()
         bad.generate_elements.side_effect = RuntimeError("page crash")
-        gen.property_pages["bad_page"] = bad
-        elements = gen._generate_elements(_PROP_DATA, None, ["bad_page", "title_overview"])
+        gen.pages["bad_page"] = bad
+        elements = gen._generate_elements(["bad_page", "title_overview"], property_data=_PROP_DATA, mortgage_data=None)
         assert isinstance(elements, list)
 
     def test_generate_property_only_report(self, tmp_path):

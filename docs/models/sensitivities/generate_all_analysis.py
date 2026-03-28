@@ -52,6 +52,7 @@ MODEL_REGISTRY = {
     'gaugehd': ('GaugeHD Synthetic', 'gaugehd_synthetic', 'MKM-GHD-001'),
     'stress': ('Stress Test Pipeline', 'stressm_pipeline', 'MKM-ST-001'),
     'propflood': ('Property Flood Response', 'property_flood_response', 'MKM-PF-001'),
+    'floodpoly': ('Flood Polynomial Model', 'flood_poly', 'MKM-FPO-001'),
 }
 
 _docs_models = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

@@ -21,7 +21,6 @@
 """Tests for portfolio storm list, sorting, name display and intensity tie-breaker."""
 
 import json
-from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -73,8 +72,6 @@ class TestGetPortfolioStorms:
         """Returns 404 when stress_storms not found."""
         import routes.trading.stress._helpers as stress_helpers
         stress_helpers._stress_index_cache = None
-        import routes.trading.port_stress as ps_mod
-        ps_mod._stressm_predictor_cache = None
         resp = trading_client.get('/api/v1/trading/stress/portfolio-storms')
         assert resp.status_code == 404
 
@@ -93,12 +90,8 @@ class TestGetPortfolioStorms:
 class TestPortfolioStormSorting:
     """Gauge result ordering and trade detail structure."""
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_gauge_results_severe_before_warning(self, mock_pred, port_stress_client, port_stress_env):
+    def test_gauge_results_severe_before_warning(self, port_stress_client, port_stress_env):
         """In gauge_results, severe gauges appear before warning gauges."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -110,12 +103,8 @@ class TestPortfolioStormSorting:
         assert levels == sorted(levels), \
             "Severe gauges must appear before warning gauges in results"
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_gauge_results_warning_before_alert(self, mock_pred, port_stress_client, port_stress_env):
+    def test_gauge_results_warning_before_alert(self, port_stress_client, port_stress_env):
         """Warning gauges appear before alert gauges in results."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -128,12 +117,8 @@ class TestPortfolioStormSorting:
             assert levels[i] <= levels[i + 1], \
                 "Warning gauges must appear before alert gauges"
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_gauges_with_trades_have_trade_details(self, mock_pred, port_stress_client, port_stress_env):
+    def test_gauges_with_trades_have_trade_details(self, port_stress_client, port_stress_env):
         """Gauges with num_trades > 0 have non-empty trades list."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -143,13 +128,9 @@ class TestPortfolioStormSorting:
                 assert len(g['trades']) > 0, \
                     f"Gauge {g['gauge_id']} has num_trades={g['num_trades']} but empty trades list"
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_trade_details_fields(self, mock_pred, port_stress_client, port_stress_env):
+    def test_trade_details_fields(self, port_stress_client, port_stress_env):
         """Each trade has swap_id, trigger, notional, mtm, cash_price, stress_pnl,
         is_payer, tenor, counterparty."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})

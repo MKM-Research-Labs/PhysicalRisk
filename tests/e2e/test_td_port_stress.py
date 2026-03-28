@@ -71,7 +71,7 @@ class TestPortStressTab:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-portstress").click(force=True)
-        map_page.wait_for_timeout(6_000)  # classifier check + storm load
+        map_page.wait_for_timeout(4_000)  # storm load
         yield
         _close_trading_desk(map_page)
 
@@ -84,19 +84,12 @@ class TestPortStressTab:
     def test_has_storm_selector(self, map_page):
         """Storm selector dropdown should exist."""
         select = map_page.locator("#ps-storm-sel")
-        if select.count() == 0:
-            # May show classifier gate instead — check for train button
-            train_btn = map_page.locator("#ps-train-all-btn")
-            if train_btn.count() > 0:
-                pytest.skip("Classifiers not ready — training gate shown")
-            pytest.fail("No #ps-storm-sel found and no classifier gate")
-        assert select.count() > 0
+        assert select.count() > 0, "No #ps-storm-sel found"
 
     def test_storm_selector_has_options(self, map_page):
         """Storm selector should have at least one storm option."""
         select = map_page.locator("#ps-storm-sel")
-        if select.count() == 0:
-            pytest.skip("No storm selector (classifiers may not be ready)")
+        assert select.count() > 0, "No storm selector"
         options = select.locator("option")
         assert options.count() > 0, "Storm selector has no options"
 
@@ -108,17 +101,12 @@ class TestPortStressTab:
         for tab_id in ["ps-tab-pflood", "ps-tab-portpnl",
                         "ps-tab-gaugepnl", "ps-tab-severity"]:
             btn = map_page.locator(f"#{tab_id}")
-            if btn.count() == 0:
-                # Sub-tabs only appear after classifier gate passes
-                pytest.skip(f"Sub-tab #{tab_id} not found (classifier gate?)")
             assert btn.count() > 0, f"Sub-tab #{tab_id} not found"
 
     def test_has_stats_bar(self, map_page):
         """Stats bar should exist."""
         bar = map_page.locator("#ps-stats-bar")
-        if bar.count() == 0:
-            pytest.skip("No stats bar (classifiers may not be ready)")
-        assert bar.count() > 0
+        assert bar.count() > 0, "No stats bar"
 
     def test_has_content_area(self, map_page):
         """Main content div should exist."""
@@ -139,7 +127,7 @@ class TestPortStressPFlood:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-portstress").click(force=True)
-        map_page.wait_for_timeout(6_000)
+        map_page.wait_for_timeout(4_000)
 
         btn = map_page.locator("#ps-tab-pflood")
         if btn.count() == 0:
@@ -186,7 +174,7 @@ class TestPortStressPortPnL:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-portstress").click(force=True)
-        map_page.wait_for_timeout(6_000)
+        map_page.wait_for_timeout(4_000)
 
         btn = map_page.locator("#ps-tab-portpnl")
         if btn.count() == 0:
@@ -231,7 +219,7 @@ class TestPortStressGaugePnL:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-portstress").click(force=True)
-        map_page.wait_for_timeout(6_000)
+        map_page.wait_for_timeout(4_000)
 
         btn = map_page.locator("#ps-tab-gaugepnl")
         if btn.count() == 0:
@@ -276,7 +264,7 @@ class TestPortStressSeverity:
         _close_all_panels(map_page)
         _open_trading_desk(map_page)
         map_page.locator("#td-tab-portstress").click(force=True)
-        map_page.wait_for_timeout(6_000)
+        map_page.wait_for_timeout(4_000)
 
         btn = map_page.locator("#ps-tab-severity")
         if btn.count() == 0:

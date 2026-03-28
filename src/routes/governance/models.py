@@ -26,6 +26,7 @@
 """Model inventory routes: list, detail, update fields."""
 
 import logging
+from collections import Counter
 from datetime import datetime
 
 from flask import jsonify, request
@@ -33,6 +34,7 @@ from flask import jsonify, request
 from . import governance_bp
 from ._constants import EDITABLE_FIELDS
 from ._helpers import (
+    _find_model,
     _load_inventory,
     _save_inventory,
     _load_audit_log,
@@ -103,13 +105,9 @@ def get_models():
             "validation_coverage": _vq_summary(m),
         })
 
-    tier_counts = {}
-    category_counts = {}
-    status_counts = {}
-    for s in summary:
-        tier_counts[s["tier"]] = tier_counts.get(s["tier"], 0) + 1
-        category_counts[s["category"]] = category_counts.get(s["category"], 0) + 1
-        status_counts[s["review_status"]] = status_counts.get(s["review_status"], 0) + 1
+    tier_counts = Counter(s["tier"] for s in summary)
+    category_counts = Counter(s["category"] for s in summary)
+    status_counts = Counter(s["review_status"] for s in summary)
 
     return jsonify({
         "status": "success",
@@ -135,11 +133,7 @@ def update_model_field(model_id):
     if not inventory:
         return jsonify({"status": "error", "message": "Model inventory not found"}), 404
 
-    model = None
-    for m in inventory.get("models", []):
-        if m["model_id"] == model_id:
-            model = m
-            break
+    model = _find_model(inventory, model_id)
 
     if not model:
         return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
@@ -223,11 +217,7 @@ def get_model_detail(model_id):
     if not inventory:
         return jsonify({"status": "error", "message": "Model inventory not found"}), 404
 
-    model = None
-    for m in inventory.get("models", []):
-        if m["model_id"] == model_id:
-            model = m
-            break
+    model = _find_model(inventory, model_id)
 
     if not model:
         return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404

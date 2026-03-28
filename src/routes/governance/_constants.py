@@ -64,6 +64,7 @@ _MODEL_DOC_DIRS = {
     'MKM-GHD-001': 'gaugehd_synthetic',
     'MKM-ST-001': 'stressm_pipeline',
     'MKM-PF-001': 'property_flood_response',
+    'MKM-FPO-001': 'flood_poly',
 }
 
 VALID_VQ_STATUSES = ["Addressed", "Partially Addressed", "Not Addressed", "Not Applicable"]

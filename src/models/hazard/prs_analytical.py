@@ -21,29 +21,18 @@
 """
 Analytical PRS (Physical Risk Swap) pricing without QuantLib dependency.
 
-Implements quarterly CDS-equivalent pricing per PRS Property Pricing Spec Section 6.1,
-plus the 5-component basis waterfall per Spec Section 4.
+Implements quarterly CDS-equivalent pricing per PRS Property Pricing Spec Section 6.1.
 
 Functions:
     compute_prs_spread: Fair spread from hazard rate, tenor, recovery
-    compute_basis_waterfall: Distance/elevation/terrain/composition basis
 """
 
 import math
 from typing import Dict, List, Optional
 
 from config.models import (
-    COMPOSITION_BASIS_BPS,
-    CONSTRUCTION_YEAR_CUTOFF,
-    DISTANCE_CAP_KM,
-    DISTANCE_MAX_BPS,
-    DISTANCE_RATE_BPS_PER_KM,
-    ELEVATION_MAX_BENEFIT_BPS,
-    ELEVATION_RATE_BPS_PER_M,
     MIN_PRS_SPREAD_BPS,
-    MODEL_UNCERTAINTY_BPS,
     RECOVERY_RATES,
-    TERRAIN_BASIS_BPS,
 )
 
 
@@ -141,82 +130,3 @@ def compute_prs_spread(
     fair_spread = protection_pv / annuity if annuity > 0 else 0.0
     spread_bps = fair_spread * 10000  # Convert to bps
     return max(spread_bps, min_spread_bps)
-
-
-def compute_basis_waterfall(
-    prop_elevation: float,
-    flood_zone: str,
-    property_type: str,
-    construction_year: int,
-    nearest_gauges: List[Dict],
-) -> Dict:
-    """
-    Compute 5-component basis waterfall per PRS Property Pricing Spec Section 4.
-
-    Components:
-        1. Model uncertainty (+2bp fixed)
-        2. Distance basis (0.5bp/km, capped at 6bp)
-        3. Elevation basis (-0.2bp/m above gauge, capped at -3bp)
-        4. Terrain variation (by EA flood zone)
-        5. Property composition (by type + construction year)
-
-    Args:
-        prop_elevation: Property ground elevation in meters
-        flood_zone: EA flood zone classification
-        property_type: Property type (Detached, Semi-detached, etc.)
-        construction_year: Year of construction
-        nearest_gauges: List of dicts with 'distance_m' and 'gauge_elevation_m'
-
-    Returns:
-        Dictionary with each basis component and total
-    """
-    # 1. Model uncertainty (fixed)
-    basis_model = MODEL_UNCERTAINTY_BPS
-
-    # 2. Distance basis
-    distances_km = [ng.get('distance_m', 0) / 1000 for ng in nearest_gauges]
-    if not distances_km:
-        distances_km = [1.0]
-    weights = [1.0 / max(d, 0.1) for d in distances_km]
-    w_total = sum(weights)
-    weights = [w / w_total for w in weights]
-    d_weighted = sum(d * w for d, w in zip(distances_km, weights))
-    d_weighted = min(d_weighted, DISTANCE_CAP_KM)
-    basis_distance = min(DISTANCE_MAX_BPS, DISTANCE_RATE_BPS_PER_KM * d_weighted)
-
-    # 3. Elevation basis
-    gauge_elevs = [ng.get('gauge_elevation_m', 0) for ng in nearest_gauges]
-    if not gauge_elevs:
-        gauge_elevs = [prop_elevation]
-    weighted_gauge_elev = sum(e * w for e, w in zip(gauge_elevs, weights))
-    elev_diff = prop_elevation - weighted_gauge_elev
-    if elev_diff > 0:
-        basis_elevation = max(-ELEVATION_MAX_BENEFIT_BPS,
-                              -ELEVATION_RATE_BPS_PER_M * elev_diff)
-    else:
-        basis_elevation = 0.0
-
-    # 4. Terrain variation
-    basis_terrain = TERRAIN_BASIS_BPS.get(flood_zone, 0.0)
-
-    # 5. Property composition
-    basis_composition = COMPOSITION_BASIS_BPS.get(property_type, 0.0)
-    if construction_year < CONSTRUCTION_YEAR_CUTOFF:
-        basis_composition += 1.0
-
-    total_basis = (basis_model + basis_distance + basis_elevation
-                   + basis_terrain + basis_composition)
-
-    return {
-        'model_uncertainty_bp': round(basis_model, 1),
-        'distance_bp': round(basis_distance, 1),
-        'elevation_bp': round(basis_elevation, 1),
-        'terrain_bp': round(basis_terrain, 1),
-        'composition_bp': round(basis_composition, 1),
-        'total_basis_bp': round(total_basis, 1),
-        'weighted_distance_km': round(d_weighted, 2),
-        'elevation_diff_m': round(elev_diff, 2),
-        'flood_zone': flood_zone,
-        'property_type': property_type,
-        'construction_year': construction_year,
-    }

@@ -211,7 +211,7 @@ if __name__ == "__main__":
         elif args.report_type == 'risk-focused':
             report_path = generator.generate_risk_focused_report(property_data, mortgage_data)
         else:
-            report_path = generator.generate_report(property_data, mortgage_data, args.property_pages)
+            report_path = generator.generate_report(property_data, mortgage_data, args.pages)
 
         logger.info("Report generated successfully!")
         logger.info(f"File: {report_path}")

@@ -78,16 +78,7 @@ from config.visual import (
 )
 
 from config.models import (
-    # PRS Basis Waterfall
-    MODEL_UNCERTAINTY_BPS,
-    TERRAIN_BASIS_BPS,
-    COMPOSITION_BASIS_BPS,
-    CONSTRUCTION_YEAR_CUTOFF,
-    DISTANCE_RATE_BPS_PER_KM,
-    DISTANCE_MAX_BPS,
-    DISTANCE_CAP_KM,
-    ELEVATION_RATE_BPS_PER_M,
-    ELEVATION_MAX_BENEFIT_BPS,
+    # PRS Pricing
     RECOVERY_RATES,
     MIN_PRS_SPREAD_BPS,
     # Depth-Damage

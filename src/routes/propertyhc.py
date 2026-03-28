@@ -37,9 +37,9 @@ logger = logging.getLogger(__name__)
 propertyhc_bp = Blueprint('propertyhc', __name__)
 
 
-def _get_hazard_data() -> dict:
+def _get_hazard_data(filename: str = 'propertyhc.json') -> dict:
     """Load property hazard curves data."""
-    path = config.get_input_dir() / 'propertyhc.json'
+    path = config.get_input_dir() / filename
     if not path.exists():
         return None
     with open(path, 'r') as f:
@@ -168,3 +168,69 @@ def propertyhc_basis():
         'count': len(basis_table),
         'basis_table': basis_table,
     })
+
+
+# ---------------------------------------------------------------------------
+# Synthetic Hazard Distance (propertyshd) and Elevation (propertyshe) routes
+# ---------------------------------------------------------------------------
+
+@propertyhc_bp.route('/propertyshd/summary', methods=['GET', 'OPTIONS'])
+def propertyshd_summary():
+    """Get portfolio-wide synthetic distance hazard summary."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertyshd.json')
+    if not data:
+        return jsonify({
+            'status': 'error',
+            'message': 'Synthetic distance hazard curves not yet generated. Run: python app.py port --propertyshd'
+        }), 404
+    return jsonify({'status': 'success', 'data': {
+        'metadata': data.get('metadata', {}),
+        'summary': data.get('summary', {}),
+    }})
+
+
+@propertyhc_bp.route('/propertyshe/summary', methods=['GET', 'OPTIONS'])
+def propertyshe_summary():
+    """Get portfolio-wide synthetic elevation hazard summary."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertyshe.json')
+    if not data:
+        return jsonify({
+            'status': 'error',
+            'message': 'Synthetic elevation hazard curves not yet generated. Run: python app.py port --propertyshe'
+        }), 404
+    return jsonify({'status': 'success', 'data': {
+        'metadata': data.get('metadata', {}),
+        'summary': data.get('summary', {}),
+    }})
+
+
+@propertyhc_bp.route('/properties/<prop_id>/shd', methods=['GET', 'OPTIONS'])
+def property_shd(prop_id: str):
+    """Get synthetic distance hazard curve for one property."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertyshd.json')
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Synthetic distance hazard curves not yet generated'}), 404
+    prop_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not prop_data:
+        return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in shd curves'}), 404
+    return jsonify({'status': 'success', 'data': prop_data})
+
+
+@propertyhc_bp.route('/properties/<prop_id>/she', methods=['GET', 'OPTIONS'])
+def property_she(prop_id: str):
+    """Get synthetic elevation hazard curve for one property."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertyshe.json')
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Synthetic elevation hazard curves not yet generated'}), 404
+    prop_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not prop_data:
+        return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in she curves'}), 404
+    return jsonify({'status': 'success', 'data': prop_data})

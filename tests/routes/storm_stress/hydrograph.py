@@ -21,7 +21,6 @@
 """Tests for hydrograph data sourcing (gaugets) and the production synthesis function."""
 
 import json
-from unittest.mock import MagicMock, patch
 
 
 class TestGaugetsHydrographIntegration:
@@ -30,14 +29,8 @@ class TestGaugetsHydrographIntegration:
     Both must be handled correctly to avoid zero-amplitude hydrographs.
     """
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_gaugets_waterlevel_field(self, mock_pred, integration_env):
+    def test_gaugets_waterlevel_field(self, integration_env):
         """gaugets readings using 'waterLevel' key are correctly extracted."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_pred.return_value = pred
-
         readings = [{'timestamp': f'2024-01-01T{h:02d}:00:00', 'waterLevel': 3.0 + h * 0.1}
                     for h in range(48)]
         gaugets_file = integration_env['gaugets_dir'] / 'GAUGE-001.json'
@@ -58,14 +51,8 @@ class TestGaugetsHydrographIntegration:
         assert data['hydrograph_source'].startswith('Gauge response'), \
             "hydrograph_source must indicate gaugets data was used"
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_gaugets_level_field_fallback(self, mock_pred, integration_env):
+    def test_gaugets_level_field_fallback(self, integration_env):
         """gaugets readings using 'level' key (alternate field name) are extracted."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_pred.return_value = pred
-
         readings = [{'timestamp': f'2024-01-01T{h:02d}:00:00', 'level': 3.0 + h * 0.12}
                     for h in range(48)]
         gaugets_file = integration_env['gaugets_dir'] / 'GAUGE-001.json'
@@ -82,20 +69,14 @@ class TestGaugetsHydrographIntegration:
         assert resp.status_code == 200
         water_levels = [h['water_level'] for h in data['hourly']]
         assert max(water_levels) > min(water_levels), \
-            "Hydrograph from gaugets (level field) must show variation — " \
+            "Hydrograph from gaugets (level field) must show variation -- " \
             "'level' field fallback not working"
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_missing_gaugets_returns_404(self, mock_pred, integration_env):
+    def test_missing_gaugets_returns_404(self, integration_env):
         """When no gaugets file exists, stress run returns 404.
 
         Stress scenarios are tail events requiring real timeseries data.
         """
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_pred.return_value = pred
-
         gaugets_file = integration_env['gaugets_dir'] / 'GAUGE-001.json'
         if gaugets_file.exists():
             gaugets_file.unlink()
@@ -135,12 +116,12 @@ class TestActualHydrographFunction:
         assert abs(levels[0] - 3.0) < 0.01
 
     def test_actual_function_reaches_peak(self):
-        """Production function: peak ≈ base + level_change."""
+        """Production function: peak >= base + level_change."""
         from routes.trading.stress._helpers import _synthesize_hydrograph
         base, change = 3.0, 2.0
         levels = _synthesize_hydrograph(base, change, 24, 0.4)
         assert max(levels) >= base + change * 0.9, \
-            "Peak must reach ≥ 90% of expected base + level_change"
+            "Peak must reach >= 90% of expected base + level_change"
 
     def test_actual_function_decays_after_peak(self):
         """Production function: levels decay back toward base after peak."""
@@ -149,7 +130,7 @@ class TestActualHydrographFunction:
         peak_idx = levels.index(max(levels))
         if peak_idx < 150:
             assert levels[-1] < max(levels), \
-                "Levels must decay after peak — check exp(-3t) decay formula"
+                "Levels must decay after peak -- check exp(-3t) decay formula"
 
     def test_peak_hour_matches_peak_position(self):
         """Peak occurs near duration_hours * peak_position."""

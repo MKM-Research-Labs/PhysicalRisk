@@ -253,7 +253,7 @@ def run_stress_scenario():
         for lv in surface_levels:
             row = []
             for h in surface_hours:
-                p = predictor.predict(gauge_id, lv, h, 0.0, 0.0)
+                p = p_flood_poly(lv, h, severe_level) if severe_level > 0 else 0.0
                 row.append(round(p * 100, 1))
             surface_probs.append(row)
 

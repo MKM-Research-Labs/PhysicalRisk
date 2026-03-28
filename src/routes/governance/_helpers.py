@@ -50,6 +50,14 @@ def _load_inventory():
         return None
 
 
+def _find_model(inventory, model_id):
+    """Find a model by ID in the inventory. Returns the model dict or None."""
+    for m in inventory.get("models", []):
+        if m["model_id"] == model_id:
+            return m
+    return None
+
+
 def _save_inventory(data):
     """Save model inventory to JSON file."""
     try:

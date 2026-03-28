@@ -21,7 +21,6 @@
 """Tests for POST /trading/stress/portfolio-run endpoint."""
 
 import json
-from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -39,21 +38,13 @@ class TestRunPortfolioStress:
 
     def test_run_portfolio_invalid_storm(self, port_stress_client, port_stress_env):
         """POST with non-existent storm_id returns 404."""
-        with patch('routes.trading.port_stress._get_stressm_predictor') as mock_pred:
-            pred = MagicMock()
-            pred.predict.return_value = 0.4
-            mock_pred.return_value = pred
-            resp = port_stress_client.post(
-                '/api/v1/trading/stress/portfolio-run',
-                json={'storm_id': 'STORM-DOES-NOT-EXIST'})
-            assert resp.status_code == 404
+        resp = port_stress_client.post(
+            '/api/v1/trading/stress/portfolio-run',
+            json={'storm_id': 'STORM-DOES-NOT-EXIST'})
+        assert resp.status_code == 404
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_run_portfolio_returns_success(self, mock_pred, port_stress_client, port_stress_env):
+    def test_run_portfolio_returns_success(self, port_stress_client, port_stress_env):
         """POST STORM-PORT-001 returns 200 with status=success."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -61,12 +52,8 @@ class TestRunPortfolioStress:
         assert resp.status_code == 200
         assert data['status'] == 'success'
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_portfolio_run_has_gauge_results(self, mock_pred, port_stress_client, port_stress_env):
+    def test_portfolio_run_has_gauge_results(self, port_stress_client, port_stress_env):
         """Response has 'gauges' list."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -74,13 +61,9 @@ class TestRunPortfolioStress:
         assert 'gauges' in data
         assert isinstance(data['gauges'], list)
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_portfolio_gauge_results_fields(self, mock_pred, port_stress_client, port_stress_env):
+    def test_portfolio_gauge_results_fields(self, port_stress_client, port_stress_env):
         """Each gauge has gauge_id, gauge_name, p_flood, p_flood_pct, threshold,
         stress_pnl, mtm, num_trades, trades, impacted."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -97,12 +80,8 @@ class TestRunPortfolioStress:
             assert 'trades' in g
             assert 'impacted' in g
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_portfolio_run_has_portfolio_totals(self, mock_pred, port_stress_client, port_stress_env):
+    def test_portfolio_run_has_portfolio_totals(self, port_stress_client, port_stress_env):
         """Response has portfolio_stress_pnl, portfolio_mtm, num_gauges."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -111,13 +90,9 @@ class TestRunPortfolioStress:
         assert 'portfolio_mtm' in data
         assert 'num_gauges' in data
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_portfolio_run_gauges_severe_list(self, mock_pred, port_stress_client, port_stress_env):
+    def test_portfolio_run_gauges_severe_list(self, port_stress_client, port_stress_env):
         """Response has gauges_severe as list of gauge_ids; for STORM_PORT_SEVERE
         should include GAUGE-001 and GAUGE-9042bd95."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -127,12 +102,8 @@ class TestRunPortfolioStress:
         assert 'GAUGE-001' in data['gauges_severe']
         assert 'GAUGE-9042bd95' in data['gauges_severe']
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_portfolio_run_gauges_warning_list(self, mock_pred, port_stress_client, port_stress_env):
+    def test_portfolio_run_gauges_warning_list(self, port_stress_client, port_stress_env):
         """gauges_warning list includes GAUGE-002."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -150,14 +121,8 @@ class TestRunPortfolioStress:
 class TestPortfolioStressPnlCalculation:
     """Verify the CDS-in-stress cash pricing formula."""
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_stress_pnl_formula(self, mock_pred, port_stress_client, port_stress_env):
-        """stress_pnl = cash_price - mtm; cash_price = signed_notional * p_flood.
-        With pred.predict.return_value = 0.5 (for non-severe gauges) and a
-        payer notional of 10M, verify trade.cash_price = trade.notional * 0.5."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.5
-        mock_pred.return_value = pred
+    def test_stress_pnl_formula(self, port_stress_client, port_stress_env):
+        """stress_pnl = cash_price - mtm; cash_price = signed_notional * p_flood."""
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_ALERT})
@@ -168,12 +133,8 @@ class TestPortfolioStressPnlCalculation:
                 # stress_pnl = cash_price - mtm
                 assert abs(t['stress_pnl'] - (t['cash_price'] - t['mtm'])) < 0.01
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_payer_positive_notional(self, mock_pred, port_stress_client, port_stress_env):
+    def test_payer_positive_notional(self, port_stress_client, port_stress_env):
         """Payer (is_payer=True) has positive notional in trade details."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -184,12 +145,8 @@ class TestPortfolioStressPnlCalculation:
                     assert t['notional'] > 0, \
                         f"Payer trade {t['swap_id']} should have positive notional"
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_receiver_negative_notional(self, mock_pred, port_stress_client, port_stress_env):
+    def test_receiver_negative_notional(self, port_stress_client, port_stress_env):
         """Receiver (is_payer=False) has negative notional in trade details."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -200,13 +157,9 @@ class TestPortfolioStressPnlCalculation:
                     assert t['notional'] < 0, \
                         f"Receiver trade {t['swap_id']} should have negative notional"
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_severe_breach_latches_p_flood_to_100pct(self, mock_pred, port_stress_client, port_stress_env):
+    def test_severe_breach_latches_p_flood_to_100pct(self, port_stress_client, port_stress_env):
         """When peak_level_m >= severe_level, p_flood should be 1.0.
-        GAUGE-001 peak 6.2m > severe 5.5m → p_flood=1.0 regardless of predictor."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.2  # Low value; should be overridden by latch
-        mock_pred.return_value = pred
+        GAUGE-001 peak 6.2m > severe 5.5m -> p_flood=1.0 regardless of predictor."""
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})
@@ -215,14 +168,10 @@ class TestPortfolioStressPnlCalculation:
             (g for g in data['gauges'] if g['gauge_id'] == 'GAUGE-001'), None)
         assert gauge_001 is not None
         assert gauge_001['p_flood'] == 1.0, \
-            "GAUGE-001 peak 6.2m > severe 5.5m — p_flood must be latched to 1.0"
+            "GAUGE-001 peak 6.2m > severe 5.5m -- p_flood must be latched to 1.0"
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_unimpacted_gauge_has_zero_p_flood(self, mock_pred, port_stress_client, port_stress_env):
+    def test_unimpacted_gauge_has_zero_p_flood(self, port_stress_client, port_stress_env):
         """Gauge not in storm's gauge_responses has p_flood=0.0 and impacted=False."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         # STORM_PORT_ALERT only has GAUGE-001 in its gauge_responses
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
@@ -235,12 +184,8 @@ class TestPortfolioStressPnlCalculation:
             assert lambeth['p_flood'] == 0.0
             assert lambeth['impacted'] is False
 
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_portfolio_total_is_sum_of_gauges(self, mock_pred, port_stress_client, port_stress_env):
+    def test_portfolio_total_is_sum_of_gauges(self, port_stress_client, port_stress_env):
         """portfolio_stress_pnl == sum(g['stress_pnl'] for g in gauges)."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
         resp = port_stress_client.post(
             '/api/v1/trading/stress/portfolio-run',
             json={'storm_id': STORM_PORT_SEVERE})

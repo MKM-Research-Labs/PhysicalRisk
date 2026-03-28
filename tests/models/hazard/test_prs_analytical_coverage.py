@@ -7,7 +7,6 @@ Targets uncovered lines: 64, 67, 71, 77, 126, 179, 190.
 import pytest
 
 from models.hazard.prs_analytical import (
-    compute_basis_waterfall,
     compute_prs_spread,
     interpolate_yield_rate,
 )
@@ -100,38 +99,3 @@ class TestComputePrsSpreadEdges:
     def test_negative_hazard_returns_zero(self):
         result = compute_prs_spread(-0.01, tenor=5)
         assert result == 0.0
-
-
-# ===========================================================================
-# compute_basis_waterfall — empty nearest_gauges
-# ===========================================================================
-
-class TestBasisWaterfallEdges:
-
-    def test_empty_nearest_gauges(self):
-        """Lines 179, 190: empty nearest_gauges defaults distances and elevations."""
-        result = compute_basis_waterfall(
-            prop_elevation=10.0,
-            flood_zone="High",
-            property_type="Detached",
-            construction_year=1990,
-            nearest_gauges=[],
-        )
-        assert 'total_basis_bp' in result
-        assert 'distance_bp' in result
-        assert 'elevation_bp' in result
-        # With empty nearest_gauges, distances default to [1.0km]
-        # and gauge_elevs default to [prop_elevation], so elev_diff = 0
-        assert result['elevation_bp'] == 0.0
-        assert result['weighted_distance_km'] > 0
-
-    def test_empty_gauges_elevation_zero_diff(self):
-        """Line 190: gauge_elevs defaults to [prop_elevation], elev_diff = 0."""
-        result = compute_basis_waterfall(
-            prop_elevation=25.0,
-            flood_zone="Low",
-            property_type="Flat",
-            construction_year=2010,
-            nearest_gauges=[],
-        )
-        assert result['elevation_diff_m'] == 0.0
