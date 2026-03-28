@@ -46,13 +46,22 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
     and computes basis against nearest gauge PRS prices.
     """
 
+    # Map mode -> (input dir, output filename)
+    _MODE_IO = {
+        "normal": ("propertyts", "propertyhc.json"),
+        "shd": ("propertytsd", "propertyshd.json"),
+        "she": ("propertytse", "propertyshe.json"),
+    }
+
     def __init__(
         self,
         output_dir: Optional[Union[str, Path]] = None,
-        verbose: bool = True
+        verbose: bool = True,
+        mode: str = "normal",
     ):
         self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.mode = mode
         self.verbose = verbose
         self.gev_fitter = GEVFitter()
         if not verbose:
@@ -71,14 +80,16 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
         Returns:
             Dictionary with generation metadata and summary statistics.
         """
-        self.log("Property Hazard Curve Generator")
+        pts_subdir, output_filename = self._MODE_IO[self.mode]
+        mode_label = f" [{self.mode}]" if self.mode != "normal" else ""
+        self.log(f"Property Hazard Curve Generator{mode_label}")
         self.log(f"Catchment: {config.CATCHMENT}")
 
-        pts_dir = self.output_dir / 'propertyts'
+        pts_dir = self.output_dir / pts_subdir
         if not pts_dir.exists():
             raise FileNotFoundError(
                 f"Property timeseries directory not found: {pts_dir}\n"
-                "Run: python app.py port --propertyts first"
+                f"Run: python app.py port --{pts_subdir} first"
             )
 
         property_files = sorted(pts_dir.glob('PROP-*.json'))
@@ -127,7 +138,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
         stats['avg_basis_bps'] = round(np.mean(basis_values), 2) if basis_values else 0.0
         stats['avg_transmission_rate'] = round(np.mean(transmission_rates), 4) if transmission_rates else 0.0
 
-        output_path = self.output_dir / 'propertyhc.json'
+        output_path = self.output_dir / output_filename
         output_data = {
             'metadata': {
                 'catchment_id': config.CATCHMENT,
@@ -150,3 +161,80 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
         self.log(f"  Avg transmission rate: {stats['avg_transmission_rate']:.1%}")
 
         return stats
+
+    def attach_spread_decomposition(self) -> int:
+        """
+        Post-processing: attach spread decompositions to propertyhc.json.
+
+        Loads propertyhc.json, propertyshd.json, and propertyshe.json,
+        then computes the data-driven spread decomposition for each property.
+
+        Returns:
+            Number of properties with decomposition attached.
+        """
+        hc_path = self.output_dir / 'propertyhc.json'
+        shd_path = self.output_dir / 'propertyshd.json'
+        she_path = self.output_dir / 'propertyshe.json'
+
+        if not hc_path.exists():
+            self.log("propertyhc.json not found — skipping decomposition")
+            return 0
+
+        with open(hc_path, 'r') as f:
+            hc_data = json.load(f)
+
+        shd_curves = {}
+        if shd_path.exists():
+            with open(shd_path, 'r') as f:
+                shd_curves = json.load(f).get('property_hazard_curves', {})
+
+        she_curves = {}
+        if she_path.exists():
+            with open(she_path, 'r') as f:
+                she_curves = json.load(f).get('property_hazard_curves', {})
+
+        curves = hc_data.get('property_hazard_curves', {})
+        count = 0
+
+        for prop_id, pc in curves.items():
+            # 5yr any_flood spread for the property
+            prop_spread = self._get_5yr_any_flood_spread(pc)
+
+            # IDW-weighted gauge spread (already computed in the property record)
+            gauge_spreads = pc.get('idw_gauge_spreads', {}).get('any_flood', [])
+            gauge_spread = gauge_spreads[4] if len(gauge_spreads) > 4 else 0.0
+
+            # Synthetic spreads
+            shd_pc = shd_curves.get(prop_id, {})
+            she_pc = she_curves.get(prop_id, {})
+            shd_spread = self._get_5yr_any_flood_spread(shd_pc)
+            she_spread = self._get_5yr_any_flood_spread(she_pc)
+
+            pc['spread_decomposition'] = {
+                'gauge_spread_bps': round(gauge_spread, 2),
+                'property_spread_bps': round(prop_spread, 2),
+                'shd_spread_bps': round(shd_spread, 2),
+                'she_spread_bps': round(she_spread, 2),
+                'distance_first': {
+                    'distance_effect_bps': round(she_spread - gauge_spread, 2),
+                    'elevation_effect_bps': round(prop_spread - she_spread, 2),
+                },
+                'elevation_first': {
+                    'elevation_effect_bps': round(shd_spread - gauge_spread, 2),
+                    'distance_effect_bps': round(prop_spread - shd_spread, 2),
+                },
+            }
+            count += 1
+
+        with open(hc_path, 'w') as f:
+            json.dump(hc_data, f, indent=2, default=json_default)
+
+        self.log(f"Spread decomposition attached to {count} properties")
+        return count
+
+    @staticmethod
+    def _get_5yr_any_flood_spread(pc: Dict) -> float:
+        """Extract 5yr any_flood PRS spread from a property hazard curve dict."""
+        ts = pc.get('term_structure', {})
+        spreads = ts.get('any_flood', {}).get('prs_spread_bps', [])
+        return spreads[4] if len(spreads) > 4 else 0.0

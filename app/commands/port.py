@@ -37,7 +37,15 @@ def register_parser(subparsers):
     sp.add_argument("--gaugehd", "--hd", action="store_true")
     sp.add_argument("--hazard", "--hz", action="store_true")
     sp.add_argument("--propertyts", "--pt", action="store_true")
+    sp.add_argument("--propertytsd", action="store_true",
+                    help="Synthetic distance timeseries (elevation diff = 0)")
+    sp.add_argument("--propertytse", action="store_true",
+                    help="Synthetic elevation timeseries (distance = 0)")
     sp.add_argument("--propertyhc", "--phc", action="store_true")
+    sp.add_argument("--propertyshd", action="store_true",
+                    help="Synthetic distance hazard curves (elevation diff = 0)")
+    sp.add_argument("--propertyshe", action="store_true",
+                    help="Synthetic elevation hazard curves (distance = 0)")
     sp.add_argument("--counterparties", "--ctpy", action="store_true")
     sp.add_argument("--blotter", "--bl", action="store_true")
     sp.add_argument("--stressm", action="store_true",
@@ -124,8 +132,9 @@ def cmd_port(args):
     segment_flags = [
         args.gauges, args.properties, args.mortgages,
         args.gaugets, args.gaugehd, args.hazard,
-        args.propertyts, args.propertyhc, args.counterparties,
-        args.blotter, args.stressm,
+        args.propertyts, args.propertytsd, args.propertytse,
+        args.propertyhc, args.propertyshd, args.propertyshe,
+        args.counterparties, args.blotter, args.stressm,
     ]
     run_all = args.all or not any(segment_flags)
 
@@ -139,6 +148,8 @@ def cmd_port(args):
             "mortgages": "mortgages", "gaugehd": "gaugehd",
             "stressm": "stressm", "hazard": "hazard",
             "propertyts": "propertyts", "propertyhc": "propertyhc",
+            "propertytsd": "propertytsd", "propertytse": "propertytse",
+            "propertyshd": "propertyshd", "propertyshe": "propertyshe",
             "counterparties": "counterparties", "blotter": "blotter",
         }
         requested = [
@@ -529,6 +540,28 @@ def cmd_port(args):
                 print(f"  [lineage] Warning: {e}")
         print()
 
+    if run_all or args.propertytsd:
+        print("7a. Generating Synthetic Distance Timeseries (propertytsd)...")
+        t_step = time.time()
+        r = propertyts.PropertyTimeSeriesGenerator(output_dir, verbose=args.verbose, mode="shd").generate()
+        elapsed_step = time.time() - t_step
+        total  = r.get('total_properties', '?')
+        flooded = r.get('properties_with_floods', '?')
+        events  = r.get('total_flood_events', '?')
+        print(f"   {total} properties  |  {flooded} with flood events  |  {events:,} total events")
+        print()
+
+    if run_all or args.propertytse:
+        print("7b. Generating Synthetic Elevation Timeseries (propertytse)...")
+        t_step = time.time()
+        r = propertyts.PropertyTimeSeriesGenerator(output_dir, verbose=args.verbose, mode="she").generate()
+        elapsed_step = time.time() - t_step
+        total  = r.get('total_properties', '?')
+        flooded = r.get('properties_with_floods', '?')
+        events  = r.get('total_flood_events', '?')
+        print(f"   {total} properties  |  {flooded} with flood events  |  {events:,} total events")
+        print()
+
     if run_all or args.propertyhc:
         if args.strict and check_inputs_fresh is not None:
             try:
@@ -574,6 +607,44 @@ def cmd_port(args):
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
         print()
+
+    if run_all or args.propertyshd:
+        print("8a. Building Synthetic Distance Hazard Curves (propertyshd)...")
+        t_step = time.time()
+        r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose, mode="shd").generate()
+        elapsed_step = time.time() - t_step
+        total  = r.get('total_properties', '?')
+        gev    = r.get('properties_with_gev', '?')
+        floor  = r.get('properties_with_floor', '?')
+        avg_bps = r.get('avg_basis_bps', 0)
+        print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor")
+        print(f"   avg spread: {avg_bps:.1f} bps")
+        print()
+
+    if run_all or args.propertyshe:
+        print("8b. Building Synthetic Elevation Hazard Curves (propertyshe)...")
+        t_step = time.time()
+        r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose, mode="she").generate()
+        elapsed_step = time.time() - t_step
+        total  = r.get('total_properties', '?')
+        gev    = r.get('properties_with_gev', '?')
+        floor  = r.get('properties_with_floor', '?')
+        avg_bps = r.get('avg_basis_bps', 0)
+        print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor")
+        print(f"   avg spread: {avg_bps:.1f} bps")
+        print()
+
+    # Spread decomposition: requires propertyhc + propertyshd + propertyshe
+    if run_all or (args.propertyhc and args.propertyshd and args.propertyshe):
+        hc_exists = (output_dir / 'propertyhc.json').exists()
+        shd_exists = (output_dir / 'propertyshd.json').exists()
+        she_exists = (output_dir / 'propertyshe.json').exists()
+        if hc_exists and shd_exists and she_exists:
+            print("8c. Attaching Spread Decomposition to propertyhc.json...")
+            gen = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose)
+            n = gen.attach_spread_decomposition()
+            print(f"   {n} properties decomposed")
+            print()
 
     if run_all or args.counterparties:
         if args.strict and check_inputs_fresh is not None:
@@ -776,8 +847,12 @@ def _print_port_summary(output_dir):
     gaugets_ct   = _count_dir(output_dir / 'gaugets', 'GAUGE-*.json')
     gaugehd_ct   = _count_dir(output_dir / 'gaugehd', 'gauge_GAUGE-*.json')
     propertyts_ct = _count_dir(output_dir / 'propertyts', 'PROP-*.json')
+    propertytsd_ct = _count_dir(output_dir / 'propertytsd', 'PROP-*.json')
+    propertytse_ct = _count_dir(output_dir / 'propertytse', 'PROP-*.json')
     gcurve_count = _count_key(output_dir / 'gaugehc.json', 'hazard_curves')
     pcurve_count = _count_key(output_dir / 'propertyhc.json', 'property_hazard_curves')
+    shd_count = _count_key(output_dir / 'propertyshd.json', 'property_hazard_curves')
+    she_count = _count_key(output_dir / 'propertyshe.json', 'property_hazard_curves')
 
     seq_summary = _load(output_dir / 'sequences_summary.json')
     # sequence_gauge: load from split directory or legacy single file
@@ -900,6 +975,10 @@ def _print_port_summary(output_dir):
     _heading('5. PROPERTIES & MORTGAGES')
     _row('Properties generated', f'{prop_count}')
     _row('Flood time series', f'{propertyts_ct} files')
+    if propertytsd_ct:
+        _row('Synthetic distance TS', f'{propertytsd_ct} files')
+    if propertytse_ct:
+        _row('Synthetic elevation TS', f'{propertytse_ct} files')
     _row('Mortgages linked', f'{mort_count}')
     _row('Counterparties', f'{ctpy_count}')
 
@@ -918,9 +997,17 @@ def _print_port_summary(output_dir):
     _row('stress_storms/', f'{stress_count:,} alert storms')
     _row('gaugehc.json', f'{gcurve_count} hazard curves')
     _row('propertyhc.json', f'{pcurve_count} property curves')
+    if shd_count:
+        _row('propertyshd.json', f'{shd_count} synthetic distance curves')
+    if she_count:
+        _row('propertyshe.json', f'{she_count} synthetic elevation curves')
     _row('gaugets/', f'{gaugets_ct} gauge time series')
     _row('gaugehd/', f'{gaugehd_ct} historical daily')
     _row('propertyts/', f'{propertyts_ct} property flood series')
+    if propertytsd_ct:
+        _row('propertytsd/', f'{propertytsd_ct} synthetic distance series')
+    if propertytse_ct:
+        _row('propertytse/', f'{propertytse_ct} synthetic elevation series')
     _row('stressm/', f'{classifier_ct} classifiers')
 
     # Data size

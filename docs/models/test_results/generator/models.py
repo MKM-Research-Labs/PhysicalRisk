@@ -82,6 +82,10 @@ TEST_MODEL_MAP = {
     'tests/port/storm/stressm.py':                      'MKM-SS-001',
 
     # ---------------------------------------------------------------------------
+    # MKM-FPO-001  Flood Polynomial Model
+    # ---------------------------------------------------------------------------
+    'tests/models/stress/flood_poly.py':                'MKM-FPO-001',
+
     # MKM-FC-001  Flood Probability Classifier
     # ---------------------------------------------------------------------------
     'tests/port/stress/classifier.py':                  'MKM-FC-001',
@@ -181,6 +185,7 @@ MODEL_INFO = {
     'MKM-GHD-001': {'name': 'GaugeHD Synthetic',                'dir': 'gaugehd_synthetic'},
     'MKM-ST-001': {'name': 'Stress Test Pipeline',              'dir': 'stressm_pipeline'},
     'MKM-PF-001': {'name': 'Property Flood Response',           'dir': 'property_flood_response'},
+    'MKM-FPO-001': {'name': 'Flood Polynomial Model',            'dir': 'flood_poly'},
     'MKM-DE-001': {'name': 'Delta Engine',                      'dir': 'delta_engine'},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
@@ -195,6 +200,6 @@ MODEL_ALIASES = {
     'PV': 'MKM-PV-001', 'IP': 'MKM-IP-001', 'MP': 'MKM-MP-001',
     'RA': 'MKM-RA-001', 'FC': 'MKM-FC-001', 'SS': 'MKM-SS-001', 'TD': 'MKM-TD-001',
     'GHD': 'MKM-GHD-001', 'ST': 'MKM-ST-001', 'PF': 'MKM-PF-001',
-    'DE': 'MKM-DE-001',
+    'DE': 'MKM-DE-001', 'FPO': 'MKM-FPO-001',
     'E2E': 'E2E-ALL',
 }

@@ -40,27 +40,12 @@ def get_parameter_sections():
             'model_id': 'MKM-PR-001',
             'source': 'models/hazard/prs_analytical.py',
             'subsections': [
-                ('Basis Waterfall Components', [
-                    ('MODEL_UNCERTAINTY_BPS', '2.0', 'Fixed model uncertainty spread (basis points)', 'hazard/prs_analytical.py:20'),
-                    ('DISTANCE_RATE_BPS_PER_KM', '0.5', 'Distance basis rate per km', 'hazard/prs_analytical.py:46'),
-                    ('DISTANCE_MAX_BPS', '6.0', 'Distance basis cap (bps)', 'hazard/prs_analytical.py:47'),
-                    ('DISTANCE_CAP_KM', '12.0', 'Maximum distance for basis', 'hazard/prs_analytical.py:48'),
-                    ('ELEVATION_RATE_BPS_PER_M', '0.2', 'Elevation benefit rate per metre', 'hazard/prs_analytical.py:51'),
-                    ('ELEVATION_MAX_BENEFIT_BPS', '3.0', 'Maximum elevation benefit cap (bps)', 'hazard/prs_analytical.py:52'),
-                    ('MIN_PRS_SPREAD_BPS', '2.0', 'Minimum PRS spread floor (bps)', 'hazard/prs_analytical.py:62'),
-                    ('CONSTRUCTION_YEAR_CUTOFF', '2000', 'Pre-cutoff adds 1.0 bps penalty', 'hazard/prs_analytical.py:43'),
+                ('PRS Pricing Parameters', [
+                    ('MIN_PRS_SPREAD_BPS', '2.0', 'Minimum PRS spread floor (bps)', 'hazard/prs_analytical.py'),
                 ]),
-                ('Terrain Basis by EA Flood Zone (bps)', [
-                    ('Zone 3b / 3a / 3', '3.0', 'High flood risk zones', 'hazard/prs_analytical.py:23-30'),
-                    ('Zone 2', '2.0', 'Medium flood risk zone', 'hazard/prs_analytical.py:23-30'),
-                    ('Zone 1', '0.0', 'Low flood risk zone', 'hazard/prs_analytical.py:23-30'),
-                    ('Enhanced Defence', '-1.0', 'Protected area benefit', 'hazard/prs_analytical.py:23-30'),
-                ]),
-                ('Composition Basis by Property Type (bps)', [
-                    ('Flat', '2.0', 'Higher risk construction type', 'hazard/prs_analytical.py:33-40'),
-                    ('Bungalow', '1.0', 'Ground-floor exposure', 'hazard/prs_analytical.py:33-40'),
-                    ('Terraces', '0.5', 'Moderate exposure', 'hazard/prs_analytical.py:33-40'),
-                    ('Semi-detached / Detached', '0.0', 'Base case', 'hazard/prs_analytical.py:33-40'),
+                ('Spread Decomposition', [
+                    ('method', 'data-driven', 'Uses synthetic HC variants (shd/she) instead of parametric basis', 'port/src/property/hc/generator.py'),
+                    ('reference_tenor', '5yr', 'Decomposition uses 5yr any_flood spread', 'port/src/property/hc/generator.py'),
                 ]),
                 ('Recovery Rates by Trigger', [
                     ('any_flood (> 0m)', '0.85', 'Recovery rate for any flood trigger', 'hazard/prs_analytical.py:55-59'),

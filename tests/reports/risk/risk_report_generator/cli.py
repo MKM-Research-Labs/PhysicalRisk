@@ -3,10 +3,10 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Tests for the __main__ CLI block of risk_report_generator (lines 289-355).
+"""Tests for the __main__ CLI block of generator (lines 289-355).
 
 runpy.run_module re-executes the source in a fresh namespace, so patching
-reports.risk.risk_report_generator.RiskReportGenerator has no effect — the fresh
+reports.risk.generator.RiskReportGenerator has no effect — the fresh
 namespace defines its own RiskReportGenerator class.
 
 The workaround: patch reportlab.platypus.SimpleDocTemplate (imported via
@@ -31,7 +31,7 @@ def _run_main(argv):
     """Run the __main__ block with mocked sys.argv, swallowing SystemExit."""
     with patch.object(sys, 'argv', argv):
         try:
-            runpy.run_module('reports.risk.risk_report_generator', run_name='__main__')
+            runpy.run_module('reports.risk.generator', run_name='__main__')
         except SystemExit:
             pass
 
@@ -47,7 +47,8 @@ def mock_pdf():
     mock_pdf.build.assert_called_once() works.
     """
     mock_doc = MagicMock()
-    with patch('reportlab.platypus.SimpleDocTemplate', return_value=mock_doc):
+    with patch('reportlab.platypus.SimpleDocTemplate', return_value=mock_doc), \
+         patch('src.reports.shared.base_generator.SimpleDocTemplate', return_value=mock_doc):
         yield mock_doc
 
 
@@ -169,7 +170,7 @@ class TestErrorHandling:
                            '--output-dir', str(tmp_path)]), \
              patch('sys.exit', side_effect=capture_exit):
             try:
-                runpy.run_module('reports.risk.risk_report_generator', run_name='__main__')
+                runpy.run_module('reports.risk.generator', run_name='__main__')
             except SystemExit:
                 pass
 
@@ -190,7 +191,7 @@ class TestErrorHandling:
                            '--output-dir', str(tmp_path)]), \
              patch('sys.exit', side_effect=capture_exit):
             try:
-                runpy.run_module('reports.risk.risk_report_generator', run_name='__main__')
+                runpy.run_module('reports.risk.generator', run_name='__main__')
             except SystemExit:
                 pass
 

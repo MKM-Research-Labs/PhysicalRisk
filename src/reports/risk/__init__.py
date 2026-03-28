@@ -23,6 +23,6 @@ Risk Report Generation Package
 Modular flood risk report system following gauge/property patterns.
 """
 
-from .risk_report_generator import RiskReportGenerator, generate_risk_report
+from .generator import RiskReportGenerator, generate_risk_report
 
 __all__ = ['RiskReportGenerator', 'generate_risk_report']

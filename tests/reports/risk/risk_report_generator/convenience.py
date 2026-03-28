@@ -24,34 +24,34 @@ class TestGenerateRiskReportConvenienceFunction:
     """Tests for the module-level generate_risk_report() convenience function."""
 
     def test_basic_type_returns_path(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=tmp_path, report_type="basic")
         assert isinstance(path, Path)
         assert path.exists()
 
     def test_detailed_type_returns_path(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=tmp_path, report_type="detailed")
         assert path.exists()
 
     def test_summary_type_returns_path(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=tmp_path, report_type="summary")
         assert path.exists()
 
     def test_analysis_type_returns_path(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=tmp_path, report_type="analysis")
         assert path.exists()
 
     def test_unknown_type_falls_back_to_generate_report(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=tmp_path, report_type="unknown_xyz")
         assert path.exists()
 
     def test_default_report_type_is_basic(self, tmp_path, minimal_flood_data):
         """Omitting report_type should default to 'basic'."""
-        from reports.risk.risk_report_generator import RiskReportGenerator, generate_risk_report
+        from reports.risk.generator import RiskReportGenerator, generate_risk_report
         with patch.object(RiskReportGenerator, "generate_basic_report",
                           wraps=RiskReportGenerator(output_dir=tmp_path).generate_basic_report
                           ) as spy:
@@ -59,12 +59,12 @@ class TestGenerateRiskReportConvenienceFunction:
             # The function is called — just confirm no exception and path returned
 
     def test_output_dir_as_string(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=str(tmp_path))
         assert path.exists()
 
     def test_pdf_is_non_empty_bytes_on_disk(self, tmp_path, minimal_flood_data):
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(minimal_flood_data, output_dir=tmp_path)
         content = path.read_bytes()
         assert isinstance(content, bytes)

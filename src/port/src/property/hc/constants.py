@@ -7,17 +7,8 @@
 
 from config.port import DEPTH_THRESHOLDS, MAX_RETURN_PERIOD, MIN_EVENTS_FOR_GEV  # noqa: F401
 from models.hazard.prs_analytical import (  # noqa: F401
-    COMPOSITION_BASIS_BPS,
-    DISTANCE_CAP_KM,
-    DISTANCE_MAX_BPS,
-    DISTANCE_RATE_BPS_PER_KM,
-    ELEVATION_MAX_BENEFIT_BPS,
-    ELEVATION_RATE_BPS_PER_M,
     MIN_PRS_SPREAD_BPS,
-    MODEL_UNCERTAINTY_BPS,
     RECOVERY_RATES,
-    TERRAIN_BASIS_BPS,
-    compute_basis_waterfall,
     compute_prs_spread,
 )
 

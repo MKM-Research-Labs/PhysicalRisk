@@ -267,29 +267,11 @@ class GaugeLoader(BaseLoader[Dict[str, Any]]):
         Returns:
             List of gauges within radius
         """
-        import math
+        from .geo_utils import find_entities_in_radius
 
-        def haversine(lat1, lon1, lat2, lon2):
-            R = 6371  # Earth's radius in km
-            phi1 = math.radians(lat1)
-            phi2 = math.radians(lat2)
-            delta_phi = math.radians(lat2 - lat1)
-            delta_lambda = math.radians(lon2 - lon1)
+        def get_coords(entity):
+            return self.get_coordinates(self.get_entity_id(entity))
 
-            a = (math.sin(delta_phi / 2) ** 2 +
-                 math.cos(phi1) * math.cos(phi2) *
-                 math.sin(delta_lambda / 2) ** 2)
-            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-            return R * c
-
-        results = []
-        for entity in self.load_all():
-            coords = self.get_coordinates(self.get_entity_id(entity))
-            if coords:
-                gauge_lat, gauge_lon = coords
-                distance = haversine(lat, lon, gauge_lat, gauge_lon)
-                if distance <= radius_km:
-                    results.append(entity)
-
-        return results
+        return find_entities_in_radius(
+            self.load_all(), get_coords, lat, lon, radius_km
+        )

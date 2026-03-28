@@ -127,26 +127,29 @@ class TestPFloodPolyUsed:
     """Stress scenario now uses p_flood_poly for P(flood) computation."""
 
     def test_pflood_values_in_range(self, stress_client, stress_env):
-        """All hourly P(flood) values should be in [0, 1]."""
+        """All hourly P(flood) values should be in [0, 1] (None after knock-out)."""
         resp = stress_client.post('/api/v1/trading/stress/run',
                                    json={'gauge_id': 'GAUGE-001',
                                          'storm_id': STORM_SEVERE})
         data = json.loads(resp.data)
         assert resp.status_code == 200
         for h in data['hourly']:
-            assert 0.0 <= h['p_flood'] <= 1.0
+            if h['p_flood'] is not None:
+                assert 0.0 <= h['p_flood'] <= 1.0
 
     def test_severe_breach_latches_to_one(self, stress_client, stress_env):
-        """Once water exceeds severe, P(flood) should stay at 1.0."""
+        """Once water exceeds severe, P(flood) = 1.0 until knock-out blanks it."""
         resp = stress_client.post('/api/v1/trading/stress/run',
                                    json={'gauge_id': 'GAUGE-001',
                                          'storm_id': STORM_SEVERE})
         data = json.loads(resp.data)
         assert resp.status_code == 200
-        # Find first hour where p_flood = 1.0, then all subsequent should also be 1.0
+        # Find first hour where p_flood = 1.0
         found_one = False
         for h in data['hourly']:
             if h['p_flood'] == 1.0:
                 found_one = True
-            if found_one:
+            elif found_one and h['p_flood'] is not None:
+                # After severe latch, p_flood should remain 1.0 (unless blanked by KO)
                 assert h['p_flood'] == 1.0
+        assert found_one, "No hour reached p_flood=1.0"

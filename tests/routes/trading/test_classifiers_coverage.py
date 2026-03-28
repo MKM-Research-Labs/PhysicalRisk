@@ -30,24 +30,22 @@ class TestClearAllImportErrorFallback:
         def patched_import(*args, **kwargs):
             raise ImportError("no port_stress")
 
-        with patch("routes.trading.classifiers.invalidate_stressm_predictor",
-                   side_effect=ImportError("no port_stress"), create=True):
-            # Patch at module level so the try/except triggers
-            import builtins
-            real_import = builtins.__import__
+        # Patch at module level so the try/except triggers
+        import builtins
+        real_import = builtins.__import__
 
-            def mock_import(name, *args, **kwargs):
-                if name == "routes.trading.port_stress" or (
-                    "port_stress" in str(name)):
-                    raise ImportError("no port_stress")
-                return real_import(name, *args, **kwargs)
+        def mock_import(name, *args, **kwargs):
+            if name == "routes.trading.port_stress" or (
+                "port_stress" in str(name)):
+                raise ImportError("no port_stress")
+            return real_import(name, *args, **kwargs)
 
-            monkeypatch.setattr(builtins, "__import__", mock_import)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
 
-            resp = trading_client.post("/api/v1/trading/classifiers/clear-all")
-            data = resp.get_json()
-            assert data["status"] == "success"
-            assert data["removed"] == 1
+        resp = trading_client.post("/api/v1/trading/classifiers/clear-all")
+        data = resp.get_json()
+        assert data["status"] == "success"
+        assert data["removed"] == 1
 
 
 class TestTrainAllStartError:

@@ -21,18 +21,11 @@
 """storm_id consistency: list IDs must be accepted by /trading/stress/run."""
 
 import json
-from unittest.mock import MagicMock, patch
 
 
 class TestStormIdConsistency:
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_storm_from_list_is_runnable(self, mock_pred, integration_env):
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_pred.return_value = pred
-
+    def test_storm_from_list_is_runnable(self, integration_env):
         client = integration_env['client']
         resp = client.get('/api/v1/trading/stress/storms?gauge_id=GAUGE-001')
         data = json.loads(resp.data)
@@ -50,13 +43,7 @@ class TestStormIdConsistency:
                 f"{run_data.get('message')}"
             assert run_data['status'] == 'success'
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_worst_storm_auto_selection_is_runnable(self, mock_pred, integration_env):
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        pred._load_summary.return_value = {'gauges': []}
-        mock_pred.return_value = pred
-
+    def test_worst_storm_auto_selection_is_runnable(self, integration_env):
         client = integration_env['client']
         resp = client.get('/api/v1/trading/stress/storms?gauge_id=GAUGE-001')
         worst_storm = json.loads(resp.data)['storms'][0]
@@ -78,13 +65,7 @@ class TestStressRunInputFields:
         for s in data['storms']:
             assert 'storm_id' in s
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_storm_id_exact_match_required(self, mock_pred, integration_env):
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_pred.return_value = pred
-
+    def test_storm_id_exact_match_required(self, integration_env):
         client = integration_env['client']
 
         resp = client.post('/api/v1/trading/stress/run',

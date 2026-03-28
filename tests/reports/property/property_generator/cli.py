@@ -10,7 +10,7 @@ reports.property.property_generator.PropertyReportGenerator has no effect.
 Fix: patch reportlab.platypus.SimpleDocTemplate (fetched via sys.modules during
 the fresh module execution), giving a callable mock_doc.build to assert on.
 
-Note: line 504 references args.property_pages (argparse stores it as args.pages),
+Note: line 504 references args.pages (argparse stores it as args.pages),
 so the 'full' / else branch always raises AttributeError → except → sys.exit(1).
 Success logging (lines 506-508) is only reachable via the typed branches (497-502).
 """
@@ -48,7 +48,7 @@ def mock_pdf():
     """
     mock_doc = MagicMock()
     with patch('reportlab.platypus.SimpleDocTemplate', return_value=mock_doc), \
-         patch('reports.property.generator.SimpleDocTemplate', return_value=mock_doc):
+         patch('src.reports.shared.base_generator.SimpleDocTemplate', return_value=mock_doc):
         yield mock_doc
 
 
@@ -193,27 +193,15 @@ class TestReportGeneration:
         mock_pdf.build.assert_called_once()
 
     def test_report_type_mortgage_focused_without_mortgage_falls_through(self, tmp_path, mock_pdf):
-        """Lines 499 condition False (no mortgage_data) → falls to elif risk-focused / else."""
-        # Without --mortgage-file, mortgage_data is None → condition on line 499 is False.
-        # report_type is 'mortgage-focused' but not 'risk-focused' either → else branch
-        # → args.property_pages AttributeError → except → sys.exit(1)
-        exited = []
-
-        def cap(code=0):
-            exited.append(code)
-            raise SystemExit(code)
-
-        with patch.object(sys, 'argv', [
+        """Lines 499 condition False (no mortgage_data) → falls to else branch
+        which calls generate_report with auto-selected pages."""
+        _run_main([
             'prog',
             '--property-file', _write_property_json(tmp_path),
             '--output-dir', str(tmp_path),
             '--report-type', 'mortgage-focused',
-        ]), patch('sys.exit', side_effect=cap):
-            try:
-                runpy.run_module('reports.property.property_generator', run_name='__main__')
-            except SystemExit:
-                pass
-        assert 1 in exited
+        ])
+        mock_pdf.build.assert_called_once()
 
     def test_report_type_risk_focused(self, tmp_path, mock_pdf):
         """Lines 501-502: --report-type risk-focused → generate_risk_focused_report."""
@@ -225,27 +213,15 @@ class TestReportGeneration:
         ])
         mock_pdf.build.assert_called_once()
 
-    def test_else_branch_triggers_except(self, tmp_path):
-        """Lines 503-504: default 'full' report_type → args.property_pages AttributeError
-        → except block → sys.exit(1).  Lines 503-504 are still marked covered because the
-        statement started executing before raising."""
-        exited = []
-
-        def cap(code=0):
-            exited.append(code)
-            raise SystemExit(code)
-
-        with patch.object(sys, 'argv', [
+    def test_else_branch_generates_report(self, tmp_path, mock_pdf):
+        """Default report_type (no --report-type flag) hits the else branch
+        which calls generate_report with args.pages (None → auto-select)."""
+        _run_main([
             'prog',
             '--property-file', _write_property_json(tmp_path),
             '--output-dir', str(tmp_path),
-        ]), patch('sys.exit', side_effect=cap), \
-             patch('reportlab.platypus.SimpleDocTemplate', return_value=MagicMock()):
-            try:
-                runpy.run_module('reports.property.property_generator', run_name='__main__')
-            except SystemExit:
-                pass
-        assert 1 in exited
+        ])
+        mock_pdf.build.assert_called_once()
 
     def test_success_logging_executes(self, tmp_path, mock_pdf):
         """Lines 506-508: success-logging block runs after a successful generation."""

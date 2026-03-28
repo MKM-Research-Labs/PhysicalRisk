@@ -100,5 +100,5 @@ def full_flood_data() -> Dict[str, Any]:
 
 
 def _make_generator(tmp_path: Path):
-    from reports.risk.risk_report_generator import RiskReportGenerator
+    from reports.risk.generator import RiskReportGenerator
     return RiskReportGenerator(output_dir=tmp_path)

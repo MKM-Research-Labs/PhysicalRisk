@@ -23,30 +23,30 @@ class TestGenerateElements:
 
     def test_returns_list(self, tmp_path, minimal_flood_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(minimal_flood_data, ["title"])
+        elements = gen._generate_elements(["title"], flood_data=minimal_flood_data)
         assert isinstance(elements, list)
 
     def test_empty_page_list(self, tmp_path, minimal_flood_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(minimal_flood_data, [])
+        elements = gen._generate_elements([], flood_data=minimal_flood_data)
         assert elements == []
 
     def test_unknown_page_skipped(self, tmp_path, minimal_flood_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(minimal_flood_data, ["nonexistent_page_xyz"])
+        elements = gen._generate_elements(["nonexistent_page_xyz"], flood_data=minimal_flood_data)
         assert isinstance(elements, list)
         assert len(elements) == 0
 
     def test_mixed_valid_and_unknown_pages(self, tmp_path, minimal_flood_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(minimal_flood_data, ["title", "bogus_page_abc"])
+        elements = gen._generate_elements(["title", "bogus_page_abc"], flood_data=minimal_flood_data)
         assert len(elements) > 0
 
     def test_multiple_pages_inserts_page_breaks(self, tmp_path, minimal_flood_data):
         from reportlab.platypus import PageBreak
         gen = _make_generator(tmp_path)
         elements = gen._generate_elements(
-            minimal_flood_data, ["title", "executive_summary"]
+            ["title", "executive_summary"], flood_data=minimal_flood_data
         )
         has_break = any(isinstance(e, PageBreak) for e in elements)
         assert has_break
@@ -54,7 +54,7 @@ class TestGenerateElements:
     def test_first_page_no_page_break(self, tmp_path, minimal_flood_data):
         from reportlab.platypus import PageBreak
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(minimal_flood_data, ["title"])
+        elements = gen._generate_elements(["title"], flood_data=minimal_flood_data)
         assert not any(isinstance(e, PageBreak) for e in elements)
 
     def test_exception_in_page_continues(self, tmp_path, minimal_flood_data):
@@ -63,7 +63,7 @@ class TestGenerateElements:
         bad_page = MagicMock()
         bad_page.generate_elements.side_effect = RuntimeError("boom")
         gen.pages["_bad"] = bad_page
-        elements = gen._generate_elements(minimal_flood_data, ["_bad", "title"])
+        elements = gen._generate_elements(["_bad", "title"], flood_data=minimal_flood_data)
         assert isinstance(elements, list)
         assert len(elements) > 0
 

@@ -21,17 +21,17 @@ class TestRiskReportGeneratorInit:
     """Tests for __init__ including output-dir resolution."""
 
     def test_explicit_output_dir_string(self, tmp_path):
-        from reports.risk.risk_report_generator import RiskReportGenerator
+        from reports.risk.generator import RiskReportGenerator
         gen = RiskReportGenerator(output_dir=str(tmp_path))
         assert gen.output_dir == tmp_path
 
     def test_explicit_output_dir_path(self, tmp_path):
-        from reports.risk.risk_report_generator import RiskReportGenerator
+        from reports.risk.generator import RiskReportGenerator
         gen = RiskReportGenerator(output_dir=tmp_path)
         assert isinstance(gen.output_dir, Path)
 
     def test_output_dir_created(self, tmp_path):
-        from reports.risk.risk_report_generator import RiskReportGenerator
+        from reports.risk.generator import RiskReportGenerator
         new_dir = tmp_path / "brand_new_dir"
         RiskReportGenerator(output_dir=new_dir)
         assert new_dir.exists()
@@ -41,7 +41,7 @@ class TestRiskReportGeneratorInit:
         from config import config
         risk_dir = tmp_path / "risk_reports"
         monkeypatch.setattr(config, "get_reports_dir", lambda _section: risk_dir)
-        from reports.risk.risk_report_generator import RiskReportGenerator
+        from reports.risk.generator import RiskReportGenerator
         gen = RiskReportGenerator()
         assert gen.output_dir == risk_dir
 

@@ -30,29 +30,29 @@ class TestGenerateElements:
 
     def test_returns_list(self, tmp_path, gauge_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(gauge_data, None, ["title_overview"])
+        elements = gen._generate_elements(["title_overview"], gauge_data=gauge_data, timeseries_data=None)
         assert isinstance(elements, list)
 
     def test_empty_page_list_returns_empty(self, tmp_path, gauge_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(gauge_data, None, [])
+        elements = gen._generate_elements([], gauge_data=gauge_data, timeseries_data=None)
         assert elements == []
 
     def test_unknown_page_skipped(self, tmp_path, gauge_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(gauge_data, None, ["totally_bogus_xyz"])
+        elements = gen._generate_elements(["totally_bogus_xyz"], gauge_data=gauge_data, timeseries_data=None)
         assert len(elements) == 0
 
     def test_first_page_no_page_break(self, tmp_path, gauge_data):
         from reportlab.platypus import PageBreak
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(gauge_data, None, ["title_overview"])
+        elements = gen._generate_elements(["title_overview"], gauge_data=gauge_data, timeseries_data=None)
         assert not any(isinstance(e, PageBreak) for e in elements)
 
     def test_multiple_pages_have_page_break(self, tmp_path, gauge_data):
         from reportlab.platypus import PageBreak
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(gauge_data, None, ["title_overview", "sensor_details"])
+        elements = gen._generate_elements(["title_overview", "sensor_details"], gauge_data=gauge_data, timeseries_data=None)
         assert any(isinstance(e, PageBreak) for e in elements)
 
     def test_exception_in_page_continues(self, tmp_path, gauge_data):
@@ -60,7 +60,7 @@ class TestGenerateElements:
         bad = MagicMock()
         bad.generate_elements.side_effect = RuntimeError("exploded")
         gen.pages["_bad"] = bad
-        elements = gen._generate_elements(gauge_data, None, ["_bad", "title_overview"])
+        elements = gen._generate_elements(["_bad", "title_overview"], gauge_data=gauge_data, timeseries_data=None)
         assert isinstance(elements, list)
         assert len(elements) > 0
 
@@ -68,19 +68,19 @@ class TestGenerateElements:
         gen = _make_generator(tmp_path)
         spy = MagicMock(wraps=gen.pages["title_overview"])
         gen.pages["title_overview"] = spy
-        gen._generate_elements(gauge_data, ts_data, ["title_overview"])
-        spy.generate_elements.assert_called_once_with(gauge_data, ts_data)
+        gen._generate_elements(["title_overview"], gauge_data=gauge_data, timeseries_data=ts_data)
+        spy.generate_elements.assert_called_once_with(gauge_data=gauge_data, timeseries_data=ts_data)
 
     def test_none_timeseries_passed_to_page(self, tmp_path, gauge_data):
         gen = _make_generator(tmp_path)
         spy = MagicMock(wraps=gen.pages["title_overview"])
         gen.pages["title_overview"] = spy
-        gen._generate_elements(gauge_data, None, ["title_overview"])
-        spy.generate_elements.assert_called_once_with(gauge_data, None)
+        gen._generate_elements(["title_overview"], gauge_data=gauge_data, timeseries_data=None)
+        spy.generate_elements.assert_called_once_with(gauge_data=gauge_data, timeseries_data=None)
 
     def test_mixed_valid_and_unknown_pages(self, tmp_path, gauge_data):
         gen = _make_generator(tmp_path)
-        elements = gen._generate_elements(gauge_data, None, ["title_overview", "bogus_page"])
+        elements = gen._generate_elements(["title_overview", "bogus_page"], gauge_data=gauge_data, timeseries_data=None)
         assert len(elements) > 0
 
 

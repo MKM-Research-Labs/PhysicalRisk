@@ -356,7 +356,7 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
          'The three *_page_00_base.py files share extensive header/footer/table-cell '
          'rendering logic. Consolidate into a single <i>reports/shared/pdf_base.py</i> '
          'base class with subclass hooks.'),
-        ('<b>Report generators (gauge_generator, property_generator, risk_report_generator)</b> '
+        ('<b>Report generators (gauge_generator, property_generator, generator)</b> '
          '— These share pipeline scaffolding (build, save, open PDF). Extract a '
          '<i>reports/shared/base_generator.py</i> with the common lifecycle.'),
         ('<b>Port data loaders (gauge.py, property.py, mortgage.py)</b> — '

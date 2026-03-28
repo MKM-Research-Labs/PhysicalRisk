@@ -39,6 +39,7 @@ from ._constants import (
     _docs_dir,
 )
 from ._helpers import (
+    _find_model,
     _load_inventory,
     _save_inventory,
     _load_audit_log,
@@ -57,8 +58,7 @@ def log_model_usage(model_id):
         return jsonify({"status": "error", "message": "Model inventory not found"}), 404
 
     # Verify model exists
-    model_exists = any(m["model_id"] == model_id for m in inventory.get("models", []))
-    if not model_exists:
+    if not _find_model(inventory, model_id):
         return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
 
     data = request.get_json(silent=True) or {}
@@ -129,11 +129,7 @@ def update_validation_question(model_id, question_id):
     if not inventory:
         return jsonify({"status": "error", "message": "Model inventory not found"}), 404
 
-    model = None
-    for m in inventory.get("models", []):
-        if m["model_id"] == model_id:
-            model = m
-            break
+    model = _find_model(inventory, model_id)
     if not model:
         return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
 
@@ -209,11 +205,7 @@ def get_risk_rating(model_id):
     if not inventory:
         return jsonify({"status": "error", "message": "Model inventory not found"}), 404
 
-    model = None
-    for m in inventory.get("models", []):
-        if m["model_id"] == model_id:
-            model = m
-            break
+    model = _find_model(inventory, model_id)
     if not model:
         return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
 
@@ -247,11 +239,7 @@ def override_risk_rating(model_id):
     if not inventory:
         return jsonify({"status": "error", "message": "Model inventory not found"}), 404
 
-    model = None
-    for m in inventory.get("models", []):
-        if m["model_id"] == model_id:
-            model = m
-            break
+    model = _find_model(inventory, model_id)
     if not model:
         return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
 

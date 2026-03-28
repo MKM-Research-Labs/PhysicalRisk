@@ -69,8 +69,14 @@ class FloodMixin:
         return result
 
     def _process_property(self, prop: Dict, gauge_lookup: Dict,
-                           gaugets: Dict, pts_dir: Path) -> Optional[Dict]:
-        """Process a single property: find floods and build hydrographs."""
+                           gaugets: Dict, pts_dir: Path,
+                           mode: str = "normal") -> Optional[Dict]:
+        """Process a single property: find floods and build hydrographs.
+
+        Args:
+            mode: "normal" (default), "shd" (zero elevation diff), or
+                  "she" (zero distance).
+        """
         ph = prop.get('PropertyHeader', {})
         hdr = ph.get('Header', {})
         loc = ph.get('Location', {})
@@ -129,7 +135,7 @@ class FloodMixin:
             event = self._compute_property_flood(
                 storm_id, gauge_responses, nearest,
                 prop_lat, prop_lon, prop_elevation, floor_level,
-                gaugets
+                gaugets, mode=mode,
             )
             if event:
                 flood_events.append(event)
@@ -159,6 +165,23 @@ class FloodMixin:
             'max_damage_ratio': round(max_damage, 4),
         }
 
+        # Build nearest_gauges with synthetic overrides for output
+        output_nearest_gauges = []
+        for ng in nearest:
+            g_elev = ng['gauge_info']['elevation']
+            out_dist = 0.0 if mode == "she" else ng['distance_m']
+            out_gauge_elev = g_elev
+            out_prop_elev = g_elev if mode == "shd" else prop_elevation
+            output_nearest_gauges.append({
+                'gauge_id': ng['gauge_id'],
+                'distance_m': round(out_dist, 1),
+                'gauge_elevation_m': round(out_gauge_elev, 2),
+            })
+
+        effective_elevation = prop_elevation
+        if mode == "shd" and nearest:
+            effective_elevation = nearest[0]['gauge_info']['elevation']
+
         prop_file = pts_dir / f'{prop_id}.json'
         prop_data = {
             'property_id': prop_id,
@@ -166,20 +189,13 @@ class FloodMixin:
                 'lat': prop_lat,
                 'lon': prop_lon,
             },
-            'elevation_m': round(prop_elevation, 4),
+            'elevation_m': round(effective_elevation, 4),
             'floor_level_m': round(floor_level, 4),
             'flood_zone': ph_risk.get('EAFloodZone', 'Zone 1'),
             'property_type': attrs.get('PropertyResi', 'Detached'),
             'construction_year': attrs.get('ConstructionYear', 2000),
             'property_period': attrs.get('PropertyPeriod', '2000-2008'),
-            'nearest_gauges': [
-                {
-                    'gauge_id': ng['gauge_id'],
-                    'distance_m': round(ng['distance_m'], 1),
-                    'gauge_elevation_m': round(ng['gauge_info']['elevation'], 2),
-                }
-                for ng in nearest
-            ],
+            'nearest_gauges': output_nearest_gauges,
             'flood_events': flood_events,
             'summary': summary,
         }
@@ -192,7 +208,8 @@ class FloodMixin:
                                  nearest: List[Dict],
                                  prop_lat: float, prop_lon: float,
                                  prop_elevation: float, floor_level: float,
-                                 gaugets: Dict) -> Optional[Dict]:
+                                 gaugets: Dict,
+                                 mode: str = "normal") -> Optional[Dict]:
         """
         Compute property-level flood for a single storm.
 
@@ -204,6 +221,9 @@ class FloodMixin:
         not isotropic IDW averaging which dilutes the signal.
 
         v2.1: Replaced multi-gauge IDW with single nearest gauge.
+
+        Args:
+            mode: "normal", "shd" (zero elevation diff), or "she" (zero distance).
         """
         # Use the nearest gauge as the single controlling boundary
         for ng in nearest:
@@ -214,20 +234,25 @@ class FloodMixin:
             if resp is None:
                 continue
 
+            # Apply synthetic overrides
+            effective_dist = 0.0 if mode == "she" else dist
+            g_elev = ng['gauge_info']['elevation']
+            effective_elevation = g_elev if mode == "shd" else prop_elevation
+
             gauge_wse = resp.get('peak_level_m', 0)
-            retention = compute_retention(dist)
+            retention = compute_retention(effective_dist)
 
             # v2.2: use per-pulse superposition when pulse data is available
             pulse_peaks = resp.get('pulse_peaks', [])
             if pulse_peaks:
                 return self._build_compound_flood_event(
-                    storm_id, pulse_peaks, resp, dist, retention,
-                    prop_elevation, floor_level, gid, gaugets, ng
+                    storm_id, pulse_peaks, resp, effective_dist, retention,
+                    effective_elevation, floor_level, gid, gaugets, ng
                 )
 
             return self._build_flood_event(
-                storm_id, gauge_wse, dist, retention,
-                prop_elevation, floor_level,
+                storm_id, gauge_wse, effective_dist, retention,
+                effective_elevation, floor_level,
                 gid, gaugets, ng
             )
 

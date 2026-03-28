@@ -61,7 +61,7 @@ class TestPropertyReportGeneratorInit:
             "regulatory", "current_status", "borrower_profile",
             "risk_analysis", "data_summary",
         }
-        assert expected <= set(gen.property_pages.keys())
+        assert expected <= set(gen.pages.keys())
 
     def test_categories_dict_initialized(self, tmp_path):
         gen = _make_generator(tmp_path)

@@ -47,13 +47,18 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
     and distance attenuation.
     """
 
+    # Map mode -> output subdirectory name
+    _MODE_DIRS = {"normal": "propertyts", "shd": "propertytsd", "she": "propertytse"}
+
     def __init__(
         self,
         output_dir: Optional[Union[str, Path]] = None,
-        verbose: bool = True
+        verbose: bool = True,
+        mode: str = "normal",
     ):
         self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.mode = mode
         self.verbose = verbose
         if not verbose:
             logging.getLogger(__name__).setLevel(logging.WARNING)
@@ -69,7 +74,8 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
         Returns:
             Dictionary with generation metadata and summary statistics.
         """
-        self.log("Property Flood Time Series Generator")
+        mode_label = f" [{self.mode}]" if self.mode != "normal" else ""
+        self.log(f"Property Flood Time Series Generator{mode_label}")
         self.log(f"Catchment: {config.CATCHMENT}")
 
         properties = self._load_properties()
@@ -96,7 +102,7 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
                 'severe_level': flood_stage.get('SevereFloodWarning', 0),
             }
 
-        pts_dir = self.output_dir / 'propertyts'
+        pts_dir = self.output_dir / self._MODE_DIRS[self.mode]
         pts_dir.mkdir(parents=True, exist_ok=True)
 
         # Remove stale PROP-*.json files from previous runs
@@ -116,7 +122,7 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
         }
 
         for i, prop in enumerate(properties):
-            result = self._process_property(prop, gauge_lookup, gaugets, pts_dir)
+            result = self._process_property(prop, gauge_lookup, gaugets, pts_dir, mode=self.mode)
             if result:
                 summary_stats['property_summaries'].append(result['summary'])
                 if result['summary']['floods_at_property'] > 0:

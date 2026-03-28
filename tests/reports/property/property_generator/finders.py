@@ -227,7 +227,7 @@ class TestEdgeCases:
 
     def test_report_with_all_pages(self, tmp_path, prop_data, mort_data):
         gen = _make_generator(tmp_path)
-        all_pages = list(gen.property_pages.keys())
+        all_pages = list(gen.pages.keys())
         path = gen.generate_report(prop_data, mortgage_data=mort_data,
                                    pages_to_include=all_pages)
         assert path.exists()

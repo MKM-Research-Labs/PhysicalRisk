@@ -42,7 +42,8 @@ def _run_main(argv):
 def mock_pdf():
     """Patch SimpleDocTemplate so generation tests don't write real PDF files."""
     mock_doc = MagicMock()
-    with patch('reportlab.platypus.SimpleDocTemplate', return_value=mock_doc):
+    with patch('reportlab.platypus.SimpleDocTemplate', return_value=mock_doc), \
+         patch('src.reports.shared.base_generator.SimpleDocTemplate', return_value=mock_doc):
         yield mock_doc
 
 

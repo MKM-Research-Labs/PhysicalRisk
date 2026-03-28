@@ -104,7 +104,7 @@ class TestGaugeReportGeneratorDirect:
     def test_generate_elements_skips_unknown_page(self, tmp_path):
         """Lines 190-191: unknown page -> warning logged, skipped."""
         gen = self._gen(tmp_path)
-        elements = gen._generate_elements(_GAUGE_DATA, None, ["nonexistent_page"])
+        elements = gen._generate_elements(["nonexistent_page"], gauge_data=_GAUGE_DATA, timeseries_data=None)
         assert isinstance(elements, list)
 
     def test_generate_monitoring_report(self, tmp_path):
@@ -135,7 +135,7 @@ class TestGaugeReportGeneratorDirect:
         bad_page.generate_elements.side_effect = RuntimeError("page error")
         gen.pages["bad_page"] = bad_page
         # Should not raise, just skip bad page
-        elements = gen._generate_elements(_GAUGE_DATA, None, ["bad_page", "title_overview"])
+        elements = gen._generate_elements(["bad_page", "title_overview"], gauge_data=_GAUGE_DATA, timeseries_data=None)
         assert isinstance(elements, list)
 
 

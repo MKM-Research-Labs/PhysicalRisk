@@ -101,7 +101,7 @@ class TestRiskReportEdgeCases:
         """Lines 148-149: unknown page → warning, skipped."""
         from reports.risk import RiskReportGenerator
         gen = RiskReportGenerator(output_dir)
-        elements = gen._generate_elements(sample_portfolio_data, ["bogus_page"])
+        elements = gen._generate_elements(["bogus_page"], flood_data=sample_portfolio_data)
         assert isinstance(elements, list)
 
     def test_generate_elements_exception_continues(self, sample_portfolio_data, output_dir):
@@ -112,7 +112,7 @@ class TestRiskReportEdgeCases:
         bad = MagicMock()
         bad.generate_elements.side_effect = RuntimeError("page crash")
         gen.pages["bad_page"] = bad
-        elements = gen._generate_elements(sample_portfolio_data, ["bad_page", "title"])
+        elements = gen._generate_elements(["bad_page", "title"], flood_data=sample_portfolio_data)
         assert isinstance(elements, list)
 
     def test_no_output_dir_uses_config(self, tmp_path, monkeypatch):
@@ -155,30 +155,30 @@ class TestGenerateRiskReport:
 
     def test_basic_type(self, sample_portfolio_data, output_dir):
         """Line 257-258: 'basic' type."""
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(sample_portfolio_data, output_dir=output_dir, report_type="basic")
         assert path.exists()
 
     def test_detailed_type(self, sample_portfolio_data, output_dir):
         """Lines 259-260: 'detailed' type."""
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(sample_portfolio_data, output_dir=output_dir, report_type="detailed")
         assert path.exists()
 
     def test_summary_type(self, sample_portfolio_data, output_dir):
         """Lines 261-262: 'summary' type."""
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(sample_portfolio_data, output_dir=output_dir, report_type="summary")
         assert path.exists()
 
     def test_analysis_type(self, sample_portfolio_data, output_dir):
         """Lines 263-264: 'analysis' type."""
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(sample_portfolio_data, output_dir=output_dir, report_type="analysis")
         assert path.exists()
 
     def test_unknown_type_fallback(self, sample_portfolio_data, output_dir):
         """Lines 265-266: unknown type → generate_report."""
-        from reports.risk.risk_report_generator import generate_risk_report
+        from reports.risk.generator import generate_risk_report
         path = generate_risk_report(sample_portfolio_data, output_dir=output_dir, report_type="unknown")
         assert path.exists()

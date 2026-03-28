@@ -19,7 +19,6 @@ from .constants import (
     MIN_PRS_SPREAD_BPS,
     RECOVERY_RATES,
     TENORS,
-    compute_basis_waterfall,
     compute_prs_spread,
 )
 
@@ -28,7 +27,8 @@ class PricingMixin:
     """Mixin providing property processing, PRS pricing, and basis methods."""
 
     def _process_property(self, prop_file: Path, gauge_hazard: Dict,
-                          price_prs_func, num_storms: int = 1000) -> Optional[Dict]:
+                          price_prs_func, num_storms: int = 1000,
+                          **kwargs) -> Optional[Dict]:
         """Process a single property: fit GEV (or use floor), compute PRS, calculate basis."""
         with open(prop_file, 'r') as f:
             pdata = json.load(f)
@@ -221,8 +221,6 @@ class PricingMixin:
             summary_data['max_depth_m'] = 0.0
             summary_data['mean_depth_m'] = 0.0
 
-        basis_waterfall = self._compute_basis_waterfall(pdata, nearest_gauges_data)
-
         return {
             'property_id': prop_id,
             'location': pdata.get('location', {}),
@@ -237,19 +235,8 @@ class PricingMixin:
             'term_structure': term_structure,
             'nearest_gauges': nearest_basis,
             'idw_gauge_spreads': idw_gauge_spreads,
-            'basis_waterfall': basis_waterfall,
             'summary': summary_data,
         }
-
-    def _compute_basis_waterfall(self, pdata: Dict, nearest_gauges_data: List[Dict]) -> Dict:
-        """Delegate to models.hazard.prs_analytical.compute_basis_waterfall."""
-        return compute_basis_waterfall(
-            prop_elevation=pdata.get('elevation_m', 0),
-            flood_zone=pdata.get('flood_zone', 'Zone 1'),
-            property_type=pdata.get('property_type', 'Detached'),
-            construction_year=pdata.get('construction_year', 2000),
-            nearest_gauges=nearest_gauges_data,
-        )
 
     def _compute_prs_spread(self, annual_hazard_rate: float, tenor: int,
                             price_prs_func, recovery: float = 0.0) -> float:
