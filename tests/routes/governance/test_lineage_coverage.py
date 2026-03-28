@@ -92,6 +92,12 @@ def full_trace_env(tmp_path, monkeypatch):
     with open(input_dir / "propertyhc.json", "w") as f:
         json.dump({"property_curves": {"PROP-FULL01": {"depth": 1.2}}}, f)
 
+    # propertyshd.json / propertyshe.json
+    with open(input_dir / "propertyshd.json", "w") as f:
+        json.dump({"property_hazard_curves": {"PROP-FULL01": {"shd": True}}}, f)
+    with open(input_dir / "propertyshe.json", "w") as f:
+        json.dump({"property_hazard_curves": {"PROP-FULL01": {"she": True}}}, f)
+
     # prs/ trades
     (input_dir / "prs").mkdir()
     with open(input_dir / "prs" / "PRS-FULL01.json", "w") as f:

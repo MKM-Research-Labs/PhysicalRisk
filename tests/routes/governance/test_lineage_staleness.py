@@ -1,5 +1,7 @@
 """Tests for governance data lineage staleness route."""
 
+import pytest
+
 from tests.routes.governance.lineage_shared import (
     create_fresh_file,
     create_stale_file,
@@ -19,16 +21,18 @@ class TestStalenessRoute:
         data = r.get_json()
         assert data["status"] == "success"
         assert data["health_pct"] == 0.0
-        assert len(data["steps"]) == 10
+        assert len(data["steps"]) == 14
 
     def test_all_fresh_full_health(self, lineage_env, lineage_client):
         tmp = lineage_env["tmp_path"]
         for step_out in [
             "gauge.json", "property.json", "mortgage.json",
-            "gaugehc.json", "propertyhc.json", "counterparty.json",
+            "gaugehc.json", "propertyhc.json", "propertyshd.json",
+            "propertyshe.json", "counterparty.json",
         ]:
             create_fresh_file(tmp, step_out)
-        for dir_out in ["gaugehd", "gaugets", "propertyts", "prs"]:
+        for dir_out in ["gaugehd", "gaugets", "propertyts", "propertytsd",
+                         "propertytse", "prs"]:
             create_fresh_file(tmp, f"{dir_out}/dummy.json")
 
         r = lineage_client.get("/api/v1/governance/data-lineage/staleness")
@@ -38,10 +42,10 @@ class TestStalenessRoute:
     def test_partial_health(self, lineage_env, lineage_client):
         tmp = lineage_env["tmp_path"]
         create_fresh_file(tmp, "gauge.json")
-        # 1 out of 10 fresh => 10%
+        # 1 out of 14 fresh => ~7.1%
         r = lineage_client.get("/api/v1/governance/data-lineage/staleness")
         data = r.get_json()
-        assert data["health_pct"] == 10.0
+        assert data["health_pct"] == pytest.approx(7.1, abs=0.1)
 
     def test_stale_does_not_count_as_fresh(self, lineage_env, lineage_client):
         tmp = lineage_env["tmp_path"]

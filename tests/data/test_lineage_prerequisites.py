@@ -252,7 +252,8 @@ class TestPortPrereqIntegration:
         defaults = {
             "gauges": False, "properties": False, "mortgages": False,
             "gaugets": False, "gaugehd": False, "hazard": False,
-            "propertyts": False, "propertyhc": False,
+            "propertyts": False, "propertytsd": False, "propertytse": False,
+            "propertyhc": False, "propertyshd": False, "propertyshe": False,
             "counterparties": False, "blotter": False,
             "stressm": False, "gauge_id": None, "pdf": False,
             "all": False, "nostress": False, "strict": False,
@@ -273,8 +274,9 @@ class TestPortPrereqIntegration:
         run_all = args.all or not any([
             args.gauges, args.properties, args.mortgages,
             args.gaugets, args.gaugehd, args.hazard,
-            args.propertyts, args.propertyhc, args.counterparties,
-            args.blotter, args.stressm,
+            args.propertyts, args.propertytsd, args.propertytse,
+            args.propertyhc, args.propertyshd, args.propertyshe,
+            args.counterparties, args.blotter, args.stressm,
         ])
         # In --all mode, the prereq block is guarded by `not run_all`
         assert run_all is True
@@ -286,8 +288,9 @@ class TestPortPrereqIntegration:
         run_all = args.all or not any([
             args.gauges, args.properties, args.mortgages,
             args.gaugets, args.gaugehd, args.hazard,
-            args.propertyts, args.propertyhc, args.counterparties,
-            args.blotter, args.stressm,
+            args.propertyts, args.propertytsd, args.propertytse,
+            args.propertyhc, args.propertyshd, args.propertyshe,
+            args.counterparties, args.blotter, args.stressm,
         ])
         # In --strict mode, the prereq block is guarded by `not args.strict`
         assert not run_all
@@ -305,6 +308,8 @@ class TestPortPrereqIntegration:
             "mortgages": "mortgages", "gaugehd": "gaugehd",
             "stressm": "stressm", "hazard": "hazard",
             "propertyts": "propertyts", "propertyhc": "propertyhc",
+            "propertytsd": "propertytsd", "propertytse": "propertytse",
+            "propertyshd": "propertyshd", "propertyshe": "propertyshe",
             "counterparties": "counterparties", "blotter": "blotter",
         }
 

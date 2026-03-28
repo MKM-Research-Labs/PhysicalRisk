@@ -68,7 +68,8 @@ def trace_data_point(data_type: str, data_id: str) -> list[dict]:
     """
     type_to_steps: dict[str, list[str]] = {
         "gauge_id":    ["gauges", "gaugehd", "stressm", "hazard"],
-        "property_id": ["properties", "propertyts", "propertyhc"],
+        "property_id": ["properties", "propertyts", "propertytsd", "propertytse",
+                        "propertyhc", "propertyshd", "propertyshe"],
         "storm_id":    ["stressm", "propertyts"],
     }
     steps = type_to_steps.get(data_type, [])

@@ -253,7 +253,7 @@ class TestValidateFullChain:
         with patch("lineage.validation.load_manifest", return_value=_make_manifest({})):
             result = validate_full_chain()
         assert not result["is_consistent"]
-        assert len(result["missing_steps"]) == 11  # all steps missing (incl synthetic_gauges)
+        assert len(result["missing_steps"]) == 15  # all steps missing (incl synthetic_gauges + synthetic HC variants)
 
     def test_consistent_chain(self):
         from lineage.validation import validate_full_chain
@@ -298,6 +298,22 @@ class TestValidateFullChain:
                 },
                 "outputs": {"propertyts/": {"hash": "k"}},
             },
+            "propertytsd": {
+                "inputs": {
+                    "property.json": {"hash": "c"},
+                    "gauge.json": {"hash": "a"},
+                    "gaugets/": {"hash": "f"},
+                },
+                "outputs": {"propertytsd/": {"hash": "k1"}},
+            },
+            "propertytse": {
+                "inputs": {
+                    "property.json": {"hash": "c"},
+                    "gauge.json": {"hash": "a"},
+                    "gaugets/": {"hash": "f"},
+                },
+                "outputs": {"propertytse/": {"hash": "k2"}},
+            },
             "propertyhc": {
                 "inputs": {
                     "propertyts/": {"hash": "k"},
@@ -305,6 +321,22 @@ class TestValidateFullChain:
                     "gauge.json": {"hash": "a"},
                 },
                 "outputs": {"propertyhc.json": {"hash": "l"}},
+            },
+            "propertyshd": {
+                "inputs": {
+                    "propertytsd/": {"hash": "k1"},
+                    "gaugehc.json": {"hash": "j"},
+                    "gauge.json": {"hash": "a"},
+                },
+                "outputs": {"propertyshd.json": {"hash": "l1"}},
+            },
+            "propertyshe": {
+                "inputs": {
+                    "propertytse/": {"hash": "k2"},
+                    "gaugehc.json": {"hash": "j"},
+                    "gauge.json": {"hash": "a"},
+                },
+                "outputs": {"propertyshe.json": {"hash": "l2"}},
             },
             "blotter": {
                 "inputs": {"gaugehc.json": {"hash": "j"}, "counterparty.json": {"hash": "b"}},

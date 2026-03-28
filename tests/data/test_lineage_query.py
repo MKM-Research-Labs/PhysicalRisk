@@ -97,7 +97,8 @@ class TestTraceDataPoint:
         from lineage.query import trace_data_point
         with patch("lineage.query.load_manifest", return_value=_make_manifest({})):
             chain = trace_data_point("property_id", "PROP-001")
-        assert len(chain) == 3  # properties, propertyts, propertyhc
+        # properties, propertyts, propertytsd, propertytse, propertyhc, propertyshd, propertyshe
+        assert len(chain) == 7
         assert all(c["recorded"] is False for c in chain)
 
     def test_unknown_data_type(self):
