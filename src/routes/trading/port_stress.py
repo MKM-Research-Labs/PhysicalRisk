@@ -32,37 +32,11 @@ from ._helpers import _get_engines, _load_open_trades, _load_gauge_locations
 from .stress._helpers import (
     _load_stress_storms,
     _load_stress_storm,
-    _get_predictor,
     STORM_HOURS,
 )
+from models.stress.flood_poly import p_flood_simple
 
 logger = logging.getLogger(__name__)
-
-# Module-level predictor cache (stressm directory, falls back to stress)
-_stressm_predictor_cache = None
-
-
-def invalidate_stressm_predictor():
-    """Clear the cached predictor (call after classifier clear/retrain)."""
-    global _stressm_predictor_cache
-    _stressm_predictor_cache = None
-
-
-def _get_stressm_predictor():
-    """Load and cache FloodPredictor — tries stressm first, falls back to stress."""
-    global _stressm_predictor_cache
-    if _stressm_predictor_cache is None:
-        try:
-            from models.stress.flood_classifier import FloodPredictor
-            model_dir = config.get_classifiers_dir()  # data/input/<catchment>/classifiers/
-            if model_dir.exists():
-                _stressm_predictor_cache = FloodPredictor(model_dir)
-                return _stressm_predictor_cache
-        except Exception:
-            pass
-        # Fall back to the standard stress predictor
-        _stressm_predictor_cache = _get_predictor()
-    return _stressm_predictor_cache
 
 
 # ------------------------------------------------------------------
@@ -190,15 +164,12 @@ def run_portfolio_stress():
             if gid:
                 trades_by_gauge.setdefault(gid, []).append(t)
 
-        # 5. Load predictor
-        predictor = _get_stressm_predictor()
-
-        # 6. Build gauge response lookup from storm
+        # 5. Build gauge response lookup from storm
         gauge_resp_lookup = {}
         for gr in storm.get('gauge_responses', []):
             gauge_resp_lookup[gr['gauge_id']] = gr
 
-        # 7. Process each gauge that has open trades
+        # 6. Process each gauge that has open trades
         gauge_results = []
 
         for gid, gloc in gauge_locations.items():
@@ -260,23 +231,8 @@ def run_portfolio_stress():
                 peak_idx = max(range(STORM_HOURS), key=lambda i: hydrograph[i])
                 peak_wl = hydrograph[peak_idx]
 
-                # Compute derivatives at peak
-                prev_wl = hydrograph[peak_idx - 1] if peak_idx > 0 else peak_wl
-                delta_w = peak_wl - prev_wl
-                prev_delta = (
-                    (prev_wl - hydrograph[peak_idx - 2])
-                    if peak_idx > 1 else 0.0
-                )
-                delta2_w = delta_w - prev_delta
-
-                if severe_level > 0 and peak_wl >= severe_level:
-                    p_flood = 1.0
-                elif predictor:
-                    try:
-                        p_flood = predictor.predict(
-                            gid, peak_wl, peak_idx, delta_w, delta2_w)
-                    except Exception:
-                        p_flood = 0.0
+                if severe_level > 0:
+                    p_flood = p_flood_simple(peak_wl, severe_level)
 
             # Determine threshold label
             if peak_wl > 0 and severe_level > 0 and peak_wl >= severe_level:

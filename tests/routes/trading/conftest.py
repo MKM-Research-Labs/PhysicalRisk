@@ -106,7 +106,6 @@ def trading_env(tmp_path, monkeypatch):
     try:
         import routes.trading.stress._helpers as stress_helpers
         stress_helpers._stress_storms_cache = None
-        stress_helpers._predictor_cache = None
     except ImportError:
         pass
 

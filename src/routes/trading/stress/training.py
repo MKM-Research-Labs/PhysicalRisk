@@ -210,15 +210,6 @@ def _train_single_gauge(gauge_id: str):
         # Update training_summary.json (merge with existing)
         _update_training_summary(result)
 
-        # Invalidate ALL cached predictors so next request picks up the new model
-        from ._helpers import _invalidate_predictor_cache
-        _invalidate_predictor_cache()
-        try:
-            from routes.trading.port_stress import invalidate_stressm_predictor
-            invalidate_stressm_predictor()
-        except ImportError:
-            pass
-
         with _training_lock:
             _training_jobs[gauge_id] = {
                 "status": "ready",

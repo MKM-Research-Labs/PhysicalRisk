@@ -3,8 +3,8 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Coverage expansion tests for stress/scenario.py — lines 48, 81, 106,
-109-110, 125, 133-137."""
+"""Coverage expansion tests for stress/scenario.py — storms not found,
+no trades, hydrograph padding, model_auc, threshold classification."""
 
 import json
 from unittest.mock import patch, MagicMock
@@ -15,7 +15,7 @@ from .conftest import STORM_SEVERE, STORM_WARNING
 
 
 class TestStressStormsNotFound:
-    """Line 48: stress_storms.json not found returns 404."""
+    """stress_storms.json not found returns 404."""
 
     def test_stress_run_no_storms_file(self, trading_client, trading_env):
         """When stress_storms.json is absent, returns 404."""
@@ -31,19 +31,11 @@ class TestStressStormsNotFound:
 
 
 class TestNoOpenTradesAtGauge:
-    """Line 81: no open trades at gauge returns 404."""
+    """No open trades at gauge returns 404."""
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_gauge_with_no_trades_returns_404(self, mock_predictor,
-                                                stress_client, stress_env):
+    def test_gauge_with_no_trades_returns_404(self, stress_client, stress_env):
         """Gauge that exists in storm data but has no trades returns 404."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        mock_predictor.return_value = pred
-        # GAUGE-001 has trades, but this test uses a gauge that has no trades
-        # but appears in storm gauge_responses. We write a new storms file.
         storms = {
-            'metadata': {'generated': '2026-01-01'},
             'storms': [{
                 'storm_id': 'STORM-notrades',
                 'name': 'No Trades Storm',
@@ -59,7 +51,6 @@ class TestNoOpenTradesAtGauge:
                 }],
             }],
         }
-        # Write storm to stress_storms/ directory
         ss_dir = stress_env['input_dir'] / 'stress_storms'
         ss_dir.mkdir(exist_ok=True)
         storm = storms['storms'][0]
@@ -85,18 +76,10 @@ class TestNoOpenTradesAtGauge:
 
 
 class TestHydrographPadding:
-    """Lines 106, 109-110: hydrograph padding and exception handling."""
+    """Hydrograph padding and exception handling."""
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_short_gaugets_padded_to_storm_hours(self, mock_predictor,
-                                                    stress_client, stress_env):
-        """When gaugets has fewer than STORM_HOURS readings, pads with last value (line 106-108)."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_predictor.return_value = pred
-
-        # Write gaugets file with only 10 readings (< 168)
+    def test_short_gaugets_padded_to_storm_hours(self, stress_client, stress_env):
+        """When gaugets has fewer than STORM_HOURS readings, pads with last value."""
         gaugets_dir = stress_env['gaugets_dir']
         readings = [{'timestamp': f'2024-01-01T{h:02d}:00:00',
                      'waterLevel': 3.0 + h * 0.3}
@@ -113,16 +96,8 @@ class TestHydrographPadding:
         assert resp.status_code == 200
         assert len(data['hourly']) == 168
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_gaugets_bad_json_returns_404(self, mock_predictor,
-                                          stress_client, stress_env):
-        """When gaugets JSON is corrupt, route returns 404 — stress scenarios
-        require real timeseries data, not synthetic approximations."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {'gauges': []}
-        mock_predictor.return_value = pred
-
+    def test_gaugets_bad_json_returns_404(self, stress_client, stress_env):
+        """When gaugets JSON is corrupt, route returns 404."""
         gaugets_dir = stress_env['gaugets_dir']
         (gaugets_dir / 'GAUGE-001.json').write_text('NOT VALID JSON!!!')
 
@@ -135,65 +110,11 @@ class TestHydrographPadding:
         assert 'gaugets' in data['message'].lower()
 
 
-class TestPredictorNotFound:
-    """Line 125: predictor returns None -> 404."""
+class TestModelAucNone:
+    """model_auc is always None now (predictor removed)."""
 
-    def test_predictor_none_returns_404(self, stress_client, stress_env):
-        """When _get_predictor returns None, returns 404."""
-        with patch('routes.trading.stress.scenario._get_predictor',
-                   return_value=None):
-            resp = stress_client.post('/api/v1/trading/stress/run',
-                                      json={'gauge_id': 'GAUGE-001',
-                                            'storm_id': STORM_SEVERE})
-            assert resp.status_code == 404
-            data = json.loads(resp.data)
-            assert 'models not found' in data.get('message', '').lower()
-
-
-class TestModelAucFromSummary:
-    """Lines 133-137: model_auc loaded from predictor summary."""
-
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_model_auc_present_when_summary_has_gauge(self, mock_predictor,
-                                                        stress_client, stress_env):
-        """When predictor._load_summary has matching gauge, model_auc is set."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {
-            'gauges': [
-                {
-                    'gauge_id': 'GAUGE-001',
-                    'status': 'trained',
-                    'metrics': {'auc_roc': 0.95},
-                },
-            ],
-        }
-        mock_predictor.return_value = pred
-
-        resp = stress_client.post('/api/v1/trading/stress/run',
-                                   json={'gauge_id': 'GAUGE-001',
-                                         'storm_id': STORM_SEVERE})
-        data = json.loads(resp.data)
-        assert resp.status_code == 200
-        assert data['model_auc'] == 0.95
-
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_model_auc_none_when_summary_no_match(self, mock_predictor,
-                                                     stress_client, stress_env):
-        """When predictor._load_summary has no matching gauge, model_auc is None."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {
-            'gauges': [
-                {
-                    'gauge_id': 'GAUGE-OTHER',
-                    'status': 'trained',
-                    'metrics': {'auc_roc': 0.90},
-                },
-            ],
-        }
-        mock_predictor.return_value = pred
-
+    def test_model_auc_is_none(self, stress_client, stress_env):
+        """model_auc should be None since predictor is removed."""
         resp = stress_client.post('/api/v1/trading/stress/run',
                                    json={'gauge_id': 'GAUGE-001',
                                          'storm_id': STORM_SEVERE})
@@ -201,42 +122,31 @@ class TestModelAucFromSummary:
         assert resp.status_code == 200
         assert data['model_auc'] is None
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_model_auc_none_when_summary_raises(self, mock_predictor,
-                                                   stress_client, stress_env):
-        """When predictor._load_summary raises, model_auc is None (lines 136-137)."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.side_effect = RuntimeError('no summary')
-        mock_predictor.return_value = pred
 
+class TestPFloodPolyUsed:
+    """Stress scenario now uses p_flood_poly for P(flood) computation."""
+
+    def test_pflood_values_in_range(self, stress_client, stress_env):
+        """All hourly P(flood) values should be in [0, 1]."""
         resp = stress_client.post('/api/v1/trading/stress/run',
                                    json={'gauge_id': 'GAUGE-001',
                                          'storm_id': STORM_SEVERE})
         data = json.loads(resp.data)
         assert resp.status_code == 200
-        assert data['model_auc'] is None
+        for h in data['hourly']:
+            assert 0.0 <= h['p_flood'] <= 1.0
 
-    @patch('routes.trading.stress.scenario._get_predictor')
-    def test_model_auc_skips_untrained_gauge(self, mock_predictor,
-                                               stress_client, stress_env):
-        """When gauge status is not 'trained', model_auc remains None."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.3
-        pred._load_summary.return_value = {
-            'gauges': [
-                {
-                    'gauge_id': 'GAUGE-001',
-                    'status': 'failed',
-                    'metrics': {'auc_roc': 0.85},
-                },
-            ],
-        }
-        mock_predictor.return_value = pred
-
+    def test_severe_breach_latches_to_one(self, stress_client, stress_env):
+        """Once water exceeds severe, P(flood) should stay at 1.0."""
         resp = stress_client.post('/api/v1/trading/stress/run',
                                    json={'gauge_id': 'GAUGE-001',
                                          'storm_id': STORM_SEVERE})
         data = json.loads(resp.data)
         assert resp.status_code == 200
-        assert data['model_auc'] is None
+        # Find first hour where p_flood = 1.0, then all subsequent should also be 1.0
+        found_one = False
+        for h in data['hourly']:
+            if h['p_flood'] == 1.0:
+                found_one = True
+            if found_one:
+                assert h['p_flood'] == 1.0

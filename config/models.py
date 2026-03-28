@@ -33,7 +33,7 @@ Subsections:
     Insurance Premium         — valuation/insurance.py
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, NamedTuple
 
 # ===========================================================================
 # Risk Assessment Thresholds  (models/risk/risk_assessor/)
@@ -327,3 +327,52 @@ BASE_RATE_RANGE: Tuple[float, float] = (1.5, 4.0)
 # Annual premium bounds (GBP)
 MIN_PREMIUM: int = 200
 MAX_PREMIUM: int = 20_000
+
+
+# ===========================================================================
+# Flood Poly — Polynomial Flood Probability Model  (models/stress/flood_poly.py)
+# ===========================================================================
+# Logistic sigmoid fitted to the GBM classifier surface (GAUGE-dc5e88fb).
+# P(flood) = σ(a·h + b·t + c·h·t + d·h² + e·t² + f)
+# where h = ln(w/s), t = ln((hour+1)/T).
+
+
+class FloodPolyCoeffs(NamedTuple):
+    """Sigmoid polynomial coefficients for p_flood_poly."""
+    a: float   # log water level (h)
+    b: float   # log time (t)
+    c: float   # h·t interaction
+    d: float   # h² quadratic
+    e: float   # t² quadratic
+    f: float   # intercept
+
+
+flood_poly_coeffs = FloodPolyCoeffs(
+    a=28.9582,
+    b=-11.6351,
+    c=26.5490,
+    d=-22.8893,
+    e=-7.0794,
+    f=-0.8872,
+)
+
+# Storm horizon for log-time normalisation (hours)
+flood_poly_storm_hours: int = 168
+
+# Floor for log transform to avoid ln(0)
+flood_poly_log_eps: float = 1e-8
+
+# Exponent clamp to prevent overflow in sigmoid
+flood_poly_exp_clamp: float = 30.0
+
+# Fit quality metrics (documentary — not used at runtime)
+flood_poly_fit = {
+    "model_id": "flood-poly-v1",
+    "version": "1.0.0",
+    "r_squared": 0.9395,
+    "mae": 0.0456,
+    "rmse": 0.0986,
+    "source_gauge": "GAUGE-dc5e88fb",
+    "source_auc": 0.9939,
+    "source_samples": 3_393_600,
+}

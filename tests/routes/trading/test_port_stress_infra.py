@@ -1,24 +1,9 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
 # This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
-# internal business operations intended for commercial advantage, or
-# research and development conducted for a commercial entity, is expressly
-# prohibited unless separately authorized in writing by MKM Research Labs.
+# research and educational use only.
 
-# Use, reproduction, distribution, or modification of this code is subject to the
-# terms and conditions of the license agreement provided with this software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""Tests for predictor caching, error handling, and cache invalidation."""
+"""Tests for portfolio stress infrastructure — error handling, caching."""
 
 import json
 import time
@@ -27,44 +12,6 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from tests.routes.trading.conftest import STORM_PORT_SEVERE, STORM_PORT_ALERT
-
-
-class TestPortfolioStressPredictor:
-    """_get_stressm_predictor cache behaviour and fallback paths."""
-
-    def test_stressm_predictor_falls_back(self, port_stress_env):
-        """If stressm/ dir missing, falls back gracefully — no crash.
-        p_flood = 0.0 (no model) or predictor returns a value."""
-        import routes.trading.port_stress as ps_mod
-        ps_mod._stressm_predictor_cache = None
-        # No stressm/ dir exists in the test output dir — must not raise
-        result = ps_mod._get_stressm_predictor()
-        # Result is either None or a predictor object; must not crash
-        assert result is None or callable(getattr(result, 'predict', None))
-
-    def test_stressm_predictor_cache_hit(self, port_stress_env):
-        """_stressm_predictor_cache is reused on second call."""
-        import routes.trading.port_stress as ps_mod
-        sentinel = MagicMock()
-        ps_mod._stressm_predictor_cache = sentinel
-        result = ps_mod._get_stressm_predictor()
-        assert result is sentinel
-        ps_mod._stressm_predictor_cache = None  # cleanup
-
-    @patch('routes.trading.port_stress._get_stressm_predictor')
-    def test_predictor_called_per_gauge(self, mock_pred, port_stress_client, port_stress_env):
-        """With 3 impacted gauges in STORM_PORT_SEVERE, predictor.predict is called
-        at least once for non-severe gauges (severe gauges skip predictor)."""
-        pred = MagicMock()
-        pred.predict.return_value = 0.4
-        mock_pred.return_value = pred
-        port_stress_client.post(
-            '/api/v1/trading/stress/portfolio-run',
-            json={'storm_id': STORM_PORT_SEVERE})
-        # GAUGE-002 is warning-level (not severe) so predictor should be called for it
-        # GAUGE-001 and GAUGE-9042bd95 are latched to p_flood=1.0, skip predictor
-        # At least one predict call must occur (for GAUGE-002)
-        assert pred.predict.call_count >= 1
 
 
 class TestPortfolioStressErrors:
@@ -78,7 +25,7 @@ class TestPortfolioStressErrors:
         assert resp.status_code in (400, 500)
 
     def test_engine_error_returns_500(self, port_stress_client, port_stress_env):
-        """patch _get_engines to raise RuntimeError → 500."""
+        """patch _get_engines to raise RuntimeError -> 500."""
         with patch('routes.trading.port_stress._get_engines',
                    side_effect=RuntimeError('engine fail')):
             resp = port_stress_client.post(
@@ -87,19 +34,13 @@ class TestPortfolioStressErrors:
             assert resp.status_code == 500
 
     def test_missing_storms_file_returns_404(self, trading_client, trading_env):
-        """No stress_storms/ + cache cleared → portfolio-run returns 404."""
+        """No stress_storms/ + cache cleared -> portfolio-run returns 404."""
         import routes.trading.stress._helpers as stress_helpers
         stress_helpers._stress_index_cache = None
-        import routes.trading.port_stress as ps_mod
-        ps_mod._stressm_predictor_cache = None
-        with patch('routes.trading.port_stress._get_stressm_predictor') as mock_pred:
-            pred = MagicMock()
-            pred.predict.return_value = 0.4
-            mock_pred.return_value = pred
-            resp = trading_client.post(
-                '/api/v1/trading/stress/portfolio-run',
-                json={'storm_id': STORM_PORT_SEVERE})
-            assert resp.status_code == 404
+        resp = trading_client.post(
+            '/api/v1/trading/stress/portfolio-run',
+            json={'storm_id': STORM_PORT_SEVERE})
+        assert resp.status_code == 404
 
 
 class TestStressStormsCacheInvalidation:
@@ -110,18 +51,15 @@ class TestStressStormsCacheInvalidation:
         request without restarting the server (mtime-based invalidation)."""
         import routes.trading.stress._helpers as h
 
-        # Write initial directory structure
         ss_dir = tmp_path / 'stress_storms'
         ss_dir.mkdir()
         index = ss_dir / '_index.json'
         index.write_text(json.dumps({'storms': [{'storm_id': 'STORM-aaaaaaaa',
                                                   'name': 'Alpha'}]}))
 
-        # Patch config to point at tmp_path
         original_fn = h._load_stress_storms.__globals__['config'].get_input_dir
         h._load_stress_storms.__globals__['config'].get_input_dir = lambda: tmp_path
 
-        # Clear module-level cache
         h._stress_index_cache = None
         h._stress_index_mtime = None
 
@@ -129,14 +67,12 @@ class TestStressStormsCacheInvalidation:
             data1 = h._load_stress_storms()
             assert len(data1['storms']) == 1
 
-            # Overwrite index with new content (bump mtime)
             import time; time.sleep(0.01)
             index.write_text(json.dumps({'storms': [
                 {'storm_id': 'STORM-aaaaaaaa', 'name': 'Alpha'},
                 {'storm_id': 'STORM-bbbbbbbb', 'name': 'Beta'},
             ]}))
 
-            # Should reload automatically
             data2 = h._load_stress_storms()
             assert len(data2['storms']) == 2, \
                 "Cache must invalidate when _index.json mtime changes"
@@ -146,7 +82,7 @@ class TestStressStormsCacheInvalidation:
             h._stress_index_mtime = None
 
     def test_cache_not_reloaded_when_mtime_unchanged(self, tmp_path):
-        """If the index has not changed, the cached object is returned (no re-read)."""
+        """If the index has not changed, the cached object is returned."""
         import routes.trading.stress._helpers as h
 
         ss_dir = tmp_path / 'stress_storms'

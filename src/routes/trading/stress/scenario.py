@@ -16,8 +16,9 @@ from ._helpers import (
     STORM_HOURS,
     _load_stress_storms,
     _load_stress_storm,
-    _get_predictor,
 )
+
+from models.stress.flood_poly import p_flood_poly
 
 logger = logging.getLogger(__name__)
 
@@ -115,24 +116,7 @@ def run_stress_scenario():
                 ),
             }), 404
 
-        # 4. Load flood predictor
-        predictor = _get_predictor()
-        if not predictor:
-            return jsonify({"status": "error",
-                            "message": "Stress models not found"}), 404
-
-        # Read model AUC for this gauge from training summary
-        model_auc = None
-        try:
-            summary = predictor._load_summary()
-            for g in summary.get('gauges', []):
-                if g.get('gauge_id') == gauge_id and g.get('status') == 'trained':
-                    model_auc = g.get('metrics', {}).get('auc_roc')
-                    break
-        except Exception:
-            pass
-
-        # Get flood trigger levels from gauge data
+        # 4. Get flood trigger levels from gauge data
         gaugehc_path = config.get_input_dir() / 'gaugehc.json'
         alert_level = 0
         warning_level = 0
@@ -176,20 +160,15 @@ def run_stress_scenario():
         for h in range(STORM_HOURS):
             water_level = hydrograph[h]
 
-            # Compute velocity and acceleration from hydrograph
-            prev_level = hydrograph[h - 1] if h > 0 else water_level
-            delta_w = water_level - prev_level
-            prev_delta = (prev_level - hydrograph[h - 2]) if h > 1 else 0.0
-            delta2_w = delta_w - prev_delta
-
             # Severe breach latches P(flood) to 100%
             if severe_level > 0 and water_level >= severe_level:
                 severe_breached = True
             if severe_breached:
                 p_flood = 1.0
+            elif severe_level > 0:
+                p_flood = p_flood_poly(water_level, h, severe_level)
             else:
-                p_flood = predictor.predict(gauge_id, water_level,
-                                            h, delta_w, delta2_w)
+                p_flood = 0.0
 
             per_trade = []
             portfolio_cash = 0
@@ -284,7 +263,7 @@ def run_stress_scenario():
             'storm_id': storm_id,
             'storm_name': storm.get('name', ''),
             'intensity_category': storm.get('intensity_category', ''),
-            'model_auc': model_auc,
+            'model_auc': None,
             'effective_precipitation_mm': storm.get(
                 'effective_precipitation_mm', 0),
             'gauges_severe': storm.get('trigger_summary', {}).get(
