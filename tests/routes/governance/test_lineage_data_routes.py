@@ -22,7 +22,7 @@ class TestGetDataLineage:
         data = r.get_json()
         assert data["status"] == "success"
         assert data["manifest"] is None
-        assert data["summary"]["missing"] == 10
+        assert data["summary"]["missing"] == 14
         assert data["summary"]["health"] == "unhealthy"
 
     def test_all_fresh(self, lineage_env, lineage_client):
@@ -30,10 +30,12 @@ class TestGetDataLineage:
         tmp = lineage_env["tmp_path"]
         for step_out in [
             "gauge.json", "property.json", "mortgage.json",
-            "gaugehc.json", "propertyhc.json", "counterparty.json",
+            "gaugehc.json", "propertyhc.json", "propertyshd.json",
+            "propertyshe.json", "counterparty.json",
         ]:
             create_fresh_file(tmp, step_out)
-        for dir_out in ["gaugehd", "gaugets", "propertyts", "prs"]:
+        for dir_out in ["gaugehd", "gaugets", "propertyts", "propertytsd",
+                         "propertytse", "prs"]:
             create_fresh_file(tmp, f"{dir_out}/dummy.json")
 
         write_lineage(lineage_env, SAMPLE_LINEAGE)
@@ -41,7 +43,7 @@ class TestGetDataLineage:
         r = lineage_client.get("/api/v1/governance/data-lineage")
         data = r.get_json()
         assert data["status"] == "success"
-        assert data["summary"]["fresh"] == 10
+        assert data["summary"]["fresh"] == 14
         assert data["summary"]["stale"] == 0
         assert data["summary"]["missing"] == 0
         assert data["summary"]["health"] == "healthy"
@@ -59,7 +61,7 @@ class TestGetDataLineage:
         data = r.get_json()
         assert data["summary"]["fresh"] == 1
         assert data["summary"]["stale"] == 1
-        assert data["summary"]["missing"] == 8
+        assert data["summary"]["missing"] == 12
         assert data["summary"]["health"] == "unhealthy"
 
     def test_degraded_health(self, lineage_env, lineage_client):
@@ -67,10 +69,12 @@ class TestGetDataLineage:
         tmp = lineage_env["tmp_path"]
         for step_out in [
             "gauge.json", "property.json", "mortgage.json",
-            "gaugehc.json", "propertyhc.json", "counterparty.json",
+            "gaugehc.json", "propertyhc.json", "propertyshd.json",
+            "propertyshe.json", "counterparty.json",
         ]:
             create_fresh_file(tmp, step_out)
-        for dir_out in ["gaugehd", "gaugets", "propertyts", "prs"]:
+        for dir_out in ["gaugehd", "gaugets", "propertyts", "propertytsd",
+                         "propertytse", "prs"]:
             create_fresh_file(tmp, f"{dir_out}/dummy.json")
 
         # Make one stale

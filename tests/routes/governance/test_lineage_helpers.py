@@ -27,7 +27,7 @@ class TestCheckStaleness:
         from routes.governance.lineage import _check_staleness
 
         results = _check_staleness(None)
-        assert len(results) == 10
+        assert len(results) == 14
         for r in results:
             assert r["status"] == "missing"
             assert "Output not found on disk" in r["issues"]

@@ -40,7 +40,11 @@ _PIPELINE_STEPS = [
     {"step": "stressm", "generator": "port (step 5)", "output": "gaugets/"},
     {"step": "hazard", "generator": "port (step 6)", "output": "gaugehc.json"},
     {"step": "propertyts", "generator": "port (step 7)", "output": "propertyts/"},
+    {"step": "propertytsd", "generator": "port (step 7a)", "output": "propertytsd/"},
+    {"step": "propertytse", "generator": "port (step 7b)", "output": "propertytse/"},
     {"step": "propertyhc", "generator": "port (step 8)", "output": "propertyhc.json"},
+    {"step": "propertyshd", "generator": "port (step 8a)", "output": "propertyshd.json"},
+    {"step": "propertyshe", "generator": "port (step 8b)", "output": "propertyshe.json"},
     {"step": "counterparties", "generator": "port (step 9)", "output": "counterparty.json"},
     {"step": "blotter", "generator": "port (step 10)", "output": "prs/"},
 ]

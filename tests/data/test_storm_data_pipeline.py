@@ -62,6 +62,8 @@ MIN_CLASSIFIERS = 40
 GAUGE_JSON = pathlib.Path(config.get_input_dir()) / "gauge.json"
 GAUGEHC_JSON = pathlib.Path(config.get_input_dir()) / "gaugehc.json"
 PROPERTYHC_JSON = pathlib.Path(config.get_input_dir()) / "propertyhc.json"
+PROPERTYSHD_JSON = pathlib.Path(config.get_input_dir()) / "propertyshd.json"
+PROPERTYSHE_JSON = pathlib.Path(config.get_input_dir()) / "propertyshe.json"
 PROPERTY_JSON = pathlib.Path(config.get_input_dir()) / "property.json"
 PRS_DIR = pathlib.Path(config.get_reports_dir('prs')) if hasattr(config, 'get_reports_dir') else None
 
@@ -109,6 +111,61 @@ class TestPipelineCompleteness:
             f"propertyhc.json has {n_curves} curves but property.json has {n_props} properties. "
             "Run `python app.py port --propertyhc` to rebuild."
         )
+
+    def test_synthetic_shd_matches_property_count(self):
+        """propertyshd.json must have one curve per property.
+
+        Fix: python app.py port --propertyshd
+        """
+        if not PROPERTY_JSON.exists() or not PROPERTYSHD_JSON.exists():
+            pytest.skip("property.json or propertyshd.json missing")
+
+        with open(PROPERTY_JSON) as f:
+            n_props = len(json.load(f).get("properties", []))
+        with open(PROPERTYSHD_JSON) as f:
+            n_curves = len(json.load(f).get("property_hazard_curves", {}))
+
+        assert n_curves == n_props, (
+            f"propertyshd.json has {n_curves} curves but property.json has {n_props} properties. "
+            "Run `python app.py port --propertyshd` to rebuild."
+        )
+
+    def test_synthetic_she_matches_property_count(self):
+        """propertyshe.json must have one curve per property.
+
+        Fix: python app.py port --propertyshe
+        """
+        if not PROPERTY_JSON.exists() or not PROPERTYSHE_JSON.exists():
+            pytest.skip("property.json or propertyshe.json missing")
+
+        with open(PROPERTY_JSON) as f:
+            n_props = len(json.load(f).get("properties", []))
+        with open(PROPERTYSHE_JSON) as f:
+            n_curves = len(json.load(f).get("property_hazard_curves", {}))
+
+        assert n_curves == n_props, (
+            f"propertyshe.json has {n_curves} curves but property.json has {n_props} properties. "
+            "Run `python app.py port --propertyshe` to rebuild."
+        )
+
+    def test_spread_decomposition_present(self):
+        """propertyhc.json should have spread_decomposition for each property.
+
+        Fix: python app.py port --all (generates all three HC files + decomposition)
+        """
+        if not PROPERTYHC_JSON.exists():
+            pytest.skip("propertyhc.json missing")
+        if not PROPERTYSHD_JSON.exists() or not PROPERTYSHE_JSON.exists():
+            pytest.skip("synthetic HC files not yet generated")
+
+        with open(PROPERTYHC_JSON) as f:
+            curves = json.load(f).get("property_hazard_curves", {})
+
+        for prop_id, pc in curves.items():
+            assert "spread_decomposition" in pc, (
+                f"{prop_id} missing spread_decomposition in propertyhc.json. "
+                "Run `python app.py port --all` to rebuild."
+            )
 
     def test_trade_gauges_exist_in_gauge_json(self):
         """Every gauge referenced by PRS trades must exist in gauge.json.
