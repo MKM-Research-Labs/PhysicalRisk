@@ -1,0 +1,64 @@
+% Sensitivity tables for Flood Polynomial Model (MKM-FPO-001)
+% Shows P(flood) variation with water level at different storm hours
+% Severe threshold s = 6.58 m AOD (GAUGE-dc5e88fb)
+
+\begin{table}[H]
+    \centering
+    \caption{$P(\text{flood})$ sensitivity to water level and storm hour
+             (severe threshold $s = 6.58$\,m AOD).}
+    \label{tab:sens_pflood_surface}
+    \begin{tabular}{rcccccc}
+        \toprule
+        \textbf{Water Level (m)} & \textbf{H0} & \textbf{H12} & \textbf{H24}
+            & \textbf{H48} & \textbf{H96} & \textbf{H167} \\
+        \midrule
+        4.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+        4.50 & 0.00 & 0.00 & 0.00 & 0.00 & 0.01 & 0.02 \\
+        5.00 & 0.00 & 0.00 & 0.01 & 0.02 & 0.07 & 0.15 \\
+        5.50 & 0.01 & 0.02 & 0.05 & 0.13 & 0.33 & 0.53 \\
+        6.00 & 0.07 & 0.14 & 0.25 & 0.45 & 0.71 & 0.85 \\
+        6.30 & 0.20 & 0.34 & 0.49 & 0.69 & 0.87 & 0.94 \\
+        6.58 & 0.42 & 0.58 & 0.71 & 0.84 & 0.94 & 0.97 \\
+        7.00 & 0.72 & 0.82 & 0.89 & 0.95 & 0.98 & 0.99 \\
+        7.50 & 0.93 & 0.96 & 0.97 & 0.99 & 1.00 & 1.00 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent\textbf{Interpretation:}
+\begin{itemize}[nosep]
+    \item At sub-alert levels (4.0--5.0\,m), $P(\text{flood}) \approx 0$
+          regardless of hour, consistent with the GBM surface.
+    \item At the severe threshold (6.58\,m), $P(\text{flood})$ ranges from
+          0.42 at hour~0 (high uncertainty, storm just started) to 0.97 at
+          hour~167 (near certainty, storm almost over).
+    \item Above the severe level (7.0+\,m), $P(\text{flood})$ saturates
+          toward 1.0, reflecting overwhelming evidence of flood breach.
+    \item The hour dimension provides meaningful discrimination primarily in
+          the transition zone (5.5--6.6\,m), where early-hour uncertainty is
+          largest.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Polynomial vs GBM comparison at selected grid points
+             (GAUGE-dc5e88fb, $\Delta w = 0$).}
+    \label{tab:poly_vs_gbm}
+    \begin{tabular}{rrccc}
+        \toprule
+        \textbf{Level (m)} & \textbf{Hour} & \textbf{GBM} & \textbf{Poly}
+            & \textbf{$|\Delta|$} \\
+        \midrule
+        5.00 & 24 & 0.01 & 0.01 & 0.00 \\
+        5.50 & 48 & 0.14 & 0.13 & 0.01 \\
+        6.00 & 24 & 0.27 & 0.25 & 0.02 \\
+        6.30 & 48 & 0.72 & 0.69 & 0.03 \\
+        6.58 & 96 & 0.93 & 0.94 & 0.01 \\
+        7.00 & 48 & 0.96 & 0.95 & 0.01 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent The absolute difference between the polynomial and GBM predictions
+is consistently below 0.05 across the surface, with the largest residuals
+concentrated in the transition zone around the alert threshold.

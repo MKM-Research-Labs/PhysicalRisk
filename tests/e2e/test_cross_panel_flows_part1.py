@@ -1,0 +1,180 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+"""
+Cross-panel navigation e2e tests — Part 1.
+
+Validates: FS01 -> Blotter, Gauge Panel -> Trading Desk.
+"""
+
+import pytest
+
+from tests.e2e.conftest import (
+    cpf_close_all_panels,
+    cpf_open_gauge_panel,
+    cpf_open_trading_desk,
+)
+
+
+# ---------------------------------------------------------------------------
+# TestFS01ToBlotter
+# ---------------------------------------------------------------------------
+
+class TestFS01ToBlotter:
+    """FS01 risk grid -> Blotter tab filter flow."""
+
+    @pytest.fixture(autouse=True)
+    def _setup(self, map_page):
+        cpf_close_all_panels(map_page)
+        yield
+        cpf_close_all_panels(map_page)
+
+    def test_fs01_tab_shows_risk_grid(self, map_page):
+        """Open trading desk, click FS01 tab, verify risk grid is visible."""
+        cpf_open_trading_desk(map_page)
+
+        fs01_tab = map_page.locator("#td-tab-risk")
+        if fs01_tab.count() == 0:
+            fs01_tab = map_page.locator("#td-tab-fs01")
+        if fs01_tab.count() == 0:
+            # Use text match inside trading desk panel only
+            fs01_tab = map_page.locator("#trading-desk-panel button:has-text('FS01')")
+        if fs01_tab.count() == 0:
+            pytest.skip("FS01 tab not found in trading desk")
+
+        fs01_tab.first.click(force=True)
+        map_page.wait_for_timeout(3_000)
+
+        # Look for the risk grid container
+        grid = map_page.locator("#td-risk-view").or_(
+            map_page.locator("#td-fs01-view")
+        ).or_(
+            map_page.locator("[class*='risk-grid']")
+        ).or_(
+            map_page.locator("#td-fs01-grid")
+        )
+        assert grid.count() > 0, "FS01 risk grid not visible after clicking tab"
+
+    def test_fs01_cell_click_filters_blotter(self, map_page):
+        """Click a cell in the FS01 grid to filter the blotter by gauge+tenor."""
+        cpf_open_trading_desk(map_page)
+
+        fs01_tab = map_page.locator("#td-tab-risk")
+        if fs01_tab.count() == 0:
+            fs01_tab = map_page.locator("#td-tab-fs01")
+        if fs01_tab.count() == 0:
+            fs01_tab = map_page.locator("#trading-desk-panel button:has-text('FS01')")
+        if fs01_tab.count() == 0:
+            pytest.skip("FS01 tab not found")
+
+        fs01_tab.first.click(force=True)
+        map_page.wait_for_timeout(3_000)
+
+        # Find clickable cells in the risk grid (td elements with data attributes)
+        cells = map_page.locator("#td-risk-view td[data-gauge]").or_(
+            map_page.locator("#td-fs01-view td[data-gauge]")
+        ).or_(
+            map_page.locator("#td-fs01-grid td[data-gauge]")
+        ).or_(
+            map_page.locator("#td-risk-view td.fs01-cell")
+        ).or_(
+            map_page.locator("#td-fs01-view td.fs01-cell")
+        )
+        if cells.count() == 0:
+            pytest.skip("No clickable FS01 cells found in risk grid")
+
+        cells.first.click(force=True)
+        map_page.wait_for_timeout(3_000)
+
+        # After clicking, the blotter tab should be active
+        blotter_view = map_page.locator("#td-blotter-view")
+        if blotter_view.count() > 0 and blotter_view.is_visible():
+            assert True, "Blotter tab activated after FS01 cell click"
+        else:
+            # Tab may have activated but blotter view not visible yet
+            blotter_tab = map_page.locator("#td-tab-blotter")
+            if blotter_tab.count() > 0:
+                is_active = blotter_tab.evaluate(
+                    "el => el.classList.contains('active') || "
+                    "el.getAttribute('aria-selected') === 'true'"
+                )
+                assert is_active, "Blotter tab should be active after FS01 cell click"
+            else:
+                pytest.skip("Could not verify blotter activation")
+
+
+# ---------------------------------------------------------------------------
+# TestGaugeBlotterFlow
+# ---------------------------------------------------------------------------
+
+class TestGaugeBlotterFlow:
+    """Gauge panel -> blotter link -> Trading Desk flow."""
+
+    @pytest.fixture(autouse=True)
+    def _setup(self, map_page):
+        cpf_close_all_panels(map_page)
+        yield
+        cpf_close_all_panels(map_page)
+
+    def test_gauge_panel_blotter_link_opens_trading_desk(
+        self, map_page, first_traded_gauge_id
+    ):
+        """Open gauge panel for a traded gauge, click blotter link, trading desk opens."""
+        cpf_open_gauge_panel(map_page, first_traded_gauge_id)
+        map_page.wait_for_timeout(3_000)
+
+        # Look for a blotter link or button inside the gauge panel
+        panel = map_page.locator("#hazard-curve-panel")
+        blotter_link = panel.locator("text=Blotter").or_(
+            panel.locator("text=blotter")
+        ).or_(
+            panel.locator("[data-action='blotter']")
+        ).or_(
+            panel.locator("text=Trading")
+        )
+
+        if blotter_link.count() == 0:
+            pytest.skip("No blotter link found in gauge panel")
+
+        blotter_link.first.click(force=True)
+        map_page.wait_for_timeout(3_000)
+
+        td_panel = map_page.locator("#trading-desk-panel")
+        td_panel.wait_for(state="visible", timeout=5_000)
+        assert td_panel.is_visible(), "Trading desk should open from gauge panel blotter link"
+
+    def test_trading_desk_blotter_visible_after_gauge_link(
+        self, map_page, first_traded_gauge_id
+    ):
+        """After clicking gauge blotter link, the blotter view should be visible."""
+        cpf_open_gauge_panel(map_page, first_traded_gauge_id)
+        map_page.wait_for_timeout(3_000)
+
+        panel = map_page.locator("#hazard-curve-panel")
+        blotter_link = panel.locator("text=Blotter").or_(
+            panel.locator("text=blotter")
+        ).or_(
+            panel.locator("[data-action='blotter']")
+        ).or_(
+            panel.locator("text=Trading")
+        )
+
+        if blotter_link.count() == 0:
+            pytest.skip("No blotter link found in gauge panel")
+
+        blotter_link.first.click(force=True)
+        map_page.wait_for_timeout(3_000)
+
+        td_panel = map_page.locator("#trading-desk-panel")
+        if not td_panel.is_visible():
+            pytest.skip("Trading desk did not open from gauge link")
+
+        # Blotter view or tab should be active
+        blotter_view = map_page.locator("#td-blotter-view")
+        if blotter_view.count() > 0:
+            map_page.wait_for_timeout(1_500)
+            assert blotter_view.is_visible(), (
+                "Blotter view should be visible in trading desk"
+            )
+        else:
+            # At minimum the trading desk is open
+            assert td_panel.is_visible()

@@ -1,0 +1,359 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Flood Polynomial Model}
+\newcommand{\docsubtitle}{MKM-FPO-001 --- Logistic Sigmoid Approximation}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{28-March-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+This document presents the mathematical specification, fit quality, and usage of
+the Flood Polynomial Model (MKM-FPO-001), a closed-form logistic sigmoid with a
+quadratic polynomial kernel that approximates the per-gauge GBM flood classifier
+(MKM-FC-001).
+
+The model maps two log-transformed features---water level $\ln(w/s)$ and storm
+time $\ln((t{+}1)/T)$---to $P(\text{flood})$ via six fitted coefficients:
+\[
+P(\text{flood}) = \sigma\!\left(a\,h + b\,t + c\,h\,t + d\,h^2 + e\,t^2 + f\right)
+\]
+where $\sigma(z) = 1/(1 + e^{-z})$ is the standard logistic function.
+
+The model achieves $R^2 = 0.94$, MAE $= 0.046$, and RMSE $= 0.099$ against the
+full GBM probability surface (GAUGE-dc5e88fb, AUC\,=\,0.994, 3.4M samples).
+
+\textbf{Primary use cases:}
+\begin{itemize}[nosep]
+    \item \textbf{Single-gauge stress:} Hourly $P(\text{flood})$ estimation in
+          scenario analysis (\texttt{scenario.py}), using both water level and
+          storm hour.
+    \item \textbf{Portfolio stress:} Time-independent $P(\text{flood})$ for
+          portfolio-level stress P\&L (\texttt{port\_stress.py}), using peak
+          water level only.
+\end{itemize}
+
+\textbf{Key advantage:} No trained \texttt{.joblib} model file or scikit-learn
+dependency required at inference time. The model operates with six fixed
+coefficients defined in \texttt{config/models.py}.
+
+% ===================================================================
+% 2. MODEL PURPOSE AND SCOPE
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+The Flood Polynomial Model provides a lightweight, closed-form approximation of
+the GBM flood classifier for two stress testing contexts:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Single-gauge hourly stress:} Given a water level and storm hour,
+          estimate $P(\text{flood})$ without loading a per-gauge trained GBM model.
+    \item \textbf{Portfolio stress:} Provide a time-independent $P(\text{flood})$
+          for rapid portfolio-level stress P\&L calculations where only the peak
+          water level is available.
+\end{enumerate}
+
+\subsection{Scope}
+\begin{itemize}[nosep]
+    \item \textbf{In scope:} Closed-form $P(\text{flood})$ estimation from water
+          level and storm hour in log-transformed feature space.
+    \item \textbf{Out of scope:} Per-gauge model training, derivative features
+          (velocity, acceleration), multi-gauge spatial correlation.
+\end{itemize}
+
+\subsection{Model Chain Position}
+The polynomial model sits alongside the GBM classifier as a lightweight
+alternative for stress testing:
+\[
+\text{MKM-FC-001}\ (\text{GBM surface})
+\xrightarrow{\text{curve\_fit}}
+\textbf{MKM-FPO-001}\ (\text{polynomial})
+\to \text{Stress P\&L}
+\]
+
+% ===================================================================
+% 3. MODEL SPECIFICATION
+% ===================================================================
+\mkmframework
+
+\subsection{Model Equation}
+The model is a logistic sigmoid applied to a quadratic polynomial kernel in two
+log-transformed features:
+
+\begin{equation}
+\label{eq:flood_poly}
+P(\text{flood}) = \sigma\!\left(a\,h + b\,t + c\,h\,t + d\,h^2 + e\,t^2 + f\right)
+\end{equation}
+
+\noindent where:
+\begin{align}
+h &= \ln\!\left(\max\!\left(\frac{w}{s},\; 10^{-8}\right)\right) \label{eq:h_feature} \\
+t &= \ln\!\left(\frac{\text{hour} + 1}{168}\right) \label{eq:t_feature} \\
+\sigma(z) &= \frac{1}{1 + e^{-z}} \label{eq:sigmoid}
+\end{align}
+
+\noindent and $w$ is the current water level (m~AOD), $s$ is the severe flood
+warning threshold (m~AOD), and $\text{hour} \in [0, 167]$ is the storm hour
+index.
+
+\subsection{Features}
+
+\begin{center}
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Feature} & \textbf{Symbol} & \textbf{Description} \\
+\midrule
+Log water level & $h$ &
+    $\ln(w/s)$; water level relative to severe threshold.
+    Zero at severe level, negative below, positive above. \\
+Log storm time & $t$ &
+    $\ln((\text{hour}{+}1)/168)$; normalised storm time.
+    Ranges from $\approx{-5.1}$ (hour~0) to $0$ (hour~167). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Both features are gauge-independent: $h = 0$ when water equals the
+severe threshold regardless of absolute level; $t = 0$ at the final storm hour
+regardless of storm duration.
+
+\subsection{Polynomial Kernel Terms}
+The quadratic kernel contains six terms:
+
+\begin{center}
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Term} & \textbf{Physical Interpretation} \\
+\midrule
+$a \cdot h$ & Linear water level effect (dominant predictor) \\
+$b \cdot t$ & Linear time effect (probability decreases earlier in storm) \\
+$c \cdot h \cdot t$ & Water level $\times$ time interaction \\
+$d \cdot h^2$ & Quadratic water level curvature (saturation near extremes) \\
+$e \cdot t^2$ & Quadratic time curvature (diminishing early-hour uncertainty) \\
+$f$ & Intercept (baseline log-odds) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===================================================================
+% 4. COEFFICIENTS
+% ===================================================================
+\section{Fitted Coefficients}
+
+The six coefficients were obtained by nonlinear least-squares fitting
+(\texttt{scipy.optimize.curve\_fit}) of the logistic sigmoid to the GBM
+probability surface generated from gauge GAUGE-dc5e88fb (AUC\,=\,0.994,
+3,393,600 prediction samples).
+
+\begin{center}
+\begin{tabular}{clrl}
+\toprule
+\textbf{Symbol} & \textbf{Parameter} & \textbf{Value} & \textbf{Role} \\
+\midrule
+$a$ & \texttt{log\_h\_s} & 28.9582 & Log water level coefficient \\
+$b$ & \texttt{log\_t} & $-$11.6351 & Log storm time coefficient \\
+$c$ & \texttt{h$\cdot$t interaction} & 26.5490 & Cross-term coefficient \\
+$d$ & \texttt{h$^2$ quadratic} & $-$22.8893 & Water level curvature \\
+$e$ & \texttt{t$^2$ quadratic} & $-$7.0794 & Time curvature \\
+$f$ & \texttt{intercept} & $-$0.8872 & Bias term \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent All coefficients are stored in \texttt{config/models.py} as a
+\texttt{FloodPolyCoeffs} named tuple and are fixed at runtime (no per-gauge
+fitting required).
+
+% ===================================================================
+% 5. FIT QUALITY
+% ===================================================================
+\section{Fit Quality}
+
+\subsection{Source Data}
+The polynomial was fitted against the GBM classifier surface for a single
+representative gauge:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Source gauge & GAUGE-dc5e88fb \\
+Source model & \texttt{GradientBoostingClassifier} (MKM-FC-001) \\
+Source AUC & 0.994 \\
+Fitting samples & 3,393,600 \\
+Fit method & \texttt{scipy.optimize.curve\_fit} (Levenberg--Marquardt) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Fit Metrics}
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+$R^2$ (coefficient of determination) & 0.9395 \\
+MAE (mean absolute error) & 0.0456 \\
+RMSE (root mean squared error) & 0.0986 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The polynomial captures 94\% of the variance in the GBM surface. The
+model is mildly conservative: it slightly over-predicts $P(\text{flood})$ in the
+transition zone (alert $\to$ severe) and slightly under-predicts at the tails.
+This conservatism is acceptable for stress testing, where false negatives are
+costlier than false positives.
+
+\subsection{Error Distribution}
+The largest residuals occur in the transition zone where $P(\text{flood})$
+changes rapidly from 0 to 1. In the saturated regions ($P \approx 0$ or
+$P \approx 1$), the polynomial closely matches the GBM predictions.
+
+% ===================================================================
+% 6. USAGE
+% ===================================================================
+\section{Usage}
+
+\subsection{Single-Gauge Hourly Stress}
+For scenario analysis where the full hourly hydrograph is available:
+
+\begin{lstlisting}[language=Python]
+from src.models.stress.flood_poly import p_flood_poly
+
+p = p_flood_poly(water_level=5.2, hour=48, severe_level=6.58)
+\end{lstlisting}
+
+\noindent This uses both features ($h$ and $t$) to produce an hour-specific
+probability estimate.
+
+\subsection{Portfolio Stress (Time-Independent)}
+For portfolio-level stress where only peak water level is available:
+
+\begin{lstlisting}[language=Python]
+from src.models.stress.flood_poly import p_flood_simple
+
+p = p_flood_simple(water_level=5.2, severe_level=6.58)
+\end{lstlisting}
+
+\noindent The time-independent variant uses the ratio $w/s$ capped at 1.0,
+providing a simple monotonic mapping suitable for rapid portfolio-wide
+calculations.
+
+\subsection{Hourly Series}
+For a complete hydrograph:
+
+\begin{lstlisting}[language=Python]
+from src.models.stress.flood_poly import p_flood_series
+
+probs = p_flood_series(water_levels=[4.0, 4.5, 5.2, 5.8, 5.5],
+                       severe_level=6.58)
+\end{lstlisting}
+
+% ===================================================================
+% 7. IMPLEMENTATION
+% ===================================================================
+\section{Implementation Details}
+
+\subsection{Source Code}
+\begin{itemize}[nosep]
+    \item \textbf{Primary module:} \texttt{src/models/stress/flood\_poly.py}
+    \item \textbf{Configuration:} \texttt{config/models.py} (coefficients,
+          constants)
+    \item \textbf{Functions:} \texttt{p\_flood\_poly()},
+          \texttt{p\_flood\_simple()}, \texttt{p\_flood\_series()},
+          \texttt{model\_card()}
+\end{itemize}
+
+\subsection{Numerical Safeguards}
+\begin{itemize}[nosep]
+    \item \textbf{Log floor:} $\ln(\max(w/s,\; 10^{-8}))$ prevents
+          $\ln(0)$ for zero or negative water levels.
+    \item \textbf{Sigmoid clamp:} The exponent $z$ is clamped to
+          $[-30, 30]$ to prevent floating-point overflow in $e^{-z}$.
+\end{itemize}
+
+\subsection{Dependencies}
+The model requires only the Python standard library (\texttt{math} module).
+No external packages (NumPy, scikit-learn, joblib) are needed at inference time.
+
+% ===================================================================
+% 8. SENSITIVITY ANALYSIS
+% ===================================================================
+\mkmsensitivity
+
+Sensitivity of $P(\text{flood})$ to water level at different storm hours is
+shown below. All values computed for severe threshold $s = 6.58$\,m AOD
+(GAUGE-dc5e88fb).
+
+\input{sensitivity_tables}
+
+% ===================================================================
+% 9. ASSUMPTIONS AND LIMITATIONS
+% ===================================================================
+\mkmlimitations
+
+\subsection{Assumptions}
+\begin{enumerate}[nosep]
+    \item \textbf{FPO-A1: Single-gauge generalizability.}
+          The six coefficients fitted from GAUGE-dc5e88fb are assumed to be
+          applicable across gauges with different severe thresholds. This is
+          plausible because the log-transformed feature space normalises
+          water levels, but has not been validated on all 52 Thames gauges.
+
+    \item \textbf{FPO-A2: Quadratic sufficiency.}
+          A quadratic polynomial in $h$ and $t$ is assumed sufficient to
+          capture the essential shape of the GBM decision surface. The
+          $R^2 = 0.94$ supports this, though a cubic polynomial achieves
+          $R^2 \approx 0.97$ with additional parameters.
+
+    \item \textbf{FPO-A3: Delta features negligible.}
+          The velocity ($\Delta\ln(w/s)$) and acceleration
+          ($\Delta^2\ln(w/s)$) features used by the GBM are omitted. This
+          is acceptable because the polynomial is evaluated at steady state
+          ($\Delta w = 0$) in the surface grid, and the GBM attributes only
+          $\approx$6\% of feature importance to derivatives.
+\end{enumerate}
+
+\subsection{Limitations}
+\begin{enumerate}[nosep]
+    \item \textbf{FPO-L1: Single-gauge fitting.}
+          The model was fitted from one gauge only. Gauges with unusual
+          catchment characteristics (tidal influence, flashy response,
+          regulated flow) may show larger divergence from the polynomial
+          approximation.
+
+    \item \textbf{FPO-L2: No gauge-specific behaviour.}
+          Unlike the per-gauge GBM classifiers, the polynomial uses the same
+          coefficients for all gauges. Catchment-specific flood dynamics are
+          captured only through the severe threshold normalisation.
+\end{enumerate}
+
+% ===================================================================
+% 10. CHANGE HISTORY
+% ===================================================================
+\section{Change History}
+
+\begin{center}
+\begin{tabular}{llp{9cm}}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Description} \\
+\midrule
+1.0 & 28-Mar-2026 & Initial model documentation. Logistic sigmoid with
+    quadratic polynomial kernel fitted from GAUGE-dc5e88fb GBM surface.
+    $R^2 = 0.94$, MAE $= 0.046$. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

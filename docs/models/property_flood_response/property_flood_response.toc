@@ -1,0 +1,70 @@
+\contentsline {section}{\numberline {1}Executive Summary}{4}{section.1}%
+\contentsline {section}{\numberline {2}Model Purpose and Scope}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Purpose}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Scope}{5}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Mathematical Framework}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Gauge-to-Property Spatial Interpolation}{5}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Nearest Gauge Selection}{5}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Storm Collection}{5}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Nearest-Gauge WSE Propagation (v2.1)}{6}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Legacy IDW (deprecated).}{6}{section*.3}%
+\contentsline {subsection}{\numberline {3.2}Flood Depth Calculation}{6}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Elevation Differential}{6}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Floor Level Adjustment}{6}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Exponential Distance Retention}{6}{subsubsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.3}Velocity and Travel Time}{7}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Manning's Equation}{7}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Ground Slope Estimation}{7}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Travel Time}{7}{subsubsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.4}Property Hydrograph Construction}{7}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Rising Limb}{8}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Recession Limb}{8}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Property Flood Depth}{8}{subsubsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.5}Depth-Damage Function}{8}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}UK-Calibrated Vulnerability Curve}{8}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Property Type Adjustments}{9}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}Final Damage Ratio}{9}{subsubsection.3.5.3}%
+\contentsline {subsubsection}{\numberline {3.5.4}Financial Loss}{9}{subsubsection.3.5.4}%
+\contentsline {subsection}{\numberline {3.6}Portfolio Aggregation}{10}{subsection.3.6}%
+\contentsline {subsubsection}{\numberline {3.6.1}Monte Carlo Simulation with Correlated Losses}{10}{subsubsection.3.6.1}%
+\contentsline {subsubsection}{\numberline {3.6.2}Value-at-Risk and Expected Shortfall}{10}{subsubsection.3.6.2}%
+\contentsline {subsubsection}{\numberline {3.6.3}Herfindahl--Hirschman Index}{10}{subsubsection.3.6.3}%
+\contentsline {subsubsection}{\numberline {3.6.4}Portfolio Flood Summary Metrics}{11}{subsubsection.3.6.4}%
+\contentsline {section}{\numberline {4}Input Parameters and Calibration}{11}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Model Parameters}{11}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Depth-Damage Calibration}{11}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Property Type Factor Calibration}{12}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Manning's Roughness}{12}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Implementation Details}{12}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Module Architecture}{12}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Computational Workflow}{13}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Output File Structure}{13}{subsection.5.3}%
+\contentsline {paragraph}{Per-property files}{13}{section*.8}%
+\contentsline {paragraph}{Portfolio summary}{14}{section*.9}%
+\contentsline {subsection}{\numberline {5.4}Key Dependencies}{14}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Numerical Considerations}{14}{subsection.5.5}%
+\contentsline {section}{\numberline {6}Sensitivity Analysis}{14}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Depth-Damage Curve Sensitivity}{15}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Attenuation Length Sensitivity}{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Nearest Gauge Count Sensitivity}{15}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Manning's Roughness Sensitivity}{16}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Recession Factor Sensitivity}{16}{subsection.6.5}%
+\contentsline {section}{\numberline {7}Validation and Backtesting}{16}{section.7}%
+\contentsline {subsection}{\numberline {7.1}IDW Interpolation Validation}{16}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Depth-Damage Curve Validation}{16}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Velocity Model Validation}{17}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Gauge-to-Property Ratio Validation}{17}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Portfolio Backtesting}{17}{subsection.7.5}%
+\contentsline {section}{\numberline {8}Model Limitations and Known Weaknesses}{17}{section.8}%
+\contentsline {section}{\numberline {9}Governance Validation Questions}{18}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Q1 --- Ronseal Test}{18}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Q2 --- Accuracy and Stability}{18}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Q3 --- Resource Usage}{19}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Q4 --- Override Controls}{19}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Q5 --- Output Consumption}{19}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Q6 --- Model Chaining}{19}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Q7 --- Weaknesses}{19}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Q8 --- Monitoring}{20}{subsection.9.8}%
+\contentsline {subsection}{\numberline {9.9}Q9 --- Overall Risk}{20}{subsection.9.9}%
+\contentsline {section}{\numberline {10}Change History}{21}{section.10}%
+\contentsline {section}{\numberline {11}Document History}{21}{section.11}%

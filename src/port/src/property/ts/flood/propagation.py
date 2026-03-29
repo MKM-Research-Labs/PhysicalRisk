@@ -1,0 +1,260 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+#
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only.
+
+"""Hydraulic flood propagation: gauge → property flood computation."""
+
+from typing import Dict, List, Optional
+
+from models.floodrisk.depth_damage import scalar_depth_damage
+from models.floodrisk.hydrograph import build_compound_property_hydrograph
+from models.floodrisk.velocity import (
+    build_property_hydrograph,
+    compute_retention,
+    compute_slope,
+    compute_travel_time,
+)
+
+
+class PropagationMixin:
+    """Mixin providing flood propagation and event construction."""
+
+    def _compute_property_flood(self, storm_id: str, gauge_responses: Dict,
+                                 nearest: List[Dict],
+                                 prop_lat: float, prop_lon: float,
+                                 prop_elevation: float, floor_level: float,
+                                 gaugets: Dict,
+                                 mode: str = "normal") -> Optional[Dict]:
+        """
+        Compute property-level flood for a single storm.
+
+        Uses the nearest hydraulically connected gauge (typically the
+        synthetic gauge on the river centreline) as the controlling
+        boundary condition.  The remaining gauges are retained in the
+        property record for PRS pricing and audit but are NOT averaged
+        into the flood WSE — Book 210 requires flow-aligned propagation,
+        not isotropic IDW averaging which dilutes the signal.
+
+        v2.1: Replaced multi-gauge IDW with single nearest gauge.
+
+        Args:
+            mode: "normal", "shd" (zero elevation diff), or "she" (zero distance).
+        """
+        # Use the nearest gauge as the single controlling boundary
+        for ng in nearest:
+            gid = ng['gauge_id']
+            dist = ng['distance_m']
+
+            resp = gauge_responses.get(gid)
+            if resp is None:
+                continue
+
+            # Apply synthetic overrides
+            effective_dist = 0.0 if mode == "she" else dist
+            g_elev = ng['gauge_info']['elevation']
+            effective_elevation = g_elev if mode == "shd" else prop_elevation
+
+            gauge_wse = resp.get('peak_level_m', 0)
+            retention = compute_retention(effective_dist)
+
+            # v2.2: use per-pulse superposition when pulse data is available
+            pulse_peaks = resp.get('pulse_peaks', [])
+            if pulse_peaks:
+                return self._build_compound_flood_event(
+                    storm_id, pulse_peaks, resp, effective_dist, retention,
+                    effective_elevation, floor_level, gid, gaugets, ng
+                )
+
+            return self._build_flood_event(
+                storm_id, gauge_wse, effective_dist, retention,
+                effective_elevation, floor_level,
+                gid, gaugets, ng
+            )
+
+        return None
+
+    def _build_flood_event(self, storm_id: str, interpolated_wse: float,
+                            distance_m: float, retention: float,
+                            prop_elevation: float, floor_level: float,
+                            source_gauge_id: str, gaugets: Dict,
+                            nearest_gauge: Dict) -> Dict:
+        """Build a complete flood event with hydrograph."""
+        g_elev = nearest_gauge['gauge_info']['elevation']
+
+        slope = compute_slope(g_elev, prop_elevation, distance_m)
+
+        # peak_level_m is a gauge stage reading (height above gauge zero
+        # datum).  Flooding begins when the reading exceeds the severe
+        # flood warning threshold — at that point depth at the gauge is 0.
+        # Flood depth at the gauge = reading − severe_level.
+        severe_level = nearest_gauge['gauge_info'].get('severe_level', 0)
+        water_above_gauge = max(0.0, interpolated_wse - severe_level)
+        # Propagate to property location with distance-based retention
+        water_at_property = water_above_gauge * retention
+        # Property floods when water exceeds the elevation difference + floor step
+        height_diff = max(0.0, prop_elevation - g_elev)
+        flood_threshold = height_diff + floor_level
+
+        est_depth = max(0.0, water_at_property - flood_threshold)
+        if est_depth <= 0:
+            travel_time = 0.0
+        else:
+            travel_time = compute_travel_time(distance_m, est_depth, slope)
+            if travel_time == float('inf'):
+                travel_time = 0.0
+
+        gt = gaugets.get(source_gauge_id, {})
+        gauge_readings = gt.get('flood_simulation', {}).get('readings', [])
+
+        # Convert gauge flood depth to absolute WSE for hydrograph scaling.
+        # Flood depth at gauge = reading − severe_level; absolute WSE at
+        # property = gauge_ground + flood_depth_at_gauge.
+        absolute_peak_wse = g_elev + water_above_gauge
+
+        readings = []
+        if gauge_readings:
+            mapped_readings = []
+            for idx, r in enumerate(gauge_readings):
+                mapped_readings.append({
+                    'hour': r.get('hour', idx),
+                    'water_level_m': r.get('waterLevel', r.get('water_level_m', 0)),
+                })
+            readings = build_property_hydrograph(
+                mapped_readings,
+                absolute_peak_wse,
+                travel_time,
+                retention,
+                prop_elevation,
+                floor_level,
+            )
+
+        arrival_time = None
+        peak_time = None
+        flood_depth = 0.0
+        for r in readings:
+            if r['flooded'] and arrival_time is None:
+                arrival_time = r['hour']
+            if r['depth_m'] > flood_depth:
+                flood_depth = r['depth_m']
+                peak_time = r['hour']
+
+        damage_ratio = scalar_depth_damage(flood_depth)
+        peak_wse = max((r['wse_m'] for r in readings), default=0.0) if readings else 0.0
+
+        event = {
+            'storm_id': storm_id,
+            'interpolated_wse_m': round(interpolated_wse, 4),
+            'attenuated_wse_m': round(peak_wse, 4),
+            'flood_depth_m': round(flood_depth, 4),
+            'damage_ratio': round(damage_ratio, 4),
+            'flooded': flood_depth > 0,
+            'arrival_time_hrs': arrival_time,
+            'peak_time_hrs': peak_time,
+            'travel_time_hrs': round(travel_time, 2),
+            'retention_factor': round(retention, 4),
+        }
+
+        # Only store 168-hour readings for events that actually flood the
+        # property.  Non-flooded events have all-zero depth readings which
+        # bloat files from ~1 MB to ~54 MB.  Consumers that need readings
+        # (animation, timeline) only render flooded events anyway.
+        if flood_depth > 0:
+            event['readings'] = readings
+
+        return event
+
+    def _build_compound_flood_event(self, storm_id: str,
+                                     pulse_peaks: list, resp: Dict,
+                                     distance_m: float, retention: float,
+                                     prop_elevation: float, floor_level: float,
+                                     source_gauge_id: str, gaugets: Dict,
+                                     nearest_gauge: Dict) -> Dict:
+        """Build a flood event using v2.2 per-pulse superposition.
+
+        Replaces _build_flood_event when per-pulse peak data is available.
+        Uses gamma-shaped templates per pulse, antecedent saturation,
+        linear superposition, and flow-path infiltration.
+        """
+        g_elev = nearest_gauge['gauge_info']['elevation']
+        base_level = resp.get('base_level_m', g_elev)
+        sequence_type = resp.get('sequence_type', 'isolated')
+
+        slope = compute_slope(g_elev, prop_elevation, distance_m)
+
+        # Estimate travel time from overall peak (same as v2.1)
+        # Flood depth at gauge = reading − severe threshold
+        severe_level = nearest_gauge['gauge_info'].get('severe_level', 0)
+        overall_peak = resp.get('peak_level_m', 0)
+        water_above = max(0.0, overall_peak - severe_level)
+        water_at_prop = water_above * retention
+        height_diff = max(0.0, prop_elevation - g_elev)
+        est_depth = max(0.0, water_at_prop - (height_diff + floor_level))
+
+        if est_depth <= 0:
+            travel_time = 0.0
+        else:
+            travel_time = compute_travel_time(distance_m, est_depth, slope)
+            if travel_time == float('inf'):
+                travel_time = 0.0
+
+        # Compute superposition cap from gauge severe threshold
+        gt = gaugets.get(source_gauge_id, {})
+        severe = gt.get('severe_flood_warning', gt.get('severe_warning', 0))
+        from config.models import SUPERPOSITION_CAP_FACTOR
+        cap = None
+        if severe and severe > base_level:
+            cap = SUPERPOSITION_CAP_FACTOR * (severe - base_level)
+
+        readings = build_compound_property_hydrograph(
+            pulse_peaks=pulse_peaks,
+            sequence_type=sequence_type,
+            base_level=base_level,
+            gauge_elevation=g_elev,
+            prop_elevation=prop_elevation,
+            floor_level=floor_level,
+            travel_time_hrs=travel_time,
+            retention=retention,
+            severe_level=severe_level,
+            cap=cap,
+        )
+
+        arrival_time = None
+        peak_time = None
+        flood_depth = 0.0
+        for r in readings:
+            if r['flooded'] and arrival_time is None:
+                arrival_time = r['hour']
+            if r['depth_m'] > flood_depth:
+                flood_depth = r['depth_m']
+                peak_time = r['hour']
+
+        damage_ratio = scalar_depth_damage(flood_depth)
+        peak_wse = max((r['wse_m'] for r in readings),
+                       default=0.0) if readings else 0.0
+
+        event = {
+            'storm_id': storm_id,
+            'interpolated_wse_m': round(overall_peak, 4),
+            'attenuated_wse_m': round(peak_wse, 4),
+            'flood_depth_m': round(flood_depth, 4),
+            'damage_ratio': round(damage_ratio, 4),
+            'flooded': flood_depth > 0,
+            'arrival_time_hrs': arrival_time,
+            'peak_time_hrs': peak_time,
+            'travel_time_hrs': round(travel_time, 2),
+            'retention_factor': round(retention, 4),
+            'compound': True,
+            'num_pulses': len(pulse_peaks),
+            'sequence_type': sequence_type,
+        }
+
+        if flood_depth > 0:
+            event['readings'] = readings
+
+        return event
+
+    @staticmethod
+    def _depth_to_damage(depth: float) -> float:
+        """Delegate to models.floodrisk.depth_damage.scalar_depth_damage."""
+        return scalar_depth_damage(depth)
