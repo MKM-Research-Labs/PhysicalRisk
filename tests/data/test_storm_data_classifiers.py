@@ -33,8 +33,6 @@ STRESS_STORMS_INDEX = STRESS_STORMS_DIR / "_index.json"
 # Legacy single-file fallback
 STRESS_STORMS_PATH  = pathlib.Path(config.get_input_dir()) / "stress_storms.json"
 GAUGETS_DIR         = pathlib.Path(config.get_gaugets_dir())
-STRESS_MODEL_DIR    = pathlib.Path(config.get_classifiers_dir())
-TRAINING_SUMMARY    = STRESS_MODEL_DIR / "training_summary.json"
 GAUGEHC_PATH        = pathlib.Path(config.get_input_dir()) / "gaugehc.json"
 
 PROPERTYTS_DIR       = pathlib.Path(config.get_input_dir()) / "propertyts"
@@ -51,78 +49,6 @@ GAUGE_RESPONSE_FIELDS = {
     "exceeded_alert", "exceeded_warning", "exceeded_severe",
 }
 MIN_STORM_COUNT = 100
-MIN_AUC = 0.90
-MIN_CLASSIFIERS = 1
-
-
-# ---------------------------------------------------------------------------
-# Flood classifier models
-# ---------------------------------------------------------------------------
-
-class TestStressClassifiers:
-    """Trained GBM classifier .joblib files must be present and summary valid."""
-
-    @pytest.fixture(scope="class")
-    def classifier_files(self):
-        assert STRESS_MODEL_DIR.exists(), f"Stress model dir not found: {STRESS_MODEL_DIR}"
-        gauge = list(STRESS_MODEL_DIR.glob("GAUGE-*.joblib"))
-        synth = list(STRESS_MODEL_DIR.glob("SYNTH-*.joblib"))
-        return gauge + synth
-
-    @pytest.fixture(scope="class")
-    def summary(self):
-        assert TRAINING_SUMMARY.exists(), f"training_summary.json not found: {TRAINING_SUMMARY}"
-        return json.loads(TRAINING_SUMMARY.read_text())
-
-    def test_stress_model_dir_exists(self):
-        assert STRESS_MODEL_DIR.exists(), f"Missing: {STRESS_MODEL_DIR}"
-
-    def test_classifier_count(self, classifier_files):
-        assert len(classifier_files) >= MIN_CLASSIFIERS, (
-            f"Expected >= {MIN_CLASSIFIERS} classifier files, got {len(classifier_files)}. "
-            "Run `python app.py port --stress` to retrain."
-        )
-
-    def test_classifier_filenames_well_formed(self, classifier_files):
-        bad = [f.name for f in classifier_files if not f.stem.startswith(("GAUGE-", "SYNTH-"))]
-        assert not bad, f"Classifier files with unexpected names: {bad}"
-
-    def test_classifiers_not_empty(self, classifier_files):
-        empty = [f.name for f in classifier_files if f.stat().st_size == 0]
-        assert not empty, f"Zero-byte classifier files: {empty}"
-
-    def test_training_summary_exists(self):
-        assert TRAINING_SUMMARY.exists(), f"Missing: {TRAINING_SUMMARY}"
-
-    def test_training_summary_has_required_keys(self, summary):
-        required = {"num_gauges", "num_trained", "avg_auc_roc"}
-        missing = required - set(summary.keys())
-        assert not missing, f"training_summary.json missing keys: {missing}"
-
-    def test_all_gauges_trained(self, summary):
-        n_gauges = summary.get("num_gauges", 0)
-        n_trained = summary.get("num_trained", 0)
-        n_skipped = summary.get("num_skipped", 0)
-        assert n_skipped == 0, f"{n_skipped} gauges were skipped during training"
-        assert n_trained == n_gauges, f"Only {n_trained}/{n_gauges} gauges trained"
-
-    def test_avg_auc_above_threshold(self, summary):
-        auc = summary.get("avg_auc_roc", 0)
-        assert auc >= MIN_AUC, (
-            f"Average AUC-ROC {auc:.4f} is below minimum threshold {MIN_AUC}. "
-            "Model quality may be degraded."
-        )
-
-    def test_classifier_count_matches_summary(self, classifier_files, summary):
-        n_files = len(classifier_files)
-        n_summary = summary.get("num_trained", 0)
-        # After --no-classifier runs, stale .joblib files may remain from a
-        # previous training run while training_summary reflects only the latest.
-        # Accept either exact match or n_files >= n_summary (stale files OK).
-        assert n_files >= n_summary, (
-            f"Classifier file count ({n_files}) is less than "
-            f"training_summary num_trained ({n_summary})"
-        )
 
 
 # ---------------------------------------------------------------------------

@@ -49,7 +49,10 @@ def iife_src_file(rel: str) -> str:
 
 
 def iife_has_node() -> bool:
-    return subprocess.run(['node', '--version'], capture_output=True).returncode == 0
+    try:
+        return subprocess.run(['node', '--version'], capture_output=True).returncode == 0
+    except FileNotFoundError:
+        return False
 
 
 def iife_node_check(js: str, label: str) -> None:

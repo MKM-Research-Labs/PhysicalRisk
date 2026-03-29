@@ -40,10 +40,16 @@ def _run_main(argv):
 
 @pytest.fixture
 def mock_pdf():
-    """Patch SimpleDocTemplate so generation tests don't write real PDF files."""
+    """Patch SimpleDocTemplate so generation tests don't write real PDF files.
+
+    runpy re-executes gauge_generator in a fresh namespace, but base_generator
+    is already cached in sys.modules with the real SimpleDocTemplate bound.
+    We must patch the name on the module object that _build_report reads at
+    call time — ``reports.shared.base_generator.SimpleDocTemplate``.
+    """
     mock_doc = MagicMock()
     with patch('reportlab.platypus.SimpleDocTemplate', return_value=mock_doc), \
-         patch('src.reports.shared.base_generator.SimpleDocTemplate', return_value=mock_doc):
+         patch('reports.shared.base_generator.SimpleDocTemplate', return_value=mock_doc):
         yield mock_doc
 
 

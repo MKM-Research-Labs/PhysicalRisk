@@ -26,8 +26,9 @@ from models.floodrisk.spatial import (
 
 logger = logging.getLogger(__name__)
 
+from config.port import SYNTH_DEDUP_DISTANCE_M as DEDUP_DISTANCE_M
+
 SYNTH_PREFIX = "SYNTH"
-DEDUP_DISTANCE_M = 50  # merge synthetic gauges within this distance
 _RIVER_POLYLINE_CACHE = None  # cached high-res river polyline
 
 

@@ -23,7 +23,7 @@ class TestInitLayersImportError:
     def test_layers_unavailable_on_import_error(self, tmp_path):
         """Lines 89-90: ImportError in _init_layers sets _layers_available=False."""
         from visual.core.visualizer import TCEventVisualization
-        with patch("visual.core.visualizer.GaugeLayer",
+        with patch("visual.core.visualizer.coordinator.GaugeLayer",
                    side_effect=ImportError("no module")):
             vis = TCEventVisualization(
                 input_dir=tmp_path / "i",

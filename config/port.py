@@ -115,6 +115,13 @@ NEARMISS_COUNT: int = 200
 NEARMISS_LOW: float = 0.80
 NEARMISS_HIGH: float = 0.99
 
+# ===========================================================================
+# Synthetic Gauge Generator  (port/src/gauge/synthetic.py)
+# ===========================================================================
+
+# Merge synthetic gauges within this distance (metres) to avoid duplicates
+SYNTH_DEDUP_DISTANCE_M: int = 50
+
 
 # ===========================================================================
 # Gauge Random Generator  (port/rand/thames/gauge/gauge_random.py)

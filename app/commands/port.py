@@ -564,6 +564,12 @@ def cmd_port(args):
 
     if run_all or args.propertytsd:
         print("7a. Generating Synthetic Distance Timeseries (propertytsd)...")
+        _tsd_inputs = {
+            "property.json": input_dir / "property.json",
+            "gauge.json": input_dir / "gauge.json",
+            "gaugets/": input_dir / "gaugets",
+        }
+        _tsd_pre = pre_hash_inputs(_tsd_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = propertyts.PropertyTimeSeriesGenerator(output_dir, verbose=args.verbose, mode="shd").generate()
         elapsed_step = time.time() - t_step
@@ -571,10 +577,30 @@ def cmd_port(args):
         flooded = r.get('properties_with_floods', '?')
         events  = r.get('total_flood_events', '?')
         print(f"   {total} properties  |  {flooded} with flood events  |  {events:,} total events")
+        if record_step is not None:
+            try:
+                record_step(
+                    step_name="propertytsd",
+                    generator="port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=shd)",
+                    inputs=_tsd_inputs,
+                    outputs={"propertytsd/": input_dir / "propertytsd"},
+                    parameters={"mode": "shd"},
+                    elapsed_seconds=elapsed_step,
+                    run_id=run_id,
+                    input_hashes=_tsd_pre,
+                )
+            except Exception as e:
+                print(f"  [lineage] Warning: {e}")
         print()
 
     if run_all or args.propertytse:
         print("7b. Generating Synthetic Elevation Timeseries (propertytse)...")
+        _tse_inputs = {
+            "property.json": input_dir / "property.json",
+            "gauge.json": input_dir / "gauge.json",
+            "gaugets/": input_dir / "gaugets",
+        }
+        _tse_pre = pre_hash_inputs(_tse_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = propertyts.PropertyTimeSeriesGenerator(output_dir, verbose=args.verbose, mode="she").generate()
         elapsed_step = time.time() - t_step
@@ -582,6 +608,20 @@ def cmd_port(args):
         flooded = r.get('properties_with_floods', '?')
         events  = r.get('total_flood_events', '?')
         print(f"   {total} properties  |  {flooded} with flood events  |  {events:,} total events")
+        if record_step is not None:
+            try:
+                record_step(
+                    step_name="propertytse",
+                    generator="port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=she)",
+                    inputs=_tse_inputs,
+                    outputs={"propertytse/": input_dir / "propertytse"},
+                    parameters={"mode": "she"},
+                    elapsed_seconds=elapsed_step,
+                    run_id=run_id,
+                    input_hashes=_tse_pre,
+                )
+            except Exception as e:
+                print(f"  [lineage] Warning: {e}")
         print()
 
     if run_all or args.propertyhc:
@@ -635,6 +675,12 @@ def cmd_port(args):
 
     if run_all or args.propertyshd:
         print("8a. Building Synthetic Distance Hazard Curves (propertyshd)...")
+        _shd_inputs = {
+            "propertytsd/": input_dir / "propertytsd",
+            "gaugehc.json": input_dir / "gaugehc.json",
+            "gauge.json": input_dir / "gauge.json",
+        }
+        _shd_pre = pre_hash_inputs(_shd_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose, mode="shd").generate()
         elapsed_step = time.time() - t_step
@@ -644,10 +690,30 @@ def cmd_port(args):
         avg_bps = r.get('avg_basis_bps', 0)
         print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor")
         print(f"   avg spread: {avg_bps:.1f} bps")
+        if record_step is not None:
+            try:
+                record_step(
+                    step_name="propertyshd",
+                    generator="port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=shd)",
+                    inputs=_shd_inputs,
+                    outputs={"propertyshd.json": input_dir / "propertyshd.json"},
+                    parameters={"mode": "shd"},
+                    elapsed_seconds=elapsed_step,
+                    run_id=run_id,
+                    input_hashes=_shd_pre,
+                )
+            except Exception as e:
+                print(f"  [lineage] Warning: {e}")
         print()
 
     if run_all or args.propertyshe:
         print("8b. Building Synthetic Elevation Hazard Curves (propertyshe)...")
+        _she_inputs = {
+            "propertytse/": input_dir / "propertytse",
+            "gaugehc.json": input_dir / "gaugehc.json",
+            "gauge.json": input_dir / "gauge.json",
+        }
+        _she_pre = pre_hash_inputs(_she_inputs) if pre_hash_inputs else None
         t_step = time.time()
         r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose, mode="she").generate()
         elapsed_step = time.time() - t_step
@@ -657,6 +723,20 @@ def cmd_port(args):
         avg_bps = r.get('avg_basis_bps', 0)
         print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor")
         print(f"   avg spread: {avg_bps:.1f} bps")
+        if record_step is not None:
+            try:
+                record_step(
+                    step_name="propertyshe",
+                    generator="port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=she)",
+                    inputs=_she_inputs,
+                    outputs={"propertyshe.json": input_dir / "propertyshe.json"},
+                    parameters={"mode": "she"},
+                    elapsed_seconds=elapsed_step,
+                    run_id=run_id,
+                    input_hashes=_she_pre,
+                )
+            except Exception as e:
+                print(f"  [lineage] Warning: {e}")
         print()
 
     # Spread decomposition: requires propertyhc + propertyshd + propertyshe
@@ -763,6 +843,19 @@ def cmd_port(args):
         )
 
         print_book_summary(trades)
+
+        # Initialize trade_marks.json with all trades as Open
+        trading_dir = config.get_trading_dir()
+        trading_dir.mkdir(parents=True, exist_ok=True)
+        import json as _json
+        _marks = {}
+        for t in trades:
+            sid = t.get('PhysicalSwap', {}).get('Header', {}).get('SwapID')
+            if sid:
+                _marks[sid] = {'trade_status': 'Open'}
+        with open(trading_dir / 'trade_marks.json', 'w') as _f:
+            _json.dump(_marks, _f, indent=2)
+
         print("  Generating trade confirmation PDFs...")
         pdfs = generate_trade_pdfs(trades, blotter_dir)
         print(f"  Generated {len(pdfs)} PDFs")
@@ -788,7 +881,12 @@ def cmd_port(args):
                     step_name="blotter",
                     generator="port.src.book.generate_thames_central_book",
                     inputs=_bl_inputs,
-                    outputs={"prs/": input_dir / "prs"},
+                    outputs={
+                        "prs/": input_dir / "prs",
+                        "blotter/eod/": config.get_eod_dir(),
+                        "blotter/market_state.json": config.get_trading_dir() / "market_state.json",
+                        "blotter/trade_marks.json": config.get_trading_dir() / "trade_marks.json",
+                    },
                     parameters={},
                     elapsed_seconds=elapsed_step,
                     run_id=run_id,

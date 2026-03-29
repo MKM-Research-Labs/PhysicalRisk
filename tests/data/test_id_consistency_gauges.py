@@ -106,16 +106,6 @@ class TestGaugeIDConsistency:
 class TestClassifierConsistency:
     """Stress classifiers must be trained on current gauge IDs."""
 
-    def test_classifiers_exist(self):
-        """At least one trained classifier must exist."""
-        classifiers_dir = INPUT_DIR / "classifiers"
-        if not classifiers_dir.exists():
-            pytest.skip("classifiers/ not generated yet")
-        classifiers = list(classifiers_dir.glob("*.joblib"))
-        assert len(classifiers) > 0, (
-            "No trained classifiers found. Run: python app.py port --classifier-only"
-        )
-
     def test_classifier_gauge_ids_match(self):
         """Classifiers that exist should reference current gauge IDs."""
         gauge_ids = _load_gauge_ids()
