@@ -72,9 +72,11 @@ def train_all_classifiers():
         stressm_dir = config.get_classifiers_dir()
         gauge_locations = _load_gauge_locations()
 
-        # Find untrained gauges
+        # Find untrained gauges (skip synthetic — background-only for PRS)
         untrained = []
         for gid in gauge_locations:
+            if gid.startswith('SYNTH-'):
+                continue
             if not (stressm_dir / f"{gid}.joblib").exists():
                 untrained.append(gid)
 

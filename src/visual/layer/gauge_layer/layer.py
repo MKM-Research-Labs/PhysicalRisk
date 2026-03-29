@@ -84,8 +84,10 @@ class GaugeLayer:
                 if isinstance(gdata, dict):
                     self._gauge_hazard[gid] = gdata
 
-        # Add gauges to map
+        # Add gauges to map (skip synthetic — background-only for PRS)
         for gauge_info in gauges:
+            if gauge_info.get('gauge_id', '').startswith('SYNTH-'):
+                continue
             add_gauge_marker(
                 gauge_group, gauge_info, loaded_data.gauge_flood_info,
                 self._gauge_hazard, self._num_storms,

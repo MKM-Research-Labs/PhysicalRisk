@@ -41,7 +41,10 @@ def list_gauges():
     loader = registry.get_gauge_loader()
 
     try:
-        gauges = loader.list_all()
+        gauges = [
+            g for g in loader.list_all()
+            if not g.get('gauge_id', '').startswith('SYNTH-')
+        ]
         return jsonify({
             'status': 'success',
             'message': f'Found {len(gauges)} available gauges',
