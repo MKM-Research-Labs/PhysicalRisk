@@ -50,11 +50,13 @@ trading_bp.after_request(no_cache)
 
 # Import sub-modules to register their routes on trading_bp.
 # These must come after trading_bp is defined to avoid circular imports.
-from . import blotter       # noqa: E402, F401
-from . import market_state  # noqa: E402, F401
-from . import risk          # noqa: E402, F401
-from . import eod           # noqa: E402, F401
-from . import curves        # noqa: E402, F401
-from . import stress        # noqa: E402, F401
-from . import port_stress   # noqa: E402, F401
-from . import classifiers   # noqa: E402, F401
+from . import (
+    blotter,  # noqa: E402, F401
+    classifiers,  # noqa: E402, F401
+    curves,  # noqa: E402, F401
+    eod,  # noqa: E402, F401
+    market_state,  # noqa: E402, F401
+    port_stress,  # noqa: E402, F401
+    risk,  # noqa: E402, F401
+    stress,  # noqa: E402, F401
+)

@@ -33,14 +33,14 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from config import config
 from port.cdm import PropertyCDM
 
+from .builder import BuilderMixin
 from .encoder import DateTimeEncoder
 from .locations import LocationsMixin
-from .builder import BuilderMixin
 
 logger = logging.getLogger(__name__)
 

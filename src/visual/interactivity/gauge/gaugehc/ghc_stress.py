@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -33,7 +33,7 @@ Sub-modules:
 - ghc_stress_charts: Flood probability chart, stress P&L chart
 """
 
-from . import ghc_stress_training, ghc_stress_setup, ghc_stress_table, ghc_stress_charts
+from . import ghc_stress_charts, ghc_stress_setup, ghc_stress_table, ghc_stress_training
 
 
 def get_js() -> str:

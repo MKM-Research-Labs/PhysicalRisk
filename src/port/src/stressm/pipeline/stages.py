@@ -5,14 +5,13 @@
 
 import json
 import logging
-from pathlib import Path
 
 import numpy as np
 
-from ._constants import GAUGE_SUMMARY_FILENAME, GAUGE_SUMMARY_DIR, SCHEMA_VERSION_SPATIAL
+from ..classifier import _print_classifier_result, train_gauge_stressm_classifier
 from ..gaugets_writer import populate_gaugets, write_classifier_summary
 from ..reporting import _print_gauge_progression
-from ..classifier import train_gauge_stressm_classifier, _print_classifier_result
+from ._constants import GAUGE_SUMMARY_DIR, GAUGE_SUMMARY_FILENAME, SCHEMA_VERSION_SPATIAL
 
 logger = logging.getLogger(__name__)
 

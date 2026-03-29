@@ -3,7 +3,7 @@
 
 """Mortgage risk circle popup HTML generation."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from ...utils import ColorSchemes, DataFormatter
 

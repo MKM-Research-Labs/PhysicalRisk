@@ -59,7 +59,7 @@ def _print_gauge_progression(gauge: dict, records: list, total: int) -> None:
     print(f"\n{'=' * W}")
     print(f"  Gauge Progression Report — {gid}")
     print(f"{'=' * W}")
-    print(f"  Gauge thresholds:")
+    print("  Gauge thresholds:")
     print(f"    Base level   : {base_l:.2f} m")
     print(f"    Flood alert  : {alert_l:.2f} m")
     print(f"    Flood warning: {warning_l:.2f} m")
@@ -68,13 +68,13 @@ def _print_gauge_progression(gauge: dict, records: list, total: int) -> None:
           f"{all_peaks_arr.min():.2f} – {all_peaks_arr.max():.2f} m")
     print()
 
-    print(f"  Threshold exceedance:")
+    print("  Threshold exceedance:")
     print(f"    Alert    (≥ {alert_l:.2f} m): {n_alert:>6,}  ({n_alert/total*100:5.1f}%)")
     print(f"    Warning  (≥ {warning_l:.2f} m): {n_warning:>6,}  ({n_warning/total*100:5.1f}%)")
     print(f"    Severe   (≥ {severe_l:.2f} m): {n_severe:>6,}  ({n_severe/total*100:5.1f}%)")
     print()
 
-    print(f"  Peak level distribution (all sequences):")
+    print("  Peak level distribution (all sequences):")
     for p, v in zip(pcts, pct_vals):
         bar_len = int((v - base_l) / max(severe_l - base_l, 0.01) * 30)
         bar = "█" * min(max(bar_len, 0), 30)
@@ -88,7 +88,7 @@ def _print_gauge_progression(gauge: dict, records: list, total: int) -> None:
         print(f"    P{p:<4} {v:6.2f} m  {bar}{marker}")
     print()
 
-    print(f"  Peak by intensity category:")
+    print("  Peak by intensity category:")
     print(f"    {'Category':<14} {'n':>6}  {'mean':>7}  {'p90':>7}  {'max':>7}  "
           f"{'alert%':>7}  {'warn%':>7}")
     print(f"    {'-'*14}  {'-'*6}  {'-'*7}  {'-'*7}  {'-'*7}  {'-'*7}  {'-'*7}")
@@ -111,7 +111,7 @@ def _print_gauge_progression(gauge: dict, records: list, total: int) -> None:
     for rec in records:
         t = rec["sequence_type"]
         type_groups.setdefault(t, []).append(rec["peaks_m"][0])
-    print(f"  Peak by sequence type:")
+    print("  Peak by sequence type:")
     print(f"    {'Type':<12} {'n':>6}  {'mean':>7}  {'p90':>7}  {'max':>7}")
     print(f"    {'-'*12}  {'-'*6}  {'-'*7}  {'-'*7}  {'-'*7}")
     for st in sorted(type_groups):

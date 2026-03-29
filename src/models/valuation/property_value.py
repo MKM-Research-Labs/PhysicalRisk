@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -31,20 +31,10 @@ Each factor table maps a categorical or banded input to a
 defines the factor structure.
 """
 
-from typing import Dict, Tuple
 
 from config.models import (
-    AGE_BAND_FACTORS,
-    BASE_AREA_RANGES,
-    BASE_PRICE_PER_SQM,
-    CONDITION_FACTORS,
-    EPC_FACTORS,
-    FLOOD_RISK_FACTORS,
     MAX_PROPERTY_VALUE,
     MIN_PROPERTY_VALUE,
-    PROXIMITY_ZONES,
-    RENTAL_YIELD_RATES,
-    RENT_PER_SQM,
 )
 
 

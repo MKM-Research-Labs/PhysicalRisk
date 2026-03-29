@@ -28,21 +28,20 @@ from config import config
 
 from .backend_handler import BackendHandler
 from .context_menus import ContextMenuHandler
-from .notifications import create_notification_system
-from .startup import StartupPreloader
-
-from .storm.stormportfolio import StormPortfolioPanel
 from .gauge.gaugeha import GaugeGraphInteraction
 from .gauge.gaugehc import GaugeHazardCurve
 from .gauge.gaugepdf import GaugePDFPanel
 from .gauge.gaugesa import GaugeStormAnalysis
+from .governance.modelgovernance import ModelGovernancePanel
+from .notifications import create_notification_system
 from .property.mortgagedetail import MortgageDetailPanel
 from .property.propertyhc import PropertyHazardCurvePanel
 from .property.propertypdf import PropertyPDFPanel
 from .property.propertysa import PropertyStormAnalysis
-from .governance.modelgovernance import ModelGovernancePanel
-from .trading.tradingdesk import TradingDeskPanel
+from .startup import StartupPreloader
+from .storm.stormportfolio import StormPortfolioPanel
 from .trading.td_main_map import MainMapFS01
+from .trading.tradingdesk import TradingDeskPanel
 
 
 class InteractivityManager:

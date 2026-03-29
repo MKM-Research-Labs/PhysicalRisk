@@ -4,11 +4,11 @@
 """MortgageLayer class for mortgage risk visualization on Folium maps."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import folium
 
-from .circles import add_mortgage_risk_circles, add_ltv_indicators, get_mortgage_risk_color
+from .circles import add_ltv_indicators, add_mortgage_risk_circles, get_mortgage_risk_color
 from .popup import create_mortgage_circle_popup
 from .stats import get_mortgage_statistics
 

@@ -31,6 +31,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from config.port import DEFAULT_INTENSITY_WEIGHTS
+
 from ..core.data_structures import StormSequence
 from .sequence_generator import SequenceGenerator
 

@@ -4,14 +4,19 @@
 """PropertyLayer class for property risk visualization on Folium maps."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import folium
 
 from config.visual import PROPERTY_FLOOD_HIGH, PROPERTY_FLOOD_MEDIUM
-from ...utils import ColorSchemes, DataExtractor, DataFormatter, RiskAssessor
-from .popup import (create_property_popup, create_flood_risk_section,
-                    create_mortgage_section, create_mortgage_risk_section)
+
+from ...utils import DataExtractor
+from .popup import (
+    create_flood_risk_section,
+    create_mortgage_risk_section,
+    create_mortgage_section,
+    create_property_popup,
+)
 from .stats import get_property_statistics
 
 logger = logging.getLogger(__name__)

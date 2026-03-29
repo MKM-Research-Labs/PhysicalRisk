@@ -3,7 +3,7 @@
 
 """Compose all market tab sub-module JavaScript."""
 
-from . import setup, render, actions
+from . import actions, render, setup
 
 
 def get_js() -> str:

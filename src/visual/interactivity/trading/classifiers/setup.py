@@ -5,7 +5,7 @@ State variables, DOM construction, data loading.
 Sub-modules imported and concatenated here.
 """
 
-from . import summary_table, detail, training
+from . import detail, summary_table, training
 
 
 def get_js() -> str:

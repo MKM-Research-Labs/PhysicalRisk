@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -31,7 +31,7 @@ Sub-modules:
 - ghc_prs_commit: Trade commit API call
 """
 
-from . import ghc_prs_rates, ghc_prs_controls, ghc_prs_pricer, ghc_prs_commit
+from . import ghc_prs_commit, ghc_prs_controls, ghc_prs_pricer, ghc_prs_rates
 
 
 def get_js() -> str:

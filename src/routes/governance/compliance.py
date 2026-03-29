@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -33,19 +33,18 @@ from flask import jsonify, request, send_file
 
 from . import governance_bp
 from ._constants import (
-    VALID_RACI_ROLE_IDS,
     _BCBS239_SCORE_STATUS,
+    VALID_RACI_ROLE_IDS,
     _docs_dir,
 )
 from ._helpers import (
-    _load_bcbs239,
-    _save_bcbs239,
-    _load_raci,
-    _save_raci,
     _load_audit_log,
+    _load_bcbs239,
+    _load_raci,
     _save_audit_log,
+    _save_bcbs239,
+    _save_raci,
 )
-
 
 # ── BCBS 239 ──
 

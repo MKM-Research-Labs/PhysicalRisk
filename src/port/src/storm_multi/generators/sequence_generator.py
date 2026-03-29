@@ -34,6 +34,8 @@ from datetime import datetime
 
 import numpy as np
 
+from config.port import CATCHMENT_BASE_PRECIP
+
 from ..core.data_structures import (
     SequenceStorm,
     SequenceType,
@@ -41,6 +43,7 @@ from ..core.data_structures import (
     make_sequence_id,
     make_storm_id,
 )
+from ..utils.validation import MAX_PRECIP_END_HOUR
 from .duration_sampler import sample_duration
 from .gap_sampler import sample_gap
 from .intensity_sampler import (
@@ -49,8 +52,6 @@ from .intensity_sampler import (
     sample_storm_intensity,
     should_generate_sequence,
 )
-from config.port import CATCHMENT_BASE_PRECIP
-from ..utils.validation import MAX_PRECIP_END_HOUR
 
 # CATCHMENT_BASE_PRECIP imported from config/port.py
 
