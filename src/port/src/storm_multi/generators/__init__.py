@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,6 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from .batch_generator import (  # noqa: F401
+    DEFAULT_INTENSITY_WEIGHTS,
+    generate_event_set,
+)
 from .duration_sampler import (  # noqa: F401
     DURATION_PARAMS,
     get_duration_range,
@@ -38,7 +42,3 @@ from .intensity_sampler import (  # noqa: F401
     should_generate_sequence,
 )
 from .sequence_generator import SequenceGenerator  # noqa: F401
-from .batch_generator import (  # noqa: F401
-    DEFAULT_INTENSITY_WEIGHTS,
-    generate_event_set,
-)

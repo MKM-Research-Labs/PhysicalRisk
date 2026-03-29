@@ -3,7 +3,7 @@
 
 """Compose all blotter tab sub-module JavaScript."""
 
-from . import setup, filters, table, actions
+from . import actions, filters, setup, table
 
 
 def get_js() -> str:

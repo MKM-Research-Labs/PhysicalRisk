@@ -8,7 +8,7 @@ import logging
 from flask import jsonify
 
 from .. import trading_bp
-from .._helpers import _load_open_trades, _load_gauge_locations
+from .._helpers import _load_gauge_locations, _load_open_trades
 
 logger = logging.getLogger(__name__)
 

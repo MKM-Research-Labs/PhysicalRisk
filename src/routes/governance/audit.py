@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -33,18 +33,18 @@ from flask import jsonify, request, send_file
 
 from . import governance_bp
 from ._constants import (
-    VALID_VQ_STATUSES,
-    VALID_RISK_RATINGS,
     _MODEL_DOC_DIRS,
+    VALID_RISK_RATINGS,
+    VALID_VQ_STATUSES,
     _docs_dir,
 )
 from ._helpers import (
-    _find_model,
-    _load_inventory,
-    _save_inventory,
-    _load_audit_log,
-    _save_audit_log,
     _calculate_risk_rating,
+    _find_model,
+    _load_audit_log,
+    _load_inventory,
+    _save_audit_log,
+    _save_inventory,
 )
 
 logger = logging.getLogger(__name__)
@@ -269,7 +269,7 @@ def override_risk_rating(model_id):
     if not _save_inventory(inventory):
         return jsonify({"status": "error", "message": "Failed to save inventory"}), 500
 
-    action = f"Cleared MRC override" if new_rating is None else f"MRC override set to {new_rating}"
+    action = "Cleared MRC override" if new_rating is None else f"MRC override set to {new_rating}"
     audit_entry = {
         "timestamp": datetime.now().isoformat(),
         "model_id": model_id,

@@ -3,7 +3,7 @@
 
 """Compose all market tab action sub-module JavaScript."""
 
-from . import inputs, reset, commit, new_trade, pl_history, curve_history
+from . import commit, curve_history, inputs, new_trade, pl_history, reset
 
 
 def get_js() -> str:

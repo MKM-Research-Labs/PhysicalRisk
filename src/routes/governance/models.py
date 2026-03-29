@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -35,10 +35,10 @@ from . import governance_bp
 from ._constants import EDITABLE_FIELDS
 from ._helpers import (
     _find_model,
-    _load_inventory,
-    _save_inventory,
     _load_audit_log,
+    _load_inventory,
     _save_audit_log,
+    _save_inventory,
     _vq_summary,
 )
 

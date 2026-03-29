@@ -26,8 +26,9 @@ sub-tab switching, and stats bar update.
 All rendering sub-tabs are imported and concatenated here.
 """
 
-from . import pfloods, portfolio_pnl, gauge_pnl, severity
 from config.format import storm_option_js as _storm_opt
+
+from . import gauge_pnl, pfloods, portfolio_pnl, severity
 
 
 def get_js() -> str:

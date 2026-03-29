@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -35,8 +35,10 @@ from werkzeug.utils import secure_filename
 from . import governance_bp
 from ._constants import GOV_DOCUMENTS_DIR
 from ._helpers import (
-    _load_gov_documents, _save_gov_documents,
-    _discover_audit_docs, _discover_model_docs,
+    _discover_audit_docs,
+    _discover_model_docs,
+    _load_gov_documents,
+    _save_gov_documents,
 )
 
 

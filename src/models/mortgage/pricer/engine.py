@@ -9,11 +9,11 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from .credit import (
+    FLOOD_RISK_MULTIPLIERS,
     calculate_credit_spread,
     calculate_flood_risk_impact,
     calculate_loan_to_value_impact,
     create_credit_spread_function,
-    FLOOD_RISK_MULTIPLIERS,
 )
 
 logger = logging.getLogger(__name__)

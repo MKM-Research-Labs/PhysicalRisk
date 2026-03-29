@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 from config import config
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
+
 from .pdf import _generate_trade_pdf
 
 prs_bp = Blueprint("prs", __name__)

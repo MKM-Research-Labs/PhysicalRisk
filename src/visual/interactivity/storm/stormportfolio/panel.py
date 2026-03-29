@@ -7,8 +7,8 @@ from typing import Any, Dict
 
 import folium
 
-from .. import sp_table, sp_var, sp_visual, sp_sim
-from . import utilities, chrome, control
+from .. import sp_sim, sp_table, sp_var, sp_visual
+from . import chrome, control, utilities
 
 
 class StormPortfolioPanel:

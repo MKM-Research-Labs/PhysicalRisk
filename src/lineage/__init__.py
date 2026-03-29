@@ -10,12 +10,17 @@ for the portfolio generation pipeline.
 from lineage.manifest import (
     DEPENDENCY_GRAPH,
     STEP_IO,
-    hash_file,
-    hash_directory,
-    load_manifest,
-    save_manifest,
     get_current_run_id,
+    hash_directory,
+    hash_file,
+    load_manifest,
     record_step,
+    save_manifest,
+)
+from lineage.query import (
+    get_file_lineage,
+    get_step_lineage,
+    trace_data_point,
 )
 from lineage.validation import (
     check_inputs_fresh,
@@ -24,11 +29,6 @@ from lineage.validation import (
     get_stale_downstream,
     resolve_prerequisites,
     validate_full_chain,
-)
-from lineage.query import (
-    trace_data_point,
-    get_file_lineage,
-    get_step_lineage,
 )
 
 __all__ = [

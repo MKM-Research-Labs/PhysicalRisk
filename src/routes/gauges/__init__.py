@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -31,8 +31,10 @@ gauges_bp = Blueprint('gauges', __name__)
 
 # Import sub-modules to register their routes on gauges_bp.
 # These must come after gauges_bp is defined to avoid circular imports.
-from . import crud          # noqa: E402, F401
-from . import reports       # noqa: E402, F401
-from . import history       # noqa: E402, F401
-from . import storms        # noqa: E402, F401
-from . import hazard        # noqa: E402, F401
+from . import (
+    crud,  # noqa: E402, F401
+    hazard,  # noqa: E402, F401
+    history,  # noqa: E402, F401
+    reports,  # noqa: E402, F401
+    storms,  # noqa: E402, F401
+)

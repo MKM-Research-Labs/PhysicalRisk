@@ -8,7 +8,7 @@ import logging
 from flask import jsonify, request
 
 from .. import trading_bp
-from ._helpers import _load_stress_storms, _load_stress_storm
+from ._helpers import _load_stress_storm, _load_stress_storms
 
 logger = logging.getLogger(__name__)
 

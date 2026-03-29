@@ -20,17 +20,26 @@
 
 """Multi-storm stress pipeline package."""
 
-from .pipeline import (
-    generate_stressm,
-    GAUGE_SUMMARY_FILENAME, GAUGE_SUMMARY_DIR, SCHEMA_VERSION_SPATIAL,
-)
-from .gaugets_writer import populate_gaugets, write_classifier_summary, build_summary
-from .classifier import train_gauge_stressm_classifier, _print_classifier_result
+from .batch_train import batch_train_classifiers
+from .classifier import _print_classifier_result, train_gauge_stressm_classifier
 from .gauge_parser import (
-    _extract_gauges, _parse_gauge, _load_gaugehd_baselines, _seasonal_base_level,
+    _extract_gauges,
+    _parse_gauge,
+)
+from .gauge_parser import (
+    _load_gaugehd_baselines as _load_gaugehd_baselines,
+)
+from .gauge_parser import (
+    _seasonal_base_level as _seasonal_base_level,
+)
+from .gaugets_writer import build_summary, populate_gaugets, write_classifier_summary
+from .pipeline import (
+    GAUGE_SUMMARY_DIR,
+    GAUGE_SUMMARY_FILENAME,
+    SCHEMA_VERSION_SPATIAL,
+    generate_stressm,
 )
 from .reporting import _print_gauge_progression
-from .batch_train import batch_train_classifiers
 
 __all__ = [
     'generate_stressm',

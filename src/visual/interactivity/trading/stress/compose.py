@@ -3,7 +3,7 @@
 
 """Compose all stress test tab sub-module JavaScript."""
 
-from . import training_ui, setup, charts, table, stats
+from . import charts, setup, stats, table, training_ui
 
 
 def get_js() -> str:

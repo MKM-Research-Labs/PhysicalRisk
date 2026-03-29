@@ -11,8 +11,6 @@ from typing import List, Optional
 from reportlab.lib import colors
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
-from .formatters import fmt_gbp
-
 
 def build_page1_cover(
     prop_data: dict,

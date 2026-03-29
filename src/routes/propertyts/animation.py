@@ -28,12 +28,12 @@ with gauge water levels and property flood states.
 import json
 import logging
 
-from config.port import EVENT_WINDOW_HOURS as STORM_HOURS  # 7-day storm window
-
 from flask import jsonify, request
 
 from config import config
-from . import propertyts_bp, _get_propertyts_dir
+from config.port import EVENT_WINDOW_HOURS as STORM_HOURS  # 7-day storm window
+
+from . import _get_propertyts_dir, propertyts_bp
 
 logger = logging.getLogger(__name__)
 

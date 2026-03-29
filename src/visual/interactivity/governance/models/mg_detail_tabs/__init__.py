@@ -3,11 +3,11 @@
 
 """Model Governance detail tabs — all sub-tab renderers."""
 
+from .docs import get_docs_js
+from .helpers import get_helpers_js
 from .overview import get_overview_js
 from .tables import get_tables_js
 from .version_history import get_version_history_js
-from .docs import get_docs_js
-from .helpers import get_helpers_js
 
 
 def get_js():
