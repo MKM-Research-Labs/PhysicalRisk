@@ -45,7 +45,7 @@ DEPENDENCY_GRAPH = {
     "gaugehd":            ["gauges", "synthetic_gauges"],
     "stressm":            ["synthetic_gauges", "gaugehd"],
     "hazard":             ["synthetic_gauges", "stressm"],
-    "propertyts":         ["properties", "stressm"],
+    "propertyts":         ["properties", "hazard"],
     "propertytsd":        ["propertyts"],
     "propertytse":        ["propertyts"],
     "propertyhc":         ["propertyts", "hazard"],

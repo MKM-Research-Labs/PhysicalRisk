@@ -129,6 +129,10 @@ def run_stress_scenario():
             warning_level = gc.get('flood_warning_m', 0)
             severe_level = gc.get('severe_flood_warning_m', 0)
 
+        # 4b. Classifier availability check
+        _classifier_path = config.get_classifiers_dir() / f"{gauge_id}.joblib"
+        _classifier_ready = _classifier_path.exists()
+
         # 5. Build trade summary and map trigger to level
         trigger_levels = {
             'alert': alert_level,
@@ -263,7 +267,15 @@ def run_stress_scenario():
             'storm_id': storm_id,
             'storm_name': storm.get('name', ''),
             'intensity_category': storm.get('intensity_category', ''),
+            'model_type': 'gbm_classifier' if _classifier_ready else 'flood_poly',
             'model_auc': None,
+            'classifier_status': 'ready' if _classifier_ready else 'not_trained',
+            'classifier_notice': (
+                None if _classifier_ready else
+                f"Using analytical flood polynomial for {gauge_id}. "
+                "Train a GBM classifier for improved accuracy via the "
+                "Stress tab \u2192 Train Classifier button."
+            ),
             'effective_precipitation_mm': storm.get(
                 'effective_precipitation_mm', 0),
             'gauges_severe': storm.get('trigger_summary', {}).get(

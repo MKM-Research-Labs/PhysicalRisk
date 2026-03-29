@@ -3,23 +3,20 @@
 \contentsline {subsection}{\numberline {1.2}Results by Model}{3}{subsection.1.2}%
 \contentsline {section}{\numberline {2}Test Traceability Matrix}{4}{section.2}%
 \contentsline {section}{\numberline {3}Flood Risk (Depth-Damage) (MKM-DD-001)}{154}{section.3}%
-\contentsline {section}{\numberline {4}GEV Hazard Model (MKM-GH-001)}{157}{section.4}%
-\contentsline {section}{\numberline {5}GaugeHD Synthetic (MKM-GHD-001)}{159}{section.5}%
-\contentsline {section}{\numberline {6}Insurance Premium (MKM-IP-001)}{164}{section.6}%
-\contentsline {section}{\numberline {7}Mortgage Pricer (MKM-MP-001)}{166}{section.7}%
-\contentsline {section}{\numberline {8}PRS Pricing Model (MKM-PR-001)}{170}{section.8}%
-\contentsline {section}{\numberline {9}Property Valuation (MKM-PV-001)}{174}{section.9}%
-\contentsline {section}{\numberline {10}Storm-Gauge Response Model (MKM-SG-001)}{177}{section.10}%
-\contentsline {section}{\numberline {11}Storm Intensity Distribution (MKM-SI-001)}{181}{section.11}%
-\contentsline {section}{\numberline {12}Spatial Interpolation (MKM-SP-001)}{187}{section.12}%
-\contentsline {section}{\numberline {13}Storm Sequence Generator (MKM-SS-001)}{189}{section.13}%
-\contentsline {section}{\numberline {14}Stress Test Pipeline (MKM-ST-001)}{192}{section.14}%
-\contentsline {section}{\numberline {15}Trading Desk (MKM-TD-001)}{198}{section.15}%
-\contentsline {section}{\numberline {16}CDM Schema Validation (CDM-ALL)}{213}{section.16}%
-\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{218}{appendix.A}%
-\contentsline {paragraph}{test\_collect\_all\_keys}{459}{section*.22}%
-\contentsline {paragraph}{test\_classifiers\_exist}{459}{section*.23}%
-\contentsline {paragraph}{test\_no\_stale\_inputs}{459}{section*.24}%
-\contentsline {paragraph}{test\_classifier\_count}{459}{section*.25}%
-\contentsline {paragraph}{test\_training\_summary\_exists}{459}{section*.26}%
-\contentsline {paragraph}{test\_gauge\_count\_propagates}{459}{section*.27}%
+\contentsline {section}{\numberline {4}Flood Polynomial Model (MKM-FPO-001)}{157}{section.4}%
+\contentsline {section}{\numberline {5}GEV Hazard Model (MKM-GH-001)}{159}{section.5}%
+\contentsline {section}{\numberline {6}GaugeHD Synthetic (MKM-GHD-001)}{161}{section.6}%
+\contentsline {section}{\numberline {7}Insurance Premium (MKM-IP-001)}{165}{section.7}%
+\contentsline {section}{\numberline {8}Mortgage Pricer (MKM-MP-001)}{167}{section.8}%
+\contentsline {section}{\numberline {9}PRS Pricing Model (MKM-PR-001)}{171}{section.9}%
+\contentsline {section}{\numberline {10}Property Valuation (MKM-PV-001)}{174}{section.10}%
+\contentsline {section}{\numberline {11}Storm-Gauge Response Model (MKM-SG-001)}{177}{section.11}%
+\contentsline {section}{\numberline {12}Storm Intensity Distribution (MKM-SI-001)}{180}{section.12}%
+\contentsline {section}{\numberline {13}Spatial Interpolation (MKM-SP-001)}{184}{section.13}%
+\contentsline {section}{\numberline {14}Storm Sequence Generator (MKM-SS-001)}{186}{section.14}%
+\contentsline {section}{\numberline {15}Stress Test Pipeline (MKM-ST-001)}{188}{section.15}%
+\contentsline {section}{\numberline {16}Trading Desk (MKM-TD-001)}{194}{section.16}%
+\contentsline {section}{\numberline {17}CDM Schema Validation (CDM-ALL)}{205}{section.17}%
+\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{208}{appendix.A}%
+\contentsline {paragraph}{test\_no\_stale\_inputs}{459}{section*.23}%
+\contentsline {paragraph}{test\_gauge\_count\_propagates}{459}{section*.24}%
