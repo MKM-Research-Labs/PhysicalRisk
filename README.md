@@ -6,125 +6,83 @@ A flood risk modelling and pricing platform for mortgage and property portfolios
 
 ## Getting Started
 
-### 1. Clone the Repository
+### 1. Clone and Install
 
 ```bash
 git clone https://github.com/MKM-Research-Labs/PhysicalRisk.git
 cd PhysicalRisk
 ```
 
-### 2. Install Python
-
-The platform requires Python 3.11 or later. Python 3.13 is recommended.
-
-Download the latest release from the official Python website and follow the installer instructions for your operating system:
+Python 3.11 or later is required (3.13 recommended). Download from:
 
 ```
 https://www.python.org/downloads/
 ```
 
-Verify your installation:
-
-```bash
-python3 --version
-```
-
-### 3. Create a Virtual Environment
-
-Create a virtual environment inside the cloned directory:
+Create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
+source .venv/bin/activate   # macOS / Linux
+# .venv\Scripts\activate    # Windows
 ```
 
-Activate it:
-
-```bash
-# macOS / Linux
-source .venv/bin/activate
-
-# Windows
-.venv\Scripts\activate
-```
-
-You should see `(.venv)` prefixed in your shell prompt.
-
-### 4. Install Dependencies
-
-With the virtual environment active, install all required packages:
+Install dependencies:
 
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-This installs the full dependency set including NumPy, pandas, SciPy, scikit-learn, GeoPandas, folium, QuantLib, Flask, ReportLab, and pytest.
+### 2. Generate Portfolio Data
 
-### 5. Generate Portfolio Data
-
-The repository does not include generated data. After cloning, run the port pipeline to create your local dataset:
+The repository does not include generated data. All data directories are created automatically on first run. Generate the full portfolio:
 
 ```bash
-# Quick start — full pipeline without classifier training (~30 min)
-python3 app.py port --all --nostress
-
-# Full pipeline including classifiers (~2–4 hours, best run overnight)
-python3 app.py port --all --train-classifier
+python3 app.py port --all
 ```
 
-Then run the audit to verify data integrity:
+This takes approximately 30–60 minutes depending on hardware. To skip the multi-storm stress test and get running faster:
+
+```bash
+python3 app.py port --all --nostress
+```
+
+The platform is fully functional without the stress test — see [Flood Probability Fallback](#flood-probability-fallback) below.
+
+### 3. Verify Data Integrity
 
 ```bash
 python3 app.py test --audit
 ```
 
-### 6. Verify Configuration
-
-Check that the platform can locate all required directories:
+### 4. Generate the Visualisation
 
 ```bash
-python3 app.py config
+python3 app.py visual
 ```
 
-This prints the resolved project root, catchment, input/output directories, and server settings.
+This produces a folium HTML map and opens it in the default browser. To generate without opening:
+
+```bash
+python3 app.py visual --no-browser
+```
+
+### 5. Start the Server
+
+```bash
+python3 app.py server
+```
+
+The server runs on `http://127.0.0.1:5013`. Options:
+
+```bash
+python3 app.py server --host 0.0.0.0 --port 8080 --debug
+```
 
 ---
 
-## Running the Platform
-
-The recommended sequence is: **port → audit → visual → server**, with classifier training left to run overnight once the platform is up.
-
-> **First time running?** You must run `python3 app.py port` before starting the server — the repository does not include generated data. Use `--all --nostress` to get the platform up quickly. The multi-storm stress test and GBM classifier training (step 6) generates 20,000 storm sequences and trains one classifier per gauge — approximately 2–4 hours total. Get the platform running first, then leave `--all --train-classifier` to run overnight.
-
-### Step 1 — Generate the Portfolio
-
-**Recommended overnight run** — full pipeline including storm sequences and all GBM flood classifiers:
-
-```bash
-python3 app.py port --all --train-classifier
-```
-
-Approximate timing:
-- Steps 1–5 (gauges, properties, synthetic gauges, mortgages, historical data): ~5–10 min
-- Step 6 stressm (20,000 sequences × 219 gauges + classifiers): ~2–4 hours
-- Steps 7–11 (hazard curves, property risk, counterparties, blotter): ~10–20 min
-
-**Quick daytime run** — skip the stress test entirely to get the platform up in minutes:
-
-```bash
-python3 app.py port --all --nostress
-```
-
-This runs all 11 pipeline steps except the multi-storm stress test (step 6). The platform is fully functional without classifiers — the Stress Test tab uses heuristic flood probability estimates until trained models are available.
-
-**Generate storm sequences without classifier training** — useful for regenerating hazard curves:
-
-```bash
-python3 app.py port --stressm --no-classifier
-python3 app.py port --hazard
-```
-
-Once storm sequences exist (`storm_sequences.json`), hazard curves can be rebuilt independently at any time.
+## Port Pipeline Reference
 
 ### Pipeline Steps
 
@@ -137,20 +95,16 @@ The full `--all` pipeline runs the following steps in order:
 | 2.5 | *(automatic)* | Synthetic gauges — virtual gauges on river centreline nearest each property |
 | 3 | `--mortgages` | `mortgage.json` — mortgage book |
 | 4 | `--gaugehd` | `gaugehd/` — per-gauge historical daily data |
-| 5 | `--stressm` | `storm_sequences.json`, `gaugets/`, `sequence_gauge/` — 20,000 multi-storm sequences + classifiers |
+| 5 | `--stressm` | `storm_sequences.json`, `gaugets/`, `sequence_gauge/` — 20,000 multi-storm sequences |
 | 6 | `--hazard` | `gaugehc.json` — GEV/Gumbel hazard curves per gauge |
 | 7 | `--propertyts` | `propertyts/` — per-property flood time series |
 | 8 | `--propertyhc` | `propertyhc.json` — property hazard curves + PRS pricing |
 | 9 | `--counterparties` | `counterparty.json` |
 | 10 | `--blotter` | Trade PDFs + 3 months of EOD snapshots |
 
-> **Dependency note:** Step 6 (hazard curves) reads from `storm_sequences.json` produced by step 5. If you skip step 5 with `--nostress`, an existing `storm_sequences.json` from a previous run is used. If no file exists yet, run `--stressm` separately first.
->
-> **Synthetic gauges:** Step 2.5 runs automatically after property generation. For each property, a synthetic gauge is created at the nearest point on the river centreline, with properties interpolated from the two real gauges either side. Nearby properties (within 50m) share a synthetic gauge. These synthetic gauges flow through stressm, hazard curves, and PRS pricing as first-class entities.
-
 ### Segment Flags
 
-You can run individual segments instead of the full pipeline:
+Run individual segments instead of the full pipeline:
 
 | Segment | Flag | Short |
 |---|---|---|
@@ -159,7 +113,8 @@ You can run individual segments instead of the full pipeline:
 | Synthetic gauges | *(runs automatically after properties)* | — |
 | Mortgages | `--mortgages` | `--mo` |
 | Gauge historical data | `--gaugehd` | `--hd` |
-| Multi-storm sequences + classifiers | `--stressm` | — |
+| Gauge time series | `--gaugets` | `--gt` |
+| Multi-storm sequences | `--stressm` | — |
 | Hazard curves | `--hazard` | `--hz` |
 | Property flood time series | `--propertyts` | `--pt` |
 | Property hazard curves | `--propertyhc` | `--phc` |
@@ -167,22 +122,22 @@ You can run individual segments instead of the full pipeline:
 | Trading blotter | `--blotter` | `--bl` |
 | Repair manifest | `--repair-manifest` | — |
 
-Use `--repair-manifest` after partial pipeline runs or when the lineage manifest (`data/data_lineage.json`) has become inconsistent. It re-hashes all on-disk artifacts without regenerating any data, making the manifest match the current file state.
+Additional property time series variants:
 
-```bash
-python3 app.py port --repair-manifest
-```
+| Flag | Description |
+|---|---|
+| `--propertytsd` | Synthetic distance time series (elevation diff = 0) |
+| `--propertytse` | Synthetic elevation time series (distance = 0) |
+| `--propertyshd` | Synthetic distance hazard curves (elevation diff = 0) |
+| `--propertyshe` | Synthetic elevation hazard curves (distance = 0) |
 
-### Classifier Flags
+### Stressm Flags
 
-| Flag | Alias | Effect |
-|---|---|---|
-| `--stressm` | — | Generate 10,000 storm sequences, compute gauge responses; no classifier |
-| `--stressm --train-classifier` | `--stressm --tc` | Generate sequences + train one GBM per gauge (~2–4 hours for 52 gauges) |
-| `--stressm --no-classifier` | `--stressm --nc` | Alias for plain `--stressm`; sequences only, skip GBM training |
-| `--stressm --gauge-id <ID>` | `--stressm --gid <ID>` | Single-gauge mode for inspection or targeted retraining |
-| `--all --train-classifier` | — | Full pipeline including classifier training (recommended overnight run) |
-| `--all --nostress` | — | Full pipeline skipping step 6 entirely |
+| Flag | Effect |
+|---|---|
+| `--stressm` | Generate 20,000 storm sequences and compute gauge responses |
+| `--stressm --gauge-id <ID>` | Single-gauge mode for inspection |
+| `--all --nostress` | Full pipeline skipping the stress test entirely |
 
 ### Numeric Controls
 
@@ -190,175 +145,69 @@ python3 app.py port --repair-manifest
 python3 app.py port --all \
   --num-properties 200 \
   --num-gauges 52 \
-  --num-storms 10000 \
+  --num-storms 20000 \
   --simulation-hours 168 \
-  --history-years 50
+  --history-years 50 \
+  --tail-weight 2.0
 ```
 
 ### Hazard Distribution
 
-The hazard curve fitting distribution can be selected independently:
-
 ```bash
-# GEV distribution (default)
-python3 app.py port --hazard --distribution gev
-
-# Gumbel distribution
-python3 app.py port --hazard --distribution gumbel
+python3 app.py port --hazard --distribution gev     # GEV (default)
+python3 app.py port --hazard --distribution gumbel   # Gumbel
 ```
 
-Other flags:
+### Other Port Flags
 
-```bash
---verbose / -v  # Print detailed progress
+| Flag | Description |
+|---|---|
+| `--verbose` / `-v` | Print detailed progress |
+| `--strict` | Refuse to run if upstream data is stale (BCBS 239 lineage guard) |
+| `--pdf` | Generate portfolio report PDF after generation |
+| `--repair-manifest` | Re-hash all pipeline artifacts and rebuild a consistent lineage manifest |
+
+---
+
+## Flood Probability Fallback
+
+The platform uses per-gauge GBM flood classifiers for scenario analysis in the Stress Test tab. These classifiers are trained individually per gauge via the UI — they are not generated by the port pipeline.
+
+When classifiers are not available (fresh install, or before any have been trained), the platform falls back to the **FloodPoly** model — a closed-form polynomial approximation that requires no trained model files.
+
+FloodPoly is a logistic sigmoid with a quadratic polynomial kernel, fitted from a representative GBM classifier (AUC = 0.994, 3.4M samples). It operates in log-transformed feature space using two gauge-independent features:
+
+- `h = ln(water_level / severe_threshold)` — normalised water level
+- `t = ln((hour + 1) / 168)` — normalised storm time
+
+The model equation is:
+
+```
+P(flood) = σ(a·h + b·t + c·h·t + d·h² + e·t² + f)
 ```
 
-**Example: regenerate gauge time series and rebuild hazard curves with verbose output:**
+Fit quality vs the source GBM classifier: R² = 0.94, MAE = 0.046, RMSE = 0.099. The model is conservative — it slightly over-predicts P(flood) in the transition zone, which is acceptable for stress testing where false negatives are costlier than false positives.
 
-```bash
-python3 app.py port --gaugets --hazard -v
-```
-
-### Step 2 — Generate the Visualisation
-
-Once portfolio data exists, generate the interactive flood risk map:
-
-```bash
-python3 app.py visual
-```
-
-This produces a folium HTML map and opens it in your default browser. To generate without launching the browser:
-
-```bash
-python3 app.py visual --no-browser
-```
-
-The map file is written to `data/results/`.
-
-### Step 3 — Start the Server
-
-There are two ways to run the server depending on your environment.
-
-#### Development (Flask built-in)
-
-For local development and testing, use the built-in Flask server:
-
-```bash
-python3 app.py server
-```
-
-The server runs on `http://127.0.0.1:5013` by default. Options:
-
-```bash
-python3 app.py server --host 0.0.0.0 --port 8080 --debug
-```
-
-| Option | Default | Description |
-|---|---|---|
-| `--host` | `127.0.0.1` | Bind address |
-| `--port` | `5013` | Port number |
-| `--debug` | off | Enable Flask debug mode |
-
-Do not use the Flask development server for production — it is single-threaded and not designed to handle concurrent requests reliably.
-
-#### Production (Gunicorn + wsgi.py)
-
-For a production or shared environment, use Gunicorn pointing at `wsgi.py`. First install Gunicorn into your virtual environment:
-
-```bash
-pip install gunicorn
-```
-
-Then start the server:
-
-```bash
-gunicorn wsgi:app --bind 0.0.0.0:5013 --workers 4 --timeout 120
-```
-
-| Option | Recommended value | Description |
-|---|---|---|
-| `--bind` | `0.0.0.0:5013` | Address and port to listen on |
-| `--workers` | `2–4 × CPU cores` | Number of worker processes |
-| `--timeout` | `120` | Request timeout in seconds — increase if report generation is slow |
-| `--access-logfile` | `-` | Log requests to stdout |
-| `--error-logfile` | `-` | Log errors to stdout |
-
-A typical production invocation:
-
-```bash
-gunicorn wsgi:app \
-  --bind 0.0.0.0:5013 \
-  --workers 4 \
-  --timeout 120 \
-  --access-logfile - \
-  --error-logfile -
-```
-
-To run Gunicorn as a background daemon and redirect logs to a file:
-
-```bash
-gunicorn wsgi:app \
-  --bind 0.0.0.0:5013 \
-  --workers 4 \
-  --timeout 120 \
-  --daemon \
-  --access-logfile logs/access.log \
-  --error-logfile logs/error.log
-```
-
-Create the `logs/` directory first if using file logging:
-
-```bash
-mkdir -p logs
-```
-
-To stop a daemonised Gunicorn, find and kill the master process:
-
-```bash
-pkill -f "gunicorn wsgi:app"
-```
-
-### Step 4 — Run Long Tasks Overnight
-
-Once the server is running and you have confirmed the platform is working, the full portfolio pipeline with classifier training is best left to run overnight unattended:
-
-```bash
-# Terminal 2 — Full pipeline with classifier training (~2–4 hours for 52 gauges)
-python3 app.py port --all --train-classifier
-
-# Terminal 3 — Full test audit (run concurrently or after)
-python3 app.py test --audit
-```
-
-**Daytime workflow (platform usable immediately, classifiers deferred):**
-
-```bash
-# Morning: full pipeline without stress test, platform up in minutes
-python3 app.py port --all --nostress
-
-# Evening: leave this running overnight — trains all 52 GBM classifiers
-python3 app.py port --all --train-classifier
-```
-
-The platform works normally while classifiers are training — the Stress Test tab uses heuristic flood probability estimates until each gauge's model is available. Once `--train-classifier` completes, restart the server to pick up the new classifiers:
-
-```bash
-python3 app.py server
-```
+The platform is fully functional with FloodPoly alone. Training per-gauge classifiers via the UI improves accuracy for individual gauges but is not required.
 
 ---
 
 ## Additional Commands
 
-### Trading Book
-
-Generate a PRS trading book independently of the full portfolio pipeline:
+### Check Configuration
 
 ```bash
-# Thames Central style (default)
-python3 app.py book --style thames-central --num-gauges 12
+python3 app.py config
+```
 
-# Market making style
+Prints the resolved project root, catchment, input/output directories, and server settings.
+
+### Trading Book
+
+Generate a PRS trading book independently:
+
+```bash
+python3 app.py book --style thames-central --num-gauges 12
 python3 app.py book --style market-making --num-gauges 20 --pdf --seed 42 --clean
 ```
 
@@ -373,114 +222,45 @@ python3 app.py book --style market-making --num-gauges 20 --pdf --seed 42 --clea
 
 ### Testing and Audit
 
-The `test` command provides a unified interface for running test suites and generating audit evidence. With no flags, it runs all suites and generates audit reports.
-
-#### Suite Selectors
-
-Run specific test suites individually or in combination:
-
 ```bash
-# Run everything (default) — all suites + audit reports
-python3 app.py test
-
-# Unit/model tests only (~7,000 tests)
-python3 app.py test --unit
-
-# E2E browser tests only (Playwright, ~300 tests)
-python3 app.py test --e2e
-
-# Data lineage consistency checks (BCBS 239)
-python3 app.py test --lineage
-
-# All three suites explicitly
-python3 app.py test --all
-
-# Combine suites
-python3 app.py test --unit --e2e
+python3 app.py test              # Run everything — all suites + audit reports
+python3 app.py test --unit       # Unit/model tests only
+python3 app.py test --e2e        # E2E browser tests (Playwright)
+python3 app.py test --lineage    # Data lineage consistency checks (BCBS 239)
+python3 app.py test --audit      # Generate audit reports
+python3 app.py test --audit --pdf    # Compile LaTeX reports to PDF
+python3 app.py test --params --pdf   # Generate parameter inventory
+python3 app.py test --check-deps     # Verify Python dependencies
+python3 app.py test --unit --model hazard prs   # Filter to specific models
 ```
 
-#### Output Options
+### Visualisation
 
 ```bash
-# Generate audit reports (modularisation, duplication, hardcoding, full audit)
-python3 app.py test --audit
-
-# Compile LaTeX reports to PDF (requires a LaTeX installation)
-python3 app.py test --audit --pdf
-
-# Generate parameter inventory
-python3 app.py test --params --pdf
-
-# Verify Python dependencies are installed
-python3 app.py test --check-deps
+python3 app.py visual               # Generate map and open in browser
+python3 app.py visual --no-browser   # Generate without opening
 ```
-
-#### Filtering
-
-Filter unit tests to specific models using their alias:
-
-```bash
-python3 app.py test --unit --model hazard prs
-```
-
-All test and audit outputs are written to `data/output/audit/` and include JUnit XML, coverage XML and HTML, LaTeX test reports, code analysis, duplication reports, hardcoding audits, data lineage reports, and a consolidated full audit PDF.
 
 ---
 
-## Environment Variables
+## Production Deployment (Gunicorn)
 
-All configuration values can be overridden via environment variables:
+```bash
+pip install gunicorn
+gunicorn wsgi:app --bind 0.0.0.0:5013 --workers 4 --timeout 120
+```
 
-| Variable | Default | Description |
+| Option | Recommended | Description |
 |---|---|---|
-| `MKM_CATCHMENT` | `thames` | Active catchment identifier |
-| `MKM_PROJECT_ROOT` | auto-detected | Project root directory |
-| `MKM_INPUT_DIR` | `data/input/{catchment}` | Portfolio input data |
-| `MKM_OUTPUT_DIR` | `data/output` | Generated reports |
-| `MKM_RESULTS_DIR` | `data/results` | Analysis results |
-| `MKM_SERVER_HOST` | `127.0.0.1` | Server bind address |
-| `MKM_SERVER_PORT` | `5013` | Server port |
-| `MKM_DEBUG` | `false` | Flask debug mode |
+| `--bind` | `0.0.0.0:5013` | Address and port |
+| `--workers` | `2–4 × CPU cores` | Worker processes |
+| `--timeout` | `120` | Request timeout in seconds |
 
----
-
-## Platform Overview
-
-### Catchments and Portfolio Generation
-
-The platform is built around the concept of a catchment — a geographic river system used as the basis for flood risk modelling. The Thames catchment is the primary implementation, with architecture in place to support additional catchments. Within a catchment, the platform synthesises a complete portfolio of flood gauges, properties, and mortgages. The Thames catchment covers 52 real gauge locations: 12 upstream non-tidal gauges from Reading to Teddington Lock, and 40 tidal gauges from Richmond to Purfleet. For each property, a synthetic gauge is created at the nearest point on the river centreline, with hydrological properties interpolated from the two flanking real gauges. This gives each property a dedicated nearby gauge with physically meaningful storm responses, rather than relying on distant real gauges. Properties within 50m of the same river point share a synthetic gauge. A typical 200-property portfolio produces ~170 synthetic gauges, giving a total of ~220 gauges in the network. Mortgages are then generated against the property portfolio, linking physical flood risk to financial exposure.
-
-### Storm Modelling
-
-Storm scenarios are generated using the `storm_multi` sequence generator, which produces compound multi-storm events rather than independent scenarios. The generator supports four sequence types: isolated single storms, doublets (two storms in close succession), clusters (three to four storms), and persistent systems (four to five storms). All sequences are constrained to a 168-hour (seven-day) event window, with precipitation required to end by hour 156 — matching the insurance industry's standard loss aggregation clause. Sequence durations, intensities, and inter-storm gaps are stochastically sampled using calibrated distributions across six intensity categories from minimal through to catastrophic. Each sequence is written to `storm_sequences.json` in the portfolio input directory.
-
-The `stressm` pipeline runs the full multi-storm forward model: for each sequence, a spatial correlation model translates storm intensities into per-gauge precipitation, which drives the hydrological forward model to produce water level responses at all gauges (real and synthetic). Per-gauge responses are written to individual files under `sequence_gauge/` to keep file sizes under version control limits. The resulting gauge response matrix is used both to build hazard curves and to train the GBM flood classifiers.
-
-### Hazard Curves and Flood Classification
-
-For each gauge, the platform fits a Generalised Extreme Value (GEV) or Gumbel distribution to the simulated water level record drawn from the multi-storm sequences, producing a hazard curve that maps return period to flood depth. A gradient-boosted machine learning classifier is trained per gauge on the stress test response data to estimate the probability of flooding given current water level, hour of storm, and first and second order rate of change in water level. This classifier operates in near real-time during scenario analysis and is retrained whenever `--stressm --train-classifier` is run.
-
-### Physical Risk Swap Pricing
-
-The core financial product priced by the platform is the Physical Risk Swap — a bilateral contract in which one counterparty pays a fixed spread and receives floating payments contingent on flood events at specified gauge locations. PRS pricing uses QuantLib's credit default swap framework, with flood probability replacing credit default probability on the hazard leg. Property-level hazard curves are aggregated to gauge level and fed into the pricing engine. The platform generates a complete trading book with individual trade confirmations, mark-to-market valuations, and end-of-day portfolio snapshots covering a three-month historical window.
-
-### Interactive Visualisation
-
-The visualisation layer produces a self-contained HTML interactive map of the catchment using folium. The map renders all gauges and properties as clickable markers with context menus. From any gauge marker a user can access the gauge report, view the hazard curve, inspect the storm analysis panel, or open the trading blotter filtered to that gauge. From any property marker a user can generate a property or mortgage report, view the property hazard curve, or inspect property-level flood scenarios. The map loads directly in a browser with no server dependency.
-
-### REST API
-
-The Flask API exposes the full platform over HTTP using versioned blueprints under `/api/v1`. Endpoints cover property and gauge portfolios, time series data, hazard curves, PRS pricing, counterparty management, the trading book, EOD snapshots, and governance documents. A detailed health check endpoint reports the status of all data files and model dependencies. The API is CORS-enabled and suitable for integration with external dashboards or risk management systems.
-
-### Audit and Governance
-
-The platform produces a comprehensive audit evidence package on demand. This includes a JUnit XML test report, line and branch coverage reports, a compiled LaTeX test evidence document, static code analysis, and a code duplication report. Model usage is logged automatically via a structured audit trail. Governance documents including model risk committee reports, validation evidence, and regulatory submissions are stored and served through the governance API endpoints.
+Do not use the Flask development server for production.
 
 ---
 
 ## Docker
-
-A Docker image is provided for containerised deployment:
 
 ```bash
 docker build -t physicalrisk .
@@ -493,7 +273,20 @@ Or using Docker Compose:
 docker-compose up
 ```
 
-The containerised server runs on port 5001 with `FLASK_ENV=production`.
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `MKM_CATCHMENT` | `thames` | Active catchment identifier |
+| `MKM_PROJECT_ROOT` | auto-detected | Project root directory |
+| `MKM_INPUT_DIR` | `data/input/{catchment}` | Portfolio input data |
+| `MKM_OUTPUT_DIR` | `data/output` | Generated reports |
+| `MKM_RESULTS_DIR` | `data/results` | Analysis results |
+| `MKM_SERVER_HOST` | `127.0.0.1` | Server bind address |
+| `MKM_SERVER_PORT` | `5013` | Server port |
+| `MKM_DEBUG` | `false` | Flask debug mode |
 
 ---
 
