@@ -160,7 +160,7 @@ def get_js() -> str:
                 var opacity = isYield ? '0.5' : '1';
                 var header = isYield ? 'Gauges (select hazard mode)' : 'Gauges';
                 var html = '<div style="font-size:11px;font-weight:600;color:#555;padding:4px 8px;margin-bottom:4px;opacity:' + opacity + ';">' + header + '</div>';
-                var gaugeIds = Object.keys(tdMarketData).sort();
+                var gaugeIds = Object.keys(tdMarketData).sort().filter(function(id) { return id.indexOf('SYNTH-') !== 0; });
 
                 for (var i = 0; i < gaugeIds.length; i++) {
                     var gid = gaugeIds[i];

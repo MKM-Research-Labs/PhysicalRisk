@@ -33,6 +33,8 @@ def get_stress_gauges():
 
         gauges = []
         for gid, gloc in gauge_locations.items():
+            if gid.startswith('SYNTH-'):
+                continue
             gauges.append({
                 'gauge_id': gid,
                 'gauge_name': gloc.get('name', gid),
