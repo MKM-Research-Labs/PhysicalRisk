@@ -1,0 +1,186 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+# (see package __init__.py for full license text)
+
+"""Flood Probability chart — dual-axis water level + P(flood) %."""
+
+
+def get_probability_chart_js() -> str:
+    """Return JS for _tdRenderProbabilityChart."""
+    return """
+            // ---- Chart 1: Flood Probability ----
+            function _tdRenderProbabilityChart(data) {
+                var ctx = document.getElementById('td-stress-chart-canvas');
+                if (!ctx) return;
+                if (tdStressChart) { tdStressChart.destroy(); tdStressChart = null; }
+
+                var hourly = data.hourly || [];
+                var alertLevel = data.alert_level || 0;
+                var warningLevel = data.warning_level || 0;
+                var severeLevel = data.severe_level || 0;
+                var labels = hourly.map(function(h) { return 'H' + h.hour; });
+
+                var waterLevels = hourly.map(function(h) { return h.water_level; });
+                var pFloods = hourly.map(function(h) { return h.p_flood != null ? h.p_flood * 100 : null; });
+
+                var datasets = [
+                    {
+                        label: 'Water Level (m)',
+                        type: 'line',
+                        data: waterLevels,
+                        borderColor: '#1565c0',
+                        backgroundColor: 'rgba(21,101,192,0.08)',
+                        fill: true,
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        tension: 0.3,
+                        yAxisID: 'yLevel',
+                        order: 1
+                    },
+                    {
+                        label: 'P(flood) %',
+                        type: 'line',
+                        data: pFloods,
+                        borderColor: '#e65100',
+                        borderDash: [4, 2],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.3,
+                        fill: false,
+                        spanGaps: false,
+                        yAxisID: 'yProb',
+                        order: 2
+                    }
+                ];
+
+                if (alertLevel > 0) {
+                    datasets.push({
+                        label: 'Alert',
+                        type: 'line',
+                        data: Array(labels.length).fill(alertLevel),
+                        borderColor: '#FFC107',
+                        borderDash: [6, 3],
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: false,
+                        yAxisID: 'yLevel',
+                        order: 0
+                    });
+                }
+                if (warningLevel > 0) {
+                    datasets.push({
+                        label: 'Warning',
+                        type: 'line',
+                        data: Array(labels.length).fill(warningLevel),
+                        borderColor: '#FF9800',
+                        borderDash: [6, 3],
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: false,
+                        yAxisID: 'yLevel',
+                        order: 0
+                    });
+                }
+                var severeIdx = -1;
+                if (severeLevel > 0) {
+                    severeIdx = datasets.length;
+                    datasets.push({
+                        label: 'Severe',
+                        type: 'line',
+                        data: Array(labels.length).fill(severeLevel),
+                        borderColor: '#D32F2F',
+                        borderDash: [6, 3],
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: false,
+                        yAxisID: 'yLevel',
+                        order: 0
+                    });
+                    datasets.push({
+                        label: '_severe_fill',
+                        type: 'line',
+                        data: waterLevels.slice(),
+                        borderWidth: 0,
+                        pointRadius: 0,
+                        fill: { target: severeIdx, above: 'rgba(244,67,54,0.25)', below: 'rgba(0,0,0,0)' },
+                        tension: 0.3,
+                        yAxisID: 'yLevel',
+                        order: 1
+                    });
+                }
+
+                // Knock-out annotation
+                var koPlugins = {};
+                var summary = data.summary || {};
+                if (summary.first_trigger_hour != null) {
+                    koPlugins.annotation = {
+                        annotations: {
+                            koLine: {
+                                type: 'line',
+                                xMin: summary.first_trigger_hour,
+                                xMax: summary.first_trigger_hour,
+                                borderColor: '#c62828',
+                                borderWidth: 2,
+                                borderDash: [4, 3],
+                                label: {
+                                    display: true,
+                                    content: 'KO H' + summary.first_trigger_hour,
+                                    position: 'start',
+                                    backgroundColor: 'rgba(198,40,40,0.85)',
+                                    color: '#fff',
+                                    font: { size: 9, weight: 'bold' },
+                                    padding: 3
+                                }
+                            }
+                        }
+                    };
+                }
+
+                tdStressChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: { labels: labels, datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: Object.assign({
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true, boxWidth: 8, font: { size: 9 },
+                                    filter: function(item) { return item.text.charAt(0) !== '_'; }
+                                }
+                            },
+                            tooltip: {
+                                filter: function(item) { return item.dataset.label.charAt(0) !== '_'; },
+                                callbacks: {
+                                    label: function(ctx) {
+                                        var ds = ctx.dataset.label;
+                                        if (ds.indexOf('P(flood)') >= 0) return ds + ': ' + ctx.parsed.y.toFixed(1) + '%';
+                                        return ds + ': ' + ctx.parsed.y.toFixed(2) + 'm';
+                                    }
+                                }
+                            }
+                        }, koPlugins),
+                        scales: {
+                            x: {
+                                ticks: { maxTicksLimit: 15, font: { size: 8 } },
+                                title: { display: true, text: 'Hour', font: { size: 10 } }
+                            },
+                            yLevel: {
+                                position: 'left',
+                                title: { display: true, text: 'Water Level (m)', font: { size: 10 }, color: '#1565c0' },
+                                ticks: { font: { size: 9 }, color: '#1565c0' },
+                                grid: { color: 'rgba(0,0,0,0.04)' }
+                            },
+                            yProb: {
+                                position: 'right',
+                                title: { display: true, text: 'P(flood) %', font: { size: 10 }, color: '#e65100' },
+                                ticks: { font: { size: 9 }, color: '#e65100' },
+                                min: 0, max: 100,
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+            }
+"""

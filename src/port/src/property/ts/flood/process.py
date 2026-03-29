@@ -1,0 +1,155 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+#
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only.
+
+"""Property flood processing: orchestrates nearest-gauge selection,
+flood propagation, and per-property JSON output."""
+
+import json
+from pathlib import Path
+from typing import Dict, Optional
+
+from ..encoder import DateTimeEncoder
+from .nearest import NearestGaugeMixin
+from .propagation import PropagationMixin
+
+
+class FloodMixin(NearestGaugeMixin, PropagationMixin):
+    """Mixin providing flood propagation and property processing methods."""
+
+    def _process_property(self, prop: Dict, gauge_lookup: Dict,
+                           gaugets: Dict, pts_dir: Path,
+                           mode: str = "normal") -> Optional[Dict]:
+        """Process a single property: find floods and build hydrographs.
+
+        Args:
+            mode: "normal" (default), "shd" (zero elevation diff), or
+                  "she" (zero distance).
+        """
+        ph = prop.get('PropertyHeader', {})
+        hdr = ph.get('Header', {})
+        loc = ph.get('Location', {})
+        risk = loc.get('RiskAssessment', ph.get('RiskAssessment', {}))
+        construction = ph.get('Construction', {})
+        attrs = ph.get('PropertyAttributes', {})
+        ph_risk = ph.get('RiskAssessment', {})
+
+        prop_id = (hdr.get('PropertyID', '')
+                   or attrs.get('PropertyID', '')
+                   or ph.get('PropertyAttributes', {}).get('PropertyID', ''))
+        prop_lat = loc.get('LatitudeDegrees', 0)
+        prop_lon = loc.get('LongitudeDegrees', 0)
+        prop_elevation = risk.get('GroundLevelMeters', 0)
+        floor_level = construction.get('FloorLevelMeters', 0)
+
+        if not prop_id or prop_lat == 0:
+            return None
+
+        nearest = self._find_nearest_gauges(prop_lat, prop_lon, gauge_lookup)
+        if not nearest:
+            return None
+
+        # Elevation sanity check: property must be above the nearest gauge
+        # (gauges sit on the river, the local elevation minimum).  If the
+        # property elevation is below the nearest gauge, lift it to
+        # gauge_elevation + 0.5 m to maintain physical consistency.
+        nearest_gauge_elev = nearest[0].get('gauge_info', {}).get('elevation', 0)
+        if nearest_gauge_elev > 0 and prop_elevation < nearest_gauge_elev:
+            prop_elevation = nearest_gauge_elev + 0.5
+
+        # Collect storms that exceeded alert at ANY of the nearest gauges.
+        # Group by sequence_id — a sequence is the storm event; individual
+        # pulses within a sequence are implementation detail.  When multiple
+        # pulses from the same sequence hit a gauge, keep the worst response.
+        alert_storms = {}  # sequence_id -> {gauge_id: response}
+        for ng in nearest:
+            gid = ng['gauge_id']
+            gt = gaugets.get(gid, {})
+            responses = gt.get('storm_responses', {}).get('responses', [])
+            for resp in responses:
+                if resp.get('exceeded_alert', False):
+                    sid = resp.get('storm_id', '')
+                    seq_id = self._storm_to_sequence.get(sid, sid)
+                    if seq_id not in alert_storms:
+                        alert_storms[seq_id] = {}
+                    # Keep worst response per gauge within a sequence
+                    existing = alert_storms[seq_id].get(gid)
+                    if existing is None or resp.get('peak_level_m', 0) > existing.get('peak_level_m', 0):
+                        alert_storms[seq_id][gid] = resp
+
+        floods_at_gauge = len(alert_storms)
+
+        flood_events = []
+        for storm_id, gauge_responses in alert_storms.items():
+            event = self._compute_property_flood(
+                storm_id, gauge_responses, nearest,
+                prop_lat, prop_lon, prop_elevation, floor_level,
+                gaugets, mode=mode,
+            )
+            if event:
+                flood_events.append(event)
+
+        floods_at_property = sum(1 for e in flood_events if e.get('flooded'))
+
+        max_depth = max((e['flood_depth_m'] for e in flood_events), default=0.0)
+        max_damage = max((e['damage_ratio'] for e in flood_events), default=0.0)
+
+        summary = {
+            'property_id': prop_id,
+            'elevation_m': round(prop_elevation, 2),
+            'floor_level_m': round(floor_level, 2),
+            'nearest_gauges': [
+                {
+                    'gauge_id': ng['gauge_id'],
+                    'distance_m': round(ng['distance_m'], 1),
+                }
+                for ng in nearest
+            ],
+            'floods_at_nearest_gauge': floods_at_gauge,
+            'floods_at_property': floods_at_property,
+            'gauge_to_property_ratio': round(
+                floods_at_property / floods_at_gauge * 100, 1
+            ) if floods_at_gauge > 0 else 0.0,
+            'max_depth_m': round(max_depth, 4),
+            'max_damage_ratio': round(max_damage, 4),
+        }
+
+        # Build nearest_gauges with synthetic overrides for output
+        output_nearest_gauges = []
+        for ng in nearest:
+            g_elev = ng['gauge_info']['elevation']
+            out_dist = 0.0 if mode == "she" else ng['distance_m']
+            out_gauge_elev = g_elev
+            out_prop_elev = g_elev if mode == "shd" else prop_elevation
+            output_nearest_gauges.append({
+                'gauge_id': ng['gauge_id'],
+                'distance_m': round(out_dist, 1),
+                'gauge_elevation_m': round(out_gauge_elev, 2),
+            })
+
+        effective_elevation = prop_elevation
+        if mode == "shd" and nearest:
+            effective_elevation = nearest[0]['gauge_info']['elevation']
+
+        prop_file = pts_dir / f'{prop_id}.json'
+        prop_data = {
+            'property_id': prop_id,
+            'location': {
+                'lat': prop_lat,
+                'lon': prop_lon,
+            },
+            'elevation_m': round(effective_elevation, 4),
+            'floor_level_m': round(floor_level, 4),
+            'flood_zone': ph_risk.get('EAFloodZone', 'Zone 1'),
+            'property_type': attrs.get('PropertyResi', 'Detached'),
+            'construction_year': attrs.get('ConstructionYear', 2000),
+            'property_period': attrs.get('PropertyPeriod', '2000-2008'),
+            'nearest_gauges': output_nearest_gauges,
+            'flood_events': flood_events,
+            'summary': summary,
+        }
+        with open(prop_file, 'w') as f:
+            json.dump(prop_data, f, indent=2, cls=DateTimeEncoder)
+
+        return {'summary': summary}

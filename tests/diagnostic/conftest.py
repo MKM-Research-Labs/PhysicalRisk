@@ -1,0 +1,51 @@
+"""
+Shared fixtures for flood propagation diagnostic tests.
+"""
+
+import json
+from pathlib import Path
+
+import pytest
+
+from config import PortfolioConfig
+
+DATA_DIR = Path(PortfolioConfig().get_input_dir())
+
+
+def _load_json(path):
+    with open(path) as f:
+        return json.load(f)
+
+
+# -----------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def gauge_json():
+    return _load_json(DATA_DIR / 'gauge.json')
+
+
+@pytest.fixture(scope="module")
+def gaugets():
+    result = {}
+    gaugets_dir = DATA_DIR / 'gaugets'
+    for f in gaugets_dir.glob('*.json'):
+        data = _load_json(f)
+        result[f.stem] = data
+    return result
+
+
+@pytest.fixture(scope="module")
+def properties():
+    result = {}
+    pts_dir = DATA_DIR / 'propertyts'
+    for f in pts_dir.glob('PROP-*.json'):
+        data = _load_json(f)
+        result[data['property_id']] = data
+    return result
+
+
+@pytest.fixture(scope="module")
+def gaugehc():
+    return _load_json(DATA_DIR / 'gaugehc.json')
