@@ -157,8 +157,6 @@ def generate_market_making_book(
         rate_key = TRIGGER_RATE_KEY[trigger]
         hazard_rate = gauge_data.get(rate_key, 0.025)
 
-        fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY, yield_curve=DEFAULT_YIELD_CURVE)
-
         # Create paired trades: payer + receiver
         for is_payer in [True, False]:
             record, ctpy_idx = _price_and_save_trade(
