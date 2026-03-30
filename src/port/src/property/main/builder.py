@@ -8,6 +8,7 @@
 from typing import Dict
 
 from config import config
+from port.utils.schema import build_section
 
 
 class BuilderMixin:
@@ -31,23 +32,7 @@ class BuilderMixin:
 
     def _build_section(self, section_schema: Dict, index: int, metadata: Dict) -> Dict:
         """Recursively build a section of property data based on the schema."""
-        result = {}
-
-        if not isinstance(section_schema, dict):
-            return {}
-
-        for field_name, field_def in section_schema.items():
-            if field_name in ['type', 'options', 'description', 'values']:
-                continue
-
-            if isinstance(field_def, dict) and not field_def.get("type"):
-                result[field_name] = self._build_section(field_def, index, metadata)
-            else:
-                value = self.random.generate_field_value(field_name, field_def, index, metadata)
-                if value is not None:
-                    result[field_name] = value
-
-        return result
+        return build_section(section_schema, index, metadata, self.random)
 
     def _set_specific_property_values(self, property_data: Dict, property_id: str,
                                       index: int, metadata: Dict, location: Dict):

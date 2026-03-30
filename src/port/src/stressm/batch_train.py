@@ -44,10 +44,8 @@ def batch_train_classifiers(
     Returns:
         Summary dict with counts and per-gauge status.
     """
-    from .gauge_parser import _extract_gauges, _parse_gauge, _load_gaugehd_baselines
     from .classifier import train_gauge_stressm_classifier, _print_classifier_result
-    from .gaugets_writer import write_classifier_summary
-    from port.src.storm_multi.models.spatial_correlation import SpatialCorrelationModel
+    from .summary import load_gauge_training_context, update_training_summary
     from port.src.storm_multi.utils.serialization import load_sequences
 
     input_dir = Path(input_dir)
@@ -58,19 +56,7 @@ def batch_train_classifiers(
     # ------------------------------------------------------------------
     # 1. Load gauge portfolio
     # ------------------------------------------------------------------
-    gauge_path = input_dir / "gauge.json"
-    if not gauge_path.exists():
-        raise FileNotFoundError(f"gauge.json not found at {gauge_path}")
-
-    with open(gauge_path) as f:
-        gauge_json = json.load(f)
-
-    baselines = _load_gaugehd_baselines(input_dir / "gaugehd")
-    raw_gauges = _extract_gauges(gauge_json)
-    all_gauges = [
-        p for r in raw_gauges
-        if (p := _parse_gauge(r, baselines)) is not None
-    ]
+    all_gauges, all_gauge_ids, spatial_model = load_gauge_training_context(input_dir)
 
     if not all_gauges:
         print("  No valid gauges found in gauge.json")
@@ -79,7 +65,6 @@ def batch_train_classifiers(
     # ------------------------------------------------------------------
     # 2. Identify untrained gauges
     # ------------------------------------------------------------------
-    all_gauge_ids = [g["gauge_id"] for g in all_gauges]
     untrained = [
         g for g in all_gauges
         if not (stressm_dir / f"{g['gauge_id']}.joblib").exists()
@@ -110,9 +95,6 @@ def batch_train_classifiers(
     print("  Loading storm sequences...", flush=True)
     sequences = load_sequences(seq_path)
     print(f"  Loaded {len(sequences):,} sequences", flush=True)
-
-    all_locations = [(g["lat"], g["lon"]) for g in all_gauges]
-    spatial_model = SpatialCorrelationModel(all_locations)
 
     # ------------------------------------------------------------------
     # 4. Train each gauge sequentially with memory cleanup
@@ -156,7 +138,8 @@ def batch_train_classifiers(
 
             # Update summary incrementally (write after each gauge so
             # progress survives a crash)
-            _update_training_summary(result, stressm_dir)
+            from .summary import update_training_summary
+            update_training_summary(result, stressm_dir)
             clf_results.append({
                 "gauge_id": gid,
                 "status": result.get("status", "unknown"),
@@ -202,31 +185,3 @@ def batch_train_classifiers(
     }
 
 
-def _update_training_summary(result: dict, stressm_dir: Path):
-    """Merge a single gauge result into training_summary.json (incremental save)."""
-    summary_path = stressm_dir / "training_summary.json"
-
-    if summary_path.exists():
-        with open(summary_path) as f:
-            summary = json.load(f)
-    else:
-        summary = {"num_gauges": 0, "num_trained": 0,
-                   "num_skipped": 0, "avg_auc_roc": 0, "gauges": []}
-
-    gauges = [g for g in summary.get("gauges", [])
-              if g.get("gauge_id") != result.get("gauge_id")]
-    gauges.append(result)
-
-    trained = [g for g in gauges if g.get("status") == "trained"]
-    avg_auc = (
-        sum(g["metrics"]["auc_roc"] for g in trained) / len(trained)
-        if trained else 0.0
-    )
-    summary["num_gauges"] = len(gauges)
-    summary["num_trained"] = len(trained)
-    summary["num_skipped"] = len(gauges) - len(trained)
-    summary["avg_auc_roc"] = round(avg_auc, 4)
-    summary["gauges"] = gauges
-
-    with open(summary_path, "w") as f:
-        json.dump(summary, f, indent=2)

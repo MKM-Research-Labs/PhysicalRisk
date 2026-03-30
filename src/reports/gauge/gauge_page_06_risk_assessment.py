@@ -257,9 +257,3 @@ class GaugeRiskAssessmentPage(GaugeBasePage):
 
         return elements
 
-    def _get_gauge_id(self, gauge_data: Dict[str, Any]) -> str:
-        """Extract gauge ID from data."""
-        try:
-            return gauge_data['FloodGauge']['Header']['GaugeID']
-        except (KeyError, TypeError):
-            return 'Unknown Gauge'

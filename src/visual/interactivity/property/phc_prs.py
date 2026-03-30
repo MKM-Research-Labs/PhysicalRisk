@@ -57,12 +57,6 @@ def get_js() -> str:
                     '<select id="phc-counterparty" style="' + selectStyle + 'min-width:140px;">' +
                     ctpyOptions +
                     '</select>' +
-                    '<span style="' + labelStyle + '">Trigger:</span>' +
-                    '<select id="phc-trigger" style="' + selectStyle + '">' +
-                    '<option value="any_flood">Alert</option>' +
-                    '<option value="moderate" selected>Warning</option>' +
-                    '<option value="severe">Severe</option>' +
-                    '</select>' +
                     '<span style="' + labelStyle + '">Notional:</span>' +
                     '<input id="phc-notional" type="text" value="10,000,000" style="' + inputStyle + '">' +
                     '<span style="' + labelStyle + '">Tenor (yr):</span>' +
@@ -72,7 +66,7 @@ def get_js() -> str:
                     '</div>';
 
                 // Auto-recompute on any input change
-                var ids = ['phc-counterparty', 'phc-trigger', 'phc-notional', 'phc-tenor', 'phc-spread'];
+                var ids = ['phc-counterparty', 'phc-notional', 'phc-tenor', 'phc-spread'];
                 ids.forEach(function(id) {
                     var el = document.getElementById(id);
                     if (el) el.addEventListener('change', function() { if (activeTab === 2) renderPRSPricing(); });

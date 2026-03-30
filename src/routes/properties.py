@@ -40,6 +40,25 @@ def _get_registry() -> LoaderRegistry:
     return LoaderRegistry(data_dir=config.get_input_dir())
 
 
+def _parse_property_request():
+    """Handle OPTIONS, parse JSON body, and validate propertyId.
+
+    Returns (None, response) on error/OPTIONS, or (property_id, None) on success.
+    """
+    if request.method == 'OPTIONS':
+        return None, jsonify({'status': 'ok'})
+
+    data = request.get_json()
+    if data is None:
+        return None, (jsonify({'status': 'error', 'message': 'No JSON data provided'}), 400)
+
+    property_id = data.get('propertyId')
+    if not property_id:
+        return None, (jsonify({'status': 'error', 'message': 'Property ID is required'}), 400)
+
+    return property_id, data
+
+
 @properties_bp.route('/properties', methods=['GET'])
 def list_properties():
     """List all properties."""
@@ -85,16 +104,10 @@ def generate_report():
 
     Request: {"propertyId": "..."}
     """
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    data = request.get_json()
-    if data is None:
-        return jsonify({'status': 'error', 'message': 'No JSON data provided'}), 400
-
-    property_id = data.get('propertyId')
-    if not property_id:
-        return jsonify({'status': 'error', 'message': 'Property ID is required'}), 400
+    property_id, result = _parse_property_request()
+    if property_id is None:
+        return result
+    data = result
 
     registry = _get_registry()
     property_loader = registry.get_property_loader()
@@ -125,17 +138,8 @@ def generate_report():
 
         logger.info(f"Generated property report: {report_path}")
 
-        # Read PDF as base64 for inline display
-        import base64
-        with open(report_path, 'rb') as pdf_file:
-            pdf_base64 = base64.b64encode(pdf_file.read()).decode('utf-8')
-
-        return jsonify({
-            'status': 'success',
-            'message': 'Report generated successfully',
-            'file_path': str(report_path),
-            'pdf_base64': pdf_base64
-        })
+        from routes.utils import pdf_success_response
+        return pdf_success_response(report_path)
 
     except ImportError as e:
         logger.error(f"Import error: {e}\n{traceback.format_exc()}")
@@ -160,16 +164,9 @@ def generate_mortgage_report():
 
     Request: {"propertyId": "..."}
     """
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    data = request.get_json()
-    if data is None:
-        return jsonify({'status': 'error', 'message': 'No JSON data provided'}), 400
-
-    property_id = data.get('propertyId')
-    if not property_id:
-        return jsonify({'status': 'error', 'message': 'Property ID is required'}), 400
+    property_id, result = _parse_property_request()
+    if property_id is None:
+        return result
 
     registry = _get_registry()
     property_loader = registry.get_property_loader()
@@ -201,16 +198,8 @@ def generate_mortgage_report():
 
         logger.info(f"Generated mortgage report: {report_path}")
 
-        import base64
-        with open(report_path, 'rb') as pdf_file:
-            pdf_base64 = base64.b64encode(pdf_file.read()).decode('utf-8')
-
-        return jsonify({
-            'status': 'success',
-            'message': 'Mortgage report generated successfully',
-            'file_path': str(report_path),
-            'pdf_base64': pdf_base64
-        })
+        from routes.utils import pdf_success_response
+        return pdf_success_response(report_path, 'Mortgage report generated successfully')
 
     except ImportError as e:
         logger.error(f"Import error: {e}\n{traceback.format_exc()}")

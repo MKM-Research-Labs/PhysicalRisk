@@ -86,14 +86,13 @@ def get_js():
             }
 
             function computePropertyPRSCashflows() {
-                var triggerKey = document.getElementById('phc-trigger').value;
+                var triggerKey = 'severe';
                 var notionalStr = document.getElementById('phc-notional').value.replace(/,/g, '');
                 var notional = parseFloat(notionalStr) || 10000000;
                 var tenor = parseInt(document.getElementById('phc-tenor').value) || 5;
                 var spreadBps = parseFloat(document.getElementById('phc-spread').value) || 100;
                 var spread = spreadBps / 10000;
-                var recoveryMap = {'any_flood': 0.0, 'moderate': 0.0, 'severe': 0.0};
-                var recovery = recoveryMap[triggerKey] || 0.0;
+                var recovery = 0.0;
 
                 var ts = phcData.term_structure || {};
                 var tsData = ts[triggerKey] || {};
@@ -161,6 +160,7 @@ def get_js():
                     return {
                         gauge_id: ng.gauge_id,
                         distance_km: ng.distance_km || 0,
+                        gauge_elevation_m: ng.gauge_elevation_m || 0,
                         gauge_spread: gaugeSpreadAtTenor,
                         basis: basisAtTenor,
                         property_flood_count: ng.property_flood_count || 0,

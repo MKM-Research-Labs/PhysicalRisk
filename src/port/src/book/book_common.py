@@ -32,7 +32,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from models.hazard.prs_analytical import interpolate_yield_rate
+from models.hazard.prs_analytical import compute_prs_spread, interpolate_yield_rate
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
 
@@ -186,6 +186,71 @@ def _build_cdm_record(
         logger.warning('CDM validation for %s: %s', swap_id, errors)
 
     return record
+
+
+def _price_and_save_trade(
+    gauge_id: str,
+    gauge_name: str,
+    catchment_id: str,
+    is_payer: bool,
+    tenor: int,
+    notional: float,
+    trigger: str,
+    hazard_rate: float,
+    counterparties: List[Dict],
+    ctpy_idx: int,
+    base_date: datetime,
+    output_dir: Path,
+) -> tuple:
+    """Price a single trade, build CDM, save JSON, return (record, new_ctpy_idx)."""
+    import random
+    import uuid
+
+    fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY,
+                                      yield_curve=DEFAULT_YIELD_CURVE)
+    swap_id = f'PRS-{uuid.uuid4().hex[:8].upper()}'
+    offset = random.uniform(SPREAD_OFFSET_MIN, SPREAD_OFFSET_MAX)
+    trade_spread = fair_spread - offset if is_payer else fair_spread + offset
+
+    pvs = _compute_leg_pvs(hazard_rate, trade_spread, tenor, notional)
+    direction = 1.0 if is_payer else -1.0
+    npv = (pvs['protection_leg_pv'] - pvs['premium_leg_pv']) * direction
+
+    ctpy = counterparties[ctpy_idx % len(counterparties)]
+    td = base_date + timedelta(days=random.randint(0, 20))
+
+    record = _build_cdm_record(
+        swap_id=swap_id,
+        gauge_id=gauge_id,
+        gauge_name=gauge_name,
+        catchment_id=catchment_id,
+        counterparty_id=ctpy['id'],
+        counterparty_name=ctpy['name'],
+        is_payer=is_payer,
+        notional=notional,
+        tenor=tenor,
+        trigger=trigger,
+        trade_spread_bps=trade_spread,
+        fair_spread_bps=fair_spread,
+        npv=npv,
+        premium_leg_pv=pvs['premium_leg_pv'],
+        protection_leg_pv=pvs['protection_leg_pv'],
+        risky_annuity=pvs['risky_annuity'],
+        trade_date=td,
+    )
+
+    json_path = output_dir / f'{swap_id}.json'
+    with open(json_path, 'w') as f:
+        json.dump(record, f, indent=2)
+
+    dir_label = 'PAY' if is_payer else 'RCV'
+    logger.info(
+        '%s %s %s %s %dY %.1f/%.1f bps MTM=%.0f',
+        swap_id, dir_label, gauge_id[:16], trigger,
+        tenor, trade_spread, fair_spread, npv
+    )
+
+    return record, ctpy_idx + 1
 
 
 def _load_counterparties(counterparty_path: Path) -> List[Dict]:

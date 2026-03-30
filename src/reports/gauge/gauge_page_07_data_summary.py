@@ -39,7 +39,7 @@ Handles complete data overview, key metrics summary, and report conclusions.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
@@ -49,6 +49,54 @@ from .gauge_page_00_base import GaugeBasePage
 
 class GaugeDataSummaryPage(GaugeBasePage):
     """Generates the comprehensive data summary page."""
+
+    def _add_data_table(
+        self,
+        elements: List,
+        headers: List[str],
+        fields: List[tuple],
+        style_key: str = 'standard',
+        col_widths: Optional[List[float]] = None,
+        value_formatter: Optional[Callable] = None,
+    ) -> None:
+        """Build a two-column data table and append it to *elements*.
+
+        Parameters
+        ----------
+        elements:
+            The list to which the Table and trailing Spacer are appended.
+        headers:
+            Column header strings, e.g. ``["Parameter", "Value"]``.
+        fields:
+            Sequence of ``(raw_value, label)`` pairs.  Rows where
+            *raw_value* is ``None`` are silently skipped.
+        style_key:
+            Key into ``self.table_styles`` (default ``'standard'``).
+        col_widths:
+            Explicit column widths; falls back to ``self.table_widths['two_col']``.
+        value_formatter:
+            Optional ``(value, label) -> str`` callable.  When *None* the
+            default ``self._format_value`` is used.
+        """
+        data = [headers]
+        for raw_value, label in fields:
+            if raw_value is None:
+                continue
+            if value_formatter is not None:
+                formatted = value_formatter(raw_value, label)
+            else:
+                formatted = self._format_value(raw_value)
+            data.append([label, formatted])
+
+        if len(data) <= 1:
+            # Nothing beyond the header row — skip the table entirely.
+            return
+
+        widths = col_widths or self.table_widths['two_col']
+        tbl = Table(data, colWidths=widths)
+        tbl.setStyle(self.table_styles[style_key])
+        elements.append(tbl)
+        elements.append(Spacer(1, self.spacing['table_bottom']))
 
     def generate_elements(self, gauge_data: Dict[str, Any],
                          timeseries_data: Dict[str, Any] = None) -> List:
@@ -73,9 +121,6 @@ class GaugeDataSummaryPage(GaugeBasePage):
             gauge_info = sensor_details.get('GaugeInformation', {})
 
             # Create gauge overview summary table
-            overview_data = [["Summary Parameter", "Value"]]
-
-            # Key summary fields
             summary_fields = [
                 (gauge_info.get('GaugeType'), 'Gauge Type'),
                 (gauge_info.get('ManufacturerName'), 'Manufacturer'),
@@ -85,18 +130,17 @@ class GaugeDataSummaryPage(GaugeBasePage):
                 (gauge_info.get('GaugeLongitude'), 'Longitude')
             ]
 
-            for value, label in summary_fields:
-                if value is not None:
-                    if 'Latitude' in label or 'Longitude' in label:
-                        formatted_value = f"{self._format_coordinate(value)}°"
-                    else:
-                        formatted_value = self._format_value(value)
-                    overview_data.append([label, formatted_value])
+            def _fmt_overview(value, label):
+                if 'Latitude' in label or 'Longitude' in label:
+                    return f"{self._format_coordinate(value)}°"
+                return self._format_value(value)
 
-            overview_table = Table(overview_data, colWidths=self.table_widths['two_col'])
-            overview_table.setStyle(self.table_styles['standard'])
-            elements.append(overview_table)
-            elements.append(Spacer(1, self.spacing['table_bottom']))
+            self._add_data_table(
+                elements,
+                headers=["Summary Parameter", "Value"],
+                fields=summary_fields,
+                value_formatter=_fmt_overview,
+            )
 
             # KEY METRICS SUMMARY SECTION
             elements.append(Spacer(1, self.spacing['minor_section']))
@@ -179,9 +223,6 @@ class GaugeDataSummaryPage(GaugeBasePage):
 
             measurements = sensor_details.get('Measurements', {})
 
-            operational_data = [["Operational Parameter", "Status"]]
-
-            # Operational summary fields
             op_fields = [
                 (gauge_info.get('OperationalStatus'), 'Current Status'),
                 (gauge_info.get('CertificationStatus'), 'Certification'),
@@ -189,15 +230,12 @@ class GaugeDataSummaryPage(GaugeBasePage):
                 (measurements.get('DataTransmission'), 'Data Transmission'),
                 (gauge_info.get('MaintenanceSchedule'), 'Maintenance Schedule')
             ]
-
-            for value, label in op_fields:
-                if value is not None:
-                    operational_data.append([label, self._format_value(value)])
-
-            operational_table = Table(operational_data, colWidths=self.table_widths['two_col'])
-            operational_table.setStyle(self.table_styles['sensor'])
-            elements.append(operational_table)
-            elements.append(Spacer(1, self.spacing['table_bottom']))
+            self._add_data_table(
+                elements,
+                headers=["Operational Parameter", "Status"],
+                fields=op_fields,
+                style_key='sensor',
+            )
 
             # CURRENT STATUS SUMMARY SECTION (if timeseries data available)
             if timeseries_data:
@@ -208,9 +246,6 @@ class GaugeDataSummaryPage(GaugeBasePage):
                 if readings:
                     latest_reading = readings[-1]
 
-                    current_data = [["Current Parameter", "Value"]]
-
-                    # Current status fields
                     current_fields = [
                         (latest_reading.get('timestamp'), 'Last Reading'),
                         (latest_reading.get('waterLevel'), 'Current Water Level'),
@@ -220,18 +255,18 @@ class GaugeDataSummaryPage(GaugeBasePage):
                         (latest_reading.get('exceedsSevere'), 'Exceeds Severe')
                     ]
 
-                    for value, label in current_fields:
-                        if value is not None:
-                            if 'Level' in label and isinstance(value, (int, float)):
-                                formatted_value = self._format_measurement(value, 'm')
-                            else:
-                                formatted_value = self._format_value(value)
-                            current_data.append([label, formatted_value])
+                    def _fmt_current(value, label):
+                        if 'Level' in label and isinstance(value, (int, float)):
+                            return self._format_measurement(value, 'm')
+                        return self._format_value(value)
 
-                    current_table = Table(current_data, colWidths=self.table_widths['two_col'])
-                    current_table.setStyle(self.table_styles['measurement'])
-                    elements.append(current_table)
-                    elements.append(Spacer(1, self.spacing['table_bottom']))
+                    self._add_data_table(
+                        elements,
+                        headers=["Current Parameter", "Value"],
+                        fields=current_fields,
+                        style_key='measurement',
+                        value_formatter=_fmt_current,
+                    )
 
             # REPORT CONCLUSIONS SECTION
             elements.append(Spacer(1, self.spacing['minor_section']))
@@ -298,16 +333,3 @@ class GaugeDataSummaryPage(GaugeBasePage):
 
         return elements
 
-    def _get_gauge_id(self, gauge_data: Dict[str, Any]) -> str:
-        """Extract gauge ID from data."""
-        try:
-            return gauge_data['FloodGauge']['Header']['GaugeID']
-        except (KeyError, TypeError):
-            return 'Unknown Gauge'
-
-    def _get_gauge_name(self, gauge_data: Dict[str, Any]) -> str:
-        """Extract gauge name from data."""
-        try:
-            return gauge_data['FloodGauge']['Header']['GaugeName']
-        except (KeyError, TypeError):
-            return 'Unknown Gauge Name'

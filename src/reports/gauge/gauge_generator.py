@@ -104,47 +104,24 @@ def _find_gauge_by_id(data, gauge_id):
 
 
 if __name__ == "__main__":
-    import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description='Generate gauge reports using modular page system.')
+    from reports.shared.base_generator import build_report_cli, handle_info_requests
 
-    # Required arguments
-    parser.add_argument('--gauge-file', required=True, help='Gauge JSON file path')
+    def _add_gauge_args(parser):
+        parser.add_argument('--gauge-file', required=True, help='Gauge JSON file path')
+        parser.add_argument('--timeseries-file', help='Timeseries JSON file path')
+        parser.add_argument('--gauge-id', help='Specific gauge ID to process')
 
-    # Optional arguments
-    parser.add_argument('--timeseries-file', help='Timeseries JSON file path')
-    parser.add_argument('--output-dir', default='reports', help='Output directory')
-    parser.add_argument('--gauge-id', help='Specific gauge ID to process')
-    parser.add_argument('--pages', nargs='+', help='Specific pages to include')
-    parser.add_argument('--report-type',
-                       choices=['basic', 'monitoring', 'analysis', 'full'],
-                       default='basic', help='Type of report to generate')
-
-    # Information arguments
-    parser.add_argument('--list-pages', action='store_true', help='List available pages')
-    parser.add_argument('--list-categories', action='store_true', help='List page categories')
-
-    args = parser.parse_args()
+    args = build_report_cli(
+        description='Generate gauge reports using modular page system.',
+        report_type_choices=['basic', 'monitoring', 'analysis', 'full'],
+        default_report_type='basic',
+        extra_args_fn=_add_gauge_args,
+    )
 
     logging.basicConfig(level=logging.INFO)
-
-    # Handle information requests
-    if args.list_pages:
-        generator = GaugeReportGenerator()
-        logger.info("Available pages:")
-        for page in generator.list_available_pages():
-            logger.info(f"  - {page}")
-        sys.exit(0)
-
-    if args.list_categories:
-        generator = GaugeReportGenerator()
-        logger.info("Page categories:")
-        for category, pages in generator.get_page_categories().items():
-            logger.info(f"\n{category}:")
-            for page in pages:
-                logger.info(f"  - {page}")
-        sys.exit(0)
+    handle_info_requests(args, GaugeReportGenerator())
 
     try:
         # Load data

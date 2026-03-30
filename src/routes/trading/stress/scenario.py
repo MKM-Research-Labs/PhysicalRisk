@@ -16,6 +16,7 @@ from ._helpers import (
     STORM_HOURS,
     _load_stress_storms,
     _load_stress_storm,
+    build_scaled_hydrograph,
 )
 
 from models.stress.flood_poly import p_flood_poly
@@ -77,33 +78,7 @@ def run_stress_scenario():
                             "message": f"No open trades at {gauge_id}"}), 404
 
         # 3. Build hydrograph by scaling the gauge's flood simulation
-        #    Same approach as Storm Scenarios (gsa_timeline.py)
-        hydrograph = None
-        gaugets_file = config.get_gaugets_dir() / f'{gauge_id}.json'
-        if gaugets_file.exists():
-            try:
-                with open(gaugets_file) as gf:
-                    gts_data = json.load(gf)
-                readings = gts_data.get('flood_simulation', {}).get('readings', [])
-                if readings:
-                    raw_levels = [r.get('waterLevel', r.get('level', 0))
-                                  for r in readings]
-                    sim_base = min(raw_levels)
-                    sim_peak = max(raw_levels)
-                    sim_rise = sim_peak - sim_base
-                    storm_rise = gauge_resp['peak_level_m'] - sim_base
-                    scale_factor = (storm_rise / sim_rise
-                                    if sim_rise > 0 else 1.0)
-                    scaled = [round(sim_base + (v - sim_base) * scale_factor, 4)
-                              for v in raw_levels]
-                    # Pad or truncate to STORM_HOURS
-                    if len(scaled) >= STORM_HOURS:
-                        hydrograph = scaled[:STORM_HOURS]
-                    else:
-                        hydrograph = scaled + [scaled[-1]] * (STORM_HOURS - len(scaled))
-            except Exception:
-                logger.warning("Failed to load gaugets for %s, using fallback",
-                               gauge_id)
+        hydrograph = build_scaled_hydrograph(gauge_id, gauge_resp)
 
         # Gaugets data is required — stress scenarios are tail events
         # that need real timeseries data, not synthetic approximations

@@ -46,6 +46,25 @@ from . import propertyts_bp, _get_propertyts_dir
 logger = logging.getLogger(__name__)
 
 
+def _check_options_and_dir():
+    """Handle OPTIONS preflight and verify propertyts directory exists.
+
+    Returns ``(None, pts_dir)`` on success, or ``(response, None)``
+    when an early return (OPTIONS / 404) should be sent.
+    """
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), None
+
+    pts_dir = _get_propertyts_dir()
+    if not pts_dir.exists():
+        return (jsonify({
+            'status': 'error',
+            'message': 'Property flood timeseries not yet generated'
+        }), 404), None
+
+    return None, pts_dir
+
+
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
@@ -164,15 +183,9 @@ def portfolio_impact(storm_id: str):
     Joins property flood data with property valuations and mortgage data
     to show total portfolio damage, mortgage exposure, and negative equity.
     """
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
-        return jsonify({
-            'status': 'error',
-            'message': 'Property flood timeseries not yet generated'
-        }), 404
+    early, pts_dir = _check_options_and_dir()
+    if early is not None:
+        return early
 
     prop_values = _load_prop_values()
     mortgage_lookup = _load_mortgage_lookup()
@@ -232,15 +245,9 @@ def sequence_portfolio_impact(sequence_id: str):
     reached (0.7m). This endpoint selects the worst flood event per property
     across all storms in the sequence.
     """
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
-        return jsonify({
-            'status': 'error',
-            'message': 'Property flood timeseries not yet generated'
-        }), 404
+    early, pts_dir = _check_options_and_dir()
+    if early is not None:
+        return early
 
     prop_values = _load_prop_values()
     mortgage_lookup = _load_mortgage_lookup()

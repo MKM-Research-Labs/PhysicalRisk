@@ -3,33 +3,17 @@
 
 """Property popup risk — risk summary and colour functions."""
 
+from models.risk.risk_assessor.ltv import assess_mortgage_risk
+
 
 def get_mortgage_risk_summary(flood_risk_level: str, mortgage_value: float,
                               loan_amount: float, ltv_ratio: float) -> str:
-    """Generate a summary assessment of mortgage risk."""
-    if flood_risk_level in ['High', 'Very High']:
-        return "High Risk - Significant flood exposure threatening mortgage value"
+    """Generate a summary assessment of mortgage risk.
 
-    if mortgage_value < 0:
-        negative_pct = abs(mortgage_value) / loan_amount
-        if negative_pct > 0.1:
-            return "Critical Risk - Mortgage value severely impacted"
-        elif negative_pct > 0.05:
-            return "High Risk - Significant negative impact on mortgage value"
-        elif negative_pct > 0.02:
-            return "Moderate Risk - Some negative impact on mortgage value"
-
-    if ltv_ratio > 0.8 and flood_risk_level in ['Medium', 'High', 'Very High']:
-        return "High Risk - High LTV with flood exposure"
-    elif ltv_ratio > 0.7 and flood_risk_level in ['Medium', 'High']:
-        return "Moderate Risk - Elevated LTV with some flood exposure"
-
-    if flood_risk_level == 'Medium':
-        return "Moderate Risk - Some flood exposure"
-    elif flood_risk_level == 'Low':
-        return "Low Risk - Limited flood exposure"
-    else:
-        return "Minimal Risk - No significant flood impact identified"
+    Delegates to :func:`models.risk.risk_assessor.ltv.assess_mortgage_risk`.
+    """
+    return assess_mortgage_risk(flood_risk_level, mortgage_value,
+                                loan_amount, ltv_ratio)
 
 
 def get_overall_risk_color(flood_risk_level: str, mortgage_value: float,

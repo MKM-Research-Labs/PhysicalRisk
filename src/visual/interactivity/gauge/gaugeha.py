@@ -30,8 +30,10 @@ from typing import Any, Dict
 
 import folium
 
+from visual.interactivity.panel_mixin import FoliumPanelMixin
 
-class GaugeGraphInteraction:
+
+class GaugeGraphInteraction(FoliumPanelMixin):
     """Handler for interactive gauge history graphs."""
 
     def __init__(self,
@@ -298,22 +300,4 @@ class GaugeGraphInteraction:
         </script>
         """
 
-    def add_to_map(self, folium_map: folium.Map) -> None:
-        """Add gauge graph interaction to a Folium map."""
-        folium_map.get_root().html.add_child(folium.Element(self.get_js()))
-
-    def configure(self,
-                  panel_width: str = None,
-                  panel_height: str = None) -> None:
-        """Update configuration."""
-        if panel_width:
-            self.panel_width = panel_width
-        if panel_height:
-            self.panel_height = panel_height
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get configuration statistics."""
-        return {
-            'panel_width': self.panel_width,
-            'panel_height': self.panel_height,
-        }
+    # add_to_map, configure, get_statistics inherited from FoliumPanelMixin

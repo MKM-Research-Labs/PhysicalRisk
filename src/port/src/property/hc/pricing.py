@@ -157,6 +157,7 @@ class PricingMixin:
             nearest_basis.append({
                 'gauge_id': gid,
                 'distance_km': round(ng.get('distance_m', 0) / 1000, 2),
+                'gauge_elevation_m': round(ng.get('gauge_elevation_m', 0), 2),
                 'gauge_flood_count': gauge_flood_count,
                 'property_flood_count': property_flood_count,
                 'event_basis': gauge_flood_count - property_flood_count,

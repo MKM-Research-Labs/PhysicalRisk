@@ -90,6 +90,22 @@ def _build_meeting_pdf(meeting):
         textColor=colors.HexColor("#555555"),
     )
 
+    def _styled_table(table_data, col_widths):
+        """Create a table with standard MRC styling and trailing spacer."""
+        t = Table(table_data, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565c0")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        return [t, Spacer(1, 8)]
+
     elements = []
 
     # Title
@@ -120,20 +136,7 @@ def _build_meeting_pdf(meeting):
                 p.get("organisation", ""),
                 p.get("status", ""),
             ])
-        t = Table(table_data, colWidths=[45 * mm, 40 * mm, 45 * mm, 30 * mm])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565c0")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 8))
+        elements.extend(_styled_table(table_data, [45 * mm, 40 * mm, 45 * mm, 30 * mm]))
 
     # Agenda
     agenda = meeting.get("agenda", [])
@@ -147,20 +150,7 @@ def _build_meeting_pdf(meeting):
                 a.get("presenter", ""),
                 a.get("status", ""),
             ])
-        t = Table(table_data, colWidths=[10 * mm, 95 * mm, 35 * mm, 25 * mm])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565c0")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 8))
+        elements.extend(_styled_table(table_data, [10 * mm, 95 * mm, 35 * mm, 25 * mm]))
 
     # Minutes
     minutes = meeting.get("minutes", [])
@@ -187,20 +177,7 @@ def _build_meeting_pdf(meeting):
                 Paragraph(d.get("description", ""), body_style),
                 d.get("date", ""),
             ])
-        t = Table(table_data, colWidths=[15 * mm, 120 * mm, 25 * mm])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565c0")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 8))
+        elements.extend(_styled_table(table_data, [15 * mm, 120 * mm, 25 * mm]))
 
     # Actions
     actions = meeting.get("actions", [])
@@ -215,19 +192,7 @@ def _build_meeting_pdf(meeting):
                 a.get("target_date", ""),
                 a.get("status", ""),
             ])
-        t = Table(table_data, colWidths=[15 * mm, 75 * mm, 30 * mm, 22 * mm, 20 * mm])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565c0")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(t)
+        elements.extend(_styled_table(table_data, [15 * mm, 75 * mm, 30 * mm, 22 * mm, 20 * mm]))
 
     # Footer
     elements.append(Spacer(1, 20))

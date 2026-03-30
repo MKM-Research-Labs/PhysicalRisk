@@ -46,18 +46,28 @@ def _get_hazard_data(filename: str = 'propertyhc.json') -> dict:
         return json.load(f)
 
 
+def _load_or_404(filename: str = 'propertyhc.json', label: str = 'Property hazard curves'):
+    """Load hazard data or return a 404 JSON response.
+
+    Returns ``(data, None)`` on success or ``(None, response)`` on failure.
+    """
+    if request.method == 'OPTIONS':
+        return None, jsonify({'status': 'ok'})
+    data = _get_hazard_data(filename)
+    if not data:
+        return None, (jsonify({
+            'status': 'error',
+            'message': f'{label} not yet generated'
+        }), 404)
+    return data, None
+
+
 @propertyhc_bp.route('/propertyhc/summary', methods=['GET', 'OPTIONS'])
 def propertyhc_summary():
     """Get portfolio-wide property hazard summary."""
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    data = _get_hazard_data()
-    if not data:
-        return jsonify({
-            'status': 'error',
-            'message': 'Property hazard curves not yet generated. Run: python app.py port --propertyhc'
-        }), 404
+    data, err = _load_or_404(label='Property hazard curves. Run: python app.py port --propertyhc')
+    if err:
+        return err
 
     curves = data.get('property_hazard_curves', {})
 
@@ -96,15 +106,9 @@ def propertyhc_summary():
 @propertyhc_bp.route('/properties/<prop_id>/hazard', methods=['GET', 'OPTIONS'])
 def property_hazard(prop_id: str):
     """Get full hazard curve, PRS pricing, and basis for one property."""
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    data = _get_hazard_data()
-    if not data:
-        return jsonify({
-            'status': 'error',
-            'message': 'Property hazard curves not yet generated'
-        }), 404
+    data, err = _load_or_404()
+    if err:
+        return err
 
     curves = data.get('property_hazard_curves', {})
     prop_data = curves.get(prop_id)
@@ -124,15 +128,9 @@ def property_hazard(prop_id: str):
 @propertyhc_bp.route('/propertyhc/basis', methods=['GET', 'OPTIONS'])
 def propertyhc_basis():
     """Get basis table across all properties."""
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    data = _get_hazard_data()
-    if not data:
-        return jsonify({
-            'status': 'error',
-            'message': 'Property hazard curves not yet generated'
-        }), 404
+    data, err = _load_or_404()
+    if err:
+        return err
 
     curves = data.get('property_hazard_curves', {})
 

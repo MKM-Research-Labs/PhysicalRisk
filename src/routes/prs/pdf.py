@@ -18,6 +18,34 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     from reportlab.lib.units import inch
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+    def _blue_table_style():
+        return TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#E3F2FD')),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ])
+
+    def _orange_table_style():
+        return TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E65100')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FFF3E0')),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ])
+
     ps = cdm_record["PhysicalSwap"]
     header = ps["Header"]
     leg = ps["LegData"]
@@ -85,18 +113,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     ]
 
     t = Table(trade_data, colWidths=[2.5 * inch, 4 * inch])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-        ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#E3F2FD')),
-        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-    ]))
+    t.setStyle(_blue_table_style())
     elements.append(t)
     elements.append(Spacer(1, 12))
 
@@ -116,18 +133,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     ]
 
     t2 = Table(pricing_data, colWidths=[2.5 * inch, 4 * inch])
-    t2.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-        ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#E3F2FD')),
-        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-    ]))
+    t2.setStyle(_blue_table_style())
     elements.append(t2)
     elements.append(Spacer(1, 12))
 
@@ -169,18 +175,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
         ]
 
         t_settle = Table(settle_data, colWidths=[2.5 * inch, 4 * inch])
-        t_settle.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E65100')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FFF3E0')),
-            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ]))
+        t_settle.setStyle(_orange_table_style())
         elements.append(t_settle)
         elements.append(Spacer(1, 12))
 
@@ -211,18 +206,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
         ]
 
         t_settle2 = Table(settle_data, colWidths=[2.5 * inch, 4 * inch])
-        t_settle2.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E65100')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FFF3E0')),
-            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ]))
+        t_settle2.setStyle(_orange_table_style())
         elements.append(t_settle2)
         elements.append(Spacer(1, 12))
 

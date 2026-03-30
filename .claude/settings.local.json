@@ -136,7 +136,24 @@
       "Bash(npm bin:*)",
       "Read(//usr/local/bin/**)",
       "Read(//opt/**)",
-      "Bash(deactivate)"
+      "Bash(deactivate)",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.gauge.gauge import DateTimeEncoder; from port.src.gauge.gaugets import DateTimeEncoder; from port.src.mortgage import DateTimeEncoder; print\\(''Phase 1 OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.gauge.gauge import GaugePortfolioGenerator; from port.src.property.main.builder import PropertyBuilder; print\\(''OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \":*)",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.gauge.gauge import GaugePortfolioGenerator; from port.src.property.main.builder import BuilderMixin; print\\(''OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.gauge.gauge import GaugePortfolioGenerator; from port.src.property.main.generator import PropertyPortfolioGenerator; print\\(''OK''\\)\")",
+      "Bash(/Users/newdavid/.nvm/versions/node/v22.14.0/bin/node -c /Users/newdavid/Documents/PhysicalRisk/src/static/js/backend-handler.js)",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from visual.utils.data_extractors.property_extractor import _calculate_age_factor; print\\(_calculate_age_factor\\(1920\\)\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from visual.popups.property_popup.risk import get_mortgage_risk_summary, get_overall_risk_color; print\\(get_mortgage_risk_summary\\(''High'', -100, 1000, 0.9\\)\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from routes.prs.pdf import _generate_trade_pdf; print\\(''OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from routes.propertyhc import propertyhc_bp; print\\(''OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.property.main.encoder import DateTimeEncoder; print\\(''main encoder OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.property.ts.encoder import DateTimeEncoder; print\\(''ts encoder OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from routes.properties import properties_bp; print\\(''properties OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.property.hc.generator import PropertyHazardCurveGenerator; print\\(''hc generator OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.property.ts.generator import PropertyTimeSeriesGenerator; print\\(''ts generator OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.book.book import generate_market_making_book; from port.src.book.book_thames import generate_thames_central_book; print\\(''book OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.mortgage import MortgagePortfolioGenerator; print\\(''mortgage OK''\\)\")"
     ]
   }
 }

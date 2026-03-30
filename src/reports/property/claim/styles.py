@@ -8,6 +8,28 @@
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import TableStyle
+
+# ── Shared TableStyle constants ──────────────────────────────────────────────
+# Purple header with alternating lavender rows — used by page3 (sequence-level
+# assessment) and page4 (sequence-level LTV).
+
+PURPLE_TABLE_STYLE = TableStyle([
+    ('BACKGROUND',     (0, 0), (-1, 0),  colors.HexColor('#4A148C')),
+    ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.white),
+    ('FONTNAME',       (0, 0), (-1, 0),  'Helvetica-Bold'),
+    ('FONTSIZE',       (0, 0), (-1, -1), 8),
+    ('ALIGN',          (2, 1), (-1, -1), 'CENTER'),
+    ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
+    ('BOX',            (0, 0), (-1, -1), 1,   colors.HexColor('#4A148C')),
+    ('TOPPADDING',     (0, 0), (-1, -1), 4),
+    ('BOTTOMPADDING',  (0, 0), (-1, -1), 4),
+    ('LEFTPADDING',    (0, 0), (-1, -1), 4),
+    ('RIGHTPADDING',   (0, 0), (-1, -1), 4),
+    ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
+    ('ROWBACKGROUNDS', (0, 1), (-1, -1),
+     [colors.white, colors.HexColor('#F3E5F5')]),
+])
 
 
 def setup_styles():

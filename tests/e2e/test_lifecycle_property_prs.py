@@ -37,10 +37,10 @@ class TestPropertyPRSBookTrade:
         open_property_panel(map_page, first_property_id)
         switch_to_prs_tab_property(map_page)
 
-        # Controls from phc_prs.py: phc-counterparty, phc-trigger,
+        # Controls from phc_prs.py: phc-counterparty,
         # phc-notional, phc-tenor, phc-spread
         for ctrl_id in [
-            "phc-counterparty", "phc-trigger", "phc-notional",
+            "phc-counterparty", "phc-notional",
             "phc-tenor", "phc-spread",
         ]:
             found = map_page.evaluate(
@@ -54,7 +54,7 @@ class TestPropertyPRSBookTrade:
     def test_02_set_property_trade_parameters(
         self, map_page, first_property_id
     ):
-        """Set counterparty, trigger, notional, and tenor on property PRS."""
+        """Set counterparty, notional, and tenor on property PRS."""
         has_fn = map_page.evaluate(
             "() => typeof window.viewPropertyHazard === 'function' || "
             "(window.PropertyHazardCurvePanel && "
@@ -75,19 +75,6 @@ class TestPropertyPRSBookTrade:
                     sel.dispatchEvent(new Event('change', {bubbles: true}));
                 }
             }""", ctpy.element_handle())
-
-        # Trigger -> severe
-        trigger = map_page.locator("#phc-trigger")
-        if trigger.count() > 0:
-            map_page.evaluate("""(sel) => {
-                for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === 'severe') {
-                        sel.selectedIndex = i;
-                        sel.dispatchEvent(new Event('change', {bubbles: true}));
-                        break;
-                    }
-                }
-            }""", trigger.element_handle())
 
         # Notional — element may not be visible, use JS
         notional = map_page.locator("#phc-notional")

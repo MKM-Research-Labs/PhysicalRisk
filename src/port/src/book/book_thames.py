@@ -31,21 +31,15 @@ Book generator — Thames Central trading book.
 import json
 import logging
 import random
-import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from models.hazard.prs_analytical import compute_prs_spread
-
 from .book_common import (
     DEFAULT_YIELD_CURVE,
     RECOVERY,
-    SPREAD_OFFSET_MAX,
-    SPREAD_OFFSET_MIN,
-    _build_cdm_record,
-    _compute_leg_pvs,
     _load_counterparties,
+    _price_and_save_trade,
 )
 
 logger = logging.getLogger(__name__)
@@ -221,51 +215,21 @@ def generate_thames_central_book(
         is_payer = spec['is_payer']
 
         hazard_rate = gauge_data.get('annual_hazard_rate_severe', 0.025)
-        fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY, yield_curve=DEFAULT_YIELD_CURVE)
 
-        swap_id = f'PRS-{uuid.uuid4().hex[:8].upper()}'
-        offset = random.uniform(SPREAD_OFFSET_MIN, SPREAD_OFFSET_MAX)
-        trade_spread = fair_spread - offset if is_payer else fair_spread + offset
-
-        pvs = _compute_leg_pvs(hazard_rate, trade_spread, tenor, notional)
-        direction = 1.0 if is_payer else -1.0
-        npv = (pvs['protection_leg_pv'] - pvs['premium_leg_pv']) * direction
-
-        ctpy = counterparties[ctpy_idx % len(counterparties)]
-        ctpy_idx += 1
-
-        td = base_date + timedelta(days=random.randint(0, 20))
-
-        record = _build_cdm_record(
-            swap_id=swap_id,
+        record, ctpy_idx = _price_and_save_trade(
             gauge_id=gauge_id,
             gauge_name=gauge_name,
             catchment_id=catchment_id,
-            counterparty_id=ctpy['id'],
-            counterparty_name=ctpy['name'],
             is_payer=is_payer,
-            notional=notional,
             tenor=tenor,
+            notional=notional,
             trigger='severe',
-            trade_spread_bps=trade_spread,
-            fair_spread_bps=fair_spread,
-            npv=npv,
-            premium_leg_pv=pvs['premium_leg_pv'],
-            protection_leg_pv=pvs['protection_leg_pv'],
-            risky_annuity=pvs['risky_annuity'],
-            trade_date=td,
+            hazard_rate=hazard_rate,
+            counterparties=counterparties,
+            ctpy_idx=ctpy_idx,
+            base_date=base_date,
+            output_dir=output_dir,
         )
-
-        json_path = output_dir / f'{swap_id}.json'
-        with open(json_path, 'w') as f:
-            json.dump(record, f, indent=2)
-
         trades.append(record)
-        dir_label = 'PAY' if is_payer else 'RCV'
-        logger.info(
-            '%s %s %-12s %dY %s %.1f/%.1f bps MTM=%.0f',
-            swap_id, dir_label, area, tenor, 'severe',
-            trade_spread, fair_spread, npv
-        )
 
     return trades

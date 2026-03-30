@@ -34,6 +34,7 @@ from .stress._helpers import (
     STORM_HOURS,
     _load_stress_storm,
     _load_stress_storms,
+    build_scaled_hydrograph,
 )
 
 logger = logging.getLogger(__name__)
@@ -184,39 +185,7 @@ def run_portfolio_stress():
             # Build hydrograph (only if storm has a response for this gauge)
             hydrograph = None
             if gauge_resp:
-                gaugets_file = config.get_gaugets_dir() / f'{gid}.json'
-                if gaugets_file.exists():
-                    try:
-                        with open(gaugets_file) as gf:
-                            gts_data = json.load(gf)
-                        readings = gts_data.get(
-                            'flood_simulation', {}).get('readings', [])
-                        if readings:
-                            raw_levels = [
-                                r.get('waterLevel', r.get('level', 0))
-                                for r in readings
-                            ]
-                            sim_base = min(raw_levels)
-                            sim_peak = max(raw_levels)
-                            sim_rise = sim_peak - sim_base
-                            storm_rise = (gauge_resp['peak_level_m']
-                                          - gauge_resp.get('base_level_m',
-                                                           sim_base))
-                            scale_factor = (storm_rise / sim_rise
-                                            if sim_rise > 0 else 1.0)
-                            scaled = [
-                                round(sim_base + (v - sim_base) * scale_factor, 4)
-                                for v in raw_levels
-                            ]
-                            if len(scaled) >= STORM_HOURS:
-                                hydrograph = scaled[:STORM_HOURS]
-                            else:
-                                hydrograph = scaled + [scaled[-1]] * (
-                                    STORM_HOURS - len(scaled))
-                    except Exception:
-                        logger.debug(
-                            "Failed to load gaugets for %s, using fallback", gid)
-
+                hydrograph = build_scaled_hydrograph(gid, gauge_resp)
                 if hydrograph is None:
                     logger.warning(
                         "No gaugets data for %s — using flat hydrograph", gid)

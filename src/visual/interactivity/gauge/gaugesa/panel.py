@@ -30,10 +30,11 @@ from typing import Any, Dict
 import folium
 
 from config.format import gauge_title_js as _gauge_title_js
+from visual.interactivity.panel_mixin import FoliumPanelMixin
 from . import gsa_distribution, gsa_timeline
 
 
-class GaugeStormAnalysis:
+class GaugeStormAnalysis(FoliumPanelMixin):
     """Handler for interactive gauge storm analysis dashboard."""
 
     def __init__(self,
@@ -271,22 +272,4 @@ class GaugeStormAnalysis:
         </script>
         """
 
-    def add_to_map(self, folium_map: folium.Map) -> None:
-        """Add gauge storm analysis to a Folium map."""
-        folium_map.get_root().html.add_child(folium.Element(self.get_js()))
-
-    def configure(self,
-                  panel_width: str = None,
-                  panel_height: str = None) -> None:
-        """Update configuration."""
-        if panel_width:
-            self.panel_width = panel_width
-        if panel_height:
-            self.panel_height = panel_height
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get configuration statistics."""
-        return {
-            'panel_width': self.panel_width,
-            'panel_height': self.panel_height,
-        }
+    # add_to_map, configure, get_statistics inherited from FoliumPanelMixin
