@@ -43,8 +43,11 @@ def classifiers_summary():
                 trained_map[g["gauge_id"]] = g
 
         # Build response for all gauges (from gauge_locations)
+        # Skip synthetic gauges — background-only for PRS pricing
         gauges = []
         for gid, loc in gauge_locations.items():
+            if gid.startswith('SYNTH-'):
+                continue
             has_model = (stressm_dir / f"{gid}.joblib").exists()
             info = trained_map.get(gid, {})
             metrics = info.get("metrics", {})
@@ -119,13 +122,19 @@ def classifiers_readiness():
         stressm_dir = config.get_classifiers_dir()
         gauge_locations = _load_gauge_locations()
 
-        total = len(gauge_locations)
+        # Exclude synthetic gauges from readiness check
+        real_gauges = {
+            gid: loc for gid, loc in gauge_locations.items()
+            if not gid.startswith('SYNTH-')
+        }
+
+        total = len(real_gauges)
         trained = sum(
-            1 for gid in gauge_locations
+            1 for gid in real_gauges
             if (stressm_dir / f"{gid}.joblib").exists()
         )
         missing = [
-            gid for gid in gauge_locations
+            gid for gid in real_gauges
             if not (stressm_dir / f"{gid}.joblib").exists()
         ]
 
