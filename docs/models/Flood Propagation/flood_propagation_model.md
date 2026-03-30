@@ -1,6 +1,6 @@
 # Flood Propagation Model — Technical Handover
 
-**Model Version: 2.2** | Updated: 2026-03-26
+**Model Version: 2.3** | Updated: 2026-03-30
 
 ## Version History
 
@@ -9,6 +9,7 @@
 | 2.0 | 2026-03-24 | Initial model: IDW interpolation from 3 gauges, exponential retention |
 | 2.1 | 2026-03-26 | Replace IDW with nearest-gauge-only (Book 210 alignment); near-field retention bypass (d < 2km → retention = 1.0); synthetic gauges on river centreline |
 | 2.2 | 2026-03-26 | Per-pulse hydrograph superposition with gamma shape templates, antecedent saturation scaling, and flow-path infiltration; stressm stores per-pulse peaks |
+| 2.3 | 2026-03-30 | Fix: v2.1 fallback hydrograph used unattenuated gauge peak WSE, bypassing distance retention — all gauge floods became property floods. Now passes `water_at_property` (attenuated) to `build_property_hydrograph()`. Corrected documentation: retention length is 3 km (not 10 km), no near-field bypass exists |
 
 ## 1. Overview
 
@@ -99,34 +100,30 @@ They do **not** contribute to the flood WSE calculation.
 
 v2.0 used IDW (inverse-distance-weighted) interpolation across 3 gauges. This caused signal dilution: one high gauge + two low gauges → unrealistically low interpolated WSE. Book 210 requires flow-aligned propagation, not isotropic spatial averaging. The synthetic gauge already represents the hydraulically appropriate river point for the property, making IDW redundant and harmful.
 
-### 3.3 Stage 3: Distance-Based Retention (v2.1)
+### 3.3 Stage 3: Distance-Based Retention
 
-For properties within **2 km** of their nearest gauge (the vast majority), retention is **1.0** — no signal loss. Book 210 treats near-field attenuation as negligible and relies on elevation differences alone.
-
-Beyond 2 km, exponential decay applies:
+Pure exponential decay from distance 0 — no near-field bypass:
 
 ```
-retention = exp(−d / L)    if d ≥ 2000 m
-retention = 1.0            if d < 2000 m
+retention = exp(−d / L)
 ```
 
 | Parameter | Symbol | Value | Source |
 |-----------|--------|-------|--------|
 | Distance to nearest gauge | d | 636 m | property.json |
-| Near-field threshold | | 2,000 m | config/models.py |
-| Retention length scale | L | 10,000 m | config/models.py |
-| **Retention factor** | | **1.0** | d < 2000 m → near-field bypass |
+| Retention length scale | L | 3,000 m | `config/models.py:DEFAULT_RETENTION_LENGTH` |
+| **Retention factor** | | **0.809** | exp(−636 / 3000) |
 
-**v2.1 change:** Previously retention was 0.9383 at 636 m (exp decay). Now 1.0 (near-field). The elevation check alone determines whether the property floods.
+At typical property distances: 200 m → 0.936, 500 m → 0.847, 1 km → 0.717, 2 km → 0.513, 5 km → 0.189.
 
 **Source:** `src/models/floodrisk/velocity.py:compute_retention()`
 
 #### How Retention is Applied
 
-Retention is applied to the **water height above gauge ground level**, not to the absolute WSE:
+Retention is applied to the **flood depth above the gauge severe threshold**, converting it to the attenuated depth at the property:
 
 ```python
-water_above_gauge = max(0, interpolated_wse − gauge_elevation)
+water_above_gauge = max(0, interpolated_wse − severe_level)
 water_at_property = water_above_gauge × retention
 ```
 
@@ -138,35 +135,48 @@ flood_threshold = height_diff + floor_level
 flood_depth = max(0, water_at_property − flood_threshold)
 ```
 
-**Source:** `src/port/src/property/ts/flood.py:_build_flood_event()` (lines 241–248)
+The attenuated peak is also used when constructing the property hydrograph (v2.3 fix):
 
-### 3.4 Stage 4: Worked Calculation (v2.1)
+```python
+absolute_peak_wse = gauge_elevation + water_at_property
+```
 
-Under v2.1, the nearest gauge WSE is used directly (no IDW averaging) and retention is 1.0 (near-field bypass).
+This ensures the 168-hour hydrograph is consistent with the estimator check. Prior to v2.3, the hydrograph used the unattenuated `water_above_gauge`, causing 100% of gauge floods to become property floods regardless of distance.
+
+**Source:** `src/port/src/property/ts/flood/propagation.py:_build_flood_event()`
+
+### 3.4 Stage 4: Worked Calculation (v2.3)
+
+Under v2.3, the nearest gauge WSE is used directly (no IDW averaging) and retention is applied consistently to both the estimator check and the hydrograph peak.
 
 For **STORM-a449f1df** (worst flood at this property):
 
-| Step | Calculation | v2.0 | v2.1 |
-|------|-------------|------|------|
-| WSE source | IDW / Nearest gauge | 13.53 m | Nearest gauge WSE |
-| Gauge elevation | Ground level | 7.01 m | 7.01 m |
-| Water above gauge | WSE − elev | 6.52 m | 6.52 m |
-| Retention | × factor | × 0.9383 = 6.12 m | × 1.0 = 6.52 m |
-| Height difference | prop − gauge | 1.42 m | 1.42 m |
-| Floor step | | 0.36 m | 0.36 m |
-| Flood threshold | height + floor | 1.78 m | 1.78 m |
-| **Flood depth** | water − threshold | **4.34 m** | **4.74 m** |
+| Step | Calculation | Value |
+|------|-------------|-------|
+| WSE source | Nearest gauge (v2.1+) | |
+| Gauge peak level | `peak_level_m` | 13.53 m |
+| Severe threshold | `severe_level` | 7.36 m |
+| Water above gauge | peak − severe | 6.17 m |
+| Gauge elevation | Ground level | 7.01 m |
+| Distance | To nearest gauge | 636 m |
+| Retention | exp(−636/3000) | 0.809 |
+| Water at property | 6.17 × 0.809 | 4.99 m |
+| Height difference | 8.43 − 7.01 | 1.42 m |
+| Floor step | | 0.36 m |
+| Flood threshold | height + floor | 1.78 m |
+| **Flood depth** | water − threshold | **3.21 m** |
+| **Hydrograph peak WSE** | gauge_elev + water_at_property | **12.00 m AOD** |
 
 For a **marginal event** (WSE = 8.80 m at nearest gauge):
 
-| Step | Calculation | v2.0 | v2.1 |
-|------|-------------|------|------|
-| Water above gauge | 8.80 − 7.01 | 1.79 m | 1.79 m |
-| After retention | × factor | × 0.9383 = 1.68 m | × 1.0 = 1.79 m |
-| Flood threshold | | 1.78 m | 1.78 m |
-| **Flood depth** | | **0 m (no flood)** | **0.01 m (floods)** |
+| Step | Calculation | Value |
+|------|-------------|-------|
+| Water above gauge | 8.80 − 7.36 | 1.44 m |
+| After retention | 1.44 × 0.809 | 1.17 m |
+| Flood threshold | | 1.78 m |
+| **Flood depth** | 1.17 − 1.78 | **0 m (no flood)** |
 
-**v2.1 impact:** The combination of removing IDW dilution and near-field retention bypass means marginal events that previously fell just below threshold now correctly flood the property. The effective WSE threshold drops from ~8.91 m (v2.0) to ~8.79 m (v2.1).
+**v2.3 impact:** The retention factor (0.809 at 636 m) now correctly attenuates the hydrograph peak. Marginal storms that barely exceed the severe threshold at the gauge are filtered out at distant properties. This produces the expected ~5–15% gauge-to-property transmission rate depending on property elevation and distance.
 
 ### 3.5 Stage 5: Hydrograph Construction (Time Dimension)
 
@@ -323,8 +333,7 @@ All configurable in `config/models.py`:
 
 | Constant | Value | Unit | Description |
 |----------|-------|------|-------------|
-| `DEFAULT_RETENTION_LENGTH` | 10,000 | m | Exponential decay length scale (applied only beyond near-field) |
-| Near-field threshold | 2,000 | m | Below this, retention = 1.0 (v2.1) |
+| `DEFAULT_RETENTION_LENGTH` | 3,000 | m | Exponential decay e-folding length scale |
 | `DEFAULT_RECESSION_FACTOR` | 1.5 | — | Recession limb stretch factor (v2.1 fallback path) |
 | `DEFAULT_ROUGHNESS` | 0.04 | — | Manning's n (urban floodplain) |
 | `MIN_SLOPE` | 0.001 | — | Minimum slope floor |
@@ -368,19 +377,23 @@ The v2.0 IDW interpolation averaged WSE across 3 gauges weighted by inverse-squa
 
 **Resolution (v2.1):** IDW removed. Nearest hydraulically connected gauge used as single boundary condition. The remaining 2 gauges are retained for PRS pricing only.
 
-### 8.2 Retention vs Elevation — SIMPLIFIED in v2.1
+### 8.2 Hydrograph Retention Bug — FIXED in v2.3
 
-In v2.0, the 6.2% retention loss at 636 m combined with IDW dilution to push marginal events below threshold. In v2.1:
+The v2.1 fallback hydrograph path (`_build_flood_event`) passed the **unattenuated** gauge peak WSE to `build_property_hydrograph()`:
 
+```python
+# BUG (v2.1–v2.2): used water_above_gauge (unattenuated)
+absolute_peak_wse = g_elev + water_above_gauge
+
+# FIX (v2.3): uses water_at_property (attenuated by retention)
+absolute_peak_wse = g_elev + water_at_property
 ```
-WSE needed (v2.0) = gauge_elev + (height_diff + floor) / retention
-                   = 7.01 + 1.78 / 0.9383 = 8.91 m AOD
 
-WSE needed (v2.1) = gauge_elev + height_diff + floor
-                   = 7.01 + 1.42 + 0.36 = 8.79 m AOD
-```
+The estimator check (which gates travel time) correctly used the attenuated value, but the hydrograph — which determines the actual `flooded` flag and `flood_depth_m` — did not. This meant every gauge flood produced a property flood regardless of distance, giving 100% transmission rates instead of the expected ~5–15%.
 
-The effective threshold dropped by 0.12 m, allowing marginal storms to correctly flood the property.
+The compound hydrograph path (v2.2, `build_compound_property_hydrograph`) was not affected — it applies retention per-timestep in its inner loop.
+
+**Source:** `src/port/src/property/ts/flood/propagation.py:_build_flood_event()` line 113
 
 ### 8.3 Time Dimension — SUBSTANTIALLY ADDRESSED in v2.2
 
@@ -394,11 +407,13 @@ v2.2 addresses this with per-pulse gamma-shaped hydrographs, antecedent saturati
 - No return-flow or drainage model for the property itself
 - Infiltration parameters (kappa, Y_max, f_imperv) are defaults, not property-specific
 
-### 8.4 Zero Events at Some Properties — IMPROVED in v2.1
+### 8.4 Property Flood Rates — CORRECTED in v2.3
 
-v2.0: 179/200 properties showed 0 flood events. Root causes were IDW dilution and excessive retention loss.
+v2.0: 179/200 properties showed 0 flood events (IDW dilution + retention loss).
 
-v2.1: **100/200 properties now flood** (3,727 total events). The remaining 100 unflooded properties are predominantly at high elevation relative to their nearest gauge. Of these, 19 have property elevation *below* their nearest gauge elevation — physically impossible for fluvial flooding. These arise from synthetic elevation data and should be constrained in property generation (see §8.5).
+v2.1–v2.2: All gauge floods became property floods (100% transmission) due to the unattenuated hydrograph bug (§8.2). This was incorrectly reported as "100/200 properties flood" — the high flood count was an artefact.
+
+v2.3: With retention correctly applied to the hydrograph, transmission rates are distance- and elevation-dependent. Expect ~5–15% gauge-to-property transmission for typical Thames corridor properties (distance 200–800 m, elevation 1–3 m above gauge).
 
 ### 8.5 Properties Below Gauge Elevation — OPEN
 
@@ -425,4 +440,4 @@ v2.1: **100/200 properties now flood** (3,727 total events). The remaining 100 u
 
 ---
 
-*Document generated 2026-03-26. Model version 2.2. Based on PhysicalRisk main branch.*
+*Document generated 2026-03-30. Model version 2.3. Based on PhysicalRisk main branch.*

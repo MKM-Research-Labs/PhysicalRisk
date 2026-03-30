@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -80,10 +80,7 @@ def get_js() -> str:
                     var bg = i % 2 === 0 ? '#fff' : '#fafafa';
                     var depthColor = e.flood_depth_m >= 1.0 ? '#d32f2f' : e.flood_depth_m >= 0.5 ? '#f57c00' : '#333';
                     html +=
-                        '<tr style="background:' + bg + ';cursor:pointer;" ' +
-                        'onclick="propStormSwitchTab(1, \\x27' + e.storm_id + '\\x27)" ' +
-                        'onmouseover="this.style.background=\\x27#e3f2fd\\x27" ' +
-                        'onmouseout="this.style.background=\\x27' + bg + '\\x27">' +
+                        '<tr style="background:' + bg + ';">' +
                         '<td style="padding:3px 8px;font-family:monospace;">' + (e.storm_id || '-').substring(0, 16) + '</td>' +
                         '<td style="padding:3px 6px;">' + seqBadge(e.sequence_type) + '</td>' +
                         '<td style="padding:3px 8px;text-align:right;color:' + depthColor + ';font-weight:600;">' + (e.flood_depth_m || 0).toFixed(2) + '</td>' +
@@ -143,13 +140,7 @@ def get_js() -> str:
                             x: { ticks: { font: { size: 9 }, maxRotation: 45 } },
                             y: { title: { display: true, text: 'Depth (m)' }, beginAtZero: true }
                         },
-                        onClick: function(evt, items) {
-                            if (items.length > 0) {
-                                var idx = items[0].index;
-                                var stormId = events[idx].storm_id;
-                                switchTab(1, stormId);
-                            }
-                        }
+                        onClick: function() {}
                     }
                 });
 

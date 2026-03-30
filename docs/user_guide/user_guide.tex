@@ -691,23 +691,16 @@ Right-clicking a marker opens a context menu with actions:
 \subsubsection{Property Storm Analysis}
 \label{sec:prop_storm}
 
-Five-tab panel (780$\times$560px) loaded from
+Four-tab panel (780$\times$560px) loaded from
 \texttt{/api/v1/properties/\{id\}/storms}:
 
 \begin{enumerate}[nosep]
     \item \textbf{Distribution} --- flood depth histogram (0.2m bins) with
           event count, mean/max depth, gauge-to-property conversion rate.
-    \item \textbf{Flood Timeline} --- 60-hour hydrograph for selected storm
-          showing water surface elevation, property floor threshold, gauge
-          reference lines, and red shading where water exceeds floor level.
-          Storm selector dropdown. Stats: peak above floor, damage ratio,
-          arrival/peak hours, flooded duration.
     \item \textbf{Worst Storms} --- horizontal bar chart of top 20 storms by
-          flood depth, colour-coded by severity. Click a bar to switch to
-          Timeline tab for that storm.
+          flood depth, colour-coded by severity.
     \item \textbf{Flood History} --- scrollable table of all flood events
-          (storm ID, depth, damage \%) alongside a bar chart. Click rows to
-          view timelines.
+          (storm ID, depth, damage \%) alongside a bar chart.
     \item \textbf{Mortgage Impact} --- stacked bar chart showing retained
           property value (blue) and damage loss (red) per storm. Outstanding
           balance shown as dashed horizontal line. Summary: property value,

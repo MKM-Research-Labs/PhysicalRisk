@@ -110,7 +110,7 @@ class PropagationMixin:
         # Convert gauge flood depth to absolute WSE for hydrograph scaling.
         # Flood depth at gauge = reading − severe_level; absolute WSE at
         # property = gauge_ground + flood_depth_at_gauge.
-        absolute_peak_wse = g_elev + water_above_gauge
+        absolute_peak_wse = g_elev + water_at_property
 
         readings = []
         if gauge_readings:
