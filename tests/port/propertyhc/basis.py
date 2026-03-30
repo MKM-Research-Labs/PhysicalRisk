@@ -103,6 +103,110 @@ class TestSpreadDecomposition:
             assert sd["shd_spread_bps"] == 0.0
             assert sd["she_spread_bps"] == 0.0
 
+    def test_decomposition_values_nonzero_with_synthetic_files(self, output_dir):
+        """With shd/she files present, decomposition values must be non-zero.
+
+        This is the regression guard for the all-zeros bug: if shd/she variants
+        are generated, property_spread, gauge_spread, and at least one effect
+        per path must be non-zero for properties that have flood data.
+        """
+        import shutil
+
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        pts_dir = output_dir / "propertyts"
+        for variant in ["propertytsd", "propertytse"]:
+            dest = output_dir / variant
+            if not dest.exists():
+                shutil.copytree(pts_dir, dest)
+
+        PropertyHazardCurveGenerator(output_dir, verbose=False, mode="shd").generate()
+        PropertyHazardCurveGenerator(output_dir, verbose=False, mode="she").generate()
+        gen.attach_spread_decomposition()
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        for prop_id, pc in data["property_hazard_curves"].items():
+            sd = pc["spread_decomposition"]
+            # Property spread must be non-zero (properties have flood events)
+            assert sd["property_spread_bps"] != 0.0, (
+                f"{prop_id}: property_spread_bps is zero — spread not computed"
+            )
+            # shd and she spreads must be non-zero when files exist
+            assert sd["shd_spread_bps"] != 0.0, (
+                f"{prop_id}: shd_spread_bps is zero — propertyshd.json "
+                "missing or not read"
+            )
+            assert sd["she_spread_bps"] != 0.0, (
+                f"{prop_id}: she_spread_bps is zero — propertyshe.json "
+                "missing or not read"
+            )
+
+    def test_decomposition_effects_not_all_zero(self, output_dir):
+        """At least one effect per path must be non-zero when gauge != property.
+
+        Guards against the UI showing 0.0 for all effects even when the
+        property spread differs from the gauge spread.
+        """
+        import shutil
+
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        pts_dir = output_dir / "propertyts"
+        for variant in ["propertytsd", "propertytse"]:
+            dest = output_dir / variant
+            if not dest.exists():
+                shutil.copytree(pts_dir, dest)
+
+        PropertyHazardCurveGenerator(output_dir, verbose=False, mode="shd").generate()
+        PropertyHazardCurveGenerator(output_dir, verbose=False, mode="she").generate()
+        gen.attach_spread_decomposition()
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        for prop_id, pc in data["property_hazard_curves"].items():
+            sd = pc["spread_decomposition"]
+            gauge = sd["gauge_spread_bps"]
+            prop_ = sd["property_spread_bps"]
+
+            if abs(prop_ - gauge) < 0.01:
+                # If gauge == property, effects can legitimately be zero
+                continue
+
+            # Path 1 (distance first): at least one effect non-zero
+            df = sd["distance_first"]
+            assert df["distance_effect_bps"] != 0.0 or df["elevation_effect_bps"] != 0.0, (
+                f"{prop_id}: distance-first effects are both zero but "
+                f"gauge={gauge} != property={prop_}"
+            )
+
+            # Path 2 (elevation first): at least one effect non-zero
+            ef = sd["elevation_first"]
+            assert ef["elevation_effect_bps"] != 0.0 or ef["distance_effect_bps"] != 0.0, (
+                f"{prop_id}: elevation-first effects are both zero but "
+                f"gauge={gauge} != property={prop_}"
+            )
+
+    def test_get_5yr_any_flood_spread_returns_zero_for_empty(self):
+        """_get_5yr_any_flood_spread must return 0.0 for empty/missing data."""
+        assert PropertyHazardCurveGenerator._get_5yr_any_flood_spread({}) == 0.0
+        assert PropertyHazardCurveGenerator._get_5yr_any_flood_spread(
+            {"term_structure": {}}
+        ) == 0.0
+        assert PropertyHazardCurveGenerator._get_5yr_any_flood_spread(
+            {"term_structure": {"any_flood": {"prs_spread_bps": [1, 2, 3]}}}
+        ) == 0.0  # only 3 values, need index 4
+
+    def test_get_5yr_any_flood_spread_returns_correct_value(self):
+        """_get_5yr_any_flood_spread must return index 4 when available."""
+        spreads = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0]
+        pc = {"term_structure": {"any_flood": {"prs_spread_bps": spreads}}}
+        assert PropertyHazardCurveGenerator._get_5yr_any_flood_spread(pc) == 50.0
+
 
 class TestEdgeCases:
     """Test edge cases."""
