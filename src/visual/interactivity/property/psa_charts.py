@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -170,13 +170,7 @@ def get_js() -> str:
                             x: { title: { display: true, text: 'Flood Depth (m)' }, beginAtZero: true },
                             y: { ticks: { font: { size: 10 } } }
                         },
-                        onClick: function(evt, items) {
-                            if (items.length > 0) {
-                                var idx = items[0].index;
-                                var stormId = top[idx].storm_id;
-                                switchTab(1, stormId);
-                            }
-                        }
+                        onClick: function() {}
                     }
                 });
 

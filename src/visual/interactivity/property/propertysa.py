@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -22,20 +22,19 @@
 Property storm scenario analysis visualization.
 
 Interactive Chart.js tabbed panel showing property flood depth distribution,
-flood timeline hydrograph, and worst-storm rankings.
+worst-storm rankings, flood history, and mortgage impact.
 Loads data from the /api/v1/properties/{id}/storms endpoint.
 
 Sub-modules:
-- psa_charts: Distribution (Tab 0) and Worst Storms (Tab 2)
-- psa_timeline: Flood Timeline hydrograph (Tab 1)
-- psa_impact: Flood History (Tab 3) and Mortgage Impact (Tab 4)
+- psa_charts: Distribution (Tab 0) and Worst Storms (Tab 1)
+- psa_impact: Flood History (Tab 2) and Mortgage Impact (Tab 3)
 """
 
 from typing import Any, Dict
 
 import folium
 
-from . import psa_charts, psa_impact, psa_timeline
+from . import psa_charts, psa_impact
 
 
 class PropertyStormAnalysis:
@@ -64,7 +63,6 @@ class PropertyStormAnalysis:
             // Sub-module code (state vars + functions)
             // ==============================================================
 {psa_charts.get_js()}
-{psa_timeline.get_js()}
 {psa_impact.get_js()}
 
             // ================================================================
@@ -118,13 +116,13 @@ class PropertyStormAnalysis:
                 tabBar.style.cssText =
                     'display:flex;gap:0;border-bottom:2px solid #eee;padding:0 16px;background:#fafafa;';
 
-                var tabs = ['Distribution', 'Flood Timeline', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report'];
+                var tabs = ['Distribution', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report'];
                 tabs.forEach(function(name, i) {{
                     var tab = document.createElement('button');
                     tab.className = 'prop-storm-tab';
                     tab.textContent = name;
                     tab.dataset.idx = i;
-                    if (i === 5) {{
+                    if (i === 4) {{
                         // Insurance Report: action link, not a content tab
                         tab.style.cssText =
                             'padding:8px 14px;border:none;background:none;cursor:pointer;' +
@@ -171,10 +169,9 @@ class PropertyStormAnalysis:
                 }});
                 if (!propStormData) return;
                 if (idx === 0) renderDistribution();
-                else if (idx === 1) renderTimeline(stormId || null);
-                else if (idx === 2) renderWorstStorms();
-                else if (idx === 3) renderFloodHistory();
-                else if (idx === 4) renderMortgageImpact();
+                else if (idx === 1) renderWorstStorms();
+                else if (idx === 2) renderFloodHistory();
+                else if (idx === 3) renderMortgageImpact();
             }}
 
             // ================================================================
