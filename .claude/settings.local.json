@@ -153,7 +153,9 @@
       "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.property.hc.generator import PropertyHazardCurveGenerator; print\\(''hc generator OK''\\)\")",
       "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.property.ts.generator import PropertyTimeSeriesGenerator; print\\(''ts generator OK''\\)\")",
       "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.book.book import generate_market_making_book; from port.src.book.book_thames import generate_thames_central_book; print\\(''book OK''\\)\")",
-      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.mortgage import MortgagePortfolioGenerator; print\\(''mortgage OK''\\)\")"
+      "Bash(PYTHONPATH=src .venv/bin/python3 -c \"from port.src.mortgage import MortgagePortfolioGenerator; print\\(''mortgage OK''\\)\")",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -m pytest tests/models/trading/book/market_making.py -x --tb=short)",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -m pytest tests/models/trading/book/market_making.py --tb=short)"
     ]
   }
 }
