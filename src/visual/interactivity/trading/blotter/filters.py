@@ -71,7 +71,7 @@ def get_js() -> str:
                 // Active filter pills
                 var pills = '';
                 if (tdBlotterFilters.gauge_id) {
-                    var areaName = gaugeSet[tdBlotterFilters.gauge_id] || tdBlotterFilters.gauge_id;
+                    var areaName = gaugeSet[tdBlotterFilters.gauge_id] || tdBlotterFilters.gauge_name || tdBlotterFilters.gauge_id;
                     pills += '<span style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:8px;font-size:10px;">' +
                         areaName + ' <span onclick="tdRemoveFilter(\\'gauge_id\\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
@@ -93,6 +93,11 @@ def get_js() -> str:
                 }
 
                 var statusSet = {'Live': 'Live', 'Closed': 'Closed'};
+
+                // Ensure programmatically-set gauge appears in dropdown even if no trades
+                if (tdBlotterFilters.gauge_id && !gaugeSet[tdBlotterFilters.gauge_id]) {
+                    gaugeSet[tdBlotterFilters.gauge_id] = tdBlotterFilters.gauge_name || tdBlotterFilters.gauge_id;
+                }
 
                 bar.innerHTML =
                     '<span style="font-weight:600;color:#555;">Filter:</span>' +

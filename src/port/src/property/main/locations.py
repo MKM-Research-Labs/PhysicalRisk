@@ -11,12 +11,8 @@ from typing import Dict, List, Tuple
 
 from models.floodrisk.spatial import (
     haversine_distance as _haversine_shared,
-)
-from models.floodrisk.spatial import (
-    nearest_point_on_polyline as _nearest_on_polyline_shared,
-)
-from models.floodrisk.spatial import (
     nearest_point_on_segment as _nearest_on_segment_shared,
+    nearest_point_on_polyline as _nearest_on_polyline_shared,
 )
 
 

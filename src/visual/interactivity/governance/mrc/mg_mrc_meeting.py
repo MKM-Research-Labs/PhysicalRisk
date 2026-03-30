@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -32,7 +32,7 @@ Sub-modules:
 - mg_mrc_docs: Documents tab and New Meeting form
 """
 
-from . import mg_mrc_agenda, mg_mrc_docs, mg_mrc_items
+from . import mg_mrc_agenda, mg_mrc_items, mg_mrc_docs
 
 
 def get_js():

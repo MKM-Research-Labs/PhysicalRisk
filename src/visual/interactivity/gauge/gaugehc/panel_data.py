@@ -171,6 +171,11 @@ def get_data_js() -> str:
                         closeOutSwapId = null;
                     }
 
+                    // Store gauge name for blotter navigation
+                    if (hazardData.gauge_name && hazardPanel) {
+                        hazardPanel.dataset.gaugeName = hazardData.gauge_name;
+                    }
+
                     // Update title with gauge ID and name
                     var titleEl = document.getElementById('hazard-panel-title');
                     if (titleEl && !isTradeReview && !isCloseOut) {

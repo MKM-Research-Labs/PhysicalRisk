@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -26,6 +26,7 @@ sequence, how many storms, and the correlated intensity relationship
 between successive storms in a sequence.
 """
 
+from typing import List, Tuple
 
 import numpy as np
 
@@ -36,7 +37,6 @@ from config.port import (
     INTENSITY_VARIATION,
     SEQUENCE_PROBABILITY,
 )
-
 from ..core.data_structures import SequenceType
 
 # SEQUENCE_PROBABILITY, DEFAULT_TYPE_WEIGHTS, INTENSITY_VARIATION,

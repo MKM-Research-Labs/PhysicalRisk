@@ -22,14 +22,11 @@ from typing import Optional
 import numpy as np
 
 from ..gauge_parser import (
-    _extract_gauges,
-    _load_gaugehd_baselines,
-    _parse_gauge,
-    _seasonal_base_level,
+    _extract_gauges, _parse_gauge, _load_gaugehd_baselines, _seasonal_base_level,
 )
 from ..gaugets_writer import build_summary
-from . import stages
 from ._helpers import _extract_pulse_peaks
+from . import stages
 
 logger = logging.getLogger(__name__)
 
@@ -61,18 +58,14 @@ def generate_stressm(
         Summary dict with generation and response statistics.
     """
     from port.src.storm_multi.generators.batch_generator import generate_event_set
+    from port.src.storm_multi.utils.serialization import (
+        save_sequences, save_summary,
+        SEQUENCES_FILENAME, SUMMARY_FILENAME,
+    )
     from port.src.storm_multi.models.sequence_response import (
-        SequenceGaugeParams,
-        _make_precip_series,
-        compute_sequence_gauge_response,
+        SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
     )
     from port.src.storm_multi.models.spatial_correlation import SpatialCorrelationModel
-    from port.src.storm_multi.utils.serialization import (
-        SEQUENCES_FILENAME,
-        SUMMARY_FILENAME,
-        save_sequences,
-        save_summary,
-    )
 
     input_dir = Path(input_dir)
     rng = np.random.RandomState(seed)

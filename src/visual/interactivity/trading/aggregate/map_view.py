@@ -166,7 +166,7 @@ def get_js() -> str:
                             '<div style="display:flex;justify-content:space-between;"><span>Daily P&amp;L:</span><span style="color:' + dColor + ';font-weight:600;">' + fmtGBP(dailyPnl) + '</span></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Running P&amp;L:</span><span style="color:' + rColor + ';font-weight:600;">' + fmtGBP(runPnl) + '</span></div>' +
                             '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
-                            '<a href="#" onclick="event.preventDefault();window.showGaugeBlotter&&window.showGaugeBlotter(\\'' + g.gauge_id + '\\')" ' +
+                            '<a href="#" onclick="event.preventDefault();window.showGaugeBlotter&&window.showGaugeBlotter(\\'' + g.gauge_id + '\\',\\'' + (g.gauge_name || '').replace(/\\'/g, "\\\\\\'") + '\\')" ' +
                                 'style="color:#1565c0;font-size:10px;">View Gauge Blotter \\u2192</a><br>' +
                             '<a href="#" onclick="event.preventDefault();window.tdViewHazardCurve&&window.tdViewHazardCurve(\\'' + g.gauge_id + '\\')" ' +
                                 'style="color:#1565c0;font-size:10px;">View Hazard Curve \\u2192</a><br>' +

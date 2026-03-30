@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -70,9 +70,9 @@ from .book_common import (  # noqa: F401
 
 # Re-export Thames Central book
 from .book_thames import (  # noqa: F401
+    THAMES_CENTRAL_AREAS,
     _AREA_TO_GAUGE_NAME,
     _THAMES_TRADE_SPECS,
-    THAMES_CENTRAL_AREAS,
     generate_thames_central_book,
 )
 
@@ -263,7 +263,7 @@ def print_book_summary(trades: List[Dict]) -> None:
         total_npv += npv
 
     print(f'\n{"=" * 60}')
-    print('  Market-Making Book Summary')
+    print(f'  Market-Making Book Summary')
     print(f'{"=" * 60}')
     print(f'  Total trades:     {len(trades)}')
     print(f'  Payer (short):    {payer_count} trades, '

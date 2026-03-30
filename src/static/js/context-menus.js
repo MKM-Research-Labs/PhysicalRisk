@@ -64,7 +64,7 @@
                 if (!isDisabled) {
                     el.onclick = function() {
                         if (item.action && root[item.action]) {
-                            root[item.action](currentId);
+                            root[item.action](currentId, currentDisplayName);
                         }
                         hideMenu(menuId);
                     };

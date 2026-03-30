@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -76,8 +76,8 @@ def generate_historical_eod_series(
     Returns:
         Number of EOD snapshots generated
     """
-    from models.trading.delta_engine import DeltaEngine
     from models.trading.market_state import MarketStateManager
+    from models.trading.delta_engine import DeltaEngine, compute_prs_spread, compute_risky_annuity
     from models.trading.pnl_engine import PnLEngine
 
     trading_dir = Path(trading_dir)

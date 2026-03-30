@@ -5,19 +5,12 @@
 
 from typing import Any, Dict, Optional
 
-from .finance import (
-    assess_gauge_reliability,
-    calculate_distance_risk_factor,
-    calculate_insurance_premium_factor,
-    calculate_value_at_risk,
-)
-from .flood import (
-    FLOOD_DEPTH_THRESHOLDS,
-    _generate_recommendations,
-    assess_flood_risk_level,
-    assess_property_vulnerability,
-)
-from .ltv import LTV_RISK_THRESHOLDS, assess_ltv_risk_level, assess_mortgage_risk, calculate_combined_risk_score
+from .flood import (FLOOD_DEPTH_THRESHOLDS, assess_flood_risk_level,
+                    assess_property_vulnerability, _generate_recommendations)
+from .ltv import (LTV_RISK_THRESHOLDS, assess_ltv_risk_level,
+                  assess_mortgage_risk, calculate_combined_risk_score)
+from .finance import (calculate_value_at_risk, assess_gauge_reliability,
+                      calculate_distance_risk_factor, calculate_insurance_premium_factor)
 
 
 class RiskAssessor:

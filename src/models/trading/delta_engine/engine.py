@@ -9,8 +9,9 @@ from typing import Dict, List, Optional
 from models.hazard.prs_analytical import compute_prs_spread
 
 from .pricer import (
-    compute_basis_delta,
+    compute_risky_annuity,
     compute_gauge_delta,
+    compute_basis_delta,
     compute_mark_to_market,
 )
 
@@ -222,7 +223,7 @@ class DeltaEngine:
     @staticmethod
     def _remaining_tenor(schedule: Dict) -> int:
         """Compute remaining tenor in whole years from schedule dates."""
-        from datetime import date, datetime
+        from datetime import datetime, date
 
         end_str = schedule.get('EndDate', '')
         if not end_str:

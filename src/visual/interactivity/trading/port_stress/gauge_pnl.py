@@ -56,8 +56,7 @@ def get_js() -> str:
                 });
                 dropdownHtml +=
                     '</select>' +
-                    '</div>' +
-                    '<div id="ps-gauge-table-area" style="flex:1;overflow-y:auto;padding:0;"></div>';
+                    '</div>';
 
                 content.innerHTML = dropdownHtml;
 
@@ -115,6 +114,13 @@ def get_js() -> str:
                     '</div>' +
                     '</div>';
 
+                // Hourly P&L chart (top half)
+                var chartHtml = '';
+                if (gaugeData.hydrograph && gaugeData.hydrograph.length > 0 && gaugeData.severe_level > 0) {
+                    chartHtml = '<div style="padding:4px 16px 0 16px;height:200px;">' +
+                        '<canvas id="ps-hourly-pnl-canvas"></canvas></div>';
+                }
+
                 var tradesHtml = '';
                 if (gaugeData.trades && gaugeData.trades.length > 0) {
                     tradesHtml =
@@ -162,9 +168,14 @@ def get_js() -> str:
                     tradesHtml = '<div style="padding:24px;color:#999;text-align:center;">No open trades at this gauge.</div>';
                 }
 
-                container.innerHTML = headerHtml + tradesHtml;
+                container.innerHTML = headerHtml + chartHtml + tradesHtml;
 
-                // Bind "Full Detail" button via event delegation (avoids quote-escaping in onclick)
+                // Render hourly P&L chart
+                if (gaugeData.hydrograph && gaugeData.hydrograph.length > 0 && gaugeData.severe_level > 0) {
+                    _psRenderHourlyPnlChart(gaugeData);
+                }
+
+                // Bind "Full Detail" button
                 var detailBtn = container.querySelector('.ps-detail-btn');
                 if (detailBtn) {
                     detailBtn.addEventListener('click', function() {
@@ -174,5 +185,110 @@ def get_js() -> str:
                         switchTab('stress');
                     });
                 }
+            }
+
+            function _psRenderHourlyPnlChart(gaugeData) {
+                var canvas = document.getElementById('ps-hourly-pnl-canvas');
+                if (!canvas) return;
+                if (psGaugeHourlyChart) { psGaugeHourlyChart.destroy(); psGaugeHourlyChart = null; }
+
+                var hydro = gaugeData.hydrograph;
+                var sev = gaugeData.severe_level;
+                var nHours = hydro.length;
+
+                // Compute hourly P(flood) and aggregate stress P&L
+                var hourLabels = [];
+                var pFloodSeries = [];
+                var stressPnlSeries = [];
+
+                // Net signed notional across all trades
+                var netSignedNotional = 0;
+                var totalMtm = 0;
+                (gaugeData.trades || []).forEach(function(t) {
+                    netSignedNotional += t.notional;  // already signed
+                    totalMtm += t.mtm;
+                });
+
+                for (var hr = 0; hr < nHours; hr++) {
+                    hourLabels.push(hr);
+                    var pf = _fpPFlood(hydro[hr], hr, sev);
+                    pFloodSeries.push(Math.round(pf * 10000) / 100);  // percentage
+                    var cashPrice = netSignedNotional * pf;
+                    stressPnlSeries.push(Math.round(cashPrice - totalMtm));
+                }
+
+                var ctx = canvas.getContext('2d');
+                psGaugeHourlyChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: hourLabels,
+                        datasets: [
+                            {
+                                label: 'Stress P&L',
+                                data: stressPnlSeries,
+                                borderColor: '#1976d2',
+                                backgroundColor: 'rgba(25,118,210,0.08)',
+                                fill: true,
+                                yAxisID: 'yPnl',
+                                pointRadius: 0,
+                                borderWidth: 1.5,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'P(flood) %',
+                                data: pFloodSeries,
+                                borderColor: '#c62828',
+                                backgroundColor: 'transparent',
+                                borderDash: [4, 2],
+                                yAxisID: 'yPflood',
+                                pointRadius: 0,
+                                borderWidth: 1.5,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 9 }, boxWidth: 12, padding: 8 } },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(items) { return 'Hour ' + items[0].label; },
+                                    label: function(ctx) {
+                                        if (ctx.dataset.yAxisID === 'yPnl') return 'Stress P&L: ' + fmtGBP(ctx.raw);
+                                        return 'P(flood): ' + ctx.raw.toFixed(1) + '%';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Storm Hour', font: { size: 9 } },
+                                ticks: { font: { size: 8 }, maxTicksLimit: 12 }
+                            },
+                            yPnl: {
+                                type: 'linear',
+                                position: 'left',
+                                title: { display: true, text: 'Stress P&L', font: { size: 9 } },
+                                ticks: {
+                                    font: { size: 8 },
+                                    callback: function(v) { return fmtGBP(v); }
+                                },
+                                grid: { color: 'rgba(0,0,0,0.06)' }
+                            },
+                            yPflood: {
+                                type: 'linear',
+                                position: 'right',
+                                min: 0,
+                                max: 100,
+                                title: { display: true, text: 'P(flood) %', font: { size: 9 } },
+                                ticks: { font: { size: 8 }, callback: function(v) { return v + '%'; } },
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
             }
 """

@@ -20,9 +20,7 @@
 
 """Stress test endpoints — CDS-in-stress cash pricing for PRS trades."""
 
-from . import (
-    gauges,  # noqa: F401
-    scenario,  # noqa: F401
-    storms,  # noqa: F401
-    training,  # noqa: F401
-)
+from . import gauges    # noqa: F401
+from . import storms    # noqa: F401
+from . import scenario  # noqa: F401
+from . import training  # noqa: F401

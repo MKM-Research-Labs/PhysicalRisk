@@ -3,8 +3,8 @@
 
 """Stress Test — charts sub-module package."""
 
-from .pnl import get_pnl_chart_js
 from .probability import get_probability_chart_js
+from .pnl import get_pnl_chart_js
 from .surface import get_surface_table_js
 
 

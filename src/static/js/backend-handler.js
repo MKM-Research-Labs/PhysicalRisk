@@ -241,7 +241,7 @@
             }
         }
 
-        function showGaugeBlotter(gaugeId) {
+        function showGaugeBlotter(gaugeId, gaugeName) {
             if (!gaugeId) {
                 if (root.showError) root.showError('Gauge ID not found');
                 return;
@@ -253,7 +253,9 @@
                 // Small delay to let panel render, then apply filter
                 setTimeout(function() {
                     if (root.tdApplyFilter) {
-                        root.tdApplyFilter({gauge_id: gaugeId});
+                        var f = {gauge_id: gaugeId};
+                        if (gaugeName) f.gauge_name = gaugeName;
+                        root.tdApplyFilter(f);
                     }
                 }, 300);
             } else {

@@ -146,14 +146,14 @@ def get_js() -> str:
                     var g = gauges[i];
                     var displayName = g.gauge_name || g.gauge_id;
                     html += '<tr style="border-bottom:1px solid #eee;">';
-                    html += '<td style="padding:5px 10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;color:#1565c0;text-decoration:underline;" title="Click to view blotter for ' + displayName + '" onclick="tdRiskGaugeClick(\\'' + g.gauge_id + '\\')">' + displayName + '</td>';
+                    html += '<td style="padding:5px 10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;color:#1565c0;text-decoration:underline;" title="Click to view blotter for ' + displayName + '" onclick="tdRiskGaugeClick(\\'' + g.gauge_id + '\\',\\'' + displayName.replace(/'/g, "\\\\'") + '\\')">' + displayName + '</td>';
 
                     for (var b = 0; b < buckets.length; b++) {
                         var val = (g.cells && g.cells[buckets[b]]) || 0;
                         var bg = riskCellColor(val);
                         var display = val !== 0 ? fmtGBP(val) : '';
                         var cursor = val !== 0 ? 'cursor:pointer;' : '';
-                        var click = val !== 0 ? ' onclick="tdRiskCellClick(\\'' + g.gauge_id + '\\',\\'' + buckets[b] + '\\')"' : '';
+                        var click = val !== 0 ? ' onclick="tdRiskCellClick(\\'' + g.gauge_id + '\\',\\'' + buckets[b] + '\\',\\'' + displayName.replace(/'/g, "\\\\'") + '\\')"' : '';
                         html += '<td style="padding:5px 8px;text-align:right;background:' + bg + ';' + cursor + '"' + click + ' title="Click to filter blotter">' + display + '</td>';
                     }
 
@@ -178,18 +178,21 @@ def get_js() -> str:
             }
 
             // Click gauge name → switch to blotter filtered by gauge
-            window.tdRiskGaugeClick = function(gaugeId) {
+            window.tdRiskGaugeClick = function(gaugeId, gaugeName) {
                 console.log('[FS01] Gauge click:', gaugeId);
                 switchTab('blotter');
                 setTimeout(function() {
-                    if (window.tdApplyFilter) window.tdApplyFilter({gauge_id: gaugeId});
+                    var f = {gauge_id: gaugeId};
+                    if (gaugeName) f.gauge_name = gaugeName;
+                    if (window.tdApplyFilter) window.tdApplyFilter(f);
                 }, 100);
             };
 
             // Click a risk cell → switch to blotter filtered by gauge + tenor
-            window.tdRiskCellClick = function(gaugeId, bucket) {
+            window.tdRiskCellClick = function(gaugeId, bucket, gaugeName) {
                 console.log('[FS01] Cell click:', gaugeId, bucket);
                 var filters = {gauge_id: gaugeId};
+                if (gaugeName) filters.gauge_name = gaugeName;
                 // Bucket is now the exact tenor label (e.g. "5Y", "3Y")
                 if (bucket) filters.tenor = bucket;
                 switchTab('blotter');

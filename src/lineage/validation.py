@@ -16,6 +16,8 @@ from pathlib import Path
 from lineage.manifest import (
     DEPENDENCY_GRAPH,
     STEP_IO,
+    hash_directory,
+    hash_file,
     load_manifest,
 )
 

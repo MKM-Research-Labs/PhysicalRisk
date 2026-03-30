@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -28,9 +28,7 @@ temporal ordering, and structural consistency rules from the spec.
 from typing import List
 
 from config.port import EVENT_WINDOW_HOURS, MIN_DRAINAGE_WINDOW_HOURS
-
-from ..core.data_structures import StormSequence
-
+from ..core.data_structures import SequenceType, StormSequence
 MAX_PRECIP_END_HOUR = EVENT_WINDOW_HOURS - MIN_DRAINAGE_WINDOW_HOURS  # 156
 
 VALID_SEQUENCE_TYPES = {"isolated", "doublet", "cluster", "persistent"}

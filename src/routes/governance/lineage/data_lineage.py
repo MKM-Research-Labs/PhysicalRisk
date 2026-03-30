@@ -123,6 +123,7 @@ def _trace_data(lineage, data_type, data_id):
     Supports: Gauge, Property, Trade (PRS), Counterparty.
     """
     from pathlib import Path
+    import json as _json
 
     from config import config
 
@@ -234,7 +235,7 @@ def _trace_data(lineage, data_type, data_id):
             trade_hits = _search_dir_files(prs_dir, data_id)
             for th in trade_hits[:5]:  # cap at 5
                 _add("blotter", th, "consumed",
-                     "PRS trade referencing gauge in basket")
+                     f"PRS trade referencing gauge in basket")
 
     # ── Property trace ───────────────────────────────────────────────
     elif data_type.lower() == "property":

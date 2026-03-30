@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
-from .constants import RATE_TYPE_WEIGHTS, RATE_TYPES, UK_LENDERS
+from .constants import RATE_TYPES, RATE_TYPE_WEIGHTS, UK_LENDERS
 
 
 def generate_menu_value(field_name: str, field_def: Dict, index: int, financial_data: Dict) -> str:

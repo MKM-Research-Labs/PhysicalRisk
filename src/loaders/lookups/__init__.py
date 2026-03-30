@@ -21,9 +21,7 @@
 """Cross-reference lookup builders and ID utilities."""
 
 from .builders import (
-    _classify_property_risk as _classify_property_risk,
-)
-from .builders import (
+    _classify_property_risk,
     build_all_lookups,
     build_gauge_flood_info,
     build_mortgage_lookup,

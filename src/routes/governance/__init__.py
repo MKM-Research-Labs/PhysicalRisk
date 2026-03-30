@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -36,16 +36,14 @@ governance_bp = Blueprint("governance", __name__)
 
 # Import sub-modules to register their routes on governance_bp.
 # These must come after governance_bp is defined to avoid circular imports.
-from . import (
-    audit,  # noqa: E402, F401
-    audit_reports,  # noqa: E402, F401
-    bibliography,  # noqa: E402, F401
-    compliance,  # noqa: E402, F401
-    documents,  # noqa: E402, F401
-    lineage,  # noqa: E402, F401
-    models,  # noqa: E402, F401
-    mrc,  # noqa: E402, F401
-    mrc_crud,  # noqa: E402, F401
-    mrc_pdf,  # noqa: E402, F401
-    test_report,  # noqa: E402, F401
-)
+from . import models      # noqa: E402, F401
+from . import audit       # noqa: E402, F401
+from . import mrc         # noqa: E402, F401
+from . import mrc_crud    # noqa: E402, F401
+from . import mrc_pdf     # noqa: E402, F401
+from . import compliance  # noqa: E402, F401
+from . import documents   # noqa: E402, F401
+from . import bibliography    # noqa: E402, F401
+from . import audit_reports  # noqa: E402, F401
+from . import test_report    # noqa: E402, F401
+from . import lineage        # noqa: E402, F401

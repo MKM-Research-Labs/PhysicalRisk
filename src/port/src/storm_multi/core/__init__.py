@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -19,12 +19,12 @@
 # SOFTWARE.
 
 from .data_structures import (  # noqa: F401
-    SEQUENCE_GAP_TYPE,
-    SEQUENCE_TYPE_STORM_COUNTS,
     GapType,
     SequenceStorm,
     SequenceType,
     StormSequence,
+    SEQUENCE_GAP_TYPE,
+    SEQUENCE_TYPE_STORM_COUNTS,
     make_sequence_id,
     make_storm_id,
 )

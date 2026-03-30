@@ -35,21 +35,11 @@ import numpy as np
 # Log-transform & near-miss constants — centralised in config/port.py
 from config.port import (
     LOG_END as _LOG_END,
-)
-from config.port import (
     LOG_EPS as _LOG_EPS,
-)
-from config.port import (
-    NEARMISS_COUNT as _NEARMISS_COUNT,
-)
-from config.port import (
-    NEARMISS_HIGH as _NEARMISS_HIGH,
-)
-from config.port import (
-    NEARMISS_LOW as _NEARMISS_LOW,
-)
-from config.port import (
     NUM_CLASSIFIER_HOURS as _NUM_HOURS,
+    NEARMISS_COUNT as _NEARMISS_COUNT,
+    NEARMISS_LOW as _NEARMISS_LOW,
+    NEARMISS_HIGH as _NEARMISS_HIGH,
 )
 
 
@@ -141,12 +131,10 @@ def train_gauge_stressm_classifier(
     Returns:
         Result dict from FloodClassifierTrainer.train_gauge().
     """
-    from models.stress.flood_classifier import FloodClassifierTrainer
     from port.src.storm_multi.models.sequence_response import (
-        SequenceGaugeParams,
-        _make_precip_series,
-        compute_sequence_gauge_response,
+        SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
     )
+    from models.stress.flood_classifier import FloodClassifierTrainer
 
     gid = gauge["gauge_id"]
     severe_l = gauge["severe_warning"]
@@ -297,7 +285,7 @@ def _print_classifier_result(result: dict) -> None:
     fi = result.get("feature_importance", {})
     label = result.get("label_threshold", "severe_warning")
     label_m = result.get("label_level_m", result.get("severe_level", 0))
-    print("  Status      : trained")
+    print(f"  Status      : trained")
     print(f"  Label       : {label} (≥ {label_m:.2f} m)")
     print(f"  Samples     : {result['n_samples']:,}  "
           f"(train: {result['n_samples']-result['test_size']:,}  "
@@ -309,7 +297,7 @@ def _print_classifier_result(result: dict) -> None:
     print(f"  Brier score : {m['brier_score']:.4f}")
     print(f"  Log loss    : {m['log_loss']:.4f}")
     print()
-    print("  Feature importance:")
+    print(f"  Feature importance:")
     for fname, fval in sorted(fi.items(), key=lambda x: -x[1]):
         bar = "█" * int(fval * 40)
         print(f"    {fname:<18} {fval:.4f}  {bar}")
