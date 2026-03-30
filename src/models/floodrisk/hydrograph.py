@@ -33,14 +33,17 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from config.models import (
-    DEFAULT_IMPERV_FRACTION,
     HYDRO_ALPHA,
-    INFILTRATION_RATE_PER_HOUR,
-    INFILTRATION_YMAX_REF_M,
     SATURATION_BETA,
     SATURATION_P0_MM,
+    INFILTRATION_RATE_PER_HOUR,
+    INFILTRATION_YMAX_REF_M,
+    DEFAULT_IMPERV_FRACTION,
+    SUPERPOSITION_CAP_FACTOR,
     STORM_SIMULATION_HOURS,
 )
+from .velocity import compute_slope, compute_travel_time, compute_retention
+
 
 # ---------------------------------------------------------------------------
 # 1. Gamma shape template

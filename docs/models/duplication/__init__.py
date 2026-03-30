@@ -28,6 +28,7 @@ Usage:
 
 import io
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -68,15 +69,56 @@ MIN_LINES = 8
 MIN_TOKENS = 50
 
 
+def _find_node_env() -> tuple[str, dict]:
+    """Locate jscpd binary and return (path, env) with node on PATH.
+
+    Python venvs and pyenv can strip nvm/node from PATH, so we search
+    common locations and ensure the env passed to subprocess includes
+    the directory containing both node and jscpd.
+    """
+    import os
+    env = os.environ.copy()
+
+    found = shutil.which('jscpd')
+    if found and shutil.which('node'):
+        return found, env
+
+    # Search common nvm install locations (newest version first)
+    home = Path.home()
+    for nvm_bin in sorted(home.glob('.nvm/versions/node/*/bin'), reverse=True):
+        candidate = nvm_bin / 'jscpd'
+        if candidate.exists():
+            env['PATH'] = str(nvm_bin) + os.pathsep + env.get('PATH', '')
+            return str(candidate), env
+
+    # Try npm global bin directory
+    for npm_cmd in ['npm', '/usr/local/bin/npm', '/opt/homebrew/bin/npm']:
+        try:
+            result = subprocess.run(
+                [npm_cmd, 'root', '-g'], capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0:
+                bin_dir = Path(result.stdout.strip()).parent / 'bin'
+                npm_bin = bin_dir / 'jscpd'
+                if npm_bin.exists():
+                    env['PATH'] = str(bin_dir) + os.pathsep + env.get('PATH', '')
+                    return str(npm_bin), env
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+
+    return 'jscpd', env  # fall back
+
+
 # ---------------------------------------------------------------------------
 # Run jscpd
 # ---------------------------------------------------------------------------
 
 def _run_jscpd() -> dict:
     """Run jscpd and return parsed JSON report."""
+    jscpd_bin, node_env = _find_node_env()
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
-            'jscpd', str(SRC_DIR),
+            jscpd_bin, str(SRC_DIR),
             '--format', 'python,javascript',
             '--min-lines', str(MIN_LINES),
             '--min-tokens', str(MIN_TOKENS),
@@ -85,7 +127,8 @@ def _run_jscpd() -> dict:
             '--ignore', '**/node_modules/**,**/__pycache__/**,**/*.pyc',
             '--silent',
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120,
+                                env=node_env)
         report_path = Path(tmpdir) / 'jscpd-report.json'
         if report_path.exists():
             with open(report_path) as f:
@@ -391,7 +434,9 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
 
 def _jscpd_version() -> str:
     try:
-        r = subprocess.run(['jscpd', '--version'], capture_output=True, text=True, timeout=5)
+        jscpd_bin, node_env = _find_node_env()
+        r = subprocess.run([jscpd_bin, '--version'], capture_output=True, text=True,
+                           timeout=5, env=node_env)
         return r.stdout.strip() or r.stderr.strip() or '?'
     except Exception:
         return '?'

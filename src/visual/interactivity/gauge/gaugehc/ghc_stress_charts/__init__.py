@@ -12,7 +12,7 @@ Sub-modules:
 - surface: Tab 3 — P(flood) surface heat-map table
 """
 
-from . import pnl, probability, surface
+from . import probability, pnl, surface
 
 
 def get_js() -> str:

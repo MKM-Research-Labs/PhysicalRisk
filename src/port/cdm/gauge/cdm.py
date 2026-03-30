@@ -6,9 +6,9 @@
 from typing import Dict, List
 
 from ..base import BaseCDM
-from .mapping import create_gauge_mapping, get_nrfa_fields, get_required_fields
 from .schema import GAUGE_SCHEMA
 from .validate import validate_gauge
+from .mapping import create_gauge_mapping, get_required_fields, get_nrfa_fields
 
 
 class FloodGaugeCDM(BaseCDM):

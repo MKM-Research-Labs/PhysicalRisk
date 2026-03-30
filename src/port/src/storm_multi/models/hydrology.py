@@ -37,7 +37,7 @@ State equations (all per hour):
                        + beta  * groundwater[h]
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 import numpy as np

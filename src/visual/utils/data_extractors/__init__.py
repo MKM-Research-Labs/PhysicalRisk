@@ -30,23 +30,23 @@ Sub-modules:
 """
 
 from .extractor import DataExtractor  # noqa: F401
-from .gauge_extractor import (  # noqa: F401
-    extract_flood_risk_data,
-    extract_gauge_info,
-)
-from .id_extractor import (  # noqa: F401
-    extract_id_from_popup,
-    extract_id_from_tooltip,
+from .property_extractor import (  # noqa: F401
+    extract_property_info,
+    _extract_property_value,
+    _calculate_age_factor,
+    PropertyDataExtractor,
 )
 from .mortgage_extractor import (  # noqa: F401
-    _extract_term_years,
-    _normalize_mortgage_list,
-    build_mortgage_lookup,
     extract_mortgage_info,
+    _extract_term_years,
+    build_mortgage_lookup,
+    _normalize_mortgage_list,
 )
-from .property_extractor import (  # noqa: F401
-    PropertyDataExtractor,
-    _calculate_age_factor,
-    _extract_property_value,
-    extract_property_info,
+from .gauge_extractor import (  # noqa: F401
+    extract_gauge_info,
+    extract_flood_risk_data,
+)
+from .id_extractor import (  # noqa: F401
+    extract_id_from_tooltip,
+    extract_id_from_popup,
 )

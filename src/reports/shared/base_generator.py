@@ -29,7 +29,7 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter

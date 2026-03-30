@@ -31,10 +31,9 @@ def get_js() -> str:
 
                 var gauges = result.gauges || [];
 
-                var severeGauges  = gauges.filter(function(g) { return g.threshold === 'severe'; });
-                var warningGauges = gauges.filter(function(g) { return g.threshold === 'warning'; });
-                var alertGauges   = gauges.filter(function(g) { return g.threshold === 'alert'; });
-                // CLEAN: only show gauges that have trades (avoid listing all 40 clean gauges)
+                var severeGauges  = gauges.filter(function(g) { return g.threshold === 'severe' && g.num_trades > 0; });
+                var warningGauges = gauges.filter(function(g) { return g.threshold === 'warning' && g.num_trades > 0; });
+                var alertGauges   = gauges.filter(function(g) { return g.threshold === 'alert' && g.num_trades > 0; });
                 var cleanGauges   = gauges.filter(function(g) {
                     return g.threshold === 'clean' && g.num_trades > 0;
                 });
@@ -78,6 +77,8 @@ def get_js() -> str:
 
                 sections.forEach(function(section) {
                     var count = section.gauges.length;
+                    if (count === 0) return;  // skip empty sections entirely
+
                     html +=
                         '<div style="margin-bottom:16px;">' +
                         '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px;' +
@@ -87,9 +88,7 @@ def get_js() -> str:
                         '</div>' +
                         '<div style="border:1px solid #ddd;border-top:none;border-radius:0 0 4px 4px;background:' + section.bg + ';overflow:hidden;">';
 
-                    if (count === 0) {
-                        html += '<div style="padding:10px 14px;font-size:10px;color:#999;">' + section.emptyMsg + '</div>';
-                    } else {
+                    {
                         section.gauges.forEach(function(g) {
                             var pnlColor = g.stress_pnl >= 0 ? '#2e7d32' : '#c62828';
                             html +=

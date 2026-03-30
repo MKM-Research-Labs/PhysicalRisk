@@ -15,8 +15,8 @@ from config.port import DEFAULT_YIELD_CURVE as _DEFAULT_YIELD_CURVE
 
 from ._persistence import _PersistenceMixin
 from .gauge_rates import GaugeRatesMixin
-from .hazard_term import HazardTermMixin
 from .yield_curve import YieldCurveMixin
+from .hazard_term import HazardTermMixin
 
 
 class MarketStateManager(

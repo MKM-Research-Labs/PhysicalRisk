@@ -44,9 +44,10 @@ def get_create_panel_js() -> str:
                 blotterLink.style.cssText = 'padding:3px 10px;font-size:10px;background:#1565c0;color:white;border:none;border-radius:3px;cursor:pointer;font-weight:600;';
                 blotterLink.onclick = function() {
                     var gaugeId = hazardPanel.dataset.gaugeId || '';
+                    var gaugeName = hazardPanel.dataset.gaugeName || '';
                     if (gaugeId && window.showGaugeBlotter) {
                         hidePanel();
-                        window.showGaugeBlotter(gaugeId);
+                        window.showGaugeBlotter(gaugeId, gaugeName);
                     }
                 };
 

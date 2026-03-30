@@ -130,7 +130,13 @@
       "Bash(/Users/newdavid/Documents/PhysicalRisk/.venv/bin/python3.13 -m pytest tests/models/floodrisk/test_hydrograph_part1.py tests/models/floodrisk/test_hydrograph_part2.py tests/models/intensity/distribution_part1.py tests/models/intensity/distribution_part2.py tests/port/cdm/schemas_part1.py tests/port/cdm/schemas_part2.py tests/data/test_lineage_validation_part1.py tests/data/test_lineage_validation_part2.py tests/port/storm/batch_generator_part1.py tests/port/storm/batch_generator_part2.py tests/port/hazard/hazard_io_part1.py tests/port/hazard/hazard_io_part2.py tests/reports/port/test_generator_part1.py tests/reports/port/test_generator_part2.py tests/loaders/storm_loader_part1.py tests/loaders/storm_loader_part2.py -q)",
       "Bash(/Users/newdavid/Documents/PhysicalRisk/.venv/bin/python3.13 -m pytest tests/ --ignore=tests/e2e -q)",
       "Bash(/Users/newdavid/Documents/PhysicalRisk/.venv/bin/python3.13 -m pytest tests/ --ignore=tests/e2e --co -q)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(PYTHONPATH=src .venv/bin/python3 -m pytest --collect-only)",
+      "Bash(npm root:*)",
+      "Bash(npm bin:*)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/**)",
+      "Bash(deactivate)"
     ]
   }
 }

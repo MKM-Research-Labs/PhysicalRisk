@@ -47,22 +47,21 @@ Default parameters (Thames-calibrated, spec Table 2):
 """
 
 import json
-import logging
 import math
+import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from ..core.data_structures import StormSequence
 from config.port import (
     SPATIAL_CORR_BASE_RANGE_KM,
     SPATIAL_CORR_NUGGET,
     SPATIAL_CORR_RHO_INTENSITY,
     SPATIAL_CORR_SIGMA_LOGNORMAL,
 )
-
-from ..core.data_structures import StormSequence
 
 logger = logging.getLogger(__name__)
 

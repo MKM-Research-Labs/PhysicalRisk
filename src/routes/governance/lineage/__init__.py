@@ -20,18 +20,8 @@
 
 """Data and field lineage routes."""
 
-from . import (
-    data_lineage,  # noqa: E402, F401
-    field_lineage,  # noqa: E402, F401
-)
+from . import data_lineage   # noqa: E402, F401
+from . import field_lineage  # noqa: E402, F401
 
 # Re-export internals used by tests
-from .data_lineage import (  # noqa: E402
-    _PIPELINE_STEPS as _PIPELINE_STEPS,
-)
-from .data_lineage import (
-    _check_staleness as _check_staleness,
-)
-from .data_lineage import (
-    _trace_data as _trace_data,
-)
+from .data_lineage import _check_staleness, _trace_data, _PIPELINE_STEPS  # noqa: E402

@@ -9,7 +9,7 @@ import random
 import uuid
 from typing import Any, Dict
 
-from .constants import MORTGAGE_TYPE_WEIGHTS, MORTGAGE_TYPES
+from .constants import MORTGAGE_TYPES, MORTGAGE_TYPE_WEIGHTS
 
 
 def determine_mortgage_type(property_info: Dict[str, Any]) -> str:

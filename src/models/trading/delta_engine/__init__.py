@@ -32,11 +32,12 @@ Uses the existing compute_prs_spread() from models.hazard.prs_analytical.
 from models.hazard.prs_analytical import compute_prs_spread  # noqa: F401
 
 from .engine import DeltaEngine  # noqa: F401
+
 from .pricer import (  # noqa: F401
-    compute_basis_delta,
-    compute_gauge_delta,
-    compute_mark_to_market,
     compute_risky_annuity,
+    compute_gauge_delta,
+    compute_basis_delta,
+    compute_mark_to_market,
 )
 
 __all__ = [

@@ -6,6 +6,7 @@
 """Data loading mixin for PropertyHazardCurveGenerator."""
 
 import json
+from typing import Dict
 
 
 class LoaderMixin:

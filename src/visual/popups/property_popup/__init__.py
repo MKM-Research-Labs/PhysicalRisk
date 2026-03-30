@@ -29,13 +29,13 @@ Sub-modules:
 """
 
 from .builder import PropertyPopupBuilder  # noqa: F401
-from .helpers import calculate_ltv_ratio, calculate_monthly_payment, extract_term_years  # noqa: F401
+from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment  # noqa: F401
 from .risk import get_mortgage_risk_summary, get_overall_risk_color  # noqa: F401
 from .sections import (  # noqa: F401
-    create_flood_info_section,
-    create_mortgage_risk_section,
-    create_mortgage_section,
     create_property_section,
+    create_flood_info_section,
+    create_mortgage_section,
+    create_mortgage_risk_section,
 )
 
 __all__ = [

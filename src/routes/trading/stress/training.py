@@ -16,11 +16,11 @@ import json
 import logging
 import threading
 import time
+from pathlib import Path
 
 from flask import jsonify
 
 from config import config
-
 from .. import trading_bp
 
 logger = logging.getLogger(__name__)
@@ -152,17 +152,14 @@ def _train_single_gauge(gauge_id: str):
     """Train a single gauge classifier in a background thread."""
     try:
         import numpy as np
-
+        from port.src.stressm.classifier import train_gauge_stressm_classifier
+        from port.src.stressm.gauge_parser import (
+            _extract_gauges, _parse_gauge, _load_gaugehd_baselines,
+        )
         from port.src.storm_multi.models.spatial_correlation import (
             SpatialCorrelationModel,
         )
         from port.src.storm_multi.utils.serialization import load_sequences
-        from port.src.stressm.classifier import train_gauge_stressm_classifier
-        from port.src.stressm.gauge_parser import (
-            _extract_gauges,
-            _load_gaugehd_baselines,
-            _parse_gauge,
-        )
 
         input_dir = config.get_input_dir()
         output_dir = config.get_output_dir()

@@ -275,7 +275,7 @@ def run_portfolio_stress():
                     'counterparty': t.get('counterparty', ''),
                 })
 
-            gauge_results.append({
+            gauge_rec = {
                 'gauge_id': gid,
                 'gauge_name': gloc.get('name', gid),
                 'lon': gloc.get('lon', 0),
@@ -292,7 +292,11 @@ def run_portfolio_stress():
                 'num_trades': len(gauge_trades),
                 'trades': trade_details,
                 'impacted': impacted,
-            })
+            }
+            # Include hydrograph for gauges with trades (hourly P&L chart)
+            if hydrograph and gauge_trades:
+                gauge_rec['hydrograph'] = [round(v, 4) for v in hydrograph]
+            gauge_results.append(gauge_rec)
 
         # 8. Sort gauge results: by severity then stress_pnl ascending
         gauge_results.sort(key=lambda g: (

@@ -8,14 +8,10 @@ from typing import Any, Dict, Optional
 import folium
 
 from ..popup_builder import PopupBuilder
-from .helpers import calculate_ltv_ratio, calculate_monthly_payment, extract_term_years
+from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
 from .risk import get_mortgage_risk_summary, get_overall_risk_color
-from .sections import (
-    create_flood_info_section,
-    create_mortgage_risk_section,
-    create_mortgage_section,
-    create_property_section,
-)
+from .sections import (create_property_section, create_flood_info_section,
+                       create_mortgage_section, create_mortgage_risk_section)
 
 
 class PropertyPopupBuilder(PopupBuilder):

@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -42,8 +42,8 @@ logger = logging.getLogger(__name__)
 
 def _get_engines():
     """Lazily create and return trading engine instances."""
-    from models.trading.delta_engine import DeltaEngine
     from models.trading.market_state import MarketStateManager
+    from models.trading.delta_engine import DeltaEngine
     from models.trading.pnl_engine import PnLEngine
 
     trading_dir = config.get_trading_dir()

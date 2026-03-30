@@ -3,7 +3,7 @@
 
 """Multi-storm stress pipeline orchestrator."""
 
-from ._constants import GAUGE_SUMMARY_DIR, GAUGE_SUMMARY_FILENAME, SCHEMA_VERSION_SPATIAL
+from ._constants import GAUGE_SUMMARY_FILENAME, GAUGE_SUMMARY_DIR, SCHEMA_VERSION_SPATIAL
 from .orchestrator import generate_stressm
 
 __all__ = [

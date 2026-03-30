@@ -30,7 +30,6 @@ from typing import Any, Dict
 import folium
 
 from config.format import gauge_title_js as _gauge_title_js
-
 from . import gsa_distribution, gsa_timeline
 
 

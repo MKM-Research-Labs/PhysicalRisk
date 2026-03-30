@@ -34,14 +34,14 @@ Spec Section 5 requirements:
 - Validation: Storm 2 peak >= Storm 1 peak in >= 60% of doublets
 """
 
+import math
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import numpy as np
 
 from config.port import EVENT_WINDOW_HOURS
-
-from ..core.data_structures import StormSequence
+from ..core.data_structures import SequenceStorm, StormSequence
 from .hydrology import HydrologicalState, HydrologyModel, HydrologyParams
 
 # EVENT_WINDOW_HOURS imported from config/port.py

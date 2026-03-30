@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -28,7 +28,7 @@ drainage patterns.
 
 import numpy as np
 
-from ..core.data_structures import SEQUENCE_GAP_TYPE, GapType, SequenceType
+from ..core.data_structures import GapType, SequenceType, SEQUENCE_GAP_TYPE
 
 # Inter-storm gap parameters — spec Section 3.2
 # (min_hours, mode_hours, max_hours) — triangular distribution

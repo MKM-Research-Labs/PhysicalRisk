@@ -37,10 +37,8 @@ propertyts_bp = Blueprint('propertyts', __name__)
 
 # Import sub-modules to register their routes on propertyts_bp.
 # These must come after propertyts_bp is defined to avoid circular imports.
-from . import (
-    animation,  # noqa: E402, F401
-    claim,  # noqa: E402, F401
-    core,  # noqa: E402, F401
-    financial,  # noqa: E402, F401
-    risk,  # noqa: E402, F401
-)
+from . import core        # noqa: E402, F401
+from . import animation   # noqa: E402, F401
+from . import financial   # noqa: E402, F401
+from . import risk        # noqa: E402, F401
+from . import claim       # noqa: E402, F401

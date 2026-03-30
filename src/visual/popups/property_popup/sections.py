@@ -3,9 +3,9 @@
 
 """Property popup sections — HTML section builders that use a PopupBuilder instance."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from .helpers import calculate_ltv_ratio, calculate_monthly_payment, extract_term_years
+from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
 from .risk import get_mortgage_risk_summary, get_overall_risk_color
 
 

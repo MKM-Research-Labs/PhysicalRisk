@@ -33,8 +33,7 @@ import logging
 from flask import Response, jsonify
 
 from config import config
-
-from . import _get_propertyts_dir, propertyts_bp
+from . import propertyts_bp, _get_propertyts_dir
 
 logger = logging.getLogger(__name__)
 

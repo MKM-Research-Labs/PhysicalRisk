@@ -9,7 +9,9 @@ traceability from any output back to its source inputs.
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 
 from lineage.manifest import (
     DEPENDENCY_GRAPH,

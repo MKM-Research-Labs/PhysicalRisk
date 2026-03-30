@@ -264,8 +264,24 @@ def _get_setup_js() -> str:
                     '</span>';
             }
 
+            var psGaugeHourlyChart = null;
+
+            // FloodPoly-v1 client-side: P(flood) = sigmoid(a*h + b*t + c*h*t + d*h^2 + e*t^2 + f)
+            var _fpCoeffs = {a: 28.9582, b: -11.6351, c: 26.5490, d: -22.8893, e: -7.0794, f: -0.8872};
+            var _fpStormHours = 168;
+            function _fpPFlood(waterLevel, hour, severeLevel) {
+                if (severeLevel <= 0) return 0;
+                var eps = 1e-8, clamp = 30;
+                var h = Math.log(Math.max(waterLevel / severeLevel, eps));
+                var t = Math.log((hour + 1) / _fpStormHours);
+                var z = _fpCoeffs.a*h + _fpCoeffs.b*t + _fpCoeffs.c*h*t + _fpCoeffs.d*h*h + _fpCoeffs.e*t*t + _fpCoeffs.f;
+                z = Math.max(-clamp, Math.min(clamp, z));
+                return 1.0 / (1.0 + Math.exp(-z));
+            }
+
             function psCleanupCharts() {
                 if (psPortPnlChart) { psPortPnlChart.destroy(); psPortPnlChart = null; }
                 if (psPFloodChart)  { psPFloodChart.destroy();  psPFloodChart = null;  }
+                if (psGaugeHourlyChart) { psGaugeHourlyChart.destroy(); psGaugeHourlyChart = null; }
             }
 """.replace('__STORM_OPT__', _storm_opt('s', show_warning=True))

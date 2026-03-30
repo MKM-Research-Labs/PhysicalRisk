@@ -28,8 +28,8 @@ Sub-modules:
 - stats: portfolio statistics
 """
 
-from .circles import add_ltv_indicators, add_mortgage_risk_circles, get_mortgage_risk_color  # noqa: F401
 from .layer import MortgageLayer  # noqa: F401
+from .circles import add_mortgage_risk_circles, add_ltv_indicators, get_mortgage_risk_color  # noqa: F401
 from .popup import create_mortgage_circle_popup  # noqa: F401
 from .stats import get_mortgage_statistics  # noqa: F401
 
