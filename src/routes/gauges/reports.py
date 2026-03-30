@@ -113,17 +113,8 @@ def generate_report():
 
         logger.info(f"Generated gauge report: {report_path}")
 
-        # Read PDF as base64 for inline display
-        import base64
-        with open(report_path, 'rb') as pdf_file:
-            pdf_base64 = base64.b64encode(pdf_file.read()).decode('utf-8')
-
-        return jsonify({
-            'status': 'success',
-            'message': 'Report generated successfully',
-            'file_path': str(report_path),
-            'pdf_base64': pdf_base64
-        })
+        from routes.utils import pdf_success_response
+        return pdf_success_response(report_path)
 
     except ImportError as e:
         logger.error(f"Import error: {e}\n{traceback.format_exc()}")

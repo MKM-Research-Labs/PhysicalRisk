@@ -46,10 +46,6 @@ def get_js():
                     return (v/1000).toFixed(1) + 'K';
                 }
 
-                // Trigger display name
-                var triggerNames = {'any_flood': 'Alert', 'moderate': 'Warning', 'severe': 'Severe'};
-                var triggerLabel = triggerNames[result.triggerKey] || result.triggerKey;
-
                 // ---- Left side: Component summary table ----
                 var compRows = '';
                 var gaugeColors = ['#9C27B0', '#00BCD4', '#795548'];
@@ -72,22 +68,21 @@ def get_js():
                         '<td style="padding:4px 8px;"><span style="color:' + color + ';">\\u25CF</span> ' +
                         label + '</td>' +
                         '<td style="padding:4px 8px;text-align:right;">' + g.distance_km.toFixed(1) + 'km</td>' +
+                        '<td style="padding:4px 8px;text-align:right;">' + g.gauge_elevation_m.toFixed(1) + 'm</td>' +
                         '<td style="padding:4px 8px;text-align:right;font-weight:600;">' + g.gauge_spread.toFixed(1) + '</td>' +
                         '<td style="padding:4px 8px;text-align:right;color:#666;">+' + g.basis.toFixed(1) + '</td>' +
-                        '<td style="padding:4px 8px;text-align:right;color:#888;font-size:10px;">' +
-                        g.property_flood_count + '/' + g.gauge_flood_count +
-                        ' (' + (g.flood_transmission_rate * 100).toFixed(0) + '%)</td>' +
                         '</tr>';
                 });
 
                 // Property row
+                var propElev = phcData.elevation_m || 0;
                 compRows +=
                     '<tr style="border-top:2px solid #1976D2;background:#E3F2FD;">' +
                     '<td style="padding:4px 8px;font-weight:bold;"><span style="color:#1976D2;">\\u25CF</span> Property PRS</td>' +
                     '<td style="padding:4px 8px;text-align:right;">\\u2014</td>' +
+                    '<td style="padding:4px 8px;text-align:right;">' + propElev.toFixed(1) + 'm</td>' +
                     '<td style="padding:4px 8px;text-align:right;font-weight:bold;color:#1976D2;">' + result.propSpreadAtTenor.toFixed(1) + '</td>' +
                     '<td style="padding:4px 8px;text-align:right;">\\u2014</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">' + phcData.flood_count + ' floods</td>' +
                     '</tr>';
 
                 // Avg basis row
@@ -96,8 +91,8 @@ def get_js():
                     '<td style="padding:4px 8px;font-weight:bold;">Avg Basis</td>' +
                     '<td style="padding:4px 8px;text-align:right;">\\u2014</td>' +
                     '<td style="padding:4px 8px;text-align:right;">\\u2014</td>' +
+                    '<td style="padding:4px 8px;text-align:right;">\\u2014</td>' +
                     '<td style="padding:4px 8px;text-align:right;font-weight:bold;color:#E65100;">+' + result.avgBasis.toFixed(1) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;font-size:10px;">' + gauges.length + ' gauges</td>' +
                     '</tr>';
 
                 var componentTable =
@@ -105,9 +100,9 @@ def get_js():
                     '<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd;">' +
                     '<th style="padding:4px 8px;text-align:left;">Component</th>' +
                     '<th style="padding:4px 8px;text-align:right;">Distance</th>' +
+                    '<th style="padding:4px 8px;text-align:right;">Elevation</th>' +
                     '<th style="padding:4px 8px;text-align:right;">Fair Spread</th>' +
                     '<th style="padding:4px 8px;text-align:right;">Basis (bps)</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Events</th>' +
                     '</tr></thead>' +
                     '<tbody>' + compRows + '</tbody></table>';
 
@@ -160,7 +155,7 @@ def get_js():
                     '<tr style="border-top:2px solid #333;font-weight:bold;background:#E8F5E9;">' +
                     '<td style="padding:3px 6px;">Property Spread</td>' +
                     '<td style="padding:3px 6px;text-align:right;color:#1976D2;">' + propSpread.toFixed(1) + ' bp</td>' +
-                    '<td style="padding:3px 6px;text-align:right;font-size:9px;">Recovery: ' + (result.recovery * 100).toFixed(0) + '%</td></tr>';
+                    '<td></td></tr>';
 
                 var waterfallTable =
                     '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:monospace;margin-top:4px;">' +
@@ -218,7 +213,7 @@ def get_js():
                 container.innerHTML =
                     '<div style="display:flex;flex-direction:column;height:100%;gap:6px;">' +
                     '<div style="font-weight:bold;font-size:12px;color:#333;">' +
-                    ctpyHeader + triggerLabel + ' Trigger \\u2014 ' + result.tenor + 'yr Tenor | Recovery: ' + (result.recovery * 100).toFixed(0) + '%</div>' +
+                    ctpyHeader + 'Severe Trigger \\u2014 ' + result.tenor + 'yr Tenor</div>' +
                     '<div style="flex:0 0 auto;display:flex;gap:10px;overflow-y:auto;max-height:42%;">' +
                     '<div style="flex:2;min-width:0;">' + componentTable + '</div>' +
                     '<div style="flex:1;min-width:0;">' + waterfallTable + '</div>' +
@@ -302,12 +297,11 @@ def get_js():
                     '<span><b>Premium:</b> ' + fmtMoney(result.totalPremPV) + '</span>',
                     '<span><b>Protection:</b> ' + fmtMoney(result.totalProtPV) + '</span>',
                     '<span><b>Spread:</b> <span style="color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span> / Gauge: ' + gaugeSpread.toFixed(1) + 'bp</span>',
-                    '<span><b>Recovery:</b> ' + (result.recovery * 100).toFixed(0) + '%</span>',
                     commitBtn
                 ].join('');
 
                 document.getElementById('phc-status').textContent =
-                    triggerLabel + ' trigger | ' + result.tenor + 'yr | Fair=' +
-                    result.fairSpreadBps.toFixed(1) + 'bps | Prop=' + propSpread.toFixed(1) + 'bp | Gauge=' + gaugeSpread.toFixed(1) + 'bp | R=' + (result.recovery * 100).toFixed(0) + '%';
+                    'Severe trigger | ' + result.tenor + 'yr | Fair=' +
+                    result.fairSpreadBps.toFixed(1) + 'bps | Prop=' + propSpread.toFixed(1) + 'bp | Gauge=' + gaugeSpread.toFixed(1) + 'bp';
             }
 """

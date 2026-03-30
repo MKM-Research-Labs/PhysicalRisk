@@ -34,11 +34,8 @@ class TestPropertyPRSCommit:
         close_all_panels(map_page)
 
     def test_prs_controls_exist(self, map_page):
-        """Property PRS tab should have trigger, notional, and spread inputs."""
+        """Property PRS tab should have notional and spread inputs."""
         panel = map_page.locator("#property-hc-panel")
-        trigger = panel.locator(
-            "select[id*='trigger'], select[id*='phc-trigger']"
-        ).first
         notional = panel.locator(
             "input[id*='notional'], input[id*='phc-notional']"
         ).first
@@ -47,8 +44,7 @@ class TestPropertyPRSCommit:
         ).first
 
         controls_found = (
-            (1 if trigger.count() > 0 else 0)
-            + (1 if notional.count() > 0 else 0)
+            (1 if notional.count() > 0 else 0)
             + (1 if spread.count() > 0 else 0)
         )
         if controls_found == 0:
@@ -58,20 +54,8 @@ class TestPropertyPRSCommit:
         )
 
     def test_fill_prs_values(self, map_page):
-        """Should be able to fill trigger, notional, and spread fields."""
+        """Should be able to fill notional and spread fields."""
         panel = map_page.locator("#property-hc-panel")
-
-        # Select trigger if present
-        trigger = panel.locator(
-            "select[id*='trigger'], select[id*='phc-trigger']"
-        ).first
-        if trigger.count() > 0 and trigger.is_visible():
-            options = trigger.locator("option")
-            for i in range(options.count()):
-                val = options.nth(i).get_attribute("value")
-                if val and val.strip():
-                    trigger.select_option(value=val)
-                    break
 
         # Fill notional
         filled = False

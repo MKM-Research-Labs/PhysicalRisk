@@ -102,6 +102,44 @@ def _build_gauge_frame(gauge_lookup, gauge_readings, hour):
     return gauge_states
 
 
+def _build_animation_frames(gauge_lookup, gauge_readings, property_events,
+                            prop_state_fn):
+    """Build animation frames for STORM_HOURS.
+
+    Parameters
+    ----------
+    gauge_lookup, gauge_readings : dicts
+        As returned by _build_gauge_lookup / _load_gauge_readings.
+    property_events : list[dict]
+        Each must have 'readings', 'property_id', 'lat', 'lon',
+        and 'arrival_time_hrs'.
+    prop_state_fn : callable(pe, hour, reading_or_none) -> dict
+        Returns the per-property state dict for one hour.  ``reading_or_none``
+        is the reading dict when ``hour < len(readings)``, else ``None``.
+    """
+    frames = []
+    for hour in range(STORM_HOURS):
+        gauge_states = _build_gauge_frame(gauge_lookup, gauge_readings, hour)
+
+        prop_states = []
+        for pe in property_events:
+            readings = pe.get('readings', [])
+            r = readings[hour] if hour < len(readings) else None
+            prop_states.append(prop_state_fn(pe, hour, r))
+
+        frames.append({
+            'hour': hour,
+            'gauges': gauge_states,
+            'properties': prop_states,
+            'stats': {
+                'gauges_flooded': sum(1 for g in gauge_states if g['status'] != 'normal'),
+                'properties_flooded': sum(1 for p in prop_states if p['flooded']),
+                'total_depth_m': round(sum(p['depth_m'] for p in prop_states), 2),
+            }
+        })
+    return frames
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -164,54 +202,34 @@ def animate_storm(storm_id: str):
         }), 404
 
     # Build frame data
-    n_hours = STORM_HOURS
-    frames = []
-    for hour in range(n_hours):
-        gauge_states = _build_gauge_frame(gauge_lookup, gauge_readings, hour)
-
-        prop_states = []
-        for pe in property_events:
-            readings = pe.get('readings', [])
-            if hour < len(readings):
-                r = readings[hour]
-                prop_states.append({
-                    'property_id': pe['property_id'],
-                    'lat': pe['lat'],
-                    'lon': pe['lon'],
-                    'wse_m': r['wse_m'],
-                    'depth_m': r['depth_m'],
-                    'flooded': r['flooded'],
-                    'arrived': pe['arrival_time_hrs'] is not None and hour >= pe['arrival_time_hrs'],
-                })
-            else:
-                prop_states.append({
-                    'property_id': pe['property_id'],
-                    'lat': pe['lat'],
-                    'lon': pe['lon'],
-                    'wse_m': 0,
-                    'depth_m': 0,
-                    'flooded': False,
-                    'arrived': False,
-                })
-
-        gauges_flooded = sum(1 for g in gauge_states if g['status'] != 'normal')
-        props_flooded = sum(1 for p in prop_states if p['flooded'])
-
-        frames.append({
-            'hour': hour,
-            'gauges': gauge_states,
-            'properties': prop_states,
-            'stats': {
-                'gauges_flooded': gauges_flooded,
-                'properties_flooded': props_flooded,
-                'total_depth_m': round(sum(p['depth_m'] for p in prop_states), 2),
+    def _storm_prop_state(pe, hour, r):
+        if r is not None:
+            return {
+                'property_id': pe['property_id'],
+                'lat': pe['lat'],
+                'lon': pe['lon'],
+                'wse_m': r['wse_m'],
+                'depth_m': r['depth_m'],
+                'flooded': r['flooded'],
+                'arrived': pe['arrival_time_hrs'] is not None and hour >= pe['arrival_time_hrs'],
             }
-        })
+        return {
+            'property_id': pe['property_id'],
+            'lat': pe['lat'],
+            'lon': pe['lon'],
+            'wse_m': 0,
+            'depth_m': 0,
+            'flooded': False,
+            'arrived': False,
+        }
+
+    frames = _build_animation_frames(
+        gauge_lookup, gauge_readings, property_events, _storm_prop_state)
 
     return jsonify({
         'status': 'success',
         'storm_id': storm_id,
-        'n_frames': n_hours,
+        'n_frames': STORM_HOURS,
         'n_properties_affected': len(property_events),
         'frames': frames,
     })
@@ -273,51 +291,34 @@ def animate_composite():
         }), 404
 
     # Build frames
-    n_hours = STORM_HOURS
-    frames = []
-    for hour in range(n_hours):
-        gauge_states = _build_gauge_frame(gauge_lookup, gauge_readings, hour)
-
-        prop_states = []
-        for pe in property_events:
-            readings = pe.get('readings', [])
-            if hour < len(readings):
-                r = readings[hour]
-                prop_states.append({
-                    'property_id': pe['property_id'],
-                    'lat': pe['lat'],
-                    'lon': pe['lon'],
-                    'depth_m': r['depth_m'],
-                    'flooded': r['flooded'],
-                    'arrived': pe['arrival_time_hrs'] is not None and hour >= pe['arrival_time_hrs'],
-                    'peak': pe['peak_time_hrs'] is not None and hour >= pe['peak_time_hrs'],
-                })
-            else:
-                prop_states.append({
-                    'property_id': pe['property_id'],
-                    'lat': pe['lat'],
-                    'lon': pe['lon'],
-                    'depth_m': 0,
-                    'flooded': False,
-                    'arrived': False,
-                    'peak': False,
-                })
-
-        frames.append({
-            'hour': hour,
-            'gauges': gauge_states,
-            'properties': prop_states,
-            'stats': {
-                'gauges_flooded': sum(1 for g in gauge_states if g['status'] != 'normal'),
-                'properties_flooded': sum(1 for p in prop_states if p['flooded']),
-                'total_depth_m': round(sum(p['depth_m'] for p in prop_states), 2),
+    def _composite_prop_state(pe, hour, r):
+        if r is not None:
+            return {
+                'property_id': pe['property_id'],
+                'lat': pe['lat'],
+                'lon': pe['lon'],
+                'depth_m': r['depth_m'],
+                'flooded': r['flooded'],
+                'arrived': pe['arrival_time_hrs'] is not None and hour >= pe['arrival_time_hrs'],
+                'peak': pe['peak_time_hrs'] is not None and hour >= pe['peak_time_hrs'],
             }
-        })
+        return {
+            'property_id': pe['property_id'],
+            'lat': pe['lat'],
+            'lon': pe['lon'],
+            'depth_m': 0,
+            'flooded': False,
+            'arrived': False,
+            'peak': False,
+        }
+
+    frames = _build_animation_frames(
+        gauge_lookup, gauge_readings, property_events, _composite_prop_state)
 
     return jsonify({
         'status': 'success',
         'storm_id': 'COMPOSITE',
-        'n_frames': n_hours,
+        'n_frames': STORM_HOURS,
         'n_properties_affected': len(property_events),
         'frames': frames,
     })

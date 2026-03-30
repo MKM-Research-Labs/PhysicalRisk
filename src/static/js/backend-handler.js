@@ -81,65 +81,40 @@
             }
         }
 
-        async function generateReport(propertyId) {
-            if (!propertyId) {
-                if (root.showError) root.showError('Property ID not found');
-                return;
-            }
-            var result = await callAPI(BACKEND.endpoints.property_report, {propertyId: propertyId}, 'Property report generated!');
-            if (result && result.pdf_base64) {
-                if (root.PropertyPDFPanel && typeof root.PropertyPDFPanel.show === 'function') {
-                    root.PropertyPDFPanel.show(propertyId, result.pdf_base64);
-                } else {
-                    var event = new CustomEvent('propertyPdfReady', {
-                        detail: { propertyId: propertyId, pdfBase64: result.pdf_base64 },
-                        bubbles: true
-                    });
-                    root.document.dispatchEvent(event);
+        function _generateReport(endpoint, idParam, panelClass, eventName) {
+            return async function(id) {
+                if (!id) {
+                    if (root.showError) root.showError(idParam + ' not found');
+                    return;
                 }
-            }
-            return result;
+                var payload = {};
+                payload[idParam] = id;
+                var result = await callAPI(endpoint, payload, panelClass.replace('PDFPanel', '') + ' report generated!');
+                if (result && result.pdf_base64) {
+                    if (root[panelClass] && typeof root[panelClass].show === 'function') {
+                        root[panelClass].show(id, result.pdf_base64);
+                    } else {
+                        var event = new CustomEvent(eventName, {
+                            detail: { pdfBase64: result.pdf_base64 },
+                            bubbles: true
+                        });
+                        event.detail[idParam] = id;
+                        root.document.dispatchEvent(event);
+                    }
+                }
+                return result;
+            };
         }
 
-        async function generateGaugeReport(gaugeId) {
-            if (!gaugeId) {
-                if (root.showError) root.showError('Gauge ID not found');
-                return;
-            }
-            var result = await callAPI(BACKEND.endpoints.gauge_report, {gaugeId: gaugeId}, 'Gauge report generated!');
-            if (result && result.pdf_base64) {
-                if (root.GaugePDFPanel && typeof root.GaugePDFPanel.show === 'function') {
-                    root.GaugePDFPanel.show(gaugeId, result.pdf_base64);
-                } else {
-                    var event = new CustomEvent('gaugePdfReady', {
-                        detail: { gaugeId: gaugeId, pdfBase64: result.pdf_base64 },
-                        bubbles: true
-                    });
-                    root.document.dispatchEvent(event);
-                }
-            }
-            return result;
-        }
-
-        async function generateMortgageReport(propertyId) {
-            if (!propertyId) {
-                if (root.showError) root.showError('Property ID not found');
-                return;
-            }
-            var result = await callAPI(BACKEND.endpoints.mortgage_report, {propertyId: propertyId}, 'Mortgage report generated!');
-            if (result && result.pdf_base64) {
-                if (root.PropertyPDFPanel && typeof root.PropertyPDFPanel.show === 'function') {
-                    root.PropertyPDFPanel.show(propertyId, result.pdf_base64);
-                } else {
-                    var event = new CustomEvent('propertyPdfReady', {
-                        detail: { propertyId: propertyId, pdfBase64: result.pdf_base64 },
-                        bubbles: true
-                    });
-                    root.document.dispatchEvent(event);
-                }
-            }
-            return result;
-        }
+        var generateReport = _generateReport(
+            BACKEND.endpoints.property_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        );
+        var generateGaugeReport = _generateReport(
+            BACKEND.endpoints.gauge_report, 'gaugeId', 'GaugePDFPanel', 'gaugePdfReady'
+        );
+        var generateMortgageReport = _generateReport(
+            BACKEND.endpoints.mortgage_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        );
 
         function viewGaugeStorms(gaugeId) {
             if (!gaugeId) {

@@ -180,14 +180,13 @@ class TestPropertyHazardPanel:
         tab.click()
         map_page.wait_for_timeout(3_000)
 
-        trigger = map_page.locator("#phc-trigger")
         notional = map_page.locator("#phc-notional")
         spread = map_page.locator("#phc-spread")
 
-        controls_found = trigger.count() + notional.count() + spread.count()
+        controls_found = notional.count() + spread.count()
         assert controls_found >= 2, (
-            f"Expected PRS pricing controls (trigger, notional, spread), "
-            f"found {controls_found} of 3"
+            f"Expected PRS pricing controls (notional, spread), "
+            f"found {controls_found} of 2"
         )
 
     def test_basis_analysis_tab_shows_content(self, map_page, first_property_id):

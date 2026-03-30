@@ -29,6 +29,7 @@ import numpy as np
 
 from config import config
 from models.hazard.gev import GEVFitter
+from port.utils.generator_base import GeneratorInitMixin
 
 from .constants import DEPTH_THRESHOLDS, MIN_PRS_SPREAD_BPS, TENORS
 from .encoder import json_default
@@ -38,7 +39,7 @@ from .pricing import PricingMixin
 logger = logging.getLogger(__name__)
 
 
-class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
+class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin):
     """
     Property-level hazard curve, PRS pricing, and basis calculator.
 
@@ -59,19 +60,11 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
         verbose: bool = True,
         mode: str = "normal",
     ):
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.mode = mode
-        self.verbose = verbose
+        self._init_generator(output_dir, mode, verbose)
         self.gev_fitter = GEVFitter()
-        if not verbose:
-            logging.getLogger(__name__).setLevel(logging.WARNING)
 
     # Keep as static method on class for backward compatibility with tests
     _json_default = staticmethod(json_default)
-
-    def log(self, message: str):
-        logger.info(message)
 
     def generate(self) -> Dict:
         """
@@ -200,9 +193,27 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin):
             # 5yr any_flood spread for the property
             prop_spread = self._get_5yr_any_flood_spread(pc)
 
-            # IDW-weighted gauge spread (already computed in the property record)
-            gauge_spreads = pc.get('idw_gauge_spreads', {}).get('any_flood', [])
-            gauge_spread = gauge_spreads[4] if len(gauge_spreads) > 4 else 0.0
+            # Use synthetic gauge spread as baseline (first SYNTH- gauge in
+            # nearest_gauges).  Falls back to IDW-weighted average if no
+            # synthetic gauge is present.
+            nearest_gauges = pc.get('nearest_gauges', [])
+            synth_gauge = next(
+                (ng for ng in nearest_gauges
+                 if ng.get('gauge_id', '').startswith('SYNTH-')),
+                None
+            )
+            if synth_gauge:
+                # Gauge spread = property spread + basis (basis = gauge - prop)
+                synth_basis = synth_gauge.get('basis_bps', {}).get(
+                    'any_flood', {}).get('values', [])
+                prop_spreads = pc.get('term_structure', {}).get(
+                    'any_flood', {}).get('prs_spread_bps', [])
+                prop_5yr = prop_spreads[4] if len(prop_spreads) > 4 else 0.0
+                synth_b = synth_basis[4] if len(synth_basis) > 4 else 0.0
+                gauge_spread = prop_5yr + synth_b
+            else:
+                gauge_spreads = pc.get('idw_gauge_spreads', {}).get('any_flood', [])
+                gauge_spread = gauge_spreads[4] if len(gauge_spreads) > 4 else 0.0
 
             # Synthetic spreads
             shd_pc = shd_curves.get(prop_id, {})

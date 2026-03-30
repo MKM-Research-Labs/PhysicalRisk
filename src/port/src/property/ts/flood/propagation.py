@@ -17,6 +17,20 @@ from models.floodrisk.velocity import (
 )
 
 
+def _scan_readings(readings):
+    """Extract arrival_time, peak_time, and flood_depth from hydrograph readings."""
+    arrival_time = None
+    peak_time = None
+    flood_depth = 0.0
+    for r in readings:
+        if r['flooded'] and arrival_time is None:
+            arrival_time = r['hour']
+        if r['depth_m'] > flood_depth:
+            flood_depth = r['depth_m']
+            peak_time = r['hour']
+    return arrival_time, peak_time, flood_depth
+
+
 class PropagationMixin:
     """Mixin providing flood propagation and event construction."""
 
@@ -129,15 +143,7 @@ class PropagationMixin:
                 floor_level,
             )
 
-        arrival_time = None
-        peak_time = None
-        flood_depth = 0.0
-        for r in readings:
-            if r['flooded'] and arrival_time is None:
-                arrival_time = r['hour']
-            if r['depth_m'] > flood_depth:
-                flood_depth = r['depth_m']
-                peak_time = r['hour']
+        arrival_time, peak_time, flood_depth = _scan_readings(readings)
 
         damage_ratio = scalar_depth_damage(flood_depth)
         peak_wse = max((r['wse_m'] for r in readings), default=0.0) if readings else 0.0
@@ -219,15 +225,7 @@ class PropagationMixin:
             cap=cap,
         )
 
-        arrival_time = None
-        peak_time = None
-        flood_depth = 0.0
-        for r in readings:
-            if r['flooded'] and arrival_time is None:
-                arrival_time = r['hour']
-            if r['depth_m'] > flood_depth:
-                flood_depth = r['depth_m']
-                peak_time = r['hour']
+        arrival_time, peak_time, flood_depth = _scan_readings(readings)
 
         damage_ratio = scalar_depth_damage(flood_depth)
         peak_wse = max((r['wse_m'] for r in readings),

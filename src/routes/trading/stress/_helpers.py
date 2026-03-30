@@ -95,6 +95,39 @@ def _load_stress_storm(storm_id: str) -> dict | None:
     return None
 
 
+def build_scaled_hydrograph(gauge_id: str, gauge_resp: dict,
+                            num_hours: int = STORM_HOURS) -> list | None:
+    """Build a hydrograph by scaling a gauge's flood simulation timeseries.
+
+    Returns a list of *num_hours* water level values, or ``None`` if the
+    gaugets file is missing or unreadable.
+    """
+    gaugets_file = config.get_gaugets_dir() / f'{gauge_id}.json'
+    if not gaugets_file.exists():
+        return None
+    try:
+        with open(gaugets_file) as gf:
+            gts_data = json.load(gf)
+        readings = gts_data.get('flood_simulation', {}).get('readings', [])
+        if not readings:
+            return None
+        raw_levels = [r.get('waterLevel', r.get('level', 0)) for r in readings]
+        sim_base = min(raw_levels)
+        sim_peak = max(raw_levels)
+        sim_rise = sim_peak - sim_base
+        storm_rise = (gauge_resp['peak_level_m']
+                      - gauge_resp.get('base_level_m', sim_base))
+        scale_factor = storm_rise / sim_rise if sim_rise > 0 else 1.0
+        scaled = [round(sim_base + (v - sim_base) * scale_factor, 4)
+                  for v in raw_levels]
+        if len(scaled) >= num_hours:
+            return scaled[:num_hours]
+        return scaled + [scaled[-1]] * (num_hours - len(scaled))
+    except Exception:
+        logger.debug("Failed to load gaugets for %s", gauge_id)
+        return None
+
+
 def _synthesize_hydrograph(base_level, level_change, duration_hours,
                             peak_position, num_hours=STORM_HOURS):
     """Generate hourly water levels using smooth rise-peak-decay.

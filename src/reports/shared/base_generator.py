@@ -24,12 +24,14 @@ Provides common PDF building, header/footer, and page management utilities
 shared by gauge, property, and risk report generators.
 """
 
+import argparse
 import logging
 import os
+import sys
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -191,3 +193,67 @@ class BaseReportGenerator(ABC):
         valid = [p for p in pages if p in self.pages]
         invalid = [p for p in pages if p not in self.pages]
         return valid, invalid
+
+
+def build_report_cli(
+    description: str,
+    report_type_choices: Sequence[str],
+    default_report_type: str = "basic",
+    extra_args_fn: Optional[Callable[[argparse.ArgumentParser], None]] = None,
+) -> argparse.Namespace:
+    """Build the common argparse CLI shared by all report generators.
+
+    Adds ``--output-dir``, ``--pages``, ``--report-type``,
+    ``--list-pages``, and ``--list-categories`` automatically.
+
+    Args:
+        description: One-line description for ``ArgumentParser``.
+        report_type_choices: Allowed values for ``--report-type``.
+        default_report_type: Default value for ``--report-type``.
+        extra_args_fn: Optional callback that receives the parser so the
+            caller can register report-specific arguments (e.g.
+            ``--gauge-file``, ``--flood-file``).
+
+    Returns:
+        Parsed ``argparse.Namespace``.
+    """
+    parser = argparse.ArgumentParser(description=description)
+
+    # Let callers add report-specific required/optional args first
+    if extra_args_fn is not None:
+        extra_args_fn(parser)
+
+    # Common optional arguments
+    parser.add_argument("--output-dir", default="reports", help="Output directory")
+    parser.add_argument("--pages", nargs="+", help="Specific pages to include")
+    parser.add_argument(
+        "--report-type",
+        choices=list(report_type_choices),
+        default=default_report_type,
+        help="Type of report to generate",
+    )
+
+    # Information arguments
+    parser.add_argument("--list-pages", action="store_true", help="List available pages")
+    parser.add_argument(
+        "--list-categories", action="store_true", help="List page categories"
+    )
+
+    return parser.parse_args()
+
+
+def handle_info_requests(args: argparse.Namespace, generator: "BaseReportGenerator") -> None:
+    """Handle ``--list-pages`` / ``--list-categories`` and exit if requested."""
+    if getattr(args, "list_pages", False):
+        logger.info("Available pages:")
+        for page in generator.list_available_pages():
+            logger.info(f"  - {page}")
+        sys.exit(0)
+
+    if getattr(args, "list_categories", False):
+        logger.info("Page categories:")
+        for category, pages in generator.get_page_categories().items():
+            logger.info(f"\n{category}:")
+            for page in pages:
+                logger.info(f"  - {page}")
+        sys.exit(0)

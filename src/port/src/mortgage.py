@@ -67,22 +67,12 @@ import numpy as np
 
 from config import config
 from port.cdm import MortgageCDM
+from port.utils.schema import build_section
 
 logger = logging.getLogger(__name__)
 
 
-class DateTimeEncoder(json.JSONEncoder):
-    """Custom JSON encoder to handle datetime objects."""
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        elif isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super().default(obj)
+from port.utils.encoders import DateTimeEncoder  # noqa: F401
 
 
 class MortgagePortfolioGenerator:
@@ -296,23 +286,7 @@ class MortgagePortfolioGenerator:
 
     def _build_section(self, section_schema: Dict, index: int, financial_data: Dict) -> Dict:
         """Recursively build a section of mortgage data based on the schema."""
-        result = {}
-
-        if not isinstance(section_schema, dict):
-            return {}
-
-        for field_name, field_def in section_schema.items():
-            if field_name in ['type', 'options', 'description', 'values']:
-                continue
-
-            if isinstance(field_def, dict) and not field_def.get("type"):
-                result[field_name] = self._build_section(field_def, index, financial_data)
-            else:
-                value = self.random.generate_field_value(field_name, field_def, index, financial_data)
-                if value is not None:
-                    result[field_name] = value
-
-        return result
+        return build_section(section_schema, index, financial_data, self.random)
 
     def _set_specific_mortgage_values(self, mortgage_data: Dict, mortgage_id: str,
                                      index: int, financial_data: Dict, property_info: Dict):
@@ -345,21 +319,8 @@ class MortgagePortfolioGenerator:
         if hasattr(self.random, 'quality_consistency_check'):
             return self.random.quality_consistency_check(mortgage_data, financial_data)
 
-        mortgage = mortgage_data.get('Mortgage', {})
-        loan = mortgage.get('LoanDetails', {})
-
-        original = loan.get('OriginalLoanAmount', 400000)
-        current = loan.get('CurrentBalance', 380000)
-        if current > original:
-            loan['CurrentBalance'] = original * 0.95
-
-        ltv = loan.get('LTV', 80)
-        if ltv > 100:
-            loan['LTV'] = 95
-        elif ltv < 10:
-            loan['LTV'] = 60
-
-        return mortgage_data
+        from port.rand.thames.mortgage.quality import quality_consistency_check
+        return quality_consistency_check(mortgage_data, financial_data)
 
 
 # =============================================================================

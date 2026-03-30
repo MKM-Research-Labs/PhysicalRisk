@@ -15,6 +15,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .formatters import fmt_gbp
 from .layouts import white_hdr_style
+from .styles import PURPLE_TABLE_STYLE
 
 
 def build_page4_mortgage(
@@ -197,22 +198,9 @@ def build_page4_mortgage(
         ])
 
     sl_tbl = Table(sl_rows, colWidths=sl_col_w, repeatRows=1)
-    sl_tbl.setStyle(TableStyle([
-        ('BACKGROUND',     (0, 0), (-1, 0),  colors.HexColor('#4A148C')),
-        ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.white),
-        ('FONTNAME',       (0, 0), (-1, 0),  'Helvetica-Bold'),
-        ('FONTSIZE',       (0, 0), (-1, -1), 8),
-        ('ALIGN',          (2, 1), (-1, -1), 'CENTER'),
-        ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
-        ('BOX',            (0, 0), (-1, -1), 1,   colors.HexColor('#4A148C')),
-        ('TOPPADDING',     (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING',  (0, 0), (-1, -1), 4),
-        ('LEFTPADDING',    (0, 0), (-1, -1), 4),
-        ('RIGHTPADDING',   (0, 0), (-1, -1), 4),
-        ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-         [colors.white, colors.HexColor('#F3E5F5')]),
-    ] + sl_row_styles))
+    sl_tbl.setStyle(PURPLE_TABLE_STYLE)
+    if sl_row_styles:
+        sl_tbl.setStyle(TableStyle(sl_row_styles))
     elements.append(sl_tbl)
     elements.append(Spacer(1, 0.14 * 72))
 

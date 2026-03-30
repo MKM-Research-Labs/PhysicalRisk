@@ -158,23 +158,12 @@ def _extract_property_value(prop: Dict[str, Any]) -> Any:
 
 
 def _calculate_age_factor(construction_year: Union[int, str]) -> str:
-    """Calculate property age factor."""
-    if construction_year and construction_year != 'Unknown':
-        try:
-            year = int(construction_year)
-            current_year = datetime.now().year
-            age = current_year - year
+    """Calculate property age factor.
 
-            if age > 100:
-                return f"High Risk (Pre-{current_year - 100})"
-            elif age > 50:
-                return f"Medium Risk ({current_year - 100}-{current_year - 50})"
-            else:
-                return f"Low Risk (Post-{current_year - 50})"
-        except (ValueError, TypeError):
-            pass
-
-    return "Unknown"
+    Delegates to PropertyFormatters.format_property_age.
+    """
+    from visual.utils.formatters import DataFormatter
+    return DataFormatter.format_property_age(construction_year)
 
 
 class PropertyDataExtractor:

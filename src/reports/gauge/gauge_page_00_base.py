@@ -103,6 +103,20 @@ class GaugeBasePage(ReportBasePage):
             return "Never"
         return self._format_value(value)
 
+    def _get_gauge_id(self, gauge_data: Dict[str, Any]) -> str:
+        """Extract gauge ID from data."""
+        try:
+            return gauge_data['FloodGauge']['Header']['GaugeID']
+        except (KeyError, TypeError):
+            return 'Unknown Gauge'
+
+    def _get_gauge_name(self, gauge_data: Dict[str, Any]) -> str:
+        """Extract gauge name from data."""
+        try:
+            return gauge_data['FloodGauge']['Header']['GaugeName']
+        except (KeyError, TypeError):
+            return 'Unknown Gauge Name'
+
     @abstractmethod
     def generate_elements(self, gauge_data: Dict[str, Any],
                          timeseries_data: Dict[str, Any] = None) -> List:

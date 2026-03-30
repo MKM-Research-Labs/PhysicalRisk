@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 from config import config
+from port.utils.generator_base import GeneratorInitMixin
 
 from .encoder import DateTimeEncoder
 from .flood import FloodMixin
@@ -37,7 +38,7 @@ from .loader import LoaderMixin
 logger = logging.getLogger(__name__)
 
 
-class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
+class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
     """
     Property Flood Time Series Generator.
 
@@ -56,16 +57,8 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin):
         verbose: bool = True,
         mode: str = "normal",
     ):
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.mode = mode
-        self.verbose = verbose
-        if not verbose:
-            logging.getLogger(__name__).setLevel(logging.WARNING)
+        self._init_generator(output_dir, mode, verbose)
         self._storm_to_sequence: Dict[str, str] = self._load_storm_sequence_map()
-
-    def log(self, message: str):
-        logger.info(message)
 
     def generate(self) -> Dict:
         """

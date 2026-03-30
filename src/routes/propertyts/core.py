@@ -44,6 +44,29 @@ from . import _get_propertyts_dir, propertyts_bp
 logger = logging.getLogger(__name__)
 
 
+def _load_property_or_404(prop_id):
+    """Handle OPTIONS preflight, locate a property flood file, and load it.
+
+    Returns ``(None, data)`` on success, or ``(response, None)`` when an
+    early return (OPTIONS / 404) should be sent.
+    """
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), None
+
+    pts_dir = _get_propertyts_dir()
+    prop_file = pts_dir / f'{prop_id}.json'
+
+    if not prop_file.exists():
+        return (jsonify({
+            'status': 'error',
+            'message': f'Property {prop_id} not found in flood timeseries'
+        }), 404), None
+
+    with open(prop_file, 'r') as f:
+        data = json.load(f)
+    return None, data
+
+
 @propertyts_bp.route('/propertyts/summary', methods=['GET', 'OPTIONS'])
 def propertyts_summary():
     """Get portfolio flood summary statistics."""
@@ -74,20 +97,9 @@ def property_floods(prop_id: str):
     Query params:
         include_readings: bool (default false) - include hourly hydrograph readings
     """
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    pts_dir = _get_propertyts_dir()
-    prop_file = pts_dir / f'{prop_id}.json'
-
-    if not prop_file.exists():
-        return jsonify({
-            'status': 'error',
-            'message': f'Property {prop_id} not found in flood timeseries'
-        }), 404
-
-    with open(prop_file, 'r') as f:
-        data = json.load(f)
+    early, data = _load_property_or_404(prop_id)
+    if early is not None:
+        return early
 
     include_readings = request.args.get('include_readings', 'false').lower() == 'true'
     if not include_readings:
@@ -108,20 +120,9 @@ def property_storms(prop_id: str):
     Returns flood events with hydrograph readings, nearest gauge info,
     and summary statistics — structured for the property storm analysis panel.
     """
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-
-    pts_dir = _get_propertyts_dir()
-    prop_file = pts_dir / f'{prop_id}.json'
-
-    if not prop_file.exists():
-        return jsonify({
-            'status': 'error',
-            'message': f'Property {prop_id} not found in flood timeseries'
-        }), 404
-
-    with open(prop_file, 'r') as f:
-        pdata = json.load(f)
+    early, pdata = _load_property_or_404(prop_id)
+    if early is not None:
+        return early
 
     # Build sequence_id → sequence_type lookup
     seq_lookup = {}

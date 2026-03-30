@@ -153,27 +153,14 @@ def _train_single_gauge(gauge_id: str):
     try:
         import numpy as np
         from port.src.stressm.classifier import train_gauge_stressm_classifier
-        from port.src.stressm.gauge_parser import (
-            _extract_gauges, _parse_gauge, _load_gaugehd_baselines,
-        )
-        from port.src.storm_multi.models.spatial_correlation import (
-            SpatialCorrelationModel,
-        )
+        from port.src.stressm.summary import load_gauge_training_context
         from port.src.storm_multi.utils.serialization import load_sequences
 
         input_dir = config.get_input_dir()
         output_dir = config.get_output_dir()
 
-        # Load gauge data
-        with open(input_dir / "gauge.json") as f:
-            gauge_json = json.load(f)
-
-        baselines = _load_gaugehd_baselines(input_dir / "gaugehd")
-        raw_gauges = _extract_gauges(gauge_json)
-        all_gauges = [
-            p for r in raw_gauges
-            if (p := _parse_gauge(r, baselines)) is not None
-        ]
+        # Load gauge data and spatial model
+        all_gauges, all_gauge_ids, spatial_model = load_gauge_training_context(input_dir)
 
         # Find target gauge
         target = [g for g in all_gauges if g["gauge_id"] == gauge_id]
@@ -186,10 +173,6 @@ def _train_single_gauge(gauge_id: str):
                 }
             return
 
-        # Build spatial model from all gauges
-        all_locations = [(g["lat"], g["lon"]) for g in all_gauges]
-        spatial_model = SpatialCorrelationModel(all_locations)
-        all_gauge_ids = [g["gauge_id"] for g in all_gauges]
         target_idx = all_gauge_ids.index(gauge_id)
 
         # Load sequences
@@ -208,7 +191,8 @@ def _train_single_gauge(gauge_id: str):
         )
 
         # Update training_summary.json (merge with existing)
-        _update_training_summary(result)
+        from port.src.stressm.summary import update_training_summary
+        update_training_summary(result, config.get_classifiers_dir())
 
         with _training_lock:
             _training_jobs[gauge_id] = {
@@ -229,35 +213,3 @@ def _train_single_gauge(gauge_id: str):
             }
 
 
-def _update_training_summary(result: dict):
-    """Merge a single gauge training result into training_summary.json."""
-    stressm_dir = config.get_classifiers_dir()
-    summary_path = stressm_dir / "training_summary.json"
-
-    # Load existing summary or create empty
-    if summary_path.exists():
-        with open(summary_path) as f:
-            summary = json.load(f)
-    else:
-        summary = {"num_gauges": 0, "num_trained": 0,
-                   "num_skipped": 0, "avg_auc_roc": 0, "gauges": []}
-
-    # Remove old entry for this gauge if present
-    gauges = [g for g in summary.get("gauges", [])
-              if g.get("gauge_id") != result.get("gauge_id")]
-    gauges.append(result)
-
-    # Recompute summary stats
-    trained = [g for g in gauges if g.get("status") == "trained"]
-    avg_auc = (
-        sum(g["metrics"]["auc_roc"] for g in trained) / len(trained)
-        if trained else 0.0
-    )
-    summary["num_gauges"] = len(gauges)
-    summary["num_trained"] = len(trained)
-    summary["num_skipped"] = len(gauges) - len(trained)
-    summary["avg_auc_roc"] = round(avg_auc, 4)
-    summary["gauges"] = gauges
-
-    with open(summary_path, "w") as f:
-        json.dump(summary, f, indent=2)

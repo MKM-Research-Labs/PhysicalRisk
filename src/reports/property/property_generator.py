@@ -26,12 +26,11 @@ PropertyReportGenerator class lives in .generator.
 
 import json
 import logging
-import platform
-import subprocess
 import sys
-import webbrowser
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
+from reports.utils.open_pdf import open_pdf_file
 
 from .generator import PropertyReportGenerator  # noqa: F401
 
@@ -79,39 +78,6 @@ def generate_property_report(property_data: Dict[str, Any],
         logger.debug("auto_open is False, skipping PDF open")
 
     return report_path
-
-
-def open_pdf_file(file_path: Path) -> bool:
-    """
-    Open a PDF file using the system's default PDF viewer.
-
-    Args:
-        file_path: Path to the PDF file
-
-    Returns:
-        True if successful, False otherwise
-    """
-    try:
-        system = platform.system().lower()
-        file_path_str = str(file_path.absolute())
-
-        if system == "darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=True)
-        elif system == "windows":  # Windows
-            subprocess.run(["start", "", file_path_str], shell=True, check=True)
-        elif system == "linux":  # Linux
-            subprocess.run(["xdg-open", file_path_str], check=True)
-        else:
-            webbrowser.open(f"file://{file_path_str}")
-
-        return True
-
-    except subprocess.CalledProcessError as e:
-        logger.error(f"System command failed: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"Failed to open PDF: {e}")
-        return False
 
 
 def _find_property_by_id(data, property_id):
