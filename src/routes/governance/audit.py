@@ -40,6 +40,7 @@ from ._constants import (
 )
 from ._helpers import (
     _find_model,
+    _get_model_or_404,
     _load_inventory,
     _save_inventory,
     _load_audit_log,
@@ -53,13 +54,9 @@ logger = logging.getLogger(__name__)
 @governance_bp.route("/governance/models/<model_id>/audit", methods=["POST"])
 def log_model_usage(model_id):
     """Log a model usage event to the audit trail."""
-    inventory = _load_inventory()
-    if not inventory:
-        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
-
-    # Verify model exists
-    if not _find_model(inventory, model_id):
-        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    result = _get_model_or_404(model_id)
+    if not isinstance(result[1], dict):
+        return result  # error response
 
     data = request.get_json(silent=True) or {}
 
@@ -125,13 +122,10 @@ def update_validation_question(model_id, question_id):
 
     Expects JSON: {status, evidence, reviewed_by}
     """
-    inventory = _load_inventory()
-    if not inventory:
-        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
-
-    model = _find_model(inventory, model_id)
-    if not model:
-        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    result = _get_model_or_404(model_id)
+    if not isinstance(result[1], dict):
+        return result  # error response
+    inventory, model = result
 
     questions = model.get("validation_questions", [])
     question = None
@@ -201,13 +195,10 @@ def update_validation_question(model_id, question_id):
 @governance_bp.route("/governance/models/<model_id>/risk-rating", methods=["GET"])
 def get_risk_rating(model_id):
     """Calculate and return the composite risk rating for a model."""
-    inventory = _load_inventory()
-    if not inventory:
-        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
-
-    model = _find_model(inventory, model_id)
-    if not model:
-        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    result = _get_model_or_404(model_id)
+    if not isinstance(result[1], dict):
+        return result  # error response
+    inventory, model = result
 
     calc = _calculate_risk_rating(model)
 
@@ -235,13 +226,10 @@ def override_risk_rating(model_id):
     Expects JSON: {rating, reason, user}
     Set rating to null to clear override.
     """
-    inventory = _load_inventory()
-    if not inventory:
-        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
-
-    model = _find_model(inventory, model_id)
-    if not model:
-        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    result = _get_model_or_404(model_id)
+    if not isinstance(result[1], dict):
+        return result  # error response
+    inventory, model = result
 
     data = request.get_json(silent=True) or {}
     new_rating = data.get("rating")

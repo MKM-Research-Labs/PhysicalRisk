@@ -144,6 +144,28 @@ def _build_animation_frames(gauge_lookup, gauge_readings, property_events,
 # Endpoints
 # ---------------------------------------------------------------------------
 
+def _load_animation_context():
+    """Load pts_dir, gauge_lookup, and gauge_readings.
+
+    Returns (pts_dir, gauge_lookup, gauge_readings) on success, or
+    a (response, status_code) tuple on failure.
+    """
+    pts_dir = _get_propertyts_dir()
+    if not pts_dir.exists():
+        return jsonify({
+            'status': 'error',
+            'message': 'Property flood timeseries not yet generated'
+        }), 404
+
+    gauge_path = config.get_input_path('gauge.json')
+    with open(gauge_path, 'r') as f:
+        gauge_data = json.load(f)
+
+    gauge_lookup = _build_gauge_lookup(gauge_data)
+    gauge_readings = _load_gauge_readings(config.get_gaugets_dir())
+    return pts_dir, gauge_lookup, gauge_readings
+
+
 @propertyts_bp.route('/propertyts/animate/<storm_id>', methods=['GET', 'OPTIONS'])
 def animate_storm(storm_id: str):
     """
@@ -155,20 +177,10 @@ def animate_storm(storm_id: str):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
-        return jsonify({
-            'status': 'error',
-            'message': 'Property flood timeseries not yet generated'
-        }), 404
-
-    # Load gauge data and readings
-    gauge_path = config.get_input_path('gauge.json')
-    with open(gauge_path, 'r') as f:
-        gauge_data = json.load(f)
-
-    gauge_lookup = _build_gauge_lookup(gauge_data)
-    gauge_readings = _load_gauge_readings(config.get_gaugets_dir())
+    ctx = _load_animation_context()
+    if len(ctx) == 2:
+        return ctx  # error response
+    pts_dir, gauge_lookup, gauge_readings = ctx
 
     # Collect all properties affected by this storm
     property_events = []
@@ -246,20 +258,10 @@ def animate_composite():
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
-        return jsonify({
-            'status': 'error',
-            'message': 'Property flood timeseries not yet generated'
-        }), 404
-
-    # Load gauge data and readings
-    gauge_path = config.get_input_path('gauge.json')
-    with open(gauge_path, 'r') as f:
-        gauge_data = json.load(f)
-
-    gauge_lookup = _build_gauge_lookup(gauge_data)
-    gauge_readings = _load_gauge_readings(config.get_gaugets_dir())
+    ctx = _load_animation_context()
+    if len(ctx) == 2:
+        return ctx  # error response
+    pts_dir, gauge_lookup, gauge_readings = ctx
 
     # For each property, find worst storm event
     property_events = []

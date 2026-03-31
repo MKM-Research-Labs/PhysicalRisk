@@ -35,6 +35,7 @@ from . import governance_bp
 from ._constants import EDITABLE_FIELDS
 from ._helpers import (
     _find_model,
+    _get_model_or_404,
     _load_inventory,
     _save_inventory,
     _load_audit_log,
@@ -129,14 +130,10 @@ def update_model_field(model_id):
 
     Expects JSON: {field, value, reason, user}
     """
-    inventory = _load_inventory()
-    if not inventory:
-        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
-
-    model = _find_model(inventory, model_id)
-
-    if not model:
-        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    result = _get_model_or_404(model_id)
+    if not isinstance(result[1], dict):
+        return result  # error response
+    inventory, model = result
 
     data = request.get_json(silent=True) or {}
     field = data.get("field")
@@ -213,14 +210,10 @@ def get_editable_fields():
 @governance_bp.route("/governance/models/<model_id>", methods=["GET"])
 def get_model_detail(model_id):
     """Get full detail for a single model."""
-    inventory = _load_inventory()
-    if not inventory:
-        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
-
-    model = _find_model(inventory, model_id)
-
-    if not model:
-        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    result = _get_model_or_404(model_id)
+    if not isinstance(result[1], dict):
+        return result  # error response
+    inventory, model = result
 
     # Load recent audit entries for this model
     audit_log = _load_audit_log()

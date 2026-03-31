@@ -143,8 +143,18 @@ class PropagationMixin:
                 floor_level,
             )
 
-        arrival_time, peak_time, flood_depth = _scan_readings(readings)
+        return self._make_event_dict(
+            storm_id, interpolated_wse, readings, travel_time, retention)
 
+    @staticmethod
+    def _make_event_dict(storm_id, interpolated_wse, readings,
+                         travel_time, retention, **extras):
+        """Build the canonical flood-event dict from computed readings.
+
+        Shared by _build_flood_event and _build_compound_flood_event to
+        avoid duplicating the scan → damage → serialise logic.
+        """
+        arrival_time, peak_time, flood_depth = _scan_readings(readings)
         damage_ratio = scalar_depth_damage(flood_depth)
         peak_wse = max((r['wse_m'] for r in readings), default=0.0) if readings else 0.0
 
@@ -159,6 +169,7 @@ class PropagationMixin:
             'peak_time_hrs': peak_time,
             'travel_time_hrs': round(travel_time, 2),
             'retention_factor': round(retention, 4),
+            **extras,
         }
 
         # Only store 168-hour readings for events that actually flood the
@@ -225,32 +236,10 @@ class PropagationMixin:
             cap=cap,
         )
 
-        arrival_time, peak_time, flood_depth = _scan_readings(readings)
-
-        damage_ratio = scalar_depth_damage(flood_depth)
-        peak_wse = max((r['wse_m'] for r in readings),
-                       default=0.0) if readings else 0.0
-
-        event = {
-            'storm_id': storm_id,
-            'interpolated_wse_m': round(overall_peak, 4),
-            'attenuated_wse_m': round(peak_wse, 4),
-            'flood_depth_m': round(flood_depth, 4),
-            'damage_ratio': round(damage_ratio, 4),
-            'flooded': flood_depth > 0,
-            'arrival_time_hrs': arrival_time,
-            'peak_time_hrs': peak_time,
-            'travel_time_hrs': round(travel_time, 2),
-            'retention_factor': round(retention, 4),
-            'compound': True,
-            'num_pulses': len(pulse_peaks),
-            'sequence_type': sequence_type,
-        }
-
-        if flood_depth > 0:
-            event['readings'] = readings
-
-        return event
+        return self._make_event_dict(
+            storm_id, overall_peak, readings, travel_time, retention,
+            compound=True, num_pulses=len(pulse_peaks),
+            sequence_type=sequence_type)
 
     @staticmethod
     def _depth_to_damage(depth: float) -> float:
