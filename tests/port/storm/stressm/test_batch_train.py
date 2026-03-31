@@ -69,7 +69,7 @@ class TestUpdateTrainingSummary:
     """Incremental merge into training_summary.json."""
 
     def test_creates_new_summary(self, tmp_path):
-        from port.src.stressm.batch_train import _update_training_summary
+        from port.src.stressm.summary import update_training_summary as _update_training_summary
         result = _fake_train_result("GAUGE-001")
         _update_training_summary(result, tmp_path)
         summary = json.loads((tmp_path / "training_summary.json").read_text())
@@ -78,7 +78,7 @@ class TestUpdateTrainingSummary:
         assert summary["avg_auc_roc"] == 0.95
 
     def test_merges_into_existing(self, tmp_path):
-        from port.src.stressm.batch_train import _update_training_summary
+        from port.src.stressm.summary import update_training_summary as _update_training_summary
         # First gauge
         _update_training_summary(_fake_train_result("GAUGE-001", auc=0.90), tmp_path)
         # Second gauge
@@ -89,7 +89,7 @@ class TestUpdateTrainingSummary:
         assert summary["avg_auc_roc"] == 0.95  # (0.90 + 1.0) / 2
 
     def test_replaces_existing_gauge(self, tmp_path):
-        from port.src.stressm.batch_train import _update_training_summary
+        from port.src.stressm.summary import update_training_summary as _update_training_summary
         _update_training_summary(_fake_train_result("GAUGE-001", auc=0.80), tmp_path)
         _update_training_summary(_fake_train_result("GAUGE-001", auc=0.95), tmp_path)
         summary = json.loads((tmp_path / "training_summary.json").read_text())
@@ -97,7 +97,7 @@ class TestUpdateTrainingSummary:
         assert summary["gauges"][0]["metrics"]["auc_roc"] == 0.95
 
     def test_skipped_gauge_not_counted_as_trained(self, tmp_path):
-        from port.src.stressm.batch_train import _update_training_summary
+        from port.src.stressm.summary import update_training_summary as _update_training_summary
         result = {"gauge_id": "GAUGE-001", "status": "skipped"}
         _update_training_summary(result, tmp_path)
         summary = json.loads((tmp_path / "training_summary.json").read_text())

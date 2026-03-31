@@ -140,13 +140,13 @@ class TestPRSTradeIDGenerator:
     """PRS trade generator produces PRS-{8hex} IDs via uuid4.hex[:8].upper()."""
 
     def test_book_thames_uses_prs_prefix(self):
-        from port.src.book import book_thames as bt
-        src = inspect.getsource(bt)
-        assert 'PRS-' in src, "book_thames must use 'PRS-' prefix for swap IDs"
+        from port.src.book import book_common as bc
+        src = inspect.getsource(bc)
+        assert 'PRS-' in src, "book_common (trade ID generator) must use 'PRS-' prefix for swap IDs"
 
     def test_book_thames_uses_uuid(self):
-        from port.src.book import book_thames as bt
-        src = inspect.getsource(bt)
+        from port.src.book import book_common as bc
+        src = inspect.getsource(bc)
         assert 'uuid' in src
 
     def test_uuid4_hex_upper_produces_protocol_matching_ids(self):

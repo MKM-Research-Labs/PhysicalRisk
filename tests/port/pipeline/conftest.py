@@ -63,9 +63,13 @@ def _run_pipeline(output_dir):
     CounterpartyPortfolioGenerator(output_dir, verbose=False).generate()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def pipeline_dir(tmp_path_factory):
-    """Run a mini pipeline once for the session; yield the directory."""
+    """Run a mini pipeline once per module; yield the directory.
+
+    Module scope prevents config.input_dir mutations in generators.py
+    from racing with the fixture setup for integration.py.
+    """
     d = tmp_path_factory.mktemp("pipeline")
     original_input_dir = config.input_dir
     config.input_dir = d

@@ -147,8 +147,9 @@ class TestPortStressPFloodTab:
         assert 'Chart(' in ps_js
 
     def test_pflood_canvas_id(self, ps_js):
-        """Canvas element uses ps-pflood-canvas ID."""
-        assert 'ps-pflood-canvas' in ps_js
+        """P(flood) tab contains the heatmap canvas and chart area container."""
+        assert 'ps-heatmap-canvas' in ps_js
+        assert 'ps-pflood-chart-area' in ps_js
 
     def test_pflood_threshold_colours(self, ps_js):
         """Threshold bar colours must be present: severe red, warning orange, alert amber."""
