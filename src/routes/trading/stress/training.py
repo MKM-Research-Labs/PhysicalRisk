@@ -25,6 +25,13 @@ from .. import trading_bp
 
 logger = logging.getLogger(__name__)
 
+
+def _update_training_summary(result):
+    """Convenience wrapper used by tests — delegates to the canonical helper."""
+    from port.src.stressm.summary import update_training_summary
+    update_training_summary(result, config.get_classifiers_dir())
+
+
 # Module-level dict to track training jobs.
 # gauge_id -> {"status": "training"|"ready"|"failed", "started": float, "error": str|None}
 _training_jobs: dict = {}
