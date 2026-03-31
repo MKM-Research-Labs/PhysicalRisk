@@ -115,20 +115,11 @@ class MortgageLayer:
 
         return mortgage_locations
 
-    def _get_properties_list(self, property_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    @staticmethod
+    def _get_properties_list(property_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract properties list from property data."""
-        if isinstance(property_data, dict):
-            properties = property_data.get('items') or property_data.get('properties') or []
-            if not properties and 'PropertyHeader' in property_data:
-                properties = [property_data]
-            elif not properties:
-                properties = property_data.get('portfolio', [])
-        elif isinstance(property_data, list):
-            properties = property_data
-        else:
-            properties = []
-
-        return properties
+        from visual.layer import get_properties_list
+        return get_properties_list(property_data)
 
     def configure(self, show_risk_circles: bool = True, show_ltv_indicators: bool = True,
                  circle_opacity: float = 0.4, max_circle_radius: int = 500):

@@ -12,6 +12,22 @@ from typing import Dict
 logger = logging.getLogger(__name__)
 
 
+def _build_default_hazard_ts(base: Dict) -> Dict:
+    """Build a default hazard term structure for one gauge's base rates.
+
+    Returns {trigger: {"1": rate, ..., "5": rate}} with a flat 5% annual slope.
+    """
+    ts = {}
+    for trigger in ['alert', 'warning', 'severe']:
+        rate_key = f'annual_hazard_rate_{trigger}'
+        base_rate = base.get(rate_key, 0.02)
+        ts[trigger] = {
+            str(t): round(base_rate * (1 + 0.05 * t), 6)
+            for t in range(1, 6)
+        }
+    return ts
+
+
 class _PersistenceMixin:
     """Handles market state persistence to/from disk."""
 
@@ -84,15 +100,7 @@ class _PersistenceMixin:
         for gauge_id, base in current_base.items():
             if gauge_id not in existing_base:
                 existing_base[gauge_id] = base
-                # Build default term structure for the new gauge
-                hazard_ts[gauge_id] = {}
-                for trigger in ['alert', 'warning', 'severe']:
-                    rate_key = f'annual_hazard_rate_{trigger}'
-                    base_rate = base.get(rate_key, 0.02)
-                    hazard_ts[gauge_id][trigger] = {
-                        str(t): round(base_rate * (1 + 0.05 * t), 6)
-                        for t in range(1, 6)
-                    }
+                hazard_ts[gauge_id] = _build_default_hazard_ts(base)
                 added += 1
 
         if added:
@@ -109,16 +117,8 @@ class _PersistenceMixin:
         base_rates = self._load_base_curves()
 
         # Build default hazard term structures: flat at base rate, slope to 1.25x at 5Y
-        hazard_ts = {}
-        for gauge_id, base in base_rates.items():
-            hazard_ts[gauge_id] = {}
-            for trigger in ['alert', 'warning', 'severe']:
-                rate_key = f'annual_hazard_rate_{trigger}'
-                base_rate = base.get(rate_key, 0.02)
-                hazard_ts[gauge_id][trigger] = {
-                    str(t): round(base_rate * (1 + 0.05 * t), 6)
-                    for t in range(1, 6)
-                }
+        hazard_ts = {gid: _build_default_hazard_ts(base)
+                     for gid, base in base_rates.items()}
 
         state = {
             'last_updated': datetime.now().isoformat(),

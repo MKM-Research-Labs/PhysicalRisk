@@ -58,6 +58,20 @@ def _find_model(inventory, model_id):
     return None
 
 
+def _get_model_or_404(model_id):
+    """Load inventory and find model, returning JSON 404 on failure.
+
+    Returns (inventory, model) on success, or (response, status_code) on error.
+    """
+    inventory = _load_inventory()
+    if not inventory:
+        return jsonify({"status": "error", "message": "Model inventory not found"}), 404
+    model = _find_model(inventory, model_id)
+    if not model:
+        return jsonify({"status": "error", "message": f"Model {model_id} not found"}), 404
+    return inventory, model
+
+
 def _save_inventory(data):
     """Save model inventory to JSON file."""
     try:
