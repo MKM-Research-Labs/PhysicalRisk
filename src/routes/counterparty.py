@@ -74,7 +74,7 @@ def list_counterparties():
         })
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @counterparty_bp.route("/counterparties/<ctpy_id>", methods=["GET"])
@@ -90,4 +90,4 @@ def get_counterparty(ctpy_id: str):
         return jsonify({"status": "error", "message": f"Counterparty {ctpy_id} not found"}), 404
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

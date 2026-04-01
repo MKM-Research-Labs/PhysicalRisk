@@ -28,19 +28,24 @@ previously duplicated between Config and PortfolioConfig.
 import os
 
 
+def _validated_port() -> int:
+    port = int(os.getenv('MKM_SERVER_PORT', '5013'))
+    if not 1 <= port <= 65535:
+        raise ValueError(f"MKM_SERVER_PORT={port} outside valid range 1-65535")
+    return port
+
+
 class ServerMixin:
     """Shared server settings inherited by both Config and PortfolioConfig."""
 
     SERVER_HOST: str = os.getenv('MKM_SERVER_HOST', '127.0.0.1')
-    SERVER_PORT: int = int(os.getenv('MKM_SERVER_PORT', '5013'))
+    SERVER_PORT: int = _validated_port()
     DEBUG: bool = os.getenv('MKM_DEBUG', 'false').lower() == 'true'
     CATCHMENT: str = os.getenv('MKM_CATCHMENT', 'thames')
 
     CORS_ORIGINS: list = [
         "http://localhost:*",
         "http://127.0.0.1:*",
-        "file://*",
-        "null",
     ]
 
     # Unified API endpoint map (superset of what was in Config + PortfolioConfig).

@@ -112,4 +112,4 @@ def get_gauge_storms(gauge_id: str):
 
     except Exception as e:
         logger.error(f"Error getting storm data: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500

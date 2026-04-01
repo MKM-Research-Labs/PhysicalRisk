@@ -62,7 +62,7 @@ def get_market_state():
 
     except Exception as e:
         logger.error("Market state error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/market-state", methods=["POST"])
@@ -116,7 +116,7 @@ def update_market_state():
 
     except Exception as e:
         logger.error("Market state update error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/market-state/reset", methods=["POST"])
@@ -137,4 +137,4 @@ def reset_market_state():
 
     except Exception as e:
         logger.error("Market reset error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

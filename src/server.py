@@ -58,6 +58,23 @@ def create_app() -> Flask:
     # Configure CORS
     CORS(app, **config.get_cors_config())
 
+    # Security headers
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        return response
+
+    # Audit logging for mutating requests
+    @app.before_request
+    def audit_log():
+        from flask import request as req
+        if req.method in ('POST', 'PUT', 'DELETE', 'PATCH'):
+            logger.info("AUDIT %s %s from %s", req.method, req.path,
+                        req.remote_addr)
+
     # Register blueprints
     register_blueprints(app)
 

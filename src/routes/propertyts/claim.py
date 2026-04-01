@@ -132,7 +132,7 @@ def property_claim_report(prop_id: str):
         pdf_bytes = gen.generate(prop_data, prop_record, mortgage_record, sequence_lookup)
     except Exception as e:
         logger.error(f'Failed to generate claim report for {prop_id}: {e}', exc_info=True)
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
     filename = f'claim_report_{prop_id}.pdf'
     return Response(

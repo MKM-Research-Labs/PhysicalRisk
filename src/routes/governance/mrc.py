@@ -33,7 +33,7 @@ from flask import jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
 from . import governance_bp
-from ._constants import MRC_UPLOADS_DIR
+from ._constants import ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_SIZE, MRC_UPLOADS_DIR
 from ._helpers import _load_meetings, _save_meetings
 
 
@@ -160,6 +160,18 @@ def upload_meeting_document(meeting_id):
     f = request.files["file"]
     if not f.filename:
         return jsonify({"status": "error", "message": "No file selected"}), 400
+
+    # Validate file extension
+    ext = os.path.splitext(f.filename)[1].lstrip('.').lower()
+    if ext not in ALLOWED_UPLOAD_EXTENSIONS:
+        return jsonify({"status": "error", "message": f"File type '.{ext}' not allowed"}), 400
+
+    # Validate file size
+    f.seek(0, 2)
+    size = f.tell()
+    f.seek(0)
+    if size > MAX_UPLOAD_SIZE:
+        return jsonify({"status": "error", "message": "File exceeds 50 MB limit"}), 413
 
     upload_dir = os.path.join(MRC_UPLOADS_DIR, meeting_id)
     os.makedirs(upload_dir, exist_ok=True)

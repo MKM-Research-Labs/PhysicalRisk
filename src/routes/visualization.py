@@ -79,7 +79,7 @@ def serve_visualization():
         logger.error(f"Visualization module not available: {e}")
         return jsonify({
             'status': 'error',
-            'message': f'Visualization system not available: {e}',
+            'message': 'Internal server error',
             'hint': 'Make sure the visualization package is installed'
         }), 503
 
@@ -117,5 +117,5 @@ def serve_visualization_for_catchment(catchment_id: str):
         logger.error(f"Error: {e}")
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': 'Internal server error'
         }), 500

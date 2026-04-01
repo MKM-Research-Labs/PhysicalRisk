@@ -171,7 +171,7 @@ def commit_prs_trade():
 
     except Exception as e:
         logger.error(f"Error committing PRS trade: {e}", exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @prs_bp.route("/prs/trades", methods=["GET"])
@@ -199,7 +199,7 @@ def list_prs_trades():
 
         return jsonify({"status": "success", "trades": trades, "count": len(trades)})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @prs_bp.route("/prs/trades/<swap_id>/pdf", methods=["GET"])

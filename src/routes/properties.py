@@ -74,7 +74,7 @@ def list_properties():
         })
     except Exception as e:
         logger.error(f"Error listing properties: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 
 @properties_bp.route('/properties/<property_id>', methods=['GET'])
@@ -145,14 +145,14 @@ def generate_report():
         logger.error(f"Import error: {e}\n{traceback.format_exc()}")
         return jsonify({
             'status': 'error',
-            'message': f'Report generator not available: {e}'
+            'message': 'Internal server error'
         }), 500
 
     except Exception as e:
         logger.error(f"Error generating report: {e}\n{traceback.format_exc()}")
         return jsonify({
             'status': 'error',
-            'message': f'Error generating report: {e}'
+            'message': 'Internal server error'
         }), 500
 
 
@@ -205,14 +205,14 @@ def generate_mortgage_report():
         logger.error(f"Import error: {e}\n{traceback.format_exc()}")
         return jsonify({
             'status': 'error',
-            'message': f'Mortgage report generator not available: {e}'
+            'message': 'Internal server error'
         }), 500
 
     except Exception as e:
         logger.error(f"Error generating mortgage report: {e}\n{traceback.format_exc()}")
         return jsonify({
             'status': 'error',
-            'message': f'Error generating mortgage report: {e}'
+            'message': 'Internal server error'
         }), 500
 
 
@@ -231,7 +231,7 @@ def list_mortgages():
         })
     except Exception as e:
         logger.error(f"Error listing mortgages: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 
 @properties_bp.route('/properties/<prop_id>/mortgage', methods=['GET', 'OPTIONS'])
@@ -264,5 +264,5 @@ def property_mortgage(prop_id: str):
         logger.error(f"Error loading mortgage for {prop_id}: {e}")
         return jsonify({
             'status': 'error',
-            'message': f'Error: {e}'
+            'message': 'Internal server error'
         }), 500

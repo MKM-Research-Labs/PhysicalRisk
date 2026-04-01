@@ -72,6 +72,8 @@ def get_gauge_history(gauge_id: str):
 
         # Filter daily observations by days param
         days = request.args.get('days', type=int)
+        if days is not None and (days < 1 or days > 3650):
+            return jsonify({'status': 'error', 'message': 'days must be between 1 and 3650'}), 400
         observations = data.get('daily_observations', [])
 
         if days and days > 0 and len(observations) > days:
@@ -85,9 +87,12 @@ def get_gauge_history(gauge_id: str):
             'daily_observations': observations
         })
 
-    except Exception as e:
-        logger.error(f"Error reading gauge history: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    except (FileNotFoundError, json_mod.JSONDecodeError) as e:
+        logger.error("Error reading gauge history for %s: %s", gauge_id, e)
+        return jsonify({'status': 'error', 'message': 'Failed to read gauge history'}), 500
+    except Exception:
+        logger.exception("Unexpected error reading gauge history for %s", gauge_id)
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 
 @gauges_bp.route('/gauges/<gauge_id>/timeseries', methods=['GET'])
@@ -116,9 +121,9 @@ def get_gaugets(gauge_id: str):
             'readings': readings or []
         })
 
-    except Exception as e:
-        logger.error(f"Error getting timeseries: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    except Exception:
+        logger.exception("Error getting timeseries for %s", gauge_id)
+        return jsonify({'status': 'error', 'message': 'Failed to load timeseries'}), 500
 
 
 @gauges_bp.route('/gauges/<gauge_id>/statistics', methods=['GET'])
@@ -141,6 +146,6 @@ def get_gauge_statistics(gauge_id: str):
             'status': 'success',
             'statistics': stats
         })
-    except Exception as e:
-        logger.error(f"Error getting statistics: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    except Exception:
+        logger.exception("Error getting statistics for %s", gauge_id)
+        return jsonify({'status': 'error', 'message': 'Failed to load statistics'}), 500

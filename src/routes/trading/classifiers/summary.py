@@ -112,7 +112,7 @@ def classifiers_summary():
 
     except Exception as e:
         logger.error("Classifiers summary error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/classifiers/readiness", methods=["GET"])
@@ -148,7 +148,7 @@ def classifiers_readiness():
 
     except Exception as e:
         logger.error("Classifiers readiness error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/classifiers/clear-all", methods=["POST"])
@@ -183,4 +183,4 @@ def clear_all_classifiers():
 
     except Exception as e:
         logger.error("Clear classifiers error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

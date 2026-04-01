@@ -100,7 +100,7 @@ def get_portfolio_storms():
 
     except Exception as e:
         logger.error("Portfolio storms error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 # ------------------------------------------------------------------
@@ -303,4 +303,4 @@ def run_portfolio_stress():
 
     except Exception as e:
         logger.error("Portfolio stress run error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
