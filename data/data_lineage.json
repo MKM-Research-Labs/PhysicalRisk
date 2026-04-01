@@ -1,0 +1,2176 @@
+{
+  "runs": {
+    "run-20260319-084414": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-110109": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260319-110550": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260319-144559": [
+      "propertyhc",
+      "blotter"
+    ],
+    "run-20260319-150011": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-151736": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-161550": [
+      "stressm"
+    ],
+    "run-20260319-165538": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260319-182259": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-083149": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-083158": [
+      "stressm"
+    ],
+    "run-20260320-083250": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-083256": [
+      "stressm"
+    ],
+    "run-20260320-115917": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-115918": [
+      "stressm"
+    ],
+    "run-20260320-121152": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-130940": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-133715": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-134257": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-142514": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142546": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142559": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142725": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142735": [
+      "stressm"
+    ],
+    "run-20260320-142854": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260320-142915": [
+      "stressm"
+    ],
+    "run-20260320-150357": [
+      "propertyts"
+    ],
+    "run-20260320-150715": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260320-151201": [
+      "propertyhc"
+    ],
+    "run-20260321-062643": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260321-070853": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260321-072601": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260321-072814": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260321-074233": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260321-075200": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260321-095438": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260321-100243": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260321-140115": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260321-140118": [
+      "stressm",
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260321-140121": [
+      "stressm"
+    ],
+    "run-20260321-140214": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260321-152811": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260321-152812": [
+      "stressm"
+    ],
+    "run-20260321-153220": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260322-063741": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260322-064751": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260322-163235": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260322-163245": [
+      "stressm"
+    ],
+    "run-20260322-164842": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260322-165928": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260322-181237": [
+      "propertyts"
+    ],
+    "run-20260322-181418": [
+      "propertyhc"
+    ],
+    "run-20260322-182701": [
+      "propertyts"
+    ],
+    "run-20260322-184722": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260322-200325": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260322-201423": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260323-071850": [
+      "propertyts"
+    ],
+    "repair-20260323-103658": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "gaugehd",
+      "mortgages",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertyhc"
+    ],
+    "repair-20260323-105016": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "gaugehd",
+      "mortgages",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertyhc"
+    ],
+    "run-20260323-111757": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260323-112900": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260323-114130": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260323-120246": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260323-121443": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260323-125541": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260323-125542": [
+      "stressm"
+    ],
+    "run-20260324-104725": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260324-113433": [
+      "blotter"
+    ],
+    "run-20260324-145027": [
+      "propertyts"
+    ],
+    "run-20260324-145128": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260324-145802": [
+      "gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260324-145803": [
+      "stressm"
+    ],
+    "run-20260324-151331": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260324-153105": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260324-154442": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260324-161932": [
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260325-093051": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260325-093858": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260325-100138": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd"
+    ],
+    "run-20260325-114304": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260325-134506": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260325-135037": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "gaugehd",
+      "stressm"
+    ],
+    "run-20260325-141847": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260325-142304": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260325-142740": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260325-153627": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260325-155754": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260325-160854": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "repair-20260325-161252": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertyhc"
+    ],
+    "run-20260325-161528": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260325-162103": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "repair-20260325-163133": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertyhc"
+    ],
+    "run-20260325-183536": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260325-183550": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260325-183551": [
+      "stressm"
+    ],
+    "run-20260325-185719": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-094045": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-095423": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260326-101658": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-110058": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-131350": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-134022": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-143329": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260326-143330": [
+      "stressm"
+    ],
+    "run-20260326-144111": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260326-144851": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260326-144852": [
+      "stressm"
+    ],
+    "run-20260326-164130": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260326-170545": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260326-170546": [
+      "stressm"
+    ],
+    "run-20260326-185540": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260327-103048": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260327-113738": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260327-114953": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "repair-20260327-190508": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertyhc"
+    ],
+    "run-20260328-061251": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260328-062440": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260328-062951": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260328-120858": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260328-160000": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "repair-20260328-174015": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe"
+    ],
+    "repair-20260329-071409": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe"
+    ],
+    "run-20260329-073044": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260329-073055": [
+      "stressm"
+    ],
+    "run-20260329-073115": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260329-073125": [
+      "stressm"
+    ],
+    "run-20260329-074913": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm",
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260329-084213": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "repair-20260329-084547": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe"
+    ],
+    "run-20260329-085427": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertyhc",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260329-093940": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260329-102601": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260330-090405": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260330-101513": [
+      "propertyts"
+    ],
+    "run-20260330-102359": [
+      "propertyts",
+      "propertyhc"
+    ],
+    "run-20260330-103056": [
+      "propertyts",
+      "propertyshd"
+    ],
+    "run-20260330-103657": [
+      "propertyts",
+      "propertyshe"
+    ],
+    "run-20260330-110512": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-085240": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260331-085241": [
+      "stressm"
+    ],
+    "run-20260331-090610": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-091141": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-091701": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-092234": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-092804": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-093309": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-093831": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-094342": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-095012": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-114838": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-115426": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-121043": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-121949": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-123030": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260331-123031": [
+      "stressm"
+    ],
+    "run-20260331-123707": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260331-123753": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260331-123754": [
+      "stressm"
+    ],
+    "run-20260331-124225": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "run-20260401-102107": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
+    ],
+    "repair-20260401-115508": [
+      "gauges",
+      "counterparties",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "blotter",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe"
+    ]
+  },
+  "steps": {
+    "gauges": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.550814",
+      "generator": "port.src.gauge.GaugePortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "num_gauges": 2
+      },
+      "inputs": {},
+      "outputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      }
+    },
+    "properties": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.553027",
+      "generator": "port.src.property.PropertyPortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "num_properties": 2
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "property.json": {
+          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "type": "file"
+        }
+      }
+    },
+    "mortgages": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.570761",
+      "generator": "port.src.mortgage.MortgagePortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {
+        "property.json": {
+          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "mortgage.json": {
+          "hash": "9cedd611ed2141d723d06a6af5643f06d2d19cb7638f8b48417b60f10efde7a6",
+          "type": "file"
+        }
+      }
+    },
+    "gaugehd": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.580657",
+      "generator": "port.src.gauge.gaugehd",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "history_years": 1
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "gaugehd/": {
+          "hash": "2172881960f7a7190b6c351335a8fc5f2145318b8c1df0cb1dba45cc93ab7186",
+          "file_count": 179,
+          "type": "directory"
+        }
+      }
+    },
+    "stressm": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.649632",
+      "generator": "port.src.stressm.generate_stressm",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "num_storms": 10
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        },
+        "gaugehd/": {
+          "hash": "2172881960f7a7190b6c351335a8fc5f2145318b8c1df0cb1dba45cc93ab7186",
+          "file_count": 179,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "gaugets/": {
+          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
+          "file_count": 179,
+          "type": "directory"
+        },
+        "stress_storms/": {
+          "hash": "a59c08beb6b6ab0b030c021b033ae39acc7b3374fcd285de69064d2e12e69a1b",
+          "file_count": 76422,
+          "type": "directory"
+        },
+        "storm_sequences.json": {
+          "hash": "fafb4c70106c564bd222ea06c05773f5ec3295bbc7820580667495444d03cc29",
+          "type": "file"
+        },
+        "sequence_gauge/": {
+          "hash": "0d2c00b72eb20b8ffbcb15d589c06503d4b74c091f2725ffb5a130ab17f450ae",
+          "file_count": 180,
+          "type": "directory"
+        }
+      }
+    },
+    "hazard": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.585147",
+      "generator": "port.src.hazard.build_hazard_curves",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "distribution": "gev"
+      },
+      "inputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
+          "file_count": 179,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "gaugehc.json": {
+          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
+          "file_count": 179,
+          "type": "directory"
+        }
+      }
+    },
+    "propertyts": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.588101",
+      "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {
+        "property.json": {
+          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
+          "file_count": 179,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "propertyts/": {
+          "hash": "5c68eab76a4af2d8b1af834b81d37fb1b7091b03848c774628ec6f30b79db562",
+          "file_count": 201,
+          "type": "directory"
+        }
+      }
+    },
+    "propertyhc": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.597178",
+      "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {
+        "propertyts/": {
+          "hash": "5c68eab76a4af2d8b1af834b81d37fb1b7091b03848c774628ec6f30b79db562",
+          "file_count": 201,
+          "type": "directory"
+        },
+        "gaugehc.json": {
+          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "propertyhc.json": {
+          "hash": "d7a00c9046205a645c6aa2f77b010364bfa2477fe4bf4879994aa2e5a5aeaa95",
+          "type": "file"
+        }
+      }
+    },
+    "counterparties": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.601825",
+      "generator": "port.src.counterparty.CounterpartyPortfolioGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {},
+      "inputs": {},
+      "outputs": {
+        "counterparty.json": {
+          "hash": "cc83be0203be7c130c34bb8fea6136b165e1656764767dfb0dd2db05f24a2cc4",
+          "type": "file"
+        }
+      }
+    },
+    "blotter": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.608808",
+      "generator": "port.src.book.generate_thames_central_book",
+      "status": "success",
+      "elapsed_seconds": 0.003,
+      "parameters": {},
+      "inputs": {
+        "gaugehc.json": {
+          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "type": "file"
+        },
+        "counterparty.json": {
+          "hash": "cc83be0203be7c130c34bb8fea6136b165e1656764767dfb0dd2db05f24a2cc4",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "prs/": {
+          "hash": "3e77f18b4d4a876ea38db392356c8c194b821fc62c91bd671cc9d25c875cc3eb",
+          "file_count": 51,
+          "type": "directory"
+        },
+        "blotter/eod/": {
+          "hash": "f49f378e65df43753b2e11e07f77ed1921ce6d97b4385aff8ecc2e3c0e5496a6",
+          "file_count": 63,
+          "type": "directory"
+        },
+        "blotter/market_state.json": {
+          "hash": "3861b784ef689c77302da340259ef1def0730265b65d1171839a96324fb9b3b0",
+          "type": "file"
+        },
+        "blotter/trade_marks.json": {
+          "hash": "72faebc2fd7ab5eef410b4709604f0600764edb7bb24aabca1777671ccd23c7d",
+          "type": "file"
+        }
+      }
+    },
+    "synthetic_gauges": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.567538",
+      "generator": "port.src.gauge.synthetic.SyntheticGaugeGenerator",
+      "status": "success",
+      "elapsed_seconds": 0.01,
+      "parameters": {},
+      "inputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        },
+        "property.json": {
+          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      }
+    },
+    "propertytsd": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.590999",
+      "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=shd)",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "mode": "shd"
+      },
+      "inputs": {
+        "property.json": {
+          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
+          "file_count": 179,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "propertytsd/": {
+          "hash": "4c2301247505b366c97e38f31ade48f86d514f73e5e210a9cfe9718caaf12f8c",
+          "file_count": 201,
+          "type": "directory"
+        }
+      }
+    },
+    "propertytse": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.593211",
+      "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=she)",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "mode": "she"
+      },
+      "inputs": {
+        "property.json": {
+          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        },
+        "gaugets/": {
+          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
+          "file_count": 179,
+          "type": "directory"
+        }
+      },
+      "outputs": {
+        "propertytse/": {
+          "hash": "bfd97422ec5945ffbf86a047e0e90a21a3bf0fc1cbb8f57167164635937ab708",
+          "file_count": 201,
+          "type": "directory"
+        }
+      }
+    },
+    "propertyshd": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.598727",
+      "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=shd)",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "mode": "shd"
+      },
+      "inputs": {
+        "propertytsd/": {
+          "hash": "4c2301247505b366c97e38f31ade48f86d514f73e5e210a9cfe9718caaf12f8c",
+          "file_count": 201,
+          "type": "directory"
+        },
+        "gaugehc.json": {
+          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "propertyshd.json": {
+          "hash": "1fcd24a4e4c266a14ad531a5ebeee8e229db963df73bffcb38fe0ca7642e7f68",
+          "type": "file"
+        }
+      }
+    },
+    "propertyshe": {
+      "run_id": "run-20260401-102107",
+      "timestamp": "2026-04-01T10:21:07.600425",
+      "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=she)",
+      "status": "success",
+      "elapsed_seconds": 0.0,
+      "parameters": {
+        "mode": "she"
+      },
+      "inputs": {
+        "propertytse/": {
+          "hash": "bfd97422ec5945ffbf86a047e0e90a21a3bf0fc1cbb8f57167164635937ab708",
+          "file_count": 201,
+          "type": "directory"
+        },
+        "gaugehc.json": {
+          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "type": "file"
+        },
+        "gauge.json": {
+          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "propertyshe.json": {
+          "hash": "9685d418523022e33def8214e14ea70d6224a318b80e2fc8a676054e29378efd",
+          "type": "file"
+        }
+      }
+    }
+  }
+}
