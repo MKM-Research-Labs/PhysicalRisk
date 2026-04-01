@@ -31,7 +31,7 @@ def _load(path):
 def _count_dir(directory, pattern):
     try:
         return len(list(Path(directory).glob(pattern)))
-    except OSError as e:
+    except (OSError, TypeError) as e:
         logger.warning("Failed to count %s/%s: %s", directory, pattern, e)
         return 0
 

@@ -55,6 +55,8 @@ from . import market_state  # noqa: E402, F401
 from . import risk          # noqa: E402, F401
 from . import eod           # noqa: E402, F401
 from . import curves        # noqa: E402, F401
+from . import curves_yield  # noqa: E402, F401
+from . import curves_hazard # noqa: E402, F401
 from . import stress        # noqa: E402, F401
 from . import port_stress   # noqa: E402, F401
 from . import classifiers   # noqa: E402, F401

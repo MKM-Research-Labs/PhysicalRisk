@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -53,11 +53,12 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from .delta_engine import compute_prs_spread, compute_risky_annuity
+from .trade_marks import TradeMarks
 
 logger = logging.getLogger(__name__)
 
 
-class PnLEngine:
+class PnLEngine(TradeMarks):
     """Computes and manages P&L for the trading desk."""
 
     def __init__(self, trading_dir: Path, prs_dir: Path):
@@ -66,73 +67,10 @@ class PnLEngine:
             trading_dir: Path to data/input/<catchment>/blotter/
             prs_dir: Path to data/input/<catchment>/prs/ (existing PRS trades)
         """
-        self.trading_dir = Path(trading_dir)
+        super().__init__(trading_dir)
         self.prs_dir = Path(prs_dir)
         self.eod_dir = self.trading_dir / 'eod'
-        self.marks_file = self.trading_dir / 'trade_marks.json'
         self.eod_dir.mkdir(parents=True, exist_ok=True)
-
-    # ------------------------------------------------------------------
-    # Trade marks (supplementary data on top of PRS trade files)
-    # ------------------------------------------------------------------
-
-    def load_trade_marks(self) -> Dict:
-        """Load trade marks file."""
-        if self.marks_file.exists():
-            with open(self.marks_file) as f:
-                return json.load(f)
-        return {}
-
-    def save_trade_marks(self, marks: Dict) -> None:
-        """Save trade marks file."""
-        with open(self.marks_file, 'w') as f:
-            json.dump(marks, f, indent=2)
-
-    def get_trade_mark(self, swap_id: str) -> Dict:
-        """Get mark data for a specific trade."""
-        marks = self.load_trade_marks()
-        return marks.get(swap_id, {})
-
-    def update_trade_mark(self, swap_id: str, mark_data: Dict) -> None:
-        """Update mark for a specific trade."""
-        marks = self.load_trade_marks()
-        if swap_id not in marks:
-            marks[swap_id] = {}
-        marks[swap_id].update(mark_data)
-        self.save_trade_marks(marks)
-
-    def close_trade(self, swap_id: str, close_spread_bps: float,
-                     final_pnl: float = 0.0,
-                     original_notional: float = 0.0) -> Dict:
-        """
-        Close out a trade at the given spread.
-
-        Zeroes notional but preserves final P&L and settlement data.
-
-        Args:
-            swap_id: Trade identifier
-            close_spread_bps: Spread at which the trade is closed
-            final_pnl: Final running P&L to preserve
-            original_notional: Original notional before zeroing
-
-        Returns:
-            Updated mark data for the trade
-        """
-        marks = self.load_trade_marks()
-        if swap_id not in marks:
-            marks[swap_id] = {}
-
-        marks[swap_id]['trade_status'] = 'Closed'
-        marks[swap_id]['close_date'] = date.today().isoformat()
-        marks[swap_id]['close_spread_bps'] = close_spread_bps
-        marks[swap_id]['final_pnl'] = round(final_pnl, 2)
-        marks[swap_id]['settlement_amount'] = round(abs(final_pnl), 2)
-        marks[swap_id]['original_notional'] = original_notional
-        self.save_trade_marks(marks)
-
-        logger.info("Trade %s closed at %.1f bps, P&L: %.2f",
-                     swap_id, close_spread_bps, final_pnl)
-        return marks[swap_id]
 
     # ------------------------------------------------------------------
     # P&L calculations
