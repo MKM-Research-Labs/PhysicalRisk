@@ -39,12 +39,13 @@ from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer
 
 from .styles import StylesMixin, BLUE, GREY
 from .data_loader import DataLoaderMixin
-from .sections import SectionsMixin
+from .sections import AnalysisSectionsMixin
+from .sections_portfolio import PortfolioSectionsMixin
 
 logger = logging.getLogger(__name__)
 
 
-class PortReportGenerator(StylesMixin, DataLoaderMixin, SectionsMixin):
+class PortReportGenerator(StylesMixin, DataLoaderMixin, PortfolioSectionsMixin, AnalysisSectionsMixin):
     """Generates the portfolio generation PDF report."""
 
     def __init__(self, input_dir: Path, output_path: Optional[Path] = None):

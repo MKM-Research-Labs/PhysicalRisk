@@ -4,15 +4,16 @@ import pytest
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, Table
 
-from src.reports.port.sections import SectionsMixin
+from src.reports.port.sections import AnalysisSectionsMixin
+from src.reports.port.sections_portfolio import PortfolioSectionsMixin
 from src.reports.port.styles import StylesMixin
 
 
 # ---------------------------------------------------------------------------
-# Concrete helper that mixes StylesMixin + SectionsMixin
+# Concrete helper that mixes StylesMixin + both section mixins
 # ---------------------------------------------------------------------------
 
-class _SectionsHelper(StylesMixin, SectionsMixin):
+class _SectionsHelper(StylesMixin, PortfolioSectionsMixin, AnalysisSectionsMixin):
     def __init__(self):
         self._styles = getSampleStyleSheet()
         self._setup_styles()
