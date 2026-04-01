@@ -88,7 +88,7 @@ def submit_eod():
 
     except Exception as e:
         logger.error("EOD submit error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/eod/history", methods=["GET"])
@@ -106,7 +106,7 @@ def get_eod_history():
 
     except Exception as e:
         logger.error("EOD history error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/eod/<eod_date>/pdf", methods=["GET"])
@@ -125,4 +125,4 @@ def get_eod_pdf(eod_date: str):
 
     except Exception as e:
         logger.error("EOD PDF error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

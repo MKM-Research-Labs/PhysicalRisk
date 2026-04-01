@@ -112,7 +112,7 @@ def get_blotter():
 
     except Exception as e:
         logger.error("Blotter error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 # ------------------------------------------------------------------
@@ -269,4 +269,4 @@ def close_trade(swap_id: str):
 
     except Exception as e:
         logger.error("Close trade error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

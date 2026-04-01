@@ -120,12 +120,12 @@ def generate_report():
         logger.error(f"Import error: {e}\n{traceback.format_exc()}")
         return jsonify({
             'status': 'error',
-            'message': f'Report generator not available: {e}'
+            'message': 'Internal server error'
         }), 500
 
     except Exception as e:
         logger.error(f"Error generating report: {e}\n{traceback.format_exc()}")
         return jsonify({
             'status': 'error',
-            'message': f'Error generating report: {e}'
+            'message': 'Internal server error'
         }), 500

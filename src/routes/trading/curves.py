@@ -54,7 +54,7 @@ def get_pnl_series():
 
     except Exception as e:
         logger.error("P&L series error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 # ------------------------------------------------------------------
@@ -100,7 +100,7 @@ def get_curve_history():
 
     except Exception as e:
         logger.error("Curve history error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 # ------------------------------------------------------------------
@@ -122,7 +122,7 @@ def get_yield_curve():
 
     except Exception as e:
         logger.error("Yield curve error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/yield-curve", methods=["POST"])
@@ -152,7 +152,7 @@ def update_yield_curve():
 
     except Exception as e:
         logger.error("Yield curve update error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/yield-curve/commit", methods=["POST"])
@@ -211,7 +211,7 @@ def commit_yield_curve():
 
     except Exception as e:
         logger.error("Yield curve commit error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/yield-curve/reset", methods=["POST"])
@@ -229,7 +229,7 @@ def reset_yield_curve():
 
     except Exception as e:
         logger.error("Yield curve reset error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 # ------------------------------------------------------------------
@@ -252,7 +252,7 @@ def get_hazard_term_structure():
 
     except Exception as e:
         logger.error("Hazard TS error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/hazard-term-structure", methods=["POST"])
@@ -288,7 +288,7 @@ def update_hazard_term_structure():
 
     except Exception as e:
         logger.error("Hazard TS update error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/hazard-term-structure/commit",
@@ -359,7 +359,7 @@ def commit_hazard_term_structure():
 
     except Exception as e:
         logger.error("Hazard TS commit error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 @trading_bp.route("/trading/hazard-term-structure/reset",
@@ -381,4 +381,4 @@ def reset_hazard_term_structure():
 
     except Exception as e:
         logger.error("Hazard TS reset error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

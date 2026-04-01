@@ -95,4 +95,4 @@ def get_stress_storms():
 
     except Exception as e:
         logger.error("Stress storms error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500

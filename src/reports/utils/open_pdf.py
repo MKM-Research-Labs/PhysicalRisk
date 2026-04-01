@@ -63,7 +63,7 @@ def open_pdf_file(file_path: Path) -> bool:
         if system == "darwin":  # macOS
             subprocess.run(["open", file_path_str], check=True)
         elif system == "windows":  # Windows
-            subprocess.run(["start", "", file_path_str], shell=True, check=True)
+            subprocess.run(["cmd", "/c", "start", "", file_path_str], check=True)
         elif system == "linux":  # Linux
             subprocess.run(["xdg-open", file_path_str], check=True)
         else:

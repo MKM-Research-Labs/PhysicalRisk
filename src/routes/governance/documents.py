@@ -33,7 +33,7 @@ from flask import jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
 from . import governance_bp
-from ._constants import GOV_DOCUMENTS_DIR
+from ._constants import ALLOWED_UPLOAD_EXTENSIONS, GOV_DOCUMENTS_DIR, MAX_UPLOAD_SIZE
 from ._helpers import (
     _load_gov_documents, _save_gov_documents,
     _discover_audit_docs, _discover_model_docs,
@@ -63,6 +63,18 @@ def upload_document():
     f = request.files["file"]
     if not f.filename:
         return jsonify({"status": "error", "message": "No file selected"}), 400
+
+    # Validate file extension
+    ext = os.path.splitext(f.filename)[1].lstrip('.').lower()
+    if ext not in ALLOWED_UPLOAD_EXTENSIONS:
+        return jsonify({"status": "error", "message": f"File type '.{ext}' not allowed"}), 400
+
+    # Validate file size
+    f.seek(0, 2)
+    size = f.tell()
+    f.seek(0)
+    if size > MAX_UPLOAD_SIZE:
+        return jsonify({"status": "error", "message": "File exceeds 50 MB limit"}), 413
 
     os.makedirs(GOV_DOCUMENTS_DIR, exist_ok=True)
 

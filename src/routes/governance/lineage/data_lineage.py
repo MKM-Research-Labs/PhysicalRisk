@@ -361,7 +361,7 @@ def trace_data_lineage():
         logger.error("Trace failed for %s/%s: %s", data_type, data_id, e)
         return jsonify({
             "status": "error",
-            "message": f"Trace failed: {e}",
+            "message": "Internal server error",
         }), 500
 
     return jsonify({
@@ -382,7 +382,7 @@ def check_staleness():
         step_statuses = _check_staleness(lineage)
     except Exception as e:
         logger.error("Staleness check failed: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
     fresh = sum(1 for s in step_statuses if s["status"] == "fresh")
     total = len(step_statuses)

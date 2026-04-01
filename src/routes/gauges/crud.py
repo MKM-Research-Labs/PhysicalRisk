@@ -53,7 +53,7 @@ def list_gauges():
         })
     except Exception as e:
         logger.error(f"Error listing gauges: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 
 @gauges_bp.route('/gauges/<gauge_id>', methods=['GET'])

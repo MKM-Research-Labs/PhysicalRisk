@@ -10,22 +10,29 @@
 """Data loading for the portfolio report."""
 
 import json
+import logging
 import statistics as stats_mod
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def _load(path):
     try:
         with open(path) as f:
             return json.load(f)
-    except Exception:
+    except FileNotFoundError:
+        return {}
+    except (json.JSONDecodeError, OSError) as e:
+        logger.warning("Failed to load %s: %s", path, e)
         return {}
 
 
 def _count_dir(directory, pattern):
     try:
         return len(list(Path(directory).glob(pattern)))
-    except Exception:
+    except OSError as e:
+        logger.warning("Failed to count %s/%s: %s", directory, pattern, e)
         return 0
 
 
@@ -75,7 +82,8 @@ class DataLoaderMixin:
             prs_dir = config.get_reports_dir('prs')
             data['trade_count'] = _count_dir(prs_dir, 'PRS-*.json') if prs_dir.exists() else 0
             data['eod_count'] = _count_dir(config.get_eod_dir(), 'EOD-*')
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to load trading counts: %s", e)
             data['trade_count'] = 0
             data['eod_count'] = 0
 
@@ -105,6 +113,7 @@ class DataLoaderMixin:
                         'gauge_id': gid, 'mean_level': float(mean_lvl),
                         'winter': winter, 'summer': summer,
                     })
-            except Exception:
+            except Exception as e:
+                logger.warning("Failed to load baseline from %s: %s", f, e)
                 continue
         return baselines

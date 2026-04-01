@@ -5,7 +5,6 @@
 
 """Backward-compatibility shim — import from port.src.property.hc instead."""
 
-from .hc import *  # noqa: F401, F403
 from .hc import (  # noqa: F401
     DEPTH_THRESHOLDS,
     MIN_ANNUAL_PROBABILITY,

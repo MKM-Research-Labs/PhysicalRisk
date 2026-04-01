@@ -123,7 +123,7 @@ def train_all_classifiers():
 
     except Exception as e:
         logger.error("Train-all start error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 def _run_batch_training(gauge_ids: list):

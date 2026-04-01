@@ -99,7 +99,7 @@ def get_gauge_hazard(gauge_id: str):
 
     except Exception as e:
         logger.error(f"Error reading hazard curve data: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 
 @gauges_bp.route('/price_prs', methods=['POST', 'OPTIONS'])
@@ -173,4 +173,4 @@ def price_prs_endpoint():
 
     except Exception as e:
         logger.error(f"Error pricing PRS: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500

@@ -67,6 +67,11 @@ _MODEL_DOC_DIRS = {
     'MKM-FPO-001': 'flood_poly',
 }
 
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
+ALLOWED_UPLOAD_EXTENSIONS = {
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'png', 'jpg', 'jpeg',
+}
+
 VALID_VQ_STATUSES = ["Addressed", "Partially Addressed", "Not Addressed", "Not Applicable"]
 VALID_RISK_RATINGS = ["Acceptable", "Conditional", "Unacceptable"]
 VALID_RACI_ROLE_IDS = ["operations_lead", "model_owner", "peer_model_owners", "leadership"]

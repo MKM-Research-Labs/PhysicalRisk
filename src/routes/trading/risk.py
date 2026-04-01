@@ -62,7 +62,7 @@ def get_risk_grid():
 
     except Exception as e:
         logger.error("Risk grid error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
 
 
 # ------------------------------------------------------------------
@@ -215,4 +215,4 @@ def get_trade_map():
 
     except Exception as e:
         logger.error("Trade map error: %s", e, exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
