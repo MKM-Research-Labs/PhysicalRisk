@@ -136,6 +136,16 @@ def get_js() -> str:
 
                         document.getElementById('phc-status').textContent =
                             data.swap_id + ' committed | Property PRS';
+
+                        // Refresh active gauges list and invalidate blotter cache
+                        try {
+                            var agResp = await fetch(baseUrl + '/api/v1/trading/blotter/active-gauges', {mode: 'cors'});
+                            var agData = await agResp.json();
+                            if (agData.status === 'success' && window.setActiveGauges) {
+                                window.setActiveGauges(agData.gauge_ids || []);
+                            }
+                        } catch (e) { /* non-critical */ }
+                        window._tdPreBlotter = null;
                     } else {
                         throw new Error(data.message || 'Commit failed');
                     }
