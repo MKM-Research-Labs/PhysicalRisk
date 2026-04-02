@@ -56,7 +56,7 @@ def get_js() -> str:
                 }
 
                 controls.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap;">' +
+                    '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;">' +
                     '<span style="' + labelStyle + '">Direction:</span>' +
                     '<select id="prs-direction" style="' + selectStyle + '">' +
                     '<option value="payer">Payer (buy protection)</option>' +
