@@ -108,123 +108,92 @@ class ContextMenuHandler:
         <style>
         #nav-menu-container {{
             position: fixed; top: 10px; left: 60px; z-index: 1500;
-            display: flex; gap: 6px; font-family: Arial, sans-serif;
+            display: flex; gap: 6px; align-items: center;
+            font-family: Arial, sans-serif;
         }}
-        .nav-menu-btn {{
-            padding: 6px 12px; font-size: 12px; font-weight: 600;
-            background: white; border: 1px solid #bbb; border-radius: 4px;
-            cursor: pointer; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        #nav-menu-container select {{
+            padding: 5px 8px; font-size: 11px; border: 1px solid #bbb;
+            border-radius: 4px; background: white; color: #333;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15); cursor: pointer;
+            max-width: 220px;
         }}
-        .nav-menu-btn:hover {{ background: #f0f0f0; }}
-        .nav-menu-dropdown {{
-            display: none; position: absolute; top: 100%; left: 0;
-            background: white; border: 1px solid #ccc; border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); min-width: 220px;
-            max-height: 400px; overflow-y: auto; margin-top: 2px;
+        #nav-menu-container select:focus {{ outline: none; border-color: #1976d2; }}
+        #nav-action-bar {{
+            display: flex; gap: 3px;
         }}
-        .nav-menu-dropdown.open {{ display: block; }}
-        .nav-entity-item {{
-            padding: 5px 12px; font-size: 11px; cursor: pointer;
-            border-bottom: 1px solid #f0f0f0; color: #333;
+        #nav-action-bar button {{
+            padding: 4px 8px; font-size: 10px; border: 1px solid #ccc;
+            border-radius: 3px; background: #f8f9fa; cursor: pointer;
+            color: #333; white-space: nowrap;
         }}
-        .nav-entity-item:hover {{ background: #e3f2fd; }}
-        .nav-entity-item .nav-name {{ color: #666; font-size: 10px; }}
-        .nav-submenu {{
-            display: none; position: absolute; left: 100%; top: 0;
-            background: white; border: 1px solid #ccc; border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); min-width: 200px;
-        }}
-        .nav-entity-item:hover > .nav-submenu {{ display: block; }}
-        .nav-action-item {{
-            padding: 6px 12px; font-size: 11px; cursor: pointer; white-space: nowrap;
-        }}
-        .nav-action-item:hover {{ background: #f0f0f0; }}
+        #nav-action-bar button:hover {{ background: #e3f2fd; border-color: #1976d2; }}
         </style>
         <script>
         (function() {{
             var gaugeMenuItems = {gauge_items};
             var propertyMenuItems = {property_items};
 
-            // Build entity items with action submenu
-            function buildEntityItems(entities, idKey, nameKey, menuItems, dropdown) {{
-                dropdown.innerHTML = '';
-                entities.forEach(function(ent) {{
-                    var eid = ent[idKey];
-                    var label = ent[nameKey] || eid;
-                    var item = document.createElement('div');
-                    item.className = 'nav-entity-item';
-                    item.style.position = 'relative';
-                    item.innerHTML = '<span>' + label + '</span>';
-
-                    var sub = document.createElement('div');
-                    sub.className = 'nav-submenu';
-                    menuItems.forEach(function(mi) {{
-                        var a = document.createElement('div');
-                        a.className = 'nav-action-item';
-                        a.textContent = mi.label;
-                        a.onclick = function(e) {{
-                            e.stopPropagation();
-                            dropdown.classList.remove('open');
-                            if (window[mi.action]) window[mi.action](eid, label);
-                        }};
-                        sub.appendChild(a);
-                    }});
-                    item.appendChild(sub);
-                    dropdown.appendChild(item);
-                }});
-            }}
-
-            // Create buttons immediately, populate when data arrives
             var container = document.createElement('div');
             container.id = 'nav-menu-container';
 
-            var gaugeWrap = document.createElement('div');
-            gaugeWrap.style.position = 'relative';
-            var gaugeBtn = document.createElement('button');
-            gaugeBtn.className = 'nav-menu-btn';
-            gaugeBtn.textContent = 'Gauges';
-            var gaugeDD = document.createElement('div');
-            gaugeDD.className = 'nav-menu-dropdown';
-            gaugeWrap.appendChild(gaugeBtn);
-            gaugeWrap.appendChild(gaugeDD);
+            // Gauge select
+            var gSel = document.createElement('select');
+            gSel.id = 'nav-gauge-select';
+            gSel.innerHTML = '<option value="">Gauges</option>';
 
-            var propWrap = document.createElement('div');
-            propWrap.style.position = 'relative';
-            var propBtn = document.createElement('button');
-            propBtn.className = 'nav-menu-btn';
-            propBtn.textContent = 'Properties';
-            var propDD = document.createElement('div');
-            propDD.className = 'nav-menu-dropdown';
-            propWrap.appendChild(propBtn);
-            propWrap.appendChild(propDD);
+            // Property select
+            var pSel = document.createElement('select');
+            pSel.id = 'nav-prop-select';
+            pSel.innerHTML = '<option value="">Properties</option>';
 
-            container.appendChild(gaugeWrap);
-            container.appendChild(propWrap);
+            // Action bar (hidden until selection)
+            var actionBar = document.createElement('div');
+            actionBar.id = 'nav-action-bar';
+
+            container.appendChild(gSel);
+            container.appendChild(pSel);
+            container.appendChild(actionBar);
             document.body.appendChild(container);
 
-            gaugeBtn.onclick = function(e) {{
-                e.stopPropagation();
-                gaugeDD.classList.toggle('open');
-                propDD.classList.remove('open');
-            }};
-            propBtn.onclick = function(e) {{
-                e.stopPropagation();
-                propDD.classList.toggle('open');
-                gaugeDD.classList.remove('open');
-            }};
-            document.addEventListener('click', function() {{
-                gaugeDD.classList.remove('open');
-                propDD.classList.remove('open');
-            }});
+            function showActions(entityId, entityLabel, menuItems) {{
+                actionBar.innerHTML = '';
+                if (!entityId) return;
+                menuItems.forEach(function(mi) {{
+                    var btn = document.createElement('button');
+                    btn.textContent = mi.label;
+                    btn.onclick = function() {{
+                        if (window[mi.action]) window[mi.action](entityId, entityLabel);
+                    }};
+                    actionBar.appendChild(btn);
+                }});
+            }}
 
-            // Poll for preloader data, populate when ready
+            gSel.onchange = function() {{
+                pSel.value = '';
+                var gid = gSel.value;
+                var label = gSel.options[gSel.selectedIndex].text;
+                showActions(gid, label, gaugeMenuItems);
+            }};
+
+            pSel.onchange = function() {{
+                gSel.value = '';
+                var pid = pSel.value;
+                showActions(pid, pid, propertyMenuItems);
+            }};
+
+            // Populate when preloader data arrives
             function populateGauges() {{
                 if (!window._tdPreGauges || !window._tdPreGauges.gauges) return false;
                 var gauges = window._tdPreGauges.gauges
                     .filter(function(g) {{ return g.gaugeId && g.gaugeId.indexOf('SYNTH') !== 0; }})
                     .sort(function(a, b) {{ return (a.name || a.gaugeId).localeCompare(b.name || b.gaugeId); }});
-                gaugeBtn.textContent = 'Gauges (' + gauges.length + ')';
-                buildEntityItems(gauges, 'gaugeId', 'name', gaugeMenuItems, gaugeDD);
+                gSel.innerHTML = '<option value="">Gauges (' + gauges.length + ')</option>';
+                gauges.forEach(function(g) {{
+                    var opt = document.createElement('option');
+                    opt.value = g.gaugeId;
+                    opt.textContent = g.name || g.gaugeId;
+                    gSel.appendChild(opt);
+                }});
                 return true;
             }}
 
@@ -232,8 +201,13 @@ class ContextMenuHandler:
                 if (!window._prePropertyTS || !window._prePropertyTS.data || !window._prePropertyTS.data.properties) return false;
                 var props = window._prePropertyTS.data.properties
                     .sort(function(a, b) {{ return (a.property_id || '').localeCompare(b.property_id || ''); }});
-                propBtn.textContent = 'Properties (' + props.length + ')';
-                buildEntityItems(props, 'property_id', 'property_id', propertyMenuItems, propDD);
+                pSel.innerHTML = '<option value="">Properties (' + props.length + ')</option>';
+                props.forEach(function(p) {{
+                    var opt = document.createElement('option');
+                    opt.value = p.property_id;
+                    opt.textContent = p.property_id;
+                    pSel.appendChild(opt);
+                }});
                 return true;
             }}
 

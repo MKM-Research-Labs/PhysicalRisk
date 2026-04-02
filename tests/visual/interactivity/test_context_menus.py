@@ -88,24 +88,24 @@ class TestConfigure:
 
 
 class TestNavMenusJS:
-    """_build_nav_menus_js() generates navigation dropdown JS."""
+    """_build_nav_menus_js() generates navigation select menus."""
 
-    def test_nav_menus_js_contains_gauge_dropdown(self):
+    def test_nav_menus_js_contains_gauge_select(self):
         from visual.interactivity.context_menus import ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
         assert 'nav-menu-container' in js
+        assert 'nav-gauge-select' in js
         assert '_tdPreGauges' in js
-        assert 'Gauges' in js
 
-    def test_nav_menus_js_contains_property_dropdown(self):
+    def test_nav_menus_js_contains_property_select(self):
         from visual.interactivity.context_menus import ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
+        assert 'nav-prop-select' in js
         assert '_prePropertyTS' in js
-        assert 'Properties' in js
 
     def test_nav_menus_js_includes_menu_actions(self):
         from visual.interactivity.context_menus import (
@@ -113,10 +113,8 @@ class TestNavMenusJS:
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
-        # All gauge menu actions should be referenced
         for item in DEFAULT_GAUGE_MENU:
             assert item['action'] in js, f"Missing gauge action: {item['action']}"
-        # All property menu actions should be referenced
         for item in DEFAULT_PROPERTY_MENU:
             assert item['action'] in js, f"Missing property action: {item['action']}"
 
@@ -126,6 +124,13 @@ class TestNavMenusJS:
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
         assert 'SYNTH' in js, "Should filter SYNTH gauges"
+
+    def test_nav_menus_js_has_action_bar(self):
+        from visual.interactivity.context_menus import ContextMenuHandler
+
+        handler = ContextMenuHandler()
+        js = handler._build_nav_menus_js()
+        assert 'nav-action-bar' in js
 
     def test_nav_menus_included_in_get_js(self):
         from visual.interactivity.context_menus import ContextMenuHandler
