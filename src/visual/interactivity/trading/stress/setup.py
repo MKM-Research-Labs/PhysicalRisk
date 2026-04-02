@@ -61,7 +61,11 @@ def get_js() -> str:
                     '<select id="td-stress-storm" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:300px;max-width:420px;">' +
                         '<option value="">Select gauge first</option>' +
                     '</select>' +
-                    '<span id="td-stress-storm-info" style="font-size:10px;color:#666;flex:1;"></span>';
+                    '<span id="td-stress-storm-info" style="font-size:10px;color:#666;flex:1;"></span>' +
+                    '<button id="td-stress-sim-btn" onclick="tdStressOpenGauge(document.getElementById(\\\'td-stress-gauge\\\').value)" ' +
+                        'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;' +
+                        'border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;white-space:nowrap;">' +
+                        'Storm Simulation</button>';
                 view.appendChild(selectorBar);
 
                 // Main content: table (left) + chart (right)
