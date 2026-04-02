@@ -227,6 +227,7 @@ class PricingMixin:
             'location': pdata.get('location', {}),
             'elevation_m': pdata.get('elevation_m', 0),
             'floor_level_m': pdata.get('floor_level_m', 0),
+            'flood_zone': pdata.get('flood_zone', 'Zone 1'),
             'flood_count': len(flood_depths),
             'has_gev': has_gev,
             'pricing_method': pricing_method,

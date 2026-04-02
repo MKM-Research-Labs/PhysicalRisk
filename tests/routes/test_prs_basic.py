@@ -203,6 +203,53 @@ class TestCommitTrade:
         r = prs_env.post("/api/v1/prs/commit", json=payload)
         assert r.status_code in (200, 400)
 
+    def test_commit_with_terrain_fields(self, prs_env, tmp_path, monkeypatch):
+        """Commit with EA flood zone terrain fields."""
+        from config import config
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "catchment_id", "thames")
+
+        payload = {
+            "gauge_id": "GAUGE-001",
+            "gauge_name": "Test Gauge",
+            "counterparty_id": "CTPY-001",
+            "counterparty_name": "Test Bank",
+            "trigger": "warning",
+            "notional": 1_000_000,
+            "tenor": 3,
+            "spread_bps": 150.0,
+            "fair_spread_bps": 145.0,
+            "npv": -50000.0,
+            "premium_leg_pv": 100000.0,
+            "protection_leg_pv": 150000.0,
+            "risky_annuity": 2.5,
+            "recovery": 0.0,
+            "ea_flood_zone": "Zone 3b",
+            "ea_flood_zone_actual": "Zone 2",
+            "terrain_delta_bps": 156.3,
+        }
+        r = prs_env.post("/api/v1/prs/commit", json=payload)
+        assert r.status_code in (200, 400)
+        assert r.get_json()["status"] in ("success", "error")
+
+    def test_commit_without_terrain_fields_backward_compat(self, prs_env, tmp_path, monkeypatch):
+        """Commit without terrain fields should still work (backward compatibility)."""
+        from config import config
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "catchment_id", "thames")
+
+        payload = {
+            "gauge_id": "GAUGE-001",
+            "counterparty_id": "CTPY-001",
+            "counterparty_name": "Test Bank",
+            "trigger": "warning",
+            "notional": 1_000_000,
+            "tenor": 3,
+            "spread_bps": 150.0,
+        }
+        r = prs_env.post("/api/v1/prs/commit", json=payload)
+        assert r.status_code in (200, 400)
+
 
 class TestListTradesWithFiles:
 

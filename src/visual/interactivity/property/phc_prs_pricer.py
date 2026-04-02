@@ -84,6 +84,48 @@ def get_js():
                 return Math.exp(-lambda * t);
             }
 
+            // ================================================================
+            // Terrain grid bilinear interpolation
+            // ================================================================
+            function interpolateTerrainSpread(terrainGrid, zone, distance_m, elevation_m) {
+                if (!terrainGrid || !terrainGrid.zones || !terrainGrid.zones[zone]) return 0;
+                var distances = terrainGrid.distances;
+                var elevations = terrainGrid.elevations;
+                var grid = terrainGrid.zones[zone].grid;
+
+                // Clamp to grid bounds
+                var d = Math.max(distances[0], Math.min(distance_m, distances[distances.length - 1]));
+                var h = Math.max(elevations[0], Math.min(elevation_m, elevations[elevations.length - 1]));
+
+                // Find bracketing distance index
+                var di = 0;
+                for (var i = 0; i < distances.length - 1; i++) {
+                    if (distances[i + 1] >= d) { di = i; break; }
+                    if (i === distances.length - 2) di = i;
+                }
+
+                // Find bracketing elevation index
+                var ei = 0;
+                for (var i = 0; i < elevations.length - 1; i++) {
+                    if (elevations[i + 1] >= h) { ei = i; break; }
+                    if (i === elevations.length - 2) ei = i;
+                }
+
+                // Fractional positions
+                var dSpan = distances[di + 1] - distances[di];
+                var eSpan = elevations[ei + 1] - elevations[ei];
+                var td = dSpan > 0 ? (d - distances[di]) / dSpan : 0;
+                var te = eSpan > 0 ? (h - elevations[ei]) / eSpan : 0;
+
+                // Bilinear interpolation
+                var v00 = grid[di][ei];
+                var v01 = grid[di][ei + 1];
+                var v10 = grid[di + 1][ei];
+                var v11 = grid[di + 1][ei + 1];
+                return v00 * (1 - td) * (1 - te) + v10 * td * (1 - te) +
+                       v01 * (1 - td) * te + v11 * td * te;
+            }
+
             function computePropertyPRSCashflows() {
                 var triggerKey = 'severe';
                 var notionalStr = document.getElementById('phc-notional').value.replace(/,/g, '');
@@ -174,6 +216,37 @@ def get_js():
                     avgBasis = sumBasis / gaugeComponents.length;
                 }
 
+                // ---- Terrain delta via grid interpolation ----
+                var zoneEl = document.getElementById('phc-ea-zone');
+                var selectedZone = zoneEl ? zoneEl.value : '';
+                var actualZone = phcData.flood_zone || 'Zone 1';
+                var terrainDelta = 0;
+
+                var terrainGrid = (phcData._metadata || {}).terrain_grid || null;
+                // Also check top-level metadata if available (injected by panel)
+                if (!terrainGrid && window._phcMetadata) {
+                    terrainGrid = window._phcMetadata.terrain_grid || null;
+                }
+
+                if (terrainGrid && selectedZone && selectedZone !== actualZone) {
+                    // Compute avg distance and elevation diff for interpolation
+                    var avgDistM = 0;
+                    var avgElevDiff = 0;
+                    var propElev = phcData.elevation_m || 0;
+                    if (nearestGauges.length > 0) {
+                        var totalDist = 0, totalElevDiff = 0;
+                        nearestGauges.forEach(function(ng) {
+                            totalDist += (ng.distance_km || 0) * 1000;
+                            totalElevDiff += Math.max(0, propElev - (ng.gauge_elevation_m || 0));
+                        });
+                        avgDistM = totalDist / nearestGauges.length;
+                        avgElevDiff = totalElevDiff / nearestGauges.length;
+                    }
+                    var spreadAtSelected = interpolateTerrainSpread(terrainGrid, selectedZone, avgDistM, avgElevDiff);
+                    var spreadAtActual = interpolateTerrainSpread(terrainGrid, actualZone, avgDistM, avgElevDiff);
+                    terrainDelta = spreadAtSelected - spreadAtActual;
+                }
+
                 return {
                     periods: periods,
                     totalPremPV: totalPremPV,
@@ -191,7 +264,10 @@ def get_js():
                     triggerKey: triggerKey,
                     propSpreadAtTenor: propSpreadAtTenor,
                     gaugeComponents: gaugeComponents,
-                    avgBasis: avgBasis
+                    avgBasis: avgBasis,
+                    terrainDelta: terrainDelta,
+                    selectedZone: selectedZone,
+                    actualZone: actualZone
                 };
             }
 """

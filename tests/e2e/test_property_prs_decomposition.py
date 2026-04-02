@@ -145,6 +145,63 @@ class TestPropertyPRSDecomposition:
             f"{ef.get('distance_effect_bps', 0)} = {path2} != {prop_}"
         )
 
+    def test_terrain_effect_appears_when_zone_changed(
+        self, map_page, first_property_id
+    ):
+        """Changing the EA zone dropdown should add a Terrain Effect row."""
+        self._open_prs_tab(map_page, first_property_id)
+
+        # Check EA zone dropdown exists
+        zone_el = map_page.locator("#phc-ea-zone")
+        if zone_el.count() == 0:
+            pytest.skip("EA zone dropdown not found")
+
+        # Get the current (actual) zone
+        actual_zone = map_page.evaluate(
+            "() => document.getElementById('phc-ea-zone').value"
+        )
+
+        # Change to a different zone
+        new_zone = "Zone 3b" if actual_zone != "Zone 3b" else "Zone 1"
+        map_page.evaluate(f"""() => {{
+            var el = document.getElementById('phc-ea-zone');
+            el.value = '{new_zone}';
+            el.dispatchEvent(new Event('change', {{bubbles: true}}));
+        }}""")
+        map_page.wait_for_timeout(2_000)
+
+        # Verify Terrain Effect row appears in the panel
+        panel_text = map_page.locator("#property-hc-panel").inner_text()
+        assert "Terrain Effect" in panel_text, (
+            f"Terrain Effect row not found after changing zone from "
+            f"{actual_zone} to {new_zone}"
+        )
+
+    def test_terrain_effect_hidden_when_zone_matches_actual(
+        self, map_page, first_property_id
+    ):
+        """When EA zone matches the property's actual zone, no Terrain Effect row."""
+        self._open_prs_tab(map_page, first_property_id)
+
+        zone_el = map_page.locator("#phc-ea-zone")
+        if zone_el.count() == 0:
+            pytest.skip("EA zone dropdown not found")
+
+        # Reset to actual zone
+        map_page.evaluate("""() => {
+            var el = document.getElementById('phc-ea-zone');
+            var actual = (typeof phcData !== 'undefined' && phcData.flood_zone)
+                ? phcData.flood_zone : 'Zone 1';
+            el.value = actual;
+            el.dispatchEvent(new Event('change', {bubbles: true}));
+        }""")
+        map_page.wait_for_timeout(2_000)
+
+        panel_text = map_page.locator("#property-hc-panel").inner_text()
+        assert "Terrain Effect" not in panel_text, (
+            "Terrain Effect row should not appear when zone matches actual"
+        )
+
     def test_gauge_spread_matches_component_table(
         self, map_page, first_property_id
     ):

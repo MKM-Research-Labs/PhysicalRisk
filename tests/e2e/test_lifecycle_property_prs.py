@@ -40,7 +40,7 @@ class TestPropertyPRSBookTrade:
         # Controls from phc_prs.py: phc-counterparty,
         # phc-notional, phc-tenor, phc-spread
         for ctrl_id in [
-            "phc-counterparty", "phc-notional",
+            "phc-counterparty", "phc-ea-zone", "phc-notional",
             "phc-tenor", "phc-spread",
         ]:
             found = map_page.evaluate(
