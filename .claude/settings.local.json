@@ -157,7 +157,12 @@
       "Bash(PYTHONPATH=src .venv/bin/python3 -m pytest tests/models/trading/book/market_making.py -x --tb=short)",
       "Bash(PYTHONPATH=src .venv/bin/python3 -m pytest tests/models/trading/book/market_making.py --tb=short)",
       "Bash(.venv/bin/pip install:*)",
-      "Bash(.venv/bin/pip show:*)"
+      "Bash(.venv/bin/pip show:*)",
+      "Bash(mkdir -p /Users/newdavid/Downloads/prs)",
+      "Bash(cp -R /Users/newdavid/Documents/PhysicalRisk/docs/models/* /Users/newdavid/Downloads/prs/)",
+      "Bash(rm -rf /Users/newdavid/Downloads/prs)",
+      "Bash(PYTHONPATH=src:. python -c \":*)",
+      "Bash(cp /Users/newdavid/Documents/PhysicalRisk/docs/models/prs_pricing/prs_pricing.tex /Users/newdavid/Documents/PhysicalRisk/docs/models/prs_pricing/sensitivity_tables.tex /Users/newdavid/Downloads/prs/)"
     ]
   }
 }

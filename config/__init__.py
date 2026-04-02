@@ -33,9 +33,9 @@ from config.server import ServerMixin
 from config.catch import CatchmentMixin
 
 # Re-export all model parameters so callers can do:
-#   from config import MODEL_UNCERTAINTY_BPS
+#   from config import MIN_PRS_SPREAD_BPS
 # as well as the preferred:
-#   from config.models import MODEL_UNCERTAINTY_BPS
+#   from config.models import MIN_PRS_SPREAD_BPS
 from config.port import (
     BUMP_1BP,
     DAILY_HAZARD_VOL,
