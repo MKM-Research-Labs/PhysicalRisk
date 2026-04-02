@@ -95,6 +95,17 @@ def get_gauge_storms(gauge_id: str):
                 if resp.get('gauges_severe', 0) == 0 and sid in severe_counts:
                     resp['gauges_severe'] = severe_counts[sid]
 
+        # Sequence count (the unit of risk) from storm_sequences.json
+        num_sequences = len(storm_responses)  # fallback
+        seq_path = config.get_input_path('storm_sequences.json')
+        if seq_path.exists():
+            try:
+                with open(seq_path, 'r') as f:
+                    seq_meta = json_mod.load(f)
+                num_sequences = seq_meta.get('num_sequences', len(seq_meta.get('sequences', [])))
+            except Exception:
+                pass
+
         return jsonify({
             'status': 'success',
             'gauge_id': gauge_id,
@@ -105,6 +116,7 @@ def get_gauge_storms(gauge_id: str):
             },
             'storm_responses': {
                 'num_storms': len(storm_responses),
+                'num_sequences': num_sequences,
                 'responses': storm_responses
             },
             'flood_stages': flood_stages
