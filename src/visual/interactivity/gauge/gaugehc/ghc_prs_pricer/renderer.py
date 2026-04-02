@@ -121,6 +121,7 @@ def get_renderer_js() -> str:
                 if (hcCtx) {
                     var _gid2 = hazardData ? hazardData.gauge_id : '';
                     var _trig2 = result.trigger;
+                    console.log('[PRSRender] Chart: gauge=' + _gid2 + ', trigger=' + _trig2 + ', _mktHazardTS=' + (_mktHazardTS ? Object.keys(_mktHazardTS).length + ' gauges' : 'null') + ', has gauge=' + (_mktHazardTS && _mktHazardTS[_gid2] ? 'yes' : 'no'));
                     var hcTenors = ['1','2','3','4','5'];
                     var hcLabels = hcTenors.map(function(t) { return t + 'Y'; });
                     var hcRates = [];
