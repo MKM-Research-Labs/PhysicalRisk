@@ -103,6 +103,18 @@ def get_js() -> str:
 
                         document.getElementById('hazard-status').textContent =
                             data.swap_id + ' ' + actionLabel.toLowerCase() + ' | ' + result.trigger;
+
+                        // Refresh active gauges list (for context menu + blotter)
+                        try {
+                            var agResp = await fetch(baseUrl + '/api/v1/trading/blotter/active-gauges', {mode: 'cors'});
+                            var agData = await agResp.json();
+                            if (agData.status === 'success' && window.setActiveGauges) {
+                                window.setActiveGauges(agData.gauge_ids || []);
+                            }
+                        } catch (e) { /* non-critical */ }
+
+                        // Invalidate blotter cache so next open fetches fresh data
+                        window._tdPreBlotter = null;
                     } else {
                         throw new Error(data.message || 'Failed');
                     }

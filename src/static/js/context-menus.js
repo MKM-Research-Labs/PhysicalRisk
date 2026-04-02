@@ -242,6 +242,7 @@
         } else {
             setTimeout(api.initializeMenus, 1000);
         }
+        root.setActiveGauges = api.setActiveGauges;
         if (root.console) root.console.log('Context menus initialized');
     }
 
