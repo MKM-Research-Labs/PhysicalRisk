@@ -183,6 +183,22 @@ MAX_RETURN_PERIOD: int = 100
 
 
 # ===========================================================================
+# EA Flood Zone — elevation boundaries (port/src/property/main/locations.py,
+#                                        port/rand/thames/property/property_random.py)
+# ===========================================================================
+
+# Vertical offset above river level (metres).  Bounds are [lower, upper);
+# upper=None means no upper limit.  Used by the property generator to derive
+# the EA flood zone from the property's physical position.
+EA_FLOOD_ZONE_ELEVATION_BOUNDS: Dict[str, tuple] = {
+    'Zone 3b': (0.0, 0.5),    # Functional floodplain — at river level
+    'Zone 3a': (0.5, 1.5),    # High probability — within typical flood depth
+    'Zone 2':  (1.5, 3.0),    # Medium probability — above routine flooding
+    'Zone 1':  (3.0, None),   # Low probability — well above flood levels
+}
+
+
+# ===========================================================================
 # Property Timeseries  (port/src/property/ts/constants.py)
 # ===========================================================================
 
