@@ -79,12 +79,6 @@ def get_js() -> str:
                         ' @ H' + s.max_stress_hour + '</span>',
                 ];
                 if (aucText) parts.push(aucText);
-                parts.push(
-                    '<span style="border-left:1px solid #ddd;padding-left:12px;">' +
-                        '<a onclick="tdStressOpenGauge(\\'' + gaugeId + '\\')" style="' + linkStyle + '">Storm Simulation \\u2192</a>' +
-                        '<a onclick="tdStressOpenDamage(\\'' + stormId + '\\')" style="' + linkStyle + ' margin-left:12px;">Property Damage \\u2192</a>' +
-                    '</span>'
-                );
                 bar.innerHTML = parts.join('<span style="margin:0 6px;color:#ddd;">|</span>');
             }
 
