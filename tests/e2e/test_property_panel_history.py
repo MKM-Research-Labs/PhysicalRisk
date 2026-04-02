@@ -8,7 +8,7 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# Flood History tab (idx 2)
+# Flood History tab (idx 3)
 # ---------------------------------------------------------------------------
 
 
@@ -25,14 +25,14 @@ class TestPropertyFloodHistory:
         map_page.wait_for_timeout(3_000)
 
     def test_history_renders(self, map_page, first_property_id):
-        """Flood History tab (idx 2) should render content."""
+        """Flood History tab (idx 3) should render content."""
         self._open_storm_panel(map_page, first_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='2']")
+        tab = panel.locator(".prop-storm-tab[data-idx='3']")
         if tab.count() == 0:
-            pytest.skip("Flood History tab (idx 2) not found")
+            pytest.skip("Flood History tab (idx 3) not found")
         tab.click()
         map_page.wait_for_timeout(3_000)
 
@@ -50,7 +50,7 @@ class TestPropertyFloodHistory:
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='2']")
+        tab = panel.locator(".prop-storm-tab[data-idx='3']")
         if tab.count() == 0:
             pytest.skip("Flood History tab not found")
         tab.click()
@@ -65,7 +65,7 @@ class TestPropertyFloodHistory:
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='2']")
+        tab = panel.locator(".prop-storm-tab[data-idx='3']")
         if tab.count() == 0:
             pytest.skip("Flood History tab not found")
         tab.click()
@@ -83,7 +83,7 @@ class TestPropertyFloodHistory:
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='2']")
+        tab = panel.locator(".prop-storm-tab[data-idx='3']")
         if tab.count() == 0:
             pytest.skip("Flood History tab not found")
         tab.click()
@@ -98,7 +98,7 @@ class TestPropertyFloodHistory:
 
 
 # ---------------------------------------------------------------------------
-# Mortgage Impact tab (idx 3)
+# Mortgage Impact tab (idx 4)
 # ---------------------------------------------------------------------------
 
 
@@ -115,14 +115,14 @@ class TestPropertyMortgageImpact:
         map_page.wait_for_timeout(3_000)
 
     def test_mortgage_impact_renders(self, map_page, first_property_id):
-        """Mortgage Impact tab (idx 3) should render content."""
+        """Mortgage Impact tab (idx 4) should render content."""
         self._open_storm_panel(map_page, first_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='3']")
+        tab = panel.locator(".prop-storm-tab[data-idx='4']")
         if tab.count() == 0:
-            pytest.skip("Mortgage Impact tab (idx 3) not found")
+            pytest.skip("Mortgage Impact tab (idx 4) not found")
         tab.click()
         map_page.wait_for_timeout(3_000)
 
@@ -139,7 +139,7 @@ class TestPropertyMortgageImpact:
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='3']")
+        tab = panel.locator(".prop-storm-tab[data-idx='4']")
         if tab.count() == 0:
             pytest.skip("Mortgage Impact tab not found")
         tab.click()
@@ -154,7 +154,7 @@ class TestPropertyMortgageImpact:
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='3']")
+        tab = panel.locator(".prop-storm-tab[data-idx='4']")
         if tab.count() == 0:
             pytest.skip("Mortgage Impact tab not found")
         tab.click()
@@ -170,7 +170,7 @@ class TestPropertyMortgageImpact:
 
 
 # ---------------------------------------------------------------------------
-# Insurance Report tab (idx 4)
+# Insurance Report tab (idx 5)
 # ---------------------------------------------------------------------------
 
 
@@ -187,13 +187,13 @@ class TestPropertyInsuranceReport:
         map_page.wait_for_timeout(3_000)
 
     def test_insurance_tab_exists(self, map_page, first_property_id):
-        """Insurance Report tab button (idx 4) should exist."""
+        """Insurance Report tab button (idx 5) should exist."""
         self._open_storm_panel(map_page, first_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='4']")
-        assert tab.count() > 0, "Insurance Report tab (idx 4) not found"
+        tab = panel.locator(".prop-storm-tab[data-idx='5']")
+        assert tab.count() > 0, "Insurance Report tab (idx 5) not found"
 
     def test_tab_mentions_insurance(self, map_page, first_property_id):
         """Insurance tab text should reference insurance or claim."""
@@ -201,7 +201,7 @@ class TestPropertyInsuranceReport:
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
-        tab = panel.locator(".prop-storm-tab[data-idx='4']")
+        tab = panel.locator(".prop-storm-tab[data-idx='5']")
         if tab.count() == 0:
             pytest.skip("Insurance tab not found")
         text = tab.inner_text().lower()

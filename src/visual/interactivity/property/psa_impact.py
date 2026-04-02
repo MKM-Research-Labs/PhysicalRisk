@@ -79,9 +79,12 @@ def get_js() -> str:
                 events.forEach(function(e, i) {
                     var bg = i % 2 === 0 ? '#fff' : '#fafafa';
                     var depthColor = e.flood_depth_m >= 1.0 ? '#d32f2f' : e.flood_depth_m >= 0.5 ? '#f57c00' : '#333';
+                    var sid = (e.storm_id || '').replace(/'/g, "\\\\'");
                     html +=
-                        '<tr style="background:' + bg + ';">' +
-                        '<td style="padding:3px 8px;font-family:monospace;">' + (e.storm_id || '-').substring(0, 16) + '</td>' +
+                        '<tr style="background:' + bg + ';cursor:pointer;" ' +
+                        'onclick="switchTab(1, \\'' + sid + '\\')" ' +
+                        'title="Click to view flood timeline">' +
+                        '<td style="padding:3px 8px;font-family:monospace;color:#1565c0;">' + (e.storm_id || '-').substring(0, 16) + '</td>' +
                         '<td style="padding:3px 6px;">' + seqBadge(e.sequence_type) + '</td>' +
                         '<td style="padding:3px 8px;text-align:right;color:' + depthColor + ';font-weight:600;">' + (e.flood_depth_m || 0).toFixed(2) + '</td>' +
                         '<td style="padding:3px 8px;text-align:right;">' + ((e.damage_ratio || 0) * 100).toFixed(1) + '%</td>' +
@@ -140,7 +143,15 @@ def get_js() -> str:
                             x: { ticks: { font: { size: 9 }, maxRotation: 45 } },
                             y: { title: { display: true, text: 'Depth (m)' }, beginAtZero: true }
                         },
-                        onClick: function() {}
+                        onClick: function(evt, elems) {
+                            if (elems && elems.length > 0) {
+                                var idx = elems[0].index;
+                                var ev = events[idx];
+                                if (ev && ev.storm_id) {
+                                    switchTab(1, ev.storm_id);
+                                }
+                            }
+                        }
                     }
                 });
 

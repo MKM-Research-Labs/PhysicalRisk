@@ -26,15 +26,16 @@ worst-storm rankings, flood history, and mortgage impact.
 Loads data from the /api/v1/properties/{id}/storms endpoint.
 
 Sub-modules:
-- psa_charts: Distribution (Tab 0) and Worst Storms (Tab 1)
-- psa_impact: Flood History (Tab 2) and Mortgage Impact (Tab 3)
+- psa_charts: Distribution (Tab 0) and Worst Storms (Tab 2)
+- psa_timeline: Flood Timeline hydrograph (Tab 1)
+- psa_impact: Flood History (Tab 3) and Mortgage Impact (Tab 4)
 """
 
 from typing import Any, Dict
 
 import folium
 
-from . import psa_charts, psa_impact
+from . import psa_charts, psa_impact, psa_timeline
 
 
 class PropertyStormAnalysis:
@@ -63,6 +64,7 @@ class PropertyStormAnalysis:
             // Sub-module code (state vars + functions)
             // ==============================================================
 {psa_charts.get_js()}
+{psa_timeline.get_js()}
 {psa_impact.get_js()}
 
             // ================================================================
@@ -116,24 +118,59 @@ class PropertyStormAnalysis:
                 tabBar.style.cssText =
                     'display:flex;gap:0;border-bottom:2px solid #eee;padding:0 16px;background:#fafafa;';
 
-                var tabs = ['Distribution', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report'];
+                var tabs = ['Distribution', 'Flood Timeline', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report', 'PRS Pricing'];
                 tabs.forEach(function(name, i) {{
                     var tab = document.createElement('button');
                     tab.className = 'prop-storm-tab';
                     tab.textContent = name;
                     tab.dataset.idx = i;
-                    if (i === 4) {{
-                        // Insurance Report: action link, not a content tab
+                    if (i === 5) {{
+                        // Insurance Report: fetch PDF and show in popup
                         tab.style.cssText =
                             'padding:8px 14px;border:none;background:none;cursor:pointer;' +
                             'font-size:12px;font-weight:600;color:#c62828;' +
                             'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:8px;';
-                        tab.title = 'Download flood damage claim report as PDF';
+                        tab.title = 'View flood damage claim report';
+                        tab.onclick = async function() {{
+                            var propId = document.getElementById('prop-storm-panel') &&
+                                         document.getElementById('prop-storm-panel').dataset.propertyId;
+                            if (!propId) return;
+                            var cfg = window.__BACKEND_CONFIG || {{}};
+                            var baseUrl = cfg.url || '';
+                            tab.textContent = 'Loading...';
+                            try {{
+                                var resp = await fetch(baseUrl + '/api/v1/properties/' + propId + '/claim-report', {{mode: 'cors'}});
+                                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                                var blob = await resp.blob();
+                                var reader = new FileReader();
+                                reader.onload = function() {{
+                                    var base64 = reader.result.split(',')[1];
+                                    if (window.PropertyPDFPanel && typeof window.PropertyPDFPanel.show === 'function') {{
+                                        window.PropertyPDFPanel.show(propId, base64);
+                                    }} else {{
+                                        window.open(baseUrl + '/api/v1/properties/' + propId + '/claim-report', '_blank');
+                                    }}
+                                    tab.textContent = 'Insurance Report';
+                                }};
+                                reader.readAsDataURL(blob);
+                            }} catch (err) {{
+                                console.error('Claim report error:', err);
+                                if (window.showError) window.showError('Failed to load claim report: ' + err.message);
+                                tab.textContent = 'Insurance Report';
+                            }}
+                        }};
+                    }} else if (i === 6) {{
+                        // PRS Pricing: open PRS Pricer panel
+                        tab.style.cssText =
+                            'padding:8px 14px;border:none;background:none;cursor:pointer;' +
+                            'font-size:12px;font-weight:600;color:#1565c0;' +
+                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:4px;';
+                        tab.title = 'Open PRS pricing workflow';
                         tab.onclick = function() {{
                             var propId = document.getElementById('prop-storm-panel') &&
                                          document.getElementById('prop-storm-panel').dataset.propertyId;
-                            if (propId) {{
-                                window.open('/api/v1/properties/' + propId + '/claim-report', '_blank');
+                            if (propId && window.viewPropertyHazard) {{
+                                window.viewPropertyHazard(propId);
                             }}
                         }};
                     }} else {{
@@ -169,9 +206,10 @@ class PropertyStormAnalysis:
                 }});
                 if (!propStormData) return;
                 if (idx === 0) renderDistribution();
-                else if (idx === 1) renderWorstStorms();
-                else if (idx === 2) renderFloodHistory();
-                else if (idx === 3) renderMortgageImpact();
+                else if (idx === 1) renderTimeline(stormId || null);
+                else if (idx === 2) renderWorstStorms();
+                else if (idx === 3) renderFloodHistory();
+                else if (idx === 4) renderMortgageImpact();
             }}
 
             // ================================================================
@@ -208,10 +246,11 @@ class PropertyStormAnalysis:
                     var data = await response.json();
                     if (data.status !== 'success') throw new Error(data.message || 'Failed');
                     propStormData = data;
-                    var nEvents = data.flood_events ? data.flood_events.length : 0;
+                    var allEvents = data.flood_events || [];
+                    var nPropertyFloods = allEvents.filter(function(e) {{ return e.flooded; }}).length;
                     var summary = data.summary || {{}};
-                    console.log('[PropertyStorm] Loaded', nEvents, 'flood events for', propertyId);
-                    status.textContent = summary.floods_at_nearest_gauge + ' gauge floods, ' + nEvents + ' property floods';
+                    console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'property floods for', propertyId);
+                    status.textContent = summary.floods_at_nearest_gauge + ' gauge floods, ' + nPropertyFloods + ' property floods';
 
                     // Fetch mortgage data for mortgage impact tab
                     try {{

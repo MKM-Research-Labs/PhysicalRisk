@@ -106,7 +106,7 @@ def get_js():
                     '</tr></thead>' +
                     '<tbody>' + compRows + '</tbody></table>';
 
-                // ---- Spread Decomposition ----
+                // ---- Spread Decomposition (severe trigger) ----
                 var sd = phcData.spread_decomposition || {};
                 var gaugeSpread = sd.gauge_spread_bps || 0;
                 var propSpread = sd.property_spread_bps || 0;
