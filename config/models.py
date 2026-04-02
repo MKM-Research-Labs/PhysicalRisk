@@ -65,45 +65,8 @@ LTV_RISK_THRESHOLDS: Dict[str, float] = {
 STORM_SIMULATION_HOURS: int = 168
 
 # ===========================================================================
-# PRS Basis Waterfall  (PRS Property Pricing Spec v1.0)
+# PRS Pricing
 # ===========================================================================
-
-# Fixed model uncertainty spread (bps)
-MODEL_UNCERTAINTY_BPS: float = 2.0
-
-# Terrain variation by EA flood zone (Spec Section 4.4)
-TERRAIN_BASIS_BPS: Dict[str, float] = {
-    'Zone 3b':          3.0,
-    'Zone 3a':          3.0,
-    'Zone 3':           3.0,
-    'Zone 2':           2.0,
-    'Zone 1':           0.0,
-    'Enhanced Defence': -1.0,
-}
-
-# Property composition adjustment by type (Spec Table 3)
-COMPOSITION_BASIS_BPS: Dict[str, float] = {
-    'Flat':           2.0,
-    'Bungalow':       1.0,
-    'Mid-terrace':    0.5,
-    'End-terrace':    0.5,
-    'Semi-detached':  0.0,
-    'Detached':       0.0,
-}
-
-# Construction year cutoff — pre-2000 buildings attract +1 bp
-CONSTRUCTION_YEAR_CUTOFF: int = 2000
-
-# Distance basis: min(DISTANCE_MAX_BPS, DISTANCE_RATE_BPS_PER_KM × d_weighted_km)
-# capped at DISTANCE_CAP_KM km
-DISTANCE_RATE_BPS_PER_KM: float = 0.5
-DISTANCE_MAX_BPS:          float = 6.0
-DISTANCE_CAP_KM:           float = 12.0
-
-# Elevation basis: max(-ELEVATION_MAX_BENEFIT_BPS, -ELEVATION_RATE_BPS_PER_M × Δh)
-# only applies when property is above gauge; else 0
-ELEVATION_RATE_BPS_PER_M:   float = 0.2
-ELEVATION_MAX_BENEFIT_BPS:  float = 3.0
 
 # Recovery rates by trigger level — 0 % = full loss given default
 RECOVERY_RATES: Dict[str, float] = {
