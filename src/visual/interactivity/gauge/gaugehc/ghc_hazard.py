@@ -40,7 +40,6 @@ def get_js() -> str:
             function _fetchMarketHazardTS() {
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
-                if (!baseUrl) return Promise.resolve(null);
                 return fetch(baseUrl + '/api/v1/trading/hazard-term-structure?_=' + Date.now(), {mode: 'cors', cache: 'no-store'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {

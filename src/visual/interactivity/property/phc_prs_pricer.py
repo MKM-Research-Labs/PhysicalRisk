@@ -46,7 +46,6 @@ def get_js():
             (function() {
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
-                if (!baseUrl) return;
                 fetch(baseUrl + '/api/v1/trading/yield-curve', {mode: 'cors'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {

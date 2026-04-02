@@ -51,7 +51,6 @@ def get_js() -> str:
             function fetchYieldCurve() {
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
-                if (!baseUrl) return;
                 fetch(baseUrl + '/api/v1/trading/yield-curve?_=' + Date.now(), {mode: 'cors', cache: 'no-store'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
