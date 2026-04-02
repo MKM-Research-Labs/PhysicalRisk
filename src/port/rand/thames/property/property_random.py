@@ -117,6 +117,7 @@ def generate_property_metadata(index: int, location: Dict[str, Any]) -> Dict[str
         'property_area': property_area,
         'property_value': property_value,
         'elevation': location['elevation'],
+        'vertical_offset': location.get('vertical_offset', 0.5),
         'area_name': location.get('name', 'Unknown'),
         'value_factor': location.get('value_factor', 1.0),
         'streets_data': location.get('streets_data', {})
@@ -145,6 +146,7 @@ def generate_field_value(field_name: str, field_def: Dict, index: int, metadata:
             'property_value': metadata.get('property_value'),
             'construction_year': metadata.get('construction_year'),
             'elevation': metadata.get('elevation'),
+            'vertical_offset': metadata.get('vertical_offset', 0.5),
             'area_name': metadata.get('area_name'),
             'value_factor': metadata.get('value_factor', 1.0),
             'streets_data': metadata.get('streets_data', {})
@@ -177,6 +179,23 @@ def generate_field_value(field_name: str, field_def: Dict, index: int, metadata:
 
 
 # =============================================================================
+# EA FLOOD ZONE — derived from vertical offset above river
+# =============================================================================
+
+def _ea_zone_from_elevation(info: Dict[str, Any]) -> str:
+    """Derive EA flood zone from the property's vertical offset above river level."""
+    from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
+    offset = info.get('vertical_offset', 999.0)
+    for zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
+        if hi is None:
+            if offset >= lo:
+                return zone
+        elif lo <= offset < hi:
+            return zone
+    return 'Zone 1'
+
+
+# =============================================================================
 # FIELD GENERATORS
 # =============================================================================
 
@@ -204,7 +223,7 @@ def get_field_generators() -> Dict[str, Callable]:
         "Country": lambda _: 'England',
         "Region": lambda _: random.choice(['London', 'South East', 'East of England']),
         "UrbanRuralClassification": lambda _: random.choice(['Urban', 'Suburban', 'Rural']),
-        "EAFloodZone": lambda _: random.choice(['Zone 1', 'Zone 2', 'Zone 3a', 'Zone 3b']),
+        "EAFloodZone": lambda info: _ea_zone_from_elevation(info),
         "FloodRiskType": lambda _: random.choice(['River', 'Surface water', 'Groundwater', 'Coastal', 'Multiple']),
 
         "PropertyResi": lambda info: info.get('property_type', 'Flat'),

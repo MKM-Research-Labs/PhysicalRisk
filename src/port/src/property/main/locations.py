@@ -115,8 +115,8 @@ class LocationsMixin:
             # Rise: 2-5m per km, randomised per property
             gradient_m_per_km = random.uniform(2.0, 5.0)
             vertical_offset = (river_dist_m / 1000.0) * gradient_m_per_km
-            # Minimum 0.5m above river level even for closest properties
-            vertical_offset = max(0.5, vertical_offset)
+            # Allow properties at river level (vertical_offset = 0) for Zone 3b
+            vertical_offset = max(0.0, vertical_offset)
             elev = river_elev + vertical_offset
 
             area_name = areas[primary_idx % len(areas)]
@@ -129,6 +129,7 @@ class LocationsMixin:
                 "lon": lon,
                 "name": area_name,
                 "elevation": max(0, elev),
+                "vertical_offset": vertical_offset,
                 "value_factor": area_value_factors.get(area_name, 1.0),
                 "streets_data": streets_data,
                 "reference_gauge_indices": ref_gauges,
@@ -161,6 +162,7 @@ class LocationsMixin:
                 "lon": lon,
                 "name": area_name,
                 "elevation": elevation,
+                "vertical_offset": random.uniform(0.0, 5.0),
                 "value_factor": area_value_factors.get(area_name, 1.0),
                 "streets_data": streets_data,
             })
