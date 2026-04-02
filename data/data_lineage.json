@@ -1751,6 +1751,16 @@
       "propertyhc",
       "propertyshd",
       "propertyshe"
+    ],
+    "run-20260402-133047": [
+      "propertyhc",
+      "propertyshd",
+      "propertyshe"
+    ],
+    "run-20260402-142539": [
+      "propertyhc",
+      "propertyshd",
+      "propertyshe"
     ]
   },
   "steps": {
@@ -1941,11 +1951,11 @@
       }
     },
     "propertyhc": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.597178",
+      "run_id": "run-20260402-142539",
+      "timestamp": "2026-04-02T14:26:21.571508",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 41.555,
       "parameters": {},
       "inputs": {
         "propertyts/": {
@@ -1964,7 +1974,7 @@
       },
       "outputs": {
         "propertyhc.json": {
-          "hash": "d7a00c9046205a645c6aa2f77b010364bfa2477fe4bf4879994aa2e5a5aeaa95",
+          "hash": "f5ff8e9634a79c6b08dc4ba98ce91a4a1ab6fdeb958cf3db0e98bb6a8269fd9c",
           "type": "file"
         }
       }
@@ -2111,11 +2121,11 @@
       }
     },
     "propertyshd": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.598727",
+      "run_id": "run-20260402-142539",
+      "timestamp": "2026-04-02T14:27:19.925354",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=shd)",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 57.003,
       "parameters": {
         "mode": "shd"
       },
@@ -2136,17 +2146,17 @@
       },
       "outputs": {
         "propertyshd.json": {
-          "hash": "1fcd24a4e4c266a14ad531a5ebeee8e229db963df73bffcb38fe0ca7642e7f68",
+          "hash": "b361a73c0b707866e65d5c83194dfcd8d2de53022139bcf88297b48a9750ab90",
           "type": "file"
         }
       }
     },
     "propertyshe": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.600425",
+      "run_id": "run-20260402-142539",
+      "timestamp": "2026-04-02T14:28:07.471001",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=she)",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 46.723,
       "parameters": {
         "mode": "she"
       },
@@ -2167,7 +2177,7 @@
       },
       "outputs": {
         "propertyshe.json": {
-          "hash": "9685d418523022e33def8214e14ea70d6224a318b80e2fc8a676054e29378efd",
+          "hash": "ce8004dde80bbe9f130c3a3c0c12279e8afa5d6621ea40109a152b14beddf8a8",
           "type": "file"
         }
       }
