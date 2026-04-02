@@ -38,21 +38,7 @@ def get_create_panel_js() -> str:
                 title.id = 'hazard-panel-title';
                 title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
 
-                var blotterLink = document.createElement('button');
-                blotterLink.id = 'hazard-blotter-link';
-                blotterLink.innerHTML = '\u21D2 Gauge Blotter';
-                blotterLink.style.cssText = 'padding:3px 10px;font-size:10px;background:#1565c0;color:white;border:none;border-radius:3px;cursor:pointer;font-weight:600;';
-                blotterLink.onclick = function() {
-                    var gaugeId = hazardPanel.dataset.gaugeId || '';
-                    var gaugeName = hazardPanel.dataset.gaugeName || '';
-                    if (gaugeId && window.showGaugeBlotter) {
-                        hidePanel();
-                        window.showGaugeBlotter(gaugeId, gaugeName);
-                    }
-                };
-
                 leftHeader.appendChild(title);
-                leftHeader.appendChild(blotterLink);
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
@@ -84,6 +70,26 @@ def get_create_panel_js() -> str:
                     tab.onclick = function() { switchTab(i); };
                     tabBar.appendChild(tab);
                 });
+
+                // Gauge Blotter button — after last tab, muted until trades confirmed
+                var blotterBtn = document.createElement('button');
+                blotterBtn.id = 'hazard-blotter-link';
+                blotterBtn.textContent = '\u21D2 Gauge Blotter';
+                blotterBtn.style.cssText =
+                    'padding:6px 14px;border:none;font-size:11px;font-weight:600;' +
+                    'margin-left:auto;cursor:default;' +
+                    'background:#f5f5f5;color:#bbb;';
+                blotterBtn.disabled = true;
+                blotterBtn.onclick = function() {
+                    if (blotterBtn.disabled) return;
+                    var gaugeId = hazardPanel.dataset.gaugeId || '';
+                    var gaugeName = hazardPanel.dataset.gaugeName || '';
+                    if (gaugeId && window.showGaugeBlotter) {
+                        hidePanel();
+                        window.showGaugeBlotter(gaugeId, gaugeName);
+                    }
+                };
+                tabBar.appendChild(blotterBtn);
 
                 // Controls area (for PRS inputs on Tab 3)
                 var controls = document.createElement('div');
