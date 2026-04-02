@@ -122,6 +122,9 @@ def commit_prs_trade():
                     "YieldCurve": data.get("yield_curve", {}),
                     "Recovery": float(data.get("recovery", 0)),
                     "TriggerLevel": trigger,
+                    "EAFloodZone": data.get("ea_flood_zone", ""),
+                    "EAFloodZoneActual": data.get("ea_flood_zone_actual", ""),
+                    "TerrainDeltaBps": float(data.get("terrain_delta_bps", 0)),
                 },
             }
         }

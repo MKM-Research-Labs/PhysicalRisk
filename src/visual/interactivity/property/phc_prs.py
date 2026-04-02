@@ -51,11 +51,24 @@ def get_js() -> str:
                     ctpyOptions += '<option value="' + c.counterparty_id + '">' + label + '</option>';
                 });
 
+                // Build EA zone dropdown, default to property's actual zone
+                var zoneOrder = ['Zone 3b', 'Zone 3a', 'Zone 3', 'Zone 2', 'Zone 1'];
+                var actualZone = phcData.flood_zone || 'Zone 1';
+                var zoneOptions = '';
+                zoneOrder.forEach(function(z) {
+                    var sel = (z === actualZone) ? ' selected' : '';
+                    zoneOptions += '<option value="' + z + '"' + sel + '>' + z + '</option>';
+                });
+
                 controls.innerHTML =
                     '<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap;">' +
                     '<span style="' + labelStyle + '">Ctpy:</span>' +
                     '<select id="phc-counterparty" style="' + selectStyle + 'min-width:140px;">' +
                     ctpyOptions +
+                    '</select>' +
+                    '<span style="' + labelStyle + '">EA Zone:</span>' +
+                    '<select id="phc-ea-zone" style="' + selectStyle + '">' +
+                    zoneOptions +
                     '</select>' +
                     '<span style="' + labelStyle + '">Notional:</span>' +
                     '<input id="phc-notional" type="text" value="10,000,000" style="' + inputStyle + '">' +
@@ -66,7 +79,7 @@ def get_js() -> str:
                     '</div>';
 
                 // Auto-recompute on any input change
-                var ids = ['phc-counterparty', 'phc-notional', 'phc-tenor', 'phc-spread'];
+                var ids = ['phc-counterparty', 'phc-ea-zone', 'phc-notional', 'phc-tenor', 'phc-spread'];
                 ids.forEach(function(id) {
                     var el = document.getElementById(id);
                     if (el) el.addEventListener('change', function() { if (activeTab === 2) renderPRSPricing(); });
@@ -111,7 +124,10 @@ def get_js() -> str:
                         recovery: result.recovery,
                         avg_basis_bps: result.avgBasis,
                         gauge_components: result.gaugeComponents,
-                        cashflows: result.periods
+                        cashflows: result.periods,
+                        ea_flood_zone: result.selectedZone || '',
+                        ea_flood_zone_actual: result.actualZone || '',
+                        terrain_delta_bps: result.terrainDelta || 0
                     };
 
                     var response = await fetch(baseUrl + '/api/v1/prs/commit', {

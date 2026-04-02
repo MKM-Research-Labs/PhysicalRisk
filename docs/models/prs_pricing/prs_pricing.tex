@@ -659,15 +659,63 @@ so the combined effect compounds. For example, a property 1\,km from the gauge a
 
 The EA flood zone classification determines the baseline gauge hazard rate: properties
 in higher-risk zones are served by gauges with higher annual flood probabilities.
-Table~\ref{tab:sens_terrain} shows the gauge spread and resulting property spread for
-representative hazard rates per zone, at a typical property location (500\,m from gauge,
-1\,m above gauge elevation).
+Tables~\ref{tab:sens_terrain_a}--\ref{tab:sens_terrain_e} show the gauge spread and
+resulting property spread for representative hazard rates per zone at a fixed distance
+of 500\,m, across five elevation offsets from 0.5\,m to 2.5\,m above gauge.
 
-Zone~3b (functional floodplain) has a gauge spread of approximately 518\,bp with basis
-of 256\,bp at the representative location. Zone~1 ($<$1 in 1{,}000 annual probability)
-has a gauge spread of only 10\,bp with basis of 5\,bp. The terrain effect is thus the
-dominant driver of absolute spread levels, while distance and elevation determine the
-basis within a given zone.
+At 0.5\,m above gauge (Table~\ref{tab:sens_terrain_a}), Zone~3b basis is 180\,bp;
+at 2.5\,m (Table~\ref{tab:sens_terrain_e}) the same zone widens to 396\,bp as the
+elevation decay reduces the property spread. Zone~1 basis ranges from 3.4\,bp at
+0.5\,m to 7.6\,bp at 2.5\,m. The terrain effect is thus the dominant driver of
+absolute spread levels, while distance and elevation determine the basis within a
+given zone.
+
+\subsubsection{EA Flood Zone Hazard Rates}
+
+The following representative annual hazard rates are used per EA zone (midpoint of
+published EA probability ranges):
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+\textbf{EA Flood Zone} & \textbf{$\lambda_{\text{annual}}$} & \textbf{Description} \\
+\midrule
+Zone 3b & 0.050 & Functional floodplain \\
+Zone 3a & 0.020 & High ($>$1 in 100) \\
+Zone 3  & 0.020 & High (generic) \\
+Zone 2  & 0.005 & 1 in 100 to 1 in 1{,}000 \\
+Zone 1  & 0.001 & $<$1 in 1{,}000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Interactive Terrain Repricing}
+
+The terrain effect is implemented as a \textbf{relative spread delta}:
+\begin{equation}
+    \Delta_{\text{terrain}} = S(z_{\text{selected}}, d, h) - S(z_{\text{actual}}, d, h)
+    \label{eq:terrain_delta}
+\end{equation}
+where $S(z, d, h)$ is the property spread at zone $z$, distance $d$, and elevation
+$h$, computed by bilinear interpolation from a pre-computed grid. The grid is a dense
+$(z \times d \times h)$ lookup with 21 distance points (0--5{,}000\,m in 250\,m steps)
+and 11 elevation points (0--5\,m in 0.5\,m steps).
+
+The baseline is the property's actual assigned zone. When the user selects a different
+zone via the UI dropdown, $\Delta_{\text{terrain}}$ is applied additively to the
+property spread. The waterfall decomposition becomes:
+\begin{equation}
+    s_{\text{property}}^{\text{adj}} = s_{\text{gauge}} + \Delta_{\text{terrain}}
+    + \Delta_{\text{distance}} + \Delta_{\text{elevation}}
+\end{equation}
+
+\subsection{Terrain Sensitivity by Distance}
+
+Tables~\ref{tab:sens_terrain_dist_a}--\ref{tab:sens_terrain_dist_e} hold the elevation
+fixed at 1.0\,m above gauge and vary the distance from 250\,m to 1{,}500\,m. For
+Zone~3b, basis widens from 233\,bp at 250\,m to 331\,bp at 1{,}500\,m. The distance
+effect is more pronounced in higher-risk zones where the gauge spread is larger: Zone~1
+basis only moves from 4.4\,bp to 6.4\,bp over the same range.
 
 
 % ===================================================================

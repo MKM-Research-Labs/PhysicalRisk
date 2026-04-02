@@ -78,6 +78,15 @@ RECOVERY_RATES: Dict[str, float] = {
 # Minimum PRS spread floor — FloodRE minimum insurance rate equivalent
 MIN_PRS_SPREAD_BPS: float = 2.0
 
+# EA Flood Zone representative annual hazard rates (midpoint of EA ranges)
+EA_FLOOD_ZONE_RATES: Dict[str, float] = {
+    'Zone 3b': 0.050,   # Functional floodplain
+    'Zone 3a': 0.020,   # High (>1 in 100)
+    'Zone 3':  0.020,   # High (generic)
+    'Zone 2':  0.005,   # 1 in 100 to 1 in 1,000
+    'Zone 1':  0.001,   # <1 in 1,000
+}
+
 
 # ===========================================================================
 # Depth-Damage Curve  (UK-calibrated, floodrisk/depth_damage.py)

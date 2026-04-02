@@ -117,6 +117,22 @@ def get_js():
 
                 var totalBasis = propSpread - gaugeSpread;
 
+                // Terrain delta from pricer result
+                var terrainDelta = result.terrainDelta || 0;
+                var selectedZone = result.selectedZone || '';
+                var actualZone = result.actualZone || '';
+                var adjustedPropSpread = propSpread + terrainDelta;
+
+                // Terrain effect row (shared between both paths)
+                var terrainRow = '';
+                if (terrainDelta !== 0) {
+                    var tColor = terrainDelta < 0 ? '#2E7D32' : '#E65100';
+                    terrainRow =
+                        '<tr style="background:#F3E5F5;"><td style="padding:2px 6px;font-size:10px;">Terrain Effect</td>' +
+                        '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + tColor + ';">' + (terrainDelta >= 0 ? '+' : '') + terrainDelta.toFixed(1) + '</td>' +
+                        '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">' + selectedZone + '</td></tr>';
+                }
+
                 var sdRows = '';
                 // Path 1: Distance first
                 sdRows +=
@@ -126,6 +142,7 @@ def get_js():
                     '<tr><td style="padding:2px 6px;font-size:10px;">Gauge Spread</td>' +
                     '<td style="padding:2px 6px;text-align:right;font-weight:600;">' + gaugeSpread.toFixed(1) + '</td>' +
                     '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">baseline</td></tr>';
+                sdRows += terrainRow;
                 var distEff1 = df.distance_effect_bps || 0;
                 sdRows +=
                     '<tr><td style="padding:2px 6px;font-size:10px;">Distance Effect</td>' +
@@ -140,6 +157,7 @@ def get_js():
                 sdRows +=
                     '<tr style="background:#FFF3E0;">' +
                     '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:#E65100;">Path 2: Elevation First</td></tr>';
+                sdRows += terrainRow;
                 var elevEff2 = ef.elevation_effect_bps || 0;
                 sdRows +=
                     '<tr><td style="padding:2px 6px;font-size:10px;">Elevation Effect</td>' +
@@ -150,11 +168,11 @@ def get_js():
                     '<tr><td style="padding:2px 6px;font-size:10px;">Distance Effect</td>' +
                     '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (distEff2 < 0 ? '#2E7D32' : '#E65100') + ';">' + (distEff2 >= 0 ? '+' : '') + distEff2.toFixed(1) + '</td>' +
                     '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">\\u2192 property</td></tr>';
-                // Property row
+                // Property row (adjusted for terrain)
                 sdRows +=
                     '<tr style="border-top:2px solid #333;font-weight:bold;background:#E8F5E9;">' +
                     '<td style="padding:3px 6px;">Property Spread</td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:#1976D2;">' + propSpread.toFixed(1) + ' bp</td>' +
+                    '<td style="padding:3px 6px;text-align:right;color:#1976D2;">' + adjustedPropSpread.toFixed(1) + ' bp</td>' +
                     '<td></td></tr>';
 
                 var waterfallTable =
@@ -289,14 +307,20 @@ def get_js():
                     '<span><b>Ctpy:</b> <span style="color:#1565C0;">' + ctpyDisplayName + '</span></span>' :
                     '<span style="color:#aaa;"><b>Ctpy:</b> none</span>';
 
+                var zoneTag = '';
+                if (selectedZone && selectedZone !== actualZone) {
+                    zoneTag = '<span><b>Zone:</b> ' + selectedZone + ' <span style="color:#888;">(vs ' + actualZone + ')</span></span>';
+                }
+
                 bar.innerHTML = [
                     ctpyTag,
+                    zoneTag,
                     '<span><b>Fair Spread:</b> <span style="font-size:13px;color:#1976D2;">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
                     '<span><b>Running:</b> ' + result.spreadBps.toFixed(0) + ' bps</span>',
                     '<span style="color:' + npvColor + ';"><b>NPV:</b> ' + fmtMoney(result.npv) + ' (' + npvLabel + ')</span>',
                     '<span><b>Premium:</b> ' + fmtMoney(result.totalPremPV) + '</span>',
                     '<span><b>Protection:</b> ' + fmtMoney(result.totalProtPV) + '</span>',
-                    '<span><b>Spread:</b> <span style="color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span> / Gauge: ' + gaugeSpread.toFixed(1) + 'bp</span>',
+                    '<span><b>Spread:</b> <span style="color:#1976D2;">' + adjustedPropSpread.toFixed(1) + 'bp</span> / Gauge: ' + gaugeSpread.toFixed(1) + 'bp</span>',
                     commitBtn
                 ].join('');
 

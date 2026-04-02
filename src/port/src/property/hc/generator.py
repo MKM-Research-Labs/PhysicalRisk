@@ -29,6 +29,7 @@ import numpy as np
 
 from config import config
 from models.hazard.gev import GEVFitter
+from models.hazard.terrain_grid import compute_terrain_grid
 from port.utils.generator_base import GeneratorInitMixin
 
 from .constants import DEPTH_THRESHOLDS, MIN_PRS_SPREAD_BPS, TENORS
@@ -139,6 +140,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
                 'num_properties': len(results),
                 'depth_thresholds': DEPTH_THRESHOLDS,
                 'tenors': TENORS,
+                'terrain_grid': compute_terrain_grid(),
             },
             'summary': stats,
             'property_hazard_curves': results,

@@ -34,7 +34,7 @@ class TestPropertyPRSCommit:
         close_all_panels(map_page)
 
     def test_prs_controls_exist(self, map_page):
-        """Property PRS tab should have notional and spread inputs."""
+        """Property PRS tab should have notional, spread, and EA zone inputs."""
         panel = map_page.locator("#property-hc-panel")
         notional = panel.locator(
             "input[id*='notional'], input[id*='phc-notional']"
@@ -42,15 +42,18 @@ class TestPropertyPRSCommit:
         spread = panel.locator(
             "input[id*='spread'], input[id*='phc-spread']"
         ).first
+        ea_zone = panel.locator("select[id='phc-ea-zone']").first
 
         controls_found = (
             (1 if notional.count() > 0 else 0)
             + (1 if spread.count() > 0 else 0)
+            + (1 if ea_zone.count() > 0 else 0)
         )
         if controls_found == 0:
             pytest.skip("No PRS controls found on property panel")
-        assert controls_found >= 2, (
-            f"Expected at least 2 PRS controls, found {controls_found}"
+        assert controls_found >= 3, (
+            f"Expected at least 3 PRS controls (notional, spread, EA zone), "
+            f"found {controls_found}"
         )
 
     def test_fill_prs_values(self, map_page):
