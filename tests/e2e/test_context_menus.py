@@ -179,70 +179,57 @@ class TestContextMenuNavigation:
 
 
 class TestNavMenuDropdowns:
-    """Top-left gauge/property navigation dropdowns."""
+    """Top-left gauge/property navigation select menus."""
 
     def test_nav_container_exists(self, map_page):
         """Nav menu container should be rendered on the page."""
-        map_page.wait_for_timeout(5_000)  # wait for preloader data
+        map_page.wait_for_timeout(5_000)
         container = map_page.locator("#nav-menu-container")
         assert container.count() > 0, "No #nav-menu-container found"
 
-    def test_gauges_button_exists(self, map_page):
-        """Gauges dropdown button should exist with a count."""
+    def test_gauge_select_exists(self, map_page):
+        """Gauge select dropdown should exist."""
         map_page.wait_for_timeout(5_000)
-        buttons = map_page.locator(".nav-menu-btn")
-        assert buttons.count() >= 2, f"Expected >= 2 nav buttons, found {buttons.count()}"
-        text = buttons.first.inner_text()
-        assert "gauge" in text.lower(), f"First nav button doesn't mention gauges: '{text}'"
+        sel = map_page.locator("#nav-gauge-select")
+        assert sel.count() > 0, "No #nav-gauge-select found"
 
-    def test_properties_button_exists(self, map_page):
-        """Properties dropdown button should exist with a count."""
+    def test_property_select_exists(self, map_page):
+        """Property select dropdown should exist."""
         map_page.wait_for_timeout(5_000)
-        buttons = map_page.locator(".nav-menu-btn")
-        assert buttons.count() >= 2, f"Expected >= 2 nav buttons, found {buttons.count()}"
-        text = buttons.nth(1).inner_text()
-        assert "propert" in text.lower(), f"Second nav button doesn't mention properties: '{text}'"
+        sel = map_page.locator("#nav-prop-select")
+        assert sel.count() > 0, "No #nav-prop-select found"
 
-    def test_gauges_dropdown_opens(self, map_page):
-        """Clicking Gauges button should open a dropdown with gauge items."""
-        map_page.wait_for_timeout(5_000)
-        btn = map_page.locator(".nav-menu-btn").first
-        btn.click()
-        map_page.wait_for_timeout(1_000)
+    def test_gauge_select_has_options(self, map_page):
+        """Gauge select should have options after data loads."""
+        map_page.wait_for_timeout(10_000)
+        sel = map_page.locator("#nav-gauge-select")
+        if sel.count() == 0:
+            pytest.skip("No gauge select")
+        options = sel.locator("option")
+        assert options.count() > 1, "Gauge select has no gauge options (only placeholder)"
 
-        dropdown = map_page.locator(".nav-menu-dropdown.open")
-        assert dropdown.count() > 0, "Gauge dropdown did not open"
+    def test_property_select_has_options(self, map_page):
+        """Property select should have options after data loads."""
+        map_page.wait_for_timeout(10_000)
+        sel = map_page.locator("#nav-prop-select")
+        if sel.count() == 0:
+            pytest.skip("No property select")
+        options = sel.locator("option")
+        assert options.count() > 1, "Property select has no property options (only placeholder)"
 
-        items = dropdown.locator(".nav-entity-item")
-        assert items.count() > 0, "Gauge dropdown has no items"
-
-    def test_properties_dropdown_opens(self, map_page):
-        """Clicking Properties button should open a dropdown with property items."""
-        map_page.wait_for_timeout(5_000)
-        btn = map_page.locator(".nav-menu-btn").nth(1)
-        btn.click()
-        map_page.wait_for_timeout(1_000)
-
-        dropdown = map_page.locator(".nav-menu-dropdown.open")
-        assert dropdown.count() > 0, "Property dropdown did not open"
-
-        items = dropdown.locator(".nav-entity-item")
-        assert items.count() > 0, "Property dropdown has no items"
-
-    def test_click_away_closes_dropdown(self, map_page):
-        """Clicking elsewhere should close open dropdowns."""
-        map_page.wait_for_timeout(5_000)
-        btn = map_page.locator(".nav-menu-btn").first
-        btn.click()
+    def test_selecting_gauge_shows_action_buttons(self, map_page):
+        """Selecting a gauge should show action buttons."""
+        map_page.wait_for_timeout(10_000)
+        sel = map_page.locator("#nav-gauge-select")
+        if sel.count() == 0:
+            pytest.skip("No gauge select")
+        options = sel.locator("option")
+        if options.count() < 2:
+            pytest.skip("No gauge options loaded")
+        # Select second option (first is placeholder)
+        sel.select_option(index=1)
         map_page.wait_for_timeout(500)
 
-        dropdown = map_page.locator(".nav-menu-dropdown.open")
-        assert dropdown.count() > 0, "Dropdown did not open"
-
-        map_page.locator(".leaflet-container").first.click(
-            position={"x": 10, "y": 10}
-        )
-        map_page.wait_for_timeout(500)
-
-        open_dd = map_page.locator(".nav-menu-dropdown.open")
-        assert open_dd.count() == 0, "Dropdown still open after click-away"
+        action_bar = map_page.locator("#nav-action-bar")
+        buttons = action_bar.locator("button")
+        assert buttons.count() >= 2, f"Expected action buttons, found {buttons.count()}"
