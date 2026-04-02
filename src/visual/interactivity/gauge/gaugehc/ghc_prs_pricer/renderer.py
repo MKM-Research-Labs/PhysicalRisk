@@ -201,7 +201,8 @@ def get_renderer_js() -> str:
                     } else if (result.fairSpreadBps > 0) {
                         spdInput.value = result.fairSpreadBps.toFixed(1);
                     }
-                    result = computePRSCashflows();
+                    // Re-render with populated spread (avoids zero-premium first frame)
+                    return renderPRSPricing();
                 }
 
                 // Show market hazard rate in display span

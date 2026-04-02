@@ -121,6 +121,38 @@ class TestGaugePRSMarketCurve:
             f"This means _mktHazardTS data is not reaching the chart renderer."
         )
 
+    def test_pv_premium_chart_has_data_on_open(self, map_page):
+        """PV Premium bars (blue) must have non-zero values on initial open."""
+        result = map_page.evaluate("""() => {
+            var chart = window.currentChart || null;
+            // currentChart is the cashflow bar chart in the hazard-chart canvas
+            if (!chart || !chart.data || !chart.data.datasets) return { exists: false, reason: 'no_chart' };
+            var premDs = chart.data.datasets.find(function(ds) {
+                return ds.label && ds.label.indexOf('Premium') !== -1;
+            });
+            if (!premDs) return { exists: true, reason: 'no_premium_dataset', labels: chart.data.datasets.map(function(d) { return d.label; }) };
+            var data = premDs.data || [];
+            var nonZero = data.filter(function(d) { return d > 0; });
+            return {
+                exists: true,
+                has_premium: true,
+                data_length: data.length,
+                non_zero_count: nonZero.length,
+                sample: data.slice(0, 3)
+            };
+        }""")
+        if not result.get('exists'):
+            pytest.skip(f"Chart not available: {result.get('reason')}")
+        if not result.get('has_premium'):
+            pytest.fail(
+                f"No PV Premium dataset found. Datasets: {result.get('labels')}"
+            )
+        assert result['non_zero_count'] > 0, (
+            f"PV Premium bars are all zero on initial open. "
+            f"Spread may not have been auto-populated before chart render. "
+            f"Sample: {result.get('sample')}"
+        )
+
     def test_prs_hazard_chart_values_are_reasonable(self, map_page):
         """Chart values should be in a reasonable bps range (1-10000)."""
         result = map_page.evaluate("""() => {
