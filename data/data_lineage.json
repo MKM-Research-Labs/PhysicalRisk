@@ -1761,12 +1761,29 @@
       "propertyhc",
       "propertyshd",
       "propertyshe"
+    ],
+    "run-20260402-162905": [
+      "gauges",
+      "properties",
+      "synthetic_gauges",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "stressm"
     ]
   },
   "steps": {
     "gauges": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.550814",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.029598",
       "generator": "port.src.gauge.GaugePortfolioGenerator",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -1776,14 +1793,14 @@
       "inputs": {},
       "outputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f5a96579ff733771ff0ee3870d8fd7c71d3004fb1d79f9fcc4d1f2ea28e9b78a",
           "type": "file"
         }
       }
     },
     "properties": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.553027",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.031700",
       "generator": "port.src.property.PropertyPortfolioGenerator",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -1792,40 +1809,40 @@
       },
       "inputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f5a96579ff733771ff0ee3870d8fd7c71d3004fb1d79f9fcc4d1f2ea28e9b78a",
           "type": "file"
         }
       },
       "outputs": {
         "property.json": {
-          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "hash": "22c19a61ce1dc3d3215322472869a615ab9094d1f653c5dc1ecd48e7c73c2624",
           "type": "file"
         }
       }
     },
     "mortgages": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.570761",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.048324",
       "generator": "port.src.mortgage.MortgagePortfolioGenerator",
       "status": "success",
       "elapsed_seconds": 0.0,
       "parameters": {},
       "inputs": {
         "property.json": {
-          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "hash": "22c19a61ce1dc3d3215322472869a615ab9094d1f653c5dc1ecd48e7c73c2624",
           "type": "file"
         }
       },
       "outputs": {
         "mortgage.json": {
-          "hash": "9cedd611ed2141d723d06a6af5643f06d2d19cb7638f8b48417b60f10efde7a6",
+          "hash": "ad545bfc2fd86c5b890cf1758346b6e48cf8e4e1fea27dfc67ee45b95d283ab8",
           "type": "file"
         }
       }
     },
     "gaugehd": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.580657",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.056032",
       "generator": "port.src.gauge.gaugehd",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -1834,21 +1851,21 @@
       },
       "inputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         }
       },
       "outputs": {
         "gaugehd/": {
-          "hash": "2172881960f7a7190b6c351335a8fc5f2145318b8c1df0cb1dba45cc93ab7186",
-          "file_count": 179,
+          "hash": "c38e50cc145eee6f930f17e45cbd5b736f579a2e3552d108bb7eecdb21dd90b3",
+          "file_count": 5,
           "type": "directory"
         }
       }
     },
     "stressm": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.649632",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.120442",
       "generator": "port.src.stressm.generate_stressm",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -1857,40 +1874,38 @@
       },
       "inputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         },
         "gaugehd/": {
-          "hash": "2172881960f7a7190b6c351335a8fc5f2145318b8c1df0cb1dba45cc93ab7186",
-          "file_count": 179,
+          "hash": "c38e50cc145eee6f930f17e45cbd5b736f579a2e3552d108bb7eecdb21dd90b3",
+          "file_count": 5,
           "type": "directory"
         }
       },
       "outputs": {
         "gaugets/": {
-          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
-          "file_count": 179,
+          "hash": "b4fe2942dcfc6f27e0a5e5373f53babba6e8263f79f53bb65feab97a52abc81c",
+          "file_count": 5,
           "type": "directory"
         },
         "stress_storms/": {
-          "hash": "a59c08beb6b6ab0b030c021b033ae39acc7b3374fcd285de69064d2e12e69a1b",
-          "file_count": 76422,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         },
         "storm_sequences.json": {
-          "hash": "fafb4c70106c564bd222ea06c05773f5ec3295bbc7820580667495444d03cc29",
+          "hash": "6eb8740e5963071d2e26c1ad61e35dc9e72c9fc6d6df657ed153701cb549b8cd",
           "type": "file"
         },
         "sequence_gauge/": {
-          "hash": "0d2c00b72eb20b8ffbcb15d589c06503d4b74c091f2725ffb5a130ab17f450ae",
-          "file_count": 180,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "hazard": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.585147",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.058699",
       "generator": "port.src.hazard.build_hazard_curves",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -1899,89 +1914,89 @@
       },
       "inputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         },
         "gaugets/": {
-          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
-          "file_count": 179,
+          "hash": "b4fe2942dcfc6f27e0a5e5373f53babba6e8263f79f53bb65feab97a52abc81c",
+          "file_count": 5,
           "type": "directory"
         }
       },
       "outputs": {
         "gaugehc.json": {
-          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "hash": "6c44c4d6d84bf23daae4d600cc9f317de0abbe8dc324349ea7780675a4cd702d",
           "type": "file"
         },
         "gaugets/": {
-          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
-          "file_count": 179,
+          "hash": "b4fe2942dcfc6f27e0a5e5373f53babba6e8263f79f53bb65feab97a52abc81c",
+          "file_count": 5,
           "type": "directory"
         }
       }
     },
     "propertyts": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.588101",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.061396",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator",
       "status": "success",
       "elapsed_seconds": 0.0,
       "parameters": {},
       "inputs": {
         "property.json": {
-          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "hash": "22c19a61ce1dc3d3215322472869a615ab9094d1f653c5dc1ecd48e7c73c2624",
           "type": "file"
         },
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         },
         "gaugets/": {
-          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
-          "file_count": 179,
+          "hash": "b4fe2942dcfc6f27e0a5e5373f53babba6e8263f79f53bb65feab97a52abc81c",
+          "file_count": 5,
           "type": "directory"
         }
       },
       "outputs": {
         "propertyts/": {
-          "hash": "5c68eab76a4af2d8b1af834b81d37fb1b7091b03848c774628ec6f30b79db562",
-          "file_count": 201,
+          "hash": "f164cd13a873e17f740e40b6b68130c7031a941fb4381e6d13e32a9f921898f3",
+          "file_count": 6,
           "type": "directory"
         }
       }
     },
     "propertyhc": {
-      "run_id": "run-20260402-142539",
-      "timestamp": "2026-04-02T14:26:21.571508",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.069034",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator",
       "status": "success",
-      "elapsed_seconds": 41.555,
+      "elapsed_seconds": 0.0,
       "parameters": {},
       "inputs": {
         "propertyts/": {
-          "hash": "5c68eab76a4af2d8b1af834b81d37fb1b7091b03848c774628ec6f30b79db562",
-          "file_count": 201,
+          "hash": "f164cd13a873e17f740e40b6b68130c7031a941fb4381e6d13e32a9f921898f3",
+          "file_count": 6,
           "type": "directory"
         },
         "gaugehc.json": {
-          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "hash": "6c44c4d6d84bf23daae4d600cc9f317de0abbe8dc324349ea7780675a4cd702d",
           "type": "file"
         },
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         }
       },
       "outputs": {
         "propertyhc.json": {
-          "hash": "f5ff8e9634a79c6b08dc4ba98ce91a4a1ab6fdeb958cf3db0e98bb6a8269fd9c",
+          "hash": "cf3238c32df3a31a4a6d282b7a4c55744d190d647975a33fb82d459b904fc83d",
           "type": "file"
         }
       }
     },
     "counterparties": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.601825",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.073427",
       "generator": "port.src.counterparty.CounterpartyPortfolioGenerator",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -1989,76 +2004,76 @@
       "inputs": {},
       "outputs": {
         "counterparty.json": {
-          "hash": "cc83be0203be7c130c34bb8fea6136b165e1656764767dfb0dd2db05f24a2cc4",
+          "hash": "6e8871d4c43103f719b55dd38aeea86eec742fb24999ad087671688d9574b13f",
           "type": "file"
         }
       }
     },
     "blotter": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.608808",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.080464",
       "generator": "port.src.book.generate_thames_central_book",
       "status": "success",
       "elapsed_seconds": 0.003,
       "parameters": {},
       "inputs": {
         "gaugehc.json": {
-          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "hash": "6c44c4d6d84bf23daae4d600cc9f317de0abbe8dc324349ea7780675a4cd702d",
           "type": "file"
         },
         "counterparty.json": {
-          "hash": "cc83be0203be7c130c34bb8fea6136b165e1656764767dfb0dd2db05f24a2cc4",
+          "hash": "6e8871d4c43103f719b55dd38aeea86eec742fb24999ad087671688d9574b13f",
           "type": "file"
         }
       },
       "outputs": {
         "prs/": {
-          "hash": "3e77f18b4d4a876ea38db392356c8c194b821fc62c91bd671cc9d25c875cc3eb",
-          "file_count": 51,
+          "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "file_count": 0,
           "type": "directory"
         },
         "blotter/eod/": {
-          "hash": "f49f378e65df43753b2e11e07f77ed1921ce6d97b4385aff8ecc2e3c0e5496a6",
-          "file_count": 63,
+          "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "file_count": 0,
           "type": "directory"
         },
         "blotter/market_state.json": {
-          "hash": "3861b784ef689c77302da340259ef1def0730265b65d1171839a96324fb9b3b0",
+          "hash": "4c9b9d1bb04f88c2d62adf27dbb825470945dfad2625c99ab98a8400cf47c9c4",
           "type": "file"
         },
         "blotter/trade_marks.json": {
-          "hash": "72faebc2fd7ab5eef410b4709604f0600764edb7bb24aabca1777671ccd23c7d",
+          "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
           "type": "file"
         }
       }
     },
     "synthetic_gauges": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.567538",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.045252",
       "generator": "port.src.gauge.synthetic.SyntheticGaugeGenerator",
       "status": "success",
       "elapsed_seconds": 0.01,
       "parameters": {},
       "inputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f5a96579ff733771ff0ee3870d8fd7c71d3004fb1d79f9fcc4d1f2ea28e9b78a",
           "type": "file"
         },
         "property.json": {
-          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "hash": "22c19a61ce1dc3d3215322472869a615ab9094d1f653c5dc1ecd48e7c73c2624",
           "type": "file"
         }
       },
       "outputs": {
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         }
       }
     },
     "propertytsd": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.590999",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.063600",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=shd)",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -2067,30 +2082,29 @@
       },
       "inputs": {
         "property.json": {
-          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "hash": "22c19a61ce1dc3d3215322472869a615ab9094d1f653c5dc1ecd48e7c73c2624",
           "type": "file"
         },
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         },
         "gaugets/": {
-          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
-          "file_count": 179,
+          "hash": "b4fe2942dcfc6f27e0a5e5373f53babba6e8263f79f53bb65feab97a52abc81c",
+          "file_count": 5,
           "type": "directory"
         }
       },
       "outputs": {
         "propertytsd/": {
-          "hash": "4c2301247505b366c97e38f31ade48f86d514f73e5e210a9cfe9718caaf12f8c",
-          "file_count": 201,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "propertytse": {
-      "run_id": "run-20260401-102107",
-      "timestamp": "2026-04-01T10:21:07.593211",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.065607",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=she)",
       "status": "success",
       "elapsed_seconds": 0.0,
@@ -2099,86 +2113,83 @@
       },
       "inputs": {
         "property.json": {
-          "hash": "38c37fe8a808f8ebcb22b341fe14326f3d12988c9620e4a64ba740a0bdc7341b",
+          "hash": "22c19a61ce1dc3d3215322472869a615ab9094d1f653c5dc1ecd48e7c73c2624",
           "type": "file"
         },
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         },
         "gaugets/": {
-          "hash": "959db14567a2b9fd966e689cd3e4108a1aeba485ff5ded10aa56ca609afdc7f9",
-          "file_count": 179,
+          "hash": "b4fe2942dcfc6f27e0a5e5373f53babba6e8263f79f53bb65feab97a52abc81c",
+          "file_count": 5,
           "type": "directory"
         }
       },
       "outputs": {
         "propertytse/": {
-          "hash": "bfd97422ec5945ffbf86a047e0e90a21a3bf0fc1cbb8f57167164635937ab708",
-          "file_count": 201,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "propertyshd": {
-      "run_id": "run-20260402-142539",
-      "timestamp": "2026-04-02T14:27:19.925354",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.070526",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=shd)",
       "status": "success",
-      "elapsed_seconds": 57.003,
+      "elapsed_seconds": 0.0,
       "parameters": {
         "mode": "shd"
       },
       "inputs": {
         "propertytsd/": {
-          "hash": "4c2301247505b366c97e38f31ade48f86d514f73e5e210a9cfe9718caaf12f8c",
-          "file_count": 201,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         },
         "gaugehc.json": {
-          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "hash": "6c44c4d6d84bf23daae4d600cc9f317de0abbe8dc324349ea7780675a4cd702d",
           "type": "file"
         },
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         }
       },
       "outputs": {
         "propertyshd.json": {
-          "hash": "b361a73c0b707866e65d5c83194dfcd8d2de53022139bcf88297b48a9750ab90",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "propertyshe": {
-      "run_id": "run-20260402-142539",
-      "timestamp": "2026-04-02T14:28:07.471001",
+      "run_id": "run-20260402-162905",
+      "timestamp": "2026-04-02T16:29:05.071994",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=she)",
       "status": "success",
-      "elapsed_seconds": 46.723,
+      "elapsed_seconds": 0.0,
       "parameters": {
         "mode": "she"
       },
       "inputs": {
         "propertytse/": {
-          "hash": "bfd97422ec5945ffbf86a047e0e90a21a3bf0fc1cbb8f57167164635937ab708",
-          "file_count": 201,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         },
         "gaugehc.json": {
-          "hash": "c439d1457b996d1cb350173077a932786d625c1583bfa053703c6de4f48224e5",
+          "hash": "6c44c4d6d84bf23daae4d600cc9f317de0abbe8dc324349ea7780675a4cd702d",
           "type": "file"
         },
         "gauge.json": {
-          "hash": "2e02be0a095f371b3eac17d2d6cac0ac1924ef1aba68d5ce0f25afa37885a58c",
+          "hash": "f3f97eae014807f956ab24e39c036929b1e9518c164b04bbaf26b1f971cc6217",
           "type": "file"
         }
       },
       "outputs": {
         "propertyshe.json": {
-          "hash": "ce8004dde80bbe9f130c3a3c0c12279e8afa5d6621ea40109a152b14beddf8a8",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       }
     }
