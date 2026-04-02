@@ -66,12 +66,7 @@ def get_js() -> str:
                     '<select id="prs-counterparty" style="' + selectStyle + 'min-width:140px;">' +
                     ctpyOptions +
                     '</select>' +
-                    '<span style="' + labelStyle + '">Trigger:</span>' +
-                    '<select id="prs-trigger" style="' + selectStyle + '">' +
-                    '<option value="alert">Alert</option>' +
-                    '<option value="warning">Warning</option>' +
-                    '<option value="severe" selected>Severe</option>' +
-                    '</select>' +
+                    '<input id="prs-trigger" type="hidden" value="severe">' +
                     '<span style="' + labelStyle + '">Notional:</span>' +
                     '<input id="prs-notional" type="text" value="10,000,000" style="' + inputStyle + '">' +
                     '<span style="' + labelStyle + '">Tenor:</span>' +
