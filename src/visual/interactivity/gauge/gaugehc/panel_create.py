@@ -74,11 +74,10 @@ def get_create_panel_js() -> str:
                 // Gauge Blotter button — after last tab, muted until trades confirmed
                 var blotterBtn = document.createElement('button');
                 blotterBtn.id = 'hazard-blotter-link';
-                blotterBtn.textContent = '\u21D2 Gauge Blotter';
+                blotterBtn.textContent = 'Gauge Blotter';
                 blotterBtn.style.cssText =
                     'padding:6px 14px;border:none;font-size:11px;font-weight:600;' +
-                    'margin-left:auto;cursor:default;' +
-                    'background:#f5f5f5;color:#bbb;';
+                    'cursor:default;background:#f5f5f5;color:#bbb;';
                 blotterBtn.disabled = true;
                 blotterBtn.onclick = function() {
                     if (blotterBtn.disabled) return;

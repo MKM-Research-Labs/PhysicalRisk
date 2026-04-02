@@ -108,8 +108,16 @@ def get_js() -> str:
                         try {
                             var agResp = await fetch(baseUrl + '/api/v1/trading/blotter/active-gauges', {mode: 'cors'});
                             var agData = await agResp.json();
-                            if (agData.status === 'success' && window.setActiveGauges) {
-                                window.setActiveGauges(agData.gauge_ids || []);
+                            if (agData.status === 'success') {
+                                if (window.setActiveGauges) window.setActiveGauges(agData.gauge_ids || []);
+                                // Enable blotter button if this gauge now has trades
+                                var blBtn = document.getElementById('hazard-blotter-link');
+                                if (blBtn) {
+                                    blBtn.disabled = false;
+                                    blBtn.style.color = '#1565c0';
+                                    blBtn.style.cursor = 'pointer';
+                                    blBtn.style.background = '#e3f2fd';
+                                }
                             }
                         } catch (e) { /* non-critical */ }
 
