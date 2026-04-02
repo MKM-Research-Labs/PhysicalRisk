@@ -235,7 +235,8 @@ class GaugeStormAnalysis(FoliumPanelMixin):
                     if (data.status !== 'success') throw new Error(data.message || 'Failed');
 
                     stormData = data;
-                    console.log('[GaugeStorm] Loaded', data.storm_responses.num_storms, 'storm responses for', gaugeId);
+                    var nSeqs = data.storm_responses.num_sequences || data.storm_responses.num_storms;
+                    console.log('[GaugeStorm] Loaded', nSeqs, 'sequences for', gaugeId);
 
                     // Update title with gauge name
                     var gName = data.gauge_name || '';
@@ -247,7 +248,7 @@ class GaugeStormAnalysis(FoliumPanelMixin):
                     buildDistSlider();
                     buildStormSelector();
                     switchTab(activeTab);
-                    status.textContent = data.storm_responses.num_storms + ' storms';
+                    status.textContent = nSeqs + ' storms';
                 }} catch (error) {{
                     console.error('[GaugeStorm] Load error:', error);
                     status.textContent = 'Error: ' + error.message;
