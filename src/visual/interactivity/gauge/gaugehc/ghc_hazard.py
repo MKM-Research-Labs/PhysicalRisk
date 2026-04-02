@@ -40,16 +40,27 @@ def get_js() -> str:
             function _fetchMarketHazardTS() {
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
-                return fetch(baseUrl + '/api/v1/trading/hazard-term-structure?_=' + Date.now(), {mode: 'cors', cache: 'no-store'})
-                    .then(function(r) { return r.json(); })
+                var url = baseUrl + '/api/v1/trading/hazard-term-structure?_=' + Date.now();
+                console.log('[GaugeHazard] Fetching market HTS from:', url);
+                return fetch(url, {mode: 'cors', cache: 'no-store'})
+                    .then(function(r) {
+                        console.log('[GaugeHazard] HTS response status:', r.status);
+                        return r.json();
+                    })
                     .then(function(data) {
                         if (data.status === 'success') {
                             _mktHazardTS = data.hazard_term_structure || {};
+                            window._mktHazardTS = _mktHazardTS;
+                            console.log('[GaugeHazard] HTS loaded:', Object.keys(_mktHazardTS).length, 'gauges');
                             return _mktHazardTS;
                         }
+                        console.warn('[GaugeHazard] HTS API returned non-success:', data.status, data.message);
                         return null;
                     })
-                    .catch(function() { return null; });
+                    .catch(function(err) {
+                        console.error('[GaugeHazard] HTS fetch failed:', err);
+                        return null;
+                    });
             }
 
             function renderHazardRate() {
