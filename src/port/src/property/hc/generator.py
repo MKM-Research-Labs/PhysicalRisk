@@ -190,36 +190,32 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         count = 0
 
         for prop_id, pc in curves.items():
-            # 5yr any_flood spread for the property
-            prop_spread = self._get_5yr_any_flood_spread(pc)
-
-            # Use synthetic gauge spread as baseline (first SYNTH- gauge in
-            # nearest_gauges).  Falls back to IDW-weighted average if no
-            # synthetic gauge is present.
             nearest_gauges = pc.get('nearest_gauges', [])
             synth_gauge = next(
                 (ng for ng in nearest_gauges
                  if ng.get('gauge_id', '').startswith('SYNTH-')),
                 None
             )
-            if synth_gauge:
-                # Gauge spread = property spread + basis (basis = gauge - prop)
-                synth_basis = synth_gauge.get('basis_bps', {}).get(
-                    'any_flood', {}).get('values', [])
-                prop_spreads = pc.get('term_structure', {}).get(
-                    'any_flood', {}).get('prs_spread_bps', [])
-                prop_5yr = prop_spreads[4] if len(prop_spreads) > 4 else 0.0
-                synth_b = synth_basis[4] if len(synth_basis) > 4 else 0.0
-                gauge_spread = prop_5yr + synth_b
-            else:
-                gauge_spreads = pc.get('idw_gauge_spreads', {}).get('any_flood', [])
-                gauge_spread = gauge_spreads[4] if len(gauge_spreads) > 4 else 0.0
 
-            # Synthetic spreads
             shd_pc = shd_curves.get(prop_id, {})
             she_pc = she_curves.get(prop_id, {})
-            shd_spread = self._get_5yr_any_flood_spread(shd_pc)
-            she_spread = self._get_5yr_any_flood_spread(she_pc)
+
+            prop_spread = self._get_5yr_spread(pc, 'severe')
+            shd_spread = self._get_5yr_spread(shd_pc, 'severe')
+            she_spread = self._get_5yr_spread(she_pc, 'severe')
+
+            # Gauge spread baseline: use the synthetic gauge's severe spread
+            if synth_gauge:
+                synth_basis = synth_gauge.get('basis_bps', {}).get(
+                    'severe', {}).get('values', [])
+                prop_5yr = pc.get('term_structure', {}).get(
+                    'severe', {}).get('prs_spread_bps', [0] * 5)
+                p5 = prop_5yr[4] if len(prop_5yr) > 4 else 0.0
+                sb = synth_basis[4] if len(synth_basis) > 4 else 0.0
+                gauge_spread = p5 + sb
+            else:
+                gauge_spreads = pc.get('idw_gauge_spreads', {}).get('severe', [])
+                gauge_spread = gauge_spreads[4] if len(gauge_spreads) > 4 else 0.0
 
             pc['spread_decomposition'] = {
                 'gauge_spread_bps': round(gauge_spread, 2),
@@ -244,8 +240,8 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         return count
 
     @staticmethod
-    def _get_5yr_any_flood_spread(pc: Dict) -> float:
-        """Extract 5yr any_flood PRS spread from a property hazard curve dict."""
+    def _get_5yr_spread(pc: Dict, threshold: str = 'any_flood') -> float:
+        """Extract 5yr PRS spread for a given threshold from a hazard curve dict."""
         ts = pc.get('term_structure', {})
-        spreads = ts.get('any_flood', {}).get('prs_spread_bps', [])
+        spreads = ts.get(threshold, {}).get('prs_spread_bps', [])
         return spreads[4] if len(spreads) > 4 else 0.0

@@ -34,14 +34,14 @@ class TestPropertyStormPanel:
             assert len(text) > 0, "Property storm panel title is empty"
 
     def test_panel_has_tab_buttons(self, map_page, first_property_id):
-        """Panel should have at least 5 tab buttons."""
+        """Panel should have at least 7 tab buttons (incl. action tabs)."""
         self._open_storm_panel(map_page, first_property_id)
 
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
         tabs = panel.locator(".prop-storm-tab")
-        assert tabs.count() >= 5, f"Only {tabs.count()} tab buttons found, expected >= 5"
+        assert tabs.count() >= 7, f"Only {tabs.count()} tab buttons found, expected >= 7"
 
     def test_distribution_tab_has_content(self, map_page, first_property_id):
         """Distribution tab (idx 0) should render content."""
@@ -87,6 +87,30 @@ class TestPropertyStormPanel:
             or content.locator("tr").count() > 0
         )
         assert has_data, "Worst storms tab has no storm/damage data"
+
+    def test_prs_pricing_tab_exists(self, map_page, first_property_id):
+        """PRS Pricing action tab (idx 6) should exist."""
+        self._open_storm_panel(map_page, first_property_id)
+
+        panel = map_page.locator("#prop-storm-panel")
+        panel.wait_for(state="visible", timeout=10_000)
+
+        tab = panel.locator(".prop-storm-tab[data-idx='6']")
+        assert tab.count() > 0, "PRS Pricing tab (idx 6) not found"
+
+    def test_prs_pricing_tab_text(self, map_page, first_property_id):
+        """PRS Pricing tab should contain 'PRS' in its text."""
+        self._open_storm_panel(map_page, first_property_id)
+
+        panel = map_page.locator("#prop-storm-panel")
+        panel.wait_for(state="visible", timeout=10_000)
+
+        tab = panel.locator(".prop-storm-tab[data-idx='6']")
+        if tab.count() == 0:
+            pytest.skip("PRS Pricing tab not found")
+        text = tab.inner_text().lower()
+        assert "prs" in text or "pricing" in text, \
+            f"Tab text doesn't mention PRS/pricing: '{text}'"
 
     def test_status_bar_shows_flood_counts(self, map_page, first_property_id):
         """Status bar should show flood-related information."""

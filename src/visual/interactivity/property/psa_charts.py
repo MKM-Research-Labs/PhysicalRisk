@@ -40,8 +40,8 @@ def get_js() -> str:
                     return;
                 }
 
-                var events = propStormData.flood_events;
-                var depths = events.map(function(e) { return e.flood_depth_m; }).filter(function(d) { return typeof d === 'number' && isFinite(d) && d >= 0; });
+                var events = propStormData.flood_events.filter(function(e) { return e.flooded; });
+                var depths = events.map(function(e) { return e.flood_depth_m; }).filter(function(d) { return typeof d === 'number' && isFinite(d) && d > 0; });
                 var summary = propStormData.summary || {};
                 var info = propStormData.property_info || {};
 
@@ -128,7 +128,7 @@ def get_js() -> str:
                     return;
                 }
 
-                var events = propStormData.flood_events.slice().sort(function(a, b) {
+                var events = propStormData.flood_events.filter(function(e) { return e.flooded; }).sort(function(a, b) {
                     return b.flood_depth_m - a.flood_depth_m;
                 });
                 var top = events.slice(0, 20);
@@ -170,13 +170,21 @@ def get_js() -> str:
                             x: { title: { display: true, text: 'Flood Depth (m)' }, beginAtZero: true },
                             y: { ticks: { font: { size: 10 } } }
                         },
-                        onClick: function() {}
+                        onClick: function(evt, elems) {
+                            if (elems && elems.length > 0) {
+                                var idx = elems[0].index;
+                                var ev = top[idx];
+                                if (ev && ev.storm_id) {
+                                    switchTab(1, ev.storm_id);
+                                }
+                            }
+                        }
                     }
                 });
 
                 document.getElementById('prop-worst-stats').innerHTML = [
                     '<span><b>Top ' + top.length + ' storms shown</b></span>',
-                    '<span style="color:#F44336;">Click a bar to view timeline</span>',
+                    '<span style="color:#1976d2;">Click a bar to view depth vs time</span>',
                 ].join('');
             }
 """
