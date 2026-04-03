@@ -7,11 +7,10 @@
 Property-Level Hazard Curve Generator with PRS Pricing and Basis Calculation.
 
 For each property in the propertyts output:
-1. Extracts flood depths from flood_events
-2. Fits GEV distribution (requires >= 3 events)
-3. Computes exceedance probabilities at depth thresholds (0m, 0.5m, 1.0m)
-4. Computes term structure and PRS pricing via QuantLib CDS
-5. Calculates basis vs nearest gauge PRS prices
+1. Counts severe flood events from the Monte Carlo simulation
+2. Computes spread as event_count / num_scenarios (bp)
+3. Calculates basis vs synthetic gauge spread
+4. Attaches spread decomposition (gauge → SHD → SHE → property)
 
 Usage:
     from port.src.property.hc import PropertyHazardCurveGenerator
@@ -28,11 +27,10 @@ from typing import Dict, Optional, Union
 import numpy as np
 
 from config import config
-from models.hazard.gev import GEVFitter
 from models.hazard.terrain_grid import compute_terrain_grid
 from port.utils.generator_base import GeneratorInitMixin
 
-from .constants import DEPTH_THRESHOLDS, MIN_PRS_SPREAD_BPS, TENORS
+from .constants import MIN_PRS_SPREAD_BPS, TENORS
 from .encoder import json_default
 from .loader import LoaderMixin
 from .pricing import PricingMixin
@@ -44,8 +42,9 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
     """
     Property-level hazard curve, PRS pricing, and basis calculator.
 
-    Reads propertyts output, fits GEV per property, prices PRS,
-    and computes basis against nearest gauge PRS prices.
+    Reads propertyts output, counts severe flood events, computes
+    spread as event_count / num_scenarios, and calculates basis
+    against the synthetic gauge.
     """
 
     # Map mode -> (input dir, output filename)
@@ -62,7 +61,6 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         mode: str = "normal",
     ):
         self._init_generator(output_dir, mode, verbose)
-        self.gev_fitter = GEVFitter()
 
     # Keep as static method on class for backward compatibility with tests
     _json_default = staticmethod(json_default)
@@ -97,27 +95,28 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         results = {}
         stats = {
             'total_properties': len(property_files),
-            'properties_with_gev': 0,
-            'properties_with_floor': 0,
+            'properties_processed': 0,
             'properties_skipped': 0,
             'total_flood_events': 0,
             'avg_basis_bps': 0.0,
             'avg_transmission_rate': 0.0,
-            'min_spread_bps': MIN_PRS_SPREAD_BPS,
+            'num_storms': num_storms,
         }
 
         basis_values = []
         transmission_rates = []
+        spread_values = []
 
         for i, pf in enumerate(property_files):
             result = self._process_property(pf, gauge_hazard, price_prs_func, num_storms)
             if result:
                 results[result['property_id']] = result
-                if result.get('has_gev'):
-                    stats['properties_with_gev'] += 1
-                else:
-                    stats['properties_with_floor'] += 1
+                stats['properties_processed'] += 1
                 stats['total_flood_events'] += result['flood_count']
+
+                spread = result.get('term_structure', {}).get(
+                    'severe', {}).get('prs_spread_bps', [0])[0]
+                spread_values.append(spread)
 
                 if result.get('summary', {}).get('avg_basis_bps') is not None:
                     basis_values.append(result['summary']['avg_basis_bps'])
@@ -131,6 +130,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
 
         stats['avg_basis_bps'] = round(np.mean(basis_values), 2) if basis_values else 0.0
         stats['avg_transmission_rate'] = round(np.mean(transmission_rates), 4) if transmission_rates else 0.0
+        stats['avg_spread_bps'] = round(np.mean(spread_values), 2) if spread_values else 0.0
 
         output_path = self.output_dir / output_filename
         output_data = {
@@ -138,7 +138,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
                 'catchment_id': config.CATCHMENT,
                 'generated_at': datetime.now().isoformat(),
                 'num_properties': len(results),
-                'depth_thresholds': DEPTH_THRESHOLDS,
+                'num_storms': num_storms,
                 'tenors': TENORS,
                 'terrain_grid': compute_terrain_grid(),
             },
@@ -150,8 +150,10 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
             json.dump(output_data, f, indent=2, default=json_default)
 
         self.log(f"Output: {output_path.name}")
-        self.log(f"  Properties with GEV: {stats['properties_with_gev']}/{len(property_files)}")
-        self.log(f"  Properties with floor ({MIN_PRS_SPREAD_BPS}bp): {stats['properties_with_floor']}/{len(property_files)}")
+        avg_spread = stats['avg_spread_bps']
+        n_flooded = len([s for s in spread_values if s > 0])
+        self.log(f"  {stats['properties_processed']} properties  |  "
+                 f"{n_flooded} with floods  |  {stats['properties_processed'] - n_flooded} zero")
         self.log(f"  Avg basis: {stats['avg_basis_bps']:.1f} bps")
         self.log(f"  Avg transmission rate: {stats['avg_transmission_rate']:.1%}")
 

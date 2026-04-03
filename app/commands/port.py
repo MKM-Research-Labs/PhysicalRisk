@@ -647,13 +647,12 @@ def cmd_port(args):
         r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose).generate()
         elapsed_step = time.time() - t_step
         total  = r.get('total_properties', '?')
-        gev    = r.get('properties_with_gev', '?')
-        floor  = r.get('properties_with_floor', '?')
+        processed = r.get('properties_processed', '?')
         skipped = r.get('properties_skipped', 0)
-        avg_bps = r.get('avg_basis_bps', 0)
+        avg_spread = r.get('avg_spread_bps', 0)
         avg_tr  = r.get('avg_transmission_rate', 0) * 100
-        print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor  |  {skipped} skipped")
-        print(f"   avg spread: {avg_bps:.1f} bps  |  avg transmission: {avg_tr:.1f}%")
+        print(f"   {total} properties  |  {processed} processed  |  {skipped} skipped")
+        print(f"   avg spread: {avg_spread:.1f} bps  |  avg transmission: {avg_tr:.1f}%")
         if record_step is not None:
             try:
                 record_step(
@@ -685,11 +684,8 @@ def cmd_port(args):
         r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose, mode="shd").generate()
         elapsed_step = time.time() - t_step
         total  = r.get('total_properties', '?')
-        gev    = r.get('properties_with_gev', '?')
-        floor  = r.get('properties_with_floor', '?')
-        avg_bps = r.get('avg_basis_bps', 0)
-        print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor")
-        print(f"   avg spread: {avg_bps:.1f} bps")
+        avg_spread = r.get('avg_spread_bps', 0)
+        print(f"   {total} properties  |  avg spread: {avg_spread:.1f} bps")
         if record_step is not None:
             try:
                 record_step(
@@ -718,11 +714,8 @@ def cmd_port(args):
         r = propertyhc.PropertyHazardCurveGenerator(output_dir, verbose=args.verbose, mode="she").generate()
         elapsed_step = time.time() - t_step
         total  = r.get('total_properties', '?')
-        gev    = r.get('properties_with_gev', '?')
-        floor  = r.get('properties_with_floor', '?')
-        avg_bps = r.get('avg_basis_bps', 0)
-        print(f"   {total} properties  |  {gev} GEV fit  |  {floor} at floor")
-        print(f"   avg spread: {avg_bps:.1f} bps")
+        avg_spread = r.get('avg_spread_bps', 0)
+        print(f"   {total} properties  |  avg spread: {avg_spread:.1f} bps")
         if record_step is not None:
             try:
                 record_step(

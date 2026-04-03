@@ -253,7 +253,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                                 '<div style="text-align:center;padding:60px 20px;color:#888;">' +
                                 '<p style="font-size:16px;font-weight:600;margin-bottom:12px;">No Hazard Curve Data</p>' +
                                 '<p>' + msg + '</p>' +
-                                '<p style="margin-top:16px;font-size:12px;color:#aaa;">Properties need \\u2265 3 flood events for GEV fitting.<br>' +
+                                '<p style="margin-top:16px;font-size:12px;color:#aaa;">' +
                                 'Try re-running: <code>python app.py port --propertyts --propertyhc</code></p></div>';
                         }}
                         return;
@@ -277,8 +277,8 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
                     buildPRSControls();
                     switchTab(activeTab);
-                    var method = phcData.has_gev ? 'GEV' : 'Floor (' + (phcData.min_spread_bps || 2) + 'bp)';
-                    status.textContent = propertyId + ' | ' + phcData.flood_count + ' floods | ' + method;
+                    var spread = (phcData.term_structure || {}).severe ? phcData.term_structure.severe.prs_spread_bps[0] : 0;
+                    status.textContent = propertyId + ' | ' + phcData.flood_count + ' floods | ' + spread.toFixed(1) + 'bp';
                 }} catch (error) {{
                     console.error('[PropertyHazard] Load error:', error);
                     status.textContent = 'Error: ' + error.message;
