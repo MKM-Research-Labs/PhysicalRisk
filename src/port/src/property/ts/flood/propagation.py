@@ -43,19 +43,22 @@ class PropagationMixin:
         """
         Compute property-level flood for a single storm.
 
-        Uses the nearest hydraulically connected gauge (typically the
-        synthetic gauge on the river centreline) as the controlling
-        boundary condition.  The remaining gauges are retained in the
-        property record for PRS pricing and audit but are NOT averaged
-        into the flood WSE — Book 210 requires flow-aligned propagation,
-        not isotropic IDW averaging which dilutes the signal.
+        Uses the synthetic gauge (position [0] in the nearest list) as
+        the single controlling boundary condition.  The synthetic gauge
+        represents the point on the river centreline nearest to the
+        property.  Real gauges are retained for audit only.
+
+        Falls back to the nearest real gauge only if the synthetic has
+        no storm response for this event.
 
         v2.1: Replaced multi-gauge IDW with single nearest gauge.
+        v2.3: Synthetic gauge always controls; explicit preference.
 
         Args:
             mode: "normal", "shd" (zero elevation diff), or "she" (zero distance).
         """
-        # Use the nearest gauge as the single controlling boundary
+        # Use the synthetic gauge (first in list) as controlling boundary.
+        # Fall back to real gauges only if synthetic has no response.
         for ng in nearest:
             gid = ng['gauge_id']
             dist = ng['distance_m']
