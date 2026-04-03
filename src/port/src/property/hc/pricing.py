@@ -171,8 +171,9 @@ class PricingMixin:
 
     @staticmethod
     def _get_gauge_severe_count(gauge_hc: Dict) -> int:
-        """Get the number of severe flood events from a gauge hazard curve."""
-        # gaugehc stores annual_flood_prob_severe and num_storms_simulated
-        prob = gauge_hc.get('annual_flood_prob_severe', 0)
-        n_storms = gauge_hc.get('num_storms_simulated', 20000)
-        return round(prob * n_storms)
+        """Get the number of severe flood events from a gauge.
+
+        Uses the Monte Carlo event count from sequence_gauge/ (enriched
+        by the loader), not the GEV-derived probability.
+        """
+        return gauge_hc.get('severe_event_count', 0)
