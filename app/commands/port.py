@@ -209,6 +209,37 @@ def cmd_port(args):
                 print(f"  [lineage] Warning: {e}")
         print()
 
+    # 1.5 Synthetic Gauges — create virtual gauges at random positions on
+    # the river centreline BEFORE properties, so properties can be placed
+    # relative to their assigned synthetic gauge.
+    if run_all or args.gauges or args.properties:
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+        print("1.5 Generating Synthetic Gauges...")
+        _sg_inputs = {
+            "gauge.json": input_dir / "gauge.json",
+        }
+        _sg_pre = pre_hash_inputs(_sg_inputs) if pre_hash_inputs else None
+        t_step = time.time()
+        r = SyntheticGaugeGenerator(output_dir).generate(count=args.num_properties)
+        elapsed_step = time.time() - t_step
+        n = r.get("count", 0)
+        print(f"   {n} synthetic gauges  →  gauge.json (updated)")
+        if record_step is not None:
+            try:
+                record_step(
+                    step_name="synthetic_gauges",
+                    generator="port.src.gauge.synthetic.SyntheticGaugeGenerator",
+                    inputs=_sg_inputs,
+                    outputs={"gauge.json": input_dir / "gauge.json"},
+                    parameters={"count": args.num_properties},
+                    elapsed_seconds=elapsed_step,
+                    run_id=run_id,
+                    input_hashes=_sg_pre,
+                )
+            except Exception as e:
+                print(f"  [lineage] Warning: {e}")
+        print()
+
     if run_all or args.properties:
         if args.strict and check_inputs_fresh is not None:
             try:
@@ -247,37 +278,6 @@ def cmd_port(args):
                 stale = get_stale_downstream("properties")
                 if stale:
                     print(f"  ⚠ Dependencies require update: {', '.join(stale)}")
-            except Exception as e:
-                print(f"  [lineage] Warning: {e}")
-        print()
-
-    # 2.5 Synthetic Gauges — create virtual gauges on the river centreline
-    # for each property, so stressm/gaugehc process them as real gauges.
-    if run_all or args.gauges or args.properties:
-        from port.src.gauge.synthetic import SyntheticGaugeGenerator
-        print("2.5 Generating Synthetic Gauges...")
-        _sg_inputs = {
-            "gauge.json": input_dir / "gauge.json",
-            "property.json": input_dir / "property.json",
-        }
-        _sg_pre = pre_hash_inputs(_sg_inputs) if pre_hash_inputs else None
-        t_step = time.time()
-        r = SyntheticGaugeGenerator(output_dir).generate()
-        elapsed_step = time.time() - t_step
-        n = r.get("count", 0)
-        print(f"   {n} synthetic gauges  →  gauge.json (updated)")
-        if record_step is not None:
-            try:
-                record_step(
-                    step_name="synthetic_gauges",
-                    generator="port.src.gauge.synthetic.SyntheticGaugeGenerator",
-                    inputs=_sg_inputs,
-                    outputs={"gauge.json": input_dir / "gauge.json"},
-                    parameters={},
-                    elapsed_seconds=elapsed_step,
-                    run_id=run_id,
-                    input_hashes=_sg_pre,
-                )
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
         print()

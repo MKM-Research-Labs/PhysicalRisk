@@ -67,10 +67,16 @@ class BuilderMixin:
                 loc['RiskAssessment'] = {}
             loc['RiskAssessment']['GroundLevelMeters'] = round(location['elevation'], 2)
 
-        # Store reference gauge IDs (the 3 gauges this property is placed relative to)
-        ref_indices = location.get('reference_gauge_indices', [])
-        if ref_indices:
-            gauge_id_map = getattr(self, '_gauge_id_map', {})
-            header['ReferenceGauges'] = [
-                gauge_id_map.get(idx, f"GAUGE-{idx + 1:03d}") for idx in ref_indices
-            ]
+        # Store reference gauge IDs.  If placed relative to a synthetic gauge
+        # (new pipeline), use the synthetic ID as primary.  Otherwise fall back
+        # to legacy index-based mapping.
+        synth_id = location.get('synthetic_gauge_id')
+        if synth_id:
+            header['ReferenceGauges'] = [synth_id]
+        else:
+            ref_indices = location.get('reference_gauge_indices', [])
+            if ref_indices:
+                gauge_id_map = getattr(self, '_gauge_id_map', {})
+                header['ReferenceGauges'] = [
+                    gauge_id_map.get(idx, f"GAUGE-{idx + 1:03d}") for idx in ref_indices
+                ]
