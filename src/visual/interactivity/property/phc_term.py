@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -21,8 +21,8 @@
 """
 Property hazard curve — Term Structure tab sub-module.
 
-Survival probability curves and hazard rates across tenors
-for three flood severity thresholds.
+Survival probability curve from Monte Carlo event count.
+S(t) = (1 - p)^t where p = flood_count / num_storms.
 """
 
 
@@ -30,54 +30,51 @@ def get_js() -> str:
     """Return JS fragment for term structure tab (injected into parent IIFE)."""
     return """
             // ================================================================
-            // Tab 1: Term Structure (Survival Probability)
+            // Tab 1: Term Structure — Survival from Event Count
             // ================================================================
             function renderTermStructure() {
                 var ctx = document.getElementById('phc-chart').getContext('2d');
                 if (currentChart) currentChart.destroy();
 
                 var ts = phcData.term_structure || {};
-                var tenors = ts.tenors || [];
+                var tenors = ts.tenors || [1, 2, 3, 4, 5];
                 var labels = tenors.map(function(t) { return t + 'yr'; });
 
-                var datasets = [];
-                var thresholdInfo = {
-                    'any_flood': { color: '#4CAF50', label: 'Any Flood (>0m)' },
-                    'moderate': { color: '#FF9800', label: 'Moderate (>0.5m)' },
-                    'severe': { color: '#F44336', label: 'Severe (>1.0m)' }
-                };
+                // Annual probability from event count
+                var severeData = ts.severe || {};
+                var spreadBps = (severeData.prs_spread_bps || [])[0] || 0;
+                var annualProb = spreadBps / 10000;
 
-                var thresholdProbs = phcData.depth_thresholds || {};
-
-                Object.keys(thresholdInfo).forEach(function(key) {
-                    var info = thresholdInfo[key];
-                    var data = ts[key] || {};
-                    var survival = data.survival || [];
-
-                    datasets.push({
-                        label: info.label + ' (survival)',
-                        data: survival.map(function(s) { return s * 100; }),
-                        borderColor: info.color,
-                        backgroundColor: info.color + '22',
-                        fill: false, tension: 0.3, pointRadius: 4,
-                        pointBackgroundColor: info.color, borderWidth: 2,
-                        yAxisID: 'y'
-                    });
-
-                    var lambda = (thresholdProbs[key] || {}).annual_probability || 0;
-                    if (lambda > 0) {
-                        datasets.push({
-                            label: info.label + ' (hazard rate)',
-                            data: Array(tenors.length).fill(lambda * 100),
-                            borderColor: info.color,
-                            borderDash: [6, 3],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false,
-                            yAxisID: 'y1'
-                        });
-                    }
+                // Survival: S(t) = (1 - p)^t
+                var survivalPct = tenors.map(function(t) {
+                    return Math.pow(1 - annualProb, t) * 100;
                 });
+
+                // Spread is flat across tenors
+                var spreadLine = tenors.map(function() { return spreadBps; });
+
+                var datasets = [
+                    {
+                        label: 'Survival Probability (%)',
+                        data: survivalPct,
+                        borderColor: '#1976D2',
+                        backgroundColor: '#1976D222',
+                        fill: true, tension: 0.3, pointRadius: 5,
+                        pointBackgroundColor: '#1976D2', borderWidth: 2,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Severe Spread (bp)',
+                        data: spreadLine,
+                        borderColor: '#F44336',
+                        borderDash: [6, 3],
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#F44336',
+                        fill: false,
+                        yAxisID: 'y1'
+                    }
+                ];
 
                 currentChart = new Chart(ctx, {
                     type: 'line',
@@ -94,31 +91,44 @@ def get_js() -> str:
                             tooltip: {
                                 callbacks: {
                                     label: function(ctx) {
-                                        return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(2) + '%';
+                                        if (ctx.datasetIndex === 0)
+                                            return 'Survival: ' + ctx.parsed.y.toFixed(2) + '%';
+                                        return 'Spread: ' + ctx.parsed.y.toFixed(1) + ' bp';
                                     }
                                 }
                             }
                         },
                         scales: {
-                            x: { title: { display: true, text: 'Tenor (years)' } },
-                            y: { title: { display: true, text: 'Survival Probability (%)' }, min: 0, max: 100, position: 'left' },
-                            y1: { title: { display: true, text: 'Hazard Rate (%/yr)' }, position: 'right', grid: { drawOnChartArea: false } }
+                            x: { title: { display: true, text: 'Tenor (years)', font: { size: 11 } } },
+                            y: {
+                                title: { display: true, text: 'Survival Probability (%)', font: { size: 11 } },
+                                min: Math.max(0, Math.min.apply(null, survivalPct) - 5),
+                                max: 100,
+                                position: 'left'
+                            },
+                            y1: {
+                                title: { display: true, text: 'Spread (bp)', font: { size: 11 } },
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                min: 0
+                            }
                         }
                     }
                 });
 
+                // Stats bar
                 var bar = document.getElementById('phc-stats-bar');
                 var summary = phcData.summary || {};
-                var methodTag = phcData.has_gev ?
-                    '<span style="color:#1976D2;font-weight:bold;">GEV Fitted</span>' :
-                    '<span style="color:#FF9800;font-weight:bold;">Floor (' + (phcData.min_spread_bps || 2) + 'bp)</span>';
+                var zone = phcData.flood_zone || '';
+
                 bar.innerHTML = [
-                    methodTag,
+                    '<span style="color:#1976D2;font-weight:bold;">Event Count</span>',
+                    '<span><b>Zone:</b> ' + zone + '</span>',
                     '<span><b>Floods:</b> ' + phcData.flood_count + '</span>',
+                    '<span><b>Spread:</b> <span style="color:#F44336;">' + spreadBps.toFixed(1) + ' bp</span></span>',
+                    '<span><b>P(annual):</b> ' + (annualProb * 100).toFixed(3) + '%</span>',
+                    '<span><b>S(5yr):</b> ' + survivalPct[survivalPct.length - 1].toFixed(2) + '%</span>',
                     '<span><b>Max Depth:</b> ' + (summary.max_depth_m || 0).toFixed(2) + 'm</span>',
-                    '<span><b>Mean Depth:</b> ' + (summary.mean_depth_m || 0).toFixed(2) + 'm</span>',
-                    '<span><b>Elevation:</b> ' + (phcData.elevation_m || 0).toFixed(1) + 'm</span>',
-                    '<span><b>Floor:</b> ' + (phcData.floor_level_m || 0).toFixed(2) + 'm</span>',
                     '<span><b>Transmission:</b> ' + ((summary.flood_transmission_rate || 0) * 100).toFixed(1) + '%</span>'
                 ].join('');
             }

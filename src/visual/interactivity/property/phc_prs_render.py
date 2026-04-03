@@ -295,7 +295,8 @@ def get_js():
                 // Stats bar
                 var bar = document.getElementById('phc-stats-bar');
                 var npvColor = result.npv >= 0 ? '#4CAF50' : '#F44336';
-                var npvLabel = result.npv >= 0 ? 'buyer +ve' : 'buyer -ve';
+                var dirLabel = result.isPayer ? 'Payer' : 'Receiver';
+                var npvLabel = (result.npv >= 0 ? '+ve' : '-ve') + ' (' + dirLabel + ')';
 
                 var commitBtn = ctpySelected ?
                     '<button id="phc-commit-btn" onclick="commitPropertyPRSTrade()" ' +
