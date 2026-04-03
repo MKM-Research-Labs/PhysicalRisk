@@ -67,36 +67,47 @@ def _property_cdm(prop_id: str) -> dict:
 class TestCDMSourceFields:
     """Verify that property.json CDM contains all fields needed by the pricer."""
 
+    def _first_cdm_property(self):
+        """Return the first property from property.json CDM."""
+        data = _load_json(_input_dir() / "property.json")
+        props = data.get("properties", [])
+        return props[0] if props else None
+
     def test_cdm_has_properties(self):
         data = _load_json(_input_dir() / "property.json")
         assert len(data.get("properties", [])) > 0
 
     def test_cdm_has_ea_flood_zone(self):
-        prop_id, _ = _first_property()
-        cdm = _property_cdm(prop_id)
+        cdm = self._first_cdm_property()
+        if not cdm:
+            pytest.skip("No CDM properties")
         ra = cdm.get("PropertyHeader", {}).get("RiskAssessment", {})
         zone = ra.get("EAFloodZone")
-        assert zone is not None, f"{prop_id} missing EAFloodZone in CDM"
-        assert zone in EA_FLOOD_ZONE_RATES, f"{prop_id} invalid zone: {zone}"
+        assert zone is not None, "Missing EAFloodZone in CDM"
+        assert zone in EA_FLOOD_ZONE_RATES, f"Invalid zone: {zone}"
 
     def test_cdm_has_ground_level(self):
-        prop_id, _ = _first_property()
-        cdm = _property_cdm(prop_id)
-        ra = cdm.get("PropertyHeader", {}).get("RiskAssessment", {})
+        cdm = self._first_cdm_property()
+        if not cdm:
+            pytest.skip("No CDM properties")
+        loc = cdm.get("PropertyHeader", {}).get("Location", {})
+        ra = loc.get("RiskAssessment", cdm.get("PropertyHeader", {}).get("RiskAssessment", {}))
         assert ra.get("GroundLevelMeters") is not None
 
     def test_cdm_has_location(self):
-        prop_id, _ = _first_property()
-        cdm = _property_cdm(prop_id)
+        cdm = self._first_cdm_property()
+        if not cdm:
+            pytest.skip("No CDM properties")
         loc = cdm.get("PropertyHeader", {}).get("Location", {})
         assert loc.get("LatitudeDegrees") is not None
         assert loc.get("LongitudeDegrees") is not None
 
     def test_cdm_has_reference_gauges(self):
-        prop_id, _ = _first_property()
-        cdm = _property_cdm(prop_id)
+        cdm = self._first_cdm_property()
+        if not cdm:
+            pytest.skip("No CDM properties")
         refs = cdm.get("PropertyHeader", {}).get("ReferenceGauges", [])
-        assert len(refs) > 0, f"{prop_id} has no ReferenceGauges"
+        assert len(refs) > 0, "Property has no ReferenceGauges"
 
 
 # ===========================================================================
@@ -210,18 +221,17 @@ class TestPropertyHCFields:
         assert "flood_count" in pc
         assert isinstance(pc["flood_count"], int)
 
-    def test_has_gev(self):
+    def test_pricing_method_is_event_count(self):
         _, pc = _first_property()
-        assert "has_gev" in pc
-        assert isinstance(pc["has_gev"], bool)
+        assert pc.get("pricing_method") == "event_count"
 
-    def test_pricing_method(self):
+    def test_has_gev_is_false(self):
         _, pc = _first_property()
-        assert pc.get("pricing_method") in ("gev", "floor")
+        assert pc.get("has_gev") is False
 
-    def test_min_spread_bps(self):
+    def test_gev_params_is_none(self):
         _, pc = _first_property()
-        assert pc.get("min_spread_bps") == 2.0
+        assert pc.get("gev_params") is None
 
     def test_term_structure_exists(self):
         _, pc = _first_property()
@@ -235,25 +245,37 @@ class TestPropertyHCFields:
         ts = pc.get("term_structure", {})
         assert "severe" in ts
         severe = ts["severe"]
-        assert "survival" in severe
         assert "prs_spread_bps" in severe
 
-    def test_survival_monotonically_decreasing(self):
+    def test_term_structure_is_flat(self):
+        """All tenors should have the same spread (storms are independent)."""
         _, pc = _first_property()
-        survival = pc.get("term_structure", {}).get("severe", {}).get("survival", [])
-        if len(survival) < 2:
-            pytest.skip("Not enough survival points")
-        for i in range(len(survival) - 1):
-            assert survival[i] >= survival[i + 1], (
-                f"Survival not decreasing: S({i})={survival[i]} > S({i+1})={survival[i+1]}"
-            )
+        spreads = pc.get("term_structure", {}).get("severe", {}).get("prs_spread_bps", [])
+        if len(spreads) < 2:
+            pytest.skip("Not enough tenor points")
+        assert all(s == spreads[0] for s in spreads), (
+            f"Term structure not flat: {spreads}"
+        )
+
+    def test_spread_equals_event_count_formula(self):
+        """Spread should equal flood_count / num_storms * 10000."""
+        _, pc = _first_property()
+        flood_count = pc.get("flood_count", 0)
+        dt = pc.get("depth_thresholds", {}).get("severe", {})
+        annual_prob = dt.get("annual_probability", 0)
+        spreads = pc.get("term_structure", {}).get("severe", {}).get("prs_spread_bps", [])
+        if not spreads:
+            pytest.skip("No spread data")
+        expected = round(annual_prob * 10000, 2)
+        assert abs(spreads[0] - expected) < 0.1, (
+            f"Spread {spreads[0]} != annual_prob * 10000 = {expected}"
+        )
 
     def test_spreads_non_negative(self):
         _, pc = _first_property()
-        for trigger in ("any_flood", "moderate", "severe"):
-            spreads = pc.get("term_structure", {}).get(trigger, {}).get("prs_spread_bps", [])
-            for s in spreads:
-                assert s >= 0, f"Negative spread {s} for {trigger}"
+        spreads = pc.get("term_structure", {}).get("severe", {}).get("prs_spread_bps", [])
+        for s in spreads:
+            assert s >= 0, f"Negative spread {s}"
 
     def test_nearest_gauges(self):
         _, pc = _first_property()
@@ -284,25 +306,20 @@ class TestPropertyHCFields:
     def test_depth_thresholds(self):
         _, pc = _first_property()
         dt = pc.get("depth_thresholds", {})
-        for trigger in ("any_flood", "moderate", "severe"):
-            assert trigger in dt, f"Missing depth threshold: {trigger}"
-            assert "annual_probability" in dt[trigger]
-            assert "threshold_m" in dt[trigger]
+        assert "severe" in dt, "Missing severe depth threshold"
+        assert "annual_probability" in dt["severe"]
+
+    def test_only_severe_threshold(self):
+        """Only severe threshold should exist (no any_flood or moderate)."""
+        _, pc = _first_property()
+        dt = pc.get("depth_thresholds", {})
+        assert set(dt.keys()) == {"severe"}, f"Unexpected thresholds: {set(dt.keys())}"
 
     def test_summary(self):
         _, pc = _first_property()
         summary = pc.get("summary", {})
         assert "avg_basis_bps" in summary
         assert "flood_transmission_rate" in summary
-
-    def test_gev_params_when_has_gev(self):
-        _, pc = _first_property()
-        if not pc.get("has_gev"):
-            pytest.skip("Property does not have GEV fit")
-        params = pc.get("gev_params", {})
-        assert "shape" in params
-        assert "loc" in params
-        assert "scale" in params
 
     def test_flood_zone_matches_propertyts(self):
         """Flood zone in propertyhc should match the propertyts source."""
@@ -524,7 +541,7 @@ class TestCrossLayerConsistency:
         data = _propertyhc()
         required = [
             "property_id", "elevation_m", "floor_level_m", "flood_zone",
-            "flood_count", "has_gev", "pricing_method", "min_spread_bps",
+            "flood_count", "pricing_method",
             "term_structure", "nearest_gauges", "summary",
         ]
         curves = data.get("property_hazard_curves", {})
@@ -550,7 +567,7 @@ class TestZoneSpreadConsistency:
             if zone not in stats:
                 stats[zone] = {"flood_counts": [], "spreads": [], "elevations": []}
             stats[zone]["flood_counts"].append(pc.get("flood_count", 0))
-            ts = pc.get("term_structure", {}).get("any_flood", {})
+            ts = pc.get("term_structure", {}).get("severe", {})
             spreads = ts.get("prs_spread_bps", [])
             if len(spreads) >= 5:
                 stats[zone]["spreads"].append(spreads[4])
