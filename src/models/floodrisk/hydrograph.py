@@ -345,8 +345,12 @@ def build_compound_property_hydrograph(
         if depth_above_floor > 0:
             raw_depth[t] = depth_above_floor
 
-    # Step 6: apply infiltration
-    adjusted_depth = apply_infiltration(raw_depth, f_imperv=f_imperv)
+    # Step 6: infiltration removed — the distance retention factor already
+    # accounts for aggregate losses (friction, storage, infiltration) between
+    # the gauge and property.  Applying explicit infiltration on top of the
+    # bankfull threshold and retention decay is double-counting.
+    # See: Flood Propagation Code Review, Section 4 (Double-Counting Problem).
+    adjusted_depth = raw_depth
 
     # Step 7: build output records
     result = []
