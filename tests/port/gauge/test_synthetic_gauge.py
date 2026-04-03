@@ -232,44 +232,31 @@ class TestSyntheticGaugeGenerator:
             assert 5.0 <= stages["SevereFloodWarning"] <= 7.0
 
     def test_deduplication(self, synth_env):
-        """Two properties near the same river point should share a synthetic gauge."""
-        # Add a third property very close to PROP-001
-        with open(synth_env / "property.json") as f:
-            prop_data = json.load(f)
-        prop_data["properties"].append(
-            _make_property_cdm("PROP-003", 51.4551, -0.4001)  # ~100m from PROP-001
-        )
-        (synth_env / "property.json").write_text(json.dumps(prop_data))
-
+        """Synthetic gauges placed too close together should be deduplicated."""
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
-        gen = SyntheticGaugeGenerator(synth_env)
-        result = gen.generate()
 
-        # Should have 2 synthetic gauges (one for PROP-001/003 area, one for PROP-002)
-        # not 3
-        assert result["count"] == 2
+        # Request many gauges — dedup should reduce the count below the request
+        gen = SyntheticGaugeGenerator(synth_env)
+        result = gen.generate(count=200)
+
+        # With only 2 polyline segments, dedup should reduce well below 200
+        assert result["count"] < 200
+        assert result["count"] > 0
 
     def test_no_gauge_json_returns_zero(self, tmp_path):
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         result = SyntheticGaugeGenerator(tmp_path).generate()
         assert result["count"] == 0
 
-    def test_no_property_json_returns_zero(self, synth_env):
+    def test_no_property_json_still_generates(self, synth_env):
+        """Generator no longer needs property.json — generates random positions on river."""
         (synth_env / "property.json").unlink()
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         result = SyntheticGaugeGenerator(synth_env).generate()
-        assert result["count"] == 0
+        assert result["count"] > 0
 
-    def test_edge_property_beyond_polyline(self, synth_env):
-        """Property far beyond polyline end should not create a synthetic gauge."""
-        with open(synth_env / "property.json") as f:
-            prop_data = json.load(f)
-        # Replace with a property way past the polyline end
-        prop_data["properties"] = [
-            _make_property_cdm("PROP-EDGE", 51.50, 0.20),
-        ]
-        (synth_env / "property.json").write_text(json.dumps(prop_data))
-
+    def test_small_count_request(self, synth_env):
+        """Requesting a small number of synthetic gauges should work."""
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
-        result = SyntheticGaugeGenerator(synth_env).generate()
-        assert result["count"] == 0
+        result = SyntheticGaugeGenerator(synth_env).generate(count=5)
+        assert 0 < result["count"] <= 5

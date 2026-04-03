@@ -230,15 +230,15 @@ class TestEdgeCases:
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
         stats = gen.generate()
         assert stats["total_properties"] == 0
-        assert stats["properties_with_gev"] == 0
+        assert stats["properties_processed"] == 0
 
     def test_no_gauge_hazard_curves(self, output_dir):
         """Generator should still work without gauge hazard curves (empty basis)."""
         (output_dir / "gaugehc.json").unlink()
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         stats = gen.generate()
-        assert stats["properties_with_gev"] == 2
-        assert stats["properties_with_floor"] == 1
+        assert stats["properties_processed"] == 3
+        assert stats["properties_skipped"] == 0
 
         with open(output_dir / "propertyhc.json") as f:
             data = json.load(f)
