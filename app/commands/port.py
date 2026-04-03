@@ -902,7 +902,7 @@ def cmd_port(args):
     if run_all:
         _print_port_summary(output_dir)
 
-    # PDF report
+    # PDF reports
     if args.pdf or run_all:
         try:
             from reports.port import PortReportGenerator
@@ -914,6 +914,16 @@ def cmd_port(args):
             print(f"\n  PDF report: {result_path}")
         except Exception as e:
             print(f"\n  PDF report failed: {e}")
+
+        # PRS portfolio report
+        try:
+            from reports.port.prs_report import PRSPortfolioReport
+            prs_path = audit_dir / 'prs_portfolio_report.pdf'
+            prs_gen = PRSPortfolioReport(input_dir=output_dir, output_path=prs_path)
+            prs_result = prs_gen.generate()
+            print(f"  PRS report: {prs_result}")
+        except Exception as e:
+            print(f"  PRS report failed: {e}")
 
     # Data lineage chain validation
     try:
