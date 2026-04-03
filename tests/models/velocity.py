@@ -127,14 +127,14 @@ class TestRetention:
         assert abs(f - 1.0 / math.e) < 0.001
 
     def test_near_river_high_retention(self):
-        """At 800m with default 3km length scale, retention ≈ 0.77."""
+        """At 800m with default 10km length scale, retention ≈ 0.923."""
         f = compute_retention(800)
-        assert 0.70 <= f <= 0.85
+        assert 0.90 <= f <= 0.95
 
     def test_one_km_retention(self):
-        """At 1km with default 3km length scale, retention ≈ 0.72."""
+        """At 1km with default 10km length scale, retention ≈ 0.905."""
         f = compute_retention(1000)
-        assert 0.65 <= f <= 0.80
+        assert 0.88 <= f <= 0.93
 
     def test_far_distance_near_zero(self):
         """At 5x the decay length, retention should be < 1%."""

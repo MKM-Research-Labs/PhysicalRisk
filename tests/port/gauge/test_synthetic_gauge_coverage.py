@@ -1,7 +1,7 @@
 """Coverage expansion tests for synthetic.py — river polyline cache miss,
-degenerate segments, insufficient gauge points, zero-coordinate properties,
-existing synthetic gauges skipped, polyline-start projection, and missing
-flanking gauge (lines 48-49, 67, 83, 172-173, 191, 226, 237, 265, 278)."""
+degenerate segments, insufficient gauge points, random position generation,
+existing synthetic gauges skipped, polyline endpoints, and missing
+flanking gauge."""
 
 import json
 import math
@@ -194,33 +194,20 @@ class TestInsufficientGaugePoints:
 # Line 191: Property with zero coordinates
 # ---------------------------------------------------------------------------
 
-class TestZeroCoordinateProperty:
+class TestRandomPositionGeneration:
 
-    def test_property_with_zero_lat_skipped(self, synth_env):
-        """Property with lat=0 is silently skipped."""
-        props = {
-            "properties": [
-                _make_property_cdm("PROP-ZERO", 0, -0.30),
-            ]
-        }
-        (synth_env / "property.json").write_text(json.dumps(props))
-
+    def test_generates_without_property_json(self, synth_env):
+        """Generator no longer needs property.json — uses random positions on river."""
+        (synth_env / "property.json").unlink()
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
-        result = SyntheticGaugeGenerator(synth_env).generate()
-        assert result["count"] == 0
+        result = SyntheticGaugeGenerator(synth_env).generate(count=10)
+        assert result["count"] > 0
 
-    def test_property_with_zero_lon_skipped(self, synth_env):
-        """Property with lon=0 is silently skipped."""
-        props = {
-            "properties": [
-                _make_property_cdm("PROP-ZERO", 51.46, 0),
-            ]
-        }
-        (synth_env / "property.json").write_text(json.dumps(props))
-
+    def test_respects_count_parameter(self, synth_env):
+        """Generator should create up to the requested count of synthetic gauges."""
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
-        result = SyntheticGaugeGenerator(synth_env).generate()
-        assert result["count"] == 0
+        result = SyntheticGaugeGenerator(synth_env).generate(count=3)
+        assert 0 < result["count"] <= 3
 
 
 # ---------------------------------------------------------------------------
@@ -252,21 +239,25 @@ class TestSyntheticGaugeSkippedInPolyline:
 # Line 265: Property projects to polyline start
 # ---------------------------------------------------------------------------
 
-class TestPropertyAtPolylineStart:
+class TestPolylineEndpoints:
 
-    def test_property_at_polyline_start_returns_none(self, synth_env):
-        """Property projecting to seg_idx=0, t~0 should not create a gauge."""
-        # Place property exactly at the first gauge point
-        props = {
-            "properties": [
-                _make_property_cdm("PROP-START", 51.449, -0.51),
-            ]
-        }
-        (synth_env / "property.json").write_text(json.dumps(props))
-
+    def test_avoids_exact_endpoints(self, synth_env):
+        """Synthetic gauges should not be placed at exact polyline endpoints."""
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
-        result = SyntheticGaugeGenerator(synth_env).generate()
-        assert result["count"] == 0
+        gen = SyntheticGaugeGenerator(synth_env)
+        result = gen.generate(count=50)
+
+        with open(synth_env / "gauge.json") as f:
+            data = json.load(f)
+
+        synth = [g for g in data["flood_gauges"]
+                 if g["FloodGauge"]["Header"]["GaugeID"].startswith("SYNTH")]
+        for sg in synth:
+            loc = sg["FloodGauge"]["Location"]
+            # Should not be exactly at any gauge point
+            for gp_lat, gp_lon, _ in GAUGE_POINTS:
+                assert not (loc["GaugeLatitude"] == gp_lat and
+                            loc["GaugeLongitude"] == gp_lon)
 
 
 # ---------------------------------------------------------------------------
@@ -276,7 +267,7 @@ class TestPropertyAtPolylineStart:
 class TestFlankingGaugeMissing:
 
     def test_missing_flanking_gauge_returns_none(self, synth_env, monkeypatch):
-        """_create_synthetic_gauge returns None when flanking gauge not in lookup."""
+        """_create_synthetic_at_position returns None when flanking gauge not in lookup."""
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
 
         gen = SyntheticGaugeGenerator(synth_env)
@@ -296,5 +287,5 @@ class TestFlankingGaugeMissing:
             # GAUGE-MISSING intentionally absent
         }
 
-        result = gen._create_synthetic_gauge(51.46, -0.30, gauge_lookup, polyline)
+        result = gen._create_synthetic_at_position(0, 0.5, gauge_lookup, polyline)
         assert result is None

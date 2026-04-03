@@ -77,27 +77,27 @@ class TestDistanceSensitivity:
         assert ret > 0.98, f"Retention at 50m should be ~0.98, got {ret}"
 
     def test_distant_property_does_not_flood(self, gauge_readings):
-        """Property 10km from gauge with moderate storm should not flood."""
+        """Property 50km from gauge with moderate storm should not flood."""
         # Use a weaker storm: only 1m above severe (marginal)
         moderate_peak = self.SEVERE + 1.0
         moderate_readings = _triangular_gauge_readings(
             peak=moderate_peak, base=self.SEVERE)
         depth, ret, _, _ = _compute_flood_depth(
             moderate_readings, moderate_peak, self.SEVERE,
-            self.GAUGE_ELEV, self.PROP_ELEV, self.FLOOR, 10000
+            self.GAUGE_ELEV, self.PROP_ELEV, self.FLOOR, 50000
         )
         assert depth == 0.0, (
-            f"10km property with 1m water should not flood, got depth={depth}")
-        assert ret < 0.05, f"Retention at 10km should be <5%, got {ret}"
+            f"50km property with 1m water should not flood, got depth={depth}")
+        assert ret < 0.01, f"Retention at 50km should be <1%, got {ret}"
 
     def test_retention_values_at_key_distances(self, gauge_readings):
-        """Verify retention factor at key distances with 3km length scale."""
+        """Verify retention factor at key distances with 10km length scale."""
         cases = [
             (0, 1.0),
-            (500, math.exp(-500 / 3000)),
-            (1000, math.exp(-1000 / 3000)),
-            (3000, math.exp(-1)),     # ≈ 0.368
-            (6000, math.exp(-2)),     # ≈ 0.135
+            (500, math.exp(-500 / 10000)),
+            (1000, math.exp(-1000 / 10000)),
+            (10000, math.exp(-1)),     # ≈ 0.368
+            (20000, math.exp(-2)),     # ≈ 0.135
         ]
         for dist, expected in cases:
             actual = compute_retention(dist)

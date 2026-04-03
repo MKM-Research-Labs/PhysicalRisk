@@ -122,6 +122,7 @@ def output_dir(tmp_path):
                 "annual_hazard_rate_alert": 0.05,
                 "annual_hazard_rate_warning": 0.02,
                 "annual_hazard_rate_severe": 0.005,
+                "severe_event_count": 8,
             },
             "GAUGE-002": {
                 "gauge_id": "GAUGE-002",
@@ -129,6 +130,7 @@ def output_dir(tmp_path):
                 "annual_hazard_rate_alert": 0.04,
                 "annual_hazard_rate_warning": 0.015,
                 "annual_hazard_rate_severe": 0.003,
+                "severe_event_count": 6,
             },
             "GAUGE-003": {
                 "gauge_id": "GAUGE-003",
@@ -136,6 +138,7 @@ def output_dir(tmp_path):
                 "annual_hazard_rate_alert": 0.03,
                 "annual_hazard_rate_warning": 0.01,
                 "annual_hazard_rate_severe": 0.002,
+                "severe_event_count": 4,
             },
         },
     }
