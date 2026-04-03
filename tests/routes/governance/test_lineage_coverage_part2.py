@@ -87,7 +87,7 @@ class TestRouteErrorHandlers:
         assert resp.status_code == 500
         data = resp.get_json()
         assert data["status"] == "error"
-        assert "trace boom" in data["message"]
+        assert data["message"] == "Internal server error"
 
     def test_staleness_route_error_returns_500(
         self, lineage_env, lineage_client, monkeypatch

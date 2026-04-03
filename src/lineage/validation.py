@@ -85,16 +85,45 @@ def _find_producer(step_name: str, artifact: str) -> str | None:
     return candidates[-1] if candidates else None
 
 
-def _current_hash(artifact_name: str, manifest_step: dict) -> str | None:
-    """Look up the recorded hash for *artifact_name* in a step's outputs."""
+_MISSING = object()  # sentinel: hash key not present at all
+
+
+def _current_hash(artifact_name: str, manifest_step: dict):
+    """Look up the recorded hash for *artifact_name* in a step's outputs.
+
+    Returns the hash string, ``None`` when the key is explicitly null,
+    or ``_MISSING`` when the entry or hash key is absent entirely.
+    """
     entry = manifest_step.get("outputs", {}).get(artifact_name)
     if entry and isinstance(entry, dict):
-        return entry.get("hash")
-    return None
+        return entry.get("hash", _MISSING)
+    return _MISSING
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+def _resolve_data_dir() -> Path:
+    """Resolve the pipeline data directory."""
+    try:
+        from config import PortfolioConfig
+        return Path(PortfolioConfig().get_input_dir())
+    except (ImportError, AttributeError):
+        return Path(__file__).resolve().parents[2] / "data" / "input" / "thames"
+
+
+def _live_hash(artifact: str, data_dir: Path | None = None) -> str | None:
+    """Hash an artifact on disk, returning None if it doesn't exist."""
+    if data_dir is None:
+        data_dir = _resolve_data_dir()
+    path = data_dir / artifact
+    if path.is_dir() and any(path.iterdir()):
+        digest, _ = hash_directory(path)
+        return digest
+    if path.is_file():
+        return hash_file(path)
+    return None
+
 
 def check_inputs_fresh(step_name: str) -> tuple:
     """Check whether every input of *step_name* still matches its producer's
@@ -102,6 +131,10 @@ def check_inputs_fresh(step_name: str) -> tuple:
 
     Returns ``(all_fresh, issues)`` where *issues* is a list of human-readable
     strings describing any mismatches.
+
+    When a recorded hash is ``None`` (artifact was missing at recording time)
+    but the file now exists on disk, falls back to a live hash comparison so
+    that stale null entries don't block validation indefinitely.
     """
     manifest = load_manifest()
     step_io = STEP_IO.get(step_name)
@@ -111,6 +144,7 @@ def check_inputs_fresh(step_name: str) -> tuple:
     # Fallback map for artifacts with no dependency-graph producer
     output_map = _output_step_map()
     issues: list[str] = []
+    data_dir: Path | None = None  # lazily resolved
 
     for inp in step_io["inputs"]:
         # Prefer dependency-aware producer; fall back to global map
@@ -127,11 +161,24 @@ def check_inputs_fresh(step_name: str) -> tuple:
             continue
 
         recorded = _current_hash(inp, producer_entry)
-        if recorded is None:
+        if recorded is _MISSING:
+            # Hash key completely absent — no data to compare
             issues.append(
                 f"No hash recorded for '{inp}' in step '{producer}'"
             )
             continue
+        if recorded is None:
+            # Explicitly null (artifact was missing at record time) —
+            # fall back to live disk hash so stale nulls don't block forever
+            if data_dir is None:
+                data_dir = _resolve_data_dir()
+            recorded = _live_hash(inp, data_dir)
+            if recorded is None:
+                issues.append(
+                    f"No hash recorded for '{inp}' in step '{producer}' "
+                    f"and artifact missing on disk"
+                )
+                continue
 
         # Compare with what the consumer recorded at its own run time
         consumer_entry = manifest.get("steps", {}).get(step_name)
@@ -141,10 +188,26 @@ def check_inputs_fresh(step_name: str) -> tuple:
 
         consumed = consumer_entry.get("inputs", {}).get(inp, {}).get("hash")
         if consumed is None:
-            issues.append(
-                f"Step '{step_name}' has no recorded hash for input '{inp}'"
-            )
-        elif consumed != recorded:
+            # Check if hash key exists but is explicitly null vs absent
+            inp_entry = consumer_entry.get("inputs", {}).get(inp, {})
+            if "hash" in inp_entry and inp_entry["hash"] is None:
+                # Explicitly null — fall back to live hash
+                if data_dir is None:
+                    data_dir = _resolve_data_dir()
+                consumed = _live_hash(inp, data_dir)
+                if consumed is None:
+                    issues.append(
+                        f"Step '{step_name}' has no recorded hash for input "
+                        f"'{inp}' and artifact missing on disk"
+                    )
+                    continue
+            else:
+                issues.append(
+                    f"Step '{step_name}' has no recorded hash for input '{inp}'"
+                )
+                continue
+
+        if consumed != recorded:
             issues.append(
                 f"Input '{inp}' is stale: producer '{producer}' hash "
                 f"changed ({consumed[:12]}.. -> {recorded[:12]}..)"

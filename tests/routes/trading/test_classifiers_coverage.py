@@ -66,7 +66,7 @@ class TestTrainAllStartError:
         assert resp.status_code == 500
         data = resp.get_json()
         assert data["status"] == "error"
-        assert "disk error" in data["message"]
+        assert data["message"] == "Internal server error"
 
 
 class TestBatchCancelledBeforeFirstGauge:

@@ -133,38 +133,38 @@ class TestCurvesErrorHandlers:
             assert resp.status_code == 500
 
     def test_get_yield_curve_error_returns_500(self, trading_client, trading_env):
-        """GET yield-curve returns 500 on engine error (lines 104-106)."""
-        with patch('routes.trading.curves._get_engines',
+        """GET yield-curve returns 500 on engine error."""
+        with patch('routes.trading.curves_yield._get_engines',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.get('/api/v1/trading/yield-curve')
             assert resp.status_code == 500
 
     def test_update_yield_curve_error_returns_500(self, trading_client, trading_env):
-        """POST yield-curve returns 500 on engine error (lines 211-213)."""
-        with patch('routes.trading.curves._get_engines',
+        """POST yield-curve returns 500 on engine error."""
+        with patch('routes.trading.curves_yield._get_engines',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.post('/api/v1/trading/yield-curve',
                                        json={'tenor': 3, 'rate': 0.04})
             assert resp.status_code == 500
 
     def test_get_hazard_ts_error_returns_500(self, trading_client, trading_env):
-        """GET hazard-term-structure returns 500 on engine error (lines 234-236)."""
-        with patch('routes.trading.curves._get_engines',
+        """GET hazard-term-structure returns 500 on engine error."""
+        with patch('routes.trading.curves_hazard._get_engines',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.get('/api/v1/trading/hazard-term-structure')
             assert resp.status_code == 500
 
     def test_reset_yield_curve_error_returns_500(self, trading_client, trading_env):
-        """POST yield-curve/reset returns 500 on engine error (lines 270-272)."""
-        with patch('routes.trading.curves._get_engines',
+        """POST yield-curve/reset returns 500 on engine error."""
+        with patch('routes.trading.curves_yield._get_engines',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.post('/api/v1/trading/yield-curve/reset',
                                        json={})
             assert resp.status_code == 500
 
     def test_commit_hazard_ts_error_returns_500(self, trading_client, trading_env):
-        """POST hazard-term-structure/commit returns 500 on error (lines 341-343)."""
-        with patch('routes.trading.curves._get_engines',
+        """POST hazard-term-structure/commit returns 500 on error."""
+        with patch('routes.trading.curves_hazard._get_engines',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.post(
                 '/api/v1/trading/hazard-term-structure/commit',
@@ -173,8 +173,8 @@ class TestCurvesErrorHandlers:
             assert resp.status_code == 500
 
     def test_reset_hazard_ts_error_returns_500(self, trading_client, trading_env):
-        """POST hazard-term-structure/reset returns 500 on error (lines 363-365)."""
-        with patch('routes.trading.curves._get_engines',
+        """POST hazard-term-structure/reset returns 500 on error."""
+        with patch('routes.trading.curves_hazard._get_engines',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.post(
                 '/api/v1/trading/hazard-term-structure/reset',

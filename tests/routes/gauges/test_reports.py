@@ -122,7 +122,7 @@ class TestReportsErrorPaths:
                 r = client.post("/api/v1/gauges/report", json={"gaugeId": GAUGE_ID})
 
         assert r.status_code == 500
-        assert "not available" in r.get_json()["message"].lower()
+        assert r.get_json()["status"] == "error"
 
     def test_general_exception_returns_500(self, tmp_path, monkeypatch):
         """reports.py lines 135-140: general Exception -> 500."""
@@ -141,4 +141,4 @@ class TestReportsErrorPaths:
                 r = client.post("/api/v1/gauges/report", json={"gaugeId": GAUGE_ID})
 
         assert r.status_code == 500
-        assert "disk full" in r.get_json()["message"]
+        assert r.get_json()["status"] == "error"

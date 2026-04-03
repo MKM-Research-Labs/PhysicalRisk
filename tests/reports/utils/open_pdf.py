@@ -51,14 +51,14 @@ class TestOpenPdfFile:
             assert mock_run.call_args[0][0][0] == "open"
 
     def test_windows_calls_start(self, tmp_path):
-        """Windows: subprocess.run(['start', ...]) is called."""
+        """Windows: subprocess.run(['cmd', '/c', 'start', ...]) is called."""
         from reports.utils.open_pdf import open_pdf_file
         p = self._fake_path(tmp_path)
         with patch("reports.utils.open_pdf.platform.system", return_value="Windows"), \
              patch("reports.utils.open_pdf.subprocess.run") as mock_run:
             result = open_pdf_file(p)
             assert result is True
-            assert mock_run.call_args[0][0][0] == "start"
+            assert mock_run.call_args[0][0][:3] == ["cmd", "/c", "start"]
 
     def test_linux_calls_xdg_open(self, tmp_path):
         """Linux: subprocess.run(['xdg-open', ...]) is called."""
