@@ -68,14 +68,6 @@ class PricingMixin:
         # Minimum annual probability from floor spread
         min_annual_prob = MIN_PRS_SPREAD_BPS / 10000
 
-        # Zone floor: the EA flood zone establishes a minimum annual
-        # probability that the simulation cannot undercut.  This ensures
-        # a Zone 3a property (>1% annual prob per EA) never prices below
-        # the zone's representative hazard rate.
-        from config.models import EA_FLOOD_ZONE_RATES
-        flood_zone = pdata.get('flood_zone', 'Zone 1')
-        zone_floor_prob = EA_FLOOD_ZONE_RATES.get(flood_zone, 0.001)
-
         # Compute exceedance probabilities at each threshold
         depth_thresholds = {}
         for name, threshold in DEPTH_THRESHOLDS.items():
@@ -91,8 +83,7 @@ class PricingMixin:
             else:
                 annual_prob = min_annual_prob
 
-            # Apply both the spread floor and the zone floor
-            annual_prob = max(annual_prob, min_annual_prob, zone_floor_prob)
+            annual_prob = max(annual_prob, min_annual_prob)
             return_period = 1.0 / annual_prob if annual_prob > 0 else float('inf')
             depth_thresholds[name] = {
                 'threshold_m': threshold,
