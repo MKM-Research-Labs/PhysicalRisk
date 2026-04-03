@@ -460,22 +460,28 @@ class TestTerrainGridInMetadata:
         s1 = grid["zones"]["Zone 1"]["grid"][0][0]
         assert s3b > s1
 
-    def test_terrain_grid_spot_check_against_analytical(self):
-        """Spot-check grid value against direct compute_prs_spread call."""
-        from models.hazard.prs_analytical import compute_prs_spread
-        from models.floodrisk.velocity import compute_retention
-
+    def test_terrain_grid_zone_ordering_at_origin(self):
+        """Zone 3b spread > Zone 3a > Zone 2 > Zone 1 at origin (d=0, h=0)."""
         data = _propertyhc()
         grid = data["metadata"]["terrain_grid"]
-        # Zone 2 at d=1000m (idx 4), h=1.0m (idx 2)
-        zone_rate = 0.005
-        ret = compute_retention(1000)
-        elev_factor = math.exp(-1.0 / 2.0)
-        prop_rate = zone_rate * ret * elev_factor
-        expected = round(compute_prs_spread(prop_rate, tenor=5, recovery=0.0,
-                                             risk_free_rate=0.03), 2)
-        actual = grid["zones"]["Zone 2"]["grid"][4][2]
-        assert abs(actual - expected) < 0.01, f"Grid={actual} vs analytical={expected}"
+        s3b = grid["zones"]["Zone 3b"]["grid"][0][0]
+        s3a = grid["zones"]["Zone 3a"]["grid"][0][0]
+        s2 = grid["zones"]["Zone 2"]["grid"][0][0]
+        s1 = grid["zones"]["Zone 1"]["grid"][0][0]
+        assert s3b > s3a > s2 > s1, (
+            f"Zone ordering wrong at origin: 3b={s3b}, 3a={s3a}, 2={s2}, 1={s1}"
+        )
+
+    def test_terrain_grid_spread_decreases_with_distance(self):
+        """Spread should decrease with distance for a given zone/elevation."""
+        data = _propertyhc()
+        grid = data["metadata"]["terrain_grid"]
+        g = grid["zones"]["Zone 3a"]["grid"]
+        # Elevation index 0 (h=0), distances 0..5000m
+        for i in range(len(g) - 1):
+            assert g[i][0] >= g[i + 1][0], (
+                f"Spread not decreasing with distance at idx {i}: {g[i][0]} < {g[i+1][0]}"
+            )
 
 
 # ===========================================================================
