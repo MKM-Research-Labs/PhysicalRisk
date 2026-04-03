@@ -199,6 +199,17 @@ EA_FLOOD_ZONE_ELEVATION_BOUNDS: Dict[str, tuple] = {
 
 
 # ===========================================================================
+# Flood Propagation  (port/src/property/ts/flood/propagation.py)
+# ===========================================================================
+
+# Bankfull offset below severe warning level (metres).  Overbank flooding
+# begins at bankfull, not at the severe warning threshold.  The severe
+# level is an administrative safety alert set 0.5-1.0m above bankfull
+# for UK rivers.  See: EA Flood Warning Data Integrity Guide v2.0.
+BANKFULL_OFFSET_M: float = 0.5
+
+
+# ===========================================================================
 # Property Timeseries  (port/src/property/ts/constants.py)
 # ===========================================================================
 

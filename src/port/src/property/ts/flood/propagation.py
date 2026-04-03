@@ -7,6 +7,7 @@
 
 from typing import Dict, List, Optional
 
+from config.port import BANKFULL_OFFSET_M
 from models.floodrisk.depth_damage import scalar_depth_damage
 from models.floodrisk.hydrograph import build_compound_property_hydrograph
 from models.floodrisk.velocity import (
@@ -102,11 +103,13 @@ class PropagationMixin:
         slope = compute_slope(g_elev, prop_elevation, distance_m)
 
         # peak_level_m is a gauge stage reading (height above gauge zero
-        # datum).  Flooding begins when the reading exceeds the severe
-        # flood warning threshold — at that point depth at the gauge is 0.
-        # Flood depth at the gauge = reading − severe_level.
+        # datum).  Overbank flooding begins at bankfull level, NOT at the
+        # severe warning threshold.  Bankfull is the point where water
+        # spills onto the floodplain (typically 0.5-1.0m below severe for
+        # UK rivers).  Severe is an administrative safety alert.
         severe_level = nearest_gauge['gauge_info'].get('severe_level', 0)
-        water_above_gauge = max(0.0, interpolated_wse - severe_level)
+        bankfull_level = max(0.0, severe_level - BANKFULL_OFFSET_M)
+        water_above_gauge = max(0.0, interpolated_wse - bankfull_level)
         # Propagate to property location with distance-based retention
         water_at_property = water_above_gauge * retention
         # Property floods when water exceeds the elevation difference + floor step
@@ -202,11 +205,12 @@ class PropagationMixin:
 
         slope = compute_slope(g_elev, prop_elevation, distance_m)
 
-        # Estimate travel time from overall peak (same as v2.1)
-        # Flood depth at gauge = reading − severe threshold
+        # Estimate travel time from overall peak
+        # Overbank flow begins at bankfull, not severe
         severe_level = nearest_gauge['gauge_info'].get('severe_level', 0)
+        bankfull_level = max(0.0, severe_level - BANKFULL_OFFSET_M)
         overall_peak = resp.get('peak_level_m', 0)
-        water_above = max(0.0, overall_peak - severe_level)
+        water_above = max(0.0, overall_peak - bankfull_level)
         water_at_prop = water_above * retention
         height_diff = max(0.0, prop_elevation - g_elev)
         est_depth = max(0.0, water_at_prop - (height_diff + floor_level))
@@ -235,7 +239,7 @@ class PropagationMixin:
             floor_level=floor_level,
             travel_time_hrs=travel_time,
             retention=retention,
-            severe_level=severe_level,
+            severe_level=bankfull_level,
             cap=cap,
         )
 
