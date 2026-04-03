@@ -93,9 +93,9 @@ class TestLogMethod:
 # Survival and spread monotonicity checks
 # ===========================================================================
 
-class TestTermStructureMonotonicity:
+class TestTermStructure:
 
-    def test_prs_spread_increases_with_longer_tenor_or_non_decreasing(self, basic_output_dir):
+    def test_prs_spread_non_negative(self, basic_output_dir):
         """PRS spread should be non-negative for all tenors."""
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-mono", n_floods=8)
@@ -104,31 +104,30 @@ class TestTermStructureMonotonicity:
         with open(output_dir / "propertyhc.json") as f:
             data = json.load(f)
         ts = data["property_hazard_curves"]["PROP-mono"]["term_structure"]
-        for name in ["any_flood", "moderate", "severe"]:
-            spreads = ts[name]["prs_spread_bps"]
-            assert all(s >= 0 for s in spreads)
+        spreads = ts["severe"]["prs_spread_bps"]
+        assert all(s >= 0 for s in spreads)
 
-    def test_survival_between_zero_and_one(self, basic_output_dir):
+    def test_term_structure_is_flat(self, basic_output_dir):
+        """All tenors should have the same spread (events are independent)."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-surv", n_floods=8)
+        write_property_ts(pts_dir, "PROP-flat", n_floods=8)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gen.generate()
         with open(output_dir / "propertyhc.json") as f:
             data = json.load(f)
-        ts = data["property_hazard_curves"]["PROP-surv"]["term_structure"]
-        for name in ["any_flood", "moderate", "severe"]:
-            for s in ts[name]["survival"]:
-                assert 0.0 <= s <= 1.0
+        ts = data["property_hazard_curves"]["PROP-flat"]["term_structure"]
+        spreads = ts["severe"]["prs_spread_bps"]
+        assert len(set(spreads)) == 1, f"Term structure not flat: {spreads}"
 
-    def test_any_flood_spread_not_less_than_severe(self, basic_output_dir):
-        """any_flood has a lower threshold than severe -> higher or equal spread."""
+    def test_only_severe_threshold(self, basic_output_dir):
+        """Only severe threshold should exist in term_structure."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-order", n_floods=8)
+        write_property_ts(pts_dir, "PROP-sev", n_floods=5)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gen.generate()
         with open(output_dir / "propertyhc.json") as f:
             data = json.load(f)
-        ts = data["property_hazard_curves"]["PROP-order"]["term_structure"]
-        any_flood_5yr = ts["any_flood"]["prs_spread_bps"][-1]
-        severe_5yr = ts["severe"]["prs_spread_bps"][-1]
-        assert any_flood_5yr >= severe_5yr - 1e-6
+        ts = data["property_hazard_curves"]["PROP-sev"]["term_structure"]
+        assert "severe" in ts
+        assert "any_flood" not in ts
+        assert "moderate" not in ts
