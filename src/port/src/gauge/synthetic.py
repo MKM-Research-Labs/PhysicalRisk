@@ -4,10 +4,11 @@
 # research and educational use only.
 
 """
-Synthetic gauge generator — creates virtual gauges on the river
-centreline at the nearest point to each property.
+Synthetic gauge generator — creates virtual gauges at random positions
+along the river centreline.
 
-Run as port step 2.5 (after properties, before gaugehd/stressm).
+Run as port step 2 (after real gauges, before properties).
+Properties are then placed relative to their assigned synthetic gauge.
 Synthetic gauges are appended to gauge.json so they flow through
 stressm, gaugehc, and propertyts as first-class entities.
 """
@@ -15,6 +16,8 @@ stressm, gaugehc, and propertyts as first-class entities.
 import hashlib
 import json
 import logging
+import math
+import random
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -67,7 +70,6 @@ def _snap_to_river(lat: float, lon: float) -> Tuple[float, float]:
     if river is None or len(river) < 2:
         return lat, lon
 
-    import math
     best_lat, best_lon = lat, lon
     best_dist = float("inf")
 
@@ -111,35 +113,36 @@ def _synth_gauge_id(ga_id: str, gb_id: str, alpha: float) -> str:
 
 class SyntheticGaugeGenerator:
     """
-    Creates one synthetic gauge per property on the river centreline.
+    Creates synthetic gauges at random positions along the river centreline.
 
-    For each property, projects its location onto the gauge-point polyline,
-    identifies the two flanking real gauges, and interpolates gauge
-    properties (location, elevation, flood stages) using the segment
-    parameter alpha.
+    Each synthetic gauge is placed by:
+    1. Picking a random segment on the gauge polyline (weighted by length)
+    2. Picking a random position along that segment
+    3. Interpolating elevation and flood stages from flanking real gauges
+    4. Snapping to the high-resolution river polyline
 
-    Nearby synthetic gauges (within DEDUP_DISTANCE_M) are merged so
-    multiple properties near the same river point share one gauge.
+    Properties are subsequently placed relative to these synthetic gauges
+    in the property generator (step 3).
     """
 
     def __init__(self, output_dir: Optional[Path] = None):
         self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
 
-    def generate(self) -> Dict:
+    def generate(self, count: int = 200) -> Dict:
         """
         Generate synthetic gauges and append to gauge.json.
+
+        Args:
+            count: Number of synthetic gauges to create (default 200,
+                   typically one per property).
 
         Returns:
             Dict with 'count' and 'gauge_ids' of created synthetic gauges.
         """
         gauge_path = self.output_dir / "gauge.json"
-        property_path = self.output_dir / "property.json"
 
         if not gauge_path.exists():
             logger.warning("gauge.json not found — skipping synthetic gauges")
-            return {"count": 0, "gauge_ids": []}
-        if not property_path.exists():
-            logger.warning("property.json not found — skipping synthetic gauges")
             return {"count": 0, "gauge_ids": []}
 
         # Load existing gauges
@@ -147,14 +150,22 @@ class SyntheticGaugeGenerator:
             gauge_data = json.load(f)
         gauges = gauge_data.get("flood_gauges", [])
 
+        # Remove any existing synthetic gauges (from previous runs)
+        gauge_data["flood_gauges"] = [
+            g for g in gauges
+            if not g.get("FloodGauge", {}).get("Header", {}).get(
+                "GaugeID", "").startswith(SYNTH_PREFIX)
+        ]
+
         # Build gauge lookup {gauge_id: {lat, lon, elevation, ...}}
         gauge_lookup = {}
-        for g in gauges:
+        for g in gauge_data["flood_gauges"]:
             fg = g.get("FloodGauge", {})
             hdr = fg.get("Header", {})
             loc = fg.get("Location", {})
             sensor = fg.get("SensorDetails", {}).get("GaugeInformation", {})
             stages = fg.get("FloodStage", {}).get("UK", fg.get("FloodStages", {}))
+            stats = fg.get("SensorStats", {})
             gid = hdr.get("GaugeID", "")
             gauge_lookup[gid] = {
                 "lat": loc.get("GaugeLatitude", sensor.get("GaugeLatitude", 0)),
@@ -163,8 +174,8 @@ class SyntheticGaugeGenerator:
                 "flood_alert": stages.get("FloodAlert", 0),
                 "flood_warning": stages.get("FloodWarning", 0),
                 "severe_flood_warning": stages.get("SevereFloodWarning", 0),
-                "historical_high_level": stages.get("HistoricalHighLevel", 0),
-                "historical_high_date": stages.get("HistoricalHighDate", ""),
+                "historical_high_level": stats.get("HistoricalHighLevel", 0),
+                "historical_high_date": stats.get("HistoricalHighDate", ""),
             }
 
         # Build ordered gauge polyline from catchment GAUGE_POINTS
@@ -173,32 +184,45 @@ class SyntheticGaugeGenerator:
             logger.warning("Gauge polyline has < 2 points — skipping synthetic gauges")
             return {"count": 0, "gauge_ids": []}
 
-        # Load properties
-        with open(property_path) as f:
-            prop_data = json.load(f)
-        properties = prop_data.get("properties", [])
+        # Compute segment lengths for weighted random selection
+        seg_lengths = []
+        for i in range(len(polyline) - 1):
+            d = haversine_distance(
+                polyline[i][0], polyline[i][1],
+                polyline[i + 1][0], polyline[i + 1][1])
+            seg_lengths.append(d)
+        total_length = sum(seg_lengths)
 
-        # Create synthetic gauges for each property
+        # Generate synthetic gauges at random positions along the polyline
         synth_gauges: List[Dict] = []
         synth_ids: List[str] = []
+        attempts = 0
+        max_attempts = count * 5  # allow retries for dedup collisions
 
-        for prop in properties:
-            ph = prop.get("PropertyHeader", {})
-            loc = ph.get("Location", {})
-            prop_lat = loc.get("LatitudeDegrees", 0)
-            prop_lon = loc.get("LongitudeDegrees", 0)
+        while len(synth_gauges) < count and attempts < max_attempts:
+            attempts += 1
 
-            if prop_lat == 0 or prop_lon == 0:
-                continue
+            # Pick random segment weighted by length
+            r = random.uniform(0, total_length)
+            cumulative = 0.0
+            seg_idx = 0
+            for i, sl in enumerate(seg_lengths):
+                cumulative += sl
+                if cumulative >= r:
+                    seg_idx = i
+                    break
 
-            result = self._create_synthetic_gauge(
-                prop_lat, prop_lon, gauge_lookup, polyline)
+            # Random position along the segment
+            t = random.uniform(0.05, 0.95)  # avoid exact endpoints
+
+            result = self._create_synthetic_at_position(
+                seg_idx, t, gauge_lookup, polyline)
             if result is None:
                 continue
 
             synth_cdm, synth_id = result
 
-            # Dedup: check if a nearby synthetic gauge already exists
+            # Dedup: skip if too close to existing synthetic
             if self._is_duplicate(synth_cdm, synth_gauges):
                 continue
 
@@ -210,7 +234,7 @@ class SyntheticGaugeGenerator:
             gauge_data["flood_gauges"].extend(synth_gauges)
             with open(gauge_path, "w") as f:
                 json.dump(gauge_data, f, indent=2)
-            logger.info("Appended %d synthetic gauges to gauge.json", len(synth_gauges))
+            logger.info("Generated %d synthetic gauges → gauge.json", len(synth_gauges))
 
         return {"count": len(synth_gauges), "gauge_ids": synth_ids}
 
@@ -246,33 +270,36 @@ class SyntheticGaugeGenerator:
 
         return polyline
 
-    def _create_synthetic_gauge(
+    def _create_synthetic_at_position(
         self,
-        prop_lat: float,
-        prop_lon: float,
+        seg_idx: int,
+        t: float,
         gauge_lookup: Dict,
         polyline: List[Tuple],
     ) -> Optional[Tuple[Dict, str]]:
         """
-        Create a synthetic gauge CDM dict at the nearest river point.
+        Create a synthetic gauge at a specific position on the polyline.
 
-        Returns (gauge_cdm_dict, gauge_id) or None if at polyline edge.
+        Args:
+            seg_idx: Segment index on the polyline.
+            t: Parameter along the segment (0.0–1.0).
+            gauge_lookup: Real gauge properties lookup.
+            polyline: Ordered (lat, lon, elev, gauge_id) tuples.
+
+        Returns:
+            (gauge_cdm_dict, gauge_id) or None if flanking gauges missing.
         """
-        nx, ny, dist_m, seg_idx, t = nearest_point_on_polyline(
-            prop_lat, prop_lon, polyline)
+        # Interpolate position on the coarse polyline
+        a = polyline[seg_idx]
+        b = polyline[seg_idx + 1]
+        nx = _lerp(a[0], b[0], t)
+        ny = _lerp(a[1], b[1], t)
 
-        # Skip if projection clamps to polyline endpoints
-        if seg_idx == 0 and t < 1e-6:
-            return None
-        if seg_idx == len(polyline) - 2 and t > 1 - 1e-6:
-            return None
-
-        # Snap to high-resolution river polyline so the gauge sits
-        # on the actual river, not on the coarse gauge-point polyline
+        # Snap to high-resolution river polyline
         nx, ny = _snap_to_river(nx, ny)
 
-        ga_id = polyline[seg_idx][3]
-        gb_id = polyline[seg_idx + 1][3]
+        ga_id = a[3]
+        gb_id = b[3]
         ga = gauge_lookup.get(ga_id)
         gb = gauge_lookup.get(gb_id)
         if ga is None or gb is None:
@@ -281,7 +308,7 @@ class SyntheticGaugeGenerator:
         alpha = t
         synth_id = _synth_gauge_id(ga_id, gb_id, alpha)
 
-        # Interpolate properties
+        # Interpolate properties from flanking real gauges
         elev = round(_lerp(ga["elevation"], gb["elevation"], alpha), 2)
         alert = round(_lerp(ga["flood_alert"], gb["flood_alert"], alpha), 2)
         warning = round(_lerp(ga["flood_warning"], gb["flood_warning"], alpha), 2)
