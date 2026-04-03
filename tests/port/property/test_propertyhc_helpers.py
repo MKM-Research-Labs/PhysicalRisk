@@ -20,8 +20,7 @@
 
 """
 Tests for PropertyHazardCurveGenerator helper methods:
-  - _map_threshold_to_gauge_trigger
-  - _get_gauge_prs_spreads
+  - _get_gauge_severe_count
   - _load_gauge_hazard_curves
   - _get_prs_pricer
   - _json_default
@@ -34,7 +33,6 @@ import numpy as np
 import pytest
 
 from port.src.property.propertyhc import (
-    TENORS,
     PropertyHazardCurveGenerator,
 )
 
@@ -42,64 +40,35 @@ from .conftest import write_gauge_hc
 
 
 # ===========================================================================
-# _map_threshold_to_gauge_trigger
+# _get_gauge_severe_count
 # ===========================================================================
 
-class TestMapThresholdToGaugeTrigger:
+class TestGetGaugeSevereCount:
 
-    def test_any_flood_maps_to_alert(self, tmp_path):
+    def test_returns_severe_event_count(self, tmp_path):
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        assert gen._map_threshold_to_gauge_trigger("any_flood") == "alert"
+        gauge_hc = {"severe_event_count": 7}
+        assert gen._get_gauge_severe_count(gauge_hc) == 7
 
-    def test_moderate_maps_to_warning(self, tmp_path):
+    def test_missing_key_defaults_to_zero(self, tmp_path):
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        assert gen._map_threshold_to_gauge_trigger("moderate") == "warning"
+        gauge_hc = {}
+        assert gen._get_gauge_severe_count(gauge_hc) == 0
 
-    def test_severe_maps_to_severe(self, tmp_path):
+    def test_zero_count_returns_zero(self, tmp_path):
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        assert gen._map_threshold_to_gauge_trigger("severe") == "severe"
+        gauge_hc = {"severe_event_count": 0}
+        assert gen._get_gauge_severe_count(gauge_hc) == 0
 
-    def test_unknown_key_returns_warning(self, tmp_path):
+    def test_large_count_returned(self, tmp_path):
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        assert gen._map_threshold_to_gauge_trigger("nonexistent") == "warning"
+        gauge_hc = {"severe_event_count": 150}
+        assert gen._get_gauge_severe_count(gauge_hc) == 150
 
-
-# ===========================================================================
-# _get_gauge_prs_spreads
-# ===========================================================================
-
-class TestGetGaugePrsSpreads:
-
-    def test_zero_rate_returns_all_zeros(self, tmp_path):
+    def test_ignores_other_keys(self, tmp_path):
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        gauge_hc = {"annual_hazard_rate_alert": 0.0}
-        result = gen._get_gauge_prs_spreads(gauge_hc, "alert", price_prs_func=None)
-        assert result == [0.0] * len(TENORS)
-
-    def test_negative_rate_returns_all_zeros(self, tmp_path):
-        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        gauge_hc = {"annual_hazard_rate_alert": -0.01}
-        result = gen._get_gauge_prs_spreads(gauge_hc, "alert", price_prs_func=None)
-        assert result == [0.0] * len(TENORS)
-
-    def test_positive_rate_returns_positive_spreads(self, tmp_path):
-        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        gauge_hc = {"annual_hazard_rate_warning": 0.02}
-        result = gen._get_gauge_prs_spreads(gauge_hc, "warning", price_prs_func=None)
-        assert len(result) == len(TENORS)
-        assert all(s > 0 for s in result)
-
-    def test_missing_key_defaults_to_zero_rate(self, tmp_path):
-        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        gauge_hc = {}  # key not present, defaults to 0
-        result = gen._get_gauge_prs_spreads(gauge_hc, "alert", price_prs_func=None)
-        assert result == [0.0] * len(TENORS)
-
-    def test_spread_list_has_one_entry_per_tenor(self, tmp_path):
-        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        gauge_hc = {"annual_hazard_rate_severe": 0.01}
-        result = gen._get_gauge_prs_spreads(gauge_hc, "severe", price_prs_func=None)
-        assert len(result) == len(TENORS)
+        gauge_hc = {"annual_hazard_rate_alert": 0.05, "severe_event_count": 3}
+        assert gen._get_gauge_severe_count(gauge_hc) == 3
 
 
 # ===========================================================================

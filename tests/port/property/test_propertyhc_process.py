@@ -21,8 +21,8 @@
 """
 Tests for PropertyHazardCurveGenerator._process_property:
   - Flooded/non-flooded event filtering
-  - MIN_EVENTS_FOR_GEV boundary
-  - Annual probability floor capping
+  - Event count pricing
+  - Depth thresholds (severe only)
   - IDW gauge spreads
   - Summary statistics
 """
@@ -32,8 +32,6 @@ import json
 import pytest
 
 from port.src.property.propertyhc import (
-    MIN_EVENTS_FOR_GEV,
-    MIN_PRS_SPREAD_BPS,
     TENORS,
     PropertyHazardCurveGenerator,
 )
@@ -56,7 +54,7 @@ class TestProcessPropertyFloodedFilter:
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
         assert result["flood_count"] == 4
 
-    def test_zero_flooded_events_uses_floor_pricing(self, basic_output_dir):
+    def test_zero_flooded_events_uses_event_count_pricing(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-nofloods", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
@@ -64,36 +62,38 @@ class TestProcessPropertyFloodedFilter:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
         assert result["has_gev"] is False
-        assert result["pricing_method"] == "floor"
+        assert result["pricing_method"] == "event_count"
         assert result["flood_count"] == 0
 
 
 # ===========================================================================
-# _process_property — MIN_EVENTS_FOR_GEV boundary
+# _process_property — event count pricing
 # ===========================================================================
 
-class TestProcessPropertyGevBoundary:
+class TestProcessPropertyEventCount:
 
-    def test_exactly_min_events_triggers_gev(self, basic_output_dir):
+    def test_spread_equals_flood_count_over_storms(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-exact", n_floods=MIN_EVENTS_FOR_GEV)
+        write_property_ts(pts_dir, "PROP-exact", n_floods=5)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         prop_file = pts_dir / "PROP-exact.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
-        assert result["flood_count"] == MIN_EVENTS_FOR_GEV
+        assert result["flood_count"] == 5
+        expected_spread = round((5 / 100) * 10000, 2)
+        assert result["term_structure"]["severe"]["prs_spread_bps"][0] == expected_spread
 
-    def test_one_below_min_events_uses_floor(self, basic_output_dir):
+    def test_few_events_still_uses_event_count(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-below", n_floods=MIN_EVENTS_FOR_GEV - 1)
+        write_property_ts(pts_dir, "PROP-below", n_floods=2)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         prop_file = pts_dir / "PROP-below.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
         assert result["has_gev"] is False
-        assert result["pricing_method"] == "floor"
+        assert result["pricing_method"] == "event_count"
 
-    def test_many_events_enables_gev(self, basic_output_dir):
+    def test_many_events_uses_event_count(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-many", n_floods=10)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
@@ -101,38 +101,55 @@ class TestProcessPropertyGevBoundary:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
         assert result["flood_count"] == 10
-        assert result["gev_params"] is not None or result["has_gev"] is False
+        assert result["pricing_method"] == "event_count"
+        assert result["has_gev"] is False
 
 
 # ===========================================================================
-# _process_property — annual_prob floor capping
+# _process_property — depth thresholds (severe only)
 # ===========================================================================
 
-class TestAnnualProbFloorCapping:
+class TestDepthThresholds:
 
-    def test_minimum_spread_applied_for_floor_property(self, basic_output_dir):
+    def test_only_severe_key_in_depth_thresholds(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-floor", n_floods=0)
+        write_property_ts(pts_dir, "PROP-floor", n_floods=3)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         prop_file = pts_dir / "PROP-floor.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
-        for name, tinfo in result["depth_thresholds"].items():
-            prob = tinfo["annual_probability"]
-            expected_min = MIN_PRS_SPREAD_BPS / 10000
-            assert prob >= expected_min, f"Floor not applied for threshold '{name}'"
+        assert list(result["depth_thresholds"].keys()) == ["severe"]
 
-    def test_return_period_finite_for_floor(self, basic_output_dir):
+    def test_annual_probability_equals_count_over_storms(self, basic_output_dir):
+        output_dir, pts_dir = basic_output_dir
+        write_property_ts(pts_dir, "PROP-prob", n_floods=5)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        prop_file = pts_dir / "PROP-prob.json"
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        prob = result["depth_thresholds"]["severe"]["annual_probability"]
+        assert abs(prob - 5 / 100) < 1e-6
+
+    def test_return_period_none_when_zero_floods(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-rp", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         prop_file = pts_dir / "PROP-rp.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
-        for name, tinfo in result["depth_thresholds"].items():
-            rp = tinfo["return_period_yrs"]
-            assert rp is not None
-            assert rp > 0
+        rp = result["depth_thresholds"]["severe"]["return_period_yrs"]
+        assert rp is None
+
+    def test_return_period_positive_when_floods_present(self, basic_output_dir):
+        output_dir, pts_dir = basic_output_dir
+        write_property_ts(pts_dir, "PROP-rp2", n_floods=4)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        prop_file = pts_dir / "PROP-rp2.json"
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        rp = result["depth_thresholds"]["severe"]["return_period_yrs"]
+        assert rp is not None
+        assert rp > 0
 
 
 # ===========================================================================
@@ -155,8 +172,8 @@ class TestIdwGaugeSpreads:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
         idw = result.get("idw_gauge_spreads", {})
-        assert "any_flood" in idw
-        assert len(idw["any_flood"]) == len(TENORS)
+        assert "severe" in idw
+        assert len(idw["severe"]) == len(TENORS)
 
     def test_no_nearest_gauges_idw_returns_dict(self, basic_output_dir):
         """With empty nearest_gauges, idw_gauge_spreads is still a dict."""
@@ -196,7 +213,8 @@ class TestProcessPropertySummary:
         assert result["summary"]["max_depth_m"] == 0.0
         assert result["summary"]["mean_depth_m"] == 0.0
 
-    def test_transmission_rate_zero_when_no_gauge_floods(self, basic_output_dir):
+    def test_transmission_rate_when_no_gauge_floods(self, basic_output_dir):
+        """With zero flood events, gauge_flood_count=0 so transmission_rate=0."""
         output_dir, pts_dir = basic_output_dir
         prop_data = {
             "property_id": "PROP-txzero",
@@ -209,13 +227,11 @@ class TestProcessPropertySummary:
             "nearest_gauges": [
                 {"gauge_id": "GAUGE-001", "distance_m": 1000, "gauge_elevation_m": 3.5},
             ],
-            "flood_events": [
-                {"storm_id": "S1", "flood_depth_m": 0.5, "flooded": True, "damage_ratio": 0.1},
-            ],
+            "flood_events": [],
             "summary": {
                 "property_id": "PROP-txzero",
                 "floods_at_nearest_gauge": 0,
-                "floods_at_property": 1,
+                "floods_at_property": 0,
             },
         }
         (pts_dir / "PROP-txzero.json").write_text(json.dumps(prop_data))

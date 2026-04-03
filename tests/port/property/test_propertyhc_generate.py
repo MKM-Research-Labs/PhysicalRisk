@@ -66,12 +66,13 @@ class TestGenerateAggregateStats:
         stats = gen.generate()
         assert stats["total_flood_events"] == 7
 
-    def test_min_spread_bps_in_stats(self, basic_output_dir):
+    def test_num_storms_in_stats(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-ms", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         stats = gen.generate()
-        assert stats["min_spread_bps"] == MIN_PRS_SPREAD_BPS
+        assert "num_storms" in stats
+        assert stats["num_storms"] > 0
 
 
 # ===========================================================================

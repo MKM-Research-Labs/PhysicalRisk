@@ -55,7 +55,7 @@ class TestPropertyShdGenerate:
             data = json.load(f)
         pc = data["property_hazard_curves"]["PROP-shd2"]
         assert "term_structure" in pc
-        assert "any_flood" in pc["term_structure"]
+        assert "severe" in pc["term_structure"]
 
     def test_shd_reads_from_propertytsd(self, tmp_path):
         """shd mode should look for propertytsd/ not propertyts/."""
@@ -83,7 +83,7 @@ class TestPropertySheGenerate:
             data = json.load(f)
         pc = data["property_hazard_curves"]["PROP-she2"]
         assert "term_structure" in pc
-        assert "any_flood" in pc["term_structure"]
+        assert "severe" in pc["term_structure"]
 
     def test_she_reads_from_propertytse(self, tmp_path):
         """she mode should look for propertytse/ not propertyts/."""

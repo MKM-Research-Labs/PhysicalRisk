@@ -156,8 +156,11 @@ class LocationsMixin:
         if not gauge_path.exists():
             return []
 
-        with open(gauge_path) as f:
-            data = json.load(f)
+        try:
+            with open(gauge_path) as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            return []
 
         synthetics = []
         for g in data.get('flood_gauges', []):
