@@ -54,6 +54,8 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
         prop_lon = loc.get('LongitudeDegrees', 0)
         prop_elevation = risk.get('GroundLevelMeters', 0)
         floor_level = construction.get('FloorLevelMeters', 0)
+        terrain_type = loc.get('TerrainType',
+                               attrs.get('TerrainType', 'urban'))
 
         if not prop_id or prop_lat == 0:
             return None
@@ -105,7 +107,7 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             event = self._compute_property_flood(
                 storm_id, gauge_responses, nearest,
                 prop_lat, prop_lon, prop_elevation, floor_level,
-                gaugets, mode=mode,
+                gaugets, mode=mode, terrain_type=terrain_type,
             )
             if event:
                 flood_events.append(event)
@@ -168,6 +170,7 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             'elevation_m': round(effective_elevation, 4),
             'floor_level_m': round(floor_level, 4),
             'flood_zone': effective_zone,
+            'terrain_type': terrain_type,
             'property_type': attrs.get('PropertyResi', 'Detached'),
             'construction_year': attrs.get('ConstructionYear', 2000),
             'property_period': attrs.get('PropertyPeriod', '2000-2008'),
