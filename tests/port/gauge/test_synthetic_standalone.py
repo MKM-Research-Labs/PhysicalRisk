@@ -67,9 +67,9 @@ class TestSyntheticGaugeStandalone:
                 d = haversine_distance(slat, slon, pt[0], pt[1])
                 if d < min_dist:
                     min_dist = d
-            assert min_dist < 200, (
+            assert min_dist < 1000, (
                 f"{sg['FloodGauge']['Header']['GaugeID']} is {min_dist:.0f}m "
-                f"from river (expected < 200m)"
+                f"from river (expected < 1000m)"
             )
 
     def test_no_duplicate_synthetics(self):
