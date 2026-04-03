@@ -18,6 +18,18 @@ from .propagation import PropagationMixin
 class FloodMixin(NearestGaugeMixin, PropagationMixin):
     """Mixin providing flood propagation and property processing methods."""
 
+    @staticmethod
+    def _zone_from_offset(offset: float) -> str:
+        """Derive EA flood zone from vertical offset above river (metres)."""
+        from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
+        for zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
+            if hi is None:
+                if offset >= lo:
+                    return zone
+            elif lo <= offset < hi:
+                return zone
+        return 'Zone 1'
+
     def _process_property(self, prop: Dict, gauge_lookup: Dict,
                            gaugets: Dict, pts_dir: Path,
                            mode: str = "normal") -> Optional[Dict]:
@@ -50,13 +62,21 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
         if not nearest:
             return None
 
-        # Elevation sanity check: property must be above the nearest gauge
-        # (gauges sit on the river, the local elevation minimum).  If the
-        # property elevation is below the nearest gauge, lift it to
-        # gauge_elevation + 0.5 m to maintain physical consistency.
-        nearest_gauge_elev = nearest[0].get('gauge_info', {}).get('elevation', 0)
-        if nearest_gauge_elev > 0 and prop_elevation < nearest_gauge_elev:
-            prop_elevation = nearest_gauge_elev + 0.5
+        # The synthetic gauge (position [0] when present) is the controlling
+        # boundary condition — it represents the river at the property's
+        # location.  Use its elevation for all downstream calculations.
+        synth = nearest[0] if nearest[0]['gauge_id'].startswith('SYNTH') else None
+        controlling_elev = (synth or nearest[0])['gauge_info'].get('elevation', 0)
+
+        # Elevation sanity check: property must be above the controlling gauge.
+        if controlling_elev > 0 and prop_elevation < controlling_elev:
+            prop_elevation = controlling_elev + 0.5
+
+        # Derive EA flood zone from actual elevation offset above synthetic.
+        # This replaces the CDM-assigned zone to ensure consistency between
+        # zone classification and the flood simulation's elevation mechanics.
+        actual_offset = max(0.0, prop_elevation - controlling_elev)
+        flood_zone = self._zone_from_offset(actual_offset)
 
         # Collect storms that exceeded alert at ANY of the nearest gauges.
         # Group by sequence_id — a sequence is the storm event; individual
@@ -129,8 +149,14 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             })
 
         effective_elevation = prop_elevation
+        effective_zone = flood_zone
         if mode == "shd" and nearest:
+            # SHD: zero elevation diff — property at gauge level = Zone 3b
             effective_elevation = nearest[0]['gauge_info']['elevation']
+            effective_zone = self._zone_from_offset(0.0)
+        elif mode == "she":
+            # SHE: zero distance — zone stays as derived from real elevation
+            pass
 
         prop_file = pts_dir / f'{prop_id}.json'
         prop_data = {
@@ -141,7 +167,7 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             },
             'elevation_m': round(effective_elevation, 4),
             'floor_level_m': round(floor_level, 4),
-            'flood_zone': ph_risk.get('EAFloodZone', 'Zone 1'),
+            'flood_zone': effective_zone,
             'property_type': attrs.get('PropertyResi', 'Detached'),
             'construction_year': attrs.get('ConstructionYear', 2000),
             'property_period': attrs.get('PropertyPeriod', '2000-2008'),

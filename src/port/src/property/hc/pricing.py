@@ -68,6 +68,14 @@ class PricingMixin:
         # Minimum annual probability from floor spread
         min_annual_prob = MIN_PRS_SPREAD_BPS / 10000
 
+        # Zone floor: the EA flood zone establishes a minimum annual
+        # probability that the simulation cannot undercut.  This ensures
+        # a Zone 3a property (>1% annual prob per EA) never prices below
+        # the zone's representative hazard rate.
+        from config.models import EA_FLOOD_ZONE_RATES
+        flood_zone = pdata.get('flood_zone', 'Zone 1')
+        zone_floor_prob = EA_FLOOD_ZONE_RATES.get(flood_zone, 0.001)
+
         # Compute exceedance probabilities at each threshold
         depth_thresholds = {}
         for name, threshold in DEPTH_THRESHOLDS.items():
@@ -83,7 +91,8 @@ class PricingMixin:
             else:
                 annual_prob = min_annual_prob
 
-            annual_prob = max(annual_prob, min_annual_prob)
+            # Apply both the spread floor and the zone floor
+            annual_prob = max(annual_prob, min_annual_prob, zone_floor_prob)
             return_period = 1.0 / annual_prob if annual_prob > 0 else float('inf')
             depth_thresholds[name] = {
                 'threshold_m': threshold,
@@ -168,20 +177,55 @@ class PricingMixin:
         # Summary
         avg_basis = 0.0
         if nearest_basis:
-            five_yr_bases = []
-            for nb in nearest_basis:
-                any_flood_basis = nb['basis_bps'].get('any_flood', {}).get('values', [])
-                if len(any_flood_basis) > 4:
-                    five_yr_bases.append(any_flood_basis[4])
-            avg_basis = np.mean(five_yr_bases) if five_yr_bases else 0.0
+            # Use synthetic gauge basis as primary when available
+            synth_nb = next(
+                (nb for nb in nearest_basis if nb['gauge_id'].startswith('SYNTH-')),
+                None
+            )
+            if synth_nb:
+                any_flood_basis = synth_nb['basis_bps'].get('any_flood', {}).get('values', [])
+                avg_basis = any_flood_basis[4] if len(any_flood_basis) > 4 else 0.0
+            else:
+                five_yr_bases = []
+                for nb in nearest_basis:
+                    any_flood_basis = nb['basis_bps'].get('any_flood', {}).get('values', [])
+                    if len(any_flood_basis) > 4:
+                        five_yr_bases.append(any_flood_basis[4])
+                avg_basis = np.mean(five_yr_bases) if five_yr_bases else 0.0
 
         avg_transmission = 0.0
         if nearest_basis:
-            avg_transmission = np.mean([nb['flood_transmission_rate'] for nb in nearest_basis])
+            # Use synthetic gauge transmission rate as primary when available
+            synth_nb = next(
+                (nb for nb in nearest_basis if nb['gauge_id'].startswith('SYNTH-')),
+                None
+            )
+            if synth_nb:
+                avg_transmission = synth_nb.get('flood_transmission_rate', 0.0)
+            else:
+                avg_transmission = np.mean([nb['flood_transmission_rate'] for nb in nearest_basis])
 
-        # IDW-weighted gauge spread
+        # Gauge spread: use synthetic gauge directly when present (it is the
+        # controlling boundary condition).  Fall back to IDW across real
+        # gauges only if no synthetic exists.
         idw_gauge_spreads = {}
-        if nearest_basis:
+        synth_basis = next(
+            (nb for nb in nearest_basis if nb['gauge_id'].startswith('SYNTH-')),
+            None
+        ) if nearest_basis else None
+
+        if synth_basis:
+            # Synthetic gauge controls — its spread is the reference
+            for name in DEPTH_THRESHOLDS:
+                synth_spreads = []
+                for j in range(len(TENORS)):
+                    prop_s = term_structure[name]['prs_spread_bps'][j] if j < len(term_structure[name]['prs_spread_bps']) else 0
+                    basis_v = synth_basis['basis_bps'].get(name, {}).get('values', [])
+                    b = basis_v[j] if j < len(basis_v) else 0
+                    synth_spreads.append(round(prop_s + b, 2))
+                idw_gauge_spreads[name] = synth_spreads
+        elif nearest_basis:
+            # Fallback: IDW-weighted across real gauges
             distances = [nb.get('distance_km', 1.0) for nb in nearest_basis]
             weights = [1.0 / max(d, 0.1) for d in distances]
             w_total = sum(weights)

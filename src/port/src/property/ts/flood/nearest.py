@@ -46,7 +46,18 @@ class NearestGaugeMixin:
             # No synthetic gauges — use n nearest real
             selected = real[:n]
 
-        selected.sort(key=lambda x: x[1])
+        # Sort real gauges by distance, but keep synthetic at position [0].
+        # The synthetic gauge is the controlling boundary condition for flood
+        # propagation — it represents the river at the property's location.
+        synth_entry = None
+        real_entries = []
+        for entry in selected:
+            if entry[0].startswith('SYNTH'):
+                synth_entry = entry
+            else:
+                real_entries.append(entry)
+        real_entries.sort(key=lambda x: x[1])
+        selected = ([synth_entry] if synth_entry else []) + real_entries
 
         result = []
         for gid, dist, ginfo in selected:

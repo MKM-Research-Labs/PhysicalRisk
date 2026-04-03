@@ -164,15 +164,15 @@ class TestPropertyTSFields:
         assert "lat" in loc
         assert "lon" in loc
 
-    def test_flood_zone_matches_cdm(self):
-        """Flood zone in propertyts should match the CDM source."""
+    def test_flood_zone_derived_from_synthetic(self):
+        """Flood zone in propertyts is derived from synthetic gauge elevation,
+        not from the CDM field (which may use a different elevation estimate)."""
         prop_id, _ = _first_property()
         pts = _propertyts_file(prop_id)
-        cdm = _property_cdm(prop_id)
-        if not pts or not cdm:
-            pytest.skip("Missing propertyts or CDM data")
-        cdm_zone = cdm.get("PropertyHeader", {}).get("RiskAssessment", {}).get("EAFloodZone")
-        assert pts.get("flood_zone") == cdm_zone
+        if not pts:
+            pytest.skip("Missing propertyts data")
+        zone = pts.get("flood_zone")
+        assert zone in EA_FLOOD_ZONE_RATES, f"Invalid zone: {zone}"
 
 
 # ===========================================================================
@@ -468,33 +468,31 @@ class TestTerrainGridInMetadata:
 class TestCrossLayerConsistency:
     """Verify data flows consistently across pipeline layers."""
 
-    def test_elevation_cdm_to_propertyhc(self):
-        """Elevation should trace: CDM → propertyts → propertyhc."""
+    def test_elevation_propertyts_to_propertyhc(self):
+        """Elevation should be consistent between propertyts and propertyhc.
+        Note: may differ from CDM due to elevation sanity check (property
+        lifted above gauge if below river level)."""
         prop_id, pc = _first_property()
-        cdm = _property_cdm(prop_id)
         pts = _propertyts_file(prop_id)
-        if not cdm or not pts:
-            pytest.skip("Missing CDM or propertyts data")
-        cdm_elev = cdm.get("PropertyHeader", {}).get("RiskAssessment", {}).get("GroundLevelMeters")
+        if not pts:
+            pytest.skip("Missing propertyts data")
         pts_elev = pts.get("elevation_m")
         hc_elev = pc.get("elevation_m")
-        if cdm_elev is not None and pts_elev is not None:
-            assert abs(pts_elev - cdm_elev) < 0.01
         if pts_elev is not None and hc_elev is not None:
             assert abs(hc_elev - pts_elev) < 0.01
 
-    def test_flood_zone_cdm_to_propertyhc(self):
-        """Flood zone should trace: CDM → propertyts → propertyhc."""
+    def test_flood_zone_propertyts_to_propertyhc(self):
+        """Flood zone should be consistent between propertyts and propertyhc.
+        Zone is derived from synthetic gauge elevation in propertyts, not
+        from the CDM field."""
         prop_id, pc = _first_property()
-        cdm = _property_cdm(prop_id)
         pts = _propertyts_file(prop_id)
-        if not cdm or not pts:
-            pytest.skip("Missing CDM or propertyts data")
-        cdm_zone = cdm.get("PropertyHeader", {}).get("RiskAssessment", {}).get("EAFloodZone")
+        if not pts:
+            pytest.skip("Missing propertyts data")
         pts_zone = pts.get("flood_zone")
         hc_zone = pc.get("flood_zone")
-        assert cdm_zone == pts_zone == hc_zone, (
-            f"Zone mismatch: CDM={cdm_zone} → PTS={pts_zone} → HC={hc_zone}"
+        assert pts_zone == hc_zone, (
+            f"Zone mismatch: PTS={pts_zone} → HC={hc_zone}"
         )
 
     def test_gauge_ids_propertyts_to_propertyhc(self):
@@ -586,7 +584,7 @@ class TestZoneSpreadConsistency:
         )
 
     def _zone_offset_stats(self):
-        """Collect per-zone vertical offset (elevation above nearest gauge)."""
+        """Collect per-zone vertical offset (elevation above synthetic gauge)."""
         data = _propertyhc()
         curves = data.get("property_hazard_curves", {})
         stats = {}
@@ -594,12 +592,12 @@ class TestZoneSpreadConsistency:
             zone = pc.get("flood_zone", "Unknown")
             if zone not in stats:
                 stats[zone] = []
-            # Compute offset as elevation above nearest non-synth gauge
+            # Compute offset above the synthetic gauge (controlling boundary)
             prop_elev = pc.get("elevation_m", 0)
             ngs = pc.get("nearest_gauges", [])
-            real_gauges = [ng for ng in ngs if not ng.get("gauge_id", "").startswith("SYNTH")]
-            if real_gauges:
-                gauge_elev = real_gauges[0].get("gauge_elevation_m", prop_elev)
+            synth = next((ng for ng in ngs if ng.get("gauge_id", "").startswith("SYNTH")), None)
+            if synth:
+                gauge_elev = synth.get("gauge_elevation_m", prop_elev)
                 offset = prop_elev - gauge_elev
                 stats[zone].append(offset)
         return stats
@@ -640,3 +638,82 @@ class TestZoneSpreadConsistency:
             assert zone in stats and len(stats[zone]["flood_counts"]) > 0, (
                 f"{zone} not represented in portfolio"
             )
+
+    def test_no_zone_3b_below_100bp(self):
+        """Zone 3b properties must not have trivially low spreads."""
+        stats = self._zone_stats()
+        if "Zone 3b" not in stats or not stats["Zone 3b"]["spreads"]:
+            pytest.skip("No Zone 3b spread data")
+        for s in stats["Zone 3b"]["spreads"]:
+            assert s >= 100, (
+                f"Zone 3b property has {s:.1f}bp any_flood spread — "
+                f"zone floor should prevent this"
+            )
+
+    def test_no_zone_3a_below_50bp(self):
+        """Zone 3a properties must not have trivially low spreads."""
+        stats = self._zone_stats()
+        if "Zone 3a" not in stats or not stats["Zone 3a"]["spreads"]:
+            pytest.skip("No Zone 3a spread data")
+        for s in stats["Zone 3a"]["spreads"]:
+            assert s >= 50, (
+                f"Zone 3a property has {s:.1f}bp any_flood spread — "
+                f"zone floor should prevent this"
+            )
+
+    def test_spread_ordering_by_zone(self):
+        """Average spreads should decrease from Zone 3b → 3a → 2 → 1."""
+        stats = self._zone_stats()
+        zone_order = ["Zone 3b", "Zone 3a", "Zone 2", "Zone 1"]
+        avgs = {}
+        for z in zone_order:
+            if z in stats and stats[z]["spreads"]:
+                avgs[z] = sum(stats[z]["spreads"]) / len(stats[z]["spreads"])
+        present = [z for z in zone_order if z in avgs]
+        if len(present) < 2:
+            pytest.skip("Need at least 2 zones with spread data")
+        for i in range(len(present) - 1):
+            assert avgs[present[i]] >= avgs[present[i + 1]], (
+                f"Spread ordering violated: {present[i]}={avgs[present[i]]:.1f}bp "
+                f"< {present[i+1]}={avgs[present[i+1]]:.1f}bp"
+            )
+
+
+class TestSyntheticGaugeConsistency:
+    """Verify synthetic gauge is the controlling gauge in propertyhc."""
+
+    def test_synthetic_is_first_nearest_gauge(self):
+        """Every property should have a synthetic gauge at position [0]."""
+        data = _propertyhc()
+        curves = data.get("property_hazard_curves", {})
+        for prop_id, pc in curves.items():
+            ngs = pc.get("nearest_gauges", [])
+            if not ngs:
+                continue
+            first = ngs[0].get("gauge_id", "")
+            assert first.startswith("SYNTH"), (
+                f"{prop_id} first gauge is {first}, expected SYNTH-*"
+            )
+
+    def test_zone_consistent_with_synthetic_offset(self):
+        """Zone must match the elevation offset above the synthetic gauge."""
+        from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
+        data = _propertyhc()
+        curves = data.get("property_hazard_curves", {})
+        for prop_id, pc in curves.items():
+            zone = pc.get("flood_zone", "Zone 1")
+            ngs = pc.get("nearest_gauges", [])
+            synth = next((ng for ng in ngs if ng["gauge_id"].startswith("SYNTH")), None)
+            if not synth:
+                continue
+            offset = pc["elevation_m"] - synth["gauge_elevation_m"]
+            lo, hi = EA_FLOOD_ZONE_ELEVATION_BOUNDS.get(zone, (0, None))
+            if hi is None:
+                assert offset >= lo, (
+                    f"{prop_id} zone={zone} but offset={offset:.2f}m (expected >= {lo})"
+                )
+            else:
+                assert lo <= offset < hi, (
+                    f"{prop_id} zone={zone} but offset={offset:.2f}m "
+                    f"(expected [{lo}, {hi}))"
+                )
