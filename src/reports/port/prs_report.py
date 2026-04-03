@@ -118,8 +118,8 @@ class PRSPortfolioReport:
 
         hc_curves = hc.get('property_hazard_curves', {})
 
-        # Get num_storms from storm_sequences
-        num_storms = 20000
+        # Get num_storms from propertyhc metadata, fall back to storm_sequences
+        num_storms = hc.get('metadata', {}).get('num_storms', 0)
         seq_path = self.input_dir / 'storm_sequences.json'
         if seq_path.exists():
             with open(seq_path) as f:
