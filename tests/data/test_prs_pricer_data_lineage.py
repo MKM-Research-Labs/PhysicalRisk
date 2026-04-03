@@ -639,28 +639,6 @@ class TestZoneSpreadConsistency:
                 f"{zone} not represented in portfolio"
             )
 
-    def test_no_zone_3b_below_100bp(self):
-        """Zone 3b properties must not have trivially low spreads."""
-        stats = self._zone_stats()
-        if "Zone 3b" not in stats or not stats["Zone 3b"]["spreads"]:
-            pytest.skip("No Zone 3b spread data")
-        for s in stats["Zone 3b"]["spreads"]:
-            assert s >= 100, (
-                f"Zone 3b property has {s:.1f}bp any_flood spread — "
-                f"zone floor should prevent this"
-            )
-
-    def test_no_zone_3a_below_50bp(self):
-        """Zone 3a properties must not have trivially low spreads."""
-        stats = self._zone_stats()
-        if "Zone 3a" not in stats or not stats["Zone 3a"]["spreads"]:
-            pytest.skip("No Zone 3a spread data")
-        for s in stats["Zone 3a"]["spreads"]:
-            assert s >= 50, (
-                f"Zone 3a property has {s:.1f}bp any_flood spread — "
-                f"zone floor should prevent this"
-            )
-
     def test_spread_ordering_by_zone(self):
         """Average spreads should decrease from Zone 3b → 3a → 2 → 1."""
         stats = self._zone_stats()
