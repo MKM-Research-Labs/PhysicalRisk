@@ -40,7 +40,23 @@ class LoaderMixin:
             num_sequences = data.get('metadata', {}).get('num_storms', 1000)
             self.log("  Warning: storm_sequences.json not found, using gaugehc num_storms as fallback")
 
-        return data.get('hazard_curves', {}), num_sequences
+        hazard_curves = data.get('hazard_curves', {})
+
+        # Enrich each gauge with its severe event count from sequence_gauge/.
+        # This gives the true Monte Carlo count rather than the GEV-derived
+        # probability in gaugehc.
+        seq_gauge_dir = self.output_dir / 'sequence_gauge'
+        if seq_gauge_dir.exists():
+            for gid in hazard_curves:
+                sg_path = seq_gauge_dir / f'{gid}.json'
+                if sg_path.exists():
+                    with open(sg_path, 'r') as f:
+                        sg = json.load(f)
+                    seqs = sg.get('sequences', [])
+                    severe_count = sum(1 for s in seqs if s.get('severe'))
+                    hazard_curves[gid]['severe_event_count'] = severe_count
+
+        return hazard_curves, num_sequences
 
     def _get_prs_pricer(self):
         """Try to import QuantLib PRS pricer. Returns None if unavailable."""
