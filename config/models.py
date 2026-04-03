@@ -104,6 +104,19 @@ DAMAGE_POINTS: List[float] = [0, 0.05, 0.25, 0.4, 0.5, 0.6, 0.75, 0.85, 0.95, 1.
 # Default Manning's roughness coefficient for urban floodplain
 DEFAULT_ROUGHNESS: float = 0.04
 
+# Terrain velocity scaling — relative to urban baseline (1.0).
+# Lower values = slower flow = more attenuation on the floodplain.
+# Higher values = faster flow = water reaches property with more energy.
+# Based on Manning's n ratios: urban streets (n≈0.025) vs floodplain (n≈0.08).
+# Velocity ∝ 1/n, so the ratio is n_urban / n_terrain.
+TERRAIN_VELOCITY_SCALE: Dict[str, float] = {
+    'urban':      1.0,    # Baseline — streets, hard surfaces (n≈0.025)
+    'semi-urban': 0.7,    # Mixed — gardens, parks, some hard surface (n≈0.035)
+    'rural':      0.5,    # Pasture, crops, soft ground (n≈0.050)
+    'floodplain': 0.3,    # Heavy vegetation, wetland (n≈0.080)
+}
+DEFAULT_TERRAIN_TYPE: str = 'urban'
+
 # Default retention length scale (meters).  Controls the exponential
 # decay of peak WSE with distance from river.  At d = L the retention
 # factor is 1/e ≈ 0.37; at d = 0 retention is 1.0 (full signal).

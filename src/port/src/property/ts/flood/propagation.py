@@ -7,6 +7,7 @@
 
 from typing import Dict, List, Optional
 
+from config.models import TERRAIN_VELOCITY_SCALE, DEFAULT_TERRAIN_TYPE
 from config.port import BANKFULL_OFFSET_M
 from models.floodrisk.depth_damage import scalar_depth_damage
 from models.floodrisk.hydrograph import build_compound_property_hydrograph
@@ -40,7 +41,9 @@ class PropagationMixin:
                                  prop_lat: float, prop_lon: float,
                                  prop_elevation: float, floor_level: float,
                                  gaugets: Dict,
-                                 mode: str = "normal") -> Optional[Dict]:
+                                 mode: str = "normal",
+                                 terrain_type: str = DEFAULT_TERRAIN_TYPE,
+                                 ) -> Optional[Dict]:
         """
         Compute property-level flood for a single storm.
 
@@ -74,7 +77,12 @@ class PropagationMixin:
             effective_elevation = g_elev if mode == "shd" else prop_elevation
 
             gauge_wse = resp.get('peak_level_m', 0)
-            retention = compute_retention(effective_dist)
+            # Terrain velocity scaling: urban water flows faster (less
+            # attenuation) than floodplain.  Scale the effective distance
+            # inversely with velocity — faster flow = shorter effective distance.
+            velocity_scale = TERRAIN_VELOCITY_SCALE.get(terrain_type, 1.0)
+            scaled_dist = effective_dist / velocity_scale if velocity_scale > 0 else effective_dist
+            retention = compute_retention(scaled_dist)
 
             # v2.2: use per-pulse superposition when pulse data is available
             pulse_peaks = resp.get('pulse_peaks', [])
