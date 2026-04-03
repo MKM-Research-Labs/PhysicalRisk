@@ -1,0 +1,552 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Property Hazard Curve Decomposition}
+\newcommand{\docsubtitle}{Synthetic Gauge Propagation, SHD/SHE Synthetics, and Spread Waterfall}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{03-April-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. OVERVIEW
+% ===================================================================
+\mkmexecsummary
+
+This document describes the construction of property-level hazard curves and the
+decomposition of the gauge-to-property basis into distance and elevation components.
+The approach uses four parallel simulation outputs (propertyts, propertytsd,
+propertytse, propertyhc) to isolate each physical factor, enabling a transparent
+waterfall from gauge spread to property spread.
+
+Two randomly selected properties from the generated portfolio are used as worked
+examples, with full numerical detail at each stage of the pipeline.
+
+% ===================================================================
+% 2. PIPELINE ARCHITECTURE
+% ===================================================================
+\section{Pipeline Architecture}
+
+\subsection{Generation Sequence}
+
+The portfolio generation pipeline produces gauges, synthetic gauges, properties, and
+their flood simulations in the following order:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Real gauges} (52 gauges on the Thames) --- \texttt{gauge.json}
+    \item \textbf{Synthetic gauges} (200 virtual gauges placed at random positions
+          along the river centreline, snapped to the high-resolution river polyline)
+          --- appended to \texttt{gauge.json}
+    \item \textbf{Properties} (200, each placed perpendicular to its assigned
+          synthetic gauge at 100--2{,}000\,m distance) --- \texttt{property.json}
+    \item \textbf{Gauge historical data} (50 years per gauge) --- \texttt{gaugehd/}
+    \item \textbf{Storm sequences} (20{,}000 multi-storm sequences, spatial
+          propagation across all 252 gauges) --- \texttt{gaugets/}
+    \item \textbf{Gauge hazard curves} (GEV fit per gauge) --- \texttt{gaugehc.json}
+    \item \textbf{Property flood time series} --- four variants (Section~\ref{sec:four_modes})
+    \item \textbf{Property hazard curves + PRS pricing} --- four variants
+    \item \textbf{Spread decomposition} (post-processing attachment)
+\end{enumerate}
+
+\subsection{Synthetic Gauge as Controlling Boundary}
+
+Each property is anchored to a single \emph{synthetic gauge} on the river centreline.
+The synthetic gauge:
+
+\begin{itemize}[nosep]
+    \item Is placed at a random position on the gauge-point polyline, weighted by
+          segment length for uniform spatial coverage;
+    \item Is snapped to the high-resolution river polyline (2{,}645 points) to ensure
+          it sits on the actual river channel;
+    \item Has its elevation, flood alert, warning, and severe levels interpolated
+          linearly from the two flanking real gauges;
+    \item Receives storm responses through the same spatial propagation model as real
+          gauges (it is a first-class entity in \texttt{gauge.json}).
+\end{itemize}
+
+The property is then placed at a perpendicular distance of 100--2{,}000\,m from the
+synthetic gauge, on a random side of the river. Its elevation is:
+
+\begin{equation}
+    h_{\text{prop}} = h_{\text{synth}} + \Delta h
+    \label{eq:prop_elev}
+\end{equation}
+
+\noindent where $\Delta h = (d / 1{,}000) \times g$, with $d$ the perpendicular
+distance in metres and $g \sim U(2, 5)$\,m/km a random floodplain gradient.
+
+The EA flood zone is derived from $\Delta h$ using the boundary table in
+Table~\ref{tab:zone_bounds}.
+
+\begin{table}[H]
+    \centering
+    \caption{EA flood zone classification from vertical offset above synthetic gauge.}
+    \label{tab:zone_bounds}
+    \begin{tabular}{llr}
+        \toprule
+        \textbf{Zone} & \textbf{Offset range} & \textbf{EA annual probability} \\
+        \midrule
+        Zone 3b & $[0.0, 0.5)$\,m & Functional floodplain \\
+        Zone 3a & $[0.5, 1.5)$\,m & $> 1$ in 100 \\
+        Zone 2  & $[1.5, 3.0)$\,m & 1 in 100 to 1 in 1{,}000 \\
+        Zone 1  & $\geq 3.0$\,m   & $< 1$ in 1{,}000 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===================================================================
+% 3. FOUR SIMULATION MODES
+% ===================================================================
+\section{Four Simulation Modes}
+\label{sec:four_modes}
+
+For each property, the flood time series and hazard curve are computed in four modes.
+Each mode zeroes out one physical factor to isolate the other, enabling a clean
+decomposition of the gauge-to-property basis.
+
+\subsection{Mode Definitions}
+
+\begin{table}[H]
+    \centering
+    \caption{Simulation modes and their overrides.}
+    \label{tab:modes}
+    \begin{tabular}{llllp{5cm}}
+        \toprule
+        \textbf{Mode} & \textbf{Code} & \textbf{Distance} & \textbf{Elevation} & \textbf{Purpose} \\
+        \midrule
+        Normal     & \texttt{propertyts / propertyhc}   & Real $d$  & Real $h_{\text{prop}}$ & Full property hazard \\
+        SHD        & \texttt{propertytsd / propertyshd}  & Real $d$  & $h_{\text{synth}}$ (zero diff) & Isolate distance effect \\
+        SHE        & \texttt{propertytse / propertyshe}  & $d = 0$   & Real $h_{\text{prop}}$ & Isolate elevation effect \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{SHD --- Synthetic Height-Distance}
+
+SHD sets the property elevation equal to the synthetic gauge elevation, removing the
+elevation barrier. The property still sits at its real distance from the gauge, so the
+only attenuation is the exponential distance decay:
+
+\begin{equation}
+    \text{retention}(d) = e^{-d / L}, \quad L = 3{,}000\,\text{m}
+\end{equation}
+
+\noindent Because the elevation threshold is zero, every storm that produces any water
+at the property location (after distance decay) will flood it. This gives the
+\emph{maximum flood count} achievable at the property's distance.
+
+Since the property is at gauge level, SHD is assigned \textbf{Zone~3b} (functional
+floodplain, offset = 0\,m).
+
+\subsection{SHE --- Synthetic Height-Elevation}
+
+SHE sets the distance to zero (property collocated with the gauge), removing the
+distance decay. The property retains its real elevation, so the only barrier is the
+height difference:
+
+\begin{equation}
+    \text{flood threshold} = \max(0,\; h_{\text{prop}} - h_{\text{synth}}) + h_{\text{floor}}
+\end{equation}
+
+\noindent The gauge's full water surface elevation (WSE) is applied directly. Only storms
+producing WSE above the threshold flood the property. This gives the flood count
+achievable with \emph{no distance attenuation}.
+
+SHE retains the property's real EA flood zone (derived from the actual elevation offset).
+
+
+% ===================================================================
+% 4. HAZARD CURVE CONSTRUCTION
+% ===================================================================
+\section{Hazard Curve Construction}
+
+\subsection{Flood Event Extraction}
+
+For each mode, the simulation produces a set of flood events from the 20{,}000 storm
+sequences. Each event records:
+
+\begin{itemize}[nosep]
+    \item Whether the property flooded (binary)
+    \item Flood depth (m) if flooded
+    \item Attenuated water surface elevation (m AOD)
+    \item Damage ratio (from the depth-damage curve)
+\end{itemize}
+
+\noindent The \emph{flood count} is the number of storms that produced a non-zero flood
+depth at the property.
+
+\subsection{GEV Distribution Fitting}
+
+If the property has $\geq 3$ flood events, a Generalised Extreme Value (GEV)
+distribution is fitted to the flood depths using maximum likelihood:
+
+\begin{equation}
+    F(x; \mu, \sigma, \xi) =
+    \exp\!\left\{-\left[1 + \xi\left(\frac{x - \mu}{\sigma}\right)\right]^{-1/\xi}\right\}
+\end{equation}
+
+\noindent The annual exceedance probability at each depth threshold $\tau$ is:
+
+\begin{equation}
+    P_{\text{annual}}(\tau) = \frac{n_{\text{floods}}}{N_{\text{storms}}} \times
+    P(X > \tau \mid X > 0)
+    \label{eq:annual_prob}
+\end{equation}
+
+\noindent where $n_{\text{floods}} / N_{\text{storms}}$ is the base rate (fraction of
+storms causing any flooding) and $P(X > \tau \mid X > 0)$ is the conditional exceedance
+from the GEV fit.
+
+If fewer than 3 flood events, the property falls back to the minimum spread floor
+(2.0\,bp).
+
+\subsection{PRS Spread Calculation}
+
+The annual hazard rate feeds a quarterly CDS-equivalent pricer:
+
+\begin{equation}
+    s = \frac{\sum_{i=1}^{4T} (1-R)\,(S_{i-1} - S_i)\,\text{DF}_i}
+             {\sum_{i=1}^{4T} \Delta t \cdot S_i \cdot \text{DF}_i}
+    \times 10{,}000 \;\text{(bp)}
+\end{equation}
+
+\noindent where $S_i = e^{-\lambda \cdot t_i}$ is the survival probability, $\text{DF}_i = e^{-r \cdot t_i}$
+is the discount factor, $R = 0$ is the recovery rate, $T = 5$ years is the tenor, and
+$\Delta t = 0.25$ years.
+
+
+% ===================================================================
+% 5. SPREAD DECOMPOSITION
+% ===================================================================
+\section{Spread Decomposition}
+\label{sec:decomp}
+
+The basis between the gauge and the property is decomposed into distance and elevation
+effects using the SHD and SHE synthetic horizons. Let:
+
+\begin{align}
+    s_G &= \text{Gauge 5-year severe spread (bp)} \\
+    s_P &= \text{Property 5-year severe spread (bp)} \\
+    s_{\text{SHD}} &= \text{SHD spread (real distance, zero elevation diff)} \\
+    s_{\text{SHE}} &= \text{SHE spread (zero distance, real elevation)}
+\end{align}
+
+\noindent The total basis is:
+
+\begin{equation}
+    B = s_G - s_P
+\end{equation}
+
+\noindent Because distance and elevation interact non-linearly in the flood simulation,
+the decomposition depends on the order of attribution. Two paths are computed:
+
+\subsection{Path 1: Distance First}
+
+\begin{align}
+    \text{Distance effect} &= s_{\text{SHE}} - s_G \\
+    \text{Elevation effect} &= s_P - s_{\text{SHE}} \\
+    \text{Check:}\quad s_G + \text{DE} + \text{EE} &= s_P \quad \checkmark
+\end{align}
+
+\noindent Interpretation: start at the gauge, apply distance decay (SHE still has the
+full elevation barrier but zero distance), then apply the elevation barrier to reach the
+property.
+
+\subsection{Path 2: Elevation First}
+
+\begin{align}
+    \text{Elevation effect} &= s_{\text{SHD}} - s_G \\
+    \text{Distance effect} &= s_P - s_{\text{SHD}} \\
+    \text{Check:}\quad s_G + \text{EE} + \text{DE} &= s_P \quad \checkmark
+\end{align}
+
+\noindent Interpretation: start at the gauge, remove the elevation barrier (SHD sits at
+gauge level), then apply distance decay to reach the property.
+
+\subsection{Waterfall Diagram}
+
+The spread decomposition is presented as a waterfall:
+
+\begin{verbatim}
+    Gauge Spread           s_G        (baseline)
+      + Distance Effect    DE         (SHE - Gauge)
+      + Elevation Effect   EE         (Property - SHE)
+    = Property Spread      s_P
+\end{verbatim}
+
+\noindent Both effects are typically negative (reducing spread from gauge to property),
+since distance and elevation both attenuate the flood signal.
+
+
+% ===================================================================
+% 6. WORKED EXAMPLES
+% ===================================================================
+\section{Worked Examples}
+
+Two properties are selected at random from the regenerated portfolio.  For each, we
+present the full spatial context, flood event counts across all four modes, GEV
+parameters, annual probabilities, PRS spreads, and the spread decomposition waterfall.
+
+\medskip
+\noindent\textit{Note: The tables below contain placeholder values (\texttt{---}) that
+will be populated from the regenerated portfolio data. Run the companion script
+\texttt{generate\_decomposition\_examples.py} to fill in the actual numbers.}
+
+\subsection{Property A}
+
+\begin{table}[H]
+    \centering
+    \caption{Property A --- spatial context.}
+    \begin{tabular}{lr}
+        \toprule
+        \textbf{Attribute} & \textbf{Value} \\
+        \midrule
+        Property ID          & \texttt{---} \\
+        EA Flood Zone        & --- \\
+        Synthetic Gauge      & \texttt{---} \\
+        Distance to Synth    & ---\,m \\
+        Property Elevation   & ---\,m AOD \\
+        Synthetic Elevation  & ---\,m AOD \\
+        Offset Above Synth   & ---\,m \\
+        Floor Level          & ---\,m \\
+        Flood Threshold      & ---\,m \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Property A --- flood simulation results by mode.}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Metric} & \textbf{Normal} & \textbf{SHD} & \textbf{SHE} & \textbf{Gauge} \\
+        \midrule
+        Storms processed       & --- & --- & --- & --- \\
+        Flood events           & --- & --- & --- & --- \\
+        Flood rate (\%)        & --- & --- & --- & --- \\
+        Max depth (m)          & --- & --- & --- & --- \\
+        GEV shape ($\xi$)      & --- & --- & --- & --- \\
+        GEV location ($\mu$)   & --- & --- & --- & --- \\
+        GEV scale ($\sigma$)   & --- & --- & --- & --- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Property A --- annual probabilities and 5-year PRS spreads.}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Threshold} & \textbf{Normal} & \textbf{SHD} & \textbf{SHE} & \textbf{Gauge} \\
+        \midrule
+        Any flood --- $P_{\text{annual}}$  & --- & --- & --- & --- \\
+        Any flood --- spread (bp)          & --- & --- & --- & --- \\
+        Severe --- $P_{\text{annual}}$     & --- & --- & --- & --- \\
+        Severe --- spread (bp)             & --- & --- & --- & --- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Property A --- spread decomposition waterfall (severe trigger, 5yr).}
+    \begin{tabular}{lrrl}
+        \toprule
+        \textbf{Component} & \textbf{Spread (bp)} & \textbf{Effect (bp)} & \textbf{Detail} \\
+        \midrule
+        Gauge Spread                  & --- &        & baseline \\
+        \multicolumn{4}{l}{\textit{Path 1: Distance First}} \\
+        \quad Distance Effect         &     & ---    & SHE = ---\,bp \\
+        \quad Elevation Effect        &     & ---    & $\rightarrow$ property \\
+        \multicolumn{4}{l}{\textit{Path 2: Elevation First}} \\
+        \quad Elevation Effect        &     & ---    & SHD = ---\,bp \\
+        \quad Distance Effect         &     & ---    & $\rightarrow$ property \\
+        \midrule
+        \textbf{Property Spread}      & --- &        & \\
+        \textbf{Total Basis}          &     & ---    & gauge $-$ property \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+\subsection{Property B}
+
+\noindent\textit{(Same table structure as Property A --- populated from second random
+property selection.)}
+
+\begin{table}[H]
+    \centering
+    \caption{Property B --- spatial context.}
+    \begin{tabular}{lr}
+        \toprule
+        \textbf{Attribute} & \textbf{Value} \\
+        \midrule
+        Property ID          & \texttt{---} \\
+        EA Flood Zone        & --- \\
+        Synthetic Gauge      & \texttt{---} \\
+        Distance to Synth    & ---\,m \\
+        Property Elevation   & ---\,m AOD \\
+        Synthetic Elevation  & ---\,m AOD \\
+        Offset Above Synth   & ---\,m \\
+        Floor Level          & ---\,m \\
+        Flood Threshold      & ---\,m \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Property B --- flood simulation results by mode.}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Metric} & \textbf{Normal} & \textbf{SHD} & \textbf{SHE} & \textbf{Gauge} \\
+        \midrule
+        Storms processed       & --- & --- & --- & --- \\
+        Flood events           & --- & --- & --- & --- \\
+        Flood rate (\%)        & --- & --- & --- & --- \\
+        Max depth (m)          & --- & --- & --- & --- \\
+        GEV shape ($\xi$)      & --- & --- & --- & --- \\
+        GEV location ($\mu$)   & --- & --- & --- & --- \\
+        GEV scale ($\sigma$)   & --- & --- & --- & --- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Property B --- annual probabilities and 5-year PRS spreads.}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Threshold} & \textbf{Normal} & \textbf{SHD} & \textbf{SHE} & \textbf{Gauge} \\
+        \midrule
+        Any flood --- $P_{\text{annual}}$  & --- & --- & --- & --- \\
+        Any flood --- spread (bp)          & --- & --- & --- & --- \\
+        Severe --- $P_{\text{annual}}$     & --- & --- & --- & --- \\
+        Severe --- spread (bp)             & --- & --- & --- & --- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Property B --- spread decomposition waterfall (severe trigger, 5yr).}
+    \begin{tabular}{lrrl}
+        \toprule
+        \textbf{Component} & \textbf{Spread (bp)} & \textbf{Effect (bp)} & \textbf{Detail} \\
+        \midrule
+        Gauge Spread                  & --- &        & baseline \\
+        \multicolumn{4}{l}{\textit{Path 1: Distance First}} \\
+        \quad Distance Effect         &     & ---    & SHE = ---\,bp \\
+        \quad Elevation Effect        &     & ---    & $\rightarrow$ property \\
+        \multicolumn{4}{l}{\textit{Path 2: Elevation First}} \\
+        \quad Elevation Effect        &     & ---    & SHD = ---\,bp \\
+        \quad Distance Effect         &     & ---    & $\rightarrow$ property \\
+        \midrule
+        \textbf{Property Spread}      & --- &        & \\
+        \textbf{Total Basis}          &     & ---    & gauge $-$ property \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===================================================================
+% 7. INTERPRETATION GUIDE
+% ===================================================================
+\section{Interpretation Guide}
+
+\subsection{Reading the Waterfall}
+
+The waterfall traces how the gauge spread (the flood risk at the river) translates to
+the property spread (the flood risk at the building). Both decomposition paths must sum
+to the same property spread --- this is verified automatically by the pipeline.
+
+\begin{itemize}[nosep]
+    \item \textbf{Gauge spread} is the baseline: the PRS price at the synthetic gauge on
+          the river centreline.
+    \item \textbf{Distance effect} is always negative: the exponential retention decay
+          reduces the flood signal as it propagates from the river to the property.
+    \item \textbf{Elevation effect} is always negative: the property sits above the gauge,
+          raising the flood threshold and reducing the number of events that breach it.
+    \item \textbf{Property spread} is the residual after both effects are applied.
+\end{itemize}
+
+\subsection{Why Two Paths?}
+
+Distance and elevation are not independent --- they interact in the flood physics. A
+storm that is attenuated by distance may or may not clear the elevation threshold,
+depending on its original intensity. The two paths provide \emph{bounds} on each
+component's contribution:
+
+\begin{itemize}[nosep]
+    \item Path 1 (distance first) tends to attribute more to distance, because the
+          elevation effect is computed after the signal has already been attenuated.
+    \item Path 2 (elevation first) tends to attribute more to elevation, because the
+          distance effect is computed after the elevation barrier has already filtered
+          out weaker storms.
+\end{itemize}
+
+\noindent The ``true'' contribution of each factor lies between the two path estimates.
+
+\subsection{Expected Spread Ranges}
+
+Based on the sensitivity analysis (PRS Pricing Model Spec v2.0, Tables 4--6):
+
+\begin{itemize}[nosep]
+    \item A gauge at 300\,bp with a property at 500\,m and 1\,m above: property spread
+          $\approx$ 100--120\,bp (basis $\approx$ 180--200\,bp).
+    \item A gauge at 300\,bp with a property at 1{,}000\,m and 2\,m above: property
+          spread $\approx$ 40--60\,bp (basis $\approx$ 240--260\,bp).
+    \item Zone 3b property (0--0.5\,m above, $<$500\,m): should retain most of the gauge
+          spread, with basis $<$ 100\,bp.
+\end{itemize}
+
+
+% ===================================================================
+% APPENDIX
+% ===================================================================
+\clearpage
+\begin{appendices}
+
+\section{Source Files}
+
+\begin{table}[H]
+    \centering
+    \caption{Pipeline source files.}
+    \begin{tabular}{lp{8cm}}
+        \toprule
+        \textbf{File} & \textbf{Purpose} \\
+        \midrule
+        \texttt{port/src/gauge/synthetic.py}           & Synthetic gauge generation (random on river) \\
+        \texttt{port/src/property/main/locations.py}   & Property placement relative to synthetic \\
+        \texttt{port/src/property/ts/flood/nearest.py} & Nearest gauge selection (synthetic at [0]) \\
+        \texttt{port/src/property/ts/flood/process.py} & Flood processing, zone derivation \\
+        \texttt{port/src/property/ts/flood/propagation.py} & Flood propagation (WSE, retention, depth) \\
+        \texttt{port/src/property/hc/pricing.py}       & GEV fitting, PRS spread, basis calculation \\
+        \texttt{port/src/property/hc/generator.py}     & Hazard curve orchestration, decomposition \\
+        \texttt{models/hazard/prs\_analytical.py}       & CDS-equivalent analytical pricer \\
+        \texttt{models/floodrisk/velocity.py}          & \texttt{compute\_retention()} \\
+        \texttt{config/port.py}                        & Zone elevation boundaries \\
+        \texttt{config/models.py}                      & Zone hazard rates \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Change History}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Version} & \textbf{Date} & \textbf{Change} \\
+        \midrule
+        1.0 & 03-Apr-2026 & Initial version --- pipeline restructuring with synthetic-first approach \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\end{appendices}
+\end{document}
