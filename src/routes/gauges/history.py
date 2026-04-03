@@ -72,7 +72,7 @@ def get_gauge_history(gauge_id: str):
 
         # Filter daily observations by days param
         days = request.args.get('days', type=int)
-        if days is not None and (days < 1 or days > 3650):
+        if days is not None and days != 0 and (days < 1 or days > 3650):
             return jsonify({'status': 'error', 'message': 'days must be between 1 and 3650'}), 400
         observations = data.get('daily_observations', [])
 

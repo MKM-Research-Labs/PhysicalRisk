@@ -27,11 +27,11 @@ class TestGaugeIDGenerator:
         src = inspect.getsource(gr)
         assert 'GAUGE-' in src, "gauge_random must use 'GAUGE-' prefix"
 
-    def test_generator_source_uses_uuid(self):
-        """gauge_random.py uses uuid for ID generation (not sequential counter)."""
+    def test_generator_source_uses_deterministic_ids(self):
+        """gauge_random.py uses hashlib for deterministic ID generation."""
         from port.rand.thames.gauge import gauge_random as gr
         src = inspect.getsource(gr)
-        assert 'uuid' in src, "gauge_random must use uuid for gauge IDs"
+        assert 'hashlib' in src, "gauge_random must use hashlib for deterministic gauge IDs"
 
     def test_generator_does_not_use_sequential_format(self):
         """gauge_random.py must NOT use GAUGE-{i:03d} style sequential IDs."""
