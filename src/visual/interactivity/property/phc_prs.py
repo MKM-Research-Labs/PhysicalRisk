@@ -62,6 +62,11 @@ def get_js() -> str:
 
                 controls.innerHTML =
                     '<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap;">' +
+                    '<span style="' + labelStyle + '">Direction:</span>' +
+                    '<select id="phc-direction" style="' + selectStyle + '">' +
+                    '<option value="payer">Payer (buy protection)</option>' +
+                    '<option value="receiver">Receiver (sell protection)</option>' +
+                    '</select>' +
                     '<span style="' + labelStyle + '">Ctpy:</span>' +
                     '<select id="phc-counterparty" style="' + selectStyle + 'min-width:140px;">' +
                     ctpyOptions +
@@ -79,7 +84,7 @@ def get_js() -> str:
                     '</div>';
 
                 // Auto-recompute on any input change
-                var ids = ['phc-counterparty', 'phc-ea-zone', 'phc-notional', 'phc-tenor', 'phc-spread'];
+                var ids = ['phc-direction', 'phc-counterparty', 'phc-ea-zone', 'phc-notional', 'phc-tenor', 'phc-spread'];
                 ids.forEach(function(id) {
                     var el = document.getElementById(id);
                     if (el) el.addEventListener('change', function() { if (activeTab === 2) renderPRSPricing(); });

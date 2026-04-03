@@ -277,7 +277,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
                     buildPRSControls();
                     switchTab(activeTab);
-                    var spread = (phcData.term_structure || {}).severe ? phcData.term_structure.severe.prs_spread_bps[0] : 0;
+                    var spread = (phcData.term_structure || {{}}).severe ? phcData.term_structure.severe.prs_spread_bps[0] : 0;
                     status.textContent = propertyId + ' | ' + phcData.flood_count + ' floods | ' + spread.toFixed(1) + 'bp';
                 }} catch (error) {{
                     console.error('[PropertyHazard] Load error:', error);

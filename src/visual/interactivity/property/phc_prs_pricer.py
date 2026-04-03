@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,11 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Property hazard curve — PRS analytical pricer (survival interpolation + cashflows)."""
+"""Property hazard curve — PRS pricer (event count model).
+
+Survival: S(t) = (1 - p)^t where p = flood_count / num_storms.
+Cashflows computed semi-annually using the survival curve.
+"""
 
 
 def get_js():
-    """Return JS fragment for PRS analytical pricer."""
+    """Return JS fragment for PRS pricer."""
     return """
             // ================================================================
             // Yield curve (fetched from market state)
@@ -55,77 +59,9 @@ def get_js():
             })();
 
             // ================================================================
-            // PRS Analytical Pricer — semi-annual cashflow computation
+            // PRS Pricer — event count model
+            // S(t) = (1 - p)^t, semi-annual cashflows
             // ================================================================
-            function interpolateSurvival(survivalArr, tenorArr, t) {
-                // Log-linear interpolation of survival probability at time t
-                if (t <= 0) return 1.0;
-                if (!survivalArr || survivalArr.length === 0) return 1.0;
-
-                var prevYear = 0, prevS = 1.0;
-                for (var i = 0; i < survivalArr.length; i++) {
-                    var curYear = tenorArr[i];
-                    var curS = survivalArr[i];
-                    if (t <= curYear) {
-                        if (curYear === prevYear) return curS;
-                        var frac = (t - prevYear) / (curYear - prevYear);
-                        var lnPrev = prevS > 0 ? Math.log(prevS) : -20;
-                        var lnCur = curS > 0 ? Math.log(curS) : -20;
-                        return Math.exp((1 - frac) * lnPrev + frac * lnCur);
-                    }
-                    prevYear = curYear;
-                    prevS = curS;
-                }
-                // Extrapolate beyond last point
-                var lastYear = tenorArr[tenorArr.length - 1];
-                var lastS = survivalArr[survivalArr.length - 1];
-                if (lastS <= 0 || lastYear <= 0) return 0;
-                var lambda = -Math.log(lastS) / lastYear;
-                return Math.exp(-lambda * t);
-            }
-
-            // ================================================================
-            // Terrain grid bilinear interpolation
-            // ================================================================
-            function interpolateTerrainSpread(terrainGrid, zone, distance_m, elevation_m) {
-                if (!terrainGrid || !terrainGrid.zones || !terrainGrid.zones[zone]) return 0;
-                var distances = terrainGrid.distances;
-                var elevations = terrainGrid.elevations;
-                var grid = terrainGrid.zones[zone].grid;
-
-                // Clamp to grid bounds
-                var d = Math.max(distances[0], Math.min(distance_m, distances[distances.length - 1]));
-                var h = Math.max(elevations[0], Math.min(elevation_m, elevations[elevations.length - 1]));
-
-                // Find bracketing distance index
-                var di = 0;
-                for (var i = 0; i < distances.length - 1; i++) {
-                    if (distances[i + 1] >= d) { di = i; break; }
-                    if (i === distances.length - 2) di = i;
-                }
-
-                // Find bracketing elevation index
-                var ei = 0;
-                for (var i = 0; i < elevations.length - 1; i++) {
-                    if (elevations[i + 1] >= h) { ei = i; break; }
-                    if (i === elevations.length - 2) ei = i;
-                }
-
-                // Fractional positions
-                var dSpan = distances[di + 1] - distances[di];
-                var eSpan = elevations[ei + 1] - elevations[ei];
-                var td = dSpan > 0 ? (d - distances[di]) / dSpan : 0;
-                var te = eSpan > 0 ? (h - elevations[ei]) / eSpan : 0;
-
-                // Bilinear interpolation
-                var v00 = grid[di][ei];
-                var v01 = grid[di][ei + 1];
-                var v10 = grid[di + 1][ei];
-                var v11 = grid[di + 1][ei + 1];
-                return v00 * (1 - td) * (1 - te) + v10 * td * (1 - te) +
-                       v01 * (1 - td) * te + v11 * td * te;
-            }
-
             function computePropertyPRSCashflows() {
                 var triggerKey = 'severe';
                 var notionalStr = document.getElementById('phc-notional').value.replace(/,/g, '');
@@ -135,13 +71,24 @@ def get_js():
                 var spread = spreadBps / 10000;
                 var recovery = 0.0;
 
+                // Direction: payer (buy protection) or receiver (sell protection)
+                var dirEl = document.getElementById('phc-direction');
+                var isPayer = dirEl ? (dirEl.value === 'payer') : true;
+
+                // Fair spread from event count
                 var ts = phcData.term_structure || {};
                 var tsData = ts[triggerKey] || {};
-                var tenors = ts.tenors || [];
-                var survivalArr = tsData.survival || [];
+                var tenors = ts.tenors || [1, 2, 3, 4, 5];
                 var propSpreadArr = tsData.prs_spread_bps || [];
+                var fairSpreadBps = propSpreadArr[0] || 0;
+                var annualProb = fairSpreadBps / 10000;
 
-                // Build semi-annual schedule using property survival
+                // Survival: S(t) = (1 - p)^t
+                function survivalAt(t) {
+                    return Math.pow(1 - annualProb, t);
+                }
+
+                // Build semi-annual cashflow schedule
                 var nPeriods = tenor * 2;
                 var dt = 0.5;
                 var periods = [];
@@ -150,8 +97,8 @@ def get_js():
                 for (var i = 1; i <= nPeriods; i++) {
                     var t = i * dt;
                     var tPrev = (i - 1) * dt;
-                    var S_t = interpolateSurvival(survivalArr, tenors, t);
-                    var S_prev = interpolateSurvival(survivalArr, tenors, tPrev);
+                    var S_t = survivalAt(t);
+                    var S_prev = survivalAt(tPrev);
                     var rf = interpolateYieldRate(phcYieldCurve, t);
                     var df = Math.exp(-rf * t);
 
@@ -178,13 +125,13 @@ def get_js():
                 }
 
                 var fairSpread = riskyAnnuity > 0 ? totalProtPV / (riskyAnnuity * notional) : 0;
-                var npv = totalProtPV - totalPremPV;
+                // NPV from perspective of direction
+                var npv = isPayer ? (totalProtPV - totalPremPV) : (totalPremPV - totalProtPV);
 
                 // Compute gauge spreads and basis at selected tenor
                 var nearestGauges = phcData.nearest_gauges || [];
                 var tenorIdx = tenors.indexOf(tenor);
                 if (tenorIdx < 0) {
-                    // Find closest tenor
                     tenorIdx = 0;
                     for (var j = 1; j < tenors.length; j++) {
                         if (Math.abs(tenors[j] - tenor) < Math.abs(tenors[tenorIdx] - tenor)) tenorIdx = j;
@@ -223,15 +170,12 @@ def get_js():
                 var terrainDelta = 0;
 
                 var terrainGrid = (phcData._metadata || {}).terrain_grid || null;
-                // Also check top-level metadata if available (injected by panel)
                 if (!terrainGrid && window._phcMetadata) {
                     terrainGrid = window._phcMetadata.terrain_grid || null;
                 }
 
                 if (terrainGrid && selectedZone && selectedZone !== actualZone) {
-                    // Compute avg distance and elevation diff for interpolation
-                    var avgDistM = 0;
-                    var avgElevDiff = 0;
+                    var avgDistM = 0, avgElevDiff = 0;
                     var propElev = phcData.elevation_m || 0;
                     if (nearestGauges.length > 0) {
                         var totalDist = 0, totalElevDiff = 0;
@@ -242,9 +186,8 @@ def get_js():
                         avgDistM = totalDist / nearestGauges.length;
                         avgElevDiff = totalElevDiff / nearestGauges.length;
                     }
-                    var spreadAtSelected = interpolateTerrainSpread(terrainGrid, selectedZone, avgDistM, avgElevDiff);
-                    var spreadAtActual = interpolateTerrainSpread(terrainGrid, actualZone, avgDistM, avgElevDiff);
-                    terrainDelta = spreadAtSelected - spreadAtActual;
+                    terrainDelta = interpolateTerrainSpread(terrainGrid, selectedZone, avgDistM, avgElevDiff)
+                                 - interpolateTerrainSpread(terrainGrid, actualZone, avgDistM, avgElevDiff);
                 }
 
                 return {
@@ -255,6 +198,7 @@ def get_js():
                     fairSpread: fairSpread,
                     fairSpreadBps: fairSpread * 10000,
                     npv: npv,
+                    isPayer: isPayer,
                     notional: notional,
                     tenor: tenor,
                     spread: spread,
@@ -269,5 +213,39 @@ def get_js():
                     selectedZone: selectedZone,
                     actualZone: actualZone
                 };
+            }
+
+            // ================================================================
+            // Terrain grid bilinear interpolation (for zone what-if)
+            // ================================================================
+            function interpolateTerrainSpread(terrainGrid, zone, distance_m, elevation_m) {
+                if (!terrainGrid || !terrainGrid.zones || !terrainGrid.zones[zone]) return 0;
+                var distances = terrainGrid.distances;
+                var elevations = terrainGrid.elevations;
+                var grid = terrainGrid.zones[zone].grid;
+
+                var d = Math.max(distances[0], Math.min(distance_m, distances[distances.length - 1]));
+                var h = Math.max(elevations[0], Math.min(elevation_m, elevations[elevations.length - 1]));
+
+                var di = 0;
+                for (var i = 0; i < distances.length - 1; i++) {
+                    if (distances[i + 1] >= d) { di = i; break; }
+                    if (i === distances.length - 2) di = i;
+                }
+                var ei = 0;
+                for (var i = 0; i < elevations.length - 1; i++) {
+                    if (elevations[i + 1] >= h) { ei = i; break; }
+                    if (i === elevations.length - 2) ei = i;
+                }
+
+                var dSpan = distances[di + 1] - distances[di];
+                var eSpan = elevations[ei + 1] - elevations[ei];
+                var td = dSpan > 0 ? (d - distances[di]) / dSpan : 0;
+                var te = eSpan > 0 ? (h - elevations[ei]) / eSpan : 0;
+
+                var v00 = grid[di][ei], v01 = grid[di][ei + 1];
+                var v10 = grid[di + 1][ei], v11 = grid[di + 1][ei + 1];
+                return v00 * (1 - td) * (1 - te) + v10 * td * (1 - te) +
+                       v01 * (1 - td) * te + v11 * td * te;
             }
 """
