@@ -107,14 +107,24 @@ class TestMRCMeetingDetailUI:
         close_all_panels(map_page)
         open_governance(map_page)
         switch_governance_tab(map_page, "mrc")
-        map_page.wait_for_timeout(6_000)
+        map_page.wait_for_timeout(2_000)
         yield
         close_all_panels(map_page)
+
+    def _click_first_meeting_row(self, map_page):
+        """Click first meeting row, return True if successful."""
+        content = map_page.locator("#mg-content")
+        rows = content.locator("tr")
+        if rows.count() <= 1:
+            return False
+        rows.nth(1).click(force=True)
+        map_page.wait_for_timeout(2_000)
+        return True
 
     def test_meeting_list_has_rows(self, map_page):
         """Meeting list should have at least one row."""
         content = map_page.locator("#mg-content")
-        text = content.inner_text().lower()
+        text = content.inner_text(timeout=10_000).lower()
         has_meetings = (
             "mrc" in text or "meeting" in text
             or content.locator("tr").count() > 1
@@ -124,30 +134,18 @@ class TestMRCMeetingDetailUI:
     def test_meeting_row_clickable(self, map_page):
         """Clicking a meeting row should open detail or change content."""
         content = map_page.locator("#mg-content")
-        before_text = content.inner_text()
-
-        # Try clicking a meeting row
-        rows = content.locator("tr")
-        if rows.count() > 1:
-            rows.nth(1).click(force=True)
-            map_page.wait_for_timeout(6_000)
-            after_text = content.inner_text()
-            # Content should change after clicking
-            assert after_text != before_text or len(after_text) > len(before_text), \
-                "Content didn't change after clicking meeting row"
-        else:
+        before_text = content.inner_text(timeout=10_000)
+        if not self._click_first_meeting_row(map_page):
             pytest.skip("No clickable meeting rows")
+        after_text = content.inner_text(timeout=10_000)
+        assert after_text != before_text or len(after_text) > len(before_text), \
+            "Content didn't change after clicking meeting row"
 
     def test_meeting_detail_has_tabs(self, map_page):
         """Meeting detail view should have sub-tabs (Agenda, Minutes, etc.)."""
-        content = map_page.locator("#mg-content")
-        rows = content.locator("tr")
-        if rows.count() <= 1:
+        if not self._click_first_meeting_row(map_page):
             pytest.skip("No meetings to click")
-        rows.nth(1).click(force=True)
-        map_page.wait_for_timeout(6_000)
-
-        text = content.inner_text().lower()
+        text = map_page.locator("#mg-content").inner_text(timeout=10_000).lower()
         tab_keywords = ["agenda", "minutes", "decisions", "actions",
                         "participants", "documents"]
         found = [kw for kw in tab_keywords if kw in text]
@@ -156,14 +154,9 @@ class TestMRCMeetingDetailUI:
 
     def test_meeting_detail_shows_metadata(self, map_page):
         """Meeting detail should show date, chair, or status."""
-        content = map_page.locator("#mg-content")
-        rows = content.locator("tr")
-        if rows.count() <= 1:
+        if not self._click_first_meeting_row(map_page):
             pytest.skip("No meetings to click")
-        rows.nth(1).click(force=True)
-        map_page.wait_for_timeout(6_000)
-
-        text = content.inner_text().lower()
+        text = map_page.locator("#mg-content").inner_text(timeout=10_000).lower()
         keywords = ["date", "chair", "status", "location", "scheduled",
                      "completed", "2026"]
         found = [kw for kw in keywords if kw in text]

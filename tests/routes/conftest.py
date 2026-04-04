@@ -82,6 +82,55 @@ SAMPLE_PROPERTYHC = {
 }
 
 
+SAMPLE_PROPERTYSHD = {
+    "metadata": {
+        "generated_at": "2026-01-01T00:00:00",
+        "catchment": "thames",
+        "mode": "shd",
+    },
+    "summary": {
+        "total_properties": 2,
+        "avg_distance_km": 1.0,
+    },
+    "property_hazard_curves": {
+        "PROP-001": {
+            "property_id": "PROP-001",
+            "distance_km": 1.2,
+            "hazard_curve": [[0.1, 0.04], [0.5, 0.008]],
+        },
+        "PROP-002": {
+            "property_id": "PROP-002",
+            "distance_km": 0.8,
+            "hazard_curve": [[0.1, 0.02]],
+        },
+    },
+}
+
+SAMPLE_PROPERTYSHE = {
+    "metadata": {
+        "generated_at": "2026-01-01T00:00:00",
+        "catchment": "thames",
+        "mode": "she",
+    },
+    "summary": {
+        "total_properties": 2,
+        "avg_elevation_m": 25.0,
+    },
+    "property_hazard_curves": {
+        "PROP-001": {
+            "property_id": "PROP-001",
+            "elevation_m": 22.5,
+            "hazard_curve": [[0.1, 0.03], [0.5, 0.006]],
+        },
+        "PROP-002": {
+            "property_id": "PROP-002",
+            "elevation_m": 27.5,
+            "hazard_curve": [[0.1, 0.015]],
+        },
+    },
+}
+
+
 @pytest.fixture
 def phc_client_no_data(tmp_path, monkeypatch):
     """Client where propertyhc.json does not exist."""
@@ -98,6 +147,30 @@ def phc_env(tmp_path, monkeypatch):
     """Client with a minimal propertyhc.json in tmp_path."""
     from config import config
     (tmp_path / "propertyhc.json").write_text(json.dumps(SAMPLE_PROPERTYHC))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+@pytest.fixture
+def shd_env(tmp_path, monkeypatch):
+    """Client with a minimal propertyshd.json in tmp_path."""
+    from config import config
+    (tmp_path / "propertyshd.json").write_text(json.dumps(SAMPLE_PROPERTYSHD))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+@pytest.fixture
+def she_env(tmp_path, monkeypatch):
+    """Client with a minimal propertyshe.json in tmp_path."""
+    from config import config
+    (tmp_path / "propertyshe.json").write_text(json.dumps(SAMPLE_PROPERTYSHE))
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     from server import create_app
     app = create_app()

@@ -71,10 +71,11 @@ class TestGaugePRSBookTrade:
         if direction.count() > 0:
             direction.select_option(value="payer")
 
-        # Trigger -> severe
-        trigger = map_page.locator("#prs-trigger")
-        if trigger.count() > 0:
-            trigger.select_option(value="severe")
+        # Trigger -> severe (hidden input, not a select)
+        map_page.evaluate("""() => {
+            var el = document.getElementById('prs-trigger');
+            if (el) { el.value = 'severe'; el.dispatchEvent(new Event('change')); }
+        }""")
 
         # Notional
         notional = map_page.locator("#prs-notional")

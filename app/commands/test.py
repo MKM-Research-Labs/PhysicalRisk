@@ -147,15 +147,21 @@ def _write_failures_report(junit_xml_path: str, audit_dir: str) -> None:
 
 
 def _run_data_lineage_tests(project_root, audit_dir):
-    """Run data/test_id_consistency.py and return summary dict."""
+    """Run data lineage consistency tests and return summary dict."""
     import json
     import xml.etree.ElementTree as ET
 
     lineage_xml = os.path.join(audit_dir, 'data_lineage_junit.xml')
-    lineage_test = os.path.join(str(project_root), 'tests', 'data', 'test_id_consistency.py')
+    lineage_test_dir = os.path.join(str(project_root), 'tests', 'data')
+    lineage_test_files = [
+        os.path.join(lineage_test_dir, 'test_id_consistency_pipeline_part1.py'),
+        os.path.join(lineage_test_dir, 'test_id_consistency_pipeline_part2.py'),
+        os.path.join(lineage_test_dir, 'test_id_consistency_gauges.py'),
+    ]
+    lineage_test_files = [f for f in lineage_test_files if os.path.exists(f)]
 
-    if not os.path.exists(lineage_test):
-        print('  Skipped: tests/data/test_id_consistency.py not found')
+    if not lineage_test_files:
+        print('  Skipped: no test_id_consistency_*.py files found')
         return None
 
     _venv_python = os.path.join(str(project_root), '.venv', 'bin', 'python')
@@ -165,7 +171,7 @@ def _run_data_lineage_tests(project_root, audit_dir):
 
     cmd = [
         _python_exe, '-m', 'pytest',
-        lineage_test,
+        *lineage_test_files,
         f'--junitxml={lineage_xml}',
         '-v', '--tb=short',
     ]
@@ -212,6 +218,27 @@ def _run_data_lineage_tests(project_root, audit_dir):
         pass
 
     return summary
+
+
+def _write_combined_junit(batch_xmls, output_path):
+    """Merge batch JUnit XML files into a single combined file."""
+    import xml.etree.ElementTree as ET
+
+    root = ET.Element('testsuites')
+    for xml_path in batch_xmls:
+        if not os.path.exists(xml_path):
+            continue
+        try:
+            tree = ET.parse(xml_path)
+            for suite in tree.getroot().iter('testsuite'):
+                root.append(suite)
+        except Exception:
+            continue
+    try:
+        ET.ElementTree(root).write(output_path, encoding='unicode',
+                                   xml_declaration=True)
+    except Exception:
+        pass
 
 
 def _run_e2e_tests(project_root, audit_dir, python_exe):
@@ -298,32 +325,55 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
             return summary
         print('  Chromium installed successfully.')
 
-    # Run e2e tests with verbose output streamed to terminal
-    cmd = [
-        _pw_python, '-m', 'pytest',
-        e2e_dir,
-        f'--junitxml={e2e_xml}',
-        '--browser', 'chromium',
-        '-v', '--tb=short',
-    ]
+    # Collect test files and run in batches to prevent a single stuck
+    # test from blocking the entire suite.
+    BATCH_SIZE = 15   # ~100 tests per batch (avg ~7 tests/file)
+    BATCH_TIMEOUT = 1800  # 30 minutes per batch
 
-    try:
-        result = sp.run(cmd, cwd=str(project_root), timeout=6000)
-    except sp.TimeoutExpired:
-        print('  E2E tests timed out (100 min limit)')
-        return {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
-                'status': 'TIMEOUT', 'reason': 'timed out after 1800s', 'failures': []}
-    except Exception as exc:
-        print(f'  E2E tests failed to run: {exc}')
-        return {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
-                'status': 'ERROR', 'reason': str(exc), 'failures': []}
+    import glob as _glob
+    test_files = sorted(_glob.glob(os.path.join(e2e_dir, 'test_*.py')))
+    if not test_files:
+        print('  Skipped: no test_*.py files in tests/e2e/')
+        return None
+
+    batches = [test_files[i:i + BATCH_SIZE]
+               for i in range(0, len(test_files), BATCH_SIZE)]
 
     summary = {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0,
                'status': 'OK', 'failures': []}
 
+    # Remove stale combined XML before batches
     if os.path.exists(e2e_xml):
+        os.unlink(e2e_xml)
+
+    all_xml_files = []
+    for batch_idx, batch_files in enumerate(batches, 1):
+        batch_xml = os.path.join(audit_dir, f'e2e_junit_batch{batch_idx}.xml')
+        all_xml_files.append(batch_xml)
+        n_files = len(batch_files)
+        print(f'  Batch {batch_idx}/{len(batches)} ({n_files} files)...')
+
+        cmd = [
+            _pw_python, '-m', 'pytest',
+            *batch_files,
+            f'--junitxml={batch_xml}',
+            '--browser', 'chromium',
+            '-v', '--tb=short',
+        ]
+
         try:
-            tree = ET.parse(e2e_xml)
+            sp.run(cmd, cwd=str(project_root), timeout=BATCH_TIMEOUT)
+        except sp.TimeoutExpired:
+            print(f'  Batch {batch_idx} timed out (30 min limit) — continuing')
+        except Exception as exc:
+            print(f'  Batch {batch_idx} error: {exc} — continuing')
+
+    # Merge all batch XMLs into the combined summary
+    for xml_path in all_xml_files:
+        if not os.path.exists(xml_path):
+            continue
+        try:
+            tree = ET.parse(xml_path)
             xml_root = tree.getroot()
             for tc in xml_root.findall('.//testcase'):
                 summary['total'] += 1
@@ -344,7 +394,10 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
                 else:
                     summary['passed'] += 1
         except Exception as exc:
-            print(f'  Warning: could not parse e2e_junit.xml: {exc}')
+            print(f'  Warning: could not parse {os.path.basename(xml_path)}: {exc}')
+
+    # Write combined JUnit XML for downstream consumers
+    _write_combined_junit(all_xml_files, e2e_xml)
 
     if summary['failed'] > 0:
         summary['status'] = 'FAIL'

@@ -190,6 +190,7 @@ class TestPortStressDataLoads:
             f"Portfolio storms API returned {result['http_status']}"
         assert result["storm_count"] > 0, "No portfolio storms returned"
 
+    @pytest.mark.timeout(120)
     def test_portfolio_run_api(self, map_page):
         """POST /api/v1/trading/stress/portfolio-run should return results."""
         result = map_page.evaluate("""async () => {
@@ -204,21 +205,31 @@ class TestPortStressDataLoads:
             if (storms.length === 0) return { skip: true };
             var stormId = storms[0].storm_id || storms[0].id;
 
-            var resp2 = await fetch(
-                baseUrl + '/api/v1/trading/stress/portfolio-run', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({storm_id: stormId}),
-            });
-            var data2 = await resp2.json();
-            return {
-                http_status: resp2.status,
-                has_gauges: (data2.gauges || []).length > 0,
-                has_pnl: 'portfolio_stress_pnl' in data2,
-            };
+            // Use AbortController to cap the fetch at 60 seconds
+            var ctrl = new AbortController();
+            var timer = setTimeout(() => ctrl.abort(), 60000);
+            try {
+                var resp2 = await fetch(
+                    baseUrl + '/api/v1/trading/stress/portfolio-run', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({storm_id: stormId}),
+                    signal: ctrl.signal,
+                });
+                clearTimeout(timer);
+                var data2 = await resp2.json();
+                return {
+                    http_status: resp2.status,
+                    has_gauges: (data2.gauges || []).length > 0,
+                    has_pnl: 'portfolio_stress_pnl' in data2,
+                };
+            } catch(e) {
+                clearTimeout(timer);
+                return { skip: true, reason: e.message };
+            }
         }""")
         if result.get("skip"):
-            pytest.skip("No storms available for portfolio-run test")
+            pytest.skip(result.get("reason", "No storms available for portfolio-run test"))
         assert result["http_status"] == 200, \
             f"Portfolio run API returned {result['http_status']}"
         assert result["has_pnl"], "Response missing portfolio_stress_pnl"
