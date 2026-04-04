@@ -135,7 +135,7 @@ def get_js():
             }
 
             // ================================================================
-            // Basis waterfall — descending steps from gauge to property
+            // Basis waterfall — staircase descending from gauge to property
             // ================================================================
             function _drawBasisWaterfall(canvas, gaugeCount, sheCount, shdCount, propCount, gaugeSpread, propSpread) {
                 if (!canvas) return;
@@ -147,139 +147,151 @@ def get_js():
                 canvas.height = h * dpr;
                 ctx.scale(dpr, dpr);
 
-                var pad = { top: 20, bottom: 50, left: 60, right: 30 };
+                var pad = { top: 40, bottom: 40, left: 55, right: 20 };
                 var plotW = w - pad.left - pad.right;
                 var plotH = h - pad.top - pad.bottom;
 
-                // Data — 4 stages plus loss bars between them
-                var stages = [
-                    { label: 'Gauge\\nSevere', count: gaugeCount, color: '#F44336', spread: gaugeSpread },
+                // Waterfall steps: each column shows where we are,
+                // the drop between columns shows what was lost
+                var steps = [
+                    { label: 'Gauge Severe', count: gaugeCount, color: '#F44336', spread: gaugeSpread },
                     { label: 'SHE', count: sheCount, color: '#FF9800', spread: sheCount / 20000 * 10000 },
                     { label: 'SHD', count: shdCount, color: '#4CAF50', spread: shdCount / 20000 * 10000 },
                     { label: 'Property', count: propCount, color: '#1976D2', spread: propSpread },
                 ];
 
-                var maxCount = Math.max(gaugeCount, sheCount, shdCount, propCount, 1);
+                var maxCount = Math.max(gaugeCount, 1);
 
                 function yPos(count) {
                     return pad.top + plotH * (1 - count / maxCount);
                 }
 
-                // Bar width and positions
-                var nBars = stages.length;
-                var barGap = plotW * 0.15;
-                var barW = (plotW - barGap * (nBars - 1)) / nBars;
+                var colW = plotW / (steps.length * 2 - 1);
+                var barW = colW * 0.9;
 
-                // Draw bars
-                stages.forEach(function(s, i) {
-                    var x = pad.left + i * (barW + barGap);
+                // Grid lines
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.lineWidth = 1;
+                var nTicks = 5;
+                for (var t = 0; t <= nTicks; t++) {
+                    var tickVal = Math.round(maxCount * t / nTicks);
+                    var tickY = yPos(tickVal);
+                    ctx.beginPath();
+                    ctx.moveTo(pad.left, tickY);
+                    ctx.lineTo(pad.left + plotW, tickY);
+                    ctx.stroke();
+                    ctx.fillStyle = '#aaa';
+                    ctx.font = '9px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(tickVal.toLocaleString(), pad.left - 5, tickY + 3);
+                }
+
+                // Draw each step
+                steps.forEach(function(s, i) {
+                    var colIdx = i * 2;
+                    var x = pad.left + colIdx * colW + (colW - barW) / 2;
                     var barTop = yPos(s.count);
-                    var barH = plotH - (barTop - pad.top);
+                    var barBottom = yPos(0);
+                    var barH = barBottom - barTop;
 
-                    // Bar fill
-                    ctx.fillStyle = s.color + '33';
+                    // Bar — filled from 0 up to count
+                    ctx.fillStyle = s.color + '22';
                     ctx.fillRect(x, barTop, barW, barH);
                     ctx.strokeStyle = s.color;
                     ctx.lineWidth = 2;
                     ctx.strokeRect(x, barTop, barW, barH);
 
-                    // Count label on top of bar
+                    // Solid fill for the "surviving" portion at top
+                    var fillH = Math.min(barH, 12);
+                    ctx.fillStyle = s.color + '66';
+                    ctx.fillRect(x, barTop, barW, fillH);
+
+                    // Count inside bar near top
                     ctx.fillStyle = s.color;
-                    ctx.font = 'bold 14px Arial';
+                    ctx.font = 'bold 13px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText(s.count.toLocaleString(), x + barW / 2, barTop - 6);
+                    var countY = barTop + Math.max(fillH + 14, 18);
+                    if (barH < 30) countY = barTop - 5;
+                    ctx.fillText(s.count.toLocaleString(), x + barW / 2, countY);
 
-                    // Spread label below count
+                    // Spread label above bar
                     ctx.font = '10px Arial';
-                    ctx.fillStyle = '#888';
-                    ctx.fillText(s.spread.toFixed(1) + 'bp', x + barW / 2, barTop - 20);
+                    ctx.fillStyle = '#666';
+                    ctx.fillText(s.spread.toFixed(0) + 'bp', x + barW / 2, barTop - 8);
 
-                    // Stage label at bottom
+                    // Stage label below
                     ctx.fillStyle = '#555';
-                    ctx.font = '11px Arial';
-                    ctx.textAlign = 'center';
-                    var lines = s.label.split('\\n');
-                    lines.forEach(function(line, li) {
-                        ctx.fillText(line, x + barW / 2, pad.top + plotH + 16 + li * 14);
-                    });
+                    ctx.font = '10px Arial';
+                    ctx.fillText(s.label, x + barW / 2, barBottom + 14);
 
-                    // Connector line to next bar (dashed, showing the drop)
-                    if (i < nBars - 1) {
-                        var nextS = stages[i + 1];
-                        var nextX = pad.left + (i + 1) * (barW + barGap);
+                    // Drop connector to next step
+                    if (i < steps.length - 1) {
+                        var nextS = steps[i + 1];
+                        var nextColIdx = (i + 1) * 2;
+                        var nextX = pad.left + nextColIdx * colW + (colW - barW) / 2;
                         var nextTop = yPos(nextS.count);
 
-                        // Horizontal line from top of current bar to next
-                        ctx.setLineDash([4, 3]);
+                        // Horizontal dashed line at current level
+                        ctx.setLineDash([3, 3]);
                         ctx.strokeStyle = '#ccc';
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(x + barW, barTop);
                         ctx.lineTo(nextX, barTop);
                         ctx.stroke();
-
-                        // Drop arrow
-                        var dropMidX = x + barW + barGap / 2;
-                        ctx.strokeStyle = '#F44336AA';
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.moveTo(dropMidX, barTop + 2);
-                        ctx.lineTo(dropMidX, nextTop - 2);
-                        ctx.stroke();
                         ctx.setLineDash([]);
 
-                        // Arrow head
-                        ctx.beginPath();
-                        ctx.moveTo(dropMidX - 4, nextTop - 8);
-                        ctx.lineTo(dropMidX, nextTop - 2);
-                        ctx.lineTo(dropMidX + 4, nextTop - 8);
-                        ctx.strokeStyle = '#F44336AA';
-                        ctx.stroke();
+                        // Drop zone (shaded red area showing loss)
+                        var dropX = pad.left + (colIdx + 1) * colW;
+                        var dropW = colW * 0.6;
+                        var dropLeft = dropX + (colW - dropW) / 2;
+                        if (nextTop > barTop) {
+                            ctx.fillStyle = '#F4433615';
+                            ctx.fillRect(dropLeft, barTop, dropW, nextTop - barTop);
 
-                        // Loss label
-                        var loss = s.count - nextS.count;
-                        if (loss > 0) {
-                            ctx.fillStyle = '#F4433699';
-                            ctx.font = '9px Arial';
-                            ctx.textAlign = 'center';
-                            ctx.fillText('-' + loss.toLocaleString(), dropMidX, (barTop + nextTop) / 2 + 4);
+                            // Drop arrow
+                            var midX = dropLeft + dropW / 2;
+                            ctx.strokeStyle = '#F44336AA';
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.moveTo(midX, barTop + 4);
+                            ctx.lineTo(midX, nextTop - 4);
+                            ctx.stroke();
+                            // Arrow head
+                            ctx.beginPath();
+                            ctx.moveTo(midX - 3, nextTop - 9);
+                            ctx.lineTo(midX, nextTop - 4);
+                            ctx.lineTo(midX + 3, nextTop - 9);
+                            ctx.stroke();
+
+                            // Loss count
+                            var loss = s.count - nextS.count;
+                            if (loss > 0 && (nextTop - barTop) > 20) {
+                                ctx.fillStyle = '#F4433699';
+                                ctx.font = '9px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('-' + loss.toLocaleString(), midX, (barTop + nextTop) / 2 + 4);
+                            }
                         }
                     }
                 });
 
-                // Y-axis
+                // Y-axis line
                 ctx.strokeStyle = '#ddd';
                 ctx.lineWidth = 1;
-                ctx.setLineDash([]);
                 ctx.beginPath();
                 ctx.moveTo(pad.left, pad.top);
                 ctx.lineTo(pad.left, pad.top + plotH);
                 ctx.stroke();
 
-                // Y-axis ticks
-                ctx.fillStyle = '#999';
-                ctx.font = '10px Arial';
-                ctx.textAlign = 'right';
-                var nTicks = 5;
-                for (var t = 0; t <= nTicks; t++) {
-                    var tickVal = Math.round(maxCount * t / nTicks);
-                    var tickY = yPos(tickVal);
-                    ctx.fillText(tickVal.toLocaleString(), pad.left - 6, tickY + 3);
-                    ctx.strokeStyle = '#f0f0f0';
-                    ctx.beginPath();
-                    ctx.moveTo(pad.left, tickY);
-                    ctx.lineTo(pad.left + plotW, tickY);
-                    ctx.stroke();
-                }
-
                 // Y-axis label
                 ctx.save();
-                ctx.translate(14, pad.top + plotH / 2);
+                ctx.translate(12, pad.top + plotH / 2);
                 ctx.rotate(-Math.PI / 2);
                 ctx.fillStyle = '#888';
-                ctx.font = '11px Arial';
+                ctx.font = '10px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('Storm Sequences', 0, 0);
+                ctx.fillText('Severe Storm Sequences', 0, 0);
                 ctx.restore();
             }
 """
