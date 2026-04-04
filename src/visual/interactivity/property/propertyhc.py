@@ -430,7 +430,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 var gaugeSevere = phcData._severe_at_gauge || 0;
                 var propFloods = phcData.flood_count || 0;
                 var sd = phcData.spread_decomposition || {{}};
-                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var gaugeSpread = sd.gauge_spread_bps || (gaugeSevere > 0 ? (gaugeSevere / 20000 * 10000) : 0);
                 var propSpread = sd.property_spread_bps || 0;
 
                 // Physical measurements
