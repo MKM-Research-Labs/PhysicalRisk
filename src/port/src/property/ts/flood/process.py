@@ -81,9 +81,9 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
         flood_zone = self._zone_from_offset(actual_offset)
 
         # Collect storms that exceeded alert at ANY of the nearest gauges.
-        # Group by sequence_id — a sequence is the storm event; individual
-        # pulses within a sequence are implementation detail.  When multiple
-        # pulses from the same sequence hit a gauge, keep the worst response.
+        # Alert is the wide net — we process all of these through the
+        # propagation model.  The severe count is tracked separately for
+        # display in the basis strip.
         alert_storms = {}  # sequence_id -> {gauge_id: response}
         for ng in nearest:
             gid = ng['gauge_id']
@@ -95,15 +95,13 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
                     seq_id = self._storm_to_sequence.get(sid, sid)
                     if seq_id not in alert_storms:
                         alert_storms[seq_id] = {}
-                    # Keep worst response per gauge within a sequence
                     existing = alert_storms[seq_id].get(gid)
                     if existing is None or resp.get('peak_level_m', 0) > existing.get('peak_level_m', 0):
                         alert_storms[seq_id][gid] = resp
 
         floods_at_gauge = len(alert_storms)
 
-        # Count storms that exceeded severe at any gauge — this is the
-        # correct starting point for PRS basis analysis, not alert.
+        # Count severe separately — this is the PRS trigger count for basis display
         severe_at_gauge = 0
         for seq_id, gauge_resps in alert_storms.items():
             if any(r.get('exceeded_severe', False) for r in gauge_resps.values()):
@@ -117,7 +115,7 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
                 gaugets, mode=mode, terrain_type=terrain_type,
             )
             if event:
-                # Carry the gauge exceedance flags through to the event
+                # Tag whether the gauge hit severe for this storm
                 event['exceeded_severe'] = any(
                     r.get('exceeded_severe', False)
                     for r in gauge_responses.values()

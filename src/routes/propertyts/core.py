@@ -165,6 +165,25 @@ def property_storms(prop_id: str):
         stages = gauge_stages.get(gid, {})
         ng['flood_stages'] = stages
 
+    # Count severe events at the synthetic (or nearest) gauge from gaugets
+    severe_at_gauge = 0
+    synth_gauge = next((ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
+    controlling_gauge = synth_gauge or (nearest[0] if nearest else None)
+    if controlling_gauge:
+        try:
+            gt_path = config.get_gaugets_dir() / f"{controlling_gauge['gauge_id']}.json"
+            with open(gt_path, 'r') as f:
+                gt_data = json.load(f)
+            severe_at_gauge = sum(
+                1 for r in gt_data.get('storm_responses', {}).get('responses', [])
+                if r.get('exceeded_severe', False)
+            )
+        except Exception:
+            pass
+
+    summary = pdata.get('summary', {})
+    summary['severe_at_nearest_gauge'] = severe_at_gauge
+
     return jsonify({
         'status': 'success',
         'property_id': prop_id,
@@ -175,7 +194,7 @@ def property_storms(prop_id: str):
         },
         'nearest_gauges': nearest,
         'flood_events': pdata.get('flood_events', []),
-        'summary': pdata.get('summary', {}),
+        'summary': summary,
     })
 
 

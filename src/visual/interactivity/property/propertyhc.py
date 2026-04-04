@@ -377,11 +377,12 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                         console.warn('Counterparty data not available:', ctpyErr.message);
                     }}
 
-                    // Fetch SHE/SHD flood counts for basis strip
+                    // Fetch SHE/SHD flood counts and gauge severe count for basis strip
                     try {{
-                        var [sheResp, shdResp] = await Promise.all([
+                        var [sheResp, shdResp, stormsResp] = await Promise.all([
                             fetch(baseUrl + '/api/v1/properties/' + propertyId + '/she', {{mode: 'cors'}}),
                             fetch(baseUrl + '/api/v1/properties/' + propertyId + '/shd', {{mode: 'cors'}}),
+                            fetch(baseUrl + '/api/v1/properties/' + propertyId + '/storms', {{mode: 'cors'}}),
                         ]);
                         if (sheResp.ok) {{
                             var sheData = await sheResp.json();
@@ -391,8 +392,14 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                             var shdData = await shdResp.json();
                             if (shdData.status === 'success') phcData._shd = shdData.data;
                         }}
+                        if (stormsResp.ok) {{
+                            var stormsData = await stormsResp.json();
+                            if (stormsData.status === 'success') {{
+                                phcData._severe_at_gauge = (stormsData.summary || {{}}).severe_at_nearest_gauge || 0;
+                            }}
+                        }}
                     }} catch (basisErr) {{
-                        console.warn('SHE/SHD data not available:', basisErr.message);
+                        console.warn('SHE/SHD/storms data not available:', basisErr.message);
                     }}
 
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
@@ -400,9 +407,8 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     populateBasisStrip();
                     switchTab(activeTab);
                     var spread = (phcData.term_structure || {{}}).severe ? phcData.term_structure.severe.prs_spread_bps[0] : 0;
-                    // Gauge severe count from nearest gauges
-                    var ng0 = (phcData.nearest_gauges || [])[0] || {{}};
-                    var gaugeSevere = ng0.gauge_flood_count || 0;
+                    // Gauge severe count from storms endpoint
+                    var gaugeSevere = phcData._severe_at_gauge || 0;
                     var propFloods = phcData.flood_count || 0;
                     var basisEvents = gaugeSevere - propFloods;
                     status.textContent = gaugeSevere + ' gauge severe \\u2192 ' + propFloods + ' property floods | basis: ' + basisEvents + ' events | spread: ' + spread.toFixed(1) + 'bp';
@@ -421,7 +427,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 if (!strip || !phcData) return;
 
                 var ng0 = (phcData.nearest_gauges || [])[0] || {{}};
-                var gaugeSevere = ng0.gauge_flood_count || 0;
+                var gaugeSevere = phcData._severe_at_gauge || 0;
                 var propFloods = phcData.flood_count || 0;
                 var sd = phcData.spread_decomposition || {{}};
                 var gaugeSpread = sd.gauge_spread_bps || 0;

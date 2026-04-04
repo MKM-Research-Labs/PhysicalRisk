@@ -39,7 +39,7 @@ class TestDoubletSequence:
     """Two storms in a sequence -> 2 independent flood events per property."""
 
     STORM_DEFS = [
-        ("STORM-d001a", 5.5, True),
+        ("STORM-d001a", 5.7, True),
         ("STORM-d001b", 5.9, True),
     ]
 

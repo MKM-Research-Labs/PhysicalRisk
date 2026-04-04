@@ -65,7 +65,7 @@ def make_gauge_lookup(gauge_id="GAUGE-001", lat=51.50, lon=-0.10,
     }
 
 
-def make_gaugets(gauge_id="GAUGE-001", peak_level=5.5,
+def make_gaugets(gauge_id="GAUGE-001", peak_level=5.8,
                  exceeded_alert=True, storm_id="STORM-001",
                  with_readings=True):
     """Gaugets dict with storm_responses and optional flood_simulation."""
@@ -84,6 +84,8 @@ def make_gaugets(gauge_id="GAUGE-001", peak_level=5.5,
                         "storm_id": storm_id,
                         "peak_level_m": peak_level,
                         "exceeded_alert": exceeded_alert,
+                        "exceeded_warning": peak_level > 4.5,
+                        "exceeded_severe": peak_level > 5.5,
                     }
                 ]
             },
