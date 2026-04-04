@@ -80,7 +80,7 @@ def get_js() -> str:
                     '<span style="' + labelStyle + '">Tenor (yr):</span>' +
                     '<input id="phc-tenor" type="number" value="5" min="1" max="30" style="' + inputStyle + 'width:50px;">' +
                     '<span style="' + labelStyle + '">Spread (bps):</span>' +
-                    '<input id="phc-spread" type="number" value="100" min="1" max="1000" style="' + inputStyle + 'width:60px;">' +
+                    '<input id="phc-spread" type="number" value="' + Math.round(((phcData.term_structure || {}).severe || {}).prs_spread_bps ? phcData.term_structure.severe.prs_spread_bps[0] : 100) + '" min="1" max="10000" style="' + inputStyle + 'width:60px;">' +
                     '</div>';
 
                 // Auto-recompute on any input change
