@@ -76,6 +76,8 @@ class TestGenerateWithMultiStormGaugets:
                         "storm_id": sid,
                         "peak_level_m": peak,
                         "exceeded_alert": exceeded,
+                        "exceeded_warning": peak > 4.5,
+                        "exceeded_severe": peak > 5.5,
                     }
                     for sid, peak, exceeded in storm_defs
                 ]
@@ -95,9 +97,9 @@ class TestGenerateWithMultiStormGaugets:
         self._write_gauge_json(input_dir / "gauge.json")
         self._write_property_json(input_dir / "property.json")
 
-        # Doublet: 2 alert-breaching storms
+        # Doublet: 2 severe-breaching storms
         storm_defs = [
-            ("STORM-seq1a", 5.5, True),
+            ("STORM-seq1a", 5.7, True),
             ("STORM-seq1b", 5.8, True),
         ]
         gaugets_dir = input_dir / "gaugets"
@@ -113,7 +115,7 @@ class TestGenerateWithMultiStormGaugets:
             with patch("models.audit.log_model_usage"):
                 result = gen.generate()
 
-        # 2 alert storms at gauge for 1 property
+        # 2 severe storms at gauge for 1 property
         assert result["total_storms_at_gauge"] == 2
 
     def test_portfolio_summary_written_for_cluster(self, tmp_path):
@@ -125,11 +127,11 @@ class TestGenerateWithMultiStormGaugets:
         self._write_gauge_json(input_dir / "gauge.json")
         self._write_property_json(input_dir / "property.json")
 
-        # Cluster: 3 alert storms
+        # Cluster: 3 severe storms
         storm_defs = [
-            ("STORM-cl1a", 5.2, True),
-            ("STORM-cl1b", 5.6, True),
-            ("STORM-cl1c", 5.4, True),
+            ("STORM-cl1a", 5.7, True),
+            ("STORM-cl1b", 6.1, True),
+            ("STORM-cl1c", 5.9, True),
         ]
         gaugets_dir = input_dir / "gaugets"
         self._write_multi_storm_gaugets(gaugets_dir, storm_defs)

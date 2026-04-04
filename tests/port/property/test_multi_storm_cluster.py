@@ -41,9 +41,9 @@ class TestClusterSequence:
     """Three storms in a cluster sequence -> 3 independent flood events."""
 
     STORM_DEFS = [
-        ("STORM-c001a", 5.2, True),
-        ("STORM-c001b", 5.6, True),
-        ("STORM-c001c", 5.4, True),
+        ("STORM-c001a", 5.7, True),
+        ("STORM-c001b", 6.1, True),
+        ("STORM-c001c", 5.9, True),
     ]
 
     def test_cluster_produces_three_flood_events(self, tmp_path):
@@ -104,16 +104,16 @@ class TestClusterSequence:
 
 
 class TestMixedSequence:
-    """In a sequence where only some storms breach alert, only those produce events."""
+    """In a sequence where only some storms breach severe, only those produce events."""
 
     STORM_DEFS = [
-        ("STORM-m001a", 5.5, True),   # breaches alert
-        ("STORM-m001b", 3.2, False),  # sub-alert
-        ("STORM-m001c", 5.1, True),   # breaches alert
-        ("STORM-m001d", 2.8, False),  # sub-alert
+        ("STORM-m001a", 5.8, True),   # breaches severe (> 5.5)
+        ("STORM-m001b", 3.2, False),  # sub-severe
+        ("STORM-m001c", 5.9, True),   # breaches severe
+        ("STORM-m001d", 4.8, True),   # alert but not severe
     ]
 
-    def test_only_alert_storms_create_flood_events(self, tmp_path):
+    def test_alert_storms_collected_severe_counted(self, tmp_path):
         gen = make_generator(tmp_path)
         pts_dir = tmp_path / "propertyts"
         pts_dir.mkdir()
@@ -127,8 +127,10 @@ class TestMixedSequence:
                 gaugets, pts_dir
             )
 
-        # Only 2 of 4 storms breach alert
-        assert result["summary"]["floods_at_nearest_gauge"] == 2
+        # 3 of 4 storms breach alert (collected into flood_events)
+        assert result["summary"]["floods_at_nearest_gauge"] == 3
+        # 2 of 4 storms breach severe (tracked separately)
+        assert result["summary"]["severe_at_nearest_gauge"] == 2
 
     def test_sub_alert_storms_not_in_flood_events(self, tmp_path):
         gen = make_generator(tmp_path)
@@ -148,20 +150,22 @@ class TestMixedSequence:
             data = json.load(f)
 
         event_storm_ids = {e["storm_id"] for e in data["flood_events"]}
+        # Sub-alert storm excluded
         assert "STORM-m001b" not in event_storm_ids
-        assert "STORM-m001d" not in event_storm_ids
+        # Alert storms included (even if not severe)
         assert "STORM-m001a" in event_storm_ids
         assert "STORM-m001c" in event_storm_ids
+        assert "STORM-m001d" in event_storm_ids
 
 
 class TestPersistentSequence:
-    """Four-storm persistent sequence -- all exceed alert."""
+    """Four-storm persistent sequence -- all exceed severe."""
 
     STORM_DEFS = [
-        ("STORM-p001a", 5.1, True),
-        ("STORM-p001b", 5.3, True),
-        ("STORM-p001c", 5.6, True),
-        ("STORM-p001d", 5.2, True),
+        ("STORM-p001a", 5.7, True),
+        ("STORM-p001b", 5.9, True),
+        ("STORM-p001c", 6.2, True),
+        ("STORM-p001d", 5.8, True),
     ]
 
     def test_persistent_four_events_recorded(self, tmp_path):
