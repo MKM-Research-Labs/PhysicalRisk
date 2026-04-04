@@ -108,18 +108,17 @@ def get_js():
 
                     '</div>';
 
-                // --- Right panel: Waterfall chart ---
+                // --- Right panel: Waterfall table ---
                 var chartHtml =
-                    '<div style="flex:1;display:flex;flex-direction:column;padding:8px;">' +
-                    '<div style="text-align:center;font-size:12px;font-weight:600;color:#555;padding:4px 0;">Basis Waterfall: Storm Attenuation</div>' +
-                    '<canvas id="phc-waterfall-canvas" style="flex:1;"></canvas>' +
+                    '<div id="phc-waterfall-container" style="flex:1;display:flex;flex-direction:column;padding:8px;overflow-y:auto;">' +
+                    '<div style="text-align:center;font-size:12px;font-weight:600;color:#555;padding:4px 0 8px 0;">Basis Waterfall: Storm Attenuation</div>' +
                     '</div>';
 
                 container.innerHTML = detailHtml + chartHtml;
 
                 // --- Draw waterfall ---
                 _drawBasisWaterfall(
-                    document.getElementById('phc-waterfall-canvas'),
+                    document.getElementById('phc-waterfall-container'),
                     gaugeSevere, sheCount, shdCount, floodCount,
                     gaugeSpread, propSpread
                 );
@@ -135,102 +134,44 @@ def get_js():
             }
 
             // ================================================================
-            // Basis waterfall — simple equal step-down
+            // Basis waterfall — simple table
             // ================================================================
-            function _drawBasisWaterfall(canvas, gaugeCount, sheCount, shdCount, propCount, gaugeSpread, propSpread) {
-                if (!canvas) return;
-                var ctx = canvas.getContext('2d');
-                var dpr = window.devicePixelRatio || 1;
-                var w = canvas.offsetWidth;
-                var h = canvas.offsetHeight;
-                canvas.width = w * dpr;
-                canvas.height = h * dpr;
-                ctx.scale(dpr, dpr);
-
-                var pad = { top: 30, bottom: 50, left: 20, right: 20 };
-                var plotW = w - pad.left - pad.right;
-                var plotH = h - pad.top - pad.bottom;
-
+            function _drawBasisWaterfall(container, gaugeCount, sheCount, shdCount, propCount, gaugeSpread, propSpread) {
                 var steps = [
-                    { label: 'Gauge Severe', count: gaugeCount, color: '#F44336', spread: gaugeSpread },
-                    { label: 'SHE', count: sheCount, color: '#FF9800', spread: sheCount / 20000 * 10000 },
-                    { label: 'SHD', count: shdCount, color: '#4CAF50', spread: shdCount / 20000 * 10000 },
-                    { label: 'Property', count: propCount, color: '#1976D2', spread: propSpread },
+                    { label: 'Gauge Severe', count: gaugeCount, spread: gaugeSpread, color: '#F44336', bg: '#FFEBEE' },
+                    { label: 'SHE (elevation)', count: sheCount, spread: sheCount / 20000 * 10000, color: '#E65100', bg: '#FFF3E0' },
+                    { label: 'SHD (distance)', count: shdCount, spread: shdCount / 20000 * 10000, color: '#2E7D32', bg: '#E8F5E9' },
+                    { label: 'Property', count: propCount, spread: propSpread, color: '#1565C0', bg: '#E3F2FD' },
                 ];
 
-                // Equal vertical steps — each bar drops by the same visual amount
-                var nSteps = steps.length;
-                var stepH = plotH / nSteps;
-                var barW = plotW / (nSteps * 2 - 1);
+                var maxCount = Math.max(gaugeCount, 1);
+                if (!container) return;
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;">';
+                html += '<thead><tr style="border-bottom:2px solid #ddd;font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' +
+                    '<th style="padding:6px 8px;text-align:left;">Stage</th>' +
+                    '<th style="padding:6px 8px;text-align:right;">Storms</th>' +
+                    '<th style="padding:6px 8px;text-align:right;">Spread</th>' +
+                    '<th style="padding:6px 8px;text-align:right;">Loss</th>' +
+                    '<th style="padding:6px 12px;text-align:left;width:45%;">Attenuation</th>' +
+                    '</tr></thead><tbody>';
 
                 steps.forEach(function(s, i) {
-                    var x = pad.left + i * barW * 2;
-                    var barTop = pad.top + i * stepH;
-                    var barH = plotH - i * stepH;
+                    var loss = i > 0 ? steps[i - 1].count - s.count : 0;
+                    var lossPct = i > 0 && steps[i - 1].count > 0 ? (loss / steps[i - 1].count * 100).toFixed(0) : '';
+                    var barPct = maxCount > 0 ? (s.count / maxCount * 100) : 0;
 
-                    // Bar fill
-                    ctx.fillStyle = s.color + '25';
-                    ctx.fillRect(x, barTop, barW, barH);
-                    ctx.strokeStyle = s.color;
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(x, barTop, barW, barH);
-
-                    // Coloured cap
-                    ctx.fillStyle = s.color + '55';
-                    ctx.fillRect(x, barTop, barW, Math.min(barH, 6));
-
-                    // Count + spread above bar
-                    ctx.textAlign = 'center';
-                    ctx.fillStyle = s.color;
-                    ctx.font = 'bold 14px Arial';
-                    ctx.fillText(s.count.toLocaleString(), x + barW / 2, barTop - 8);
-                    ctx.font = '10px Arial';
-                    ctx.fillStyle = '#777';
-                    ctx.fillText(s.spread.toFixed(0) + 'bp', x + barW / 2, barTop - 22);
-
-                    // Label at bottom
-                    ctx.fillStyle = '#444';
-                    ctx.font = '10px Arial';
-                    ctx.fillText(s.label, x + barW / 2, pad.top + plotH + 14);
-
-                    // Connector to next step
-                    if (i < nSteps - 1) {
-                        var nextX = pad.left + (i + 1) * barW * 2;
-                        var nextTop = pad.top + (i + 1) * stepH;
-
-                        // Horizontal dashed line
-                        ctx.setLineDash([3, 3]);
-                        ctx.strokeStyle = '#ccc';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(x + barW, barTop);
-                        ctx.lineTo(nextX, barTop);
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-
-                        // Drop arrow
-                        var midX = x + barW + (nextX - x - barW) / 2;
-                        ctx.strokeStyle = '#E5393580';
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.moveTo(midX, barTop + 4);
-                        ctx.lineTo(midX, nextTop - 4);
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.moveTo(midX - 3, nextTop - 9);
-                        ctx.lineTo(midX, nextTop - 4);
-                        ctx.lineTo(midX + 3, nextTop - 9);
-                        ctx.stroke();
-
-                        // Loss label
-                        var loss = s.count - steps[i + 1].count;
-                        if (loss > 0) {
-                            ctx.fillStyle = '#E5393580';
-                            ctx.font = '9px Arial';
-                            ctx.textAlign = 'center';
-                            ctx.fillText('-' + loss.toLocaleString(), midX, (barTop + nextTop) / 2 + 4);
-                        }
-                    }
+                    html += '<tr style="border-bottom:1px solid #f0f0f0;">' +
+                        '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label + '</td>' +
+                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + s.count.toLocaleString() + '</td>' +
+                        '<td style="padding:8px;text-align:right;color:#555;">' + s.spread.toFixed(1) + 'bp</td>' +
+                        '<td style="padding:8px;text-align:right;color:#E53935;">' + (loss > 0 ? '-' + loss.toLocaleString() + ' (' + lossPct + '%)' : '') + '</td>' +
+                        '<td style="padding:8px 12px;">' +
+                        '<div style="background:#f5f5f5;border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
+                        '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:3px 0 0 3px;"></div>' +
+                        '</div></td></tr>';
                 });
+
+                html += '</tbody></table>';
+                container.insertAdjacentHTML('beforeend', html);
             }
 """
