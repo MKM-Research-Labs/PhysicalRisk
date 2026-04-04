@@ -22,14 +22,18 @@
 Property hazard curve and PRS pricing visualization.
 
 Interactive Chart.js tabbed panel showing property-level hazard curves,
-term structures, 6-component PRS pricing, and basis analysis against
-nearest gauges.
+term structures, 6-component PRS pricing, and Basis Explorer with
+storm journey visualisation (Gauge -> SHE -> SHD -> Property).
 
 Sub-modules:
 - phc_hazard: Hazard Curve tab (exceedance probability, GEV)
 - phc_term: Term Structure tab (survival probability, hazard rates)
 - phc_prs: PRS Pricing tab (controls, pricer, cashflows, commit)
-- phc_basis: Basis Analysis tab (gauge basis bar chart)
+- phc_basis: Basis Analysis (legacy, retained for backward compat)
+- phc_basis_gauge: Basis Explorer — Gauge sub-tab
+- phc_basis_she: Basis Explorer — SHE sub-tab
+- phc_basis_shd: Basis Explorer — SHD sub-tab
+- phc_basis_property: Basis Explorer — Property sub-tab
 """
 
 from typing import Any, Dict
@@ -38,6 +42,7 @@ import folium
 
 from visual.interactivity.panel_mixin import FoliumPanelMixin
 from . import phc_hazard, phc_term, phc_prs, phc_basis
+from . import phc_basis_gauge, phc_basis_she, phc_basis_shd, phc_basis_property
 
 
 class PropertyHazardCurvePanel(FoliumPanelMixin):
@@ -68,6 +73,10 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
 {phc_term.get_js()}
 {phc_prs.get_js()}
 {phc_basis.get_js()}
+{phc_basis_gauge.get_js()}
+{phc_basis_she.get_js()}
+{phc_basis_shd.get_js()}
+{phc_basis_property.get_js()}
 
             // ==============================================================
             // Panel creation
@@ -105,13 +114,20 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 header.appendChild(title);
                 header.appendChild(closeBtn);
 
+                // Basis summary strip — always visible, shows the storm journey
+                var basisStrip = document.createElement('div');
+                basisStrip.id = 'phc-basis-strip';
+                basisStrip.style.cssText =
+                    'display:none;padding:6px 16px;background:#f0f4f8;border-bottom:1px solid #e0e0e0;' +
+                    'font-size:11px;color:#555;';
+
                 // Tab bar
                 var tabBar = document.createElement('div');
                 tabBar.id = 'phc-tab-bar';
                 tabBar.style.cssText =
                     'display:flex;gap:0;border-bottom:2px solid #eee;padding:0 16px;background:#fafafa;';
 
-                var tabs = ['Hazard Curve', 'Term Structure', 'PRS Pricing', 'Basis Analysis'];
+                var tabs = ['Hazard Curve', 'Term Structure', 'PRS Pricing', 'Basis Explorer'];
                 tabs.forEach(function(name, i) {{
                     var tab = document.createElement('button');
                     tab.className = 'phc-tab';
@@ -160,6 +176,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 footer.appendChild(statusSpan);
 
                 phcPanel.appendChild(header);
+                phcPanel.appendChild(basisStrip);
                 phcPanel.appendChild(tabBar);
                 phcPanel.appendChild(controls);
                 phcPanel.appendChild(chartBox);
@@ -175,8 +192,15 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
             // ==============================================================
             var activeTab = 0;
 
+            // Basis Explorer state
+            var basisActiveSubTab = 0;
+            var basisSelectedStorm = null;
+            var basisSubTabNames = ['Gauge', 'SHE', 'SHD', 'Property'];
+
             function ensureCanvas() {{
                 var container = document.getElementById('phc-chart-container');
+                container.style.display = '';
+                container.style.flexDirection = '';
                 if (!document.getElementById('phc-chart') || document.getElementById('phc-chart').tagName !== 'CANVAS') {{
                     container.innerHTML = '';
                     var canvas = document.createElement('canvas');
@@ -196,14 +220,85 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 var controls = document.getElementById('phc-controls');
                 controls.style.display = idx === 2 ? 'block' : 'none';
 
+                // Remove basis sub-tab bar if switching away
+                var existingSubBar = document.getElementById('phc-basis-subtab-bar');
+                if (idx !== 3 && existingSubBar) {{
+                    existingSubBar.remove();
+                }}
+
                 if (!phcData) return;
 
-                if (idx !== 2) ensureCanvas();
+                if (idx !== 2 && idx !== 3) ensureCanvas();
 
                 if (idx === 0) renderHazardCurve();
                 else if (idx === 1) renderTermStructure();
                 else if (idx === 2) renderPRSPricing();
-                else if (idx === 3) renderBasisAnalysis();
+                else if (idx === 3) renderBasisExplorer();
+            }}
+
+            // ==============================================================
+            // Basis Explorer — nested sub-tab management
+            // ==============================================================
+            function renderBasisExplorer() {{
+                // Create sub-tab bar if not present
+                var subBar = document.getElementById('phc-basis-subtab-bar');
+                if (!subBar) {{
+                    subBar = document.createElement('div');
+                    subBar.id = 'phc-basis-subtab-bar';
+                    subBar.style.cssText =
+                        'display:flex;gap:0;border-bottom:1px solid #e0e0e0;padding:0 16px;' +
+                        'background:#f0f4f8;';
+
+                    basisSubTabNames.forEach(function(name, i) {{
+                        var btn = document.createElement('button');
+                        btn.className = 'phc-basis-subtab';
+                        btn.dataset.subtab = i;
+                        btn.textContent = name;
+                        btn.style.cssText =
+                            'padding:6px 14px;border:none;background:none;cursor:pointer;' +
+                            'font-size:11px;font-weight:600;color:#888;border-bottom:2px solid transparent;' +
+                            'margin-bottom:-1px;transition:all 0.2s;';
+                        btn.onclick = function() {{
+                            basisActiveSubTab = i;
+                            renderBasisSubTab(i);
+                        }};
+                        subBar.appendChild(btn);
+                    }});
+
+                    // Insert after controls area
+                    var controls = document.getElementById('phc-controls');
+                    controls.parentNode.insertBefore(subBar, controls.nextSibling);
+                }}
+
+                renderBasisSubTab(basisActiveSubTab);
+            }}
+
+            function renderBasisSubTab(idx) {{
+                basisActiveSubTab = idx;
+
+                // Update sub-tab styling
+                var subTabs = document.querySelectorAll('.phc-basis-subtab');
+                subTabs.forEach(function(t, i) {{
+                    t.style.color = i === idx ? '#1565C0' : '#888';
+                    t.style.borderBottomColor = i === idx ? '#1565C0' : 'transparent';
+                }});
+
+                // Destroy any existing charts before rendering
+                if (basisGaugeChart) {{ basisGaugeChart.destroy(); basisGaugeChart = null; }}
+                if (basisSHEChart) {{ basisSHEChart.destroy(); basisSHEChart = null; }}
+                if (basisSHDChart) {{ basisSHDChart.destroy(); basisSHDChart = null; }}
+                if (basisPropertyChart) {{ basisPropertyChart.destroy(); basisPropertyChart = null; }}
+                if (currentChart) {{ currentChart.destroy(); currentChart = null; }}
+
+                // Set container to flex-column for basis layouts
+                var container = document.getElementById('phc-chart-container');
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+
+                if (idx === 0) renderBasisGauge();
+                else if (idx === 1) renderBasisSHE();
+                else if (idx === 2) renderBasisSHD();
+                else if (idx === 3) renderBasisProperty();
             }}
 
             // ==============================================================
@@ -225,6 +320,14 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
             function hidePanel() {{
                 if (phcPanel) phcPanel.style.display = 'none';
                 if (currentChart) {{ currentChart.destroy(); currentChart = null; }}
+                if (basisGaugeChart) {{ basisGaugeChart.destroy(); basisGaugeChart = null; }}
+                if (basisSHEChart) {{ basisSHEChart.destroy(); basisSHEChart = null; }}
+                if (basisSHDChart) {{ basisSHDChart.destroy(); basisSHDChart = null; }}
+                if (basisPropertyChart) {{ basisPropertyChart.destroy(); basisPropertyChart = null; }}
+                var subBar = document.getElementById('phc-basis-subtab-bar');
+                if (subBar) subBar.remove();
+                basisSelectedStorm = null;
+                basisActiveSubTab = 0;
                 phcData = null;
                 console.log('[PropertyHazard] Panel closed');
             }}
@@ -274,16 +377,132 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                         console.warn('Counterparty data not available:', ctpyErr.message);
                     }}
 
+                    // Fetch SHE/SHD flood counts for basis strip
+                    try {{
+                        var [sheResp, shdResp] = await Promise.all([
+                            fetch(baseUrl + '/api/v1/properties/' + propertyId + '/she', {{mode: 'cors'}}),
+                            fetch(baseUrl + '/api/v1/properties/' + propertyId + '/shd', {{mode: 'cors'}}),
+                        ]);
+                        if (sheResp.ok) {{
+                            var sheData = await sheResp.json();
+                            if (sheData.status === 'success') phcData._she = sheData.data;
+                        }}
+                        if (shdResp.ok) {{
+                            var shdData = await shdResp.json();
+                            if (shdData.status === 'success') phcData._shd = shdData.data;
+                        }}
+                    }} catch (basisErr) {{
+                        console.warn('SHE/SHD data not available:', basisErr.message);
+                    }}
+
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
                     buildPRSControls();
+                    populateBasisStrip();
                     switchTab(activeTab);
                     var spread = (phcData.term_structure || {{}}).severe ? phcData.term_structure.severe.prs_spread_bps[0] : 0;
-                    status.textContent = propertyId + ' | ' + phcData.flood_count + ' floods | ' + spread.toFixed(1) + 'bp';
+                    // Gauge severe count from nearest gauges
+                    var ng0 = (phcData.nearest_gauges || [])[0] || {{}};
+                    var gaugeSevere = ng0.gauge_flood_count || 0;
+                    var propFloods = phcData.flood_count || 0;
+                    var basisEvents = gaugeSevere - propFloods;
+                    status.textContent = gaugeSevere + ' gauge severe \\u2192 ' + propFloods + ' property floods | basis: ' + basisEvents + ' events | spread: ' + spread.toFixed(1) + 'bp';
                 }} catch (error) {{
                     console.error('[PropertyHazard] Load error:', error);
                     status.textContent = 'Error: ' + error.message;
                     if (window.showError) window.showError('Could not connect to server');
                 }}
+            }}
+
+            // ==============================================================
+            // Basis summary strip — storm journey at a glance
+            // ==============================================================
+            function populateBasisStrip() {{
+                var strip = document.getElementById('phc-basis-strip');
+                if (!strip || !phcData) return;
+
+                var ng0 = (phcData.nearest_gauges || [])[0] || {{}};
+                var gaugeSevere = ng0.gauge_flood_count || 0;
+                var propFloods = phcData.flood_count || 0;
+                var sd = phcData.spread_decomposition || {{}};
+                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var propSpread = sd.property_spread_bps || 0;
+
+                // Physical measurements
+                var gaugeId = (ng0.gauge_id || '').substring(0, 18);
+                var gaugeElev = ng0.gauge_elevation_m || 0;
+                var propElev = phcData.elevation_m || 0;
+                var distKm = ng0.distance_km || 0;
+                var floorLevel = phcData.floor_level_m || 0;
+                var elevDiff = propElev - gaugeElev;
+                var thresholds = ng0.gauge_thresholds || {{}};
+                var severeLevel = thresholds.severe_level || 0;
+                var bankfull = Math.max(0, severeLevel - 0.5);
+                var effectiveDiff = elevDiff + floorLevel - 0.5;
+
+                // Storm counts at each stage
+                var storms = phcData.storm_details || [];
+                var gaugeCount = storms.filter(function(s) {{ return s.exceeded_severe; }}).length || gaugeSevere;
+                var sheCount = phcData._she ? (phcData._she.flood_count || 0) : '\\u2014';
+                var shdCount = phcData._shd ? (phcData._shd.flood_count || 0) : '\\u2014';
+
+                var chipStyle = 'display:inline-flex;align-items:center;gap:4px;padding:4px 10px;' +
+                    'border-radius:12px;font-weight:600;font-size:11px;';
+                var arrowStyle = 'color:#bbb;font-size:16px;margin:0 4px;';
+                var countStyle = 'font-size:15px;font-weight:700;';
+                var labelStyle = 'font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;';
+                var detailStyle = 'font-size:9px;color:#999;line-height:1.1;';
+
+                strip.innerHTML =
+                    '<div style="display:flex;align-items:center;gap:2px;">' +
+
+                    // Gauge
+                    '<div style="' + chipStyle + 'background:#FFEBEE;color:#C62828;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<span style="' + countStyle + '">' + gaugeCount + '</span>' +
+                    '<span style="' + labelStyle + '">gauge severe</span>' +
+                    '<span style="' + detailStyle + '">' + gaugeElev.toFixed(1) + 'm AOD</span>' +
+                    '<span style="' + detailStyle + '">severe: ' + severeLevel.toFixed(2) + 'm</span>' +
+                    '</div>' +
+
+                    '<span style="' + arrowStyle + '">\\u2192</span>' +
+
+                    // SHE (elevation)
+                    '<div style="' + chipStyle + 'background:#FFF3E0;color:#E65100;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<span style="' + countStyle + '">' + sheCount + '</span>' +
+                    '<span style="' + labelStyle + '">SHE</span>' +
+                    '<span style="' + detailStyle + '">elev +' + elevDiff.toFixed(1) + 'm</span>' +
+                    '<span style="' + detailStyle + '">floor +' + floorLevel.toFixed(1) + 'm</span>' +
+                    '</div>' +
+
+                    '<span style="' + arrowStyle + '">\\u2192</span>' +
+
+                    // SHD (distance)
+                    '<div style="' + chipStyle + 'background:#E8F5E9;color:#2E7D32;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<span style="' + countStyle + '">' + shdCount + '</span>' +
+                    '<span style="' + labelStyle + '">SHD</span>' +
+                    '<span style="' + detailStyle + '">' + distKm.toFixed(1) + 'km</span>' +
+                    '<span style="' + detailStyle + '">from gauge</span>' +
+                    '</div>' +
+
+                    '<span style="' + arrowStyle + '">\\u2192</span>' +
+
+                    // Property
+                    '<div style="' + chipStyle + 'background:#E3F2FD;color:#1565C0;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<span style="' + countStyle + '">' + propFloods + '</span>' +
+                    '<span style="' + labelStyle + '">property</span>' +
+                    '<span style="' + detailStyle + '">' + propElev.toFixed(1) + 'm AOD</span>' +
+                    '<span style="' + detailStyle + '">diff: ' + effectiveDiff.toFixed(1) + 'm</span>' +
+                    '</div>' +
+
+                    // Separator + spread summary
+                    '<div style="margin-left:12px;padding-left:12px;border-left:1px solid #ddd;font-size:10px;color:#666;line-height:1.5;">' +
+                    '<div><b>Gauge:</b> ' + gaugeId + '</div>' +
+                    '<div><b>Spread:</b> ' + gaugeSpread.toFixed(1) + 'bp \\u2192 ' + propSpread.toFixed(1) + 'bp</div>' +
+                    '<div><b>Basis:</b> ' + (propSpread - gaugeSpread >= 0 ? '+' : '') + (propSpread - gaugeSpread).toFixed(1) + 'bp</div>' +
+                    '</div>' +
+
+                    '</div>';
+
+                strip.style.display = 'block';
             }}
 
             // ==============================================================

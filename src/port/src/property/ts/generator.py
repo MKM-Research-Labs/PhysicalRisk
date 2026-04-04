@@ -108,6 +108,7 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
             'properties_with_floods': 0,
             'total_flood_events': 0,
             'total_storms_at_gauge': 0,
+            'total_severe_at_gauge': 0,
             'total_storms_at_property': 0,
             'max_depth_m': 0.0,
             'max_damage_ratio': 0.0,
@@ -122,6 +123,7 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
                     summary_stats['properties_with_floods'] += 1
                 summary_stats['total_flood_events'] += result['summary']['floods_at_property']
                 summary_stats['total_storms_at_gauge'] += result['summary']['floods_at_nearest_gauge']
+                summary_stats['total_severe_at_gauge'] += result['summary'].get('severe_at_nearest_gauge', 0)
                 summary_stats['total_storms_at_property'] += result['summary']['floods_at_property']
                 summary_stats['max_depth_m'] = max(
                     summary_stats['max_depth_m'], result['summary']['max_depth_m']
@@ -133,10 +135,11 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
             if (i + 1) % 50 == 0:
                 self.log(f"  Processed {i + 1}/{len(properties)} properties")
 
-        if summary_stats['total_storms_at_gauge'] > 0:
+        severe_total = summary_stats['total_severe_at_gauge']
+        if severe_total > 0:
             summary_stats['gauge_to_property_ratio'] = round(
                 summary_stats['total_storms_at_property'] /
-                summary_stats['total_storms_at_gauge'] * 100, 1
+                severe_total * 100, 1
             )
         else:
             summary_stats['gauge_to_property_ratio'] = 0.0
@@ -152,6 +155,7 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
                     'properties_with_floods': summary_stats['properties_with_floods'],
                     'total_flood_events': summary_stats['total_flood_events'],
                     'gauge_flood_events': summary_stats['total_storms_at_gauge'],
+                    'gauge_severe_events': summary_stats['total_severe_at_gauge'],
                     'property_flood_events': summary_stats['total_storms_at_property'],
                     'gauge_to_property_ratio_pct': summary_stats['gauge_to_property_ratio'],
                     'max_depth_m': round(summary_stats['max_depth_m'], 4),
@@ -162,7 +166,8 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
 
         self.log(f"Portfolio summary: {summary_path.name}")
         self.log(f"  Properties with floods: {summary_stats['properties_with_floods']}/{len(properties)}")
-        self.log(f"  Gauge floods: {summary_stats['total_storms_at_gauge']}")
+        self.log(f"  Gauge alert: {summary_stats['total_storms_at_gauge']}")
+        self.log(f"  Gauge severe: {summary_stats['total_severe_at_gauge']}")
         self.log(f"  Property floods: {summary_stats['total_storms_at_property']}")
         self.log(f"  Gauge→Property ratio: {summary_stats['gauge_to_property_ratio']}%")
         self.log(f"  Max depth: {summary_stats['max_depth_m']:.2f}m")

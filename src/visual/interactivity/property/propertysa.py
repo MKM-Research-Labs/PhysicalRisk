@@ -250,7 +250,8 @@ class PropertyStormAnalysis:
                     var nPropertyFloods = allEvents.filter(function(e) {{ return e.flooded; }}).length;
                     var summary = data.summary || {{}};
                     console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'property floods for', propertyId);
-                    status.textContent = summary.floods_at_nearest_gauge + ' gauge floods, ' + nPropertyFloods + ' property floods';
+                    var severeCount = summary.severe_at_nearest_gauge || summary.floods_at_nearest_gauge || 0;
+                    status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' property floods';
 
                     // Fetch mortgage data for mortgage impact tab
                     try {{

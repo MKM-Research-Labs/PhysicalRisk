@@ -48,15 +48,16 @@ def output_dir(tmp_path):
             {"gauge_id": "GAUGE-003", "distance_m": 3000, "gauge_elevation_m": 4.5},
         ],
         "flood_events": [
-            {"storm_id": "S1", "flood_depth_m": 0.5, "flooded": True, "damage_ratio": 0.25},
-            {"storm_id": "S2", "flood_depth_m": 1.2, "flooded": True, "damage_ratio": 0.42},
-            {"storm_id": "S3", "flood_depth_m": 0.3, "flooded": True, "damage_ratio": 0.15},
-            {"storm_id": "S4", "flood_depth_m": 2.1, "flooded": True, "damage_ratio": 0.60},
-            {"storm_id": "S5", "flood_depth_m": 0.8, "flooded": True, "damage_ratio": 0.35},
+            {"storm_id": "S1", "flood_depth_m": 0.5, "flooded": True, "damage_ratio": 0.25, "exceeded_severe": True},
+            {"storm_id": "S2", "flood_depth_m": 1.2, "flooded": True, "damage_ratio": 0.42, "exceeded_severe": True},
+            {"storm_id": "S3", "flood_depth_m": 0.3, "flooded": True, "damage_ratio": 0.15, "exceeded_severe": True},
+            {"storm_id": "S4", "flood_depth_m": 2.1, "flooded": True, "damage_ratio": 0.60, "exceeded_severe": True},
+            {"storm_id": "S5", "flood_depth_m": 0.8, "flooded": True, "damage_ratio": 0.35, "exceeded_severe": True},
         ],
         "summary": {
             "property_id": "PROP-001",
             "floods_at_nearest_gauge": 20,
+            "severe_at_nearest_gauge": 8,
             "floods_at_property": 5,
         },
     }
@@ -74,12 +75,13 @@ def output_dir(tmp_path):
             {"gauge_id": "GAUGE-001", "distance_m": 1500, "gauge_elevation_m": 3.5},
         ],
         "flood_events": [
-            {"storm_id": "S1", "flood_depth_m": 0.1, "flooded": True, "damage_ratio": 0.05},
-            {"storm_id": "S4", "flood_depth_m": 0.4, "flooded": True, "damage_ratio": 0.20},
+            {"storm_id": "S1", "flood_depth_m": 0.1, "flooded": True, "damage_ratio": 0.05, "exceeded_severe": True},
+            {"storm_id": "S4", "flood_depth_m": 0.4, "flooded": True, "damage_ratio": 0.20, "exceeded_severe": True},
         ],
         "summary": {
             "property_id": "PROP-002",
             "floods_at_nearest_gauge": 20,
+            "severe_at_nearest_gauge": 8,
             "floods_at_property": 2,
         },
     }
@@ -99,12 +101,13 @@ def output_dir(tmp_path):
         ],
         "flood_events": [
             {"storm_id": f"S{i}", "flood_depth_m": 0.2 + i * 0.1, "flooded": True,
-             "damage_ratio": 0.1 + i * 0.05}
+             "damage_ratio": 0.1 + i * 0.05, "exceeded_severe": True}
             for i in range(10)
         ],
         "summary": {
             "property_id": "PROP-003",
             "floods_at_nearest_gauge": 10,
+            "severe_at_nearest_gauge": 10,
             "floods_at_property": 10,
         },
     }
