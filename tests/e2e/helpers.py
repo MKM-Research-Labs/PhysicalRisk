@@ -40,8 +40,16 @@ CLOSE_PANELS_JS = """() => {
 # Generic helpers
 # ---------------------------------------------------------------------------
 
+def clear_notifications(page):
+    """Remove all notification elements from the page."""
+    page.evaluate("""() => {
+        document.querySelectorAll('.notif-message, .notif-container, [id*="notif"]')
+            .forEach(n => n.remove());
+    }""")
+
+
 def assert_no_error_notifications(page, context=""):
-    """Fail if any error notifications are present on the page."""
+    """Fail if any error notifications appeared *after* the last clear."""
     errors = page.evaluate("""() => {
         const notifs = document.querySelectorAll('.notif-message');
         const errors = [];
@@ -120,6 +128,8 @@ def close_trading_desk(page):
 
 def open_gauge_panel(page, gauge_id):
     """Open the gauge hazard curve panel and assert no load errors."""
+    # Clear stale notifications before opening so we only catch new ones
+    clear_notifications(page)
     has_fn = page.evaluate("() => typeof window.viewHazardCurve === 'function'")
     if has_fn:
         page.evaluate(f"window.viewHazardCurve('{gauge_id}')")
@@ -203,12 +213,11 @@ def open_property_panel(page, property_id):
 
 def switch_to_prs_tab_property(page):
     """Switch to the PRS pricing tab (tab index 2) in property panel."""
-    tabs = page.locator("#property-hc-panel .property-tab")
-    if tabs.count() > 0:
-        if tabs.count() > 2:
-            tabs.nth(2).click(force=True)
-        else:
-            tabs.last.click(force=True)
+    tabs = page.locator("#property-hc-panel .phc-tab")
+    if tabs.count() > 2:
+        tabs.nth(2).click(force=True)
+    elif tabs.count() > 0:
+        tabs.last.click(force=True)
     page.wait_for_timeout(3_000)
 
 

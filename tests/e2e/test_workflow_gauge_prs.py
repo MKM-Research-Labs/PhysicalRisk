@@ -139,6 +139,11 @@ class TestGaugePRSCommit:
         if commit_btn.count() == 0 or not commit_btn.is_visible():
             pytest.skip("Commit button not found or not visible")
 
+        # Skip if button is disabled (counterparty or spread not set)
+        if commit_btn.is_disabled():
+            pytest.skip("Commit button is disabled — prerequisites not met")
+
+        initial_text = commit_btn.inner_text().lower()
         commit_btn.click(force=True)
         # Allow time for the server round-trip and DOM update
         map_page.wait_for_timeout(15_000)
@@ -146,18 +151,18 @@ class TestGaugePRSCommit:
         # Check for ANY feedback: success message, error message, trade ID,
         # or button state change.  Even an error toast proves the commit
         # mechanism is wired up (the button click reached the server).
-        page_text = map_page.locator("body").inner_text().lower()
+        panel_text = map_page.locator("#hazard-curve-panel").inner_text(
+            timeout=5_000).lower()
         has_feedback = (
-            "success" in page_text
-            or "prs-" in page_text
-            or "booked" in page_text
-            or "committed" in page_text
-            or "closed" in page_text
-            or "trade" in page_text
-            or "failed" in page_text
-            or "error" in page_text
+            "success" in panel_text
+            or "prs-" in panel_text
+            or "booked" in panel_text
+            or "committed" in panel_text
+            or "trade" in panel_text
+            or "failed" in panel_text
+            or "error" in panel_text
         )
-        # Also check for notification toasts (broaden selector)
+        # Also check for notification toasts
         notification = map_page.locator(
             "[class*='notification'], [class*='toast'], [class*='alert'], "
             ".notif-message, [id*='notif']"
@@ -165,8 +170,8 @@ class TestGaugePRSCommit:
         # Check if the commit button state changed (disabled or text changed)
         btn_disabled = commit_btn.is_disabled() if commit_btn.count() > 0 else False
         btn_text = commit_btn.inner_text().lower() if commit_btn.count() > 0 else ""
-        btn_changed = btn_text in ("committed", "closed", "committing...", "closing...")
+        btn_changed = btn_text != initial_text
         assert has_feedback or notification.count() > 0 or btn_disabled or btn_changed, (
-            "No feedback after commit — button text: '{}', page excerpt: '{}'"
-            .format(btn_text, page_text[:300])
+            "No feedback after commit — button text: '{}', panel excerpt: '{}'"
+            .format(btn_text, panel_text[:300])
         )

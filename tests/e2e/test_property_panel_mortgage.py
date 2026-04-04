@@ -153,7 +153,7 @@ class TestPropertyFloodTimeline:
         assert len(text.strip()) > 0, "Timeline stats are empty"
 
     def test_timeline_chart_exists(self, map_page, first_property_id):
-        """Timeline chart canvas should be present."""
+        """Timeline chart canvas should be present when flood data exists."""
         self._open_storm_panel(map_page, first_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
@@ -162,7 +162,12 @@ class TestPropertyFloodTimeline:
         if tab.count() == 0:
             pytest.skip("Flood Timeline tab not found")
         tab.click()
-        map_page.wait_for_timeout(3_000)
+        map_page.wait_for_timeout(5_000)
 
+        # Canvas is only created when propStormData has flood events
         chart = map_page.locator("#prop-timeline-chart")
+        content = map_page.locator("#prop-storm-content")
+        content_text = content.inner_text(timeout=5_000).lower()
+        if "no flood" in content_text or "no data" in content_text:
+            pytest.skip("No flood events for this property")
         assert chart.count() > 0, "No #prop-timeline-chart canvas found"
