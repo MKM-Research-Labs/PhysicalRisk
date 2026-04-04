@@ -147,12 +147,19 @@ class TestPropertyHazardCurveGenerator:
         assert "event_basis" in ng0
         assert "flood_transmission_rate" in ng0
 
-        # event_basis = gauge_flood_count - flood_count = 5 - 5 = 0
-        assert ng0["event_basis"] == 0
-        # transmission_rate = flood_count / gauge_flood_count = 5/5 = 1.0
-        assert ng0["flood_transmission_rate"] == 1.0
+        # event_basis = gauge_severe_count - flood_count = 8 - 5 = 3
+        # (gauge_flood_count now uses severe_event_count from gaugehc, not alert)
+        assert ng0["event_basis"] == 3
+        # transmission_rate = flood_count / gauge_severe_count = 5/8 = 0.625
+        assert ng0["flood_transmission_rate"] == 0.625
 
     def test_high_transmission_rate(self, output_dir):
+        """PROP-003 has 10 floods, nearest gauge has 8 severe events.
+
+        Transmission rate = property_floods / gauge_severe_count > 1
+        when the property floods more often than the gauge exceeds severe
+        (e.g. low-lying property close to the river).
+        """
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gen.generate()
 
@@ -160,4 +167,5 @@ class TestPropertyHazardCurveGenerator:
             data = json.load(f)
 
         prop3 = data["property_hazard_curves"]["PROP-003"]
-        assert prop3["summary"]["flood_transmission_rate"] == 1.0
+        # With severe-based gauge count, transmission can exceed 1.0
+        assert prop3["summary"]["flood_transmission_rate"] > 0

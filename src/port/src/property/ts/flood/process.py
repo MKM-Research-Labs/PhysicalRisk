@@ -102,6 +102,13 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
 
         floods_at_gauge = len(alert_storms)
 
+        # Count storms that exceeded severe at any gauge — this is the
+        # correct starting point for PRS basis analysis, not alert.
+        severe_at_gauge = 0
+        for seq_id, gauge_resps in alert_storms.items():
+            if any(r.get('exceeded_severe', False) for r in gauge_resps.values()):
+                severe_at_gauge += 1
+
         flood_events = []
         for storm_id, gauge_responses in alert_storms.items():
             event = self._compute_property_flood(
@@ -110,6 +117,11 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
                 gaugets, mode=mode, terrain_type=terrain_type,
             )
             if event:
+                # Carry the gauge exceedance flags through to the event
+                event['exceeded_severe'] = any(
+                    r.get('exceeded_severe', False)
+                    for r in gauge_responses.values()
+                )
                 flood_events.append(event)
 
         floods_at_property = sum(1 for e in flood_events if e.get('flooded'))
@@ -129,10 +141,11 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
                 for ng in nearest
             ],
             'floods_at_nearest_gauge': floods_at_gauge,
+            'severe_at_nearest_gauge': severe_at_gauge,
             'floods_at_property': floods_at_property,
             'gauge_to_property_ratio': round(
-                floods_at_property / floods_at_gauge * 100, 1
-            ) if floods_at_gauge > 0 else 0.0,
+                floods_at_property / severe_at_gauge * 100, 1
+            ) if severe_at_gauge > 0 else 0.0,
             'max_depth_m': round(max_depth, 4),
             'max_damage_ratio': round(max_damage, 4),
         }

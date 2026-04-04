@@ -101,7 +101,7 @@ def get_js() -> str:
 
                 // Stats
                 var meanDepth = depths.reduce(function(a, b) { return a + b; }, 0) / depths.length;
-                var gaugeFloods = summary.floods_at_nearest_gauge || 0;
+                var gaugeFloods = summary.severe_at_nearest_gauge || summary.floods_at_nearest_gauge || 0;
                 var propFloods = summary.floods_at_property || 0;
                 var ratio = gaugeFloods > 0 ? (propFloods / gaugeFloods * 100).toFixed(1) : '0.0';
 
@@ -110,7 +110,7 @@ def get_js() -> str:
                     '<span>Mean depth: <b>' + meanDepth.toFixed(2) + 'm</b></span>',
                     '<span>Max depth: <b>' + maxDepth.toFixed(2) + 'm</b></span>',
                     '<span>Max damage: <b>' + ((summary.max_damage_ratio || 0) * 100).toFixed(1) + '%</b></span>',
-                    '<span>Gauge floods: <b>' + gaugeFloods + '</b></span>',
+                    '<span>Gauge severe: <b>' + gaugeFloods + '</b></span>',
                     '<span>Gauge&rarr;Property: <b>' + ratio + '%</b></span>',
                     '<span>Elevation: <b>' + (info.elevation_m || 0).toFixed(1) + 'm</b></span>',
                     '<span>Floor level: <b>' + (info.floor_level_m || 0).toFixed(2) + 'm</b></span>',

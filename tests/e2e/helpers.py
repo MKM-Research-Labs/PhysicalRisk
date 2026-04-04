@@ -212,6 +212,24 @@ def switch_to_prs_tab_property(page):
     page.wait_for_timeout(3_000)
 
 
+def switch_to_basis_explorer_tab(page):
+    """Switch to the Basis Explorer tab (tab index 3) in property panel."""
+    tabs = page.locator("#property-hc-panel .phc-tab")
+    if tabs.count() > 3:
+        tabs.nth(3).click(force=True)
+    elif tabs.count() > 0:
+        tabs.last.click(force=True)
+    page.wait_for_timeout(2_000)
+
+
+def switch_basis_sub_tab(page, sub_tab_index):
+    """Switch to a Basis Explorer sub-tab by index (0=Gauge, 1=SHE, 2=SHD, 3=Property)."""
+    sub_tabs = page.locator(".phc-basis-subtab")
+    if sub_tabs.count() > sub_tab_index:
+        sub_tabs.nth(sub_tab_index).click(force=True)
+    page.wait_for_timeout(2_000)
+
+
 # ---------------------------------------------------------------------------
 # Governance panel helpers
 # ---------------------------------------------------------------------------

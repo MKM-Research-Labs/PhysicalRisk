@@ -53,14 +53,22 @@ class PricingMixin:
             if not gauge_hc:
                 continue
 
-            gauge_flood_count = len(flood_events)  # storms processed at gauge
+            # Gauge severe count from gaugehc (Monte Carlo)
+            gauge_severe_count = self._get_gauge_severe_count(gauge_hc)
+            # Count property floods that came from severe gauge events
+            # (not alert-only) — this is the hedged subset
+            severe_and_flooded = sum(
+                1 for e in flood_events
+                if e.get('flooded', False) and e.get('exceeded_severe', False)
+            )
+            gauge_flood_count = gauge_severe_count
+            # Transmission rate: fraction of severe gauge events that reach
+            # the property.  By definition <= 1 (gauge is on the river).
             transmission_rate = (
-                flood_count / gauge_flood_count
+                severe_and_flooded / gauge_flood_count
                 if gauge_flood_count > 0 else 0.0
             )
 
-            # Gauge spread from its severe event count
-            gauge_severe_count = self._get_gauge_severe_count(gauge_hc)
             gauge_spread_bps = round((gauge_severe_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0
 
             basis_at_tenors = [round(gauge_spread_bps - spread_bps, 2)] * len(TENORS)
@@ -71,15 +79,26 @@ class PricingMixin:
                 },
             }
 
+            # Gauge threshold levels for visualisation
+            gauge_thresholds = {}
+            g_info = ng.get('gauge_info') or {}
+            if g_info:
+                gauge_thresholds = {
+                    'alert_level': round(g_info.get('alert_level', 0), 2),
+                    'warning_level': round(g_info.get('warning_level', 0), 2),
+                    'severe_level': round(g_info.get('severe_level', 0), 2),
+                }
+
             nearest_basis.append({
                 'gauge_id': gid,
                 'distance_km': round(ng.get('distance_m', 0) / 1000, 2),
                 'gauge_elevation_m': round(ng.get('gauge_elevation_m', 0), 2),
                 'gauge_flood_count': gauge_flood_count,
-                'property_flood_count': flood_count,
-                'event_basis': gauge_flood_count - flood_count,
+                'property_flood_count': severe_and_flooded,
+                'event_basis': gauge_flood_count - severe_and_flooded,
                 'flood_transmission_rate': round(transmission_rate, 4),
                 'basis_bps': basis_bps,
+                'gauge_thresholds': gauge_thresholds,
             })
 
         # Summary — use synthetic gauge basis as primary
@@ -146,6 +165,19 @@ class PricingMixin:
             'mean_depth_m': round(float(np.mean(flood_depths)), 4) if flood_depths else 0.0,
         }
 
+        # Per-storm details for Basis Explorer visualisation
+        storm_details = []
+        for e in flood_events:
+            storm_details.append({
+                'storm_id': e.get('storm_id', ''),
+                'gauge_peak_m': round(e.get('interpolated_wse_m', 0), 4),
+                'flood_depth_m': round(e.get('flood_depth_m', 0), 4),
+                'damage_ratio': round(e.get('damage_ratio', 0), 4),
+                'flooded': e.get('flooded', False),
+                'exceeded_severe': e.get('exceeded_severe', False),
+                'retention_factor': round(e.get('retention_factor', 0), 4),
+            })
+
         return {
             'property_id': prop_id,
             'location': pdata.get('location', {}),
@@ -167,6 +199,7 @@ class PricingMixin:
             'nearest_gauges': nearest_basis,
             'idw_gauge_spreads': idw_gauge_spreads,
             'summary': summary_data,
+            'storm_details': storm_details,
         }
 
     @staticmethod
