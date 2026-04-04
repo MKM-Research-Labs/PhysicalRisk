@@ -165,21 +165,28 @@ def property_storms(prop_id: str):
         stages = gauge_stages.get(gid, {})
         ng['flood_stages'] = stages
 
-    # Count severe events at the synthetic (or nearest) gauge from gaugets
+    # Gauge severe count from GEV-calibrated annual_flood_prob_severe
+    # in gaugehc.json.  Use the synthetic gauge (controlling boundary);
+    # fall back to nearest real gauge.
     severe_at_gauge = 0
-    synth_gauge = next((ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
-    controlling_gauge = synth_gauge or (nearest[0] if nearest else None)
-    if controlling_gauge:
-        try:
-            gt_path = config.get_gaugets_dir() / f"{controlling_gauge['gauge_id']}.json"
-            with open(gt_path, 'r') as f:
-                gt_data = json.load(f)
-            severe_at_gauge = sum(
-                1 for r in gt_data.get('storm_responses', {}).get('responses', [])
-                if r.get('exceeded_severe', False)
-            )
-        except Exception:
-            pass
+    try:
+        hc_path = config.get_input_dir() / 'gaugehc.json'
+        seq_path = config.get_input_path('storm_sequences.json')
+        with open(hc_path, 'r') as f:
+            hc_data = json.load(f)
+        with open(seq_path, 'r') as f:
+            seq_data = json.load(f)
+        num_sequences = seq_data.get('num_sequences', len(seq_data.get('sequences', [])))
+
+        synth = next((ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
+        controlling = synth or (nearest[0] if nearest else None)
+        if controlling:
+            gid = controlling['gauge_id']
+            gauge_hc = hc_data.get('hazard_curves', {}).get(gid, {})
+            prob_severe = gauge_hc.get('annual_flood_prob_severe', 0)
+            severe_at_gauge = round(prob_severe * num_sequences)
+    except Exception:
+        pass
 
     summary = pdata.get('summary', {})
     summary['severe_at_nearest_gauge'] = severe_at_gauge
