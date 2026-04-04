@@ -135,7 +135,7 @@ def get_js():
             }
 
             // ================================================================
-            // Basis waterfall — staircase descending from gauge to property
+            // Basis waterfall — simple equal step-down
             // ================================================================
             function _drawBasisWaterfall(canvas, gaugeCount, sheCount, shdCount, propCount, gaugeSpread, propSpread) {
                 if (!canvas) return;
@@ -147,12 +147,10 @@ def get_js():
                 canvas.height = h * dpr;
                 ctx.scale(dpr, dpr);
 
-                var pad = { top: 40, bottom: 40, left: 55, right: 20 };
+                var pad = { top: 30, bottom: 50, left: 20, right: 20 };
                 var plotW = w - pad.left - pad.right;
                 var plotH = h - pad.top - pad.bottom;
 
-                // Waterfall steps: each column shows where we are,
-                // the drop between columns shows what was lost
                 var steps = [
                     { label: 'Gauge Severe', count: gaugeCount, color: '#F44336', spread: gaugeSpread },
                     { label: 'SHE', count: sheCount, color: '#FF9800', spread: sheCount / 20000 * 10000 },
@@ -160,78 +158,47 @@ def get_js():
                     { label: 'Property', count: propCount, color: '#1976D2', spread: propSpread },
                 ];
 
-                var maxCount = Math.max(gaugeCount, 1);
+                // Equal vertical steps — each bar drops by the same visual amount
+                var nSteps = steps.length;
+                var stepH = plotH / nSteps;
+                var barW = plotW / (nSteps * 2 - 1);
 
-                function yPos(count) {
-                    return pad.top + plotH * (1 - count / maxCount);
-                }
-
-                var colW = plotW / (steps.length * 2 - 1);
-                var barW = colW * 0.9;
-
-                // Grid lines
-                ctx.strokeStyle = '#f0f0f0';
-                ctx.lineWidth = 1;
-                var nTicks = 5;
-                for (var t = 0; t <= nTicks; t++) {
-                    var tickVal = Math.round(maxCount * t / nTicks);
-                    var tickY = yPos(tickVal);
-                    ctx.beginPath();
-                    ctx.moveTo(pad.left, tickY);
-                    ctx.lineTo(pad.left + plotW, tickY);
-                    ctx.stroke();
-                    ctx.fillStyle = '#aaa';
-                    ctx.font = '9px Arial';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(tickVal.toLocaleString(), pad.left - 5, tickY + 3);
-                }
-
-                // Draw each step
                 steps.forEach(function(s, i) {
-                    var colIdx = i * 2;
-                    var x = pad.left + colIdx * colW + (colW - barW) / 2;
-                    var barTop = yPos(s.count);
-                    var barBottom = yPos(0);
-                    var barH = barBottom - barTop;
+                    var x = pad.left + i * barW * 2;
+                    var barTop = pad.top + i * stepH;
+                    var barH = plotH - i * stepH;
 
-                    // Bar — filled from 0 up to count
-                    ctx.fillStyle = s.color + '22';
+                    // Bar fill
+                    ctx.fillStyle = s.color + '25';
                     ctx.fillRect(x, barTop, barW, barH);
                     ctx.strokeStyle = s.color;
                     ctx.lineWidth = 2;
                     ctx.strokeRect(x, barTop, barW, barH);
 
-                    // Solid fill for the "surviving" portion at top
-                    var fillH = Math.min(barH, 12);
-                    ctx.fillStyle = s.color + '66';
-                    ctx.fillRect(x, barTop, barW, fillH);
+                    // Coloured cap
+                    ctx.fillStyle = s.color + '55';
+                    ctx.fillRect(x, barTop, barW, Math.min(barH, 6));
 
-                    // Count inside bar near top
-                    ctx.fillStyle = s.color;
-                    ctx.font = 'bold 13px Arial';
+                    // Count + spread above bar
                     ctx.textAlign = 'center';
-                    var countY = barTop + Math.max(fillH + 14, 18);
-                    if (barH < 30) countY = barTop - 5;
-                    ctx.fillText(s.count.toLocaleString(), x + barW / 2, countY);
-
-                    // Spread label above bar
+                    ctx.fillStyle = s.color;
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillText(s.count.toLocaleString(), x + barW / 2, barTop - 8);
                     ctx.font = '10px Arial';
-                    ctx.fillStyle = '#666';
-                    ctx.fillText(s.spread.toFixed(0) + 'bp', x + barW / 2, barTop - 8);
+                    ctx.fillStyle = '#777';
+                    ctx.fillText(s.spread.toFixed(0) + 'bp', x + barW / 2, barTop - 22);
 
-                    // Stage label below
-                    ctx.fillStyle = '#555';
+                    // Label at bottom
+                    ctx.fillStyle = '#444';
                     ctx.font = '10px Arial';
-                    ctx.fillText(s.label, x + barW / 2, barBottom + 14);
+                    ctx.fillText(s.label, x + barW / 2, pad.top + plotH + 14);
 
-                    // Drop connector to next step
-                    if (i < steps.length - 1) {
-                        var nextS = steps[i + 1];
-                        var nextColIdx = (i + 1) * 2;
-                        var nextX = pad.left + nextColIdx * colW + (colW - barW) / 2;
-                        var nextTop = yPos(nextS.count);
+                    // Connector to next step
+                    if (i < nSteps - 1) {
+                        var nextX = pad.left + (i + 1) * barW * 2;
+                        var nextTop = pad.top + (i + 1) * stepH;
 
-                        // Horizontal dashed line at current level
+                        // Horizontal dashed line
                         ctx.setLineDash([3, 3]);
                         ctx.strokeStyle = '#ccc';
                         ctx.lineWidth = 1;
@@ -241,57 +208,29 @@ def get_js():
                         ctx.stroke();
                         ctx.setLineDash([]);
 
-                        // Drop zone (shaded red area showing loss)
-                        var dropX = pad.left + (colIdx + 1) * colW;
-                        var dropW = colW * 0.6;
-                        var dropLeft = dropX + (colW - dropW) / 2;
-                        if (nextTop > barTop) {
-                            ctx.fillStyle = '#F4433615';
-                            ctx.fillRect(dropLeft, barTop, dropW, nextTop - barTop);
+                        // Drop arrow
+                        var midX = x + barW + (nextX - x - barW) / 2;
+                        ctx.strokeStyle = '#E5393580';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(midX, barTop + 4);
+                        ctx.lineTo(midX, nextTop - 4);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(midX - 3, nextTop - 9);
+                        ctx.lineTo(midX, nextTop - 4);
+                        ctx.lineTo(midX + 3, nextTop - 9);
+                        ctx.stroke();
 
-                            // Drop arrow
-                            var midX = dropLeft + dropW / 2;
-                            ctx.strokeStyle = '#F44336AA';
-                            ctx.lineWidth = 1.5;
-                            ctx.beginPath();
-                            ctx.moveTo(midX, barTop + 4);
-                            ctx.lineTo(midX, nextTop - 4);
-                            ctx.stroke();
-                            // Arrow head
-                            ctx.beginPath();
-                            ctx.moveTo(midX - 3, nextTop - 9);
-                            ctx.lineTo(midX, nextTop - 4);
-                            ctx.lineTo(midX + 3, nextTop - 9);
-                            ctx.stroke();
-
-                            // Loss count
-                            var loss = s.count - nextS.count;
-                            if (loss > 0 && (nextTop - barTop) > 20) {
-                                ctx.fillStyle = '#F4433699';
-                                ctx.font = '9px Arial';
-                                ctx.textAlign = 'center';
-                                ctx.fillText('-' + loss.toLocaleString(), midX, (barTop + nextTop) / 2 + 4);
-                            }
+                        // Loss label
+                        var loss = s.count - steps[i + 1].count;
+                        if (loss > 0) {
+                            ctx.fillStyle = '#E5393580';
+                            ctx.font = '9px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('-' + loss.toLocaleString(), midX, (barTop + nextTop) / 2 + 4);
                         }
                     }
                 });
-
-                // Y-axis line
-                ctx.strokeStyle = '#ddd';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(pad.left, pad.top);
-                ctx.lineTo(pad.left, pad.top + plotH);
-                ctx.stroke();
-
-                // Y-axis label
-                ctx.save();
-                ctx.translate(12, pad.top + plotH / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillStyle = '#888';
-                ctx.font = '10px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('Severe Storm Sequences', 0, 0);
-                ctx.restore();
             }
 """
