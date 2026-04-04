@@ -3,6 +3,8 @@
 
 """Shared helpers and caches for stress test endpoints."""
 
+from __future__ import annotations
+
 import json
 import math
 import logging

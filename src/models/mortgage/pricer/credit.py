@@ -8,6 +8,8 @@ from typing import Optional
 
 from scipy import interpolate
 
+from config.models import FLOOD_RISK_MULTIPLIERS
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,16 +31,6 @@ def create_credit_spread_function():
         kind='linear', bounds_error=False,
         fill_value=(credit_spreads[0], credit_spreads[-1])
     )
-
-
-# Flood risk credit spread multipliers, keyed by normalised (title-case) category
-FLOOD_RISK_MULTIPLIERS = {
-    'Very Low': 1.00,
-    'Low': 1.05,
-    'Medium': 1.20,
-    'High': 1.40,
-    'Very High': 1.75,
-}
 
 
 def calculate_flood_risk_impact(flood_risk_category: Optional[str] = None) -> float:

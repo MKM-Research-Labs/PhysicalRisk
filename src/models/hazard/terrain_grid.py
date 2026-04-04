@@ -9,22 +9,19 @@ and interpolated client-side when the user changes the EA zone dropdown.
 import math
 from typing import Dict, List
 
-from config.models import EA_FLOOD_ZONE_RATES
+from config.models import (
+    EA_FLOOD_ZONE_RATES,
+    ELEV_SCALE_M,
+    GRID_TENOR,
+    GRID_RECOVERY,
+    GRID_RISK_FREE_RATE,
+)
 from models.floodrisk.velocity import compute_retention
 from models.hazard.prs_analytical import compute_prs_spread
-
-# Elevation decay scale (metres).  At h = ELEV_SCALE_M the flood
-# probability drops to 1/e of the gauge rate.  Thames corridor calibration.
-ELEV_SCALE_M = 2.0
 
 # Grid resolution
 GRID_DISTANCES_M = list(range(0, 5001, 250))     # 0..5000 in 250m steps (21 pts)
 GRID_ELEVATIONS_M = [round(0.5 * i, 1) for i in range(11)]  # 0..5 in 0.5m steps (11 pts)
-
-# Pricing parameters (fixed for grid — matches sensitivity tables)
-GRID_TENOR = 5
-GRID_RECOVERY = 0.0
-GRID_RISK_FREE_RATE = 0.03
 
 
 def compute_terrain_grid() -> Dict:

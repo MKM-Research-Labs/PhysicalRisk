@@ -314,6 +314,32 @@ MAX_PREMIUM: int = 20_000
 
 
 # ===========================================================================
+# Terrain Grid  (hazard/terrain_grid.py)
+# ===========================================================================
+
+# Elevation decay scale (metres).  At h = ELEV_SCALE_M the flood
+# probability drops to 1/e of the gauge rate.  Thames corridor calibration.
+ELEV_SCALE_M = 2.0
+
+# Pricing parameters (fixed for grid — matches sensitivity tables)
+GRID_TENOR = 5
+GRID_RECOVERY = 0.0
+GRID_RISK_FREE_RATE = 0.03
+
+# ===========================================================================
+# Mortgage Credit  (mortgage/pricer/credit.py)
+# ===========================================================================
+
+# Flood risk credit spread multipliers, keyed by normalised (title-case) category
+FLOOD_RISK_MULTIPLIERS = {
+    'Very Low': 1.00,
+    'Low': 1.05,
+    'Medium': 1.20,
+    'High': 1.40,
+    'Very High': 1.75,
+}
+
+# ===========================================================================
 # Flood Poly — Polynomial Flood Probability Model  (models/stress/flood_poly.py)
 # ===========================================================================
 # Logistic sigmoid fitted to the GBM classifier surface (GAUGE-dc5e88fb).

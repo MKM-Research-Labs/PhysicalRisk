@@ -55,39 +55,34 @@ class TestPRSPricingTab:
         )
 
     def test_trigger_dropdown_options(self, map_page):
-        """Trigger dropdown should have alert, warning, severe options."""
+        """Trigger input should exist and have a valid default value."""
         trigger = map_page.locator("#prs-trigger")
-        assert trigger.count() > 0, "Trigger dropdown not found"
-        options_text = map_page.evaluate("""() => {
-            const sel = document.getElementById('prs-trigger');
-            if (!sel) return [];
-            return Array.from(sel.options).map(o => o.text.toLowerCase());
+        assert trigger.count() > 0, "Trigger input not found"
+        value = map_page.evaluate("""() => {
+            const el = document.getElementById('prs-trigger');
+            if (!el) return null;
+            return el.value;
         }""")
-        joined = " ".join(options_text)
-        assert "alert" in joined, f"No alert option in trigger: {options_text}"
-        assert "warning" in joined, f"No warning option in trigger: {options_text}"
-        assert "severe" in joined, f"No severe option in trigger: {options_text}"
+        assert value is not None, "Trigger input has no value"
+        assert value in ("alert", "warning", "severe"), \
+            f"Unexpected trigger value: {value}"
 
     def test_trigger_change_updates_display(self, map_page):
-        """Changing the trigger dropdown should update the hazard display."""
+        """Changing the trigger value should update the hazard display."""
         trigger = map_page.locator("#prs-trigger")
         if trigger.count() == 0:
-            pytest.skip("Trigger dropdown not found")
+            pytest.skip("Trigger input not found")
 
         # Read initial state
         initial_text = map_page.locator("#hazard-curve-panel").inner_text()
 
-        # Change trigger to a different value
-        options = map_page.evaluate("""() => {
-            const sel = document.getElementById('prs-trigger');
-            if (!sel) return [];
-            return Array.from(sel.options).map(o => o.value);
+        # Change trigger value and fire change event
+        map_page.evaluate("""() => {
+            const el = document.getElementById('prs-trigger');
+            if (!el) return;
+            el.value = el.value === 'severe' ? 'warning' : 'severe';
+            el.dispatchEvent(new Event('change'));
         }""")
-        if len(options) < 2:
-            pytest.skip("Not enough trigger options to test change")
-
-        # Select the last option (different from default first)
-        map_page.select_option("#prs-trigger", options[-1])
         map_page.wait_for_timeout(3_000)
 
         # The panel should still be showing content (not blank/error)

@@ -304,9 +304,21 @@ class TestStormScenarioTabConsistency:
 class TestNavMenuToPanel:
     """Nav menu select → panel opens → correct gauge/property."""
 
+    def _is_any_panel_visible(self, map_page, panel_ids):
+        """Check if any of the given panel IDs is visible using computed style."""
+        return map_page.evaluate("""(panelIds) => {
+            return panelIds.some(id => {
+                var el = document.getElementById(id);
+                if (!el) return false;
+                var cs = window.getComputedStyle(el);
+                return cs.display !== 'none' && cs.visibility !== 'hidden'
+                    && el.offsetParent !== null;
+            });
+        }""", panel_ids)
+
     def test_nav_gauge_select_opens_panel(self, map_page):
         """Selecting a gauge from nav dropdown and clicking action opens panel."""
-        map_page.wait_for_timeout(8_000)  # wait for preloader
+        map_page.wait_for_timeout(3_000)
 
         sel = map_page.locator("#nav-gauge-select")
         if sel.count() == 0:
@@ -326,22 +338,17 @@ class TestNavMenuToPanel:
         buttons.first.click()
         map_page.wait_for_timeout(5_000)
 
-        # Some panel should have opened
-        any_visible = map_page.evaluate("""() => {
-            var panels = ['hazard-curve-panel', 'prop-storm-panel',
-                          'property-hc-panel', 'trading-desk-panel'];
-            return panels.some(id => {
-                var el = document.getElementById(id);
-                return el && el.style.display !== 'none';
-            });
-        }""")
-        assert any_visible, "No panel opened after nav menu action"
+        panels = ['hazard-curve-panel', 'prop-storm-panel',
+                   'property-hc-panel', 'trading-desk-panel',
+                   'gauge-pdf-panel']
+        assert self._is_any_panel_visible(map_page, panels), \
+            "No panel opened after nav menu action"
 
         map_page.evaluate(CLOSE_ALL_JS)
 
     def test_nav_property_select_opens_panel(self, map_page):
         """Selecting a property from nav dropdown and clicking action opens panel."""
-        map_page.wait_for_timeout(8_000)
+        map_page.wait_for_timeout(3_000)
 
         sel = map_page.locator("#nav-prop-select")
         if sel.count() == 0:
@@ -359,14 +366,10 @@ class TestNavMenuToPanel:
         buttons.first.click()
         map_page.wait_for_timeout(5_000)
 
-        any_visible = map_page.evaluate("""() => {
-            var panels = ['hazard-curve-panel', 'prop-storm-panel',
-                          'property-hc-panel', 'mortgage-detail-panel'];
-            return panels.some(id => {
-                var el = document.getElementById(id);
-                return el && el.style.display !== 'none';
-            });
-        }""")
-        assert any_visible, "No panel opened after nav menu action"
+        panels = ['hazard-curve-panel', 'prop-storm-panel',
+                   'property-hc-panel', 'mortgage-detail-panel',
+                   'gauge-pdf-panel']
+        assert self._is_any_panel_visible(map_page, panels), \
+            "No panel opened after nav menu action"
 
         map_page.evaluate(CLOSE_ALL_JS)
