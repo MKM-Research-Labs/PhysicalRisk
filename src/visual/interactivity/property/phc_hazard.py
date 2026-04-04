@@ -18,17 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Property hazard curve — Hazard Curve tab (event count summary)."""
+"""Property hazard curve — Hazard Curve tab (basis waterfall + property detail)."""
 
 
 def get_js():
     """Return JS fragment for hazard curve tab (injected into parent IIFE)."""
     return """
             // ================================================================
-            // Tab 0: Hazard Curve — Event Count Summary
+            // Tab 0: Hazard Curve — Basis Waterfall + Property Detail
             // ================================================================
             function renderHazardCurve() {
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
+
+                var container = document.getElementById('phc-chart-container');
+                container.style.display = 'flex';
+                container.style.flexDirection = 'row';
 
                 var severe = (phcData.depth_thresholds || {}).severe || {};
                 var annualProb = severe.annual_probability || 0;
@@ -37,34 +41,245 @@ def get_js():
                 var summary = phcData.summary || {};
                 var zone = phcData.flood_zone || '';
                 var spreadBps = ((phcData.term_structure || {}).severe || {}).prs_spread_bps;
-                var spread = spreadBps ? spreadBps[0] : 0;
-
+                var propSpread = spreadBps ? spreadBps[0] : 0;
                 var rpStr = returnPeriod ? (returnPeriod.toFixed(0) + ' yr') : '\\u221E';
 
-                var container = document.getElementById('phc-chart-container');
-                container.innerHTML =
-                    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;padding:30px;">' +
-                    '<div style="text-align:center;">' +
-                    '<p style="font-size:14px;color:#888;margin-bottom:4px;">Monte Carlo Event Count</p>' +
-                    '<p style="font-size:48px;font-weight:bold;color:#1976D2;margin:0;">' + spread.toFixed(1) + ' <span style="font-size:20px;">bp</span></p>' +
-                    '<p style="font-size:13px;color:#666;margin-top:4px;">' + floodCount + ' severe floods / 20,000 scenarios</p>' +
-                    '</div>' +
-                    '<div style="display:flex;gap:40px;font-size:13px;">' +
-                    '<div style="text-align:center;"><span style="color:#888;">Zone</span><br><b style="font-size:16px;">' + zone + '</b></div>' +
-                    '<div style="text-align:center;"><span style="color:#888;">Annual Prob</span><br><b style="font-size:16px;">' + (annualProb * 100).toFixed(3) + '%</b></div>' +
-                    '<div style="text-align:center;"><span style="color:#888;">Return Period</span><br><b style="font-size:16px;">' + rpStr + '</b></div>' +
-                    '<div style="text-align:center;"><span style="color:#888;">Max Depth</span><br><b style="font-size:16px;">' + (summary.max_depth_m || 0).toFixed(2) + 'm</b></div>' +
-                    '<div style="text-align:center;"><span style="color:#888;">Mean Depth</span><br><b style="font-size:16px;">' + (summary.mean_depth_m || 0).toFixed(2) + 'm</b></div>' +
-                    '<div style="text-align:center;"><span style="color:#888;">Transmission</span><br><b style="font-size:16px;">' + ((summary.flood_transmission_rate || 0) * 100).toFixed(1) + '%</b></div>' +
-                    '</div>' +
+                // Gauge data
+                var nearestGauges = phcData.nearest_gauges || [];
+                var ng0 = nearestGauges[0] || {};
+                var gaugeSevere = phcData._severe_at_gauge || 0;
+                var gaugeSpread = gaugeSevere > 0 ? (gaugeSevere / 20000 * 10000) : 0;
+                var sheCount = phcData._she ? (phcData._she.flood_count || 0) : 0;
+                var shdCount = phcData._shd ? (phcData._shd.flood_count || 0) : 0;
+                var propElev = phcData.elevation_m || 0;
+                var floorLevel = phcData.floor_level_m || 0;
+
+                // --- Left panel: Detail ---
+                var lbl = 'font-size:10px;color:#888;';
+                var val = 'font-size:13px;font-weight:600;color:#333;';
+                var hdr = 'font-size:11px;font-weight:700;color:#555;margin:10px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #eee;padding-bottom:3px;';
+                var row = 'display:flex;justify-content:space-between;padding:2px 0;';
+
+                var gaugeRows = '';
+                nearestGauges.forEach(function(ng) {
+                    var isSynth = ng.gauge_id.indexOf('SYNTH') === 0;
+                    var icon = isSynth ? '\\u2605 ' : '';
+                    var tag = isSynth ? ' <span style="font-size:9px;color:#1976D2;background:#E3F2FD;padding:1px 4px;border-radius:3px;">controlling</span>' : '';
+                    gaugeRows +=
+                        '<div style="padding:4px 0;border-bottom:1px solid #f5f5f5;">' +
+                        '<div style="font-size:11px;font-weight:600;">' + icon + ng.gauge_id.substring(0, 20) + tag + '</div>' +
+                        '<div style="' + row + '"><span style="' + lbl + '">Distance</span><span style="' + val + '">' + (ng.distance_km || 0).toFixed(2) + 'km</span></div>' +
+                        '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + (ng.gauge_elevation_m || 0).toFixed(2) + 'm AOD</span></div>';
+                    var thr = ng.gauge_thresholds || {};
+                    if (thr.severe_level) {
+                        gaugeRows += '<div style="' + row + '"><span style="' + lbl + '">Severe</span><span style="' + val + 'color:#F44336;">' + thr.severe_level.toFixed(2) + 'm</span></div>';
+                    }
+                    gaugeRows += '</div>';
+                });
+
+                var elevDiff = propElev - (ng0.gauge_elevation_m || 0);
+                var effectiveDiff = elevDiff + floorLevel - 0.5;
+
+                var detailHtml =
+                    '<div style="width:300px;min-width:260px;padding:8px 12px;overflow-y:auto;border-right:1px solid #eee;font-size:12px;">' +
+
+                    // Property section
+                    '<div style="' + hdr + '">Property</div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + propElev.toFixed(2) + 'm AOD</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Floor level</span><span style="' + val + '">' + floorLevel.toFixed(2) + 'm</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Flood zone</span><span style="' + val + '">' + zone + '</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Height diff</span><span style="' + val + '">' + elevDiff.toFixed(2) + 'm</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Effective diff</span><span style="' + val + 'color:#E65100;">' + effectiveDiff.toFixed(2) + 'm</span></div>' +
+
+                    // Gauges section
+                    '<div style="' + hdr + '">Nearest Gauges</div>' +
+                    gaugeRows +
+
+                    // Pricing summary
+                    '<div style="' + hdr + '">Pricing</div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Scenarios</span><span style="' + val + '">20,000</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Property floods</span><span style="' + val + '">' + floodCount + '</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Property spread</span><span style="' + val + 'color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Annual prob</span><span style="' + val + '">' + (annualProb * 100).toFixed(3) + '%</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Return period</span><span style="' + val + '">' + rpStr + '</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Max depth</span><span style="' + val + '">' + (summary.max_depth_m || 0).toFixed(2) + 'm</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Mean depth</span><span style="' + val + '">' + (summary.mean_depth_m || 0).toFixed(2) + 'm</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Transmission</span><span style="' + val + '">' + (gaugeSevere > 0 ? (floodCount / gaugeSevere * 100).toFixed(2) : '0') + '%</span></div>' +
+
                     '</div>';
 
+                // --- Right panel: Waterfall chart ---
+                var chartHtml =
+                    '<div style="flex:1;display:flex;flex-direction:column;padding:8px;">' +
+                    '<div style="text-align:center;font-size:12px;font-weight:600;color:#555;padding:4px 0;">Basis Waterfall: Storm Attenuation</div>' +
+                    '<canvas id="phc-waterfall-canvas" style="flex:1;"></canvas>' +
+                    '</div>';
+
+                container.innerHTML = detailHtml + chartHtml;
+
+                // --- Draw waterfall ---
+                _drawBasisWaterfall(
+                    document.getElementById('phc-waterfall-canvas'),
+                    gaugeSevere, sheCount, shdCount, floodCount,
+                    gaugeSpread, propSpread
+                );
+
                 var bar = document.getElementById('phc-stats-bar');
-                bar.innerHTML = [
-                    '<span style="color:#1976D2;font-weight:bold;">Event Count</span>',
-                    '<span><b>Zone:</b> ' + zone + '</span>',
-                    '<span><b>Floods:</b> ' + floodCount + '</span>',
-                    '<span><b>Spread:</b> <span style="color:#1976D2;">' + spread.toFixed(1) + ' bp</span></span>'
-                ].join('');
+                var basis = gaugeSpread - propSpread;
+                bar.innerHTML =
+                    '<span><b>Gauge:</b> ' + gaugeSevere + ' severe (' + gaugeSpread.toFixed(1) + 'bp)</span>' +
+                    '<span><b>SHE:</b> ' + sheCount + ' (' + (sheCount/20000*10000).toFixed(1) + 'bp)</span>' +
+                    '<span><b>SHD:</b> ' + shdCount + ' (' + (shdCount/20000*10000).toFixed(1) + 'bp)</span>' +
+                    '<span><b>Property:</b> ' + floodCount + ' (' + propSpread.toFixed(1) + 'bp)</span>' +
+                    '<span><b>Basis:</b> <span style="color:#E65100;">' + basis.toFixed(1) + 'bp</span></span>';
+            }
+
+            // ================================================================
+            // Basis waterfall — descending steps from gauge to property
+            // ================================================================
+            function _drawBasisWaterfall(canvas, gaugeCount, sheCount, shdCount, propCount, gaugeSpread, propSpread) {
+                if (!canvas) return;
+                var ctx = canvas.getContext('2d');
+                var dpr = window.devicePixelRatio || 1;
+                var w = canvas.offsetWidth;
+                var h = canvas.offsetHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                ctx.scale(dpr, dpr);
+
+                var pad = { top: 20, bottom: 50, left: 60, right: 30 };
+                var plotW = w - pad.left - pad.right;
+                var plotH = h - pad.top - pad.bottom;
+
+                // Data — 4 stages plus loss bars between them
+                var stages = [
+                    { label: 'Gauge\\nSevere', count: gaugeCount, color: '#F44336', spread: gaugeSpread },
+                    { label: 'SHE', count: sheCount, color: '#FF9800', spread: sheCount / 20000 * 10000 },
+                    { label: 'SHD', count: shdCount, color: '#4CAF50', spread: shdCount / 20000 * 10000 },
+                    { label: 'Property', count: propCount, color: '#1976D2', spread: propSpread },
+                ];
+
+                var maxCount = Math.max(gaugeCount, sheCount, shdCount, propCount, 1);
+
+                function yPos(count) {
+                    return pad.top + plotH * (1 - count / maxCount);
+                }
+
+                // Bar width and positions
+                var nBars = stages.length;
+                var barGap = plotW * 0.15;
+                var barW = (plotW - barGap * (nBars - 1)) / nBars;
+
+                // Draw bars
+                stages.forEach(function(s, i) {
+                    var x = pad.left + i * (barW + barGap);
+                    var barTop = yPos(s.count);
+                    var barH = plotH - (barTop - pad.top);
+
+                    // Bar fill
+                    ctx.fillStyle = s.color + '33';
+                    ctx.fillRect(x, barTop, barW, barH);
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, barTop, barW, barH);
+
+                    // Count label on top of bar
+                    ctx.fillStyle = s.color;
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(s.count.toLocaleString(), x + barW / 2, barTop - 6);
+
+                    // Spread label below count
+                    ctx.font = '10px Arial';
+                    ctx.fillStyle = '#888';
+                    ctx.fillText(s.spread.toFixed(1) + 'bp', x + barW / 2, barTop - 20);
+
+                    // Stage label at bottom
+                    ctx.fillStyle = '#555';
+                    ctx.font = '11px Arial';
+                    ctx.textAlign = 'center';
+                    var lines = s.label.split('\\n');
+                    lines.forEach(function(line, li) {
+                        ctx.fillText(line, x + barW / 2, pad.top + plotH + 16 + li * 14);
+                    });
+
+                    // Connector line to next bar (dashed, showing the drop)
+                    if (i < nBars - 1) {
+                        var nextS = stages[i + 1];
+                        var nextX = pad.left + (i + 1) * (barW + barGap);
+                        var nextTop = yPos(nextS.count);
+
+                        // Horizontal line from top of current bar to next
+                        ctx.setLineDash([4, 3]);
+                        ctx.strokeStyle = '#ccc';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(x + barW, barTop);
+                        ctx.lineTo(nextX, barTop);
+                        ctx.stroke();
+
+                        // Drop arrow
+                        var dropMidX = x + barW + barGap / 2;
+                        ctx.strokeStyle = '#F44336AA';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(dropMidX, barTop + 2);
+                        ctx.lineTo(dropMidX, nextTop - 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        // Arrow head
+                        ctx.beginPath();
+                        ctx.moveTo(dropMidX - 4, nextTop - 8);
+                        ctx.lineTo(dropMidX, nextTop - 2);
+                        ctx.lineTo(dropMidX + 4, nextTop - 8);
+                        ctx.strokeStyle = '#F44336AA';
+                        ctx.stroke();
+
+                        // Loss label
+                        var loss = s.count - nextS.count;
+                        if (loss > 0) {
+                            ctx.fillStyle = '#F4433699';
+                            ctx.font = '9px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('-' + loss.toLocaleString(), dropMidX, (barTop + nextTop) / 2 + 4);
+                        }
+                    }
+                });
+
+                // Y-axis
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(pad.left, pad.top);
+                ctx.lineTo(pad.left, pad.top + plotH);
+                ctx.stroke();
+
+                // Y-axis ticks
+                ctx.fillStyle = '#999';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'right';
+                var nTicks = 5;
+                for (var t = 0; t <= nTicks; t++) {
+                    var tickVal = Math.round(maxCount * t / nTicks);
+                    var tickY = yPos(tickVal);
+                    ctx.fillText(tickVal.toLocaleString(), pad.left - 6, tickY + 3);
+                    ctx.strokeStyle = '#f0f0f0';
+                    ctx.beginPath();
+                    ctx.moveTo(pad.left, tickY);
+                    ctx.lineTo(pad.left + plotW, tickY);
+                    ctx.stroke();
+                }
+
+                // Y-axis label
+                ctx.save();
+                ctx.translate(14, pad.top + plotH / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillStyle = '#888';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Storm Sequences', 0, 0);
+                ctx.restore();
             }
 """
