@@ -228,7 +228,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
 
                 if (!phcData) return;
 
-                if (idx !== 2 && idx !== 3) ensureCanvas();
+                if (idx !== 0 && idx !== 2 && idx !== 3) ensureCanvas();
 
                 if (idx === 0) renderHazardCurve();
                 else if (idx === 1) renderTermStructure();
