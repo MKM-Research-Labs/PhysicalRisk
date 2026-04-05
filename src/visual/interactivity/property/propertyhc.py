@@ -396,6 +396,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                             var stormsData = await stormsResp.json();
                             if (stormsData.status === 'success') {{
                                 phcData._severe_at_gauge = (stormsData.summary || {{}}).severe_at_nearest_gauge || 0;
+                                phcData._storms_data = stormsData;
                             }}
                         }}
                     }} catch (basisErr) {{
@@ -430,8 +431,9 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 var gaugeSevere = phcData._severe_at_gauge || 0;
                 var propFloods = phcData.flood_count || 0;
                 var sd = phcData.spread_decomposition || {{}};
-                var gaugeSpread = sd.gauge_spread_bps || (gaugeSevere > 0 ? (gaugeSevere / 20000 * 10000) : 0);
-                var propSpread = sd.property_spread_bps || 0;
+                // Gauge spread from GEV severe count — consistent with waterfall
+                var gaugeSpread = gaugeSevere > 0 ? (gaugeSevere / 20000 * 10000) : (sd.gauge_spread_bps || 0);
+                var propSpread = propFloods > 0 ? (propFloods / 20000 * 10000) : 0;
 
                 // Physical measurements
                 var gaugeId = (ng0.gauge_id || '').substring(0, 18);
@@ -440,9 +442,6 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 var distKm = ng0.distance_km || 0;
                 var floorLevel = phcData.floor_level_m || 0;
                 var elevDiff = propElev - gaugeElev;
-                var thresholds = ng0.gauge_thresholds || {{}};
-                var severeLevel = thresholds.severe_level || 0;
-                var bankfull = Math.max(0, severeLevel - 0.5);
                 var effectiveDiff = elevDiff + floorLevel - 0.5;
 
                 // Storm counts at each stage
@@ -465,8 +464,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     '<div style="' + chipStyle + 'background:#FFEBEE;color:#C62828;flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + gaugeCount + '</span>' +
                     '<span style="' + labelStyle + '">gauge severe</span>' +
-                    '<span style="' + detailStyle + '">' + gaugeElev.toFixed(1) + 'm AOD</span>' +
-                    '<span style="' + detailStyle + '">severe: ' + severeLevel.toFixed(2) + 'm</span>' +
+                    '<span style="' + detailStyle + '">' + gaugeSpread.toFixed(0) + 'bp</span>' +
                     '</div>' +
 
                     '<span style="' + arrowStyle + '">\\u2192</span>' +
@@ -475,8 +473,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     '<div style="' + chipStyle + 'background:#FFF3E0;color:#E65100;flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + sheCount + '</span>' +
                     '<span style="' + labelStyle + '">SHE</span>' +
-                    '<span style="' + detailStyle + '">elev +' + elevDiff.toFixed(1) + 'm</span>' +
-                    '<span style="' + detailStyle + '">floor +' + floorLevel.toFixed(1) + 'm</span>' +
+                    '<span style="' + detailStyle + '">+' + elevDiff.toFixed(1) + 'm +' + floorLevel.toFixed(1) + 'm</span>' +
                     '</div>' +
 
                     '<span style="' + arrowStyle + '">\\u2192</span>' +
@@ -486,7 +483,6 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     '<span style="' + countStyle + '">' + shdCount + '</span>' +
                     '<span style="' + labelStyle + '">SHD</span>' +
                     '<span style="' + detailStyle + '">' + distKm.toFixed(1) + 'km</span>' +
-                    '<span style="' + detailStyle + '">from gauge</span>' +
                     '</div>' +
 
                     '<span style="' + arrowStyle + '">\\u2192</span>' +
@@ -495,15 +491,14 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     '<div style="' + chipStyle + 'background:#E3F2FD;color:#1565C0;flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + propFloods + '</span>' +
                     '<span style="' + labelStyle + '">property</span>' +
-                    '<span style="' + detailStyle + '">' + propElev.toFixed(1) + 'm AOD</span>' +
-                    '<span style="' + detailStyle + '">diff: ' + effectiveDiff.toFixed(1) + 'm</span>' +
+                    '<span style="' + detailStyle + '">' + propSpread.toFixed(1) + 'bp</span>' +
                     '</div>' +
 
                     // Separator + spread summary
                     '<div style="margin-left:12px;padding-left:12px;border-left:1px solid #ddd;font-size:10px;color:#666;line-height:1.5;">' +
                     '<div><b>Gauge:</b> ' + gaugeId + '</div>' +
                     '<div><b>Spread:</b> ' + gaugeSpread.toFixed(1) + 'bp \\u2192 ' + propSpread.toFixed(1) + 'bp</div>' +
-                    '<div><b>Basis:</b> ' + (propSpread - gaugeSpread >= 0 ? '+' : '') + (propSpread - gaugeSpread).toFixed(1) + 'bp</div>' +
+                    '<div><b>Basis:</b> ' + (gaugeSpread - propSpread).toFixed(1) + 'bp</div>' +
                     '</div>' +
 
                     '</div>';

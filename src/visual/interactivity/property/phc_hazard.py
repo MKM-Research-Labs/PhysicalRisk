@@ -60,19 +60,28 @@ def get_js():
                 var hdr = 'font-size:11px;font-weight:700;color:#555;margin:10px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #eee;padding-bottom:3px;';
                 var row = 'display:flex;justify-content:space-between;padding:2px 0;';
 
+                // Gauge info — fetch severe counts from storms data if available
+                var stormsData = phcData._storms_data || {};
+                var stormsNearestGauges = stormsData.nearest_gauges || [];
+
                 var gaugeRows = '';
                 nearestGauges.forEach(function(ng) {
                     var isSynth = ng.gauge_id.indexOf('SYNTH') === 0;
                     var icon = isSynth ? '\\u2605 ' : '';
                     var tag = isSynth ? ' <span style="font-size:9px;color:#1976D2;background:#E3F2FD;padding:1px 4px;border-radius:3px;">controlling</span>' : '';
+
+                    // Find severe count from storms endpoint
+                    var stormGauge = stormsNearestGauges.find(function(sg) { return sg.gauge_id === ng.gauge_id; }) || {};
+                    var sevCount = stormGauge.severe_count;
+                    var sevSpread = stormGauge.severe_spread_bps;
+
                     gaugeRows +=
                         '<div style="padding:4px 0;border-bottom:1px solid #f5f5f5;">' +
                         '<div style="font-size:11px;font-weight:600;">' + icon + ng.gauge_id.substring(0, 20) + tag + '</div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Distance</span><span style="' + val + '">' + (ng.distance_km || 0).toFixed(2) + 'km</span></div>' +
-                        '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + (ng.gauge_elevation_m || 0).toFixed(2) + 'm AOD</span></div>';
-                    var thr = ng.gauge_thresholds || {};
-                    if (thr.severe_level) {
-                        gaugeRows += '<div style="' + row + '"><span style="' + lbl + '">Severe</span><span style="' + val + 'color:#F44336;">' + thr.severe_level.toFixed(2) + 'm</span></div>';
+                        '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + (ng.gauge_elevation_m || 0).toFixed(1) + 'm</span></div>';
+                    if (sevCount !== undefined) {
+                        gaugeRows += '<div style="' + row + '"><span style="' + lbl + '">Severe storms</span><span style="' + val + 'color:#F44336;">' + sevCount + ' (' + (sevSpread || 0).toFixed(0) + 'bp)</span></div>';
                     }
                     gaugeRows += '</div>';
                 });
@@ -85,7 +94,7 @@ def get_js():
 
                     // Property section
                     '<div style="' + hdr + '">Property</div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + propElev.toFixed(2) + 'm AOD</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + propElev.toFixed(2) + 'm</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Floor level</span><span style="' + val + '">' + floorLevel.toFixed(2) + 'm</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Flood zone</span><span style="' + val + '">' + zone + '</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Height diff</span><span style="' + val + '">' + elevDiff.toFixed(2) + 'm</span></div>' +

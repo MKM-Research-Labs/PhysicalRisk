@@ -165,9 +165,8 @@ def property_storms(prop_id: str):
         stages = gauge_stages.get(gid, {})
         ng['flood_stages'] = stages
 
-    # Gauge severe count from GEV-calibrated annual_flood_prob_severe
-    # in gaugehc.json.  Use the synthetic gauge (controlling boundary);
-    # fall back to nearest real gauge.
+    # Gauge severe counts from GEV annual_flood_prob_severe in gaugehc.
+    # Compute per-gauge and use synthetic as the controlling total.
     severe_at_gauge = 0
     try:
         hc_path = config.get_input_dir() / 'gaugehc.json'
@@ -180,11 +179,16 @@ def property_storms(prop_id: str):
 
         synth = next((ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
         controlling = synth or (nearest[0] if nearest else None)
-        if controlling:
-            gid = controlling['gauge_id']
+
+        for ng in nearest:
+            gid = ng.get('gauge_id', '')
             gauge_hc = hc_data.get('hazard_curves', {}).get(gid, {})
-            prob_severe = gauge_hc.get('annual_flood_prob_severe', 0)
-            severe_at_gauge = round(prob_severe * num_sequences)
+            prob = gauge_hc.get('annual_flood_prob_severe', 0)
+            ng['severe_count'] = round(prob * num_sequences)
+            ng['severe_spread_bps'] = round(prob * 10000, 1)
+
+        if controlling:
+            severe_at_gauge = controlling.get('severe_count', 0)
     except Exception:
         pass
 
