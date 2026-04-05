@@ -97,8 +97,6 @@ def get_js():
                     '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + propElev.toFixed(2) + 'm</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Floor level</span><span style="' + val + '">' + floorLevel.toFixed(2) + 'm</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Flood zone</span><span style="' + val + '">' + zone + '</span></div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Height diff</span><span style="' + val + '">' + elevDiff.toFixed(2) + 'm</span></div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Effective diff</span><span style="' + val + 'color:#E65100;">' + effectiveDiff.toFixed(2) + 'm</span></div>' +
 
                     // Gauges section
                     '<div style="' + hdr + '">Nearest Gauges</div>' +
