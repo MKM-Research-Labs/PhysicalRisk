@@ -473,7 +473,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                     '<div style="' + chipStyle + 'background:#FFF3E0;color:#E65100;flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + sheCount + '</span>' +
                     '<span style="' + labelStyle + '">SHE</span>' +
-                    '<span style="' + detailStyle + '">+' + elevDiff.toFixed(1) + 'm +' + floorLevel.toFixed(1) + 'm</span>' +
+                    '<span style="' + detailStyle + '">+' + elevDiff.toFixed(1) + 'm</span>' +
                     '</div>' +
 
                     '<span style="' + arrowStyle + '">\\u2192</span>' +
