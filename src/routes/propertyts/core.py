@@ -186,6 +186,7 @@ def property_storms(prop_id: str):
             prob = gauge_hc.get('annual_flood_prob_severe', 0)
             ng['severe_count'] = round(prob * num_sequences)
             ng['severe_spread_bps'] = round(prob * 10000, 1)
+            ng['gauge_name'] = gauge_hc.get('gauge_name', gid)
 
         if controlling:
             severe_at_gauge = controlling.get('severe_count', 0)

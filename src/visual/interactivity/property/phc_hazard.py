@@ -70,14 +70,15 @@ def get_js():
                     var icon = isSynth ? '\\u2605 ' : '';
                     var tag = isSynth ? ' <span style="font-size:9px;color:#1976D2;background:#E3F2FD;padding:1px 4px;border-radius:3px;">controlling</span>' : '';
 
-                    // Find severe count from storms endpoint
+                    // Find severe count and name from storms endpoint
                     var stormGauge = stormsNearestGauges.find(function(sg) { return sg.gauge_id === ng.gauge_id; }) || {};
                     var sevCount = stormGauge.severe_count;
                     var sevSpread = stormGauge.severe_spread_bps;
+                    var gaugeName = stormGauge.gauge_name || ng.gauge_id;
 
                     gaugeRows +=
                         '<div style="padding:4px 0;border-bottom:1px solid #f5f5f5;">' +
-                        '<div style="font-size:11px;font-weight:600;">' + icon + ng.gauge_id.substring(0, 20) + tag + '</div>' +
+                        '<div style="font-size:11px;font-weight:600;">' + icon + gaugeName + tag + '</div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Distance</span><span style="' + val + '">' + (ng.distance_km || 0).toFixed(2) + 'km</span></div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + (ng.gauge_elevation_m || 0).toFixed(1) + 'm</span></div>';
                     if (sevCount !== undefined) {

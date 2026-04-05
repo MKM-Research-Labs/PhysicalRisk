@@ -436,7 +436,9 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 var propSpread = propFloods > 0 ? (propFloods / 20000 * 10000) : 0;
 
                 // Physical measurements
-                var gaugeId = (ng0.gauge_id || '').substring(0, 18);
+                var stormsGauges = (phcData._storms_data || {{}}).nearest_gauges || [];
+                var stormGauge0 = stormsGauges.find(function(sg) {{ return sg.gauge_id === ng0.gauge_id; }}) || {{}};
+                var gaugeName = stormGauge0.gauge_name || (ng0.gauge_id || '').substring(0, 18);
                 var gaugeElev = ng0.gauge_elevation_m || 0;
                 var propElev = phcData.elevation_m || 0;
                 var distKm = ng0.distance_km || 0;
@@ -496,7 +498,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
 
                     // Separator + spread summary
                     '<div style="margin-left:12px;padding-left:12px;border-left:1px solid #ddd;font-size:10px;color:#666;line-height:1.5;">' +
-                    '<div><b>Gauge:</b> ' + gaugeId + '</div>' +
+                    '<div><b>Gauge:</b> ' + gaugeName + '</div>' +
                     '<div><b>Spread:</b> ' + gaugeSpread.toFixed(1) + 'bp \\u2192 ' + propSpread.toFixed(1) + 'bp</div>' +
                     '<div><b>Basis:</b> ' + (gaugeSpread - propSpread).toFixed(1) + 'bp</div>' +
                     '</div>' +
