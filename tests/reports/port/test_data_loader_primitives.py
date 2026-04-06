@@ -237,6 +237,57 @@ def input_dir(tmp_path):
     return d
 
 
+class TestTradingCountException:
+    """Cover lines 85-88: exception in trading count loading."""
+
+    def test_trade_count_zero_on_config_error(self, tmp_path, monkeypatch):
+        from reports.port.data_loader import DataLoaderMixin
+
+        class _Loader(DataLoaderMixin):
+            def __init__(self):
+                self.input_dir = tmp_path
+
+        loader = _Loader()
+        # Make the local `from config import config` raise inside the try block
+        import builtins
+        real_import = builtins.__import__
+        def fail_config(name, *args, **kwargs):
+            if name == "config":
+                raise ImportError("forced config failure")
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", fail_config)
+        data = loader._load_all()
+        assert data["trade_count"] == 0
+        assert data["eod_count"] == 0
+
+
+class TestGaugehdBaselineException:
+    """Cover lines 116-118: malformed gaugehd file."""
+
+    def test_malformed_gaugehd_file_skipped(self, tmp_path):
+        from reports.port.data_loader import DataLoaderMixin
+
+        class _Loader(DataLoaderMixin):
+            def __init__(self):
+                self.input_dir = tmp_path
+
+        gaugehd_dir = tmp_path / "gaugehd"
+        gaugehd_dir.mkdir()
+        # Write a malformed file that will trigger exception
+        (gaugehd_dir / "gauge_GAUGE-001_hd.json").write_text("NOT JSON")
+        # Write a valid file
+        (gaugehd_dir / "gauge_GAUGE-002_hd.json").write_text(
+            '{"gauge_metadata": {"gauge_id": "G2"}, '
+            '"statistics": {"mean_level": 1.5, "monthly_means": {"12": "1.6", "01": "1.7", "02": "1.8", "06": "1.2", "07": "1.1", "08": "1.0"}}}'
+        )
+
+        loader = _Loader()
+        baselines = loader._load_gaugehd_baselines(gaugehd_dir)
+        # Malformed file skipped, valid file loaded
+        assert len(baselines) == 1
+        assert baselines[0]["gauge_id"] == "G2"
+
+
 class _LoaderHelper(DataLoaderMixin):
     def __init__(self, input_dir):
         self.input_dir = Path(input_dir)

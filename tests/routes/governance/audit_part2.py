@@ -156,3 +156,25 @@ class TestPdfEndpoints:
     def test_mrc_tor_pdf_responds(self, gov_client):
         r = gov_client.get("/api/v1/governance/mrc/terms-of-reference/pdf")
         assert r.status_code in (200, 404)
+
+    def test_analysis_pdf_unknown_model_404(self, gov_client):
+        r = gov_client.get("/api/v1/governance/models/GHOST/analysis/pdf")
+        assert r.status_code == 404
+        assert r.get_json()["status"] == "error"
+        assert "No documentation directory" in r.get_json()["message"]
+
+    def test_analysis_pdf_known_model_no_file_404(self, gov_client):
+        r = gov_client.get("/api/v1/governance/models/MKM-SI-001/analysis/pdf")
+        # Model dir exists but analysis.pdf likely not yet generated
+        assert r.status_code in (200, 404)
+
+    def test_analysis_pdf_valid_returns_pdf(self, gov_client, tmp_path, monkeypatch):
+        from routes.governance import audit as _audit
+        monkeypatch.setattr(_audit, "_docs_dir", str(tmp_path))
+        monkeypatch.setattr(_audit, "_MODEL_DOC_DIRS", {"MKM-X": "xmodel"})
+        d = tmp_path / "xmodel"
+        d.mkdir()
+        (d / "analysis.pdf").write_bytes(b"%PDF-1.4 fake")
+        r = gov_client.get("/api/v1/governance/models/MKM-X/analysis/pdf")
+        assert r.status_code == 200
+        assert r.content_type == "application/pdf"

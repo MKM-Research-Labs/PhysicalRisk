@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.12)  4 APR 2026 18:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.12)  6 APR 2026 07:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -69626,7 +69626,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 15360--15360
  []
 
 [492] [493] [494] [495] [496] [497] [498] [499] [500] [501] [502] [503]
-[504] [505] [506] [507] [508] [509]
+[504] [505] [506] [507] [508]
 
 enddocument/afterlastpage: lastpage setting LastPage.
 
@@ -69644,8 +69644,8 @@ Package rerunfilecheck Info: File `test_report.out' has not changed.
 (rerunfilecheck)             Checksum: 172C4063DDE80192371DD1BAF2E6699A;4350.
  ) 
 Here is how much of TeX's memory you used:
- 19201 strings out of 474116
- 321136 string characters out of 5743682
+ 19193 strings out of 474116
+ 321032 string characters out of 5743682
  2228187 words of memory out of 5000000
  40639 multiletter control sequences out of 15000+600000
  566637 words of font info for 68 fonts, out of 8000000 for 9000
@@ -69665,10 +69665,10 @@ live/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/local/texli
 ve/2024/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb></usr/local/texlive
 /2024/texmf-dist/fonts/type1/public/cm-super/sftt0800.pfb>
 Output written on /Users/newdavid/Documents/PhysicalRisk/docs/models/test_resul
-ts/test_report.pdf (510 pages, 1757917 bytes).
+ts/test_report.pdf (509 pages, 1755080 bytes).
 PDF statistics:
- 3118 PDF objects out of 3580 (max. 8388607)
- 2552 compressed objects within 26 object streams
- 657 named destinations out of 1000 (max. 500000)
+ 3105 PDF objects out of 3580 (max. 8388607)
+ 2540 compressed objects within 26 object streams
+ 649 named destinations out of 1000 (max. 500000)
  174 words of extra memory for PDF output out of 10000 (max. 10000000)
 

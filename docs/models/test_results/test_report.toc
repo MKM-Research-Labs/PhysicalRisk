@@ -31,4 +31,3 @@
 \contentsline {paragraph}{test\_03\_set\_trade\_parameters[chromium]}{235}{section*.33}%
 \contentsline {paragraph}{test\_commit\_triggers\_response[chromium]}{235}{section*.34}%
 \contentsline {section}{\numberline {A}Platform Infrastructure Tests}{236}{appendix.A}%
-\contentsline {paragraph}{test\_eod\_dates\_are\_business\_days}{508}{section*.37}%
