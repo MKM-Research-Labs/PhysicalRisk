@@ -153,12 +153,10 @@ def _run_data_lineage_tests(project_root, audit_dir):
 
     lineage_xml = os.path.join(audit_dir, 'data_lineage_junit.xml')
     lineage_test_dir = os.path.join(str(project_root), 'tests', 'data')
-    lineage_test_files = [
-        os.path.join(lineage_test_dir, 'test_id_consistency_pipeline_part1.py'),
-        os.path.join(lineage_test_dir, 'test_id_consistency_pipeline_part2.py'),
-        os.path.join(lineage_test_dir, 'test_id_consistency_gauges.py'),
-    ]
-    lineage_test_files = [f for f in lineage_test_files if os.path.exists(f)]
+    import glob as _glob
+    lineage_test_files = sorted(
+        _glob.glob(os.path.join(lineage_test_dir, 'test_id_consistency_*.py'))
+    )
 
     if not lineage_test_files:
         print('  Skipped: no test_id_consistency_*.py files found')

@@ -111,3 +111,20 @@ def gauge_title_js(name_var: str = 'gName', id_var: str = 'gaugeId') -> str:
         JavaScript expression string, safe for embedding directly in JS source.
     """
     return f"({name_var} ? {name_var} + ' (' + {id_var} + ')' : {id_var})"
+
+
+def property_title_js(id_var: str = 'propertyId') -> str:
+    """
+    Return the JavaScript expression that builds a property display label.
+
+    Currently uses just the property ID.  When property display names are
+    added to the data model, update this function to use them — all visual
+    modules that import this will pick up the change automatically.
+
+    Args:
+        id_var: JavaScript variable holding the property ID string.
+
+    Returns:
+        JavaScript expression string, safe for embedding directly in JS source.
+    """
+    return id_var
