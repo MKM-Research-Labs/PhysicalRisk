@@ -31,6 +31,7 @@ Usage:
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from xml.sax.saxutils import escape as _xml_escape
 from datetime import datetime
 from pathlib import Path
 
@@ -1148,8 +1149,8 @@ def _build_e2e(styles) -> list:
             Paragraph('<b>Error</b>', styles['tbl_hdr']),
         ]]
         for f in failures[:15]:
-            name = f.get('name', 'unknown')
-            msg = f.get('message', '')
+            name = _xml_escape(f.get('name', 'unknown'))
+            msg = _xml_escape(f.get('message', ''))
             if len(msg) > 300:
                 msg = msg[:300] + '...'
             fail_data.append([
