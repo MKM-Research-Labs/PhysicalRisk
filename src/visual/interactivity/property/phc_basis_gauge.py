@@ -83,7 +83,10 @@ def get_js() -> str:
                     '</div>';
 
                 container.innerHTML = summaryHtml +
-                    '<canvas id="basis-gauge-canvas" style="flex:1;"></canvas>';
+                    '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
+                    '<canvas id="basis-gauge-canvas" style="flex:1;"></canvas>' +
+                    '<canvas id="basis-gauge-waterfall" style="width:35%;min-width:220px;"></canvas>' +
+                    '</div>';
 
                 var ctx = document.getElementById('basis-gauge-canvas').getContext('2d');
 
@@ -180,6 +183,9 @@ def get_js() -> str:
                         basisGaugeChart.update();
                     }
                 }
+
+                // Spread waterfall (right panel)
+                _renderSpreadWaterfall('basis-gauge-waterfall', 0);
 
                 // Stats bar
                 var bar = document.getElementById('phc-stats-bar');

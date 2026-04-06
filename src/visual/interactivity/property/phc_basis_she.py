@@ -82,12 +82,6 @@ def get_js() -> str:
                     };
                 });
 
-                var colors = data.map(function(d) {
-                    if (d.reachesProperty) return '#4CAF50';
-                    if (d.isSevere) return '#FF9800';
-                    return '#BDBDBD';
-                });
-
                 // Summary
                 var summaryHtml =
                     '<div style="padding:8px 0 4px 0;font-size:12px;color:#555;">' +
@@ -98,11 +92,11 @@ def get_js() -> str:
                     '</b> severe storms produce water above property level' +
                     '</div>';
 
-                // Cross-section diagram (canvas) + scatter chart
+                // Cross-section diagram (canvas) + spread waterfall
                 container.innerHTML = summaryHtml +
                     '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
                     '<canvas id="basis-she-section" style="width:35%;min-width:250px;"></canvas>' +
-                    '<canvas id="basis-she-scatter" style="flex:1;"></canvas>' +
+                    '<canvas id="basis-she-waterfall" style="flex:1;"></canvas>' +
                     '</div>';
 
                 // --- Cross-section diagram ---
@@ -112,87 +106,8 @@ def get_js() -> str:
                     basisSelectedStorm ? sorted.find(function(s) { return s.storm_id === basisSelectedStorm; }) : null
                 );
 
-                // --- Scatter chart ---
-                var ctx2 = document.getElementById('basis-she-scatter').getContext('2d');
-
-                // Annotation: property flood threshold as horizontal line
-                var thresholdWSE = bankfull + floodThreshold;
-                var annotations = {};
-                annotations.propThreshold = {
-                    type: 'line', yMin: thresholdWSE, yMax: thresholdWSE,
-                    borderColor: '#1976D2', borderWidth: 2, borderDash: [6, 3],
-                    label: { display: true, content: 'Property threshold ' + thresholdWSE.toFixed(2) + 'm',
-                             position: 'start', backgroundColor: '#1976D2', color: '#fff',
-                             font: { size: 10 }, padding: 3 }
-                };
-                if (severeLevel > 0) {
-                    annotations.severeLine = {
-                        type: 'line', yMin: severeLevel, yMax: severeLevel,
-                        borderColor: '#F44336', borderWidth: 1.5, borderDash: [4, 4],
-                        label: { display: true, content: 'Severe',
-                                 position: 'end', backgroundColor: '#F44336', color: '#fff',
-                                 font: { size: 9 }, padding: 2 }
-                    };
-                }
-
-                basisSHEChart = new Chart(ctx2, {
-                    type: 'scatter',
-                    data: {
-                        datasets: [{
-                            label: 'Storm Peak',
-                            data: data,
-                            backgroundColor: colors,
-                            borderColor: colors,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        onClick: function(evt, elements) {
-                            if (elements.length > 0) {
-                                var idx = elements[0].index;
-                                basisSelectedStorm = data[idx].stormId;
-                                renderBasisSubTab(basisActiveSubTab);
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            annotation: { annotations: annotations },
-                            tooltip: {
-                                callbacks: {
-                                    title: function(items) { return 'Storm ' + data[items[0].dataIndex].stormId; },
-                                    label: function(ctx) {
-                                        var d = data[ctx.dataIndex];
-                                        var lines = ['Peak: ' + d.y.toFixed(3) + 'm'];
-                                        lines.push('Water above gauge: ' + d.waterAboveGauge.toFixed(3) + 'm');
-                                        lines.push(d.reachesProperty ? '\\u2705 Reaches property' : '\\u274C Below property level');
-                                        return lines;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: { display: true, text: 'Storm (sorted by peak)', font: { size: 11 } },
-                                ticks: { display: false },
-                            },
-                            y: {
-                                title: { display: true, text: 'Gauge Peak (m)', font: { size: 11 } },
-                                beginAtZero: false,
-                            }
-                        }
-                    }
-                });
-
-                if (basisSelectedStorm) {
-                    var selIdx = data.findIndex(function(d) { return d.stormId === basisSelectedStorm; });
-                    if (selIdx >= 0) {
-                        basisSHEChart.setActiveElements([{datasetIndex: 0, index: selIdx}]);
-                        basisSHEChart.update();
-                    }
-                }
+                // --- Spread waterfall (right panel) ---
+                _renderSpreadWaterfall('basis-she-waterfall', 1);
 
                 var bar = document.getElementById('phc-stats-bar');
                 if (bar) {

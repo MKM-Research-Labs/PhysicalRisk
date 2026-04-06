@@ -33,14 +33,14 @@ class TestBasisSHDJS:
 
     def test_two_canvas_layout(self, js):
         assert "basis-shd-decay" in js
-        assert "basis-shd-scatter" in js
+        assert "basis-shd-waterfall" in js
 
-    def test_scatter_chart_type(self, js):
-        assert "type: 'scatter'" in js
+    def test_waterfall_render_call(self, js):
+        assert "_renderSpreadWaterfall" in js
 
-    def test_colour_gradient_for_depth(self, js):
-        """Blue gradient for depth, grey for zero."""
-        assert "'#BDBDBD'" in js  # grey for zero
+    def test_storm_data_classification(self, js):
+        """Storm data sorted by flood depth."""
+        assert "flood_depth_m" in js
 
     def test_distance_decay_curve_drawn(self, js):
         """Decay curve: retention = 1 - d/25."""
@@ -75,8 +75,9 @@ class TestBasisSHDJS:
         assert "'Distance (km)'" in js
         assert "'Retention Factor'" in js
 
-    def test_tooltip_shows_retention(self, js):
-        assert "Retention:" in js
+    def test_retention_in_summary(self, js):
+        assert "Avg retention" in js
 
-    def test_tooltip_shows_flood_depth(self, js):
-        assert "Flood depth:" in js
+    def test_waterfall_renders_spread(self, js):
+        assert "_renderSpreadWaterfall" in js
+        assert "'basis-shd-waterfall'" in js

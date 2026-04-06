@@ -70,17 +70,6 @@ def get_js() -> str:
                     };
                 });
 
-                // Colour gradient: blue for depth, grey for zero
-                var maxDepth = Math.max.apply(null, data.map(function(d) { return d.y; }).concat([0.01]));
-                var colors = data.map(function(d) {
-                    if (d.y <= 0) return '#BDBDBD';
-                    var intensity = Math.min(1, d.y / maxDepth);
-                    var r = Math.round(33 + (1 - intensity) * 180);
-                    var g = Math.round(150 - intensity * 100);
-                    var b = Math.round(243 - intensity * 50);
-                    return 'rgb(' + r + ',' + g + ',' + b + ')';
-                });
-
                 // Summary
                 var avgRetention = 0;
                 storms.forEach(function(s) { avgRetention += s.retention_factor; });
@@ -97,7 +86,7 @@ def get_js() -> str:
                 container.innerHTML = summaryHtml +
                     '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
                     '<canvas id="basis-shd-decay" style="width:35%;min-width:250px;"></canvas>' +
-                    '<canvas id="basis-shd-scatter" style="flex:1;"></canvas>' +
+                    '<canvas id="basis-shd-waterfall" style="flex:1;"></canvas>' +
                     '</div>';
 
                 // --- Distance decay diagram ---
@@ -107,68 +96,8 @@ def get_js() -> str:
                     basisSelectedStorm ? storms.find(function(s) { return s.storm_id === basisSelectedStorm; }) : null
                 );
 
-                // --- Scatter chart ---
-                var ctx2 = document.getElementById('basis-shd-scatter').getContext('2d');
-
-                basisSHDChart = new Chart(ctx2, {
-                    type: 'scatter',
-                    data: {
-                        datasets: [{
-                            label: 'Flood Depth After Decay',
-                            data: data,
-                            backgroundColor: colors,
-                            borderColor: colors,
-                            pointRadius: 3,
-                            pointHoverRadius: 6,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        onClick: function(evt, elements) {
-                            if (elements.length > 0) {
-                                var idx = elements[0].index;
-                                basisSelectedStorm = data[idx].stormId;
-                                renderBasisSubTab(basisActiveSubTab);
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    title: function(items) { return 'Storm ' + data[items[0].dataIndex].stormId; },
-                                    label: function(ctx) {
-                                        var d = data[ctx.dataIndex];
-                                        return [
-                                            'Gauge peak: ' + d.gaugePeak.toFixed(3) + 'm',
-                                            'Retention: ' + (d.retention * 100).toFixed(0) + '%',
-                                            'Flood depth: ' + d.y.toFixed(4) + 'm',
-                                            d.flooded ? '\\u2705 Property flooded' : '\\u274C No flood',
-                                        ];
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: { display: true, text: 'Storm (sorted by flood depth)', font: { size: 11 } },
-                                ticks: { display: false },
-                            },
-                            y: {
-                                title: { display: true, text: 'Flood Depth at Property (m)', font: { size: 11 } },
-                                beginAtZero: true,
-                            }
-                        }
-                    }
-                });
-
-                if (basisSelectedStorm) {
-                    var selIdx = data.findIndex(function(d) { return d.stormId === basisSelectedStorm; });
-                    if (selIdx >= 0) {
-                        basisSHDChart.setActiveElements([{datasetIndex: 0, index: selIdx}]);
-                        basisSHDChart.update();
-                    }
-                }
+                // --- Spread waterfall (right panel) ---
+                _renderSpreadWaterfall('basis-shd-waterfall', 2);
 
                 var bar = document.getElementById('phc-stats-bar');
                 if (bar) {

@@ -151,8 +151,15 @@ class TestGaugePRSCommit:
         # Check for ANY feedback: success message, error message, trade ID,
         # or button state change.  Even an error toast proves the commit
         # mechanism is wired up (the button click reached the server).
-        panel_text = map_page.locator("#hazard-curve-panel").inner_text(
-            timeout=5_000).lower()
+        # Use JS to read text only from elements INSIDE the panel to avoid
+        # picking up overlapping nav menu text.
+        panel_text = map_page.evaluate("""() => {
+            var p = document.getElementById('hazard-curve-panel');
+            if (!p) return '';
+            // Read text from panel body, excluding nav overlays
+            var body = p.querySelector('.hazard-body, .hazard-content, [class*="tab-content"]');
+            return (body || p).textContent.toLowerCase();
+        }""")
         has_feedback = (
             "success" in panel_text
             or "prs-" in panel_text

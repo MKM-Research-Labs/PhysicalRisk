@@ -45,22 +45,18 @@ class TestBasisSHEJS:
 
     def test_two_canvas_layout(self, js):
         assert "basis-she-section" in js
-        assert "basis-she-scatter" in js
+        assert "basis-she-waterfall" in js
 
-    def test_scatter_chart_type(self, js):
-        assert "type: 'scatter'" in js
+    def test_waterfall_render_call(self, js):
+        assert "_renderSpreadWaterfall" in js
 
-    def test_colours_green_for_reaches(self, js):
-        assert "'#4CAF50'" in js  # green
+    def test_storm_classification(self, js):
+        """Storm data classifies by reach and severity."""
+        assert "reachesProperty" in js
+        assert "reachCount" in js
 
-    def test_colours_orange_for_severe_but_misses(self, js):
-        assert "'#FF9800'" in js  # orange
-
-    def test_colours_grey_for_no_impact(self, js):
-        assert "'#BDBDBD'" in js  # grey
-
-    def test_property_threshold_annotation(self, js):
-        assert "propThreshold" in js
+    def test_summary_shows_elevation_effect(self, js):
+        assert "Elevation Effect" in js
 
     def test_cross_section_draws_ground(self, js):
         assert "gaugeElev" in js
