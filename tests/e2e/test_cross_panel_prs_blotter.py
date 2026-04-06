@@ -327,15 +327,17 @@ class TestNavMenuToPanel:
         if options.count() < 2:
             pytest.skip("No gauge options loaded")
 
-        # Wait for backend handler functions to be registered
+        # Wait for backend handler AND panel module to be registered
         map_page.wait_for_function(
-            "() => typeof window.viewHazardCurve === 'function'",
+            "() => typeof window.viewHazardCurve === 'function'"
+            " && window.GaugeHazardCurve"
+            " && typeof window.GaugeHazardCurve.show === 'function'",
             timeout=10_000
         )
 
         # Select first real gauge
         sel.select_option(index=1)
-        map_page.wait_for_timeout(500)
+        map_page.wait_for_timeout(1_000)
 
         buttons = map_page.locator("#nav-action-bar button")
         if buttons.count() == 0:

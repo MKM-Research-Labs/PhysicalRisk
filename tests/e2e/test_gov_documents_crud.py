@@ -34,8 +34,13 @@ class TestDocumentUploadDownload:
         content = map_page.locator("#mg-content")
         assert content.count() > 0, "No content area found"
 
-        # Look for file input, drop zone, or upload button
+        # Wait for file input to render (async fetch may still be completing)
         file_input = content.locator("input[type='file']")
+        try:
+            file_input.first.wait_for(state="attached", timeout=8_000)
+        except Exception:
+            pass
+
         upload_btn = content.locator("button").filter(has_text="Upload").or_(
             content.locator("button").filter(has_text="upload")
         ).or_(

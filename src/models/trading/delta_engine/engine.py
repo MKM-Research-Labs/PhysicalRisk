@@ -202,8 +202,8 @@ class DeltaEngine:
 
         def sort_key(gid):
             if gauge_locations and gid in gauge_locations:
-                return gauge_locations[gid].get('lon', 0)
-            return gid
+                return (0, gauge_locations[gid].get('lon', 0))
+            return (1, gid)
 
         return {
             'buckets': buckets,

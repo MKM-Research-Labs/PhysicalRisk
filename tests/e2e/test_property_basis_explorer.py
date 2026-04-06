@@ -127,9 +127,9 @@ class TestBasisExplorerPanel:
         self._open_basis_explorer(map_page, first_property_id)
         switch_basis_sub_tab(map_page, 1)  # SHE
         section = map_page.locator("#basis-she-section")
-        scatter = map_page.locator("#basis-she-scatter")
+        waterfall = map_page.locator("#basis-she-waterfall")
         assert section.count() > 0, "SHE cross-section canvas not found"
-        assert scatter.count() > 0, "SHE scatter canvas not found"
+        assert waterfall.count() > 0, "SHE waterfall canvas not found"
 
     def test_she_sub_tab_shows_elevation_info(self, map_page, first_property_id):
         """SHE tab summary must mention elevation."""
@@ -147,9 +147,9 @@ class TestBasisExplorerPanel:
         self._open_basis_explorer(map_page, first_property_id)
         switch_basis_sub_tab(map_page, 2)  # SHD
         decay = map_page.locator("#basis-shd-decay")
-        scatter = map_page.locator("#basis-shd-scatter")
+        waterfall = map_page.locator("#basis-shd-waterfall")
         assert decay.count() > 0, "SHD decay canvas not found"
-        assert scatter.count() > 0, "SHD scatter canvas not found"
+        assert waterfall.count() > 0, "SHD waterfall canvas not found"
 
     def test_shd_sub_tab_shows_distance_info(self, map_page, first_property_id):
         """SHD tab stats must show distance."""
