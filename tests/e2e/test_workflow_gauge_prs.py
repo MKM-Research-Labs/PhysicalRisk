@@ -151,12 +151,31 @@ class TestGaugePRSCommit:
         # Check for ANY feedback: success message, error message, trade ID,
         # or button state change.  Even an error toast proves the commit
         # mechanism is wired up (the button click reached the server).
-        # Use JS to read text only from elements INSIDE the panel to avoid
-        # picking up overlapping nav menu text.
+
+        # 1. Check hazard-status bar for trade ID (most reliable signal —
+        #    stays in DOM even after PRS tab re-renders)
+        status_text = map_page.evaluate("""() => {
+            var el = document.getElementById('hazard-status');
+            return el ? el.textContent.toLowerCase() : '';
+        }""")
+        has_status = "prs-" in status_text or "committed" in status_text or "closed" in status_text
+
+        # 2. Check notification toasts (may auto-dismiss)
+        notification = map_page.locator(
+            "[class*='notification'], [class*='toast'], [class*='alert'], "
+            ".notif-message, [id*='notif']"
+        )
+
+        # 3. Check if the commit button state changed (disabled or text changed).
+        #    Note: PRS tab may re-render after commit, recreating the button.
+        btn_disabled = commit_btn.is_disabled() if commit_btn.count() > 0 else False
+        btn_text = commit_btn.inner_text().lower() if commit_btn.count() > 0 else ""
+        btn_changed = btn_text != initial_text
+
+        # 4. Fallback: check panel body text for feedback keywords
         panel_text = map_page.evaluate("""() => {
             var p = document.getElementById('hazard-curve-panel');
             if (!p) return '';
-            // Read text from panel body, excluding nav overlays
             var body = p.querySelector('.hazard-body, .hazard-content, [class*="tab-content"]');
             return (body || p).textContent.toLowerCase();
         }""")
@@ -165,20 +184,11 @@ class TestGaugePRSCommit:
             or "prs-" in panel_text
             or "booked" in panel_text
             or "committed" in panel_text
-            or "trade" in panel_text
             or "failed" in panel_text
             or "error" in panel_text
         )
-        # Also check for notification toasts
-        notification = map_page.locator(
-            "[class*='notification'], [class*='toast'], [class*='alert'], "
-            ".notif-message, [id*='notif']"
-        )
-        # Check if the commit button state changed (disabled or text changed)
-        btn_disabled = commit_btn.is_disabled() if commit_btn.count() > 0 else False
-        btn_text = commit_btn.inner_text().lower() if commit_btn.count() > 0 else ""
-        btn_changed = btn_text != initial_text
-        assert has_feedback or notification.count() > 0 or btn_disabled or btn_changed, (
-            "No feedback after commit — button text: '{}', panel excerpt: '{}'"
-            .format(btn_text, panel_text[:300])
+
+        assert has_status or notification.count() > 0 or btn_disabled or btn_changed or has_feedback, (
+            "No feedback after commit — status: '{}', button: '{}', panel: '{}'"
+            .format(status_text[:100], btn_text, panel_text[:200])
         )
