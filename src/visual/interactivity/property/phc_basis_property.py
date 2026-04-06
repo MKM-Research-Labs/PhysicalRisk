@@ -103,7 +103,10 @@ def get_js() -> str:
                     '</div>';
 
                 container.innerHTML = summaryHtml +
-                    '<canvas id="basis-prop-canvas" style="flex:1;"></canvas>';
+                    '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
+                    '<canvas id="basis-prop-canvas" style="flex:1;"></canvas>' +
+                    '<canvas id="basis-prop-waterfall" style="width:35%;min-width:220px;"></canvas>' +
+                    '</div>';
 
                 var ctx = document.getElementById('basis-prop-canvas').getContext('2d');
 
@@ -117,7 +120,6 @@ def get_js() -> str:
                                  position: 'start', backgroundColor: '#F44336', color: '#fff',
                                  font: { size: 10 }, padding: 3, rotation: 270 }
                     };
-                    // Quadrant labels
                     annotations.qBR = {
                         type: 'label',
                         xValue: severeLevel + (severeLevel * 0.15),
@@ -201,6 +203,9 @@ def get_js() -> str:
                         basisPropertyChart.update();
                     }
                 }
+
+                // Spread waterfall (right panel)
+                _renderSpreadWaterfall('basis-prop-waterfall', 3);
 
                 var bar = document.getElementById('phc-stats-bar');
                 if (bar) {

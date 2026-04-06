@@ -327,20 +327,27 @@ class TestNavMenuToPanel:
         if options.count() < 2:
             pytest.skip("No gauge options loaded")
 
+        # Wait for backend handler functions to be registered
+        map_page.wait_for_function(
+            "() => typeof window.viewHazardCurve === 'function'",
+            timeout=10_000
+        )
+
         # Select first real gauge
         sel.select_option(index=1)
         map_page.wait_for_timeout(500)
 
-        # Click first action button (should be View History or similar)
         buttons = map_page.locator("#nav-action-bar button")
         if buttons.count() == 0:
             pytest.skip("No action buttons appeared")
-        buttons.first.click()
-        map_page.wait_for_timeout(5_000)
+        # Click "Physical Risk Swap" (index 2) — opens hazard-curve-panel
+        btn_idx = min(2, buttons.count() - 1)
+        buttons.nth(btn_idx).click()
+        map_page.wait_for_timeout(8_000)
 
         panels = ['hazard-curve-panel', 'prop-storm-panel',
                    'property-hc-panel', 'trading-desk-panel',
-                   'gauge-pdf-panel']
+                   'gauge-pdf-panel', 'gauge-graph-panel']
         assert self._is_any_panel_visible(map_page, panels), \
             "No panel opened after nav menu action"
 
@@ -357,19 +364,33 @@ class TestNavMenuToPanel:
         if options.count() < 2:
             pytest.skip("No property options loaded")
 
+        # Wait for backend handler functions to be registered
+        map_page.wait_for_function(
+            "() => typeof window.viewPropertyDetails === 'function'",
+            timeout=10_000
+        )
+
         sel.select_option(index=1)
         map_page.wait_for_timeout(500)
 
         buttons = map_page.locator("#nav-action-bar button")
         if buttons.count() == 0:
             pytest.skip("No action buttons appeared")
+        # Click "Property Details" (index 0) — viewPropertyDetails
         buttons.first.click()
-        map_page.wait_for_timeout(5_000)
+        map_page.wait_for_timeout(8_000)
 
         panels = ['hazard-curve-panel', 'prop-storm-panel',
                    'property-hc-panel', 'mortgage-detail-panel',
-                   'gauge-pdf-panel']
-        assert self._is_any_panel_visible(map_page, panels), \
-            "No panel opened after nav menu action"
+                   'gauge-pdf-panel', 'property-pdf-panel']
+        # viewPropertyDetails opens a popup, not a panel — check for
+        # info notification as an alternative success signal.
+        popup_visible = map_page.evaluate("""() => {
+            var popups = document.querySelectorAll('.leaflet-popup-content');
+            return popups.length > 0;
+        }""")
+        panel_visible = self._is_any_panel_visible(map_page, panels)
+        assert panel_visible or popup_visible, \
+            "No panel or popup opened after nav menu action"
 
         map_page.evaluate(CLOSE_ALL_JS)

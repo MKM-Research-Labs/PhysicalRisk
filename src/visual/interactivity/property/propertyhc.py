@@ -43,6 +43,7 @@ import folium
 from visual.interactivity.panel_mixin import FoliumPanelMixin
 from . import phc_hazard, phc_term, phc_prs, phc_basis
 from . import phc_basis_gauge, phc_basis_she, phc_basis_shd, phc_basis_property
+from . import phc_basis_waterfall
 
 
 class PropertyHazardCurvePanel(FoliumPanelMixin):
@@ -73,6 +74,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
 {phc_term.get_js()}
 {phc_prs.get_js()}
 {phc_basis.get_js()}
+{phc_basis_waterfall.get_js()}
 {phc_basis_gauge.get_js()}
 {phc_basis_she.get_js()}
 {phc_basis_shd.get_js()}
@@ -288,6 +290,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 if (basisSHEChart) {{ basisSHEChart.destroy(); basisSHEChart = null; }}
                 if (basisSHDChart) {{ basisSHDChart.destroy(); basisSHDChart = null; }}
                 if (basisPropertyChart) {{ basisPropertyChart.destroy(); basisPropertyChart = null; }}
+                if (_basisWaterfallChart) {{ _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }}
                 if (currentChart) {{ currentChart.destroy(); currentChart = null; }}
 
                 // Set container to flex-column for basis layouts
@@ -324,6 +327,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 if (basisSHEChart) {{ basisSHEChart.destroy(); basisSHEChart = null; }}
                 if (basisSHDChart) {{ basisSHDChart.destroy(); basisSHDChart = null; }}
                 if (basisPropertyChart) {{ basisPropertyChart.destroy(); basisPropertyChart = null; }}
+                if (_basisWaterfallChart) {{ _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }}
                 var subBar = document.getElementById('phc-basis-subtab-bar');
                 if (subBar) subBar.remove();
                 basisSelectedStorm = null;

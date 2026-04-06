@@ -1,0 +1,150 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+Basis Explorer — Spread Waterfall chart (shared across all sub-tabs).
+
+Horizontal bar chart showing how the gauge spread drops through SHE
+(elevation) and SHD (distance) effects to the final property spread.
+Each sub-tab highlights the step it represents.
+"""
+
+
+def get_js() -> str:
+    """Return JS fragment for the shared spread waterfall renderer."""
+    return """
+            // ================================================================
+            // Basis Explorer — Spread Waterfall (shared)
+            // ================================================================
+            var _basisWaterfallChart = null;
+
+            function _renderSpreadWaterfall(canvasId, activeStep) {
+                if (_basisWaterfallChart) { _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }
+
+                var sd = phcData.spread_decomposition || {};
+                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var sheSpread = sd.she_spread_bps || 0;
+                var shdSpread = sd.shd_spread_bps || 0;
+                var propSpread = sd.property_spread_bps || 0;
+
+                var labels = ['Gauge', 'SHE (elevation)', 'SHD (distance)', 'Property'];
+                var values = [gaugeSpread, sheSpread, shdSpread, propSpread];
+
+                // Colours: muted for inactive, bold for active step
+                var baseColors = ['#EF5350', '#FF9800', '#66BB6A', '#42A5F5'];
+                var mutedColors = ['#FFCDD2', '#FFE0B2', '#C8E6C9', '#BBDEFB'];
+                var bgColors = values.map(function(_, i) {
+                    return i === activeStep ? baseColors[i] : mutedColors[i];
+                });
+                var borderColors = values.map(function(_, i) {
+                    return baseColors[i];
+                });
+                var borderWidths = values.map(function(_, i) {
+                    return i === activeStep ? 3 : 1;
+                });
+
+                // Effect annotations between bars
+                var effects = [];
+                if (gaugeSpread > 0) {
+                    var sheEffect = sheSpread - gaugeSpread;
+                    var shdEffect = shdSpread - gaugeSpread;
+                    var propEffect = propSpread - gaugeSpread;
+                    effects = [
+                        '',
+                        (sheEffect >= 0 ? '+' : '') + sheEffect.toFixed(1) + ' bps (elevation)',
+                        (shdEffect >= 0 ? '+' : '') + shdEffect.toFixed(1) + ' bps (distance)',
+                        (propEffect >= 0 ? '+' : '') + propEffect.toFixed(1) + ' bps (total)',
+                    ];
+                }
+
+                var ctx = document.getElementById(canvasId).getContext('2d');
+
+                _basisWaterfallChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Spread (bps)',
+                            data: values,
+                            backgroundColor: bgColors,
+                            borderColor: borderColors,
+                            borderWidth: borderWidths,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        var v = ctx.raw;
+                                        var lines = [v.toFixed(1) + ' bps'];
+                                        if (effects[ctx.dataIndex]) lines.push(effects[ctx.dataIndex]);
+                                        return lines;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Spread (bps)', font: { size: 11 } },
+                                grid: { color: '#f0f0f0' },
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: function(context) {
+                                        return { size: 11, weight: context.index === activeStep ? 'bold' : 'normal' };
+                                    },
+                                    color: function(context) {
+                                        return context.index === activeStep ? baseColors[activeStep] : '#666';
+                                    },
+                                },
+                            }
+                        },
+                        animation: {
+                            onComplete: function() {
+                                // Draw effect labels at end of each bar
+                                var chart = _basisWaterfallChart;
+                                if (!chart) return;
+                                var cCtx = chart.ctx;
+                                cCtx.font = '10px Arial';
+                                cCtx.textBaseline = 'middle';
+                                chart.data.datasets[0].data.forEach(function(val, i) {
+                                    var meta = chart.getDatasetMeta(0);
+                                    var bar = meta.data[i];
+                                    var x = bar.x + 6;
+                                    var y = bar.y;
+                                    cCtx.fillStyle = borderColors[i];
+                                    cCtx.textAlign = 'left';
+                                    cCtx.fillText(val.toFixed(1) + ' bps', x, y);
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+"""

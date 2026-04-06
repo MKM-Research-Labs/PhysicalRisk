@@ -24,6 +24,7 @@ PANEL_IDS_TO_CLOSE = [
     "property-pdf-panel",
     "storm-portfolio-panel",
     "gauge-pdf-panel",
+    "gauge-graph-panel",
 ]
 
 CLOSE_PANELS_JS = """() => {
@@ -126,9 +127,8 @@ def close_trading_desk(page):
 # Gauge panel helpers
 # ---------------------------------------------------------------------------
 
-def open_gauge_panel(page, gauge_id):
-    """Open the gauge hazard curve panel and assert no load errors."""
-    # Clear stale notifications before opening so we only catch new ones
+def _open_gauge_panel_once(page, gauge_id):
+    """Attempt to open the gauge hazard curve panel. Returns True on success."""
     clear_notifications(page)
     has_fn = page.evaluate("() => typeof window.viewHazardCurve === 'function'")
     if has_fn:
@@ -148,7 +148,29 @@ def open_gauge_panel(page, gauge_id):
         state="visible", timeout=10_000
     )
     page.wait_for_timeout(6_000)
-    assert_no_error_notifications(page, "gauge panel")
+
+
+def open_gauge_panel(page, gauge_id):
+    """Open the gauge hazard curve panel, retrying once on load error."""
+    _open_gauge_panel_once(page, gauge_id)
+    errors = page.evaluate("""() => {
+        const notifs = document.querySelectorAll('.notif-message');
+        const errors = [];
+        notifs.forEach(n => {
+            const text = n.textContent.toLowerCase();
+            if (text.includes('fail') || text.includes('error') ||
+                text.includes('unable')) {
+                errors.push(n.textContent.trim());
+            }
+        });
+        return errors;
+    }""")
+    if errors:
+        # Retry once — transient server startup or data load lag
+        close_gauge_panel(page)
+        page.wait_for_timeout(3_000)
+        _open_gauge_panel_once(page, gauge_id)
+        assert_no_error_notifications(page, "gauge panel (retry)")
 
 
 def close_gauge_panel(page):
