@@ -161,6 +161,24 @@ class TestPRSCDMValidation:
         assert "GaugeSet" in errors
         assert any("GaugeBasket" in e for e in errors["GaugeSet"])
 
+    def test_validate_blank_gauge_id_in_basket(self, prs_cdm):
+        """Gauge basket entry with blank GaugeID must fail validation."""
+        data = {"PhysicalSwap": {"Header": {"SwapID": "PRS-1", "CatchmentID": "thames"},
+                                 "GaugeSet": {"GaugeSetID": "GS-1",
+                                              "GaugeBasket": [{"GaugeID": ""}]}}}
+        errors = prs_cdm.validate(data)
+        assert "GaugeSet" in errors
+        assert any("GaugeID" in e for e in errors["GaugeSet"])
+
+    def test_validate_missing_gauge_id_in_basket(self, prs_cdm):
+        """Gauge basket entry with no GaugeID key must fail validation."""
+        data = {"PhysicalSwap": {"Header": {"SwapID": "PRS-1", "CatchmentID": "thames"},
+                                 "GaugeSet": {"GaugeSetID": "GS-1",
+                                              "GaugeBasket": [{"Weight": 1.0}]}}}
+        errors = prs_cdm.validate(data)
+        assert "GaugeSet" in errors
+        assert any("GaugeID" in e for e in errors["GaugeSet"])
+
     def test_validate_gauge_errors_appended(self, prs_cdm):
         """Lines 258-259: gauge errors collected."""
         data = {"PhysicalSwap": {"Header": {"SwapID": "PRS-1", "CatchmentID": "thames"},

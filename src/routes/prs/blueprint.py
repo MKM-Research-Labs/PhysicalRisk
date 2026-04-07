@@ -59,7 +59,10 @@ def commit_prs_trade():
             end_date = compute_maturity_date(tenor, trade_date.date())
 
         # Build CDM record
-        gauge_id = data.get("gauge_id", "")
+        gauge_id = data.get("gauge_id", "").strip()
+        if not gauge_id:
+            return jsonify({"status": "error", "message": "gauge_id is required"}), 400
+
         property_id = data.get("property_id", "")
         trigger = data.get("trigger", "warning")
         notional = float(data.get("notional", 10_000_000))
