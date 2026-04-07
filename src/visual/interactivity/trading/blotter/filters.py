@@ -67,6 +67,9 @@ def get_js() -> str:
                 var clearBtn = hasFilter ?
                     '<button onclick="tdClearFilters()" style="padding:2px 8px;font-size:10px;background:#78909c;color:white;border:none;border-radius:3px;cursor:pointer;">Clear</button>' :
                     '';
+                var newPrsBtn = tdBlotterFilters.gauge_id ?
+                    '<button onclick="tdNewPRS()" style="margin-left:6px;padding:2px 8px;font-size:10px;background:#1565c0;color:white;border:none;border-radius:3px;cursor:pointer;">New PRS</button>' :
+                    '';
 
                 // Active filter pills
                 var pills = '';
@@ -107,6 +110,7 @@ def get_js() -> str:
                     buildSelect('td-filter-tenor', 'Tenors', tenorSet, tdBlotterFilters.tenor || '') +
                     buildSelect('td-filter-status', 'Status', statusSet, tdBlotterFilters.status || '') +
                     clearBtn +
+                    newPrsBtn +
                     '<div style="flex:1;"></div>' +
                     pills;
             }
@@ -147,6 +151,17 @@ def get_js() -> str:
                 renderBlotterPnlBar();
                 renderFilterBar();
                 renderBlotterTable();
+            };
+
+            window.tdNewPRS = function() {
+                var gaugeId = tdBlotterFilters.gauge_id;
+                if (!gaugeId) return;
+                if (window.TradingDesk && window.TradingDesk.hide) window.TradingDesk.hide();
+                if (window.GaugeHazardCurve && window.GaugeHazardCurve.show) {
+                    window.GaugeHazardCurve.show(gaugeId);
+                } else if (window.viewHazardCurve) {
+                    window.viewHazardCurve(gaugeId);
+                }
             };
 
             // Apply filter programmatically (called from FS01 cell click, gauge blotter menu)

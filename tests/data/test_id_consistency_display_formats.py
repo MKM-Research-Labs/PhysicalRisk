@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # Known files that SHOULD use gauge_title_js from config/format.py
 _GAUGE_TITLE_FILES = [
     'src/visual/interactivity/gauge/gaugeha.py',
-    'src/visual/interactivity/trading/stress/setup.py',
+    'src/visual/interactivity/trading/stress/setup_data.py',
     'src/visual/interactivity/trading/blotter/filters.py',
     'src/visual/interactivity/trading/blotter/actions.py',
     'src/visual/interactivity/trading/port_stress/pfloods.py',
@@ -24,7 +24,7 @@ _GAUGE_TITLE_FILES = [
     'src/visual/interactivity/trading/td_main_map.py',
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/property/phc_hazard.py',
-    'src/visual/interactivity/property/propertyhc.py',
+    'src/visual/interactivity/property/propertyhc/panel_basis_strip.py',
     'src/visual/interactivity/governance/models/mg_lineage.py',
     'src/visual/layer/gauge_layer/marker.py',
 ]
@@ -124,7 +124,7 @@ class TestStormFormatUsage:
             'src/visual/interactivity/storm/sp_table.py',
             'src/visual/interactivity/storm/fa_render.py',
             'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
-            'src/visual/interactivity/trading/stress/setup.py',
+            'src/visual/interactivity/trading/stress/setup_data.py',
             'src/visual/interactivity/trading/port_stress/setup.py',
             'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',
         ]
