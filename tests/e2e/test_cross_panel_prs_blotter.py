@@ -125,6 +125,126 @@ class TestGaugePRSToBlotterRoundTrip:
         close_gauge_panel(map_page)
 
 
+class TestBlotterNewPRSButton:
+    """Blotter 'New PRS' button → gauge hazard curve panel round-trip."""
+
+    def _get_gauge_with_trades(self, map_page):
+        return map_page.evaluate("""async () => {
+            var cfg = window.__BACKEND_CONFIG || {};
+            var resp = await fetch((cfg.url || '') + '/api/v1/trading/blotter/active-gauges');
+            var data = await resp.json();
+            return (data.gauge_ids || [])[0] || null;
+        }""")
+
+    def _open_blotter_filtered(self, map_page, gauge_id):
+        """Open trading desk blotter tab filtered to a single gauge."""
+        map_page.evaluate("""(gaugeId) => {
+            if (window.TradingDesk && window.TradingDesk.show) window.TradingDesk.show();
+            if (window.tdApplyFilter) window.tdApplyFilter({gauge_id: gaugeId});
+            // Switch to blotter tab
+            var btn = document.getElementById('td-tab-blotter');
+            if (btn) btn.click();
+        }""", gauge_id)
+        map_page.wait_for_timeout(3_000)
+
+    def test_01_new_prs_button_visible_when_gauge_filtered(self, map_page):
+        """New PRS button appears in filter bar when filtered to one gauge."""
+        gauge_id = self._get_gauge_with_trades(map_page)
+        if not gauge_id:
+            pytest.skip("No gauges with active trades")
+
+        self._open_blotter_filtered(map_page, gauge_id)
+
+        has_btn = map_page.evaluate("""() => {
+            var bar = document.getElementById('td-filter-bar');
+            if (!bar) return false;
+            return bar.innerHTML.indexOf('New PRS') !== -1;
+        }""")
+        assert has_btn, "New PRS button not visible when blotter filtered to single gauge"
+        map_page.evaluate(CLOSE_ALL_JS)
+
+    def test_02_new_prs_button_hidden_when_no_filter(self, map_page):
+        """New PRS button must NOT appear when no gauge filter is active."""
+        map_page.evaluate("""() => {
+            if (window.TradingDesk && window.TradingDesk.show) window.TradingDesk.show();
+            if (window.tdClearFilters) window.tdClearFilters();
+            var btn = document.getElementById('td-tab-blotter');
+            if (btn) btn.click();
+        }""")
+        map_page.wait_for_timeout(2_000)
+
+        has_btn = map_page.evaluate("""() => {
+            var bar = document.getElementById('td-filter-bar');
+            if (!bar) return false;
+            return bar.innerHTML.indexOf('New PRS') !== -1;
+        }""")
+        assert not has_btn, "New PRS button should not appear with no gauge filter"
+        map_page.evaluate(CLOSE_ALL_JS)
+
+    def test_03_new_prs_click_opens_gauge_hazard_panel(self, map_page):
+        """Clicking New PRS hides trading desk and opens gauge hazard curve."""
+        gauge_id = self._get_gauge_with_trades(map_page)
+        if not gauge_id:
+            pytest.skip("No gauges with active trades")
+
+        self._open_blotter_filtered(map_page, gauge_id)
+
+        # Click the New PRS button
+        map_page.evaluate("() => { if (window.tdNewPRS) window.tdNewPRS(); }")
+        map_page.wait_for_timeout(5_000)
+
+        # Trading desk should be hidden
+        td_hidden = map_page.evaluate("""() => {
+            var td = document.getElementById('trading-desk-panel');
+            if (!td) return true;
+            var cs = window.getComputedStyle(td);
+            return cs.display === 'none' || cs.visibility === 'hidden';
+        }""")
+        assert td_hidden, "Trading desk should be hidden after New PRS click"
+
+        # Gauge hazard curve panel should be visible
+        ghc_visible = map_page.evaluate("""() => {
+            var el = document.getElementById('hazard-curve-panel');
+            if (!el) return false;
+            var cs = window.getComputedStyle(el);
+            return cs.display !== 'none' && cs.visibility !== 'hidden'
+                && (el.offsetWidth > 0 || el.offsetHeight > 0);
+        }""")
+        assert ghc_visible, "Gauge hazard curve panel not visible after New PRS click"
+        map_page.evaluate(CLOSE_ALL_JS)
+
+    def test_04_new_prs_round_trip_back_to_blotter(self, map_page):
+        """After New PRS opens gauge panel, blotter button returns to blotter."""
+        gauge_id = self._get_gauge_with_trades(map_page)
+        if not gauge_id:
+            pytest.skip("No gauges with active trades")
+
+        # Start at blotter filtered to gauge
+        self._open_blotter_filtered(map_page, gauge_id)
+
+        # Click New PRS → opens gauge hazard curve
+        map_page.evaluate("() => { if (window.tdNewPRS) window.tdNewPRS(); }")
+        map_page.wait_for_timeout(5_000)
+
+        # Click blotter button on gauge panel → back to trading desk
+        blotter_link = map_page.locator("#hazard-blotter-link")
+        if blotter_link.count() == 0:
+            pytest.skip("No blotter link on gauge panel")
+
+        disabled = map_page.evaluate(
+            "document.getElementById('hazard-blotter-link').disabled"
+        )
+        if disabled:
+            pytest.skip("Blotter button disabled on this gauge")
+
+        blotter_link.click()
+        map_page.wait_for_timeout(3_000)
+
+        td_visible = map_page.locator("#trading-desk-panel").is_visible()
+        assert td_visible, "Trading desk not visible after round-trip back from PRS"
+        map_page.evaluate(CLOSE_ALL_JS)
+
+
 class TestPropertyStormToPRS:
     """Property storm scenarios → PRS Pricing tab → PRS pricer opens."""
 

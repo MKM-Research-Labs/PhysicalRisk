@@ -58,6 +58,44 @@ class TestFilterBar:
         assert 'tdRemoveFilter' in blotter_js
 
 
+class TestNewPRSButton:
+    """New PRS button appears when filtered to a single gauge."""
+
+    def test_new_prs_function_exists(self, blotter_js):
+        """tdNewPRS function must be defined."""
+        assert 'tdNewPRS' in blotter_js
+
+    def test_new_prs_button_label(self, blotter_js):
+        """Button label must be 'New PRS'."""
+        assert 'New PRS' in blotter_js
+
+    def test_new_prs_conditional_on_gauge_filter(self, blotter_js):
+        """Button only renders when tdBlotterFilters.gauge_id is set."""
+        assert 'tdBlotterFilters.gauge_id' in blotter_js
+
+    def test_new_prs_hides_trading_desk(self, blotter_js):
+        """tdNewPRS must hide trading desk before opening gauge panel."""
+        assert 'TradingDesk.hide' in blotter_js
+
+    def test_new_prs_opens_gauge_hazard_curve(self, blotter_js):
+        """tdNewPRS must call GaugeHazardCurve.show with filtered gauge."""
+        assert 'GaugeHazardCurve.show' in blotter_js
+
+    def test_new_prs_fallback_to_view_hazard(self, blotter_js):
+        """tdNewPRS falls back to viewHazardCurve if GaugeHazardCurve unavailable."""
+        assert 'viewHazardCurve' in blotter_js
+
+    def test_new_prs_button_styled_blue(self, blotter_js):
+        """New PRS button must be blue (#1565c0) — primary action."""
+        idx = blotter_js.index('New PRS')
+        snippet = blotter_js[max(0, idx - 200):idx + 50]
+        assert '#1565c0' in snippet, "New PRS button must be blue (#1565c0)"
+
+    def test_new_prs_button_after_clear(self, blotter_js):
+        """New PRS button must appear after Clear button in filter bar HTML."""
+        assert blotter_js.index('clearBtn') < blotter_js.index('newPrsBtn')
+
+
 class TestSortAndNavigation:
     """Sort toggle and trade click-through."""
 
