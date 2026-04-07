@@ -64,7 +64,7 @@ class TestStormDisplayFormat:
         violations = []
         for path in _STORM_DROPDOWN_FILES:
             src = _read_source(path)
-            uses_sentinel = '__STORM_OPT__' in src and '_storm_opt' in src
+            uses_sentinel = '__STORM_OPT__' in src and ('_storm_opt' in src or 'storm_option_js' in src)
             uses_pipe = " | " in src
             if not (uses_sentinel or uses_pipe):
                 violations.append(path)
