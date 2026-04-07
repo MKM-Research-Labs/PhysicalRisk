@@ -60,16 +60,20 @@ def commit_prs_trade():
 
         # Build CDM record
         gauge_id = data.get("gauge_id", "")
+        property_id = data.get("property_id", "")
         trigger = data.get("trigger", "warning")
         notional = float(data.get("notional", 10_000_000))
         spread_bps = float(data.get("spread_bps", 100))
+
+        # Determine trade type: PropertyPRS when committed from property panel
+        trade_type = "PropertyPRS" if property_id else "PRS"
 
         cdm_record = {
             "PhysicalSwap": {
                 "Header": {
                     "SwapID": swap_id,
                     "CatchmentID": config.catchment_id,
-                    "TradeType": "PRS",
+                    "TradeType": trade_type,
                     "CounterParty": data.get("counterparty_id", ""),
                     "CounterPartyName": data.get("counterparty_name", ""),
                     "PartyId": "MKM-RESEARCH-001",
@@ -128,6 +132,40 @@ def commit_prs_trade():
                 },
             }
         }
+
+        # Add PropertySet when committed from property panel
+        if property_id:
+            prop_set = {
+                "PropertyID": property_id,
+                "EAFloodZone": data.get("ea_flood_zone", ""),
+            }
+            # Look up property details from property.json
+            try:
+                prop_path = config.get_input_dir() / "property.json"
+                if prop_path.exists():
+                    with open(prop_path) as pf:
+                        prop_data = json.load(pf)
+                    for p in prop_data.get("properties", []):
+                        hdr = p.get("PropertyHeader", {}).get("Header", {})
+                        if hdr.get("PropertyID") == property_id:
+                            loc = p.get("PropertyHeader", {}).get("Location", {})
+                            val = p.get("PropertyHeader", {}).get("Valuation", {})
+                            prop_set["PropertyAddress"] = (
+                                f"{loc.get('BuildingNumber', '')} {loc.get('StreetName', '')}".strip()
+                            )
+                            prop_set["Postcode"] = loc.get("Postcode", "")
+                            prop_set["LocalAuthority"] = loc.get("LocalAuthority", "")
+                            prop_set["PropertyValue"] = val.get("PropertyValue", 0)
+                            prop_set["Latitude"] = loc.get("LatitudeDegrees", 0)
+                            prop_set["Longitude"] = loc.get("LongitudeDegrees", 0)
+                            ref_gauges = p.get("PropertyHeader", {}).get("ReferenceGauges", [])
+                            if ref_gauges:
+                                prop_set["ReferenceGauge"] = ref_gauges[0]
+                            break
+            except Exception as e:
+                logger.warning("Could not look up property %s: %s", property_id, e)
+
+            cdm_record["PhysicalSwap"]["PropertySet"] = prop_set
 
         # Validate
         cdm = PhysicalRiskSwapCDM()

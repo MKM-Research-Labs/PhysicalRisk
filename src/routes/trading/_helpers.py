@@ -74,6 +74,10 @@ def _load_open_trades():
         with open(f) as fh:
             trade = json.load(fh)
 
+        # Skip property PRS trades (served by /trading/client instead)
+        if 'PropertySet' in trade.get('PhysicalSwap', {}):
+            continue
+
         swap_id = trade.get('PhysicalSwap', {}).get(
             'Header', {}).get('SwapID', '')
 

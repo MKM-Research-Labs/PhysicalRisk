@@ -60,3 +60,4 @@ from . import curves_hazard # noqa: E402, F401
 from . import stress        # noqa: E402, F401
 from . import port_stress   # noqa: E402, F401
 from . import classifiers   # noqa: E402, F401
+from . import client        # noqa: E402, F401
