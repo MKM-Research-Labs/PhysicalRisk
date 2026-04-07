@@ -219,7 +219,7 @@ class PropertyStormAnalysis:
                 console.log('[PropertyStorm] Opening panel for', propertyId);
                 var panel = createPanel();
                 panel.dataset.propertyId = propertyId;
-                document.getElementById('prop-storm-title').textContent = 'Property Storm Scenarios: ' + propertyId;
+                document.getElementById('prop-storm-title').textContent = 'Property Storm Scenarios: ' + window.propertyDisplayName(propertyId);
                 document.getElementById('prop-storm-status').textContent = 'Loading...';
                 panel.style.display = 'flex';
                 activeTab = 0;
@@ -250,6 +250,9 @@ class PropertyStormAnalysis:
                     var nPropertyFloods = allEvents.filter(function(e) {{ return e.flooded; }}).length;
                     var summary = data.summary || {{}};
                     console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'property floods for', propertyId);
+                    // Refresh title — _propertyNames may not have been ready on first render
+                    var titleEl = document.getElementById('prop-storm-title');
+                    if (titleEl) titleEl.textContent = 'Property Storm Scenarios: ' + window.propertyDisplayName(propertyId);
                     var severeCount = summary.severe_at_nearest_gauge || summary.floods_at_nearest_gauge || 0;
                     status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' property floods';
 

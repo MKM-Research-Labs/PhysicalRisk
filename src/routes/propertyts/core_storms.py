@@ -62,11 +62,56 @@ def property_storms(prop_id: str):
     except Exception:
         pass
 
-    # Tag each flood event with sequence_type
+    # Build storm metadata lookup (name, category, precipitation, severity)
+    _storm_meta = {}
+    for meta_file in ('storm_sequences.json', 'storms.json'):
+        meta_path = config.get_input_path(meta_file)
+        if not meta_path.exists():
+            continue
+        try:
+            with open(meta_path, 'r') as f:
+                mdata = json.load(f)
+            if 'sequences' in mdata:
+                for seq in mdata['sequences']:
+                    _storm_meta[seq.get('sequence_id', '')] = seq
+            elif 'storms' in mdata:
+                for s in mdata['storms']:
+                    _storm_meta[s.get('storm_id', '')] = s
+        except Exception:
+            pass
+
+    # Build storm_id → gauges_severe from stress_storms
+    _storm_severe = {}
+    ss_index = config.get_input_path('stress_storms') / '_index.json'
+    ss_legacy = config.get_input_path('stress_storms.json')
+    ss_path = ss_index if ss_index.exists() else (ss_legacy if ss_legacy.exists() else None)
+    if ss_path and ss_path.exists():
+        try:
+            with open(ss_path, 'r') as f:
+                ss_data = json.load(f)
+            for s in ss_data.get('storms', []):
+                sid = s.get('storm_id', '')
+                if sid:
+                    ts = s.get('trigger_summary', {})
+                    _storm_severe[sid] = ts.get('gauges_severe', 0)
+        except Exception:
+            pass
+
+    # Tag each flood event with sequence_type and storm metadata
     # storm_id IS the sequence_id (sequences are the unit of risk)
     for event in pdata.get('flood_events', []):
         sid = event.get('storm_id', '')
         event['sequence_type'] = seq_lookup.get(sid, 'isolated') if sid else 'isolated'
+        # Storm metadata for canonical display format
+        meta = _storm_meta.get(sid)
+        if meta:
+            cat = meta.get('intensity_category', '')
+            event.setdefault('intensity_category', cat)
+            event.setdefault('name', meta.get('name', '') or (cat.capitalize() if cat else ''))
+            event.setdefault('effective_precipitation_mm',
+                             meta.get('effective_precipitation_mm',
+                                      meta.get('precipitation_mm', 0)))
+        event.setdefault('gauges_severe', _storm_severe.get(sid, 0))
 
     # Enrich nearest gauge info with flood stages
     gauge_path = config.get_input_path('gauge.json')

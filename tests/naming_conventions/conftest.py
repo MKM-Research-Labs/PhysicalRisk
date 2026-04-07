@@ -38,6 +38,7 @@ _PROPERTY_DISPLAY_FILES_PY = [
 
 _PROPERTY_DISPLAY_FILES_JS = [
     'src/visual/interactivity/property/propertyhc/panel.py',
+    'src/visual/interactivity/property/propertysa.py',
     'src/visual/interactivity/context_menus.py',
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/trading/client/table.py',
@@ -49,6 +50,7 @@ _STORM_DROPDOWN_FILES = [
     'src/visual/interactivity/storm/fa_render.py',
     'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
     'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',
+    'src/visual/interactivity/property/psa_timeline.py',
     'src/visual/interactivity/trading/port_stress/setup.py',
     'src/visual/interactivity/trading/stress/setup_data.py',
 ]
