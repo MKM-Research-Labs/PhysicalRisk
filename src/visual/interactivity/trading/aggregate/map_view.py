@@ -261,9 +261,8 @@ def get_js() -> str:
                     'border: none !important; ' +
                     'box-shadow: none !important; ' +
                     'font-size: 9px !important; ' +
-                    'font-weight: 500 !important; ' +
-                    'color: #555 !important; ' +
-                    'font-style: italic !important; ' +
+                    'font-weight: 600 !important; ' +
+                    'color: #333 !important; ' +
                     'padding: 0 !important; ' +
                     '}' +
                     '.td-prop-label::before { display: none !important; }';
