@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -32,148 +32,21 @@
 # SOFTWARE.
 
 """
-Map building module for the visualization system.
-
-This module provides functionality for creating and configuring Folium maps,
-including center point calculation, zoom level determination, and control setup.
+MapBuilder class for creating and configuring Folium maps.
 """
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import folium
-import numpy as np
-from folium import plugins
 
 from config.visual import MAP_DEFAULT_CENTER, MAP_DEFAULT_TILES, MAP_DEFAULT_ZOOM
+from .zoom_bounds import calculate_zoom_for_range, calculate_bounds
+from .controls import MapControls
 
 logger = logging.getLogger(__name__)
 
-# =============================================================================
-# Zoom Calculation Utilities
-# =============================================================================
-
-def calculate_zoom_for_range(coordinate_range: float, padding_factor: float = 1.0) -> int:
-    """
-    Calculate appropriate zoom level for a given coordinate range.
-
-    Args:
-        coordinate_range: Max range in degrees (lat or lon)
-        padding_factor: Multiplier to add padding (default 1.0)
-
-    Returns:
-        Zoom level (1-18)
-    """
-    padded_range = coordinate_range * padding_factor
-
-    if padded_range > 20:
-        return 2
-    elif padded_range > 10:
-        return 3
-    elif padded_range > 5:
-        return 4
-    elif padded_range > 2:
-        return 5
-    elif padded_range > 1:
-        return 6
-    elif padded_range > 0.5:
-        return 7
-    elif padded_range > 0.2:
-        return 8
-    elif padded_range > 0.1:
-        return 9
-    else:
-        return 10
-
-
-def calculate_bounds(coordinates: List[Tuple[float, float]]) -> Dict[str, float]:
-    """
-    Calculate bounding box for a set of coordinates.
-
-    Args:
-        coordinates: List of (latitude, longitude) tuples
-
-    Returns:
-        Dictionary with min/max lat/lon and center values
-    """
-    if not coordinates:
-        return {}
-
-    lats, lons = zip(*coordinates)
-
-    return {
-        'min_lat': min(lats),
-        'max_lat': max(lats),
-        'min_lon': min(lons),
-        'max_lon': max(lons),
-        'center_lat': float(np.mean(lats)),
-        'center_lon': float(np.mean(lons)),
-        'lat_range': max(lats) - min(lats),
-        'lon_range': max(lons) - min(lons)
-    }
-
-
-# =============================================================================
-# Map Controls
-# =============================================================================
-
-class MapControls:
-    """Configuration and application of Folium map controls."""
-
-    def __init__(self, measure: bool = True, fullscreen: bool = True,
-                 layer_control: bool = True, scale: bool = True):
-        """
-        Initialize control settings.
-
-        Args:
-            measure: Add measurement tool
-            fullscreen: Add fullscreen button
-            layer_control: Add layer toggle control
-            scale: Add scale indicator
-        """
-        self.measure = measure
-        self.fullscreen = fullscreen
-        self.layer_control = layer_control
-        self.scale = scale
-
-    def apply_to_map(self, folium_map: folium.Map, include_layer_control: bool = False):
-        """
-        Apply configured controls to a map.
-
-        Args:
-            folium_map: Map to add controls to
-            include_layer_control: Whether to add layer control now (often added at finalize)
-        """
-        try:
-            if self.measure:
-                plugins.MeasureControl(
-                    position='bottomleft',
-                    primary_length_unit='kilometers',
-                    secondary_length_unit='miles'
-                ).add_to(folium_map)
-
-            if self.fullscreen:
-                plugins.Fullscreen(position='topleft').add_to(folium_map)
-
-            if include_layer_control and self.layer_control:
-                folium.LayerControl().add_to(folium_map)
-
-        except Exception as e:
-            logger.warning("Could not add some map controls: %s", e)
-
-    def add_layer_control(self, folium_map: folium.Map):
-        """Add layer control to the map (typically called at finalize)."""
-        if self.layer_control:
-            try:
-                folium.LayerControl().add_to(folium_map)
-            except Exception as e:
-                logger.warning("Could not add layer control: %s", e)
-
-
-# =============================================================================
-# Map Builder
-# =============================================================================
 
 class MapBuilder:
     """

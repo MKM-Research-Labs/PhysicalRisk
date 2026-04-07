@@ -112,14 +112,19 @@ def get_js() -> str:
                     var cfg = window.__BACKEND_CONFIG || {};
                     var baseUrl = cfg.url || '';
 
-                    // Primary gauge from nearest-gauge components
+                    // Primary gauge from nearest-gauge components, fallback to phcData
                     var primaryGauge = result.gaugeComponents && result.gaugeComponents.length > 0
                         ? result.gaugeComponents[0] : null;
                     var ng0 = (phcData.nearest_gauges || [])[0] || {};
+                    var commitGaugeId = (primaryGauge && primaryGauge.gauge_id) || ng0.gauge_id || '';
+
+                    if (!commitGaugeId) {
+                        throw new Error('gauge_id is required — no nearest gauge found for this property');
+                    }
 
                     var payload = {
-                        gauge_id: primaryGauge ? primaryGauge.gauge_id : '',
-                        gauge_name: ng0.gauge_name || (primaryGauge ? primaryGauge.gauge_id : ''),
+                        gauge_id: commitGaugeId,
+                        gauge_name: ng0.gauge_name || commitGaugeId,
                         property_id: propertyId,
                         counterparty_id: ctpyId,
                         counterparty_name: ctpyName,

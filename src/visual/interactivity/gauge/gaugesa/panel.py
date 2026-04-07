@@ -248,7 +248,7 @@ class GaugeStormAnalysis(FoliumPanelMixin):
                     buildDistSlider();
                     buildStormSelector();
                     switchTab(activeTab);
-                    status.textContent = nSeqs + ' storms';
+                    status.textContent = nSeqs + ' event sequences';
                 }} catch (error) {{
                     console.error('[GaugeStorm] Load error:', error);
                     status.textContent = 'Error: ' + error.message;

@@ -126,13 +126,21 @@ class TestMRCMeetingDetailUI:
         close_all_panels(map_page)
 
     def _click_first_meeting_row(self, map_page):
-        """Click first meeting row, return True if successful."""
+        """Click first meeting row, wait for detail tabs to render."""
         content = map_page.locator("#mg-content")
         rows = content.locator("tr")
         if rows.count() <= 1:
             return False
         rows.nth(1).click(force=True)
-        map_page.wait_for_timeout(2_000)
+        # Wait for the async fetch + render to complete: meeting detail
+        # renders tab buttons with id="mrc-mtab-agenda" into #mrc-sub-content
+        try:
+            map_page.wait_for_selector(
+                "#mrc-mtab-agenda", state="attached", timeout=10_000
+            )
+        except Exception:
+            # Fallback: the fetch may have failed or content is different
+            map_page.wait_for_timeout(2_000)
         return True
 
     def test_meeting_list_has_rows(self, map_page):

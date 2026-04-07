@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,29 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Thames-specific property random value generators.
-
-Contains the field generator registry and metadata generation.
-Delegates to submodules for specific calculation domains:
-  - property_utils: dates, names, construction years
-  - property_location: postcodes, streets, bedrooms, floor levels, council tax
-  - property_valuation: property value, area, sale price, rent, insurance
-  - property_energy: carbon, energy, electricity, gas, solar, bills
-
-Usage:
-    from port.rand.thames import property_random
-
-    generators = property_random.get_field_generators()
-    value = generators['PropertyValue'](location_info)
-"""
+"""Field generator registry and value generation."""
 
 import random
-import uuid
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict
 
-from .property_energy import (
+from .helpers import _deterministic_prop_id, _ea_zone_from_elevation
+from ..property_energy import (
     calculate_annual_energy,
     calculate_carbon_emissions,
     calculate_energy_bill,
@@ -48,7 +33,7 @@ from .property_energy import (
     calculate_grid_electricity,
     calculate_solar_generation,
 )
-from .property_location import (
+from ..property_location import (
     calculate_purchase_price,
     generate_bathrooms,
     generate_bedrooms,
@@ -57,71 +42,19 @@ from .property_location import (
     generate_postcode_for_area,
     generate_street_name,
 )
-from .property_utils import (
+from ..property_utils import (
     generate_construction_year,
     generate_owner_name,
     generate_past_date,
-    generate_postcode,  # noqa: F401 — used via module attribute in tests
     get_property_period,
 )
-from .property_valuation import (
+from ..property_valuation import (
     calculate_insurance_premium,
     calculate_monthly_rent,
     calculate_property_area,
     calculate_property_value,
     calculate_sale_price,
 )
-
-# =============================================================================
-# METADATA GENERATION
-# =============================================================================
-
-def _deterministic_prop_id(location: Dict, index: int) -> str:
-    """Generate a stable property ID from location + index."""
-    import hashlib
-    loc_key = f"{location['lat']:.6f}:{location['lon']:.6f}:{index}"
-    return f"PROP-{hashlib.sha256(loc_key.encode()).hexdigest()[:8]}"
-
-
-def generate_property_metadata(index: int, location: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate property metadata including ID, type, and other core attributes.
-
-    Args:
-        index: Property index in the portfolio
-        location: Location dictionary with lat, lon, elevation, name, etc.
-
-    Returns:
-        Dictionary containing property metadata
-    """
-    property_type = random.choice([
-        'Flat', 'Mid-terrace', 'End-terrace',
-        'Semi-detached', 'Detached', 'Bungalow'
-    ])
-
-    construction_year = generate_construction_year()
-    property_area = calculate_property_area({'property_type': property_type})
-
-    property_value = calculate_property_value({
-        'property_type': property_type,
-        'property_area': property_area,
-        'construction_year': construction_year,
-        'elevation': location['elevation'],
-        'value_factor': location.get('value_factor', 1.0)
-    })
-
-    return {
-        'property_id': _deterministic_prop_id(location, index),
-        'property_type': property_type,
-        'construction_year': construction_year,
-        'property_area': property_area,
-        'property_value': property_value,
-        'elevation': location['elevation'],
-        'vertical_offset': location.get('vertical_offset', 0.5),
-        'area_name': location.get('name', 'Unknown'),
-        'value_factor': location.get('value_factor', 1.0),
-        'streets_data': location.get('streets_data', {})
-    }
 
 
 def generate_field_value(field_name: str, field_def: Dict, index: int, metadata: Dict[str, Any]) -> Any:
@@ -177,27 +110,6 @@ def generate_field_value(field_name: str, field_def: Dict, index: int, metadata:
 
     return None
 
-
-# =============================================================================
-# EA FLOOD ZONE — derived from vertical offset above river
-# =============================================================================
-
-def _ea_zone_from_elevation(info: Dict[str, Any]) -> str:
-    """Derive EA flood zone from the property's vertical offset above river level."""
-    from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
-    offset = info.get('vertical_offset', 999.0)
-    for zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
-        if hi is None:
-            if offset >= lo:
-                return zone
-        elif lo <= offset < hi:
-            return zone
-    return 'Zone 1'
-
-
-# =============================================================================
-# FIELD GENERATORS
-# =============================================================================
 
 def get_field_generators() -> Dict[str, Callable]:
     """

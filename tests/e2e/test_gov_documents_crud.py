@@ -24,8 +24,14 @@ class TestDocumentUploadDownload:
         open_governance(map_page)
         switch_governance_tab(map_page, "documents")
         # Documents tab fetches /api/v1/governance/documents then renders —
-        # wait for the upload area to appear after the async load
-        map_page.wait_for_timeout(6_000)
+        # wait for the upload file input to appear after the async load
+        try:
+            map_page.wait_for_selector(
+                "#mg-doc-file", state="attached", timeout=15_000
+            )
+        except Exception:
+            # Fallback if the selector never appears
+            map_page.wait_for_timeout(3_000)
         yield
         close_all_panels(map_page)
 

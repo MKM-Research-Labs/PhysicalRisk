@@ -37,16 +37,19 @@ def get_gauge_flood_frequency_label(flood_count: int) -> str:
 
 def get_gauge_icon(gauge_info: Dict[str, Any], gauge_hazard: dict,
                    num_storms: int) -> folium.Icon:
-    """Get icon colored by flood frequency RAG."""
-    gauge_id = gauge_info.get('gauge_id', '')
-    flood_count = get_gauge_flood_count(gauge_id, gauge_hazard, num_storms)
+    """Get icon colored by operational status.
 
-    if flood_count > GAUGE_FLOOD_HIGH:
-        color = 'red'
-    elif flood_count >= GAUGE_FLOOD_MEDIUM:
-        color = 'orange'
-    else:
-        color = 'green'
+    Blue = Fully operational, Orange = Maintenance required,
+    Red = Temporarily offline, Gray = Decommissioned.
+    """
+    status = gauge_info.get('operational_status', 'Unknown')
+    status_color = {
+        'Fully operational': 'blue',
+        'Maintenance required': 'orange',
+        'Temporarily offline': 'red',
+        'Decommissioned': 'gray',
+    }
+    color = status_color.get(status, 'blue')
 
     return folium.Icon(color=color, icon='tint', prefix='fa')
 

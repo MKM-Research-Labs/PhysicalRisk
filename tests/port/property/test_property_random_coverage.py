@@ -74,3 +74,13 @@ class TestIntegerFallback:
         result = generate_field_value("UnknownIntField", field_def, 0, metadata)
         assert isinstance(result, int)
         assert 0 <= result <= 100
+
+
+class TestEaZoneFallback:
+    """Line 43 of helpers.py: _ea_zone_from_elevation fallback returns 'Zone 1'."""
+
+    def test_negative_offset_falls_through_to_zone_1(self):
+        """When vertical_offset is negative, no zone range matches → fallback 'Zone 1'."""
+        from port.rand.thames.property.property_random.helpers import _ea_zone_from_elevation
+        result = _ea_zone_from_elevation({"vertical_offset": -1.0})
+        assert result == "Zone 1"
