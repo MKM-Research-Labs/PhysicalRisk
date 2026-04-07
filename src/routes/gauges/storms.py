@@ -56,29 +56,51 @@ def get_gauge_storms(gauge_id: str):
         storm_responses = timeseries_loader.get_storm_responses(gauge_id)
         flood_stages = gauge_loader.get_flood_stages(gauge_id) or {}
 
-        # Enrich storm responses with metadata from storm_sequences.json (storm_multi)
+        # Build storm→sequence mapping and aggregate to sequence-level peaks.
+        # PRS pricing uses sequences (not individual storms) as the risk unit,
+        # so the distribution panel must show one peak per sequence.
         sequences_path = config.get_input_path('storm_sequences.json')
+        num_sequences = len(storm_responses)  # fallback
+        sequence_responses = storm_responses  # fallback
+
         if sequences_path.exists():
             try:
                 with open(sequences_path, 'r') as f:
                     sdata = json_mod.load(f)
-                storm_meta = {}
+                num_sequences = sdata.get('num_sequences',
+                                          len(sdata.get('sequences', [])))
+
+                # Map storm_id → sequence_id
+                storm_to_seq = {}
                 for seq in sdata.get('sequences', []):
+                    seq_id = seq['sequence_id']
                     for s in seq.get('storms', []):
-                        storm_meta[s['storm_id']] = s
+                        storm_to_seq[s['storm_id']] = seq_id
+
+                # Aggregate: keep the worst storm response per sequence
+                seq_best = {}  # sequence_id → response with highest peak
                 for resp in storm_responses:
-                    meta = storm_meta.get(resp.get('storm_id', ''), {})
-                    resp['name'] = ''
-                    resp['intensity_category'] = meta.get('intensity_category', '')
-                    resp['effective_precipitation_mm'] = meta.get('precipitation_mm', 0)
-                    resp['gauges_severe'] = 0
+                    sid = resp.get('storm_id', '')
+                    seq_id = storm_to_seq.get(sid, sid)
+                    resp['sequence_id'] = seq_id
+                    prev = seq_best.get(seq_id)
+                    if prev is None or resp['peak_level_m'] > prev['peak_level_m']:
+                        seq_best[seq_id] = resp
+
+                sequence_responses = list(seq_best.values())
             except Exception:
                 pass
 
-        # Compute gauges_severe from per-gauge responses if trigger_summary empty
+        # Enrich with metadata
+        for resp in sequence_responses:
+            resp.setdefault('name', '')
+            resp.setdefault('intensity_category', '')
+            resp.setdefault('effective_precipitation_mm', 0)
+            resp.setdefault('gauges_severe', 0)
+
+        # Compute gauges_severe from per-gauge responses
         gaugets_dir = config.get_gaugets_dir()
         if gaugets_dir.exists():
-            # Count exceeded_severe per storm across all gauges
             severe_counts = {}
             for gf in gaugets_dir.glob('GAUGE-*.json'):
                 try:
@@ -90,21 +112,10 @@ def get_gauge_storms(gauge_id: str):
                             severe_counts[sid] = severe_counts.get(sid, 0) + 1
                 except Exception:
                     continue
-            for resp in storm_responses:
+            for resp in sequence_responses:
                 sid = resp.get('storm_id', '')
                 if resp.get('gauges_severe', 0) == 0 and sid in severe_counts:
                     resp['gauges_severe'] = severe_counts[sid]
-
-        # Sequence count (the unit of risk) from storm_sequences.json
-        num_sequences = len(storm_responses)  # fallback
-        seq_path = config.get_input_path('storm_sequences.json')
-        if seq_path.exists():
-            try:
-                with open(seq_path, 'r') as f:
-                    seq_meta = json_mod.load(f)
-                num_sequences = seq_meta.get('num_sequences', len(seq_meta.get('sequences', [])))
-            except Exception:
-                pass
 
         return jsonify({
             'status': 'success',
@@ -115,9 +126,8 @@ def get_gauge_storms(gauge_id: str):
                 'readings': readings
             },
             'storm_responses': {
-                'num_storms': len(storm_responses),
                 'num_sequences': num_sequences,
-                'responses': storm_responses
+                'responses': sequence_responses
             },
             'flood_stages': flood_stages
         })
