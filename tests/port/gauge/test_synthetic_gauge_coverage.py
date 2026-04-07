@@ -122,10 +122,11 @@ class TestNoRiverPolylineCache:
     def test_snap_to_river_returns_original_when_no_polyline(self, synth_env, monkeypatch):
         """_snap_to_river returns original coords when river is None."""
         import port.src.gauge.synthetic as synth_mod
-        synth_mod._RIVER_POLYLINE_CACHE = None
-        monkeypatch.setattr(synth_mod, "_load_river_polyline", lambda: None)
+        import port.src.gauge.synthetic.geometry as geom_mod
+        geom_mod._RIVER_POLYLINE_CACHE = None
+        monkeypatch.setattr(geom_mod, "_load_river_polyline", lambda: None)
 
-        lat, lon = synth_mod._snap_to_river(51.46, -0.30)
+        lat, lon = geom_mod._snap_to_river(51.46, -0.30)
         assert lat == 51.46
         assert lon == -0.30
 
@@ -138,7 +139,7 @@ class TestDegenerateRiverSegment:
 
     def test_degenerate_segment_skipped(self, synth_env, monkeypatch):
         """_snap_to_river skips zero-length segments without error."""
-        import port.src.gauge.synthetic as synth_mod
+        import port.src.gauge.synthetic.geometry as geom_mod
 
         # Polyline with a degenerate (identical consecutive points) segment
         degenerate_polyline = [
@@ -146,10 +147,10 @@ class TestDegenerateRiverSegment:
             (51.45, -0.50),  # zero-length segment
             (51.47, -0.10),
         ]
-        monkeypatch.setattr(synth_mod, "_load_river_polyline",
+        monkeypatch.setattr(geom_mod, "_load_river_polyline",
                             lambda: degenerate_polyline)
 
-        lat, lon = synth_mod._snap_to_river(51.46, -0.30)
+        lat, lon = geom_mod._snap_to_river(51.46, -0.30)
         # Should return valid coordinates without error
         assert isinstance(lat, float)
         assert isinstance(lon, float)

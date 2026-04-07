@@ -53,18 +53,18 @@ class TestPropertyIDGenerator:
     """Property random generator produces PROP-{8hex} IDs."""
 
     def test_generator_source_uses_prop_prefix(self):
-        from port.rand.thames.property import property_random as pr
-        src = inspect.getsource(pr)
-        assert 'PROP-' in src, "property_random must use 'PROP-' prefix"
+        from port.rand.thames.property.property_random import helpers
+        src = inspect.getsource(helpers)
+        assert 'PROP-' in src, "property_random helpers must use 'PROP-' prefix"
 
-    def test_generator_source_uses_uuid(self):
-        from port.rand.thames.property import property_random as pr
-        src = inspect.getsource(pr)
-        assert 'uuid' in src
+    def test_generator_source_uses_deterministic_hash(self):
+        from port.rand.thames.property.property_random import helpers
+        src = inspect.getsource(helpers)
+        assert 'hashlib' in src or 'uuid' in src
 
     def test_generator_does_not_use_sequential_format(self):
-        from port.rand.thames.property import property_random as pr
-        src = inspect.getsource(pr)
+        from port.rand.thames.property.property_random import helpers
+        src = inspect.getsource(helpers)
         assert 'PROP-{i:' not in src
         assert 'PROP-{index' not in src
 

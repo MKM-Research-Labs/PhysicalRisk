@@ -136,12 +136,12 @@ class TestStormDisplayFormat:
             "port_stress/setup.py must pass show_warning=True to storm_option_js"
 
     def test_trading_stress_uses_sentinel_with_peak(self):
-        """trading/stress/setup.py uses sentinel with show_peak=True."""
-        src = _read_source('src/visual/interactivity/trading/stress/setup.py')
+        """trading/stress/setup_data.py uses sentinel with show_peak=True."""
+        src = _read_source('src/visual/interactivity/trading/stress/setup_data.py')
         assert '_storm_opt' in src, \
-            "trading/stress/setup.py must import _storm_opt from config.format"
+            "trading/stress/setup_data.py must import _storm_opt from config.format"
         assert 'show_peak=True' in src, \
-            "trading/stress/setup.py must pass show_peak=True to storm_option_js"
+            "trading/stress/setup_data.py must pass show_peak=True to storm_option_js"
 
 
 class TestBlotterTradeExistence:
