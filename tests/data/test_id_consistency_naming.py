@@ -124,7 +124,7 @@ class TestFileNamingConventions:
     _GAUGE_TS_PAT = re.compile(r"^(GAUGE|SYNTH)-[0-9a-f]{8}\.json$")
     _PROP_TS_PAT = re.compile(r"^PROP-[0-9a-f]{8}\.json$")
     _SEQ_GAUGE_PAT = re.compile(r"^(GAUGE|SYNTH)-[0-9a-f]{8}\.json$")
-    _PRS_PAT = re.compile(r"^PRS-[0-9a-fA-F]{8}\.(json|pdf)$")
+    _PRS_PAT = re.compile(r"^PRS-P?[0-9a-fA-F]{8}\.(json|pdf)$")
     _EOD_PAT = re.compile(r"^EOD-\d{8}\.json$")
 
     def test_gaugehd_naming_pattern(self):

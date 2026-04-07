@@ -40,6 +40,8 @@ _PROPERTY_DISPLAY_FILES = [
     'src/visual/interactivity/context_menus.py',
     'src/visual/interactivity/storm/sp_table.py',
     'src/visual/layer/property_layer/layer.py',
+    'src/visual/layer/property_layer/popup.py',
+    'src/visual/popups/property_popup/builder.py',
 ]
 
 
