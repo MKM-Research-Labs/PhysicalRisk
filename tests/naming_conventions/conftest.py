@@ -50,7 +50,7 @@ _STORM_DROPDOWN_FILES = [
     'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
     'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',
     'src/visual/interactivity/trading/port_stress/setup.py',
-    'src/visual/interactivity/trading/stress/setup.py',
+    'src/visual/interactivity/trading/stress/setup_data.py',
 ]
 
 
