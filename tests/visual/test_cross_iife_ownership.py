@@ -94,9 +94,9 @@ class TestContractB_CacheConsumers:
 
     def test_tradingdesk_reads_window_preload_done(self):
         """showPanel() must read window._tdPreloadDone, not bare _tdPreloadDone."""
-        src = iife_src_file('src/visual/interactivity/trading/tradingdesk.py')
+        src = iife_src_file('src/visual/interactivity/trading/tradingdesk/panel_lifecycle.py')
         assert 'window._tdPreloadDone' in src, (
-            'tradingdesk.py showPanel() must read window._tdPreloadDone. '
+            'tradingdesk panel_lifecycle.py showPanel() must read window._tdPreloadDone. '
             'Bare _tdPreloadDone causes ReferenceError from a different IIFE.'
         )
 
@@ -200,7 +200,7 @@ class TestContractC_NoBareReads:
 
     def test_tradingdesk_no_bare_preload_done(self):
         self._check_no_bare_read(
-            'src/visual/interactivity/trading/tradingdesk.py', '_tdPreloadDone')
+            'src/visual/interactivity/trading/tradingdesk/panel_lifecycle.py', '_tdPreloadDone')
 
     def test_preloader_no_bare_preload_done_read(self):
         """preloader.py checks should all use window._tdPreloadDone."""

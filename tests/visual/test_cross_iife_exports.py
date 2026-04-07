@@ -42,7 +42,7 @@ class TestContractF_CrossPanelExports:
 
     def test_trading_desk_exports_show_hide(self):
         """TradingDeskPanel must export TradingDesk and showTradingDesk."""
-        src = iife_src_file('src/visual/interactivity/trading/tradingdesk.py')
+        src = iife_src_file('src/visual/interactivity/trading/tradingdesk/panel_lifecycle.py')
         assert 'window.TradingDesk' in src
         assert 'window.showTradingDesk' in src
 
@@ -63,7 +63,7 @@ class TestContractF_CrossPanelExports:
         assert 'window._stressStormHint' in hist_src
 
     def test_stress_setup_reads_window_hint(self):
-        stress_src = iife_src_file('src/visual/interactivity/trading/stress/setup.py')
+        stress_src = iife_src_file('src/visual/interactivity/trading/stress/setup_data.py')
         assert 'window._stressStormHint' in stress_src
 
     def test_pending_filter_uses_window(self):
