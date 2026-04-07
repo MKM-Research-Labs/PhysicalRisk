@@ -85,6 +85,13 @@ def get_js() -> str:
             window._preGaugeHist      = null;
             window._preMortgages      = null;
             window._preAuditReports   = null;
+            window._propertyNames     = {};  // propertyId → address lookup
+
+            // Global helper: canonical property display label "Address (PROP-xxx)"
+            window.propertyDisplayName = function(propertyId, address) {
+                var addr = address || (window._propertyNames || {})[propertyId] || '';
+                return addr ? addr + ' (' + propertyId + ')' : propertyId;
+            };
 
             // Flag read by trading/preloader.py — on window so it is accessible
             // from any IIFE scope (var declaration would be local to this IIFE)
@@ -107,6 +114,7 @@ def get_js() -> str:
                 ['_preGaugeHist',      'Gauge history',        '/api/v1/gauges/history/summary'],
                 ['_preMortgages',      'Mortgages',            '/api/v1/mortgages'],
                 ['_preAuditReports',   'Audit reports',        '/api/v1/governance/audit-reports'],
+                ['_prePropertyNames',  'Property names',       '/api/v1/properties'],
             ];
 
             function _startupDetail(key, data) {
@@ -126,6 +134,7 @@ def get_js() -> str:
                 if (key === '_preGaugeHist'       && data.count != null) return data.count + ' gauges';
                 if (key === '_preMortgages'       && data.mortgages)     return data.mortgages.length + ' mortgages';
                 if (key === '_preAuditReports'    && data.reports)       return data.reports.filter(function(r){return r.filename.endsWith('.pdf');}).length + ' PDFs';
+                if (key === '_prePropertyNames'   && data.properties)   return data.properties.length + ' properties';
                 return null;
             }
 
@@ -240,6 +249,18 @@ def get_js() -> str:
                         .then(function(r) { return r.json(); })
                         .then(function(data) {
                             window[key] = data;
+                            // Build property name lookup from /api/v1/properties
+                            if (key === '_prePropertyNames' && data && data.properties) {
+                                var map = {};
+                                data.properties.forEach(function(p) {
+                                    var hdr = (p.PropertyHeader || {});
+                                    var loc = hdr.Location || {};
+                                    var pid = (hdr.Header || {}).PropertyID || '';
+                                    var addr = ((loc.BuildingNumber || '') + ' ' + (loc.StreetName || '')).trim();
+                                    if (pid) map[pid] = addr;
+                                });
+                                window._propertyNames = map;
+                            }
                             _startupMarkItem(key, true, _startupDetail(key, data));
                         })
                         .catch(function() {

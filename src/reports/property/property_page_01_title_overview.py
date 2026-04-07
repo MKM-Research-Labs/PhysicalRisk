@@ -43,6 +43,7 @@ from typing import Any, Dict, List
 
 from reportlab.platypus import Paragraph, Spacer, Table
 
+from config.format import property_title_py
 from .property_page_00_base import PropertyBasePage
 
 
@@ -55,8 +56,11 @@ class TitleOverviewPage(PropertyBasePage):
         elements = []
 
         try:
-            # Extract property ID
+            # Extract property ID and address
             property_id = self._get_property_id(property_data)
+            loc = property_data.get('PropertyHeader', {}).get('Location', {})
+            prop_address = f"{loc.get('BuildingNumber', '')} {loc.get('StreetName', '')}".strip()
+            prop_label = property_title_py(prop_address, property_id)
 
             # TITLE SECTION
             elements.append(Paragraph(
@@ -64,7 +68,7 @@ class TitleOverviewPage(PropertyBasePage):
                 self.styles['Title']
             ))
             elements.append(Paragraph(
-                f"Property ID: {property_id}",
+                prop_label,
                 self.styles['SubTitle']
             ))
             elements.append(Paragraph(

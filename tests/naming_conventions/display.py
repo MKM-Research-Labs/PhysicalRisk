@@ -15,7 +15,10 @@
 import json
 import fnmatch
 import pytest
-from .conftest import _STORM_DROPDOWN_FILES, _read_source
+from .conftest import (
+    _STORM_DROPDOWN_FILES, _PROPERTY_DISPLAY_FILES_PY,
+    _PROPERTY_DISPLAY_FILES_JS, _read_source,
+)
 
 
 class TestStormDisplayFormat:
@@ -189,3 +192,45 @@ class TestBlotterTradeExistence:
         for name in fixture_names:
             assert fnmatch.fnmatch(name, 'PRS-*.json'), \
                 f"Unexpected: glob does not match '{name}'"
+
+
+class TestPropertyDisplayFormat:
+    """Property labels must use the canonical 'Address (ID)' format from config.format."""
+
+    def test_canonical_format_defined_in_config_format(self):
+        """The property display format is centralised in config/format.py."""
+        from config.format import property_title_py, property_title_js
+        # Python
+        assert property_title_py('128 Horseferry Road', 'PROP-abc123') == \
+            '128 Horseferry Road (PROP-abc123)'
+        assert property_title_py('', 'PROP-abc123') == 'PROP-abc123'
+        # JavaScript
+        js = property_title_js('addr', 'pid')
+        assert 'addr' in js
+        assert 'pid' in js
+        assert '(' in js, "JS must produce parenthesised format"
+
+    def test_python_files_import_property_title_py(self):
+        """All Python property display files must import property_title_py."""
+        for path in _PROPERTY_DISPLAY_FILES_PY:
+            src = _read_source(path)
+            assert 'property_title_py' in src, (
+                f"{path} must import property_title_py from config.format"
+            )
+
+    def test_js_files_use_propertyDisplayName(self):
+        """All JS property display files must use window.propertyDisplayName."""
+        for path in _PROPERTY_DISPLAY_FILES_JS:
+            src = _read_source(path)
+            assert 'propertyDisplayName' in src, (
+                f"{path} must use window.propertyDisplayName() for property labels"
+            )
+
+    def test_no_hardcoded_property_id_only_display(self):
+        """Property display files should not use bare 'ID: {property_id}' format."""
+        for path in _PROPERTY_DISPLAY_FILES_PY:
+            src = _read_source(path)
+            assert 'f"ID: {property_id}"' not in src, (
+                f"{path} still uses hardcoded 'ID: {{property_id}}' format. "
+                f"Delegate to config.format.property_title_py instead."
+            )

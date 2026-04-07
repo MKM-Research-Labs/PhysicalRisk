@@ -21,6 +21,7 @@ QuantLib==1.38
 # Web framework
 Flask==3.0.0
 flask-cors==6.0.0
+gunicorn==23.0.0
 
 # PDF report generation
 reportlab==4.4.0

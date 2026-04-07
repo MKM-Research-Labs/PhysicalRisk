@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import folium
 
+from config.format import property_title_py
 from config.visual import PROPERTY_FLOOD_HIGH, PROPERTY_FLOOD_MEDIUM
 from ...utils import ColorSchemes, DataExtractor, DataFormatter, RiskAssessor
 from .popup import (create_property_popup, create_flood_risk_section,
@@ -111,7 +112,10 @@ class PropertyLayer:
             phc = self._property_hazard.get(property_id, {})
             flood_count = phc.get('flood_count', 0)
             flood_freq_label = self._get_flood_frequency_label(flood_count)
-            tooltip = f"Property: {property_id} | Floods: {flood_count} ({flood_freq_label}){' | Mortgaged' if has_mortgage else ''}"
+            addr = property_info.get('address', {})
+            prop_address = f"{addr.get('building_number', '')} {addr.get('street_name', '')}".strip()
+            prop_label = property_title_py(prop_address, property_id)
+            tooltip = f"{prop_label} | Floods: {flood_count} ({flood_freq_label}){' | Mortgaged' if has_mortgage else ''}"
 
             icon = self._get_property_icon(property_info, has_mortgage)
 

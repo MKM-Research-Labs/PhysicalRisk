@@ -25,6 +25,24 @@ MORT_ID_RE   = re.compile(r'^MORT-[0-9a-f]{8}$')
 STORM_ID_RE  = re.compile(r'^STORM-[0-9a-f]{8}$')
 PRS_ID_RE    = re.compile(r'^PRS-[0-9a-fA-F]{8}$')  # book uses .upper()
 
+# Files that display property labels — must use config.format
+_PROPERTY_DISPLAY_FILES_PY = [
+    'src/visual/layer/property_layer/layer.py',
+    'src/visual/layer/property_layer/popup.py',
+    'src/visual/popups/property_popup/builder.py',
+    'src/visual/layer/mortgage_layer/popup.py',
+    'src/reports/property/property_page_01_title_overview.py',
+    'src/reports/property/claim/page1_cover.py',
+    'src/reports/risk/risk_page_06_property_details.py',
+]
+
+_PROPERTY_DISPLAY_FILES_JS = [
+    'src/visual/interactivity/property/propertyhc.py',
+    'src/visual/interactivity/context_menus.py',
+    'src/visual/interactivity/trading/aggregate/map_view.py',
+    'src/visual/interactivity/trading/client/table.py',
+]
+
 # Files that build storm dropdowns — must use pipe-separated format
 _STORM_DROPDOWN_FILES = [
     'src/visual/interactivity/storm/sp_table.py',
