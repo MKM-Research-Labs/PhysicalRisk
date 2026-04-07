@@ -18,32 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Stress Test — setup sub-module.
+"""Trader's Workstation panel package."""
 
-State variables, DOM construction, data loading, gauge/storm dropdown
-population and change handlers, chart tab switching.
+from .panel import TradingDeskPanel
 
-On-demand classifier training UI is in training_ui.py.
-"""
-
-from . import setup_dom, setup_data, setup_charts
-
-
-def get_js() -> str:
-    """Return JavaScript fragment for stress test state, DOM, and loading."""
-    return f"""
-            // ==============================================================
-            // Tab 7: Stress Test — CDS-in-stress cash pricing
-            // ==============================================================
-            var tdStressGauges = null;
-            var tdStressStorms = null;
-            var tdStressResult = null;
-            var tdStressChart = null;
-            var tdStressChartTab = 0;  // 0 = Flood Probability, 1 = Stress P&L, 2 = Surface
-            var tdStressGaugeHint = null;
-
-{setup_dom.get_js()}
-{setup_data.get_js()}
-{setup_charts.get_js()}
-"""
+__all__ = ['TradingDeskPanel']
