@@ -30,12 +30,9 @@ Provides endpoints for model inventory, audit trail, and governance workflow.
 Supports the Model Risk Committee dashboard and validation team reporting.
 """
 
-from flask import Blueprint
-
-governance_bp = Blueprint("governance", __name__)
+from .blueprint import governance_bp  # noqa: F401
 
 # Import sub-modules to register their routes on governance_bp.
-# These must come after governance_bp is defined to avoid circular imports.
 from . import models      # noqa: E402, F401
 from . import audit       # noqa: E402, F401
 from . import mrc         # noqa: E402, F401

@@ -41,15 +41,9 @@ Sub-modules:
 - port_stress: Portfolio stress
 """
 
-from flask import Blueprint
-
-from ._helpers import no_cache
-
-trading_bp = Blueprint("trading", __name__)
-trading_bp.after_request(no_cache)
+from .blueprint import trading_bp  # noqa: F401
 
 # Import sub-modules to register their routes on trading_bp.
-# These must come after trading_bp is defined to avoid circular imports.
 from . import blotter       # noqa: E402, F401
 from . import market_state  # noqa: E402, F401
 from . import risk          # noqa: E402, F401

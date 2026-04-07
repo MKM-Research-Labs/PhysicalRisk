@@ -25,12 +25,9 @@ Provides endpoints for gauge data, timeseries, storm scenarios,
 hazard curves, PRS pricing, reports, and statistics.
 """
 
-from flask import Blueprint
-
-gauges_bp = Blueprint('gauges', __name__)
+from .blueprint import gauges_bp  # noqa: F401
 
 # Import sub-modules to register their routes on gauges_bp.
-# These must come after gauges_bp is defined to avoid circular imports.
 from . import crud          # noqa: E402, F401
 from . import reports       # noqa: E402, F401
 from . import history       # noqa: E402, F401

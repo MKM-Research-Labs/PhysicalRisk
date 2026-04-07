@@ -39,26 +39,9 @@ to the flood risk and tropical cyclone event visualizations.
 """
 
 from .gauge_layer import GaugeLayer
+from .helpers import get_properties_list
 from .mortgage_layer import MortgageLayer
 from .property_layer import PropertyLayer
-
-
-def get_properties_list(property_data):
-    """Extract properties list from property data in various input shapes.
-
-    Shared by PropertyLayer and MortgageLayer.
-    """
-    if isinstance(property_data, dict):
-        properties = property_data.get('items') or property_data.get('properties') or []
-        if not properties and 'PropertyHeader' in property_data:
-            properties = [property_data]
-        elif not properties:
-            properties = property_data.get('portfolio', [])
-    elif isinstance(property_data, list):
-        properties = property_data
-    else:
-        properties = []
-    return properties
 
 __all__ = [
     "GaugeLayer",
