@@ -257,13 +257,14 @@ def get_js() -> str:
                     '}' +
                     '.td-gauge-label::before { display: none !important; }' +
                     '.td-prop-label { ' +
-                    'background: transparent !important; ' +
-                    'border: none !important; ' +
-                    'box-shadow: none !important; ' +
-                    'font-size: 9px !important; ' +
+                    'background: white !important; ' +
+                    'border: 1px solid #ccc !important; ' +
+                    'box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important; ' +
+                    'font-size: 10px !important; ' +
                     'font-weight: 600 !important; ' +
-                    'color: #333 !important; ' +
-                    'padding: 0 !important; ' +
+                    'color: #000 !important; ' +
+                    'padding: 2px 6px !important; ' +
+                    'border-radius: 3px !important; ' +
                     '}' +
                     '.td-prop-label::before { display: none !important; }';
                 document.head.appendChild(style);
