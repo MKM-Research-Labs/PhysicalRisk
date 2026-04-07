@@ -33,6 +33,7 @@ from flask import jsonify
 from config import config
 from . import trading_bp
 from ._helpers import _get_engines, _load_open_trades, _load_gauge_locations
+from .client import _load_property_trades
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +196,33 @@ def get_trade_map():
                     'notional': t.get('notional', 0),
                     'swap_id': t.get('swap_id', ''),
                 })
+
+        # Include property PRS trades
+        prop_trades = _load_property_trades()
+        for pt in prop_trades:
+            lat = pt.get('latitude', 0)
+            lon = pt.get('longitude', 0)
+            if not lat or not lon:
+                continue
+            notional = pt.get('notional', 0)
+            direction = 1 if pt.get('is_payer') else -1
+            property_positions.append({
+                'property_id': pt.get('property_id', ''),
+                'lat': lat,
+                'lon': lon,
+                'address': pt.get('property_address', ''),
+                'postcode': pt.get('postcode', ''),
+                'gauge_id': pt.get('gauge_id', ''),
+                'notional': notional,
+                'net_notional': notional * direction,
+                'swap_id': pt.get('swap_id', ''),
+                'spread_bps': pt.get('spread_bps', 0),
+                'fs01': pt.get('gauge_fs01', 0),
+                'npv': pt.get('npv', 0),
+                'counterparty': pt.get('counterparty', ''),
+                'is_payer': pt.get('is_payer', False),
+                'ea_flood_zone': pt.get('ea_flood_zone', ''),
+            })
 
         # Round numeric values
         for gp in gauge_positions.values():

@@ -55,7 +55,9 @@ def get_js() -> str:
                 legend.innerHTML =
                     '<span>\\u25cf <span style="color:#1565c0;">Long FS01</span></span>' +
                     '<span>\\u25cf <span style="color:#c62828;">Short FS01</span></span>' +
-                    '<span>Circle size = |Net FS01|</span>';
+                    '<span>Solid = Gauge</span>' +
+                    '<span>Dashed = Property</span>' +
+                    '<span>Circle size = |FS01|</span>';
                 view.appendChild(legend);
 
                 return view;
@@ -193,6 +195,54 @@ def get_js() -> str:
                     bounds.push([g.lat, g.lon]);
                 }
 
+                // Property PRS markers (diamond-shaped)
+                var properties = tdMapData.properties || [];
+                for (var pi = 0; pi < properties.length; pi++) {
+                    var p = properties[pi];
+                    if (!p.lat || !p.lon) continue;
+
+                    var pFs01 = p.fs01 || 0;
+                    var pColor = pFs01 >= 0 ? '#1565c0' : '#c62828';
+                    var pAbsFs01 = Math.abs(pFs01);
+                    var pRadius = maxAbsFs01 > 0
+                        ? Math.max(5, Math.sqrt(pAbsFs01 / maxAbsFs01) * 25)
+                        : 5;
+
+                    var pNotional = p.net_notional || 0;
+                    var pnColor = pNotional >= 0 ? '#1565c0' : '#c62828';
+                    var npvColor = (p.npv || 0) >= 0 ? '#2e7d32' : '#c62828';
+
+                    var pPopup =
+                        '<div style="font-size:11px;min-width:180px;">' +
+                            '<b style="font-size:12px;">' + (p.address || p.property_id) + '</b><br>' +
+                            '<span style="color:#888;">' + (p.postcode || '') + ' \\u2014 ' + (p.ea_flood_zone || '') + '</span><br>' +
+                            '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                            '<div style="display:flex;justify-content:space-between;"><span>Swap:</span><b>' + (p.swap_id || '') + '</b></div>' +
+                            '<div style="display:flex;justify-content:space-between;"><span>Ctpy:</span><b>' + (p.counterparty || '') + '</b></div>' +
+                            '<div style="display:flex;justify-content:space-between;"><span>Direction:</span><b>' + (p.is_payer ? 'Payer' : 'Receiver') + '</b></div>' +
+                            '<div style="display:flex;justify-content:space-between;"><span>Notional:</span><span style="color:' + pnColor + ';font-weight:bold;">' + fmtGBP(pNotional) + '</span></div>' +
+                            '<div style="display:flex;justify-content:space-between;"><span>Spread:</span><b>' + (p.spread_bps || 0).toFixed(1) + ' bps</b></div>' +
+                            '<div style="display:flex;justify-content:space-between;"><span>FS01:</span><span style="color:' + pColor + ';font-weight:bold;">' + fmtGBP(pFs01) + '</span></div>' +
+                            '<div style="display:flex;justify-content:space-between;"><span>NPV:</span><span style="color:' + npvColor + ';font-weight:bold;">' + fmtGBP(p.npv || 0) + '</span></div>' +
+                        '</div>';
+
+                    L.circleMarker([p.lat, p.lon], {
+                        radius: pRadius,
+                        fillColor: pColor,
+                        color: '#fff',
+                        weight: 1.5,
+                        fillOpacity: 0.55,
+                        dashArray: '3 3'
+                    }).bindPopup(pPopup).bindTooltip(p.address || p.property_id, {
+                        permanent: true,
+                        direction: 'bottom',
+                        offset: [0, pRadius + 2],
+                        className: 'td-prop-label'
+                    }).addTo(tdTradeMap);
+
+                    bounds.push([p.lat, p.lon]);
+                }
+
                 // Add label styling
                 var style = document.createElement('style');
                 style.textContent =
@@ -205,7 +255,18 @@ def get_js() -> str:
                     'color: #333 !important; ' +
                     'padding: 0 !important; ' +
                     '}' +
-                    '.td-gauge-label::before { display: none !important; }';
+                    '.td-gauge-label::before { display: none !important; }' +
+                    '.td-prop-label { ' +
+                    'background: transparent !important; ' +
+                    'border: none !important; ' +
+                    'box-shadow: none !important; ' +
+                    'font-size: 9px !important; ' +
+                    'font-weight: 500 !important; ' +
+                    'color: #555 !important; ' +
+                    'font-style: italic !important; ' +
+                    'padding: 0 !important; ' +
+                    '}' +
+                    '.td-prop-label::before { display: none !important; }';
                 document.head.appendChild(style);
 
                 // Fit bounds
