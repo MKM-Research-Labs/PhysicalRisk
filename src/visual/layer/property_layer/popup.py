@@ -5,6 +5,7 @@
 
 from typing import Any, Dict, Optional
 
+from config.format import property_title_py
 from ...utils import ColorSchemes, DataFormatter, RiskAssessor
 
 
@@ -16,6 +17,8 @@ def create_property_popup(property_info: Dict[str, Any], property_flood_info: Di
     address = property_info.get('address', {})
     valuation = property_info.get('valuation', {})
 
+    prop_address = f"{address.get('building_number', '')} {address.get('street_name', '')}".strip()
+    prop_label = property_title_py(prop_address, property_id)
     address_str = f"{address.get('street', 'N/A')}, {address.get('city', 'N/A')}, {address.get('postcode', 'N/A')}"
     property_value = valuation.get('current_value', valuation.get('market_value', 0))
 
@@ -32,8 +35,7 @@ def create_property_popup(property_info: Dict[str, Any], property_flood_info: Di
 
     popup_content = f"""
         <div style="font-family: Arial; width: 320px; max-height: 400px; overflow-y: auto;">
-            <h4 style="margin-bottom: 5px; color: #1a5276;">Property</h4>
-            <p style="color: #566573; font-size: 0.9em;">ID: {property_id}</p>
+            <h4 style="margin-bottom: 5px; color: #1a5276;">{prop_label}</h4>
             <p style="color: #2874A6; margin-top: 10px;"><b>Address:</b> {address_str}</p>
             <p style="color: #2874A6; margin-top: 5px;"><b>Postcode:</b> {postcode}</p>
 

@@ -18,7 +18,7 @@ def get_js() -> str:
                 var cols = [
                     {key: 'swap_id', label: 'Swap ID', w: '110px'},
                     {key: 'direction', label: 'Dir', w: '36px'},
-                    {key: 'property_address', label: 'Property', w: 'auto'},
+                    {key: '_property_label', label: 'Property', w: 'auto'},
                     {key: 'postcode', label: 'Postcode', w: '70px'},
                     {key: 'counterparty', label: 'Ctpy', w: 'auto'},
                     {key: 'notional', label: 'Notional', w: '95px', fmt: 'gbp'},
@@ -58,7 +58,9 @@ def get_js() -> str:
                         var display = '';
                         var color = '#333';
 
-                        if (col.key === 'direction') {
+                        if (col.key === '_property_label') {
+                            display = window.propertyDisplayName(t.property_id, t.property_address);
+                        } else if (col.key === 'direction') {
                             var isPayer = t.is_payer;
                             var dirLabel = isPayer ? 'Pay' : 'Rcv';
                             var dirColor = isPayer ? '#c62828' : '#2e7d32';

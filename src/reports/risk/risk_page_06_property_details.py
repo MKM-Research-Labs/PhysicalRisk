@@ -41,6 +41,7 @@ from typing import Any, Dict, List
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
 
+from config.format import property_title_py
 from .risk_page_00_base import RiskBasePage
 
 
@@ -72,12 +73,14 @@ class RiskPropertyDetailsPage(RiskBasePage):
                                          key=lambda x: x.get('risk_value', 0), reverse=True)
 
                 # Create comprehensive property table
-                prop_data = [['Property ID', 'Risk Level', 'Elevation (m)', 'Flood Depth (m)', 'Property Value (£)', 'Value at Risk (£)']]
+                prop_data = [['Property', 'Risk Level', 'Elevation (m)', 'Flood Depth (m)', 'Property Value (£)', 'Value at Risk (£)']]
 
                 # Show top 20 properties at risk
                 display_count = min(20, len(sorted_properties))
                 for prop in sorted_properties[:display_count]:
                     prop_id = prop.get('property_id', 'Unknown')
+                    prop_address = prop.get('property_address', '')
+                    prop_label = property_title_py(prop_address, prop_id)
                     risk_level = prop.get('risk_level', 'Unknown')
                     elevation = prop.get('elevation', 0)
                     flood_depth = prop.get('flood_depth', 0)
@@ -85,7 +88,7 @@ class RiskPropertyDetailsPage(RiskBasePage):
                     value_at_risk = prop.get('value_at_risk', 0)
 
                     prop_data.append([
-                        str(prop_id)[:15],
+                        prop_label[:30],
                         risk_level,
                         f"{elevation:.1f}" if elevation else "N/A",
                         self._format_depth(flood_depth),

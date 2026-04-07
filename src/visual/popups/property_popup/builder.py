@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 
 import folium
 
+from config.format import property_title_py
 from ..popup_builder import PopupBuilder
 from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
 from .risk import get_mortgage_risk_summary, get_overall_risk_color
@@ -85,7 +86,10 @@ class PropertyPopupBuilder(PopupBuilder):
                                       flood_info: Optional[Dict[str, Any]] = None,
                                       mortgage_risk_info: Optional[Dict[str, Any]] = None) -> str:
         """Create the complete popup content by aggregating different sections."""
-        header = self.create_header("Property Analysis", f"ID: {property_id}")
+        addr = address or {}
+        prop_address = f"{addr.get('building_number', '')} {addr.get('street_name', '')}".strip()
+        prop_label = property_title_py(prop_address, property_id)
+        header = self.create_header("Property Analysis", prop_label)
 
         property_section = self.create_property_section(
             prop, property_id, address, coordinates, construction_year,

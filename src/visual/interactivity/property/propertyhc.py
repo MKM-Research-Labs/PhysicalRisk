@@ -311,7 +311,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 console.log('[PropertyHazard] Opening panel for', propertyId);
                 var panel = createPanel();
                 panel.dataset.propertyId = propertyId;
-                document.getElementById('phc-panel-title').textContent = 'PRS Pricer: ' + propertyId;
+                document.getElementById('phc-panel-title').textContent = 'PRS Pricer: ' + window.propertyDisplayName(propertyId);
                 document.getElementById('phc-status').textContent = 'Loading...';
                 panel.style.display = 'flex';
 

@@ -11,6 +11,7 @@ from typing import List, Optional
 from reportlab.lib import colors
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
+from config.format import property_title_py
 from .formatters import fmt_gbp
 
 
@@ -66,8 +67,12 @@ def build_page1_cover(
     elev_str = f"{elevation:.2f} m" if isinstance(elevation, float) else str(elevation)
     floor_str = f"{floor_level:.2f} m" if isinstance(floor_level, float) else str(floor_level)
 
+    claim_loc = prop_record.get('Location', {})
+    claim_addr = f"{claim_loc.get('BuildingNumber', '')} {claim_loc.get('StreetName', '')}".strip()
+    prop_label = property_title_py(claim_addr, prop_id)
+
     left_col = [
-        ('Property ID', prop_id),
+        ('Property', prop_label),
         ('Property Type', str(prop_type)),
         ('Construction Year', str(con_year)),
         ('Flood Zone', str(flood_zone)),

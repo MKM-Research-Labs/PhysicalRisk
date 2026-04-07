@@ -205,7 +205,7 @@ class ContextMenuHandler:
                 props.forEach(function(p) {{
                     var opt = document.createElement('option');
                     opt.value = p.property_id;
-                    opt.textContent = p.property_id;
+                    opt.textContent = window.propertyDisplayName(p.property_id);
                     pSel.appendChild(opt);
                 }});
                 return true;

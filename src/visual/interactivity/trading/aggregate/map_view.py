@@ -212,9 +212,10 @@ def get_js() -> str:
                     var pnColor = pNotional >= 0 ? '#1565c0' : '#c62828';
                     var npvColor = (p.npv || 0) >= 0 ? '#2e7d32' : '#c62828';
 
+                    var pDisplayName = window.propertyDisplayName(p.property_id, p.address);
                     var pPopup =
                         '<div style="font-size:11px;min-width:180px;">' +
-                            '<b style="font-size:12px;">' + (p.address || p.property_id) + '</b><br>' +
+                            '<b style="font-size:12px;">' + pDisplayName + '</b><br>' +
                             '<span style="color:#888;">' + (p.postcode || '') + ' \\u2014 ' + (p.ea_flood_zone || '') + '</span><br>' +
                             '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Swap:</span><b>' + (p.swap_id || '') + '</b></div>' +
@@ -233,7 +234,7 @@ def get_js() -> str:
                         weight: 1.5,
                         fillOpacity: 0.55,
                         dashArray: '3 3'
-                    }).bindPopup(pPopup).bindTooltip(p.address || p.property_id, {
+                    }).bindPopup(pPopup).bindTooltip(pDisplayName, {
                         permanent: true,
                         direction: 'bottom',
                         offset: [0, pRadius + 2],

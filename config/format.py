@@ -113,18 +113,42 @@ def gauge_title_js(name_var: str = 'gName', id_var: str = 'gaugeId') -> str:
     return f"({name_var} ? {name_var} + ' (' + {id_var} + ')' : {id_var})"
 
 
-def property_title_js(id_var: str = 'propertyId') -> str:
+def property_title_js(name_var: str = 'propName',
+                      id_var: str = 'propertyId') -> str:
     """
     Return the JavaScript expression that builds a property display label.
 
-    Currently uses just the property ID.  When property display names are
-    added to the data model, update this function to use them — all visual
-    modules that import this will pick up the change automatically.
+    Canonical format:
+        {Address} ({PropertyID})
+
+    Falls back to just {PropertyID} if name/address is empty.
 
     Args:
-        id_var: JavaScript variable holding the property ID string.
+        name_var: JavaScript variable holding the property address/name string.
+        id_var:   JavaScript variable holding the property ID string.
 
     Returns:
         JavaScript expression string, safe for embedding directly in JS source.
     """
-    return id_var
+    return f"({name_var} ? {name_var} + ' (' + {id_var} + ')' : {id_var})"
+
+
+def property_title_py(address: str, property_id: str) -> str:
+    """
+    Return the formatted property display label for Python contexts (reports, tooltips).
+
+    Canonical format:
+        {Address} ({PropertyID})
+
+    Falls back to just {PropertyID} if address is empty.
+
+    Args:
+        address:     Property address string (e.g. "128 Horseferry Road").
+        property_id: Property ID string (e.g. "PROP-e5c80163").
+
+    Returns:
+        Formatted display string.
+    """
+    if address:
+        return f"{address} ({property_id})"
+    return property_id

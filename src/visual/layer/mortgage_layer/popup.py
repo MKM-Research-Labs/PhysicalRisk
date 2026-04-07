@@ -5,6 +5,7 @@
 
 from typing import Any, Dict, Optional
 
+from config.format import property_title_py
 from ...utils import ColorSchemes, DataFormatter
 
 
@@ -29,7 +30,7 @@ def create_mortgage_circle_popup(location: Dict[str, Any]) -> str:
     popup_content = f"""
         <div style="font-family: Arial; width: 280px;">
             <h4 style="margin-bottom: 5px; color: #8E44AD;">Mortgage Risk Circle</h4>
-            <p style="color: #566573; font-size: 0.9em;">Property: {location['property_id']}</p>
+            <p style="color: #566573; font-size: 0.9em;">{property_title_py(location.get('property_address', ''), location['property_id'])}</p>
 
             <div style="background-color: #E8DAEF; padding: 8px; border-radius: 5px; margin-top: 8px;">
                 <h5 style="margin: 0 0 5px 0; color: #6C3483;">Loan Details</h5>
