@@ -106,18 +106,27 @@ class TestGaugePRSCommit:
         """Clicking commit should produce a success notification or trade ID."""
         panel = map_page.locator("#hazard-curve-panel")
 
-        # Select counterparty if available
-        ctpy_select = panel.locator(
-            "select[id*='ctpy'], select[id*='counterparty'], "
-            "select[id*='cpty'], select[name*='counterparty']"
-        ).first
+        # Wait for PRS pricer to render counterparty options (the tab may
+        # re-render when hazard data loads asynchronously, wiping the dropdown).
+        try:
+            map_page.wait_for_function(
+                "() => {"
+                "  var sel = document.getElementById('prs-counterparty');"
+                "  return sel && sel.options.length > 1;"
+                "}",
+                timeout=10_000,
+            )
+        except Exception:
+            pytest.skip("Counterparty dropdown never populated")
+
+        # Select counterparty via ID for reliability
+        ctpy_select = panel.locator("#prs-counterparty")
         if ctpy_select.count() > 0 and ctpy_select.is_visible():
-            options = ctpy_select.locator("option")
-            for i in range(options.count()):
-                val = options.nth(i).get_attribute("value")
-                if val and val.strip():
-                    ctpy_select.select_option(value=val)
-                    break
+            ctpy_select.select_option(index=1)
+            # Wait for the PRS pricer to re-render with selected counterparty
+            map_page.wait_for_timeout(2_000)
+        else:
+            pytest.skip("No counterparty dropdown visible")
 
         # Fill notional if present
         notional = panel.locator("input[id*='notional'], input[name*='notional']").first

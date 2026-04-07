@@ -107,7 +107,21 @@ class TestMRCMeetingDetailUI:
         close_all_panels(map_page)
         open_governance(map_page)
         switch_governance_tab(map_page, "mrc")
-        map_page.wait_for_timeout(2_000)
+        # Wait for MRC content to load (async fetch from /api/v1/governance/mrc)
+        try:
+            map_page.wait_for_function(
+                "() => {"
+                "  var c = document.getElementById('mg-content');"
+                "  return c && (c.textContent.indexOf('meeting') !== -1"
+                "    || c.textContent.indexOf('Meeting') !== -1"
+                "    || c.textContent.indexOf('MRC') !== -1"
+                "    || c.querySelector('tr') !== null);"
+                "}",
+                timeout=8_000,
+            )
+        except Exception:
+            pass
+        map_page.wait_for_timeout(1_000)
         yield
         close_all_panels(map_page)
 

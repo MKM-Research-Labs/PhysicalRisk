@@ -34,13 +34,19 @@ class TestDocumentUploadDownload:
         content = map_page.locator("#mg-content")
         assert content.count() > 0, "No content area found"
 
-        # Wait for file input to render (async fetch may still be completing)
-        file_input = content.locator("input[type='file']")
+        # The documents tab may re-render when preloader data arrives.
+        # Use JS wait_for_function to detect the file input reliably,
+        # polling until it appears in the DOM (up to 12s total).
         try:
-            file_input.first.wait_for(state="attached", timeout=8_000)
+            map_page.wait_for_function(
+                "() => document.querySelector('#mg-content input[type=\"file\"]') !== null"
+                " || document.querySelector('#mg-content #mg-doc-file') !== null",
+                timeout=12_000,
+            )
         except Exception:
             pass
 
+        file_input = content.locator("input[type='file']")
         upload_btn = content.locator("button").filter(has_text="Upload").or_(
             content.locator("button").filter(has_text="upload")
         ).or_(

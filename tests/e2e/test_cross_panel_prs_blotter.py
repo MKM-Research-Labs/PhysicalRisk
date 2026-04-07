@@ -305,14 +305,18 @@ class TestNavMenuToPanel:
     """Nav menu select → panel opens → correct gauge/property."""
 
     def _is_any_panel_visible(self, map_page, panel_ids):
-        """Check if any of the given panel IDs is visible using computed style."""
+        """Check if any of the given panel IDs is visible using computed style.
+
+        Note: offsetParent is null for position:fixed elements, so we check
+        offsetWidth/offsetHeight > 0 instead.
+        """
         return map_page.evaluate("""(panelIds) => {
             return panelIds.some(id => {
                 var el = document.getElementById(id);
                 if (!el) return false;
                 var cs = window.getComputedStyle(el);
                 return cs.display !== 'none' && cs.visibility !== 'hidden'
-                    && el.offsetParent !== null;
+                    && (el.offsetWidth > 0 || el.offsetHeight > 0);
             });
         }""", panel_ids)
 
