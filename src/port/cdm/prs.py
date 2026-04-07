@@ -254,6 +254,10 @@ class PhysicalRiskSwapCDM(BaseCDM):
             basket = gauge_set.get("GaugeBasket", [])
             if len(basket) == 0:
                 gauge_errors.append("GaugeBasket must contain at least one gauge")
+            else:
+                for i, gauge in enumerate(basket):
+                    if not gauge.get("GaugeID", "").strip():
+                        gauge_errors.append(f"GaugeBasket[{i}]: missing required GaugeID")
 
             if gauge_errors:
                 errors["GaugeSet"] = gauge_errors
