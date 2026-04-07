@@ -35,15 +35,16 @@
 Trader's Workstation panel.
 
 Leaflet control button (top-right, capital Pi symbol) that opens a full
-trading desk with 8 tabs:
-  1. Blotter     - trade list with deltas, P&L, close-out
-  2. Market      - hazard curve adjustment (market-making)
-  3. FS01        - gauge x maturity FS01 risk matrix
-  4. Aggregate   - net FS01 exposure map with scaled circles
-  5. EOD         - end-of-day submit, P&L history, charts
-  6. Curves      - historical hazard term structure evolution
-  7. Stress      - gauge-level stress testing (CDS-in-stress)
-  8. Port Stress - portfolio-wide storm stress assessment
+trading desk with 10 tabs:
+  1. Client      - property PRS trade blotter
+  2. Blotter     - trade list with deltas, P&L, close-out
+  3. Market      - hazard curve adjustment (market-making)
+  4. FS01        - gauge x maturity FS01 risk matrix
+  5. Aggregate   - net FS01 exposure map with scaled circles
+  6. EOD         - end-of-day submit, P&L history, charts
+  7. Curves      - historical hazard term structure evolution
+  8. Stress      - gauge-level stress testing (CDS-in-stress)
+  9. Port Stress - portfolio-wide storm stress assessment
 
 Sub-packages (one per tab header):
 - blotter/: Trade blotter tab
@@ -60,7 +61,7 @@ from typing import Any, Dict
 
 import folium
 
-from . import blotter, market, fs01, aggregate, eod, curves, stress, port_stress, classifiers, preloader
+from . import client, blotter, market, fs01, aggregate, eod, curves, stress, port_stress, classifiers, preloader
 
 
 class TradingDeskPanel:
@@ -109,6 +110,7 @@ class TradingDeskPanel:
             // Sub-module code
             // ==============================================================
 {preloader.get_js()}
+{client.get_js()}
 {blotter.get_js()}
 {market.get_js()}
 {fs01.get_js()}
@@ -201,6 +203,7 @@ class TradingDeskPanel:
                 toggleWrap.style.cssText = 'display:flex;border:1px solid #ddd;border-radius:4px;overflow:hidden;';
 
                 var tabs = [
+                    {{id: 'client', label: 'Client'}},
                     {{id: 'blotter', label: 'Blotter'}},
                     {{id: 'market', label: 'Market'}},
                     {{id: 'risk', label: 'FS01'}},
@@ -236,6 +239,7 @@ class TradingDeskPanel:
                 header.appendChild(closeBtn);
 
                 // Tab views
+                var clientView = createClientView();
                 var blotterView = createBlotterView();
                 var marketView = createMarketView();
                 var riskView = createRiskView();
@@ -253,6 +257,7 @@ class TradingDeskPanel:
                 statsBar.textContent = 'MKM Research Labs \\u2014 Physical Risk Trading Desk';
 
                 tdPanel.appendChild(header);
+                tdPanel.appendChild(clientView);
                 tdPanel.appendChild(blotterView);
                 tdPanel.appendChild(marketView);
                 tdPanel.appendChild(riskView);
@@ -273,7 +278,7 @@ class TradingDeskPanel:
             function switchTab(tab) {{
                 tdActiveTab = tab;
 
-                var views = ['blotter', 'market', 'risk', 'map', 'eod', 'curves', 'stress', 'portstress', 'classifiers'];
+                var views = ['client', 'blotter', 'market', 'risk', 'map', 'eod', 'curves', 'stress', 'portstress', 'classifiers'];
                 views.forEach(function(v) {{
                     var el = document.getElementById('td-' + v + '-view');
                     var btn = document.getElementById('td-tab-' + v);
@@ -293,7 +298,8 @@ class TradingDeskPanel:
                 }}
 
                 // Load data for each tab
-                if (tab === 'blotter') loadBlotterData();
+                if (tab === 'client') loadClientData();
+                else if (tab === 'blotter') loadBlotterData();
                 else if (tab === 'market') {{
                     // Pass blotter gauge filter for continuity
                     var gaugeHint = tdBlotterFilters.gauge_id || null;
