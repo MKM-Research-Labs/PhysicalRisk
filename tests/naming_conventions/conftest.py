@@ -39,6 +39,7 @@ _PROPERTY_DISPLAY_FILES_PY = [
 _PROPERTY_DISPLAY_FILES_JS = [
     'src/visual/interactivity/property/propertyhc/panel.py',
     'src/visual/interactivity/property/propertysa.py',
+    'src/visual/interactivity/property/propertypdf.py',
     'src/visual/interactivity/context_menus.py',
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/trading/client/table.py',

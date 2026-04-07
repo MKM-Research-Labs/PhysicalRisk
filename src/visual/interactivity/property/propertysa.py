@@ -250,9 +250,9 @@ class PropertyStormAnalysis:
                     var nPropertyFloods = allEvents.filter(function(e) {{ return e.flooded; }}).length;
                     var summary = data.summary || {{}};
                     console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'property floods for', propertyId);
-                    // Refresh title — _propertyNames may not have been ready on first render
+                    // Refresh title with address from API response
                     var titleEl = document.getElementById('prop-storm-title');
-                    if (titleEl) titleEl.textContent = 'Property Storm Scenarios: ' + window.propertyDisplayName(propertyId);
+                    if (titleEl) titleEl.textContent = 'Property Storm Scenarios: ' + window.propertyDisplayName(propertyId, data.property_address || '');
                     var severeCount = summary.severe_at_nearest_gauge || summary.floods_at_nearest_gauge || 0;
                     status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' property floods';
 

@@ -110,7 +110,8 @@ def property_storms(prop_id: str):
             event.setdefault('name', meta.get('name', '') or (cat.capitalize() if cat else ''))
             event.setdefault('effective_precipitation_mm',
                              meta.get('effective_precipitation_mm',
-                                      meta.get('precipitation_mm', 0)))
+                                      meta.get('total_precipitation_mm',
+                                               meta.get('precipitation_mm', 0))))
         event.setdefault('gauges_severe', _storm_severe.get(sid, 0))
 
     # Enrich nearest gauge info with flood stages
@@ -168,9 +169,28 @@ def property_storms(prop_id: str):
     summary = pdata.get('summary', {})
     summary['severe_at_nearest_gauge'] = severe_at_gauge
 
+    # Look up property address from property.json for canonical display
+    prop_address = ''
+    try:
+        prop_path = config.get_input_path('property.json')
+        with open(prop_path, 'r') as f:
+            pjdata = json.load(f)
+        for p in pjdata.get('properties', []):
+            ph = p.get('PropertyHeader', {})
+            if ph.get('Header', {}).get('PropertyID') == prop_id:
+                loc = ph.get('Location', {})
+                prop_address = (
+                    (loc.get('BuildingNumber', '') + ' '
+                     + loc.get('StreetName', '')).strip()
+                )
+                break
+    except Exception:
+        pass
+
     return jsonify({
         'status': 'success',
         'property_id': prop_id,
+        'property_address': prop_address,
         'property_info': {
             'elevation_m': pdata.get('elevation_m', 0),
             'floor_level_m': pdata.get('floor_level_m', 0),

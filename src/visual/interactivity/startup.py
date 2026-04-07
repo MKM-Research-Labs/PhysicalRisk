@@ -86,11 +86,18 @@ def get_js() -> str:
             window._preMortgages      = null;
             window._preAuditReports   = null;
             window._propertyNames     = {};  // propertyId → address lookup
+            window._gaugeNames        = {};  // gaugeId → gauge name lookup
 
             // Global helper: canonical property display label "Address (PROP-xxx)"
             window.propertyDisplayName = function(propertyId, address) {
                 var addr = address || (window._propertyNames || {})[propertyId] || '';
                 return addr ? addr + ' (' + propertyId + ')' : propertyId;
+            };
+
+            // Global helper: canonical gauge display label "GaugeName (GAUGE-xxx)"
+            window.gaugeDisplayName = function(gaugeId, name) {
+                var gName = name || (window._gaugeNames || {})[gaugeId] || '';
+                return gName ? gName + ' (' + gaugeId + ')' : gaugeId;
             };
 
             // Flag read by trading/preloader.py — on window so it is accessible
@@ -249,6 +256,16 @@ def get_js() -> str:
                         .then(function(r) { return r.json(); })
                         .then(function(data) {
                             window[key] = data;
+                            // Build gauge name lookup from /api/v1/gauges
+                            if (key === '_tdPreGauges' && data && data.gauges) {
+                                var gmap = {};
+                                data.gauges.forEach(function(g) {
+                                    var gid = g.gaugeId || '';
+                                    var gname = g.name || '';
+                                    if (gid && gname) gmap[gid] = gname;
+                                });
+                                window._gaugeNames = gmap;
+                            }
                             // Build property name lookup from /api/v1/properties
                             if (key === '_prePropertyNames' && data && data.properties) {
                                 var map = {};

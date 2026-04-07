@@ -36,6 +36,7 @@ class PropertyPDFPanel:
             btn_color="#28a745",
             event_name="propertyPdfReady",
             event_id_key="propertyId",
+            display_name_js="window.propertyDisplayName(entityId)",
         )
         return f"<script>\n{js}\n</script>"
 
