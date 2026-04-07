@@ -65,7 +65,7 @@ class TestStormsErrorPaths:
         r = client.get(f"/api/v1/gauges/{GAUGE_ID}/storms")
         assert r.status_code == 200
         data = r.get_json()
-        assert data["storm_responses"]["num_storms"] == 1
+        assert data["storm_responses"]["num_sequences"] == 1
 
     def test_no_gaugets_dir(self, tmp_path, monkeypatch):
         """storms.py line 80: gaugets dir doesn't exist -> skip severe counting."""

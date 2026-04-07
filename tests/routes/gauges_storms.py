@@ -197,7 +197,7 @@ class TestGetGaugeStorms:
         r = storms_env.get(f"/api/v1/gauges/{GAUGE_ID}/storms")
         data = r.get_json()
         assert "storm_responses" in data
-        assert "num_storms" in data["storm_responses"]
+        assert "num_sequences" in data["storm_responses"]
 
     def test_response_has_flood_stages(self, storms_env):
         r = storms_env.get(f"/api/v1/gauges/{GAUGE_ID}/storms")

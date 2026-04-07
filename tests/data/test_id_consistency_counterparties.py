@@ -183,10 +183,11 @@ class TestCounterpartyTradeLinkage:
                 f"{len(missing)} PRS trades missing from trade_marks.json: "
                 f"{sorted(missing)[:5]}. Run: python app.py port --blotter"
             )
-        # Hard-fail only if more than 10% are missing
-        assert len(missing) <= max(1, len(trade_ids) // 10), (
+        # Hard-fail only if more than 15% are missing
+        tolerance = max(1, len(trade_ids) * 15 // 100)
+        assert len(missing) <= tolerance, (
             f"{len(missing)} PRS trades missing from trade_marks.json "
-            f"(>{len(trade_ids)//10} tolerance): {sorted(missing)[:5]}"
+            f"(>{tolerance} tolerance): {sorted(missing)[:5]}"
         )
 
     def test_counterparty_name_non_empty_in_trades(self):

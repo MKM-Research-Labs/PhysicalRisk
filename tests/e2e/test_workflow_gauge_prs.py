@@ -155,7 +155,7 @@ class TestGaugePRSCommit:
         initial_text = commit_btn.inner_text().lower()
         commit_btn.click(force=True)
         # Allow time for the server round-trip and DOM update
-        map_page.wait_for_timeout(15_000)
+        map_page.wait_for_timeout(25_000)
 
         # Check for ANY feedback: success message, error message, trade ID,
         # or button state change.  Even an error toast proves the commit

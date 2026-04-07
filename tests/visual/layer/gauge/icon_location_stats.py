@@ -135,27 +135,39 @@ class TestGetGaugeIcon:
         icon = layer._get_gauge_icon({"gauge_id": "GAUGE-001"}, {})
         assert isinstance(icon, folium.Icon)
 
-    def test_red_for_high_flood_count(self):
-        """flood_count > 250 → red icon."""
+    def test_blue_for_fully_operational(self):
+        """Fully operational → blue icon."""
         layer = _layer()
-        layer._gauge_hazard = {"GAUGE-001": {"annual_hazard_rate_warning": 0.03}}
-        layer._num_storms = 10000  # 0.03 * 10000 = 300 > 250
-        icon = layer._get_gauge_icon({"gauge_id": "GAUGE-001"}, {})
+        icon = layer._get_gauge_icon(
+            {"gauge_id": "GAUGE-001", "operational_status": "Fully operational"}, {})
+        assert icon.options["marker_color"] == "blue"
+
+    def test_red_for_temporarily_offline(self):
+        """Temporarily offline → red icon."""
+        layer = _layer()
+        icon = layer._get_gauge_icon(
+            {"gauge_id": "GAUGE-001", "operational_status": "Temporarily offline"}, {})
         assert icon.options["marker_color"] == "red"
 
-    def test_orange_for_medium_flood_count(self):
-        """220 <= flood_count <= 250 → orange."""
+    def test_orange_for_maintenance_required(self):
+        """Maintenance required → orange icon."""
         layer = _layer()
-        layer._gauge_hazard = {"GAUGE-001": {"annual_hazard_rate_warning": 0.023}}
-        layer._num_storms = 10000  # 0.023 * 10000 = 230 (between 220 and 250)
-        icon = layer._get_gauge_icon({"gauge_id": "GAUGE-001"}, {})
+        icon = layer._get_gauge_icon(
+            {"gauge_id": "GAUGE-001", "operational_status": "Maintenance required"}, {})
         assert icon.options["marker_color"] == "orange"
 
-    def test_green_for_low_flood_count(self):
-        """flood_count < 220 → green."""
+    def test_gray_for_decommissioned(self):
+        """Decommissioned → gray icon."""
         layer = _layer()
-        icon = layer._get_gauge_icon({"gauge_id": "GAUGE-NONE"}, {})
-        assert icon.options["marker_color"] == "green"
+        icon = layer._get_gauge_icon(
+            {"gauge_id": "GAUGE-001", "operational_status": "Decommissioned"}, {})
+        assert icon.options["marker_color"] == "gray"
+
+    def test_blue_default_for_unknown_status(self):
+        """Unknown or missing status → blue (default)."""
+        layer = _layer()
+        icon = layer._get_gauge_icon({"gauge_id": "GAUGE-001"}, {})
+        assert icon.options["marker_color"] == "blue"
 
     def test_icon_uses_tint_fa_prefix(self):
         layer = _layer()
