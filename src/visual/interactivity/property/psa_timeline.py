@@ -25,6 +25,8 @@ Tab 1: Hydrograph with water level, property elevation,
 floor threshold, gauge elevations, and flood fill shading.
 """
 
+from config.format import storm_option_js
+
 
 def get_js() -> str:
     """Return JS fragment for flood timeline tab."""
@@ -58,7 +60,7 @@ def get_js() -> str:
                 events.forEach(function(e, i) {
                     var sel = (selectedStormId && e.storm_id === selectedStormId) || (!selectedStormId && i === 0) ? ' selected' : '';
                     selectorHtml += '<option value="' + e.storm_id + '"' + sel + '>' +
-                        e.storm_id + ' (depth: ' + e.flood_depth_m.toFixed(2) + 'm, damage: ' + (e.damage_ratio * 100).toFixed(0) + '%)</option>';
+                        __STORM_OPT__ + '</option>';
                 });
                 selectorHtml += '</select></div>';
 
@@ -209,7 +211,7 @@ def get_js() -> str:
                                     filter: function(item) { return item.text.charAt(0) !== '_'; }
                                 }
                             },
-                            title: { display: true, text: 'Flood Timeline: ' + event.storm_id, font: { size: 13 } },
+                            title: { display: true, text: 'Flood Timeline: ' + __STORM_TITLE__, font: { size: 13 } },
                             tooltip: {
                                 filter: function(item) { return item.dataset.label.charAt(0) !== '_'; },
                                 callbacks: {
@@ -243,4 +245,4 @@ def get_js() -> str:
                     '<span>Floor: <b>' + threshold.toFixed(2) + 'm</b> (' + elevation.toFixed(1) + ' + ' + floorLevel.toFixed(2) + ')</span>',
                 ].join('');
             }
-"""
+""".replace('__STORM_OPT__', storm_option_js('e')).replace('__STORM_TITLE__', storm_option_js('event'))
