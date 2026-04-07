@@ -29,14 +29,9 @@ Sub-modules:
 - claim: Property flood damage claim report PDF
 """
 
-from flask import Blueprint
-
-from ._helpers import _get_propertyts_dir  # noqa: F401
-
-propertyts_bp = Blueprint('propertyts', __name__)
+from .blueprint import propertyts_bp, _get_propertyts_dir  # noqa: F401
 
 # Import sub-modules to register their routes on propertyts_bp.
-# These must come after propertyts_bp is defined to avoid circular imports.
 from . import core        # noqa: E402, F401
 from . import animation   # noqa: E402, F401
 from . import financial   # noqa: E402, F401
