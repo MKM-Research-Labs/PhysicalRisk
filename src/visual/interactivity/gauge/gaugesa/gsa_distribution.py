@@ -30,15 +30,19 @@ def get_js():
             function buildDistSlider() {
                 var distCtrl = document.getElementById('storm-dist-controls');
                 var responses = stormData.storm_responses.responses || [];
-                var peaks = responses.map(function(r) { return r.peak_level_m; });
+                // Only alert+ sequences shown in distribution
+                var alertResponses = responses.filter(function(r) { return r.exceeded_alert; });
+                var peaks = alertResponses.map(function(r) { return r.peak_level_m; });
+                if (peaks.length === 0) { distCtrl.innerHTML = ''; return; }
                 var dataMax = Math.max.apply(null, peaks);
+                var dataMin = Math.min.apply(null, peaks);
 
                 distCtrl.innerHTML =
                     '<div style="display:flex;align-items:center;gap:8px;">' +
                     '<label style="font-weight:600;white-space:nowrap;">Min Level:</label>' +
-                    '<span id="dist-min-label" style="min-width:30px;font-weight:600;">0m</span>' +
-                    '<input id="dist-min-slider" type="range" min="0" max="' + dataMax.toFixed(2) + '" ' +
-                    'value="0" step="0.1" style="flex:1;cursor:pointer;">' +
+                    '<span id="dist-min-label" style="min-width:30px;font-weight:600;">' + dataMin.toFixed(1) + 'm</span>' +
+                    '<input id="dist-min-slider" type="range" min="' + dataMin.toFixed(2) + '" max="' + dataMax.toFixed(2) + '" ' +
+                    'value="' + dataMin.toFixed(2) + '" step="0.1" style="flex:1;cursor:pointer;">' +
                     '<span style="min-width:50px;text-align:right;font-weight:600;">' + dataMax.toFixed(1) + 'm</span>' +
                     '</div>';
 
@@ -50,21 +54,28 @@ def get_js():
             }
 
             // ================================================================
-            // Tab 0: Distribution histogram
+            // Tab 0: Distribution histogram (alert+ event sequences only)
             // ================================================================
             function renderDistribution() {
                 var ctx = document.getElementById('storm-chart').getContext('2d');
                 if (currentChart) currentChart.destroy();
 
                 var responses = stormData.storm_responses.responses || [];
+                var numSeqs = stormData.storm_responses.num_sequences || responses.length;
                 var fs = stormData.flood_stages || {};
-                var allPeaks = responses.map(function(r) { return r.peak_level_m; });
+
+                // Filter to alert+ sequences only
+                var alertResponses = responses.filter(function(r) { return r.exceeded_alert; });
+                var allPeaks = alertResponses.map(function(r) { return r.peak_level_m; });
 
                 // Apply slider filter
                 var slider = document.getElementById('dist-min-slider');
                 var filterMin = slider ? parseFloat(slider.value) : -Infinity;
                 var peaks = allPeaks.filter(function(p) { return p >= filterMin; });
                 if (peaks.length === 0) peaks = [filterMin];
+
+                // Filter alert responses to match slider for threshold counts
+                var filteredResponses = alertResponses.filter(function(r) { return r.peak_level_m >= filterMin; });
 
                 // Compute histogram bins
                 var min = Math.min.apply(null, peaks);
@@ -94,8 +105,7 @@ def get_js():
                     var v = parseFloat(l) + binWidth / 2;
                     if (v >= severeVal) return 'rgba(244,67,54,0.7)';
                     if (v >= warnVal) return 'rgba(255,152,0,0.7)';
-                    if (v >= alertVal) return 'rgba(255,193,7,0.7)';
-                    return 'rgba(76,175,80,0.7)';
+                    return 'rgba(255,193,7,0.7)';
                 });
 
                 var datasets = [{
@@ -106,26 +116,35 @@ def get_js():
                     borderWidth: 1
                 }];
 
-                // Annotation lines for thresholds
+                // Annotation lines for alert/warning/severe thresholds
                 var annotations = {};
-                if (fs.FloodAlert) annotations.alert = {
-                    type: 'line', scaleID: 'x',
-                    value: ((fs.FloodAlert - min) / binWidth).toFixed(1),
-                    borderColor: '#FFC107', borderDash: [5,5], borderWidth: 2,
-                    label: { display: true, content: 'Alert', position: 'start', font: { size: 10 } }
-                };
-                if (fs.FloodWarning) annotations.warning = {
-                    type: 'line', scaleID: 'x',
-                    value: ((fs.FloodWarning - min) / binWidth).toFixed(1),
-                    borderColor: '#FF9800', borderDash: [5,5], borderWidth: 2,
-                    label: { display: true, content: 'Warning', position: 'start', font: { size: 10 } }
-                };
-                if (fs.SevereFloodWarning) annotations.severe = {
-                    type: 'line', scaleID: 'x',
-                    value: ((fs.SevereFloodWarning - min) / binWidth).toFixed(1),
-                    borderColor: '#F44336', borderDash: [5,5], borderWidth: 2,
-                    label: { display: true, content: 'Severe', position: 'start', font: { size: 10 } }
-                };
+                if (fs.FloodAlert && fs.FloodAlert >= min && fs.FloodAlert <= max) {
+                    annotations.alert = {
+                        type: 'line', scaleID: 'x',
+                        value: ((fs.FloodAlert - min) / binWidth).toFixed(1),
+                        borderColor: '#FFC107', borderDash: [5,5], borderWidth: 2,
+                        label: { display: true, content: 'Alert ' + fs.FloodAlert.toFixed(1) + 'm',
+                                 position: 'start', font: { size: 9 }, backgroundColor: 'rgba(255,193,7,0.8)' }
+                    };
+                }
+                if (fs.FloodWarning && fs.FloodWarning >= min && fs.FloodWarning <= max) {
+                    annotations.warning = {
+                        type: 'line', scaleID: 'x',
+                        value: ((fs.FloodWarning - min) / binWidth).toFixed(1),
+                        borderColor: '#FF9800', borderDash: [5,5], borderWidth: 2,
+                        label: { display: true, content: 'Warning ' + fs.FloodWarning.toFixed(1) + 'm',
+                                 position: 'start', font: { size: 9 }, backgroundColor: 'rgba(255,152,0,0.8)' }
+                    };
+                }
+                if (fs.SevereFloodWarning && fs.SevereFloodWarning >= min && fs.SevereFloodWarning <= max) {
+                    annotations.severe = {
+                        type: 'line', scaleID: 'x',
+                        value: ((fs.SevereFloodWarning - min) / binWidth).toFixed(1),
+                        borderColor: '#F44336', borderDash: [5,5], borderWidth: 2,
+                        label: { display: true, content: 'Severe ' + fs.SevereFloodWarning.toFixed(1) + 'm',
+                                 position: 'start', font: { size: 9 }, backgroundColor: 'rgba(244,67,54,0.8)' }
+                    };
+                }
 
                 currentChart = new Chart(ctx, {
                     type: 'bar',
@@ -135,6 +154,7 @@ def get_js():
                         maintainAspectRatio: false,
                         plugins: {
                             legend: { display: false },
+                            annotation: { annotations: annotations },
                             tooltip: {
                                 callbacks: {
                                     title: function(items) {
@@ -156,10 +176,8 @@ def get_js():
                     }
                 });
 
-                // Stats — percentages use num_sequences (the PRS pricing denominator)
-                var numSeqs = stormData.storm_responses.num_sequences || allPeaks.length;
-                var filteredResponses = responses.filter(function(r) { return r.peak_level_m >= filterMin; });
-                var nAlert = filteredResponses.filter(function(r) { return r.exceeded_alert; }).length;
+                // Stats — counts and percentages against num_sequences
+                var nAlert = filteredResponses.length;
                 var nWarn = filteredResponses.filter(function(r) { return r.exceeded_warning; }).length;
                 var nSevere = filteredResponses.filter(function(r) { return r.exceeded_severe; }).length;
                 var mean = peaks.reduce(function(a,b) { return a+b; }, 0) / peaks.length;
@@ -167,11 +185,7 @@ def get_js():
                 var median = sorted[Math.floor(sorted.length / 2)];
 
                 var bar = document.getElementById('storm-stats-bar');
-                var showing = peaks.length < allPeaks.length
-                    ? '<span><b>Showing:</b> ' + peaks.length + ' / ' + numSeqs + '</span>'
-                    : '<span><b>Events:</b> ' + peaks.length + ' / ' + numSeqs + '</span>';
                 bar.innerHTML = [
-                    showing,
                     '<span><b>Mean:</b> ' + mean.toFixed(2) + 'm</span>',
                     '<span><b>Median:</b> ' + median.toFixed(2) + 'm</span>',
                     '<span><b>Max:</b> ' + max.toFixed(2) + 'm</span>',

@@ -235,7 +235,7 @@ class GaugeStormAnalysis(FoliumPanelMixin):
                     if (data.status !== 'success') throw new Error(data.message || 'Failed');
 
                     stormData = data;
-                    var nSeqs = data.storm_responses.num_sequences || data.storm_responses.num_storms;
+                    var nSeqs = data.storm_responses.num_sequences || data.storm_responses.responses.length;
                     console.log('[GaugeStorm] Loaded', nSeqs, 'sequences for', gaugeId);
 
                     // Update title with gauge name

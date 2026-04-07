@@ -46,6 +46,7 @@ class GaugeGraphInteraction(FoliumPanelMixin):
         """Generate JavaScript for gauge graph interaction."""
         return f"""
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
         <script>
         (function() {{
             var PANEL_W = '{self.panel_width}';
