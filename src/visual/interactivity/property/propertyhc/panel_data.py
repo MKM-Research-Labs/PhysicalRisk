@@ -75,6 +75,9 @@ def get_js() -> str:
                     }
 
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
+                    // Refresh title — _propertyNames may not have been ready on first render
+                    var titleEl = document.getElementById('phc-panel-title');
+                    if (titleEl) titleEl.textContent = 'PRS Pricer: ' + window.propertyDisplayName(propertyId);
                     buildPRSControls();
                     populateBasisStrip();
                     switchTab(activeTab);

@@ -131,6 +131,29 @@ class TestBuildCompoundPropertyHydrograph:
         dur_cluster = sum(1 for r in result_cluster if r['flooded'])
         assert dur_cluster > dur_iso
 
+    def test_large_travel_time_clips_source_index(self):
+        """Line 123: src >= n_hours → continue (skipped hours at end of window)."""
+        # With travel_time > 0, the last `shift` hours have src >= n_hours
+        # and are skipped. Use a large travel time to ensure this branch is hit.
+        pulse = [{"storm_index": 0, "peak_m": 10.0, "start_hour": 0.0,
+                  "duration_hours": 20.0, "precip_mm": 80.0}]
+        result = build_compound_property_hydrograph(
+            pulse_peaks=pulse,
+            sequence_type="isolated",
+            base_level=3.0,
+            gauge_elevation=5.0,
+            prop_elevation=6.0,
+            floor_level=0.3,
+            travel_time_hrs=160.0,  # shift=160 → most src values are < 0 or >= 168
+            retention=1.0,
+            n_hours=168,
+        )
+        assert len(result) == 168
+        # With travel_time=160, only hours 160-167 have valid src (0-7)
+        # Remaining hours should have depth_m == 0
+        early_depths = [r['depth_m'] for r in result[:150]]
+        assert all(d == 0.0 for d in early_depths)
+
     def test_no_flood_when_below_threshold(self):
         """Property too high above gauge -> no flooding."""
         # peak_m=6.0 is a stage reading (water column at gauge).

@@ -135,6 +135,31 @@ class TestNoRiverPolylineCache:
 # Line 83: Degenerate river segment (zero-length)
 # ---------------------------------------------------------------------------
 
+class TestRiverPolylineCacheHit:
+
+    def test_load_river_polyline_from_cache_file(self, synth_env, monkeypatch, tmp_path):
+        """Lines 39-40 of geometry.py: cache file exists → loaded and returned."""
+        import port.src.gauge.synthetic.geometry as geom_mod
+        from unittest.mock import patch, mock_open
+
+        # Reset cache
+        geom_mod._RIVER_POLYLINE_CACHE = None
+
+        polyline_data = [[51.45, -0.50], [51.46, -0.30], [51.47, -0.10]]
+
+        # Mock Path.exists to return True, and open to return our polyline JSON
+        with patch.object(geom_mod.Path, 'exists', return_value=True):
+            with patch('builtins.open', mock_open(read_data=json.dumps(polyline_data))):
+                result = geom_mod._load_river_polyline()
+
+        assert result is not None
+        assert len(result) == 3
+        assert result[0] == (51.45, -0.50)
+
+        # Clean up
+        geom_mod._RIVER_POLYLINE_CACHE = None
+
+
 class TestDegenerateRiverSegment:
 
     def test_degenerate_segment_skipped(self, synth_env, monkeypatch):
@@ -264,6 +289,75 @@ class TestPolylineEndpoints:
 # ---------------------------------------------------------------------------
 # Line 278: Flanking gauge missing from lookup
 # ---------------------------------------------------------------------------
+
+class TestGenerateSkipsNoneResult:
+    """Line 151 of generator.py: _create_synthetic_at_position returns None → continue."""
+
+    def test_generate_continues_when_position_returns_none(self, synth_env, monkeypatch):
+        """When _create_synthetic_at_position returns None, generate() skips and retries."""
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+
+        gen = SyntheticGaugeGenerator(synth_env)
+
+        # Wrap the real method to return None on the first 3 calls
+        original = gen._create_synthetic_at_position
+        call_count = [0]
+
+        def patched(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] <= 3:
+                return None
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(gen, "_create_synthetic_at_position", patched)
+        result = gen.generate(count=2)
+        # First 3 calls returned None (line 151 hit), then real results
+        assert call_count[0] > 3
+        assert result["count"] >= 0
+
+
+class TestBuildGaugePolylineSkipsSynth:
+    """Line 192 of generator.py: SYNTH- prefix gauges skipped in polyline builder."""
+
+    def test_synth_gauge_in_lookup_is_skipped(self, synth_env, monkeypatch):
+        """_build_gauge_polyline skips SYNTH- gauges in gauge_lookup."""
+        from port.src.gauge.synthetic import SyntheticGaugeGenerator
+
+        gen = SyntheticGaugeGenerator(synth_env)
+
+        # Build a gauge_lookup that includes a SYNTH gauge very close to a gauge point
+        gauge_lookup = {
+            "GAUGE-AAA00001": {
+                "lat": 51.45, "lon": -0.50, "elevation": 3.0,
+                "flood_alert": 3.5, "flood_warning": 4.5,
+                "severe_flood_warning": 5.0,
+                "historical_high_level": 6.0, "historical_high_date": "",
+            },
+            "SYNTH-close": {
+                "lat": 51.45, "lon": -0.50, "elevation": 3.0,
+                "flood_alert": 3.5, "flood_warning": 4.5,
+                "severe_flood_warning": 5.0,
+                "historical_high_level": 6.0, "historical_high_date": "",
+            },
+            "GAUGE-BBB00002": {
+                "lat": 51.46, "lon": -0.30, "elevation": 4.0,
+                "flood_alert": 4.0, "flood_warning": 5.0,
+                "severe_flood_warning": 6.0,
+                "historical_high_level": 7.0, "historical_high_date": "",
+            },
+            "GAUGE-CCC00003": {
+                "lat": 51.47, "lon": -0.10, "elevation": 5.0,
+                "flood_alert": 4.5, "flood_warning": 5.5,
+                "severe_flood_warning": 7.0,
+                "historical_high_level": 8.0, "historical_high_date": "",
+            },
+        }
+
+        polyline = gen._build_gauge_polyline(gauge_lookup)
+        # Polyline should have entries but none referencing SYNTH-close
+        gauge_ids = [p[3] for p in polyline]
+        assert "SYNTH-close" not in gauge_ids
+
 
 class TestFlankingGaugeMissing:
 

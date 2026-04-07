@@ -73,6 +73,13 @@ class TestMapBuilderCreateMap:
         m = builder.create_map(coordinates=[])
         assert isinstance(m, folium.Map)
 
+    def test_empty_coordinates_falls_back_to_default_center_values(self, builder):
+        """Lines 105-106: coordinates=[] → calculate_bounds returns {} → DEFAULT_CENTER."""
+        from unittest.mock import patch
+        with patch('visual.core.map_builder.builder.calculate_bounds', return_value={}):
+            m = builder.create_map(coordinates=[(51.5, -0.1)])
+        assert isinstance(m, folium.Map)
+
     def test_single_coordinate(self, builder):
         m = builder.create_map(coordinates=[(51.5, -0.1)])
         assert isinstance(m, folium.Map)

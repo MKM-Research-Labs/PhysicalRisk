@@ -233,7 +233,7 @@ def get_js():
                     '<div style="font-weight:bold;font-size:12px;color:#333;">' +
                     ctpyHeader + 'Severe Trigger \\u2014 ' + result.tenor + 'yr Tenor</div>' +
                     '<div style="flex:0 0 auto;display:flex;gap:10px;overflow-y:auto;max-height:42%;">' +
-                    '<div style="flex:2;min-width:0;">' + componentTable + '</div>' +
+                    '<div style="flex:1;min-width:0;">' + componentTable + '</div>' +
                     '<div style="flex:1;min-width:0;">' + waterfallTable + '</div>' +
                     '</div>' +
                     '<div style="flex:1;display:flex;gap:12px;min-height:0;">' +

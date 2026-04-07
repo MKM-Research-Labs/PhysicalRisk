@@ -75,6 +75,20 @@ class TestGammaShapeArray:
         assert arr[49] == 0.0
         assert arr[81] == 0.0  # 50+30+1 -> outside
 
+    def test_zero_duration_returns_zeros(self):
+        """Line 68: duration_hours <= 0 → returns zeros."""
+        arr = gamma_shape_array(np.arange(168, dtype=float),
+                                start_hour=10.0, duration_hours=0.0,
+                                alpha=0.3)
+        np.testing.assert_allclose(arr, 0.0)
+
+    def test_negative_duration_returns_zeros(self):
+        """Line 68: duration_hours < 0 → returns zeros."""
+        arr = gamma_shape_array(np.arange(168, dtype=float),
+                                start_hour=10.0, duration_hours=-5.0,
+                                alpha=0.3)
+        np.testing.assert_allclose(arr, 0.0)
+
 
 # ---------------------------------------------------------------------------
 # build_pulse_gauge_hydrograph

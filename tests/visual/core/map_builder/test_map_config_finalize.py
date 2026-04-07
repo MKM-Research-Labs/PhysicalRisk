@@ -174,6 +174,15 @@ class TestMapBuilderFinalizeMap:
         assert result is not None
         assert result.exists()
 
+    def test_finalize_returns_none_on_save_exception(self, builder, tmp_path):
+        """Lines 202-204: folium_map.save raises → returns None."""
+        from unittest.mock import MagicMock
+        mock_map = MagicMock()
+        mock_map.save.side_effect = OSError("disk full")
+        out = tmp_path / "output.html"
+        result = builder.finalize_map(mock_map, out)
+        assert result is None
+
 
 # ===========================================================================
 # MapBuilder.add_bounds_rectangle
@@ -228,3 +237,21 @@ class TestMapBuilderAddBoundsRectangle:
         # All identical points still forms a valid (zero-area) bounding box
         coords = [(51.5, -0.1), (51.5, -0.1)]
         builder.add_bounds_rectangle(m, coords)
+
+    def test_bounds_returns_empty_for_nonempty_coords(self, builder):
+        """Line 228: coordinates non-empty but calculate_bounds returns {} → early return."""
+        from unittest.mock import patch
+        m = builder.create_map()
+        with patch('visual.core.map_builder.builder.calculate_bounds', return_value={}):
+            builder.add_bounds_rectangle(m, [(51.5, -0.1)])
+        # No crash, no rectangle added
+
+    def test_rectangle_constructor_raises(self, builder):
+        """Lines 243-244: folium.Rectangle raises → warning logged, no crash."""
+        from unittest.mock import patch
+        m = builder.create_map()
+        coords = [(51.0, -1.0), (52.0, 0.0)]
+        with patch('visual.core.map_builder.builder.folium.Rectangle',
+                   side_effect=RuntimeError("bad rectangle")):
+            builder.add_bounds_rectangle(m, coords)
+        # No crash — exception is caught

@@ -99,7 +99,7 @@ def get_js():
                 });
 
                 var datasets = [{
-                    label: 'Storm Count',
+                    label: 'Event Count',
                     data: bins,
                     backgroundColor: colors,
                     borderColor: colors.map(function(c) { return c.replace('0.7', '1'); }),
@@ -144,19 +144,20 @@ def get_js():
                                         return lo + 'm - ' + hi + 'm';
                                     },
                                     label: function(ctx) {
-                                        return ctx.parsed.y + ' storms';
+                                        return ctx.parsed.y + ' events';
                                     }
                                 }
                             }
                         },
                         scales: {
                             x: { title: { display: true, text: 'Peak Water Level (m)' }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
-                            y: { title: { display: true, text: 'Number of Storms' }, beginAtZero: true, ticks: { stepSize: 1 } }
+                            y: { title: { display: true, text: 'Number of Events' }, beginAtZero: true, ticks: { stepSize: 1 } }
                         }
                     }
                 });
 
-                // Stats — filter responses to match slider, count thresholds from filtered set
+                // Stats — percentages use num_sequences (the PRS pricing denominator)
+                var numSeqs = stormData.storm_responses.num_sequences || allPeaks.length;
                 var filteredResponses = responses.filter(function(r) { return r.peak_level_m >= filterMin; });
                 var nAlert = filteredResponses.filter(function(r) { return r.exceeded_alert; }).length;
                 var nWarn = filteredResponses.filter(function(r) { return r.exceeded_warning; }).length;
@@ -167,16 +168,16 @@ def get_js():
 
                 var bar = document.getElementById('storm-stats-bar');
                 var showing = peaks.length < allPeaks.length
-                    ? '<span><b>Showing:</b> ' + peaks.length + ' / ' + allPeaks.length + '</span>'
-                    : '<span><b>Storms:</b> ' + peaks.length + '</span>';
+                    ? '<span><b>Showing:</b> ' + peaks.length + ' / ' + numSeqs + '</span>'
+                    : '<span><b>Events:</b> ' + peaks.length + ' / ' + numSeqs + '</span>';
                 bar.innerHTML = [
                     showing,
                     '<span><b>Mean:</b> ' + mean.toFixed(2) + 'm</span>',
                     '<span><b>Median:</b> ' + median.toFixed(2) + 'm</span>',
                     '<span><b>Max:</b> ' + max.toFixed(2) + 'm</span>',
-                    '<span style="color:#FFC107;"><b>Alert:</b> ' + nAlert + ' (' + (peaks.length > 0 ? (nAlert/peaks.length*100).toFixed(1) : '0') + '%)</span>',
-                    '<span style="color:#FF9800;"><b>Warning:</b> ' + nWarn + ' (' + (peaks.length > 0 ? (nWarn/peaks.length*100).toFixed(1) : '0') + '%)</span>',
-                    '<span style="color:#F44336;"><b>Severe:</b> ' + nSevere + ' (' + (peaks.length > 0 ? (nSevere/peaks.length*100).toFixed(1) : '0') + '%)</span>',
+                    '<span style="color:#FFC107;"><b>Alert:</b> ' + nAlert + ' (' + (numSeqs > 0 ? (nAlert/numSeqs*100).toFixed(1) : '0') + '%)</span>',
+                    '<span style="color:#FF9800;"><b>Warning:</b> ' + nWarn + ' (' + (numSeqs > 0 ? (nWarn/numSeqs*100).toFixed(1) : '0') + '%)</span>',
+                    '<span style="color:#F44336;"><b>Severe:</b> ' + nSevere + ' (' + (numSeqs > 0 ? (nSevere/numSeqs*100).toFixed(1) : '0') + '%)</span>',
                 ].join('');
             }
 """

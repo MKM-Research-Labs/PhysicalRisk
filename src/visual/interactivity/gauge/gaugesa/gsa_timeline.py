@@ -291,7 +291,7 @@ def get_js():
                 // Stats
                 var bar = document.getElementById('storm-stats-bar');
                 bar.innerHTML = [
-                    '<span><b>Top 20 storms shown</b></span>',
+                    '<span><b>Top 20 events shown</b></span>',
                     '<span style="color:#F44336;">Click a bar to view timeline</span>',
                 ].join('');
             }
