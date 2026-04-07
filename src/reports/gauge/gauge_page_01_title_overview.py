@@ -43,6 +43,8 @@ from typing import Any, Dict, List
 
 from reportlab.platypus import Paragraph, Spacer, Table
 
+from config.format import gauge_title_py
+
 from .gauge_page_00_base import GaugeBasePage
 
 
@@ -55,8 +57,10 @@ class GaugeTitleOverviewPage(GaugeBasePage):
         elements = []
 
         try:
-            # Extract gauge ID
+            # Extract gauge ID and name
             gauge_id = self._get_gauge_id(gauge_data)
+            gauge_name = self._get_gauge_name(gauge_data)
+            gauge_label = gauge_title_py(gauge_name, gauge_id)
 
             # TITLE SECTION
             elements.append(Paragraph(
@@ -64,7 +68,7 @@ class GaugeTitleOverviewPage(GaugeBasePage):
                 self.styles['Title']
             ))
             elements.append(Paragraph(
-                f"Gauge ID: {gauge_id}",
+                gauge_label,
                 self.styles['SubTitle']
             ))
             elements.append(Paragraph(

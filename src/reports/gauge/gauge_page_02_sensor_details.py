@@ -42,6 +42,8 @@ from typing import Any, Dict, List
 
 from reportlab.platypus import Paragraph, Spacer, Table
 
+from config.format import gauge_title_py
+
 from .gauge_page_00_base import GaugeBasePage
 
 
@@ -54,12 +56,14 @@ class GaugeSensorDetailsPage(GaugeBasePage):
         elements = []
 
         try:
-            # Extract gauge ID for reference
+            # Extract gauge ID and name for reference
             gauge_id = self._get_gauge_id(gauge_data)
+            gauge_name = self._get_gauge_name(gauge_data)
+            gauge_label = gauge_title_py(gauge_name, gauge_id)
 
             # SENSOR DETAILS SECTION
             elements.append(Paragraph("Sensor Details and Hardware Specifications", self.styles['Title']))
-            elements.append(Paragraph(f"Gauge ID: {gauge_id}", self.styles['SubTitle']))
+            elements.append(Paragraph(gauge_label, self.styles['SubTitle']))
             elements.append(Spacer(1, self.spacing['major_section']))
 
             # GAUGE INFORMATION SECTION

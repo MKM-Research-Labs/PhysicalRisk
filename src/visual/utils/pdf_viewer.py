@@ -18,7 +18,8 @@ def pdf_viewer_js(namespace: str,
                   default_title: str = "Report",
                   btn_color: str = "#28a745",
                   event_name: str = None,
-                  event_id_key: str = "id") -> str:
+                  event_id_key: str = "id",
+                  display_name_js: str = None) -> str:
     """Return a self-contained JS IIFE that creates a PDF viewer popup.
 
     Args:
@@ -33,6 +34,10 @@ def pdf_viewer_js(namespace: str,
             panel opens automatically.
         event_id_key: Key inside ``event.detail`` that carries the
             entity id (e.g. ``"propertyId"``, ``"gaugeId"``).
+        display_name_js: Optional JS expression that converts ``entityId``
+            into a display label (e.g.
+            ``"window.propertyDisplayName(entityId)"``).  Falls back to
+            bare ``entityId`` if omitted or the expression returns falsy.
 
     Returns:
         JS string (no ``<script>`` tags — caller wraps if needed).
@@ -138,7 +143,8 @@ def pdf_viewer_js(namespace: str,
                 function showPanel(entityId, pdfBase64) {{
                     var panel = createPanel();
                     var title = document.getElementById('{namespace}-title');
-                    title.textContent = '{default_title}: ' + entityId;
+                    var displayLabel = {display_name_js or 'entityId'};
+                    title.textContent = '{default_title}: ' + (displayLabel || entityId);
 
                     var iframe = document.getElementById('{namespace}-iframe');
                     iframe.src = 'data:application/pdf;base64,' + pdfBase64;

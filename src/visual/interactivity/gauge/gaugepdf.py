@@ -36,6 +36,7 @@ class GaugePDFPanel:
             btn_color="#007bff",
             event_name="gaugePdfReady",
             event_id_key="gaugeId",
+            display_name_js="window.gaugeDisplayName(entityId)",
         )
         return f"<script>\n{js}\n</script>"
 

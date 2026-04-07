@@ -113,6 +113,27 @@ def gauge_title_js(name_var: str = 'gName', id_var: str = 'gaugeId') -> str:
     return f"({name_var} ? {name_var} + ' (' + {id_var} + ')' : {id_var})"
 
 
+def gauge_title_py(gauge_name: str, gauge_id: str) -> str:
+    """
+    Return the formatted gauge display label for Python contexts (reports, tooltips).
+
+    Canonical format:
+        {GaugeName} ({GaugeID})
+
+    Falls back to just {GaugeID} if name is empty.
+
+    Args:
+        gauge_name: Gauge name string (e.g. "Thames Westminster Bridge").
+        gauge_id:   Gauge ID string (e.g. "GAUGE-ca0c20c2").
+
+    Returns:
+        Formatted display string.
+    """
+    if gauge_name:
+        return f"{gauge_name} ({gauge_id})"
+    return gauge_id
+
+
 def property_title_js(name_var: str = 'propName',
                       id_var: str = 'propertyId') -> str:
     """

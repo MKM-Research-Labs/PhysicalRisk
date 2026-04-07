@@ -132,7 +132,8 @@ def list_flood_storms():
             entry['name'] = meta.get('name', '') or (cat.capitalize() if cat else '')
             entry['effective_precipitation_mm'] = meta.get(
                 'effective_precipitation_mm',
-                meta.get('precipitation_mm', 0))
+                meta.get('total_precipitation_mm',
+                         meta.get('precipitation_mm', 0)))
 
     # Classify storms without metadata by gauges_severe count
     for entry in storm_set.values():

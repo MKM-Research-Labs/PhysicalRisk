@@ -115,18 +115,18 @@ class TestStormDisplayAudit:
         pattern = re.compile(
             r"""storm_id\s*\+\s*['"]\s*\(""",
         )
-        visual_dir = ROOT / 'src' / 'visual'
         violations = []
-        for py in visual_dir.rglob('*.py'):
-            rel = str(py.relative_to(ROOT))
-            if rel in known:
-                continue
-            try:
-                src = py.read_text()
-            except Exception:
-                continue
-            if pattern.search(src):
-                violations.append(rel)
+        for search_dir in (ROOT / 'src' / 'visual', ROOT / 'src' / 'reports'):
+            for py in search_dir.rglob('*.py'):
+                rel = str(py.relative_to(ROOT))
+                if rel in known:
+                    continue
+                try:
+                    src = py.read_text()
+                except Exception:
+                    continue
+                if pattern.search(src):
+                    violations.append(rel)
         assert not violations, (
             f"New storm display violations found — add to "
             f"_STORM_COMPLIANT or _STORM_HARDCODED:\n"
@@ -138,11 +138,17 @@ class TestStormDisplayAudit:
 #  Gauge display
 # =========================================================================
 
-# Files that correctly use gauge_title_js (via __GAUGE_TITLE__ sentinel
-# or direct import).
+# Files that correctly use gauge_title_js / gauge_title_py (via
+# __GAUGE_TITLE__ sentinel or direct import).
 _GAUGE_COMPLIANT = [
     'src/visual/interactivity/gauge/gaugesa/panel.py',
     'src/visual/interactivity/gauge/gaugehc/panel_data.py',
+    'src/reports/gauge/gauge_page_01_title_overview.py',
+    'src/reports/gauge/gauge_page_02_sensor_details.py',
+    'src/reports/gauge/gauge_page_03_location.py',
+    'src/reports/gauge/gauge_page_04_measurements.py',
+    'src/reports/gauge/gauge_page_05_flood_stages.py',
+    'src/reports/gauge/gauge_page_06_risk_assessment.py',
 ]
 
 # Files that hardcode gauge display strings.
@@ -164,7 +170,9 @@ _GAUGE_HARDCODED = [
     'src/visual/interactivity/property/propertyhc/panel_basis_strip.py',
     'src/visual/interactivity/governance/models/mg_lineage.py',
     'src/visual/interactivity/trading/market/render.py',
-    'src/reports/gauge/gauge_page_01_title_overview.py',
+    'src/reports/gauge/gauge_integrator.py',
+    'src/reports/port/sections.py',
+    'src/reports/port/sections_portfolio.py',
 ]
 
 
@@ -179,10 +187,11 @@ class TestGaugeDisplayAudit:
     def test_compliant_file_uses_config(self, rel):
         src = _read(rel)
         has_sentinel = '__GAUGE_TITLE__' in src
-        has_import = 'gauge_title_js' in src
-        assert has_sentinel or has_import, (
+        has_import_js = 'gauge_title_js' in src
+        has_import_py = 'gauge_title_py' in src
+        assert has_sentinel or has_import_js or has_import_py, (
             f"{rel} is listed as compliant but does not use "
-            f"__GAUGE_TITLE__ sentinel or import gauge_title_js"
+            f"__GAUGE_TITLE__ sentinel or import gauge_title_js/py"
         )
 
     @pytest.mark.parametrize('rel', _GAUGE_HARDCODED)
@@ -212,18 +221,18 @@ class TestGaugeDisplayAudit:
         pattern = re.compile(
             r"""(gaugeName|gauge_name)\s*\+\s*['"][ (]""",
         )
-        visual_dir = ROOT / 'src' / 'visual'
         violations = []
-        for py in visual_dir.rglob('*.py'):
-            rel = str(py.relative_to(ROOT))
-            if rel in known:
-                continue
-            try:
-                src = py.read_text()
-            except Exception:
-                continue
-            if pattern.search(src):
-                violations.append(rel)
+        for search_dir in (ROOT / 'src' / 'visual', ROOT / 'src' / 'reports'):
+            for py in search_dir.rglob('*.py'):
+                rel = str(py.relative_to(ROOT))
+                if rel in known:
+                    continue
+                try:
+                    src = py.read_text()
+                except Exception:
+                    continue
+                if pattern.search(src):
+                    violations.append(rel)
         assert not violations, (
             f"New gauge display violations found — add to "
             f"_GAUGE_COMPLIANT or _GAUGE_HARDCODED:\n"
@@ -240,6 +249,7 @@ _PROPERTY_COMPLIANT_JS = [
     'src/visual/interactivity/property/propertyhc/panel.py',
     'src/visual/interactivity/property/propertyhc/panel_data.py',
     'src/visual/interactivity/property/propertysa.py',
+    'src/visual/interactivity/property/propertypdf.py',
     'src/visual/interactivity/context_menus.py',
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/trading/client/table.py',
@@ -261,6 +271,11 @@ _PROPERTY_HARDCODED = [
     'src/visual/interactivity/storm/sp_sim.py',
     'src/visual/interactivity/storm/fa_render.py',
     'src/visual/interactivity/storm/sp_table.py',
+    'src/reports/property/property_page_15_data_summary.py',
+    'src/reports/property/claim/page5_determination.py',
+    'src/reports/mortgage/mortgage_page_01_title.py',
+    'src/reports/port/sections_portfolio.py',
+    'src/reports/risk/risk_page_04_risk_analysis.py',
 ]
 
 
@@ -316,18 +331,18 @@ class TestPropertyDisplayAudit:
             r"""(textContent|bindTooltip|title)\s*[=(]\s*.*property_id""",
             re.IGNORECASE,
         )
-        visual_dir = ROOT / 'src' / 'visual'
         violations = []
-        for py in visual_dir.rglob('*.py'):
-            rel = str(py.relative_to(ROOT))
-            if rel in known:
-                continue
-            try:
-                src = py.read_text()
-            except Exception:
-                continue
-            if pattern.search(src):
-                violations.append(rel)
+        for search_dir in (ROOT / 'src' / 'visual', ROOT / 'src' / 'reports'):
+            for py in search_dir.rglob('*.py'):
+                rel = str(py.relative_to(ROOT))
+                if rel in known:
+                    continue
+                try:
+                    src = py.read_text()
+                except Exception:
+                    continue
+                if pattern.search(src):
+                    violations.append(rel)
         assert not violations, (
             f"New property display violations found — add to "
             f"_PROPERTY_COMPLIANT_* or _PROPERTY_HARDCODED:\n"
@@ -425,21 +440,26 @@ class TestAuditCoverage:
         )
 
     def test_all_gauge_title_files_covered(self):
-        """Every file that imports gauge_title_js should appear in the
-        gauge compliant list."""
-        visual_dir = ROOT / 'src' / 'visual'
+        """Every file that imports gauge_title_js or gauge_title_py
+        should appear in the gauge compliant list."""
         covered = set(_GAUGE_COMPLIANT)
+        # config/format.py defines both functions
+        skip = {'config/format.py'}
         uncovered = []
-        for py in visual_dir.rglob('*.py'):
-            rel = str(py.relative_to(ROOT))
-            try:
-                src = py.read_text()
-            except Exception:
-                continue
-            if 'gauge_title_js' in src and rel not in covered:
-                uncovered.append(rel)
+        for search_dir in (ROOT / 'src' / 'visual', ROOT / 'src' / 'reports'):
+            for py in search_dir.rglob('*.py'):
+                rel = str(py.relative_to(ROOT))
+                if rel in skip:
+                    continue
+                try:
+                    src = py.read_text()
+                except Exception:
+                    continue
+                if ('gauge_title_js' in src or 'gauge_title_py' in src) \
+                        and rel not in covered:
+                    uncovered.append(rel)
         assert not uncovered, (
-            f"Files importing gauge_title_js but not in audit:\n"
+            f"Files importing gauge_title_js/py but not in audit:\n"
             + '\n'.join(sorted(uncovered))
         )
 
@@ -447,8 +467,11 @@ class TestAuditCoverage:
         """Every file that uses propertyDisplayName should appear in the
         property JS compliant list."""
         visual_dir = ROOT / 'src' / 'visual'
-        # startup.py defines the function — don't require it in the list
-        skip = {'src/visual/interactivity/startup.py'}
+        # startup.py defines the function; pdf_viewer.py is a factory
+        skip = {
+            'src/visual/interactivity/startup.py',
+            'src/visual/utils/pdf_viewer.py',
+        }
         covered = set(_PROPERTY_COMPLIANT_JS)
         uncovered = []
         for py in visual_dir.rglob('*.py'):
