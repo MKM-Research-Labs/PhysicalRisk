@@ -53,12 +53,16 @@ def output_dir(tmp_path):
             {"storm_id": "S3", "flood_depth_m": 0.3, "flooded": True, "damage_ratio": 0.15, "exceeded_severe": True},
             {"storm_id": "S4", "flood_depth_m": 2.1, "flooded": True, "damage_ratio": 0.60, "exceeded_severe": True},
             {"storm_id": "S5", "flood_depth_m": 0.8, "flooded": True, "damage_ratio": 0.35, "exceeded_severe": True},
+            # Non-severe floods: property flooded but gauge did not exceed severe level.
+            # These should NOT be counted in flood_count (severe-only definition).
+            {"storm_id": "S6", "flood_depth_m": 0.1, "flooded": True, "damage_ratio": 0.03, "exceeded_severe": False},
+            {"storm_id": "S7", "flood_depth_m": 0.05, "flooded": True, "damage_ratio": 0.01, "exceeded_severe": False},
         ],
         "summary": {
             "property_id": "PROP-001",
             "floods_at_nearest_gauge": 20,
             "severe_at_nearest_gauge": 8,
-            "floods_at_property": 5,
+            "floods_at_property": 7,
         },
     }
 

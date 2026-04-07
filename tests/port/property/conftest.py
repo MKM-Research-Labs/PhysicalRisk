@@ -135,6 +135,7 @@ def write_property_ts(pts_dir: Path, prop_id: str, n_floods: int,
             "flood_depth_m": 0.3 + i * 0.2,
             "flooded": True,
             "damage_ratio": 0.1,
+            "exceeded_severe": True,
         })
     if include_non_flooded:
         flood_events.append({
@@ -142,6 +143,7 @@ def write_property_ts(pts_dir: Path, prop_id: str, n_floods: int,
             "flood_depth_m": 0.0,
             "flooded": False,
             "damage_ratio": 0.0,
+            "exceeded_severe": False,
         })
     pdata = {
         "property_id": prop_id,
