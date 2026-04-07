@@ -64,10 +64,26 @@ class TestTradeMarksConsistency:
         )
 
     def test_prs_json_pdf_pairs_complete(self):
-        """Every PRS-*.json must have a matching PRS-*.pdf and vice versa."""
+        """Every PRS-*.json must have a matching PRS-*.pdf and vice versa.
+
+        Property PRS trades (those with a PropertySet section) are excluded
+        because seed/manually-created property trades may not have PDFs.
+        """
         if not PRS_DIR.exists():
             pytest.skip("PRS directory not found")
-        jsons = {f.stem for f in PRS_DIR.glob("PRS-*.json")}
+
+        # Exclude property PRS trades (they have a PropertySet section)
+        jsons = set()
+        for f in PRS_DIR.glob("PRS-*.json"):
+            try:
+                with open(f) as fh:
+                    trade = json.load(fh)
+                if 'PropertySet' in trade.get('PhysicalSwap', {}):
+                    continue
+            except Exception:
+                pass
+            jsons.add(f.stem)
+
         pdfs = {f.stem for f in PRS_DIR.glob("PRS-*.pdf")}
         json_only = jsons - pdfs
         pdf_only = pdfs - jsons
