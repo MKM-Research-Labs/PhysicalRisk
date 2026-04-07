@@ -19,31 +19,32 @@
 # SOFTWARE.
 
 """
-Stress Test — setup sub-module.
+Physical Risk Swap (PRS) Pricing with Flood Hazard Curves.
 
-State variables, DOM construction, data loading, gauge/storm dropdown
-population and change handlers, chart tab switching.
+This package demonstrates how to use the hazard curve output from
+hazard_curve.py to price a Physical Risk Swap using QuantLib's
+CDS pricing framework.
 
-On-demand classifier training UI is in training_ui.py.
+The key insight is that flood risk can be modeled like credit risk:
+- Survival probability S(t) = P(no flood by time t)
+- Default probability = P(at least one flood by time t)
+- Hazard rate lambda = annual flood probability (Poisson intensity)
+
+Usage:
+    python3 -m models.prs.prshc.cli --gauge THAMES-G001 --trigger warning
+    python3 -m models.prs.prshc.cli --hazard-file input/thames/hazard_curves.json
 """
 
-from . import setup_dom, setup_data, setup_charts
+from .curves import create_survival_curve_from_hazard, create_flat_hazard_curve
+from .pricer import price_prs
+from .io import load_hazard_curves, print_pricing_results
+from .cli import main
 
-
-def get_js() -> str:
-    """Return JavaScript fragment for stress test state, DOM, and loading."""
-    return f"""
-            // ==============================================================
-            // Tab 7: Stress Test — CDS-in-stress cash pricing
-            // ==============================================================
-            var tdStressGauges = null;
-            var tdStressStorms = null;
-            var tdStressResult = null;
-            var tdStressChart = null;
-            var tdStressChartTab = 0;  // 0 = Flood Probability, 1 = Stress P&L, 2 = Surface
-            var tdStressGaugeHint = null;
-
-{setup_dom.get_js()}
-{setup_data.get_js()}
-{setup_charts.get_js()}
-"""
+__all__ = [
+    'create_survival_curve_from_hazard',
+    'create_flat_hazard_curve',
+    'price_prs',
+    'load_hazard_curves',
+    'print_pricing_results',
+    'main',
+]
