@@ -202,9 +202,8 @@ def get_js():
 
                 bar.innerHTML = [
                     '<span><b>' + peakLabel + ':</b> ' + peakValue.toFixed(2) + 'm</span>',
-                    '<span><b>Sim Peak:</b> ' + simMax.toFixed(2) + 'm</span>',
                     '<span><b>Base:</b> ' + minLevel.toFixed(2) + 'm</span>',
-                    '<span><b>Rise:</b> ' + (simMax - minLevel).toFixed(2) + 'm</span>',
+                    '<span><b>Rise:</b> ' + (peakValue - minLevel).toFixed(2) + 'm</span>',
                     '<span><b>Duration:</b> ' + n + ' hours</span>',
                 ].join('');
             }

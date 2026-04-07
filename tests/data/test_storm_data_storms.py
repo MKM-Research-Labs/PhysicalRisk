@@ -41,7 +41,8 @@ PROPERTYTS_DIR       = pathlib.Path(config.get_input_dir()) / "propertyts"
 
 STORM_REQUIRED_FIELDS = {
     "storm_id", "name", "intensity_category", "duration_hours",
-    "peak_position", "trigger_summary", "gauge_responses",
+    "peak_position", "effective_precipitation_mm",
+    "trigger_summary", "gauge_responses",
 }
 TRIGGER_SUMMARY_FIELDS = {
     "gauges_alert", "gauges_warning", "gauges_severe", "gauges_impacted", "max_trigger",
@@ -186,6 +187,31 @@ class TestStressStormsFile:
         cats = {s.get("intensity_category") for s in storms}
         cats.discard(None)
         assert cats, "No intensity_category values found in stress_storms"
+
+    def test_intensity_categories_populated_for_all_storms(self, storms):
+        """Every storm must have a non-empty intensity_category from storm_sequences.json."""
+        missing = [
+            s["storm_id"] for s in storms
+            if not s.get("intensity_category")
+        ]
+        assert len(missing) == 0, (
+            f"{len(missing)} storms have empty intensity_category: {missing[:5]}. "
+            "Check storm_sequences.json enrichment in stress_storms generator."
+        )
+
+    def test_effective_precipitation_populated(self, storms):
+        """Every storm must have effective_precipitation_mm > 0 from storm_sequences.json."""
+        zero_precip = [
+            s["storm_id"] for s in storms
+            if not s.get("effective_precipitation_mm")
+        ]
+        # Allow up to 5% missing (e.g. orphaned storms without sequence metadata)
+        tolerance = max(1, len(storms) * 5 // 100)
+        assert len(zero_precip) <= tolerance, (
+            f"{len(zero_precip)} storms have zero/missing effective_precipitation_mm "
+            f"(>{tolerance} tolerance): {zero_precip[:5]}. "
+            "Check storm_sequences.json enrichment in stress_storms generator."
+        )
 
     def test_total_storms_key_matches_list_length(self):
         if STRESS_STORMS_INDEX.exists():

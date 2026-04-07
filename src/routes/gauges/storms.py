@@ -70,10 +70,12 @@ def get_gauge_storms(gauge_id: str):
                 num_sequences = sdata.get('num_sequences',
                                           len(sdata.get('sequences', [])))
 
-                # Map storm_id → sequence_id
+                # Map storm_id → sequence_id and store sequence metadata
                 storm_to_seq = {}
+                seq_meta = {}  # sequence_id → sequence metadata
                 for seq in sdata.get('sequences', []):
                     seq_id = seq['sequence_id']
+                    seq_meta[seq_id] = seq
                     for s in seq.get('storms', []):
                         storm_to_seq[s['storm_id']] = seq_id
 
@@ -88,6 +90,18 @@ def get_gauge_storms(gauge_id: str):
                         seq_best[seq_id] = resp
 
                 sequence_responses = list(seq_best.values())
+
+                # Enrich responses with sequence metadata
+                for resp in sequence_responses:
+                    meta = seq_meta.get(resp.get('sequence_id', ''), {})
+                    if not resp.get('intensity_category'):
+                        resp['intensity_category'] = meta.get(
+                            'intensity_category', '')
+                    if not resp.get('effective_precipitation_mm'):
+                        resp['effective_precipitation_mm'] = meta.get(
+                            'total_precipitation_mm', 0)
+                    if not resp.get('name'):
+                        resp['name'] = meta.get('name', '')
             except Exception:
                 pass
 

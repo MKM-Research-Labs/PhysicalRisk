@@ -39,7 +39,8 @@ PROPERTYTS_DIR       = pathlib.Path(config.get_input_dir()) / "propertyts"
 
 STORM_REQUIRED_FIELDS = {
     "storm_id", "name", "intensity_category", "duration_hours",
-    "peak_position", "trigger_summary", "gauge_responses",
+    "peak_position", "effective_precipitation_mm",
+    "trigger_summary", "gauge_responses",
 }
 TRIGGER_SUMMARY_FIELDS = {
     "gauges_alert", "gauges_warning", "gauges_severe", "gauges_impacted", "max_trigger",

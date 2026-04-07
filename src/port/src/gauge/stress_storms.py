@@ -134,13 +134,40 @@ def generate_stress_storms(
     if storms_json_path and Path(storms_json_path).exists():
         try:
             raw = json.loads(Path(storms_json_path).read_text())
-            for s in raw.get("storms", raw if isinstance(raw, list) else []):
-                sid = s.get("storm_id", "")
-                if sid:
-                    storm_meta[sid] = s
-            logger.info("Loaded metadata for %d storms from storms.json", len(storm_meta))
+            # Support both storm_sequences.json (sequences[].storms[])
+            # and flat storms.json (storms[]) formats
+            if "sequences" in raw:
+                for seq in raw["sequences"]:
+                    seq_id = seq.get("sequence_id", "")
+                    # Index individual storms within each sequence
+                    for s in seq.get("storms", []):
+                        sid = s.get("storm_id", "")
+                        if sid:
+                            # Carry sequence-level metadata down to the storm
+                            entry = dict(s)
+                            entry.setdefault("intensity_category",
+                                            seq.get("intensity_category", ""))
+                            # Normalise precipitation key
+                            if "effective_precipitation_mm" not in entry:
+                                entry["effective_precipitation_mm"] = (
+                                    seq.get("total_precipitation_mm",
+                                            s.get("precipitation_mm", 0.0)))
+                            storm_meta[sid] = entry
+                    # Also index by sequence_id (for sequence-level lookups)
+                    if seq_id and seq_id not in storm_meta:
+                        seq_entry = dict(seq)
+                        seq_entry.setdefault("effective_precipitation_mm",
+                                            seq.get("total_precipitation_mm", 0.0))
+                        storm_meta[seq_id] = seq_entry
+            else:
+                for s in raw.get("storms", raw if isinstance(raw, list) else []):
+                    sid = s.get("storm_id", "")
+                    if sid:
+                        storm_meta[sid] = s
+            logger.info("Loaded metadata for %d storms from %s",
+                        len(storm_meta), Path(storms_json_path).name)
         except Exception as exc:
-            logger.warning("Could not read storms.json for metadata: %s", exc)
+            logger.warning("Could not read storms metadata: %s", exc)
 
     # ------------------------------------------------------------------
     # 2. Scan gaugets — build storm_id → {gauge_id: response} map

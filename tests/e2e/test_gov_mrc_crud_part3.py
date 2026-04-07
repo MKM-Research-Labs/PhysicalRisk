@@ -159,6 +159,8 @@ class TestMRCMeetingDetailUI:
         before_text = content.inner_text(timeout=10_000)
         if not self._click_first_meeting_row(map_page):
             pytest.skip("No clickable meeting rows")
+        # Allow extra time for async fetch + render of meeting detail
+        map_page.wait_for_timeout(3_000)
         after_text = content.inner_text(timeout=10_000)
         assert after_text != before_text or len(after_text) > len(before_text), \
             "Content didn't change after clicking meeting row"
