@@ -30,7 +30,7 @@ from port.src.property.propertyhc import (
 
 
 class TestEventCountSpread:
-    """Test the event count spread formula: spread = flood_count / num_storms * 10000."""
+    """Test the event count spread formula: spread = flood_count(severe) / num_storms * 10000."""
 
     def test_zero_floods_zero_spread(self, output_dir):
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
@@ -55,7 +55,8 @@ class TestEventCountSpread:
             data = json.load(f)
 
         curves = data["property_hazard_curves"]
-        # PROP-001 has 5 floods, PROP-002 has 2, PROP-003 has 10
+        # PROP-001 has 5 severe floods (7 total, 2 non-severe excluded)
+        # PROP-002 has 2, PROP-003 has 10
         spread1 = curves["PROP-001"]["term_structure"]["severe"]["prs_spread_bps"][0]
         spread2 = curves["PROP-002"]["term_structure"]["severe"]["prs_spread_bps"][0]
         spread3 = curves["PROP-003"]["term_structure"]["severe"]["prs_spread_bps"][0]
@@ -72,6 +73,45 @@ class TestEventCountSpread:
         spreads = data["property_hazard_curves"]["PROP-001"]["term_structure"]["severe"]["prs_spread_bps"]
         # All tenors should have the same spread (storms are independent)
         assert all(s == spreads[0] for s in spreads)
+
+
+class TestFloodCountSevereFilter:
+    """Verify flood_count only counts events with exceeded_severe=True."""
+
+    def test_flood_count_excludes_non_severe(self, output_dir):
+        """PROP-001 has 7 flooded events but only 5 with exceeded_severe=True."""
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        pc = data["property_hazard_curves"]["PROP-001"]
+        # 5 severe floods, not 7 total
+        assert pc["flood_count"] == 5
+
+    def test_spread_uses_severe_count(self, output_dir):
+        """PRS spread must be computed from severe flood count, not total."""
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        pc = data["property_hazard_curves"]["PROP-001"]
+        expected_spread = round((5 / 100) * 10000, 2)  # 5 severe / 100 storms
+        assert pc["term_structure"]["severe"]["prs_spread_bps"][0] == expected_spread
+
+    def test_all_severe_property_unchanged(self, output_dir):
+        """PROP-003 has all events severe — flood_count equals total flooded."""
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gen.generate()
+
+        with open(output_dir / "propertyhc.json") as f:
+            data = json.load(f)
+
+        pc = data["property_hazard_curves"]["PROP-003"]
+        assert pc["flood_count"] == 10
 
 
 class TestGetGaugeSevereCount:

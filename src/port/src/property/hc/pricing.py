@@ -25,13 +25,13 @@ class PricingMixin:
     def _process_property(self, prop_file: Path, gauge_hazard: Dict,
                           price_prs_func, num_storms: int = 1000,
                           **kwargs) -> Optional[Dict]:
-        """Process a single property: count severe floods, compute spread and basis."""
+        """Process a single property: count severe floods that reach property, compute spread and basis."""
         with open(prop_file, 'r') as f:
             pdata = json.load(f)
 
         prop_id = pdata['property_id']
         flood_events = pdata.get('flood_events', [])
-        flood_count = len([e for e in flood_events if e.get('flooded', False)])
+        flood_count = len([e for e in flood_events if e.get('flooded', False) and e.get('exceeded_severe', False)])
 
         # Spread = severe flood count / total scenarios (in bp)
         spread_bps = round((flood_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0

@@ -532,15 +532,52 @@ class TestCrossLayerConsistency:
             f"HC gauges {hc_gauges} not subset of PTS gauges {pts_gauges}"
         )
 
-    def test_flood_count_matches_propertyts_events(self):
-        """flood_count in propertyhc should match flooded event count in propertyts."""
+    def test_flood_count_matches_propertyts_severe_events(self):
+        """flood_count in propertyhc should match severe-flooded event count in propertyts.
+
+        flood_count uses the severe-only definition: flooded AND exceeded_severe.
+        Re-run `python3 app.py port` if propertyts data is stale.
+        """
         prop_id, pc = _first_property()
         pts = _propertyts_file(prop_id)
         if not pts:
             pytest.skip("No propertyts file")
-        pts_flooded = len([e for e in pts.get("flood_events", [])
-                           if e.get("flooded", False)])
-        assert pc.get("flood_count") == pts_flooded
+        events = pts.get("flood_events", [])
+        if events and "exceeded_severe" not in events[0]:
+            pytest.skip("Stale propertyts data — re-run: python3 app.py port")
+        pts_severe_flooded = len([
+            e for e in events
+            if e.get("flooded", False) and e.get("exceeded_severe", False)
+        ])
+        assert pc.get("flood_count") == pts_severe_flooded, (
+            f"flood_count={pc.get('flood_count')} but propertyts has "
+            f"{pts_severe_flooded} severe-flooded events"
+        )
+
+    def test_flood_count_consistent_with_marker_color_source(self):
+        """The flood_count used by marker colors must equal the PRS pricer's count.
+
+        This lineage test ensures the property layer (marker coloring) and
+        PRS pricer always display the same flood count — both read the
+        top-level flood_count from propertyhc.json, which must use the
+        severe-only definition (flooded AND exceeded_severe).
+        """
+        data = _propertyhc()
+        curves = data.get("property_hazard_curves", {})
+        for prop_id, pc in curves.items():
+            flood_count = pc.get("flood_count", 0)
+            # Spread should be exactly flood_count / num_storms * 10000
+            num_storms = data.get("metadata", {}).get("num_storms", 0)
+            if num_storms == 0:
+                continue
+            spreads = pc.get("term_structure", {}).get("severe", {}).get("prs_spread_bps", [])
+            if not spreads:
+                continue
+            expected_spread = round((flood_count / num_storms) * 10000, 2)
+            assert spreads[0] == expected_spread, (
+                f"{prop_id}: marker flood_count={flood_count} implies spread "
+                f"{expected_spread}bp but PRS has {spreads[0]}bp"
+            )
 
     def test_all_properties_have_complete_phcdata(self):
         """Every property in propertyhc should have all fields the pricer needs."""
