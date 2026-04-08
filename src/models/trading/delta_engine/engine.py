@@ -88,7 +88,10 @@ class DeltaEngine:
         mtm = compute_mark_to_market(
             trade_spread, fair_spread, risky_annuity, notional, is_payer)
 
-        property_id = header.get('PropertyId') or trading_meta.get('property_id')
+        prop_set = ps.get('PropertySet', {})
+        property_id = (prop_set.get('PropertyID')
+                       or header.get('PropertyId')
+                       or trading_meta.get('property_id'))
         basis_info = {}
         if property_id:
             basis_bps = trading_meta.get('basis_bps', 0)
