@@ -564,17 +564,34 @@ def _build_coverage(cov: dict, styles) -> list:
     elems.append(HRFlowable(width='100%', thickness=1, color=NAVY))
     elems.append(Spacer(1, 3 * mm))
 
+    all_pkg_rows = cov['by_package']
+    if not all_pkg_rows:
+        cov_pct = cov['line_rate'] * 100
+        elems.append(Paragraph(
+            f'Overall line coverage: <b>{cov_pct:.2f}%</b> '
+            f'({cov["lines_covered"]:,} of {cov["lines_valid"]:,} lines).',
+            styles['body']))
+        elems.append(Spacer(1, 2 * mm))
+        elems.append(Paragraph('No per-package coverage data available.', styles['body']))
+        return elems
+
+    full_cov_count = sum(1 for _, r, _, _ in all_pkg_rows if r >= 100)
     cov_pct = cov['line_rate'] * 100
     elems.append(Paragraph(
         f'Overall line coverage: <b>{cov_pct:.2f}%</b> '
         f'({cov["lines_covered"]:,} of {cov["lines_valid"]:,} lines). '
-        'Packages are sorted by coverage rate ascending — lowest coverage first.',
+        'Packages are sorted by coverage rate ascending — lowest coverage first. '
+        f'{full_cov_count} package(s) with 100% coverage are omitted.',
         styles['body']))
     elems.append(Spacer(1, 2 * mm))
 
-    pkg_rows = cov['by_package']
+    pkg_rows = all_pkg_rows
+
+    # Exclude packages with 100% coverage — only show those needing attention
+    pkg_rows = [(n, r, v, c) for n, r, v, c in pkg_rows if r < 100]
     if not pkg_rows:
-        elems.append(Paragraph('No per-package coverage data available.', styles['body']))
+        elems.append(Paragraph(
+            'All packages have 100% line coverage.', styles['body']))
         return elems
 
     tbl_data = [[
