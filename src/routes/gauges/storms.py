@@ -105,8 +105,24 @@ def get_gauge_storms(gauge_id: str):
             except Exception:
                 pass
 
+        # Load stress storm names (Delta-181, Nu-56, etc.)
+        storm_names = {}
+        try:
+            ss_index = config.get_input_dir() / 'stress_storms' / '_index.json'
+            if ss_index.exists():
+                with open(ss_index, 'r') as f:
+                    ss_data = json_mod.load(f)
+                for s in ss_data.get('storms', []):
+                    sid = s.get('storm_id', '')
+                    if sid and s.get('name'):
+                        storm_names[sid] = s['name']
+        except Exception:
+            pass
+
         # Enrich with metadata
         for resp in sequence_responses:
+            if not resp.get('name'):
+                resp['name'] = storm_names.get(resp.get('storm_id', ''), '')
             resp.setdefault('name', '')
             resp.setdefault('intensity_category', '')
             resp.setdefault('effective_precipitation_mm', 0)
