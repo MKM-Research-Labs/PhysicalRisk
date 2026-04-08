@@ -4015,21 +4015,21 @@
         "q9_overall_risk": "Not Addressed"
       },
       "overall_risk_rating": {
-        "calculated_rating": "Acceptable",
-        "calculated_score": 0.72,
+        "calculated_rating": "Conditional",
+        "calculated_score": 0.662,
         "component_scores": {
           "validation_coverage": 0.0,
-          "remediation_health": 1.0,
+          "remediation_health": 0.85,
           "review_currency": 1.0,
-          "assumption_risk": 0.9,
-          "limitation_risk": 0.9
+          "assumption_risk": 1.0,
+          "limitation_risk": 1.0
         },
-        "effective_rating": "Acceptable",
+        "effective_rating": "Conditional",
         "mrc_override": null,
         "mrc_override_reason": null,
         "mrc_override_date": null,
         "mrc_override_by": null,
-        "last_calculated": "2026-03-28T09:00:00.000000"
+        "last_calculated": "2026-04-08T11:16:47.919390"
       }
     }
   ],
