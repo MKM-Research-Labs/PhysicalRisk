@@ -1050,6 +1050,14 @@ def _print_port_summary(output_dir):
     from config import config
     prs_dir = config.get_reports_dir('prs')
     trade_ct = _count_dir(prs_dir, 'PRS-*.json') if prs_dir.exists() else 0
+    gauge_trade_ct = 0
+    prop_trade_ct = 0
+    if prs_dir.exists():
+        for tf in prs_dir.glob('PRS-*.json'):
+            if tf.stem.startswith('PRS-P'):
+                prop_trade_ct += 1
+            else:
+                gauge_trade_ct += 1
     eod_ct = _count_dir(config.get_eod_dir(), 'EOD-*')
 
     # ---- Print report ----
@@ -1127,7 +1135,9 @@ def _print_port_summary(output_dir):
 
     # Section 6: Trading Book
     _heading('6. TRADING BOOK')
-    _row('PRS trades', f'{trade_ct}')
+    _row('PRS gauge trades', f'{gauge_trade_ct}')
+    _row('PRS property trades', f'{prop_trade_ct}')
+    _row('Total PRS trades', f'{trade_ct}')
     _row('Historical EOD snapshots', f'{eod_ct}')
 
     # Section 7: Output files
@@ -1152,6 +1162,8 @@ def _print_port_summary(output_dir):
     if propertytse_ct:
         _row('propertytse/', f'{propertytse_ct} synthetic elevation series')
     _row('stressm/', f'{classifier_ct} classifiers')
+    _row('prs/', f'{gauge_trade_ct} gauge + {prop_trade_ct} property trades')
+    _row('eod/', f'{eod_ct} EOD snapshots')
 
     # Data size
     try:
