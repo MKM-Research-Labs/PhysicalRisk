@@ -129,7 +129,9 @@ def list_flood_storms():
         if meta:
             cat = meta.get('intensity_category', '')
             entry['intensity_category'] = cat
-            entry['name'] = meta.get('name', '') or (cat.capitalize() if cat else '')
+            # Only update name if not already set from stress_storms index
+            if not entry.get('name'):
+                entry['name'] = meta.get('name', '')
             entry['effective_precipitation_mm'] = meta.get(
                 'effective_precipitation_mm',
                 meta.get('total_precipitation_mm',
@@ -137,7 +139,7 @@ def list_flood_storms():
 
     # Classify storms without metadata by gauges_severe count
     for entry in storm_set.values():
-        if not entry['name']:
+        if not entry.get('intensity_category'):
             sev = entry['gauges_severe']
             if sev >= 10:
                 cat = 'catastrophic'
@@ -150,7 +152,6 @@ def list_flood_storms():
             else:
                 cat = 'baseline'
             entry['intensity_category'] = cat
-            entry['name'] = cat.capitalize()
 
     # Enrich with property flooding data
     pts_dir = _get_propertyts_dir()
