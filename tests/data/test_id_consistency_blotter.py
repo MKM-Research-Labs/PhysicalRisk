@@ -66,36 +66,50 @@ class TestTradeMarksConsistency:
     def test_prs_json_pdf_pairs_complete(self):
         """Every PRS-*.json must have a matching PRS-*.pdf and vice versa.
 
-        Property PRS trades (those with a PropertySet section) are excluded
-        because seed/manually-created property trades may not have PDFs.
+        Gauge trades and property trades are checked separately since they
+        use different swap ID prefixes (PRS- vs PRS-P).
         """
         if not PRS_DIR.exists():
             pytest.skip("PRS directory not found")
 
-        # Exclude property PRS trades (they have a PropertySet section)
-        jsons = set()
+        # Split into gauge trades and property trades by prefix
+        gauge_jsons = set()
+        prop_jsons = set()
         for f in PRS_DIR.glob("PRS-*.json"):
             try:
                 with open(f) as fh:
                     trade = json.load(fh)
                 if 'PropertySet' in trade.get('PhysicalSwap', {}):
-                    continue
+                    prop_jsons.add(f.stem)
+                else:
+                    gauge_jsons.add(f.stem)
             except Exception:
-                pass
-            jsons.add(f.stem)
+                gauge_jsons.add(f.stem)
 
-        pdfs = {f.stem for f in PRS_DIR.glob("PRS-*.pdf")}
-        json_only = jsons - pdfs
-        pdf_only = pdfs - jsons
-        if pdf_only:
+        all_pdfs = {f.stem for f in PRS_DIR.glob("PRS-*.pdf")}
+        prop_pdfs = {s for s in all_pdfs if s.startswith('PRS-P')}
+        gauge_pdfs = all_pdfs - prop_pdfs
+
+        # Check gauge trade pairs
+        g_json_only = gauge_jsons - gauge_pdfs
+        g_pdf_only = gauge_pdfs - gauge_jsons
+        if g_pdf_only:
             import warnings
             warnings.warn(
-                f"{len(pdf_only)} orphaned PDFs without JSON (may be from "
-                f"trades generated without gauge ID): {sorted(pdf_only)[:5]}"
+                f"{len(g_pdf_only)} orphaned gauge PDFs without JSON: "
+                f"{sorted(g_pdf_only)[:5]}"
             )
-        assert len(json_only) == 0 and len(pdf_only) <= 3, (
-            f"JSON without PDF: {sorted(json_only)[:5]}; "
-            f"PDF without JSON: {sorted(pdf_only)[:5]}"
+        assert len(g_json_only) == 0 and len(g_pdf_only) <= 3, (
+            f"Gauge JSON without PDF: {sorted(g_json_only)[:5]}; "
+            f"Gauge PDF without JSON: {sorted(g_pdf_only)[:5]}"
+        )
+
+        # Check property trade pairs
+        p_json_only = prop_jsons - prop_pdfs
+        p_pdf_only = prop_pdfs - prop_jsons
+        assert len(p_json_only) == 0 and len(p_pdf_only) == 0, (
+            f"Property JSON without PDF: {sorted(p_json_only)[:5]}; "
+            f"Property PDF without JSON: {sorted(p_pdf_only)[:5]}"
         )
 
 

@@ -794,7 +794,8 @@ def cmd_port(args):
                 pass
         print("10. Generating Trading Book (Blotter)...")
         from port.src.book import (
-            generate_thames_central_book, generate_trade_pdfs, print_book_summary
+            generate_thames_central_book, generate_property_book,
+            generate_trade_pdfs, print_book_summary,
         )
 
         blotter_dir = config.get_reports_dir('prs')
@@ -834,6 +835,19 @@ def cmd_port(args):
             catchment_id=catchment,
             seed=42,
         )
+
+        # Generate property PRS client trades
+        prop_trades = generate_property_book(
+            propertyhc_path=config.get_input_dir() / 'propertyhc.json',
+            property_path=config.get_input_dir() / 'property.json',
+            counterparty_path=config.get_input_dir() / 'counterparty.json',
+            output_dir=blotter_dir,
+            catchment_id=catchment,
+            seed=43,
+        )
+        trades.extend(prop_trades)
+        if prop_trades:
+            print(f"  + {len(prop_trades)} property PRS client trades")
 
         print_book_summary(trades)
 

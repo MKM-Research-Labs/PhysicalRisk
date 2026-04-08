@@ -107,9 +107,13 @@ def get_js() -> str:
                                 }
                             }
                         },
+                        layout: {
+                            padding: { right: 70 }
+                        },
                         scales: {
                             x: {
                                 beginAtZero: true,
+                                suggestedMax: Math.max.apply(null, values) * 1.15,
                                 title: { display: true, text: 'Spread (bps)', font: { size: 11 } },
                                 grid: { color: '#f0f0f0' },
                             },
