@@ -39,6 +39,7 @@ from .book_common import (  # noqa: F401
     _compute_leg_pvs,
     _load_counterparties,
 )
+from .book_property import generate_property_book  # noqa: F401
 from .book_thames import (  # noqa: F401
     THAMES_CENTRAL_AREAS,
     _AREA_TO_GAUGE_NAME,

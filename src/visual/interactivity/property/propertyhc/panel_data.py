@@ -75,7 +75,23 @@ def get_js() -> str:
                     }
 
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
-                    // Refresh title — _propertyNames may not have been ready on first render
+                    // Ensure _propertyNames has this property (preloader may not have finished)
+                    if (!(window._propertyNames || {})[propertyId]) {
+                        try {
+                            var propResp = await fetch(baseUrl + '/api/v1/properties/' + propertyId, {mode: 'cors'});
+                            if (propResp.ok) {
+                                var propResult = await propResp.json();
+                                var ph = (propResult.property || {}).PropertyHeader || {};
+                                var loc = ph.Location || {};
+                                var propAddr = ((loc.BuildingNumber || '') + ' ' + (loc.StreetName || '')).trim();
+                                if (propAddr) {
+                                    if (!window._propertyNames) window._propertyNames = {};
+                                    window._propertyNames[propertyId] = propAddr;
+                                }
+                            }
+                        } catch (propErr) { /* ignore */ }
+                    }
+                    // Refresh title with canonical format
                     var titleEl = document.getElementById('phc-panel-title');
                     if (titleEl) titleEl.textContent = 'PRS Pricer: ' + window.propertyDisplayName(propertyId);
                     buildPRSControls();

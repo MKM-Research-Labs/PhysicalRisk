@@ -113,8 +113,16 @@ def _build_cdm_record(
     protection_leg_pv: float,
     risky_annuity: float,
     trade_date: datetime,
+    property_set: Optional[Dict] = None,
 ) -> Dict:
-    """Build a full PRS CDM record."""
+    """Build a full PRS CDM record.
+
+    Args:
+        property_set: Optional dict with PropertySet fields (PropertyID,
+            PropertyAddress, etc.).  When provided the trade is typed as
+            ``PropertyPRS`` and the PropertySet section is attached.
+    """
+    trade_type = 'PropertyPRS' if property_set else 'PRS'
     start_date = trade_date + timedelta(days=2)
     end_date = compute_maturity_date(tenor, trade_date.date()
                                      if hasattr(trade_date, 'date')
@@ -125,7 +133,7 @@ def _build_cdm_record(
             'Header': {
                 'SwapID': swap_id,
                 'CatchmentID': catchment_id,
-                'TradeType': 'PRS',
+                'TradeType': trade_type,
                 'CounterParty': counterparty_id,
                 'CounterPartyName': counterparty_name,
                 'PartyId': 'MKM-RESEARCH-001',
@@ -180,6 +188,9 @@ def _build_cdm_record(
         }
     }
 
+    if property_set:
+        record['PhysicalSwap']['PropertySet'] = property_set
+
     # Validate against PRS CDM schema
     errors = _cdm.validate(record)
     if errors:
@@ -201,14 +212,27 @@ def _price_and_save_trade(
     ctpy_idx: int,
     base_date: datetime,
     output_dir: Path,
+    property_set: Optional[Dict] = None,
+    fair_spread_override: Optional[float] = None,
 ) -> tuple:
-    """Price a single trade, build CDM, save JSON, return (record, new_ctpy_idx)."""
+    """Price a single trade, build CDM, save JSON, return (record, new_ctpy_idx).
+
+    Args:
+        property_set: Optional PropertySet dict for property PRS trades.
+        fair_spread_override: Optional fair spread in bps (skips hazard-rate
+            computation).  Used by property trades where spread comes from
+            propertyhc.json event-count model rather than the analytical pricer.
+    """
     import random
     import uuid
 
-    fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY,
-                                      yield_curve=DEFAULT_YIELD_CURVE)
-    swap_id = f'PRS-{uuid.uuid4().hex[:8].upper()}'
+    if fair_spread_override is not None:
+        fair_spread = fair_spread_override
+    else:
+        fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY,
+                                          yield_curve=DEFAULT_YIELD_CURVE)
+    prefix = 'PRS-P' if property_set else 'PRS-'
+    swap_id = f'{prefix}{uuid.uuid4().hex[:8].upper()}'
     offset = random.uniform(SPREAD_OFFSET_MIN, SPREAD_OFFSET_MAX)
     trade_spread = fair_spread - offset if is_payer else fair_spread + offset
 
@@ -237,6 +261,7 @@ def _price_and_save_trade(
         protection_leg_pv=pvs['protection_leg_pv'],
         risky_annuity=pvs['risky_annuity'],
         trade_date=td,
+        property_set=property_set,
     )
 
     json_path = output_dir / f'{swap_id}.json'
