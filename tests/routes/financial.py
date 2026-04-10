@@ -71,6 +71,8 @@ def fin_env(tmp_path, monkeypatch):
                 "storm_id": "STORM-001",
                 "flood_depth_m": 0.5,
                 "damage_ratio": 0.15,
+                "flooded": True,
+                "exceeded_severe": True,
             }
         ]
     }
