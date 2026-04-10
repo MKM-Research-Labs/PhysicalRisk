@@ -19,6 +19,7 @@ def get_js() -> str:
                     '<span style="font-size:12px;font-weight:700;color:#333;">Storm Sequence Control</span>' +
                     '<span id="sp-ctrl-dirty" style="font-size:10px;color:#e65100;font-weight:600;display:none;">Unsaved changes</span>' +
                     '<span style="flex:1;"></span>' +
+                    '<button id="sp-ctrl-guide-btn" onclick="openControlGuide()" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">User Guide</button>' +
                     '<button id="sp-ctrl-reset-btn" onclick="resetControlData()" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #999;border-radius:3px;background:#f5f5f5;color:#555;cursor:pointer;">Reset Defaults</button>' +
                     '<button id="sp-ctrl-save-btn" onclick="saveControlData()" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#1565c0;color:white;cursor:pointer;">Save &amp; Apply</button>';
                 view.appendChild(toolbar);
@@ -166,6 +167,12 @@ def get_js() -> str:
                 });
                 html += '</div></div>';
                 return html;
+            }
+
+            function openControlGuide() {
+                var cfg = window.__BACKEND_CONFIG || {};
+                var base = cfg.url || '';
+                window.open(base + '/api/v1/governance/storm-control/guide/pdf', '_blank');
             }
 
             function ctrlMarkDirty() {

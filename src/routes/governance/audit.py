@@ -329,6 +329,20 @@ def get_model_analysis_pdf(model_id):
     return send_file(pdf_path, mimetype="application/pdf")
 
 
+@governance_bp.route("/governance/storm-control/guide/pdf", methods=["GET"])
+def get_storm_control_guide_pdf():
+    """Serve the Storm Sequence Control User Guide PDF."""
+    pdf_path = os.path.join(_docs_dir, "storm_control", "storm_control_guide.pdf")
+    if not os.path.isfile(pdf_path):
+        return jsonify({
+            "status": "error",
+            "message": "Storm control guide PDF not yet generated. "
+                       "Run: make -C docs/models/storm_control/",
+        }), 404
+
+    return send_file(pdf_path, mimetype="application/pdf")
+
+
 @governance_bp.route("/governance/mrc/terms-of-reference/pdf", methods=["GET"])
 def get_mrc_tor_pdf():
     """Serve the MRC Terms of Reference PDF."""
