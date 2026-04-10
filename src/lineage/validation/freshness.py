@@ -46,6 +46,25 @@ def check_inputs_fresh(step_name: str) -> tuple:
     data_dir: Path | None = None  # lazily resolved
 
     for inp in step_io["inputs"]:
+        # External inputs (config files) are compared against disk, not a producer
+        if inp in _manifest.EXTERNAL_INPUTS:
+            consumer_entry = manifest.get("steps", {}).get(step_name)
+            if consumer_entry is None:
+                issues.append(f"Step '{step_name}' has never run")
+                continue
+            consumed = consumer_entry.get("inputs", {}).get(inp, {}).get("hash")
+            if consumed is None:
+                continue  # never recorded — skip
+            if data_dir is None:
+                data_dir = _resolve_data_dir()
+            live = _live_hash(inp, data_dir)
+            if live is not None and live != consumed:
+                issues.append(
+                    f"External input '{inp}' changed on disk since "
+                    f"'{step_name}' last ran"
+                )
+            continue
+
         # Prefer dependency-aware producer; fall back to global map
         producer = _find_producer(step_name, inp) or output_map.get(inp)
         if producer is None:

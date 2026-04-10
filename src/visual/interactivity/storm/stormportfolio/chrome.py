@@ -61,10 +61,16 @@ def get_js() -> str:
                 varBtn.textContent = 'VaR';
                 varBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:white;color:#333;';
                 varBtn.onclick = function() { switchTab('var'); };
+                var ctrlBtn = document.createElement('button');
+                ctrlBtn.id = 'sp-tab-control';
+                ctrlBtn.textContent = 'Control';
+                ctrlBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:white;color:#333;';
+                ctrlBtn.onclick = function() { switchTab('control'); };
                 toggleWrap.appendChild(tabBtn);
                 toggleWrap.appendChild(simBtn);
                 toggleWrap.appendChild(visBtn);
                 toggleWrap.appendChild(varBtn);
+                toggleWrap.appendChild(ctrlBtn);
 
                 leftHeader.appendChild(title);
                 leftHeader.appendChild(toggleWrap);
@@ -113,6 +119,7 @@ def get_js() -> str:
                 var simView = createSimView();
                 var visView = createVisView();
                 var varView = createVarView();
+                var controlView = createControlView();
 
                 // Stats bar (shared)
                 var statsBar = document.createElement('div');
@@ -125,6 +132,7 @@ def get_js() -> str:
                 spPanel.appendChild(simView);
                 spPanel.appendChild(visView);
                 spPanel.appendChild(varView);
+                spPanel.appendChild(controlView);
                 spPanel.appendChild(statsBar);
                 document.body.appendChild(spPanel);
                 return spPanel;
@@ -139,19 +147,21 @@ def get_js() -> str:
                 var simEl = document.getElementById('sp-sim-view');
                 var visEl = document.getElementById('sp-vis-view');
                 var varEl = document.getElementById('sp-var-view');
+                var controlEl = document.getElementById('sp-control-view');
                 var btnTable = document.getElementById('sp-tab-table');
                 var btnSim = document.getElementById('sp-tab-sim');
                 var btnVis = document.getElementById('sp-tab-vis');
                 var btnVar = document.getElementById('sp-tab-var');
+                var btnCtrl = document.getElementById('sp-tab-control');
 
                 tableEl.style.display = 'none';
                 simEl.style.display = 'none';
                 visEl.style.display = 'none';
                 varEl.style.display = 'none';
+                if (controlEl) controlEl.style.display = 'none';
 
-                [btnTable, btnSim, btnVis, btnVar].forEach(function(b) {
-                    b.style.background = 'white';
-                    b.style.color = '#333';
+                [btnTable, btnSim, btnVis, btnVar, btnCtrl].forEach(function(b) {
+                    if (b) { b.style.background = 'white'; b.style.color = '#333'; }
                 });
 
                 if (tab !== 'sim' && spSimPlaying) {
@@ -183,11 +193,16 @@ def get_js() -> str:
                     if (sid2 && (!spSimData || spSimData.storm_id !== sid2)) {
                         loadSimData(sid2);
                     }
-                } else {
+                } else if (tab === 'var') {
                     varEl.style.display = 'flex';
                     btnVar.style.background = '#1976d2';
                     btnVar.style.color = 'white';
                     if (!spVarData) loadVarData();
+                } else if (tab === 'control') {
+                    if (controlEl) controlEl.style.display = 'flex';
+                    btnCtrl.style.background = '#1976d2';
+                    btnCtrl.style.color = 'white';
+                    loadControlData();
                 }
             }
 

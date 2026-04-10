@@ -162,3 +162,7 @@ class PortfolioConfig(PortfolioPaths, ServerMixin, CatchmentMixin):
 
 # Global singleton instance
 config = PortfolioConfig()
+
+# Apply storm_control.json overlay (patches config.port / config.models attrs)
+from config.storm_control import apply_storm_control as _apply_storm_control
+_apply_storm_control(config._catchment_id)
