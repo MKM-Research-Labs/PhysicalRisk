@@ -18,6 +18,7 @@ data/results/
 data/data_lineage.json
 data/model_audit_log.json
 data/mrc_meetings.json
+data/.port_admin
 
 # Keep catchment configs and metadata schemas tracked
 !data/catch/
