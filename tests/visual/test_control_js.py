@@ -46,6 +46,14 @@ class TestControlTabFunctionExports:
         """setup_dom.py must define ctrlClearDirty()."""
         assert 'function ctrlClearDirty' in dom_js
 
+    def test_open_control_guide_exists(self, dom_js):
+        """setup_dom.py must define openControlGuide()."""
+        assert 'function openControlGuide' in dom_js
+
+    def test_ctrl_help_exists(self, dom_js):
+        """setup_dom.py must define _ctrlHelp() for tooltip popups."""
+        assert 'function _ctrlHelp' in dom_js
+
     def test_load_control_data_exists(self, data_js):
         """setup_data.py must define loadControlData()."""
         assert 'function loadControlData' in data_js
@@ -91,6 +99,10 @@ class TestControlTabDomElements:
     def test_has_reset_button_id(self, dom_js):
         """Reset button must have id='sp-ctrl-reset-btn'."""
         assert 'sp-ctrl-reset-btn' in dom_js
+
+    def test_has_guide_button_id(self, dom_js):
+        """User Guide button must have id='sp-ctrl-guide-btn'."""
+        assert 'sp-ctrl-guide-btn' in dom_js
 
     def test_has_dirty_indicator_id(self, dom_js):
         """Dirty indicator must have id='sp-ctrl-dirty'."""
@@ -198,9 +210,48 @@ class TestControlTabFieldRenderers:
         """Field renderers must use data-ctrl-key attributes."""
         assert 'data-ctrl-key' in dom_js
 
-    def test_oninput_dirty_handler(self, dom_js):
-        """Inputs must call ctrlMarkDirty() on change."""
+    def test_dirty_handler_via_delegation(self, dom_js):
+        """Event delegation must call ctrlMarkDirty() on input change."""
         assert 'ctrlMarkDirty()' in dom_js
+
+    def test_event_delegation_on_body(self, dom_js):
+        """Body must use addEventListener for input/change delegation."""
+        assert "addEventListener('input'" in dom_js or 'addEventListener("input"' in dom_js
+
+    def test_programmatic_onclick_binding(self, dom_js):
+        """Toolbar buttons must use .onclick assignment, not inline onclick."""
+        assert "querySelector('#sp-ctrl-guide-btn').onclick" in dom_js
+        assert "querySelector('#sp-ctrl-save-btn').onclick" in dom_js
+        assert "querySelector('#sp-ctrl-reset-btn').onclick" in dom_js
+
+    def test_guide_button_opens_pdf_endpoint(self, dom_js):
+        """openControlGuide must target the governance PDF route."""
+        assert '/api/v1/governance/storm-control/guide/pdf' in dom_js
+
+    def test_open_control_guide_uses_window_open(self, dom_js):
+        """openControlGuide must use window.open to open PDF in new tab."""
+        assert 'window.open(' in dom_js
+
+    def test_change_event_delegation(self, dom_js):
+        """Body must also delegate 'change' events for checkboxes."""
+        assert "addEventListener('change'" in dom_js or 'addEventListener("change"' in dom_js
+
+    def test_no_inline_onclick_in_innerHTML(self, dom_js):
+        """Toolbar buttons must NOT use inline onclick= attributes."""
+        # The toolbar innerHTML should not contain onclick= (IIFE scoping issue)
+        # Look for onclick= inside the toolbar.innerHTML assignment
+        import re
+        # Find the toolbar.innerHTML block
+        inline_onclicks = re.findall(r"onclick=[\"']", dom_js)
+        assert len(inline_onclicks) == 0, (
+            f"Found {len(inline_onclicks)} inline onclick= attributes "
+            f"in innerHTML — these won't work inside an IIFE"
+        )
+
+    def test_help_tooltip_uses_mouseenter(self, dom_js):
+        """Help tooltips must use onmouseenter/onmouseleave for popup display."""
+        assert 'onmouseenter' in dom_js
+        assert 'onmouseleave' in dom_js
 
 
 # ---------------------------------------------------------------------------

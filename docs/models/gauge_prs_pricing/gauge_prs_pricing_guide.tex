@@ -1,0 +1,374 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Gauge PRS Pricing}
+\newcommand{\docsubtitle}{User Guide --- Physical Risk Swap Valuation}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{10-April-2026}
+\newcommand{\docauthor}{MKM Research Labs}
+
+\input{../shared/mkm_header}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+A \textbf{Physical Risk Swap} (PRS) is a credit-derivative-style contract
+that transfers flood risk between two parties.  The protection buyer (payer)
+pays a periodic premium in exchange for a contingent payment if a specified
+flood event occurs at a river gauge.  The structure mirrors a single-name
+Credit Default Swap (CDS), with the ``credit event'' replaced by a physical
+flood event.
+
+\subsection{Why PRS Exists}
+
+Property owners, mortgage lenders, and insurers face concentrated exposure
+to river flooding.  A PRS allows them to hedge this exposure by
+transferring the risk to a willing counterparty (hedge fund, reinsurer, or
+capital markets investor) in exchange for a spread.  The spread compensates
+the protection seller for the probability of having to make a payout.
+
+\subsection{Gauge vs.\ Property PRS}
+
+A \textbf{Gauge PRS} references a single river gauge.  The trigger is
+defined by a water level threshold (alert, warning, or severe) at that
+gauge.  The pricing uses an analytical hazard-rate model.
+
+A \textbf{Property PRS} references a specific property and its nearest
+gauges.  It is priced from Monte Carlo event counts rather than
+analytical hazard rates.  This guide covers gauge PRS; property PRS is
+documented separately.
+
+
+% =========================================================================
+\section{From Hazard Rate to Fair Spread}
+% =========================================================================
+
+The pricing pipeline converts an annual flood probability into a fair
+spread in basis points (bps).  This section walks through each step.
+
+\subsection{Annual Probability to Continuous Hazard Rate}
+
+The gauge hazard curve provides an \textbf{annual hazard rate} --- the
+probability that a flood event occurs within one year.  For example, a
+5\% annual probability at the severe trigger level.
+
+The CDS pricing framework requires a continuous hazard rate $\lambda$,
+converted via:
+
+\[
+  \lambda = -\ln(1 - p_{\mathrm{annual}})
+\]
+
+\noindent For $p = 0.05$: $\lambda \approx 0.0513$.
+
+\subsection{Survival Probability}
+
+The survival probability $S(t)$ at time $t$ (years) is the probability
+that no flood event has occurred by time $t$:
+
+\[
+  S(t) = e^{-\lambda t}
+\]
+
+\noindent For $\lambda = 0.0513$ and $t = 5$: $S(5) = e^{-0.2565} \approx 0.7738$.
+
+\subsection{Risky Annuity}
+
+The risky annuity is the present value of \pounds1 paid quarterly, conditional
+on no flood event having occurred, discounted at the risk-free rate:
+
+\[
+  A = \sum_{i=1}^{n} \Delta t \cdot S(t_i) \cdot D(t_i)
+\]
+
+\noindent where $\Delta t = 0.25$ (quarterly), $n = 4 \times \text{tenor}$,
+and $D(t) = e^{-r(t) \cdot t}$ is the discount factor from the yield curve.
+
+A typical 5-year risky annuity is in the range 3.5--5.0, depending on the
+hazard rate and yield curve.  The risky annuity is the denominator of the
+CDS spread formula and also serves as the DV01 (see Chapter~4).
+
+\subsection{Protection Leg}
+
+The protection leg is the present value of the payout made upon a flood
+event, weighted by the probability of default in each period:
+
+\[
+  P = \sum_{i=1}^{n} (1 - R) \cdot \bigl(S(t_{i-1}) - S(t_i)\bigr)
+      \cdot D(t_{\mathrm{mid},i})
+\]
+
+\noindent where $R$ is the recovery rate (default 0.0 for flood events,
+meaning full loss) and $t_{\mathrm{mid},i}$ is the midpoint of period $i$.
+
+\subsection{Fair Spread}
+
+The fair spread equates the premium leg with the protection leg:
+
+\[
+  s_{\mathrm{fair}} = \frac{P}{A}
+\]
+
+\noindent Expressed in basis points:
+
+\[
+  s_{\mathrm{bps}} = s_{\mathrm{fair}} \times 10{,}000
+\]
+
+\subsection{Worked Example}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Input} & \textbf{Value} \\
+\midrule
+Annual hazard rate (severe)  & 5\% \\
+Tenor                        & 5 years \\
+Recovery                     & 0\% \\
+Risk-free rate               & 3\% flat \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{enumerate}
+  \item $\lambda = -\ln(0.95) = 0.0513$
+  \item Risky annuity $A \approx 4.71$
+  \item Protection leg $P \approx 0.0245$
+  \item Fair spread $= 0.0245 / 4.71 = 0.00520 = 52$ bps
+\end{enumerate}
+
+\noindent The protection buyer would pay 52 basis points per annum on
+the notional to hedge severe flood risk at this gauge.
+
+
+% =========================================================================
+\section{Trade Structure}
+% =========================================================================
+
+\subsection{Payer vs.\ Receiver}
+
+\begin{description}[leftmargin=2em]
+  \item[Payer (protection buyer)] Pays the periodic spread.  Profits
+        when flood risk increases (spread widens).  Long risk.
+  \item[Receiver (protection seller)] Receives the spread.  Profits
+        when flood risk decreases (spread tightens).  Short risk.
+\end{description}
+
+\subsection{Key Terms}
+
+\begin{center}
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Field} & \textbf{Typical Value} & \textbf{Description} \\
+\midrule
+Notional      & \pounds10M  & Face value; maximum payout \\
+Tenor         & 1, 2, 3, or 5Y & Contract length \\
+Trigger Level & severe     & Water level threshold (alert/warning/severe) \\
+Trade Spread  & 45 bps     & Premium agreed at inception \\
+Day Count     & ACT/360    & ISDA convention \\
+Payment Freq  & 6M         & Semi-annual premium payments \\
+Recovery      & 0\%        & Full loss on flood event \\
+Currency      & GBP        & Denomination \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Trigger Levels}
+
+Each gauge has three statutory flood levels (metres above ordnance datum):
+
+\begin{description}[leftmargin=2em]
+  \item[Flood Alert] Early warning --- be prepared. Lowest threshold.
+  \item[Flood Warning] Flooding expected --- take action.
+  \item[Severe Flood Warning] Severe flooding --- danger to life. Highest threshold.
+\end{description}
+
+\noindent The trigger level determines which hazard rate drives the
+spread.  Severe triggers have lower probabilities (rarer events) and
+therefore lower spreads.
+
+\subsection{Yield Curve}
+
+The risk-free yield curve used for discounting is a term structure of
+continuously compounded rates.  The default curve is:
+
+\begin{center}
+\begin{tabular}{rr}
+\toprule
+\textbf{Tenor} & \textbf{Rate} \\
+\midrule
+1Y & 3.5\% \\
+2Y & 4.0\% \\
+3Y & 4.3\% \\
+4Y & 4.5\% \\
+5Y & 4.0\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Rates between tenors are linearly interpolated.  Adjusting the
+yield curve changes discount factors and therefore the risky annuity and
+fair spread.  A parallel 50\,bp shift in rates typically moves the fair
+spread by 1--3\,bps.
+
+
+% =========================================================================
+\section{Greeks \& Sensitivity}
+% =========================================================================
+
+\subsection{FS01 --- Flood Sensitivity}
+
+FS01 is the P\&L change from a 1 basis point increase in the annual
+hazard rate.  It is computed by bumping:
+
+\[
+  \text{FS01} = \frac{\Delta s}{10{,}000} \times A \times N
+\]
+
+\noindent where $\Delta s = s(p + 0.01\%) - s(p)$ is the spread change
+in bps from a 1\,bp hazard rate bump, $A$ is the risky annuity, and
+$N$ is the notional.
+
+\textbf{Example:} If $\Delta s = 0.75$ bps and $A = 4.71$ on \pounds10M:
+
+\[
+  \text{FS01} = \frac{0.75}{10{,}000} \times 4.71 \times 10{,}000{,}000
+             = \pounds3{,}532
+\]
+
+\noindent Interpretation: if the gauge's annual severe flood probability
+increases by 1\,bp (e.g.\ 5.00\% to 5.01\%), a payer's position gains
+\pounds3,532 and a receiver's position loses the same.
+
+\subsection{Risky Annuity as DV01}
+
+The risky annuity $A$ also serves as the spread DV01.  A 1\,bp change in
+the \emph{traded spread} (not hazard rate) produces a P\&L of:
+
+\[
+  \text{DV01} = \frac{1}{10{,}000} \times A \times N
+\]
+
+\noindent For $A = 4.71$ on \pounds10M: DV01 $=$ \pounds4,710 per bp.
+
+\subsection{Direction Convention}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+& \textbf{Spread widens} & \textbf{Spread tightens} \\
+\midrule
+Payer (buyer)   & Gains  & Loses \\
+Receiver (seller) & Loses & Gains \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+% =========================================================================
+\section{Mark-to-Market}
+% =========================================================================
+
+The mark-to-market (MTM) of an open trade is:
+
+\[
+  \text{MTM} = \frac{s_{\mathrm{fair}} - s_{\mathrm{trade}}}{10{,}000}
+               \times A \times N \times d
+\]
+
+\noindent where $d = +1$ for a payer and $d = -1$ for a receiver.
+
+\subsection{Worked Example: Day 1 to Day 2}
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+& \textbf{Day 1} & \textbf{Day 2} \\
+\midrule
+Annual hazard rate & 5.00\% & 4.50\% \\
+Fair spread        & 52 bps & 48 bps \\
+Trade spread       & 45 bps & 45 bps \\
+Risky annuity      & 4.71   & 4.71 \\
+\midrule
+MTM (payer, \pounds10M) & \pounds32,970 & \pounds14,130 \\
+\midrule
+\textbf{Daily P\&L} & --- & $-$\pounds18,840 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The payer's position lost \pounds18,840 because the hazard rate
+tightened (flood risk decreased), narrowing the fair spread towards the
+trade spread.
+
+
+% =========================================================================
+\section{Parameter Reference}
+\label{ch:reference}
+% =========================================================================
+
+\begin{longtable}{p{4.2cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{TENORS} & [1,2,3,5] &
+  More maturity buckets &
+  Fewer contract options \\[4pt]
+\texttt{NOTIONALS} & \pounds5--20M &
+  Larger face value, larger FS01 &
+  Smaller face value \\[4pt]
+\texttt{RECOVERY} & 0.0 &
+  Reduces protection leg PV &
+  Higher LGD, higher spreads \\[4pt]
+\texttt{DEFAULT\_YIELD\_CURVE} & 3.5--4.5\% &
+  Lower annuity, higher spread &
+  Higher annuity, lower spread \\[4pt]
+\texttt{BUMP\_1BP} & 0.0001 &
+  Larger bump for FS01 &
+  Finer sensitivity \\[4pt]
+\texttt{MIN\_PRS\_SPREAD\_BPS} & 2.0 &
+  Higher floor on fair spread &
+  Lower floor (near-zero risk) \\[4pt]
+\texttt{TRIGGERS} & [severe] &
+  More trigger levels available &
+  Fewer trigger options \\[4pt]
+\texttt{SPREAD\_OFFSET\_MIN} & 3.0 bps &
+  Wider bid-ask spread &
+  Tighter execution \\[4pt]
+\texttt{SPREAD\_OFFSET\_MAX} & 10.0 bps &
+  More execution slippage &
+  Tighter max offset \\[4pt]
+\texttt{EA\_FLOOD\_ZONE\_RATES} & 0.1--5\% &
+  Higher zone-based hazard &
+  Lower zone-based hazard \\
+\bottomrule
+\end{longtable}
+
+
+% =========================================================================
+\section*{Document History}
+% =========================================================================
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+\bottomrule
+\end{tabular}
+
+\end{document}

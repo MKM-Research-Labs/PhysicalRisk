@@ -85,6 +85,16 @@ class TestControlTab:
         assert btn.count() > 0, "No #sp-ctrl-save-btn found"
         assert btn.is_visible(), "Save & Apply button is not visible"
 
+    def test_has_user_guide_button(self, map_page):
+        """Toolbar should contain the User Guide button."""
+        btn = map_page.locator("#sp-ctrl-guide-btn")
+        assert btn.count() > 0, "No #sp-ctrl-guide-btn found"
+        assert btn.is_visible(), "User Guide button is not visible"
+        text = btn.inner_text()
+        assert "user guide" in text.lower(), (
+            f"Expected 'User Guide' label, got: {text}"
+        )
+
     def test_has_reset_button(self, map_page):
         """Toolbar should contain the Reset Defaults button."""
         btn = map_page.locator("#sp-ctrl-reset-btn")
@@ -148,6 +158,110 @@ class TestControlTab:
         arrow.locator("..").click()
         map_page.wait_for_timeout(500)
         assert sec.is_visible(), "Section should be visible after expand"
+
+    def test_input_change_marks_dirty(self, map_page):
+        """Changing an input value should show the dirty indicator."""
+        ind = map_page.locator("#sp-ctrl-dirty")
+        assert not ind.is_visible(), "Dirty should be hidden initially"
+
+        # Find first number input and change its value
+        first_input = map_page.locator("input[data-ctrl-key][type='number']").first
+        first_input.fill("999")
+        map_page.wait_for_timeout(500)
+        assert ind.is_visible(), "Dirty indicator should appear after input change"
+
+    def test_save_button_persists_and_clears_dirty(self, map_page):
+        """Save button should POST changes and clear the dirty indicator."""
+        ind = map_page.locator("#sp-ctrl-dirty")
+
+        # Modify a value to make dirty
+        first_input = map_page.locator("input[data-ctrl-key][type='number']").first
+        original_value = first_input.input_value()
+        first_input.fill("999")
+        map_page.wait_for_timeout(500)
+        assert ind.is_visible(), "Should be dirty after change"
+
+        # Click Save
+        save_btn = map_page.locator("#sp-ctrl-save-btn")
+        save_btn.click()
+        map_page.wait_for_timeout(2_000)
+
+        # Dirty indicator should clear after successful save
+        assert not ind.is_visible(), "Dirty should clear after save"
+
+        # Status bar should show 'json' source
+        bar = map_page.locator("#sp-ctrl-status")
+        bar_text = bar.inner_text().lower()
+        assert "json" in bar_text or "saved" in bar_text, (
+            f"Status bar should confirm save, got: {bar_text}"
+        )
+
+        # Restore original value
+        first_input.fill(original_value)
+        save_btn.click()
+        map_page.wait_for_timeout(1_000)
+
+    def test_reset_button_reverts_to_defaults(self, map_page):
+        """Reset button should revert all values to Python defaults."""
+        # Get a known default value
+        result = map_page.evaluate("""async () => {
+            var cfg = window.__BACKEND_CONFIG || {};
+            var base = cfg.url || '';
+            var resp = await fetch(base + '/api/v1/trading/control/params');
+            var data = await resp.json();
+            return data.params.sections.storm_generation.event_window_hours;
+        }""")
+        original = result
+
+        # Modify event_window_hours
+        ew_input = map_page.locator(
+            "input[data-ctrl-key='storm_generation.event_window_hours']"
+        )
+        if ew_input.count() > 0:
+            ew_input.fill("120")
+            map_page.locator("#sp-ctrl-save-btn").click()
+            map_page.wait_for_timeout(1_500)
+
+            # Accept the confirm dialog and click reset
+            map_page.on("dialog", lambda d: d.accept())
+            map_page.locator("#sp-ctrl-reset-btn").click()
+            map_page.wait_for_timeout(2_000)
+
+            # Verify the value is back to the original
+            new_value = ew_input.input_value()
+            assert new_value == str(original), (
+                f"Expected {original} after reset, got {new_value}"
+            )
+
+    def test_user_guide_button_opens_pdf(self, map_page):
+        """Clicking User Guide button should request the guide PDF."""
+        # Intercept the window.open call to verify URL
+        result = map_page.evaluate("""() => {
+            var openedUrl = null;
+            var origOpen = window.open;
+            window.open = function(url, target) { openedUrl = url; };
+            var btn = document.getElementById('sp-ctrl-guide-btn');
+            if (btn) btn.click();
+            window.open = origOpen;
+            return openedUrl;
+        }""")
+        assert result is not None, "window.open was not called"
+        assert "/governance/storm-control/guide/pdf" in result, (
+            f"Expected guide PDF URL, got: {result}"
+        )
+
+    def test_help_tooltip_shows_on_hover(self, map_page):
+        """Hovering over a ? icon should show the tooltip popup."""
+        tip = map_page.locator("[id^='sp-ctrl-tip-']").first
+        assert tip.count() > 0, "No tooltip elements found"
+        assert not tip.is_visible(), "Tooltip should be hidden initially"
+
+        # Find the ? icon (sibling before the tooltip div)
+        icon = tip.locator("xpath=preceding-sibling::span").first
+        if icon.count() > 0:
+            icon.hover()
+            map_page.wait_for_timeout(300)
+            assert tip.is_visible(), "Tooltip should appear on hover"
 
 
 # ---------------------------------------------------------------------------
@@ -235,3 +349,56 @@ class TestControlAPI:
         assert result["default_roughness"] == 0.04
         assert result["n_nearest_gauges"] == 3
         assert result["bankfull_offset_m"] == 0.5
+
+    def test_guide_pdf_endpoints_respond(self, map_page):
+        """All 6 user guide PDF endpoints should return 200 or 404."""
+        guide_keys = [
+            "storm-control",
+            "gauge-prs-pricing",
+            "property-prs-pricing",
+            "market-making",
+            "eod-process",
+            "stress-testing",
+        ]
+        result = map_page.evaluate("""async (keys) => {
+            var cfg = window.__BACKEND_CONFIG || {};
+            var baseUrl = cfg.url || '';
+            var results = {};
+            for (var i = 0; i < keys.length; i++) {
+                try {
+                    var resp = await fetch(
+                        baseUrl + '/api/v1/governance/' + keys[i] + '/guide/pdf'
+                    );
+                    results[keys[i]] = {
+                        http_status: resp.status,
+                        content_type: resp.headers.get('content-type')
+                    };
+                } catch (e) {
+                    results[keys[i]] = { error: e.message };
+                }
+            }
+            return results;
+        }""", guide_keys)
+
+        for key in guide_keys:
+            r = result[key]
+            assert "error" not in r, (
+                f"{key} guide request failed: {r.get('error')}"
+            )
+            assert r["http_status"] in (200, 404), (
+                f"{key}: unexpected HTTP {r['http_status']}"
+            )
+            if r["http_status"] == 200:
+                assert "pdf" in r["content_type"].lower(), (
+                    f"{key}: expected PDF content type, got {r['content_type']}"
+                )
+
+    def test_unknown_guide_returns_404(self, map_page):
+        """Unknown guide key should return 404."""
+        result = map_page.evaluate("""async () => {
+            var cfg = window.__BACKEND_CONFIG || {};
+            var baseUrl = cfg.url || '';
+            var resp = await fetch(baseUrl + '/api/v1/governance/nonexistent/guide/pdf');
+            return { http_status: resp.status };
+        }""")
+        assert result["http_status"] == 404
