@@ -1,0 +1,788 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Storm Sequence Control}
+\newcommand{\docsubtitle}{User Guide --- Parameter Reference and Pipeline Narrative}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{10-April-2026}
+\newcommand{\docauthor}{MKM Research Labs}
+
+\input{../shared/mkm_header}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+The MKM Physical Risk platform generates a catalogue of synthetic storm
+sequences to quantify flood exposure across a property portfolio.  Rather
+than relying on a handful of historical events, the system constructs
+\textbf{20,000 stochastic storm sequences}, each representing a plausible
+168-hour (seven-day) weather event.  These sequences drive a physics-based
+pipeline that propagates rainfall through river gauges and onto individual
+properties, producing flood depths and financial losses.
+
+The \textbf{Storm Sequence Control} screen centralises all parameters that
+govern this pipeline.  Every parameter has a default value calibrated to the
+Thames catchment, but operators may adjust them to explore sensitivities,
+stress-test assumptions, or adapt the model to a different catchment.
+
+This guide explains the pipeline as a narrative---what each stage achieves
+physically, which parameters control it, and what happens when those
+parameters are moved up or down.  Chapter~\ref{ch:reference} provides a
+condensed reference table for every parameter.
+
+
+% =========================================================================
+\section{Pipeline Overview}
+\label{ch:overview}
+% =========================================================================
+
+The storm stress pipeline operates in five stages, each controlled by its
+own parameter section on the Control screen.
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Storm Generation} --- Build 20,000 synthetic storm
+        sequences, each containing one or more precipitation pulses
+        fitted into a 168-hour event window.
+  \item \textbf{Hydrograph Synthesis} --- Convert precipitation pulses
+        into gauge-level water-surface-elevation time series using a
+        gamma-shaped template, antecedent saturation, superposition, and
+        infiltration.
+  \item \textbf{Gauge-to-Property Propagation} --- Translate gauge
+        readings into property-level flood depths using Manning's
+        equation, exponential retention decay, and terrain-velocity
+        scaling.
+  \item \textbf{Spatial Correlation} --- Distribute catchment-mean
+        rainfall unevenly across gauges via an exponential correlation
+        kernel, so that nearby gauges receive similar rainfall while
+        distant gauges differ.
+  \item \textbf{Stress Catalogue} --- Filter the generated sequences to
+        identify those that breach alert thresholds, forming the stress
+        testing catalogue used by the trading desk.
+\end{enumerate}
+
+\noindent Each stage reads its parameters from a single JSON file
+(\texttt{storm\_control.json}) which the Control screen edits.  Changes
+take effect immediately---no code deployment is required.
+
+
+% =========================================================================
+\section{Storm Generation}
+\label{ch:storm_gen}
+% =========================================================================
+
+Storm generation is the first and most complex stage.  It answers the
+question: \emph{what does the precipitation look like during this 168-hour
+window?}
+
+% -------------------------------------------------------------------------
+\subsection{The 168-Hour Event Window}
+
+Every storm sequence occupies exactly 168 hours (seven days).  Within this
+window, one or more precipitation pulses occur, separated by drainage gaps.
+Two hard constraints apply:
+
+\begin{itemize}
+  \item All precipitation must \textbf{end by hour 156}, leaving at least
+        12 hours of guaranteed drainage (the \texttt{min\_drainage\_window\_hours}
+        parameter).
+  \item The total duration of all pulses plus all gaps must \textbf{fit
+        within the budget} of 156 hours.
+\end{itemize}
+
+\noindent Increasing the event window allows longer storm sequences and
+more drainage time.  Decreasing the minimum drainage window permits
+precipitation closer to the end of the window, reducing the guaranteed
+recession tail.
+
+% -------------------------------------------------------------------------
+\subsection{Batch Generator: Intensity Category Weights}
+
+The batch generator decides how many of the 20,000 sequences fall into
+each intensity category.  The default weights are:
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+\textbf{Category} & \textbf{Weight} & \textbf{Meaning} \\
+\midrule
+Moderate      & 40\% & Common bad-weather events \\
+Severe        & 35\% & Significant river flooding \\
+Extreme       & 20\% & Rare, high-impact storms \\
+Catastrophic  &  5\% & Tail-risk scenarios \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Increasing the catastrophic weight produces more tail-risk
+scenarios but reduces statistical coverage of common events.  Equal
+weighting (all 25\%) is useful for sensitivity analysis but
+misrepresents real-world frequency.
+
+Each category also has a \textbf{base intensity distribution}
+$(\mu, \sigma)$ from which the raw intensity factor is sampled.
+For example, a ``severe'' storm draws its factor from
+$\mathcal{N}(1.8, 0.30)$.  Increasing $\mu$ makes the category more
+intense on average; increasing $\sigma$ widens the spread.
+
+% -------------------------------------------------------------------------
+\subsection{Sequence Formation: Isolated vs.\ Multi-Storm}
+
+Not every storm is a single event.  A deep low-pressure system can spawn
+multiple frontal waves over several days.  The \texttt{sequence\_probability}
+parameter controls how likely each intensity category is to produce a
+multi-storm sequence rather than remaining isolated:
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Category} & \textbf{P(sequence)} \\
+\midrule
+Minimal       &  5\% \\
+Baseline      & 15\% \\
+Moderate      & 30\% \\
+Severe        & 50\% \\
+Extreme       & 70\% \\
+Catastrophic  & 85\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The physical intuition is straightforward: more intense weather
+systems naturally produce multiple precipitation events.  Increasing these
+probabilities makes compound flooding more prevalent in the catalogue.
+
+When a sequence is formed, it takes one of three types:
+
+\begin{description}[leftmargin=2em]
+  \item[Doublet] Two storms separated by a medium gap.
+  \item[Cluster] Three to four storms with medium gaps.
+  \item[Persistent] Four to five storms with short gaps, maximising
+        compound flooding.
+\end{description}
+
+\noindent The \texttt{sequence\_type\_weights} parameter controls the
+mix for each intensity category.  Severe and extreme storms lean
+towards clusters and persistent patterns.
+
+% -------------------------------------------------------------------------
+\subsection{Intensity Correlation Within Sequences}
+
+When a sequence contains multiple storms, their intensities are not
+independent.  The model captures \emph{atmospheric memory}: if Storm~1
+is intense, Storm~2 is likely intense as well.
+
+Three parameters govern this correlation:
+
+\begin{description}[leftmargin=2em]
+  \item[\texttt{first\_storm\_dominant\_prob} (default 0.30)] The
+        probability that Storm~1 is the strongest in the sequence.
+        When this is low, later storms tend to dominate, producing
+        escalating patterns.
+  \item[\texttt{correlation\_prob} (default 0.70)] The probability
+        that each subsequent storm maintains or exceeds the intensity
+        of its predecessor.  Higher values produce stronger compounding.
+  \item[\texttt{intensity\_variation} (default $\pm$0.20)] The
+        fractional envelope around the base intensity.  Narrower
+        variation produces tightly correlated sequences; wider variation
+        allows larger swings between pulses.
+\end{description}
+
+\noindent Increasing \texttt{correlation\_prob} towards 1.0 ensures that
+nearly every second storm exceeds the first---a worst-case compounding
+assumption.  Decreasing it towards 0.5 makes successive storms effectively
+independent.
+
+% -------------------------------------------------------------------------
+\subsection{Duration Sampling}
+
+Each storm pulse has a duration drawn from a \textbf{triangular
+distribution} $(min, mode, max)$ specific to its intensity category:
+
+\begin{center}
+\begin{tabular}{lrrrl}
+\toprule
+\textbf{Category} & \textbf{Min (h)} & \textbf{Mode (h)} & \textbf{Max (h)} & \textbf{Physical system} \\
+\midrule
+Minimal       &  2 &   6 &  12 & Quick showers \\
+Baseline      &  6 &  12 &  24 & Brief rainstorms \\
+Moderate      & 12 &  30 &  60 & 2.5-day fronts \\
+Severe        & 24 &  48 &  96 & 4-day depressions \\
+Extreme       & 36 &  72 & 144 & 6-day frontal systems \\
+Catastrophic  & 48 & 120 & 240 & 10-day blocking patterns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Longer duration means more total precipitation for the same
+intensity.  Increasing the maximum for severe storms allows rare
+multi-day events; decreasing the mode produces punchier, shorter pulses
+with less total rain.
+
+% -------------------------------------------------------------------------
+\subsection{Gap Sampling: Inter-Storm Drainage}
+
+Between storms in a sequence, the river drains.  The amount of drainage
+depends on the gap length:
+
+\begin{center}
+\begin{tabular}{lrrrl}
+\toprule
+\textbf{Gap Type} & \textbf{Min (h)} & \textbf{Mode (h)} & \textbf{Max (h)} & \textbf{Recovery} \\
+\midrule
+Short  &  6 & 18 &  36 & 30--60\% \\
+Medium & 24 & 48 &  72 & 60--80\% \\
+Long   & 48 & 96 & 144 & 80--95\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Persistent sequences use \textbf{short} gaps, maximising the
+compound effect: Storm~2 arrives before the river has drained from
+Storm~1.  Doublets and clusters use \textbf{medium} gaps, allowing
+partial recovery.
+
+Shortening the mode of the ``short'' gap (e.g.\ from 18\,h to 10\,h)
+dramatically increases compound flooding severity because the river
+starts Storm~2 from a higher baseline.  Lengthening gaps reduces
+compounding and produces sequences that behave more like independent
+storms.
+
+
+% =========================================================================
+\section{Hydrograph Synthesis}
+\label{ch:hydro}
+% =========================================================================
+
+Once a storm sequence defines precipitation timing and intensity, the
+hydrograph synthesis stage converts each pulse into a water-level time
+series at the gauge.  This is where rainfall becomes river flow.
+
+% -------------------------------------------------------------------------
+\subsection{Gamma-Shaped Hydrograph Template}
+
+Each precipitation pulse generates a dimensionless hydrograph shaped by
+the gamma function with shape parameter $\alpha$.  The
+\texttt{hydro\_alpha} parameter varies by sequence type:
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+\textbf{Sequence Type} & \textbf{$\alpha$} & \textbf{Shape} \\
+\midrule
+Isolated   & 0.3 & Fast rise, long tail (flashy) \\
+Doublet    & 0.3 & Fast rise, long tail \\
+Cluster    & 0.7 & Balanced rise and fall \\
+Persistent & 1.0 & Broad, symmetric peak \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Small $\alpha$ produces a sharp peak followed by a slow
+recession---characteristic of flashy urban catchments.  Large $\alpha$
+produces a broad, sustained peak---characteristic of large rural
+catchments where water takes longer to concentrate.
+
+Increasing $\alpha$ for isolated storms would flatten their peaks and
+extend their duration, reducing the maximum water level but keeping the
+river elevated for longer.
+
+% -------------------------------------------------------------------------
+\subsection{Antecedent Saturation}
+
+When multiple storms occur in sequence, the soil and groundwater are
+already partially saturated from the preceding event.  The saturation
+model amplifies later peaks using the formula:
+
+\[
+  s_i = 1 + \beta \times \ln\!\left(1 + \frac{A_i}{P_0}\right)
+\]
+
+\noindent where $A_i$ is the accumulated precipitation from all prior
+pulses, $\beta$ is the \texttt{saturation\_beta} parameter (default
+0.2), and $P_0$ is the reference precipitation
+\texttt{saturation\_p0\_mm} (default 50\,mm).
+
+Increasing $\beta$ strengthens the amplification: a sequence that
+previously produced a 10\% boost to Storm~2 might produce a 20\% boost.
+This is the primary control for compound flooding intensity.  Increasing
+$P_0$ reduces the saturation effect by normalising against a larger
+baseline.
+
+% -------------------------------------------------------------------------
+\subsection{Superposition and Capping}
+
+When multiple pulses overlap or follow closely, their hydrographs are
+linearly superimposed.  Without a cap, mathematical superposition of
+five pulses could produce unrealistic water levels exceeding channel
+capacity.  The \texttt{superposition\_cap\_factor} (default 2.5)
+limits the peak to:
+
+\[
+  \text{cap} = \text{base} + 2.5 \times (\text{severe} - \text{base})
+\]
+
+\noindent Increasing the cap factor allows higher compound peaks.
+Decreasing it constrains the maximum water level, which may
+underestimate extreme compound events but prevents physically
+impossible readings.
+
+% -------------------------------------------------------------------------
+\subsection{Infiltration Along the Flow Path}
+
+As flood water moves from the river channel towards a property, some
+volume is absorbed into the ground.  The infiltration model tracks
+cumulative absorbed depth:
+
+\begin{description}[leftmargin=2em]
+  \item[\texttt{infiltration\_rate\_per\_hour} (default 0.005)] The
+        hourly absorption rate.  Higher values reduce flood depths at
+        distant properties.
+  \item[\texttt{infiltration\_ymax\_ref\_m} (default 0.10\,m)] The
+        maximum depth the ground can absorb (fully pervious).  Once
+        exhausted, no further infiltration occurs.
+  \item[\texttt{default\_imperv\_fraction} (default 0.4)] Fraction of
+        impervious surface.  Effective absorption capacity is
+        $(1 - f_{\mathrm{imperv}}) \times y_{\mathrm{max}}$.
+        Urban corridors (high impervious fraction) lose less water to
+        infiltration, producing deeper floods at properties.
+\end{description}
+
+% -------------------------------------------------------------------------
+\subsection{Depth-Damage Vulnerability Curve}
+
+The final translation from flood depth to financial loss uses a
+piecewise-linear curve calibrated to UK flood claims data.  The
+\texttt{depth\_points} and \texttt{damage\_points} arrays define the
+control points:
+
+\begin{center}
+\begin{tabular}{rr}
+\toprule
+\textbf{Depth (m)} & \textbf{Damage ratio} \\
+\midrule
+0.00 & 0\% \\
+0.05 & 5\% \\
+0.50 & 25\% \\
+1.00 & 40\% \\
+1.50 & 50\% \\
+2.00 & 60\% \\
+3.00 & 75\% \\
+4.00 & 85\% \\
+5.00 & 95\% \\
+6.00 & 100\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The curve is non-linear: shallow floods cause proportionally
+less damage (carpets and skirting boards), while deep floods destroy
+structural elements.  Shifting the control points upward makes
+properties more vulnerable at each depth; shifting them downward makes
+properties more resilient.
+
+
+% =========================================================================
+\section{Gauge-to-Property Propagation}
+\label{ch:propagation}
+% =========================================================================
+
+A gauge measures water level at a single point on the river.  Properties
+are scattered across the floodplain at varying distances and elevations.
+This stage translates gauge readings into property-specific flood depths.
+
+% -------------------------------------------------------------------------
+\subsection{Manning's Equation and Flow Velocity}
+
+Flood water spreads across the floodplain at a velocity governed by
+Manning's equation:
+
+\[
+  v = \frac{1}{n}\, R^{2/3}\, S^{1/2}
+\]
+
+\noindent where $n$ is the roughness coefficient
+(\texttt{default\_roughness}, default 0.04), $R$ is the hydraulic
+radius, and $S$ is the terrain slope.
+
+Increasing roughness slows the flow, delaying flood arrival at
+distant properties but not necessarily reducing peak depth.  Decreasing
+roughness speeds flow, meaning water arrives sooner but also drains
+faster.
+
+The \texttt{min\_slope} parameter (default 0.001) prevents division
+instability on flat terrain where the actual slope is near zero.
+
+% -------------------------------------------------------------------------
+\subsection{Retention: Exponential Decay with Distance}
+
+As water moves away from the channel, peak depth decays exponentially:
+
+\[
+  \text{retention} = \exp\!\left(-\frac{d}{L}\right)
+\]
+
+\noindent where $d$ is the distance from the river and $L$ is the
+\texttt{default\_retention\_length} (default 10,000\,m).  At $d = L$
+the retention factor is $1/e \approx 0.37$; at $d = 0$ retention is
+1.0 (full gauge signal).
+
+Increasing the retention length extends the reach of flooding---properties
+further from the river receive a larger fraction of the gauge signal.
+Decreasing it confines flooding to a narrow corridor near the channel.
+
+% -------------------------------------------------------------------------
+\subsection{Terrain Velocity Scale}
+
+Different land cover produces different flow velocities.  The
+\texttt{terrain\_velocity\_scale} parameter adjusts velocity relative
+to an urban baseline:
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+\textbf{Terrain} & \textbf{Scale} & \textbf{Physical basis} \\
+\midrule
+Urban      & 1.0 & Streets, hard surfaces ($n \approx 0.025$) \\
+Semi-urban & 0.7 & Gardens, parks, mixed ($n \approx 0.035$) \\
+Rural      & 0.5 & Pasture, crops ($n \approx 0.050$) \\
+Floodplain & 0.3 & Heavy vegetation, wetland ($n \approx 0.080$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Lower velocity means slower flow and more attenuation on the
+floodplain.  Properties in rural or floodplain terrain are reached later
+and experience lower peak depths than those in urban terrain at the same
+distance.
+
+% -------------------------------------------------------------------------
+\subsection{Bankfull Offset}
+
+Overbank flooding begins when water exceeds the \textbf{bankfull level},
+not the severe warning threshold.  The severe level is an administrative
+safety alert set above bankfull for UK rivers.  The
+\texttt{bankfull\_offset\_m} parameter (default 0.5\,m) defines this
+difference:
+
+\[
+  \text{bankfull} = \text{severe\_level} - \text{bankfull\_offset}
+\]
+
+\noindent Increasing the offset means more water is needed before
+flooding begins, reducing the number of properties flooded from a given
+gauge reading.  Decreasing it makes flooding trigger earlier.
+
+% -------------------------------------------------------------------------
+\subsection{Number of Nearest Gauges}
+
+The \texttt{n\_nearest\_gauges} parameter (default 3) controls how many
+gauges contribute to the flood estimate at each property via
+inverse-distance weighting (IDW).  In practice, the nearest synthetic
+gauge dominates.  Increasing this value adds spatial smoothing from
+more distant gauges.
+
+% -------------------------------------------------------------------------
+\subsection{Recession Factor}
+
+The \texttt{default\_recession\_factor} (default 1.5) makes drainage
+slower than arrival.  A factor of 1.5 means the flood tail lasts 50\%
+longer than the rising limb.  Increasing it extends flood duration at
+properties; decreasing it towards 1.0 makes rise and fall symmetric.
+
+
+% =========================================================================
+\section{Spatial Correlation}
+\label{ch:spatial}
+% =========================================================================
+
+A single storm does not produce uniform rainfall across an entire
+catchment.  The spatial correlation model distributes catchment-mean
+precipitation unevenly across gauges using an exponential kernel.
+
+% -------------------------------------------------------------------------
+\subsection{Exponential Correlation Kernel}
+
+The correlation between two gauges at distance $d$ kilometres is:
+
+\[
+  C(d) = (1 - \varepsilon)\,\exp\!\left(-\frac{d}{r}\right) + \varepsilon\,\delta_{ij}
+\]
+
+\noindent where $r$ is the effective range and $\varepsilon$ is the
+\texttt{spatial\_corr\_nugget} (default 0.05).  The nugget represents
+micro-scale variability that is uncorrelated even between co-located
+stations.
+
+The range scales with storm intensity:
+
+\[
+  r = r_0 \times \bigl(1 + \rho \times (I - 1)\bigr)
+\]
+
+\noindent where $r_0$ is the \texttt{spatial\_corr\_base\_range\_km}
+(default 40\,km, approximately half the Thames corridor) and $\rho$ is
+the \texttt{spatial\_corr\_rho\_intensity} (default 0.40).
+
+Increasing the base range makes rainfall more uniform across the
+catchment---all gauges receive similar amounts.  Decreasing it produces
+localised rainfall cells where one gauge may receive heavy rain while
+a neighbour 20\,km away stays dry.
+
+Increasing $\rho$ makes extreme storms even more spatially coherent
+(wider footprint), while leaving moderate storms localised.
+
+% -------------------------------------------------------------------------
+\subsection{Lognormal Precipitation Field}
+
+The correlated random variates are transformed into a lognormal field
+with standard deviation \texttt{spatial\_corr\_sigma\_lognormal}
+(default 0.40), corresponding to approximately 40\% coefficient of
+variation in rainfall across the catchment.
+
+Increasing sigma produces more spatial contrast: some gauges receive
+double the catchment mean while others receive half.  Decreasing it
+towards zero makes rainfall nearly uniform (all gauges get the same
+amount).
+
+The \texttt{spatial\_corr\_enabled} toggle allows the spatial model
+to be switched off entirely, in which case every gauge receives the
+catchment-mean precipitation---useful for debugging or testing in a
+simplified mode.
+
+
+% =========================================================================
+\section{Stress Catalogue}
+\label{ch:stress}
+% =========================================================================
+
+After all 20,000 sequences are generated and propagated, the system
+filters them to build a stress testing catalogue.
+
+\begin{description}[leftmargin=2em]
+  \item[\texttt{stress\_storms\_min\_count} (default 50)] Minimum
+        number of alert-breaching storms required per gauge.  Gauges
+        with fewer qualifying storms are excluded from stress testing.
+        Increasing this threshold requires more storms to pass the
+        filter, potentially excluding gauges with low flood frequency.
+  \item[\texttt{stress\_storm\_default\_duration\_hours} (default 168)]
+        Fallback hydrograph duration used when storm metadata does not
+        include explicit timing.  Should match the event window.
+  \item[\texttt{stress\_storm\_default\_peak\_position} (default 0.5)]
+        Fractional position of the peak within the storm window.  A
+        value of 0.5 centres the peak; 0.3 produces an early peak with
+        a long tail; 0.7 produces a late-arriving peak.
+\end{description}
+
+
+% =========================================================================
+\section{Parameter Reference}
+\label{ch:reference}
+% =========================================================================
+
+The following tables list every parameter on the Control screen with its
+default value and the effect of adjustment.
+
+% -------------------------------------------------------------------------
+\subsection{Storm Generation Parameters}
+
+\begin{longtable}{p{4.2cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{event\_window\_hours} & 168 &
+  Longer storm sequences possible &
+  Sequences must fit in shorter window \\[4pt]
+\texttt{min\_drainage\_window} & 12\,h &
+  More guaranteed recession &
+  Precipitation can extend later \\[4pt]
+\texttt{intensity\_variation} & $\pm$0.20 &
+  Wider intensity swings between pulses &
+  Tighter correlation to base \\[4pt]
+\texttt{first\_storm\_dominant} & 0.30 &
+  First storm more likely strongest &
+  Later storms tend to dominate \\[4pt]
+\texttt{correlation\_prob} & 0.70 &
+  Stronger compounding (Storm~2 $\geq$ Storm~1) &
+  Storms more independent \\[4pt]
+\texttt{default\_type\_weights} & [0.6, 0.3, 0.1] &
+  More doublets if first weight rises &
+  More persistent if third rises \\[4pt]
+\texttt{sequence\_probability} & 0.05--0.85 &
+  More multi-storm sequences &
+  More isolated storms \\[4pt]
+\texttt{intensity\_weights} & see text &
+  Heavier tail if catastrophic rises &
+  More common events dominate \\[4pt]
+\texttt{catchment\_base\_precip} & 35--55\,mm &
+  More rainfall per unit intensity &
+  Less rainfall per unit intensity \\[4pt]
+\texttt{duration\_params} & see text &
+  Longer storms, more total rain &
+  Shorter, punchier storms \\[4pt]
+\texttt{gap\_params} & see text &
+  More drainage between storms &
+  Less drainage, stronger compounding \\[4pt]
+\texttt{base\_intensity\_params} & see text &
+  Higher mean intensity per category &
+  Lower mean intensity \\[4pt]
+\texttt{sequence\_type\_weights} & see text &
+  Shift toward persistent patterns &
+  Shift toward doublets \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------------
+\subsection{Hydrograph Synthesis Parameters}
+
+\begin{longtable}{p{4.2cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{hydro\_alpha} & 0.3--1.0 &
+  Broader, flatter peaks &
+  Sharper, flashier peaks \\[4pt]
+\texttt{saturation\_beta} & 0.2 &
+  Stronger compound amplification &
+  Weaker saturation effect \\[4pt]
+\texttt{saturation\_p0\_mm} & 50\,mm &
+  Reduces saturation sensitivity &
+  Amplifies saturation effect \\[4pt]
+\texttt{infiltration\_rate} & 0.005/h &
+  More absorption, lower flood depths &
+  Less absorption, higher floods \\[4pt]
+\texttt{infiltration\_ymax} & 0.10\,m &
+  Ground absorbs more before saturating &
+  Ground saturates sooner \\[4pt]
+\texttt{imperv\_fraction} & 0.4 &
+  Less infiltration capacity (urban) &
+  More infiltration (rural) \\[4pt]
+\texttt{superposition\_cap} & 2.5$\times$ &
+  Allows higher compound peaks &
+  Constrains peak levels \\[4pt]
+\texttt{depth\_points} & see text &
+  Stretches damage curve horizontally &
+  Compresses damage curve \\[4pt]
+\texttt{damage\_points} & see text &
+  More damage at each depth &
+  Less damage at each depth \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------------
+\subsection{Gauge-to-Property Propagation Parameters}
+
+\begin{longtable}{p{4.2cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{default\_roughness} & 0.04 &
+  Slower flow, more attenuation &
+  Faster flow, less attenuation \\[4pt]
+\texttt{retention\_length} & 10,000\,m &
+  Flooding extends further from river &
+  Flooding confined near channel \\[4pt]
+\texttt{min\_slope} & 0.001 &
+  Higher minimum velocity on flat terrain &
+  Lower floor, potential instability \\[4pt]
+\texttt{recession\_factor} & 1.5 &
+  Longer flood duration &
+  Faster drainage (symmetric rise/fall) \\[4pt]
+\texttt{bankfull\_offset\_m} & 0.5\,m &
+  More water needed to trigger flooding &
+  Flooding begins earlier \\[4pt]
+\texttt{n\_nearest\_gauges} & 3 &
+  More spatial smoothing &
+  Nearest gauge dominates \\[4pt]
+\texttt{terrain\_velocity} & see text &
+  Faster flow for that terrain type &
+  Slower flow, more attenuation \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------------
+\subsection{Spatial Correlation Parameters}
+
+\begin{longtable}{p{4.2cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{spatial\_corr\_enabled} & true &
+  N/A &
+  Disables spatial model (uniform rain) \\[4pt]
+\texttt{base\_range\_km} & 40\,km &
+  More uniform rainfall across catchment &
+  More localised rainfall cells \\[4pt]
+\texttt{nugget} & 0.05 &
+  More micro-scale variability &
+  Smoother spatial field \\[4pt]
+\texttt{rho\_intensity} & 0.40 &
+  Extreme storms more spatially coherent &
+  Range independent of intensity \\[4pt]
+\texttt{sigma\_lognormal} & 0.40 &
+  More spatial contrast between gauges &
+  More uniform rainfall \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------------
+\subsection{Stress Catalogue Parameters}
+
+\begin{longtable}{p{4.8cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\texttt{stress\_storms\_min\_count} & 50 &
+  Excludes gauges with few qualifying storms &
+  Includes more gauges \\[4pt]
+\texttt{default\_duration\_hours} & 168\,h &
+  Longer fallback hydrograph &
+  Shorter fallback \\[4pt]
+\texttt{default\_peak\_position} & 0.5 &
+  Later peak (delayed climax) &
+  Earlier peak (front-loaded) \\
+\bottomrule
+\end{longtable}
+
+
+% =========================================================================
+\section*{Document History}
+% =========================================================================
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+\bottomrule
+\end{tabular}
+
+\end{document}
