@@ -113,8 +113,8 @@ class TestControlTab:
     def test_fields_have_help_tooltips(self, map_page):
         """Parameter fields should have ? help tooltips."""
         body = map_page.locator("#sp-ctrl-body")
-        helps = body.locator("span[title]")
-        assert helps.count() > 0, "No help tooltip spans found"
+        helps = body.locator("[id^='sp-ctrl-tip-']")
+        assert helps.count() > 0, "No help tooltip popups found"
 
     def test_status_bar_shows_source(self, map_page):
         """Status bar should show the data source after loading."""

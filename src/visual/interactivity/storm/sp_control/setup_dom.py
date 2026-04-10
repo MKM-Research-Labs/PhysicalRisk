@@ -81,12 +81,23 @@ def get_js() -> str:
 
             // ---- Help tooltip builder ----
 
+            var _ctrlTipId = 0;
+
             function _ctrlHelp(text) {
-                return '<span title="' + text.replace(/"/g, '&quot;') + '" ' +
-                    'style="display:inline-block;width:13px;height:13px;line-height:13px;' +
-                    'text-align:center;font-size:9px;font-weight:700;color:#999;' +
-                    'border:1px solid #ccc;border-radius:50%;cursor:help;margin-left:4px;' +
-                    'vertical-align:middle;">?</span>';
+                var id = 'sp-ctrl-tip-' + (++_ctrlTipId);
+                return '<span style="position:relative;display:inline-block;vertical-align:middle;margin-left:4px;">' +
+                    '<span ' +
+                        'onmouseenter="document.getElementById(\'' + id + '\').style.display=\'block\';" ' +
+                        'onmouseleave="document.getElementById(\'' + id + '\').style.display=\'none\';" ' +
+                        'style="display:inline-block;width:13px;height:13px;line-height:13px;' +
+                        'text-align:center;font-size:9px;font-weight:700;color:#999;' +
+                        'border:1px solid #ccc;border-radius:50%;cursor:help;">?</span>' +
+                    '<div id="' + id + '" style="display:none;position:absolute;left:20px;top:-8px;z-index:9999;' +
+                        'width:280px;padding:8px 10px;background:#333;color:#f0f0f0;font-size:10px;' +
+                        'font-weight:400;line-height:1.4;border-radius:4px;' +
+                        'box-shadow:0 2px 8px rgba(0,0,0,0.3);pointer-events:none;">' +
+                        text.replace(/"/g, '&quot;') +
+                    '</div></span>';
             }
 
             // ---- Field renderers ----
