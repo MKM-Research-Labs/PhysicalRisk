@@ -210,7 +210,7 @@ class TestDependencyGraphIntegrity:
         dependency of the consuming step.  If this fails, the lineage
         staleness check will compare against the wrong producer hash."""
         from graphlib import TopologicalSorter
-        from lineage.manifest import DEPENDENCY_GRAPH, STEP_IO
+        from lineage.manifest import DEPENDENCY_GRAPH, EXTERNAL_INPUTS, STEP_IO
 
         topo_order = list(TopologicalSorter(DEPENDENCY_GRAPH).static_order())
 
@@ -228,7 +228,11 @@ class TestDependencyGraphIntegrity:
                     queue.extend(DEPENDENCY_GRAPH.get(dep, []))
 
             # For each input, find at least one producer in transitive deps
+            # (external inputs like storm_control.json are config files
+            # not produced by any pipeline step — skip them)
             for inp in io["inputs"]:
+                if inp in EXTERNAL_INPUTS:
+                    continue
                 producers = [
                     s for s in deps
                     if inp in STEP_IO.get(s, {}).get("outputs", [])

@@ -7,7 +7,7 @@ from typing import Any, Dict
 
 import folium
 
-from .. import sp_table, sp_var, sp_visual, sp_sim
+from .. import sp_table, sp_var, sp_visual, sp_sim, sp_control
 from . import utilities, chrome, control
 
 
@@ -41,6 +41,7 @@ class StormPortfolioPanel:
 {sp_var.get_js()}
 {sp_visual.get_js()}
 {sp_sim.get_js()}
+{sp_control.get_js()}
 
 {chrome.get_js()}
 

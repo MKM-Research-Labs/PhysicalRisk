@@ -55,6 +55,11 @@ DEPENDENCY_GRAPH = {
     "blotter":            ["hazard", "counterparties"],
 }
 
+# External inputs: config/data files consumed by pipeline steps but not
+# produced by any step.  The freshness check compares recorded hashes
+# against the live file on disk instead of against a producer step.
+EXTERNAL_INPUTS: set[str] = {"storm_control.json"}
+
 STEP_IO = {
     "gauges":         {"inputs": [],
                        "outputs": ["gauge.json"]},
@@ -66,7 +71,8 @@ STEP_IO = {
                         "outputs": ["gauge.json"]},
     "gaugehd":        {"inputs": ["gauge.json"],
                        "outputs": ["gaugehd/"]},
-    "stressm":        {"inputs": ["gauge.json", "gaugehd/"],
+    "stressm":        {"inputs": ["gauge.json", "gaugehd/",
+                                   "storm_control.json"],
                        "outputs": ["gaugets/", "stress_storms/",
                                    "storm_sequences.json",
                                    "sequence_gauge/"]},
