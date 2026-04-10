@@ -176,21 +176,24 @@ def get_js() -> str:
             // ================================================================
             // Data loading
             // ================================================================
-            function loadStormList() {
+            function loadStormList(sortMode) {
                 var select = document.getElementById('sp-storm-select');
                 select.innerHTML = '<option value="">Loading storms...</option>';
                 var baseUrl = getBaseUrl();
+                sortMode = sortMode || 'damage';
 
-                // Use page-load preloaded cache if available
-                if (window._preStorms) {
-                    var cached = window._preStorms;
-                    window._preStorms = null;
-                    _applyStormList(cached);
-                    return;
+                // Use page-load preloaded cache only for default sort
+                if (!sortMode || sortMode === 'damage') {
+                    if (window._preStorms) {
+                        var cached = window._preStorms;
+                        window._preStorms = null;
+                        _applyStormList(cached);
+                        return;
+                    }
                 }
 
-                console.log('[StormPortfolio] Fetching storm list');
-                fetch(baseUrl + '/api/v1/propertyts/storms', {mode: 'cors'})
+                console.log('[StormPortfolio] Fetching storm list, sort=' + sortMode);
+                fetch(baseUrl + '/api/v1/propertyts/storms?sort=' + sortMode, {mode: 'cors'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) { _applyStormList(data); })
                     .catch(function(err) {
@@ -203,6 +206,7 @@ def get_js() -> str:
                 var select = document.getElementById('sp-storm-select');
                 if (!select) return;
                 select.innerHTML = '';
+                select.setAttribute('data-total', data.total_storms || (data.storms || []).length);
                 if (data.status !== 'success' || !data.storms || data.storms.length === 0) {
                     console.log('[StormPortfolio] No flooding storms found');
                     select.innerHTML = '<option value="">No flooding storms found</option>';

@@ -92,10 +92,12 @@ def get_portfolio_storms():
             _INTENSITY_RANK.get(s.get('intensity_category', ''), 99),
         ))
 
+        all_storms = data.get('storms', [])
         return jsonify({
             'status': 'success',
             'storms': storms,
             'count': len(storms),
+            'total_storms': len(all_storms),
         })
 
     except Exception as e:

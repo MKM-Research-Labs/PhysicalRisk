@@ -16,6 +16,8 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
+from models.floodrisk.depth_damage import is_prs_flood
+
 from .constants import TENORS
 
 
@@ -31,7 +33,7 @@ class PricingMixin:
 
         prop_id = pdata['property_id']
         flood_events = pdata.get('flood_events', [])
-        flood_count = len([e for e in flood_events if e.get('flooded', False) and e.get('exceeded_severe', False)])
+        flood_count = len([e for e in flood_events if is_prs_flood(e)])
 
         # Spread = severe flood count / total scenarios (in bp)
         spread_bps = round((flood_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0
@@ -57,10 +59,7 @@ class PricingMixin:
             gauge_severe_count = self._get_gauge_severe_count(gauge_hc, num_storms)
             # Count property floods that came from severe gauge events
             # (not alert-only) — this is the hedged subset
-            severe_and_flooded = sum(
-                1 for e in flood_events
-                if e.get('flooded', False) and e.get('exceeded_severe', False)
-            )
+            severe_and_flooded = sum(1 for e in flood_events if is_prs_flood(e))
             gauge_flood_count = gauge_severe_count
             # Transmission rate: fraction of severe gauge events that reach
             # the property.  By definition <= 1 (gauge is on the river).

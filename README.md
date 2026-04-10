@@ -165,7 +165,26 @@ python3 app.py port --hazard --distribution gumbel   # Gumbel
 | `--verbose` / `-v` | Print detailed progress |
 | `--strict` | Refuse to run if upstream data is stale (BCBS 239 lineage guard) |
 | `--pdf` | Generate portfolio report PDF after generation |
+| `--backup` | Back up existing data files before overwriting |
 | `--repair-manifest` | Re-hash all pipeline artifacts and rebuild a consistent lineage manifest |
+
+### Data Protection
+
+Port generation is password-protected to prevent accidental or unauthorised data overwrites. On first run, you will be prompted to set an admin password. Subsequent runs require this password before any data is written.
+
+```bash
+python3 app.py port --all
+
+# MKM Portfolio Generator — Admin Authentication
+#   Admin password: ********
+#   Authenticated.
+```
+
+The password hash is stored in `data/.port_admin`. To reset the password, delete this file and run any port command to set a new one.
+
+The `--backup` flag copies all existing JSON files in the data directory to `data/.backups/<timestamp>/` before generation, providing a rollback point.
+
+The `--repair-manifest` command is read-only and does not require authentication.
 
 ---
 
@@ -189,6 +208,21 @@ P(flood) = σ(a·h + b·t + c·h·t + d·h² + e·t² + f)
 Fit quality vs the source GBM classifier: R² = 0.94, MAE = 0.046, RMSE = 0.099. The model is conservative — it slightly over-predicts P(flood) in the transition zone, which is acceptable for stress testing where false negatives are costlier than false positives.
 
 The platform is fully functional with FloodPoly alone. Training per-gauge classifiers via the UI improves accuracy for individual gauges but is not required.
+
+---
+
+## Storm Percentile Selector
+
+Storm scenario dropdowns across the platform include a percentile selector for disclosure reporting. Instead of scrolling through thousands of storms sorted by severity, select a percentile (50% to 99.9%) and click Go to jump directly to the corresponding storm.
+
+The 99th percentile of 20,000 storms selects the 200th worst storm (worse than 99% of all scenarios). The selector appears on:
+
+- Trading Desk Stress tab
+- Portfolio Stress tab
+- Gauge Stress tab (hazard curve panel)
+- Storm Portfolio Impact panel
+
+Percentile values run from 50% to 99% in single percentage points, then 99.1% to 99.9% in 0.1% steps. Default is 99%.
 
 ---
 

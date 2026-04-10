@@ -71,6 +71,7 @@ def list_flood_storms():
                     'properties_flooded': 0,
                     'max_depth_m': 0,
                     'max_damage_ratio': 0,
+                    'estimated_damage': 0,
                 }
         except Exception:
             pass
@@ -99,6 +100,7 @@ def list_flood_storms():
                             'properties_flooded': 0,
                             'max_depth_m': 0,
                             'max_damage_ratio': 0,
+                            'estimated_damage': 0,
                         }
                     if resp.get('exceeded_severe'):
                         storm_set[sid]['gauges_severe'] += 1
@@ -158,13 +160,17 @@ def list_flood_storms():
     if pts_dir.exists():
         prop_path = config.get_input_path('property.json')
         valued_ids = set()
+        prop_values = {}  # property_id → estimated market value
         try:
             with open(prop_path, 'r') as f:
                 pdata = json.load(f)
             for p in pdata.get('properties', []):
-                pid = p.get('PropertyHeader', {}).get('Header', {}).get('PropertyID', '')
+                hdr = p.get('PropertyHeader', {})
+                pid = hdr.get('Header', {}).get('PropertyID', '')
                 if pid:
                     valued_ids.add(pid)
+                    val = hdr.get('Valuation', {})
+                    prop_values[pid] = val.get('PropertyValue', 0)
         except Exception:
             pass
 
@@ -174,6 +180,7 @@ def list_flood_storms():
             prop_id = pdata.get('property_id', pf.stem)
             if valued_ids and prop_id not in valued_ids:
                 continue
+            pval = prop_values.get(prop_id, 0)
             for event in pdata.get('flood_events', []):
                 depth = event.get('flood_depth_m', 0)
                 if depth <= 0:
@@ -187,6 +194,11 @@ def list_flood_storms():
                     storm_set[sid]['max_damage_ratio'] = max(
                         storm_set[sid]['max_damage_ratio'], event.get('damage_ratio', 0)
                     )
+                    dmg_ratio = event.get('damage_ratio', 0)
+                    storm_set[sid]['estimated_damage'] = (
+                        storm_set[sid].get('estimated_damage', 0)
+                        + pval * dmg_ratio
+                    )
 
     # Severity rank (lower = worse) used as tie-breaker on equal gauge counts.
     # Consistent with /trading/stress/portfolio-storms sort order.
@@ -199,15 +211,37 @@ def list_flood_storms():
     # with zero affected properties would produce errors in portfolio-impact.
     flooding_storms = [s for s in storm_set.values() if s['properties_flooded'] > 0]
 
-    storms = sorted(flooding_storms, key=lambda s: (
-        -s['gauges_severe'],
-        -s['properties_flooded'],
-        -s['max_depth_m'],
-        _INTENSITY_RANK.get(s.get('intensity_category', ''), 99),
-    ))
+    # Round estimated_damage for JSON
+    for entry in flooding_storms:
+        entry['estimated_damage'] = round(entry.get('estimated_damage', 0))
+
+    # Sort order — ?sort= query parameter, default 'damage'
+    sort_mode = request.args.get('sort', 'damage')
+    if sort_mode == 'damage':
+        storms = sorted(flooding_storms, key=lambda s: (
+            -s['estimated_damage'],
+            -s['properties_flooded'],
+            -s['max_depth_m'],
+            _INTENSITY_RANK.get(s.get('intensity_category', ''), 99),
+        ))
+    elif sort_mode == 'flooded':
+        storms = sorted(flooding_storms, key=lambda s: (
+            -s['properties_flooded'],
+            -s['max_depth_m'],
+            -s['gauges_severe'],
+            _INTENSITY_RANK.get(s.get('intensity_category', ''), 99),
+        ))
+    else:  # 'severity' — meteorological severity
+        storms = sorted(flooding_storms, key=lambda s: (
+            -s['gauges_severe'],
+            -s['properties_flooded'],
+            -s['max_depth_m'],
+            _INTENSITY_RANK.get(s.get('intensity_category', ''), 99),
+        ))
 
     return jsonify({
         'status': 'success',
         'count': len(storms),
+        'total_storms': len(storm_set),
         'storms': storms,
     })

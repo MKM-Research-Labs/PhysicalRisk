@@ -86,11 +86,13 @@ def get_stress_storms():
         # Sort by peak level descending (worst storms first)
         storms.sort(key=lambda x: -x['peak_level_m'])
 
+        all_storms = data.get('storms', [])
         return jsonify({
             'status': 'success',
             'gauge_id': gauge_id,
             'storms': storms,
             'count': len(storms),
+            'total_storms': len(all_storms),
         })
 
     except Exception as e:

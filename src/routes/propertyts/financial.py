@@ -41,6 +41,8 @@ import logging
 from flask import jsonify, request
 
 from config import config
+from models.floodrisk.depth_damage import is_prs_flood
+
 from . import propertyts_bp, _get_propertyts_dir
 
 logger = logging.getLogger(__name__)
@@ -200,8 +202,8 @@ def portfolio_impact(storm_id: str):
         for event in pfdata.get('flood_events', []):
             if event.get('storm_id') != storm_id:
                 continue
-            if event.get('flood_depth_m', 0) <= 0:
-                break  # no flooding for this property in this storm
+            if not is_prs_flood(event):
+                break  # not a PRS-countable flood (sub-severe or no depth)
             if prop_id not in prop_values:
                 break  # no valuation data for this property
             properties.append(_build_property_entry(
@@ -270,7 +272,7 @@ def sequence_portfolio_impact(sequence_id: str):
         seq_events = [
             e for e in pfdata.get('flood_events', [])
             if (e.get('storm_id') == sequence_id or e.get('sequence_id') == sequence_id)
-            and e.get('flood_depth_m', 0) > 0
+            and is_prs_flood(e)
         ]
 
         if not seq_events:

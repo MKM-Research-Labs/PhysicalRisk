@@ -216,6 +216,12 @@ class TestRecordStep:
         assert manifest["steps"]["gaugehd"]["status"] == "success"
         assert manifest["runs"]["run-test-001"] == ["gaugehd"]
         assert entry["elapsed_seconds"] == 1.234
+        # User attribution fields (added for data protection)
+        assert "user" in entry
+        assert isinstance(entry["user"], str)
+        assert "hostname" in entry
+        assert isinstance(entry["hostname"], str)
+        assert len(entry["hostname"]) > 0
 
     def test_record_with_auto_run_id(self, tmp_path):
         from lineage.manifest import record_step
@@ -233,6 +239,44 @@ class TestRecordStep:
                 elapsed_seconds=0.5,
             )
         assert entry["run_id"].startswith("run-")
+
+    def test_record_captures_user_from_env(self, tmp_path):
+        """record_step must capture the USER env variable."""
+        from lineage.manifest import record_step
+        fake_path = tmp_path / "lineage.json"
+        inp = tmp_path / "u.json"
+        inp.write_text("{}")
+
+        with patch("lineage.manifest.LINEAGE_PATH", fake_path), \
+             patch.dict(os.environ, {"USER": "test_admin"}):
+            entry = record_step(
+                step_name="test_user",
+                generator="gen",
+                inputs={},
+                outputs={"u.json": str(inp)},
+                parameters={},
+                elapsed_seconds=0.1,
+            )
+        assert entry["user"] == "test_admin"
+
+    def test_record_captures_hostname(self, tmp_path):
+        """record_step must capture the machine hostname."""
+        import socket
+        from lineage.manifest import record_step
+        fake_path = tmp_path / "lineage.json"
+        inp = tmp_path / "h.json"
+        inp.write_text("{}")
+
+        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+            entry = record_step(
+                step_name="test_host",
+                generator="gen",
+                inputs={},
+                outputs={"h.json": str(inp)},
+                parameters={},
+                elapsed_seconds=0.1,
+            )
+        assert entry["hostname"] == socket.gethostname()
 
 
 # ===========================================================================

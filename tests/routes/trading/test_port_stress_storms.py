@@ -44,6 +44,14 @@ class TestGetPortfolioStorms:
         assert 'storms' in data
         assert data['count'] > 0
 
+    def test_response_includes_total_storms(self, port_stress_client, port_stress_env):
+        """Response must include total_storms (full catalogue count)."""
+        resp = port_stress_client.get('/api/v1/trading/stress/portfolio-storms')
+        data = json.loads(resp.data)
+        assert 'total_storms' in data
+        assert isinstance(data['total_storms'], int)
+        assert data['total_storms'] >= data['count']
+
     def test_portfolio_storms_has_required_fields(self, port_stress_client, port_stress_env):
         """Each storm has storm_id, name, intensity_category, gauges_severe,
         gauges_warning, gauges_alert, gauges_impacted."""
