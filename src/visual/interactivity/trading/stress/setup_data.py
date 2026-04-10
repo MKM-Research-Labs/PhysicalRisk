@@ -146,6 +146,7 @@ def get_js() -> str:
                 if (!sel || !tdStressStorms) return;
 
                 var storms = tdStressStorms.storms || [];
+                sel.setAttribute('data-total', tdStressStorms.total_storms || storms.length);
                 sel.innerHTML = '<option value="">-- Select storm (' + storms.length + ' scenarios) --</option>';
 
                 storms.forEach(function(s) {

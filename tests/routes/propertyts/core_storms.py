@@ -61,12 +61,12 @@ class TestListFloodStorms:
         assert "gauges_severe" in s
         assert "max_depth_m" in s
 
-    def test_storms_sorted_by_gauges_severe(self, pts_env):
-        """Storms sorted by gauges_severe descending (most severe first)."""
+    def test_storms_sorted_by_estimated_damage(self, pts_env):
+        """Default sort: storms by estimated_damage descending (most costly first)."""
         r = pts_env["client"].get("/api/v1/propertyts/storms")
         storms = r.get_json()["storms"]
-        counts = [s["gauges_severe"] for s in storms]
-        assert counts == sorted(counts, reverse=True)
+        damages = [s["estimated_damage"] for s in storms]
+        assert damages == sorted(damages, reverse=True)
 
     def test_storm_name_from_intensity_category(self, pts_env):
         """Storm name is capitalised intensity_category, not empty."""
@@ -75,6 +75,43 @@ class TestListFloodStorms:
         for s in storms:
             if s["intensity_category"]:
                 assert s["name"] == s["intensity_category"].capitalize()
+
+    def test_response_includes_total_storms(self, pts_env):
+        """Response must include total_storms (full catalogue count)."""
+        r = pts_env["client"].get("/api/v1/propertyts/storms")
+        data = r.get_json()
+        assert "total_storms" in data
+        assert isinstance(data["total_storms"], int)
+        assert data["total_storms"] >= data["count"]
+
+    def test_storm_has_estimated_damage(self, pts_env):
+        """Each storm must include estimated_damage field."""
+        r = pts_env["client"].get("/api/v1/propertyts/storms")
+        storms = r.get_json()["storms"]
+        for s in storms:
+            assert "estimated_damage" in s
+            assert isinstance(s["estimated_damage"], (int, float))
+
+    def test_default_sort_is_by_damage(self, pts_env):
+        """Default sort (no ?sort= param) orders by estimated_damage desc."""
+        r = pts_env["client"].get("/api/v1/propertyts/storms")
+        storms = r.get_json()["storms"]
+        damages = [s["estimated_damage"] for s in storms]
+        assert damages == sorted(damages, reverse=True)
+
+    def test_sort_by_flooded(self, pts_env):
+        """?sort=flooded orders by properties_flooded desc."""
+        r = pts_env["client"].get("/api/v1/propertyts/storms?sort=flooded")
+        storms = r.get_json()["storms"]
+        counts = [s["properties_flooded"] for s in storms]
+        assert counts == sorted(counts, reverse=True)
+
+    def test_sort_by_severity(self, pts_env):
+        """?sort=severity orders by gauges_severe desc."""
+        r = pts_env["client"].get("/api/v1/propertyts/storms?sort=severity")
+        storms = r.get_json()["storms"]
+        counts = [s["gauges_severe"] for s in storms]
+        assert counts == sorted(counts, reverse=True)
 
 
 # ===========================================================================

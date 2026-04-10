@@ -22,9 +22,63 @@
 
 """
 Port command - Portfolio data generation.
+
+Admin authentication required — protects production data from
+accidental or unauthorised overwrites.  Password is set on first
+run and stored as a salted SHA-256 hash in data/.port_admin.
 """
 
+import getpass
+import hashlib
+import json
+import os
+import sys
+from pathlib import Path
+
 from config import config
+
+_ADMIN_FILE = Path('data/.port_admin')
+
+
+def _authenticate():
+    """Require admin password before port generation."""
+    if not _ADMIN_FILE.exists():
+        _set_password()
+        return
+    _verify_password()
+
+
+def _set_password():
+    """First-time password creation."""
+    print("\nMKM Portfolio Generator — Admin Setup")
+    print("No admin password set. Create one now.\n")
+    pw = getpass.getpass("  New password: ")
+    confirm = getpass.getpass("  Confirm: ")
+    if pw != confirm:
+        print("  Passwords do not match.")
+        sys.exit(1)
+    if len(pw) < 4:
+        print("  Password too short (min 4 chars).")
+        sys.exit(1)
+    salt = os.urandom(16).hex()
+    h = hashlib.sha256((salt + pw).encode()).hexdigest()
+    _ADMIN_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(_ADMIN_FILE, 'w') as f:
+        json.dump({"salt": salt, "hash": h}, f)
+    print("  ✓ Admin password set.\n")
+
+
+def _verify_password():
+    """Prompt for password and verify against stored hash."""
+    print("\nMKM Portfolio Generator — Admin Authentication")
+    pw = getpass.getpass("  Admin password: ")
+    with open(_ADMIN_FILE) as f:
+        stored = json.load(f)
+    h = hashlib.sha256((stored['salt'] + pw).encode()).hexdigest()
+    if h != stored['hash']:
+        print("  ✗ Invalid password.")
+        sys.exit(1)
+    print("  ✓ Authenticated.\n")
 
 
 def register_parser(subparsers):
@@ -69,6 +123,8 @@ def register_parser(subparsers):
     sp.add_argument("--distribution", "-d", choices=["gev", "gumbel"], default="gev")
     sp.add_argument("--repair-manifest", action="store_true",
                     help="Re-hash all pipeline artifacts and rebuild a consistent manifest")
+    sp.add_argument("--backup", action="store_true",
+                    help="Back up existing data files before overwriting")
     sp.set_defaults(func=cmd_port)
 
 
@@ -78,6 +134,23 @@ def cmd_port(args):
     config.catchment_id = catchment
     output_dir = config.get_input_dir()
     input_dir = output_dir  # alias for clarity in lineage mappings
+
+    # --- Admin authentication (skip for repair-manifest which is read-only) -
+    if not getattr(args, 'repair_manifest', False):
+        _authenticate()
+
+    # --- Optional backup of existing data -----------------------------------
+    if getattr(args, 'backup', False) and output_dir.exists():
+        import shutil
+        from datetime import datetime
+        ts = datetime.now().strftime('%Y%m%d-%H%M%S')
+        backup_dir = output_dir / '.backups' / ts
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backed = 0
+        for f in output_dir.glob('*.json'):
+            shutil.copy2(f, backup_dir / f.name)
+            backed += 1
+        print(f"  Backup: {backed} files → {backup_dir}")
 
     # --- Repair manifest (standalone mode) --------------------------------
     # Checked before heavy imports so it works without pandas/scipy etc.

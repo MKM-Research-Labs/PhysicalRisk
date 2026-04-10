@@ -210,9 +210,14 @@ def record_step(
         input_hashes = {k: _hash_artifact(Path(v)) for k, v in inputs.items()}
     output_hashes = {k: _hash_artifact(Path(v)) for k, v in outputs.items()}
 
+    import os as _os
+    import socket as _socket
+
     entry = {
         "run_id": run_id,
         "timestamp": datetime.now().isoformat(),
+        "user": _os.environ.get("USER", "unknown"),
+        "hostname": _socket.gethostname(),
         "generator": generator,
         "status": status,
         "elapsed_seconds": round(elapsed_seconds, 3),

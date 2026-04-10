@@ -26,6 +26,7 @@ sub-tab switching, and stats bar update.
 All rendering sub-tabs are imported and concatenated here.
 """
 
+from config.format import percentile_selector_html as _pct_html
 from config.format import storm_option_js as _storm_opt
 
 from . import gauge_pnl, pfloods, portfolio_pnl, severity
@@ -68,6 +69,7 @@ def _get_setup_js() -> str:
                     '<select id="ps-storm-sel" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:380px;">' +
                     '<option value="">Loading storms\u2026</option>' +
                     '</select>' +
+                    '__PCT_HTML__' +
                     '<span id="ps-storm-info" style="flex:1;font-size:10px;color:#666;"></span>';
                 view.appendChild(stormBar);
 
@@ -122,6 +124,7 @@ def _get_setup_js() -> str:
                 if (!sel) return;
 
                 sel.innerHTML = '';
+                sel.setAttribute('data-total', data.total_storms || storms.length);
                 if (storms.length === 0) {
                     sel.innerHTML = '<option value="">No storms available</option>';
                     return;
@@ -284,4 +287,5 @@ def _get_setup_js() -> str:
                 if (psPFloodChart)  { psPFloodChart.destroy();  psPFloodChart = null;  }
                 if (psGaugeHourlyChart) { psGaugeHourlyChart.destroy(); psGaugeHourlyChart = null; }
             }
-""".replace('__STORM_OPT__', _storm_opt('s', show_warning=True))
+""".replace('__STORM_OPT__', _storm_opt('s', show_warning=True)
+   ).replace('__PCT_HTML__', _pct_html('ps-pct-sel', 'ps-storm-sel'))

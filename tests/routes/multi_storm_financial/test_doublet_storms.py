@@ -44,12 +44,12 @@ def doublet_env(tmp_path, monkeypatch):
     """
     def setup(pts_dir):
         _prop_flood_file(pts_dir, "PROP-A", [
-            {"storm_id": "STORM-d1a", "sequence_id": "STORM-doublet1", "flood_depth_m": 0.40, "damage_ratio": 0.10},
-            {"storm_id": "STORM-d1b", "sequence_id": "STORM-doublet1", "flood_depth_m": 0.65, "damage_ratio": 0.18},
+            {"storm_id": "STORM-d1a", "sequence_id": "STORM-doublet1", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.40, "damage_ratio": 0.10},
+            {"storm_id": "STORM-d1b", "sequence_id": "STORM-doublet1", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.65, "damage_ratio": 0.18},
         ])
         _prop_flood_file(pts_dir, "PROP-B", [
-            {"storm_id": "STORM-d1a", "sequence_id": "STORM-doublet1", "flood_depth_m": 0.0, "damage_ratio": 0.0},
-            {"storm_id": "STORM-d1b", "sequence_id": "STORM-doublet1", "flood_depth_m": 0.55, "damage_ratio": 0.14},
+            {"storm_id": "STORM-d1a", "sequence_id": "STORM-doublet1", "flooded": False, "exceeded_severe": True, "flood_depth_m": 0.0, "damage_ratio": 0.0},
+            {"storm_id": "STORM-d1b", "sequence_id": "STORM-doublet1", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.55, "damage_ratio": 0.14},
         ])
 
     _property_json(tmp_path / "property.json", [

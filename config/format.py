@@ -154,6 +154,68 @@ def property_title_js(name_var: str = 'propName',
     return f"({name_var} ? {name_var} + ' (' + {id_var} + ')' : {id_var})"
 
 
+def percentile_apply_js() -> str:
+    """Return the shared JS function ``_applyPercentile(pctSelId, stormSelId)``.
+
+    This must be included **once** on the page (typically in the trading-desk
+    init block).  Each storm selector location then just calls it from its
+    own "Go" button.
+    """
+    return """
+            window._applyPercentile = function(pctSelId, stormSelId) {
+                var pctSel = document.getElementById(pctSelId);
+                var stormSel = document.getElementById(stormSelId);
+                if (!pctSel || !stormSel) return;
+                var pct = parseFloat(pctSel.value);
+                if (isNaN(pct)) return;
+                var opts = stormSel.options;
+                var nDropdown = opts.length - 1;
+                if (nDropdown <= 0) return;
+                // Use total storm catalogue size (set via data-total attribute)
+                // so percentile maps across the full 20,000 storms, not just
+                // the filtered subset in the dropdown.
+                var nTotal = parseInt(stormSel.getAttribute('data-total')) || nDropdown;
+                var targetIdx = Math.max(0, Math.floor(nTotal * (1 - pct / 100)));
+                // Clamp to dropdown range (filtered list may be shorter)
+                var idx = Math.min(targetIdx, nDropdown - 1);
+                stormSel.selectedIndex = idx + 1;
+                if (typeof stormSel.onchange === 'function') stormSel.onchange();
+                else stormSel.dispatchEvent(new Event('change'));
+            };
+"""
+
+
+def percentile_selector_html(pct_id: str, storm_sel_id: str) -> str:
+    """Return an HTML fragment for a percentile ``<select>`` + Go button.
+
+    Args:
+        pct_id:       DOM id for the percentile ``<select>``.
+        storm_sel_id: DOM id of the storm ``<select>`` to jump into.
+
+    Returns:
+        HTML string safe for embedding in JS string concatenation.
+    """
+    # Build option tags: 50-99 in 1% steps, then 99.1-99.9 in 0.1% steps
+    opts = []
+    for p in range(50, 100):
+        sel = ' selected' if p == 99 else ''
+        opts.append(f'<option value="{p}"{sel}>{p}%</option>')
+    for t in range(1, 10):
+        v = f"99.{t}"
+        opts.append(f'<option value="{v}">{v}%</option>')
+    options_html = ''.join(opts)
+
+    return (
+        f'<span style="font-size:11px;font-weight:600;color:#333;margin-left:8px;">Percentile:</span>'
+        f'<select id="{pct_id}" style="padding:4px 8px;font-size:11px;'
+        f'border:1px solid #ccc;border-radius:3px;">'
+        f'{options_html}</select>'
+        f'<button onclick="_applyPercentile(&#39;{pct_id}&#39;,&#39;{storm_sel_id}&#39;)" '
+        f'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;'
+        f'border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">Go</button>'
+    )
+
+
 def property_title_py(address: str, property_id: str) -> str:
     """
     Return the formatted property display label for Python contexts (reports, tooltips).

@@ -124,3 +124,29 @@ class TestTableStructure:
         """Sort state variables must be initialised."""
         assert 'spSortCol' in table_js
         assert 'spSortAsc' in table_js
+
+
+# ---------------------------------------------------------------------------
+# Storm list sort mode support
+# ---------------------------------------------------------------------------
+
+class TestStormListSortMode:
+    """loadStormList must accept a sortMode parameter and pass it to the API."""
+
+    def test_load_storm_list_accepts_sort_mode(self, table_js):
+        """loadStormList should accept sortMode parameter."""
+        assert 'function loadStormList(sortMode)' in table_js
+
+    def test_sort_mode_passed_to_api(self, table_js):
+        """sortMode must be appended to the API URL as ?sort= parameter."""
+        assert '?sort=' in table_js
+
+    def test_data_total_attribute_set(self, table_js):
+        """Storm select must store total catalogue count in data-total."""
+        assert 'data-total' in table_js
+        assert 'total_storms' in table_js
+
+    def test_default_sort_is_damage(self, table_js):
+        """Default sortMode must be 'damage'."""
+        assert "sortMode || 'damage'" in table_js or \
+               "sortMode = sortMode || 'damage'" in table_js

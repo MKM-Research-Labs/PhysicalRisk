@@ -48,15 +48,15 @@ def seq_env(tmp_path, monkeypatch):
     """
     def setup(pts_dir):
         _prop_flood_file(pts_dir, "PROP-A", [
-            {"storm_id": "STORM-d1a", "sequence_id": "STORM-test1", "flood_depth_m": 0.40, "damage_ratio": 0.10},
-            {"storm_id": "STORM-d1b", "sequence_id": "STORM-test1", "flood_depth_m": 0.65, "damage_ratio": 0.18},
+            {"storm_id": "STORM-d1a", "sequence_id": "STORM-test1", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.40, "damage_ratio": 0.10},
+            {"storm_id": "STORM-d1b", "sequence_id": "STORM-test1", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.65, "damage_ratio": 0.18},
         ])
         _prop_flood_file(pts_dir, "PROP-B", [
-            {"storm_id": "STORM-d1a", "sequence_id": "STORM-test1", "flood_depth_m": 0.0,  "damage_ratio": 0.0},
-            {"storm_id": "STORM-d1b", "sequence_id": "STORM-test1", "flood_depth_m": 0.55, "damage_ratio": 0.14},
+            {"storm_id": "STORM-d1a", "sequence_id": "STORM-test1", "flooded": False, "exceeded_severe": True, "flood_depth_m": 0.0,  "damage_ratio": 0.0},
+            {"storm_id": "STORM-d1b", "sequence_id": "STORM-test1", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.55, "damage_ratio": 0.14},
         ])
         _prop_flood_file(pts_dir, "PROP-C", [
-            {"storm_id": "STORM-other1", "sequence_id": "STORM-other", "flood_depth_m": 0.8, "damage_ratio": 0.20},
+            {"storm_id": "STORM-other1", "sequence_id": "STORM-other", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.8, "damage_ratio": 0.20},
         ])
 
     _property_json(tmp_path / "property.json", [
@@ -162,10 +162,10 @@ class TestSequenceEndpointNegativeEquity:
     def persistent_env(self, tmp_path, monkeypatch):
         def setup(pts_dir):
             _prop_flood_file(pts_dir, "PROP-NE2", [
-                {"storm_id": "STORM-p1", "sequence_id": "STORM-persistent2", "flood_depth_m": 0.8, "damage_ratio": 0.10},
-                {"storm_id": "STORM-p2", "sequence_id": "STORM-persistent2", "flood_depth_m": 1.2, "damage_ratio": 0.13},
-                {"storm_id": "STORM-p3", "sequence_id": "STORM-persistent2", "flood_depth_m": 1.8, "damage_ratio": 0.17},
-                {"storm_id": "STORM-p4", "sequence_id": "STORM-persistent2", "flood_depth_m": 1.0, "damage_ratio": 0.11},
+                {"storm_id": "STORM-p1", "sequence_id": "STORM-persistent2", "flooded": True, "exceeded_severe": True, "flood_depth_m": 0.8, "damage_ratio": 0.10},
+                {"storm_id": "STORM-p2", "sequence_id": "STORM-persistent2", "flooded": True, "exceeded_severe": True, "flood_depth_m": 1.2, "damage_ratio": 0.13},
+                {"storm_id": "STORM-p3", "sequence_id": "STORM-persistent2", "flooded": True, "exceeded_severe": True, "flood_depth_m": 1.8, "damage_ratio": 0.17},
+                {"storm_id": "STORM-p4", "sequence_id": "STORM-persistent2", "flooded": True, "exceeded_severe": True, "flood_depth_m": 1.0, "damage_ratio": 0.11},
             ])
 
         _property_json(tmp_path / "property.json", [("PROP-NE2", 300_000)])

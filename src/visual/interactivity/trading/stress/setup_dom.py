@@ -3,10 +3,14 @@
 
 """Stress Test — DOM construction for the stress view."""
 
+from config.format import percentile_selector_html as _pct_html
+
 
 def get_js() -> str:
     """Return JavaScript for createStressView() DOM builder."""
-    return """
+    _pct = _pct_html('td-stress-pct', 'td-stress-storm')
+    return (
+        """
             function createStressView() {
                 var view = document.createElement('div');
                 view.id = 'td-stress-view';
@@ -25,6 +29,9 @@ def get_js() -> str:
                     '<select id="td-stress-storm" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:300px;max-width:420px;">' +
                         '<option value="">Select gauge first</option>' +
                     '</select>' +
+                    '"""
+        + _pct
+        + """' +
                     '<span id="td-stress-storm-info" style="font-size:10px;color:#666;flex:1;"></span>' +
                     '<button id="td-stress-sim-btn" onclick="tdStressOpenGauge(document.getElementById(\\\'td-stress-gauge\\\').value)" ' +
                         'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;' +
@@ -77,3 +84,4 @@ def get_js() -> str:
                 return view;
             }
 """
+    )

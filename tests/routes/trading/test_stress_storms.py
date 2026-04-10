@@ -117,3 +117,12 @@ class TestGetStorms:
         data = json.loads(resp.data)
         assert resp.status_code == 200
         assert data['storms'] == []
+
+    def test_response_includes_total_storms(self, stress_client, stress_env):
+        """Response must include total_storms (full catalogue count)."""
+        resp = stress_client.get(
+            '/api/v1/trading/stress/storms?gauge_id=GAUGE-001')
+        data = json.loads(resp.data)
+        assert 'total_storms' in data
+        assert isinstance(data['total_storms'], int)
+        assert data['total_storms'] >= len(data['storms'])

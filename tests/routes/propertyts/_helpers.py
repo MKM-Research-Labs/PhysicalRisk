@@ -46,6 +46,8 @@ CLAIM_PROP_FLOOD_DATA = {
     "flood_events": [{
         "storm_id": "STORM-0001",
         "sequence_id": "STORM-seq0001",
+        "flooded": True,
+        "exceeded_severe": True,
         "flood_depth_m": 0.5,
         "damage_ratio": 0.1,
         "arrival_time_hrs": 5,
@@ -108,6 +110,8 @@ def make_prop_file(property_id, storm_id, flood_depth=0.5, damage_ratio=0.1,
         "floor_level_m": 3.2,
         "flood_events": [{
             "storm_id": storm_id,
+            "flooded": flood_depth > 0,
+            "exceeded_severe": True,
             "flood_depth_m": flood_depth,
             "damage_ratio": damage_ratio,
             "arrival_time_hrs": arrival,

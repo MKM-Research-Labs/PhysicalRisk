@@ -99,6 +99,16 @@ def calculate_synthetic_flood_depths(properties,
 
 
 
+def is_prs_flood(event: dict) -> bool:
+    """True if the flood event counts toward PRS pricing.
+
+    Requires both:
+    - The property actually flooded (flood_depth > 0)
+    - The controlling gauge exceeded the severe threshold
+    """
+    return event.get('flooded', False) and event.get('exceeded_severe', False)
+
+
 def scalar_depth_damage(depth: float) -> float:
     """
     Scalar depth-damage lookup using UK-calibrated vulnerability curve.

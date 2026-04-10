@@ -47,6 +47,26 @@ class TestStormPortfolioOpens:
         bar = map_page.locator("#sp-stats-bar")
         assert bar.count() > 0, "No #sp-stats-bar found"
 
+    def test_has_sort_selector(self, map_page):
+        """Sort dropdown should exist with three options."""
+        select = map_page.locator("#sp-sort-select")
+        assert select.count() > 0, "No #sp-sort-select found"
+        options = select.locator("option")
+        assert options.count() == 3, \
+            f"Sort selector should have 3 options, got {options.count()}"
+
+    def test_sort_selector_default_is_damage(self, map_page):
+        """Default sort should be 'Damage cost'."""
+        select = map_page.locator("#sp-sort-select")
+        if select.count() > 0:
+            val = select.input_value()
+            assert val == "damage", f"Default sort should be 'damage', got '{val}'"
+
+    def test_has_percentile_selector(self, map_page):
+        """Percentile selector dropdown should exist."""
+        select = map_page.locator("#sp-pct-sel")
+        assert select.count() > 0, "No #sp-pct-sel found"
+
 
 # ---------------------------------------------------------------------------
 # Table tab

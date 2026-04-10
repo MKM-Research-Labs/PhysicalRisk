@@ -186,7 +186,8 @@ class TestNostressFlag:
              mock.patch('port.src.property.propertyts.PropertyTimeSeriesGenerator') as mpts, \
              mock.patch('port.src.property.propertyhc.PropertyHazardCurveGenerator') as mphc, \
              mock.patch('port.src.counterparty.CounterpartyPortfolioGenerator') as mctpy, \
-             mock.patch('app.commands.port._print_port_summary'):
+             mock.patch('app.commands.port._print_port_summary'), \
+             mock.patch('app.commands.port._authenticate'):
             mg.return_value.generate.return_value = {
                 'data': {'flood_gauges': [1, 2]}, 'processing_stats': {}}
             mp.return_value.generate.return_value = {
@@ -227,7 +228,8 @@ class TestNostressFlag:
             'elapsed_seconds': 1.0,
         }
         with mock.patch('port.src.stressm.generate_stressm',
-                        return_value=stressm_summary) as mock_stressm:
+                        return_value=stressm_summary) as mock_stressm, \
+             mock.patch('app.commands.port._authenticate'):
             cmd_port(args)
 
         mock_stressm.assert_called_once()

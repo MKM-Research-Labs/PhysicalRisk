@@ -27,12 +27,15 @@ population and change handlers, chart tab switching.
 On-demand classifier training UI is in training_ui.py.
 """
 
+from config.format import percentile_apply_js as _pct_apply
+
 from . import setup_dom, setup_data, setup_charts
 
 
 def get_js() -> str:
     """Return JavaScript fragment for stress test state, DOM, and loading."""
     return f"""
+{_pct_apply()}
             // ==============================================================
             // Tab 7: Stress Test — CDS-in-stress cash pricing
             // ==============================================================

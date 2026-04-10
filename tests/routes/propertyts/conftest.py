@@ -171,6 +171,8 @@ def pts_env(tmp_path, monkeypatch):
         "summary": {"storms_flooded": 1, "max_depth_m": 0.5},
         "flood_events": [{
             "storm_id": SEQ_ID,
+            "flooded": True,
+            "exceeded_severe": True,
             "flood_depth_m": 0.5,
             "damage_ratio": 0.1,
             "arrival_time_hrs": 5,

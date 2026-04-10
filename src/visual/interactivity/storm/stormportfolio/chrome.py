@@ -3,9 +3,12 @@
 
 """Panel chrome: creation, tab switching, show/hide, storm change handler."""
 
+from config.format import percentile_selector_html as _pct_html
+
 
 def get_js() -> str:
     """Return JS for panel creation, tabs, show/hide."""
+    _pct = _pct_html('sp-pct-sel', 'sp-storm-select')
     return """
             // ==============================================================
             // Panel creation
@@ -85,8 +88,25 @@ def get_js() -> str:
                 stormSelect.id = 'sp-storm-select';
                 stormSelect.style.cssText = 'flex:1;padding:4px 8px;font-size:12px;border:1px solid #ddd;border-radius:4px;';
                 stormSelect.onchange = function() { onStormChanged(this.value); };
+                var sortLabel = document.createElement('span');
+                sortLabel.textContent = 'Sort:';
+                sortLabel.style.cssText = 'font-size:12px;font-weight:600;color:#555;';
+                var sortSelect = document.createElement('select');
+                sortSelect.id = 'sp-sort-select';
+                sortSelect.style.cssText = 'padding:4px 8px;font-size:12px;border:1px solid #ddd;border-radius:4px;';
+                sortSelect.innerHTML =
+                    '<option value="damage" selected>Damage cost</option>' +
+                    '<option value="flooded">Properties flooded</option>' +
+                    '<option value="severity">Gauge severity</option>';
+                sortSelect.onchange = function() { loadStormList(this.value); };
+                var pctWrap = document.createElement('span');
+                pctWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+                pctWrap.innerHTML = '__SP_PCT_HTML__';
                 selectorRow.appendChild(selLabel);
                 selectorRow.appendChild(stormSelect);
+                selectorRow.appendChild(sortLabel);
+                selectorRow.appendChild(sortSelect);
+                selectorRow.appendChild(pctWrap);
 
                 // Tab views from sub-modules
                 var tableView = createTableView();
@@ -225,4 +245,4 @@ def get_js() -> str:
 
             // Global entry point
             window.showStormPortfolio = showPanel;
-"""
+""".replace('__SP_PCT_HTML__', _pct)

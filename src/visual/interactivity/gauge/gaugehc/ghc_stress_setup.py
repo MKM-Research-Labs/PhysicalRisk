@@ -27,6 +27,7 @@ chart tab switching, and draw dispatcher.
 On-demand classifier training UI is in ghc_stress_training.py.
 """
 
+from config.format import percentile_selector_html as _pct_html
 from config.format import storm_option_js as _storm_opt
 
 
@@ -90,6 +91,7 @@ def get_js() -> str:
                             'border:1px solid #ccc;border-radius:3px;min-width:200px;">' +
                             '<option value="">Loading storms...</option>' +
                         '</select>' +
+                        '__PCT_HTML__' +
                         '<span id="stress-storm-info" style="font-size:10px;color:#666;"></span>' +
                     '</div>' +
                     // Main content: table + chart
@@ -165,6 +167,7 @@ def get_js() -> str:
                 if (!sel || !_stressStorms) return;
 
                 var storms = _stressStorms.storms || [];
+                sel.setAttribute('data-total', _stressStorms.total_storms || storms.length);
                 sel.innerHTML = '<option value="">-- Select storm (' + storms.length + ' scenarios) --</option>';
 
                 storms.forEach(function(s) {
@@ -282,4 +285,5 @@ def get_js() -> str:
                     }
                 }
             }
-""".replace('__STORM_OPT__', _storm_opt('s'))
+""".replace('__STORM_OPT__', _storm_opt('s')
+   ).replace('__PCT_HTML__', _pct_html('stress-pct-sel', 'stress-storm-select'))
