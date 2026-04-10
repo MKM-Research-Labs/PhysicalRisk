@@ -1,0 +1,269 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Property PRS Pricing}
+\newcommand{\docsubtitle}{User Guide --- Property-Level Physical Risk Swap Valuation}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{10-April-2026}
+\newcommand{\docauthor}{MKM Research Labs}
+
+\input{../shared/mkm_header}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+A \textbf{Property PRS} extends the Physical Risk Swap concept from a
+river gauge to a specific property.  Instead of triggering on a gauge
+water level, the contract references a named property and its flood
+exposure.
+
+\subsection{Why Property-Level Pricing Matters}
+
+A gauge measures water level at a single point on the river.  Two
+properties at different distances and elevations relative to that gauge
+experience very different flood depths from the same event.  A property
+on high ground 2\,km from the Thames may never flood even when the gauge
+breaches severe, while a basement flat 200\,m from the channel floods
+regularly.
+
+Property PRS captures this distinction.  The fair spread reflects the
+\emph{property-specific} flood probability, not the gauge-level
+probability.  This is always lower than or equal to the gauge spread,
+because the gauge is the most exposed point on the river.
+
+\subsection{Gauge PRS vs.\ Property PRS}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+& \textbf{Gauge PRS} & \textbf{Property PRS} \\
+\midrule
+Reference entity & River gauge & Named property \\
+Pricing method   & Analytical (hazard rate) & Event-count (Monte Carlo) \\
+Term structure   & Upward-sloping & Flat (storms independent) \\
+Basis to gauge   & Zero (is the gauge) & Positive (property safer) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+% =========================================================================
+\section{Event-Count Pricing}
+% =========================================================================
+
+Property PRS spreads are derived from the Monte Carlo storm catalogue
+rather than analytical hazard rates.
+
+\subsection{The Formula}
+
+\[
+  s_{\mathrm{bps}} = \frac{\text{severe floods at property}}{\text{total scenarios}} \times 10{,}000
+\]
+
+\noindent For example, if 45 out of 1,000 storm scenarios produce severe
+flooding at a property, the fair spread is:
+
+\[
+  s_{\mathrm{bps}} = \frac{45}{1{,}000} \times 10{,}000 = 450 \text{ bps}
+\]
+
+\subsection{Why the Term Structure Is Flat}
+
+Each storm scenario is an independent 168-hour event.  The probability
+of a severe flood in any given year does not depend on the contract's
+remaining maturity.  Therefore the property PRS spread is the same at
+all tenors (1Y, 2Y, 3Y, 5Y).
+
+This differs from gauge PRS, where the analytical survival function
+$S(t) = e^{-\lambda t}$ naturally produces an upward-sloping term
+structure (longer tenors have higher cumulative default probability).
+
+\subsection{What Counts as a ``Severe Flood''}
+
+A storm scenario produces a severe flood at a property when:
+\begin{enumerate}
+  \item The nearest synthetic gauge's water level exceeds the severe
+        warning threshold.
+  \item The flood signal propagates to the property (accounting for
+        distance, retention, elevation, and infiltration).
+  \item The resulting flood depth at the property exceeds zero.
+\end{enumerate}
+
+
+% =========================================================================
+\section{Basis Spread Decomposition}
+% =========================================================================
+
+The \textbf{basis} is the difference between the gauge spread and the
+property spread:
+
+\[
+  \text{basis}_{\mathrm{bps}} = s_{\mathrm{gauge}} - s_{\mathrm{property}}
+\]
+
+The basis is always non-negative because the property is never more
+exposed than its controlling gauge.
+
+\subsection{What Drives the Basis}
+
+Two physical factors create the basis:
+
+\begin{description}[leftmargin=2em]
+  \item[Spatial Heterogeneity Effect (SHE)] Not every gauge-level
+        severe event produces flooding at the property.  The spatial
+        correlation model distributes rainfall unevenly, so some storms
+        hit the gauge hard but miss the property's nearest synthetic
+        gauge.
+  \item[Surface Height Distance Effect (SHD)] Even when the synthetic
+        gauge floods, the property may be elevated or far enough from
+        the channel that the flood depth at the property is zero.
+        Distance retention, terrain velocity, and floor level all
+        attenuate the signal.
+\end{description}
+
+\subsection{Transmission Rate}
+
+The \textbf{transmission rate} quantifies how efficiently gauge floods
+translate to property floods:
+
+\[
+  T = \frac{\text{severe floods at property from this gauge}}
+           {\text{severe events at gauge}}
+\]
+
+\noindent A transmission rate of 0.90 means 90\% of gauge-level severe
+events also produce flooding at the property.  A rate of 0.30 means
+only 30\% transmit --- the basis is large and the property is well
+protected.
+
+\subsection{IDW Reconstruction}
+
+When a property has multiple nearest gauges, the property spread is
+reconstructed from the gauge spreads minus basis via inverse-distance
+weighting (IDW):
+
+\[
+  s_{\mathrm{property}} = \sum_{g} w_g \times (s_g - b_g)
+\]
+
+\noindent where $w_g = 1/d_g$ normalised to sum to 1, and $b_g$ is the
+basis for gauge $g$.  In practice, the nearest synthetic gauge dominates.
+
+
+% =========================================================================
+\section{Property Trade Structure}
+% =========================================================================
+
+A Property PRS trade extends the gauge PRS CDM format with a
+\texttt{PropertySet} block:
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Field} & \textbf{Description} \\
+\midrule
+PropertyID      & Unique identifier (e.g.\ PROP-00012345) \\
+PropertyAddress & Street address \\
+Postcode        & UK postcode \\
+LocalAuthority  & Council area \\
+PropertyValue   & Market value (\pounds) \\
+EAFloodZone     & EA flood zone (Zone 3a, 2, 1) \\
+ReferenceGauge  & Nearest synthetic gauge ID \\
+Latitude / Longitude & WGS84 coordinates \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The trade also carries a \texttt{GaugeBasket} with the controlling
+gauge(s) and their weights, plus a \texttt{basis\_bps} field recording
+the gauge-to-property spread difference at inception.
+
+
+% =========================================================================
+\section{Property-Level Greeks}
+% =========================================================================
+
+\subsection{Basis Delta}
+
+The property FS01 is driven by the gauge hazard rate.  When the gauge
+hazard rate moves by 1\,bp, the gauge spread moves by $\Delta s$ bps.
+The property spread moves by the same amount (the basis is held
+constant):
+
+\[
+  \text{FS01}_{\mathrm{property}} = \frac{\Delta s}{10{,}000} \times A \times N
+\]
+
+\noindent This is identical to the gauge FS01 because the basis is a
+structural constant determined by the property's physical position, not
+by market movements.
+
+\subsection{Basis Risk}
+
+The basis does change when the storm catalogue is regenerated (e.g.\
+with different storm control parameters).  This represents
+\emph{model risk}, not market risk.  It is not captured in FS01 but
+is visible in stress testing.
+
+
+% =========================================================================
+\section{Parameter Reference}
+\label{ch:reference}
+% =========================================================================
+
+\begin{longtable}{p{4.2cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{N\_NEAREST\_GAUGES} & 3 &
+  More gauges contribute via IDW &
+  Nearest gauge dominates \\[4pt]
+\texttt{BANKFULL\_OFFSET\_M} & 0.5\,m &
+  Property floods less often (wider basis) &
+  Property floods more often \\[4pt]
+\texttt{RETENTION\_LENGTH} & 10,000\,m &
+  Flood signal reaches further (narrower basis) &
+  Signal attenuates faster (wider basis) \\[4pt]
+\texttt{EA\_FLOOD\_ZONE\_RATES} & 0.1--5\% &
+  Higher zone-based pricing &
+  Lower zone-based pricing \\[4pt]
+\texttt{DEPTH\_POINTS} & see text &
+  Stretches damage curve &
+  Compresses damage curve \\[4pt]
+\texttt{DAMAGE\_POINTS} & see text &
+  More damage per depth &
+  Less damage per depth \\[4pt]
+\texttt{DEFAULT\_IMPERV} & 0.4 &
+  Less infiltration, deeper floods &
+  More infiltration, shallower floods \\
+\bottomrule
+\end{longtable}
+
+
+% =========================================================================
+\section*{Document History}
+% =========================================================================
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+\bottomrule
+\end{tabular}
+
+\end{document}

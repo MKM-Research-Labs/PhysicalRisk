@@ -1,0 +1,239 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{End of Day Process}
+\newcommand{\docsubtitle}{User Guide --- EOD Snapshots, P\&L Attribution \& Reporting}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{10-April-2026}
+\newcommand{\docauthor}{MKM Research Labs}
+
+\input{../shared/mkm_header}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+The End of Day (EOD) process is the daily checkpoint that freezes the
+portfolio's state, computes P\&L attribution, and creates an audit trail.
+It serves three purposes:
+
+\begin{enumerate}
+  \item \textbf{Risk management} --- captures the portfolio's MTM,
+        Greeks, and exposure at a known point in time.
+  \item \textbf{P\&L attribution} --- decomposes today's P\&L into
+        components (new trades vs.\ market moves) for management
+        reporting.
+  \item \textbf{Audit trail} --- creates an immutable snapshot that
+        can be reviewed by compliance, model governance, or external
+        auditors.
+\end{enumerate}
+
+
+% =========================================================================
+\section{EOD Workflow}
+% =========================================================================
+
+\subsection{Step 1: Submit EOD}
+
+The operator clicks \textbf{Submit EOD} on the EOD tab.  This triggers
+a server-side process:
+
+\begin{enumerate}
+  \item Load all open PRS trades from the trade store.
+  \item Load the current market state (yield curve, hazard term
+        structures, risk-free rate).
+  \item Revalue every trade using the Delta Engine (fair spread,
+        MTM, FS01, risky annuity).
+  \item Compute daily P\&L by comparing today's MTM against the
+        previous EOD snapshot.
+  \item Generate the EOD snapshot JSON.
+  \item Save to \texttt{trading/eod/EOD-YYYYMMDD.json}.
+  \item Optionally generate a PDF report.
+\end{enumerate}
+
+\subsection{Step 2: Review Snapshot}
+
+The EOD tab displays:
+\begin{itemize}
+  \item A portfolio summary card (total notional, total MTM, daily
+        P\&L, running P\&L).
+  \item A position-level table showing each trade's contribution.
+  \item A P\&L attribution chart (new trade P\&L vs.\ market P\&L).
+\end{itemize}
+
+\subsection{Step 3: Download PDF}
+
+Each EOD snapshot can be downloaded as a PDF report containing:
+\begin{itemize}
+  \item Portfolio summary and key metrics.
+  \item Position detail tables.
+  \item P\&L attribution breakdown.
+  \item Market state snapshot (yield curve, hazard rates at close).
+\end{itemize}
+
+
+% =========================================================================
+\section{P\&L Attribution}
+% =========================================================================
+
+Daily P\&L is decomposed into three components:
+
+\subsection{New Trade P\&L}
+
+For trades entered today:
+\[
+  \text{P\&L}_{\text{new}} = \frac{s_{\text{fair}} - s_{\text{trade}}}{10{,}000}
+      \times A \times N \times d
+\]
+
+\noindent This captures the ``day 1'' P\&L from executing at a spread
+different from fair value.  A payer who buys protection at 45\,bps when
+fair is 50\,bps has an immediate gain.
+
+\subsection{Market P\&L}
+
+For existing trades (entered before today):
+\[
+  \text{P\&L}_{\text{market}} = \text{MTM}_{\text{today}} - \text{MTM}_{\text{yesterday}}
+\]
+
+\noindent This captures the change in value from overnight curve moves.
+If the hazard rate widened (flood risk increased), payer positions gain
+and receiver positions lose.
+
+\subsection{Running P\&L}
+
+The cumulative P\&L since inception:
+\[
+  \text{P\&L}_{\text{running}} = \sum_{\text{all days}} \text{P\&L}_{\text{daily}}
+\]
+
+\subsection{Realized P\&L}
+
+For closed trades, the final P\&L is locked in at close-out:
+\[
+  \text{P\&L}_{\text{realized}} = \frac{s_{\text{close}} - s_{\text{trade}}}{10{,}000}
+      \times A_{\text{close}} \times N \times d
+\]
+
+
+% =========================================================================
+\section{EOD Snapshot Structure}
+% =========================================================================
+
+Each snapshot is a self-contained JSON document:
+
+\begin{description}[leftmargin=2em]
+  \item[\texttt{eod\_id}] Unique identifier (e.g.\ \texttt{EOD-20260410}).
+  \item[\texttt{date}] ISO date string.
+  \item[\texttt{market\_state\_snapshot}] Complete yield curve and
+        hazard term structures at market close.
+  \item[\texttt{portfolio\_summary}] Aggregate metrics:
+        \texttt{num\_trades}, \texttt{total\_notional},
+        \texttt{total\_mtm}, \texttt{total\_daily\_pnl},
+        \texttt{total\_running\_pnl}.
+  \item[\texttt{positions}] Per-trade detail: swap ID, gauge, notional,
+        fair spread, MTM, daily P\&L, running P\&L.
+\end{description}
+
+\noindent Snapshots are immutable once written.  They are never updated
+retrospectively.  This ensures the audit trail is reliable.
+
+
+% =========================================================================
+\section{P\&L Time Series}
+% =========================================================================
+
+The EOD tab and Market tab provide three P\&L charts:
+
+\begin{description}[leftmargin=2em]
+  \item[Daily P\&L] A line or bar chart showing each day's total
+        daily P\&L.  Green bars for positive days, red for negative.
+  \item[Cumulative Running P\&L] A line chart tracking the portfolio's
+        total unrealised P\&L over time.  The slope indicates whether
+        the book is trending profitably.
+  \item[Attribution Stacked Bars] Each day's P\&L split into
+        \texttt{new\_trade\_pnl} (blue) and \texttt{market\_pnl}
+        (orange).  Shows whether P\&L is driven by trading activity
+        or by market moves.
+\end{description}
+
+
+% =========================================================================
+\section{Trade Close-Out}
+% =========================================================================
+
+\subsection{Close-Out Process}
+
+A trade is closed by clicking \textbf{Close} on the Blotter row and
+entering a \textbf{negotiated close-out spread} in the modal dialog.
+
+The server:
+\begin{enumerate}
+  \item Recomputes the risky annuity at the current yield curve and
+        remaining tenor.
+  \item Calculates the settlement amount:
+        \[
+          \text{settlement} = \frac{s_{\text{close}} - s_{\text{trade}}}{10{,}000}
+              \times A \times N \times d
+        \]
+  \item Determines settlement direction: positive $=$ receivable
+        (the closer receives cash), negative $=$ payable.
+  \item Sets the settlement date to T$+$2 (two business days).
+  \item Updates the trade JSON with close-out metadata.
+  \item Regenerates the trade PDF with a close-out section.
+\end{enumerate}
+
+\subsection{Realized P\&L}
+
+Once closed, the trade's P\&L is ``realized'' and frozen.  It no longer
+appears in the open blotter but contributes to the portfolio's total
+realized P\&L in EOD summaries.
+
+
+% =========================================================================
+\section{Parameter Reference}
+\label{ch:reference}
+% =========================================================================
+
+\begin{longtable}{p{4.5cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\texttt{DEFAULT\_YIELD\_CURVE} & 3.5--4.5\% &
+  Changes discount factors at EOD &
+  Changes discount factors \\[4pt]
+\texttt{RECOVERY} & 0.0 &
+  Reduces settlement amounts &
+  Full loss (higher settlements) \\[4pt]
+\texttt{SPREAD\_OFFSET} & 3--10 bps &
+  Wider bid-ask at inception &
+  Tighter execution \\[4pt]
+\texttt{NUM\_BUSINESS\_DAYS} & 252 &
+  Annualisation denominator &
+  Affects daily rate conversion \\
+\bottomrule
+\end{longtable}
+
+
+% =========================================================================
+\section*{Document History}
+% =========================================================================
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+\bottomrule
+\end{tabular}
+
+\end{document}

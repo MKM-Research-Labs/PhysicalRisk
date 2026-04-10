@@ -329,15 +329,32 @@ def get_model_analysis_pdf(model_id):
     return send_file(pdf_path, mimetype="application/pdf")
 
 
-@governance_bp.route("/governance/storm-control/guide/pdf", methods=["GET"])
-def get_storm_control_guide_pdf():
-    """Serve the Storm Sequence Control User Guide PDF."""
-    pdf_path = os.path.join(_docs_dir, "storm_control", "storm_control_guide.pdf")
+# ── User guide PDF serving (per-workflow) ──
+
+_USER_GUIDE_PDFS = {
+    "storm-control":        ("storm_control",        "storm_control_guide.pdf"),
+    "gauge-prs-pricing":    ("gauge_prs_pricing",    "gauge_prs_pricing_guide.pdf"),
+    "property-prs-pricing": ("property_prs_pricing", "property_prs_pricing_guide.pdf"),
+    "market-making":        ("market_making",        "market_making_guide.pdf"),
+    "eod-process":          ("eod_process",          "eod_process_guide.pdf"),
+    "stress-testing":       ("stress_testing",       "stress_testing_guide.pdf"),
+}
+
+
+@governance_bp.route("/governance/<guide_key>/guide/pdf", methods=["GET"])
+def get_user_guide_pdf(guide_key):
+    """Serve a workflow user guide PDF."""
+    entry = _USER_GUIDE_PDFS.get(guide_key)
+    if entry is None:
+        return jsonify({"status": "error", "message": f"Unknown guide: {guide_key}"}), 404
+
+    doc_dir, pdf_name = entry
+    pdf_path = os.path.join(_docs_dir, doc_dir, pdf_name)
     if not os.path.isfile(pdf_path):
         return jsonify({
             "status": "error",
-            "message": "Storm control guide PDF not yet generated. "
-                       "Run: make -C docs/models/storm_control/",
+            "message": f"Guide PDF not yet generated. "
+                       f"Run: make -C docs/models/{doc_dir}/",
         }), 404
 
     return send_file(pdf_path, mimetype="application/pdf")

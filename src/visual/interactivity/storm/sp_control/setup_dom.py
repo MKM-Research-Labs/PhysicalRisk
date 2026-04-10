@@ -19,9 +19,12 @@ def get_js() -> str:
                     '<span style="font-size:12px;font-weight:700;color:#333;">Storm Sequence Control</span>' +
                     '<span id="sp-ctrl-dirty" style="font-size:10px;color:#e65100;font-weight:600;display:none;">Unsaved changes</span>' +
                     '<span style="flex:1;"></span>' +
-                    '<button id="sp-ctrl-guide-btn" onclick="openControlGuide()" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">User Guide</button>' +
-                    '<button id="sp-ctrl-reset-btn" onclick="resetControlData()" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #999;border-radius:3px;background:#f5f5f5;color:#555;cursor:pointer;">Reset Defaults</button>' +
-                    '<button id="sp-ctrl-save-btn" onclick="saveControlData()" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#1565c0;color:white;cursor:pointer;">Save &amp; Apply</button>';
+                    '<button id="sp-ctrl-guide-btn" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">User Guide</button>' +
+                    '<button id="sp-ctrl-reset-btn" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #999;border-radius:3px;background:#f5f5f5;color:#555;cursor:pointer;">Reset Defaults</button>' +
+                    '<button id="sp-ctrl-save-btn" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#1565c0;color:white;cursor:pointer;">Save &amp; Apply</button>';
+                toolbar.querySelector('#sp-ctrl-guide-btn').onclick = function() { openControlGuide(); };
+                toolbar.querySelector('#sp-ctrl-reset-btn').onclick = function() { resetControlData(); };
+                toolbar.querySelector('#sp-ctrl-save-btn').onclick = function() { saveControlData(); };
                 view.appendChild(toolbar);
 
                 // Scrollable body
@@ -66,6 +69,14 @@ def get_js() -> str:
                     panel.appendChild(header);
                     panel.appendChild(content);
                     body.appendChild(panel);
+                });
+
+                // Event delegation: any input change inside the body marks dirty
+                body.addEventListener('input', function(e) {
+                    if (e.target && e.target.hasAttribute('data-ctrl-key')) ctrlMarkDirty();
+                });
+                body.addEventListener('change', function(e) {
+                    if (e.target && e.target.hasAttribute('data-ctrl-key')) ctrlMarkDirty();
                 });
 
                 view.appendChild(body);
@@ -113,11 +124,11 @@ def get_js() -> str:
                 if (type === 'checkbox') {
                     html += '<input type="checkbox" data-ctrl-key="' + key + '" ' +
                         (value ? 'checked ' : '') +
-                        'onchange="ctrlMarkDirty()" style="margin:0;">';
+                        'style="margin:0;">';
                 } else {
                     html += '<input type="number" data-ctrl-key="' + key + '" value="' + value + '" ' +
                         'step="' + step + '" ' +
-                        'oninput="ctrlMarkDirty()" ' +
+                        '' +
                         'style="width:100px;padding:3px 6px;font-size:11px;border:1px solid #ccc;border-radius:3px;font-family:monospace;">';
                 }
                 html += '</div>';
@@ -137,7 +148,7 @@ def get_js() -> str:
                             '<span style="font-size:9px;color:#888;display:block;">' + k + '</span>';
                         v.forEach(function(elem, i) {
                             html += '<input type="number" data-ctrl-key="' + key + '.' + k + '.' + i + '" value="' + elem + '" ' +
-                                'step="0.01" oninput="ctrlMarkDirty()" ' +
+                                'step="0.01" ' +
                                 'style="width:55px;padding:2px 4px;font-size:10px;border:1px solid #ccc;border-radius:2px;font-family:monospace;margin:1px;">';
                         });
                         html += '</div>';
@@ -145,7 +156,7 @@ def get_js() -> str:
                         html += '<div style="border:1px solid #eee;border-radius:3px;padding:4px 6px;background:#fafafa;">' +
                             '<span style="font-size:9px;color:#888;display:block;">' + k + '</span>' +
                             '<input type="number" data-ctrl-key="' + key + '.' + k + '" value="' + v + '" ' +
-                            'step="0.01" oninput="ctrlMarkDirty()" ' +
+                            'step="0.01" ' +
                             'style="width:65px;padding:2px 4px;font-size:10px;border:1px solid #ccc;border-radius:2px;font-family:monospace;">' +
                             '</div>';
                     }
@@ -162,7 +173,7 @@ def get_js() -> str:
                     '<div style="display:flex;gap:4px;">';
                 arr.forEach(function(v, i) {
                     html += '<input type="number" data-ctrl-key="' + key + '.' + i + '" value="' + v + '" ' +
-                        'step="0.01" oninput="ctrlMarkDirty()" ' +
+                        'step="0.01" ' +
                         'style="width:55px;padding:2px 4px;font-size:10px;border:1px solid #ccc;border-radius:2px;font-family:monospace;">';
                 });
                 html += '</div></div>';

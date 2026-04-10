@@ -1,0 +1,359 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Stress Testing}
+\newcommand{\docsubtitle}{User Guide --- CDS-in-Stress, Flood Classifiers \& Portfolio Scenarios}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{10-April-2026}
+\newcommand{\docauthor}{MKM Research Labs}
+
+\input{../shared/mkm_header}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+Stress testing answers the question: \emph{what would happen to our
+PRS positions if a specific storm hit the catchment?}
+
+The platform uses its catalogue of 20,000 synthetic storm sequences to
+run hourly scenarios.  For each hour of a 168-hour storm, the system
+computes the gauge water level, the probability of flooding, and the
+resulting P\&L impact on every affected trade.  This produces a
+time-resolved view of how the portfolio behaves under stress.
+
+\subsection{CDS-in-Stress Concept}
+
+In normal mark-to-market, PRS positions are valued using CDS-style
+analytics (hazard rate $\to$ fair spread $\to$ MTM).  Under stress,
+the position transitions from a credit instrument to a
+\textbf{cash-settled physical payout}:
+
+\[
+  \text{cash price} = N \times P(\text{flood}) \times d
+\]
+
+\noindent where $N$ is the notional, $P(\text{flood})$ is the real-time
+flood probability, and $d$ is the direction (+1 payer, $-$1 receiver).
+The stress P\&L is the difference between this cash price and the
+normal-market MTM.
+
+
+% =========================================================================
+\section{Gauge-Level Stress}
+% =========================================================================
+
+\subsection{Workflow}
+
+\begin{enumerate}
+  \item \textbf{Select a gauge} from the dropdown.  Only gauges with
+        open trades are shown.
+  \item \textbf{Select a storm} from the catalogue.  The list shows
+        storms that breached alert level at this gauge, sorted by
+        severity (catastrophic first).
+  \item \textbf{Run the scenario.}  The server computes the hourly
+        P\&L trajectory over 168 hours.
+\end{enumerate}
+
+\subsection{What the Charts Show}
+
+The stress tab displays three sub-charts:
+
+\begin{description}[leftmargin=2em]
+  \item[Flood Probability] A line chart of $P(\text{flood})$ vs.\
+        hour.  Shows how the probability rises as water level
+        approaches the trigger threshold, peaks, and then recedes.
+  \item[Stress P\&L] A line chart of portfolio stress P\&L vs.\ hour.
+        Shows the accumulated cash-price impact of the storm.
+  \item[Probability Surface] A 3D surface of $P(\text{flood})$ vs.\
+        water level vs.\ hour.  Useful for understanding how
+        sensitivity changes at different water levels.
+\end{description}
+
+
+% =========================================================================
+\section{The Hourly Scenario}
+% =========================================================================
+
+For each hour $h$ in the 168-hour window:
+
+\begin{enumerate}
+  \item \textbf{Water level} $w_h$ is read from the storm's gauge
+        response hydrograph (pre-computed from the storm catalogue).
+  \item \textbf{Flood probability} $p_h = f(w_h, h)$ is computed
+        using either a trained GBM classifier or the analytical flood
+        polynomial.
+  \item \textbf{Cash price} per trade: $C_h = N \times p_h \times d$.
+  \item \textbf{Stress P\&L} per trade: $\Pi_h = C_h - \text{MTM}$.
+  \item \textbf{Portfolio stress P\&L}: $\sum \Pi_h$ across all
+        affected trades.
+\end{enumerate}
+
+\subsection{Knock-Out Behaviour}
+
+When the water level exceeds a trade's trigger threshold:
+\begin{itemize}
+  \item The trade ``knocks out'' --- the protection buyer receives
+        full notional.
+  \item $P(\text{flood}) = 1.0$ from the knock-out hour onward.
+  \item Stress P\&L jumps to $N - \text{MTM}$ (full notional minus
+        the original mark).
+  \item The trade is no longer re-priced in subsequent hours.
+\end{itemize}
+
+\noindent In the chart, the P\&L line flattens after knock-out because
+no further P\&L change can occur.
+
+\subsection{Hydrograph Source}
+
+The hourly water levels come from the gauge response stored in
+\texttt{gaugets/\{gauge\_id\}.json}.  The storm's \texttt{peak\_level\_m}
+and duration are used to scale the hydrograph template.  If the gauge
+time series is not available, the system falls back to a flat hydrograph
+(constant water level for 168 hours).
+
+
+% =========================================================================
+\section{Flood Probability Models}
+% =========================================================================
+
+Two models can compute $P(\text{flood})$.  The classifier is preferred
+when available because it captures non-linear effects.
+
+\subsection{GBM Classifier (Preferred)}
+
+A \textbf{Gradient Boosting Machine} trained per gauge using historical
+storm simulations.  The model takes four features:
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Feature} & \textbf{Description} \\
+\midrule
+\texttt{log\_h\_s} & Log of water level relative to severe threshold:
+  $\ln(w / w_{\text{severe}} + \varepsilon)$ \\
+\texttt{log\_t\_end} & Log of time remaining in the 168-hour window:
+  $\ln(168 - h + \varepsilon)$ \\
+\texttt{delta\_log\_h} & First derivative of log water level
+  (rate of rise/fall) \\
+\texttt{delta2\_log\_h} & Second derivative (acceleration of
+  rise/fall) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The classifier outputs a probability in $[0, 1]$.  It is
+more accurate than the polynomial model because it learns the
+non-linear relationship between water level dynamics and flood
+outcomes from the Monte Carlo data.
+
+\subsection{Analytical Flood Polynomial (Fallback)}
+
+When no classifier is trained for a gauge, the system uses a
+polynomial approximation:
+
+\[
+  P(\text{flood}) = \sigma\!\left(
+    a_0 + a_1 \frac{w}{w_s} + a_2 \left(\frac{w}{w_s}\right)^2
+    + a_3 \frac{h}{168}
+  \right)
+\]
+
+\noindent where $\sigma$ is the logistic sigmoid and the coefficients
+are calibrated to the Thames.  This model is smooth but cannot capture
+the non-linear dynamics learned by the classifier.
+
+\subsection{When to Use Which}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+& \textbf{GBM Classifier} & \textbf{Flood Polynomial} \\
+\midrule
+Accuracy     & Higher (trained on data) & Lower (generic fit) \\
+Availability & Requires training        & Always available \\
+Speed        & Fast (tree lookup)       & Instant (formula) \\
+Per-gauge    & Yes (gauge-specific)     & No (one model for all) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+% =========================================================================
+\section{Portfolio-Level Stress}
+% =========================================================================
+
+The Portfolio Stress tab runs a single storm across \textbf{all gauges}
+simultaneously, computing the aggregate impact.
+
+\subsection{Workflow}
+
+\begin{enumerate}
+  \item The tab lists all storms in the catalogue, sorted by the
+        number of gauges that breached severe (most impactful first).
+  \item Select a storm.
+  \item The server runs the scenario for every gauge that has open
+        trades and returns per-gauge results.
+\end{enumerate}
+
+\subsection{Output}
+
+For each gauge, the response includes:
+\begin{itemize}
+  \item Peak water level and threshold classification (alert,
+        warning, severe, or clean).
+  \item $P(\text{flood})$ at peak.
+  \item Stress P\&L contribution.
+  \item Number of affected trades.
+  \item Full 168-hour hydrograph.
+\end{itemize}
+
+\noindent The portfolio summary shows:
+\begin{itemize}
+  \item Total stress P\&L across all gauges.
+  \item Number of gauges at each severity level.
+  \item Worst-hit gauge and its contribution.
+\end{itemize}
+
+\subsection{Drill-Down}
+
+Clicking a gauge in the portfolio stress results switches to the
+Stress tab (single gauge) and pre-selects that gauge and storm,
+allowing detailed hourly analysis.
+
+
+% =========================================================================
+\section{Probability Surface}
+% =========================================================================
+
+The probability surface is a 3D visualisation of $P(\text{flood})$ as
+a function of water level and hour.  It is generated by evaluating the
+classifier (or polynomial) across a grid of water levels and time
+points.
+
+\subsection{How to Read It}
+
+\begin{itemize}
+  \item The x-axis is time (0--168 hours).
+  \item The y-axis is water level (metres).
+  \item The z-axis (colour) is $P(\text{flood})$.
+  \item The actual storm trajectory is a path across this surface.
+\end{itemize}
+
+\noindent The surface reveals the classifier's learned behaviour:
+\begin{itemize}
+  \item At low water levels, $P(\text{flood}) \approx 0$ regardless
+        of hour.
+  \item At high water levels, $P(\text{flood}) \approx 1$ regardless
+        of hour.
+  \item The transition zone (e.g.\ 0.2--0.8 probability) is where
+        the storm's trajectory determines the outcome.
+  \item Late in the window (hour 140+), the probability decreases
+        because there is insufficient time for a full flood event to
+        develop.
+\end{itemize}
+
+
+% =========================================================================
+\section{Classifier Training}
+% =========================================================================
+
+\subsection{Training a Classifier}
+
+To train a GBM classifier for a gauge:
+\begin{enumerate}
+  \item Navigate to the Classifiers tab.
+  \item Select the gauge.
+  \item Click \textbf{Train}.  The system builds a feature matrix from
+        all storm scenarios at this gauge and trains a GBM model.
+  \item Training typically takes 10--60 seconds per gauge.
+  \item The trained model is saved as a \texttt{.joblib} file in
+        \texttt{classifiers/\{gauge\_id\}.joblib}.
+\end{enumerate}
+
+\subsection{Batch Training}
+
+The \textbf{Train All} button trains classifiers for all gauges with
+sufficient historical data.  This is an asynchronous job; progress is
+shown in the UI.
+
+\subsection{AUC Metric}
+
+After training, the classifier's quality is measured by the
+\textbf{Area Under the ROC Curve} (AUC):
+\begin{description}[leftmargin=2em]
+  \item[$> 0.95$] Excellent --- very reliable flood probability
+        estimates.
+  \item[$0.85$--$0.95$] Good --- reliable for stress testing.
+  \item[$< 0.85$] Fair --- consider retraining with more data or
+        using the polynomial fallback.
+\end{description}
+
+\subsection{When to Retrain}
+
+Classifiers should be retrained when:
+\begin{itemize}
+  \item The storm catalogue is regenerated (new storm control
+        parameters).
+  \item Gauge hazard data is updated.
+  \item The AUC drops below 0.85 (indicates the model is stale).
+\end{itemize}
+
+
+% =========================================================================
+\section{Parameter Reference}
+\label{ch:reference}
+% =========================================================================
+
+\begin{longtable}{p{4.8cm}rp{3.2cm}p{3.2cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{STRESS\_STORMS\_MIN\_COUNT} & 50 &
+  Excludes gauges with few storms &
+  Includes more gauges \\[4pt]
+\texttt{STORM\_DEFAULT\_DURATION} & 168\,h &
+  Longer fallback hydrograph &
+  Shorter fallback \\[4pt]
+\texttt{DEFAULT\_PEAK\_POSITION} & 0.5 &
+  Late peak (delayed climax) &
+  Early peak (front-loaded) \\[4pt]
+\texttt{LOG\_END} & 168.0 &
+  Classifier feature scaling &
+  Narrower time window \\[4pt]
+\texttt{LOG\_EPS} & $10^{-8}$ &
+  Less numerical sensitivity &
+  More sensitivity at zero \\[4pt]
+\texttt{BUMP\_1BP} & 0.0001 &
+  Larger sensitivity step &
+  Finer stress resolution \\
+\bottomrule
+\end{longtable}
+
+
+% =========================================================================
+\section*{Document History}
+% =========================================================================
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+\bottomrule
+\end{tabular}
+
+\end{document}

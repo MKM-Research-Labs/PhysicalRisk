@@ -1,0 +1,276 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Market-Making Workflow}
+\newcommand{\docsubtitle}{User Guide --- Curve Management, Revaluation \& Risk}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{10-April-2026}
+\newcommand{\docauthor}{MKM Research Labs}
+
+\input{../shared/mkm_header}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+
+% =========================================================================
+\section{Introduction}
+% =========================================================================
+
+The operator acts as a market-maker for Physical Risk Swaps, expressing
+views on flood risk by adjusting hazard curves and yield curves.  When a
+curve is committed, every open trade is revalued and the portfolio P\&L
+updates in real time.
+
+This guide explains the market-making cycle: how curves are edited, how
+revaluation works, and how the trading desk tabs connect.
+
+
+% =========================================================================
+\section{Market State}
+% =========================================================================
+
+The \textbf{market state} is the complete set of inputs required to
+value every open PRS trade.  It consists of:
+
+\begin{description}[leftmargin=2em]
+  \item[Yield Curve] A term structure of risk-free rates (1Y--6Y),
+        used for discounting cashflows.  Stored as continuously
+        compounded annual rates.
+  \item[Hazard Term Structure] Per-gauge, per-trigger-level hazard
+        rates across tenors (1Y--5Y).  Drives the fair spread for
+        each trade.
+  \item[Risk-Free Rate] A scalar fallback rate (default 4\%) used when
+        the yield curve is not available.
+  \item[Base Rates] Immutable reference hazard rates loaded from the
+        gauge hazard curve file (\texttt{gaugehc.json}).
+\end{description}
+
+\subsection{Persistence}
+
+The market state is persisted to \texttt{trading/market\_state.json}.
+Each edit updates this file.  The state survives server restarts and
+is captured in every EOD snapshot.
+
+\subsection{Reset}
+
+The operator can reset the market state to base curves at any time ---
+either for a single gauge or for the entire portfolio.  This reverts
+all adjustments and revalues trades at the original hazard rates.
+
+
+% =========================================================================
+\section{Yield Curve Management}
+% =========================================================================
+
+The yield curve panel (Market tab, ``Yield'' mode) displays the current
+term structure and allows point-by-point editing.
+
+\subsection{Editing}
+
+Each tenor point (1Y, 2Y, 3Y, 4Y, 5Y, 6Y) can be adjusted by:
+\begin{itemize}
+  \item Dragging the chart control point up or down
+  \item Typing a new rate in the input field
+\end{itemize}
+
+\noindent Edits are local until committed.  A ``dirty'' indicator shows
+that unsaved changes exist.
+
+\subsection{Commit Workflow}
+
+Clicking \textbf{Commit} triggers:
+\begin{enumerate}
+  \item \textbf{Snapshot before}: All open trades are valued at the
+        current yield curve.
+  \item \textbf{Write curve}: The new yield curve is saved to
+        \texttt{market\_state.json}.
+  \item \textbf{Revalue all}: Every trade is repriced with the new
+        discount factors.  Fair spreads, MTMs, and deltas update.
+  \item \textbf{P\&L impact}: The server calculates
+        $\Delta\text{MTM} = \text{MTM}_{\text{after}} - \text{MTM}_{\text{before}}$
+        for each trade and returns a portfolio-level summary.
+  \item \textbf{Blotter refresh}: The UI switches to the Blotter tab,
+        which now shows updated P\&L columns.
+\end{enumerate}
+
+\subsection{Impact of Yield Curve Changes}
+
+A parallel upward shift in the yield curve:
+\begin{itemize}
+  \item Increases discount factors, reducing the present value of
+        future cashflows.
+  \item Reduces the risky annuity $A$, which increases the fair
+        spread (same protection PV divided by smaller annuity).
+  \item Net effect on MTM depends on whether the trade is payer or
+        receiver and the magnitude of the shift.
+\end{itemize}
+
+\noindent A typical 50\,bp parallel shift moves fair spreads by
+1--3\,bps.
+
+
+% =========================================================================
+\section{Hazard Term Structure}
+% =========================================================================
+
+The hazard curve panel (Market tab, gauge mode) shows the current
+hazard term structure for a selected gauge and trigger level.
+
+\subsection{Three Trigger Levels}
+
+Each gauge has three independent hazard term structures:
+\begin{description}[leftmargin=2em]
+  \item[Alert] Lowest threshold --- highest annual probability.
+  \item[Warning] Intermediate threshold.
+  \item[Severe] Highest threshold --- lowest annual probability but
+        largest potential loss.
+\end{description}
+
+\noindent PRS trades currently reference the severe trigger level, but
+the platform supports all three for research and scenario analysis.
+
+\subsection{Curve Shapes}
+
+The operator can express different views by reshaping the curve:
+\begin{description}[leftmargin=2em]
+  \item[Parallel shift] All tenors move by the same amount.
+        Expresses a view that flood risk has uniformly increased
+        or decreased.
+  \item[Steepening] Long-end rates rise relative to the short end.
+        Suggests that near-term risk is stable but long-term risk
+        is increasing (e.g.\ climate change effects).
+  \item[Flattening] Short-end rates rise relative to the long end.
+        Suggests imminent risk but long-term improvement (e.g.\
+        flood defences under construction).
+  \item[Inversion] Short-end exceeds long-end.  Unusual but could
+        reflect a known near-term event.
+\end{description}
+
+\subsection{Commit and Revaluation}
+
+The commit workflow for hazard curves is identical to the yield curve:
+snapshot before, write, revalue, P\&L impact, blotter refresh.  The
+difference is that hazard changes only affect trades referencing the
+edited gauge, whereas yield curve changes affect all trades.
+
+
+% =========================================================================
+\section{Revaluation Cycle}
+% =========================================================================
+
+The full revaluation cycle runs every time a curve is committed.  The
+engine performs these steps for each open trade:
+
+\begin{enumerate}
+  \item \textbf{Interpolate hazard rate} from the gauge's term
+        structure at the trade's remaining tenor.
+  \item \textbf{Compute fair spread} via the CDS pricing formula
+        (see Gauge PRS Pricing Guide).
+  \item \textbf{Compute risky annuity} for the remaining tenor.
+  \item \textbf{Compute MTM}: $(s_{\text{fair}} - s_{\text{trade}})
+        / 10{,}000 \times A \times N \times d$.
+  \item \textbf{Compute FS01}: bump hazard rate by 1\,bp, recompute
+        spread, derive sensitivity.
+\end{enumerate}
+
+\noindent The revaluation is instantaneous for the typical portfolio
+size (10--50 trades).
+
+
+% =========================================================================
+\section{Cross-Tab Navigation}
+% =========================================================================
+
+The trading desk tabs are designed to flow naturally:
+
+\begin{description}[leftmargin=2em]
+  \item[Market $\to$ Blotter] After committing a curve change, the UI
+        auto-switches to the Blotter to show updated P\&L.
+  \item[FS01 $\to$ Blotter] Clicking a cell in the FS01 risk matrix
+        (gauge $\times$ maturity) filters the Blotter to show only
+        trades for that gauge at that tenor.
+  \item[Blotter $\to$ Stress] The Blotter's gauge filter carries
+        forward as a hint when switching to the Stress tab, pre-selecting
+        the gauge.
+  \item[Market $\to$ History] The ``History'' button shows a modal
+        with the gauge's hazard rates over all EOD dates, plotted as
+        five tenor lines.
+  \item[Market $\to$ P\&L History] The ``PL Hist'' button shows a
+        modal with portfolio daily P\&L and attribution.
+\end{description}
+
+
+% =========================================================================
+\section{Curve History}
+% =========================================================================
+
+Every EOD snapshot captures the complete market state, including the
+yield curve and all hazard term structures.  The Curves tab extracts
+this history and plots it as time series.
+
+For a given gauge and trigger level, the chart shows five lines
+(1Y through 5Y hazard rates) evolving over all EOD dates.  This
+reveals:
+\begin{itemize}
+  \item Whether the operator has been systematically tightening or
+        widening spreads.
+  \item Seasonal patterns in hazard adjustment.
+  \item Sudden jumps (e.g.\ after a flood event or a new storm
+        catalogue generation).
+\end{itemize}
+
+
+% =========================================================================
+\section{Parameter Reference}
+\label{ch:reference}
+% =========================================================================
+
+\begin{longtable}{p{4.5cm}rp{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Increase} & \textbf{Decrease} \\
+\midrule
+\endhead
+\texttt{DEFAULT\_YIELD\_CURVE} & 3.5--4.5\% &
+  Lower PV of cashflows, higher spreads &
+  Higher PV, lower spreads \\[4pt]
+\texttt{MAX\_TOTAL\_MOVE} & varies &
+  Allows larger curve adjustments &
+  Constrains editing range \\[4pt]
+\texttt{DAILY\_HAZARD\_VOL} & varies &
+  Wider daily hazard rate moves &
+  Tighter daily moves \\[4pt]
+\texttt{NUM\_BUSINESS\_DAYS} & 252 &
+  More trading days in annualisation &
+  Fewer trading days \\[4pt]
+\texttt{BUMP\_1BP} & 0.0001 &
+  Larger FS01 bump &
+  Finer sensitivity \\[4pt]
+\texttt{RECOVERY} & 0.0 &
+  Reduces protection value &
+  Full loss on event \\
+\bottomrule
+\end{longtable}
+
+
+% =========================================================================
+\section*{Document History}
+% =========================================================================
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+\bottomrule
+\end{tabular}
+
+\end{document}
