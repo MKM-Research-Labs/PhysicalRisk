@@ -3,7 +3,7 @@
 import json
 import pytest
 
-from src.reports.port.generator import PortReportGenerator
+from reports.port.generator import PortReportGenerator
 
 
 # ---------------------------------------------------------------------------

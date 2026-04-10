@@ -5,7 +5,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from src.reports.port.data_loader import DataLoaderMixin, _count_dir, _load
+from reports.port.data_loader import DataLoaderMixin, _count_dir, _load
 
 
 # ---------------------------------------------------------------------------

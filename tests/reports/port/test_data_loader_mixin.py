@@ -4,7 +4,7 @@ import json
 import pytest
 from unittest.mock import patch
 
-from src.reports.port.data_loader import DataLoaderMixin
+from reports.port.data_loader import DataLoaderMixin
 
 from .test_data_loader_primitives import (
     _LoaderHelper,
@@ -20,7 +20,7 @@ from .test_data_loader_primitives import (
 class TestLoadAll:
     def test_loads_gauges(self, input_dir):
         loader = _LoaderHelper(input_dir)
-        with patch('src.reports.port.data_loader.DataLoaderMixin._load_all',
+        with patch('reports.port.data_loader.DataLoaderMixin._load_all',
                    wraps=loader._load_all):
             data = loader._load_all()
         assert len(data['gauges']) == 2
