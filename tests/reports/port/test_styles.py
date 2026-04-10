@@ -6,7 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Table
 
-from src.reports.port.styles import (
+from reports.port.styles import (
     ALT_ROWS_AMBER,
     ALT_ROWS_BLUE,
     ALT_ROWS_GREEN,

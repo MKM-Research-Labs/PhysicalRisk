@@ -5,7 +5,7 @@ import json
 import pytest
 from reportlab.platypus import Paragraph, Spacer, Table, PageBreak
 
-from src.reports.port.prs_report import PRSPortfolioReport
+from reports.port.prs_report import PRSPortfolioReport
 
 
 # ---------------------------------------------------------------------------
@@ -116,10 +116,10 @@ class TestInit:
         fake_config = types.SimpleNamespace(
             get_output_dir=lambda: fake_out,
         )
-        monkeypatch.setattr('src.reports.port.prs_report.config', fake_config,
+        monkeypatch.setattr('reports.port.prs_report.config', fake_config,
                             raising=False)
         # Need to patch the import inside __init__
-        import src.reports.port.prs_report as mod
+        import reports.port.prs_report as mod
         orig_init = mod.PRSPortfolioReport.__init__
 
         def patched_init(self, input_dir, output_path=None):

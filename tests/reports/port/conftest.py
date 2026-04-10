@@ -4,9 +4,9 @@ import pytest
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, Table
 
-from src.reports.port.sections import AnalysisSectionsMixin
-from src.reports.port.sections_portfolio import PortfolioSectionsMixin
-from src.reports.port.styles import StylesMixin
+from reports.port.sections import AnalysisSectionsMixin
+from reports.port.sections_portfolio import PortfolioSectionsMixin
+from reports.port.styles import StylesMixin
 
 
 # ---------------------------------------------------------------------------

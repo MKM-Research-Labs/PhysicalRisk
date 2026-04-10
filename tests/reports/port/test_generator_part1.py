@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from src.reports.port.generator import PortReportGenerator
+from reports.port.generator import PortReportGenerator
 
 
 # ---------------------------------------------------------------------------
