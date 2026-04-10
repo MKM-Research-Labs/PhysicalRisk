@@ -8,6 +8,7 @@ pre-navigated to the map, and tears everything down after the session.
 """
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -37,6 +38,30 @@ from tests.e2e._helpers import (
     td_open_trading_desk,
     td_close_trading_desk,
 )
+
+
+# ---------------------------------------------------------------------------
+# Guard mutable data files against E2E mutation
+# ---------------------------------------------------------------------------
+
+_MRC_PATH = ROOT / "data" / "mrc_meetings.json"
+_MRC_BACKUP = ROOT / "data" / ".mrc_meetings.json.bak"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _protect_mrc_meetings():
+    """Snapshot mrc_meetings.json before E2E tests and restore afterwards.
+
+    E2E CRUD tests (add/delete agenda items, decisions, actions, participants)
+    mutate the live file via the running Flask server.  Without this guard
+    the file drifts on every run, causing flaky failures in subsequent runs.
+    """
+    if _MRC_PATH.exists():
+        shutil.copy2(_MRC_PATH, _MRC_BACKUP)
+    yield
+    if _MRC_BACKUP.exists():
+        shutil.copy2(_MRC_BACKUP, _MRC_PATH)
+        _MRC_BACKUP.unlink()
 
 
 # ---------------------------------------------------------------------------

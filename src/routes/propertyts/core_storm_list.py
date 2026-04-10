@@ -154,6 +154,7 @@ def list_flood_storms():
             else:
                 cat = 'baseline'
             entry['intensity_category'] = cat
+            entry['name'] = cat.capitalize()
 
     # Enrich with property flooding data
     pts_dir = _get_propertyts_dir()

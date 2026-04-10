@@ -203,9 +203,9 @@ def portfolio_impact(storm_id: str):
             if event.get('storm_id') != storm_id:
                 continue
             if not is_prs_flood(event):
-                break  # not a PRS-countable flood (sub-severe or no depth)
+                continue  # not a PRS-countable flood (sub-severe or no depth)
             if prop_id not in prop_values:
-                break  # no valuation data for this property
+                continue  # no valuation data for this property
             properties.append(_build_property_entry(
                 prop_id,
                 event['flood_depth_m'],
