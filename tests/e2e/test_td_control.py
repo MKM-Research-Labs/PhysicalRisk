@@ -46,7 +46,6 @@ def _open_storm_portfolio(page):
     page.locator("#storm-portfolio-panel").wait_for(
         state="visible", timeout=10_000
     )
-    page.wait_for_timeout(3_000)
 
 
 def _close_storm_portfolio(page):
@@ -69,7 +68,9 @@ class TestControlTab:
         _close_all_panels(map_page)
         _open_storm_portfolio(map_page)
         map_page.locator("#sp-tab-control").click(force=True)
-        map_page.wait_for_timeout(3_000)
+        map_page.locator("#sp-control-view").wait_for(
+            state="attached", timeout=10_000
+        )
         yield
         _close_storm_portfolio(map_page)
 
@@ -151,12 +152,12 @@ class TestControlTab:
 
         # Click the header to collapse
         arrow.locator("..").click()
-        map_page.wait_for_timeout(500)
+        sec.wait_for(state="hidden", timeout=3_000)
         assert not sec.is_visible(), "Section should be hidden after collapse"
 
         # Click again to expand
         arrow.locator("..").click()
-        map_page.wait_for_timeout(500)
+        sec.wait_for(state="visible", timeout=3_000)
         assert sec.is_visible(), "Section should be visible after expand"
 
     def test_input_change_marks_dirty(self, map_page):
@@ -167,7 +168,7 @@ class TestControlTab:
         # Find first number input and change its value
         first_input = map_page.locator("input[data-ctrl-key][type='number']").first
         first_input.fill("999")
-        map_page.wait_for_timeout(500)
+        ind.wait_for(state="visible", timeout=3_000)
         assert ind.is_visible(), "Dirty indicator should appear after input change"
 
     def test_save_button_persists_and_clears_dirty(self, map_page):
@@ -178,13 +179,13 @@ class TestControlTab:
         first_input = map_page.locator("input[data-ctrl-key][type='number']").first
         original_value = first_input.input_value()
         first_input.fill("999")
-        map_page.wait_for_timeout(500)
+        ind.wait_for(state="visible", timeout=3_000)
         assert ind.is_visible(), "Should be dirty after change"
 
         # Click Save
         save_btn = map_page.locator("#sp-ctrl-save-btn")
         save_btn.click()
-        map_page.wait_for_timeout(2_000)
+        ind.wait_for(state="hidden", timeout=5_000)
 
         # Dirty indicator should clear after successful save
         assert not ind.is_visible(), "Dirty should clear after save"
@@ -199,7 +200,7 @@ class TestControlTab:
         # Restore original value
         first_input.fill(original_value)
         save_btn.click()
-        map_page.wait_for_timeout(1_000)
+        ind.wait_for(state="hidden", timeout=5_000)
 
     def test_reset_button_reverts_to_defaults(self, map_page):
         """Reset button should revert all values to Python defaults."""
@@ -220,12 +221,16 @@ class TestControlTab:
         if ew_input.count() > 0:
             ew_input.fill("120")
             map_page.locator("#sp-ctrl-save-btn").click()
-            map_page.wait_for_timeout(1_500)
+            map_page.locator("#sp-ctrl-dirty").wait_for(
+                state="hidden", timeout=5_000
+            )
 
             # Accept the confirm dialog and click reset
             map_page.on("dialog", lambda d: d.accept())
             map_page.locator("#sp-ctrl-reset-btn").click()
-            map_page.wait_for_timeout(2_000)
+            map_page.locator("#sp-ctrl-dirty").wait_for(
+                state="hidden", timeout=5_000
+            )
 
             # Verify the value is back to the original
             new_value = ew_input.input_value()
@@ -260,7 +265,7 @@ class TestControlTab:
         icon = tip.locator("xpath=preceding-sibling::span").first
         if icon.count() > 0:
             icon.hover()
-            map_page.wait_for_timeout(300)
+            tip.wait_for(state="visible", timeout=2_000)
             assert tip.is_visible(), "Tooltip should appear on hover"
 
 

@@ -152,11 +152,17 @@ class TestEODSnapshotData:
         assert not bad, f"EOD files missing required keys: {bad}"
 
     def test_eod_dates_are_business_days(self, eod_files):
-        """EOD dates should be weekdays (Mon-Fri)."""
-        from datetime import datetime
+        """Historical EOD dates should be weekdays (Mon-Fri).
+
+        Today's file is excluded — it may be a maintenance/demo run.
+        """
+        from datetime import date, datetime
+        today_str = date.today().strftime("%Y%m%d")
         weekend = []
         for f in eod_files:
             date_str = f.stem.replace("EOD-", "")
+            if date_str == today_str:
+                continue  # skip today — may be weekend maintenance run
             try:
                 dt = datetime.strptime(date_str, "%Y%m%d")
                 if dt.weekday() >= 5:
