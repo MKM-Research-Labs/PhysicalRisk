@@ -1,0 +1,22 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Why PRS Exists}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Gauge vs.\ Property PRS}{3}{subsection.1.2}%
+\contentsline {section}{\numberline {2}From Hazard Rate to Fair Spread}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Annual Probability to Continuous Hazard Rate}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Survival Probability}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Risky Annuity}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Protection Leg}{4}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Fair Spread}{4}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Worked Example}{4}{subsection.2.6}%
+\contentsline {section}{\numberline {3}Trade Structure}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Payer vs.\ Receiver}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Key Terms}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Trigger Levels}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Yield Curve}{5}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Greeks \& Sensitivity}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}FS01 --- Flood Sensitivity}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Risky Annuity as DV01}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Direction Convention}{6}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Mark-to-Market}{7}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Worked Example: Day 1 to Day 2}{7}{subsection.5.1}%
+\contentsline {section}{\numberline {6}Parameter Reference}{7}{section.6}%
