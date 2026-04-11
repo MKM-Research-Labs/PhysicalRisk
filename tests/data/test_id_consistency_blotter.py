@@ -4,6 +4,7 @@
 
 import json
 import re
+import time
 from pathlib import Path
 
 import pytest
@@ -90,11 +91,31 @@ class TestTradeMarksConsistency:
         prop_pdfs = {s for s in all_pdfs if s.startswith('PRS-P')}
         gauge_pdfs = all_pdfs - prop_pdfs
 
-        # Check gauge trade pairs
-        g_json_only = gauge_jsons - gauge_pdfs
+        # Exclude recently-committed trades (< 24h) — PDF may not exist
+        # until the next port --blotter run.
+        import warnings
+        grace_period = 86_400  # 24 hours
+        now = time.time()
+        recent_gauge = set()
+        recent_prop = set()
+        for stem in gauge_jsons | prop_jsons:
+            json_path = PRS_DIR / f"{stem}.json"
+            if json_path.exists() and (now - json_path.stat().st_mtime) < grace_period:
+                if stem in gauge_jsons:
+                    recent_gauge.add(stem)
+                else:
+                    recent_prop.add(stem)
+        if recent_gauge or recent_prop:
+            warnings.warn(
+                f"{len(recent_gauge) + len(recent_prop)} recent trade(s) "
+                f"excluded from PDF-pair check (< 24h old): "
+                f"{sorted(recent_gauge | recent_prop)[:5]}"
+            )
+
+        # Check gauge trade pairs (excluding recent)
+        g_json_only = (gauge_jsons - recent_gauge) - gauge_pdfs
         g_pdf_only = gauge_pdfs - gauge_jsons
         if g_pdf_only:
-            import warnings
             warnings.warn(
                 f"{len(g_pdf_only)} orphaned gauge PDFs without JSON: "
                 f"{sorted(g_pdf_only)[:5]}"
@@ -104,8 +125,8 @@ class TestTradeMarksConsistency:
             f"Gauge PDF without JSON: {sorted(g_pdf_only)[:5]}"
         )
 
-        # Check property trade pairs
-        p_json_only = prop_jsons - prop_pdfs
+        # Check property trade pairs (excluding recent)
+        p_json_only = (prop_jsons - recent_prop) - prop_pdfs
         p_pdf_only = prop_pdfs - prop_jsons
         assert len(p_json_only) == 0 and len(p_pdf_only) == 0, (
             f"Property JSON without PDF: {sorted(p_json_only)[:5]}; "

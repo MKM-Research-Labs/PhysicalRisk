@@ -154,8 +154,20 @@ class TestGaugePRSCommit:
 
         initial_text = commit_btn.inner_text().lower()
         commit_btn.click(force=True)
-        # Allow time for the server round-trip and DOM update
-        map_page.wait_for_timeout(25_000)
+        # Wait for ANY feedback signal (poll-based, not a fixed sleep).
+        # This catches ephemeral toasts before they auto-dismiss.
+        try:
+            map_page.wait_for_function("""() => {
+                var s = document.getElementById('hazard-status');
+                if (s && /prs-|committed|closed/i.test(s.textContent)) return true;
+                var n = document.querySelector(
+                    "[class*='notification'], [class*='toast'], .notif-message"
+                );
+                if (n) return true;
+                return false;
+            }""", timeout=30_000)
+        except Exception:
+            pass  # fall through to multi-signal assertion below
 
         # Check for ANY feedback: success message, error message, trade ID,
         # or button state change.  Even an error toast proves the commit
