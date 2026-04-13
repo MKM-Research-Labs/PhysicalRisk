@@ -63,21 +63,35 @@ def get_js() -> str:
                 var numTrades = tdClientData.length;
                 var totalNotional = 0;
                 var totalNpv = 0;
+                var totalPropValue = 0;
+                var totalSpread = 0;
+                var spreadCount = 0;
                 for (var i = 0; i < tdClientData.length; i++) {
                     var t = tdClientData[i];
-                    totalNotional += t.is_payer ? -(t.notional || 0) : (t.notional || 0);
+                    totalNotional += (t.notional || 0);
                     totalNpv += (t.npv || 0);
+                    totalPropValue += (t.property_value || 0);
+                    if (t.spread_bps > 0) { totalSpread += t.spread_bps; spreadCount++; }
                 }
+                var avgSpread = spreadCount > 0 ? (totalSpread / spreadCount).toFixed(1) : '0.0';
                 var npvColor = totalNpv >= 0 ? '#2e7d32' : '#c62828';
 
                 bar.innerHTML =
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Property Trades</span>' +
+                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Client Trades</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + numTrades + '</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Net Notional</span>' +
+                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Notional Sold</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + fmtGBP(totalNotional) + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Avg Spread</span>' +
+                        '<span style="font-size:16px;font-weight:bold;">' + avgSpread + ' bps</span>' +
+                    '</div>' +
+                    '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Property Value Covered</span>' +
+                        '<span style="font-size:16px;font-weight:bold;">' + fmtGBP(totalPropValue) + '</span>' +
                     '</div>' +
                     '<div style="width:1px;height:30px;background:#ccc;"></div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
@@ -85,6 +99,6 @@ def get_js() -> str:
                         '<span style="font-size:18px;font-weight:bold;color:' + npvColor + ';">' + fmtGBP(totalNpv) + '</span>' +
                     '</div>' +
                     '<div style="flex:1;"></div>' +
-                    '<div style="font-size:10px;color:#78909c;font-style:italic;">Property-linked Physical Risk Swaps</div>';
+                    '<div style="font-size:10px;color:#78909c;font-style:italic;">Client Property PRS \\u2014 Trader\\u2019s Book</div>';
             }
 """

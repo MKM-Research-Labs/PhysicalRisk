@@ -42,10 +42,38 @@ def get_js() -> str:
             // ================================================================
             // Table tab — DOM creation
             // ================================================================
+            var spTableSubTab = 'damage';  // 'blotter', 'damage', or 'basis'
+            var spBlotterData = null;
+            var spBasisData = null;
+
             function createTableView() {
                 var view = document.createElement('div');
                 view.id = 'sp-table-view';
                 view.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;';
+
+                // Sub-tab toggle: Blotter | Damage & Derivatives
+                var subTabBar = document.createElement('div');
+                subTabBar.id = 'sp-sub-tab-bar';
+                subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
+                var subBtnBlotter = document.createElement('button');
+                subBtnBlotter.id = 'sp-sub-blotter';
+                subBtnBlotter.textContent = 'REIT Blotter';
+                subBtnBlotter.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
+                subBtnBlotter.onclick = function() { switchSubTab('blotter'); };
+                var subBtnDamage = document.createElement('button');
+                subBtnDamage.id = 'sp-sub-damage';
+                subBtnDamage.textContent = 'Damage & Derivatives';
+                subBtnDamage.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #1976d2;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:#1976d2;color:white;';
+                subBtnDamage.onclick = function() { switchSubTab('damage'); };
+                var subBtnBasis = document.createElement('button');
+                subBtnBasis.id = 'sp-sub-basis';
+                subBtnBasis.textContent = 'Basis';
+                subBtnBasis.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
+                subBtnBasis.onclick = function() { switchSubTab('basis'); };
+                subTabBar.appendChild(subBtnBlotter);
+                subTabBar.appendChild(subBtnDamage);
+                subTabBar.appendChild(subBtnBasis);
+                view.appendChild(subTabBar);
 
                 var summaryRow = document.createElement('div');
                 summaryRow.id = 'sp-summary';
@@ -60,23 +88,293 @@ def get_js() -> str:
                 return view;
             }
 
+            function switchSubTab(sub) {
+                spTableSubTab = sub;
+                var btns = [
+                    document.getElementById('sp-sub-blotter'),
+                    document.getElementById('sp-sub-damage'),
+                    document.getElementById('sp-sub-basis'),
+                ];
+                btns.forEach(function(b) {
+                    if (b) { b.style.background = 'white'; b.style.color = '#555'; b.style.borderColor = '#ddd'; }
+                });
+                var active = document.getElementById('sp-sub-' + sub);
+                if (active) { active.style.background = '#1976d2'; active.style.color = 'white'; active.style.borderColor = '#1976d2'; }
+
+                if (sub === 'blotter') {
+                    loadBlotterData();
+                } else if (sub === 'basis') {
+                    var ss = document.getElementById('sp-storm-select');
+                    var sid = ss ? ss.value : '';
+                    if (sid) loadBasisData(sid);
+                } else {
+                    if (spData) {
+                        renderSummary(spData.portfolio, spData.derivatives);
+                        renderTable(spData.properties);
+                    }
+                }
+            }
+
             // ================================================================
-            // Summary cards
+            // REIT Blotter — property headlines
             // ================================================================
-            function renderSummary(portfolio) {
+            function loadBlotterData() {
                 var summary = document.getElementById('sp-summary');
+                var container = document.getElementById('sp-table-container');
+                summary.innerHTML = '<div style="padding:4px;color:#888;font-size:11px;">Loading REIT portfolio...</div>';
+                container.innerHTML = '';
+
+                if (spBlotterData) {
+                    renderBlotterSummary(spBlotterData);
+                    renderBlotterTable(spBlotterData.properties);
+                    return;
+                }
+
+                var baseUrl = getBaseUrl();
+                fetch(baseUrl + '/api/v1/propertyts/blotter', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.status === 'success') {
+                            spBlotterData = data;
+                            renderBlotterSummary(data);
+                            renderBlotterTable(data.properties);
+                        } else {
+                            summary.innerHTML = '<div style="color:red;">Error loading blotter</div>';
+                        }
+                    })
+                    .catch(function(err) {
+                        summary.innerHTML = '<div style="color:red;">Failed to load blotter</div>';
+                        console.error('[StormPortfolio] Blotter error:', err);
+                    });
+            }
+
+            function renderBlotterSummary(data) {
+                var summary = document.getElementById('sp-summary');
+                var s = data.summary || {};
                 var cards = [
-                    { label: 'Properties Affected', value: portfolio.properties_affected + ' / ' + portfolio.total_properties, color: '#1976d2' },
-                    { label: 'Portfolio Value', value: fmtGBP(portfolio.total_affected_value), color: '#388e3c' },
-                    { label: 'Total Damage', value: fmtGBP(portfolio.total_damage), color: '#d32f2f' },
-                    { label: 'Post-Damage Value', value: fmtGBP(portfolio.total_post_damage_value), color: '#f57c00' },
-                    { label: 'Mortgage Exposure', value: fmtGBP(portfolio.total_affected_mortgages), color: '#7b1fa2' },
-                    { label: 'Negative Equity', value: portfolio.mortgages_in_negative_equity, color: portfolio.mortgages_in_negative_equity > 0 ? '#d32f2f' : '#388e3c' },
+                    { label: 'Properties', value: s.num_properties || 0, color: '#1976d2' },
+                    { label: 'Total Value', value: fmtGBP(s.total_property_value || 0), color: '#388e3c' },
+                    { label: 'Mortgage Exposure', value: fmtGBP(s.total_mortgage_exposure || 0), color: '#7b1fa2' },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
                     card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                        '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
+                    summary.appendChild(card);
+                });
+            }
+
+            function renderBlotterTable(properties) {
+                var container = document.getElementById('sp-table-container');
+                var blotterCols = [
+                    { key: 'property_id', label: 'Property', fmt: function(v) { return v; } },
+                    { key: 'property_address', label: 'Address', fmt: function(v) { return v || '\\u2014'; } },
+                    { key: 'property_value', label: 'Value', fmt: fmtGBP },
+                    { key: 'river_distance_m', label: 'River Dist (m)', fmt: function(v) { return v ? v.toFixed(0) : '\\u2014'; } },
+                    { key: 'elevation_m', label: 'Elevation (m)', fmt: function(v) { return v ? (typeof v === 'number' ? v.toFixed(1) : v) : '\\u2014'; } },
+                    { key: 'floor_level_m', label: 'Floor (m)', fmt: function(v) { return v ? v.toFixed(2) : '\\u2014'; } },
+                    { key: 'ea_flood_zone', label: 'Flood Zone', fmt: function(v) { return v || '\\u2014'; } },
+                    { key: 'outstanding_balance', label: 'Mortgage', fmt: fmtGBP },
+                    { key: 'current_ltv', label: 'LTV', fmt: fmtPct },
+                    { key: 'remaining_term_months', label: 'Remaining', fmt: fmtMonths },
+                ];
+
+                var table = document.createElement('table');
+                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:11px;';
+
+                var thead = document.createElement('thead');
+                var tr = document.createElement('tr');
+                blotterCols.forEach(function(col) {
+                    var th = document.createElement('th');
+                    th.textContent = col.label;
+                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid #ddd;background:#fafafa;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;';
+                    if (col.key === 'property_id' || col.key === 'property_address' || col.key === 'ea_flood_zone') th.style.textAlign = 'left';
+                    tr.appendChild(th);
+                });
+                thead.appendChild(tr);
+                table.appendChild(thead);
+
+                var tbody = document.createElement('tbody');
+                (properties || []).forEach(function(p) {
+                    var row = document.createElement('tr');
+                    blotterCols.forEach(function(col) {
+                        var td = document.createElement('td');
+                        td.textContent = col.fmt(p[col.key]);
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
+                        if (col.key === 'property_id' || col.key === 'property_address' || col.key === 'ea_flood_zone') td.style.textAlign = 'left';
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                container.innerHTML = '';
+                container.appendChild(table);
+            }
+
+            // ================================================================
+            // Basis — synthetic gauge flood transmission
+            // ================================================================
+            function loadBasisData(stormId) {
+                var summary = document.getElementById('sp-summary');
+                var container = document.getElementById('sp-table-container');
+                summary.innerHTML = '<div style="padding:4px;color:#888;font-size:11px;">Loading basis data...</div>';
+                container.innerHTML = '';
+
+                var baseUrl = getBaseUrl();
+                fetch(baseUrl + '/api/v1/propertyts/' + stormId + '/basis', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.status === 'success') {
+                            spBasisData = data;
+                            renderBasisSummary(data.summary);
+                            renderBasisTable(data.gauges);
+                        } else {
+                            summary.innerHTML = '';
+                            container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:13px;">No basis data for this storm</div>';
+                        }
+                    })
+                    .catch(function(err) {
+                        summary.innerHTML = '';
+                        container.innerHTML = '<div style="padding:20px;color:red;">Failed to load basis data</div>';
+                        console.error('[StormPortfolio] Basis error:', err);
+                    });
+            }
+
+            function renderBasisSummary(s) {
+                var summary = document.getElementById('sp-summary');
+                var transmColor = (s.portfolio_transmission_pct || 0) >= 50 ? '#d32f2f' : '#388e3c';
+                var cards = [
+                    { label: 'Synthetic Gauges', value: s.num_synthetic_gauges || 0, color: '#1976d2' },
+                    { label: 'Gauges Severe', value: s.gauges_severe || 0, color: '#d32f2f' },
+                    { label: 'With Flooding', value: s.gauges_with_flooding || 0, color: '#f57c00' },
+                    { label: 'Basis Only', value: s.gauges_basis_only || 0, color: '#7b1fa2' },
+                    { label: 'Properties Flooded', value: (s.total_flooded || 0) + ' / ' + (s.total_properties || 0), color: '#1565c0' },
+                    { label: 'Transmission', value: (s.portfolio_transmission_pct || 0) + '%', color: transmColor },
+                ];
+                summary.innerHTML = '';
+                cards.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.style.cssText = 'flex:1;min-width:100px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                        '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
+                    summary.appendChild(card);
+                });
+            }
+
+            function renderBasisTable(gauges) {
+                var container = document.getElementById('sp-table-container');
+                var basisCols = [
+                    { key: 'gauge_name', label: 'Gauge', fmt: function(v) { return v; } },
+                    { key: 'threshold', label: 'Threshold', fmt: function(v) { return v ? v.charAt(0).toUpperCase() + v.slice(1) : '\\u2014'; } },
+                    { key: 'peak_wse_m', label: 'Peak (m)', fmt: function(v) { return v ? v.toFixed(2) : '\\u2014'; } },
+                    { key: 'severe_m', label: 'Severe (m)', fmt: function(v) { return v ? v.toFixed(2) : '\\u2014'; } },
+                    { key: 'properties_linked', label: 'Linked', fmt: function(v) { return v; } },
+                    { key: 'properties_flooded', label: 'Flooded', fmt: function(v) { return v; } },
+                    { key: 'properties_not_flooded', label: 'Not Flooded', fmt: function(v) { return v; } },
+                    { key: 'transmission_pct', label: 'Transmission', fmt: function(v) { return v + '%'; } },
+                    { key: 'avg_retention', label: 'Avg Retention', fmt: function(v) { return v ? (v * 100).toFixed(1) + '%' : '\\u2014'; } },
+                    { key: 'avg_flood_depth_m', label: 'Avg Depth', fmt: fmtDepth },
+                    { key: 'real_gauge_peak_m', label: 'Real Gauge (m)', fmt: function(v) { return v ? v.toFixed(2) : '\\u2014'; } },
+                ];
+
+                var table = document.createElement('table');
+                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:11px;';
+
+                var thead = document.createElement('thead');
+                var tr = document.createElement('tr');
+                basisCols.forEach(function(col) {
+                    var th = document.createElement('th');
+                    th.textContent = col.label;
+                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid #ddd;background:#fafafa;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;cursor:pointer;';
+                    if (col.key === 'gauge_name' || col.key === 'threshold') th.style.textAlign = 'left';
+                    tr.appendChild(th);
+                });
+                thead.appendChild(tr);
+                table.appendChild(thead);
+
+                var tbody = document.createElement('tbody');
+                (gauges || []).forEach(function(g) {
+                    var row = document.createElement('tr');
+
+                    // Row colour by threshold
+                    if (g.threshold === 'severe' && g.properties_flooded === 0) {
+                        row.style.background = '#f3e5f5';  // purple tint — basis risk
+                    } else if (g.threshold === 'severe') {
+                        row.style.background = '#ffebee';  // red tint — severe with flooding
+                    } else if (g.threshold === 'warning') {
+                        row.style.background = '#fff3e0';  // orange tint
+                    }
+
+                    basisCols.forEach(function(col) {
+                        var td = document.createElement('td');
+                        var val = g[col.key];
+                        td.textContent = col.fmt(val);
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
+                        if (col.key === 'gauge_name' || col.key === 'threshold') td.style.textAlign = 'left';
+
+                        // Colour coding
+                        if (col.key === 'threshold') {
+                            var tc = {'severe':'#d32f2f','warning':'#f57c00','alert':'#1976d2','clean':'#888'};
+                            td.style.color = tc[val] || '#333';
+                            td.style.fontWeight = 'bold';
+                        }
+                        if (col.key === 'transmission_pct') {
+                            td.style.color = val >= 50 ? '#d32f2f' : (val > 0 ? '#f57c00' : '#388e3c');
+                            td.style.fontWeight = 'bold';
+                        }
+                        if (col.key === 'properties_flooded' && val > 0) td.style.color = '#d32f2f';
+                        if (col.key === 'properties_not_flooded' && val > 0 && g.threshold === 'severe') {
+                            td.style.color = '#7b1fa2';  // basis risk highlight
+                            td.style.fontWeight = 'bold';
+                        }
+
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                if (!gauges || gauges.length === 0) {
+                    var emptyRow = document.createElement('tr');
+                    var emptyTd = document.createElement('td');
+                    emptyTd.colSpan = basisCols.length;
+                    emptyTd.style.cssText = 'padding:40px;text-align:center;color:#999;';
+                    emptyTd.textContent = 'No gauge data for this storm';
+                    emptyRow.appendChild(emptyTd);
+                    tbody.appendChild(emptyRow);
+                }
+
+                container.innerHTML = '';
+                container.appendChild(table);
+            }
+
+            // ================================================================
+            // Summary cards
+            // ================================================================
+            function renderSummary(portfolio, derivatives) {
+                var summary = document.getElementById('sp-summary');
+                var cards = [
+                    { label: 'Properties Affected', value: portfolio.properties_affected + ' / ' + portfolio.total_properties, color: '#1976d2' },
+                    { label: 'Portfolio Value', value: fmtGBP(portfolio.total_affected_value), color: '#388e3c' },
+                    { label: 'Total Damage', value: fmtGBP(portfolio.total_damage), color: '#d32f2f' },
+                    { label: 'Mortgage Exposure', value: fmtGBP(portfolio.total_affected_mortgages), color: '#7b1fa2' },
+                    { label: 'Negative Equity', value: portfolio.mortgages_in_negative_equity, color: portfolio.mortgages_in_negative_equity > 0 ? '#d32f2f' : '#388e3c' },
+                ];
+
+                // Derivatives cards
+                var d = derivatives || {};
+                var netColor = (d.net_portfolio_pnl || 0) >= 0 ? '#2e7d32' : '#c62828';
+                cards.push({ label: 'PRS Payout', value: fmtGBP(d.total_prs_payout || 0), color: '#2e7d32' });
+                cards.push({ label: 'Trades Triggered', value: d.num_trades_triggered || 0, color: '#1565c0' });
+                cards.push({ label: 'Net P&L', value: fmtGBP(d.net_portfolio_pnl || 0), color: netColor });
+
+                summary.innerHTML = '';
+                cards.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.style.cssText = 'flex:1;min-width:100px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
                     card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
                     summary.appendChild(card);
@@ -92,11 +390,11 @@ def get_js() -> str:
                 { key: 'flood_depth_m', label: 'Depth', fmt: fmtDepth },
                 { key: 'damage_ratio', label: 'Damage %', fmt: function(v) { return (v * 100).toFixed(1) + '%'; } },
                 { key: 'damage_amount', label: 'Damage \u00a3', fmt: fmtGBP },
-                { key: 'post_damage_value', label: 'Post Value', fmt: fmtGBP },
+                { key: 'prs_payout', label: 'PRS Payout', fmt: fmtGBP },
+                { key: 'net_pnl', label: 'Net P&L', fmt: fmtGBP },
                 { key: 'outstanding_balance', label: 'Mortgage', fmt: fmtGBP },
                 { key: 'current_ltv', label: 'LTV', fmt: fmtPct },
                 { key: 'post_damage_ltv', label: 'Post LTV', fmt: fmtPct },
-                { key: 'remaining_term_months', label: 'Remaining', fmt: fmtMonths },
             ];
 
             function renderTable(properties) {
@@ -159,6 +457,8 @@ def get_js() -> str:
                         td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
                         if (col.key === 'property_id') td.style.textAlign = 'left';
                         if (col.key === 'damage_amount') td.style.color = '#d32f2f';
+                        if (col.key === 'prs_payout' && p.prs_payout > 0) td.style.color = '#2e7d32';
+                        if (col.key === 'net_pnl') td.style.color = (p.net_pnl || 0) >= 0 ? '#2e7d32' : '#c62828';
                         if (col.key === 'post_damage_ltv' && p.post_damage_ltv > 100) {
                             td.style.color = '#d32f2f';
                             td.style.fontWeight = 'bold';
@@ -239,10 +539,26 @@ def get_js() -> str:
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status !== 'success') {
-                            statsBar.innerHTML = '<span style="color:red;">Error: ' + (data.message || 'Unknown') + '</span>';
+                            spData = null;
+                            spBasisData = null;
+                            // Show empty state — storm exists but causes no property flooding
+                            var emptyPortfolio = {
+                                properties_affected: 0, total_properties: summary.dataset.totalProps || 0,
+                                total_affected_value: 0, total_damage: 0, total_post_damage_value: 0,
+                                total_affected_mortgages: 0, mortgages_in_negative_equity: 0, damage_pct: 0,
+                                total_portfolio_value: 0, total_portfolio_mortgages: 0
+                            };
+                            var emptyDerivatives = {
+                                total_prs_payout: 0, total_prs_notional: 0,
+                                num_trades_triggered: 0, net_portfolio_pnl: 0
+                            };
+                            renderSummary(emptyPortfolio, emptyDerivatives);
+                            tableContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:13px;">This storm does not cause any property flooding</div>';
+                            statsBar.innerHTML = '<span style="color:#888;">No properties affected by this storm</span>';
                             return;
                         }
                         spData = data;
+                        spBasisData = null;  // invalidate basis cache on storm change
                         console.log('[StormPortfolio] Impact loaded:', data.portfolio.properties_affected, 'affected, damage', data.portfolio.total_damage);
                         var _spSelect = document.getElementById('sp-storm-select');
                         var _stormLabel = _spSelect
@@ -251,7 +567,14 @@ def get_js() -> str:
                         document.getElementById('sp-panel-title').textContent =
                             'Portfolio Storm Impact \u2014 ' + _stormLabel;
 
-                        renderSummary(data.portfolio);
+                        // Switch to damage sub-tab on storm change
+                        spTableSubTab = 'damage';
+                        var btnB = document.getElementById('sp-sub-blotter');
+                        var btnD = document.getElementById('sp-sub-damage');
+                        if (btnD) { btnD.style.background = '#1976d2'; btnD.style.color = 'white'; btnD.style.borderColor = '#1976d2'; }
+                        if (btnB) { btnB.style.background = 'white'; btnB.style.color = '#555'; btnB.style.borderColor = '#ddd'; }
+
+                        renderSummary(data.portfolio, data.derivatives);
                         renderTable(data.properties);
 
                         var pf = data.portfolio;
