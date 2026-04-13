@@ -226,9 +226,9 @@ def generate_property_book(
         notional = random.randrange(_NOTIONAL_MIN, _NOTIONAL_MAX + 1,
                                     _NOTIONAL_STEP)
 
-        # Client trades are predominantly payer (buying protection) —
-        # 80% payer / 20% receiver reflects real hedging demand
-        is_payer = random.random() < 0.80
+        # PropertyPRS: REIT client is always the payer (buying protection),
+        # Trader (desk) is always the receiver (selling protection).
+        is_payer = True
 
         # Use flood_count to derive a hazard rate for leg PV computation
         num_storms = phc_data.get('metadata', {}).get('num_storms', 20000)

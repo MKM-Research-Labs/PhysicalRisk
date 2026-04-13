@@ -54,6 +54,12 @@ def _load_property_trades() -> List[dict]:
             is_payer = leg.get('Payer', False)
             sign = 1 if is_payer else -1
 
+            property_value = prop.get('PropertyValue', 0)
+            hedge_ratio = (
+                round(notional / property_value * 100, 1)
+                if property_value > 0 else 0
+            )
+
             trades.append({
                 'swap_id': header.get('SwapID', ''),
                 'trade_type': header.get('TradeType', ''),
@@ -83,6 +89,10 @@ def _load_property_trades() -> List[dict]:
                 'gauge_id': (gauge_set.get('GaugeBasket', [{}])[0]
                              .get('GaugeID', '')
                              if gauge_set.get('GaugeBasket') else ''),
+                # Trader perspective: Trader is always receiver on PropertyPRS
+                'trader_direction': 'Rcv',
+                'property_value': property_value,
+                'hedge_ratio': hedge_ratio,
             })
         except Exception as e:
             logger.warning("Skipping trade file %s: %s", f.name, e)
@@ -97,12 +107,23 @@ def get_client_blotter():
     try:
         trades = _load_property_trades()
 
+        total_notional = sum(t['notional'] for t in trades)
+        total_property_value = sum(t['property_value'] for t in trades)
+        spreads = [t['spread_bps'] for t in trades if t['spread_bps'] > 0]
+        avg_spread = round(sum(spreads) / len(spreads), 1) if spreads else 0
+
         return jsonify({
             'status': 'success',
             'trades': trades,
             'summary': {
                 'num_trades': len(trades),
-                'total_notional': sum(t['notional'] for t in trades),
+                'total_notional': total_notional,
+            },
+            'trader_summary': {
+                'total_notional_sold': total_notional,
+                'avg_spread_collected': avg_spread,
+                'total_property_value_covered': total_property_value,
+                'num_trades': len(trades),
             },
         })
 

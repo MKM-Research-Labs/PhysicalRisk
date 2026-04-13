@@ -21,7 +21,9 @@ def get_js() -> str:
                     {key: '_property_label', label: 'Property', w: 'auto'},
                     {key: 'postcode', label: 'Postcode', w: '70px'},
                     {key: 'counterparty', label: 'Ctpy', w: 'auto'},
+                    {key: 'property_value', label: 'Prop Value', w: '95px', fmt: 'gbp'},
                     {key: 'notional', label: 'Notional', w: '95px', fmt: 'gbp'},
+                    {key: 'hedge_ratio', label: 'Hedge %', w: '55px', fmt: 'hedge'},
                     {key: 'end_date', label: 'Maturity', w: '60px', fmt: 'mat'},
                     {key: 'spread_bps', label: 'Trade Spd', w: '65px', fmt: 'bps'},
                     {key: 'fair_spread_bps', label: 'Fair Spd', w: '65px', fmt: 'bps'},
@@ -61,14 +63,12 @@ def get_js() -> str:
                         if (col.key === '_property_label') {
                             display = window.propertyDisplayName(t.property_id, t.property_address);
                         } else if (col.key === 'direction') {
-                            var isPayer = t.is_payer;
-                            var dirLabel = isPayer ? 'Pay' : 'Rcv';
-                            var dirColor = isPayer ? '#c62828' : '#2e7d32';
-                            display = '<span style="font-weight:bold;color:' + dirColor + ';">' + dirLabel + '</span>';
+                            // Trader is always receiver on PropertyPRS
+                            display = '<span style="font-weight:bold;color:#2e7d32;">Rcv</span>';
+                        } else if (col.fmt === 'hedge') {
+                            display = val != null ? val.toFixed(1) + '%' : '\\u2014';
+                            color = val >= 100 ? '#2e7d32' : (val > 0 ? '#f57c00' : '#999');
                         } else if (col.fmt === 'gbp') {
-                            if (col.key === 'notional') {
-                                val = t.is_payer ? -Math.abs(val) : Math.abs(val);
-                            }
                             display = fmtGBP(val);
                         } else if (col.fmt === 'bps') {
                             display = val != null ? val.toFixed(1) : '\\u2014';
@@ -96,15 +96,17 @@ def get_js() -> str:
                 // Totals row
                 if (trades.length > 0) {
                     html += '</tbody><tfoot><tr style="background:#e8eaf6;border-top:2px solid #0d47a1;font-weight:700;position:sticky;bottom:0;z-index:1;">';
-                    var totNotional = 0, totNpv = 0, totFs01 = 0, totSpread = 0;
+                    var totNotional = 0, totNpv = 0, totFs01 = 0, totSpread = 0, totPropVal = 0, spreadCnt = 0;
                     for (var si = 0; si < trades.length; si++) {
                         var st = trades[si];
-                        totNotional += st.is_payer ? -(st.notional || 0) : (st.notional || 0);
+                        totNotional += (st.notional || 0);
                         totNpv += (st.npv || 0);
                         totFs01 += (st.gauge_fs01 || 0);
-                        totSpread += (st.spread_bps || 0);
+                        if (st.spread_bps > 0) { totSpread += st.spread_bps; spreadCnt++; }
+                        totPropVal += (st.property_value || 0);
                     }
-                    var avgSpread = trades.length > 0 ? totSpread / trades.length : 0;
+                    var avgSpread = spreadCnt > 0 ? totSpread / spreadCnt : 0;
+                    var totHedge = totPropVal > 0 ? (totNotional / totPropVal * 100) : 0;
 
                     for (var fc = 0; fc < cols.length; fc++) {
                         var fcol = cols[fc];
@@ -112,7 +114,9 @@ def get_js() -> str:
                         var fVal = '';
                         var fColor = '#333';
                         if (fcol.key === 'swap_id') { fVal = 'Total'; }
+                        else if (fcol.key === 'property_value') { fVal = fmtGBP(totPropVal); }
                         else if (fcol.key === 'notional') { fVal = fmtGBP(totNotional); }
+                        else if (fcol.key === 'hedge_ratio') { fVal = totHedge.toFixed(1) + '%'; fColor = totHedge >= 100 ? '#2e7d32' : '#f57c00'; }
                         else if (fcol.key === 'spread_bps') { fVal = avgSpread.toFixed(1); fColor = '#666'; }
                         else if (fcol.key === 'gauge_fs01') { fColor = totFs01 > 0 ? '#1565c0' : (totFs01 < 0 ? '#c62828' : '#333'); fVal = fmtGBP(totFs01); }
                         else if (fcol.key === 'npv') { fColor = totNpv >= 0 ? '#2e7d32' : '#c62828'; fVal = fmtGBP(totNpv); }

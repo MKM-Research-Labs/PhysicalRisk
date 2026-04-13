@@ -372,6 +372,28 @@ class TestGeneratePropertyBook:
 
     @patch('port.src.book.book_property._price_and_save_trade')
     @patch('port.src.book.book_property._load_counterparties')
+    def test_all_trades_are_payer(self, mock_load_ctpy, mock_price, tmp_path):
+        """PropertyPRS: REIT is always payer (buys protection), Trader always receiver."""
+        mock_load_ctpy.return_value = [_make_counterparty_entry()]
+        mock_price.return_value = ({'trade_id': 'T1'}, 1)
+
+        curves = {f'P{i}': _make_phc_curve(flood_count=(i + 1) * 10)
+                  for i in range(6)}
+        props = [_make_property_entry(f'P{i}') for i in range(6)]
+        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+            tmp_path, phc_curves=curves, properties=props,
+        )
+
+        generate_property_book(
+            phc_path, prop_path, ctpy_path, out_dir, seed=42,
+        )
+
+        for call in mock_price.call_args_list:
+            assert call[1]['is_payer'] is True, \
+                'All PropertyPRS trades must have is_payer=True (REIT buys protection)'
+
+    @patch('port.src.book.book_property._price_and_save_trade')
+    @patch('port.src.book.book_property._load_counterparties')
     def test_property_set_includes_reference_gauge(self, mock_load_ctpy,
                                                     mock_price, tmp_path):
         """property_set passed to _price_and_save_trade should contain ReferenceGauge."""
