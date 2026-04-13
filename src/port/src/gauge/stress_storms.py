@@ -279,6 +279,9 @@ def generate_stress_storms(
     # ------------------------------------------------------------------
     # 5. Write per-storm files + lightweight index
     # ------------------------------------------------------------------
+    if output_dir.exists():
+        import shutil
+        shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     generated_at = datetime.now(timezone.utc).isoformat()
