@@ -30,6 +30,7 @@ from config.models import (
     DEFAULT_IMPERV_FRACTION,
     STORM_SIMULATION_HOURS,
 )
+from models.floodrisk import relative_elevation
 from .gamma import gamma_shape_array
 from .pulse import build_pulse_gauge_hydrograph
 from .saturation import compute_saturation_factor, superimpose_pulses
@@ -107,9 +108,8 @@ def build_compound_property_hydrograph(
     gauge_wse = superimpose_pulses(base_level, pulse_arrays, cap=cap)
 
     # Step 4: time-shift and apply retention + elevation
-    flood_threshold = prop_elevation + floor_level
-    height_diff = max(0.0, prop_elevation - gauge_elevation)
-    prop_threshold_above_gauge = height_diff + floor_level
+    prop_threshold_above_gauge = relative_elevation(
+        prop_elevation, gauge_elevation, floor_level)
 
     hours = np.arange(n_hours, dtype=float)
     # Shift: property hour t corresponds to gauge hour (t - travel_time)
@@ -141,7 +141,9 @@ def build_compound_property_hydrograph(
     for t in range(n_hours):
         d = round(float(adjusted_depth[t]), 4)
         # Reconstruct WSE at property for the record
-        wse = round(flood_threshold + d, 4) if d > 0 else round(float(
+        # flood_threshold is the absolute level: prop_elevation + floor_level
+        abs_threshold = prop_elevation + floor_level
+        wse = round(abs_threshold + d, 4) if d > 0 else round(float(
             gauge_elevation + raw_depth[t] + prop_threshold_above_gauge
             if raw_depth[t] > 0 else base_level
         ), 4)

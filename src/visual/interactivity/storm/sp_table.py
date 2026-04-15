@@ -57,7 +57,7 @@ def get_js() -> str:
                 subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
                 var subBtnBlotter = document.createElement('button');
                 subBtnBlotter.id = 'sp-sub-blotter';
-                subBtnBlotter.textContent = 'REIT Blotter';
+                subBtnBlotter.textContent = 'REIT Portfolio';
                 subBtnBlotter.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
                 subBtnBlotter.onclick = function() { switchSubTab('blotter'); };
                 var subBtnDamage = document.createElement('button');
@@ -172,9 +172,8 @@ def get_js() -> str:
                     { key: 'property_id', label: 'Property', fmt: function(v) { return v; } },
                     { key: 'property_address', label: 'Address', fmt: function(v) { return v || '\\u2014'; } },
                     { key: 'property_value', label: 'Value', fmt: fmtGBP },
-                    { key: 'river_distance_m', label: 'River Dist (m)', fmt: function(v) { return v ? v.toFixed(0) : '\\u2014'; } },
-                    { key: 'elevation_m', label: 'Elevation (m)', fmt: function(v) { return v ? (typeof v === 'number' ? v.toFixed(1) : v) : '\\u2014'; } },
-                    { key: 'floor_level_m', label: 'Floor (m)', fmt: function(v) { return v ? v.toFixed(2) : '\\u2014'; } },
+                    { key: 'river_distance_km', label: 'River Dist (km)', fmt: function(v) { return (v !== null && v !== undefined) ? v.toFixed(2) : '\\u2014'; } },
+                    { key: 'elevation_m', label: 'Elevation (m)', fmt: function(v) { return (v !== null && v !== undefined) ? (typeof v === 'number' ? v.toFixed(2) : v) : '\\u2014'; } },
                     { key: 'ea_flood_zone', label: 'Flood Zone', fmt: function(v) { return v || '\\u2014'; } },
                     { key: 'outstanding_balance', label: 'Mortgage', fmt: fmtGBP },
                     { key: 'current_ltv', label: 'LTV', fmt: fmtPct },

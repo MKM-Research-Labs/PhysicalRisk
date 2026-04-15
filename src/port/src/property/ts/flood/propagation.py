@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 
 from config.models import TERRAIN_VELOCITY_SCALE, DEFAULT_TERRAIN_TYPE
 from config.port import BANKFULL_OFFSET_M
+from models.floodrisk import relative_elevation
 from models.floodrisk.depth_damage import scalar_depth_damage
 from models.floodrisk.hydrograph import build_compound_property_hydrograph
 from models.floodrisk.velocity import (
@@ -121,8 +122,7 @@ class PropagationMixin:
         # Propagate to property location with distance-based retention
         water_at_property = water_above_gauge * retention
         # Property floods when water exceeds the elevation difference + floor step
-        height_diff = max(0.0, prop_elevation - g_elev)
-        flood_threshold = height_diff + floor_level
+        flood_threshold = relative_elevation(prop_elevation, g_elev, floor_level)
 
         est_depth = max(0.0, water_at_property - flood_threshold)
         if est_depth <= 0:
@@ -220,8 +220,8 @@ class PropagationMixin:
         overall_peak = resp.get('peak_level_m', 0)
         water_above = max(0.0, overall_peak - bankfull_level)
         water_at_prop = water_above * retention
-        height_diff = max(0.0, prop_elevation - g_elev)
-        est_depth = max(0.0, water_at_prop - (height_diff + floor_level))
+        est_depth = max(0.0, water_at_prop - relative_elevation(
+            prop_elevation, g_elev, floor_level))
 
         if est_depth <= 0:
             travel_time = 0.0

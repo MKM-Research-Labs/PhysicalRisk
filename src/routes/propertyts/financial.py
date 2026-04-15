@@ -44,6 +44,7 @@ import logging
 from flask import jsonify, request
 
 from config import config
+from models.floodrisk import relative_elevation
 from models.floodrisk.depth_damage import is_prs_flood
 
 from . import propertyts_bp, _get_propertyts_dir
@@ -253,12 +254,42 @@ def _match_prs_to_properties(prs_trades, property_ids, property_gauges):
     return result
 
 
+def _load_gauge_elevations():
+    """Build {gauge_id: elevation_m} from gauge.json and gaugehc.json."""
+    elevations: dict = {}
+    try:
+        with open(config.get_input_path('gauge.json'), 'r') as f:
+            gdata = json.load(f)
+        for fg in gdata.get('flood_gauges', []):
+            g = fg.get('FloodGauge', {})
+            gid = g.get('Header', {}).get('GaugeID', '')
+            if gid:
+                elevations[gid] = g.get('Location', {}).get(
+                    'GaugeElevation', 0)
+    except Exception as e:
+        logger.warning('Could not load gauge.json elevations: %s', e)
+    try:
+        with open(config.get_input_path('gaugehc.json'), 'r') as f:
+            hc = json.load(f)
+        for gid, curve in hc.get('hazard_curves', {}).items():
+            if gid not in elevations:
+                elevations[gid] = curve.get('elevation_m', 0)
+    except Exception as e:
+        logger.warning('Could not load gaugehc.json elevations: %s', e)
+    return elevations
+
+
 def _load_property_details():
     """Load full property details for the blotter.
 
-    Returns {property_id: {address, value, lat, lon, elevation, floor_level,
-    river_distance, ea_flood_zone, reference_gauges}}.
+    Returns {property_id: {address, value, lat, lon, elevation_m,
+    floor_level_m, river_distance_km, ea_flood_zone, ...}}.
+
+    Elevation is the *relative* elevation of the property above its
+    reference gauge (including the floor level), consistent with the
+    flood threshold used by the PRS pricer and storm simulation.
     """
+    gauge_elevations = _load_gauge_elevations()
     details = {}
     try:
         with open(config.get_input_path('property.json'), 'r') as f:
@@ -272,14 +303,23 @@ def _load_property_details():
             loc = ph.get('Location', {})
             val = ph.get('Valuation', {})
             construction = ph.get('Construction', {})
-            risk = loc.get('RiskAssessment',
-                           ph.get('RiskAssessment', {}))
+            risk = ph.get('RiskAssessment',
+                          loc.get('RiskAssessment', {}))
             ref_gauges = ph.get('ReferenceGauges', [])
 
             address = (
                 f"{loc.get('BuildingNumber', '')} "
                 f"{loc.get('StreetName', '')}".strip()
             )
+
+            prop_ground_m = risk.get('GroundLevelMeters', 0)
+            floor_level_m = construction.get('FloorLevelMeters', 0)
+            river_distance_m = risk.get('RiverDistanceMeters', 0)
+
+            # Resolve gauge elevation from the first reference gauge
+            gauge_elev = 0.0
+            if ref_gauges:
+                gauge_elev = gauge_elevations.get(ref_gauges[0], 0.0)
 
             details[pid] = {
                 'property_id': pid,
@@ -288,9 +328,10 @@ def _load_property_details():
                 'property_value': val.get('PropertyValue', 0),
                 'latitude': loc.get('LatitudeDegrees', 0),
                 'longitude': loc.get('LongitudeDegrees', 0),
-                'elevation_m': p.get('GroundElevation', 0),
-                'floor_level_m': construction.get('FloorLevelMeters', 0),
-                'river_distance_m': risk.get('RiverDistanceMeters', 0),
+                'elevation_m': round(relative_elevation(
+                    prop_ground_m, gauge_elev, floor_level_m), 2),
+                'floor_level_m': floor_level_m,
+                'river_distance_km': round(river_distance_m / 1000.0, 2),
                 'ea_flood_zone': risk.get('EAFloodZone', ''),
                 'reference_gauges': ref_gauges,
             }
