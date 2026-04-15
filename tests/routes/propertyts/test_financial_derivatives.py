@@ -100,16 +100,16 @@ def pts_env_with_prs(tmp_path, monkeypatch):
                 'Postcode': 'SW1A 1AA',
                 'LatitudeDegrees': 51.5,
                 'LongitudeDegrees': -0.12,
-                'RiskAssessment': {
-                    'RiverDistanceMeters': 250,
-                    'EAFloodZone': 'Zone 3',
-                },
             },
             'Valuation': {'PropertyValue': 400000},
             'Construction': {'FloorLevelMeters': 3.2},
+            'RiskAssessment': {
+                'GroundLevelMeters': 6.0,
+                'RiverDistanceMeters': 250,
+                'EAFloodZone': 'Zone 3',
+            },
             'ReferenceGauges': ['GAUGE-001'],
         },
-        'GroundElevation': 3.0,
     }]}
     (tmp_path / 'property.json').write_text(json.dumps(property_data))
 
@@ -216,9 +216,8 @@ class TestPropertyBlotter:
         prop = data['properties'][0]
         assert prop['property_id'] == PROP_ID
         assert prop['property_value'] == 400000
-        assert prop['river_distance_m'] == 250
-        assert prop['elevation_m'] == 3.0
-        assert prop['floor_level_m'] == 3.2
+        assert prop['river_distance_km'] == 0.25
+        assert prop['elevation_m'] == 6.2  # relative_elevation(6.0, 3.0, 3.2)
         assert prop['ea_flood_zone'] == 'Zone 3'
 
     def test_blotter_includes_mortgage(self, pts_env_with_prs):
