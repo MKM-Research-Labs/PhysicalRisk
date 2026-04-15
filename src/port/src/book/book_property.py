@@ -179,8 +179,9 @@ def generate_property_book(
         prop_data = json.load(f)
     properties = prop_data.get('properties', [])
 
-    # Load counterparties
-    counterparties = _load_counterparties(counterparty_path)
+    # Property PRS: all trades are between the REIT (buyer) and the desk
+    # (seller).  Use a fixed REIT counterparty rather than cycling dealers.
+    counterparties = [{'id': 'CTPY-REIT-001', 'name': 'Thames Property REIT'}]
 
     # Select properties across risk spectrum
     selected = _select_properties(phc_curves, _NUM_TRADES)

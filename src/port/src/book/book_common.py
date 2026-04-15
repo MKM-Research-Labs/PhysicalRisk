@@ -234,7 +234,14 @@ def _price_and_save_trade(
     prefix = 'PRS-P' if property_set else 'PRS-'
     swap_id = f'{prefix}{uuid.uuid4().hex[:8].upper()}'
     offset = random.uniform(SPREAD_OFFSET_MIN, SPREAD_OFFSET_MAX)
-    trade_spread = fair_spread - offset if is_payer else fair_spread + offset
+    if property_set:
+        # PropertyPRS: REIT (payer) buys protection above fair value;
+        # desk (receiver) sells above fair — client always pays the ask.
+        trade_spread = fair_spread + offset
+    else:
+        # Gauge PRS: desk perspective — payer pays below fair, receiver
+        # receives above fair (desk always gets the favourable side).
+        trade_spread = fair_spread - offset if is_payer else fair_spread + offset
 
     pvs = _compute_leg_pvs(hazard_rate, trade_spread, tenor, notional)
     direction = 1.0 if is_payer else -1.0
