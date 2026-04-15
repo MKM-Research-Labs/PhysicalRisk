@@ -42,36 +42,45 @@ def get_js() -> str:
             // ================================================================
             // Table tab — DOM creation
             // ================================================================
-            var spTableSubTab = 'damage';  // 'blotter', 'damage', or 'basis'
+            var spTableSubTab = 'damage';  // 'portfolio', 'damage', 'trades', or 'basis'
             var spBlotterData = null;
             var spBasisData = null;
+            var spTradesData = null;
 
             function createTableView() {
                 var view = document.createElement('div');
                 view.id = 'sp-table-view';
                 view.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;';
 
-                // Sub-tab toggle: Blotter | Damage & Derivatives
+                // Sub-tab toggle: REIT Portfolio | Damage | REIT Blotter | Basis
                 var subTabBar = document.createElement('div');
                 subTabBar.id = 'sp-sub-tab-bar';
                 subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
-                var subBtnBlotter = document.createElement('button');
-                subBtnBlotter.id = 'sp-sub-blotter';
-                subBtnBlotter.textContent = 'REIT Portfolio';
-                subBtnBlotter.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
-                subBtnBlotter.onclick = function() { switchSubTab('blotter'); };
+                var inactiveStyle = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
+                var activeStyle = 'padding:5px 16px;font-size:11px;border:1px solid #1976d2;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:#1976d2;color:white;';
+                var subBtnPortfolio = document.createElement('button');
+                subBtnPortfolio.id = 'sp-sub-portfolio';
+                subBtnPortfolio.textContent = 'REIT Portfolio';
+                subBtnPortfolio.style.cssText = inactiveStyle;
+                subBtnPortfolio.onclick = function() { switchSubTab('portfolio'); };
                 var subBtnDamage = document.createElement('button');
                 subBtnDamage.id = 'sp-sub-damage';
-                subBtnDamage.textContent = 'Damage & Derivatives';
-                subBtnDamage.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #1976d2;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:#1976d2;color:white;';
+                subBtnDamage.textContent = 'Damage';
+                subBtnDamage.style.cssText = activeStyle;
                 subBtnDamage.onclick = function() { switchSubTab('damage'); };
+                var subBtnTrades = document.createElement('button');
+                subBtnTrades.id = 'sp-sub-trades';
+                subBtnTrades.textContent = 'REIT Blotter';
+                subBtnTrades.style.cssText = inactiveStyle;
+                subBtnTrades.onclick = function() { switchSubTab('trades'); };
                 var subBtnBasis = document.createElement('button');
                 subBtnBasis.id = 'sp-sub-basis';
                 subBtnBasis.textContent = 'Basis';
-                subBtnBasis.style.cssText = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
+                subBtnBasis.style.cssText = inactiveStyle;
                 subBtnBasis.onclick = function() { switchSubTab('basis'); };
-                subTabBar.appendChild(subBtnBlotter);
+                subTabBar.appendChild(subBtnPortfolio);
                 subTabBar.appendChild(subBtnDamage);
+                subTabBar.appendChild(subBtnTrades);
                 subTabBar.appendChild(subBtnBasis);
                 view.appendChild(subTabBar);
 
@@ -91,8 +100,9 @@ def get_js() -> str:
             function switchSubTab(sub) {
                 spTableSubTab = sub;
                 var btns = [
-                    document.getElementById('sp-sub-blotter'),
+                    document.getElementById('sp-sub-portfolio'),
                     document.getElementById('sp-sub-damage'),
+                    document.getElementById('sp-sub-trades'),
                     document.getElementById('sp-sub-basis'),
                 ];
                 btns.forEach(function(b) {
@@ -101,8 +111,10 @@ def get_js() -> str:
                 var active = document.getElementById('sp-sub-' + sub);
                 if (active) { active.style.background = '#1976d2'; active.style.color = 'white'; active.style.borderColor = '#1976d2'; }
 
-                if (sub === 'blotter') {
+                if (sub === 'portfolio') {
                     loadBlotterData();
+                } else if (sub === 'trades') {
+                    loadTradesData();
                 } else if (sub === 'basis') {
                     var ss = document.getElementById('sp-storm-select');
                     var sid = ss ? ss.value : '';
@@ -196,13 +208,162 @@ def get_js() -> str:
                 table.appendChild(thead);
 
                 var tbody = document.createElement('tbody');
-                (properties || []).forEach(function(p) {
+                (properties || []).forEach(function(p, idx) {
                     var row = document.createElement('tr');
+                    // Shade rows: high LTV red, moderate LTV orange, else alternate grey
+                    if (p.current_ltv > 90) {
+                        row.style.background = '#ffebee';
+                    } else if (p.current_ltv > 75) {
+                        row.style.background = '#fff3e0';
+                    } else if (idx % 2 === 1) {
+                        row.style.background = '#fafafa';
+                    }
+                    row.style.cursor = 'pointer';
+                    row.onmouseenter = function() { this.style.opacity = '0.8'; };
+                    row.onmouseleave = function() { this.style.opacity = '1'; };
+                    row.onclick = (function(pid) {
+                        return function() {
+                            hidePanel();
+                            if (window.PropertyStormAnalysis && window.PropertyStormAnalysis.show) {
+                                window.PropertyStormAnalysis.show(pid);
+                            } else {
+                                document.dispatchEvent(new CustomEvent('propertyStormRequested', {
+                                    detail: { propertyId: pid }, bubbles: true
+                                }));
+                            }
+                        };
+                    })(p.property_id);
+
                     blotterCols.forEach(function(col) {
                         var td = document.createElement('td');
                         td.textContent = col.fmt(p[col.key]);
                         td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
                         if (col.key === 'property_id' || col.key === 'property_address' || col.key === 'ea_flood_zone') td.style.textAlign = 'left';
+                        if (col.key === 'current_ltv' && p.current_ltv > 90) {
+                            td.style.color = '#d32f2f';
+                            td.style.fontWeight = 'bold';
+                        }
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                container.innerHTML = '';
+                container.appendChild(table);
+            }
+
+            // ================================================================
+            // REIT Blotter — PRS trades
+            // ================================================================
+            function loadTradesData() {
+                var summary = document.getElementById('sp-summary');
+                var container = document.getElementById('sp-table-container');
+                summary.innerHTML = '<div style="padding:4px;color:#888;font-size:11px;">Loading PRS trades...</div>';
+                container.innerHTML = '';
+
+                if (spTradesData) {
+                    renderTradesSummary(spTradesData);
+                    renderTradesTable(spTradesData.trades);
+                    return;
+                }
+
+                var baseUrl = getBaseUrl();
+                fetch(baseUrl + '/api/v1/trading/blotter', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.status === 'success') {
+                            spTradesData = data;
+                            renderTradesSummary(data);
+                            renderTradesTable(data.trades);
+                        } else {
+                            summary.innerHTML = '<div style="color:red;">Error loading trades</div>';
+                        }
+                    })
+                    .catch(function(err) {
+                        summary.innerHTML = '<div style="color:red;">Failed to load trades</div>';
+                        console.error('[StormPortfolio] Trades error:', err);
+                    });
+            }
+
+            function renderTradesSummary(data) {
+                var summary = document.getElementById('sp-summary');
+                var s = data.summary || {};
+                var pnlColor = (s.total_running_pnl || 0) >= 0 ? '#388e3c' : '#d32f2f';
+                var dailyColor = (s.total_daily_pnl || 0) >= 0 ? '#388e3c' : '#d32f2f';
+                var cards = [
+                    { label: 'Open Trades', value: s.num_trades || 0, color: '#1976d2' },
+                    { label: 'Total Notional', value: fmtGBP(s.total_notional || 0), color: '#7b1fa2' },
+                    { label: 'Daily P&L', value: fmtGBP(s.total_daily_pnl || 0), color: dailyColor },
+                    { label: 'Running P&L', value: fmtGBP(s.total_running_pnl || 0), color: pnlColor },
+                ];
+                summary.innerHTML = '';
+                cards.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                        '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
+                    summary.appendChild(card);
+                });
+            }
+
+            function renderTradesTable(trades) {
+                var container = document.getElementById('sp-table-container');
+                var tradeCols = [
+                    { key: 'swap_id', label: 'Trade ID', fmt: function(v) { return v || '\\u2014'; } },
+                    { key: 'gauge_name', label: 'Gauge', fmt: function(v) { return v || '\\u2014'; } },
+                    { key: 'property_id', label: 'Property', fmt: function(v) { return v || '\\u2014'; } },
+                    { key: 'trade_date', label: 'Trade Date', fmt: function(v) { return v ? v.substring(0, 10) : '\\u2014'; } },
+                    { key: 'notional', label: 'Notional', fmt: fmtGBP },
+                    { key: 'fixed_spread_bps', label: 'Fixed (bps)', fmt: function(v) { return v ? v.toFixed(1) : '\\u2014'; } },
+                    { key: 'fair_spread_bps', label: 'Fair (bps)', fmt: function(v) { return v ? v.toFixed(1) : '\\u2014'; } },
+                    { key: 'mtm', label: 'MTM', fmt: fmtGBP },
+                    { key: 'running_pnl', label: 'Running P&L', fmt: fmtGBP },
+                    { key: 'trade_status', label: 'Status', fmt: function(v) { return v || 'Open'; } },
+                ];
+
+                var table = document.createElement('table');
+                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:11px;';
+
+                var thead = document.createElement('thead');
+                var tr = document.createElement('tr');
+                tradeCols.forEach(function(col) {
+                    var th = document.createElement('th');
+                    th.textContent = col.label;
+                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid #ddd;background:#fafafa;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;';
+                    if (col.key === 'swap_id' || col.key === 'gauge_name' || col.key === 'property_id' || col.key === 'trade_status') th.style.textAlign = 'left';
+                    tr.appendChild(th);
+                });
+                thead.appendChild(tr);
+                table.appendChild(thead);
+
+                var tbody = document.createElement('tbody');
+                (trades || []).forEach(function(t, idx) {
+                    var row = document.createElement('tr');
+                    // Shade: negative P&L red, positive green tint, else alternate
+                    if ((t.running_pnl || 0) < -1000) {
+                        row.style.background = '#ffebee';
+                    } else if ((t.running_pnl || 0) > 1000) {
+                        row.style.background = '#e8f5e9';
+                    } else if (idx % 2 === 1) {
+                        row.style.background = '#fafafa';
+                    }
+                    row.style.cursor = 'pointer';
+                    row.onmouseenter = function() { this.style.opacity = '0.8'; };
+                    row.onmouseleave = function() { this.style.opacity = '1'; };
+
+                    tradeCols.forEach(function(col) {
+                        var td = document.createElement('td');
+                        td.textContent = col.fmt(t[col.key]);
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
+                        if (col.key === 'swap_id' || col.key === 'gauge_name' || col.key === 'property_id' || col.key === 'trade_status') td.style.textAlign = 'left';
+                        if (col.key === 'mtm' || col.key === 'running_pnl') {
+                            td.style.color = (t[col.key] || 0) >= 0 ? '#2e7d32' : '#c62828';
+                            td.style.fontWeight = 'bold';
+                        }
+                        if (col.key === 'trade_status') {
+                            td.style.color = t.trade_status === 'Closed' ? '#888' : '#1976d2';
+                        }
                         row.appendChild(td);
                     });
                     tbody.appendChild(row);
@@ -567,11 +728,7 @@ def get_js() -> str:
                             'Portfolio Storm Impact \u2014 ' + _stormLabel;
 
                         // Switch to damage sub-tab on storm change
-                        spTableSubTab = 'damage';
-                        var btnB = document.getElementById('sp-sub-blotter');
-                        var btnD = document.getElementById('sp-sub-damage');
-                        if (btnD) { btnD.style.background = '#1976d2'; btnD.style.color = 'white'; btnD.style.borderColor = '#1976d2'; }
-                        if (btnB) { btnB.style.background = 'white'; btnB.style.color = '#555'; btnB.style.borderColor = '#ddd'; }
+                        switchSubTab('damage');
 
                         renderSummary(data.portfolio, data.derivatives);
                         renderTable(data.properties);
