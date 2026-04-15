@@ -17,7 +17,7 @@ class TestREITPortfolioTabLabel:
         """Open storm portfolio panel and verify tab label."""
         # The storm portfolio panel opens via the storm selector
         # Try to find the sub-tab button
-        btn = map_page.locator("#sp-sub-blotter")
+        btn = map_page.locator("#sp-sub-portfolio")
         if btn.count() == 0:
             pytest.skip("Storm portfolio panel not available in current view")
 
@@ -31,7 +31,7 @@ class TestREITPortfolioColumns:
     """Verify correct column headers in the REIT Portfolio table."""
 
     def _open_blotter_tab(self, map_page):
-        btn = map_page.locator("#sp-sub-blotter")
+        btn = map_page.locator("#sp-sub-portfolio")
         if btn.count() == 0:
             pytest.skip("Storm portfolio panel not available")
         btn.click()
