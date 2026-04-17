@@ -16,8 +16,14 @@ class TestTerrainEffectRow:
         assert 'terrainDelta' in js
 
     def test_terrain_row_conditional(self, js):
-        """Terrain row should only appear when terrainDelta !== 0."""
-        assert 'if (terrainDelta !== 0)' in js
+        """Terrain row is gated behind the zone-mismatch + noise-floor check.
+
+        The renderer only shows the terrain adjustment when the user has
+        selected a counterfactual zone (zoneMatches is false) AND the delta
+        exceeds the 0.05 bps noise floor — any residual pricer delta below
+        that is suppressed as numerical noise, not a real adjustment.
+        """
+        assert 'if (!zoneMatches && Math.abs(terrainDelta) >= 0.05)' in js
 
     def test_terrain_effect_label(self, js):
         assert 'Terrain Effect' in js
