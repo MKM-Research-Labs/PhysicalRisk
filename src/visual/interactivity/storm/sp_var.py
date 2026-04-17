@@ -300,16 +300,22 @@ def get_js() -> str:
                 var statsBar = document.getElementById('sp-stats-bar');
                 statsBar.innerHTML = '<span>Loading VaR distribution...</span>';
                 var wrap = document.getElementById('sp-var-chart-wrap');
-                wrap.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Loading VaR data...</div>';
+                // Keep a canvas in the DOM from the start so downstream tests and
+                // chart-init code always find #sp-var-canvas, even during loading
+                // or when the backend returns an empty/erroring payload.
+                wrap.innerHTML = '<canvas id="sp-var-canvas"></canvas>' +
+                    '<div id="sp-var-status" style="padding:8px;text-align:center;color:#888;font-size:11px;">Loading VaR data…</div>';
                 var metrics = document.getElementById('sp-var-metrics');
-                metrics.innerHTML = '';
+                metrics.innerHTML = '<span style="font-size:10px;color:#888;">VaR: loading…</span>';
 
                 var baseUrl = getBaseUrl();
                 fetch(baseUrl + '/api/v1/propertyts/portfolio-var', {mode: 'cors'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status !== 'success') {
-                            wrap.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error: ' + (data.message || 'Unknown') + '</div>';
+                            var statusEl = document.getElementById('sp-var-status');
+                            if (statusEl) statusEl.innerHTML = '<span style="color:#c62828;">Error loading VaR: ' + (data.message || 'Unknown') + '</span>';
+                            metrics.innerHTML = '<span style="font-size:10px;color:#c62828;">VaR unavailable — ' + (data.message || 'no data') + '</span>';
                             return;
                         }
                         spVarData = data;

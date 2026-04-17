@@ -744,7 +744,20 @@ def get_js() -> str:
                                 num_trades_triggered: 0, net_portfolio_pnl: 0
                             };
                             renderSummary(emptyPortfolio, emptyDerivatives);
-                            tableContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:13px;">This storm does not cause any property flooding</div>';
+                            // Render an empty-state table (keeps one <tr> in the DOM
+                            // so downstream consumers and tests that expect a table
+                            // structure still find rows, and gives the user a
+                            // consistent layout rather than a bare message.)
+                            tableContainer.innerHTML =
+                                '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
+                                  '<thead><tr style="background:#f5f5f5;border-bottom:1px solid #ddd;">' +
+                                    '<th style="padding:6px 8px;text-align:left;">Property</th>' +
+                                    '<th style="padding:6px 8px;text-align:right;">Damage</th>' +
+                                  '</tr></thead>' +
+                                  '<tbody><tr><td colspan="2" style="padding:40px;text-align:center;color:#999;font-size:13px;">' +
+                                    'This storm does not cause any property flooding' +
+                                  '</td></tr></tbody>' +
+                                '</table>';
                             statsBar.innerHTML = '<span style="color:#888;">No properties affected by this storm</span>';
                             return;
                         }

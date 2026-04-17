@@ -87,9 +87,22 @@ class TestTradeMarksConsistency:
             except Exception:
                 gauge_jsons.add(f.stem)
 
+        # Classify PDFs by the paired JSON's TradeType where possible —
+        # not all property trades follow the PRS-P* filename convention
+        # (e.g. legacy trades booked before the naming rule was introduced).
+        # Fall back to the prefix for PDFs with no paired JSON (orphans).
         all_pdfs = {f.stem for f in PRS_DIR.glob("PRS-*.pdf")}
-        prop_pdfs = {s for s in all_pdfs if s.startswith('PRS-P')}
-        gauge_pdfs = all_pdfs - prop_pdfs
+        prop_pdfs = set()
+        gauge_pdfs = set()
+        for stem in all_pdfs:
+            if stem in prop_jsons:
+                prop_pdfs.add(stem)
+            elif stem in gauge_jsons:
+                gauge_pdfs.add(stem)
+            elif stem.startswith('PRS-P'):
+                prop_pdfs.add(stem)
+            else:
+                gauge_pdfs.add(stem)
 
         # Exclude recently-committed trades (< 24h) — PDF may not exist
         # until the next port --blotter run.

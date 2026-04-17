@@ -6,9 +6,24 @@ Storm Portfolio — Control tab e2e tests.
 Verifies that the Storm Sequence Control tab opens in the Storm Portfolio
 panel, displays parameter sections, loads data from the API, and supports
 save/reset interactions.
+
+Save and Reset require an admin password (same credential as ``python app.py
+port``); the conftest ``_e2e_admin_password`` session fixture installs a
+known one at ``data/.port_admin``. Tests below stub ``window.prompt`` to
+return it.
 """
 
 import pytest
+
+from .conftest import E2E_ADMIN_PW
+
+
+def _stub_prompt(page, value):
+    """Replace window.prompt on the page so save/reset skip the interactive dialog."""
+    page.evaluate(
+        "(v) => { window.prompt = function() { return v; }; }",
+        value,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -172,8 +187,11 @@ class TestControlTab:
         assert ind.is_visible(), "Dirty indicator should appear after input change"
 
     def test_save_button_persists_and_clears_dirty(self, map_page):
-        """Save button should POST changes and clear the dirty indicator."""
+        """Save button should POST changes (with admin password) and clear dirty."""
         ind = map_page.locator("#sp-ctrl-dirty")
+
+        # Stub window.prompt to return the admin password set up in conftest
+        _stub_prompt(map_page, E2E_ADMIN_PW)
 
         # Modify a value to make dirty
         first_input = map_page.locator("input[data-ctrl-key][type='number']").first
@@ -204,6 +222,10 @@ class TestControlTab:
 
     def test_reset_button_reverts_to_defaults(self, map_page):
         """Reset button should revert all values to Python defaults."""
+        # Stub both prompt (password) and confirm (reset-defaults dialog)
+        _stub_prompt(map_page, E2E_ADMIN_PW)
+        map_page.evaluate("() => { window.confirm = function() { return true; }; }")
+
         # Get a known default value
         result = map_page.evaluate("""async () => {
             var cfg = window.__BACKEND_CONFIG || {};
@@ -225,8 +247,7 @@ class TestControlTab:
                 state="hidden", timeout=5_000
             )
 
-            # Accept the confirm dialog and click reset
-            map_page.on("dialog", lambda d: d.accept())
+            # Click reset (confirm + prompt already stubbed)
             map_page.locator("#sp-ctrl-reset-btn").click()
             map_page.locator("#sp-ctrl-dirty").wait_for(
                 state="hidden", timeout=5_000
@@ -255,6 +276,46 @@ class TestControlTab:
             f"Expected guide PDF URL, got: {result}"
         )
 
+    # ---------------------------------------------------------------------
+    # Admin-only gating visibility
+    # ---------------------------------------------------------------------
+
+    def test_admin_only_badge_visible(self, map_page):
+        """Toolbar must display a visible 'Admin Only' badge."""
+        toolbar_text = map_page.locator("#sp-control-view").inner_text().lower()
+        assert "admin only" in toolbar_text, (
+            f"Expected 'Admin Only' badge in toolbar, got: {toolbar_text[:200]}"
+        )
+
+    def test_save_prompts_for_password(self, map_page):
+        """Clicking Save must invoke window.prompt for the admin password."""
+        # Install a spy that records the last prompt message and returns null (cancel)
+        map_page.evaluate("""() => {
+            window.__lastPrompt = null;
+            window.prompt = function(msg) { window.__lastPrompt = msg; return null; };
+        }""")
+        # Make dirty so save proceeds past the ctrlCollect guard
+        first_input = map_page.locator("input[data-ctrl-key][type='number']").first
+        first_input.fill("999")
+        map_page.locator("#sp-ctrl-save-btn").click()
+        msg = map_page.evaluate("() => window.__lastPrompt")
+        assert msg is not None, "Save did not call window.prompt for password"
+        assert "admin" in msg.lower() and "password" in msg.lower(), (
+            f"Password prompt missing admin/password wording, got: {msg}"
+        )
+
+    def test_save_rejects_empty_password(self, map_page):
+        """Cancelling the password prompt must not clear the dirty flag."""
+        map_page.evaluate("() => { window.prompt = function() { return null; }; }")
+        first_input = map_page.locator("input[data-ctrl-key][type='number']").first
+        first_input.fill("999")
+        ind = map_page.locator("#sp-ctrl-dirty")
+        ind.wait_for(state="visible", timeout=3_000)
+        map_page.locator("#sp-ctrl-save-btn").click()
+        # Dirty should stay visible because save was cancelled
+        assert ind.is_visible(), "Dirty indicator should remain after cancelled save"
+
+
     def test_help_tooltip_shows_on_hover(self, map_page):
         """Hovering over a ? icon should show the tooltip popup."""
         tip = map_page.locator("[id^='sp-ctrl-tip-']").first
@@ -267,6 +328,37 @@ class TestControlTab:
             icon.hover()
             tip.wait_for(state="visible", timeout=2_000)
             assert tip.is_visible(), "Tooltip should appear on hover"
+
+
+class TestControlFlowThrough:
+    """Control value must propagate to consumers — single source of truth.
+
+    Guards against the regression where FloodPoly (and any other client-side
+    consumer) hardcoded 168 while the Control tab saved a different value.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self, map_page):
+        _close_all_panels(map_page)
+        yield
+        _close_all_panels(map_page)
+
+    def test_control_hours_matches_backend(self, map_page):
+        """window.__STORM_CONTROL_HOURS (populated on startup) must equal the API value."""
+        # Give startup preload a moment to complete
+        map_page.wait_for_timeout(500)
+        result = map_page.evaluate("""async () => {
+            var cfg = window.__BACKEND_CONFIG || {};
+            var base = cfg.url || '';
+            var resp = await fetch(base + '/api/v1/trading/control/params');
+            var data = await resp.json();
+            var apiHrs = data.params.sections.storm_generation.event_window_hours;
+            return {api: apiHrs, window: window.__STORM_CONTROL_HOURS};
+        }""")
+        assert result['window'] == result['api'], (
+            f"window.__STORM_CONTROL_HOURS={result['window']} but API returned "
+            f"{result['api']} — client-side FloodPoly would use a stale value."
+        )
 
 
 # ---------------------------------------------------------------------------

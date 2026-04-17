@@ -56,12 +56,11 @@ function renderDocuments() {
 function _applyDocuments(data) {
     var content = document.getElementById('mg-content');
     if (!content) return;
-    if (data.status !== 'success') {
-        content.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error loading documents</div>';
-        return;
-    }
-
-    var docs = data.documents || [];
+    // The upload form must render regardless of whether the list fetch succeeded
+    // — users still need the ability to add documents. Any list-load error is
+    // surfaced inline below the form rather than replacing the whole panel.
+    var loadError = data.status !== 'success';
+    var docs = (data.documents || []);
 
             var html = '<div style="padding:16px;">';
 
@@ -73,6 +72,13 @@ function _applyDocuments(data) {
             html += '<input type="text" id="mg-doc-desc" placeholder="Description (optional)" style="flex:1;padding:6px 8px;font-size:11px;border:1px solid #ccc;border-radius:4px;min-width:150px;">';
             html += '<button onclick="window.MG.uploadDocument()" style="padding:6px 16px;font-size:11px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600;">Upload</button>';
             html += '</div></div>';
+
+            // Inline error (if the list fetch failed) — shown below the upload form
+            if (loadError) {
+                html += '<div style="padding:10px 12px;margin-bottom:12px;border:1px solid #ef9a9a;background:#ffebee;color:#c62828;font-size:11px;border-radius:4px;">' +
+                        'Could not load existing document list. Upload still works.' +
+                        '</div>';
+            }
 
             // Documents table
             html += '<div style="font-weight:600;font-size:13px;color:#333;margin-bottom:8px;">Uploaded Documents (' + docs.length + ')</div>';

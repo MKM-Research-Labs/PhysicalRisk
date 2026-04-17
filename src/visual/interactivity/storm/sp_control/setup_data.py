@@ -130,6 +130,12 @@ def get_js() -> str:
                         Object.keys(_ctrlFields).forEach(function(secId) {
                             _ctrlRenderSection(secId, sections[secId] || {});
                         });
+                        // Keep the window-level storm hours in sync so downstream
+                        // consumers (FloodPoly, animations) read one source of truth.
+                        var hrs = (sections.storm_generation || {}).event_window_hours;
+                        if (typeof hrs === 'number' && hrs > 0) {
+                            window.__STORM_CONTROL_HOURS = hrs;
+                        }
                         ctrlClearDirty();
                         var bar = document.getElementById('sp-ctrl-status');
                         if (bar) bar.textContent = 'Source: ' + resp.source + '  |  Version: ' + (ctrlData.version || '?');
@@ -184,6 +190,11 @@ def get_js() -> str:
             function saveControlData() {
                 var data = _ctrlCollect();
                 if (!data) return;
+                var pw = prompt('Admin password required to save storm control parameters.\n\n' +
+                                'Changes affect every storm calculation across the platform.\n' +
+                                '(Same password as "python app.py port".)');
+                if (pw === null) return;  // user cancelled
+                if (!pw) { alert('Password required. Save cancelled.'); return; }
                 var cfg = window.__BACKEND_CONFIG || {};
                 var base = cfg.url || '';
                 var btn = document.getElementById('sp-ctrl-save-btn');
@@ -191,7 +202,7 @@ def get_js() -> str:
 
                 fetch(base + '/api/v1/trading/control/params', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {'Content-Type': 'application/json', 'X-Admin-Password': pw},
                     body: JSON.stringify(data)
                 })
                 .then(function(r) { return r.json(); })
@@ -215,9 +226,13 @@ def get_js() -> str:
             // ---- Reset ----
             function resetControlData() {
                 if (!confirm('Reset all parameters to Python defaults?')) return;
+                var pw = prompt('Admin password required to reset storm control parameters.\n\n' +
+                                '(Same password as "python app.py port".)');
+                if (pw === null) return;  // user cancelled
+                if (!pw) { alert('Password required. Reset cancelled.'); return; }
                 var cfg = window.__BACKEND_CONFIG || {};
                 var base = cfg.url || '';
-                fetch(base + '/api/v1/trading/control/reset', {method: 'POST'})
+                fetch(base + '/api/v1/trading/control/reset', {method: 'POST', headers: {'X-Admin-Password': pw}})
                     .then(function(r) { return r.json(); })
                     .then(function(resp) {
                         if (resp.status === 'success') {

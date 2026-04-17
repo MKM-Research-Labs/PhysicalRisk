@@ -271,12 +271,19 @@ def _get_setup_js() -> str:
 
             // FloodPoly-v1 client-side: P(flood) = sigmoid(a*h + b*t + c*h*t + d*h^2 + e*t^2 + f)
             var _fpCoeffs = {a: 28.9582, b: -11.6351, c: 26.5490, d: -22.8893, e: -7.0794, f: -0.8872};
-            var _fpStormHours = 168;
+            // Single source of truth: read from centralised storm control (populated on
+            // app startup from /api/v1/trading/control/params). Fallback to 168 only if
+            // the Control tab hasn't been loaded yet — matches config.port.EVENT_WINDOW_HOURS.
+            function _fpStormHours() {
+                return (typeof window.__STORM_CONTROL_HOURS === 'number' && window.__STORM_CONTROL_HOURS > 0)
+                    ? window.__STORM_CONTROL_HOURS
+                    : 168;
+            }
             function _fpPFlood(waterLevel, hour, severeLevel) {
                 if (severeLevel <= 0) return 0;
                 var eps = 1e-8, clamp = 30;
                 var h = Math.log(Math.max(waterLevel / severeLevel, eps));
-                var t = Math.log((hour + 1) / _fpStormHours);
+                var t = Math.log((hour + 1) / _fpStormHours());
                 var z = _fpCoeffs.a*h + _fpCoeffs.b*t + _fpCoeffs.c*h*t + _fpCoeffs.d*h*h + _fpCoeffs.e*t*t + _fpCoeffs.f;
                 z = Math.max(-clamp, Math.min(clamp, z));
                 return 1.0 / (1.0 + Math.exp(-z));

@@ -17,6 +17,7 @@ from config.storm_control import (
     save_storm_control,
 )
 
+from ._admin_auth import require_admin_password
 from .blueprint import trading_bp
 
 
@@ -33,8 +34,14 @@ def get_control_params():
 
 
 @trading_bp.route("/trading/control/params", methods=["POST"])
+@require_admin_password
 def save_control_params():
-    """Save updated storm control parameters and hot-reload."""
+    """Save updated storm control parameters and hot-reload.
+
+    Admin-only: requires ``X-Admin-Password`` header matching the shared
+    port/admin credential. Changes here affect every storm calculation
+    across the platform, so gating prevents accidental writes.
+    """
     body = request.get_json(silent=True)
     if not body:
         return jsonify({"status": "error", "message": "No JSON body"}), 400
@@ -49,8 +56,12 @@ def save_control_params():
 
 
 @trading_bp.route("/trading/control/reset", methods=["POST"])
+@require_admin_password
 def reset_control_params():
-    """Reset storm control parameters to Python defaults."""
+    """Reset storm control parameters to Python defaults.
+
+    Admin-only: see ``save_control_params`` for rationale.
+    """
     defaults = get_defaults()
     save_storm_control(defaults)
     apply_storm_control()
