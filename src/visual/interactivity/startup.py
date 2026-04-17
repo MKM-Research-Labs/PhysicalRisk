@@ -250,6 +250,19 @@ def get_js() -> str:
                 var settled = 0;
                 var total = _startupDatasets.length;
 
+                // Prime storm control hours so FloodPoly and any other consumer reads
+                // the same value the backend is using — single source of truth.
+                fetch(baseUrl + '/api/v1/trading/control/params', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(resp) {
+                        var hrs = (((resp || {}).params || {}).sections || {})
+                                  .storm_generation && resp.params.sections.storm_generation.event_window_hours;
+                        if (typeof hrs === 'number' && hrs > 0) {
+                            window.__STORM_CONTROL_HOURS = hrs;
+                        }
+                    })
+                    .catch(function() { /* fallback to 168 in consumers */ });
+
                 _startupDatasets.forEach(function(ds) {
                     var key = ds[0], endpoint = ds[2];
                     fetch(baseUrl + endpoint, {mode: 'cors'})

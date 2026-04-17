@@ -123,9 +123,13 @@ def get_js():
                 var actualZone = result.actualZone || '';
                 var adjustedPropSpread = propSpread + terrainDelta;
 
-                // Terrain effect row (shared between both paths)
+                // Terrain effect row (shared between both paths).
+                // Hide when the user-selected zone matches the property's actual
+                // zone — any residual numerical delta from the pricer is not a
+                // counterfactual adjustment and should not be displayed.
+                var zoneMatches = selectedZone && actualZone && selectedZone === actualZone;
                 var terrainRow = '';
-                if (terrainDelta !== 0) {
+                if (!zoneMatches && Math.abs(terrainDelta) >= 0.05) {
                     var tColor = terrainDelta < 0 ? '#2E7D32' : '#E65100';
                     terrainRow =
                         '<tr style="background:#F3E5F5;"><td style="padding:2px 6px;font-size:10px;">Terrain Effect</td>' +

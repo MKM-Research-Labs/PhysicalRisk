@@ -47,21 +47,50 @@ from tests.e2e._helpers import (
 _MRC_PATH = ROOT / "data" / "mrc_meetings.json"
 _MRC_BACKUP = ROOT / "data" / ".mrc_meetings.json.bak"
 
+_ADMIN_PATH = ROOT / "data" / ".port_admin"
+_ADMIN_BACKUP = ROOT / "data" / ".port_admin.bak"
+
+# Shared across conftest and test_td_control — Playwright tests stub
+# window.prompt() with this value to exercise the admin password gate.
+E2E_ADMIN_PW = "e2etestpw"
+
 
 @pytest.fixture(scope="session", autouse=True)
 def _protect_mrc_meetings():
-    """Snapshot mrc_meetings.json before E2E tests and restore afterwards.
-
-    E2E CRUD tests (add/delete agenda items, decisions, actions, participants)
-    mutate the live file via the running Flask server.  Without this guard
-    the file drifts on every run, causing flaky failures in subsequent runs.
-    """
+    """Snapshot mrc_meetings.json before E2E tests and restore afterwards."""
     if _MRC_PATH.exists():
         shutil.copy2(_MRC_PATH, _MRC_BACKUP)
     yield
     if _MRC_BACKUP.exists():
         shutil.copy2(_MRC_BACKUP, _MRC_PATH)
         _MRC_BACKUP.unlink()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _e2e_admin_password():
+    """Install a known admin password for E2E tests that exercise Control save/reset.
+
+    Backs up the real ``data/.port_admin`` (if any), writes one with a known
+    password ``E2E_ADMIN_PW``, and restores afterwards. This lets Playwright
+    tests stub ``window.prompt`` to return the password and actually hit the
+    admin-gated endpoints.
+    """
+    import hashlib
+    import json as _json
+    import os as _os
+
+    if _ADMIN_PATH.exists():
+        shutil.copy2(_ADMIN_PATH, _ADMIN_BACKUP)
+    salt = _os.urandom(16).hex()
+    h = hashlib.sha256((salt + E2E_ADMIN_PW).encode()).hexdigest()
+    _ADMIN_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _ADMIN_PATH.write_text(_json.dumps({"salt": salt, "hash": h}))
+    yield
+    if _ADMIN_BACKUP.exists():
+        shutil.copy2(_ADMIN_BACKUP, _ADMIN_PATH)
+        _ADMIN_BACKUP.unlink()
+    elif _ADMIN_PATH.exists():
+        _ADMIN_PATH.unlink()
 
 
 # ---------------------------------------------------------------------------

@@ -30,12 +30,19 @@ import pytest
 class TestIntensityMainModule:
 
     def test_intensity_module_runs(self):
-        """Running `python -m models.intensity` executes cli.main()."""
+        """Running `python -m models.intensity` executes cli.main().
+
+        The subprocess exits in ~0.1s in isolation but can take much longer
+        when the outer pytest run has coverage enabled (each child process
+        re-initialises the coverage sitecustomize). A generous timeout stops
+        the full-suite run from failing this due to system load rather than
+        a real regression.
+        """
         result = subprocess.run(
             [sys.executable, "-m", "models.intensity", "--help"],
             capture_output=True, text=True,
             cwd=str(Path(__file__).resolve().parents[1] / "src"),
-            timeout=30,
+            timeout=120,
         )
         assert result.returncode == 0
         assert "Storm Intensity" in result.stdout or "usage" in result.stdout.lower()

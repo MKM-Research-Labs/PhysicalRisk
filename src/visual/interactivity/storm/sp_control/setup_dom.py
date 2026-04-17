@@ -17,11 +17,16 @@ def get_js() -> str:
                 toolbar.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;background:#f5f7fa;flex-shrink:0;';
                 toolbar.innerHTML =
                     '<span style="font-size:12px;font-weight:700;color:#333;">Storm Sequence Control</span>' +
+                    '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#fff3e0;' +
+                        'color:#c62828;border:1px solid #ef9a9a;border-radius:10px;font-size:9px;font-weight:700;' +
+                        'letter-spacing:0.5px;text-transform:uppercase;" title="Changes here affect every storm ' +
+                        'calculation across the platform. Admin password required to save or reset.">' +
+                        '\ud83d\udd12 Admin Only</span>' +
                     '<span id="sp-ctrl-dirty" style="font-size:10px;color:#e65100;font-weight:600;display:none;">Unsaved changes</span>' +
                     '<span style="flex:1;"></span>' +
                     '<button id="sp-ctrl-guide-btn" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">User Guide</button>' +
-                    '<button id="sp-ctrl-reset-btn" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #999;border-radius:3px;background:#f5f5f5;color:#555;cursor:pointer;">Reset Defaults</button>' +
-                    '<button id="sp-ctrl-save-btn" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#1565c0;color:white;cursor:pointer;">Save &amp; Apply</button>';
+                    '<button id="sp-ctrl-reset-btn" title="Admin password required" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #999;border-radius:3px;background:#f5f5f5;color:#555;cursor:pointer;">Reset Defaults</button>' +
+                    '<button id="sp-ctrl-save-btn" title="Admin password required" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#1565c0;color:white;cursor:pointer;">Save &amp; Apply</button>';
                 toolbar.querySelector('#sp-ctrl-guide-btn').onclick = function() { openControlGuide(); };
                 toolbar.querySelector('#sp-ctrl-reset-btn').onclick = function() { resetControlData(); };
                 toolbar.querySelector('#sp-ctrl-save-btn').onclick = function() { saveControlData(); };

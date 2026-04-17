@@ -6,10 +6,13 @@
 """
 Unit tests for routes/trading/control.py — GET/POST/reset endpoints.
 
-Uses the trading_env fixture pattern from conftest.py.
+Covers both behaviour and the admin-password gate (shared with
+``python app.py port``) on the mutating endpoints.
 """
 
+import hashlib
 import json
+import os
 
 import pytest
 
@@ -29,6 +32,21 @@ SAMPLE_CONTROL = {
     },
 }
 
+ADMIN_PW = "testpw123"
+
+
+@pytest.fixture
+def admin_file(tmp_path, monkeypatch):
+    """Create a .port_admin file with a known password and patch the decorator to use it."""
+    admin_path = tmp_path / ".port_admin"
+    salt = os.urandom(16).hex()
+    h = hashlib.sha256((salt + ADMIN_PW).encode()).hexdigest()
+    admin_path.write_text(json.dumps({"salt": salt, "hash": h}))
+
+    import routes.trading._admin_auth as auth
+    monkeypatch.setattr(auth, "_admin_file_path", lambda: admin_path)
+    return admin_path
+
 
 @pytest.fixture
 def control_env(trading_env):
@@ -39,8 +57,8 @@ def control_env(trading_env):
 
 
 @pytest.fixture
-def control_client(control_env):
-    """Flask test client with storm_control.json available."""
+def control_client(control_env, admin_file):
+    """Flask test client with storm_control.json and admin password available."""
     from server import create_app
     app = create_app()
     app.config['TESTING'] = True
@@ -48,9 +66,8 @@ def control_client(control_env):
 
 
 @pytest.fixture
-def no_control_client(trading_env):
-    """Flask test client without storm_control.json."""
-    # Ensure no storm_control.json exists
+def no_control_client(trading_env, admin_file):
+    """Flask test client without storm_control.json but with admin password."""
     p = trading_env['input_dir'] / 'storm_control.json'
     if p.exists():
         p.unlink()
@@ -60,58 +77,66 @@ def no_control_client(trading_env):
     return app.test_client()
 
 
+@pytest.fixture
+def no_admin_client(control_env, tmp_path, monkeypatch):
+    """Flask test client where no admin password has been set (no .port_admin file)."""
+    missing = tmp_path / ".port_admin_missing"
+    # Ensure it definitely does not exist
+    if missing.exists():
+        missing.unlink()
+    import routes.trading._admin_auth as auth
+    monkeypatch.setattr(auth, "_admin_file_path", lambda: missing)
+    from server import create_app
+    app = create_app()
+    app.config['TESTING'] = True
+    return app.test_client()
+
+
+def _auth_headers(password=ADMIN_PW):
+    return {
+        'Content-Type': 'application/json',
+        'X-Admin-Password': password,
+    }
+
+
 # ---------------------------------------------------------------------------
-# GET /trading/control/params
+# GET /trading/control/params  (no auth required — read-only)
 # ---------------------------------------------------------------------------
 
 class TestGetControlParams:
-    """GET /trading/control/params endpoint."""
+    """GET /trading/control/params endpoint — read-only, no auth."""
 
     def test_returns_200(self, control_client):
-        """control.py line 27: returns 200 with JSON params."""
         r = control_client.get('/api/v1/trading/control/params')
         assert r.status_code == 200
 
     def test_returns_success_status(self, control_client):
-        """control.py line 33: response has status='success'."""
         r = control_client.get('/api/v1/trading/control/params')
-        data = r.get_json()
-        assert data['status'] == 'success'
+        assert r.get_json()['status'] == 'success'
 
     def test_returns_source_json(self, control_client):
-        """control.py line 32: source='json' when file exists."""
         r = control_client.get('/api/v1/trading/control/params')
-        data = r.get_json()
-        assert data['source'] == 'json'
+        assert r.get_json()['source'] == 'json'
 
     def test_returns_source_defaults_when_missing(self, no_control_client):
-        """control.py line 30: source='defaults' when file missing."""
         r = no_control_client.get('/api/v1/trading/control/params')
-        data = r.get_json()
-        assert data['source'] == 'defaults'
+        assert r.get_json()['source'] == 'defaults'
 
     def test_returns_params_with_sections(self, control_client):
-        """Params should contain all five sections."""
         r = control_client.get('/api/v1/trading/control/params')
-        data = r.get_json()
-        sections = data['params']['sections']
-        assert 'storm_generation' in sections
-        assert 'hydrograph_synthesis' in sections
-        assert 'gauge_propagation' in sections
-        assert 'spatial_correlation' in sections
-        assert 'stress_catalogue' in sections
+        sections = r.get_json()['params']['sections']
+        assert set(sections.keys()) >= {
+            'storm_generation', 'hydrograph_synthesis', 'gauge_propagation',
+            'spatial_correlation', 'stress_catalogue',
+        }
 
     def test_returns_version(self, control_client):
-        """Params should include version string."""
         r = control_client.get('/api/v1/trading/control/params')
-        data = r.get_json()
-        assert data['params']['version'] == '1.0.0'
+        assert r.get_json()['params']['version'] == '1.0.0'
 
     def test_defaults_have_all_sections(self, no_control_client):
-        """When file missing, defaults should have all five sections."""
         r = no_control_client.get('/api/v1/trading/control/params')
-        data = r.get_json()
-        sections = data['params']['sections']
+        sections = r.get_json()['params']['sections']
         assert set(sections.keys()) == {
             'storm_generation', 'hydrograph_synthesis', 'gauge_propagation',
             'spatial_correlation', 'stress_catalogue',
@@ -119,127 +144,182 @@ class TestGetControlParams:
 
 
 # ---------------------------------------------------------------------------
-# POST /trading/control/params
+# POST /trading/control/params  (admin-gated)
 # ---------------------------------------------------------------------------
 
 class TestSaveControlParams:
-    """POST /trading/control/params endpoint."""
+    """POST /trading/control/params endpoint — admin-gated."""
 
     def test_returns_200_on_valid_body(self, control_client):
-        """control.py line 43: successful save returns 200."""
         r = control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(SAMPLE_CONTROL),
-            content_type='application/json',
+            headers=_auth_headers(),
         )
         assert r.status_code == 200
 
     def test_returns_success_message(self, control_client):
-        """control.py line 43: returns success message."""
         r = control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(SAMPLE_CONTROL),
-            content_type='application/json',
+            headers=_auth_headers(),
         )
         data = r.get_json()
         assert data['status'] == 'success'
         assert 'saved' in data['message'].lower()
 
     def test_persists_to_disk(self, control_env, control_client):
-        """Saved params should be persisted to storm_control.json."""
         modified = json.loads(json.dumps(SAMPLE_CONTROL))
         modified['sections']['storm_generation']['event_window_hours'] = 200
         control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(modified),
-            content_type='application/json',
+            headers=_auth_headers(),
         )
-        # Re-read from disk
         p = control_env['input_dir'] / 'storm_control.json'
         saved = json.loads(p.read_text())
         assert saved['sections']['storm_generation']['event_window_hours'] == 200
 
     def test_round_trip_get_after_post(self, control_client):
-        """POST then GET should return the saved values."""
         modified = json.loads(json.dumps(SAMPLE_CONTROL))
         modified['sections']['stress_catalogue']['stress_storms_min_count'] = 99
         control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(modified),
-            content_type='application/json',
+            headers=_auth_headers(),
         )
         r = control_client.get('/api/v1/trading/control/params')
         data = r.get_json()
         assert data['params']['sections']['stress_catalogue']['stress_storms_min_count'] == 99
 
     def test_rejects_empty_body(self, control_client):
-        """control.py line 37: empty body returns 400."""
         r = control_client.post(
             '/api/v1/trading/control/params',
             data='',
-            content_type='application/json',
+            headers=_auth_headers(),
         )
         assert r.status_code == 400
 
     def test_rejects_invalid_structure(self, control_client):
-        """control.py line 40: missing sections returns 400."""
         r = control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps({"foo": "bar"}),
-            content_type='application/json',
+            headers=_auth_headers(),
         )
         assert r.status_code == 400
 
 
 # ---------------------------------------------------------------------------
-# POST /trading/control/reset
+# POST /trading/control/reset  (admin-gated)
 # ---------------------------------------------------------------------------
 
 class TestResetControlParams:
-    """POST /trading/control/reset endpoint."""
+    """POST /trading/control/reset endpoint — admin-gated."""
 
     def test_returns_200(self, control_client):
-        """control.py line 49: reset returns 200."""
-        r = control_client.post('/api/v1/trading/control/reset')
+        r = control_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': ADMIN_PW},
+        )
         assert r.status_code == 200
 
     def test_returns_success(self, control_client):
-        """control.py line 49: returns status=success."""
-        r = control_client.post('/api/v1/trading/control/reset')
-        data = r.get_json()
-        assert data['status'] == 'success'
+        r = control_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': ADMIN_PW},
+        )
+        assert r.get_json()['status'] == 'success'
 
     def test_returns_default_params(self, control_client):
-        """control.py line 49: returns the defaults in response."""
-        r = control_client.post('/api/v1/trading/control/reset')
-        data = r.get_json()
-        params = data['params']
+        r = control_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': ADMIN_PW},
+        )
+        params = r.get_json()['params']
         assert 'sections' in params
         assert 'version' in params
 
     def test_overwrites_custom_values(self, control_env, control_client):
-        """Reset should overwrite previously saved custom values."""
-        # Save custom
         modified = json.loads(json.dumps(SAMPLE_CONTROL))
         modified['sections']['storm_generation']['event_window_hours'] = 999
         control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(modified),
-            content_type='application/json',
+            headers=_auth_headers(),
         )
-        # Reset
-        control_client.post('/api/v1/trading/control/reset')
-        # GET should return defaults
+        control_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': ADMIN_PW},
+        )
         r = control_client.get('/api/v1/trading/control/params')
         data = r.get_json()
         import config.port as cp
         assert data['params']['sections']['storm_generation']['event_window_hours'] == cp.EVENT_WINDOW_HOURS
 
     def test_reset_file_persisted(self, control_env, control_client):
-        """Reset should write defaults to disk."""
-        control_client.post('/api/v1/trading/control/reset')
+        control_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': ADMIN_PW},
+        )
         p = control_env['input_dir'] / 'storm_control.json'
         assert p.exists()
         saved = json.loads(p.read_text())
         assert saved['version'] == '1.0.0'
         assert len(saved['sections']) == 5
+
+
+# ---------------------------------------------------------------------------
+# Admin password gate
+# ---------------------------------------------------------------------------
+
+class TestAdminPasswordGate:
+    """Mutating endpoints must reject unauthenticated or wrong-password calls."""
+
+    def test_save_rejects_missing_header(self, control_client):
+        r = control_client.post(
+            '/api/v1/trading/control/params',
+            data=json.dumps(SAMPLE_CONTROL),
+            content_type='application/json',
+        )
+        assert r.status_code == 401
+        assert 'password' in r.get_json()['message'].lower()
+
+    def test_save_rejects_wrong_password(self, control_client):
+        r = control_client.post(
+            '/api/v1/trading/control/params',
+            data=json.dumps(SAMPLE_CONTROL),
+            headers=_auth_headers(password='wrong'),
+        )
+        assert r.status_code == 401
+
+    def test_reset_rejects_missing_header(self, control_client):
+        r = control_client.post('/api/v1/trading/control/reset')
+        assert r.status_code == 401
+
+    def test_reset_rejects_wrong_password(self, control_client):
+        r = control_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': 'wrong'},
+        )
+        assert r.status_code == 401
+
+    def test_save_503_when_admin_not_initialised(self, no_admin_client):
+        r = no_admin_client.post(
+            '/api/v1/trading/control/params',
+            data=json.dumps(SAMPLE_CONTROL),
+            headers=_auth_headers(),
+        )
+        assert r.status_code == 503
+        assert 'python app.py port' in r.get_json()['message']
+
+    def test_reset_503_when_admin_not_initialised(self, no_admin_client):
+        r = no_admin_client.post(
+            '/api/v1/trading/control/reset',
+            headers={'X-Admin-Password': ADMIN_PW},
+        )
+        assert r.status_code == 503
+
+    def test_get_still_works_without_auth(self, control_client):
+        """GET remains public — only mutating endpoints are gated."""
+        r = control_client.get('/api/v1/trading/control/params')
+        assert r.status_code == 200
