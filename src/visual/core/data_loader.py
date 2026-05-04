@@ -36,9 +36,10 @@ from loaders import (
     GaugeLoader,
     MortgageLoader,
     PropertyLoader,
-    analyze_id_relationships,
     build_all_lookups,
 )
+
+from . import _data_summary
 
 logger = logging.getLogger(__name__)
 
@@ -303,39 +304,11 @@ class DataLoader:
 
     def _print_relationship_analysis(self):
         """Print ID relationship analysis for debugging."""
-        logger.info("Analyzing ID relationships...")
-
-        analysis = analyze_id_relationships(
-            property_data=self.loaded_data.property_data,
-            mortgage_data=self.loaded_data.mortgage_data,
-            flood_risk_data=self.loaded_data.property_hazard_data
-        )
-
-        counts = analysis["counts"]
-        overlaps = analysis["overlaps"]
-
-        logger.info(f"Properties: {counts['properties']}")
-        logger.info(f"Mortgages: {counts['mortgages']}")
-        logger.info(f"Properties with mortgages: {overlaps['properties_with_mortgages']}/{counts['properties']}")
-        logger.info(f"Properties with flood risk: {overlaps['properties_with_flood_risk']}/{counts['properties']}")
-        logger.info(f"Mortgages with flood risk: {overlaps['mortgages_with_flood_risk']}/{counts['mortgages']}")
+        _data_summary.print_relationship_analysis(self)
 
     def _print_loading_summary(self):
         """Print a comprehensive summary of all loaded data."""
-        d = self.loaded_data
-
-        gauge_count = d.gauge_data.get("count", 0) if d.gauge_data else 0
-        prop_count = d.property_data.get("count", 0) if d.property_data else 0
-        mort_count = d.mortgage_data.get("count", 0) if d.mortgage_data else 0
-        hc_count = len(d.hazard_data.get("hazard_curves", {})) if d.hazard_data else 0
-        phc_count = len(d.property_hazard_data.get("property_hazard_curves", {})) if d.property_hazard_data else 0
-
-        logger.info("DATA LOADING SUMMARY")
-        logger.info(f"Portfolio:   {gauge_count} gauges | {prop_count} properties | {mort_count} mortgages")
-        logger.info(f"Hazard:      {hc_count} gauge curves | {phc_count} property curves")
-        logger.info(f"Storms:      {'loaded' if d.storm_data else 'not loaded'}")
-        logger.info(f"Timeseries:  {d.gaugets_count} gaugets | {d.gaugehd_count} gaugehd | {d.propertyts_count} propertyts")
-        logger.info(f"Lookups:     {len(d.gauge_flood_info or {})} gauge flood | {len(d.property_flood_info or {})} property flood | {len(d.mortgage_lookup or {})} mortgage")
+        _data_summary.print_loading_summary(self)
 
     def is_data_complete(self) -> bool:
         """Check if minimum required data (gauge data) is loaded."""
@@ -347,14 +320,4 @@ class DataLoader:
 
     def get_data_summary(self) -> Dict[str, Any]:
         """Get a summary of all loaded data."""
-        summary = {}
-
-        for data_type, validation in self._validation_results.items():
-            summary[data_type] = {
-                "loaded": validation.is_valid,
-                "summary": validation.summary,
-                "warnings": len(validation.warnings),
-                "errors": len(validation.errors),
-            }
-
-        return summary
+        return _data_summary.build_data_summary(self)
