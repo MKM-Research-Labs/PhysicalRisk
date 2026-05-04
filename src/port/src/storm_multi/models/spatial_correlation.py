@@ -47,11 +47,10 @@ Default parameters (Thames-calibrated, spec Table 2):
 """
 
 import json
-import math
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -62,6 +61,8 @@ from config.port import (
     SPATIAL_CORR_RHO_INTENSITY,
     SPATIAL_CORR_SIGMA_LOGNORMAL,
 )
+
+from . import _spatial_math
 
 logger = logging.getLogger(__name__)
 
@@ -129,29 +130,12 @@ class SpatialCorrelationModel:
     # Distance matrix
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """Haversine great-circle distance in km."""
-        R = 6371.0
-        phi1, phi2 = math.radians(lat1), math.radians(lat2)
-        dphi = math.radians(lat2 - lat1)
-        dlam = math.radians(lon2 - lon1)
-        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-        return R * 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    # Public alias kept for callers that referenced ``Model.haversine_km``
+    haversine_km = staticmethod(_spatial_math.haversine_km)
 
     def _build_distance_matrix(self) -> np.ndarray:
         """Build symmetric N×N Haversine distance matrix (km)."""
-        n = self.n_gauges
-        D = np.zeros((n, n))
-        for i in range(n):
-            for j in range(i + 1, n):
-                d = self.haversine_km(
-                    self.gauge_locations[i, 0], self.gauge_locations[i, 1],
-                    self.gauge_locations[j, 0], self.gauge_locations[j, 1],
-                )
-                D[i, j] = d
-                D[j, i] = d
-        return D
+        return _spatial_math.build_distance_matrix(self.gauge_locations)
 
     # ------------------------------------------------------------------
     # Correlation matrix
@@ -162,36 +146,15 @@ class SpatialCorrelationModel:
 
         Higher-intensity storms have broader spatial footprint → longer
         effective range → stronger spatial coherence across gauges.
-
-        Args:
-            intensity_factor: Storm intensity multiplier (e.g. 1.0 = moderate,
-                              1.8 = severe, 3.0 = extreme).
-
-        Returns:
-            Effective correlation range in km.
         """
         return self.params.base_range_km * (
             1.0 + self.params.rho_intensity * max(0.0, intensity_factor - 1.0)
         )
 
     def correlation_matrix(self, range_km: float) -> np.ndarray:
-        """Build N×N exponential correlation matrix.
-
-        C[i,j] = (1 - nugget) * exp(-d[i,j] / range_km)   for i ≠ j
-        C[i,i] = 1.0
-
-        The nugget reduces off-diagonal values to ensure the matrix is
-        strictly positive definite for Cholesky decomposition.
-
-        Args:
-            range_km: Effective correlation range.
-
-        Returns:
-            Symmetric (n_gauges, n_gauges) correlation matrix.
-        """
-        C = (1.0 - self.params.nugget) * np.exp(-self.dist_matrix / range_km)
-        np.fill_diagonal(C, 1.0)
-        return C
+        """Build N×N exponential correlation matrix at the given range."""
+        return _spatial_math.correlation_matrix(
+            self.dist_matrix, range_km, self.params.nugget)
 
     # ------------------------------------------------------------------
     # Cholesky (cached)
@@ -206,16 +169,7 @@ class SpatialCorrelationModel:
         key = round(range_km, 1)
         if key not in self._cholesky_cache:
             C = self.correlation_matrix(range_km)
-            try:
-                L = np.linalg.cholesky(C)
-            except np.linalg.LinAlgError:
-                # Fallback: add small jitter if numerical issues arise
-                logger.warning(
-                    "Cholesky failed at range %.1f km — adding jitter", range_km
-                )
-                C += np.eye(self.n_gauges) * 1e-6
-                L = np.linalg.cholesky(C)
-            self._cholesky_cache[key] = L
+            self._cholesky_cache[key] = _spatial_math.cholesky_with_jitter(C, range_km)
             logger.debug("Cached Cholesky for range=%.1f km", range_km)
         return self._cholesky_cache[key]
 
@@ -325,38 +279,6 @@ class SpatialCorrelationModel:
         return cls.from_gauge_portfolio(portfolio, params=params)
 
 
-# ---------------------------------------------------------------------------
-# Config file I/O
-# ---------------------------------------------------------------------------
-
-def save_spatial_correlation_config(
-    path: Path,
-    params: Optional[SpatialCorrelationParams] = None,
-) -> None:
-    """Write a spatial correlation config JSON file (for export / debugging).
-
-    The canonical parameter values live in config.port (SPATIAL_CORR_*).
-    This function serialises a SpatialCorrelationParams instance — or the
-    config defaults when none is supplied — to JSON for inspection or hand-off.
-    """
-    from config.port import (
-        SPATIAL_CORR_ENABLED,
-        SPATIAL_CORR_MODEL_TYPE,
-        SPATIAL_CORR_NUM_GAUGES,
-    )
-    p = params or SpatialCorrelationParams()
-    cfg = {
-        "spatial_correlation": {
-            "enabled": SPATIAL_CORR_ENABLED,
-            "model_type": SPATIAL_CORR_MODEL_TYPE,
-            "base_range_km": p.base_range_km,
-            "nugget": p.nugget,
-            "rho_intensity": p.rho_intensity,
-            "sigma_lognormal": p.sigma_lognormal,
-            "num_gauges": SPATIAL_CORR_NUM_GAUGES,
-        }
-    }
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(cfg, f, indent=2)
-    logger.info("Saved spatial correlation config to %s", path)
+# Config file I/O lives in the sibling _spatial_math module; re-export so
+# existing callers of ``from .spatial_correlation import save_*`` still work.
+save_spatial_correlation_config = _spatial_math.save_spatial_correlation_config
