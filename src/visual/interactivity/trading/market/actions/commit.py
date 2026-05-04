@@ -100,9 +100,8 @@ def get_js() -> str:
                     console.log('[Market] Sending commit ' + commitIdx + '/' + commitQueue.length + ': ' + item.type + ' ' + (item.gauge_id || '') + ' ' + (item.trigger || ''));
                     console.log('[Market] POST body: ' + JSON.stringify(body));
 
-                    fetch(url + '?_=' + Date.now(), {
+                    window.__mkmAdminFetch(url + '?_=' + Date.now(), {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(body),
                         mode: 'cors',
                         cache: 'no-store'

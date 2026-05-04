@@ -82,10 +82,40 @@ class TestControlTab:
     def open_control_tab(self, map_page):
         _close_all_panels(map_page)
         _open_storm_portfolio(map_page)
+
+        # Clicking the Control tab fires an async loadControlData() fetch
+        # which, on resolve, calls ctrlClearDirty() and re-renders sections.
+        # If we let a test interact with the form before that settles,
+        # the load's trailing ctrlClearDirty clobbers dirty state the test
+        # has deliberately set (see test_save_rejects_empty_password).
+        #
+        # The status bar persists across tab re-opens and still shows the
+        # previous test's final state (e.g. "Source: defaults (reset) ..."),
+        # so we stamp a sentinel BEFORE clicking the tab and wait for the
+        # fresh load to overwrite it.
+        map_page.evaluate("""() => {
+            var b = document.getElementById('sp-ctrl-status');
+            if (b) b.textContent = '__CTRL_LOADING__';
+        }""")
         map_page.locator("#sp-tab-control").click(force=True)
         map_page.locator("#sp-control-view").wait_for(
             state="attached", timeout=10_000
         )
+        try:
+            map_page.wait_for_function(
+                "() => {"
+                "  var b = document.getElementById('sp-ctrl-status');"
+                "  if (!b) return false;"
+                "  var t = b.textContent || '';"
+                "  return t.indexOf('__CTRL_LOADING__') === -1"
+                "      && t.toLowerCase().indexOf('loading') === -1"
+                "      && t.toLowerCase().indexOf('source:') !== -1;"
+                "}",
+                timeout=10_000,
+            )
+        except Exception:
+            # Fall back to a fixed wait rather than failing the fixture.
+            map_page.wait_for_timeout(2_000)
         yield
         _close_storm_portfolio(map_page)
 
@@ -247,10 +277,19 @@ class TestControlTab:
                 state="hidden", timeout=5_000
             )
 
-            # Click reset (confirm + prompt already stubbed)
+            # Click reset (confirm + prompt already stubbed).
+            # After save, dirty is already hidden — waiting for dirty=hidden
+            # here resolves immediately and does not prove the async reset
+            # .then() (which re-renders section inputs with defaults) has
+            # run. Wait instead for the status bar to confirm the reset,
+            # which is set inside that same .then().
             map_page.locator("#sp-ctrl-reset-btn").click()
-            map_page.locator("#sp-ctrl-dirty").wait_for(
-                state="hidden", timeout=5_000
+            map_page.wait_for_function(
+                "() => {"
+                "  var b = document.getElementById('sp-ctrl-status');"
+                "  return !!b && /reset/i.test(b.textContent || '');"
+                "}",
+                timeout=10_000,
             )
 
             # Verify the value is back to the original
@@ -418,7 +457,13 @@ class TestControlAPI:
         assert set(result["sections"]) == expected
 
     def test_control_params_contain_key_values(self, map_page):
-        """Parameter values should match expected defaults."""
+        """Parameter values should match expected defaults.
+
+        The session-level ``_isolated_catchment_dir`` fixture copies the
+        catchment dir to tmp and removes ``storm_control.json`` there, so
+        the server starts with no overlay and the API reports the Python
+        source constants rather than any prior mutation.
+        """
         result = map_page.evaluate("""async () => {
             try {
                 var cfg = window.__BACKEND_CONFIG || {};

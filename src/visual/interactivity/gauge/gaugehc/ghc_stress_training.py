@@ -95,9 +95,8 @@ def get_js() -> str:
                 var btn = document.getElementById('stress-train-btn');
                 if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
 
-                fetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
+                window.__mkmAdminFetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
                     mode: 'cors'
                 })
                 .then(function(r) { return r.json(); })

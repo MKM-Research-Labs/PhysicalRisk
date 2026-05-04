@@ -75,9 +75,8 @@ def get_js() -> str:
                         payload.payer = closeOutIsPayer;
                     }
 
-                    var response = await fetch(baseUrl + '/api/v1/prs/commit', {
+                    var response = await window.__mkmAdminFetch(baseUrl + '/api/v1/prs/commit', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 

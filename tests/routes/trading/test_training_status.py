@@ -54,8 +54,10 @@ def training_env(trading_env):
 def training_client(training_env):
     """Flask test client with training-compatible gauge.json."""
     from server import create_app
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app.test_client()
 
 

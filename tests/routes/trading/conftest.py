@@ -128,8 +128,10 @@ def trading_env(tmp_path, monkeypatch):
 def trading_client(trading_env):
     """Flask test client with full trading environment."""
     from server import create_app
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app.test_client()
 
 
@@ -190,8 +192,10 @@ def empty_trading_env(tmp_path, monkeypatch):
 def empty_trading_client(empty_trading_env):
     """Flask test client with no trades."""
     from server import create_app
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app.test_client()
 
 
@@ -234,8 +238,10 @@ def stress_env(trading_env):
 def stress_client(stress_env):
     """Flask client with stress data available."""
     from server import create_app
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app.test_client()
 
 
@@ -281,6 +287,8 @@ def port_stress_env(trading_env):
 def port_stress_client(port_stress_env):
     """Flask client with portfolio stress data available."""
     from server import create_app
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app.test_client()

@@ -30,6 +30,7 @@ import logging
 from flask import jsonify, request
 
 from . import trading_bp
+from ._admin_auth import require_admin_password
 from ._helpers import _get_engines, _load_open_trades
 
 logger = logging.getLogger(__name__)
@@ -66,6 +67,7 @@ def get_market_state():
 
 
 @trading_bp.route("/trading/market-state", methods=["POST"])
+@require_admin_password
 def update_market_state():
     """Update a gauge's hazard rate and revalue affected trades."""
     try:
@@ -120,6 +122,7 @@ def update_market_state():
 
 
 @trading_bp.route("/trading/market-state/reset", methods=["POST"])
+@require_admin_password
 def reset_market_state():
     """Reset market state to base curves."""
     try:

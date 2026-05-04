@@ -230,9 +230,8 @@ def get_js() -> str:
                     btn.textContent = 'Closing...';
 
                     var url = getBaseUrl() + '/api/v1/trading/close/' + swapId;
-                    fetch(url, {
+                    window.__mkmAdminFetch(url, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ closeout_spread_bps: closeoutSpd }),
                         mode: 'cors'
                     })
