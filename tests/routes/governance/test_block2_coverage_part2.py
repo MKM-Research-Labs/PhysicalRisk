@@ -65,7 +65,7 @@ class TestValidationQuestionEdgeCases:
 
     def test_update_vq_save_failure(self, gov_client, governance_env):
         """Line 176: save failure → 500."""
-        with patch("routes.governance.audit._save_inventory", return_value=False):
+        with patch("routes.governance.audit_validation._save_inventory", return_value=False):
             r = gov_client.post(
                 "/api/v1/governance/models/MKM-TEST-001/validation-questions/1/update",
                 json={"status": "Addressed", "evidence": "test", "reviewed_by": "u"})
@@ -107,7 +107,7 @@ class TestOverrideRiskRatingEdgeCases:
 
     def test_override_save_failure(self, gov_client, governance_env):
         """Line 282: save failure → 500."""
-        with patch("routes.governance.audit._save_inventory", return_value=False):
+        with patch("routes.governance.audit_validation._save_inventory", return_value=False):
             r = gov_client.post(
                 "/api/v1/governance/models/MKM-TEST-001/risk-rating/override",
                 json={"rating": "Acceptable", "reason": "test reason", "user": "u"})
