@@ -344,6 +344,21 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
     if os.path.exists(e2e_xml):
         os.unlink(e2e_xml)
 
+    # The E2E session fixture _isolated_catchment_dir copies
+    # data/input/<catchment>/ (~7 GB for thames) into ``tmp_path_factory``
+    # once per pytest invocation. With 4 batches that is 4 × 7 GB ≈ 28 GB
+    # of redundant copies, which previously blew through 20 GB of free disk.
+    # Wipe pytest's tmp tree between batches so each starts fresh and disk
+    # never holds more than one catchment copy at a time.
+    import getpass
+    import tempfile
+    pytest_tmp_root = os.path.join(
+        tempfile.gettempdir(), f'pytest-of-{getpass.getuser()}')
+
+    def _wipe_pytest_tmp() -> None:
+        if os.path.isdir(pytest_tmp_root):
+            shutil.rmtree(pytest_tmp_root, ignore_errors=True)
+
     all_xml_files = []
     for batch_idx, batch_files in enumerate(batches, 1):
         batch_xml = os.path.join(audit_dir, f'e2e_junit_batch{batch_idx}.xml')
@@ -371,6 +386,10 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
             print(f'  Batch {batch_idx} timed out (30 min limit) — continuing')
         except Exception as exc:
             print(f'  Batch {batch_idx} error: {exc} — continuing')
+        finally:
+            # Reclaim the ~7 GB catchment copy + any retained sessions
+            # before the next batch starts.
+            _wipe_pytest_tmp()
 
     # Merge all batch XMLs into the combined summary
     for xml_path in all_xml_files:
