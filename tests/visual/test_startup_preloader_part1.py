@@ -135,9 +135,12 @@ class TestStartupPreloaderBehaviour:
         assert "'Market state'" not in js and '"Market state"' not in js
 
     def test_shows_progress_popup(self):
-        js = _src('src/visual/interactivity/startup.py')
-        assert 'startup-preloader-popup' in js
-        assert 'startup-pre-bar' in js
+        # Popup DOM creation lives in the sibling startup_popup module;
+        # the progress bar id is referenced from the main loop.
+        popup_js = _src('src/visual/interactivity/startup_popup.py')
+        startup_js = _src('src/visual/interactivity/startup.py')
+        assert 'startup-preloader-popup' in popup_js
+        assert 'startup-pre-bar' in startup_js
 
     def test_startup_preloader_class_defined(self):
         src = _src('src/visual/interactivity/startup.py')
