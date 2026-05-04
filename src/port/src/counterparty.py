@@ -28,6 +28,20 @@ Counterparty portfolio generator.
 
 Generates synthetic counterparty data following the CounterpartyCDM schema.
 Counterparties represent trading partners for PRS instruments.
+
+Trading rules
+-------------
+* **Gauge PRS** trades are between the trader (MKM Research Labs) and an
+  *external* counterparty drawn from ``_ALL_COUNTERPARTIES`` (banks,
+  insurers, reinsurers, etc.) with random ``CTPY-{8hex}`` IDs.
+* **Property PRS** trades are between the trader and the **REIT client
+  exclusively** — a fixed counterparty ``CTPY-REIT-001`` ("Thames
+  Property REIT") that is *always* emitted by the generator regardless
+  of the random external set.
+
+This module therefore prepends a deterministic REIT entry before
+generating the random external pool, so ``counterparty.json`` always
+contains the counterpart that ``book_property.py`` references.
 """
 
 import json
@@ -161,7 +175,17 @@ class CounterpartyPortfolioGenerator:
         else:
             names = _ALL_COUNTERPARTIES[:count]
 
-        counterparties = []
+        # Always emit the fixed REIT counterparty first.  Property PRS
+        # trades are exclusively between the trader and CTPY-REIT-001
+        # (see book_property.py); the lineage / blotter tests assert
+        # that every PRS counterparty exists in counterparty.json, so
+        # this entry must always be present.
+        counterparties = [self._generate_reit()]
+        if self.verbose:
+            logger.info(
+                "[REIT] Thames Property REIT (CTPY-REIT-001)"
+            )
+
         for i, (full_name, short_name, ctpy_type) in enumerate(names):
             ctpy = self._generate_one(i, full_name, short_name, ctpy_type)
             counterparties.append(ctpy)
@@ -190,6 +214,120 @@ class CounterpartyPortfolioGenerator:
             "data": counterparties,
             "file_path": output_path,
             "metadata": output_data["generation_metadata"],
+        }
+
+    @staticmethod
+    def _generate_reit() -> Dict[str, Any]:
+        """Build the fixed CTPY-REIT-001 counterparty record.
+
+        Trading rule: property PRS trades are *exclusively* between the
+        trader and the REIT client.  The REIT is a fixed (non-random)
+        counterparty that always appears in counterparty.json, even
+        when ``--num-properties`` is small or zero.
+        """
+        party_id = "CTPY-REIT-001"
+        full_name = "Thames Property REIT"
+        short_name = "Thames REIT"
+        ctpy_type = "REIT"
+        # Deterministic banking details so re-runs don't churn the file
+        sort_code = "20-00-00"
+        account_number = "10000001"
+        iban = "GB29MKMM20000010000001"
+        swift_bic = "REITGB2L"
+        lei = "REIT" + "0" * 16
+        email = "treasury@thamespropertyreit.co.uk"
+
+        return {
+            "CounterpartySet": {
+                "Party": {
+                    "PartyID": party_id,
+                    "PartyIdScheme": "Internal",
+                    "PartyName": full_name,
+                    "BusinessUnits": [
+                        {
+                            "BusinessUnitName": f"{ctpy_type} - {short_name}",
+                            "BusinessUnitId": f"BU-{party_id}",
+                        }
+                    ],
+                    "Accounts": [
+                        {
+                            "AccountID": f"ACC-{party_id}-GBP",
+                            "AccountDescription": f"GBP trading/settlement - {short_name}",
+                            "AccountCurrency": "GBP",
+                            "SortCode": sort_code,
+                            "AccountNumber": account_number,
+                            "IBAN": iban,
+                            "BIC": swift_bic,
+                        },
+                        {
+                            "AccountID": f"ACC-{party_id}-COLL",
+                            "AccountDescription": f"Collateral account - {short_name}",
+                            "AccountCurrency": "GBP",
+                        },
+                    ],
+                    "ContactInformation": {
+                        "PrimaryEmail": email,
+                        "PrimaryPhone": "+44 20 7000 0001",
+                        "AddressLine1": "1 Thames Embankment",
+                        "AddressLine2": "Southwark",
+                        "City": "London",
+                        "PostCode": "SE1 9AA",
+                        "Country": "GB",
+                    },
+                    "NaturalPersons": [
+                        {
+                            "PersonID": "NP-REIT01",
+                            "FirstName": "Sarah",
+                            "LastName": "Whitfield",
+                            "Role": "Treasurer",
+                            "Email": email,
+                            "Phone": "+44 20 7000 0002",
+                            "SymphonyID": "sarah.whitfield@thamespropertyreit.symphony.com",
+                        }
+                    ],
+                },
+                "Counterparties": [
+                    {
+                        "CounterpartyRole": "Party1",
+                        "PartyRef": "MKM-RESEARCH-LABS",
+                        "ExternalPartyId": "MKM-001",
+                        "BookingAccountRef": "ACC-MKM-GBP",
+                    },
+                    {
+                        "CounterpartyRole": "Party2",
+                        "PartyRef": party_id,
+                        "ExternalPartyId": lei,
+                        "BookingAccountRef": f"ACC-{party_id}-GBP",
+                    },
+                ],
+                "AncillaryParties": [],
+                "_platform": {
+                    "ShortName": short_name,
+                    "PartyType": ctpy_type,
+                    "LEI": lei,
+                    "SWIFT_BIC": swift_bic,
+                    "Jurisdiction": "UK",
+                    "Status": "Active",
+                    "CatchmentID": config.catchment_id,
+                    # REITs aren't typically rated by the agencies; use a
+                    # representative IG anchor so downstream pricers that
+                    # expect a rating field have something sensible.
+                    "CreditRating": "A",
+                    "RatingAgency": "Internal",
+                    "CreditLimit": 200_000_000,
+                    "CurrentExposure": 0.0,
+                    "CollateralPosted": 0.0,
+                    "MaxTenor": 30,
+                    "MaxNotional": 100_000_000,
+                    "ISDAMasterAgreement": True,
+                    "CSAAgreement": True,
+                    "NettingAgreement": True,
+                    "PreferredCurrency": "GBP",
+                    # Marker so downstream consumers can filter
+                    # (e.g., the property-PRS pricer / blotter REIT view).
+                    "IsREIT": True,
+                },
+            }
         }
 
     def _generate_one(self, index: int, full_name: str, short_name: str,

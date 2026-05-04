@@ -20,8 +20,10 @@ class TestVerboseLogging:
         with caplog.at_level(logging.INFO):
             result = gen.generate(count=3)
 
-        assert len(result["data"]) == 3
-        # Should have per-counterparty log messages like "[1/3]"
+        # 1 REIT + 3 externals = 4 records
+        assert len(result["data"]) == 4
+        # The REIT line is logged separately, then [1/3]..[3/3] for externals
+        assert "[REIT]" in caplog.text
         assert "[1/3]" in caplog.text
         assert "[2/3]" in caplog.text
         assert "[3/3]" in caplog.text
@@ -32,7 +34,8 @@ class TestVerboseLogging:
         with caplog.at_level(logging.INFO):
             gen.generate(count=2)
 
-        assert "Wrote 2 counterparties" in caplog.text
+        # 1 REIT + 2 externals = 3 total
+        assert "Wrote 3 counterparties" in caplog.text
 
     def test_verbose_false_no_per_counterparty_log(self, tmp_path, caplog):
         """When verbose=False, the per-counterparty log lines are absent."""
@@ -40,5 +43,6 @@ class TestVerboseLogging:
         with caplog.at_level(logging.INFO):
             gen.generate(count=2)
 
+        assert "[REIT]" not in caplog.text
         assert "[1/2]" not in caplog.text
-        assert "Wrote 2 counterparties" not in caplog.text
+        assert "Wrote 3 counterparties" not in caplog.text
