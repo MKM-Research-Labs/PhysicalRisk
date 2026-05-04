@@ -7,10 +7,27 @@ Split from test_trading_lifecycle.py.
 
 import pytest
 
+from tests.e2e.conftest import E2E_ADMIN_PW
 from tests.e2e.helpers import (
     close_all_panels,
     open_trading_desk,
 )
+
+
+def _stub_admin_prompt(page):
+    """Replace window.prompt so admin-gated fetches authenticate non-interactively.
+
+    Market commit, EOD submit, PRS commit, classifier train and other port
+    mutations call ``__mkmAdminFetch`` which prompts for the admin password.
+    Playwright returns null by default, which the helper treats as cancelled
+    — so the call fails with a notification error.  Stub here with the known
+    test password installed by the session-scoped ``_e2e_admin_password``
+    fixture.
+    """
+    page.evaluate(
+        "(v) => { window.prompt = function() { return v; }; }",
+        E2E_ADMIN_PW,
+    )
 
 
 class TestMarketUpdatePL:
@@ -110,6 +127,11 @@ class TestMarketUpdatePL:
         """Click Commit on market tab to save curve changes."""
         open_trading_desk(map_page, tab="market")
         map_page.wait_for_timeout(6_000)
+
+        # Stub window.prompt with the test admin password so the
+        # __mkmAdminFetch call inside the commit handler authenticates
+        # without an interactive dialog (which Playwright cancels).
+        _stub_admin_prompt(map_page)
 
         # Switch to yield and modify to ensure dirty state
         mode_select = map_page.locator("#td-curve-mode")
