@@ -53,14 +53,17 @@ class TestCounterpartyGenerate:
         assert "metadata" in result
 
     def test_data_is_list(self, gen):
+        # +1 because the generator always emits the fixed CTPY-REIT-001
+        # entry alongside the random external pool of size ``count``.
         result = gen.generate(count=3)
         assert isinstance(result["data"], list)
-        assert len(result["data"]) == 3
+        assert len(result["data"]) == 4  # 1 REIT + 3 externals
 
     def test_default_count_uses_all_counterparties(self, gen):
         from port.src.counterparty import _ALL_COUNTERPARTIES
         result = gen.generate()
-        assert len(result["data"]) == len(_ALL_COUNTERPARTIES)
+        # +1 for the fixed REIT counterparty
+        assert len(result["data"]) == len(_ALL_COUNTERPARTIES) + 1
 
     def test_creates_output_file(self, gen, tmp_path):
         gen.generate(count=2)
@@ -74,17 +77,21 @@ class TestCounterpartyGenerate:
         assert "generation_metadata" in data
 
     def test_metadata_has_total_generated(self, gen):
+        # +1 REIT prepended to the external pool of size ``count``
         result = gen.generate(count=4)
-        assert result["metadata"]["total_generated"] == 4
+        assert result["metadata"]["total_generated"] == 5
 
     def test_file_path_is_pathlib_path(self, gen):
         from pathlib import Path
         result = gen.generate(count=1)
         assert isinstance(result["file_path"], Path)
 
-    def test_zero_count_returns_empty(self, gen):
+    def test_zero_count_returns_reit_only(self, gen):
+        """count=0 still emits the fixed REIT entry."""
         result = gen.generate(count=0)
-        assert result["data"] == []
+        assert len(result["data"]) == 1
+        pid = result["data"][0]["CounterpartySet"]["Party"]["PartyID"]
+        assert pid == "CTPY-REIT-001"
 
 
 # ===========================================================================
@@ -159,9 +166,10 @@ class TestGeneratedStructure:
                 assert platform["CSAAgreement"] is True
 
     def test_unique_party_ids(self, gen):
+        # 1 REIT + 5 externals = 6 unique IDs
         result = gen.generate(count=5)
         ids = [c["CounterpartySet"]["Party"]["PartyID"] for c in result["data"]]
-        assert len(set(ids)) == 5
+        assert len(set(ids)) == 6
 
 
 # ===========================================================================
@@ -178,5 +186,6 @@ class TestGenerateCounterpartiesFunction:
 
     def test_count_respected(self, tmp_path):
         from port.src.counterparty import generate_counterparties
+        # +1 REIT prepended to the external pool of size ``count``
         result = generate_counterparties(output_dir=tmp_path, count=3, verbose=False)
-        assert len(result["data"]) == 3
+        assert len(result["data"]) == 4
