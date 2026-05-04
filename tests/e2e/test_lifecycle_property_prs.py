@@ -7,11 +7,26 @@ Split from test_trading_lifecycle.py.
 
 import pytest
 
+from tests.e2e.conftest import E2E_ADMIN_PW
 from tests.e2e.helpers import (
     close_all_panels,
     open_property_panel,
     switch_to_prs_tab_property,
 )
+
+
+def _stub_admin_prompt(page):
+    """Replace window.prompt so admin-gated fetches authenticate non-interactively.
+
+    Property PRS commit calls ``__mkmAdminFetch`` which prompts for the
+    admin password. Playwright returns null by default, which the helper
+    treats as cancelled — so the call fails with a notification error.
+    Stub here with the test password installed by ``_e2e_admin_password``.
+    """
+    page.evaluate(
+        "(v) => { window.prompt = function() { return v; }; }",
+        E2E_ADMIN_PW,
+    )
 
 
 class TestPropertyPRSBookTrade:
@@ -134,6 +149,9 @@ class TestPropertyPRSBookTrade:
         if commit_btn.count() == 0:
             pytest.skip("No commit button found on property PRS tab")
 
+        # Stub window.prompt so __mkmAdminFetch authenticates without
+        # an interactive dialog (Playwright cancels the dialog otherwise).
+        _stub_admin_prompt(map_page)
         commit_btn.first.click(force=True)
         map_page.wait_for_timeout(9_000)
 
