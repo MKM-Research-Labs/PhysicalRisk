@@ -356,6 +356,12 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
             *batch_files,
             f'--junitxml={batch_xml}',
             '--browser', 'chromium',
+            # Only retain Playwright artefacts when a test fails. With ~324
+            # E2E tests this prevents trace/video/screenshot files from
+            # filling $TMPDIR (previously caused ENOSPC mid-batch).
+            '--tracing=retain-on-failure',
+            '--video=retain-on-failure',
+            '--screenshot=only-on-failure',
             '-v', '--tb=short',
         ]
 
