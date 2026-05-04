@@ -169,8 +169,13 @@ class TestNostressFlag:
         args = parser.parse_args(['port', '--all', '--nostress'])
         assert args.nostress is True
 
-    def test_nostress_skips_stressm_when_all(self):
-        """With --all --nostress, generate_stressm must not be called."""
+    def test_nostress_skips_stressm_when_all(self, port_admin_pw):
+        """With --all --nostress, generate_stressm must not be called.
+
+        Uses the ``port_admin_pw`` fixture to authenticate via
+        ``MKM_PORT_ADMIN_PASSWORD`` env var rather than mocking
+        ``_authenticate`` — the password gate is exercised, not bypassed.
+        """
         import unittest.mock as mock
         from app.commands.port import cmd_port
 
@@ -186,8 +191,14 @@ class TestNostressFlag:
              mock.patch('port.src.property.propertyts.PropertyTimeSeriesGenerator') as mpts, \
              mock.patch('port.src.property.propertyhc.PropertyHazardCurveGenerator') as mphc, \
              mock.patch('port.src.counterparty.CounterpartyPortfolioGenerator') as mctpy, \
-             mock.patch('app.commands.port._print_port_summary'), \
-             mock.patch('app.commands.port._authenticate'):
+             mock.patch('port.src.gauge.synthetic.SyntheticGaugeGenerator') as msg, \
+             mock.patch('port.src.book.generate_thames_central_book',
+                        return_value=[]), \
+             mock.patch('port.src.book.generate_property_book',
+                        return_value=[]), \
+             mock.patch('port.src.book.generate_trade_pdfs'), \
+             mock.patch('port.src.book.print_book_summary'), \
+             mock.patch('app.commands.port._print_port_summary'):
             mg.return_value.generate.return_value = {
                 'data': {'flood_gauges': [1, 2]}, 'processing_stats': {}}
             mp.return_value.generate.return_value = {
@@ -211,12 +222,21 @@ class TestNostressFlag:
                 'properties_with_floor': 0, 'properties_skipped': 0,
                 'avg_basis_bps': 30.0, 'avg_transmission_rate': 0.5}
             mctpy.return_value.generate.return_value = {'metadata': {}, 'data': []}
+            msg.return_value.generate.return_value = {'count': 0, 'gauge_ids': []}
             cmd_port(args)
 
         mock_stressm.assert_not_called()
 
-    def test_explicit_stressm_flag_runs_despite_nostress(self):
-        """--stressm alone must always run stressm regardless of --nostress."""
+    def test_explicit_stressm_flag_runs_despite_nostress(self, port_admin_pw):
+        """--stressm alone must always run stressm regardless of --nostress.
+
+        Uses the ``port_admin_pw`` fixture for proper authentication and
+        mocks every generator the prerequisite chain may invoke
+        (synthetic_gauges, properties, gaugehd etc.) — without these
+        mocks ``cmd_port`` would write to ``data/input/<catchment>/``
+        even though we only care about whether ``generate_stressm`` is
+        called (regression: 2026-05-04 incident).
+        """
         import unittest.mock as mock
         from app.commands.port import cmd_port
 
@@ -229,7 +249,47 @@ class TestNostressFlag:
         }
         with mock.patch('port.src.stressm.generate_stressm',
                         return_value=stressm_summary) as mock_stressm, \
-             mock.patch('app.commands.port._authenticate'):
+             mock.patch('port.src.gauge.GaugePortfolioGenerator') as mg, \
+             mock.patch('port.src.property.PropertyPortfolioGenerator') as mp, \
+             mock.patch('port.src.mortgage.MortgagePortfolioGenerator') as mm, \
+             mock.patch('port.src.gauge.gaugets.GaugeTimeSeriesGenerator') as mgt, \
+             mock.patch('port.src.gauge.gaugehd.generate_all_gauge_histories') as mhd, \
+             mock.patch('port.src.hazard.build_hazard_curves') as mhz, \
+             mock.patch('port.src.property.propertyts.PropertyTimeSeriesGenerator') as mpts, \
+             mock.patch('port.src.property.propertyhc.PropertyHazardCurveGenerator') as mphc, \
+             mock.patch('port.src.counterparty.CounterpartyPortfolioGenerator') as mctpy, \
+             mock.patch('port.src.gauge.synthetic.SyntheticGaugeGenerator') as msg, \
+             mock.patch('port.src.book.generate_thames_central_book',
+                        return_value=[]), \
+             mock.patch('port.src.book.generate_property_book',
+                        return_value=[]), \
+             mock.patch('port.src.book.generate_trade_pdfs'), \
+             mock.patch('port.src.book.print_book_summary'), \
+             mock.patch('app.commands.port._print_port_summary'):
+            mg.return_value.generate.return_value = {
+                'data': {'flood_gauges': [1, 2]}, 'processing_stats': {}}
+            mp.return_value.generate.return_value = {
+                'data': {'properties': [1, 2]}, 'processing_stats': {}}
+            mm.return_value.generate.return_value = {
+                'data': {'mortgages': [1, 2]}, 'processing_stats': {}}
+            mgt.return_value.generate.return_value = {
+                'data': {'num_gauges': 2, 'num_timesteps': 24},
+                'simulation_parameters': {'simulation_hours': 12}}
+            mhd.return_value = [1, 2]
+            mhz.return_value = {'summary': {
+                'num_gauges': 2, 'num_storms': 10,
+                'avg_annual_prob_alert': 0.05,
+                'avg_annual_prob_warning': 0.02,
+                'avg_annual_prob_severe': 0.01}}
+            mpts.return_value.generate.return_value = {
+                'total_properties': 2, 'properties_with_floods': 1,
+                'total_flood_events': 3, 'max_depth_m': 0.5, 'max_damage_ratio': 0.1}
+            mphc.return_value.generate.return_value = {
+                'total_properties': 2, 'properties_with_gev': 2,
+                'properties_with_floor': 0, 'properties_skipped': 0,
+                'avg_basis_bps': 30.0, 'avg_transmission_rate': 0.5}
+            mctpy.return_value.generate.return_value = {'metadata': {}, 'data': []}
+            msg.return_value.generate.return_value = {'count': 0, 'gauge_ids': []}
             cmd_port(args)
 
         mock_stressm.assert_called_once()

@@ -69,16 +69,28 @@ def _set_password():
 
 
 def _verify_password():
-    """Prompt for password and verify against stored hash."""
-    print("\nMKM Portfolio Generator — Admin Authentication")
-    pw = getpass.getpass("  Admin password: ")
+    """Prompt for password and verify against stored hash.
+
+    If ``MKM_PORT_ADMIN_PASSWORD`` is set in the environment, that value
+    is checked against the stored hash instead of prompting.  This lets
+    tests authenticate properly (with a known password) rather than
+    bypassing the gate via ``mock.patch(_authenticate)``.  A wrong env
+    var still fails authentication — the gate is exercised, not skipped.
+    """
+    env_pw = os.environ.get("MKM_PORT_ADMIN_PASSWORD")
+    if env_pw is not None:
+        pw = env_pw
+    else:
+        print("\nMKM Portfolio Generator — Admin Authentication")
+        pw = getpass.getpass("  Admin password: ")
     with open(_ADMIN_FILE) as f:
         stored = json.load(f)
     h = hashlib.sha256((stored['salt'] + pw).encode()).hexdigest()
     if h != stored['hash']:
         print("  ✗ Invalid password.")
         sys.exit(1)
-    print("  ✓ Authenticated.\n")
+    if env_pw is None:
+        print("  ✓ Authenticated.\n")
 
 
 def register_parser(subparsers):
