@@ -80,9 +80,11 @@ def get_js() -> str:
                     var bg = i % 2 === 0 ? '#fff' : '#fafafa';
                     var depthColor = e.flood_depth_m >= 1.0 ? '#d32f2f' : e.flood_depth_m >= 0.5 ? '#f57c00' : '#333';
                     var sid = (e.storm_id || '').replace(/'/g, "\\\\'");
+                    // Inline onclick runs in global scope; switchTab is local
+                    // to the panel IIFE, so use the window-exposed alias.
                     html +=
                         '<tr style="background:' + bg + ';cursor:pointer;" ' +
-                        'onclick="switchTab(1, \\'' + sid + '\\')" ' +
+                        'onclick="window.propStormSwitchTab(1, \\'' + sid + '\\')" ' +
                         'title="Click to view flood timeline">' +
                         '<td style="padding:3px 8px;font-family:monospace;color:#1565c0;">' + (e.storm_id || '-').substring(0, 16) + '</td>' +
                         '<td style="padding:3px 6px;">' + seqBadge(e.sequence_type) + '</td>' +
