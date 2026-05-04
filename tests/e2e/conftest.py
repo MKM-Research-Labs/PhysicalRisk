@@ -67,6 +67,45 @@ def _protect_mrc_meetings():
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _isolated_catchment_dir(tmp_path_factory):
+    """Point the Flask subprocess at a tmp copy of data/input/<catchment>/.
+
+    Why this exists:
+      - E2E tests (notably ``test_td_control.py::test_reset_button_reverts_to_defaults``)
+        exercise the admin-gated Control tab by POSTing arbitrary values
+        (including ``event_window_hours=120``) through the real save endpoint.
+      - The Flask subprocess inherits the parent env and resolves
+        ``config.get_input_dir()`` to ``data/input/<catchment>/``, so without
+        isolation the real file on disk gets mutated by the test.
+      - A previous "snapshot + restore" fixture protected the file only when
+        teardown completed cleanly. If the suite was SIGKILLed between the
+        test's save and its reset, the real file was left at ``120`` and
+        cascaded into 29 downstream unit-test failures.
+
+    The fix: copy the real catchment dir into a ``tmp_path_factory`` location
+    once, and set ``MKM_CATCHMENT_INPUT_OVERRIDE`` on the subprocess env so
+    ``PortfolioPaths._init_paths`` points ``self.input_dir`` at the copy.
+    All writes (storm_control.json, classifiers, prs, blotter, eod, etc.)
+    land in the tmp copy; the real tree is never touched, even on SIGKILL.
+
+    The fixtures in ``tests/e2e/conftest.py`` that read real port data
+    (``gauge_data``, ``property_data``, ``first_traded_gauge_id``, etc.)
+    continue to work unchanged because the tmp dir is a full copy.
+    """
+    real_thames = ROOT / "data" / "input" / "thames"
+    tmp_root = tmp_path_factory.mktemp("e2e_catchment")
+    tmp_thames = tmp_root / "thames"
+    shutil.copytree(real_thames, tmp_thames)
+    # Scrub any user override that may live in the real file so the e2e
+    # suite starts from Python-source defaults (as the control tests assert).
+    ctrl_json = tmp_thames / "storm_control.json"
+    if ctrl_json.exists():
+        ctrl_json.unlink()
+    yield tmp_thames
+    # pytest auto-cleans tmp_path_factory dirs; no restore logic needed.
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _e2e_admin_password():
     """Install a known admin password for E2E tests that exercise Control save/reset.
 
@@ -98,8 +137,16 @@ def _e2e_admin_password():
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
-def server_port():
-    """Start Flask server on a free port; yield the port; kill on teardown."""
+def server_port(_isolated_catchment_dir):
+    """Start Flask server on a free port; yield the port; kill on teardown.
+
+    Depends on ``_isolated_catchment_dir`` so the tmp copy of
+    ``data/input/<catchment>/`` exists before the Flask subprocess imports
+    ``config``. The subprocess's ``PortfolioConfig`` sees
+    ``MKM_CATCHMENT_INPUT_OVERRIDE`` and points ``self.input_dir`` at the tmp
+    copy, so every port-process write (storm_control, classifiers, prs,
+    blotter, eod) lands in the tmp dir and the real tree is untouched.
+    """
     import os
     port = _free_port()
     # Inherit parent environment so config, data paths, and libraries resolve
@@ -108,6 +155,7 @@ def server_port():
         "MKM_SERVER_PORT": str(port),
         "MKM_SERVER_HOST": "127.0.0.1",
         "PYTHONUNBUFFERED": "1",
+        "MKM_CATCHMENT_INPUT_OVERRIDE": str(_isolated_catchment_dir),
     })
 
     # Always delete cached visualization so it regenerates with current

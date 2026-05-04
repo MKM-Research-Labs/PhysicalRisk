@@ -22,6 +22,7 @@ from flask import jsonify
 
 from config import config
 from .. import trading_bp
+from .._admin_auth import require_admin_password
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ def classifier_status(gauge_id):
 
 
 @trading_bp.route("/trading/stress/train/<gauge_id>", methods=["POST"])
+@require_admin_password
 def train_classifier(gauge_id):
     """Start background training for a single gauge classifier."""
     stressm_dir = config.get_classifiers_dir()

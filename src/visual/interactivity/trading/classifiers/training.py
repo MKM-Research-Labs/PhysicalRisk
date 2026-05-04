@@ -20,7 +20,7 @@ def get_js() -> str:
                     btns[i].style.background = '#90a4ae';
                 }
 
-                fetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
+                window.__mkmAdminFetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
                     method: 'POST',
                     mode: 'cors'
                 })
@@ -113,7 +113,7 @@ def get_js() -> str:
                     );
                 }
 
-                fetch(baseUrl + '/api/v1/trading/classifiers/train-all', {
+                window.__mkmAdminFetch(baseUrl + '/api/v1/trading/classifiers/train-all', {
                     method: 'POST',
                     mode: 'cors'
                 })
@@ -240,7 +240,7 @@ def get_js() -> str:
                     btn.style.background = '#90a4ae';
                 }
 
-                fetch(baseUrl + '/api/v1/trading/classifiers/clear-all', {
+                window.__mkmAdminFetch(baseUrl + '/api/v1/trading/classifiers/clear-all', {
                     method: 'POST',
                     mode: 'cors'
                 })

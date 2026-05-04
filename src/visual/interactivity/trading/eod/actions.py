@@ -62,9 +62,8 @@ def get_js() -> str:
                 if (statusEl) statusEl.textContent = 'Submitting\\u2026';
 
                 var url = getBaseUrl() + '/api/v1/trading/eod';
-                fetch(url, {
+                window.__mkmAdminFetch(url, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({date: eodDate}),
                     mode: 'cors'
                 })

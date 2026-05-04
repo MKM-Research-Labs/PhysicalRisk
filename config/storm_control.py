@@ -92,6 +92,45 @@ _CONTROL_FILENAME = "storm_control.json"
 
 
 # ---------------------------------------------------------------------------
+# Source-default snapshot
+#
+# ``apply_storm_control()`` mutates ``config.port`` and ``config.models``
+# attributes in place. Once called, ``config.port.EVENT_WINDOW_HOURS`` no
+# longer equals the Python source constant — it equals whatever was in
+# ``storm_control.json``. If ``get_defaults()`` reads the live attributes
+# after that, the "defaults" it returns are the applied-over values, and
+# the Reset button can't restore the source. To avoid that, we snapshot
+# the relevant attributes *at import time of this module*, which runs
+# from ``config/__init__.py`` BEFORE ``apply_storm_control`` is invoked.
+# ---------------------------------------------------------------------------
+
+def _build_source_default_snapshot() -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Capture config.port / config.models attrs before any mutation."""
+    import config.port as _cp
+    import config.models as _cm
+    port_snap: Dict[str, Any] = {}
+    for attr in _CONFIG_PORT_KEYS.values():
+        if hasattr(_cp, attr):
+            port_snap[attr] = getattr(_cp, attr)
+    models_snap: Dict[str, Any] = {}
+    for attr in _CONFIG_MODELS_KEYS.values():
+        if hasattr(_cm, attr):
+            models_snap[attr] = getattr(_cm, attr)
+    return port_snap, models_snap
+
+
+_PORT_DEFAULTS, _MODELS_DEFAULTS = _build_source_default_snapshot()
+
+
+def _port_default(attr: str, fallback: Any = None) -> Any:
+    return _PORT_DEFAULTS.get(attr, fallback)
+
+
+def _models_default(attr: str, fallback: Any = None) -> Any:
+    return _MODELS_DEFAULTS.get(attr, fallback)
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -122,10 +161,13 @@ def save_storm_control(
 
 
 def get_defaults() -> Dict[str, Any]:
-    """Build default JSON structure from current Python config values."""
-    import config.port as cp
-    import config.models as cm
+    """Build default JSON structure from source Python config values.
 
+    Reads from the pre-apply snapshot captured at module import time, so
+    the "defaults" returned here always match the source constants in
+    ``config.port`` / ``config.models`` — even after ``apply_storm_control``
+    has mutated the live attributes.
+    """
     # Read generator-local defaults (may not be importable in all contexts)
     duration_params = _safe_getattr(
         "src.port.src.storm_multi.generators.duration_sampler",
@@ -171,55 +213,61 @@ def get_defaults() -> Dict[str, Any]:
     base_intensity = {k: list(v) for k, v in base_intensity.items()}
     seq_type_weights = {k: list(v) for k, v in seq_type_weights.items()}
 
+    def _p(attr: str) -> Any:
+        return _port_default(attr)
+
+    def _m(attr: str) -> Any:
+        return _models_default(attr)
+
     return {
         "version": "1.0.0",
         "sections": {
             "storm_generation": {
-                "event_window_hours": cp.EVENT_WINDOW_HOURS,
-                "min_drainage_window_hours": cp.MIN_DRAINAGE_WINDOW_HOURS,
-                "sequence_probability": dict(cp.SEQUENCE_PROBABILITY),
-                "default_type_weights": list(cp.DEFAULT_TYPE_WEIGHTS),
-                "intensity_variation": cp.INTENSITY_VARIATION,
-                "first_storm_dominant_prob": cp.FIRST_STORM_DOMINANT_PROB,
-                "correlation_prob": cp.CORRELATION_PROB,
-                "default_intensity_weights": dict(cp.DEFAULT_INTENSITY_WEIGHTS),
-                "catchment_base_precip": dict(cp.CATCHMENT_BASE_PRECIP),
+                "event_window_hours": _p("EVENT_WINDOW_HOURS"),
+                "min_drainage_window_hours": _p("MIN_DRAINAGE_WINDOW_HOURS"),
+                "sequence_probability": dict(_p("SEQUENCE_PROBABILITY") or {}),
+                "default_type_weights": list(_p("DEFAULT_TYPE_WEIGHTS") or ()),
+                "intensity_variation": _p("INTENSITY_VARIATION"),
+                "first_storm_dominant_prob": _p("FIRST_STORM_DOMINANT_PROB"),
+                "correlation_prob": _p("CORRELATION_PROB"),
+                "default_intensity_weights": dict(_p("DEFAULT_INTENSITY_WEIGHTS") or {}),
+                "catchment_base_precip": dict(_p("CATCHMENT_BASE_PRECIP") or {}),
                 "duration_params": duration_params,
                 "gap_params": gap_params,
                 "base_intensity_params": base_intensity,
                 "sequence_type_weights": seq_type_weights,
             },
             "hydrograph_synthesis": {
-                "hydro_alpha": dict(cm.HYDRO_ALPHA),
-                "saturation_beta": cm.SATURATION_BETA,
-                "saturation_p0_mm": cm.SATURATION_P0_MM,
-                "infiltration_rate_per_hour": cm.INFILTRATION_RATE_PER_HOUR,
-                "infiltration_ymax_ref_m": cm.INFILTRATION_YMAX_REF_M,
-                "default_imperv_fraction": cm.DEFAULT_IMPERV_FRACTION,
-                "superposition_cap_factor": cm.SUPERPOSITION_CAP_FACTOR,
-                "depth_points": list(cm.DEPTH_POINTS),
-                "damage_points": list(cm.DAMAGE_POINTS),
+                "hydro_alpha": dict(_m("HYDRO_ALPHA") or {}),
+                "saturation_beta": _m("SATURATION_BETA"),
+                "saturation_p0_mm": _m("SATURATION_P0_MM"),
+                "infiltration_rate_per_hour": _m("INFILTRATION_RATE_PER_HOUR"),
+                "infiltration_ymax_ref_m": _m("INFILTRATION_YMAX_REF_M"),
+                "default_imperv_fraction": _m("DEFAULT_IMPERV_FRACTION"),
+                "superposition_cap_factor": _m("SUPERPOSITION_CAP_FACTOR"),
+                "depth_points": list(_m("DEPTH_POINTS") or ()),
+                "damage_points": list(_m("DAMAGE_POINTS") or ()),
             },
             "gauge_propagation": {
-                "default_roughness": cm.DEFAULT_ROUGHNESS,
-                "terrain_velocity_scale": dict(cm.TERRAIN_VELOCITY_SCALE),
-                "default_retention_length": cm.DEFAULT_RETENTION_LENGTH,
-                "min_slope": cm.MIN_SLOPE,
-                "default_recession_factor": cm.DEFAULT_RECESSION_FACTOR,
-                "bankfull_offset_m": cp.BANKFULL_OFFSET_M,
-                "n_nearest_gauges": cp.N_NEAREST_GAUGES,
+                "default_roughness": _m("DEFAULT_ROUGHNESS"),
+                "terrain_velocity_scale": dict(_m("TERRAIN_VELOCITY_SCALE") or {}),
+                "default_retention_length": _m("DEFAULT_RETENTION_LENGTH"),
+                "min_slope": _m("MIN_SLOPE"),
+                "default_recession_factor": _m("DEFAULT_RECESSION_FACTOR"),
+                "bankfull_offset_m": _p("BANKFULL_OFFSET_M"),
+                "n_nearest_gauges": _p("N_NEAREST_GAUGES"),
             },
             "spatial_correlation": {
-                "spatial_corr_enabled": cp.SPATIAL_CORR_ENABLED,
-                "spatial_corr_base_range_km": cp.SPATIAL_CORR_BASE_RANGE_KM,
-                "spatial_corr_nugget": cp.SPATIAL_CORR_NUGGET,
-                "spatial_corr_rho_intensity": cp.SPATIAL_CORR_RHO_INTENSITY,
-                "spatial_corr_sigma_lognormal": cp.SPATIAL_CORR_SIGMA_LOGNORMAL,
+                "spatial_corr_enabled": _p("SPATIAL_CORR_ENABLED"),
+                "spatial_corr_base_range_km": _p("SPATIAL_CORR_BASE_RANGE_KM"),
+                "spatial_corr_nugget": _p("SPATIAL_CORR_NUGGET"),
+                "spatial_corr_rho_intensity": _p("SPATIAL_CORR_RHO_INTENSITY"),
+                "spatial_corr_sigma_lognormal": _p("SPATIAL_CORR_SIGMA_LOGNORMAL"),
             },
             "stress_catalogue": {
-                "stress_storms_min_count": cp.STRESS_STORMS_MIN_COUNT,
-                "stress_storm_default_duration_hours": cp.STRESS_STORM_DEFAULT_DURATION_HOURS,
-                "stress_storm_default_peak_position": cp.STRESS_STORM_DEFAULT_PEAK_POSITION,
+                "stress_storms_min_count": _p("STRESS_STORMS_MIN_COUNT"),
+                "stress_storm_default_duration_hours": _p("STRESS_STORM_DEFAULT_DURATION_HOURS"),
+                "stress_storm_default_peak_position": _p("STRESS_STORM_DEFAULT_PEAK_POSITION"),
             },
         },
     }

@@ -86,6 +86,12 @@ from fixtures_flask import (  # noqa: F401, E402
     client,
 )
 
+from fixtures_admin import (  # noqa: F401, E402
+    TEST_ADMIN_PW,
+    AuthenticatedTestClient,
+    _test_admin_credential,
+)
+
 from helpers import (  # noqa: F401, E402
     create_test_file,
     assert_valid_property,

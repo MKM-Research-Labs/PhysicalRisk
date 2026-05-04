@@ -100,6 +100,34 @@ def get_js() -> str:
                 return gName ? gName + ' (' + gaugeId + ')' : gaugeId;
             };
 
+            // Global helper: wrap fetch() with the admin-password prompt.
+            // All port-process mutations (market state, yield/hazard curves, EOD,
+            // trade close, PRS commit, classifier train/clear) require
+            // X-Admin-Password per routes._admin_auth.require_admin_password.
+            // This helper standardises the prompt + header injection so callers
+            // do not reinvent it. Returns the same Promise shape as fetch(), or
+            // rejects with a 'cancelled' error if the user dismisses the prompt.
+            //   usage: window.__mkmAdminFetch(url, {method: 'POST', body: ...})
+            // The optional second arg is a fetch init object; Content-Type
+            // 'application/json' is applied automatically when a body is present
+            // and Content-Type is not already set.
+            window.__mkmAdminFetch = function(url, opts) {
+                opts = opts || {};
+                var pw = window.prompt(
+                    'Admin password required to modify port data.\\n\\n' +
+                    '(Same password as "python app.py port".)'
+                );
+                if (pw === null) return Promise.reject(new Error('cancelled'));
+                if (!pw) return Promise.reject(new Error('empty_password'));
+                var headers = Object.assign({}, opts.headers || {});
+                headers['X-Admin-Password'] = pw;
+                if (opts.body && !headers['Content-Type'] && !headers['content-type']) {
+                    headers['Content-Type'] = 'application/json';
+                }
+                opts.headers = headers;
+                return fetch(url, opts);
+            };
+
             // Flag read by trading/preloader.py — on window so it is accessible
             // from any IIFE scope (var declaration would be local to this IIFE)
             window._tdPreloadDone = false;

@@ -266,7 +266,16 @@ def switch_basis_sub_tab(page, sub_tab_index):
 # ---------------------------------------------------------------------------
 
 def open_governance(page):
-    """Open the governance panel using button click or JS fallback."""
+    """Open the governance panel using button click or JS fallback.
+
+    showMgPanel() fires an async /api/v1/governance/models fetch and, on
+    resolve, calls switchMgTab('inventory') which overwrites #mg-content.
+    If we return before that fetch settles, any subsequent
+    switch_governance_tab() call races with it — the user's tab switch is
+    silently reverted when inventory finally loads. Wait for the inventory
+    to finish rendering (the "TOTAL MODELS" header) so the panel is in a
+    stable state before the caller switches tabs.
+    """
     close_all_panels(page)
     mg_btn = page.locator("#mg-panel-btn")
     if mg_btn.count() == 0:
@@ -278,6 +287,21 @@ def open_governance(page):
     if mg_btn.count() > 0:
         mg_btn.first.click(force=True)
         page.locator("#mg-panel").wait_for(state="visible", timeout=10_000)
+        # Wait for the initial inventory fetch+render to settle.
+        try:
+            page.wait_for_function(
+                "() => {"
+                "  const c = document.getElementById('mg-content');"
+                "  if (!c) return false;"
+                "  const t = c.innerText || '';"
+                "  return t.includes('TOTAL MODELS') && !t.includes('Loading model inventory');"
+                "}",
+                timeout=15_000,
+            )
+        except Exception:
+            # Fallback — don't block the caller if the inventory shape changes;
+            # a short fixed wait still closes the race in most cases.
+            page.wait_for_timeout(2_000)
     else:
         pytest.skip("No governance button found")
 

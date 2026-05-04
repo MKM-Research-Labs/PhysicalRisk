@@ -187,19 +187,29 @@ class TestPropertyPRSDecomposition:
         if zone_el.count() == 0:
             pytest.skip("EA zone dropdown not found")
 
-        # Reset to actual zone
-        map_page.evaluate("""() => {
+        # The dropdown is initialised to the property's actual zone by
+        # phc_prs.py when controls are first built. We cannot read phcData
+        # from page.evaluate (it's a `var` inside the panel IIFE, not on
+        # window), so we take the freshly-rendered dropdown value as our
+        # source of truth for actualZone — this matches the logic the
+        # pricer itself uses (`phcData.flood_zone || 'Zone 1'`).
+        actual_zone = map_page.evaluate(
+            "() => document.getElementById('phc-ea-zone').value"
+        )
+
+        # Ensure the dropdown is set to the actual zone and re-run pricing
+        # by dispatching a change event.
+        map_page.evaluate(f"""() => {{
             var el = document.getElementById('phc-ea-zone');
-            var actual = (typeof phcData !== 'undefined' && phcData.flood_zone)
-                ? phcData.flood_zone : 'Zone 1';
-            el.value = actual;
-            el.dispatchEvent(new Event('change', {bubbles: true}));
-        }""")
+            el.value = {actual_zone!r};
+            el.dispatchEvent(new Event('change', {{bubbles: true}}));
+        }}""")
         map_page.wait_for_timeout(2_000)
 
         panel_text = map_page.locator("#property-hc-panel").inner_text()
         assert "Terrain Effect" not in panel_text, (
-            "Terrain Effect row should not appear when zone matches actual"
+            f"Terrain Effect row should not appear when zone matches "
+            f"actual ({actual_zone!r})"
         )
 
     def test_gauge_spread_matches_component_table(

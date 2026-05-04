@@ -49,8 +49,10 @@ def prs_env(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
 
     from server import create_app
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config["TESTING"] = True
+    app.test_client_class = AuthenticatedTestClient
     return app.test_client()
 
 

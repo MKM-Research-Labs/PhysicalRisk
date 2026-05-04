@@ -49,8 +49,10 @@ class TestCommitValidationErrors:
                             lambda self, rec: ["Missing required field: SwapID"])
 
         from server import create_app
+        from fixtures_admin import AuthenticatedTestClient
         app = create_app()
         app.config["TESTING"] = True
+        app.test_client_class = AuthenticatedTestClient
         client = app.test_client()
 
         payload = {
@@ -89,8 +91,10 @@ class TestCommitCloseOut:
         mock_pnl_engine = MagicMock()
         with patch("models.trading.pnl_engine.PnLEngine", return_value=mock_pnl_engine):
             from server import create_app
+            from fixtures_admin import AuthenticatedTestClient
             app = create_app()
             app.config["TESTING"] = True
+            app.test_client_class = AuthenticatedTestClient
             client = app.test_client()
 
             payload = {
@@ -131,8 +135,10 @@ class TestListTradesException:
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         from server import create_app
+        from fixtures_admin import AuthenticatedTestClient
         app = create_app()
         app.config["TESTING"] = True
+        app.test_client_class = AuthenticatedTestClient
         client = app.test_client()
 
         r = client.get("/api/v1/prs/trades")

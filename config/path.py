@@ -100,7 +100,18 @@ class PortfolioPaths:
         self.port_dir = self.src_root / 'port'
 
         # Data directories under data/
-        self.input_dir = self.project_root / 'data' / 'input' / catchment_id
+        # Test-only override: when MKM_CATCHMENT_INPUT_OVERRIDE points at a
+        # fully-resolved catchment dir, use it instead of the real one. This
+        # lets the e2e suite run the Flask subprocess against a tmp copy of
+        # data/input/<catchment>/ so mutating endpoints never touch the shared
+        # file tree (even if the suite is SIGKILLed mid-run). All derived
+        # directories (blotter, eod, classifiers, prs, stressm, gaugehd,
+        # gaugets) compute from self.input_dir and follow automatically.
+        override = os.getenv('MKM_CATCHMENT_INPUT_OVERRIDE')
+        if override:
+            self.input_dir = Path(override)
+        else:
+            self.input_dir = self.project_root / 'data' / 'input' / catchment_id
         self.results_dir = self.project_root / 'data' / 'output' / 'results'
 
         # Catchment definitions under data/

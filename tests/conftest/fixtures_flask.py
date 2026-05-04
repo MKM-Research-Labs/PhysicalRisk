@@ -22,6 +22,8 @@
 
 import pytest
 
+from fixtures_admin import AuthenticatedTestClient
+
 
 @pytest.fixture
 def flask_app(populated_data_dir, monkeypatch):
@@ -33,6 +35,7 @@ def flask_app(populated_data_dir, monkeypatch):
     from server import create_app
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app
 
 
@@ -52,6 +55,7 @@ def full_flask_app(fully_populated_data_dir, monkeypatch):
     from server import create_app
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     return app
 
 

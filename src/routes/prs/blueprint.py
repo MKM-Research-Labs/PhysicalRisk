@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 from config import config
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
+from .._admin_auth import require_admin_password
 from .pdf import _generate_trade_pdf
 
 prs_bp = Blueprint("prs", __name__)
@@ -29,6 +30,7 @@ def _get_prs_output_dir() -> Path:
 
 
 @prs_bp.route("/prs/commit", methods=["POST"])
+@require_admin_password
 def commit_prs_trade():
     """
     Commit a PRS trade.

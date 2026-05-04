@@ -38,8 +38,10 @@ def isolated_client(tmp_path, monkeypatch):
                         lambda name: tmp_path / "reports" / name)
     monkeypatch.setattr(config, "get_trading_dir", lambda: trading_dir)
 
+    from fixtures_admin import AuthenticatedTestClient
     app = create_app()
     app.config['TESTING'] = True
+    app.test_client_class = AuthenticatedTestClient
     with app.test_client() as c:
         yield c
 

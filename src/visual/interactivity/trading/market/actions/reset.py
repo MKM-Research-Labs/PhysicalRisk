@@ -27,7 +27,7 @@ def get_js() -> str:
             window.tdResetCurve = function() {
                 if (tdCurveMode === 'yield') {
                     var url = getBaseUrl() + '/api/v1/trading/yield-curve/reset?_=' + Date.now();
-                    fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}', mode: 'cors', cache: 'no-store'})
+                    window.__mkmAdminFetch(url, {method: 'POST', body: '{}', mode: 'cors', cache: 'no-store'})
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status === 'success') {
@@ -40,7 +40,7 @@ def get_js() -> str:
                 } else {
                     var url = getBaseUrl() + '/api/v1/trading/hazard-term-structure/reset?_=' + Date.now();
                     var body = tdSelectedGauge ? {gauge_id: tdSelectedGauge} : {};
-                    fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), mode: 'cors', cache: 'no-store'})
+                    window.__mkmAdminFetch(url, {method: 'POST', body: JSON.stringify(body), mode: 'cors', cache: 'no-store'})
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status === 'success') {
@@ -54,7 +54,7 @@ def get_js() -> str:
 
             window.tdResetGauge = function(gaugeId) {
                 var url = getBaseUrl() + '/api/v1/trading/market-state/reset?_=' + Date.now();
-                fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({gauge_id: gaugeId}), mode: 'cors', cache: 'no-store'})
+                window.__mkmAdminFetch(url, {method: 'POST', body: JSON.stringify({gauge_id: gaugeId}), mode: 'cors', cache: 'no-store'})
                 .then(function(r) { return r.json(); })
                 .then(function(result) {
                     if (result.status === 'success') {

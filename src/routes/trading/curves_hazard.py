@@ -30,6 +30,7 @@ import logging
 from flask import jsonify, request
 
 from . import trading_bp
+from ._admin_auth import require_admin_password
 from ._helpers import _get_engines, _load_open_trades
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ def get_hazard_term_structure():
 
 
 @trading_bp.route("/trading/hazard-term-structure", methods=["POST"])
+@require_admin_password
 def update_hazard_term_structure():
     """Update a hazard term structure point."""
     try:
@@ -96,6 +98,7 @@ def update_hazard_term_structure():
 
 @trading_bp.route("/trading/hazard-term-structure/commit",
                    methods=["POST"])
+@require_admin_password
 def commit_hazard_term_structure():
     """Commit a hazard term structure and revalue affected trades."""
     try:
@@ -167,6 +170,7 @@ def commit_hazard_term_structure():
 
 @trading_bp.route("/trading/hazard-term-structure/reset",
                    methods=["POST"])
+@require_admin_password
 def reset_hazard_term_structure():
     """Reset hazard term structure to defaults."""
     try:
