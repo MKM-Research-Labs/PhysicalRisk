@@ -37,6 +37,15 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from config.port import (
+    PROPERTY_BOOK_NOTIONAL_MAX,
+    PROPERTY_BOOK_NOTIONAL_MIN,
+    PROPERTY_BOOK_NOTIONAL_STEP,
+    PROPERTY_BOOK_NUM_TRADES,
+    PROPERTY_BOOK_TENOR_WEIGHTS,
+    PROPERTY_BOOK_TENORS,
+)
+
 from .book_common import (
     DEFAULT_YIELD_CURVE,
     RECOVERY,
@@ -46,19 +55,6 @@ from .book_common import (
 )
 
 logger = logging.getLogger(__name__)
-
-# Tenor weights: heavier on 3Y and 5Y for client trades (longer-dated
-# protection mirrors real mortgage-linked hedging demand).
-_TENORS = [1, 2, 3, 5]
-_TENOR_WEIGHTS = [0.10, 0.20, 0.35, 0.35]
-
-# Notional range for property trades (smaller than gauge-level book)
-_NOTIONAL_MIN = 2_000_000
-_NOTIONAL_MAX = 8_000_000
-_NOTIONAL_STEP = 1_000_000
-
-# Target number of property trades
-_NUM_TRADES = 15
 
 
 def _select_properties(phc_curves: Dict, num: int) -> List[Dict]:
@@ -184,7 +180,7 @@ def generate_property_book(
     counterparties = [{'id': 'CTPY-REIT-001', 'name': 'Thames Property REIT'}]
 
     # Select properties across risk spectrum
-    selected = _select_properties(phc_curves, _NUM_TRADES)
+    selected = _select_properties(phc_curves, PROPERTY_BOOK_NUM_TRADES)
     if not selected:
         logger.warning('No eligible properties for book — skipping')
         return []
@@ -199,7 +195,8 @@ def generate_property_book(
         curve = item['curve']
 
         # Pick tenor and find matching spread
-        tenor = random.choices(_TENORS, weights=_TENOR_WEIGHTS, k=1)[0]
+        tenor = random.choices(
+            PROPERTY_BOOK_TENORS, weights=PROPERTY_BOOK_TENOR_WEIGHTS, k=1)[0]
         tenors_available = item['tenors']
         spreads_available = item['spreads']
 
@@ -224,8 +221,9 @@ def generate_property_book(
             continue
 
         # Notional
-        notional = random.randrange(_NOTIONAL_MIN, _NOTIONAL_MAX + 1,
-                                    _NOTIONAL_STEP)
+        notional = random.randrange(
+            PROPERTY_BOOK_NOTIONAL_MIN, PROPERTY_BOOK_NOTIONAL_MAX + 1,
+            PROPERTY_BOOK_NOTIONAL_STEP)
 
         # PropertyPRS: REIT client is always the payer (buying protection),
         # Trader (desk) is always the receiver (selling protection).

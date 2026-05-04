@@ -74,6 +74,30 @@ SPREAD_OFFSET_MAX: float = 10.0   # bps
 
 
 # ===========================================================================
+# Property Book  (port/src/book/book_property.py)
+# ===========================================================================
+# Generates the property-level PRS client book that populates the Trading
+# Desk's Client tab.  Tenors and weights are heavier on 3Y/5Y here (vs the
+# gauge book's flatter distribution) to mirror real mortgage-linked
+# protection demand from REIT clients.
+
+# Available tenor lengths (years) for property PRS trades
+PROPERTY_BOOK_TENORS: List[int] = [1, 2, 3, 5]
+
+# Weighting across PROPERTY_BOOK_TENORS (must sum to 1.0)
+PROPERTY_BOOK_TENOR_WEIGHTS: List[float] = [0.10, 0.20, 0.35, 0.35]
+
+# Notional range for property trades (smaller than the gauge-level book —
+# property protection is closer in size to a single mortgage exposure)
+PROPERTY_BOOK_NOTIONAL_MIN: int = 2_000_000
+PROPERTY_BOOK_NOTIONAL_MAX: int = 8_000_000
+PROPERTY_BOOK_NOTIONAL_STEP: int = 1_000_000
+
+# Target number of property trades to generate per port --blotter run
+PROPERTY_BOOK_NUM_TRADES: int = 15
+
+
+# ===========================================================================
 # EOD Simulation  (port/src/historical_eod.py)
 # ===========================================================================
 
