@@ -227,3 +227,29 @@ class TestGenerateLocationsSyntheticPath:
         # but locations are still generated relative to the synth gauge.
         for loc in locs:
             assert loc["synthetic_gauge_id"] == "SYNTH-000"
+
+    def test_areavaluefactors_legacy_alias(self, tmp_path):
+        """Hits the AREAVALUEFACTORS legacy fallback (lines 63-64)."""
+        _write_synth_gauge_json(tmp_path, n=1)
+        gen = make_portfolio_gen(tmp_path, gauge_points=GAUGE_POINTS)
+        # Force the elif branch: drop the canonical name, supply the legacy one
+        del gen.params.AREA_VALUE_FACTORS
+        gen.params.AREAVALUEFACTORS = {"Area1": 1.5}
+        locs = gen._generate_locations(2)
+        assert len(locs) == 2
+        # Area1 row should pick up the legacy factor; others default to 1.0
+        area1_locs = [loc for loc in locs if loc["name"] == "Area1"]
+        assert area1_locs and area1_locs[0]["value_factor"] == 1.5
+
+    def test_no_area_value_factors_defaults_to_empty(self, tmp_path):
+        """Hits the final ``else: area_value_factors = {}`` branch (line 66)."""
+        _write_synth_gauge_json(tmp_path, n=1)
+        gen = make_portfolio_gen(tmp_path, gauge_points=GAUGE_POINTS)
+        del gen.params.AREA_VALUE_FACTORS
+        # MagicMock.del is silent on missing names, so be explicit:
+        if hasattr(gen.params, 'AREAVALUEFACTORS'):
+            del gen.params.AREAVALUEFACTORS
+        locs = gen._generate_locations(2)
+        # With no factors at all, every location falls back to 1.0
+        for loc in locs:
+            assert loc["value_factor"] == 1.0
