@@ -3813,12 +3813,130 @@
       "synthetic_gauges",
       "properties",
       "stressm"
+    ],
+    "run-20260505-083132": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260505-083133": [
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-094246": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-094349": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-100046": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-102243": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260505-102244": [
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-120220": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260505-120221": [
+      "stressm"
     ]
   },
   "steps": {
     "gauges": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.636728",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:20.931415",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.GaugePortfolioGenerator",
@@ -3836,8 +3954,8 @@
       }
     },
     "properties": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.695631",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:20.965093",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.PropertyPortfolioGenerator",
@@ -3860,8 +3978,8 @@
       }
     },
     "mortgages": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.643076",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:20.981856",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.mortgage.MortgagePortfolioGenerator",
@@ -3882,8 +4000,8 @@
       }
     },
     "gaugehd": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.645098",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:20.998303",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.gaugehd",
@@ -3906,8 +4024,8 @@
       }
     },
     "stressm": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.698230",
+      "run_id": "run-20260505-120221",
+      "timestamp": "2026-05-05T12:02:21.212218",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.stressm.generate_stressm",
@@ -3946,8 +4064,8 @@
       }
     },
     "hazard": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.647067",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.015060",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.hazard.build_hazard_curves",
@@ -3978,8 +4096,8 @@
       }
     },
     "propertyts": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.649391",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.031713",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator",
@@ -4008,8 +4126,8 @@
       }
     },
     "propertyhc": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.656845",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.083811",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator",
@@ -4038,8 +4156,8 @@
       }
     },
     "counterparties": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.662975",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.133986",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.counterparty.CounterpartyPortfolioGenerator",
@@ -4055,8 +4173,8 @@
       }
     },
     "blotter": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.669372",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.155076",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.book.generate_thames_central_book",
@@ -4085,7 +4203,7 @@
           "type": "directory"
         },
         "blotter/market_state.json": {
-          "hash": "cfd058f11ee2c1021155bf985e1782facd5a873db6e2395c364468e6d213156d",
+          "hash": "62a248538ad01ee27e40f2ce45de4f9221517ac0f08e8935ad50117d3daed111",
           "type": "file"
         },
         "blotter/trade_marks.json": {
@@ -4095,8 +4213,8 @@
       }
     },
     "synthetic_gauges": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.693271",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:20.948398",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.synthetic.SyntheticGaugeGenerator",
@@ -4119,8 +4237,8 @@
       }
     },
     "propertytsd": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.651784",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.048840",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=shd)",
@@ -4151,8 +4269,8 @@
       }
     },
     "propertytse": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.653997",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.066434",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=she)",
@@ -4183,8 +4301,8 @@
       }
     },
     "propertyshd": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.658769",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.100712",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=shd)",
@@ -4215,8 +4333,8 @@
       }
     },
     "propertyshe": {
-      "run_id": "run-20260505-065857",
-      "timestamp": "2026-05-05T06:58:57.661097",
+      "run_id": "run-20260505-120220",
+      "timestamp": "2026-05-05T12:02:21.117396",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=she)",
