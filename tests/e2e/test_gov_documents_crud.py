@@ -85,23 +85,6 @@ class TestDocumentUploadDownload:
 
         assert has_list, "No document list (table or list element) found"
 
-    def test_download_buttons_clickable(self, map_page):
-        """If download buttons exist, they should be clickable."""
-        content = map_page.locator("#mg-content")
-        download_btns = content.locator("button").filter(has_text="Download").or_(
-            content.locator("a[download]")
-        ).or_(
-            content.locator("button").filter(has_text="download")
-        ).or_(
-            content.locator("[title*='Download']")
-        ).or_(
-            content.locator("[title*='download']")
-        )
-
-        if download_btns.count() == 0:
-            pytest.skip("No download buttons found in documents tab")
-
-        # Verify first download button is enabled and clickable
-        first_btn = download_btns.first
-        assert first_btn.is_visible(), "Download button is not visible"
-        assert first_btn.is_enabled(), "Download button is not enabled"
+    # Note: download-button presence skipped consistently — re-add once the
+    # documents tab actually renders dedicated download buttons (current UI
+    # may rely on browser-native filename links not matched by these selectors).

@@ -24,16 +24,9 @@ class TestEODSubmit:
         yield
         close_all_panels(map_page)
 
-    def test_eod_submit_button_exists(self, map_page):
-        """EOD tab should have a submit/snap button."""
-        view = map_page.locator("#td-eod-view")
-        submit_btn = view.locator(
-            "button:has-text('Submit'), button:has-text('Snap'), "
-            "button:has-text('EOD'), button:has-text('Run'), "
-            "button[id*='eod-submit'], button[id*='eod-snap']"
-        )
-        if submit_btn.count() == 0 or not submit_btn.first.is_visible():
-            pytest.skip("EOD submit button not visible in current EOD tab state")
+    # Note: EOD submit button presence is implicitly covered by the next test
+    # (test_eod_submit_creates_snapshot) and explicitly by test_lifecycle_eod.py,
+    # which uses the real #td-eod-submit-btn ID.
 
     def test_eod_submit_creates_snapshot(self, map_page):
         """Clicking EOD submit should create a snapshot (success message or history update)."""

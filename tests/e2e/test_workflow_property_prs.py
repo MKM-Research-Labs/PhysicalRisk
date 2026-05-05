@@ -93,31 +93,5 @@ class TestPropertyPRSCommit:
         if not filled:
             pytest.skip("No fillable PRS fields found on property hazard panel")
 
-    def test_commit_button_state(self, map_page):
-        """Commit button should exist and reflect input state."""
-        panel = map_page.locator("#property-hc-panel")
-        commit_btn = panel.locator(
-            "button:has-text('Commit'), button:has-text('Trade'), "
-            "button:has-text('Book'), button[id*='commit'], "
-            "button[id*='phc-commit']"
-        ).first
-        if commit_btn.count() == 0:
-            pytest.skip("No commit button found on property PRS tab")
-
-        # Fill some values to potentially enable the button
-        notional = panel.locator(
-            "input[id*='notional'], input[id*='phc-notional']"
-        ).first
-        if notional.count() > 0 and notional.is_visible():
-            notional.fill("500000")
-
-        spread = panel.locator(
-            "input[id*='spread'], input[id*='phc-spread']"
-        ).first
-        if spread.count() > 0 and spread.is_visible():
-            spread.fill("30")
-
-        map_page.wait_for_timeout(3_000)
-
-        # Button should be visible (enabled or disabled state is acceptable)
-        assert commit_btn.is_visible(), "Commit button is not visible"
+    # Note: commit-button coverage is provided by tests/e2e/test_lifecycle_property_prs.py,
+    # which exercises the real commit flow via the actual element IDs.
