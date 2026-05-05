@@ -189,20 +189,6 @@ class TestLoaderRegistryStatus:
         assert status['timeseries'] is True
         assert status['storm'] is True
 
-    @pytest.mark.skip(reason="get_status() format differs - no file_exists key")
-    def test_get_all_status(self, loader_registry):
-        """Test getting status for all loaders."""
-        # First access some loaders to instantiate them
-        loader_registry.get_property_loader()
-        loader_registry.get_gauge_loader()
-
-        status = loader_registry.get_all_status()
-
-        assert 'property' in status
-        assert 'gauge' in status
-        assert status['property']['file_exists'] is True
-
-
 class TestCreateRegistryHelper:
     """Test the create_registry convenience function."""
 

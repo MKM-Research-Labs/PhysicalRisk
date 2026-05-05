@@ -225,16 +225,17 @@ class GaugeCurrentRiskPage(GaugeBasePage):
 
         for label, data_set in [('Mean', 'mean'), ('Median', 'median'),
                                  ('Std Dev', 'stdev'), ('Min', 'min'), ('Max', 'max')]:
-            month_val = getattr(statistics, data_set)(same_month_levels) if len(same_month_levels) > 1 or data_set not in ('stdev',) else 0
-            all_val = getattr(statistics, data_set)(all_obs_levels) if len(all_obs_levels) > 1 or data_set not in ('stdev',) else 0
-            if data_set == 'stdev' and len(same_month_levels) <= 1:
-                month_val = 0
-            if data_set == 'stdev' and len(all_obs_levels) <= 1:
-                all_val = 0
+            # statistics has mean/median/stdev; min/max are Python built-ins.
             if data_set in ('min', 'max'):
                 fn = min if data_set == 'min' else max
                 month_val = fn(same_month_levels) if same_month_levels else 0
                 all_val = fn(all_obs_levels) if all_obs_levels else 0
+            elif data_set == 'stdev':
+                month_val = statistics.stdev(same_month_levels) if len(same_month_levels) > 1 else 0
+                all_val = statistics.stdev(all_obs_levels) if len(all_obs_levels) > 1 else 0
+            else:
+                month_val = getattr(statistics, data_set)(same_month_levels) if same_month_levels else 0
+                all_val = getattr(statistics, data_set)(all_obs_levels) if all_obs_levels else 0
             stats_data.append([label, f"{month_val:.3f}m", f"{all_val:.3f}m"])
 
         table = Table(stats_data, colWidths=[1.5 * inch, 3 * inch, 3 * inch])

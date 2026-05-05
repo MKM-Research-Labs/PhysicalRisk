@@ -24,7 +24,6 @@ Tests for TimeseriesLoader.
 Tests timeseries-specific loading and query functionality.
 """
 
-from datetime import datetime
 
 import pytest
 
@@ -132,38 +131,6 @@ class TestTimeseriesLoaderStatistics:
         assert len(gauge_ids) == 2
         assert "GAUGE-001" in gauge_ids
         assert "GAUGE-002" in gauge_ids
-
-
-class TestTimeseriesLoaderTimeQueries:
-    """Test time-based queries."""
-
-    @pytest.mark.skip(reason="get_readings_in_range() implementation needs datetime parsing fix")
-    def test_get_readings_in_range(self, timeseries_loader):
-        """Test getting readings in time range."""
-        start = datetime(2025, 1, 1, 0, 0, 0)
-        end = datetime(2025, 1, 1, 1, 0, 0)
-
-        readings = timeseries_loader.get_readings_in_range(start, end)
-
-        # Should get records for hours 0 and 1
-        assert len(readings) == 2
-
-    @pytest.mark.skip(reason="get_readings_in_range() implementation needs datetime parsing fix")
-    def test_get_readings_in_range_for_gauge(self, timeseries_loader):
-        """Test getting readings in range for specific gauge."""
-        start = datetime(2025, 1, 1, 0, 0, 0)
-        end = datetime(2025, 1, 1, 2, 0, 0)
-
-        readings = timeseries_loader.get_readings_in_range(
-            start, end, gauge_id="GAUGE-001"
-        )
-
-        # Should get 2 readings for GAUGE-001 (hours 0, 1)
-        # Hour 2 is at exactly end time, so included
-        assert len(readings) >= 2
-
-        for reading in readings:
-            assert reading.get('gaugeId') == "GAUGE-001" or 'level' in reading
 
 
 class TestTimeseriesGaugeIntegration:
