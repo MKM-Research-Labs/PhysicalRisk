@@ -83,7 +83,6 @@ class TestGaugeCurrentRiskPage:
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any(t for t in texts)
 
-    @pytest.mark.xfail(reason="Source bug: statistics.min doesn't exist")
     def test_with_observations_returns_elements(self):
         page = self._page()
         hd = _make_hd(n=30)
@@ -92,7 +91,6 @@ class TestGaugeCurrentRiskPage:
         result = page.generate_elements({}, timeseries_data=ts)
         assert len(result) > 2
 
-    @pytest.mark.xfail(reason="Source bug: statistics.min doesn't exist")
     def test_with_observations_includes_content(self):
         page = self._page()
         hd = _make_hd(n=15)

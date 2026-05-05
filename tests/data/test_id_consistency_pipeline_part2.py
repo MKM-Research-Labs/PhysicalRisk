@@ -99,30 +99,52 @@ class TestDeterministicIDs:
     """Gauge and property IDs must be deterministic (stable across runs)."""
 
     def test_gauge_ids_are_deterministic(self):
-        """Gauge IDs should be derived from location, not random UUIDs."""
+        """Gauge IDs should be derived from location, not random UUIDs.
+
+        Mirrors the construction in src/port/rand/thames/gauge/gauge_random.py
+        (generate_gauge_metadata) and src/port/src/gauge/gauge.py (which builds
+        the location dicts from catchment GAUGE_POINTS + gauge_names).
+        """
         import hashlib
         try:
-            from port.rand.thames.gauge.gauge_locations import THAMES_GAUGE_LOCATIONS
-        except ImportError:
-            pytest.skip("Cannot import gauge locations")
+            # Catchment params live at data/catch/<id>.py and the project
+            # adds data/ to sys.path via config.path._setup_paths.  Trigger
+            # that path setup if it hasn't happened (e.g. when this test
+            # runs in isolation without first importing config).
+            import sys
+            from pathlib import Path
+            data_dir = Path(__file__).parent.parent.parent / "data"
+            data_dir_str = str(data_dir)
+            if data_dir_str not in sys.path:
+                sys.path.insert(0, data_dir_str)
+            from catch.thames import GAUGE_POINTS, GAUGE_NAMES, AREAS
+        except ImportError as e:
+            pytest.skip(f"Cannot import Thames catchment data: {e}")
 
         gauge_ids = _load_gauge_ids()
         if not gauge_ids:
             pytest.skip("No gauges")
 
-        # Compute what deterministic IDs should be
+        # Reproduce the location → gauge_id derivation used by the
+        # generator. Only the fixed (non-synthetic) gauges are deterministic
+        # — synthetic SYNTH-* gauges have their own ID scheme and aren't
+        # expected to match this set.
         expected = set()
-        for loc in THAMES_GAUGE_LOCATIONS:
-            loc_key = f"{loc['lat']:.6f}:{loc['lon']:.6f}:{loc.get('name', '')}"
+        for i, (lat, lon, _elev) in enumerate(GAUGE_POINTS):
+            short_name = (
+                GAUGE_NAMES[i]
+                if i < len(GAUGE_NAMES)
+                else f"{AREAS[i % len(AREAS)]}_Point_{i}"
+            )
+            loc_key = f"{lat:.6f}:{lon:.6f}:{short_name}"
             gid = f"GAUGE-{hashlib.sha256(loc_key.encode()).hexdigest()[:8]}"
             expected.add(gid)
 
-        # If gauge.json was generated with the deterministic fix,
-        # the IDs should match
-        if gauge_ids != expected:
-            pytest.fail(
-                f"gauge.json has non-deterministic IDs. "
-                f"Expected {sorted(expected)[:3]}..., "
-                f"got {sorted(gauge_ids)[:3]}... "
-                f"Regenerate: python app.py port --gauge"
-            )
+        # The fixed-location IDs must all be present in gauge.json
+        # (synthetic SYNTH-* gauges live alongside them).
+        missing = expected - gauge_ids
+        assert not missing, (
+            f"gauge.json is missing {len(missing)} deterministic gauge IDs "
+            f"derived from GAUGE_POINTS. Sample: {sorted(missing)[:3]}. "
+            f"Regenerate: python app.py port --gauge"
+        )

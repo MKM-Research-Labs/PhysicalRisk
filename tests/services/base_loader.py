@@ -142,18 +142,6 @@ class TestBaseLoaderJsonLoading:
 
         assert result == []
 
-    @pytest.mark.skip(reason="file_exists() method not implemented in BaseLoader yet")
-    def test_file_exists_check(self, temp_data_dir, sample_property_file):
-        """Test file_exists method."""
-        from loaders.property_loader import PropertyLoader
-
-        loader = PropertyLoader(data_dir=temp_data_dir)
-        assert loader.file_exists() is True
-
-        loader2 = PropertyLoader(data_dir=temp_data_dir, filename="nonexistent.json")
-        assert loader2.file_exists() is False
-
-
 class TestBaseLoaderCaching:
     """Test caching behavior."""
 
@@ -250,16 +238,6 @@ class TestBaseLoaderQueries:
         assert len(result) == 3
         assert all('propertyId' in item for item in result)
 
-    @pytest.mark.skip(reason="get_ids() method not implemented in BaseLoader yet")
-    def test_get_ids(self, property_loader):
-        """Test getting all IDs."""
-        ids = property_loader.get_ids()
-
-        assert len(ids) == 3
-        assert "PROP-001" in ids
-        assert "PROP-002" in ids
-        assert "PROP-003" in ids
-
     def test_count(self, property_loader):
         """Test count method."""
         assert property_loader.count() == 3
@@ -268,12 +246,3 @@ class TestBaseLoaderQueries:
         """Test exists method."""
         assert property_loader.exists("PROP-001") is True
         assert property_loader.exists("NONEXISTENT") is False
-
-    @pytest.mark.skip(reason="get_status() format differs from test expectations")
-    def test_get_status(self, property_loader):
-        """Test get_status method."""
-        status = property_loader.get_status()
-
-        assert status['entity_type'] == 'property'
-        assert status['file_exists'] is True
-        assert 'filepath' in status
