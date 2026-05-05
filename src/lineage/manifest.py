@@ -39,8 +39,14 @@ LINEAGE_PATH = _project_root / "data" / "data_lineage.json"
 # ---------------------------------------------------------------------------
 DEPENDENCY_GRAPH = {
     "gauges":             [],
+    # Pipeline order is gauges -> synthetic_gauges -> properties (commit
+    # 48b2d113 "restructure pipeline: synthetic gauges first, properties
+    # placed relative").  synthetic_gauges writes back into gauge.json
+    # before properties runs, so properties' producer of gauge.json is
+    # tracked via the gauges edge (gauge.json's hash on properties matches
+    # whatever was last written, whether by gauges or synthetic_gauges).
+    "synthetic_gauges":   ["gauges"],
     "properties":         ["gauges"],
-    "synthetic_gauges":   ["gauges", "properties"],
     "mortgages":          ["properties"],
     "gaugehd":            ["gauges", "synthetic_gauges"],
     "stressm":            ["synthetic_gauges", "gaugehd"],
@@ -67,7 +73,7 @@ STEP_IO = {
                        "outputs": ["property.json"]},
     "mortgages":      {"inputs": ["property.json"],
                        "outputs": ["mortgage.json"]},
-    "synthetic_gauges": {"inputs": ["gauge.json", "property.json"],
+    "synthetic_gauges": {"inputs": ["gauge.json"],
                         "outputs": ["gauge.json"]},
     "gaugehd":        {"inputs": ["gauge.json"],
                        "outputs": ["gaugehd/"]},
