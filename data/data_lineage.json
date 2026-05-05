@@ -3707,103 +3707,207 @@
       "synthetic_gauges",
       "properties",
       "mortgages",
-      "gaugehd"
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter"
+    ],
+    "run-20260504-175927": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260504-191701": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260504-192051": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-065854": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
+    ],
+    "run-20260505-065857": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "hazard",
+      "propertyts",
+      "propertytsd",
+      "propertytse",
+      "propertyhc",
+      "propertyshd",
+      "propertyshe",
+      "counterparties",
+      "blotter",
+      "synthetic_gauges",
+      "properties",
+      "stressm"
     ]
   },
   "steps": {
     "gauges": {
-      "run_id": "run-20260504-171622",
-      "timestamp": "2026-05-04T17:16:22.289494",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.636728",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.GaugePortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 0.022,
+      "elapsed_seconds": 0.0,
       "parameters": {
-        "num_gauges": 52
+        "num_gauges": 2
       },
       "inputs": {},
       "outputs": {
         "gauge.json": {
-          "hash": "85df4a24fb8e3be20069d9372cd90ac0e7ac7f458b5a5d97f4a9c5f476e4c564",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "properties": {
-      "run_id": "run-20260504-171622",
-      "timestamp": "2026-05-04T17:17:13.306288",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.695631",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.PropertyPortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 49.875,
+      "elapsed_seconds": 0.0,
       "parameters": {
-        "num_properties": 200
+        "num_properties": 2
       },
       "inputs": {
         "gauge.json": {
-          "hash": "c2f577f5d11b05732661331788108732b339c25e71f9d82bde7900fbf83d9020",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       },
       "outputs": {
         "property.json": {
-          "hash": "b3efb7ff8dbffc3e31c8c57c1cd53613bcd542243aa92236e1b562a3594e8719",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "mortgages": {
-      "run_id": "run-20260504-171622",
-      "timestamp": "2026-05-04T17:17:13.329185",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.643076",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.mortgage.MortgagePortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 0.02,
+      "elapsed_seconds": 0.0,
       "parameters": {},
       "inputs": {
         "property.json": {
-          "hash": "b3efb7ff8dbffc3e31c8c57c1cd53613bcd542243aa92236e1b562a3594e8719",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       },
       "outputs": {
         "mortgage.json": {
-          "hash": "ff64150e914d6ffdea801abeee4a8ebab2fe10f4228406d755fd1909701898fd",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "gaugehd": {
-      "run_id": "run-20260504-171622",
-      "timestamp": "2026-05-04T17:18:28.001176",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.645098",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.gaugehd",
       "status": "success",
-      "elapsed_seconds": 74.192,
+      "elapsed_seconds": 0.0,
       "parameters": {
-        "history_years": 50
+        "history_years": 1
       },
       "inputs": {
         "gauge.json": {
-          "hash": "c2f577f5d11b05732661331788108732b339c25e71f9d82bde7900fbf83d9020",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       },
       "outputs": {
         "gaugehd/": {
-          "hash": "d386c5c5facfa54996edd18ffaa37229703887881e8c6ef6b6a25d5c6c11ff2d",
-          "file_count": 252,
-          "type": "directory"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "stressm": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.615532",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.698230",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.stressm.generate_stressm",
@@ -3842,8 +3946,8 @@
       }
     },
     "hazard": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.468209",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.647067",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.hazard.build_hazard_curves",
@@ -3874,8 +3978,8 @@
       }
     },
     "propertyts": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.470144",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.649391",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator",
@@ -3904,8 +4008,8 @@
       }
     },
     "propertyhc": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.475739",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.656845",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator",
@@ -3934,8 +4038,8 @@
       }
     },
     "counterparties": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.481711",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.662975",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.counterparty.CounterpartyPortfolioGenerator",
@@ -3951,8 +4055,8 @@
       }
     },
     "blotter": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.487427",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.669372",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.book.generate_thames_central_book",
@@ -3981,7 +4085,7 @@
           "type": "directory"
         },
         "blotter/market_state.json": {
-          "hash": "24547d72e3d696e2bcb5b0d4b93e85832355e1daf4b2adda8ced87b6d802ac32",
+          "hash": "cfd058f11ee2c1021155bf985e1782facd5a873db6e2395c364468e6d213156d",
           "type": "file"
         },
         "blotter/trade_marks.json": {
@@ -3991,32 +4095,32 @@
       }
     },
     "synthetic_gauges": {
-      "run_id": "run-20260504-171622",
-      "timestamp": "2026-05-04T17:16:23.427607",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.693271",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.synthetic.SyntheticGaugeGenerator",
       "status": "success",
-      "elapsed_seconds": 1.133,
+      "elapsed_seconds": 0.0,
       "parameters": {
-        "count": 200
+        "count": 2
       },
       "inputs": {
         "gauge.json": {
-          "hash": "85df4a24fb8e3be20069d9372cd90ac0e7ac7f458b5a5d97f4a9c5f476e4c564",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       },
       "outputs": {
         "gauge.json": {
-          "hash": "c2f577f5d11b05732661331788108732b339c25e71f9d82bde7900fbf83d9020",
-          "type": "file"
+          "hash": null,
+          "type": "missing"
         }
       }
     },
     "propertytsd": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.472027",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.651784",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=shd)",
@@ -4047,8 +4151,8 @@
       }
     },
     "propertytse": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.473867",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.653997",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=she)",
@@ -4079,8 +4183,8 @@
       }
     },
     "propertyshd": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.477869",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.658769",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=shd)",
@@ -4111,8 +4215,8 @@
       }
     },
     "propertyshe": {
-      "run_id": "run-20260504-165622",
-      "timestamp": "2026-05-04T16:56:22.479814",
+      "run_id": "run-20260505-065857",
+      "timestamp": "2026-05-05T06:58:57.661097",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=she)",
