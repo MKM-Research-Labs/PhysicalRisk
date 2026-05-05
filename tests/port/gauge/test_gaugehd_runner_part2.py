@@ -74,6 +74,31 @@ class TestProcessNrfaDirectoryRunner:
         # Good file should succeed
         assert len(result) >= 1
 
+    def test_generate_from_nrfa_exception_is_logged(self, tmp_path, caplog,
+                                                     monkeypatch):
+        """Lines 89-90: when generate_from_nrfa raises, the error is logged
+        and processing continues to the next file.
+        """
+        import logging as _logging
+        from port.src.gauge.gaugehd import runner
+
+        write_nrfa_csv(tmp_path, station_id="EXC1", n_rows=10)
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        monkeypatch.setattr(
+            runner, "generate_from_nrfa",
+            lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("boom"))
+        )
+        with caplog.at_level(_logging.ERROR):
+            result = runner.process_nrfa_directory(
+                tmp_path, output_dir=output_dir, years=5
+            )
+
+        assert result == []
+        assert "EXC1" in caplog.text
+        assert "boom" in caplog.text
+
 
 # ===========================================================================
 # main() — CLI entry point

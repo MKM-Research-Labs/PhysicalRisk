@@ -125,6 +125,25 @@ class TestExtractGaugesKeyFormats:
         assert layer._extract_gauges({}) == []
         assert layer._extract_gauges({"items": []}) == []
 
+    def test_malformed_gauge_skipped_via_exception(self, caplog):
+        """Lines 102-104: a record that raises during processing is logged
+        and skipped rather than aborting the whole extraction."""
+        import logging
+
+        good = _make_gauge_item(gauge_id="GAUGE-good")
+        bad = _make_gauge_item(gauge_id="GAUGE-bad")
+        # Force a ValueError on float(lat)
+        bad["FloodGauge"]["SensorDetails"]["GaugeInformation"]["GaugeLatitude"] = "not-a-number"
+
+        layer = GaugeLayer()
+        with caplog.at_level(logging.WARNING, logger="visual.layer.gauge_layer.extract"):
+            result = layer._extract_gauges({"items": [good, bad]})
+
+        # Only the well-formed record made it through
+        assert len(result) == 1
+        assert result[0]["gauge_id"] == "GAUGE-good"
+        assert any("Error extracting gauge data" in r.message for r in caplog.records)
+
 
 # ===========================================================================
 # _extract_gauges — field extraction

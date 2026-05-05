@@ -112,3 +112,74 @@ class TestThamesCentralBook:
                 t1["PhysicalSwap"]["Pricing"]["SpreadBps"]
                 == t2["PhysicalSwap"]["Pricing"]["SpreadBps"]
             )
+
+
+class TestThamesCentralBookEdgeCases:
+    """Edge cases — empty hazard curves, missing gauge areas, no-seed mode."""
+
+    def test_empty_hazard_curves_raises(self, sample_counterparties, tmp_path):
+        """Line 181: empty hazard_curves dict raises ValueError."""
+        import json
+        import pytest
+
+        gaugehc = {"metadata": {"catchment": "thames"}, "hazard_curves": {}}
+        gauge_path = tmp_path / "gaugehc.json"
+        gauge_path.write_text(json.dumps(gaugehc))
+
+        with pytest.raises(ValueError, match="No hazard curves found"):
+            generate_thames_central_book(
+                gauge_path, sample_counterparties, tmp_path / "prs", seed=42
+            )
+
+    def test_missing_areas_warning_and_skip(
+        self, sample_counterparties, tmp_path, caplog
+    ):
+        """Lines 195, 208-209: areas not matched → warning + skip trade specs."""
+        import json
+        import logging
+
+        # Build hazard curves with only ONE matching gauge (Westminster).
+        # All other areas in THAMES_CENTRAL_AREAS are unmatched, so:
+        #  - line 195: 'Area %s not matched...' (per missing area)
+        #  - lines 208-209: per trade spec for missing areas, log + continue
+        gaugehc = {
+            "metadata": {"catchment": "thames"},
+            "hazard_curves": {
+                "GAUGE-westminster": {
+                    "gauge_id": "GAUGE-westminster",
+                    "gauge_name": "Westminster Bridge Test",
+                    "annual_hazard_rate_severe": 0.015,
+                    "annual_hazard_rate_warning": 0.025,
+                    "annual_hazard_rate_alert": 0.04,
+                },
+            },
+        }
+        gauge_path = tmp_path / "gaugehc.json"
+        gauge_path.write_text(json.dumps(gaugehc))
+
+        with caplog.at_level(logging.WARNING, logger="port.src.book.book_thames"):
+            trades = generate_thames_central_book(
+                gauge_path, sample_counterparties, tmp_path / "prs", seed=42
+            )
+
+        # Only Westminster trades should be generated (some specs match)
+        assert len(trades) > 0
+        # Each generated trade is for the Westminster gauge
+        for t in trades:
+            gname = t["PhysicalSwap"]["GaugeSet"]["GaugeBasket"][0].get("GaugeName", "")
+            assert "westminster" in gname.lower()
+
+        # Both kinds of warnings were emitted
+        messages = [r.message for r in caplog.records]
+        assert any("not matched to any gauge" in m for m in messages)
+        assert any("Skipping trade spec" in m for m in messages)
+
+    def test_seed_none_runs(self, thames_central_gaugehc, sample_counterparties, tmp_path):
+        """Line 173 branch (seed is None): random isn't reseeded."""
+        trades = generate_thames_central_book(
+            thames_central_gaugehc,
+            sample_counterparties,
+            tmp_path / "prs",
+            seed=None,
+        )
+        assert len(trades) == 50

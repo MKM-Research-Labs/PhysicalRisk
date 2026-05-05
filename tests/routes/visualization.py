@@ -204,6 +204,40 @@ class TestServeVisualizationSuccess:
         finally:
             viz_module.TCEventVisualization = original
 
+    def test_viz_runtime_error_returns_500(self, tmp_path, monkeypatch):
+        """Lines 86-88: non-ImportError raised inside try → 500 JSON error.
+
+        We patch TCEventVisualization to a class whose __init__ raises a
+        plain RuntimeError, bypassing the ImportError handler so the bare
+        Exception clause executes.
+        """
+        from config import config
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+        monkeypatch.setattr(config, "get_results_dir", lambda: tmp_path / "results")
+        monkeypatch.setattr(config, "get_gaugets_dir", lambda: tmp_path / "gaugets")
+
+        import visual.core.visualizer as viz_module
+
+        class _RaisingViz:
+            def __init__(self, **kwargs):
+                raise RuntimeError("simulated viz failure")
+
+        original = viz_module.TCEventVisualization
+        viz_module.TCEventVisualization = _RaisingViz
+        try:
+            from server import create_app
+            app = create_app()
+            app.config["TESTING"] = True
+
+            with app.test_client() as c:
+                r = c.get("/visualization")
+                assert r.status_code == 500
+                data = r.get_json()
+                assert data["status"] == "error"
+                assert "Error generating visualization" in data["message"]
+        finally:
+            viz_module.TCEventVisualization = original
+
     def test_viz_import_error_returns_503(self, tmp_path, monkeypatch):
         """Lines 59-65: ImportError → 503."""
         import sys

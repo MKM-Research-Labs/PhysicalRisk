@@ -54,6 +54,16 @@ class TestStaleFileCleanup:
         for s in stales:
             assert not s.exists()
 
+    def test_removes_stale_synth_files(self, tmp_path, monkeypatch):
+        """Line 41: stale gauge_SYNTH-*_hd.json files are also removed."""
+        from port.src.gauge.gaugehd.runner import generate_all_gauge_histories
+        _, gaugehd_dir = setup_gauge_env(tmp_path, monkeypatch)
+        synth_stale = gaugehd_dir / "gauge_SYNTH-OLD_hd.json"
+        synth_stale.write_text("{}")
+        assert synth_stale.exists()
+        generate_all_gauge_histories(years=5)
+        assert not synth_stale.exists()
+
 
 # ===========================================================================
 # generate_all_gauge_histories — error handling

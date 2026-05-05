@@ -171,14 +171,30 @@ class TestCatchmentExceptionHandlers:
     """Lines 54-56: exception handler in serve_catchment_selector."""
 
     def test_serve_catchment_selector_exception_returns_500(self, client):
-        """Lines 54-56: internal error returns 500 JSON error."""
-        with patch("routes.catchment.send_file", side_effect=RuntimeError("disk error")):
-            r = client.get("/select-catchment")
-            assert r.status_code in (404, 500)
-            # If 500, should be JSON
-            if r.status_code == 500:
-                data = json.loads(r.data)
-                assert data["status"] == "error"
+        """Lines 54-56: internal error returns 500 JSON error.
+
+        Force the exists() check to pass so we reach send_file, then make
+        send_file raise so the except branch executes.
+        """
+        with patch("routes.catchment.Path") as mock_path_class:
+            fake_path = mock_path_class.return_value
+            # Path(__file__).resolve().parent.parent
+            fake_path.resolve.return_value.parent.parent = fake_path
+            # fake_path / 'static' / 'select_catchment.html'  → still fake_path
+            fake_path.__truediv__ = lambda self, other: fake_path
+            # Pretend the html file exists so we reach send_file
+            fake_path.exists.return_value = True
+
+            with patch(
+                "routes.catchment.send_file",
+                side_effect=RuntimeError("disk error"),
+            ):
+                r = client.get("/select-catchment")
+
+        assert r.status_code == 500
+        data = json.loads(r.data)
+        assert data["status"] == "error"
+        assert "Error loading catchment selector" in data["message"]
 
     def test_set_catchment_exception_returns_500(self, client):
         """Lines 108-113: exception in set_catchment returns 500."""
