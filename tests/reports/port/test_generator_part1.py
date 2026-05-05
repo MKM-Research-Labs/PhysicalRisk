@@ -30,6 +30,21 @@ class TestInit:
         gen = PortReportGenerator(str(tmp_path), output_path=tmp_path / 'out.pdf')
         assert isinstance(gen.input_dir, Path)
 
+    def test_default_output_path_uses_audit_dir(self, tmp_path, monkeypatch):
+        """Lines 56-59: when output_path is None, default to
+        ``<output>/audit/port_<catchment>.pdf`` using config.get_output_dir().
+        """
+        from config import config
+
+        out_root = tmp_path / 'output'
+        monkeypatch.setattr(config, 'get_output_dir', lambda: out_root)
+
+        gen = PortReportGenerator(tmp_path / 'thames')
+        # audit dir was created
+        assert (out_root / 'audit').is_dir()
+        # output path is the audit / port_<input_dir.name>.pdf
+        assert gen.output_path == out_root / 'audit' / 'port_thames.pdf'
+
 
 # ---------------------------------------------------------------------------
 # generate() — end-to-end PDF creation

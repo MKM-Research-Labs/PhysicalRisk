@@ -99,3 +99,47 @@ class TestComputePrsSpreadEdges:
     def test_negative_hazard_returns_zero(self):
         result = compute_prs_spread(-0.01, tenor=5)
         assert result == 0.0
+
+
+class TestInterpolateYieldRateDefensiveBranches:
+    """Cover defensive `return fallback` after key extraction (line 56)."""
+
+    def test_truthy_dict_with_no_keys(self):
+        """Line 56: yield_curve is truthy but yields no keys → fallback.
+
+        Constructed via a dict subclass that lies about being non-empty.
+        """
+        class _TruthyEmpty(dict):
+            def __bool__(self):
+                return True
+
+        weird = _TruthyEmpty()
+        result = interpolate_yield_rate(weird, 2.0, fallback=0.07)
+        assert result == 0.07
+
+    def test_nan_t_falls_through_loop(self):
+        """Line 66: NaN t makes all `keys[i] <= t <= keys[i+1]` checks fail
+        and the early `t <= keys[0]` / `t >= keys[-1]` checks also fail, so
+        we hit the trailing `return yield_curve[str(keys[-1])]`.
+        """
+        curve = {'1': 0.03, '3': 0.04, '5': 0.045}
+        result = interpolate_yield_rate(curve, float('nan'))
+        assert result == 0.045
+
+
+class TestComputePrsSpreadAnnuityFallback:
+    """Cover the annuity-zero fallback (line 115)."""
+
+    def test_annuity_zero_returns_hazard_times_10000(self, monkeypatch):
+        """Line 115: when annuity <= 0 we return hazard * 10000.
+
+        Force survival/discount to zero by patching math.exp inside the
+        prs_analytical module so the annuity loop accumulates zeros.
+        """
+        import models.hazard.prs_analytical as mod
+
+        monkeypatch.setattr(mod.math, "exp", lambda _x: 0.0)
+
+        result = compute_prs_spread(0.05, tenor=2)
+        # Expected = 0.05 * 10000 = 500.0
+        assert result == 500.0
