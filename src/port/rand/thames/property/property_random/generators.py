@@ -24,7 +24,11 @@ import random
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict
 
-from .helpers import _deterministic_prop_id, _ea_zone_from_elevation
+from .helpers import (
+    _deterministic_prop_id,
+    _ea_zone_from_elevation,
+    _flood_hazard_class_from_offset,
+)
 from ..property_energy import (
     calculate_annual_energy,
     calculate_carbon_emissions,
@@ -106,7 +110,7 @@ def generate_field_value(field_name: str, field_def: Dict, index: int, metadata:
         return random.choice([True, False])
     elif field_type == 'date':
         days_ago = random.randint(0, 3650)
-        return (datetime.now() - timedelta(days=days_ago)).isoformat()
+        return (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d')
 
     return None
 
@@ -121,14 +125,12 @@ def get_field_generators() -> Dict[str, Callable]:
         # String fields
         "PropertyID": lambda info: _deterministic_prop_id(info, info.get('index', 0)),
         "UPRN": lambda _: str(random.randint(10000000, 99999999)),
-        "PostCode": lambda info: generate_postcode_for_area(info),
         "Postcode": lambda info: generate_postcode_for_area(info),
         "OccupancyType": lambda _: random.choice(['Residential owner-occupied', 'Second home', 'Static caravan', 'Vacant']),
         "IncomeGenerating": lambda _: random.choice(['Yes', 'No']),
         "BuildingResidency": lambda _: random.choice(['Single Family', 'Multi Family', 'Mixed Use']),
         "propertyType": lambda _: random.choice(['residential', 'commercial', 'industrial']),
         "propertyStatus": lambda _: random.choice(['active', 'inactive', 'under_construction']),
-        "FloodRisk": lambda _: random.choice(['Very low', 'Low', 'Medium', 'High', 'Very high']),
         "ConstructionType": lambda _: random.choice(['Brick and block', 'Timber frame', 'Stone', 'Modern methods', 'Mixed construction']),
         "FoundationType": lambda _: random.choice(['Strip foundations', 'Raft foundations', 'Pile foundations', 'Deep foundations', 'Unknown']),
         "ValuationMethod": lambda _: random.choice(['Market comparison', 'Income approach', 'Cost approach', 'Automated valuation']),
@@ -136,7 +138,7 @@ def get_field_generators() -> Dict[str, Callable]:
         "Region": lambda _: random.choice(['London', 'South East', 'East of England']),
         "UrbanRuralClassification": lambda _: random.choice(['Urban', 'Suburban', 'Rural']),
         "EAFloodZone": lambda info: _ea_zone_from_elevation(info),
-        "FloodRiskType": lambda _: random.choice(['River', 'Surface water', 'Groundwater', 'Coastal', 'Multiple']),
+        "FloodRiskType": lambda _: random.choice(['Fluvial', 'Pluvial', 'GroundWater', 'Coastal', 'Multiple']),
 
         "PropertyResi": lambda info: info.get('property_type', 'Flat'),
         "OccupancyResidency": lambda _: random.choice(['Family resident', 'Unoccupied', 'Single', 'HMO', 'Other']),
@@ -148,13 +150,98 @@ def get_field_generators() -> Dict[str, Callable]:
         "PropertyCondition": lambda _: random.choice(['Excellent', 'Good', 'Fair', 'Poor', 'Very poor']),
         "InsurancePremium": lambda info: calculate_insurance_premium(info),
         "ExcessAmount": lambda _: random.randint(250, 2500),
-        "RiskRating": lambda _: random.choice(['Very low', 'Low', 'Medium', 'High', 'Very high']),
         "OverallFloodRisk": lambda _: random.choice(['Very low', 'Low', 'Medium', 'High', 'Very high']),
+
+        # RiskAssessment — v10 fields restored. LastFloodDate is nullable
+        # (most properties never flooded); distances reflect Thames-context
+        # geography (London is inland, no coast, scattered lakes/canals).
+        "LastFloodDate":             lambda _: generate_past_date(days_range=(365*2, 365*30)) if random.random() < 0.15 else None,
+        "SoilType":                  lambda _: random.choices(
+            ["Clay", "Sandy", "Loamy", "Chalk", "Peat", "Rocky", "Mixed", "Saltpans", "Unknown"],
+            weights=[0.35, 0.10, 0.15, 0.10, 0.05, 0.05, 0.15, 0.00, 0.05],
+        )[0],
+        "LakeDistanceMeters":        lambda _: round(random.uniform(500, 8000), 0),
+        "CoastalDistanceMeters":     lambda _: round(random.uniform(40000, 120000), 0),  # London is far from coast
+        "CanalDistanceMeters":       lambda _: round(random.uniform(200, 5000), 0),
+        "GovernmentalDefenceScheme": lambda info: (info.get('vertical_offset', 999) < 3.0) and (random.random() < 0.4),
+
+        # TransactionHistory.Insurance — v10 policy fields parked here as financial info.
+        "InsuranceStatus":  lambda info: random.choices(
+            ["Uninsured", "Standard cover", "Flood Re supported", "Specialist cover"],
+            weights=[0.05, 0.65, 0.20, 0.10],
+        )[0],
+        "FloodReEligible":  lambda info: (info.get('vertical_offset', 999) < 3.0) and (random.random() < 0.7),
+        "ClaimsHistory":    lambda _: random.choices([0, 1, 2, 3, 4], weights=[0.55, 0.25, 0.12, 0.06, 0.02])[0],
+        "LastClaimDate":    lambda _: generate_past_date(days_range=(180, 365*10)) if random.random() < 0.45 else None,
+        "LastClaimType":    lambda _: random.choices(
+            ["None", "Fire", "Flood damage", "Subsidence", "Domestic appliances"],
+            weights=[0.45, 0.05, 0.20, 0.10, 0.20],
+        )[0],
+
+        # GoverningBodyRatings — letter ratings are stamped by the BRI helper
+        # in the builder post-step. The *score* fields are left blank pending
+        # a forthcoming methodology model that will populate them.
+        "BRIScore":          lambda _: None,
+        "BRIFloodScore":     lambda _: None,
+        "BRIWindScore":      lambda _: None,
+        "BRIFireScore":      lambda _: None,
+        "BRISeismicScore":   lambda _: None,
+
+        # Insurance body ratings (was previously named RiskRating).
+        "InsuranceRating":        lambda _: random.choice(['Very low', 'Low', 'Medium', 'High', 'Very high']),
+        "InsuranceRatingBody":    lambda _: random.choice(['Aviva', 'Direct Line', 'AXA', 'Zurich', 'RSA', 'LV=']),
+        "InsuranceRatingVersion": lambda _: random.choice(['v1.0', 'v1.5', 'v2.0', 'v2.1']),
+        "InsuranceDate":          lambda _: generate_past_date(days_range=(30, 730)),
+
+        # Normalised hazard classes for downstream resilience scoring.
+        # FloodHazardClass is derived from vertical offset to stay consistent
+        # with EAFloodZone; the other three are Thames-context weighted random
+        # (UK is low-seismic, urban-low-wind, urban-low-fire).
+        "FloodHazardClass":   lambda info: _flood_hazard_class_from_offset(info),
+        "WindHazardClass":    lambda _: random.choices(
+            ["None", "Low", "Medium", "High", "Extreme"],
+            weights=[0.05, 0.55, 0.30, 0.09, 0.01],
+        )[0],
+        "SeismicHazardClass": lambda _: random.choices(
+            ["None", "Low", "Medium", "High", "Extreme"],
+            weights=[0.70, 0.28, 0.02, 0.00, 0.00],
+        )[0],
+        "FireHazardClass":    lambda _: random.choices(
+            ["None", "Low", "Medium", "High", "Extreme"],
+            weights=[0.10, 0.55, 0.25, 0.08, 0.02],
+        )[0],
 
         # Property attributes
         "NumberBedrooms": lambda info: generate_bedrooms(info),
         "NumberBathrooms": lambda info: generate_bathrooms(info),
         "FloorLevelMeters": lambda info: generate_floor_level(info),
+
+        # PropertyAttributes — v10 fields restored
+        "HousingAssociation":   lambda _: random.random() < 0.15,
+        "PayingBusinessRates":  lambda info: info.get('property_type') in ('commercial', 'industrial') or random.random() < 0.05,
+        "TotalRooms":           lambda _: random.randint(3, 12),
+        "GardenAreaFront":      lambda _: round(random.uniform(0, 60), 1),
+        "GardenAreaBack":       lambda _: round(random.uniform(0, 200), 1),
+        "ParkingType":          lambda _: random.choices(
+            ["None", "On-street only", "Driveway only", "Garage only",
+             "Driveway and garage", "Allocated space"],
+            weights=[0.20, 0.25, 0.20, 0.10, 0.15, 0.10],
+        )[0],
+        "AccessType":           lambda _: random.choices(
+            ["Public road", "Private road", "Shared access", "Right of way"],
+            weights=[0.75, 0.10, 0.10, 0.05],
+        )[0],
+        "LastMajorWorksDate":   lambda _: generate_past_date(days_range=(180, 365*15)),
+
+        # Construction — v10 fields restored
+        "FloorType":      lambda _: random.choice([
+            "Suspended timber", "Solid concrete", "Suspended concrete",
+            "Beam and block", "Mixed",
+        ]),
+        "StiltsHeight":   lambda _: 0 if random.random() < 0.95 else round(random.uniform(0.5, 2.5), 2),
+        # PropertyHeight is reconciled with HeightMeters in the builder's
+        # consistency post-step; this lambda is only a placeholder.
+        "PropertyHeight": lambda info: round(random.uniform(4, 25), 1),
 
         # Address fields
         "StreetName": lambda info: generate_street_name(info),
@@ -162,6 +249,24 @@ def get_field_generators() -> Dict[str, Callable]:
         "TownCity": lambda info: info.get('area_name', 'London'),
         "County": lambda _: 'Greater London',
         "LocalAuthority": lambda info: info.get('area_name', 'Westminster'),
+
+        # Location — v10 fields restored
+        "BuildingName":              lambda _: random.choice([
+            "Rose Cottage", "The Old Mill", "Riverside House", "Oak Lodge",
+            "The Granary", "Willow Cottage", None, None, None,  # often blank
+        ]),
+        "SubBuildingNumber":         lambda _: random.choice([None, None, None, "A", "B", "1", "2", "3"]),
+        "SubBuildingName":           lambda _: random.choice([
+            None, None, None, "Ground Floor Flat", "First Floor Flat",
+            "Top Floor Flat", "Basement Flat",
+        ]),
+        "AddressLine2":              lambda _: random.choice([None, None, None, "Millbrook", "Riverside", "The Park"]),
+        "USRN":                      lambda _: str(random.randint(8400000, 8499999)),
+        "ElectoralWard":             lambda info: info.get('area_name', 'Westminster'),
+        "ParliamentaryConstituency": lambda info: f"{info.get('area_name', 'London')} {random.choice(['North','South','East','West','Central'])}",
+        "LocalDensityHectare":       lambda _: round(random.uniform(20, 150), 0),
+        "BritishNationalGrid":       lambda _: f"{random.choice(['TQ','TL','SU','SP','SZ'])} {random.randint(100,999)} {random.randint(100,999)}",
+        "What3Words":                lambda _: f"//{random.choice(['famous','honest','daily','quiet','sunny'])}.{random.choice(['rapid','quiet','silver','open','green'])}.{random.choice(['pizza','table','river','horse','garden'])}",
 
         # Transaction fields
         "PurchasePriceGbp": lambda info: calculate_purchase_price(info),
@@ -187,38 +292,24 @@ def get_field_generators() -> Dict[str, Callable]:
         "SmartMeterType": lambda _: random.choice(['None', 'Basic meter', 'Smart meter', 'Smart meter with export capability', 'Smart prepayment']),
 
         # Protection Measures - Resilience
+        # NB: the bulk of resilience checks are now generated by the
+        # age/condition/zone-aware module in resilience.py and applied as a
+        # builder post-step. Only the original four BRI-aligned flood booleans
+        # remain here as a fallback for callers that hit the registry directly.
         "FloodGates": lambda _: random.choice([True, False]),
         "FloodBarriers": lambda _: random.choice([True, False]),
         "SumpPump": lambda _: random.choice([True, False]),
-        "NonReturnValves": lambda _: random.choice([True, False]),
-        "WaterproofFlooring": lambda _: random.choice([True, False]),
-        "RaisedElectricals": lambda _: random.choice([True, False]),
-        "WaterproofPlaster": lambda _: random.choice([True, False]),
         "FloodWarningSystem": lambda _: random.choice([True, False]),
-        "DrainageImprovement": lambda _: random.choice([True, False]),
-        "SandBags": lambda _: random.choice([True, False]),
-        "WaterButts": lambda _: random.choice([True, False]),
-        "PermeablePaving": lambda _: random.choice([True, False]),
-        "FloodProofDoors": lambda _: random.choice([True, False]),
-        "FloodProofWindows": lambda _: random.choice([True, False]),
-        "EmergencyKit": lambda _: random.choice([True, False]),
-
-        # Protection Measures - Natural
-        "TreePlanting": lambda _: random.choice([True, False]),
-        "RainGarden": lambda _: random.choice([True, False]),
-        "GreenRoof": lambda _: random.choice([True, False]),
-        "Wetlands": lambda _: random.choice([True, False]),
-        "NaturalDrainage": lambda _: random.choice([True, False]),
-        "VegetationManagement": lambda _: random.choice([True, False]),
 
         # Number fields
         "PropertyValue": lambda info: calculate_property_value(info),
-        "GroundLevelMeters": lambda info: info['elevation'],
-        "elevation": lambda info: info['elevation'],
+        "GroundLevelMeters": lambda info: round(info['elevation'], 2),
         "RiverDistanceMeters": lambda info: info.get('distance_to_thames', random.uniform(100, 5000)),
 
         # Integer fields
-        "ConstructionYear": lambda _: generate_construction_year(),
+        # ConstructionYear must mirror metadata.construction_year so that
+        # derived fields (PropertyPeriod, BRI scoring) stay consistent.
+        "ConstructionYear": lambda info: info.get('construction_year', generate_construction_year()),
         "NumberOfStoreys": lambda info: 1 if info.get('property_type') == 'Flat' else random.randint(1, 4),
 
         # Energy Performance - Usage

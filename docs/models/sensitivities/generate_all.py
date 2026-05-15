@@ -58,6 +58,7 @@ GENERATORS = {
     'delta': ('Delta Engine', 'docs.models.sensitivities.delta_engine.generator'),
     'stormmulti': ('Storm Sequence', 'docs.models.sensitivities.storm_multi.generator'),
     'gaugehd': ('GaugeHD Synthetic', 'docs.models.sensitivities.gaugehd_synthetic.generator'),
+    'bri': ('Building Resilience Index', 'docs.models.sensitivities.bri_resilience.generator'),
 }
 
 

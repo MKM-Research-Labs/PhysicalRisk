@@ -519,4 +519,68 @@ def get_parameter_sections():
                 ]),
             ],
         },
+        # ──────────────────────────────────────────────
+        # MKM-BRI-001: BUILDING RESILIENCE INDEX MODEL
+        # ──────────────────────────────────────────────
+        {
+            'title': 'Building Resilience Index Model',
+            'model_id': 'MKM-BRI-001',
+            'source': 'port/rand/thames/property/property_random/resilience.py',
+            'subsections': [
+                ('Section Weights (BRI letter rating, sum to 1.0)', [
+                    ('FloodProtection',    '0.30', 'Top-weighted under Thames fluvial dominance', 'resilience.py:SECTION_WEIGHTS'),
+                    ('SiteAndDrainage',    '0.25', 'Passive flood resilience + drainage',          'resilience.py:SECTION_WEIGHTS'),
+                    ('BuildingAssessment', '0.20', 'Structural/envelope checks',                   'resilience.py:SECTION_WEIGHTS'),
+                    ('ContinuityMeasures', '0.15', 'Drives the "+" continuity modifier',          'resilience.py:SECTION_WEIGHTS'),
+                    ('FireProtection',     '0.10', 'Lowest BRI-relevance for Thames',              'resilience.py:SECTION_WEIGHTS'),
+                ]),
+                ('Compliance Level Credits (5-level enum)', [
+                    ('Not assessed',  '0.00', 'Measure not evaluated',     'resilience.py:RESILIENCE\\_LEVEL\\_CREDIT'),
+                    ('Partial',       '0.40', 'Present but below minimum', 'resilience.py:RESILIENCE\\_LEVEL\\_CREDIT'),
+                    ('Meets minimum', '0.70', 'At minimum requirement',    'resilience.py:RESILIENCE\\_LEVEL\\_CREDIT'),
+                    ('Enhanced',      '0.90', 'Exceeds minimum',           'resilience.py:RESILIENCE\\_LEVEL\\_CREDIT'),
+                    ('Verified',      '1.00', 'Independently verified',    'resilience.py:RESILIENCE\\_LEVEL\\_CREDIT'),
+                ]),
+                ('Rating Thresholds (score on 0-1 scale)', [
+                    ('AA',                       '0.87', 'Top-tier resilience threshold',          'resilience.py:RATING\\_THRESHOLDS'),
+                    ('A',                        '0.62', 'Strong resilience',                       'resilience.py:RATING\\_THRESHOLDS'),
+                    ('B',                        '0.38', 'Moderate resilience',                     'resilience.py:RATING\\_THRESHOLDS'),
+                    ('CONTINUITY\\_PLUS\\_THRESHOLD', '0.65', 'Continuity score needed for "+" modifier', 'resilience.py:CONTINUITY\\_PLUS\\_THRESHOLD'),
+                ]),
+                ('Flood-Spec Base Weights (sum to 100)', [
+                    ('lowest\\_occupied\\_floor\\_elevation',       '20', 'Highest-impact control on water reaching occupied space', 'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('critical\\_systems\\_elevation',              '15', 'Strong effect on severe loss and downtime',               'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('site\\_drainage\\_topography',                '10', 'Site grading; stronger in pluvial regimes',               'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('onsite\\_retainage\\_capacity',               '10', 'Onsite stormwater retention',                              'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('lower\\_level\\_flood\\_compatible\\_design', '8',  'Limits damage when lower level floods',                    'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('water\\_resistant\\_materials',               '8',  'Repair severity after inundation (proxy)',                'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('permeable\\_surface\\_share',                 '6',  'Reduces runoff generation',                                'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('backflow\\_protection',                       '6',  'Backflow on vulnerable lines',                             'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('debris\\_impact\\_resistance',                '5',  'Envelope debris resistance (proxy)',                       'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('roof\\_drainage\\_standard',                  '4',  'Roof drainage maintenance (proxy)',                        'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('roof\\_membrane\\_openings\\_seal',           '3',  'Membrane/seal water-tightness (proxy)',                    'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('sump\\_pumps\\_backup\\_power',               '3',  'Sump + backup; min of two CDM fields',                     'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                    ('historic\\_water\\_area\\_flag',              '2',  'Adverse history; from FloodDamageSeverity',                'resilience.py:FLOOD\\_SPEC\\_BASE\\_WEIGHTS'),
+                ]),
+                ('Damage Modifier alpha by Regime', [
+                    ('alpha\\_pluvial', '0.65', 'Higher mitigation leverage in pluvial flooding',     'resilience.py:FLOOD\\_SPEC\\_ALPHA\\_BY\\_REGIME'),
+                    ('alpha\\_fluvial', '0.60', 'Default fluvial regime',                              'resilience.py:FLOOD\\_SPEC\\_ALPHA\\_BY\\_REGIME'),
+                    ('alpha\\_coastal', '0.50', 'Lower leverage; residual loss high in deep inundation', 'resilience.py:FLOOD\\_SPEC\\_ALPHA\\_BY\\_REGIME'),
+                ]),
+                ('Soft Caps', [
+                    ('LOF compliance = 0',                          '40', 'Cap when lowest occupied floor is at risk',           'resilience.py:FLOOD\\_SPEC\\_SOFT\\_CAPS'),
+                    ('Critical systems compliance = 0',             '60', 'Cap when critical systems below flood level',          'resilience.py:FLOOD\\_SPEC\\_SOFT\\_CAPS'),
+                    ('Pluvial retainage + drainage = 0',            '55', 'Cap for pluvial regime without site controls',         'resilience.py:FLOOD\\_SPEC\\_SOFT\\_CAPS'),
+                    ('Fluvial/coastal lower-level + materials = 0', '65', 'Cap for inundation regime without lower-level controls', 'resilience.py:FLOOD\\_SPEC\\_SOFT\\_CAPS'),
+                ]),
+                ('Elevation-Margin Compliance Bands', [
+                    ('Less than 0 m',         '0.00', 'Below local water reference', 'resilience.py:LOWEST\\_FLOOR\\_ELEVATION\\_BANDS'),
+                    ('0 to less than 1 m',    '0.20', 'Marginal',                     'resilience.py:LOWEST\\_FLOOR\\_ELEVATION\\_BANDS'),
+                    ('1 to less than 3 m',    '0.50', 'Adequate',                     'resilience.py:LOWEST\\_FLOOR\\_ELEVATION\\_BANDS'),
+                    ('3 to less than 5 m',    '0.75', 'Strong',                       'resilience.py:LOWEST\\_FLOOR\\_ELEVATION\\_BANDS'),
+                    ('5 to less than 6 m',    '0.90', 'Very strong',                  'resilience.py:LOWEST\\_FLOOR\\_ELEVATION\\_BANDS'),
+                    ('6 m or more',           '1.00', 'Full credit',                   'resilience.py:LOWEST\\_FLOOR\\_ELEVATION\\_BANDS'),
+                ]),
+            ],
+        },
     ]

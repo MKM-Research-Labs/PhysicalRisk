@@ -41,3 +41,22 @@ def _ea_zone_from_elevation(info: Dict[str, Any]) -> str:
         elif lo <= offset < hi:
             return zone
     return 'Zone 1'
+
+
+def _flood_hazard_class_from_offset(info: Dict[str, Any]) -> str:
+    """Derive normalised FloodHazardClass from vertical offset above river level.
+
+    Aligned with EA_FLOOD_ZONE_ELEVATION_BOUNDS so the hazard class stays
+    consistent with the property's EAFloodZone. Properties well above the
+    floodplain (>10 m) get "None"; the EA zones map directly otherwise.
+    """
+    offset = info.get('vertical_offset', 999.0)
+    if offset < 0.5:
+        return "Extreme"
+    if offset < 1.5:
+        return "High"
+    if offset < 3.0:
+        return "Medium"
+    if offset < 10.0:
+        return "Low"
+    return "None"
