@@ -1,0 +1,272 @@
+{
+  "PropertyHeader": {
+    "Header": {
+      "UPRN": "47338124",
+      "PropertyID": "PROP-e8b6e321",
+      "CatchmentID": "thames",
+      "propertyType": "residential",
+      "propertyStatus": "active"
+    },
+    "Valuation": {
+      "PropertyValue": 1516677.72,
+      "ValuationDate": "2026-04-23",
+      "ValuationMethod": "Automated valuation"
+    },
+    "PropertyAttributes": {
+      "OccupancyType": "Residential owner-occupied",
+      "PropertyAreaSqm": 196.8,
+      "PropertyResi": "Bungalow",
+      "NumberOfStoreys": 1,
+      "ConstructionYear": 2002,
+      "PropertyPeriod": "2000-2008",
+      "CouncilTaxBand": "F",
+      "NumberBedrooms": 4,
+      "NumberBathrooms": 1,
+      "PropertyCondition": "Very poor",
+      "HeightMeters": 22.8,
+      "IncomeGenerating": "No",
+      "BuildingResidency": "Mixed Use",
+      "OccupancyResidency": "Unoccupied",
+      "RenovationRequired": true,
+      "HousingAssociation": true,
+      "PayingBusinessRates": false,
+      "TotalRooms": 7,
+      "GardenAreaFront": 59.1,
+      "GardenAreaBack": 171.1,
+      "ParkingType": "Driveway and garage",
+      "AccessType": "Public road",
+      "LastMajorWorksDate": "2015-09-16"
+    },
+    "Construction": {
+      "ConstructionType": "Stone",
+      "FoundationType": "Raft foundations",
+      "FloorLevelMeters": 0.19,
+      "BasementPresent": true,
+      "FloorType": "Suspended concrete",
+      "StiltsHeight": 0,
+      "PropertyHeight": 22.8
+    },
+    "Location": {
+      "BuildingNumber": "19",
+      "StreetName": "Oxford Road",
+      "TownCity": "Reading",
+      "County": "Berkshire",
+      "Postcode": "N1 9TE",
+      "LocalAuthority": "Reading",
+      "Country": "England",
+      "Region": "South East",
+      "UrbanRuralClassification": "Suburban",
+      "SubBuildingNumber": "A",
+      "SubBuildingName": "Top Floor Flat",
+      "USRN": "8407331",
+      "ElectoralWard": "Reading",
+      "ParliamentaryConstituency": "Reading South",
+      "LocalDensityHectare": 127.0,
+      "BritishNationalGrid": "SU 510 374",
+      "What3Words": "//famous.quiet.garden",
+      "LatitudeDegrees": 51.5006985377815,
+      "LongitudeDegrees": -0.8947528366497539
+    },
+    "RiskAssessment": {
+      "EAFloodZone": "Zone 1",
+      "OverallFloodRisk": "Low",
+      "FloodRiskType": "Pluvial",
+      "GroundLevelMeters": 43.96,
+      "RiverDistanceMeters": 3311.649459944912,
+      "SoilType": "Mixed",
+      "LakeDistanceMeters": 3941.0,
+      "CoastalDistanceMeters": 61190.0,
+      "CanalDistanceMeters": 1384.0,
+      "GovernmentalDefenceScheme": false
+    },
+    "ReferenceGauges": [
+      "GAUGE-001",
+      "GAUGE-002",
+      "GAUGE-003"
+    ]
+  },
+  "ProtectionMeasures": {
+    "RiskAssessment": {
+      "InsuranceBodyRatings": {
+        "InsuranceRating": "Very high",
+        "InsuranceDate": "2024-10-11",
+        "InsuranceRatingVersion": "v2.0",
+        "InsuranceRatingBody": "LV="
+      },
+      "GoverningBodyRatings": {
+        "BRIDate": "2026-05-15",
+        "BRIRatingVersion": "BRI v1.6",
+        "BRIRatingAgent": "Bureau Veritas",
+        "BRIRating": "NR",
+        "BRIFloodRating": "NR",
+        "BRIWindRating": "NR",
+        "BRIFireRating": "NR",
+        "BRISeismicRating": "N/A",
+        "BRIFloodScore": 0.2026,
+        "BRIWindScore": 0.1871,
+        "BRIFireScore": 0.2252,
+        "BRISeismicScore": 0.1776,
+        "BRIScore": 0.1981
+      }
+    },
+    "HazardProfile": {
+      "FloodHazardClass": "Low",
+      "WindHazardClass": "Low",
+      "SeismicHazardClass": "None",
+      "FireHazardClass": "Low"
+    },
+    "ResilienceMeasures": {
+      "BuildingAssessment": {
+        "SiteExposureAssessed": "Meets minimum",
+        "OrientationMitigatesWind": "Not assessed",
+        "StructureDesignedForHazardWind": "Not assessed",
+        "ContinuousLoadPathProvided": "Partial",
+        "LateralBracingAdequate": "Not assessed",
+        "RoofRatedForDesignWind": "Partial",
+        "RoofEdgeDetailWindResistant": "Partial",
+        "CladdingRatedForDesignWind": "Partial",
+        "OpeningsWindResistant": "Partial",
+        "LargeDoorsReinforced": "Partial",
+        "RooftopEquipmentAnchored": "Not assessed",
+        "FacadeAttachmentsAnchored": "Partial",
+        "StructuralFireResistanceAdequate": "Not assessed",
+        "CompartmentsProvided": "Not assessed",
+        "FireStoppingAtPenetrations": "Partial",
+        "ExternalMaterialsFireResistant": "Not assessed",
+        "SiteGeotechnicalAssessed": "Enhanced",
+        "StructureMeetsSeismicCode": "Partial",
+        "SeismicDetailingToStandard": "Not assessed",
+        "StructuralRegularityAdequate": "Partial",
+        "FoundationSuitableForHazard": "Partial",
+        "NonstructuralComponentsAnchored": "Not assessed",
+        "HeavyEquipmentAnchored": "Partial"
+      },
+      "SiteAndDrainage": {
+        "SiteFloodHazardAssessed": "Verified",
+        "HighRiskZoneAvoidedOrJustified": "Not assessed",
+        "FinishedFloorAboveDesignFlood": "Not assessed",
+        "OccupiedLevelsElevated": "Partial",
+        "OnsiteDrainageSizedForDesignStorm": "Not assessed",
+        "OverlandFlowPathsMaintained": "Not assessed",
+        "PermeableOrRetentionMeasures": "Partial",
+        "WildfireDefensibleSpace": "Partial",
+        "WildfireNonCombustiblePerimeter": "Not assessed",
+        "HighRiskGroundAvoidedOrMitigated": "Partial",
+        "LiquefactionMitigationProvided": "Partial",
+        "BasementFloodStrategy": "Flood-resistant basement"
+      },
+      "FloodProtection": {
+        "PermanentFloodProofingAtEntries": "Not assessed",
+        "DeployableBarriersProvided": "Partial",
+        "BackflowPreventionInstalled": "Partial",
+        "ElectricalSystemsAboveFlood": "Not assessed",
+        "MechanicalSystemsAboveFlood": "Not assessed",
+        "FuelAndHazardousStoresProtected": "Partial",
+        "FloodGates": "Not assessed",
+        "FloodBarriers": "Not assessed",
+        "SumpPump": "Partial",
+        "FloodWarningSystem": "Partial"
+      },
+      "FireProtection": {
+        "AutomaticDetectionInstalled": "Partial",
+        "SuppressionSystemsInstalled": "Not assessed"
+      },
+      "ContinuityMeasures": {
+        "BackupPowerInstalled": "Not assessed",
+        "BackupPowerProtectedFromHazard": "Not assessed",
+        "BackupWaterSupplyProvided": "Partial",
+        "WaterSystemsProtectedFromHazard": "Partial",
+        "TelecomRedundancyProvided": "Not assessed",
+        "CriticalITProtected": "Partial",
+        "AccessRouteResilient": "Partial",
+        "AccessDesignConsidersHazards": "Partial",
+        "BusinessContinuityPlanInPlace": "Partial",
+        "EmergencyProceduresTested": "Partial"
+      }
+    }
+  },
+  "EnergyPerformance": {
+    "Ratings": {
+      "EPCRating": "G",
+      "CarbonRating": "A+",
+      "EmissionsScore": "Good"
+    },
+    "EnergyUsage": {
+      "TariffType": "Gas",
+      "HeatingSystem": "Oil heating",
+      "RenewableSystem": "Multiple",
+      "AnnualEnergyKwh": 19354.0,
+      "GridElectricityKwh": 7362.0,
+      "GasUsageKwh": 8986.0,
+      "SolarGenerationKwh": 0,
+      "AnnualCarbonKgCO2e": 8163.9,
+      "AnnualEnergyBill": 2430.0
+    },
+    "BuildingFabric": {
+      "WallConstruction": "Stone",
+      "CavityInsulation": true,
+      "ThermalBridgeScore": 0.56,
+      "LoftInsulationMm": 0,
+      "RoofType": "Mansard",
+      "FloorConstruction": "Suspended concrete",
+      "FloorInsulation": true,
+      "HeatingSys": "Air source heat pump",
+      "WaterHeating": "Instant electric",
+      "LightingType": "Compact fluorescent",
+      "AirTightnessScore": 8.4,
+      "GlazingType": "Low-E coated",
+      "WindowFrameType": "Mixed materials",
+      "DoorType": "Composite",
+      "SmartMeterType": "Smart prepayment"
+    }
+  },
+  "HistoryAndIncidents": {
+    "EnvironmentalIssues": {
+      "AirQuality": "Moderate",
+      "WaterQuality": "Very poor",
+      "NoisePollution": "None",
+      "LastEnvironmentalIssueDate": "2021-11-12"
+    },
+    "FireIncidents": {
+      "FireDamageSeverity": "Moderate",
+      "LastFireDate": "2017-05-17"
+    },
+    "FloodEvents": {
+      "FloodReturnPeriod": 1000,
+      "FloodDamageSeverity": "Severe damage",
+      "LastFloodDateHistory": "2016-12-25"
+    },
+    "GroundConditions": {
+      "SubsidenceStatus": "Minor movement",
+      "ContaminationStatus": "Under investigation",
+      "GroundStability": "Active movement"
+    }
+  },
+  "TransactionHistory": {
+    "Purchase": {
+      "PurchaseDate": "2019-08-27",
+      "PurchasePriceGbp": 1165462.45
+    },
+    "Sales": {
+      "SalePriceGbp": 1433848.73,
+      "SaleDate": "2024-12-08",
+      "PreviousOwner": "Lisa Johnson",
+      "MarketingDays": 57
+    },
+    "Rental": {
+      "MonthlyRentGbp": 5325.76,
+      "RentalYield": 4.21,
+      "RentalHistory": "Mixed use history",
+      "VacancyCount": 1,
+      "TenancyDuration": "36+ months"
+    },
+    "Insurance": {
+      "InsurancePremium": 2157.28,
+      "ExcessAmount": 1192,
+      "InsuranceStatus": "Standard cover",
+      "FloodReEligible": false,
+      "ClaimsHistory": 0,
+      "LastClaimType": "None"
+    }
+  }
+}
