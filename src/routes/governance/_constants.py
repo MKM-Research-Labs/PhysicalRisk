@@ -65,6 +65,7 @@ _MODEL_DOC_DIRS = {
     'MKM-ST-001': 'stressm_pipeline',
     'MKM-PF-001': 'property_flood_response',
     'MKM-FPO-001': 'flood_poly',
+    'MKM-BRI-001': 'bri_resilience',
 }
 
 MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
