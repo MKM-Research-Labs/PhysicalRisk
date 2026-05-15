@@ -1,0 +1,75 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\definecolor{mkmblue}{HTML}{1976d2}
+\definecolor{mkmgrey}{HTML}{666666}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{mkmgrey}{MKM Research Labs}}
+\fancyhead[R]{\small\textcolor{mkmgrey}{Building Resilience Index Model --- Analysis --- v1.0}}
+\fancyfoot[L]{\small\textcolor{mkmgrey}{CONFIDENTIAL --- SR 11-7 / SS1/23 Model Governance}}
+\fancyfoot[R]{\small\textcolor{mkmgrey}{\thepage}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\textbf{Model Analysis Report}}\\[6pt]
+{\large\textcolor{mkmblue}{Building Resilience Index Model}}\\[4pt]
+{\normalsize MKM-BRI-001}\\[12pt]
+{\small Report Date: 15 May 2026}\\[4pt]
+{\footnotesize Governance Framework: SR 11-7 / SS1/23 Model Risk Management}
+\end{center}
+
+\vspace{6pt}
+
+\section*{Purpose}
+This analysis report supplements the main Model Documentation
+(\texttt{bri\_resilience.pdf}) with sensitivity studies that examine how the
+flood resilience score responds to perturbations of key inputs. The full
+mathematical framework, assumptions, and limitations are documented in the
+main paper; this report focuses purely on quantitative sensitivity.
+
+\section*{Sensitivity Study Design}
+All sensitivities use the same baseline property archetype: a 1976--1999
+Thames property in Zone~2 with Fair condition, Fluvial regime, and Meets
+minimum compliance on every measure. One input is varied at a time while
+others are held fixed. Each row reports the mean final flood resilience
+score across 200 samples with matched random seeds.
+
+\section*{Sensitivity Tables}
+\input{sensitivity_tables}
+
+\section*{Interpretation}
+The qualitative ordering matches the design intent:
+
+\begin{itemize}
+    \item \textbf{Period} --- the 1945--1975 post-war cohort scores worst, the
+          2009--Present cohort best. Pre-1919 stock scores middle (survivor
+          bias plus solid construction, but no modern measures).
+    \item \textbf{Zone} --- higher EA flood zones receive a generator-side
+          uplift on flood-protection measures, lifting their mean score. This
+          captures the intuition that flood-zone properties are more likely
+          to invest in resilience. Note: the model itself is not yet
+          context-normalised by hazard intensity (see limitation BRI-L2 in
+          the main paper).
+    \item \textbf{Condition} --- monotonic across all five condition bands.
+          Excellent stock scores roughly $2\times$ Very-poor stock.
+    \item \textbf{Regime} --- modest variation; the regime multipliers
+          re-weight the same compliance values rather than changing them. A
+          coastal-regime property with the same checklist scores within a
+          few points of its fluvial counterpart for matched compliance.
+\end{itemize}
+
+\noindent For a full discussion of limitations, including the four proxy
+mappings flagged in the model documentation, see Section~8 of
+\texttt{bri\_resilience.pdf}.
+
+\end{document}
