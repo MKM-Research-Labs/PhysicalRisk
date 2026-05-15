@@ -159,6 +159,16 @@ TEST_MODEL_MAP = {
     'tests/models/risk/risk_assessor.py':               'MKM-PF-001',
 
     # ---------------------------------------------------------------------------
+    # MKM-BRI-001  Building Resilience Index Model
+    # ---------------------------------------------------------------------------
+    'tests/port/cdm/test_bri_helper.py':                'MKM-BRI-001',
+    'tests/port/cdm/test_bri_aggregation.py':           'MKM-BRI-001',
+    'tests/port/cdm/test_resilience_generator.py':      'MKM-BRI-001',
+    'tests/port/cdm/test_consistency_fixes.py':         'MKM-BRI-001',
+    'tests/port/cdm/test_schema_invariants.py':         'MKM-BRI-001',
+    'tests/port/cdm/test_flood_resilience_model.py':    'MKM-BRI-001',
+
+    # ---------------------------------------------------------------------------
     # CDM-ALL  CDM Schema Validation
     # ---------------------------------------------------------------------------
     'tests/port/cdm/schemas.py':                        'CDM-ALL',
@@ -187,6 +197,7 @@ MODEL_INFO = {
     'MKM-PF-001': {'name': 'Property Flood Response',           'dir': 'property_flood_response'},
     'MKM-FPO-001': {'name': 'Flood Polynomial Model',            'dir': 'flood_poly'},
     'MKM-DE-001': {'name': 'Delta Engine',                      'dir': 'delta_engine'},
+    'MKM-BRI-001': {'name': 'Building Resilience Index Model',  'dir': 'bri_resilience'},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
     'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
@@ -201,5 +212,6 @@ MODEL_ALIASES = {
     'RA': 'MKM-RA-001', 'FC': 'MKM-FC-001', 'SS': 'MKM-SS-001', 'TD': 'MKM-TD-001',
     'GHD': 'MKM-GHD-001', 'ST': 'MKM-ST-001', 'PF': 'MKM-PF-001',
     'DE': 'MKM-DE-001', 'FPO': 'MKM-FPO-001',
+    'BRI': 'MKM-BRI-001',
     'E2E': 'E2E-ALL',
 }

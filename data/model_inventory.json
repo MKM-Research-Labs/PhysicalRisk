@@ -4031,6 +4031,249 @@
         "mrc_override_by": null,
         "last_calculated": "2026-04-08T11:16:47.919390"
       }
+    },
+    {
+      "model_id": "MKM-BRI-001",
+      "name": "Building Resilience Index (BRI) Model",
+      "short_name": "BRI Resilience",
+      "description": "Property resilience assessment with two co-located outputs: (1) BRI letter rating (AA / AA+ / A / A+ / B / B+ / NR) derived via weakest-link aggregation across applicable hazards from a 5-level resilience checklist, and (2) Flood resilience score (1-100) per the IFC BRI Resilience Function Specification — a weighted 13-measure model with regime multipliers, soft caps, and a linear damage modifier intended to scale an existing flood damage function.",
+      "category": "Resilience",
+      "tier": 2,
+      "materiality": "Medium",
+      "complexity": "High",
+      "tier_rationale": "Medium materiality: produces resilience ratings and scores that feed downstream consumers (governance reporting, insurance ratings, future damage-function scaling) but does not currently enter pricing directly. High complexity: two related-but-distinct scoring paradigms (categorical weakest-link letter rating + continuous weighted-measure score with soft caps), Thames-specific calibrated weights, 13-measure compliance mapping with mixed continuous/ordinal/binary inputs, regime-specific weight multipliers.",
+      "status": "Development",
+      "lifecycle_stage": "Development",
+      "version": "1.0.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/port/rand/thames/property/property_random/resilience.py",
+      "methodology": "Two co-located methodologies. (1) BRI letter rating: per-hazard score from 5-level resilience checklist (Not assessed=0, Partial=0.4, Meets minimum=0.7, Enhanced=0.9, Verified=1.0) weighted by section + per-field weights; overall letter is weakest-of applicable hazards with '+' modifier when ContinuityMeasures section score >= 0.65. (2) Flood resilience score: per-spec 13 weighted measures (sum to 100), regime-specific weight multipliers (pluvial / fluvial / coastal), four soft-cap rules, linear damage modifier M(S,r) = 1 - alpha_r * (S-1)/99 with alpha = {0.65, 0.60, 0.50}.",
+      "alternatives_considered": [
+        "Pure weakest-link letter rating only (rejected: loses score granularity for portfolio analytics)",
+        "Continuous score only without letter rating (rejected: letter scale needed for human-readable disclosure)",
+        "Single-paradigm hybrid where letter is derived from score thresholds (deferred: requires calibration data not yet available)",
+        "Per-property location-context normalisation (deferred: design under review)"
+      ],
+      "methodology_rationale": "The letter rating mirrors IFC BRI public methodology and produces an auditable, disclosable grade. The continuous score provides the precision needed for loss-given-hazard scaling and portfolio aggregation. Co-locating them in one module gives a single source of truth for resilience analytics. Thames-specific weights reflect the dominant fluvial flood hazard in the catchment; other catchments would have their own copy.",
+      "assumptions": [
+        {
+          "id": "BRI-A1",
+          "description": "Resilience checklist 5-level enum is interpretable consistently across assessors (Not assessed / Partial / Meets minimum / Enhanced / Verified)",
+          "impact": "High",
+          "monitoring": "Inter-rater agreement studies on a sample portfolio",
+          "mitigation": "Reference photos and worked examples per measure; assessor calibration training"
+        },
+        {
+          "id": "BRI-A2",
+          "description": "Section and per-field weights (Flood 30%, Site/Drainage 25%, Building 20%, Continuity 15%, Fire 10%) are appropriate for Thames flood-dominant risk",
+          "impact": "High",
+          "monitoring": "Sensitivity analysis on weight perturbations >= +/- 10%",
+          "mitigation": "Re-tune via recalibrate_thresholds_from_scores() when loss data is available"
+        },
+        {
+          "id": "BRI-A3",
+          "description": "Weakest-link aggregation across hazards is appropriate; ignoring non-applicable hazards (HazardClass = None) is appropriate",
+          "impact": "Medium",
+          "monitoring": "Compare weakest-link vs. weighted-average overall ratings on a sample",
+          "mitigation": "Switch to weighted average if downstream consumers prefer smoother grades"
+        },
+        {
+          "id": "BRI-A4",
+          "description": "Flood-spec 13-measure weights (sum to 100) reflect the relative damage-reduction contribution of each measure under flood conditions",
+          "impact": "High",
+          "monitoring": "Validate against published flood damage attribution studies",
+          "mitigation": "Recalibrate weights when claims/engineering loss data available; spec author flagged these as 'first implementation, not final scientific calibration'"
+        },
+        {
+          "id": "BRI-A5",
+          "description": "Flood regime mapping (Fluvial / Pluvial / GroundWater / Coastal / Multiple to pluvial/fluvial/coastal alpha values) is appropriate",
+          "impact": "Medium",
+          "monitoring": "Review regime classification accuracy against catchment hydrology",
+          "mitigation": "Re-map if regime classification proves unreliable"
+        },
+        {
+          "id": "BRI-A6",
+          "description": "Linear damage modifier M(S,r) = 1 - alpha_r * (S-1)/99 captures the mitigation effect adequately",
+          "impact": "High",
+          "monitoring": "Validate vs. observed mitigated-vs-unmitigated loss ratios",
+          "mitigation": "Switch to a non-linear modifier (e.g. exponential) if linear under- or over-corrects"
+        },
+        {
+          "id": "BRI-A7",
+          "description": "Spec measure -> CDM field bindings reflect the engineering intent of each spec measure, including the four proxy mappings (water_resistant_materials -> PermanentFloodProofingAtEntries, debris_impact_resistance -> OpeningsWindResistant, roof_drainage_standard -> RoofRatedForDesignWind, roof_membrane_openings_seal -> RoofEdgeDetailWindResistant)",
+          "impact": "Medium",
+          "monitoring": "Recalibrate proxy measures when loss data attributes residual damage to misaligned controls",
+          "mitigation": "Add dedicated CDM fields for the four proxied measures if needed"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "BRI-L1",
+          "description": "Score distribution is currently bell-centred (mean ~58, median ~57) rather than the design-target right-skewed shape (heavy left tail of low-quality stock)",
+          "impact": "Medium",
+          "monitoring_trigger": "Coarse skew check: low-quality (<30) fraction stays below 20%",
+          "compensating_control": "Adjust generator priors or compliance credit mapping; document the design intent vs. observed shape"
+        },
+        {
+          "id": "BRI-L2",
+          "description": "No location/hazard-context normalisation: a Zone 1 property and a Zone 3b property with identical measures receive identical scores. The IFC BRI methodology supports context-normalisation but it is not yet implemented here",
+          "impact": "High",
+          "monitoring_trigger": "Comparison of Zone 1 vs. Zone 3 mean scores at matched measure compliance",
+          "compensating_control": "Use FloodHazardClass alongside the score for downstream consumers; design under review"
+        },
+        {
+          "id": "BRI-L3",
+          "description": "Damage modifier M(S, r) is computed but not yet wired into the existing flood damage function (LGH_adj = BaselineDamage x M)",
+          "impact": "Medium",
+          "monitoring_trigger": "Damage function consumers do not consume the modifier",
+          "compensating_control": "Phase 2 integration with src/models/floodrisk/depth_damage when calibration data available"
+        },
+        {
+          "id": "BRI-L4",
+          "description": "Four spec measures use proxy CDM fields (BRI-A7) — they may bias the score in either direction for properties with strong wind-rating but weak water-tightness or vice versa",
+          "impact": "Low",
+          "monitoring_trigger": "Residual loss attribution to proxy measures > 15% in claims data",
+          "compensating_control": "Document proxy use; add dedicated CDM fields when calibration justifies"
+        },
+        {
+          "id": "BRI-L5",
+          "description": "Thames-specific calibration (weights, thresholds, regime defaults) does not generalise to other catchments without re-tuning",
+          "impact": "Medium",
+          "monitoring_trigger": "Application of MKM-BRI-001 to non-Thames properties",
+          "compensating_control": "Per-catchment copy of resilience.py with catchment-specific weights when other catchments are onboarded"
+        },
+        {
+          "id": "BRI-L6",
+          "description": "Confidence score component of the spec (verification, evidence quality, recency, completeness) is not yet implemented",
+          "impact": "Low",
+          "monitoring_trigger": "Downstream consumers ask for confidence-weighted scores",
+          "compensating_control": "Implementation deferred; can be added without breaking the score outputs"
+        }
+      ],
+      "known_failure_modes": [
+        "All-Verified resilience checklist produces score near 100 — unrealistic if no real-world property scores that high; soft caps mitigate but do not eliminate",
+        "Properties with HazardClass = None across all hazards produce overall rating from fallback weighted score path, which differs subtly from the weakest-link path",
+        "FloorLevelMeters set to 0 or below triggers the lowest_occupied_floor_elevation soft cap at 40 — correct behaviour but coarse",
+        "RegimeMultipliers + soft caps interact non-trivially: a property in pluvial regime with both retainage and drainage at 0 is capped at 55 regardless of other strengths",
+        "PropertyID-keyed jitter RNG for the non-flood hazard scores means scores are deterministic for a given PropertyID but two properties with the same flood score get different sibling scores"
+      ],
+      "key_parameters": [
+        "SECTION_WEIGHTS (5 sub-section weights summing to 1.0)",
+        "FIELD_WEIGHTS (per-field overrides for critical checks)",
+        "RESILIENCE_LEVEL_CREDIT (5-level enum -> 0-1 credit mapping)",
+        "BASEMENT_FLOOD_STRATEGY_CREDIT (own enum)",
+        "RATING_THRESHOLDS (AA/A/B score thresholds)",
+        "HAZARD_RELEVANT_FIELDS (Flood/Wind/Fire/Seismic field membership)",
+        "CONTINUITY_PLUS_THRESHOLD (0.65, score required for '+' modifier)",
+        "FLOOD_SPEC_BASE_WEIGHTS (13 spec measure weights, sum to 100)",
+        "FLOOD_SPEC_REGIME_MULTIPLIERS (3 regimes x 13 measures)",
+        "FLOOD_SPEC_ALPHA_BY_REGIME (pluvial 0.65, fluvial 0.60, coastal 0.50)",
+        "LOWEST_FLOOR_ELEVATION_BANDS (5 elevation bands)",
+        "FLOOD_SPEC_SOFT_CAPS (4 cap rules with values 40, 60, 55, 65)"
+      ],
+      "input_data": "PropertyHeader (PropertyPeriod, PropertyCondition, EAFloodZone, BasementPresent, FloorLevelMeters, FloodRiskType); ProtectionMeasures.ResilienceMeasures (5 sub-sections of 5-level checklists); ProtectionMeasures.HazardProfile (FloodHazardClass, WindHazardClass, FireHazardClass, SeismicHazardClass); HistoryAndIncidents.FloodEvents.FloodDamageSeverity.",
+      "output_data": "ProtectionMeasures.RiskAssessment.GoverningBodyRatings fields: BRIRating (letter), BRIScore (mean of hazard scores), BRIFloodRating/BRIWindRating/BRIFireRating/BRISeismicRating (per-hazard letters), BRIFloodScore (flood-spec score 0-1) plus jittered siblings BRIWindScore/BRIFireScore/BRISeismicScore, BRIDate/BRIRatingVersion/BRIRatingAgent (metadata). Damage modifier returned by apply_flood_resilience_score but not persisted.",
+      "downstream_models": [],
+      "upstream_models": [],
+      "validation_status": "Initial",
+      "validation_date": null,
+      "next_review_date": "2026-08-15",
+      "recertification_date": "2027-05-15",
+      "review_frequency": "Semi-annual",
+      "documents": [
+        {
+          "type": "Model Documentation",
+          "name": "Building Resilience Index Model Documentation",
+          "path": "docs/models/bri_resilience/bri_resilience.pdf"
+        },
+        {
+          "type": "Specification",
+          "name": "BRI Resilience Function Specification (source spec PDF)",
+          "path": "src/port/cdm/property/bri_resilience_function_spec.pdf"
+        }
+      ],
+      "change_history": [
+        {
+          "version": "1.0.0",
+          "date": "2026-05-15",
+          "author": "David K Kelly",
+          "type": "Initial",
+          "description": "Initial implementation: BRI letter rating (weakest-link across hazards with '+' continuity modifier) + flood resilience score per BRI Resilience Function Specification (13 measures, regime multipliers, soft caps, linear damage modifier). Consolidated all resilience logic into a single Thames-specific module."
+        }
+      ],
+      "outstanding_actions": [
+        {
+          "id": "BRI-OA1",
+          "description": "Calibrate generator priors to produce right-skewed score distribution (target: heavy left tail of low-quality stock)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": "2026-07-15",
+          "status": "Open"
+        },
+        {
+          "id": "BRI-OA2",
+          "description": "Design and implement location/hazard-context normalisation (Zone-aware score adjustment)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": "2026-08-15",
+          "status": "Open"
+        },
+        {
+          "id": "BRI-OA3",
+          "description": "Wire damage modifier M(S,r) into existing flood damage function (LGH_adj = BaselineDamage x M)",
+          "owner": "David K Kelly",
+          "priority": "High",
+          "due_date": "2026-06-30",
+          "status": "Open"
+        },
+        {
+          "id": "BRI-OA4",
+          "description": "Implement spec confidence score (verification, evidence, recency, completeness)",
+          "owner": "David K Kelly",
+          "priority": "Low",
+          "due_date": "2026-09-30",
+          "status": "Open"
+        }
+      ],
+      "version_history": [
+        {
+          "version": "1.0.0",
+          "date": "2026-05-15",
+          "author": "David K Kelly",
+          "description": "Initial implementation of BRI letter rating + flood resilience score in consolidated resilience.py module",
+          "document": "bri_resilience.pdf"
+        }
+      ],
+      "governance_questions": {
+        "q1_ronseal": "Not Addressed",
+        "q2_accuracy": "Not Addressed",
+        "q3_resources": "Not Addressed",
+        "q4_overrides": "Not Addressed",
+        "q5_consumption": "Not Addressed",
+        "q6_chaining": "Not Addressed",
+        "q7_weaknesses": "Not Addressed",
+        "q8_monitoring": "Not Addressed",
+        "q9_overall_risk": "Not Addressed"
+      },
+      "overall_risk_rating": {
+        "calculated_rating": "Conditional",
+        "calculated_score": null,
+        "component_scores": {
+          "validation_coverage": null,
+          "remediation_health": null,
+          "review_currency": null,
+          "assumption_risk": null,
+          "limitation_risk": null
+        },
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null
+      }
     }
   ],
   "model_chain": {
