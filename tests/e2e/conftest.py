@@ -47,9 +47,6 @@ from tests.e2e._helpers import (
 _MRC_PATH = ROOT / "data" / "mrc_meetings.json"
 _MRC_BACKUP = ROOT / "data" / ".mrc_meetings.json.bak"
 
-_ADMIN_PATH = ROOT / "data" / ".port_admin"
-_ADMIN_BACKUP = ROOT / "data" / ".port_admin.bak"
-
 # Shared across conftest and test_td_control — Playwright tests stub
 # window.prompt() with this value to exercise the admin password gate.
 E2E_ADMIN_PW = "e2etestpw"
@@ -106,30 +103,28 @@ def _isolated_catchment_dir(tmp_path_factory):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def _e2e_admin_password():
-    """Install a known admin password for E2E tests that exercise Control save/reset.
+def _e2e_admin_password(tmp_path_factory):
+    """Write a known admin credential to a tmp file for E2E tests.
 
-    Backs up the real ``data/.port_admin`` (if any), writes one with a known
-    password ``E2E_ADMIN_PW``, and restores afterwards. This lets Playwright
-    tests stub ``window.prompt`` to return the password and actually hit the
-    admin-gated endpoints.
+    The Flask subprocess receives ``MKM_ADMIN_FILE_PATH`` pointing at this tmp
+    file, so ``_admin_file_path()`` never reads or writes ``data/.port_admin``.
+    A crash or SIGKILL leaves the real credential completely untouched because
+    the real file is never opened.
+
+    Yields the Path to the tmp credential file so ``server_port`` can pass it
+    to the subprocess environment.
     """
     import hashlib
     import json as _json
     import os as _os
 
-    if _ADMIN_PATH.exists():
-        shutil.copy2(_ADMIN_PATH, _ADMIN_BACKUP)
+    tmp_dir = tmp_path_factory.mktemp("e2e_admin")
+    admin_path = tmp_dir / ".port_admin"
     salt = _os.urandom(16).hex()
     h = hashlib.sha256((salt + E2E_ADMIN_PW).encode()).hexdigest()
-    _ADMIN_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _ADMIN_PATH.write_text(_json.dumps({"salt": salt, "hash": h}))
-    yield
-    if _ADMIN_BACKUP.exists():
-        shutil.copy2(_ADMIN_BACKUP, _ADMIN_PATH)
-        _ADMIN_BACKUP.unlink()
-    elif _ADMIN_PATH.exists():
-        _ADMIN_PATH.unlink()
+    admin_path.write_text(_json.dumps({"salt": salt, "hash": h}))
+    yield admin_path
+    # tmp_path_factory auto-cleans the directory; no restore logic needed.
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +132,7 @@ def _e2e_admin_password():
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
-def server_port(_isolated_catchment_dir):
+def server_port(_isolated_catchment_dir, _e2e_admin_password):
     """Start Flask server on a free port; yield the port; kill on teardown.
 
     Depends on ``_isolated_catchment_dir`` so the tmp copy of
@@ -146,6 +141,10 @@ def server_port(_isolated_catchment_dir):
     ``MKM_CATCHMENT_INPUT_OVERRIDE`` and points ``self.input_dir`` at the tmp
     copy, so every port-process write (storm_control, classifiers, prs,
     blotter, eod) lands in the tmp dir and the real tree is untouched.
+
+    Depends on ``_e2e_admin_password`` to receive the path to the tmp
+    credential file. ``MKM_ADMIN_FILE_PATH`` redirects ``_admin_file_path()``
+    in the subprocess so ``data/.port_admin`` is never read or written.
     """
     import os
     port = _free_port()
@@ -156,6 +155,7 @@ def server_port(_isolated_catchment_dir):
         "MKM_SERVER_HOST": "127.0.0.1",
         "PYTHONUNBUFFERED": "1",
         "MKM_CATCHMENT_INPUT_OVERRIDE": str(_isolated_catchment_dir),
+        "MKM_ADMIN_FILE_PATH": str(_e2e_admin_password),
     })
 
     # Always delete cached visualization so it regenerates with current

@@ -40,9 +40,9 @@ from tests.port.conftest_import_isolation import (
 
 class TestGeopandasIsolation:
     """
-    geopandas is an optional GIS dependency used only in FloodRiskModel,
-    build_correlation_matrix, and the full depth-damage/calculate_flood_depths
-    functions.  scalar_depth_damage (used by propertyts) must not require it.
+    geopandas is an optional GIS dependency used only in spatial helpers and
+    risk visualisation.  scalar_depth_damage (used by propertyts) must not
+    require it.
     """
 
     def _simulate_no_geopandas(self, monkeypatch):

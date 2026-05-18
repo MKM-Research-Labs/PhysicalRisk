@@ -21,26 +21,15 @@
 """
 Flood risk model package.
 
-Splits the core flood risk engine into:
-  - spatial: KDTree, correlation matrix, distance calculations
-  - depth_damage: flood depths and vulnerability curves
+Modules:
+  - spatial: KDTree, distance calculations
+  - depth_damage: scalar vulnerability curve, is_prs_flood
   - velocity: Manning's equation, retention, hydrograph construction
-  - risk_analytics: Monte Carlo, concentration, clustering
+  - risk_analytics: concentration analysis
   - risk_visualization: Folium maps, matplotlib plots
-
-Changelog:
-  v2.0  Initial IDW + exponential retention model
-  v2.1  Replace IDW with nearest-gauge-only; near-field retention bypass
-        (Book 210 alignment: flow-aligned propagation, not isotropic averaging)
 """
 
 MODEL_VERSION = "2.1"
-
-# NOTE: FloodRiskModel is intentionally NOT imported here.
-# flood_risk_model.py depends on geopandas which is an optional heavy GIS
-# dependency.  Eagerly importing it at package level prevents depth_damage,
-# spatial, and risk_analytics modules from being used without geopandas.
-# Import directly: `from models.floodrisk.flood_risk_model import FloodRiskModel`
 
 
 def relative_elevation(prop_ground_m: float, gauge_ground_m: float,
