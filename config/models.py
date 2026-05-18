@@ -92,9 +92,9 @@ EA_FLOOD_ZONE_RATES: Dict[str, float] = {
 # Depth-Damage Curve  (UK-calibrated, floodrisk/depth_damage.py)
 # ===========================================================================
 
-# Control points for piecewise-linear depth-damage vulnerability curve
-DEPTH_POINTS:  List[float] = [0, 0.05, 0.5, 1, 1.5, 2, 3, 4, 5, 6]
-DAMAGE_POINTS: List[float] = [0, 0.05, 0.25, 0.4, 0.5, 0.6, 0.75, 0.85, 0.95, 1.0]
+# Canonical definitions live in config/damage.py — re-exported here so
+# existing callers using `from config.models import DEPTH_POINTS` continue to work.
+from config.damage import DEPTH_POINTS, DAMAGE_POINTS  # noqa: E402
 
 
 # ===========================================================================

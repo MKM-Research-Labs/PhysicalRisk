@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -19,84 +19,30 @@
 # SOFTWARE.
 
 """
-Flood depth and damage calculations for flood risk model.
+Flood depth-damage calculations.
 
-Gauge-based interpolation, synthetic flood depths, and
-depth-damage vulnerability curves with property type adjustments.
+Public interface:
+    is_prs_flood          — event filter for PRS pricing
+    scalar_depth_damage   — piecewise-linear damage ratio (baseline, no BRI)
+    bri_stilt             — signed depth offset derived from BRI scores
+    bri_depth_damage      — damage ratio with floor level + BRI stilt applied
 """
 
-from typing import Optional
+import math
 
-import numpy as np
-import pandas as pd
-from scipy.interpolate import interp1d
+from config.damage import (
+    BRI_COMPOSITE_BETA_M,
+    BRI_COMPOSITE_REFERENCE,
+    BRI_FLOOD_ALPHA_M,
+    BRI_FLOOD_REFERENCE,
+    BRI_STILT_MAX_M,
+    DAMAGE_POINTS,
+    DD_POLY_COEFFS,
+    DEPTH_POINTS,
+)
 
-from config.models import DAMAGE_POINTS, DEPTH_POINTS
-from models.floodrisk.spatial import haversine_distance
-
-# geopandas is imported lazily inside the GeoDataFrame-consuming functions so
-# that scalar_depth_damage and the pipeline generators (propertyts, book) can
-# be used without geopandas being installed.
-
-
-def calculate_flood_depths(properties,
-                            gauge_data: Optional[pd.DataFrame]) -> np.ndarray:
-    """
-    Calculate flood depth at each property location.
-
-    Returns:
-        Array of flood depths in meters
-    """
-    if gauge_data is None or len(gauge_data) == 0:
-        return calculate_synthetic_flood_depths(properties, gauge_data)
-
-    n_properties = len(properties)
-    flood_depths = np.zeros(n_properties)
-
-    # Use gauge-based approach via synthetic method which handles both cases
-    return calculate_synthetic_flood_depths(properties, gauge_data)
-
-
-def calculate_synthetic_flood_depths(properties,
-                                      gauge_data: Optional[pd.DataFrame]) -> np.ndarray:
-    """
-    Calculate flood depths using gauge data with elevation and distance decay.
-
-    If gauge data is available, uses max water level vs severe level to
-    determine flooding, then applies elevation correction and distance decay
-    from central Thames.
-    """
-    n_properties = len(properties)
-    flood_depths = np.zeros(n_properties)
-
-    if gauge_data is not None and len(gauge_data) > 0:
-        max_water_level = gauge_data['water_level'].max()
-        mean_severe_level = gauge_data['severe_level'].mean()
-
-        if max_water_level > mean_severe_level:
-            flood_wse = max_water_level
-
-            for i, (_, property_row) in enumerate(properties.iterrows()):
-                prop_elevation = property_row.get('elevation', 20.0)
-                depth = max(0.0, flood_wse - prop_elevation)
-
-                prop_lat = property_row.geometry.y
-                prop_lon = property_row.geometry.x
-
-                thames_lat, thames_lon = 51.5, -0.1
-                distance = haversine_distance(thames_lat, thames_lon, prop_lat, prop_lon)
-
-                max_distance = 25000
-                if distance < max_distance:
-                    distance_factor = 1.0 - (distance / max_distance)
-                    depth = depth * distance_factor
-                else:
-                    depth = 0.0
-
-                flood_depths[i] = min(depth, 5.0)
-
-    return flood_depths
-
+# Small floor to prevent ln(0); scores below this are treated as effectively zero.
+_LN_FLOOR = 1e-6
 
 
 def is_prs_flood(event: dict) -> bool:
@@ -110,16 +56,13 @@ def is_prs_flood(event: dict) -> bool:
 
 
 def scalar_depth_damage(depth: float) -> float:
-    """
-    Scalar depth-damage lookup using UK-calibrated vulnerability curve.
-
-    Linear interpolation between control points. Returns damage ratio 0-1.
+    """Piecewise-linear depth-damage lookup (baseline — no floor level, no BRI).
 
     Args:
-        depth: Flood depth in meters (above floor level)
+        depth: Flood depth in metres above floor level.
 
     Returns:
-        Damage ratio (0.0 to 1.0)
+        Damage ratio in [0, 1].
     """
     if depth <= 0:
         return 0.0
@@ -132,44 +75,62 @@ def scalar_depth_damage(depth: float) -> float:
     return 0.0
 
 
-def depth_damage_function(depths: np.ndarray,
-                           properties) -> np.ndarray:
-    """
-    Advanced depth-damage function with property type and floor level adjustments.
+def bri_stilt(bri_flood_score: float, bri_composite_score: float) -> float:
+    """Signed depth offset (metres) derived from BRI scores.
 
-    Uses an interpolated vulnerability curve calibrated to UK flood damage data,
-    then adjusts for property type and floor level.
+    Positive stilt → property is hardened; effective flood depth is reduced.
+    Negative stilt → property is more vulnerable than baseline; depth is increased.
+    No clamp on the stilt itself — the signed aggregate is returned directly.
+    The max(0, …) is applied by the caller on effective depth, not here.
+
+    The stilt is capped at ±BRI_STILT_MAX_M to prevent extreme log values at
+    very high or very low BRI scores from producing implausible depth shifts.
 
     Args:
-        depths: Array of flood depths in meters
-        properties: GeoDataFrame with property_type and floor_level_metres
+        bri_flood_score:     BRIFloodScore in [0, 1].
+        bri_composite_score: BRIScore (composite) in [0, 1].
 
     Returns:
-        Array of damage ratios (0 to 1)
+        Signed stilt in metres.
     """
-    depth_points = np.array([0, 0.05, 0.5, 1, 1.5, 2, 3, 4, 5, 6])
-    vulnerability_points = np.array([0, 0.05, 0.25, 0.4, 0.5, 0.6, 0.75, 0.85, 0.95, 1])
-
-    vulnerability_curve = interp1d(
-        depth_points, vulnerability_points,
-        kind='linear', fill_value=(0, 1), bounds_error=False
+    flood_term = BRI_FLOOD_ALPHA_M * math.log(
+        max(bri_flood_score, _LN_FLOOR) / BRI_FLOOD_REFERENCE
     )
+    composite_term = BRI_COMPOSITE_BETA_M * math.log(
+        max(bri_composite_score, _LN_FLOOR) / BRI_COMPOSITE_REFERENCE
+    )
+    raw = flood_term + composite_term
+    return max(-BRI_STILT_MAX_M, min(BRI_STILT_MAX_M, raw))
 
-    property_type_factors = {
-        'residential': 1.0,
-        'commercial': 1.2,
-        'industrial': 0.9
-    }
 
-    type_adjustments = np.array([
-        property_type_factors.get(str(pt).lower(), 1.0)
-        for pt in properties['property_type']
-    ])
+def bri_depth_damage(
+    depth: float,
+    floor_level: float,
+    bri_flood_score: float,
+    bri_composite_score: float,
+) -> float:
+    """Damage ratio using the degree-5 polynomial with floor level and BRI stilt.
 
-    floor_levels = properties['floor_level_metres'].values
-    adjusted_depths = np.maximum(depths - floor_levels, 0)
-    adjusted_damage = vulnerability_curve(adjusted_depths)
+    Effective depth = max(0,  depth  −  floor_level  −  stilt)
 
-    final_damage = adjusted_damage * type_adjustments
+    The stilt is a signed weighted aggregate of two log-differential terms:
+        α · ln(bri_flood / μ_flood) + β · ln(bri_composite / μ_composite)
 
-    return np.clip(final_damage, 0, 1)
+    Below-reference BRI scores produce a negative stilt, increasing effective
+    depth (more damage than baseline). Above-reference scores reduce it.
+
+    Args:
+        depth:               Raw flood depth in metres at the property.
+        floor_level:         Height of lowest occupied floor above ground (m).
+        bri_flood_score:     BRIFloodScore in [0, 1].
+        bri_composite_score: BRIScore (composite) in [0, 1].
+
+    Returns:
+        Damage ratio in [0, 1].
+    """
+    stilt = bri_stilt(bri_flood_score, bri_composite_score)
+    effective = max(0.0, depth - floor_level - stilt)
+    if effective <= 0.0:
+        return 0.0
+    raw = sum(c * effective ** (i + 1) for i, c in enumerate(DD_POLY_COEFFS))
+    return min(1.0, max(0.0, raw))

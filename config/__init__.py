@@ -77,11 +77,26 @@ from config.visual import (
     PROPERTY_FLOOD_MEDIUM,
 )
 
+from config.damage import (
+    BRI_COMPOSITE_BETA_M,
+    BRI_COMPOSITE_REFERENCE,
+    BRI_FLOOD_ALPHA_M,
+    BRI_FLOOD_REFERENCE,
+    BRI_STILT_MAX_M,
+    DAMAGE_POINTS,
+    DD_POLY_COEFFS,
+    DEFAULT_ELEVATION_M,
+    DEPTH_POINTS,
+    FLOOD_DEPTH_CAP_M,
+    FLOOD_MAX_DISTANCE_M,
+    PROPERTY_TYPE_DAMAGE_FACTORS,
+)
+
 from config.models import (
     # PRS Pricing
     RECOVERY_RATES,
     MIN_PRS_SPREAD_BPS,
-    # Depth-Damage
+    # Depth-Damage (re-exported via config.damage — kept for backward compat)
     DEPTH_POINTS,
     DAMAGE_POINTS,
     # Velocity / Manning

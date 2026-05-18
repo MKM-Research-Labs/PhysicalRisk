@@ -13,6 +13,7 @@ Password is provided by the client via the ``X-Admin-Password`` HTTP header.
 
 import hashlib
 import json
+import os
 from functools import wraps
 from pathlib import Path
 
@@ -24,9 +25,13 @@ _ADMIN_FILE = Path("data/.port_admin")
 def _admin_file_path() -> Path:
     """Return path to the shared admin credential file.
 
-    Wrapped in a helper so tests can monkeypatch the location without
-    touching the real ``data/.port_admin``.
+    Checks ``MKM_ADMIN_FILE_PATH`` first so the E2E test suite can redirect
+    the Flask subprocess to a tmp file without ever touching ``data/.port_admin``.
+    Falls back to the real file for all non-test runs.
     """
+    override = os.environ.get("MKM_ADMIN_FILE_PATH")
+    if override:
+        return Path(override)
     return _ADMIN_FILE
 
 
