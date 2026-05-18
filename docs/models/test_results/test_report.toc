@@ -2,32 +2,4 @@
 \contentsline {subsection}{\numberline {1.1}Test Environment}{3}{subsection.1.1}%
 \contentsline {subsection}{\numberline {1.2}Results by Model}{3}{subsection.1.2}%
 \contentsline {section}{\numberline {2}Test Traceability Matrix}{4}{section.2}%
-\contentsline {section}{\numberline {3}Flood Risk (Depth-Damage) (MKM-DD-001)}{170}{section.3}%
-\contentsline {section}{\numberline {4}Flood Polynomial Model (MKM-FPO-001)}{173}{section.4}%
-\contentsline {section}{\numberline {5}GEV Hazard Model (MKM-GH-001)}{175}{section.5}%
-\contentsline {section}{\numberline {6}GaugeHD Synthetic (MKM-GHD-001)}{177}{section.6}%
-\contentsline {section}{\numberline {7}Insurance Premium (MKM-IP-001)}{181}{section.7}%
-\contentsline {section}{\numberline {8}Mortgage Pricer (MKM-MP-001)}{183}{section.8}%
-\contentsline {section}{\numberline {9}PRS Pricing Model (MKM-PR-001)}{187}{section.9}%
-\contentsline {section}{\numberline {10}Property Valuation (MKM-PV-001)}{191}{section.10}%
-\contentsline {section}{\numberline {11}Storm-Gauge Response Model (MKM-SG-001)}{194}{section.11}%
-\contentsline {section}{\numberline {12}Storm Intensity Distribution (MKM-SI-001)}{197}{section.12}%
-\contentsline {section}{\numberline {13}Spatial Interpolation (MKM-SP-001)}{201}{section.13}%
-\contentsline {section}{\numberline {14}Storm Sequence Generator (MKM-SS-001)}{203}{section.14}%
-\contentsline {section}{\numberline {15}Stress Test Pipeline (MKM-ST-001)}{205}{section.15}%
-\contentsline {section}{\numberline {16}Trading Desk (MKM-TD-001)}{211}{section.16}%
-\contentsline {section}{\numberline {17}CDM Schema Validation (CDM-ALL)}{222}{section.17}%
-\contentsline {section}{\numberline {18}End-to-End Browser Tests (E2E-ALL)}{225}{section.18}%
-\contentsline {paragraph}{test\_nav\_gauge\_select\_opens\_panel[chromium]}{234}{section*.23}%
-\contentsline {paragraph}{test\_nav\_property\_select\_opens\_panel[chromium]}{234}{section*.24}%
-\contentsline {paragraph}{test\_trigger\_dropdown\_options[chromium]}{234}{section*.25}%
-\contentsline {paragraph}{test\_trigger\_change\_updates\_display[chromium]}{234}{section*.26}%
-\contentsline {paragraph}{test\_hazard\_term\_structure\_api\_reachable[chromium]}{234}{section*.27}%
-\contentsline {paragraph}{test\_mkt\_hazard\_ts\_populated[chromium]}{234}{section*.28}%
-\contentsline {paragraph}{test\_mkt\_hazard\_ts\_has\_current\_gauge[chromium]}{234}{section*.29}%
-\contentsline {paragraph}{test\_prs\_hazard\_chart\_has\_data[chromium]}{234}{section*.30}%
-\contentsline {paragraph}{test\_pv\_premium\_chart\_has\_data\_on\_open[chromium]}{235}{section*.31}%
-\contentsline {paragraph}{test\_prs\_hazard\_chart\_values\_are\_reasonable[chromium]}{235}{section*.32}%
-\contentsline {paragraph}{test\_03\_set\_trade\_parameters[chromium]}{235}{section*.33}%
-\contentsline {paragraph}{test\_commit\_triggers\_response[chromium]}{235}{section*.34}%
-\contentsline {section}{\numberline {A}Platform Infrastructure Tests}{236}{appendix.A}%
+\contentsline {section}{\numberline {3}Building Resilience Index Model (MKM-BRI-001)}{10}{section.3}%
