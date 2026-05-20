@@ -68,14 +68,12 @@ class ConstructionPage(PropertyBasePage):
 
             methods_data = [["Construction Aspect", "Details"]]
 
-            # Construction type and materials
-            construction_fields = [
+            for field, label in [
                 ('ConstructionType', 'Construction Type'),
                 ('FoundationType', 'Foundation Type'),
-                ('FloorType', 'Floor Type')
-            ]
-
-            for field, label in construction_fields:
+                ('FloorType', 'Floor Type'),
+                ('GlassType', 'Glazing Type'),
+            ]:
                 value = construction_data.get(field)
                 if value:
                     methods_data.append([label, self._format_value(value)])
@@ -84,6 +82,52 @@ class ConstructionPage(PropertyBasePage):
             methods_table.setStyle(self.table_styles['standard'])
             elements.append(methods_table)
             elements.append(Spacer(1, self.spacing['table_bottom']))
+
+            # ROOF DETAILS
+            roof = construction_data.get('RoofDetails', {})
+            if roof:
+                elements.append(Spacer(1, self.spacing['minor_section']))
+                elements.append(Paragraph("Roof Details", self.styles['SubSectionHeader']))
+
+                roof_data = [["Roof Attribute", "Details"]]
+                for field, label in [
+                    ('RoofCover',        'Cover Material'),
+                    ('RoofGeometry',     'Geometry'),
+                    ('RoofPitch',        'Pitch'),
+                    ('RoofFrame',        'Frame Type'),
+                    ('RoofDeck',         'Deck Material'),
+                    ('RoofYearReplaced', 'Year Replaced'),
+                ]:
+                    value = roof.get(field)
+                    if value is not None:
+                        roof_data.append([label, self._format_value(value)])
+
+                roof_table = Table(roof_data, colWidths=self.table_widths['two_col'])
+                roof_table.setStyle(self.table_styles['standard'])
+                elements.append(roof_table)
+                elements.append(Spacer(1, self.spacing['table_bottom']))
+
+            # STRUCTURAL CHARACTERISTICS
+            elements.append(Spacer(1, self.spacing['minor_section']))
+            elements.append(Paragraph("Structural Characteristics", self.styles['SubSectionHeader']))
+
+            struct_data = [["Characteristic", "Status / Value"]]
+            for field, label in [
+                ('ShapeIrregularity', 'Shape Irregularity'),
+                ('BrickVeneer',       'Brick Veneer'),
+                ('SoftStory',         'Soft Storey'),
+                ('HasCrippleWall',    'Cripple Wall'),
+                ('RetrofitYear',      'Retrofit Year'),
+            ]:
+                value = construction_data.get(field)
+                if value is not None:
+                    struct_data.append([label, self._format_value(value)])
+
+            if len(struct_data) > 1:
+                struct_table = Table(struct_data, colWidths=self.table_widths['two_col'])
+                struct_table.setStyle(self.table_styles['standard'])
+                elements.append(struct_table)
+                elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # STRUCTURAL DIMENSIONS
             elements.append(Spacer(1, self.spacing['minor_section']))

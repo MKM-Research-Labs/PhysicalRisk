@@ -55,6 +55,7 @@ from .base import BaseCDM
 from .ctpy import CounterpartyCDM
 from .gauge import FloodGaugeCDM
 from .mortgage import MortgageCDM
+from .oed_export import cdm_to_oed_row, cdm_to_oed_rows, export_oed_csv
 from .property import PropertyCDM
 from .prs import PhysicalRiskSwapCDM
 from .storm import StormEventCDM, TCEventCDM
@@ -75,5 +76,10 @@ __all__ = [
 
     # Backwards compatibility aliases
     'TCEventCDM',
-    'TCEventTSCDM'
+    'TCEventTSCDM',
+
+    # OED export
+    'cdm_to_oed_row',
+    'cdm_to_oed_rows',
+    'export_oed_csv',
 ]

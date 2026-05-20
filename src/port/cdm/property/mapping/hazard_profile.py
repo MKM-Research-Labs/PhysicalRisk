@@ -5,7 +5,7 @@
 
 
 def flatten_hazard_profile(prop: dict) -> dict:
-    """Return flat snake_case keys for the four hazard classes."""
+    """Return flat snake_case keys for the four hazard classes and design intensities."""
     hp = prop.get("ProtectionMeasures", {}).get("HazardProfile", {})
 
     return {
@@ -13,4 +13,7 @@ def flatten_hazard_profile(prop: dict) -> dict:
         "wind_hazard_class":    hp.get("WindHazardClass"),
         "seismic_hazard_class": hp.get("SeismicHazardClass"),
         "fire_hazard_class":    hp.get("FireHazardClass"),
+        "design_wind_speed_kmh":    hp.get("DesignWindSpeedKmh"),
+        "design_flood_return_yr":   hp.get("DesignFloodReturnYr"),
+        "design_seismic_pga":       hp.get("DesignSeismicPGA"),
     }

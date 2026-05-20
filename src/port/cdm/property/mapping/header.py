@@ -40,6 +40,24 @@ def flatten_header(prop: dict) -> dict:
         "floor_level_metres": construction.get("FloorLevelMeters"),
         "basement_present":   construction.get("BasementPresent"),
 
+        "first_floor_height_m":  construction.get("FloorLevelMeters"),  # OED FirstFloorHeight alias
+
+        # Roof details
+        "roof_cover":          construction.get("RoofDetails", {}).get("RoofCover"),
+        "roof_geometry":       construction.get("RoofDetails", {}).get("RoofGeometry"),
+        "roof_pitch":          construction.get("RoofDetails", {}).get("RoofPitch"),
+        "roof_frame":          construction.get("RoofDetails", {}).get("RoofFrame"),
+        "roof_deck":           construction.get("RoofDetails", {}).get("RoofDeck"),
+        "roof_year_replaced":  construction.get("RoofDetails", {}).get("RoofYearReplaced"),
+
+        # Structural characteristics
+        "soft_story":          construction.get("SoftStory"),
+        "shape_irregularity":  construction.get("ShapeIrregularity"),
+        "brick_veneer":        construction.get("BrickVeneer"),
+        "glass_type":          construction.get("GlassType"),
+        "retrofit_year":       construction.get("RetrofitYear"),
+        "has_cripple_wall":    construction.get("HasCrippleWall"),
+
         "building_number": location.get("BuildingNumber"),
         "street_name":     location.get("StreetName"),
         "town_city":       location.get("TownCity"),

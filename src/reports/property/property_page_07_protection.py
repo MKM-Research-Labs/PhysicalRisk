@@ -62,6 +62,48 @@ class ProtectionPage(PropertyBasePage):
                 elements.append(Paragraph("No protection measures data available.", self.styles['Normal']))
                 return elements
 
+            # HAZARD PROFILE
+            hazard_profile = protection_data.get('HazardProfile', {})
+            if hazard_profile:
+                elements.append(Paragraph("Hazard Profile", self.styles['SubSectionHeader']))
+
+                _CLASS_COLOUR = {
+                    'None': '—', 'Low': 'Low', 'Medium': 'Moderate',
+                    'High': 'High', 'Extreme': 'EXTREME',
+                }
+                hazard_data = [["Hazard", "Class", "Design Intensity"]]
+                for hazard, label in [
+                    ('Flood',   'Flood'),
+                    ('Wind',    'Wind'),
+                    ('Seismic', 'Seismic'),
+                    ('Fire',    'Fire / Wildfire'),
+                ]:
+                    cls = hazard_profile.get(f'{hazard}HazardClass', '—')
+                    cls_label = _CLASS_COLOUR.get(cls, cls)
+
+                    if hazard == 'Flood':
+                        rp = hazard_profile.get('DesignFloodReturnYr')
+                        intensity = f"1-in-{rp} yr" if rp else '—'
+                    elif hazard == 'Wind':
+                        ws = hazard_profile.get('DesignWindSpeedKmh')
+                        intensity = f"{ws:.0f} km/h" if isinstance(ws, (int, float)) else '—'
+                    elif hazard == 'Seismic':
+                        pga = hazard_profile.get('DesignSeismicPGA')
+                        intensity = f"{pga:.3f} g" if isinstance(pga, (int, float)) else '—'
+                    else:
+                        intensity = '—'
+
+                    hazard_data.append([label, cls_label, intensity])
+
+                hazard_table = Table(hazard_data, colWidths=[
+                    self.table_widths['two_col'][0] * 0.5,
+                    self.table_widths['two_col'][0] * 0.5,
+                    self.table_widths['two_col'][1],
+                ])
+                hazard_table.setStyle(self.table_styles['standard'])
+                elements.append(hazard_table)
+                elements.append(Spacer(1, self.spacing['table_bottom']))
+
             # INSURANCE & RISK ASSESSMENT
             risk_assessment = protection_data.get('RiskAssessment', {})
             if risk_assessment:

@@ -23,4 +23,8 @@ def flatten_risk_assessment(prop: dict, default_elevation: float) -> dict:
         "ground_level_meters": ground_level,
         "elevation":           ground_level,
         "river_distance":      risk.get("RiverDistanceMeters"),
+        "base_flood_elevation_m": risk.get("BaseFloodElevationMeters"),
+        "vertical_datum":          risk.get("VerticalDatum"),
+        "soil_vs30_mps":           risk.get("SoilVs30Mps"),
+        "flood_debris_present":    risk.get("FloodDebrisPresent"),
     }

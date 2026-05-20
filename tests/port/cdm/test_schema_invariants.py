@@ -61,7 +61,7 @@ class TestTopLevelSections:
     def test_property_header_sub_sections(self):
         assert set(PROPERTY_SCHEMA["PropertyHeader"]) == {
             "Header", "Valuation", "PropertyAttributes",
-            "Construction", "Location", "RiskAssessment",
+            "Construction", "Location", "RiskAssessment", "Contents",
         }
 
     def test_protection_measures_sub_sections(self):

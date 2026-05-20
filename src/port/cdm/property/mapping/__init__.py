@@ -26,6 +26,7 @@ mirrors the corresponding schema/ module.
 """
 
 from ..schema import DEFAULT_ELEVATION
+from .contents import flatten_contents
 from .hazard_profile import flatten_hazard_profile
 from .header import flatten_header
 from .ratings import flatten_ratings
@@ -56,6 +57,7 @@ def create_mapping(prop: dict, default_elevation: float = DEFAULT_ELEVATION) -> 
         flat.update(flatten_hazard_profile(prop))
         flat.update(flatten_resilience(prop))
         flat.update(flatten_transactions(prop))
+        flat.update(flatten_contents(prop))
         return {k: v for k, v in flat.items() if v is not None}
     except Exception as exc:
         raise ValueError(f"Error creating property mapping: {exc}") from exc
