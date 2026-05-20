@@ -190,7 +190,64 @@ HEADER_SCHEMA = {
         "PropertyHeight": {
             "type": "decimal",
             "description": "Total height of property in metres"
-        }
+        },
+        "RoofDetails": {
+            "RoofCover": {
+                "type": "menu",
+                "options": ["Slate", "Clay tile", "Concrete tile", "Metal", "Felt", "Thatch", "Green roof", "Other"],
+                "description": "Primary roof covering material"
+            },
+            "RoofGeometry": {
+                "type": "menu",
+                "options": ["Flat", "Gabled", "Hip", "Mansard", "Complex", "Barrel vault"],
+                "description": "Roof shape / geometry"
+            },
+            "RoofPitch": {
+                "type": "menu",
+                "options": ["Flat (<5°)", "Low (5-20°)", "Medium (20-35°)", "Steep (>35°)"],
+                "description": "Roof pitch category"
+            },
+            "RoofFrame": {
+                "type": "menu",
+                "options": ["Timber truss", "Timber rafter", "Steel", "Concrete", "Unknown"],
+                "description": "Roof structural frame type"
+            },
+            "RoofDeck": {
+                "type": "menu",
+                "options": ["Plywood", "OSB", "Metal deck", "Concrete", "Sarking board", "Unknown"],
+                "description": "Roof deck/substrate material"
+            },
+            "RoofYearReplaced": {
+                "type": "integer",
+                "description": "Year roof was last replaced (may differ from build year)"
+            },
+        },
+        "SoftStory": {
+            "type": "boolean",
+            "description": "Ground floor structurally weaker than storeys above (OED SoftStory)"
+        },
+        "ShapeIrregularity": {
+            "type": "menu",
+            "options": ["None", "Plan", "Vertical", "Both"],
+            "description": "Structural shape irregularity type (OED ShapeIrregularity)"
+        },
+        "BrickVeneer": {
+            "type": "boolean",
+            "description": "Non-structural masonry cladding over frame"
+        },
+        "GlassType": {
+            "type": "menu",
+            "options": ["Standard", "Laminated", "Tempered", "Impact resistant", "Unknown"],
+            "description": "Structural glazing type (wind/impact resistance)"
+        },
+        "RetrofitYear": {
+            "type": "integer",
+            "description": "Year of last structural retrofit or seismic strengthening"
+        },
+        "HasCrippleWall": {
+            "type": "boolean",
+            "description": "Short wood-framed wall between foundation and first floor"
+        },
     },
     "Location": {
         "BuildingNumber": {

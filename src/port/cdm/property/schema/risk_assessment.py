@@ -59,5 +59,22 @@ RISK_ASSESSMENT_SCHEMA = {
     "GovernmentalDefenceScheme": {
         "type": "boolean",
         "description": "Covered by government flood defence scheme"
-    }
+    },
+    "BaseFloodElevationMeters": {
+        "type": "decimal",
+        "description": "Design flood level in metres (same vertical datum as GroundLevelMeters)"
+    },
+    "VerticalDatum": {
+        "type": "menu",
+        "options": ["AOD", "ODN", "WGS84", "Other"],
+        "description": "Vertical reference datum used for all elevation fields"
+    },
+    "SoilVs30Mps": {
+        "type": "decimal",
+        "description": "Shear wave velocity Vs30 in m/s (OED SoilValue); enables seismic site class"
+    },
+    "FloodDebrisPresent": {
+        "type": "boolean",
+        "description": "Significant debris or sediment load expected in catchment floodwater"
+    },
 }

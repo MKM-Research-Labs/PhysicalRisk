@@ -1,0 +1,193 @@
+{
+  "PropertyHeader": {
+    "Header": {
+      "PropertyID": "PROP-review-001",
+      "UPRN": "12345678",
+      "CatchmentID": "thames",
+      "propertyType": "residential",
+      "propertyStatus": "active"
+    },
+    "Valuation": {
+      "PropertyValue": 485000.0,
+      "ValuationDate": "2026-05-19",
+      "ValuationMethod": "Market comparison"
+    },
+    "PropertyAttributes": {
+      "OccupancyType": "Residential owner-occupied",
+      "PropertyResi": "Semi-detached",
+      "PropertyAreaSqm": 112.0,
+      "NumberOfStoreys": 2,
+      "ConstructionYear": 1968,
+      "PropertyPeriod": "1945-1975",
+      "CouncilTaxBand": "D",
+      "NumberBedrooms": 3,
+      "NumberBathrooms": 1,
+      "PropertyCondition": "Good",
+      "HeightMeters": 7.8,
+      "LastMajorWorksDate": "2018-03-12"
+    },
+    "Construction": {
+      "ConstructionType": "Brick and block",
+      "FoundationType": "Strip foundations",
+      "FloorLevelMeters": 0.22,
+      "BasementPresent": false,
+      "FloorType": "Suspended timber",
+      "StiltsHeight": 0,
+      "PropertyHeight": 7.8,
+      "RoofDetails": {
+        "RoofCover": "Slate",
+        "RoofGeometry": "Hip",
+        "RoofPitch": "Medium (20-35\u00b0)",
+        "RoofFrame": "Unknown",
+        "RoofDeck": "Sarking board",
+        "RoofYearReplaced": 1995
+      },
+      "SoftStory": false,
+      "ShapeIrregularity": "None",
+      "BrickVeneer": false,
+      "GlassType": "Standard",
+      "RetrofitYear": null,
+      "HasCrippleWall": true
+    },
+    "Location": {
+      "BuildingNumber": "14",
+      "StreetName": "Manor Road",
+      "TownCity": "Richmond",
+      "County": "Greater London",
+      "Postcode": "TW10 6BN",
+      "LocalAuthority": "Richmond upon Thames",
+      "Country": "England",
+      "Region": "London",
+      "UrbanRuralClassification": "Suburban",
+      "LatitudeDegrees": 51.4613,
+      "LongitudeDegrees": -0.3037
+    },
+    "RiskAssessment": {
+      "EAFloodZone": "Zone 2",
+      "OverallFloodRisk": "Medium",
+      "FloodRiskType": "Fluvial",
+      "GroundLevelMeters": 8.4,
+      "RiverDistanceMeters": 340.0,
+      "SoilType": "Clay",
+      "LakeDistanceMeters": 2100.0,
+      "CoastalDistanceMeters": 62000.0,
+      "CanalDistanceMeters": 890.0,
+      "GovernmentalDefenceScheme": true,
+      "BaseFloodElevationMeters": 6.8,
+      "VerticalDatum": "AOD",
+      "SoilVs30Mps": 367.0,
+      "FloodDebrisPresent": false
+    },
+    "Contents": {
+      "ContentsValue": 83335.71,
+      "ContentsMobility": "Fixed",
+      "ContentsStoredAboveFlood": false
+    },
+    "ReferenceGauges": [
+      "SYNTH-abc12345"
+    ]
+  },
+  "ProtectionMeasures": {
+    "RiskAssessment": {
+      "InsuranceBodyRatings": {
+        "InsuranceRating": "Medium",
+        "InsuranceDate": "2025-11-01",
+        "InsuranceRatingVersion": "v2.0",
+        "InsuranceRatingBody": "Aviva"
+      },
+      "GoverningBodyRatings": {
+        "BRIRating": "B",
+        "BRIFloodRating": "B",
+        "BRIWindRating": "A",
+        "BRIFireRating": "B",
+        "BRISeismicRating": "N/A",
+        "BRIScore": 0.512,
+        "BRIFloodScore": 0.489,
+        "BRIWindScore": 0.541,
+        "BRIFireScore": 0.508,
+        "BRISeismicScore": 0.495,
+        "BRIDate": "2026-05-19",
+        "BRIRatingVersion": "BRI v1.6",
+        "BRIRatingAgent": "Bureau Veritas"
+      }
+    },
+    "HazardProfile": {
+      "FloodHazardClass": "Medium",
+      "WindHazardClass": "Low",
+      "SeismicHazardClass": "None",
+      "FireHazardClass": "Low",
+      "DesignWindSpeedKmh": 99.0,
+      "DesignFloodReturnYr": 100,
+      "DesignSeismicPGA": 0.079
+    },
+    "ResilienceMeasures": {
+      "BuildingAssessment": {
+        "SiteExposureAssessed": "Not assessed",
+        "OrientationMitigatesWind": "Not assessed",
+        "StructureDesignedForHazardWind": "Meets minimum",
+        "ContinuousLoadPathProvided": "Partial",
+        "LateralBracingAdequate": "Partial",
+        "RoofRatedForDesignWind": "Partial",
+        "RoofEdgeDetailWindResistant": "Not assessed",
+        "CladdingRatedForDesignWind": "Verified",
+        "OpeningsWindResistant": "Not assessed",
+        "LargeDoorsReinforced": "Verified",
+        "RooftopEquipmentAnchored": "Enhanced",
+        "FacadeAttachmentsAnchored": "Not assessed",
+        "StructuralFireResistanceAdequate": "Not assessed",
+        "CompartmentsProvided": "Not assessed",
+        "FireStoppingAtPenetrations": "Partial",
+        "ExternalMaterialsFireResistant": "Partial",
+        "SiteGeotechnicalAssessed": "Verified",
+        "StructureMeetsSeismicCode": "Verified",
+        "SeismicDetailingToStandard": "Not assessed",
+        "StructuralRegularityAdequate": "Verified",
+        "FoundationSuitableForHazard": "Partial",
+        "NonstructuralComponentsAnchored": "Verified",
+        "HeavyEquipmentAnchored": "Enhanced"
+      },
+      "SiteAndDrainage": {
+        "SiteFloodHazardAssessed": "Partial",
+        "HighRiskZoneAvoidedOrJustified": "Enhanced",
+        "FinishedFloorAboveDesignFlood": "Verified",
+        "OccupiedLevelsElevated": "Meets minimum",
+        "OnsiteDrainageSizedForDesignStorm": "Not assessed",
+        "OverlandFlowPathsMaintained": "Partial",
+        "PermeableOrRetentionMeasures": "Enhanced",
+        "WildfireDefensibleSpace": "Meets minimum",
+        "WildfireNonCombustiblePerimeter": "Meets minimum",
+        "HighRiskGroundAvoidedOrMitigated": "Partial",
+        "LiquefactionMitigationProvided": "Partial",
+        "BasementFloodStrategy": "No basement"
+      },
+      "FloodProtection": {
+        "PermanentFloodProofingAtEntries": "Meets minimum",
+        "DeployableBarriersProvided": "Not assessed",
+        "BackflowPreventionInstalled": "Not assessed",
+        "ElectricalSystemsAboveFlood": "Enhanced",
+        "MechanicalSystemsAboveFlood": "Not assessed",
+        "FuelAndHazardousStoresProtected": "Meets minimum",
+        "FloodGates": "Meets minimum",
+        "FloodBarriers": "Verified",
+        "SumpPump": "Meets minimum",
+        "FloodWarningSystem": "Not assessed"
+      },
+      "FireProtection": {
+        "AutomaticDetectionInstalled": "Enhanced",
+        "SuppressionSystemsInstalled": "Verified"
+      },
+      "ContinuityMeasures": {
+        "BackupPowerInstalled": "Not assessed",
+        "BackupPowerProtectedFromHazard": "Enhanced",
+        "BackupWaterSupplyProvided": "Not assessed",
+        "WaterSystemsProtectedFromHazard": "Verified",
+        "TelecomRedundancyProvided": "Meets minimum",
+        "CriticalITProtected": "Verified",
+        "AccessRouteResilient": "Meets minimum",
+        "AccessDesignConsidersHazards": "Verified",
+        "BusinessContinuityPlanInPlace": "Partial",
+        "EmergencyProceduresTested": "Not assessed"
+      }
+    }
+  }
+}

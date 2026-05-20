@@ -58,6 +58,7 @@ class RiskAssessmentPage(PropertyBasePage):
 
             header_data = property_data.get('PropertyHeader', {})
             risk_data = header_data.get('RiskAssessment', {})
+            hazard_profile = property_data.get('ProtectionMeasures', {}).get('HazardProfile', {})
 
             # FLOOD RISK ASSESSMENT
             elements.append(Paragraph("Flood Risk Analysis", self.styles['SubSectionHeader']))
@@ -87,6 +88,21 @@ class RiskAssessmentPage(PropertyBasePage):
             last_flood = risk_data.get('LastFloodDate')
             if last_flood:
                 flood_data.append(["Last Flood Date", last_flood])
+
+            # Flood geometry
+            bfe = risk_data.get('BaseFloodElevationMeters')
+            if isinstance(bfe, (int, float)):
+                datum = risk_data.get('VerticalDatum', 'AOD')
+                flood_data.append(["Base Flood Elevation", f"{bfe:.2f} m ({datum})"])
+
+            debris = risk_data.get('FloodDebrisPresent')
+            if debris is not None:
+                flood_data.append(["Debris Risk in Catchment", "Yes" if debris else "No"])
+
+            # Design return period from hazard profile
+            design_return = hazard_profile.get('DesignFloodReturnYr')
+            if design_return:
+                flood_data.append(["Design Return Period", f"1-in-{design_return} year"])
 
             flood_table = Table(flood_data, colWidths=self.table_widths['two_col'])
             flood_table.setStyle(self.table_styles['risk'])
@@ -163,10 +179,21 @@ class RiskAssessmentPage(PropertyBasePage):
             soil_type = risk_data.get('SoilType')
             if soil_type:
                 environmental_data.append(["Soil Type", soil_type])
+                environmental_data.append(["Soil Risk Level", self._assess_soil_risk(soil_type)])
 
-                # Soil risk assessment
-                soil_risk = self._assess_soil_risk(soil_type)
-                environmental_data.append(["Soil Risk Level", soil_risk])
+            vs30 = risk_data.get('SoilVs30Mps')
+            if isinstance(vs30, (int, float)):
+                site_class = self._vs30_site_class(vs30)
+                environmental_data.append(["Shear Wave Velocity (Vs30)", f"{vs30:.0f} m/s — {site_class}"])
+
+            # Wind design intensity from hazard profile
+            wind_speed = hazard_profile.get('DesignWindSpeedKmh')
+            if isinstance(wind_speed, (int, float)):
+                environmental_data.append(["Design Wind Speed", f"{wind_speed:.0f} km/h"])
+
+            seismic_pga = hazard_profile.get('DesignSeismicPGA')
+            if isinstance(seismic_pga, (int, float)):
+                environmental_data.append(["Design Seismic PGA", f"{seismic_pga:.3f} g"])
 
             environmental_table = Table(environmental_data, colWidths=self.table_widths['two_col'])
             environmental_table.setStyle(self.table_styles['standard'])
@@ -228,6 +255,17 @@ class RiskAssessmentPage(PropertyBasePage):
             'Zone 3b': 'Functional floodplain - Used for flood storage'
         }
         return zone_interpretations.get(zone, f'Unknown zone: {zone}')
+
+    def _vs30_site_class(self, vs30: float) -> str:
+        """Map Vs30 (m/s) to NEHRP/OED site class label."""
+        if vs30 >= 760:
+            return "Rock (Site Class A/B)"
+        elif vs30 >= 360:
+            return "Stiff soil (Site Class C)"
+        elif vs30 >= 180:
+            return "Soft soil (Site Class D)"
+        else:
+            return "Very soft soil (Site Class E)"
 
     def _assess_soil_risk(self, soil_type: str) -> str:
         """Assess risk based on soil type."""

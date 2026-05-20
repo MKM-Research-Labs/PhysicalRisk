@@ -41,6 +41,7 @@ maps to one main section of the revised Property CDM:
                        lambdas a schema home.
 """
 
+from .contents import CONTENTS_SCHEMA
 from .energy import ENERGY_PERFORMANCE_SCHEMA
 from .hazard_profile import HAZARD_PROFILE_SCHEMA
 from .header import HEADER_SCHEMA
@@ -58,6 +59,7 @@ PROPERTY_SCHEMA = {
     "PropertyHeader": {
         **HEADER_SCHEMA,
         "RiskAssessment": RISK_ASSESSMENT_SCHEMA,
+        "Contents": CONTENTS_SCHEMA,
     },
     "ProtectionMeasures": {
         "RiskAssessment": RATINGS_SCHEMA,

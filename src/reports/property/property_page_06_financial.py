@@ -89,6 +89,39 @@ class FinancialPage(PropertyBasePage):
             elements.append(valuation_table)
             elements.append(Spacer(1, self.spacing['table_bottom']))
 
+            # CONTENTS
+            contents_data = header_data.get('Contents', {})
+            if contents_data:
+                elements.append(Spacer(1, self.spacing['minor_section']))
+                elements.append(Paragraph("Contents", self.styles['SubSectionHeader']))
+
+                contents_table_data = [["Contents Item", "Details"]]
+
+                contents_value = contents_data.get('ContentsValue')
+                if isinstance(contents_value, (int, float)):
+                    contents_table_data.append(["Replacement Value", self._format_currency(contents_value)])
+
+                    property_value = valuation_data.get('PropertyValue')
+                    if isinstance(property_value, (int, float)) and property_value > 0:
+                        ratio = contents_value / property_value * 100
+                        contents_table_data.append(["Contents-to-Building Ratio", f"{ratio:.1f}%"])
+
+                mobility = contents_data.get('ContentsMobility')
+                if mobility:
+                    contents_table_data.append(["Mobility", mobility])
+
+                above_flood = contents_data.get('ContentsStoredAboveFlood')
+                if above_flood is not None:
+                    contents_table_data.append([
+                        "Stored Above Flood Level",
+                        "Yes — reduced flood loss exposure" if above_flood else "No — at-risk from floodwater",
+                    ])
+
+                contents_tbl = Table(contents_table_data, colWidths=self.table_widths['two_col'])
+                contents_tbl.setStyle(self.table_styles['financial'])
+                elements.append(contents_tbl)
+                elements.append(Spacer(1, self.spacing['table_bottom']))
+
             # TRANSACTION HISTORY FINANCIAL SUMMARY
             transaction_data = property_data.get('TransactionHistory', {})
 

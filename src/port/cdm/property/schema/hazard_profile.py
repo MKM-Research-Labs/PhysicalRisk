@@ -32,5 +32,17 @@ HAZARD_PROFILE_SCHEMA = {
         "type": "menu",
         "options": _HAZARD_CLASS_OPTIONS,
         "description": "Normalised fire/wildfire hazard class for the site"
-    }
+    },
+    "DesignWindSpeedKmh": {
+        "type": "decimal",
+        "description": "Site design wind speed in km/h corresponding to WindHazardClass"
+    },
+    "DesignFloodReturnYr": {
+        "type": "integer",
+        "description": "Design flood return period in years (e.g. 100 = 1-in-100yr)"
+    },
+    "DesignSeismicPGA": {
+        "type": "decimal",
+        "description": "Peak ground acceleration in g for mapped seismic hazard class"
+    },
 }

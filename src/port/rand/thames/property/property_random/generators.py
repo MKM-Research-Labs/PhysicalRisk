@@ -133,6 +133,48 @@ def get_field_generators() -> Dict[str, Callable]:
         "propertyStatus": lambda _: random.choice(['active', 'inactive', 'under_construction']),
         "ConstructionType": lambda _: random.choice(['Brick and block', 'Timber frame', 'Stone', 'Modern methods', 'Mixed construction']),
         "FoundationType": lambda _: random.choice(['Strip foundations', 'Raft foundations', 'Pile foundations', 'Deep foundations', 'Unknown']),
+
+        # Construction — RoofDetails
+        "RoofCover":      lambda _: random.choice(["Slate", "Clay tile", "Concrete tile", "Metal", "Felt", "Thatch", "Green roof", "Other"]),
+        "RoofGeometry":   lambda _: random.choices(
+            ["Flat", "Gabled", "Hip", "Mansard", "Complex", "Barrel vault"],
+            weights=[0.10, 0.35, 0.30, 0.10, 0.10, 0.05],
+        )[0],
+        "RoofPitch":      lambda _: random.choices(
+            ["Flat (<5°)", "Low (5-20°)", "Medium (20-35°)", "Steep (>35°)"],
+            weights=[0.10, 0.25, 0.50, 0.15],
+        )[0],
+        "RoofFrame":      lambda _: random.choices(
+            ["Timber truss", "Timber rafter", "Steel", "Concrete", "Unknown"],
+            weights=[0.45, 0.25, 0.10, 0.10, 0.10],
+        )[0],
+        "RoofDeck":       lambda _: random.choices(
+            ["Plywood", "OSB", "Metal deck", "Concrete", "Sarking board", "Unknown"],
+            weights=[0.20, 0.25, 0.10, 0.15, 0.20, 0.10],
+        )[0],
+        "RoofYearReplaced": lambda info: (
+            info.get("construction_year", 1980) + random.randint(0, 30)
+        ),
+
+        # Construction — structural characteristics
+        "SoftStory":         lambda _: random.random() < 0.08,
+        "ShapeIrregularity": lambda _: random.choices(
+            ["None", "Plan", "Vertical", "Both"],
+            weights=[0.65, 0.20, 0.10, 0.05],
+        )[0],
+        "BrickVeneer":   lambda _: random.random() < 0.20,
+        "GlassType":     lambda _: random.choices(
+            ["Standard", "Laminated", "Tempered", "Impact resistant", "Unknown"],
+            weights=[0.55, 0.15, 0.15, 0.05, 0.10],
+        )[0],
+        "RetrofitYear":  lambda info: (
+            info.get("construction_year", 1980) + random.randint(10, 40)
+            if random.random() < 0.15 else None
+        ),
+        "HasCrippleWall": lambda info: (
+            random.random() < 0.25
+            if (info.get("construction_year") or 1980) < 1980 else False
+        ),
         "ValuationMethod": lambda _: random.choice(['Market comparison', 'Income approach', 'Cost approach', 'Automated valuation']),
         "Country": lambda _: 'England',
         "Region": lambda _: random.choice(['London', 'South East', 'East of England']),
@@ -156,6 +198,16 @@ def get_field_generators() -> Dict[str, Callable]:
         # (most properties never flooded); distances reflect Thames-context
         # geography (London is inland, no coast, scattered lakes/canals).
         "LastFloodDate":             lambda _: generate_past_date(days_range=(365*2, 365*30)) if random.random() < 0.15 else None,
+
+        # RiskAssessment — flood geometry and geotechnical
+        "BaseFloodElevationMeters": lambda info: round(info.get("elevation", 12.0) - random.uniform(0.5, 3.0), 2),
+        "VerticalDatum":            lambda _: "AOD",
+        "SoilVs30Mps":             lambda _: round(random.choices(
+            [800, 500, 350, 250, 180, 120],
+            weights=[0.05, 0.10, 0.20, 0.35, 0.20, 0.10],
+        )[0] + random.uniform(-20, 20), 0),
+        "FloodDebrisPresent":       lambda info: (info.get("vertical_offset", 999) < 2.0) and (random.random() < 0.4),
+
         "SoilType":                  lambda _: random.choices(
             ["Clay", "Sandy", "Loamy", "Chalk", "Peat", "Rocky", "Mixed", "Saltpans", "Unknown"],
             weights=[0.35, 0.10, 0.15, 0.10, 0.05, 0.05, 0.15, 0.00, 0.05],
@@ -198,6 +250,14 @@ def get_field_generators() -> Dict[str, Callable]:
         # with EAFloodZone; the other three are Thames-context weighted random
         # (UK is low-seismic, urban-low-wind, urban-low-fire).
         "FloodHazardClass":   lambda info: _flood_hazard_class_from_offset(info),
+
+        # HazardProfile — design intensities
+        "DesignWindSpeedKmh":  lambda _: round(random.choices(
+            [80, 100, 120, 140, 160],
+            weights=[0.05, 0.40, 0.35, 0.15, 0.05],
+        )[0] + random.uniform(-5, 5), 0),
+        "DesignFloodReturnYr": lambda _: random.choice([50, 100, 200, 500, 1000]),
+        "DesignSeismicPGA":    lambda _: round(random.uniform(0.02, 0.08), 3),
         "WindHazardClass":    lambda _: random.choices(
             ["None", "Low", "Medium", "High", "Extreme"],
             weights=[0.05, 0.55, 0.30, 0.09, 0.01],
@@ -360,6 +420,14 @@ def get_field_generators() -> Dict[str, Callable]:
         "SaleDate": lambda _: generate_past_date(days_range=(30, 365*3)),
         "PreviousOwner": lambda _: generate_owner_name(),
         "MarketingDays": lambda _: random.randint(14, 365),
+
+        # Contents
+        "ContentsValue":            lambda info: round(info.get("property_value", 500000) * random.uniform(0.05, 0.25), 2),
+        "ContentsMobility":         lambda _: random.choices(
+            ["Fixed", "Moveable", "Mixed"],
+            weights=[0.20, 0.50, 0.30],
+        )[0],
+        "ContentsStoredAboveFlood": lambda _: random.random() < 0.40,
 
         # Date fields
         "dateCreated": lambda _: datetime.now().strftime('%Y-%m-%d'),
