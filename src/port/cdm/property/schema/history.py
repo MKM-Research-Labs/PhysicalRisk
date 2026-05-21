@@ -50,8 +50,7 @@ HISTORY_AND_INCIDENTS_SCHEMA = {
     },
     "FloodEvents": {
         "FloodReturnPeriod": {
-            "type": "menu",
-            "options": [50, 100, 200, 500, 1000],
+            "type": "integer",
             "description": "Return period (years) of the most recent flood event"
         },
         "FloodDamageSeverity": {

@@ -4257,6 +4257,12 @@
         "q8_monitoring": "Not Addressed",
         "q9_overall_risk": "Not Addressed"
       },
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": false,
+        "benchmark_tests": false,
+        "test_file": "tests/models/floodrisk/depth_damage.py"
+      },
       "overall_risk_rating": {
         "calculated_rating": "Conditional",
         "calculated_score": null,
