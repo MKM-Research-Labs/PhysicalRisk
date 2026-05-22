@@ -286,21 +286,15 @@ class TestNavMenuToPanel:
         buttons = map_page.locator("#nav-action-bar button")
         if buttons.count() == 0:
             pytest.skip("No action buttons appeared")
-        # Click "Property Details" (index 0) — viewPropertyDetails
+        # Click "Property Details" (index 0) — viewPropertyDetails → generateReport → PropertyPDFPanel
         buttons.first.click()
-        map_page.wait_for_timeout(8_000)
+        map_page.wait_for_timeout(10_000)
 
-        panels = ['hazard-curve-panel', 'prop-storm-panel',
-                   'property-hc-panel', 'mortgage-detail-panel',
-                   'gauge-pdf-panel', 'property-pdf-panel']
-        # viewPropertyDetails opens a popup, not a panel — check for
-        # info notification as an alternative success signal.
-        popup_visible = map_page.evaluate("""() => {
-            var popups = document.querySelectorAll('.leaflet-popup-content');
-            return popups.length > 0;
+        panel_visible = map_page.evaluate("""() => {
+            var panel = document.getElementById('property-pdf-panel');
+            return panel !== null && panel.style.display !== 'none';
         }""")
-        panel_visible = self._is_any_panel_visible(map_page, panels)
-        assert panel_visible or popup_visible, \
-            "No panel or popup opened after nav menu action"
+        assert panel_visible, \
+            "property-pdf-panel did not open after clicking Property Details"
 
         map_page.evaluate(CLOSE_ALL_JS)

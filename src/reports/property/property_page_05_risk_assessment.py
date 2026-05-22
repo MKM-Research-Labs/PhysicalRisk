@@ -207,7 +207,7 @@ class RiskAssessmentPage(PropertyBasePage):
             defence_data = [["Defence System", "Status"]]
 
             # Government defence scheme
-            govt_defence = risk_data.get('GovernmentDefenceScheme')
+            govt_defence = risk_data.get('GovernmentalDefenceScheme')
             if govt_defence is not None:
                 defence_data.append(["Government Defence Scheme", self._format_value(govt_defence)])
 

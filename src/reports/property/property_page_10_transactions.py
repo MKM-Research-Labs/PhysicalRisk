@@ -62,6 +62,30 @@ class TransactionsPage(PropertyBasePage):
                 elements.append(Paragraph("No transaction history available.", self.styles['Normal']))
                 return elements
 
+            # PURCHASE HISTORY
+            purchase = transaction_data.get('Purchase', {})
+            if purchase:
+                elements.append(Paragraph("Purchase Information", self.styles['SubSectionHeader']))
+
+                purchase_data = [["Purchase Detail", "Information"]]
+
+                purchase_price = purchase.get('PurchasePriceGbp')
+                if isinstance(purchase_price, (int, float)):
+                    purchase_data.append(["Purchase Price", self._format_currency(purchase_price)])
+
+                purchase_date = purchase.get('PurchaseDate')
+                if purchase_date:
+                    purchase_data.append(["Purchase Date", purchase_date])
+
+                for key, value in purchase.items():
+                    if key not in ['PurchasePriceGbp', 'PurchaseDate'] and value is not None:
+                        purchase_data.append([self._format_field_name(key), self._format_value(value)])
+
+                purchase_table = Table(purchase_data, colWidths=self.table_widths['two_col'])
+                purchase_table.setStyle(self.table_styles['financial'])
+                elements.append(purchase_table)
+                elements.append(Spacer(1, self.spacing['table_bottom']))
+
             # SALES HISTORY
             sales = transaction_data.get('Sales', {})
             if sales:
@@ -149,6 +173,31 @@ class TransactionsPage(PropertyBasePage):
                 rental_table = Table(rental_data, colWidths=self.table_widths['two_col'])
                 rental_table.setStyle(self.table_styles['financial'])
                 elements.append(rental_table)
+                elements.append(Spacer(1, self.spacing['table_bottom']))
+
+            # INSURANCE
+            insurance = transaction_data.get('Insurance', {})
+            if insurance:
+                elements.append(Spacer(1, self.spacing['minor_section']))
+                elements.append(Paragraph("Insurance", self.styles['SubSectionHeader']))
+
+                ins_data = [["Insurance Detail", "Information"]]
+
+                premium = insurance.get('InsurancePremium')
+                if isinstance(premium, (int, float)):
+                    ins_data.append(["Annual Premium", self._format_currency(premium)])
+
+                excess = insurance.get('ExcessAmount')
+                if isinstance(excess, (int, float)):
+                    ins_data.append(["Excess Amount", self._format_currency(excess)])
+
+                for key, value in insurance.items():
+                    if key not in ['InsurancePremium', 'ExcessAmount'] and value is not None:
+                        ins_data.append([self._format_field_name(key), self._format_value(value)])
+
+                ins_table = Table(ins_data, colWidths=self.table_widths['two_col'])
+                ins_table.setStyle(self.table_styles['financial'])
+                elements.append(ins_table)
                 elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # MARKET ANALYSIS

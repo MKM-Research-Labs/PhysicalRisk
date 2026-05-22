@@ -88,7 +88,7 @@ class PropertyBasePage(ReportBasePage):
         """Set up dimensions including risk table layout."""
         super()._setup_dimensions()
         self.table_widths['risk_table'] = [
-            2.8 * inch, 2.8 * inch, 1.4 * inch, 0.9 * inch
+            2.0 * inch, 0.9 * inch, 0.7 * inch, 3.9 * inch
         ]
 
     @abstractmethod

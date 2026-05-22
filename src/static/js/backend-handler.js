@@ -239,38 +239,7 @@
         }
 
         function viewPropertyDetails(propertyId) {
-            if (!propertyId) {
-                if (root.showError) root.showError('Property ID not found');
-                return;
-            }
-
-            var map = getMapInstance();
-            if (!map) {
-                if (root.showError) root.showError('Map not available');
-                return;
-            }
-
-            var found = false;
-            map.eachLayer(function(layer) {
-                if (found || !(layer instanceof L.Marker)) return;
-
-                if (layer._markerId === propertyId) {
-                    layer.openPopup();
-                    found = true;
-                    return;
-                }
-
-                var tooltip = layer.getTooltip && layer.getTooltip();
-                var popup = layer.getPopup && layer.getPopup();
-                var content = (tooltip && tooltip.getContent()) || (popup && popup.getContent()) || '';
-
-                if (content.includes(propertyId)) {
-                    layer.openPopup();
-                    found = true;
-                }
-            });
-
-            if (root.showInfo) root.showInfo(found ? 'Showing: ' + propertyId : 'Property: ' + propertyId);
+            return generateReport(propertyId);
         }
 
         async function checkBackendHealth() {
