@@ -476,6 +476,67 @@ def _resolve_python(project_root):
     return sys.executable
 
 
+def _cleanup_worktree_data(project_root: str) -> None:
+    """Remove data/input/ copies inside git worktrees (not the main repo).
+
+    E2E tests spin up a Flask subprocess per worktree and write a full copy of
+    data/input/<catchment>/ into each worktree's working tree.  Those copies
+    are never tracked by git but can easily reach 6-7 GB each and accumulate
+    across sessions.  This function wipes them after every test run.
+    """
+    try:
+        result = sp.run(
+            ['git', 'worktree', 'list', '--porcelain'],
+            capture_output=True, text=True, cwd=project_root,
+        )
+        if result.returncode != 0:
+            return
+
+        # Parse worktree paths — each block starts with "worktree <path>"
+        worktree_paths = [
+            line[len('worktree '):].strip()
+            for line in result.stdout.splitlines()
+            if line.startswith('worktree ')
+        ]
+
+        freed_bytes = 0
+        cleaned = []
+        for wt_path in worktree_paths:
+            if os.path.realpath(wt_path) == os.path.realpath(project_root):
+                continue  # skip main repo
+            data_input = os.path.join(wt_path, 'data', 'input')
+            if not os.path.isdir(data_input):
+                continue
+            for catchment in os.listdir(data_input):
+                catchment_dir = os.path.join(data_input, catchment)
+                if not os.path.isdir(catchment_dir):
+                    continue
+                try:
+                    # du -s equivalent using os.walk
+                    size = sum(
+                        os.path.getsize(os.path.join(dp, f))
+                        for dp, _, fns in os.walk(catchment_dir)
+                        for f in fns
+                    )
+                    shutil.rmtree(catchment_dir)
+                    freed_bytes += size
+                    cleaned.append(f'{wt_path} → data/input/{catchment}')
+                except Exception as exc:
+                    print(f'  WARNING: could not remove {catchment_dir}: {exc}')
+
+        if cleaned:
+            freed_gb = freed_bytes / (1024 ** 3)
+            print(f'Worktree data cleanup: removed {len(cleaned)} data copy/copies '
+                  f'({freed_gb:.1f} GB freed)')
+            for entry in cleaned:
+                print(f'  {entry}')
+        else:
+            print('Worktree data cleanup: nothing to remove.')
+
+    except Exception as exc:
+        print(f'WARNING: worktree data cleanup failed: {exc}')
+
+
 def cmd_test(args):
     """Run tests and produce audit evidence package.
 
@@ -506,6 +567,11 @@ def cmd_test(args):
         return result.returncode
 
     project_root = config.get_project_root()
+
+    # Clean stale worktree data copies before tests start to free disk space
+    print('--- Worktree data cleanup (pre-run) ---')
+    _cleanup_worktree_data(str(project_root))
+    print()
 
     # All artefacts land in data/output/audit/
     audit_dir = str(config.get_reports_dir('audit'))
@@ -722,3 +788,8 @@ def cmd_test(args):
     print()
     if do_unit:
         print('Status:', 'ALL PASS' if pytest_ok else 'TEST FAILURES — see junit.xml')
+
+    # Clean up any worktree data copies created by E2E tests during this run
+    print()
+    print('--- Worktree data cleanup (post-run) ---')
+    _cleanup_worktree_data(str(project_root))
