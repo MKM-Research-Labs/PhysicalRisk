@@ -225,23 +225,24 @@ describe('BackendHandler', () => {
         document.removeEventListener('gaugeHistoryRequested', listener);
     });
 
-    test('viewPropertyDetails() opens correct marker popup', () => {
-        const openPopup = jest.fn();
-        const mockMap = {
-            eachLayer: function(cb) {
-                // Create a mock marker that passes instanceof check
-                const marker = Object.create(L.Marker.prototype);
-                marker._markerId = 'PROP-abc';
-                marker.openPopup = openPopup;
-                cb(marker);
-            }
-        };
-        global.map_test = mockMap;
+    test('viewPropertyDetails() calls generateReport with the property id', async () => {
+        global.fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ status: 'success', pdf_base64: 'abc123' })
+        });
+        global.PropertyPDFPanel = { show: jest.fn() };
 
-        handler.viewPropertyDetails('PROP-abc');
-        expect(openPopup).toHaveBeenCalled();
+        await handler.viewPropertyDetails('PROP-abc');
 
-        delete global.map_test;
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/api/v1/generate_property_report'),
+            expect.objectContaining({ method: 'POST' })
+        );
+        const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+        expect(body.propertyId).toBe('PROP-abc');
+        expect(global.PropertyPDFPanel.show).toHaveBeenCalledWith('PROP-abc', 'abc123');
+
+        delete global.PropertyPDFPanel;
     });
 
     test('checkBackendHealth() returns true on 200', async () => {

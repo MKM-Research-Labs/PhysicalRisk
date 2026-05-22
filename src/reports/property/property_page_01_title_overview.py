@@ -88,7 +88,8 @@ class TitleOverviewPage(PropertyBasePage):
 
             # Key overview fields
             key_fields = [
-                'UPRN', 'PropertyType', 'PropertyStatus',
+                'UPRN', 'PropertyID', 'CatchmentID',
+                'propertyType', 'propertyStatus',
                 'DateCreated', 'LastUpdated'
             ]
 

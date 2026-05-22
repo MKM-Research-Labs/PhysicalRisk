@@ -60,7 +60,7 @@ class HistoryPage(PropertyBasePage):
         try:
             elements.append(Paragraph("Property History", self.styles['SectionHeader']))
 
-            history_data = property_data.get('History', {})
+            history_data = property_data.get('HistoryAndIncidents', {})
 
             # FLOOD HISTORY — derived from nearest gauge historical daily data
             elements.append(Spacer(1, self.spacing['minor_section']))

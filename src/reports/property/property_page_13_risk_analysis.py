@@ -73,7 +73,13 @@ class RiskAnalysisPage(PropertyBasePage):
             # OVERALL RISK SUMMARY
             elements.append(Paragraph("Overall Risk Summary", self.styles['SubSectionHeader']))
 
-            summary_data = [["Risk Category", "Score", "Weight", "Impact"]]
+            normal = self.styles['Normal']
+            summary_data = [[
+                Paragraph("Risk Category", self.styles['TableHeader']),
+                Paragraph("Score", self.styles['TableHeader']),
+                Paragraph("Weight", self.styles['TableHeader']),
+                Paragraph("Impact", self.styles['TableHeader']),
+            ]]
 
             total_weighted_score = 0
             total_weight = 0
@@ -86,16 +92,30 @@ class RiskAnalysisPage(PropertyBasePage):
                 total_weighted_score += score * weight
                 total_weight += weight
 
-                summary_data.append([category, f"{score}/5", f"{weight}%", impact])
+                summary_data.append([
+                    Paragraph(str(category), normal),
+                    Paragraph(f"{score}/5", normal),
+                    Paragraph(f"{weight}%", normal),
+                    Paragraph(str(impact), normal),
+                ])
 
             # Calculate overall score
             overall_score = total_weighted_score / total_weight if total_weight > 0 else 0
             overall_percentage = (overall_score / 5) * 100
 
-            # Add summary rows
-            summary_data.append(["", "", "", ""])
-            summary_data.append(["OVERALL SCORE", f"{overall_score:.2f}/5.0", "100%", f"{overall_percentage:.1f}%"])
-            summary_data.append(["RISK LEVEL", risk_assessment['overall_level'], "", risk_assessment['overall_color']])
+            # Add summary rows (no empty separator)
+            summary_data.append([
+                Paragraph("OVERALL SCORE", self.styles['TableHeader']),
+                Paragraph(f"{overall_score:.2f}/5.0", self.styles['TableHeader']),
+                Paragraph("100%", self.styles['TableHeader']),
+                Paragraph(f"{overall_percentage:.1f}%", self.styles['TableHeader']),
+            ])
+            summary_data.append([
+                Paragraph("RISK LEVEL", self.styles['TableHeader']),
+                Paragraph(str(risk_assessment['overall_level']), self.styles['TableHeader']),
+                Paragraph("", normal),
+                Paragraph(str(risk_assessment.get('overall_color', '')), normal),
+            ])
 
             summary_table = Table(summary_data, colWidths=self.table_widths['risk_table'])
             summary_table.setStyle(self.table_styles['risk'])
@@ -108,7 +128,10 @@ class RiskAnalysisPage(PropertyBasePage):
 
             factors_data = [["Risk Factor", "Assessment"]]
             for factor, assessment in risk_assessment['key_factors'].items():
-                factors_data.append([factor, assessment])
+                factors_data.append([
+                    Paragraph(str(factor), normal),
+                    Paragraph(str(assessment), normal),
+                ])
 
             factors_table = Table(factors_data, colWidths=self.table_widths['two_col'])
             factors_table.setStyle(self.table_styles['standard'])
@@ -121,7 +144,10 @@ class RiskAnalysisPage(PropertyBasePage):
 
             recommendations_data = [["Priority", "Recommended Action"]]
             for i, recommendation in enumerate(risk_assessment['recommendations'], 1):
-                recommendations_data.append([f"Priority {i}", recommendation])
+                recommendations_data.append([
+                    Paragraph(f"Priority {i}", normal),
+                    Paragraph(str(recommendation), normal),
+                ])
 
             recommendations_table = Table(recommendations_data, colWidths=self.table_widths['two_col'])
             recommendations_table.setStyle(self.table_styles['standard'])

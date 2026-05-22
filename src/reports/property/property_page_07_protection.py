@@ -109,26 +109,55 @@ class ProtectionPage(PropertyBasePage):
             if risk_assessment:
                 elements.append(Paragraph("Insurance & Risk Assessment", self.styles['SubSectionHeader']))
 
-                insurance_data = [["Insurance Factor", "Details"]]
+                # Insurance Body Ratings
+                ins_ratings = risk_assessment.get('InsuranceBodyRatings', {})
+                if ins_ratings:
+                    ins_data = [["Insurance Rating", "Details"]]
+                    ins_data.append(["Rating Body", ins_ratings.get('InsuranceRatingBody', '—')])
+                    ins_data.append(["Risk Rating", ins_ratings.get('InsuranceRating', '—')])
+                    ins_data.append(["Rating Date", ins_ratings.get('InsuranceDate', '—')])
+                    ins_data.append(["Version", ins_ratings.get('InsuranceRatingVersion', '—')])
+                    ins_table = Table(ins_data, colWidths=self.table_widths['two_col'])
+                    ins_table.setStyle(self.table_styles['financial'])
+                    elements.append(ins_table)
+                    elements.append(Spacer(1, self.spacing['table_bottom']))
 
-                # Insurance premium and details
-                premium = risk_assessment.get('InsurancePremium')
-                if isinstance(premium, (int, float)):
-                    insurance_data.append(["Annual Insurance Premium", self._format_currency(premium)])
+                # BRI / Governing Body Ratings
+                bri = risk_assessment.get('GoverningBodyRatings', {})
+                if bri:
+                    elements.append(Spacer(1, self.spacing['minor_section']))
+                    bri_data = [["BRI Governing Body Rating", "Value"]]
+                    bri_data.append(["Rating Agent", bri.get('BRIRatingAgent', '—')])
+                    bri_data.append(["Version", bri.get('BRIRatingVersion', '—')])
+                    bri_data.append(["Rating Date", bri.get('BRIDate', '—')])
+                    bri_data.append(["Overall BRI Rating", bri.get('BRIRating', '—')])
+                    bri_data.append(["Overall BRI Score", f"{bri['BRIScore']:.4f}" if isinstance(bri.get('BRIScore'), float) else '—'])
+                    bri_data.append(["Flood Rating / Score", f"{bri.get('BRIFloodRating','—')} / {bri['BRIFloodScore']:.4f}" if isinstance(bri.get('BRIFloodScore'), float) else '—'])
+                    bri_data.append(["Wind Rating / Score",  f"{bri.get('BRIWindRating','—')} / {bri['BRIWindScore']:.4f}"  if isinstance(bri.get('BRIWindScore'), float)  else '—'])
+                    bri_data.append(["Fire Rating / Score",  f"{bri.get('BRIFireRating','—')} / {bri['BRIFireScore']:.4f}"  if isinstance(bri.get('BRIFireScore'), float)  else '—'])
+                    bri_data.append(["Seismic Rating / Score", f"{bri.get('BRISeismicRating','—')} / {bri['BRISeismicScore']:.4f}" if isinstance(bri.get('BRISeismicScore'), float) else '—'])
+                    bri_table = Table(bri_data, colWidths=self.table_widths['two_col'])
+                    bri_table.setStyle(self.table_styles['financial'])
+                    elements.append(bri_table)
+                    elements.append(Spacer(1, self.spacing['table_bottom']))
 
-                excess = risk_assessment.get('ExcessAmount')
-                if isinstance(excess, (int, float)):
-                    insurance_data.append(["Insurance Excess", self._format_currency(excess)])
-
-                # Insurance status and eligibility
-                for key, value in risk_assessment.items():
-                    if key not in ['InsurancePremium', 'ExcessAmount'] and value is not None:
-                        insurance_data.append([self._format_field_name(key), self._format_value(value)])
-
-                insurance_table = Table(insurance_data, colWidths=self.table_widths['two_col'])
-                insurance_table.setStyle(self.table_styles['financial'])
-                elements.append(insurance_table)
-                elements.append(Spacer(1, self.spacing['table_bottom']))
+                # Any remaining scalar fields
+                skip = {'InsuranceBodyRatings', 'GoverningBodyRatings', 'InsurancePremium', 'ExcessAmount'}
+                extra = [(k, v) for k, v in risk_assessment.items() if k not in skip and not isinstance(v, dict) and v is not None]
+                if extra:
+                    extra_data = [["Insurance Factor", "Details"]]
+                    premium = risk_assessment.get('InsurancePremium')
+                    if isinstance(premium, (int, float)):
+                        extra_data.append(["Annual Insurance Premium", self._format_currency(premium)])
+                    excess = risk_assessment.get('ExcessAmount')
+                    if isinstance(excess, (int, float)):
+                        extra_data.append(["Insurance Excess", self._format_currency(excess)])
+                    for k, v in extra:
+                        extra_data.append([self._format_field_name(k), self._format_value(v)])
+                    extra_table = Table(extra_data, colWidths=self.table_widths['two_col'])
+                    extra_table.setStyle(self.table_styles['financial'])
+                    elements.append(extra_table)
+                    elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # RESILIENCE MEASURES
             resilience_measures = protection_data.get('ResilienceMeasures', {})
@@ -136,75 +165,62 @@ class ProtectionPage(PropertyBasePage):
                 elements.append(Spacer(1, self.spacing['minor_section']))
                 elements.append(Paragraph("Resilience Measures", self.styles['SubSectionHeader']))
 
-                # Calculate coverage statistics
-                installed_count = sum(1 for value in resilience_measures.values() if value)
-                total_count = len(resilience_measures)
-                coverage_percentage = (installed_count / total_count * 100) if total_count > 0 else 0
+                # Coverage summary across all subsections
+                all_values = [
+                    v for sub in resilience_measures.values()
+                    if isinstance(sub, dict) for v in sub.values()
+                ]
+                total_count = len(all_values)
+                enhanced_count = sum(1 for v in all_values if str(v).lower() == 'enhanced')
+                meets_count = sum(1 for v in all_values if 'meets' in str(v).lower())
+                partial_count = sum(1 for v in all_values if str(v).lower() == 'partial')
+                none_count = sum(1 for v in all_values if str(v).lower() == 'none')
 
-                # Summary statistics
-                summary_data = [["Protection Summary", "Status"]]
-                summary_data.append(["Measures Installed", f"{installed_count} of {total_count}"])
-                summary_data.append(["Coverage Percentage", f"{coverage_percentage:.1f}%"])
-
-                # Coverage assessment
-                if coverage_percentage >= 80:
+                pct_full = ((enhanced_count + meets_count) / total_count * 100) if total_count else 0
+                if pct_full >= 80:
                     coverage_rating = "Excellent - Comprehensive protection"
-                elif coverage_percentage >= 60:
+                elif pct_full >= 60:
                     coverage_rating = "Good - Well protected"
-                elif coverage_percentage >= 40:
+                elif pct_full >= 40:
                     coverage_rating = "Fair - Moderate protection"
-                elif coverage_percentage >= 20:
-                    coverage_rating = "Limited - Basic protection only"
                 else:
-                    coverage_rating = "Poor - Minimal protection"
+                    coverage_rating = "Limited - Significant gaps present"
 
-                summary_data.append(["Protection Rating", coverage_rating])
+                summary_data = [["Protection Summary", "Count"]]
+                summary_data.append(["Total Measures Assessed", str(total_count)])
+                summary_data.append(["Enhanced", str(enhanced_count)])
+                summary_data.append(["Meets Minimum Standard", str(meets_count)])
+                summary_data.append(["Partial", str(partial_count)])
+                summary_data.append(["None", str(none_count)])
+                summary_data.append(["Overall Rating", coverage_rating])
 
                 summary_table = Table(summary_data, colWidths=self.table_widths['two_col'])
                 summary_table.setStyle(self.table_styles['protection'])
                 elements.append(summary_table)
                 elements.append(Spacer(1, self.spacing['table_bottom']))
 
-                # Detailed measures list
-                elements.append(Spacer(1, self.spacing['minor_section']))
-                elements.append(Paragraph("Installed Protection Measures", self.styles['SubSectionHeader']))
+                # Detailed measures by subsection
+                _SUBSECTION_LABELS = [
+                    ('FloodProtection',    'Flood Protection'),
+                    ('SiteAndDrainage',    'Site & Drainage'),
+                    ('BuildingAssessment', 'Building Assessment'),
+                    ('FireProtection',     'Fire Protection'),
+                    ('ContinuityMeasures', 'Continuity Measures'),
+                ]
 
-                measures_data = [["Protection Measure", "Status"]]
-
-                # Group measures by category for better presentation
-                critical_measures = ['FloodGates', 'FloodBarriers', 'SumpPump', 'NonReturnValves']
-                building_measures = ['WaterproofFlooring', 'RaisedElectricals', 'WaterproofPlaster']
-                emergency_measures = ['FloodWarningSystem', 'EmergencyKit', 'SandBags']
-
-                # Show critical measures first
-                for measure in critical_measures:
-                    if measure in resilience_measures:
-                        status = "✓ Installed" if resilience_measures[measure] else "✗ Not Installed"
-                        measures_data.append([self._format_field_name(measure), status])
-
-                # Then building measures
-                for measure in building_measures:
-                    if measure in resilience_measures:
-                        status = "✓ Installed" if resilience_measures[measure] else "✗ Not Installed"
-                        measures_data.append([self._format_field_name(measure), status])
-
-                # Finally emergency measures
-                for measure in emergency_measures:
-                    if measure in resilience_measures:
-                        status = "✓ Installed" if resilience_measures[measure] else "✗ Not Installed"
-                        measures_data.append([self._format_field_name(measure), status])
-
-                # Any remaining measures
-                all_categorized = critical_measures + building_measures + emergency_measures
-                for measure, value in resilience_measures.items():
-                    if measure not in all_categorized:
-                        status = "✓ Installed" if value else "✗ Not Installed"
-                        measures_data.append([self._format_field_name(measure), status])
-
-                measures_table = Table(measures_data, colWidths=self.table_widths['two_col'])
-                measures_table.setStyle(self.table_styles['protection'])
-                elements.append(measures_table)
-                elements.append(Spacer(1, self.spacing['table_bottom']))
+                for section_key, section_label in _SUBSECTION_LABELS:
+                    section = resilience_measures.get(section_key, {})
+                    if not section:
+                        continue
+                    elements.append(Spacer(1, self.spacing['minor_section']))
+                    elements.append(Paragraph(section_label, self.styles['SubSectionHeader']))
+                    rows = [["Measure", "Rating"]]
+                    for field, value in section.items():
+                        rows.append([self._format_field_name(field), str(value) if value is not None else '—'])
+                    tbl = Table(rows, colWidths=self.table_widths['two_col'])
+                    tbl.setStyle(self.table_styles['protection'])
+                    elements.append(tbl)
+                    elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # NATURAL PROTECTION MEASURES
             natural_measures = protection_data.get('NaturalMeasures', {})
@@ -235,9 +251,16 @@ class ProtectionPage(PropertyBasePage):
 
             recommendations = self._generate_protection_recommendations(protection_data)
 
-            rec_data = [["Recommendation Category", "Suggested Actions"]]
-            for category, actions in recommendations.items():
-                rec_data.append([category, actions])
+            rec_data = [[
+                Paragraph("Recommendation Category", self.styles['TableHeader']),
+                Paragraph("Suggested Actions", self.styles['TableHeader']),
+            ]]
+            normal = self.styles['Normal']
+            for category, items in recommendations.items():
+                item_list = items if isinstance(items, list) else [items]
+                for i, action in enumerate(item_list):
+                    label = Paragraph(category if i == 0 else '', normal)
+                    rec_data.append([label, Paragraph(action, normal)])
 
             rec_table = Table(rec_data, colWidths=self.table_widths['two_col'])
             rec_table.setStyle(self.table_styles['standard'])
@@ -256,27 +279,31 @@ class ProtectionPage(PropertyBasePage):
         recommendations = {}
 
         resilience_measures = protection_data.get('ResilienceMeasures', {})
-        natural_measures = protection_data.get('NaturalMeasures', {})
 
-        # Check for missing critical measures
-        missing_critical = []
-        critical_measures = ['FloodGates', 'FloodBarriers', 'SumpPump', 'NonReturnValves']
+        # Flag any flood protection items rated Partial or None
+        flood_prot = resilience_measures.get('FloodProtection', {})
+        needs_attention = [
+            f"Upgrade {self._format_field_name(k)} (currently: {v})"
+            for k, v in flood_prot.items()
+            if str(v).lower() in ('partial', 'none', '')
+        ]
+        if needs_attention:
+            recommendations["Flood Protection"] = needs_attention
 
-        for measure in critical_measures:
-            if not resilience_measures.get(measure, False):
-                missing_critical.append(self._format_field_name(measure))
-
-        if missing_critical:
-            recommendations["Priority Installations"] = "Install: " + ", ".join(missing_critical)
-
-        # Check natural measures
-        if not any(natural_measures.values()):
-            recommendations["Natural Solutions"] = "Consider implementing sustainable drainage solutions"
+        # Flag site/drainage gaps
+        site = resilience_measures.get('SiteAndDrainage', {})
+        site_gaps = [
+            f"Address {self._format_field_name(k)} (currently: {v})"
+            for k, v in site.items()
+            if str(v).lower() in ('partial', 'none', '')
+        ]
+        if site_gaps:
+            recommendations["Site & Drainage"] = site_gaps
 
         # Insurance recommendations
         risk_assessment = protection_data.get('RiskAssessment', {})
         flood_re_eligible = risk_assessment.get('FloodReEligible')
         if flood_re_eligible:
-            recommendations["Insurance"] = "Ensure Flood Re coverage is active for affordable premiums"
+            recommendations["Insurance"] = ["Ensure Flood Re coverage is active for affordable premiums"]
 
         return recommendations
