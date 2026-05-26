@@ -33,7 +33,8 @@ _CONFIG_PORT_KEYS: Dict[str, str] = {
     "first_storm_dominant_prob": "FIRST_STORM_DOMINANT_PROB",
     "correlation_prob": "CORRELATION_PROB",
     "default_intensity_weights": "DEFAULT_INTENSITY_WEIGHTS",
-    "catchment_base_precip": "CATCHMENT_BASE_PRECIP",
+    # (catchment_base_precip removed — per-catchment storm calibration
+    #  now lives in data/catch/<catchment>/storm.py)
     # Gauge propagation (port.py entries)
     "bankfull_offset_m": "BANKFULL_OFFSET_M",
     "n_nearest_gauges": "N_NEAREST_GAUGES",
@@ -231,7 +232,6 @@ def get_defaults() -> Dict[str, Any]:
                 "first_storm_dominant_prob": _p("FIRST_STORM_DOMINANT_PROB"),
                 "correlation_prob": _p("CORRELATION_PROB"),
                 "default_intensity_weights": dict(_p("DEFAULT_INTENSITY_WEIGHTS") or {}),
-                "catchment_base_precip": dict(_p("CATCHMENT_BASE_PRECIP") or {}),
                 "duration_params": duration_params,
                 "gap_params": gap_params,
                 "base_intensity_params": base_intensity,
