@@ -64,16 +64,13 @@ class TestSegmentFlagMembership:
     """
 
     def test_commercial_in_segment_flags_definition(self):
-        # Read the source and confirm args.commercial is listed in
-        # segment_flags so any future refactor of that list keeps the
-        # invariant.
+        # Read the orchestrator source and confirm args.commercial is in
+        # segment_flags so any future refactor keeps the invariant.
         from pathlib import Path
-        src = Path("app/commands/port.py").read_text()
-        # Find the segment_flags assignment and confirm 'args.commercial'
-        # appears inside the list literal.
+        src = Path("app/commands/port/orchestrator.py").read_text()
         import re
         m = re.search(r"segment_flags\s*=\s*\[(.*?)\]", src, re.DOTALL)
-        assert m, "segment_flags assignment not found"
+        assert m, "segment_flags assignment not found in orchestrator.py"
         assert "args.commercial" in m.group(1), (
             "args.commercial must be part of segment_flags so a bare "
             "--commercial does not trip the run_all shortcut")

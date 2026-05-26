@@ -12,16 +12,16 @@ from collections import Counter
 import pytest
 
 from port.rand.thames.commercial.commercial_random import (
+    ANCHOR_TENANT_POOL,
     COMMERCIAL_TYPE_ALLOCATION,
-    _ANCHOR_TENANT_POOL,
-    _TYPE_AREA_RANGE,
-    _TYPE_STOREYS,
-    _TYPE_TOTAL_UNITS,
-    _TYPE_VALUE_PER_SQM,
-    _period_from_year,
+    TYPE_AREA_RANGE,
+    TYPE_STOREYS,
+    TYPE_TOTAL_UNITS,
+    TYPE_VALUE_PER_SQM,
     generate_commercial_metadata,
     generate_field_value,
     get_commercial_type,
+    period_from_year,
 )
 
 
@@ -94,14 +94,14 @@ class TestGenerateCommercialMetadata:
     def test_area_within_type_range(self, idx, location):
         md = generate_commercial_metadata(idx, location)
         ctype = md["commercial_type"]
-        lo, hi = _TYPE_AREA_RANGE[ctype]
+        lo, hi = TYPE_AREA_RANGE[ctype]
         assert lo <= md["property_area"] <= hi
 
     @pytest.mark.parametrize("idx", range(10))
     def test_value_uses_per_sqm_range(self, idx, location):
         md = generate_commercial_metadata(idx, location)
         ctype = md["commercial_type"]
-        lo_psqm, hi_psqm = _TYPE_VALUE_PER_SQM[ctype]
+        lo_psqm, hi_psqm = TYPE_VALUE_PER_SQM[ctype]
         vf = location["value_factor"]
         # Value is rounded to nearest £1k, allow 10% tolerance for rounding.
         lo_val = md["property_area"] * lo_psqm * vf * 0.9
@@ -152,12 +152,12 @@ class TestGenerateFieldValue:
 
     def test_total_units_within_type_range(self, metadata):
         v = generate_field_value("TotalUnits", {}, 0, metadata)
-        lo, hi = _TYPE_TOTAL_UNITS[metadata["commercial_type"]]
+        lo, hi = TYPE_TOTAL_UNITS[metadata["commercial_type"]]
         assert lo <= v <= hi
 
     def test_number_of_storeys_within_range(self, metadata):
         v = generate_field_value("NumberOfStoreys", {}, 0, metadata)
-        lo, hi = _TYPE_STOREYS[metadata["commercial_type"]]
+        lo, hi = TYPE_STOREYS[metadata["commercial_type"]]
         assert lo <= v <= hi
 
     def test_yields_are_decimal_in_range(self, metadata):
@@ -174,13 +174,13 @@ class TestGenerateFieldValue:
         md = generate_commercial_metadata(0, {"name": "x", "elevation": 5,
                                               "vertical_offset": 1, "value_factor": 1})
         v = generate_field_value("AnchorTenant", {}, 0, md)
-        assert v in _ANCHOR_TENANT_POOL["Office"]
+        assert v in ANCHOR_TENANT_POOL["Office"]
 
     def test_anchor_tenant_hotel_pool(self):
         md = generate_commercial_metadata(6, {"name": "x", "elevation": 5,
                                               "vertical_offset": 1, "value_factor": 1})
         v = generate_field_value("AnchorTenant", {}, 6, md)
-        assert v in _ANCHOR_TENANT_POOL["Hotel"]
+        assert v in ANCHOR_TENANT_POOL["Hotel"]
 
     def test_delegates_to_residential_for_shared_fields(self, metadata):
         # EAFloodZone is a residential generator — it must produce a valid
@@ -218,4 +218,4 @@ class TestPeriodFromYear:
         (2026, "2009-Present"),
     ])
     def test_boundary_cases(self, year, expected):
-        assert _period_from_year(year) == expected
+        assert period_from_year(year) == expected

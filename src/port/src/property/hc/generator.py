@@ -28,6 +28,7 @@ import numpy as np
 
 from config import config
 from models.hazard.terrain_grid import compute_terrain_grid
+from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 from port.utils.generator_base import GeneratorInitMixin
 
 from .constants import MIN_PRS_SPREAD_BPS, TENORS
@@ -42,17 +43,16 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
     """
     Property-level hazard curve, PRS pricing, and basis calculator.
 
-    Reads propertyts output, counts severe flood events, computes
+    Reads the asset ts output, counts severe flood events, computes
     spread as event_count / num_scenarios, and calculates basis
     against the synthetic gauge.
+
+    Asset-type-specific knobs (input ts dir, output JSON filename, id
+    prefix) come from ``ASSET_CONFIG``. Subclass and override that single
+    attribute for other asset classes (e.g. commercial).
     """
 
-    # Map mode -> (input dir, output filename)
-    _MODE_IO = {
-        "normal": ("propertyts", "propertyhc.json"),
-        "shd": ("propertytsd", "propertyshd.json"),
-        "she": ("propertytse", "propertyshe.json"),
-    }
+    ASSET_CONFIG: AssetTypeConfig = RESIDENTIAL_CONFIG
 
     def __init__(
         self,
@@ -72,19 +72,21 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         Returns:
             Dictionary with generation metadata and summary statistics.
         """
-        pts_subdir, output_filename = self._MODE_IO[self.mode]
+        cfg = self.ASSET_CONFIG
+        pts_subdir = cfg.ts_dirs[self.mode]
+        output_filename = cfg.hc_files[self.mode]
         mode_label = f" [{self.mode}]" if self.mode != "normal" else ""
-        self.log(f"Property Hazard Curve Generator{mode_label}")
+        self.log(f"{cfg.label} Hazard Curve Generator{mode_label}")
         self.log(f"Catchment: {config.CATCHMENT}")
 
         pts_dir = self.output_dir / pts_subdir
         if not pts_dir.exists():
             raise FileNotFoundError(
-                f"Property timeseries directory not found: {pts_dir}\n"
+                f"{cfg.label} timeseries directory not found: {pts_dir}\n"
                 f"Run: python app.py port --{pts_subdir} first"
             )
 
-        property_files = sorted(pts_dir.glob('PROP-*.json'))
+        property_files = sorted(pts_dir.glob(cfg.id_glob))
         self.log(f"Found {len(property_files)} property timeseries files")
 
         gauge_hazard, num_storms = self._load_gauge_hazard_curves()
@@ -161,20 +163,24 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
 
     def attach_spread_decomposition(self) -> int:
         """
-        Post-processing: attach spread decompositions to propertyhc.json.
+        Post-processing: attach spread decompositions to the normal hc file.
 
-        Loads propertyhc.json, propertyshd.json, and propertyshe.json,
-        then computes the data-driven spread decomposition for each property.
+        Loads the configured asset-type's normal / shd / she hc files
+        (e.g. propertyhc.json / propertyshd.json / propertyshe.json for
+        residential; commercialhc.json / commercialshd.json /
+        commercialshe.json for commercial) and computes the data-driven
+        spread decomposition for each asset.
 
         Returns:
-            Number of properties with decomposition attached.
+            Number of assets with decomposition attached.
         """
-        hc_path = self.output_dir / 'propertyhc.json'
-        shd_path = self.output_dir / 'propertyshd.json'
-        she_path = self.output_dir / 'propertyshe.json'
+        cfg = self.ASSET_CONFIG
+        hc_path = self.output_dir / cfg.hc_files["normal"]
+        shd_path = self.output_dir / cfg.hc_files["shd"]
+        she_path = self.output_dir / cfg.hc_files["she"]
 
         if not hc_path.exists():
-            self.log("propertyhc.json not found — skipping decomposition")
+            self.log(f"{hc_path.name} not found — skipping decomposition")
             return 0
 
         with open(hc_path, 'r') as f:
