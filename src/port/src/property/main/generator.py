@@ -217,16 +217,11 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
 def generate_properties(
     count: int = 200,
     output_dir: Optional[Path] = None,
-    catchment_id: Optional[str] = None
 ) -> Dict:
-    """
-    Convenience function to generate property portfolio.
+    """Convenience function to generate property portfolio.
 
-    If catchment_id is provided, set config.CATCHMENT accordingly before loading
-    random/params modules, otherwise use existing config.CATCHMENT.
+    The active catchment is taken from ``config.catchment_id`` (set by
+    the CLI / server entry point). This function no longer mutates it.
     """
-    if catchment_id is not None:
-        config.CATCHMENT = catchment_id.lower()
-
     generator = PropertyPortfolioGenerator(output_dir=output_dir)
     return generator.generate(count=count)
