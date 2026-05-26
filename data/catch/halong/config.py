@@ -54,7 +54,7 @@ from typing import Dict, List, Tuple
 import math
 import random
 
-from .base import BaseCatchment
+from ..base import BaseCatchment
 
 
 # =============================================================================
