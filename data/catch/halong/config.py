@@ -65,296 +65,117 @@ from ..base import BaseCatchment
 # Ordered west to east (upstream to downstream): Reading → Purfleet (52 total)
 # Indices 0-11: non-tidal upstream reach (Reading to Teddington Lock)
 # Indices 12-51: tidal Thames (Richmond Lock to Purfleet)
+# Red River gauges through Hanoi (lat, lon, elevation_meters).
+# Ordered upstream (NW) → downstream (SE), snapped near the polyline
+# in river_polyline.json. Elevations reflect typical Red River bank
+# levels around Hanoi (~5–10 m above sea level).
 GAUGE_POINTS = [
-    # --- Upstream non-tidal reach ---
-    (51.4624, -0.9622, 42.00),  #  0 Reading / Caversham Bridge
-    (51.5348, -0.8998, 38.20),  #  1 Henley-on-Thames
-    (51.5723, -0.7742, 33.80),  #  2 Marlow Bridge
-    (51.5575, -0.7227, 30.50),  #  3 Cookham
-    (51.5098, -0.6835, 27.20),  #  4 Maidenhead Bridge
-    (51.4839, -0.6077, 24.50),  #  5 Windsor / Eton Bridge
-    (51.4325, -0.5087, 22.00),  #  6 Staines Bridge
-    (51.3818, -0.5003, 20.10),  #  7 Chertsey Bridge
-    (51.3882, -0.4157, 18.20),  #  8 Walton Bridge
-    (51.4034, -0.3413, 16.50),  #  9 Hampton Court Bridge
-    (51.4104, -0.3075, 15.00),  # 10 Kingston Bridge
-    (51.4238, -0.3309, 13.80),  # 11 Teddington Lock (tidal limit)
-    # --- Tidal Thames ---
-    (51.4573, -0.3072, 11.13), (51.4600, -0.3032, 10.86),
-    (51.4724, -0.2686, 10.44), (51.4709, -0.2636, 10.01),
-    (51.4723, -0.2546, 9.91), (51.4752, -0.2246, 9.04),
-    (51.4882, -0.2304, 8.01), (51.4741, -0.2236, 7.91),
-    (51.4669, -0.2131, 7.81), (51.4641, -0.1982, 7.71),
-    (51.4720, -0.1800, 7.61), (51.4834, -0.1581, 7.51),
-    (51.4844, -0.1442, 7.41), (51.4843, -0.1347, 7.31),
-    (51.4900, -0.1250, 7.21), (51.5006, -0.1218, 7.11),
-    (51.5098, -0.1104, 7.01), (51.5063, -0.1203, 6.91),
-    (51.5099, -0.1049, 6.81), (51.5099, -0.1044, 6.71),
-    (51.5092, -0.0954, 6.61), (51.5079, -0.0878, 6.51),
-    (51.5055, -0.0753, 6.41), (51.5024, -0.0653, 6.31),
-    (51.5030, -0.0544, 6.21), (51.4970, -0.0302, 6.11),
-    (51.4939, -0.0291, 6.01), (51.4910, -0.0048, 5.91),
-    (51.4896, -0.0007, 5.81), (51.4855, -0.0069, 5.71),
-    (51.4872, -0.0029, 5.61), (51.4960, 0.0278, 5.51),
-    (51.4969, 0.0368, 5.41), (51.4965, 0.0574, 5.31),
-    (51.4971, 0.0693, 5.21), (51.4988, 0.0758, 5.11),
-    (51.4854, 0.1851, 5.01), (51.4842, 0.1963, 4.91),
-    (51.4707, 0.2442, 4.81), (51.4581, 0.2855, 4.00),
+    (21.075, 105.840, 9.00),   # 0 Nhật Tân Bridge (upstream)
+    (21.045, 105.870, 7.50),   # 1 Long Biên / Chương Dương Bridge (mid)
+    (21.015, 105.900, 6.00),   # 2 Vĩnh Tuy Bridge (downstream)
 ]
 
-# London and upstream Thames areas
+# Hanoi districts along the Red River (right bank + east bank).
 AREAS = [
-    # Upstream non-tidal (12)
-    "Reading", "Henley", "Marlow", "Cookham",
-    "Maidenhead", "Windsor", "Staines", "Chertsey",
-    "Walton", "Hampton", "Kingston", "Teddington",
-    # Tidal Thames (30 — existing)
-    "Chelsea", "Kensington", "Westminster", "Camden", "Islington",
-    "Hackney", "Tower Hamlets", "Southwark", "Lambeth", "Wandsworth",
-    "Greenwich", "Lewisham", "Hammersmith", "Fulham", "Richmond",
-    "Newham", "Barking", "Dagenham", "Havering", "Bexley",
-    "Tilbury", "Thurrock", "Grays", "Purfleet", "Dartford",
-    "Erith", "Belvedere", "Thamesmead", "Abbey Wood", "Woolwich"
+    "Tây Hồ",        # NW, by West Lake
+    "Ba Đình",       # central government district
+    "Hoàn Kiếm",     # old quarter
+    "Long Biên",     # east bank, across the Red River
+    "Hai Bà Trưng",  # south of Hoàn Kiếm
+    "Hoàng Mai",     # south
+    "Đống Đa",       # southwest of Hoàn Kiếm
 ]
 
-# Gauge short names: one per GAUGE_POINTS entry (52 total), ordered west to east
-# These are real Thames-side locations matching the gauge coordinates
+# One name per GAUGE_POINTS entry, ordered upstream → downstream.
 GAUGE_NAMES = [
-    # Upstream non-tidal reach (indices 0-11)
-    "Caversham Bridge",     #  0 (-0.9622) Reading
-    "Marsh Lock",           #  1 (-0.8998) Henley-on-Thames
-    "Marlow Bridge",        #  2 (-0.7742) Marlow
-    "Cookham Bridge",       #  3 (-0.7227) Cookham
-    "Maidenhead Bridge",    #  4 (-0.6835) Maidenhead
-    "Windsor Bridge",       #  5 (-0.6077) Windsor / Eton
-    "Staines Bridge",       #  6 (-0.5087) Staines-upon-Thames
-    "Chertsey Bridge",      #  7 (-0.5003) Chertsey
-    "Walton Bridge",        #  8 (-0.4157) Walton-on-Thames
-    "Hampton Court Bridge", #  9 (-0.3413) Hampton Court
-    "Kingston Bridge",      # 10 (-0.3075) Kingston-upon-Thames
-    "Teddington Lock",      # 11 (-0.3309) Tidal limit
-    # Tidal Thames (indices 12-51)
-    "Richmond Lock",        # 12 (-0.3072) Richmond
-    "Richmond Bridge",      # 13 (-0.3032)
-    "Kew Bridge",           # 14 (-0.2686)
-    "Kew Gardens",          # 15 (-0.2636)
-    "Chiswick Bridge",      # 16 (-0.2546)
-    "Barnes Bridge",        # 17 (-0.2246)
-    "Hammersmith Bridge",   # 18 (-0.2304)
-    "Putney Bridge",        # 19 (-0.2236)
-    "Wandsworth Bridge",    # 20 (-0.2131)
-    "Battersea Bridge",     # 21 (-0.1982)
-    "Chelsea Bridge",       # 22 (-0.1800)
-    "Vauxhall Bridge",      # 23 (-0.1581)
-    "Lambeth Bridge",       # 24 (-0.1442)
-    "Westminster Bridge",   # 25 (-0.1347)
-    "Hungerford Bridge",    # 26 (-0.1250)
-    "Waterloo Bridge",      # 27 (-0.1218)
-    "Blackfriars Bridge",   # 28 (-0.1104)
-    "Millennium Bridge",    # 29 (-0.1203)
-    "Southwark Bridge",     # 30 (-0.1049)
-    "Cannon Street",        # 31 (-0.1044)
-    "London Bridge",        # 32 (-0.0954)
-    "Tower Bridge",         # 33 (-0.0878)
-    "Wapping",              # 34 (-0.0753)
-    "Rotherhithe",          # 35 (-0.0653)
-    "Limehouse",            # 36 (-0.0544)
-    "Isle of Dogs",         # 37 (-0.0302)
-    "Deptford Creek",       # 38 (-0.0291)
-    "Greenwich Pier",       # 39 (-0.0048)
-    "Greenwich Reach",      # 40 (-0.0007)
-    "Blackwall",            # 41 (-0.0069)
-    "Blackwall Tunnel",     # 42 (-0.0029)
-    "Silvertown",           # 43 (0.0278)
-    "Royal Victoria Dock",  # 44 (0.0368)
-    "Royal Albert Dock",    # 45 (0.0574)
-    "King George V Dock",   # 46 (0.0693)
-    "Woolwich Ferry",       # 47 (0.0758)
-    "Barking Creek",        # 48 (0.1851)
-    "Dagenham Dock",        # 49 (0.1963)
-    "Rainham Marshes",      # 50 (0.2442)
-    "Purfleet",             # 51 (0.2855)
+    "Nhật Tân Bridge",    # 0
+    "Long Biên Bridge",   # 1
+    "Vĩnh Tuy Bridge",    # 2
 ]
 
-# Street names by area for address generation
+# Street names by Hanoi district (small starter set per AREAS entry).
 STREETS = {
-    # Upstream non-tidal reach
-    "Reading": [
-        "Caversham Road", "Bridge Street", "Kings Road", "London Street",
-        "Oxford Road", "Friar Street", "Queens Road"
+    "Tây Hồ": [
+        "Lạc Long Quân", "Âu Cơ", "Yên Phụ", "Quảng An", "Tô Ngọc Vân"
     ],
-    "Henley": [
-        "Hart Street", "Bell Street", "Duke Street", "Market Place",
-        "Friday Street", "Gravel Hill", "Reading Road"
+    "Ba Đình": [
+        "Hoàng Diệu", "Điện Biên Phủ", "Phan Đình Phùng", "Kim Mã", "Liễu Giai"
     ],
-    "Marlow": [
-        "High Street", "West Street", "Station Road", "Pound Lane",
-        "Oxford Road", "Spittal Street", "Dedmere Road"
+    "Hoàn Kiếm": [
+        "Tràng Tiền", "Hàng Bài", "Đinh Tiên Hoàng", "Phố Huế", "Hàng Bông"
     ],
-    "Cookham": [
-        "High Street", "Cookham Road", "Maidenhead Road", "Mill Lane",
-        "Lower Road", "Church Gate", "Station Road"
+    "Long Biên": [
+        "Nguyễn Văn Cừ", "Ngô Gia Tự", "Ngọc Lâm", "Cổ Linh", "Nguyễn Sơn"
     ],
-    "Maidenhead": [
-        "High Street", "Bridge Road", "King Street", "Queen Street",
-        "Boyn Valley Road", "Ray Mill Road", "Cookham Road"
+    "Hai Bà Trưng": [
+        "Bà Triệu", "Lò Đúc", "Trần Khát Chân", "Minh Khai", "Đại Cồ Việt"
     ],
-    "Windsor": [
-        "High Street", "Peascod Street", "Sheet Street", "St Leonard's Road",
-        "Frances Road", "Victoria Street", "Thames Street"
+    "Hoàng Mai": [
+        "Giải Phóng", "Trương Định", "Tân Mai", "Tam Trinh", "Lĩnh Nam"
     ],
-    "Staines": [
-        "High Street", "Church Street", "Kingston Road", "Clarence Street",
-        "Gresham Road", "Laleham Road", "Stanwell Road"
+    "Đống Đa": [
+        "Tôn Đức Thắng", "Khâm Thiên", "Tây Sơn", "Nguyễn Lương Bằng", "Phạm Ngọc Thạch"
     ],
-    "Chertsey": [
-        "Bridge Road", "Guildford Street", "Windsor Street", "London Street",
-        "Free Prae Road", "Heriot Road", "Chilsey Green Road"
-    ],
-    "Walton": [
-        "Bridge Street", "High Street", "Manor Road", "Hersham Road",
-        "Terrace Road", "Ashley Road", "Halfway"
-    ],
-    "Hampton": [
-        "High Street", "Thames Street", "Station Road", "Park Road",
-        "Church Street", "Ripley Road", "Uxbridge Road"
-    ],
-    "Kingston": [
-        "High Street", "Thames Street", "Eden Street", "Clarence Street",
-        "Richmond Road", "Kings Passage", "Market Place"
-    ],
-    "Teddington": [
-        "High Street", "Broad Street", "Park Road", "Station Road",
-        "Twickenham Road", "Kingston Road", "Sandy Lane"
-    ],
-    # Tidal Thames
-    "Chelsea": [
-        "Kings Road", "Cheyne Walk", "Royal Avenue", "Sloane Square",
-        "Flood Street", "Beaufort Street", "Chelsea Embankment"
-    ],
-    "Kensington": [
-        "Kensington High Street", "Holland Park", "Pembroke Road",
-        "Kensington Court", "Campden Hill Road", "Phillimore Gardens"
-    ],
-    "Westminster": [
-        "Victoria Street", "Whitehall", "Birdcage Walk", "Great Smith Street",
-        "Millbank", "Horseferry Road", "Page Street"
-    ],
-    "Camden": [
-        "Camden High Street", "Parkway", "Chalk Farm Road", "Delancey Street",
-        "Arlington Road", "Jamestown Road"
-    ],
-    "Islington": [
-        "Upper Street", "Liverpool Road", "Essex Road", "Canonbury Square",
-        "St Peters Street", "Cross Street"
-    ],
-    "Hackney": [
-        "Mare Street", "Broadway Market", "Kingsland Road", "Dalston Lane",
-        "Graham Road", "Morning Lane"
-    ],
-    "Tower Hamlets": [
-        "Commercial Road", "Brick Lane", "Cable Street", "Roman Road",
-        "Mile End Road", "Whitechapel Road"
-    ],
-    "Southwark": [
-        "Borough High Street", "Long Lane", "Tower Bridge Road", "Bermondsey Street",
-        "Tooley Street", "Jamaica Road"
-    ],
-    "Lambeth": [
-        "Kennington Road", "Lambeth Road", "Albert Embankment", "Camberwell New Road",
-        "Brixton Road", "Westminster Bridge Road"
-    ],
-    "Wandsworth": [
-        "Wandsworth High Street", "East Hill", "Trinity Road", "Lavender Hill",
-        "Battersea Park Road", "York Road"
-    ],
-    "Greenwich": [
-        "Greenwich High Road", "Trafalgar Road", "Woolwich Road", "Creek Road",
-        "Blackwall Lane", "Tunnel Avenue"
-    ],
-    "Lewisham": [
-        "Lewisham High Street", "Lee High Road", "Loampit Vale", "Rushey Green",
-        "Brownhill Road", "Catford Road"
-    ],
-    "Hammersmith": [
-        "King Street", "Hammersmith Road", "Shepherds Bush Road", "Fulham Palace Road",
-        "Glenthorne Road", "Beadon Road"
-    ],
-    "Fulham": [
-        "Fulham Road", "New Kings Road", "Lillie Road", "North End Road",
-        "Munster Road", "Parsons Green Lane"
-    ],
-    "Richmond": [
-        "George Street", "Hill Street", "The Quadrant", "Kew Road",
-        "Sheen Road", "Paradise Road"
-    ]
 }
 
-# Property value factors by London area (multiplier of base value)
+# Property value factor by Hanoi district. Central/embassy districts
+# (Hoàn Kiếm, Ba Đình, Tây Hồ) carry a premium; eastern Long Biên and
+# southern Hoàng Mai sit below the city average.
 AREA_VALUE_FACTORS = {
-    # Upstream non-tidal reach
-    'Reading': 0.9, 'Henley': 1.1, 'Marlow': 1.2, 'Cookham': 1.1,
-    'Maidenhead': 1.0, 'Windsor': 1.3, 'Staines': 0.9, 'Chertsey': 0.9,
-    'Walton': 1.1, 'Hampton': 1.2, 'Kingston': 1.3, 'Teddington': 1.3,
-    # Tidal Thames
-    'Chelsea': 2.0, 'Kensington': 1.9, 'Westminster': 1.8,
-    'Camden': 1.5, 'Islington': 1.4, 'Hackney': 1.2,
-    'Tower Hamlets': 1.3, 'Southwark': 1.2, 'Lambeth': 1.1,
-    'Wandsworth': 1.4, 'Greenwich': 1.3, 'Lewisham': 1.1,
-    'Hammersmith': 1.5, 'Fulham': 1.4, 'Richmond': 1.6,
-    'Newham': 1.0, 'Barking': 0.9, 'Dagenham': 0.8,
-    'Havering': 0.9, 'Bexley': 0.9, 'Tilbury': 0.7,
-    'Thurrock': 0.8, 'Grays': 0.7, 'Purfleet': 0.8,
-    'Dartford': 0.9, 'Erith': 0.8, 'Belvedere': 0.8,
-    'Thamesmead': 0.9, 'Abbey Wood': 0.9, 'Woolwich': 1.0
+    "Tây Hồ": 1.6,
+    "Ba Đình": 1.5,
+    "Hoàn Kiếm": 1.8,
+    "Long Biên": 0.9,
+    "Hai Bà Trưng": 1.2,
+    "Hoàng Mai": 0.9,
+    "Đống Đa": 1.3,
 }
 
-# UK flood decision bodies
+# Vietnamese flood decision bodies
 FLOOD_DECISION_BODIES = [
-    "Environment Agency",
-    "Department for Environment, Food and Rural Affairs",
-    "Natural Resources Wales",
-    "Scottish Environment Protection Agency"
+    "Vietnam Disaster Management Authority (VDMA)",
+    "Ministry of Agriculture and Rural Development (MARD)",
+    "Hanoi People's Committee — Department of Construction",
+    "Central Steering Committee for Natural Disaster Prevention and Control",
 ]
 
-# Gauge owners in Thames region
+# Gauge owners around Hanoi / Red River
 GAUGE_OWNERS = [
-    "Environment Agency",
-    "Thames Water",
-    "Local Authority",
-    "Met Office",
-    "Research Institution"
+    "Vietnam Meteorological and Hydrological Administration (VMHA)",
+    "Northern Region Hydrometeorological Center",
+    "Red River Basin Authority",
+    "Hanoi University of Natural Resources and Environment",
 ]
 
 # Data curators
 DATA_CURATORS = [
-    "Environment Agency",
-    "Met Office",
-    "CEDA Archive",
-    "British Hydrological Society",
-    "Centre for Ecology & Hydrology"
+    "Vietnam Meteorological and Hydrological Administration (VMHA)",
+    "Mekong River Commission (regional reference)",
+    "ADB / World Bank flood datasets",
+    "Hanoi People's Committee Open Data",
 ]
 
-# UK mortgage lenders
+# Vietnam mortgage lenders (largest commercial banks active in Hanoi)
 MORTGAGE_LENDERS = [
-    "HSBC", "Barclays", "NatWest", "Lloyds", "Santander",
-    "Nationwide", "Halifax", "Royal Bank of Scotland",
-    "Yorkshire Building Society", "Coventry Building Society"
+    "Vietcombank", "BIDV", "VietinBank", "Agribank", "Techcombank",
+    "MB Bank", "VPBank", "ACB", "Sacombank", "HDBank",
 ]
 
-# Geographic bounds (min_lon, min_lat, max_lon, max_lat)
-BOUNDS = (-0.35, 51.41, 0.38, 51.52)
+# Geographic bounds for Hanoi central area (min_lon, min_lat, max_lon, max_lat).
+BOUNDS = (105.78, 20.96, 105.96, 21.10)
 
-# Center point for Thames catchment (approximate center of London/Thames)
-CENTER_LAT = 51.5074
-CENTER_LON = -0.1278
+# Center point: Hoàn Kiếm Lake, central Hanoi.
+CENTER_LAT = 21.0285
+CENTER_LON = 105.8542
 
-# Base property value in GBP
-BASE_PROPERTY_VALUE = 500000
+# Base property value in VND (₫). Roughly equivalent to a mid-range
+# central-Hanoi commercial unit; recalibrate after first run.
+BASE_PROPERTY_VALUE = 5_000_000_000
 
-# Elevation model parameters
-MAXSLOPEPERCENT = 2.0
-MAXRANDOMELEVATION = 10.0
+# Elevation model parameters (Red River basin is flatter than the
+# Thames — narrow band of riverside elevation).
+MAXSLOPEPERCENT = 1.0
+MAXRANDOMELEVATION = 6.0
 
 
 # =============================================================================
@@ -362,14 +183,16 @@ MAXRANDOMELEVATION = 10.0
 # =============================================================================
 
 class HalongCatchment(BaseCatchment):
-    """
-    Halong Bay catchment (Vietnam) — commercial-only.
+    """Halong / Hanoi Red River catchment (Vietnam) — commercial-only.
 
-    Currently a thames-shaped template: gauge points, areas, streets, and
-    value factors below are placeholder Thames values and need to be
-    replaced with real Halong data before generating a portfolio. Storm
-    parameters in port/rand/halong should also be recalibrated for the
-    South China Sea typhoon regime.
+    First-pass calibration: 3 gauges along the Red River through central
+    Hanoi (Nhật Tân → Long Biên → Vĩnh Tuy), 7 right- and east-bank
+    districts, and Vietnamese banks / agencies for stamping commercial
+    loan and gauge records. Property values are denominated in VND.
+
+    Storm parameters in ``port/rand/halong`` are still thames-shaped
+    and will need recalibration for the South China Sea typhoon regime
+    before storms are generated.
     """
     
     # Expose module-level constants as class attributes
