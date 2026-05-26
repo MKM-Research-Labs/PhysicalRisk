@@ -10,9 +10,8 @@ import folium
 from config.format import property_title_py
 from ..popup_builder import PopupBuilder
 from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
-from .risk import get_mortgage_risk_summary, get_overall_risk_color
 from .sections import (create_property_section, create_flood_info_section,
-                       create_mortgage_section, create_mortgage_risk_section)
+                       create_mortgage_section)
 
 
 class PropertyPopupBuilder(PopupBuilder):
@@ -44,12 +43,8 @@ class PropertyPopupBuilder(PopupBuilder):
         """Create the mortgage information section for the popup."""
         return create_mortgage_section(self, mortgage_info, property_value, flood_risk_level)
 
-    def create_mortgage_risk_section(self, mortgage_risk_info) -> str:
-        """Create the mortgage risk analysis section for the popup."""
-        return create_mortgage_risk_section(self, mortgage_risk_info)
-
     # ------------------------------------------------------------------ #
-    # Private helpers — delegate to helpers.py and risk.py               #
+    # Private helpers — delegate to helpers.py                           #
     # ------------------------------------------------------------------ #
 
     def _calculate_ltv_ratio(self, loan_amount, property_value, mortgage_financial):
@@ -64,14 +59,6 @@ class PropertyPopupBuilder(PopupBuilder):
             mortgage_financial, loan_amount, interest_rate, term_years
         )
 
-    def _get_mortgage_risk_summary(self, flood_risk_level, mortgage_value,
-                                   loan_amount, ltv_ratio):
-        return get_mortgage_risk_summary(flood_risk_level, mortgage_value, loan_amount, ltv_ratio)
-
-    def _get_overall_risk_color(self, flood_risk_level, mortgage_value,
-                                loan_amount, ltv_ratio):
-        return get_overall_risk_color(flood_risk_level, mortgage_value, loan_amount, ltv_ratio)
-
     # ------------------------------------------------------------------ #
     # Assemblers                                                          #
     # ------------------------------------------------------------------ #
@@ -83,8 +70,7 @@ class PropertyPopupBuilder(PopupBuilder):
                                       property_value: Any, construction_year: Any,
                                       property_age_factor: str, has_mortgage: bool,
                                       mortgage_info: Optional[Dict[str, Any]] = None,
-                                      flood_info: Optional[Dict[str, Any]] = None,
-                                      mortgage_risk_info: Optional[Dict[str, Any]] = None) -> str:
+                                      flood_info: Optional[Dict[str, Any]] = None) -> str:
         """Create the complete popup content by aggregating different sections."""
         addr = address or {}
         prop_address = f"{addr.get('building_number', '')} {addr.get('street_name', '')}".strip()
@@ -105,11 +91,7 @@ class PropertyPopupBuilder(PopupBuilder):
                 flood_info.get('risk_level', 'Unknown') if flood_info else 'Unknown'
             )
 
-        mortgage_risk_section = ""
-        if mortgage_risk_info:
-            mortgage_risk_section = self.create_mortgage_risk_section(mortgage_risk_info)
-
-        content = header + property_section + flood_section + mortgage_section + mortgage_risk_section
+        content = header + property_section + flood_section + mortgage_section
         return self.create_popup_wrapper(content)
 
     def build_property_popup(self, prop: Dict[str, Any], property_id: str,
@@ -119,12 +101,11 @@ class PropertyPopupBuilder(PopupBuilder):
                              property_value: Any, construction_year: Any,
                              property_age_factor: str, has_mortgage: bool,
                              mortgage_info: Optional[Dict[str, Any]] = None,
-                             flood_info: Optional[Dict[str, Any]] = None,
-                             mortgage_risk_info: Optional[Dict[str, Any]] = None) -> folium.Popup:
+                             flood_info: Optional[Dict[str, Any]] = None) -> folium.Popup:
         """Build a complete property popup."""
         content = self.create_complete_popup_content(
             prop, property_id, address, coordinates, flood_risk, thames_proximity,
             ground_elevation, elevation_estimated, property_value, construction_year,
-            property_age_factor, has_mortgage, mortgage_info, flood_info, mortgage_risk_info
+            property_age_factor, has_mortgage, mortgage_info, flood_info,
         )
         return self.build_popup(content)

@@ -21,7 +21,7 @@
 """
 Tests for PropertyLayer popup methods — part 2.
 
-_create_mortgage_section, _create_mortgage_risk_section.
+_create_mortgage_section.
 """
 
 import pytest
@@ -97,51 +97,3 @@ class TestCreateMortgageSection:
         assert isinstance(html, str)
 
 
-# ===========================================================================
-# _create_mortgage_risk_section
-# ===========================================================================
-
-class TestCreateMortgageRiskSection:
-
-    def _risk_info(self, flood_risk="High", mortgage_value=230_000,
-                   loan_amount=250_000, property_value=500_000, flood_depth=0.5):
-        return {
-            "flood_risk_level": flood_risk,
-            "mortgage_value": mortgage_value,
-            "loan_amount": loan_amount,
-            "property_value": property_value,
-            "mortgage_value_at_risk": 50_000,
-            "flood_depth": flood_depth,
-        }
-
-    def test_returns_html_string(self):
-        layer = PropertyLayer()
-        html = layer._create_mortgage_risk_section(self._risk_info())
-        assert isinstance(html, str)
-        assert "MORTGAGE RISK ANALYSIS" in html
-
-    def test_includes_flood_risk_level(self):
-        layer = PropertyLayer()
-        html = layer._create_mortgage_risk_section(self._risk_info(flood_risk="High"))
-        assert "High" in html
-
-    def test_includes_mortgage_value(self):
-        layer = PropertyLayer()
-        html = layer._create_mortgage_risk_section(self._risk_info(mortgage_value=230_000))
-        assert "Mortgage Value" in html
-
-    def test_includes_risk_assessment(self):
-        layer = PropertyLayer()
-        html = layer._create_mortgage_risk_section(self._risk_info())
-        assert "Risk Assessment" in html
-
-    def test_zero_property_value_no_crash(self):
-        """property_value=0 -> ltv_ratio = 0 (no ZeroDivision)."""
-        layer = PropertyLayer()
-        html = layer._create_mortgage_risk_section(self._risk_info(property_value=0))
-        assert isinstance(html, str)
-
-    def test_low_risk_level(self):
-        layer = PropertyLayer()
-        html = layer._create_mortgage_risk_section(self._risk_info(flood_risk="Low"))
-        assert "Low" in html

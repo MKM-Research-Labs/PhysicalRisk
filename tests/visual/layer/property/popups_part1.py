@@ -39,29 +39,29 @@ class TestCreatePropertyPopup:
 
     def test_returns_html_string(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(), {}, False, {})
         assert isinstance(html, str)
         assert "<div" in html
 
     def test_contains_property_id(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info("PROP-007"), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info("PROP-007"), {}, False, {})
         assert "PROP-007" in html
 
     def test_contains_address(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(), {}, False, {})
         assert "Main St" in html
 
     def test_contains_property_details_section(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(), {}, False, {})
         assert "Property Details" in html
         assert "Detached" in html
 
     def test_coordinates_formatted(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(lat=51.5, lon=-0.1), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(lat=51.5, lon=-0.1), {}, False, {})
         assert "51.5" in html
 
     def test_coords_none_shows_na(self):
@@ -69,12 +69,12 @@ class TestCreatePropertyPopup:
         layer = PropertyLayer()
         info = make_property_info()
         info["coordinates"] = {"latitude": None, "longitude": None}
-        html = layer._create_property_popup(info, {}, False, {}, None)
+        html = layer._create_property_popup(info, {}, False, {})
         assert "N/A" in html
 
     def test_river_distance_formatted(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(river_dist=300), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(river_dist=300), {}, False, {})
         assert "300" in html
 
     def test_river_distance_na_string(self):
@@ -82,7 +82,7 @@ class TestCreatePropertyPopup:
         layer = PropertyLayer()
         info = make_property_info()
         info["river_distance_m"] = "N/A"
-        html = layer._create_property_popup(info, {}, False, {}, None)
+        html = layer._create_property_popup(info, {}, False, {})
         assert "N/A" in html
 
     def test_river_distance_none(self):
@@ -90,30 +90,30 @@ class TestCreatePropertyPopup:
         layer = PropertyLayer()
         info = make_property_info()
         info["river_distance_m"] = None
-        html = layer._create_property_popup(info, {}, False, {}, None)
+        html = layer._create_property_popup(info, {}, False, {})
         assert "N/A" in html
 
     def test_mortgage_section_included_when_has_mortgage(self):
         layer = PropertyLayer()
         html = layer._create_property_popup(
-            make_property_info(), {}, True, make_mortgage_info(), None
+            make_property_info(), {}, True, make_mortgage_info()
         )
         assert "MORTGAGE DETAILS" in html
 
     def test_mortgage_section_excluded_when_no_mortgage(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(), {}, False, {})
         assert "MORTGAGE DETAILS" not in html
 
     def test_elevation_section(self):
         layer = PropertyLayer()
-        html = layer._create_property_popup(make_property_info(ground_elevation=4.5), {}, False, {}, None)
+        html = layer._create_property_popup(make_property_info(ground_elevation=4.5), {}, False, {})
         assert "Elevation" in html
 
     def test_valuation_current_value(self):
         layer = PropertyLayer()
         info = make_property_info()
-        html = layer._create_property_popup(info, {}, False, {}, None)
+        html = layer._create_property_popup(info, {}, False, {})
         assert "Current Value" in html
 
 

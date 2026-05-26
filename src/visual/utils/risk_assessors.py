@@ -81,13 +81,6 @@ RiskAssessor.get_ltv_color = staticmethod(get_ltv_color)
 
 
 # Convenience functions for backward compatibility
-def assess_mortgage_risk_summary(flood_risk_level: str, mortgage_value: float,
-                               loan_amount: float, ltv_ratio: float) -> str:
-    """Generate mortgage risk summary (backward compatibility)."""
-    return RiskAssessor.assess_mortgage_risk(
-        flood_risk_level, mortgage_value, loan_amount, ltv_ratio
-    )
-
 def calculate_combined_risk(flood_risk: str, ltv_ratio: float) -> float:
     """Calculate combined risk score (backward compatibility)."""
     return RiskAssessor.calculate_combined_risk_score(flood_risk, ltv_ratio)

@@ -45,11 +45,3 @@ def mortgage_info():
         'Application': {'MortgageProvider': 'Thames Bank'},
     }
 
-@pytest.fixture
-def mortgage_risk_info():
-    return {
-        'MortgageID': 'MTG-001', 'loan_amount': 300000, 'interest_rate': 0.04,
-        'monthly_payment': 1582.0, 'annual_payment': 18984.0, 'credit_spread': 0.015,
-        'recovery_haircut': 0.1, 'mortgage_value': 285000.0, 'mortgage_value_at_risk': 12000.0,
-        'flood_risk_level': 'Medium', 'flood_risk_value': 0.3, 'flood_depth': 0.2, 'property_value': 400000,
-    }

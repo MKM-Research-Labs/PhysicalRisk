@@ -3,15 +3,14 @@
 
 """Property marker popup HTML generation."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from config.format import property_title_py
-from ...utils import ColorSchemes, DataFormatter, RiskAssessor
+from ...utils import ColorSchemes, DataFormatter
 
 
 def create_property_popup(property_info: Dict[str, Any], property_flood_info: Dict[str, Any],
-                          has_mortgage: bool, mortgage_info: Dict[str, Any],
-                          mortgage_risk_info: Optional[Dict[str, Any]]) -> str:
+                          has_mortgage: bool, mortgage_info: Dict[str, Any]) -> str:
     """Create detailed popup content for a property marker."""
     property_id = property_info['property_id']
     address = property_info.get('address', {})
@@ -113,31 +112,3 @@ def create_mortgage_section(mortgage_info: Dict[str, Any], property_value: Any) 
         """
 
 
-def create_mortgage_risk_section(mortgage_risk_info: Dict[str, Any]) -> str:
-    """Create the mortgage risk analysis section."""
-    flood_risk_level = mortgage_risk_info.get('flood_risk_level', 'Unknown')
-    mortgage_value = mortgage_risk_info.get('mortgage_value', 0)
-    loan_amount = mortgage_risk_info.get('loan_amount', 0)
-
-    ltv_ratio = (mortgage_risk_info.get('loan_amount', 0) / mortgage_risk_info.get('property_value', 1)
-                 if mortgage_risk_info.get('property_value', 0) > 0 else 0)
-    risk_summary = RiskAssessor.assess_mortgage_risk(flood_risk_level, mortgage_value, loan_amount, ltv_ratio)
-
-    return f"""
-        <div style="margin-top: 20px; border-top: 3px solid #5DADE2; padding-top: 10px;">
-            <h4 style="margin-bottom: 5px; color: #2E86C1; text-align: center; background-color: #D6EAF8; padding: 5px; border-radius: 5px;">MORTGAGE RISK ANALYSIS</h4>
-
-            <div style="background-color: #D6EAF8; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5 style="margin-top: 0; color: #2874A6;">Risk Metrics</h5>
-                <p><b>Mortgage Value:</b> {DataFormatter.format_currency(mortgage_value)}</p>
-                <p><b>Value at Risk:</b> {DataFormatter.format_currency(mortgage_risk_info.get('mortgage_value_at_risk', 0))}</p>
-                <p><b>Flood Risk Level:</b> <span style="color: {ColorSchemes.get_flood_risk_color(flood_risk_level)}; font-weight: bold;">{flood_risk_level}</span></p>
-                <p><b>Flood Depth:</b> {DataFormatter.safe_format_float(mortgage_risk_info.get('flood_depth', 0), 2)} m</p>
-            </div>
-
-            <div style="background-color: #FADBD8; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5 style="margin-top: 0; color: #943126;">Risk Assessment</h5>
-                <p><b>Overall Assessment:</b> <span style="font-weight: bold;">{risk_summary}</span></p>
-            </div>
-        </div>
-        """

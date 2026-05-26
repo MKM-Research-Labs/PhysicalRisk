@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from .flood import (FLOOD_DEPTH_THRESHOLDS, assess_flood_risk_level,
                     assess_property_vulnerability, _generate_recommendations)
 from .ltv import (LTV_RISK_THRESHOLDS, assess_ltv_risk_level,
-                  assess_mortgage_risk, calculate_combined_risk_score)
+                  calculate_combined_risk_score)
 from .finance import (calculate_value_at_risk, assess_gauge_reliability,
                       calculate_distance_risk_factor, calculate_insurance_premium_factor)
 
@@ -26,11 +26,6 @@ class RiskAssessor:
     @classmethod
     def assess_ltv_risk_level(cls, ltv_ratio: float) -> str:
         return assess_ltv_risk_level(ltv_ratio)
-
-    @classmethod
-    def assess_mortgage_risk(cls, flood_risk_level: str, mortgage_value: float,
-                             loan_amount: float, ltv_ratio: float) -> str:
-        return assess_mortgage_risk(flood_risk_level, mortgage_value, loan_amount, ltv_ratio)
 
     @classmethod
     def calculate_combined_risk_score(cls, flood_risk_level: str, ltv_ratio: float,

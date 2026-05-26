@@ -86,22 +86,11 @@ class TestAddLayerExceptions:
         base_map = folium.Map()
         vis._add_layer(base_map)
 
-    def test_mortgage_layer_exception_logged(self, tmp_path):
-        """Lines 205-206: mortgage_layer.add_to_map raises → logged, continues."""
-        vis = self._vis(tmp_path)
-        vis.gauge_layer.add_to_map = lambda *a: None
-        vis.property_layer.add_to_map = lambda *a: None
-        vis.mortgage_layer.add_to_map = lambda *a: (_ for _ in ()).throw(RuntimeError("mort fail"))
-        vis.loaded_data = _make_loaded_data()
-        base_map = folium.Map()
-        vis._add_layer(base_map)
-
     def test_heatmap_exception_logged(self, tmp_path):
         """Lines 211-212: _add_flood_heatmap raises → logged, continues."""
         vis = self._vis(tmp_path)
         vis.gauge_layer.add_to_map = lambda *a: None
         vis.property_layer.add_to_map = lambda *a: None
-        vis.mortgage_layer.add_to_map = lambda *a: None
         vis.loaded_data = _make_loaded_data()
         base_map = folium.Map()
         with patch.object(vis, "_add_flood_heatmap", side_effect=RuntimeError("heat fail")):

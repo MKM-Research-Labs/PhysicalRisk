@@ -39,10 +39,9 @@ class TestModuleImports:
         assert TCEventVisualization is not None
 
     def test_layer_imports(self):
-        from visual.layer import GaugeLayer, PropertyLayer, MortgageLayer
+        from visual.layer import GaugeLayer, PropertyLayer
         assert GaugeLayer is not None
         assert PropertyLayer is not None
-        assert MortgageLayer is not None
 
     def test_popup_imports(self):
         from visual.popups import GaugePopupBuilder, PropertyPopupBuilder
@@ -72,10 +71,9 @@ class TestModuleInstantiation:
         assert TCEventVisualization() is not None
 
     def test_layer_instantiation(self):
-        from visual.layer import GaugeLayer, PropertyLayer, MortgageLayer
+        from visual.layer import GaugeLayer, PropertyLayer
         assert GaugeLayer() is not None
         assert PropertyLayer() is not None
-        assert MortgageLayer() is not None
 
     def test_popup_instantiation(self):
         from visual.popups import GaugePopupBuilder, PropertyPopupBuilder
