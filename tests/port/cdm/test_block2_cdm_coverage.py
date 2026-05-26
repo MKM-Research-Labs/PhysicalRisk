@@ -8,7 +8,7 @@
 Targets missing lines in:
 - src/port/cdm/gauge/mapping.py (lines 89-90, 100)
 - src/port/cdm/gaugehd/directory.py (lines 46-47, 70-71)
-- src/port/cdm/property/mapping.py (lines 136-137)
+- src/port/cdm/asset/residential/mapping/__init__.py (lines 136-137)
 """
 
 import json
@@ -19,7 +19,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from port.cdm.gauge.mapping import create_gauge_mapping, get_nrfa_fields
-from port.cdm.property.mapping import create_mapping as create_property_mapping
+from port.cdm.asset.residential.mapping import create_mapping as create_property_mapping
 
 
 # ---------------------------------------------------------------------------

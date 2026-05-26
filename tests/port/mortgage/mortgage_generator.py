@@ -29,7 +29,7 @@ import re
 
 import pytest
 
-from port.cdm import MortgageCDM
+from port.cdm import LoanCDM
 from port.src.mortgage import MortgagePortfolioGenerator
 from port.src.property import PropertyPortfolioGenerator
 
@@ -99,7 +99,7 @@ class TestMortgageGeneratorDataQuality:
         tmp_dir, prop_path = property_portfolio_in_tmp
         gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
         result = gen.generate(property_portfolio_path=prop_path)
-        cdm = MortgageCDM()
+        cdm = LoanCDM()
         for mortgage in result["data"]["mortgages"]:
             mapping = cdm.create_mapping(mortgage)
             assert mapping.get("property_id") is not None

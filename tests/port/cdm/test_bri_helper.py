@@ -3,7 +3,7 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Tests for the BRI helper (src/port/cdm/property/bri.py).
+"""Tests for the BRI helper (src/port/cdm/asset/residential/bri.py).
 
 Covers:
   - apply_bri_rating writes the eight rating + metadata fields back into
@@ -19,7 +19,7 @@ from datetime import date
 
 import pytest
 
-from port.cdm.property.bri import apply_bri_rating
+from port.cdm.asset.residential.bri import apply_bri_rating
 
 
 _LEVELS_HIGH = "Verified"

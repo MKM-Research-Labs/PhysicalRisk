@@ -18,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests that MortgageCDM fields map correctly to generated mortgage JSON."""
+"""Tests that LoanCDM fields map correctly to generated mortgage JSON."""
 
 import pytest
 
 from config import config
-from port.cdm import MortgageCDM
+from port.cdm import LoanCDM
 from tests.port.cdm._mapping_helpers import run_cdm_mapping_test
 
 _MORTGAGE_SKIP = {
@@ -36,7 +36,7 @@ _MORTGAGE_SKIP = {
 @pytest.fixture(scope="module")
 def mortgage_mapping_summary():
     json_path = config.get_input_path("mortgage.json")
-    return run_cdm_mapping_test(MortgageCDM(), json_path, "mortgages", _MORTGAGE_SKIP)
+    return run_cdm_mapping_test(LoanCDM(), json_path, "mortgages", _MORTGAGE_SKIP)
 
 
 def test_all_cdm_fields_present(mortgage_mapping_summary):

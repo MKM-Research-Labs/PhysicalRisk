@@ -18,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests that PropertyCDM fields map correctly to generated property JSON."""
+"""Tests that ResidentialAssetCDM fields map correctly to generated property JSON."""
 
 import pytest
 
 from config import config
-from port.cdm import PropertyCDM
+from port.cdm import ResidentialAssetCDM
 from tests.port.cdm._mapping_helpers import run_cdm_mapping_test
 
 _PROPERTY_SKIP = {
@@ -35,7 +35,7 @@ _PROPERTY_SKIP = {
 @pytest.fixture(scope="module")
 def property_mapping_summary():
     json_path = config.get_input_path("property.json")
-    return run_cdm_mapping_test(PropertyCDM(), json_path, "properties", _PROPERTY_SKIP)
+    return run_cdm_mapping_test(ResidentialAssetCDM(), json_path, "properties", _PROPERTY_SKIP)
 
 
 def test_all_cdm_fields_present(property_mapping_summary):

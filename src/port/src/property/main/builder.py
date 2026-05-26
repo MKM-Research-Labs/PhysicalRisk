@@ -212,7 +212,7 @@ class BuilderMixin:
         from port.rand.thames.property.property_random.resilience import (
             generate_resilience, apply_flood_resilience_score,
         )
-        from port.cdm.property.bri import apply_bri_rating
+        from port.cdm.asset.residential.bri import apply_bri_rating
 
         resilience = generate_resilience(property_data)
         pm = property_data.setdefault('ProtectionMeasures', {})

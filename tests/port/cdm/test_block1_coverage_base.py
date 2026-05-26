@@ -21,17 +21,17 @@
 """Coverage expansion tests for Block 1 CDM base, property, and gauge modules.
 
 Targets missing lines in:
-- src/port/cdm/property/validator.py (lines 60,62,65,69-70)
+- src/port/cdm/asset/residential/validator.py (lines 60,62,65,69-70)
 - src/port/cdm/gauge/validate.py (lines 61,64,68-69)
 - src/port/cdm/base.py (lines 67,81,97,116,133,154)
 """
 
 import pytest
 
-from port.cdm.mortgage import MortgageCDM
+from port.cdm.asset.loan import LoanCDM
 from port.cdm.prs import PhysicalRiskSwapCDM
-from port.cdm.property.validator import validate as property_validate
-from port.cdm.property.validator import get_required_fields as property_required
+from port.cdm.asset.residential.validator import validate as property_validate
+from port.cdm.asset.residential.validator import get_required_fields as property_required
 from port.cdm.gauge.validate import validate_gauge
 from port.cdm.base import BaseCDM
 
@@ -187,7 +187,7 @@ class TestBaseCDMCoverage:
 
     def test_repr(self, mortgage_cdm):
         """Line 157: __repr__ returns class name."""
-        assert "MortgageCDM" in repr(mortgage_cdm)
+        assert "LoanCDM" in repr(mortgage_cdm)
 
     def test_list_all_fields_skips_metadata_keys(self):
         """Line 133: 'type', 'options', 'values', 'description', 'items' are skipped."""

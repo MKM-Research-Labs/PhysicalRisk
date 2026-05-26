@@ -99,6 +99,8 @@ def register_parser(subparsers):
     sp.add_argument("--gauges", "--ga", action="store_true")
     sp.add_argument("--properties", "--pr", action="store_true")
     sp.add_argument("--mortgages", "--mo", action="store_true")
+    sp.add_argument("--commercial", "--co", action="store_true",
+                    help="Generate commercial portfolio (commercial.json + commercial_loan.json)")
     sp.add_argument("--gaugets", "--gt", action="store_true")
     sp.add_argument("--gaugehd", "--hd", action="store_true")
     sp.add_argument("--hazard", "--hz", action="store_true")
@@ -127,6 +129,8 @@ def register_parser(subparsers):
                     help="Refuse to run if upstream data is stale (BCBS 239 lineage guard)")
     sp.add_argument("--verbose", "-v", action="store_true")
     sp.add_argument("--num-properties", "-np", type=int, default=200)
+    sp.add_argument("--num-commercial", "-nc", type=int, default=10,
+                    help="Number of commercial assets to generate (--commercial)")
     sp.add_argument("--num-gauges", "-ng", type=int, default=52)
     sp.add_argument("--num-storms", "-ns", type=int, default=20000)
     sp.add_argument("--simulation-hours", type=int, default=168)
@@ -187,6 +191,8 @@ def cmd_port(args):
     import time
     from port.src import gauge, mortgage, hazard, counterparty
     from port.src import property as prop_gen
+    from port.src import commercial as commercial_gen
+    from port.src.commercial_loan import CommercialLoanPortfolioGenerator
     from port.src.gauge import gaugehd
     from port.src.property import propertyts, propertyhc
 
@@ -216,7 +222,7 @@ def cmd_port(args):
     
     # Determine which segments to run
     segment_flags = [
-        args.gauges, args.properties, args.mortgages,
+        args.gauges, args.properties, args.mortgages, args.commercial,
         args.gaugets, args.gaugehd, args.hazard,
         args.propertyts, args.propertytsd, args.propertytse,
         args.propertyhc, args.propertyshd, args.propertyshe,
@@ -407,6 +413,33 @@ def cmd_port(args):
                     print(f"  ⚠ Dependencies require update: {', '.join(stale)}")
             except Exception as e:
                 print(f"  [lineage] Warning: {e}")
+        print()
+
+    # Commercial portfolio — opt-in only, not part of --all yet.
+    if args.commercial:
+        print("3a. Generating Commercial Portfolio...")
+        t_step = time.time()
+        r = commercial_gen.CommercialPortfolioGenerator(output_dir, verbose=False).generate(args.num_commercial)
+        elapsed_step = time.time() - t_step
+        n = len(r['data']['commercial_assets'])
+        stats = r.get('processing_stats', {})
+        ok = stats.get('successful_assets', n)
+        mix = ", ".join(f"{k}: {v}" for k, v in sorted(
+            {a['CommercialAsset']['CommercialAttributes']['CommercialType']:
+             sum(1 for x in r['data']['commercial_assets']
+                 if x['CommercialAsset']['CommercialAttributes']['CommercialType'] ==
+                    a['CommercialAsset']['CommercialAttributes']['CommercialType'])
+             for a in r['data']['commercial_assets']}.items()))
+        print(f"   {n} commercial assets generated  ({ok}/{stats.get('total_assets', n)} successful)"
+              f"  →  commercial.json")
+        print(f"   Type mix: {mix}")
+
+        print("3b. Generating Commercial Loans...")
+        t_step = time.time()
+        rl = CommercialLoanPortfolioGenerator(output_dir, verbose=False).generate()
+        elapsed_step = time.time() - t_step
+        nl = len(rl['data']['commercial_loans'])
+        print(f"   {nl} commercial loans generated  →  commercial_loan.json")
         print()
 
     if run_all or args.gaugehd:
