@@ -91,8 +91,27 @@ class CommercialLayer:
         loan = loan_lookup.get(pid)
 
         popup_html = create_commercial_popup(asset, loan)
+
+        # Tooltip carries the human-readable name first so the JS
+        # context-menu's display-name extractor can surface it as the
+        # menu title. The CPROP- id still appears (in the popup) but
+        # is intentionally absent from the tooltip — substring-matching
+        # the property regex against the id was previously causing the
+        # commercial menu to render as the property menu with a single
+        # hex-char title.
+        display_name = (
+            location.get("BuildingName")
+            or " ".join(
+                str(p) for p in [
+                    location.get("BuildingNumber"),
+                    location.get("StreetName"),
+                ] if p
+            ).strip()
+            or location.get("TownCity")
+            or pid
+        )
         has_loan = " | Loan" if loan else ""
-        tooltip = f"{ctype} — {pid}{has_loan}"
+        tooltip = f"{display_name} ({ctype}){has_loan}"
 
         folium.Marker(
             location=[lat, lon],

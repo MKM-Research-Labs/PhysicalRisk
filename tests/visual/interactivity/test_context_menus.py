@@ -147,19 +147,27 @@ class TestGetStatistics:
         from visual.interactivity.context_menus import (
             ContextMenuHandler, DEFAULT_PROPERTY_MENU, DEFAULT_GAUGE_MENU)
 
+        from visual.interactivity.context_menus import DEFAULT_COMMERCIAL_MENU
         handler = ContextMenuHandler()
         stats = handler.get_statistics()
         assert stats['property_menu_items'] == len(DEFAULT_PROPERTY_MENU)
         assert stats['gauge_menu_items'] == len(DEFAULT_GAUGE_MENU)
-        assert stats['total_menu_items'] == len(DEFAULT_PROPERTY_MENU) + len(DEFAULT_GAUGE_MENU)
+        assert stats['commercial_menu_items'] == len(DEFAULT_COMMERCIAL_MENU)
+        assert stats['total_menu_items'] == (
+            len(DEFAULT_PROPERTY_MENU)
+            + len(DEFAULT_GAUGE_MENU)
+            + len(DEFAULT_COMMERCIAL_MENU)
+        )
 
     def test_custom_statistics(self):
         from visual.interactivity.context_menus import ContextMenuHandler
 
         handler = ContextMenuHandler(
             property_menu=[{"id": "a"}, {"id": "b"}],
-            gauge_menu=[{"id": "c"}])
+            gauge_menu=[{"id": "c"}],
+            commercial_menu=[{"id": "d"}, {"id": "e"}, {"id": "f"}])
         stats = handler.get_statistics()
         assert stats['property_menu_items'] == 2
         assert stats['gauge_menu_items'] == 1
-        assert stats['total_menu_items'] == 3
+        assert stats['commercial_menu_items'] == 3
+        assert stats['total_menu_items'] == 6
