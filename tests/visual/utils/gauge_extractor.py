@@ -179,7 +179,6 @@ class TestExtractFloodRiskData:
         result = extract_flood_risk_data(self._make_report())
         assert "gauge_flood_info" in result
         assert "property_flood_info" in result
-        assert "mortgage_risk_info" in result
 
     def test_extracts_gauge_data(self):
         result = extract_flood_risk_data(self._make_report())
@@ -191,28 +190,7 @@ class TestExtractFloodRiskData:
         assert "PROP-001" in result["property_flood_info"]
         assert result["property_flood_info"]["PROP-001"]["risk_level"] == "High"
 
-    def test_extracts_mortgage_by_id(self):
-        result = extract_flood_risk_data(self._make_report())
-        assert "MORT-001" in result["mortgage_risk_info"]["by_mortgage_id"]
-
-    def test_mortgage_also_indexed_by_property_id(self):
-        result = extract_flood_risk_data(self._make_report())
-        assert "PROP-001" in result["mortgage_risk_info"]["by_property_id"]
-
     def test_empty_report_returns_empty_structure(self):
         result = extract_flood_risk_data({})
         assert result["gauge_flood_info"] == {}
         assert result["property_flood_info"] == {}
-        assert result["mortgage_risk_info"]["by_mortgage_id"] == {}
-
-    def test_mortgage_without_property_id_not_in_property_lookup(self):
-        report = {
-            "gauge_data": {},
-            "property_risk": {},
-            "mortgage_risk": {
-                "MORT-X": {"MortgageID": "MORT-X"}  # No PropertyID
-            }
-        }
-        result = extract_flood_risk_data(report)
-        assert "MORT-X" in result["mortgage_risk_info"]["by_mortgage_id"]
-        assert result["mortgage_risk_info"]["by_property_id"] == {}

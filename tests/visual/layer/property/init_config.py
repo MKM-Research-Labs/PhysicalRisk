@@ -62,12 +62,11 @@ def _make_property(property_id="PROP-001", lat=51.5, lon=-0.1, year=2000):
 
 class MockLoadedData:
     def __init__(self, property_data=None, property_flood_info=None,
-                 mortgage_lookup=None, mortgage_risk_info=None,
+                 mortgage_lookup=None,
                  property_hazard_data=None):
         self.property_data = property_data
         self.property_flood_info = property_flood_info or {}
         self.mortgage_lookup = mortgage_lookup or {}
-        self.mortgage_risk_info = mortgage_risk_info
         self.property_hazard_data = property_hazard_data
 
 

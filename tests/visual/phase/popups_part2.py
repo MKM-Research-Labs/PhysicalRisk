@@ -194,10 +194,6 @@ class TestPopupErrorHandling:
         result = self.prop_builder.create_flood_info_section({})
         assert result == ""
 
-    def test_property_empty_mortgage_risk(self):
-        result = self.prop_builder.create_mortgage_risk_section({})
-        assert result == ""
-
     def test_gauge_empty_flood_data(self):
         result = self.gauge_builder.create_flood_risk_data_section({})
         assert result == ""

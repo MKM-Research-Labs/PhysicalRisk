@@ -112,60 +112,6 @@ class TestLTVRiskLevel:
 
 
 # ===========================================================================
-# assess_mortgage_risk
-# ===========================================================================
-
-class TestMortgageRisk:
-
-    def test_high_flood_overrides(self):
-        r = RiskAssessor.assess_mortgage_risk("High", 500_000, 400_000, 0.5)
-        assert "High Risk" in r and "flood" in r.lower()
-
-    def test_very_high_flood_overrides(self):
-        r = RiskAssessor.assess_mortgage_risk("Very High", 500_000, 400_000, 0.3)
-        assert "High Risk" in r
-
-    def test_negative_value_critical(self):
-        # abs(-50000) / 400000 = 12.5% > 10%
-        r = RiskAssessor.assess_mortgage_risk("Low", -50_000, 400_000, 0.5)
-        assert "Critical Risk" in r
-
-    def test_negative_value_high(self):
-        # abs(-22000) / 400000 = 5.5% > 5%
-        r = RiskAssessor.assess_mortgage_risk("Low", -22_000, 400_000, 0.5)
-        assert "High Risk" in r
-
-    def test_negative_value_moderate(self):
-        # abs(-9000) / 400000 = 2.25% > 2%
-        r = RiskAssessor.assess_mortgage_risk("Low", -9_000, 400_000, 0.5)
-        assert "Moderate Risk" in r
-
-    def test_high_ltv_medium_flood(self):
-        r = RiskAssessor.assess_mortgage_risk("Medium", 500_000, 400_000, 0.85)
-        assert "High Risk" in r
-
-    def test_elevated_ltv_medium_flood(self):
-        r = RiskAssessor.assess_mortgage_risk("Medium", 500_000, 400_000, 0.72)
-        assert "Moderate Risk" in r
-
-    def test_medium_flood_default(self):
-        r = RiskAssessor.assess_mortgage_risk("Medium", 500_000, 400_000, 0.5)
-        assert "Moderate Risk" in r
-
-    def test_low_flood_risk(self):
-        r = RiskAssessor.assess_mortgage_risk("Low", 500_000, 400_000, 0.5)
-        assert "Low Risk" in r
-
-    def test_minimal_risk(self):
-        r = RiskAssessor.assess_mortgage_risk("Very Low", 500_000, 400_000, 0.4)
-        assert "Minimal" in r
-
-    def test_none_ltv_no_crash(self):
-        r = RiskAssessor.assess_mortgage_risk("Low", 500_000, 400_000, None)
-        assert isinstance(r, str)
-
-
-# ===========================================================================
 # calculate_combined_risk_score
 # ===========================================================================
 

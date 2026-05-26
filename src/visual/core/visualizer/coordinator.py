@@ -10,8 +10,8 @@ from typing import Optional, Union
 from config import config
 
 from ...layer import (
+    CommercialLayer,
     GaugeLayer,
-    MortgageLayer,
     PropertyLayer,
 )
 from ..data_loader import DataLoader
@@ -68,7 +68,7 @@ class TCEventVisualization:
         try:
             self.gauge_layer = GaugeLayer()
             self.property_layer = PropertyLayer()
-            self.mortgage_layer = MortgageLayer()
+            self.commercial_layer = CommercialLayer()
             self._layers_available = True
         except ImportError:
             self._layers_available = False
@@ -188,11 +188,11 @@ class TCEventVisualization:
             except Exception as e:
                 logger.warning("Property layer failed: %s", e)
 
-        if self.loaded_data.mortgage_data and self.loaded_data.property_data:
+        if self.loaded_data.commercial_data:
             try:
-                self.mortgage_layer.add_to_map(base_map, self.loaded_data)
+                self.commercial_layer.add_to_map(base_map, self.loaded_data)
             except Exception as e:
-                logger.warning("Mortgage layer failed: %s", e)
+                logger.warning("Commercial layer failed: %s", e)
 
         # Add worst-case storm heatmap overlay
         try:
