@@ -200,6 +200,8 @@ class TestStormFactoryElseBranch:
         unknown_profile.__eq__ = lambda self, other: False
 
         storm = create_storm(
+            track_start=(0.0, 0.0),
+            track_end=(2.0, 0.0),
             peak_intensity=50.0,
             intensity_profile=unknown_profile,
             num_track_points=5,
