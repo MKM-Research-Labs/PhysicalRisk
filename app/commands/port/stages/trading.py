@@ -43,8 +43,8 @@ def run_blotter(ctx: StageContext):
         raise SystemExit
     print("10. Generating Trading Book (Blotter)...")
     from port.src.book import (
-        generate_thames_central_book, generate_property_book,
-        generate_trade_pdfs, print_book_summary,
+        generate_thames_central_book, generate_market_making_book,
+        generate_property_book, generate_trade_pdfs, print_book_summary,
     )
 
     blotter_dir = config.get_reports_dir('prs')
@@ -74,13 +74,29 @@ def run_blotter(ctx: StageContext):
     }
     pre = ctx.hash_inputs(inputs)
     t_step = time.time()
-    trades = generate_thames_central_book(
-        gaugehc_path=config.get_input_dir() / 'gaugehc.json',
-        counterparty_path=config.get_input_dir() / 'counterparty.json',
-        output_dir=blotter_dir,
-        catchment_id=ctx.catchment,
-        seed=42,
-    )
+    if ctx.catchment == 'thames':
+        # Thames uses a curated 50-trade book hard-mapped to inner-London
+        # gauges (Westminster, Lambeth, Southwark, etc.).
+        trades = generate_thames_central_book(
+            gaugehc_path=config.get_input_dir() / 'gaugehc.json',
+            counterparty_path=config.get_input_dir() / 'counterparty.json',
+            output_dir=blotter_dir,
+            catchment_id=ctx.catchment,
+            seed=42,
+        )
+        _book_generator_name = "port.src.book.generate_thames_central_book"
+    else:
+        # Other catchments use the algorithmic market-making book, which
+        # picks gauges from gaugehc.json without any hardcoded area names.
+        trades = generate_market_making_book(
+            gaugehc_path=config.get_input_dir() / 'gaugehc.json',
+            counterparty_path=config.get_input_dir() / 'counterparty.json',
+            output_dir=blotter_dir,
+            num_gauges=12,
+            catchment_id=ctx.catchment,
+            seed=42,
+        )
+        _book_generator_name = "port.src.book.generate_market_making_book"
 
     # Property PRS client trades
     prop_trades = generate_property_book(
@@ -129,7 +145,7 @@ def run_blotter(ctx: StageContext):
     elapsed = time.time() - t_step
     ctx.record(
         step_name="blotter",
-        generator="port.src.book.generate_thames_central_book",
+        generator=_book_generator_name,
         inputs=inputs,
         outputs={
             "prs/": ctx.input_dir / "prs",
