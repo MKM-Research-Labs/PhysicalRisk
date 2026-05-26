@@ -41,31 +41,36 @@ from models.stormgauge.data_structures import (
 
 
 def create_storm(
+    track_start: Tuple[float, float],
+    track_end: Tuple[float, float],
     storm_id: Optional[str] = None,
     name: str = "Storm",
     start_time: Optional[datetime] = None,
     peak_intensity: float = 50.0,
     footprint_km: float = 40.0,
     duration_hours: float = 24.0,
-    track_start: Tuple[float, float] = (-2.6, 51.45),  # (lon, lat)
-    track_end: Tuple[float, float] = (1.4, 51.38),
     decay_kernel: DecayKernel = DecayKernel.GAUSSIAN,
     decay_parameter: float = 0.5,
     intensity_profile: IntensityProfile = IntensityProfile.TRIANGULAR,
     num_track_points: int = 25,
 ) -> Storm:
-    """
-    Create a storm with generated track points.
+    """Create a storm with generated track points.
+
+    ``track_start`` and ``track_end`` are required (lon, lat) tuples
+    describing the storm's spatial trajectory. Callers should source
+    them from the active catchment's storm module —
+    ``from catch.<catchment>.storm import TRACK_START, TRACK_END`` —
+    rather than hardcoding values.
 
     Args:
+        track_start: (longitude, latitude) of track start
+        track_end: (longitude, latitude) of track end
         storm_id: Unique ID (auto-generated if None)
         name: Storm name
         start_time: Start datetime (defaults to now)
         peak_intensity: Maximum intensity (0-100)
         footprint_km: Precipitation field width in km
         duration_hours: Total storm duration
-        track_start: (longitude, latitude) of track start
-        track_end: (longitude, latitude) of track end
         decay_kernel: Spatial decay type
         decay_parameter: Decay kernel parameter
         intensity_profile: How intensity varies along track
