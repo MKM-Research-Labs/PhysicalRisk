@@ -25,7 +25,7 @@ Snap gauge points to the nearest point on the River Thames.
 
 Queries the Thames waterway geometry from OpenStreetMap via the Overpass API,
 then projects each gauge point onto the nearest river segment. Updates
-data/catch/thames.py with corrected coordinates in-place.
+data/catch/thames/config.py with corrected coordinates in-place.
 
 Usage:
     python tools/snap_gauges_to_river.py          # run with auto-update
@@ -183,10 +183,10 @@ def fetch_thames_geometry():
 # ---------------------------------------------------------------------------
 
 def get_thames_path():
-    """Locate data/catch/thames.py from project root."""
+    """Locate data/catch/thames/config.py from project root."""
     script_dir = Path(__file__).resolve().parent
     project_root = script_dir.parent
-    path = project_root / "data" / "catch" / "thames.py"
+    path = project_root / "data" / "catch" / "thames" / "config.py"
     if not path.exists():
         sys.exit(f"ERROR: {path} not found")
     return path
