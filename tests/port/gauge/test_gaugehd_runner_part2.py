@@ -121,15 +121,17 @@ class TestMain:
         main()
 
     def test_main_with_catchment(self, tmp_path, monkeypatch):
-        """Lines 107-108: --catchment sets config.CATCHMENT."""
+        """Lines 107-108: --catchment pins config.catchment_id."""
         from config import config
         from port.src.gauge.gaugehd.runner import main
         setup_gauge_env(tmp_path, monkeypatch)
-        original = config.CATCHMENT
-        monkeypatch.setattr("sys.argv", ["gaugehd", "--catchment", "severn"])
-        main()
-        assert config.CATCHMENT == "severn"
-        config.CATCHMENT = original  # restore
+        original = config.catchment_id
+        monkeypatch.setattr("sys.argv", ["gaugehd", "--catchment", "rhine"])
+        try:
+            main()
+            assert config.CATCHMENT == "rhine"
+        finally:
+            config.catchment_id = original
 
     def test_main_with_nrfa_dir(self, tmp_path, monkeypatch):
         """Lines 117-119: --nrfa-dir calls process_nrfa_directory."""
@@ -160,17 +162,19 @@ class TestMain:
         from config import config
         from port.src.gauge.gaugehd.runner import main
         setup_gauge_env(tmp_path, monkeypatch)
-        original = config.CATCHMENT
+        original = config.catchment_id
         monkeypatch.setattr("sys.argv", ["gaugehd", "-c", "thames"])
-        main()
-        config.CATCHMENT = original
+        try:
+            main()
+        finally:
+            config.catchment_id = original
 
     def test_main_no_catchment_leaves_config_unchanged(self, tmp_path, monkeypatch):
-        """Lines 107-108: without --catchment, config.CATCHMENT is untouched."""
+        """Lines 107-108: without --catchment, config.catchment_id is untouched."""
         from config import config
         from port.src.gauge.gaugehd.runner import main
         setup_gauge_env(tmp_path, monkeypatch)
-        original = config.CATCHMENT
+        original = config.catchment_id
         monkeypatch.setattr("sys.argv", ["gaugehd"])
         main()
-        assert config.CATCHMENT == original
+        assert config.catchment_id == original

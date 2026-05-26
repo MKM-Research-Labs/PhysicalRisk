@@ -211,9 +211,7 @@ class CommercialPortfolioGenerator(LocationsMixin):
 def generate_commercials(
     count: int = 10,
     output_dir: Optional[Path] = None,
-    catchment_id: Optional[str] = None,
 ) -> Dict:
-    """Convenience wrapper for the CLI."""
-    if catchment_id is not None:
-        config.CATCHMENT = catchment_id.lower()
+    """Convenience wrapper for the CLI. Catchment is taken from
+    ``config.catchment_id`` (pinned by the CLI entry point)."""
     return CommercialPortfolioGenerator(output_dir=output_dir).generate(count=count)

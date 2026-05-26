@@ -100,11 +100,15 @@ def serve_visualization_for_catchment(catchment_id: str):
     going through the selector.
     """
     try:
-        # Validate catchment exists
-        if catchment_id.lower() != 'thames':
+        from config import config
+        available = config.list_catchments()
+        if catchment_id.lower() not in available:
             return jsonify({
                 'status': 'error',
-                'message': f'Catchment "{catchment_id}" not yet available. Only "thames" is supported.'
+                'message': (
+                    f'Catchment "{catchment_id}" not registered. '
+                    f'Available: {", ".join(available)}.'
+                )
             }), 400
 
         # Temporarily set the catchment (in a real implementation, this would be session-based)

@@ -71,6 +71,12 @@ class CatchmentMixin:
         if value != self._catchment_id:
             self._catchment_instance = None
             self._catchment_id = value
+            # Refresh path attributes so input_dir, results_dir, etc.
+            # point at data/input/<new_catchment>/. Without this, every
+            # downstream consumer keeps using the catchment that was
+            # active at PortfolioConfig() instantiation time.
+            if hasattr(self, '_init_paths'):
+                self._init_paths(value)
 
     @property
     def CATCHMENT(self) -> str:
