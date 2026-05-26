@@ -6,9 +6,36 @@
 from .orchestrator import cmd_port
 
 
+def _add_catchment_flags(sp):
+    """Add one boolean flag per discovered catchment (e.g. --thames, --halong)
+    plus a generic ``--catchment-id`` fallback. All mutually exclusive.
+
+    Discovery is lazy so the help text reflects whatever's under
+    ``data/catch/`` at parse time, no manual list maintenance.
+    """
+    from config import config
+    group = sp.add_mutually_exclusive_group()
+    try:
+        catchments = config.list_catchments()
+    except Exception:
+        catchments = []
+    for cname in catchments:
+        group.add_argument(
+            f"--{cname}",
+            action="store_const", const=cname, dest="catchment_id",
+            help=f"Generate against the {cname} catchment",
+        )
+    group.add_argument(
+        "--catchment-id", "--catchment", type=str, default=None,
+        help="Generic catchment selector (e.g. --catchment-id thames). "
+             "Equivalent to --<catchment_id>.",
+    )
+
+
 def register_parser(subparsers):
     """Register the 'port' subcommand."""
     sp = subparsers.add_parser("port", help="Generate synthetic portfolio data")
+    _add_catchment_flags(sp)
 
     # Per-step toggles ------------------------------------------------------
     sp.add_argument("--gauges", "--ga", action="store_true")

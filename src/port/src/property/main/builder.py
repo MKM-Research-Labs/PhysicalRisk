@@ -206,12 +206,14 @@ class BuilderMixin:
              resilience score and writes it (rescaled to 0-1) into
              BRIFloodScore + jittered siblings + overall BRIScore.
 
-        Imports are local to avoid a hard dependency on the rand package at
-        builder import time (the builder is generic across catchments).
+        Imports are local + dispatched via ``config.load_random_module`` so
+        the builder picks up the active catchment's resilience module
+        (port.rand.<catchment_id>.property.property_random.resilience),
+        not a literal ``port.rand.thames.*`` path.
         """
-        from port.rand.thames.property.property_random.resilience import (
-            generate_resilience, apply_flood_resilience_score,
-        )
+        resilience_module = config.load_random_module('property.property_random.resilience')
+        generate_resilience = resilience_module.generate_resilience
+        apply_flood_resilience_score = resilience_module.apply_flood_resilience_score
         from port.cdm.asset.residential.bri import apply_bri_rating
 
         resilience = generate_resilience(property_data)

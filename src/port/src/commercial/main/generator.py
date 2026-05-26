@@ -9,7 +9,8 @@ Commercial Portfolio Generator.
 Generates synthetic commercial asset data based on the CommercialAssetCDM
 schema. Heavy-lifting (locations, common-asset random generators) is
 delegated to the residential property infrastructure; commercial-specific
-fields are produced by ``port.rand.thames.commercial.commercial_random``.
+fields are produced by the active catchment's commercial_random
+(``port.rand.<catchment_id>.commercial.commercial_random``).
 
 Usage
 -----
@@ -25,7 +26,6 @@ from typing import Any, Dict, List, Optional, Union
 
 from config import config
 from port.cdm import CommercialAssetCDM
-from port.rand.thames.commercial import commercial_random
 from port.src.property.main.encoder import DateTimeEncoder
 from port.src.property.main.locations import LocationsMixin
 from port.utils.schema import build_section
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class CommercialPortfolioGenerator(LocationsMixin):
-    """Generates commercial asset portfolio data on the Thames."""
+    """Generates commercial asset portfolio data for the active catchment."""
 
     def __init__(
         self,
@@ -53,7 +53,11 @@ class CommercialPortfolioGenerator(LocationsMixin):
 
         # commercial_random handles all field generation (commercial-specific
         # menus + delegation to residential property_random for shared fields).
-        self.random = random_module or commercial_random
+        # Dispatched via config so the active catchment's commercial random
+        # module (port.rand.<catchment_id>.commercial.commercial_random) is
+        # picked up, not a literal port.rand.thames.* path.
+        self.random = random_module or config.load_random_module(
+            'commercial.commercial_random')
         # Catchment params still come from the configured catchment.
         self.params = catchment_params or config.load_params_module()
 

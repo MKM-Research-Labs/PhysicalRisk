@@ -32,9 +32,9 @@ def _load_river_polyline() -> Optional[List[Tuple]]:
     if _RIVER_POLYLINE_CACHE is not None:
         return _RIVER_POLYLINE_CACHE
 
-    cache_path = Path(__file__).resolve().parents[5] / "data" / "catch" / (
-        f"{config.CATCHMENT}_river_polyline.json"
-    )
+    cache_path = (Path(__file__).resolve().parents[5]
+                  / "data" / "catch" / config.CATCHMENT
+                  / "river_polyline.json")
     if not cache_path.exists():
         logger.info("No river polyline cache at %s — using gauge points", cache_path)
         return None
