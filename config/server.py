@@ -41,7 +41,10 @@ class ServerMixin:
     SERVER_HOST: str = os.getenv('MKM_SERVER_HOST', '127.0.0.1')
     SERVER_PORT: int = _validated_port()
     DEBUG: bool = os.getenv('MKM_DEBUG', 'false').lower() == 'true'
-    CATCHMENT: str = os.getenv('MKM_CATCHMENT', 'thames')
+    # CATCHMENT is supplied by CatchmentMixin's @property — do not redeclare
+    # here as a class attribute, or it will shadow the property in MRO and
+    # `config.catchment_id = 'halong'` will silently fail to propagate to
+    # `config.CATCHMENT`.
 
     CORS_ORIGINS: list = [
         "http://localhost:*",

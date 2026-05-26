@@ -8,10 +8,9 @@ The heavy work lives in stage modules under ``stages/``; this file binds
 each stage in order, then runs the summary + PDFs + lineage check.
 """
 
-import os
-
 from config import config
 
+from .._catchment import resolve_catchment
 from .auth import _authenticate
 from .context import StageContext
 from .pdf_reports import run_lineage_chain_validation, run_pdf_reports
@@ -115,43 +114,6 @@ def _build_context(args) -> StageContext:
     )
 
 
-def _resolve_catchment(args) -> str | None:
-    """Resolve the catchment to run against.
-
-    Precedence: CLI flag → MKM_CATCHMENT env var → interactive prompt.
-    Returns ``None`` if the user aborts the prompt with an invalid choice.
-    """
-    chosen = getattr(args, 'catchment_id', None)
-    if not chosen:
-        chosen = os.environ.get('MKM_CATCHMENT')
-    if chosen:
-        available = config.list_catchments()
-        if available and chosen not in available:
-            print(f"\n  ✗ Unknown catchment '{chosen}'.")
-            print(f"  Available: {', '.join(available)}")
-            return None
-        return chosen
-
-    # No CLI flag, no env var — prompt.
-    available = config.list_catchments()
-    if not available:
-        print("\n  ✗ No catchments configured under data/catch/.")
-        return None
-    if len(available) == 1:
-        # Only one option — pick it silently.
-        return available[0]
-    print(f"\nMKM Portfolio Generator — Catchment Selection")
-    print(f"Available catchments: {', '.join(available)}")
-    while True:
-        chosen = input("  Catchment: ").strip().lower()
-        if chosen in available:
-            return chosen
-        if not chosen:
-            print("  ✗ No catchment selected — aborting.")
-            return None
-        print(f"  ✗ '{chosen}' not available. Try one of: {', '.join(available)}")
-
-
 def _backup_existing(output_dir):
     """Copy existing *.json files into a timestamped backup directory."""
     import shutil
@@ -198,7 +160,7 @@ def cmd_port(args):
     consumer (random modules, params, data paths) resolves against the
     same catchment for the rest of the run.
     """
-    catchment = _resolve_catchment(args)
+    catchment = resolve_catchment(args)
     if catchment is None:
         return  # user aborted the prompt
     config.catchment_id = catchment
