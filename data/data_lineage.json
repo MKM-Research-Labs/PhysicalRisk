@@ -4136,24 +4136,28 @@
       "propertyshe",
       "counterparties",
       "blotter"
+    ],
+    "run-20260526-143043": [
+      "gauges",
+      "synthetic_gauges"
     ]
   },
   "steps": {
     "gauges": {
-      "run_id": "run-20260526-120820",
-      "timestamp": "2026-05-26T12:08:20.724498",
+      "run_id": "run-20260526-143043",
+      "timestamp": "2026-05-26T14:30:44.003964",
       "user": "davidkerrkelly",
       "hostname": "Mac-mini-3.local",
       "generator": "port.src.gauge.GaugePortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 0.018,
+      "elapsed_seconds": 0.019,
       "parameters": {
-        "num_gauges": 52
+        "num_gauges": 3
       },
       "inputs": {},
       "outputs": {
         "gauge.json": {
-          "hash": "dbe6247ef65214776c0d22c3a900f9838e8231977934657b39142bd46c9de69b",
+          "hash": "35ecb529c7880eedbb91273e1584f19dc918b317c9ac5a6406a91c8c6157758c",
           "type": "file"
         }
       }
@@ -4428,25 +4432,25 @@
       }
     },
     "synthetic_gauges": {
-      "run_id": "run-20260526-120820",
-      "timestamp": "2026-05-26T12:08:20.849821",
+      "run_id": "run-20260526-143043",
+      "timestamp": "2026-05-26T14:30:44.122295",
       "user": "davidkerrkelly",
       "hostname": "Mac-mini-3.local",
       "generator": "port.src.gauge.synthetic.SyntheticGaugeGenerator",
       "status": "success",
-      "elapsed_seconds": 0.118,
+      "elapsed_seconds": 0.11,
       "parameters": {
-        "count": 20
+        "count": 200
       },
       "inputs": {
         "gauge.json": {
-          "hash": "dbe6247ef65214776c0d22c3a900f9838e8231977934657b39142bd46c9de69b",
+          "hash": "35ecb529c7880eedbb91273e1584f19dc918b317c9ac5a6406a91c8c6157758c",
           "type": "file"
         }
       },
       "outputs": {
         "gauge.json": {
-          "hash": "887ef5f43cfa48db167541ae015466b54856d17da7f3894bf19d0688feb02364",
+          "hash": "fa575999a3b0650c004ef2d38fcf0c0eedd0f9db944c507fa838b53bdd8cf11b",
           "type": "file"
         }
       }
