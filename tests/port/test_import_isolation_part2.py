@@ -122,20 +122,20 @@ class TestCmdPortLazyBookImport:
 
     def test_book_import_inside_blotter_block(self):
         """
-        The `from port.src.book import ...` statement in cmd_port must be
-        inside the `if run_all or args.blotter:` block, not at module level.
+        The `from port.src.book import ...` statement must live inside the
+        ``run_blotter`` function in stages/trading.py, not at module level
+        — otherwise QuantLib is required even for non-book steps.
         """
         import inspect
-        from app.commands import port as _port_cmd
-        src = inspect.getsource(_port_cmd)
+        from app.commands.port.stages import trading as _trading
+        src = inspect.getsource(_trading)
 
-        # The book import must appear after the blotter condition line
-        blotter_idx = src.find("if run_all or args.blotter:")
+        run_blotter_idx = src.find("def run_blotter")
         book_idx = src.find("from port.src.book import")
 
-        assert blotter_idx != -1, "Could not find blotter block in cmd_port source"
-        assert book_idx != -1, "Could not find book import in cmd_port source"
-        assert book_idx > blotter_idx, (
-            "from port.src.book import appears BEFORE the blotter block -- "
+        assert run_blotter_idx != -1, "Could not find run_blotter() in stages/trading.py"
+        assert book_idx != -1, "Could not find book import in stages/trading.py"
+        assert book_idx > run_blotter_idx, (
+            "from port.src.book import appears BEFORE run_blotter() — "
             "this means QuantLib is required even for non-book steps."
         )
