@@ -19,12 +19,12 @@ Usage:
     generator = PropertyPortfolioGenerator()
     result = generator.generate(count=200)
 
-    # Option 3: Explicit module injection
-    from port.random.thames import property_random
-    from catchments.thames import ThamesCatchment
+    # Option 3: Explicit module injection (any catchment)
+    from port.rand.<catchment_id> import property_random
+    from catch.<catchment_id> import <Catchment>Catchment
     generator = PropertyPortfolioGenerator(
         random_module=property_random,
-        catchment_params=ThamesCatchment()
+        catchment_params=<Catchment>Catchment()
     )
     result = generator.generate(count=200)
 """

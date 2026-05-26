@@ -1,0 +1,495 @@
+........................................................................ [  0%]
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+..........FF................ss.......................................... [  3%]
+............s........................................................... [  4%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+....FF...F.........xxxxx...............................xXX.............. [  7%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+...........................................F..................F......F.. [ 21%]
+....................................................F.F................. [ 22%]
+........................................................................ [ 22%]
+........................................................................ [ 23%]
+.........F.............................................................. [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+........................................................................ [ 29%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+............................................................F........... [ 33%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+.......................................................................F [ 36%]
+F....................................................................... [ 36%]
+........................................................................ [ 37%]
+..................................FF.F.................................. [ 38%]
+........................................................................ [ 39%]
+........................................................FF.............. [ 40%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 51%]
+........................................................................ [ 52%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+......................FF..................FF............................ [ 55%]
+........................................................................ [ 55%]
+....................................................................F... [ 56%]
+........................................................................ [ 57%]
+........................................................................ [ 58%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+........................................................................ [ 66%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+........................................................................ [ 81%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+..............................................s......................... [ 84%]
+........................................................................ [ 84%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 90%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+.............................ssssssssssss............................... [ 94%]
+........................................................................ [ 95%]
+........................................................................ [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+........................................................................ [ 99%]
+.........                                                                [100%]
+=================================== FAILURES ===================================
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_counterparties.py:353: AssertionError: Gauge PRS trades reference CTPY-REIT-001 (the REIT). Gauge PRS must trade with external counterparties only (banks / insurers / reinsurers etc., not the REIT).
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_counterparties.py:366: AssertionError: CTPY-REIT-001 is on a gauge PRS trade — REIT is a property-PRS-only counterparty.
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_prs_pricer_data_lineage.py:627: AssertionError: Zone 3b avg flood count (0.0) should exceed Zone 1 (0.0)
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_prs_pricer_data_lineage.py:641: AssertionError: Zone 3b avg spread (0.0bp) should exceed Zone 1 (0.0bp)
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_prs_pricer_data_lineage.py:714: AssertionError: Spread ordering violated: Zone 3b=0.0bp < Zone 3a=73.3bp
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:301: AssertionError: Files using propertyDisplayName but not in audit:
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:84: AssertionError: Compliant property PY file missing: src/visual/layer/mortgage_layer/popup.py
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/pathlib/_local.py:537: FileNotFoundError: [Errno 2] No such file or directory: '/Users/davidkerrkelly/Github/PhysicalRisk/src/visual/layer/mortgage_layer/popup.py'
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/pathlib/_local.py:537: FileNotFoundError: [Errno 2] No such file or directory: '/Users/davidkerrkelly/Github/PhysicalRisk/src/visual/layer/mortgage_layer/popup.py'
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/pathlib/_local.py:537: FileNotFoundError: [Errno 2] No such file or directory: '/Users/davidkerrkelly/Github/PhysicalRisk/src/visual/layer/mortgage_layer/popup.py'
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/cdm/property_mapping.py:42: AssertionError: Missing fields: ['PropertyHeader.Construction.RetrofitYear', 'PropertyHeader.Location.BuildingName', 'PropertyHeader.Location.SubBuildingName', 'HistoryAndIncidents.FloodEvents.LastFloodDateHistory', 'HistoryAndIncidents.GroundConditions.LastGroundIssueDate']
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/gauge/test_synthetic_standalone.py:33: AssertionError: Only 20 synthetics, expected >= 100
+/Users/davidkerrkelly/Github/PhysicalRisk/app/commands/port/auth.py:74: SystemExit: 1
+/Users/davidkerrkelly/Github/PhysicalRisk/app/commands/port/auth.py:74: SystemExit: 1
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/property/test_property_values.py:45: KeyError: 'PropertyAttributes'
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/property/test_property_values.py:51: KeyError: 'PropertyAttributes'
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/property/test_property_values.py:67: KeyError: 'RiskAssessment'
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/property/test_propertytsd.py:39: AttributeError: 'PropertyTimeSeriesGenerator' object has no attribute '_MODE_DIRS'
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/port/property/test_propertytsd.py:43: AttributeError: 'PropertyTimeSeriesGenerator' object has no attribute '_MODE_DIRS'
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/reports/property/pages/page_07_protection.py:96: AssertionError
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/reports/property/pages/page_07_protection.py:101: AssertionError
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/reports/property/pages/page_07_protection.py:244: AssertionError
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/reports/property/pages/page_07_protection.py:252: AssertionError
+/Users/davidkerrkelly/Github/PhysicalRisk/tests/reports/property/pages/page_13_risk_analysis_part1.py:50: AssertionError
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:64
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:64: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    prop = Group((name + Suppress("=") + comma_separated(value)) | oneOf(_CONSTANTS))
+
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:85: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    parse = parser.parseString(pattern)
+
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89
+.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/matplotlib/_fontconfig_pattern.py:89: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
+    parser.resetCache()
+
+.venv/lib/python3.13/site-packages/matplotlib/_mathtext.py:45
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+tests/port/cdm/cdm_all.py:50
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/port/cdm/cdm_all.py:50: PytestCollectionWarning: cannot collect test class 'TestResult' because it has a __init__ constructor (from: tests/port/cdm/cdm_all.py)
+    @dataclass
+
+tests/port/storm/stressm/test_pipeline_coverage.py:131
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/port/storm/stressm/test_pipeline_coverage.py:131: PytestUnknownMarkWarning: Unknown pytest.mark.slow - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.slow
+
+tests/catch/catchment_integration.py::test_routes
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/_pytest/python.py:163: PytestReturnNotNoneWarning: Expected None, but tests/catch/catchment_integration.py::test_routes returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/catch/catchment_integration.py::test_html_file
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/_pytest/python.py:163: PytestReturnNotNoneWarning: Expected None, but tests/catch/catchment_integration.py::test_html_file returned False, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/catch/catchment_integration.py::test_config
+  /Users/davidkerrkelly/Github/PhysicalRisk/.venv/lib/python3.13/site-packages/_pytest/python.py:163: PytestReturnNotNoneWarning: Expected None, but tests/catch/catchment_integration.py::test_config returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/data/test_blotter_data_part2.py::TestEODSnapshotData::test_eod_pdfs_match_json
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_blotter_data_part2.py:183: UserWarning: 63 EOD JSON files without matching PDF: ['EOD-20260226.json', 'EOD-20260227.json', 'EOD-20260302.json', 'EOD-20260303.json', 'EOD-20260304.json']
+    warnings.warn(
+
+tests/data/test_id_consistency_blotter.py::TestTradeMarksConsistency::test_prs_json_pdf_pairs_complete
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_blotter.py:122: UserWarning: 56 recent trade(s) excluded from PDF-pair check (< 24h old): ['PRS-07C66A33', 'PRS-08394874', 'PRS-09393B30', 'PRS-13472828', 'PRS-150D406A']
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/gauge/gaugeha.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/stress/setup_data.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/blotter/filters.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/blotter/actions.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/port_stress/pfloods.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/port_stress/portfolio_pnl.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/fs01/grid.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/eod/render.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/td_main_map.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/trading/aggregate/map_view.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/property/phc_hazard.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/property/propertyhc/panel_basis_strip.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/interactivity/governance/models/mg_lineage.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:94: UserWarning: src/visual/layer/gauge_layer/marker.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestStormFormatUsage::test_known_storm_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:156: UserWarning: src/visual/interactivity/gauge/gaugehc/ghc_historical.py contains hardcoded storm label format -- should use storm_option_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestStormFormatUsage::test_known_storm_violations_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:156: UserWarning: src/visual/interactivity/gauge/gaugesa/gsa_timeline.py contains hardcoded storm label format -- should use storm_option_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:185: UserWarning: src/visual/interactivity/context_menus.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:185: UserWarning: src/visual/layer/property_layer/layer.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:185: UserWarning: src/visual/layer/property_layer/popup.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:185: UserWarning: src/visual/popups/property_popup/builder.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_pipeline_part2.py::TestDataLineage::test_output_hashes_current
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/data/test_id_consistency_pipeline_part2.py:66: UserWarning: 3 output hash mismatches -- data modified since last pipeline run:
+    - gauges/gauge.json: recorded=dbe6247ef652... current=887ef5f43cfa...
+    - stressm/gaugets/: recorded=5bae797da6a8... current=43ef00b067ee...
+    - propertyhc/propertyhc.json: recorded=1ea0fce3ed0d... current=9ef83614b4fc...
+    Re-run: python3 app.py port
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestStormDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/gauge/gaugehc/ghc_historical.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:97: UserWarning: src/visual/interactivity/gauge/gaugehc/ghc_historical.py hardcodes storm label — should use storm_option_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/gauge/gaugeha.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/gauge/gaugeha.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/context_menus.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/context_menus.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/layer/gauge_layer/marker.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/layer/gauge_layer/marker.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/popups/gauge_popup.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/popups/gauge_popup.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/stress/setup_data.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/stress/setup_data.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/blotter/filters.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/blotter/filters.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/blotter/actions.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/blotter/actions.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/port_stress/pfloods.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/port_stress/pfloods.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/port_stress/portfolio_pnl.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/port_stress/portfolio_pnl.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/fs01/grid.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/fs01/grid.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/eod/render.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/eod/render.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/td_main_map.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/td_main_map.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/aggregate/map_view.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/aggregate/map_view.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/property/phc_hazard.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/property/phc_hazard.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/property/propertyhc/panel_basis_strip.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/property/propertyhc/panel_basis_strip.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/governance/models/mg_lineage.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/governance/models/mg_lineage.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/market/render.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/visual/interactivity/trading/market/render.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/reports/gauge/gauge_integrator.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/reports/gauge/gauge_integrator.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part1.py::TestGaugeDisplayAudit::test_hardcoded_file_tracked[src/reports/port/sections.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part1.py:201: UserWarning: src/reports/port/sections.py hardcodes gauge label — should use gauge_title_js from config/format.py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/storm/sp_sim.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/visual/interactivity/storm/sp_sim.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/storm/fa_render.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/visual/interactivity/storm/fa_render.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/reports/property/property_page_15_data_summary.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/reports/property/property_page_15_data_summary.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/reports/property/claim/page5_determination.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/reports/property/claim/page5_determination.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/reports/mortgage/mortgage_page_01_title.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/reports/mortgage/mortgage_page_01_title.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/reports/port/sections_portfolio.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/reports/port/sections_portfolio.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_hardcoded_file_tracked[src/reports/risk/risk_page_04_risk_analysis.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:103: UserWarning: src/reports/risk/risk_page_04_risk_analysis.py hardcodes property label — should use propertyDisplayName or property_title_py
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/property/phc_prs.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/visual/interactivity/property/phc_prs.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/gauge/gaugehc/ghc_prs_controls.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/visual/interactivity/gauge/gaugehc/ghc_prs_controls.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/blotter/table.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/visual/interactivity/trading/blotter/table.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/blotter/actions.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/visual/interactivity/trading/blotter/actions.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/client/table.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/visual/interactivity/trading/client/table.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/visual/interactivity/trading/stress/table.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/visual/interactivity/trading/stress/table.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/reports/gauge/gauge_page_12_trading.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/reports/gauge/gauge_page_12_trading.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/reports/trading/eod_page_02_positions.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/reports/trading/eod_page_02_positions.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/naming_conventions/audit_display_formats_part2.py::TestCounterpartyDisplayAudit::test_hardcoded_file_tracked[src/reports/trading/eod_page_03_pnl_detail.py]
+  /Users/davidkerrkelly/Github/PhysicalRisk/tests/naming_conventions/audit_display_formats_part2.py:195: UserWarning: src/reports/trading/eod_page_03_pnl_detail.py hardcodes counterparty/swap label — no centralised format function exists yet
+    warnings.warn(
+
+tests/port/gauge/gauge_generator.py::TestGaugeGeneratorMain::test_main_block
+  <frozen runpy>:128: RuntimeWarning: 'port.src.gauge.gauge' found in sys.modules after import of package 'port.src.gauge', but prior to execution of 'port.src.gauge.gauge'; this may result in unpredictable behaviour
+
+tests/port/gauge/gaugets_part2.py::TestGaugetsMain::test_main_block
+  <frozen runpy>:128: RuntimeWarning: 'port.src.gauge.gaugets' found in sys.modules after import of package 'port.src.gauge', but prior to execution of 'port.src.gauge.gaugets'; this may result in unpredictable behaviour
+
+tests/reports/gauge/gauge_generator/cli.py: 14 warnings
+  <frozen runpy>:128: RuntimeWarning: 'reports.gauge.gauge_generator' found in sys.modules after import of package 'reports.gauge', but prior to execution of 'reports.gauge.gauge_generator'; this may result in unpredictable behaviour
+
+tests/reports/property/property_generator/cli.py: 15 warnings
+  <frozen runpy>:128: RuntimeWarning: 'reports.property.property_generator' found in sys.modules after import of package 'reports.property', but prior to execution of 'reports.property.property_generator'; this may result in unpredictable behaviour
+
+tests/reports/risk/risk_report_generator/cli.py: 12 warnings
+  <frozen runpy>:128: RuntimeWarning: 'reports.risk.generator' found in sys.modules after import of package 'reports.risk', but prior to execution of 'reports.risk.generator'; this may result in unpredictable behaviour
+
+tests/routes/gauges_reports.py::TestGenerateGaugeReport::test_with_gaugehd_file_present
+  /Users/davidkerrkelly/Github/PhysicalRisk/src/reports/gauge/gauge_page_08_flood_history.py:129: UserWarning: No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+    ax.legend(fontsize=7, loc='upper right')
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/data/test_id_consistency_counterparties.py::TestPRSCounterpartyRule::test_gauge_prs_uses_external_only
+FAILED tests/data/test_id_consistency_counterparties.py::TestPRSCounterpartyRule::test_reit_is_only_used_for_property_prs
+FAILED tests/data/test_prs_pricer_data_lineage.py::TestZoneSpreadConsistency::test_zone_3b_has_higher_avg_flood_count_than_zone_1
+FAILED tests/data/test_prs_pricer_data_lineage.py::TestZoneSpreadConsistency::test_zone_3b_has_higher_avg_spread_than_zone_1
+FAILED tests/data/test_prs_pricer_data_lineage.py::TestZoneSpreadConsistency::test_spread_ordering_by_zone
+FAILED tests/naming_conventions/audit_display_formats_part1.py::TestAuditCoverage::test_all_property_display_name_files_covered
+FAILED tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_compliant_py_file_exists[src/visual/layer/mortgage_layer/popup.py]
+FAILED tests/naming_conventions/audit_display_formats_part2.py::TestPropertyDisplayAudit::test_compliant_py_file_uses_config[src/visual/layer/mortgage_layer/popup.py]
+FAILED tests/naming_conventions/display.py::TestPropertyDisplayFormat::test_python_files_import_property_title_py
+FAILED tests/naming_conventions/display.py::TestPropertyDisplayFormat::test_no_hardcoded_property_id_only_display
+FAILED tests/port/cdm/property_mapping.py::test_all_cdm_fields_present - Asse...
+FAILED tests/port/gauge/test_synthetic_standalone.py::TestSyntheticGaugeStandalone::test_at_least_100_synthetics
+FAILED tests/port/pipeline/generators.py::TestNostressFlag::test_nostress_skips_stressm_when_all
+FAILED tests/port/pipeline/generators.py::TestNostressFlag::test_explicit_stressm_flag_runs_despite_nostress
+FAILED tests/port/property/test_property_values.py::TestSetSpecificPropertyValues::test_property_id_set_in_attrs
+FAILED tests/port/property/test_property_values.py::TestSetSpecificPropertyValues::test_catchment_id_set_in_attrs
+FAILED tests/port/property/test_property_values.py::TestSetSpecificPropertyValues::test_elevation_sets_ground_level
+FAILED tests/port/property/test_propertytsd.py::TestShdOutputDirectory::test_shd_writes_to_propertytsd_dir
+FAILED tests/port/property/test_propertytsd.py::TestShdOutputDirectory::test_she_writes_to_propertytse_dir
+FAILED tests/reports/property/pages/page_07_protection.py::TestProtectionPageRiskAssessment::test_insurance_premium_shown
+FAILED tests/reports/property/pages/page_07_protection.py::TestProtectionPageRiskAssessment::test_excess_amount_shown
+FAILED tests/reports/property/pages/page_07_protection.py::TestProtectionPageRecommendations::test_recommendations_missing_critical
+FAILED tests/reports/property/pages/page_07_protection.py::TestProtectionPageRecommendations::test_recommendations_all_natural_false
+FAILED tests/reports/property/pages/page_13_risk_analysis_part1.py::TestRiskAnalysisPageBasics::test_has_table
+24 failed, 9105 passed, 16 skipped, 6 xfailed, 2 xpassed, 125 warnings in 480.70s (0:08:00)

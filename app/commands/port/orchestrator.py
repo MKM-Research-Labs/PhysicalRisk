@@ -8,6 +8,8 @@ The heavy work lives in stage modules under ``stages/``; this file binds
 each stage in order, then runs the summary + PDFs + lineage check.
 """
 
+import os
+
 from config import config
 
 from .auth import _authenticate
@@ -91,7 +93,7 @@ def _build_context(args) -> StageContext:
 
     return StageContext(
         args=args,
-        catchment='thames',
+        catchment=config.catchment_id,
         output_dir=output_dir,
         input_dir=input_dir,
         run_id=run_id,
@@ -111,6 +113,43 @@ def _build_context(args) -> StageContext:
         get_stale_downstream=get_stale_downstream,
         check_inputs_fresh=check_inputs_fresh,
     )
+
+
+def _resolve_catchment(args) -> str | None:
+    """Resolve the catchment to run against.
+
+    Precedence: CLI flag → MKM_CATCHMENT env var → interactive prompt.
+    Returns ``None`` if the user aborts the prompt with an invalid choice.
+    """
+    chosen = getattr(args, 'catchment_id', None)
+    if not chosen:
+        chosen = os.environ.get('MKM_CATCHMENT')
+    if chosen:
+        available = config.list_catchments()
+        if available and chosen not in available:
+            print(f"\n  ✗ Unknown catchment '{chosen}'.")
+            print(f"  Available: {', '.join(available)}")
+            return None
+        return chosen
+
+    # No CLI flag, no env var — prompt.
+    available = config.list_catchments()
+    if not available:
+        print("\n  ✗ No catchments configured under data/catch/.")
+        return None
+    if len(available) == 1:
+        # Only one option — pick it silently.
+        return available[0]
+    print(f"\nMKM Portfolio Generator — Catchment Selection")
+    print(f"Available catchments: {', '.join(available)}")
+    while True:
+        chosen = input("  Catchment: ").strip().lower()
+        if chosen in available:
+            return chosen
+        if not chosen:
+            print("  ✗ No catchment selected — aborting.")
+            return None
+        print(f"  ✗ '{chosen}' not available. Try one of: {', '.join(available)}")
 
 
 def _backup_existing(output_dir):
@@ -147,8 +186,21 @@ def _repair_manifest(output_dir, catchment):
 
 
 def cmd_port(args):
-    """Generate synthetic portfolio data."""
-    catchment = 'thames'
+    """Generate synthetic portfolio data.
+
+    Catchment selection precedence (highest first):
+      1. A per-catchment flag (``--thames`` / ``--halong`` / …) or the
+         generic ``--catchment-id`` — both resolve to ``args.catchment_id``
+      2. ``MKM_CATCHMENT`` env var
+      3. Interactive prompt (only when (1) and (2) are both absent)
+
+    The orchestrator pins ``config.catchment_id`` so every downstream
+    consumer (random modules, params, data paths) resolves against the
+    same catchment for the rest of the run.
+    """
+    catchment = _resolve_catchment(args)
+    if catchment is None:
+        return  # user aborted the prompt
     config.catchment_id = catchment
     output_dir = config.get_input_dir()
 
