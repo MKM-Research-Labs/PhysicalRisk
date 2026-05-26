@@ -361,6 +361,9 @@ CENTER_LON = -0.1278
 # Base property value in GBP
 BASE_PROPERTY_VALUE = 500000
 
+# ISO 4217 currency code for valuations, loans, PRS trade notionals.
+CURRENCY = "GBP"
+
 # Elevation model parameters
 MAXSLOPEPERCENT = 2.0
 MAXRANDOMELEVATION = 10.0

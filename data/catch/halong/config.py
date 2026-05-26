@@ -168,9 +168,12 @@ BOUNDS = (105.78, 20.96, 105.96, 21.10)
 CENTER_LAT = 21.0285
 CENTER_LON = 105.8542
 
-# Base property value in VND (₫). Roughly equivalent to a mid-range
+# Base property value in USD. Roughly equivalent to a mid-range
 # central-Hanoi commercial unit; recalibrate after first run.
-BASE_PROPERTY_VALUE = 5_000_000_000
+BASE_PROPERTY_VALUE = 500_000
+
+# ISO 4217 currency code for valuations, loans, PRS trade notionals.
+CURRENCY = "USD"
 
 # Elevation model parameters (Red River basin is flatter than the
 # Thames — narrow band of riverside elevation).
@@ -188,7 +191,7 @@ class HalongCatchment(BaseCatchment):
     First-pass calibration: 3 gauges along the Red River through central
     Hanoi (Nhật Tân → Long Biên → Vĩnh Tuy), 7 right- and east-bank
     districts, and Vietnamese banks / agencies for stamping commercial
-    loan and gauge records. Property values are denominated in VND.
+    loan and gauge records. Property values are denominated in USD.
 
     Storm parameters in ``port/rand/halong`` are still thames-shaped
     and will need recalibration for the South China Sea typhoon regime

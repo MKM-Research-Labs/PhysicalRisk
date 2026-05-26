@@ -29,6 +29,7 @@ from .config import (
     CENTER_LAT,
     CENTER_LON,
     BASE_PROPERTY_VALUE,
+    CURRENCY,
     MAXSLOPEPERCENT,
     MAXRANDOMELEVATION,
 )
@@ -55,6 +56,7 @@ __all__ = [
     "CENTER_LAT",
     "CENTER_LON",
     "BASE_PROPERTY_VALUE",
+    "CURRENCY",
     "MAXSLOPEPERCENT",
     "MAXRANDOMELEVATION",
     # storm.py

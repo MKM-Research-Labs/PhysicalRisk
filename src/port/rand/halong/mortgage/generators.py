@@ -180,7 +180,7 @@ def generate_text_value(field_name: str, index: int, financial_data: Dict) -> st
     elif field_name == "CatchmentID":
         return "halong"
     elif field_name == "currency":
-        return "VND"
+        return "USD"
     elif field_name == "AccountStatus":
         if financial_data.get("is_defaulted"):
             return "Default"
