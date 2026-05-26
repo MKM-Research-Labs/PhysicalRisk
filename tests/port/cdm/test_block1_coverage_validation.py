@@ -21,21 +21,21 @@
 """Coverage expansion tests for Block 1 CDM validation and mapping.
 
 Targets missing lines in:
-- src/port/cdm/mortgage.py (lines 259,262,265,268,275,278,282-283,362-363)
+- src/port/cdm/asset/loan.py (lines 259,262,265,268,275,278,282-283,362-363)
 - src/port/cdm/prs.py (lines 232-264, 333-334)
 """
 
 import pytest
 
-from port.cdm.mortgage import MortgageCDM
+from port.cdm.asset.loan import LoanCDM
 from port.cdm.prs import PhysicalRiskSwapCDM
 
 
 # ---------------------------------------------------------------------------
-# MortgageCDM — validate() error paths (lines 259-283)
+# LoanCDM — validate() error paths (lines 259-283)
 # ---------------------------------------------------------------------------
 
-class TestMortgageCDMValidation:
+class TestLoanCDMValidation:
 
     def test_validate_missing_mortgage_id(self, mortgage_cdm):
         """Line 259: Missing MortgageID produces header error."""
@@ -101,10 +101,10 @@ class TestMortgageCDMValidation:
 
 
 # ---------------------------------------------------------------------------
-# MortgageCDM — create_mapping() exception (lines 362-363)
+# LoanCDM — create_mapping() exception (lines 362-363)
 # ---------------------------------------------------------------------------
 
-class TestMortgageCDMMapping:
+class TestLoanCDMMapping:
 
     def test_create_mapping_exception_raises_value_error(self, mortgage_cdm):
         """Lines 362-363: exception in create_mapping raises ValueError."""

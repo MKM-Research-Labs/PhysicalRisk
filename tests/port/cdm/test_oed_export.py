@@ -42,7 +42,7 @@ from port.cdm.oed_export import (
 
 @pytest.fixture()
 def sample_prop():
-    p = Path(__file__).parent.parent.parent.parent / "src/port/cdm/property/sample_single_property.json"
+    p = Path(__file__).parent.parent.parent.parent / "src/port/cdm/asset/residential/sample_single_property.json"
     return json.loads(p.read_text())
 
 

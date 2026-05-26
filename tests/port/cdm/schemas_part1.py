@@ -76,7 +76,7 @@ class TestFloodGaugeCDM:
         assert isinstance(gauge_cdm.create_mapping({}), dict)
 
 
-class TestPropertyCDM:
+class TestResidentialAssetCDM:
 
     def test_schema_has_property_root(self, property_cdm):
         assert len(list(property_cdm.schema.keys())) > 0
@@ -108,7 +108,7 @@ class TestPropertyCDM:
         assert mapping["latitude"] == 51.5
 
 
-class TestMortgageCDM:
+class TestLoanCDM:
 
     def test_schema_has_mortgage_root(self, mortgage_cdm):
         assert len(list(mortgage_cdm.schema.keys())) > 0
