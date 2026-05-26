@@ -49,10 +49,23 @@ from .intensity_sampler import (
     sample_storm_intensity,
     should_generate_sequence,
 )
-from config.port import CATCHMENT_BASE_PRECIP
 from ..utils.validation import MAX_PRECIP_END_HOUR
 
-# CATCHMENT_BASE_PRECIP imported from config/port.py
+
+def _load_base_precipitation(catchment_id: str) -> float:
+    """Read BASE_PRECIPITATION_MM from the active catchment's storm module.
+
+    Falls back to 35.0 mm (thames baseline) if the catchment package has
+    no ``storm.py`` yet — happens for the legacy single-module catchments
+    under ``data/catch/<name>.py`` that haven't been migrated to the
+    package layout.
+    """
+    import importlib
+    try:
+        mod = importlib.import_module(f"catch.{catchment_id}.storm")
+    except ModuleNotFoundError:
+        return 35.0
+    return getattr(mod, "BASE_PRECIPITATION_MM", 35.0)
 
 
 class SequenceGenerator:
@@ -70,7 +83,7 @@ class SequenceGenerator:
         seed: int = None,
     ):
         self.catchment_id = catchment_id
-        self.base_precipitation = CATCHMENT_BASE_PRECIP.get(catchment_id, 35.0)
+        self.base_precipitation = _load_base_precipitation(catchment_id)
         self.rng = np.random.RandomState(seed)
 
     def generate(

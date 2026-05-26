@@ -3,9 +3,15 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Thames catchment package — re-exports constants and class from config.py
-so callers can do ``from catch.thames import ThamesCatchment, GAUGE_POINTS``
-or load via ``importlib.import_module('catch.thames')``.
+"""Thames catchment package.
+
+Re-exports location/geometry constants from ``config.py`` and storm
+calibration constants from ``storm.py`` so callers can do either:
+
+    from catch.thames import ThamesCatchment, GAUGE_POINTS
+    from catch.thames import BASE_PRECIPITATION_MM, TRACK_START
+
+or load the package via ``importlib.import_module('catch.thames')``.
 """
 
 from .config import (
@@ -26,8 +32,15 @@ from .config import (
     MAXSLOPEPERCENT,
     MAXRANDOMELEVATION,
 )
+from .storm import (
+    BASE_PRECIPITATION_MM,
+    TRACK_START,
+    TRACK_END,
+    INTENSITY_WEIGHTS,
+)
 
 __all__ = [
+    # config.py
     "ThamesCatchment",
     "GAUGE_POINTS",
     "GAUGE_NAMES",
@@ -44,4 +57,9 @@ __all__ = [
     "BASE_PROPERTY_VALUE",
     "MAXSLOPEPERCENT",
     "MAXRANDOMELEVATION",
+    # storm.py
+    "BASE_PRECIPITATION_MM",
+    "TRACK_START",
+    "TRACK_END",
+    "INTENSITY_WEIGHTS",
 ]
