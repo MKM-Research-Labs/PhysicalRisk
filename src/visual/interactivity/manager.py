@@ -122,10 +122,12 @@ class InteractivityManager:
                 timeout=kwargs.get("notification_timeout")
             )
 
-        if "property_menu" in kwargs or "gauge_menu" in kwargs:
+        if ("property_menu" in kwargs or "gauge_menu" in kwargs
+                or "commercial_menu" in kwargs):
             self.context_menus.configure(
                 property_menu=kwargs.get("property_menu"),
-                gauge_menu=kwargs.get("gauge_menu")
+                gauge_menu=kwargs.get("gauge_menu"),
+                commercial_menu=kwargs.get("commercial_menu"),
             )
 
         return self

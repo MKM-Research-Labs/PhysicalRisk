@@ -103,6 +103,7 @@
         function hideAllMenus() {
             hideMenu('property-context-menu');
             hideMenu('gauge-context-menu');
+            hideMenu('commercial-context-menu');
         }
 
         // Hide all menus on document click
@@ -116,26 +117,45 @@
             return match ? match[1].trim() : null;
         }
 
-        function extractShortName(content) {
-            // Extract a short display name from marker tooltip/popup content
+        function extractShortName(content, type) {
+            // Extract a short display name from marker tooltip/popup content.
+            // The shape of the tooltip differs per asset class, so we branch
+            // on the resolved type — passing the wrong patterns at a tooltip
+            // can otherwise capture stray hex chars and present them as
+            // titles.
             if (!content) return null;
             var str = typeof content === 'string' ? content :
                      (content.innerHTML || content.textContent || content.toString());
             // Strip HTML tags
             str = str.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-            // Check for property first — avoids false matches on hex chars in property IDs
-            // Tooltip format: "Property: PROP-xxxxxxxx | Floods: ..."
+
+            if (type === 'commercial') {
+                // Commercial tooltip format:
+                //   "{commercial_name} ({CommercialType})[ | Loan]"
+                // We surface the name part as the menu title — fall back to
+                // the CommercialType if no name is present.
+                var commMatch = str.match(/^(.+?)\s*\(([^)]+)\)/);
+                if (commMatch) {
+                    var name = commMatch[1].trim();
+                    if (name && !name.startsWith('CPROP-')) return name;
+                    return commMatch[2].trim();  // fall back to CommercialType
+                }
+                return null;
+            }
+
+            // Property tooltip format: "Property: PROP-xxxxxxxx | Floods: ..."
             var propMatch = str.match(/Property:\s*(PROP-[a-f0-9]+)/);
             if (propMatch) return propMatch[1];
-            // Try to extract gauge name: look for text before GAUGE-xxx
+
+            // Gauge tooltip: text before "GAUGE-xxx" (Thames-prefixed area
+            // names with _Point_N suffix).
             var gaugeMatch = str.match(/([A-Za-z][A-Za-z\s_]+?)(?:\s*[\|,]|\s+GAUGE-)/);
             if (gaugeMatch) {
-                var name = gaugeMatch[1].trim();
-                // Extract area: strip "Thames " prefix and "_Point_N" suffix
-                var pi = name.indexOf('_Point');
-                if (pi > 0) name = name.substring(0, pi);
-                name = name.replace(/^Thames\s+/i, '');
-                if (name.length > 0) return name;
+                var gname = gaugeMatch[1].trim();
+                var pi = gname.indexOf('_Point');
+                if (pi > 0) gname = gname.substring(0, pi);
+                gname = gname.replace(/^Thames\s+/i, '');
+                if (gname.length > 0) return gname;
             }
             return null;
         }
@@ -162,8 +182,15 @@
 
                     var id = null, type = null;
 
-                    id = extractId(content, /Property:\s*([^|<]+)/) || extractId(content, /(PROP-[a-f0-9]+)/);
-                    if (id) type = 'property';
+                    // Order matters: CPROP- ids would substring-match the
+                    // PROP- regex, so check commercial first.
+                    id = extractId(content, /(CPROP-[a-f0-9]+)/);
+                    if (id) type = 'commercial';
+
+                    if (!id) {
+                        id = extractId(content, /Property:\s*([^|<]+)/) || extractId(content, /(PROP-[a-f0-9]+)/);
+                        if (id) type = 'property';
+                    }
 
                     if (!id) {
                         id = extractId(content, /(GAUGE-[a-f0-9]+)/) || extractId(content, /Gauge:\s*([^|<]+)/);
@@ -171,7 +198,7 @@
                     }
 
                     if (id && type) {
-                        var name = extractShortName(content);
+                        var name = extractShortName(content, type);
                         (function(boundId, boundType, boundName) {
                             layer.on('contextmenu', function(e) { showMenu(e.originalEvent, boundId, boundType, boundName); });
                         })(id, type, name);
@@ -180,6 +207,7 @@
                         layer._markerType = type;
 
                         if (type === 'property') propCount++;
+                        else if (type === 'commercial') propCount++;
                         else gaugeCount++;
                     }
                 });
