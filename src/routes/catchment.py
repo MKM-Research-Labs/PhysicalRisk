@@ -87,12 +87,15 @@ def set_catchment():
 
         logger.info(f"Setting catchment to: {catchment_id}")
 
-        # For now, just validate it's 'thames' since that's the only one available
-        # In the future, this would set it in a session or database
-        if catchment_id.lower() != 'thames':
+        from config import config
+        available = config.list_catchments()
+        if catchment_id.lower() not in available:
             return jsonify({
                 'status': 'error',
-                'message': f'Catchment "{catchment_id}" is not yet available. Only "thames" is currently supported.'
+                'message': (
+                    f'Catchment "{catchment_id}" not registered. '
+                    f'Available: {", ".join(available)}.'
+                )
             }), 400
 
         logger.info(f"Successfully validated catchment: {catchment_id}")

@@ -215,11 +215,24 @@ class PropertyStormAnalysis:
             // ================================================================
             // Show / hide / load
             // ================================================================
+            // Commercial assets use CPROP-* ids; residential use PROP-*.
+            // The frontend panel + summary stats are identical between
+            // the two asset types; only the API URLs and the title
+            // wording differ.
+            function _isCommercialId(propertyId) {{
+                return typeof propertyId === 'string'
+                       && propertyId.indexOf('CPROP-') === 0;
+            }}
+
             function showPanel(propertyId) {{
                 console.log('[PropertyStorm] Opening panel for', propertyId);
                 var panel = createPanel();
                 panel.dataset.propertyId = propertyId;
-                document.getElementById('prop-storm-title').textContent = 'Property Storm Scenarios: ' + window.propertyDisplayName(propertyId);
+                var titleLabel = _isCommercialId(propertyId)
+                    ? 'Commercial Storm Scenarios: '
+                    : 'Property Storm Scenarios: ';
+                document.getElementById('prop-storm-title').textContent =
+                    titleLabel + window.propertyDisplayName(propertyId);
                 document.getElementById('prop-storm-status').textContent = 'Loading...';
                 panel.style.display = 'flex';
                 activeTab = 0;
@@ -237,10 +250,19 @@ class PropertyStormAnalysis:
                 var status = document.getElementById('prop-storm-status');
                 status.textContent = 'Loading...';
                 propMortgageData = null;
+                var isCommercial = _isCommercialId(propertyId);
                 try {{
                     var cfg = window.__BACKEND_CONFIG || {{}};
                     var baseUrl = cfg.url || '';
-                    var url = baseUrl + '/api/v1/properties/' + propertyId + '/storms';
+                    // Commercial assets live at /api/v1/commercial/<id>/storms;
+                    // residential at /api/v1/properties/<id>/storms.
+                    // The response shape is identical (same flood_events,
+                    // nearest_gauges, summary keys), so all the downstream
+                    // chart-rendering code works against either.
+                    var stormsBase = isCommercial
+                        ? baseUrl + '/api/v1/commercial/'
+                        : baseUrl + '/api/v1/properties/';
+                    var url = stormsBase + propertyId + '/storms';
                     var response = await fetch(url, {{mode: 'cors'}});
                     if (!response.ok) throw new Error('HTTP ' + response.status);
                     var data = await response.json();
@@ -249,22 +271,34 @@ class PropertyStormAnalysis:
                     var allEvents = data.flood_events || [];
                     var nPropertyFloods = allEvents.filter(function(e) {{ return e.flooded; }}).length;
                     var summary = data.summary || {{}};
-                    console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'property floods for', propertyId);
+                    console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'asset floods for', propertyId);
                     // Refresh title with address from API response
                     var titleEl = document.getElementById('prop-storm-title');
-                    if (titleEl) titleEl.textContent = 'Property Storm Scenarios: ' + window.propertyDisplayName(propertyId, data.property_address || '');
+                    var titleLabel = isCommercial
+                        ? 'Commercial Storm Scenarios: '
+                        : 'Property Storm Scenarios: ';
+                    if (titleEl) titleEl.textContent =
+                        titleLabel + window.propertyDisplayName(propertyId, data.property_address || '');
                     var severeCount = summary.severe_at_nearest_gauge || summary.floods_at_nearest_gauge || 0;
-                    status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' property floods';
+                    var floodLabel = isCommercial ? 'commercial floods' : 'property floods';
+                    status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' ' + floodLabel;
 
-                    // Fetch mortgage data for mortgage impact tab
-                    try {{
-                        var mortUrl = baseUrl + '/api/v1/properties/' + propertyId + '/mortgage';
-                        var mortResp = await fetch(mortUrl, {{mode: 'cors'}});
-                        if (mortResp.ok) {{
-                            var mortData = await mortResp.json();
-                            if (mortData.status === 'success') propMortgageData = mortData.mortgage;
-                        }}
-                    }} catch(e) {{ /* mortgage data optional */ }}
+                    // Fetch mortgage / loan data for the impact tab.
+                    // Residential pulls from /properties/<id>/mortgage;
+                    // commercial has no equivalent endpoint yet, so the
+                    // tab simply renders with no loan data attached
+                    // (graceful degradation — same behaviour as a
+                    // residential property with no mortgage on file).
+                    if (!isCommercial) {{
+                        try {{
+                            var mortUrl = baseUrl + '/api/v1/properties/' + propertyId + '/mortgage';
+                            var mortResp = await fetch(mortUrl, {{mode: 'cors'}});
+                            if (mortResp.ok) {{
+                                var mortData = await mortResp.json();
+                                if (mortData.status === 'success') propMortgageData = mortData.mortgage;
+                            }}
+                        }} catch(e) {{ /* mortgage data optional */ }}
+                    }}
 
                     switchTab(activeTab);
                 }} catch (error) {{

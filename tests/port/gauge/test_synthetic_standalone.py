@@ -50,7 +50,7 @@ class TestSyntheticGaugeStandalone:
     def test_synthetic_on_river(self):
         """Synthetic gauges should be near the river polyline."""
         from models.floodrisk.spatial import haversine_distance
-        river_path = Path("data/catch") / f"{config.CATCHMENT}_river_polyline.json"
+        river_path = Path("data/catch") / config.CATCHMENT / "river_polyline.json"
         if not river_path.exists():
             pytest.skip("No river polyline cache")
 

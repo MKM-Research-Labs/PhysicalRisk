@@ -21,9 +21,8 @@
 """
 Tests for visual.utils.risk_assessors.
 
-Covers: get_risk_color, get_risk_icon, get_ltv_color, and the backward-
-compat convenience functions assess_mortgage_risk_summary and
-calculate_combined_risk.
+Covers: get_risk_color, get_risk_icon, get_ltv_color, and the
+backward-compat convenience function calculate_combined_risk.
 """
 
 import pytest
@@ -32,7 +31,6 @@ from visual.utils.risk_assessors import (
     get_risk_color,
     get_risk_icon,
     get_ltv_color,
-    assess_mortgage_risk_summary,
     calculate_combined_risk,
 )
 
@@ -121,27 +119,6 @@ class TestGetLTVColor:
     def test_150_percent_is_red(self):
         # 150 / 100 = 1.5 → > 0.95 → red
         assert get_ltv_color(150) == "red"
-
-
-# ===========================================================================
-# assess_mortgage_risk_summary (backward compat)
-# ===========================================================================
-
-class TestAssessMortgageRiskSummary:
-
-    def test_returns_string(self):
-        result = assess_mortgage_risk_summary("High", 300_000, 250_000, 0.85)
-        assert isinstance(result, str)
-        assert len(result) > 0
-
-    def test_high_flood_risk_bad_ltv(self):
-        result = assess_mortgage_risk_summary("High", 300_000, 290_000, 0.97)
-        # Should be a high/critical risk label
-        assert result  # non-empty
-
-    def test_low_flood_risk_good_ltv(self):
-        result = assess_mortgage_risk_summary("Low", 400_000, 200_000, 0.50)
-        assert result
 
 
 # ===========================================================================

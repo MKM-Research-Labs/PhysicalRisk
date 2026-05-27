@@ -26,10 +26,13 @@ Server command - Flask web server.
 
 from config import config
 
+from ._catchment import add_catchment_flags, resolve_catchment
+
 
 def register_parser(subparsers):
     """Register the 'server' subcommand."""
     sp = subparsers.add_parser("server", help="Start the Flask web server")
+    add_catchment_flags(sp)
     sp.add_argument("--host", type=str, help="Host to bind to")
     sp.add_argument("--port", type=int, help="Port to listen on")
     sp.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -37,7 +40,23 @@ def register_parser(subparsers):
 
 
 def cmd_server(args):
-    """Start the Flask web server."""
+    """Start the Flask web server.
+
+    Catchment selection precedence (highest first):
+      1. A per-catchment flag (``--thames`` / ``--halong`` / …) or the
+         generic ``--catchment-id``
+      2. ``MKM_CATCHMENT`` env var
+      3. Interactive prompt (only when (1) and (2) are both absent)
+
+    The chosen catchment is pinned on the global ``config`` singleton so
+    every request and lazy import resolves against the same catchment for
+    the lifetime of the process.
+    """
+    catchment = resolve_catchment(args)
+    if catchment is None:
+        return
+    config.catchment_id = catchment
+
     from server import create_app
 
     host = args.host or config.SERVER_HOST
@@ -52,11 +71,11 @@ def cmd_server(args):
         print("  ⚠  No PRS trade files found in:")
         print(f"       {prs_dir}")
         print("     The Trading Desk blotter will be empty.")
-        print("     Run:  python app.py port --blotter")
-        print("     to generate the Thames Central trading book.")
+        print(f"     Run:  python app.py port --{config.CATCHMENT} --blotter")
+        print(f"     to generate the {config.CATCHMENT} trading book.")
         print()
 
     app = create_app()
 
-    print(f"Starting server on http://{host}:{port}")
+    print(f"Starting {config.CATCHMENT} server on http://{host}:{port}")
     app.run(host=host, port=port, debug=debug)

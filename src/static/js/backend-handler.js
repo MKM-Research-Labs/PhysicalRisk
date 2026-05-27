@@ -115,6 +115,12 @@
         var generateMortgageReport = _generateReport(
             BACKEND.endpoints.mortgage_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
         );
+        var generateCommercialReport = _generateReport(
+            BACKEND.endpoints.commercial_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        );
+        var generateLoanReport = _generateReport(
+            BACKEND.endpoints.commercial_loan_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        );
 
         function viewGaugeStorms(gaugeId) {
             if (!gaugeId) {
@@ -242,6 +248,64 @@
             return generateReport(propertyId);
         }
 
+        function viewCommercialDetails(propertyId) {
+            // "Commercial Details" right-click action → reuse the
+            // PDF-report code path.
+            return generateCommercialReport(propertyId);
+        }
+
+        function viewLoanDetails(propertyId) {
+            // "Loan Details" right-click action — same pattern as
+            // viewCommercialDetails / generateCommercialReport: the
+            // menu item just dispatches to the PDF-generator factory.
+            return generateLoanReport(propertyId);
+        }
+
+        function viewCommercialStorms(propertyId) {
+            // "View Storm Scenarios" on a commercial marker. The
+            // PropertyStormAnalysis panel itself detects the CPROP-
+            // prefix and fetches /api/v1/commercial/<id>/storms instead
+            // of the residential endpoint, so this handler is the same
+            // shape as viewPropertyStorms — no per-asset-type branching
+            // here.
+            if (!propertyId) {
+                if (root.showError) root.showError('Property ID not found');
+                return;
+            }
+            if (root.PropertyStormAnalysis && typeof root.PropertyStormAnalysis.show === 'function') {
+                root.PropertyStormAnalysis.show(propertyId);
+            } else {
+                var event = new CustomEvent('propertyStormRequested', {
+                    detail: { propertyId: propertyId },
+                    bubbles: true
+                });
+                root.document.dispatchEvent(event);
+                if (root.showInfo) root.showInfo('Loading storm scenarios for ' + propertyId + '...');
+            }
+        }
+
+        function viewCommercialHazard(propertyId) {
+            // "Physical Risk Swap" on a commercial marker. The
+            // PropertyHazardCurvePanel + its loadData() detect the
+            // CPROP- prefix and route every fetch to
+            // /api/v1/commercial/<id>/{hazard,she,shd,<id>} so this
+            // handler stays shape-identical to viewPropertyHazard.
+            if (!propertyId) {
+                if (root.showError) root.showError('Property ID not found');
+                return;
+            }
+            if (root.PropertyHazardCurvePanel && typeof root.PropertyHazardCurvePanel.show === 'function') {
+                root.PropertyHazardCurvePanel.show(propertyId);
+            } else {
+                var event = new CustomEvent('propertyHazardRequested', {
+                    detail: { propertyId: propertyId },
+                    bubbles: true
+                });
+                root.document.dispatchEvent(event);
+                if (root.showInfo) root.showInfo('Loading PRS pricing for ' + propertyId + '...');
+            }
+        }
+
         async function checkBackendHealth() {
             try {
                 var response = await fetch(BACKEND.endpoints.health_check, {
@@ -276,12 +340,18 @@
             generateReport: generateReport,
             generateGaugeReport: generateGaugeReport,
             generateMortgageReport: generateMortgageReport,
+            generateCommercialReport: generateCommercialReport,
+            generateLoanReport: generateLoanReport,
             viewGaugeStorms: viewGaugeStorms,
             viewHazardCurve: viewHazardCurve,
             viewGaugeHistory: viewGaugeHistory,
             viewPropertyStorms: viewPropertyStorms,
             viewPropertyHazard: viewPropertyHazard,
             viewPropertyDetails: viewPropertyDetails,
+            viewCommercialDetails: viewCommercialDetails,
+            viewCommercialStorms: viewCommercialStorms,
+            viewCommercialHazard: viewCommercialHazard,
+            viewLoanDetails: viewLoanDetails,
             showGaugeBlotter: showGaugeBlotter,
             checkBackendHealth: checkBackendHealth,
             getMapInstance: getMapInstance
@@ -299,12 +369,18 @@
         root.generateReport = api.generateReport;
         root.generateGaugeReport = api.generateGaugeReport;
         root.generateMortgageReport = api.generateMortgageReport;
+        root.generateCommercialReport = api.generateCommercialReport;
+        root.generateLoanReport = api.generateLoanReport;
         root.viewGaugeStorms = api.viewGaugeStorms;
         root.viewHazardCurve = api.viewHazardCurve;
         root.viewGaugeHistory = api.viewGaugeHistory;
         root.viewPropertyStorms = api.viewPropertyStorms;
         root.viewPropertyHazard = api.viewPropertyHazard;
         root.viewPropertyDetails = api.viewPropertyDetails;
+        root.viewCommercialDetails = api.viewCommercialDetails;
+        root.viewCommercialStorms = api.viewCommercialStorms;
+        root.viewCommercialHazard = api.viewCommercialHazard;
+        root.viewLoanDetails = api.viewLoanDetails;
         root.showGaugeBlotter = api.showGaugeBlotter;
         root.checkBackendHealth = api.checkBackendHealth;
         root.getMapInstance = api.getMapInstance;

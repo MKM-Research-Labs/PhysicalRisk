@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for visual layer modules: GaugeLayer, PropertyLayer, MortgageLayer."""
+"""Tests for visual layer modules: GaugeLayer, PropertyLayer."""
 
 
 class TestLayerImports:
@@ -34,21 +34,15 @@ class TestLayerImports:
         layer = PropertyLayer()
         assert layer is not None
 
-    def test_mortgage_layer_import(self):
-        from visual.layer import MortgageLayer
-        layer = MortgageLayer()
-        assert layer is not None
-
     def test_layer_names_are_strings(self):
-        from visual.layer import GaugeLayer, MortgageLayer, PropertyLayer
+        from visual.layer import GaugeLayer, PropertyLayer
         assert isinstance(GaugeLayer().layer_name, str)
         assert isinstance(PropertyLayer().layer_name, str)
-        assert isinstance(MortgageLayer().layer_name, str)
 
     def test_layer_names_are_distinct(self):
-        from visual.layer import GaugeLayer, MortgageLayer, PropertyLayer
-        names = {GaugeLayer().layer_name, PropertyLayer().layer_name, MortgageLayer().layer_name}
-        assert len(names) == 3
+        from visual.layer import GaugeLayer, PropertyLayer
+        names = {GaugeLayer().layer_name, PropertyLayer().layer_name}
+        assert len(names) == 2
 
 
 class TestLayerConfiguration:
@@ -64,12 +58,6 @@ class TestLayerConfiguration:
         from visual.layer import PropertyLayer
         layer = PropertyLayer()
         layer.configure(show_risk_colors=False, show_mortgage_status=True, risk_based_sizing=True)
-
-    def test_mortgage_layer_configure(self):
-        from visual.layer import MortgageLayer
-        layer = MortgageLayer()
-        layer.configure(show_risk_circles=True, show_ltv_indicators=False,
-                        circle_opacity=0.6, max_circle_radius=300)
 
     def test_configure_returns_none_or_self(self):
         from visual.layer import GaugeLayer

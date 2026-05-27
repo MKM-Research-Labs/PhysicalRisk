@@ -38,14 +38,14 @@ This package contains specialized modules for adding different types of data lay
 to the flood risk and tropical cyclone event visualizations.
 """
 
+from .commercial_layer import CommercialLayer
 from .gauge_layer import GaugeLayer
 from .helpers import get_properties_list
-from .mortgage_layer import MortgageLayer
 from .property_layer import PropertyLayer
 
 __all__ = [
     "GaugeLayer",
     "PropertyLayer",
-    "MortgageLayer",
+    "CommercialLayer",
     "get_properties_list",
 ]

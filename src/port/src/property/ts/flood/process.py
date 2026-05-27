@@ -33,23 +33,28 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
     def _process_property(self, prop: Dict, gauge_lookup: Dict,
                            gaugets: Dict, pts_dir: Path,
                            mode: str = "normal") -> Optional[Dict]:
-        """Process a single property: find floods and build hydrographs.
+        """Process a single asset: find floods and build hydrographs.
+
+        Reads the asset record under the root section configured by
+        ``self.ASSET_CONFIG.root_section_key`` (``PropertyHeader`` for
+        residential, ``CommercialAsset`` for commercial).
 
         Args:
             mode: "normal" (default), "shd" (zero elevation diff), or
                   "she" (zero distance).
         """
-        ph = prop.get('PropertyHeader', {})
+        cfg = self.ASSET_CONFIG
+        ph = prop.get(cfg.root_section_key, {})
         hdr = ph.get('Header', {})
         loc = ph.get('Location', {})
         risk = loc.get('RiskAssessment', ph.get('RiskAssessment', {}))
         construction = ph.get('Construction', {})
-        attrs = ph.get('PropertyAttributes', {})
+        attrs = ph.get(cfg.attributes_key, {})
         ph_risk = ph.get('RiskAssessment', {})
 
         prop_id = (hdr.get('PropertyID', '')
                    or attrs.get('PropertyID', '')
-                   or ph.get('PropertyAttributes', {}).get('PropertyID', ''))
+                   or ph.get(cfg.attributes_key, {}).get('PropertyID', ''))
         prop_lat = loc.get('LatitudeDegrees', 0)
         prop_lon = loc.get('LongitudeDegrees', 0)
         prop_elevation = risk.get('GroundLevelMeters', 0)
@@ -182,7 +187,7 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             'floor_level_m': round(floor_level, 4),
             'flood_zone': effective_zone,
             'terrain_type': terrain_type,
-            'property_type': attrs.get('PropertyResi', 'Detached'),
+            'property_type': attrs.get(cfg.type_field, cfg.type_default),
             'construction_year': attrs.get('ConstructionYear', 2000),
             'property_period': attrs.get('PropertyPeriod', '2000-2008'),
             'nearest_gauges': output_nearest_gauges,

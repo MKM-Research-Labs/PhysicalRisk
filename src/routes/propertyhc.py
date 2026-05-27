@@ -119,11 +119,17 @@ def property_hazard(prop_id: str):
             'message': f'Property {prop_id} not found in hazard curves (may have < 3 flood events)'
         }), 404
 
-    # Attach terrain grid from metadata so the PRS pricer can do zone repricing
+    # Attach terrain grid + num_storms from metadata so the PRS pricer
+    # can do zone repricing and the panel knows the denominator used by
+    # the generator (avoids hard-coded 20000 in the JS).
     metadata = data.get('metadata', {})
-    terrain_grid = metadata.get('terrain_grid')
-    if terrain_grid:
-        prop_data['_metadata'] = {'terrain_grid': terrain_grid}
+    meta_out = {}
+    if metadata.get('terrain_grid'):
+        meta_out['terrain_grid'] = metadata['terrain_grid']
+    if metadata.get('num_storms') is not None:
+        meta_out['num_storms'] = metadata['num_storms']
+    if meta_out:
+        prop_data['_metadata'] = meta_out
 
     return jsonify({
         'status': 'success',

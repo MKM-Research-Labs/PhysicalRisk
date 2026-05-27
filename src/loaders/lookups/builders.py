@@ -215,73 +215,6 @@ def _classify_property_risk(annual_prob: float) -> str:
     return "Negligible"
 
 
-def build_mortgage_risk_info(
-    mortgage_data: Optional[Dict[str, Any]],
-    flood_risk_data: Optional[Dict[str, Any]],
-    property_flood_info: Optional[Dict[str, Dict]] = None
-) -> Dict[str, Dict]:
-    """
-    Build mortgage risk lookups by combining mortgage data with property flood info.
-
-    Args:
-        mortgage_data: Raw mortgage data with 'items' key
-        flood_risk_data: Gauge hazard data (for context)
-        property_flood_info: Pre-built property flood info lookup
-
-    Returns:
-        Dictionary with 'by_mortgage_id' and 'by_property_id' sub-dicts
-    """
-    result = {
-        "by_mortgage_id": {},
-        "by_property_id": {},
-    }
-
-    if not mortgage_data:
-        return result
-
-    if property_flood_info is None:
-        property_flood_info = {}
-
-    for mortgage in mortgage_data.get("items", []):
-        mort_data = mortgage.get("Mortgage", {})
-        header = mort_data.get("Header", {})
-        mortgage_id = header.get("MortgageID")
-        property_id = header.get("PropertyID")
-
-        if not mortgage_id or not property_id:
-            continue
-
-        financial_terms = mort_data.get("FinancialTerms", {})
-        loan_details = mort_data.get("LoanDetails", {})
-        original_loan = (
-            financial_terms.get("OriginalLoan")
-            or loan_details.get("OriginalLoanAmount")
-            or 0
-        )
-
-        # Get property flood info if available
-        prop_flood = property_flood_info.get(property_id, {})
-        risk_level = prop_flood.get("risk_level", "Unknown")
-        annual_prob = prop_flood.get("annual_flood_prob", 0)
-
-        # Estimate value at risk
-        value_at_risk = original_loan * min(annual_prob * 10, 1.0) if annual_prob else 0
-
-        risk_info = {
-            "MortgageID": mortgage_id,
-            "PropertyID": property_id,
-            "mortgage_value": original_loan,
-            "flood_risk_level": risk_level,
-            "annual_flood_probability": annual_prob,
-            "mortgage_value_at_risk": value_at_risk,
-        }
-
-        result["by_mortgage_id"][mortgage_id] = risk_info
-        result["by_property_id"][property_id] = risk_info
-
-    return result
-
-
 def build_all_lookups(
     gauge_data: Optional[Dict[str, Any]] = None,
     property_data: Optional[Dict[str, Any]] = None,
@@ -310,7 +243,4 @@ def build_all_lookups(
         "mortgage_lookup": build_mortgage_lookup(mortgage_data),
         "gauge_flood_info": build_gauge_flood_info(gauge_data, flood_risk_data),
         "property_flood_info": property_flood_info,
-        "mortgage_risk_info": build_mortgage_risk_info(
-            mortgage_data, flood_risk_data, property_flood_info
-        ),
     }

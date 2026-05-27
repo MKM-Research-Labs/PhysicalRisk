@@ -74,7 +74,7 @@ def run_all_tests(verbose: bool = True, catchment: Optional[str] = None) -> List
     # Set catchment if provided
     if catchment:
         try:
-            config.CATCHMENT = catchment
+            config.catchment_id = catchment
         except ValueError as e:
             print(f"❌ Error setting catchment: {e}")
             return results

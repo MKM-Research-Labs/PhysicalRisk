@@ -3,7 +3,12 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Data loading mixin for PropertyTimeSeriesGenerator."""
+"""Data loading mixin for PropertyTimeSeriesGenerator.
+
+Filename and JSON-key resolution comes from ``self.ASSET_CONFIG`` so the
+same loader serves both residential (property.json) and commercial
+(commercial.json) generators.
+"""
 
 import json
 from typing import Dict, List
@@ -34,11 +39,11 @@ class LoaderMixin:
             return {}
 
     def _load_properties(self) -> List[Dict]:
-        """Load property portfolio."""
-        path = config.get_input_path("property.json")
+        """Load the asset portfolio for the configured asset type."""
+        path = config.get_input_path(self.ASSET_CONFIG.portfolio_filename)
         with open(path, 'r') as f:
             data = json.load(f)
-        return data.get('properties', [])
+        return data.get(self.ASSET_CONFIG.portfolio_key, [])
 
     def _load_gauges(self) -> List[Dict]:
         """Load gauge portfolio."""

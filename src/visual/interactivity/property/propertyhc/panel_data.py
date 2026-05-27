@@ -6,14 +6,30 @@
 def get_js() -> str:
     """Return JS for the loadData() async function."""
     return """
+            // Commercial assets use CPROP-* ids; residential use PROP-*.
+            // The hazard panel's payload shape is identical between the
+            // two asset types, so we just swap the API base path.
+            function _phcIsCommercial(propertyId) {
+                return typeof propertyId === 'string'
+                       && propertyId.indexOf('CPROP-') === 0;
+            }
+
             async function loadData(propertyId) {
                 var status = document.getElementById('phc-status');
                 status.textContent = 'Loading...';
 
+                var isCommercial = _phcIsCommercial(propertyId);
+                // /api/v1/commercial/<id>/{hazard,she,shd,<id>} mirror
+                // their /api/v1/properties/<id>/* counterparts — same
+                // response keys.
+                var apiBase = isCommercial
+                    ? '/api/v1/commercial/'
+                    : '/api/v1/properties/';
+
                 try {
                     var cfg = window.__BACKEND_CONFIG || {};
                     var baseUrl = cfg.url || '';
-                    var url = baseUrl + '/api/v1/properties/' + propertyId + '/hazard';
+                    var url = baseUrl + apiBase + propertyId + '/hazard';
 
                     var response = await fetch(url, {mode: 'cors'});
                     var result = await response.json();
@@ -51,9 +67,9 @@ def get_js() -> str:
                     // Fetch SHE/SHD flood counts and gauge severe count for basis strip
                     try {
                         var [sheResp, shdResp, stormsResp] = await Promise.all([
-                            fetch(baseUrl + '/api/v1/properties/' + propertyId + '/she', {mode: 'cors'}),
-                            fetch(baseUrl + '/api/v1/properties/' + propertyId + '/shd', {mode: 'cors'}),
-                            fetch(baseUrl + '/api/v1/properties/' + propertyId + '/storms', {mode: 'cors'}),
+                            fetch(baseUrl + apiBase + propertyId + '/she', {mode: 'cors'}),
+                            fetch(baseUrl + apiBase + propertyId + '/shd', {mode: 'cors'}),
+                            fetch(baseUrl + apiBase + propertyId + '/storms', {mode: 'cors'}),
                         ]);
                         if (sheResp.ok) {
                             var sheData = await sheResp.json();
@@ -75,15 +91,26 @@ def get_js() -> str:
                     }
 
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');
-                    // Ensure _propertyNames has this property (preloader may not have finished)
+                    // Ensure _propertyNames has this asset (preloader may not have finished).
+                    // Residential records wrap location under PropertyHeader; commercial
+                    // records wrap it under CommercialAsset. The shape differs, but the
+                    // populated keys (BuildingNumber + StreetName, or BuildingName)
+                    // overlap enough to extract a display string from either.
                     if (!(window._propertyNames || {})[propertyId]) {
                         try {
-                            var propResp = await fetch(baseUrl + '/api/v1/properties/' + propertyId, {mode: 'cors'});
+                            var propResp = await fetch(baseUrl + apiBase + propertyId, {mode: 'cors'});
                             if (propResp.ok) {
                                 var propResult = await propResp.json();
-                                var ph = (propResult.property || {}).PropertyHeader || {};
-                                var loc = ph.Location || {};
-                                var propAddr = ((loc.BuildingNumber || '') + ' ' + (loc.StreetName || '')).trim();
+                                var rec = propResult.property || {};
+                                var loc;
+                                if (isCommercial) {
+                                    loc = (rec.CommercialAsset || {}).Location || {};
+                                } else {
+                                    loc = (rec.PropertyHeader || {}).Location || {};
+                                }
+                                var propAddr = (loc.BuildingName
+                                    || ((loc.BuildingNumber || '') + ' '
+                                        + (loc.StreetName || '')).trim());
                                 if (propAddr) {
                                     if (!window._propertyNames) window._propertyNames = {};
                                     window._propertyNames[propertyId] = propAddr;
@@ -93,7 +120,11 @@ def get_js() -> str:
                     }
                     // Refresh title with canonical format
                     var titleEl = document.getElementById('phc-panel-title');
-                    if (titleEl) titleEl.textContent = 'PRS Pricer: ' + window.propertyDisplayName(propertyId);
+                    var titleLabel = isCommercial
+                        ? 'Commercial PRS Pricer: '
+                        : 'PRS Pricer: ';
+                    if (titleEl) titleEl.textContent =
+                        titleLabel + window.propertyDisplayName(propertyId);
                     buildPRSControls();
                     populateBasisStrip();
                     switchTab(activeTab);

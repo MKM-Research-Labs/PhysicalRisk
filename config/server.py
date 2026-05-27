@@ -41,7 +41,10 @@ class ServerMixin:
     SERVER_HOST: str = os.getenv('MKM_SERVER_HOST', '127.0.0.1')
     SERVER_PORT: int = _validated_port()
     DEBUG: bool = os.getenv('MKM_DEBUG', 'false').lower() == 'true'
-    CATCHMENT: str = os.getenv('MKM_CATCHMENT', 'thames')
+    # CATCHMENT is supplied by CatchmentMixin's @property — do not redeclare
+    # here as a class attribute, or it will shadow the property in MRO and
+    # `config.catchment_id = 'halong'` will silently fail to propagate to
+    # `config.CATCHMENT`.
 
     CORS_ORIGINS: list = [
         "http://localhost:*",
@@ -51,14 +54,16 @@ class ServerMixin:
     # Unified API endpoint map (superset of what was in Config + PortfolioConfig).
     # health_check normalised to /api/v1/health; export_data to /api/v1/export.
     ENDPOINTS: dict = {
-        'health_check':    '/api/v1/health',
-        'properties':      '/api/v1/properties',
-        'gauges':          '/api/v1/gauges',
-        'property_report': '/api/v1/properties/report',
-        'gauge_report':    '/api/v1/gauges/report',
-        'mortgage_report': '/api/v1/properties/mortgage-report',
-        'gauge_history':   '/api/v1/gauges/{gauge_id}/history',
-        'export_data':     '/api/v1/export',
+        'health_check':      '/api/v1/health',
+        'properties':        '/api/v1/properties',
+        'gauges':            '/api/v1/gauges',
+        'property_report':   '/api/v1/properties/report',
+        'gauge_report':      '/api/v1/gauges/report',
+        'mortgage_report':   '/api/v1/properties/mortgage-report',
+        'commercial_report': '/api/v1/commercial/report',
+        'commercial_loan_report': '/api/v1/commercial/loan-report',
+        'gauge_history':     '/api/v1/gauges/{gauge_id}/history',
+        'export_data':       '/api/v1/export',
     }
 
     @property

@@ -6,7 +6,7 @@
 """
 Property Portfolio Generator.
 
-This module generates synthetic property data based on the PropertyCDM schema.
+This module generates synthetic property data based on the ResidentialAssetCDM schema.
 Random value generation is delegated to catchment-specific modules in port.random.
 
 Usage:
@@ -19,12 +19,12 @@ Usage:
     generator = PropertyPortfolioGenerator()
     result = generator.generate(count=200)
 
-    # Option 3: Explicit module injection
-    from port.random.thames import property_random
-    from catchments.thames import ThamesCatchment
+    # Option 3: Explicit module injection (any catchment)
+    from port.rand.<catchment_id> import property_random
+    from catch.<catchment_id> import <Catchment>Catchment
     generator = PropertyPortfolioGenerator(
         random_module=property_random,
-        catchment_params=ThamesCatchment()
+        catchment_params=<Catchment>Catchment()
     )
     result = generator.generate(count=200)
 """
@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from config import config
-from port.cdm import PropertyCDM
+from port.cdm import ResidentialAssetCDM
 
 from .encoder import DateTimeEncoder
 from .locations import LocationsMixin
@@ -74,7 +74,7 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
         self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        self.property_cdm = PropertyCDM()
+        self.property_cdm = ResidentialAssetCDM()
         self.verbose = verbose
         if not verbose:
             logging.getLogger(__name__).setLevel(logging.WARNING)
@@ -135,9 +135,9 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
         locations = self._generate_locations(count)
         self.log(f"Generated {len(locations)} locations", "INFO")
 
-        # Access the schema from the PropertyCDM instance
+        # Access the schema from the ResidentialAssetCDM instance
         schema = self.property_cdm.schema
-        self.log("Schema loaded from PropertyCDM", "DEBUG")
+        self.log("Schema loaded from ResidentialAssetCDM", "DEBUG")
 
         # Generate properties
         self.log("Starting property generation process...", "INFO")
@@ -217,16 +217,11 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
 def generate_properties(
     count: int = 200,
     output_dir: Optional[Path] = None,
-    catchment_id: Optional[str] = None
 ) -> Dict:
-    """
-    Convenience function to generate property portfolio.
+    """Convenience function to generate property portfolio.
 
-    If catchment_id is provided, set config.CATCHMENT accordingly before loading
-    random/params modules, otherwise use existing config.CATCHMENT.
+    The active catchment is taken from ``config.catchment_id`` (set by
+    the CLI / server entry point). This function no longer mutates it.
     """
-    if catchment_id is not None:
-        config.CATCHMENT = catchment_id.lower()
-
     generator = PropertyPortfolioGenerator(output_dir=output_dir)
     return generator.generate(count=count)

@@ -162,22 +162,6 @@ class TestPropertyPopupBuilder:
             'risk_level': 'Medium',
             'value_at_risk': 125000
         }
-        self.sample_mortgage_risk = {
-            'MortgageID': 'MTG-test-001',
-            'PropertyID': 'PROP-test-001',
-            'loan_amount': 500000,
-            'interest_rate': 0.035,
-            'monthly_payment': 2465.87,
-            'annual_payment': 29590.44,
-            'credit_spread': 0.005,
-            'recovery_haircut': 0.20,
-            'mortgage_value': 480000,
-            'mortgage_value_at_risk': 96000,
-            'flood_risk_level': 'Medium',
-            'flood_risk_value': 0.25,
-            'flood_depth': 0.3,
-            'property_value': 750000
-        }
 
     def test_property_section_contains_type(self):
         section = self.builder.create_property_section(
@@ -209,31 +193,23 @@ class TestPropertyPopupBuilder:
         assert '£500,000.00' in section
         assert 'MORTGAGE DETAILS' in section
 
-    def test_mortgage_risk_section(self):
-        section = self.builder.create_mortgage_risk_section(self.sample_mortgage_risk)
-        assert 'MORTGAGE RISK ANALYSIS' in section
-        assert 'MTG-test-001' in section
-        assert '£480,000.00' in section
-        assert 'Medium' in section
-
     def test_complete_popup_creation(self):
         popup = self.builder.create_complete_popup_content(
             self.sample_property, 'PROP-test-001', self.sample_address,
             '51.51°N, -0.13°E', 'Medium', 'Close', 2.5, False,
             750000, 1985, 'Medium (1925-1975)', True,
-            self.sample_mortgage, self.sample_flood_info, self.sample_mortgage_risk
+            self.sample_mortgage, self.sample_flood_info,
         )
         assert 'Property Analysis' in popup
         assert 'PROP-test-001' in popup
         assert 'font-family: Arial' in popup
         assert 'MORTGAGE DETAILS' in popup
-        assert 'MORTGAGE RISK ANALYSIS' in popup
 
     def test_build_property_popup_returns_object(self):
         popup = self.builder.build_property_popup(
             self.sample_property, 'PROP-test-001', self.sample_address,
             '51.51°N, -0.13°E', 'Medium', 'Close', 2.5, False,
             750000, 1985, 'Medium (1925-1975)', True,
-            self.sample_mortgage, self.sample_flood_info, self.sample_mortgage_risk
+            self.sample_mortgage, self.sample_flood_info,
         )
         assert popup is not None

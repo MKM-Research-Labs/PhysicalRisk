@@ -50,6 +50,8 @@ class LoadedData:
     gauge_data: Optional[Dict[str, Any]] = None
     property_data: Optional[Dict[str, Any]] = None
     mortgage_data: Optional[Dict[str, Any]] = None
+    commercial_data: Optional[Dict[str, Any]] = None
+    commercial_loan_data: Optional[Dict[str, Any]] = None
     hazard_data: Optional[Dict[str, Any]] = None
     property_hazard_data: Optional[Dict[str, Any]] = None
     storm_data: Optional[Dict[str, Any]] = None
@@ -62,9 +64,9 @@ class LoadedData:
 
     # Processed lookups
     mortgage_lookup: Optional[Dict[str, Dict]] = None
+    commercial_loan_lookup: Optional[Dict[str, Dict]] = None
     gauge_flood_info: Optional[Dict[str, Dict]] = None
     property_flood_info: Optional[Dict[str, Dict]] = None
-    mortgage_risk_info: Optional[Dict[str, Dict]] = None
 
 
 class DataValidationResult(NamedTuple):
@@ -116,6 +118,17 @@ class DataLoader:
         )
         self.loaded_data.mortgage_data = self._load_with_validation(
             self._mortgage_loader, "mortgage"
+        )
+
+        # --- Commercial portfolio (optional — silently absent for catchments
+        # without commercial.json) ---
+        self.loaded_data.commercial_data = self._load_optional_json(
+            self.input_dir / JSONFileConfig.COMMERCIAL_PORTFOLIO,
+            "commercial",
+        )
+        self.loaded_data.commercial_loan_data = self._load_optional_json(
+            self.input_dir / JSONFileConfig.COMMERCIAL_LOAN_PORTFOLIO,
+            "commercial_loan",
         )
 
         # --- Hazard curves ---
@@ -243,6 +256,38 @@ class DataLoader:
         else:
             logger.info("Property flood timeseries (propertyts/): not found")
 
+    def _load_optional_json(self, path: Path, data_type: str) -> Optional[Dict]:
+        """Load a JSON file if it exists; silently return None if not.
+
+        Used for portfolios that may be absent (commercial.json,
+        commercial_loan.json) — their layers degrade gracefully when
+        the catchment has no commercial portfolio.
+        """
+        if not path.exists():
+            logger.debug(f"{data_type} portfolio not found at {path} — skipping")
+            return None
+        try:
+            with open(path) as f:
+                data = json.load(f)
+            n = (len(data.get('commercial_assets', []))
+                 or len(data.get('commercial_loans', []))
+                 or len(data) if isinstance(data, dict) else 0)
+            logger.info(f"Loaded {n} {data_type} records from {path.name}")
+            return data
+        except Exception as e:
+            logger.error(f"Error loading {data_type} from {path}: {e}")
+            return None
+
+    def _build_commercial_loan_lookup(self):
+        """Index commercial loans by PropertyID for popup linking."""
+        loans = (self.loaded_data.commercial_loan_data or {}).get('commercial_loans', [])
+        lookup = {}
+        for loan in loans:
+            pid = loan.get('Mortgage', {}).get('Header', {}).get('PropertyID')
+            if pid:
+                lookup[pid] = loan
+        self.loaded_data.commercial_loan_lookup = lookup
+
     def _load_with_validation(self, loader, data_type: str) -> Optional[Dict]:
         """Load data using a loader and record validation result."""
         try:
@@ -295,12 +340,13 @@ class DataLoader:
         self.loaded_data.mortgage_lookup = lookups["mortgage_lookup"]
         self.loaded_data.gauge_flood_info = lookups["gauge_flood_info"]
         self.loaded_data.property_flood_info = lookups["property_flood_info"]
-        self.loaded_data.mortgage_risk_info = lookups["mortgage_risk_info"]
+        self._build_commercial_loan_lookup()
 
         logger.info(f"Mortgage lookup: {len(self.loaded_data.mortgage_lookup)} entries")
         logger.info(f"Gauge flood info: {len(self.loaded_data.gauge_flood_info)} entries")
         logger.info(f"Property flood info: {len(self.loaded_data.property_flood_info)} entries")
-        logger.info(f"Mortgage risk info: {len(self.loaded_data.mortgage_risk_info.get('by_mortgage_id', {}))} entries")
+        if self.loaded_data.commercial_loan_lookup:
+            logger.info(f"Commercial loan lookup: {len(self.loaded_data.commercial_loan_lookup)} entries")
 
     def _print_relationship_analysis(self):
         """Print ID relationship analysis for debugging."""

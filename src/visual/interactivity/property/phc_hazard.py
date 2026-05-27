@@ -48,11 +48,24 @@ def get_js():
                 var nearestGauges = phcData.nearest_gauges || [];
                 var ng0 = nearestGauges[0] || {};
                 var gaugeSevere = phcData._severe_at_gauge || 0;
-                var gaugeSpread = gaugeSevere > 0 ? (gaugeSevere / 20000 * 10000) : 0;
                 var sheCount = phcData._she ? (phcData._she.flood_count || 0) : 0;
                 var shdCount = phcData._shd ? (phcData._shd.flood_count || 0) : 0;
                 var propElev = phcData.elevation_m || 0;
                 var floorLevel = phcData.floor_level_m || 0;
+
+                // Spread values + denominator come from the hazard payload —
+                // the generator already used the correct storm count when
+                // it built spread_decomposition. Previously these were
+                // computed as count/20000*10000 in the panel, which baked
+                // in the thames default --num-storms; for any catchment
+                // with a different storm count (e.g. halong's 100) the
+                // gauge/SHE/SHD values were 200× too small while the asset
+                // (using the real prs_spread_bps) stayed correct.
+                var sd = phcData.spread_decomposition || {};
+                var numStorms = (phcData._metadata || {}).num_storms || 0;
+                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var sheSpread = sd.she_spread_bps || 0;
+                var shdSpread = sd.shd_spread_bps || 0;
 
                 // --- Left panel: Detail ---
                 var lbl = 'font-size:10px;color:#888;';
@@ -93,8 +106,8 @@ def get_js():
                 var detailHtml =
                     '<div style="width:300px;min-width:260px;padding:8px 12px;overflow-y:auto;border-right:1px solid #eee;font-size:12px;">' +
 
-                    // Property section
-                    '<div style="' + hdr + '">Property</div>' +
+                    // Asset section
+                    '<div style="' + hdr + '">Asset</div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + propElev.toFixed(2) + 'm</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Floor level</span><span style="' + val + '">' + floorLevel.toFixed(2) + 'm</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Flood zone</span><span style="' + val + '">' + zone + '</span></div>' +
@@ -103,11 +116,12 @@ def get_js():
                     '<div style="' + hdr + '">Nearest Gauges</div>' +
                     gaugeRows +
 
-                    // Pricing summary
+                    // Pricing summary — Scenarios now uses the real
+                    // num_storms from the data (was hard-coded 20,000).
                     '<div style="' + hdr + '">Pricing</div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Scenarios</span><span style="' + val + '">20,000</span></div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Property floods</span><span style="' + val + '">' + floodCount + '</span></div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Property spread</span><span style="' + val + 'color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Scenarios</span><span style="' + val + '">' + (numStorms ? numStorms.toLocaleString() : '\\u2014') + '</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Asset floods</span><span style="' + val + '">' + floodCount + '</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Asset spread</span><span style="' + val + 'color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Annual prob</span><span style="' + val + '">' + (annualProb * 100).toFixed(3) + '%</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Return period</span><span style="' + val + '">' + rpStr + '</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Max depth</span><span style="' + val + '">' + (summary.max_depth_m || 0).toFixed(2) + 'm</span></div>' +
@@ -128,28 +142,35 @@ def get_js():
                 _drawBasisWaterfall(
                     document.getElementById('phc-waterfall-container'),
                     gaugeSevere, sheCount, shdCount, floodCount,
-                    gaugeSpread, propSpread
+                    gaugeSpread, sheSpread, shdSpread, propSpread
                 );
 
+                // Bottom stats bar — spreads now come from spread_decomposition
+                // (was previously count/20000*10000 which hard-coded the
+                // thames default storm count).
                 var bar = document.getElementById('phc-stats-bar');
                 var basis = gaugeSpread - propSpread;
                 bar.innerHTML =
                     '<span><b>Gauge:</b> ' + gaugeSevere + ' severe (' + gaugeSpread.toFixed(1) + 'bp)</span>' +
-                    '<span><b>SHE:</b> ' + sheCount + ' (' + (sheCount/20000*10000).toFixed(1) + 'bp)</span>' +
-                    '<span><b>SHD:</b> ' + shdCount + ' (' + (shdCount/20000*10000).toFixed(1) + 'bp)</span>' +
-                    '<span><b>Property:</b> ' + floodCount + ' (' + propSpread.toFixed(1) + 'bp)</span>' +
+                    '<span><b>SHE:</b> ' + sheCount + ' (' + sheSpread.toFixed(1) + 'bp)</span>' +
+                    '<span><b>SHD:</b> ' + shdCount + ' (' + shdSpread.toFixed(1) + 'bp)</span>' +
+                    '<span><b>Asset:</b> ' + floodCount + ' (' + propSpread.toFixed(1) + 'bp)</span>' +
                     '<span><b>Basis:</b> <span style="color:#E65100;">' + basis.toFixed(1) + 'bp</span></span>';
             }
 
             // ================================================================
             // Basis waterfall — simple table
             // ================================================================
-            function _drawBasisWaterfall(container, gaugeCount, sheCount, shdCount, propCount, gaugeSpread, propSpread) {
+            function _drawBasisWaterfall(container, gaugeCount, sheCount, shdCount, propCount,
+                                          gaugeSpread, sheSpread, shdSpread, propSpread) {
+                // All four spreads come from spread_decomposition in the
+                // hazard payload — no per-step storm-count arithmetic in
+                // the panel any more.
                 var steps = [
                     { label: 'Gauge Severe', count: gaugeCount, spread: gaugeSpread, color: '#F44336', bg: '#FFEBEE' },
-                    { label: 'SHE (elevation)', count: sheCount, spread: sheCount / 20000 * 10000, color: '#E65100', bg: '#FFF3E0' },
-                    { label: 'SHD (distance)', count: shdCount, spread: shdCount / 20000 * 10000, color: '#2E7D32', bg: '#E8F5E9' },
-                    { label: 'Property', count: propCount, spread: propSpread, color: '#1565C0', bg: '#E3F2FD' },
+                    { label: 'SHE (elevation)', count: sheCount, spread: sheSpread, color: '#E65100', bg: '#FFF3E0' },
+                    { label: 'SHD (distance)', count: shdCount, spread: shdSpread, color: '#2E7D32', bg: '#E8F5E9' },
+                    { label: 'Asset', count: propCount, spread: propSpread, color: '#1565C0', bg: '#E3F2FD' },
                 ];
 
                 var maxCount = Math.max(gaugeCount, 1);

@@ -11,7 +11,7 @@ def get_js() -> str:
             // Basis Explorer state
             var basisActiveSubTab = 0;
             var basisSelectedStorm = null;
-            var basisSubTabNames = ['Gauge', 'SHE', 'SHD', 'Property'];
+            var basisSubTabNames = ['Gauge', 'SHE', 'SHD', 'Asset'];
 
             function ensureCanvas() {
                 var container = document.getElementById('phc-chart-container');

@@ -37,7 +37,7 @@ class TestLoadedData:
         from visual.core.data_loader import LoadedData
         d = LoadedData()
         for field in ("mortgage_lookup", "gauge_flood_info",
-                      "property_flood_info", "mortgage_risk_info"):
+                      "property_flood_info"):
             assert getattr(d, field) is None
 
     def test_counts_default_to_zero(self):

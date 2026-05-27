@@ -21,11 +21,12 @@ Covers:
 
 import pytest
 
-from port.cdm.property.schema import PROPERTY_SCHEMA
-from port.cdm.property.schema.resilience import (
-    RESILIENCE_LEVELS, RESILIENCE_MEASURES_SCHEMA,
+from port.cdm.asset.residential.schema import PROPERTY_SCHEMA
+from port.cdm.asset.resilience import (
+    HAZARD_PROFILE_SCHEMA,
+    RESILIENCE_LEVELS,
+    RESILIENCE_MEASURES_SCHEMA,
 )
-from port.cdm.property.schema.hazard_profile import HAZARD_PROFILE_SCHEMA
 
 
 _VALID_TYPES = {"string", "text", "menu", "decimal", "integer", "boolean", "date"}

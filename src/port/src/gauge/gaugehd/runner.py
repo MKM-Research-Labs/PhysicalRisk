@@ -107,7 +107,7 @@ def main():
     args = parser.parse_args()
 
     if args.catchment:
-        config.CATCHMENT = args.catchment
+        config.catchment_id = args.catchment
 
     logger.info("=" * 70)
     logger.info("Gauge Historical Daily (gaugehd) Generator")

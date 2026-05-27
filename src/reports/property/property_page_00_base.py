@@ -40,6 +40,8 @@ from abc import abstractmethod
 from typing import Any, Dict, List
 
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 
 from reports.shared import ReportBasePage
@@ -60,6 +62,21 @@ class PropertyBasePage(ReportBasePage):
         # Property uses navy/darkblue instead of darkblue/blue for Title/SubTitle
         self.styles['Title'].textColor = colors.navy
         self.styles['SubTitle'].textColor = colors.darkblue
+
+        # TableHeader — used inside Paragraph cells of styled tables
+        # (page_13 risk analysis + page_07 recommendation table). The style
+        # itself doesn't paint the table-header *background* (that's the
+        # TableStyle's BACKGROUND directive); it just provides the bold
+        # white text used for individual header cells.
+        if 'TableHeader' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='TableHeader',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.white,
+                fontName='Helvetica-Bold',
+                alignment=TA_CENTER,
+            ))
 
     def _setup_table_styles(self):
         """Set up table styles for property content types."""
@@ -90,6 +107,28 @@ class PropertyBasePage(ReportBasePage):
         self.table_widths['risk_table'] = [
             2.0 * inch, 0.9 * inch, 0.7 * inch, 3.9 * inch
         ]
+
+    def _emit_or_fallback(
+        self,
+        section,
+        section_title: str,
+        render_fn,
+        empty_message: str,
+    ) -> List:
+        """Render `section` via ``render_fn`` or emit a placeholder message.
+
+        Used by the residential property page wrappers that delegate to
+        ``reports.asset.render_*`` — when the section dict is empty/missing
+        the shared renderer has no fallback string to emit, so wrappers
+        provide one here. Returns the same flowable shape as the renderer.
+        """
+        from reportlab.platypus import Paragraph
+        if not section:
+            return [
+                Paragraph(section_title, self.styles["SectionHeader"]),
+                Paragraph(empty_message, self.styles["Normal"]),
+            ]
+        return render_fn(section, self)
 
     @abstractmethod
     def generate_elements(self, property_data: Dict[str, Any],

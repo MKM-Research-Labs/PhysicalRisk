@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 from config import config
+from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 from port.utils.generator_base import GeneratorInitMixin
 
 from .encoder import DateTimeEncoder
@@ -46,10 +47,13 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
     storms that cause flooding at gauge level, then propagates flood events
     to the property using IDW interpolation, velocity-based travel time,
     and distance attenuation.
+
+    Asset-type-specific knobs (input filename, JSON shape, output directory
+    names, ID prefix) come from ``ASSET_CONFIG``. Subclass and override
+    ``ASSET_CONFIG`` for other asset classes (e.g. commercial).
     """
 
-    # Map mode -> output subdirectory name
-    _MODE_DIRS = {"normal": "propertyts", "shd": "propertytsd", "she": "propertytse"}
+    ASSET_CONFIG: AssetTypeConfig = RESIDENTIAL_CONFIG
 
     def __init__(
         self,
@@ -68,7 +72,7 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
             Dictionary with generation metadata and summary statistics.
         """
         mode_label = f" [{self.mode}]" if self.mode != "normal" else ""
-        self.log(f"Property Flood Time Series Generator{mode_label}")
+        self.log(f"{self.ASSET_CONFIG.label} Flood Time Series Generator{mode_label}")
         self.log(f"Catchment: {config.CATCHMENT}")
 
         properties = self._load_properties()
@@ -95,11 +99,11 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
                 'severe_level': flood_stage.get('SevereFloodWarning', 0),
             }
 
-        pts_dir = self.output_dir / self._MODE_DIRS[self.mode]
+        pts_dir = self.output_dir / self.ASSET_CONFIG.ts_dirs[self.mode]
         pts_dir.mkdir(parents=True, exist_ok=True)
 
-        # Remove stale PROP-*.json files from previous runs
-        for stale in pts_dir.glob('PROP-*.json'):
+        # Remove stale per-asset JSON files from previous runs.
+        for stale in pts_dir.glob(self.ASSET_CONFIG.id_glob):
             stale.unlink()
 
         summary_stats = {

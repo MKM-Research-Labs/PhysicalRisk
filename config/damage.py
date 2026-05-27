@@ -136,3 +136,68 @@ BRI_COMPOSITE_REFERENCE: float = 0.50
 # Hard cap on stilt magnitude (metres).  Prevents extreme log values at very
 # high BRI scores from producing physically implausible depth reductions.
 BRI_STILT_MAX_M: float = 1.00
+
+
+# ===========================================================================
+# Wind Vulnerability  (peak sustained wind → damage ratio, sigmoid form)
+# ===========================================================================
+#
+# Mirrors the flood architecture: a pure curve plus a BRI-aware wrapper.
+# The wind curve is a piecewise saturated sigmoid centred on v_50:
+#
+#   DR(v) = 1 / (1 + exp(-a * (v - v_50)))
+#
+# where v is the peak sustained wind at the property during an event
+# (m/s) and v_50 is the wind speed at which 50% damage is realised.
+#
+# v_50 resolution rule (consumers — not enforced here):
+#   1. property carries CDM field WindThresholdKph → v_50 = ../3.6
+#   2. else use WIND_V50_BASE_MS as fallback
+#   3. then layer the BRI shift on top (next section)
+
+# Sigmoid steepness in per-m/s. At a = 0.20 the curve moves from ~10% to
+# ~90% damage over a 22 m/s span — sharp transition appropriate for the
+# structural-damage threshold of a typical building.
+WIND_SIGMOID_A_PER_MS: float = 0.20
+
+# Fallback v_50 in m/s when a property has no WindThresholdKph field.
+# 27.8 m/s = 100 km/h — a conservative default for residential structures.
+WIND_V50_BASE_MS: float = 27.8
+
+# Property-side fallback in km/h. Used by threshold resolution code so
+# the unit conversion stays in one place.
+DEFAULT_WIND_THRESHOLD_KPH: float = 100.0
+
+
+# ===========================================================================
+# BRI Adjustment — wind  (Building Resilience Index → v_50 shift)
+# ===========================================================================
+#
+# Mirrors the flood-side BRI stilt. A positive shift translates the
+# damage curve rightward (less damage at the same gust); a negative
+# shift translates it left (more damage). The shift is in m/s.
+#
+#   shift = BRI_WIND_ALPHA_MS     · ln(bri_wind      / BRI_WIND_REFERENCE)
+#         + BRI_COMPOSITE_BETA_MS · ln(bri_composite / BRI_COMPOSITE_REFERENCE)
+#
+#   v_50_eff = v_50 + shift,   clamped to ±WIND_V50_SHIFT_MAX_MS
+#
+# All four scalar parameters should be recalibrated once loss data is
+# available. BRI_COMPOSITE_REFERENCE is reused from the flood section.
+
+# Sensitivity of the v_50 shift to the wind sub-score (m/s per ln-unit).
+# Captures wind-specific hardening: glazing standards, roof attachment,
+# cladding rating.
+BRI_WIND_ALPHA_MS: float = 6.0
+
+# Sensitivity of the v_50 shift to the composite BRI score (m/s per ln-unit).
+# Captures systemic resilience: fabric quality, maintenance, structural integrity.
+BRI_COMPOSITE_BETA_MS: float = 3.0
+
+# Reference wind sub-score (log base-point — shift is zero at this value).
+# Update to portfolio weighted mean of BRIWindScore when live data is available.
+BRI_WIND_REFERENCE: float = 0.50
+
+# Hard cap on v_50 shift magnitude (m/s). Prevents extreme log values at
+# very high BRI scores from producing implausible damage reductions.
+WIND_V50_SHIFT_MAX_MS: float = 12.0

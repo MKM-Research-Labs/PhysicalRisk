@@ -34,7 +34,7 @@
 """
 Mortgage Portfolio Generator.
 
-This module generates synthetic mortgage data based on the MortgageCDM schema.
+This module generates synthetic mortgage data based on the LoanCDM schema.
 Mortgages are linked to properties from the property portfolio.
 Random value generation is delegated to catchment-specific modules in port.random.
 
@@ -66,7 +66,7 @@ from typing import Any, Dict, Optional, Union
 import numpy as np
 
 from config import config
-from port.cdm import MortgageCDM
+from port.cdm import LoanCDM
 from port.utils.schema import build_section
 
 logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class MortgagePortfolioGenerator:
         self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        self.mortgage_cdm = MortgageCDM()
+        self.mortgage_cdm = LoanCDM()
         self.verbose = verbose
         if not verbose:
             logging.getLogger(__name__).setLevel(logging.WARNING)
@@ -168,9 +168,9 @@ class MortgagePortfolioGenerator:
 
         self.processing_stats['total_mortgages'] = len(properties)
 
-        # Access the schema from MortgageCDM
+        # Access the schema from LoanCDM
         schema = self.mortgage_cdm.schema
-        self.log("Schema loaded from MortgageCDM", "DEBUG")
+        self.log("Schema loaded from LoanCDM", "DEBUG")
 
         # Generate mortgages
         self.log("Starting mortgage generation process...", "INFO")

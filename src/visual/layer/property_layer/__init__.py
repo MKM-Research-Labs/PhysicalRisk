@@ -32,7 +32,6 @@ from .popup import (  # noqa: F401
     create_property_popup,
     create_flood_risk_section,
     create_mortgage_section,
-    create_mortgage_risk_section,
 )
 from .stats import get_property_statistics  # noqa: F401
 
@@ -41,6 +40,5 @@ __all__ = [
     'create_property_popup',
     'create_flood_risk_section',
     'create_mortgage_section',
-    'create_mortgage_risk_section',
     'get_property_statistics',
 ]
