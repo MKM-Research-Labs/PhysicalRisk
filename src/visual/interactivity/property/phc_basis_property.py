@@ -189,7 +189,7 @@ def get_js() -> str:
                                 title: { display: true, text: 'Gauge Peak Water Level (m)', font: { size: 11 } },
                             },
                             y: {
-                                title: { display: true, text: 'Property Flood Depth (m)', font: { size: 11 } },
+                                title: { display: true, text: 'Asset Flood Depth (m)', font: { size: 11 } },
                                 beginAtZero: true,
                             }
                         }
@@ -211,7 +211,7 @@ def get_js() -> str:
                 if (bar) {
                     bar.innerHTML =
                         '<span><b>Gauge Spread:</b> ' + gaugeSpread.toFixed(1) + ' bps</span>' +
-                        '<span><b>Property Spread:</b> ' + propSpread.toFixed(1) + ' bps</span>' +
+                        '<span><b>Asset Spread:</b> ' + propSpread.toFixed(1) + ' bps</span>' +
                         '<span><b>Basis:</b> ' + (basis >= 0 ? '+' : '') + basis.toFixed(1) + ' bps</span>' +
                         '<span><b>Hedged:</b> ' + qTopRight + '</span>' +
                         '<span><b>Basis Risk:</b> ' + qBottomRight + '</span>' +
