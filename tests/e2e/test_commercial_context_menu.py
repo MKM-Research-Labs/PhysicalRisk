@@ -548,3 +548,49 @@ class TestCommercialLoanReport:
         assert panel_visible, (
             "property-pdf-panel did not open after clicking 'Generate Loan Report'"
         )
+
+
+class TestStartupStatusPopupCommercial:
+    """The bottom-left "Loading MKM Research Platform…" popup should list
+    Commercial assets + Commercial loans alongside the existing residential
+    entries.
+    """
+
+    def test_preloader_cache_vars_populated(self, map_page):
+        """window._preCommercial + window._preCommercialLoans should hold
+        the data fetched by the startup preloader."""
+        # Generous wait — preloader fires on DOMContentLoaded; popup
+        # closes when all fetches settle.
+        map_page.wait_for_function(
+            "() => window._preCommercial !== null && "
+            "      window._preCommercialLoans !== null",
+            timeout=20_000,
+        )
+        result = map_page.evaluate("""() => ({
+            commercialCount:
+                (window._preCommercial && window._preCommercial.count) || 0,
+            loanCount:
+                (window._preCommercialLoans && window._preCommercialLoans.count) || 0,
+        })""")
+        assert result["commercialCount"] >= 1, (
+            f"Expected ≥1 commercial asset, got {result['commercialCount']}"
+        )
+        assert result["loanCount"] >= 1, (
+            f"Expected ≥1 commercial loan, got {result['loanCount']}"
+        )
+
+    def test_commercial_asset_names_in_property_names_lookup(self, map_page):
+        """CPROP-* ids should resolve in window._propertyNames so the
+        right-click menu titles can show the building name."""
+        map_page.wait_for_function(
+            "() => window._preCommercial !== null",
+            timeout=20_000,
+        )
+        result = map_page.evaluate("""() => {
+            const names = window._propertyNames || {};
+            const cprops = Object.keys(names).filter(k => k.indexOf('CPROP-') === 0);
+            return {count: cprops.length};
+        }""")
+        assert result["count"] >= 1, (
+            f"No CPROP-* ids in window._propertyNames; got {result}"
+        )

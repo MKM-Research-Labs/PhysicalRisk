@@ -35,6 +35,12 @@ Exposes:
       Returns the bare commercial asset record by PropertyID, used by
       the hazard panel for address lookups when the preloader hasn't
       cached the asset name.
+
+  GET  /api/v1/commercial            (list all commercial assets)
+  GET  /api/v1/commercial-loans      (list all commercial loans)
+      Used by the startup preloader for the bottom-left status popup
+      and the in-browser asset-name lookup. Same response shape as
+      /api/v1/properties and /api/v1/mortgages on the residential side.
 """
 
 import json
@@ -482,3 +488,58 @@ def commercial_record(prop_id: str):
         'status': 'error',
         'message': f'Commercial asset {prop_id} not found',
     }), 404
+
+
+# ---------------------------------------------------------------------------
+# List endpoints used by the startup preloader / status popup
+# ---------------------------------------------------------------------------
+
+@commercial_bp.route('/commercial', methods=['GET'])
+def list_commercial():
+    """List all commercial assets in the active catchment.
+
+    Mirrors GET /api/v1/properties — used by the startup preloader for
+    the bottom-left status popup count and to build a PropertyID →
+    BuildingName / address lookup for the right-click menu titles.
+
+    Response shape::
+
+        {"status": "success", "count": N, "commercial_assets": [...]}
+    """
+    try:
+        with open(config.get_input_path('commercial.json'), 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return jsonify({'status': 'success', 'count': 0,
+                        'commercial_assets': []})
+    assets = data.get('commercial_assets', [])
+    return jsonify({
+        'status': 'success',
+        'count': len(assets),
+        'commercial_assets': assets,
+    })
+
+
+@commercial_bp.route('/commercial-loans', methods=['GET'])
+def list_commercial_loans():
+    """List all commercial loans in the active catchment.
+
+    Mirrors GET /api/v1/mortgages — used by the startup preloader for
+    the count stat.
+
+    Response shape::
+
+        {"status": "success", "count": N, "commercial_loans": [...]}
+    """
+    try:
+        with open(config.get_input_path('commercial_loan.json'), 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return jsonify({'status': 'success', 'count': 0,
+                        'commercial_loans': []})
+    loans = data.get('commercial_loans', [])
+    return jsonify({
+        'status': 'success',
+        'count': len(loans),
+        'commercial_loans': loans,
+    })

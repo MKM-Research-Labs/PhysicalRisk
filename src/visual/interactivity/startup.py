@@ -45,6 +45,8 @@ Datasets pre-fetched:
   _preGovBib         — /api/v1/governance/bibliography
   _prePropertyTS     — /api/v1/propertyts/summary
   _preGaugeHist      — /api/v1/gauges/history/summary
+  _preCommercial     — /api/v1/commercial            (Commercial assets count)
+  _preCommercialLoans — /api/v1/commercial-loans     (Commercial loans count)
 """
 
 from . import startup_popup as _startup_popup
@@ -90,7 +92,10 @@ def get_js() -> str:
             window._preGaugeHist      = null;
             window._preMortgages      = null;
             window._preAuditReports   = null;
+            window._preCommercial     = null;
+            window._preCommercialLoans = null;
             window._propertyNames     = {};  // propertyId → address lookup
+                                              // (covers residential PROP-* and commercial CPROP-* ids)
             window._gaugeNames        = {};  // gaugeId → gauge name lookup
 
             // Global helper: canonical property display label "Address (PROP-xxx)"
@@ -155,6 +160,8 @@ def get_js() -> str:
                 ['_preMortgages',      'Mortgages',            '/api/v1/mortgages'],
                 ['_preAuditReports',   'Audit reports',        '/api/v1/governance/audit-reports'],
                 ['_prePropertyNames',  'Property names',       '/api/v1/properties'],
+                ['_preCommercial',     'Commercial assets',    '/api/v1/commercial'],
+                ['_preCommercialLoans', 'Commercial loans',    '/api/v1/commercial-loans'],
             ];
 
             function _startupDetail(key, data) {
@@ -175,6 +182,8 @@ def get_js() -> str:
                 if (key === '_preMortgages'       && data.mortgages)     return data.mortgages.length + ' mortgages';
                 if (key === '_preAuditReports'    && data.reports)       return data.reports.filter(function(r){return r.filename.endsWith('.pdf');}).length + ' PDFs';
                 if (key === '_prePropertyNames'   && data.properties)   return data.properties.length + ' properties';
+                if (key === '_preCommercial'      && data.commercial_assets) return data.commercial_assets.length + ' assets';
+                if (key === '_preCommercialLoans' && data.commercial_loans)  return data.commercial_loans.length + ' loans';
                 return null;
             }
 
@@ -215,7 +224,7 @@ def get_js() -> str:
                             }
                             // Build property name lookup from /api/v1/properties
                             if (key === '_prePropertyNames' && data && data.properties) {
-                                var map = {};
+                                var map = window._propertyNames || {};
                                 data.properties.forEach(function(p) {
                                     var hdr = (p.PropertyHeader || {});
                                     var loc = hdr.Location || {};
@@ -224,6 +233,24 @@ def get_js() -> str:
                                     if (pid) map[pid] = addr;
                                 });
                                 window._propertyNames = map;
+                            }
+                            // Same lookup for commercial assets (CPROP-* ids).
+                            // BuildingName is preferred over BuildingNumber +
+                            // StreetName for commercial since commercial
+                            // tooltips use the building name.
+                            if (key === '_preCommercial' && data && data.commercial_assets) {
+                                var cmap = window._propertyNames || {};
+                                data.commercial_assets.forEach(function(rec) {
+                                    var ca = rec.CommercialAsset || {};
+                                    var hdr = ca.Header || {};
+                                    var loc = ca.Location || {};
+                                    var pid = hdr.PropertyID || '';
+                                    var name = loc.BuildingName
+                                        || ((loc.BuildingNumber || '') + ' '
+                                            + (loc.StreetName || '')).trim();
+                                    if (pid) cmap[pid] = name;
+                                });
+                                window._propertyNames = cmap;
                             }
                             _startupMarkItem(key, true, _startupDetail(key, data));
                         })
