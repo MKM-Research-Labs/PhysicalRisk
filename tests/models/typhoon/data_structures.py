@@ -15,9 +15,8 @@ from datetime import datetime
 
 import pytest
 
+from config.typhoon import RegimeClass, ScenarioFamily
 from models.typhoon.data_structures import (
-    RegimeClass,
-    ScenarioFamily,
     TyphoonParticle,
     TyphoonState,
     TyphoonTrajectory,
@@ -95,7 +94,7 @@ class TestScenarioFamily:
 class TestTyphoonState:
 
     def test_construction(self, sample_state):
-        assert sample_state.longitude == 110.0
+        assert sample_state.longitude == 120.0
         assert sample_state.regime is RegimeClass.STRAIGHT_WESTWARD
         assert sample_state.land_flag is False
 

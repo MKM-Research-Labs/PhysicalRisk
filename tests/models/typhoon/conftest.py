@@ -14,15 +14,7 @@ from datetime import datetime
 
 import pytest
 
-from models.typhoon.data_structures import (
-    RegimeClass,
-    ScenarioFamily,
-    TyphoonParticle,
-    TyphoonState,
-    TyphoonTrajectory,
-    WindFieldOutput,
-)
-from models.typhoon.parameters import (
+from config.typhoon import (
     CatchmentTyphoonConfig,
     GenesisPrior,
     IntensityParams,
@@ -30,8 +22,16 @@ from models.typhoon.parameters import (
     PeakWindParams,
     PlausibilityWeights,
     PropertyPoint,
+    RegimeClass,
+    ScenarioFamily,
     SizeParams,
     WindFieldParams,
+)
+from models.typhoon.data_structures import (
+    TyphoonParticle,
+    TyphoonState,
+    TyphoonTrajectory,
+    WindFieldOutput,
 )
 
 

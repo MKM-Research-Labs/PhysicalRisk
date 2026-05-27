@@ -6,17 +6,17 @@
 """Import-discipline tests for the typhoon model.
 
 Architectural rule: code under src/models/typhoon/ must be
-catchment-agnostic. It must not import from:
-  - data/catch/* (catchment-specific values)
-  - config/* (catchment-routing layer)
-  - port/* (storm orchestration)
-  - app/* (CLI / orchestrator)
+catchment-agnostic. It must not:
+  1. Import from data/catch/* (catchment-specific values)
+  2. Import from the catchment-routing modules of the config package
+     (config.catch is the routing surface; the typhoon parameter schema
+     lives in config.typhoon and is allowed)
+  3. Contain any catchment-name string literal in source code (these
+     belong only in data/catch/<id>/ and tests/catch/<id>/)
+  4. Import from port/* or app/* (orchestration layers)
 
 Catchment-specific values reach the model only as a CatchmentTyphoonConfig
 instance constructed by the boundary adapter in app/commands/port/stages/.
-
-This test inspects the actual source files with the AST so the guarantee
-holds even when new files are added to src/models/typhoon/.
 """
 
 import ast
@@ -27,7 +27,16 @@ import pytest
 import models.typhoon as typhoon_pkg
 
 
-FORBIDDEN_TOP_LEVELS = {"catch", "config", "port", "app"}
+# Top-level packages the model must never import from.
+FORBIDDEN_TOP_LEVELS = {"catch", "port", "app"}
+
+# Catchment-name string literals that must not appear in model source.
+# Add new catchments here as they're added under data/catch/.
+FORBIDDEN_CATCHMENT_NAMES = {
+    "halong", "Halong", "HALONG",
+    "thames", "Thames", "THAMES",
+    "hanoi", "Hanoi", "HANOI",
+}
 
 
 def _typhoon_source_files():
@@ -53,6 +62,19 @@ def _imported_modules(source: str):
     return modules
 
 
+def _config_subpackages_imported(source: str):
+    """Return the set of second-level names imported from the config package."""
+    tree = ast.parse(source)
+    sub: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if node.level == 0 and node.module is not None:
+                parts = node.module.split(".")
+                if parts[0] == "config" and len(parts) >= 2:
+                    sub.add(parts[1])
+    return sub
+
+
 class TestImportDiscipline:
 
     def test_at_least_one_source_file_exists(self):
@@ -71,14 +93,46 @@ class TestImportDiscipline:
             f"The typhoon model must remain catchment-agnostic."
         )
 
+    def test_only_typhoon_subpackage_of_config_is_imported(self):
+        """Within the config package, only config.typhoon (the parameter
+        schema) is permitted. Catchment routing surfaces like config.catch
+        or config.path are off-limits for the model."""
+        allowed_config_subpackages = {"typhoon"}
+        offenders: dict[str, set[str]] = {}
+        for path in _typhoon_source_files():
+            source = path.read_text()
+            sub = _config_subpackages_imported(source)
+            bad = sub - allowed_config_subpackages
+            if bad:
+                offenders[str(path)] = bad
+        assert not offenders, (
+            f"src/models/typhoon/ imported config subpackages other than "
+            f"'typhoon': {offenders}"
+        )
+
+    @pytest.mark.parametrize("catchment_name", sorted(FORBIDDEN_CATCHMENT_NAMES))
+    def test_no_catchment_name_in_source(self, catchment_name):
+        """No catchment name may appear in src/models/typhoon/ source.
+
+        Comments, docstrings, identifiers, string literals — all must be
+        catchment-agnostic.
+        """
+        offenders: list[str] = []
+        for path in _typhoon_source_files():
+            if catchment_name in path.read_text():
+                offenders.append(str(path))
+        assert not offenders, (
+            f"Found catchment-name '{catchment_name}' in src/models/typhoon/ "
+            f"source: {offenders}. Catchment names belong only in "
+            f"data/catch/<id>/ and tests/catch/<id>/."
+        )
+
     def test_imports_are_only_from_allowed_namespaces(self):
         """Top-level imports should come from stdlib, well-known third-party
-        libraries, or the typhoon package itself. Anything else is flagged
-        for review so future drift is caught.
+        libraries, the config schema, or the typhoon package itself.
         """
-        # Conservative allowlist — extend deliberately when new deps are added.
         ALLOWED_THIRD_PARTY = {
-            "numpy", "np", "scipy", "pandas", "pytest",
+            "numpy", "scipy", "pandas", "pytest",
         }
         STDLIB_HINTS = {
             "ast", "collections", "dataclasses", "datetime", "enum",
@@ -86,7 +140,7 @@ class TestImportDiscipline:
             "random", "re", "sys", "time", "typing", "uuid", "warnings",
             "abc", "copy", "io", "logging",
         }
-        ALLOWED = ALLOWED_THIRD_PARTY | STDLIB_HINTS | {"models"}
+        ALLOWED = ALLOWED_THIRD_PARTY | STDLIB_HINTS | {"models", "config"}
 
         unknown: dict[str, set[str]] = {}
         for path in _typhoon_source_files():

@@ -3,30 +3,64 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Tests for models.typhoon.parameters — parameter dataclass shape.
+"""Tests for config.typhoon — the parameter schema for the typhoon model.
 
 These tests are catchment-agnostic. They verify that each parameter
 dataclass can be constructed, that default values are internally
 consistent, and that a complete CatchmentTyphoonConfig can be assembled
 from neutral test data.
 
-Catchment-specific config files are tested separately under
-tests/catch/<catchment_id>/.
+Tests for any specific catchment's tropical-cyclone configuration live
+under tests/catch/<id>/.
 """
 
 import math
 
-from models.typhoon.data_structures import RegimeClass, ScenarioFamily
-from models.typhoon.parameters import (
+import pytest
+
+from config.typhoon import (
     CatchmentTyphoonConfig,
     GenesisPrior,
     IntensityParams,
     MotionParams,
     PeakWindParams,
     PlausibilityWeights,
+    PropertyPoint,
+    RegimeClass,
+    ScenarioFamily,
     SizeParams,
     WindFieldParams,
 )
+
+
+# ===========================================================================
+# Enum shape
+# ===========================================================================
+
+
+class TestRegimeClass:
+
+    def test_five_regimes_exist(self):
+        assert len(RegimeClass) == 5
+
+    def test_values_are_lower_snake_case(self):
+        for r in RegimeClass:
+            assert r.value == r.value.lower()
+            assert " " not in r.value
+
+    @pytest.mark.parametrize("regime", list(RegimeClass))
+    def test_roundtrip_via_value(self, regime):
+        assert RegimeClass(regime.value) is regime
+
+
+class TestScenarioFamily:
+
+    def test_five_families_exist(self):
+        assert len(ScenarioFamily) == 5
+
+    @pytest.mark.parametrize("scenario", list(ScenarioFamily))
+    def test_roundtrip_via_value(self, scenario):
+        assert ScenarioFamily(scenario.value) is scenario
 
 
 # ===========================================================================
@@ -135,38 +169,71 @@ class TestGenesisPriorConstruction:
 
 
 # ===========================================================================
-# CatchmentTyphoonConfig assembly via the neutral fixture
+# CatchmentTyphoonConfig assembly from neutral test data
 # ===========================================================================
 
 
-class TestMinimalConfig:
+@pytest.fixture
+def neutral_config():
+    return CatchmentTyphoonConfig(
+        catchment_id="test",
+        genesis_prior=GenesisPrior(
+            bbox=(115.0, 15.0, 125.0, 20.0),
+            heading_mean_deg=270.0,
+            heading_kappa=5.0,
+            speed_shape=4.0,
+            speed_scale=4.0,
+            regime_weights={r: 0.2 for r in RegimeClass},
+            scenario_mix={s: 0.2 for s in ScenarioFamily},
+        ),
+        peak_wind={
+            s: PeakWindParams(mu_ms=35.0, sigma_ms=12.0, v_threshold_ms=50.0, alpha=2.0)
+            for s in ScenarioFamily
+        },
+        motion=MotionParams(
+            mean_speed_kmh={r: 15.0 for r in RegimeClass},
+            sigma_speed_kmh={r: 4.0 for r in RegimeClass},
+            mean_heading_deg={r: 270.0 for r in RegimeClass},
+            sigma_heading_deg={r: 20.0 for r in RegimeClass},
+        ),
+        intensity=IntensityParams(),
+        size=SizeParams(),
+        wind_field=WindFieldParams(),
+        plausibility=PlausibilityWeights(),
+        land_mask=lambda lon, lat: lon < 117.0,
+        property_points=[
+            PropertyPoint(property_id="P1", longitude=115.0, latitude=21.0),
+        ],
+    )
 
-    def test_construction(self, minimal_config):
-        assert isinstance(minimal_config, CatchmentTyphoonConfig)
-        assert minimal_config.catchment_id == "test"
 
-    def test_all_scenario_families_covered(self, minimal_config):
+class TestNeutralConfig:
+
+    def test_construction(self, neutral_config):
+        assert isinstance(neutral_config, CatchmentTyphoonConfig)
+        assert neutral_config.catchment_id == "test"
+
+    def test_all_scenario_families_covered(self, neutral_config):
         for s in ScenarioFamily:
-            assert s in minimal_config.peak_wind
+            assert s in neutral_config.peak_wind
 
-    def test_all_regimes_covered_in_motion(self, minimal_config):
+    def test_all_regimes_covered_in_motion(self, neutral_config):
         for r in RegimeClass:
-            assert r in minimal_config.motion.mean_speed_kmh
-            assert r in minimal_config.motion.mean_heading_deg
+            assert r in neutral_config.motion.mean_speed_kmh
+            assert r in neutral_config.motion.mean_heading_deg
 
-    def test_land_mask_is_callable(self, minimal_config):
-        assert callable(minimal_config.land_mask)
-        # Bounds match the lambda in the fixture (lon < 117.0).
-        assert minimal_config.land_mask(115.0, 21.0) is True
-        assert minimal_config.land_mask(120.0, 18.0) is False
+    def test_land_mask_is_callable(self, neutral_config):
+        assert callable(neutral_config.land_mask)
+        assert neutral_config.land_mask(115.0, 21.0) is True
+        assert neutral_config.land_mask(120.0, 18.0) is False
 
-    def test_property_points_non_empty(self, minimal_config):
-        assert len(minimal_config.property_points) >= 1
+    def test_property_points_non_empty(self, neutral_config):
+        assert len(neutral_config.property_points) >= 1
 
-    def test_default_output_thresholds_ascending(self, minimal_config):
-        thresholds = minimal_config.output_thresholds_ms
+    def test_default_output_thresholds_ascending(self, neutral_config):
+        thresholds = neutral_config.output_thresholds_ms
         assert thresholds == sorted(thresholds)
         assert all(t > 0 for t in thresholds)
 
-    def test_default_horizon_is_one_week(self, minimal_config):
-        assert minimal_config.horizon_hours == 168.0
+    def test_default_horizon_is_one_week(self, neutral_config):
+        assert neutral_config.horizon_hours == 168.0

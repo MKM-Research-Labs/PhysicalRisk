@@ -10,8 +10,8 @@
 
 1. **Catchment-agnostic model.** Code under `src/models/typhoon/` contains no references to any specific catchment. It defines the math, data structures, and parameter dataclasses. It imports nothing from `data/catch/*`.
 2. **Three-layer separation.**
-   - **Raw values** live in `data/catch/<id>/storm.py` (extending the existing file). Halong is the launch catchment, e.g. `data/catch/halong/storm.py`.
-   - **Routing** is the `config` package. The active catchment is selected via `MKM_CATCHMENT` (default `thames`); `config.load_params_module()` / `config.get_catchment()` pulls `data/catch/<id>/` and exposes it. The model reads from `config`, never directly from `data/catch/*`.
+   - **Raw values** live in `data/catch/<id>/tc.py` (a tropical-cyclone-specific sibling to the existing `storm.py`). The model is catchment-agnostic; each catchment that wants typhoon simulation provides its own `tc.py`.
+   - **Routing** is the `config` package. The active catchment is selected via the `MKM_CATCHMENT` environment variable; `config.load_params_module()` / `config.get_catchment()` resolves the catchment-specific module. The model reads from `config`, never directly from `data/catch/*`.
    - **Math** lives in `src/models/typhoon/`. The model receives a `CatchmentTyphoonConfig` parameter dataclass (assembled by an adapter at the boundary) and operates only on that.
 3. **Invocation.** End-state CLI is `python3 app.py port --typhoon`, alongside the existing `--gauges`, `--hazard`, `--stressm` flags. The flag dispatches to a new orchestrator stage that calls into `src/models/typhoon/pipeline.py`.
 4. **Heavy math + forward models in `src/models/typhoon/`.** Nothing in `src/port/src/`. The orchestrator stage is a thin shim that imports from the model.
@@ -25,34 +25,47 @@
 ## Module layout
 
 ```
+config/typhoon.py              # Parameter schema: enums + parameter dataclasses
+                               # (GenesisPrior, MotionParams, ..., CatchmentTyphoonConfig)
+```
+
+```
 src/models/typhoon/
 ├── __init__.py
-├── data_structures.py     # State, Particle, Trajectory, enums, WindFieldOutput
-├── parameters.py          # Parameter dataclasses (GenesisPrior, MotionParams, ...)
+├── data_structures.py     # Runtime types: TyphoonState, TyphoonParticle,
+│                          # TyphoonTrajectory, WindFieldOutput
+│                          # (enums imported from config.typhoon)
 ├── genesis.py             # Genesis prior + tail-aware peak-wind sampling
 ├── transitions.py         # One-step state propagator (motion / intensity / size)
 ├── plausibility.py        # Soft-constraint scores for simulation mode
 ├── particle_filter.py     # Hand-rolled SMC engine (loose for breadth in Phase 1)
 ├── wind_field.py          # Parametric symmetric profile + asymmetry + surface
 ├── pipeline.py            # End-to-end orchestration: events → property-level peak wind
+├── phase_1_plan.md
 ├── bayesian_typhoon_progression_spec.pdf
 └── How does a storm turn into a typhoon.pdf
 ```
 
 ```
+tests/config/test_typhoon.py    # Parameter schema tests (catchment-agnostic)
+
 tests/models/typhoon/
-├── test_data_structures.py
-├── test_genesis.py
-├── test_transitions.py
-├── test_plausibility.py
-├── test_particle_filter.py
-├── test_wind_field.py
-└── test_pipeline.py
+├── data_structures.py          # Runtime-type tests
+├── genesis.py
+├── transitions.py
+├── plausibility.py
+├── particle_filter.py
+├── wind_field.py
+├── pipeline.py
+└── import_discipline.py        # Enforces catchment-agnosticism in src/models/typhoon/
 ```
 
 ```
-data/catch/halong/storm.py      # extended with typhoon-specific constants (raw values)
-config/                         # routing layer — exposes catchment params via config.load_params_module()
+data/catch/<id>/tc.py           # Each catchment supplies its own tropical-cyclone
+                                # config (raw values only, no model logic)
+
+tests/catch/<id>/test_tc.py     # Per-catchment tests of that tc.py
+
 app/commands/port/
 ├── parser.py                   # adds --typhoon flag (alongside --gauges, --hazard, --stressm)
 ├── stages/                     # adds typhoon_stage.py — thin shim into src/models/typhoon/pipeline.py
@@ -62,17 +75,17 @@ app/commands/port/
 ### Data flow
 
 ```
-data/catch/halong/storm.py
-  (raw constants: HALONG_GENESIS_BBOX, HALONG_REGIME_WEIGHTS, HALONG_PEAK_WIND, ...)
+data/catch/<id>/tc.py                            (catchment-specific raw values)
         ↓
-config.load_params_module()  ← active catchment chosen by MKM_CATCHMENT env var
+config.load_params_module() / config.typhoon     (routing + parameter schema)
         ↓
-adapter at orchestrator boundary
-  builds a CatchmentTyphoonConfig dataclass from config values
+boundary adapter at app/commands/port/stages/
+  builds a CatchmentTyphoonConfig dataclass from the catchment's tc constants
         ↓
 src/models/typhoon/pipeline.simulate_typhoon_events(config_obj, ...)
-  — model never imports from data/catch/* or from the config package directly;
-    it just consumes the dataclass.
+  — the model never imports from data/catch/* and never reads catchment
+    routing surfaces of the config package. It only sees config.typhoon
+    (the parameter schema) and the CatchmentTyphoonConfig instance.
 ```
 
 ---
@@ -80,50 +93,49 @@ src/models/typhoon/pipeline.simulate_typhoon_events(config_obj, ...)
 ## Phase 1.1 — Data structures & parameter scaffolding
 
 **Files**
-- `src/models/typhoon/data_structures.py`
-- `src/models/typhoon/parameters.py`
-- `data/catch/halong/storm.py` (extend existing — add typhoon constants alongside the current `BASE_PRECIPITATION_MM`, `TRACK_START`, `TRACK_END`, `INTENSITY_WEIGHTS`)
+- `config/typhoon.py` — parameter schema (enums + dataclasses)
+- `src/models/typhoon/data_structures.py` — runtime types
+- `data/catch/<id>/tc.py` — launch-catchment values (each catchment that wants typhoon simulation provides its own sibling to `storm.py`)
 
-**Contents of `data_structures.py`**
-- `TyphoonState` dataclass: `(lon, lat, u, heading, V_max, R_max, R_outer, regime, land_flag, t)` — spec eq. 1, with explicit `R_outer` per spec emphasis
-- `TyphoonParticle`: `state: TyphoonState`, `weight: float`, `parent_id: int`
-- `TyphoonTrajectory`: list of `TyphoonState` per particle + metadata (genesis time, event_id, scenario_family)
+**Contents of `config/typhoon.py`** (parameter schema — the contract every catchment fills)
 - `RegimeClass` enum: `STRAIGHT_WESTWARD`, `NW_RECURVER`, `SHARP_RECURVE`, `STALLED`, `LANDFALL_DECAY`
 - `ScenarioFamily` enum: `HISTORICAL`, `BASELINE`, `MODERATE`, `SEVERE`, `EXTREME`
-- `WindFieldOutput`: `peak_sustained`, `peak_gust`, `time_of_peak`, `duration_above[thresholds]`, `time_series`
-
-**Contents of `parameters.py`** (model-side parameter contract — catchment populates these)
+- `LandMask` type alias: `Callable[[float, float], bool]`
 - `@dataclass GenesisPrior`: bbox, initial-heading von Mises params, translation-speed prior, regime mixture weights, scenario-family mix
 - `@dataclass PeakWindParams`: per-scenario-family `(mu, sigma, v_T, alpha)` for the hybrid truncated-normal + Pareto tail (spec eq. 14)
 - `@dataclass MotionParams`: per-regime `mu_u`, `sigma_u`, `mu_psi`, `sigma_psi`, latitude-recurvature coefficients
-- `@dataclass IntensityParams`: over-water drift/variance, land-decay rate `k_land`
-- `@dataclass SizeParams`: lognormal means for `R_max` and `R_outer` as a function of `V_max`, plus stochastic-update stddev
-- `@dataclass WindFieldParams`: `alpha_eye`, outer-decay shape `p`, asymmetry `eps_max`, `c_eps`, surface reductions `rho_surf_sea`, `rho_surf_land`, optional gust factor
+- `@dataclass IntensityParams`: over-water drift / variance, land-decay rate `k_land`
+- `@dataclass SizeParams`: log-space regression of `R_max` and `R_outer` on `V_max`, plus stochastic update stddev
+- `@dataclass WindFieldParams`: `alpha_eye`, outer-decay shape `p`, asymmetry `eps_max`, `c_eps`, surface reductions `rho_surf_sea`, `rho_surf_land`
 - `@dataclass PlausibilityWeights`: heading-jump, speed-jump, basin-boundary, regime-consistency weights
-- `@dataclass CatchmentTyphoonConfig`: aggregates the above + `land_mask`, `property_points`, output thresholds — this is the single object passed into the pipeline
+- `@dataclass PropertyPoint`: `(property_id, longitude, latitude)`
+- `@dataclass CatchmentTyphoonConfig`: aggregates the above + `land_mask`, `property_points`, output thresholds, horizon — this is the single object passed into the pipeline
 
-**Contents of extended `data/catch/halong/storm.py`** (Halong as launch catchment — raw values only)
-- `HALONG_GENESIS_BBOX`: Gulf of Tonkin region (~107°–112°E, 17°–22°N)
-- `HALONG_REGIME_WEIGHTS`: tilt to `STRAIGHT_WESTWARD` + `LANDFALL_DECAY` for SCS climatology
-- `HALONG_PEAK_WIND`: per-scenario-family `(mu, sigma, v_T, alpha)` reflecting SCS typhoon intensity range
-- `HALONG_MOTION_PARAMS`, `HALONG_SIZE_PARAMS`, `HALONG_WIND_FIELD_PARAMS`, `HALONG_PLAUSIBILITY_WEIGHTS`
-- `HALONG_HANOI_REFERENCE`: (105.85°E, 21.03°N)
-- Land mask / Vietnam landmass polygon (callable or coords)
-- Property points (or import path) for the Hanoi property set
-- These are raw Python constants/objects. **No imports from `src/models/typhoon/`** — the catchment file doesn't know about the model.
+**Contents of `src/models/typhoon/data_structures.py`** (runtime types — what flows through the simulation)
+- `TyphoonState` dataclass: `(lon, lat, u, heading, V_max, R_max, R_outer, regime, land_flag, t)` — spec eq. 1
+- `TyphoonParticle`: `state: TyphoonState`, `weight: float`, `particle_id: int`, `parent_id: Optional[int]`
+- `TyphoonTrajectory`: list of `TyphoonState` per particle + metadata (genesis_time, event_id, scenario_family)
+- `WindFieldOutput`: `peak_sustained_ms`, `time_of_peak_hours`, `duration_above_ms[thresholds]`, `sustained_ms` series, etc.
+- Enums (`RegimeClass`, `ScenarioFamily`) imported from `config.typhoon`
+
+**Contents of each catchment's `data/catch/<id>/tc.py`** (raw values only)
+- One concrete instance of each parameter dataclass — `GENESIS_PRIOR`, `PEAK_WIND`, `MOTION`, `INTENSITY`, `SIZE`, `WIND_FIELD`, `PLAUSIBILITY`
+- A `land_mask` callable returning True/False for `(lon, lat)`
+- A list of `PropertyPoint` instances naming the locations to evaluate
+- These are raw Python constants. The catchment file imports parameter dataclasses **from `config.typhoon`** (depending on the schema, not on the model). The model never imports from the catchment.
 
 **Boundary adapter** (one file under `app/commands/port/stages/` — to be added in Phase 1.7)
 - Reads catchment params via `config.load_params_module()` (already exists in the codebase)
 - Assembles them into a `CatchmentTyphoonConfig` dataclass instance
 - This is the only place that knows about both sides
 
-**Tests**
-- Type construction and serialization round-trip
-- Halong constants load via `config.load_params_module()`
-- Adapter produces a valid `CatchmentTyphoonConfig` from Halong values
-- **Import-discipline test**: `src/models/typhoon/` imports nothing from `data.catch.*` and nothing from `config` (enforced by AST or grep-based test)
+**Tests** (split by ownership)
+- `tests/config/test_typhoon.py` — parameter schema: dataclass construction, enum invariants, neutral CatchmentTyphoonConfig assembly. Catchment-agnostic.
+- `tests/models/typhoon/data_structures.py` — runtime types: state/particle/trajectory/output round-trip, properties.
+- `tests/models/typhoon/import_discipline.py` — AST + string check that `src/models/typhoon/` never imports from `data/catch/*`, never imports `port`/`app`, only imports `config.typhoon` (not other config surfaces), and contains no catchment-name literal.
+- `tests/catch/<id>/test_tc.py` — per-catchment: constants load, mixture weights sum to 1, severity orderings hold, land mask is sensible, full `CatchmentTyphoonConfig` assembles.
 
-**Done when:** all types instantiable; `from src.models.typhoon.parameters import CatchmentTyphoonConfig` works; Halong raw constants load via the `config` routing layer; the boundary adapter assembles a valid config object.
+**Done when:** all types instantiable; `from config.typhoon import CatchmentTyphoonConfig` works; the launch catchment's `tc.py` loads via the standard import path and exposes valid dataclass instances; assembly into `CatchmentTyphoonConfig` succeeds in a test that inlines what the Phase 1.7 boundary adapter will do.
 
 ---
 
@@ -251,7 +263,7 @@ src/models/typhoon/pipeline.simulate_typhoon_events(config_obj, ...)
   - `V(r, theta) = V_sym(r) * [1 + eps * cos(theta - phi)]`
   - `eps = min(eps_max, c_eps * u / (V_max + eta))`
   - `phi` = motion azimuth (NH offset baked into `WindFieldParams`)
-- **Surface reduction** (spec eq. 29): land/sea binary `rho_surf` — Hanoi is inland, so this matters
+- **Surface reduction** (spec eq. 29): land/sea binary `rho_surf` — material whenever the property points sit inland
 - `evaluate_time_series(trajectory, point) -> WindFieldOutput`: loops over states, captures `peak_sustained`, `time_of_peak`, `duration_above[V_thresh]`
 - **Holland profile not implemented in Phase 1**; the interface admits an alternative backend later
 
@@ -304,7 +316,7 @@ src/models/typhoon/pipeline.simulate_typhoon_events(config_obj, ...)
 
 **Invocation (end state)**
 ```
-MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000
+MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon --num-typhoon-events 1000
 ```
 
 **Tests**
@@ -313,9 +325,9 @@ MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000
 - Scenario family swap shifts distribution (`SEVERE` > `BASELINE` at p99)
 - Property closer to the typical track centerline gets higher mean peak wind than a far property
 - Output JSON validates against schema
-- `python3 app.py port --typhoon` exits 0 with `MKM_CATCHMENT=halong`
+- `python3 app.py port --typhoon` exits 0 against the launch catchment
 
-**Done when:** `MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000` produces a Hanoi peak-wind distribution file in <2 minutes, with quantile spread that reflects the configured tail.
+**Done when:** the end-state invocation against the launch catchment produces a per-property peak-wind distribution file in <2 minutes, with quantile spread that reflects the configured tail.
 
 ---
 
@@ -325,7 +337,7 @@ MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000
 - All `tests/models/typhoon/test_*.py` listed in the module layout
 - Pytest discipline: one test file per source module + one integration test in `test_pipeline.py`
 
-**Calibration knobs (externalized to `data/catch/halong/storm.py`)**
+**Calibration knobs (externalized to each catchment's `data/catch/<id>/tc.py`)**
 - Scenario-family parameter sets `(mu, sigma, v_T, alpha)` for peak wind
 - Regime mixture weights at genesis
 - Motion mean and sigma per regime
@@ -335,11 +347,11 @@ MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000
 - Plausibility weights (kept loose in Phase 1)
 
 **Sanity / validation sketches** (full historical calibration is Phase 3)
-- Visual: do tracks pass through northern Vietnam at a plausible rate?
-- Distribution: Hanoi peak-wind quantiles within order-of-magnitude of historical typhoon impacts (e.g. Yagi 2024, Rammasun 2014)
+- Visual: do tracks pass through the catchment region at a plausible rate?
+- Distribution: peak-wind quantiles within order-of-magnitude of historical typhoon impacts for the basin
 - Import-discipline test confirms no `data/catch/*` references in `src/models/typhoon/`
 
-**Done when:** all tests green; baseline run reproducible from seed; a calibration-knob change in `halong/storm.py` propagates to outputs as expected without touching model code.
+**Done when:** all tests green; baseline run reproducible from seed; a calibration-knob change in the launch catchment's `tc.py` propagates to outputs as expected without touching model code.
 
 ---
 
@@ -358,10 +370,11 @@ MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000
 
 ## Acceptance criteria for Phase 1 as a whole
 
-1. `src/models/typhoon/` contains all math; nothing in `src/port/src/` touched
-2. No catchment-specific values inside `src/models/typhoon/`; no imports from `data.catch.*` or from the `config` package
-3. `data/catch/halong/storm.py` extended with typhoon constants (raw values); no new files in `data/catch/halong/`
-4. Catchment params reach the model via the `config` package + a single boundary adapter at `app/commands/port/stages/typhoon_stage.py`
-5. `MKM_CATCHMENT=halong python3 app.py port --typhoon --num-typhoon-events 1000` produces a per-property peak-wind distribution at Hanoi locations
-6. Scenario-family swap demonstrably moves the upper tail
-7. Test suite green; import-discipline test confirms catchment-agnosticism of the model
+1. `src/models/typhoon/` contains the model math; nothing in `src/port/src/` touched
+2. No catchment-name strings inside `src/models/typhoon/`; no imports from `data.catch.*`; the only `config` import is `config.typhoon` (the parameter schema)
+3. The parameter schema lives in `config/typhoon.py` — enums + dataclasses
+4. Each catchment that wants typhoon simulation provides a `data/catch/<id>/tc.py` containing raw values only, importing parameter dataclasses from `config.typhoon`
+5. Catchment params reach the model via the `config` package routing + a single boundary adapter at `app/commands/port/stages/typhoon_stage.py`
+6. `MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon --num-typhoon-events 1000` produces a per-property peak-wind distribution file
+7. Scenario-family swap demonstrably moves the upper tail
+8. Test suite green; import-discipline test confirms catchment-agnosticism of the model

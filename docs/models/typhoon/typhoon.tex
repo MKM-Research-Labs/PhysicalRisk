@@ -1,0 +1,207 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Tropical Cyclone Progression and Wind-Field Model}
+\newcommand{\docsubtitle}{Bayesian State-Space Progression with Parametric Wind-Field}
+\newcommand{\docversion}{0.1.0}
+\newcommand{\docdate}{27-May-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+\textit{Skeleton document — content to be filled out as the model matures
+through Phase 1 of the implementation plan
+(\texttt{src/models/typhoon/phase\_1\_plan.md}).}
+
+The Tropical Cyclone Progression and Wind-Field Model (\texttt{MKM-TC-001})
+simulates the forward motion, intensity evolution, and local wind field of
+tropical cyclones (typhoons) for catchments exposed to TC hazard. It combines:
+
+\begin{itemize}
+  \item A Bayesian state-space progression engine, advancing a latent storm
+        state through time with regime-conditioned motion, intensity, and size
+        transitions.
+  \item A Sequential Monte Carlo (particle filter) inference layer.
+  \item A parametric radial wind-field with motion-linked asymmetry, surface
+        reduction, and configurable inner-core and outer-decay structure.
+\end{itemize}
+
+The model is catchment-agnostic. Catchment-specific calibration is supplied
+through \texttt{config.typhoon} parameter dataclasses, populated by each
+catchment's \texttt{data/catch/<id>/tc.py} file.
+
+\textbf{Status:} Development. Phase 1.1 (data structures and parameter schema)
+delivered as of the document date. Phases 1.2 through 1.8 in progress.
+
+\textbf{Key risk:} Phase 1 uses placeholder calibration. The model is not
+approved for production use until Phase 3 historical calibration completes
+and the Model Risk Committee (MRC) issues approval.
+
+% ===================================================================
+% 2. MODEL PURPOSE AND SCOPE
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+
+\textit{To be completed.}
+
+\subsection{Scope}
+
+\textit{To be completed.}
+
+\subsection{Out of Scope}
+
+The following are explicitly out of scope for the first production-grade release:
+
+\begin{itemize}
+  \item Full atmospheric data assimilation
+  \item Full dynamical Numerical Weather Prediction
+  \item Joint ocean-atmosphere coupling
+  \item Full pressure-wind structural models
+  \item Operational forecast-grade verification pipelines
+\end{itemize}
+
+% ===================================================================
+% 3. MATHEMATICAL FRAMEWORK
+% ===================================================================
+\section{Mathematical Framework}
+
+\subsection{Latent State}
+
+The latent storm state at time $t$ is
+\[
+s_t = (\lambda_t, \phi_t, u_t, \psi_t, V_t, R_{\max,t}, R_{\text{outer},t}, k_t),
+\]
+where $\lambda, \phi$ are longitude and latitude, $u$ is translation speed,
+$\psi$ is heading, $V$ is maximum sustained wind, $R_{\max}$ and $R_{\text{outer}}$
+are the radii of maximum wind and the outer (gale-force) wind, and $k$ is a
+discrete regime class.
+
+\subsection{Sequential Bayes Update}
+
+\textit{To be completed — spec eq. (3) and (4).}
+
+\subsection{Transition Model}
+
+\textit{To be completed — spec eqs. (5)--(10).}
+
+\subsection{Wind-Field Model}
+
+\textit{To be completed — spec eqs. (22)--(29).}
+
+% ===================================================================
+% 4. INPUT PARAMETERS AND CALIBRATION
+% ===================================================================
+\section{Input Parameters and Calibration}
+
+\textit{To be completed. Parameter schema lives in
+\texttt{config/typhoon.py}; concrete catchment values live in
+\texttt{data/catch/<id>/tc.py}. See parameter inventory section of the
+governance report for the full enumeration.}
+
+% ===================================================================
+% 5. IMPLEMENTATION
+% ===================================================================
+\section{Implementation}
+
+\subsection{Module Layout}
+
+\begin{itemize}
+  \item \texttt{config/typhoon.py} — parameter schema (enums and dataclasses).
+  \item \texttt{src/models/typhoon/data\_structures.py} — runtime types
+        (\texttt{TyphoonState}, \texttt{TyphoonParticle}, \texttt{TyphoonTrajectory},
+        \texttt{WindFieldOutput}).
+  \item \texttt{src/models/typhoon/genesis.py} — genesis prior and
+        tail-aware peak-wind sampling (to be added in Phase 1.2).
+  \item \texttt{src/models/typhoon/transitions.py} — one-step state
+        propagator (to be added in Phase 1.3).
+  \item \texttt{src/models/typhoon/particle\_filter.py} — hand-rolled SMC
+        engine (to be added in Phase 1.4).
+  \item \texttt{src/models/typhoon/plausibility.py} — simulation-mode
+        soft constraints (to be added in Phase 1.5).
+  \item \texttt{src/models/typhoon/wind\_field.py} — parametric radial
+        wind-field (to be added in Phase 1.6).
+  \item \texttt{src/models/typhoon/pipeline.py} — end-to-end orchestration
+        (to be added in Phase 1.7).
+\end{itemize}
+
+\subsection{Catchment Integration}
+
+The model is catchment-agnostic. The invocation path is:
+
+\begin{verbatim}
+MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon
+\end{verbatim}
+
+A thin boundary adapter under
+\texttt{app/commands/port/stages/typhoon\_stage.py} reads the active catchment's
+\texttt{tc.py} via the config routing layer, assembles a
+\texttt{CatchmentTyphoonConfig} dataclass, and calls
+\texttt{simulate\_typhoon\_events(...)}. The model never imports from
+\texttt{data/catch/*}.
+
+% ===================================================================
+% 6. VALIDATION AND BACKTESTING
+% ===================================================================
+\section{Validation and Backtesting}
+
+\textit{Phase 3 work — to be completed. Will include:}
+
+\begin{itemize}
+  \item Plausible particle-track spread through time, widening with forecast horizon
+  \item Realistic smoothness of heading and speed paths
+  \item Reasonable distribution of recurvature and landfall behaviour by regime
+  \item Stable posterior behaviour under different particle counts and time steps
+  \item Consistency of progression outputs with the downstream wind-field footprint
+  \item Historical validation against named typhoons in the target basin
+\end{itemize}
+
+\input{test_results}
+
+% ===================================================================
+% 7. SENSITIVITY ANALYSIS
+% ===================================================================
+\section{Sensitivity Analysis}
+
+\textit{To be completed in Phase 1.7+. Sensitivities will be generated by
+\texttt{docs/models/sensitivities/typhoon/generator/}.}
+
+% \input{sensitivity_tables}
+
+% ===================================================================
+% 8. LIMITATIONS AND ASSUMPTIONS
+% ===================================================================
+\section{Limitations and Assumptions}
+
+Refer to entry \texttt{MKM-TC-001} in \texttt{data/model\_inventory.json} for
+the canonical list. Phase 1 limitations include:
+
+\begin{itemize}
+  \item No historical calibration — parameters are first-pass placeholders.
+  \item Land mask is a simple bbox placeholder rather than a true coastline polygon.
+  \item No real-observation assimilation in Phase 1 (simulation mode only).
+  \item Joint surge/rain hazard layer deferred to Phase 2.
+\end{itemize}
+
+% ===================================================================
+% 9. CHANGE HISTORY
+% ===================================================================
+\section{Change History}
+
+\begin{tabular}{lll}
+\toprule
+Version & Date & Description \\
+\midrule
+0.1.0 & 27-May-2026 & Skeleton document. Phase 1.1 delivered: parameter schema, runtime types, launch-catchment values, import-discipline tests. \\
+\bottomrule
+\end{tabular}
+
+\end{document}

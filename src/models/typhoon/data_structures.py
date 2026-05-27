@@ -19,10 +19,12 @@
 # SOFTWARE.
 
 """
-Data structures for the Bayesian typhoon progression model.
+Runtime data structures for the Bayesian typhoon progression model.
 
-Defines the latent state, particles, trajectories, regime / scenario enums,
-and the wind-field output container.
+Defines the latent state, particles, trajectories, and wind-field output.
+The regime and scenario-family enums are part of the configuration schema
+and live in config/typhoon.py; this module imports them for use in the
+state representation.
 
 The state s_t corresponds to spec eq. (1):
     s_t = (lambda, phi, u, psi, V_max, R_max, R_outer, regime)
@@ -41,39 +43,21 @@ layer, not by the dataclass itself. Dataclasses are value objects.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
-# ===========================================================================
-# Enums
-# ===========================================================================
+from config.typhoon import RegimeClass, ScenarioFamily
 
 
-class RegimeClass(Enum):
-    """Discrete track regime — spec p.3.
-
-    The regime conditions the motion transition model. In Phase 1 the regime
-    is sampled at genesis and held fixed for the event (spec p.4).
-    """
-    STRAIGHT_WESTWARD = "straight_westward"
-    NW_RECURVER = "nw_recurver"
-    SHARP_RECURVE = "sharp_recurve"
-    STALLED = "stalled"
-    LANDFALL_DECAY = "landfall_decay"
-
-
-class ScenarioFamily(Enum):
-    """Stress-scenario family — spec p.10.
-
-    Scenario family drives peak-wind distribution params (mu, sigma, v_T, alpha),
-    size distribution shape, regime priors, and persistence/decay.
-    """
-    HISTORICAL = "historical"
-    BASELINE = "baseline"
-    MODERATE = "moderate"
-    SEVERE = "severe"
-    EXTREME = "extreme"
+# Re-export the enums for callers that prefer to import everything from
+# this module. The canonical home is config.typhoon.
+__all__ = [
+    "RegimeClass",
+    "ScenarioFamily",
+    "TyphoonState",
+    "TyphoonParticle",
+    "TyphoonTrajectory",
+    "WindFieldOutput",
+]
 
 
 # ===========================================================================
