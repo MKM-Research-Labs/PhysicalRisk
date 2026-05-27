@@ -82,6 +82,7 @@ _GAUGE_HARDCODED = [
 _PROPERTY_COMPLIANT_JS = [
     'src/visual/interactivity/property/propertyhc/panel.py',
     'src/visual/interactivity/property/propertyhc/panel_data.py',
+    'src/visual/interactivity/property/propertydetails.py',
     'src/visual/interactivity/property/propertysa.py',
     'src/visual/interactivity/property/propertypdf.py',
     'src/visual/interactivity/context_menus.py',
@@ -90,11 +91,12 @@ _PROPERTY_COMPLIANT_JS = [
 ]
 
 # Python files using property_title_py from config.format.
+# (mortgage_layer/popup.py removed when the legacy mortgage_risk layer
+#  was retired — see commit eed780a2.)
 _PROPERTY_COMPLIANT_PY = [
     'src/visual/layer/property_layer/layer.py',
     'src/visual/layer/property_layer/popup.py',
     'src/visual/popups/property_popup/builder.py',
-    'src/visual/layer/mortgage_layer/popup.py',
     'src/reports/property/property_page_01_title_overview.py',
     'src/reports/property/claim/page1_cover.py',
     'src/reports/risk/risk_page_06_property_details.py',

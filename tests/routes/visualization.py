@@ -120,11 +120,14 @@ class TestServeVisualization:
 class TestServeVisualizationForCatchment:
 
     def test_unknown_catchment_returns_400(self, viz_no_data_client):
-        r = viz_no_data_client.get("/visualization/mississippi")
+        # `mississippi` used to be the canonical "not-thames" example here,
+        # but every catchment under data/catch/ is now valid. Use a name
+        # that genuinely isn't on disk.
+        r = viz_no_data_client.get("/visualization/imaginary_river")
         assert r.status_code == 400
         data = r.get_json()
         assert data["status"] == "error"
-        assert "not yet available" in data["message"].lower()
+        assert "not registered" in data["message"].lower()
 
     def test_thames_redirects(self, viz_no_data_client):
         """'thames' catchment redirects to main visualization route."""

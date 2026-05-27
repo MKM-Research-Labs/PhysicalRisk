@@ -26,11 +26,12 @@ STORM_ID_RE  = re.compile(r'^STORM-[0-9a-f]{8}$')
 PRS_ID_RE    = re.compile(r'^PRS-[0-9a-fA-F]{8}$')  # book uses .upper()
 
 # Files that display property labels — must use config.format
+# (src/visual/layer/mortgage_layer/popup.py was removed when the legacy
+#  mortgage_risk layer was retired — see commit eed780a2.)
 _PROPERTY_DISPLAY_FILES_PY = [
     'src/visual/layer/property_layer/layer.py',
     'src/visual/layer/property_layer/popup.py',
     'src/visual/popups/property_popup/builder.py',
-    'src/visual/layer/mortgage_layer/popup.py',
     'src/reports/property/property_page_01_title_overview.py',
     'src/reports/property/claim/page1_cover.py',
     'src/reports/risk/risk_page_06_property_details.py',
