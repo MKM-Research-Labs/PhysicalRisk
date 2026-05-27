@@ -108,6 +108,28 @@ class PropertyBasePage(ReportBasePage):
             2.0 * inch, 0.9 * inch, 0.7 * inch, 3.9 * inch
         ]
 
+    def _emit_or_fallback(
+        self,
+        section,
+        section_title: str,
+        render_fn,
+        empty_message: str,
+    ) -> List:
+        """Render `section` via ``render_fn`` or emit a placeholder message.
+
+        Used by the residential property page wrappers that delegate to
+        ``reports.asset.render_*`` — when the section dict is empty/missing
+        the shared renderer has no fallback string to emit, so wrappers
+        provide one here. Returns the same flowable shape as the renderer.
+        """
+        from reportlab.platypus import Paragraph
+        if not section:
+            return [
+                Paragraph(section_title, self.styles["SectionHeader"]),
+                Paragraph(empty_message, self.styles["Normal"]),
+            ]
+        return render_fn(section, self)
+
     @abstractmethod
     def generate_elements(self, property_data: Dict[str, Any],
                          mortgage_data: Dict[str, Any] = None) -> List:
