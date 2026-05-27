@@ -40,6 +40,8 @@ from abc import abstractmethod
 from typing import Any, Dict, List
 
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 
 from reports.shared import ReportBasePage
@@ -60,6 +62,21 @@ class PropertyBasePage(ReportBasePage):
         # Property uses navy/darkblue instead of darkblue/blue for Title/SubTitle
         self.styles['Title'].textColor = colors.navy
         self.styles['SubTitle'].textColor = colors.darkblue
+
+        # TableHeader — used inside Paragraph cells of styled tables
+        # (page_13 risk analysis + page_07 recommendation table). The style
+        # itself doesn't paint the table-header *background* (that's the
+        # TableStyle's BACKGROUND directive); it just provides the bold
+        # white text used for individual header cells.
+        if 'TableHeader' not in self.styles:
+            self.styles.add(ParagraphStyle(
+                name='TableHeader',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.white,
+                fontName='Helvetica-Bold',
+                alignment=TA_CENTER,
+            ))
 
     def _setup_table_styles(self):
         """Set up table styles for property content types."""
