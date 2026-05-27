@@ -185,6 +185,7 @@ TEST_MODEL_MAP = {
     'tests/models/typhoon/data_structures.py':          'MKM-TC-001',
     'tests/models/typhoon/genesis.py':                  'MKM-TC-001',
     'tests/models/typhoon/transitions.py':              'MKM-TC-001',
+    'tests/models/typhoon/particle_filter.py':          'MKM-TC-001',
     'tests/models/typhoon/import_discipline.py':        'MKM-TC-001',
     'tests/catch/halong/test_tc.py':                    'MKM-TC-001',
 }
