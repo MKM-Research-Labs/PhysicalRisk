@@ -14,7 +14,7 @@ from .._catchment import resolve_catchment
 from .auth import _authenticate
 from .context import StageContext
 from .pdf_reports import run_lineage_chain_validation, run_pdf_reports
-from .stages import hazardcurves, portfolios, storm, timeseries, trading
+from .stages import hazardcurves, portfolios, storm, timeseries, trading, typhoon
 from .summary import _print_port_summary
 
 
@@ -59,6 +59,7 @@ def _build_context(args) -> StageContext:
         args.propertyts, args.propertytsd, args.propertytse,
         args.propertyhc, args.propertyshd, args.propertyshe,
         args.counterparties, args.blotter, args.stressm,
+        args.typhoon,
     ]
     run_all = args.all or not any(segment_flags)
 
@@ -191,6 +192,7 @@ def cmd_port(args):
     timeseries.run_all(ctx)
     hazardcurves.run_all(ctx)
     trading.run_all(ctx)
+    typhoon.run_all(ctx)
 
     # --- Post-run reporting ----------------------------------------------
     if ctx.run_all:
