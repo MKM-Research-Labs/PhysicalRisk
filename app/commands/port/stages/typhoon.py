@@ -65,7 +65,9 @@ def run_typhoon(ctx: StageContext):
 
     typhoon_cfg = _load_catchment_typhoon_config(ctx.catchment)
 
-    output_path = Path(config.get_output_dir()) / "typhoon" / "ensemble.json"
+    typhoon_dir = Path(config.get_output_dir()) / "typhoon"
+    output_path = typhoon_dir / "ensemble.json"
+    events_dir = typhoon_dir / "events"
     inputs = {
         f"catch/{ctx.catchment}/tc.py":
             Path(__file__).resolve().parents[4] / "data" / "catch" / ctx.catchment / "tc.py",
@@ -85,6 +87,7 @@ def run_typhoon(ctx: StageContext):
         n_particles=args.num_typhoon_particles,
         rng=rng,
         use_plausibility=not args.typhoon_no_plausibility,
+        events_output_dir=events_dir,
     )
     elapsed = time.time() - t_step
 
@@ -99,12 +102,16 @@ def run_typhoon(ctx: StageContext):
         peak_mean = sum(peaks) / len(peaks)
         print(f"   per-property p99 peak wind: mean across properties = {peak_mean:.1f} m/s")
     print(f"   wrote {output_path}")
+    print(f"   per-event tracks in {events_dir}/")
 
     ctx.record(
         step_name="typhoon",
         generator="models.typhoon.pipeline.simulate_typhoon_events",
         inputs=inputs,
-        outputs={"typhoon/ensemble.json": output_path},
+        outputs={
+            "typhoon/ensemble.json": output_path,
+            "typhoon/events/": events_dir,
+        },
         parameters={
             "n_events": args.num_typhoon_events,
             "n_particles": args.num_typhoon_particles,

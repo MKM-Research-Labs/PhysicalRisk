@@ -22,18 +22,29 @@
 the wind-field along each particle's trajectory at every property point.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 import numpy as np
 
 from config.typhoon import CatchmentTyphoonConfig
-from models.typhoon.data_structures import WindFieldOutput
+from models.typhoon.data_structures import TyphoonTrajectory, WindFieldOutput
 from models.typhoon.particle_filter import ParticleFilter
 from models.typhoon.plausibility import make_particle_plausibility
 from models.typhoon.wind_field import WindField
 
 
-__all__ = ["simulate_one_event"]
+__all__ = ["EventResult", "simulate_one_event", "pick_representative_trajectory"]
+
+
+class EventResult(NamedTuple):
+    """One event's outputs.
+
+    Attributes:
+        by_property: property_id -> list of WindFieldOutput (one per particle)
+        trajectories: list of TyphoonTrajectory (one per particle)
+    """
+    by_property: Dict[str, List[WindFieldOutput]]
+    trajectories: List[TyphoonTrajectory]
 
 
 def simulate_one_event(
@@ -43,7 +54,7 @@ def simulate_one_event(
     horizon_hours: Optional[float] = None,
     dt_hours: float = 1.0,
     use_plausibility: bool = True,
-) -> Dict[str, List[WindFieldOutput]]:
+) -> EventResult:
     """Simulate one typhoon event and evaluate the wind-field at every property.
 
     Args:
@@ -56,8 +67,10 @@ def simulate_one_event(
             adapter into the particle filter so weights track soft constraints
 
     Returns:
-        Dict mapping property_id -> list of WindFieldOutput, one per
-        particle. The list length equals n_particles for a given event.
+        EventResult bundling the wind-field outputs per property and the
+        underlying particle trajectories. Callers that only need the wind
+        outputs read result.by_property; callers that want to inspect the
+        actual storm tracks read result.trajectories.
     """
     plausibility_fn = make_particle_plausibility(config) if use_plausibility else None
 
@@ -76,4 +89,22 @@ def simulate_one_event(
             wf_output = wind_field.evaluate_trajectory(trajectory, prop)
             by_property[prop.property_id].append(wf_output)
 
-    return by_property
+    return EventResult(by_property=by_property, trajectories=trajectories)
+
+
+def pick_representative_trajectory(
+    trajectories: List[TyphoonTrajectory],
+) -> Optional[TyphoonTrajectory]:
+    """Pick the trajectory whose peak V_max sits closest to the median.
+
+    A simple "central tendency" choice for inspection / visualisation:
+    avoids picking the outlier with the strongest winds, gives a
+    representative storm track for the event.
+    """
+    if not trajectories:
+        return None
+    peaks = np.array([max(s.v_max_ms for s in t.states) for t in trajectories])
+    median_peak = float(np.median(peaks))
+    # Index of the trajectory whose peak is closest to the median.
+    idx = int(np.argmin(np.abs(peaks - median_peak)))
+    return trajectories[idx]

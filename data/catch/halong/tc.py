@@ -229,6 +229,41 @@ HALONG_TYPHOON_PROPERTIES: list = [
 
 
 # ---------------------------------------------------------------------------
+# Historical tail-calibration anchors
+# ---------------------------------------------------------------------------
+# Two famous super-typhoons from the broader NW Pacific / SCS region that
+# anchor the upper tail of the peak-wind distribution. Both struck the
+# Philippines / South China Sea sphere of influence. Phase 3 historical
+# calibration will use these (and others) to tune EXTREME-family params.
+#
+# Source: Wolfram|Alpha "typhoon Durian | typhoon Angela" properties.
+# 1 mph = 0.44704 m/s.
+
+HALONG_TAIL_ANCHORS: list = [
+    {
+        "name": "Durian",
+        "year": 2006,
+        "start_date": "2006-11-24",
+        "end_date": "2006-12-09",
+        "duration_days": 15,
+        "peak_wind_mph": 155,
+        "peak_wind_ms": 155 * 0.44704,   # ~69.3 m/s
+        "notes": "Devastating Cat-5 super-typhoon, Philippines / SCS.",
+    },
+    {
+        "name": "Angela",
+        "year": 1995,
+        "start_date": "1995-10-20",
+        "end_date": "1995-11-07",
+        "duration_days": 18,
+        "peak_wind_mph": 178,
+        "peak_wind_ms": 178 * 0.44704,   # ~79.6 m/s
+        "notes": "Cat-5 super-typhoon, peak Nov 2 1995, Philippines / SCS.",
+    },
+]
+
+
+# ---------------------------------------------------------------------------
 # Boundary helper: assemble the model-side CatchmentTyphoonConfig
 # ---------------------------------------------------------------------------
 # This is the canonical production path the orchestrator stage uses. It
@@ -262,5 +297,6 @@ __all__ = [
     "halong_land_mask",
     "HALONG_HANOI_REFERENCE",
     "HALONG_TYPHOON_PROPERTIES",
+    "HALONG_TAIL_ANCHORS",
     "build_typhoon_config",
 ]
