@@ -23,19 +23,16 @@ Property popup creation functionality.
 
 Sub-modules:
 - builder: PropertyPopupBuilder class
-- sections: HTML section builders (property, flood, mortgage, risk)
+- sections: HTML section builders (property, flood, mortgage)
 - helpers: LTV, term, monthly payment calculations
-- risk: risk summary and colour logic
 """
 
 from .builder import PropertyPopupBuilder  # noqa: F401
 from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment  # noqa: F401
-from .risk import get_mortgage_risk_summary, get_overall_risk_color  # noqa: F401
 from .sections import (  # noqa: F401
     create_property_section,
     create_flood_info_section,
     create_mortgage_section,
-    create_mortgage_risk_section,
 )
 
 __all__ = [
@@ -43,10 +40,7 @@ __all__ = [
     'calculate_ltv_ratio',
     'extract_term_years',
     'calculate_monthly_payment',
-    'get_mortgage_risk_summary',
-    'get_overall_risk_color',
     'create_property_section',
     'create_flood_info_section',
     'create_mortgage_section',
-    'create_mortgage_risk_section',
 ]

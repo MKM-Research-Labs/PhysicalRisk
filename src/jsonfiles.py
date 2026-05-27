@@ -50,6 +50,8 @@ class JSONFileConfig:
     PROPERTY_PORTFOLIO = 'property.json'
     GAUGE_PORTFOLIO = 'gauge.json'
     MORTGAGE_PORTFOLIO = 'mortgage.json'
+    COMMERCIAL_PORTFOLIO = 'commercial.json'
+    COMMERCIAL_LOAN_PORTFOLIO = 'commercial_loan.json'
 
     # Time series data files
     GAUGE_TIMESERIES = 'gaugets'  # Directory of per-gauge files
@@ -98,6 +100,8 @@ class JSONFileConfig:
             'property': cls.PROPERTY_PORTFOLIO,
             'gauge': cls.GAUGE_PORTFOLIO,
             'mortgage': cls.MORTGAGE_PORTFOLIO,
+            'commercial': cls.COMMERCIAL_PORTFOLIO,
+            'commercial_loan': cls.COMMERCIAL_LOAN_PORTFOLIO,
 
             # Time series files
             'gaugets': cls.GAUGE_TIMESERIES,

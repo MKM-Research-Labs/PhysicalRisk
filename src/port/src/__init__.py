@@ -51,12 +51,10 @@ Structure:
     └── stormtseries_portfolio.py - Storm time series generator
 
 Usage:
-    from config import config
-
-    # Set catchment (determines which random/params modules to use)
-    config.CATCHMENT = "thames"
-
-    # Use convenience functions
+    # Catchment is pinned globally by the CLI entry point (app.py port
+    # --thames / --halong, or `config.catchment_id = "halong"` from
+    # tests). Generators just read config.catchment_id; they never
+    # mutate it.
     from port.src import generate_gauges, generate_properties
 
     result = generate_gauges(count=40)

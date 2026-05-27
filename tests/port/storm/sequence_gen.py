@@ -23,11 +23,10 @@
 import pytest
 import numpy as np
 
-from port.src.storm_multi.generators.sequence_generator import (
-    CATCHMENT_BASE_PRECIP,
-    SequenceGenerator,
-)
+from port.src.storm_multi.generators.sequence_generator import SequenceGenerator
 from port.src.storm_multi.core.data_structures import SequenceType, StormSequence
+from catch.thames.storm import BASE_PRECIPITATION_MM as THAMES_BASE_PRECIP
+from catch.halong.storm import BASE_PRECIPITATION_MM as HALONG_BASE_PRECIP
 
 
 class TestSequenceGeneratorInit:
@@ -35,14 +34,16 @@ class TestSequenceGeneratorInit:
     def test_default_catchment(self):
         gen = SequenceGenerator()
         assert gen.catchment_id == "thames"
-        assert gen.base_precipitation == CATCHMENT_BASE_PRECIP["thames"]
+        assert gen.base_precipitation == THAMES_BASE_PRECIP
 
     def test_custom_catchment(self):
-        gen = SequenceGenerator(catchment_id="rhine")
-        assert gen.catchment_id == "rhine"
-        assert gen.base_precipitation == CATCHMENT_BASE_PRECIP["rhine"]
+        """Halong has its own storm.py with a different BASE_PRECIPITATION_MM."""
+        gen = SequenceGenerator(catchment_id="halong")
+        assert gen.catchment_id == "halong"
+        assert gen.base_precipitation == HALONG_BASE_PRECIP
 
     def test_unknown_catchment_defaults_to_35(self):
+        """No storm.py for the catchment → 35.0 mm fallback."""
         gen = SequenceGenerator(catchment_id="unknown_river")
         assert gen.base_precipitation == 35.0
 

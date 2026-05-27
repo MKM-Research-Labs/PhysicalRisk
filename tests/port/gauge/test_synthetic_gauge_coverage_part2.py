@@ -93,7 +93,7 @@ def synth_env(tmp_path, monkeypatch):
 
     from config import config as cfg
     monkeypatch.setattr(cfg, "load_params_module", lambda: mock_params)
-    monkeypatch.setattr(cfg, "CATCHMENT", "thames")
+    monkeypatch.setattr(cfg, "catchment_id", "thames")
 
     # Reset river polyline cache so tests start clean
     import port.src.gauge.synthetic as synth_mod

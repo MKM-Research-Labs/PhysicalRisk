@@ -195,8 +195,24 @@ def generate_trade_pdfs(trades: List[Dict], output_dir: Path) -> List[Path]:
     return pdfs
 
 
-def print_book_summary(trades: List[Dict]) -> None:
-    """Print a summary of the generated book."""
+def print_book_summary(trades: List[Dict], currency: Optional[str] = None) -> None:
+    """Print a summary of the generated book.
+
+    ``currency`` defaults to the active catchment's ``CURRENCY`` if not
+    passed, so summary labels reflect the right ISO code (GBP for
+    thames, USD for halong, etc.) without callers needing to know.
+    """
+    if currency is None:
+        try:
+            from config import config as _cfg
+            import importlib
+            currency = getattr(
+                importlib.import_module(f"catch.{_cfg.catchment_id}"),
+                "CURRENCY", "GBP",
+            )
+        except Exception:
+            currency = "GBP"
+
     payer_count = 0
     receiver_count = 0
     payer_notional = 0.0
@@ -223,9 +239,9 @@ def print_book_summary(trades: List[Dict]) -> None:
     print(f'{"=" * 60}')
     print(f'  Total trades:     {len(trades)}')
     print(f'  Payer (short):    {payer_count} trades, '
-          f'GBP {payer_notional:,.0f} notional')
+          f'{currency} {payer_notional:,.0f} notional')
     print(f'  Receiver (long):  {receiver_count} trades, '
-          f'GBP {receiver_notional:,.0f} notional')
-    print(f'  Net notional:     GBP {payer_notional - receiver_notional:,.0f}')
-    print(f'  Total NPV:        GBP {total_npv:,.0f}')
+          f'{currency} {receiver_notional:,.0f} notional')
+    print(f'  Net notional:     {currency} {payer_notional - receiver_notional:,.0f}')
+    print(f'  Total NPV:        {currency} {total_npv:,.0f}')
     print(f'{"=" * 60}\n')

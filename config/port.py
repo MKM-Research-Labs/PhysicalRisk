@@ -290,16 +290,12 @@ DEFAULT_INTENSITY_WEIGHTS: Dict[str, float] = {
 
 
 # ===========================================================================
-# Storm Multi — Sequence Generator  (storm_multi/generators/sequence_generator.py)
+# Storm Multi — Sequence Generator
 # ===========================================================================
-
-# Base precipitation (mm) by catchment — used to scale storm intensity
-CATCHMENT_BASE_PRECIP: Dict[str, float] = {
-    "thames": 35.0,
-    "rhine": 40.0,
-    "danube": 45.0,
-    "mississippi": 55.0,
-}
+#
+# Per-catchment base precipitation (mm) now lives in
+# data/catch/<catchment>/storm.py as ``BASE_PRECIPITATION_MM``. Loaded
+# at runtime by storm_multi.generators.sequence_generator.
 
 
 # ===========================================================================

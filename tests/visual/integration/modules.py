@@ -168,11 +168,6 @@ class TestLayerIntegration:
         layer = PropertyLayer()
         assert layer is not None
 
-    def test_mortgage_layer_creation(self):
-        from visual.layer import MortgageLayer
-        layer = MortgageLayer()
-        assert layer is not None
-
     def test_gauge_layer_has_add_method(self):
         from visual.layer import GaugeLayer
         layer = GaugeLayer()

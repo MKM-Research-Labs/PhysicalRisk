@@ -1,0 +1,2 @@
+f6c780e207acb3d629dd9720ce63ca54d6c70b172525a8859315de140c31861d  tests/port/cdm/golden/mortgage.json
+baa0ce94cc9e3055b66ae43567723f7282aa37e70fc7f7d1d4c8c0d74bd92d43  tests/port/cdm/golden/property.json

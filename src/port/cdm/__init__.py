@@ -41,22 +41,23 @@ validation methods, and data transformation utilities.
 All CDMs include CatchmentID for multi-catchment support.
 
 Usage:
-    from port.cdm import PropertyCDM, FloodGaugeCDM, MortgageCDM
+    from port.cdm import ResidentialAssetCDM, FloodGaugeCDM, LoanCDM
 
     # Validate property data
-    cdm = PropertyCDM()
+    cdm = ResidentialAssetCDM()
     errors = cdm.validate(property_data)
 
     # Create flat mapping from nested CDM structure
     flat_data = cdm.create_mapping(nested_data)
 """
 
+from .asset.commercial.cdm import CommercialAssetCDM
+from .asset.loan import LoanCDM
+from .asset.residential.cdm import ResidentialAssetCDM
 from .base import BaseCDM
 from .ctpy import CounterpartyCDM
 from .gauge import FloodGaugeCDM
-from .mortgage import MortgageCDM
 from .oed_export import cdm_to_oed_row, cdm_to_oed_rows, export_oed_csv
-from .property import PropertyCDM
 from .prs import PhysicalRiskSwapCDM
 from .storm import StormEventCDM, TCEventCDM
 from .stormts import StormTimeSeriesCDM, TCEventTSCDM
@@ -65,10 +66,13 @@ __all__ = [
     # Base class
     'BaseCDM',
 
-    # Entity CDMs
+    # Asset CDMs
+    'ResidentialAssetCDM',
+    'CommercialAssetCDM',
+    'LoanCDM',
+
+    # Other entity CDMs
     'FloodGaugeCDM',
-    'PropertyCDM',
-    'MortgageCDM',
     'StormEventCDM',
     'StormTimeSeriesCDM',
     'PhysicalRiskSwapCDM',

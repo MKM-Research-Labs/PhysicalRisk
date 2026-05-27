@@ -25,7 +25,6 @@ from .builders import (
     build_all_lookups,
     build_gauge_flood_info,
     build_mortgage_lookup,
-    build_mortgage_risk_info,
     build_property_flood_info,
 )
 from .id_utils import (
@@ -40,7 +39,6 @@ __all__ = [
     'build_mortgage_lookup',
     'build_gauge_flood_info',
     'build_property_flood_info',
-    'build_mortgage_risk_info',
     'build_all_lookups',
     'extract_property_ids',
     'extract_mortgage_ids',

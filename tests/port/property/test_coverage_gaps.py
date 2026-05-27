@@ -212,26 +212,5 @@ class TestGeneratorJsonSaveError:
 
 
 # ===========================================================================
-# generator.py line 229 -- generate_properties with catchment_id
-# ===========================================================================
-
-class TestGeneratePropertiesConvenience:
-
-    def test_catchment_id_sets_config(self, tmp_path):
-        """Calling generate_properties(catchment_id='THAMES') sets
-        config.CATCHMENT to 'thames'."""
-        from port.src.property.main.generator import generate_properties
-        from config import config
-
-        original_catchment = config.CATCHMENT
-
-        try:
-            with patch.object(
-                PropertyPortfolioGenerator, 'generate',
-                return_value={"data": {}, "file_path": "", "processing_stats": {}}
-            ):
-                generate_properties(count=1, output_dir=tmp_path,
-                                    catchment_id="THAMES")
-                assert config.CATCHMENT == "thames"
-        finally:
-            config.CATCHMENT = original_catchment
+# (generate_properties no longer accepts catchment_id — catchment is
+# pinned globally via config.catchment_id by the CLI entry point.)

@@ -156,7 +156,7 @@ class TestScoreHazard:
 class TestComputeBriRating:
 
     def _make_resilience(self, level: str) -> dict:
-        from port.cdm.property.schema.resilience import RESILIENCE_MEASURES_SCHEMA
+        from port.cdm.asset.resilience import RESILIENCE_MEASURES_SCHEMA
         out = {}
         for section, fields in RESILIENCE_MEASURES_SCHEMA.items():
             out[section] = {}

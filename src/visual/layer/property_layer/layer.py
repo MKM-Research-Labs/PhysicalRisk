@@ -10,9 +10,9 @@ import folium
 
 from config.format import property_title_py
 from config.visual import PROPERTY_FLOOD_HIGH, PROPERTY_FLOOD_MEDIUM
-from ...utils import ColorSchemes, DataExtractor, DataFormatter, RiskAssessor
+from ...utils import ColorSchemes, DataExtractor, DataFormatter
 from .popup import (create_property_popup, create_flood_risk_section,
-                    create_mortgage_section, create_mortgage_risk_section)
+                    create_mortgage_section)
 from .stats import get_property_statistics
 
 logger = logging.getLogger(__name__)
@@ -100,13 +100,9 @@ class PropertyLayer:
             lon = property_info['coordinates']['longitude']
             property_id = property_info['property_id']
 
-            mortgage_risk_info = None
-            if has_mortgage and loaded_data.mortgage_risk_info:
-                mortgage_risk_info = loaded_data.mortgage_risk_info.get('by_property_id', {}).get(property_id)
-
             popup_content = self._create_property_popup(
                 property_info, property_flood_info, has_mortgage,
-                mortgage_info, mortgage_risk_info
+                mortgage_info,
             )
 
             phc = self._property_hazard.get(property_id, {})
@@ -181,10 +177,10 @@ class PropertyLayer:
     # -----------------------------------------------------------------------
 
     def _create_property_popup(self, property_info, property_flood_info,
-                                has_mortgage, mortgage_info, mortgage_risk_info) -> str:
+                                has_mortgage, mortgage_info) -> str:
         """Create detailed popup content for a property marker."""
         return create_property_popup(property_info, property_flood_info,
-                                     has_mortgage, mortgage_info, mortgage_risk_info)
+                                     has_mortgage, mortgage_info)
 
     def _create_flood_risk_section(self, property_flood_info) -> str:
         """Create the flood risk information section."""
@@ -193,10 +189,6 @@ class PropertyLayer:
     def _create_mortgage_section(self, mortgage_info, property_value) -> str:
         """Create the mortgage information section."""
         return create_mortgage_section(mortgage_info, property_value)
-
-    def _create_mortgage_risk_section(self, mortgage_risk_info) -> str:
-        """Create the mortgage risk analysis section."""
-        return create_mortgage_risk_section(mortgage_risk_info)
 
     def get_property_statistics(self, properties: List[Dict[str, Any]], loaded_data) -> Dict[str, Any]:
         """Calculate statistics for the properties."""

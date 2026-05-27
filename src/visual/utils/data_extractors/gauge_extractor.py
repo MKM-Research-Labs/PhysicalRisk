@@ -127,7 +127,6 @@ def extract_flood_risk_data(flood_risk_report: Dict[str, Any]) -> Dict[str, Dict
     result = {
         'gauge_flood_info': {},
         'property_flood_info': {},
-        'mortgage_risk_info': {'by_mortgage_id': {}, 'by_property_id': {}}
     }
 
     try:
@@ -165,21 +164,9 @@ def extract_flood_risk_data(flood_risk_report: Dict[str, Any]) -> Dict[str, Dict
                 "value_at_risk": prop_data.get("value_at_risk")
             }
 
-        # Extract mortgage risk information
-        mortgage_risk_data = flood_risk_report.get("mortgage_risk", {})
-        for mortgage_id, risk_info in mortgage_risk_data.items():
-            # Add to mortgage ID lookup
-            result['mortgage_risk_info']['by_mortgage_id'][mortgage_id] = risk_info
-
-            # Add to property ID lookup if property ID exists
-            property_id = risk_info.get("PropertyID")
-            if property_id:
-                result['mortgage_risk_info']['by_property_id'][property_id] = risk_info
-
-        logger.info("Extracted flood risk data: %d gauges, %d properties, %d mortgages",
+        logger.info("Extracted flood risk data: %d gauges, %d properties",
                     len(result['gauge_flood_info']),
-                    len(result['property_flood_info']),
-                    len(result['mortgage_risk_info']['by_mortgage_id']))
+                    len(result['property_flood_info']))
 
     except Exception as e:
         logger.error("Error extracting flood risk data: %s", e)

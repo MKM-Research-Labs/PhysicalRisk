@@ -71,6 +71,12 @@ class CatchmentMixin:
         if value != self._catchment_id:
             self._catchment_instance = None
             self._catchment_id = value
+            # Refresh path attributes so input_dir, results_dir, etc.
+            # point at data/input/<new_catchment>/. Without this, every
+            # downstream consumer keeps using the catchment that was
+            # active at PortfolioConfig() instantiation time.
+            if hasattr(self, '_init_paths'):
+                self._init_paths(value)
 
     @property
     def CATCHMENT(self) -> str:
@@ -115,15 +121,27 @@ class CatchmentMixin:
     # Catchment enumeration + instance
     # ------------------------------------------------------------------
 
+    # Module/file names under data/catch/ that are infrastructure rather
+    # than real catchments — base classes, helpers, etc. Excluded from
+    # ``list_catchments()`` so they can't be selected as the active
+    # catchment.
+    _CATCHMENT_INFRASTRUCTURE_NAMES = frozenset({'base', 'base_catchment'})
+
     def list_catchments(self) -> list:
-        """Return sorted list of available catchment names."""
+        """Return sorted list of available catchment names.
+
+        Excludes underscore-prefixed names (private modules) and the
+        known infrastructure files (``base.py``, ``base_catchment.py``).
+        """
         if not self.catchments_dir.exists():
             return []
         return sorted({
             p.stem for p in self.catchments_dir.iterdir()
             if (
-                (p.is_file() and p.suffix == ".py" and not p.stem.startswith('_')) or
-                (p.is_dir() and not p.name.startswith('_') and not p.name.startswith('.'))
+                (p.is_file() and p.suffix == ".py" and not p.stem.startswith('_')
+                 and p.stem not in self._CATCHMENT_INFRASTRUCTURE_NAMES) or
+                (p.is_dir() and not p.name.startswith('_') and not p.name.startswith('.')
+                 and p.name not in self._CATCHMENT_INFRASTRUCTURE_NAMES)
             )
         })
 

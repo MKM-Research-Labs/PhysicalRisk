@@ -24,9 +24,9 @@ import pytest
 
 from port.cdm import (
     FloodGaugeCDM,
-    MortgageCDM,
+    LoanCDM,
     PhysicalRiskSwapCDM,
-    PropertyCDM,
+    ResidentialAssetCDM,
     StormEventCDM,
     StormTimeSeriesCDM,
 )
@@ -39,12 +39,12 @@ def gauge_cdm():
 
 @pytest.fixture
 def property_cdm():
-    return PropertyCDM()
+    return ResidentialAssetCDM()
 
 
 @pytest.fixture
 def mortgage_cdm():
-    return MortgageCDM()
+    return LoanCDM()
 
 
 @pytest.fixture

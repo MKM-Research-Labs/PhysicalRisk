@@ -34,47 +34,6 @@ def assess_ltv_risk_level(ltv_ratio: float) -> str:
         return "Critical"
 
 
-def assess_mortgage_risk(flood_risk_level: str, mortgage_value: float,
-                         loan_amount: float, ltv_ratio: float) -> str:
-    """
-    Generate a comprehensive mortgage risk assessment.
-
-    Args:
-        flood_risk_level: The flood risk level for the property
-        mortgage_value: The calculated value of the mortgage
-        loan_amount: The original loan amount
-        ltv_ratio: Loan-to-value ratio
-
-    Returns:
-        Risk assessment string
-    """
-    if flood_risk_level in ['High', 'Very High']:
-        return "High Risk - Significant flood exposure threatening mortgage value"
-
-    if mortgage_value is not None and loan_amount is not None and mortgage_value < 0:
-        negative_pct = abs(mortgage_value) / loan_amount if loan_amount > 0 else 0
-
-        if negative_pct > 0.1:
-            return "Critical Risk - Mortgage value severely impacted"
-        elif negative_pct > 0.05:
-            return "High Risk - Significant negative impact on mortgage value"
-        elif negative_pct > 0.02:
-            return "Moderate Risk - Some negative impact on mortgage value"
-
-    if ltv_ratio is not None:
-        if ltv_ratio > 0.8 and flood_risk_level in ['Medium', 'High', 'Very High']:
-            return "High Risk - High LTV with flood exposure"
-        elif ltv_ratio > 0.7 and flood_risk_level in ['Medium', 'High']:
-            return "Moderate Risk - Elevated LTV with some flood exposure"
-
-    if flood_risk_level == 'Medium':
-        return "Moderate Risk - Some flood exposure"
-    elif flood_risk_level == 'Low':
-        return "Low Risk - Limited flood exposure"
-    else:
-        return "Minimal Risk - No significant flood impact identified"
-
-
 def calculate_combined_risk_score(flood_risk_level: str, ltv_ratio: float,
                                   property_age: Optional[int] = None,
                                   construction_type: Optional[str] = None) -> float:

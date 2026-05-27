@@ -60,22 +60,37 @@ DEFAULT_GAUGE_MENU = [
     {"id": "generate_gauge_report", "label": "📊 Generate Gauge Report", "action": "generateGaugeReport"}
 ]
 
+# Commercial assets mirror the property menu but use commercial / loan
+# vocabulary. Backend handlers will be plumbed in alongside storm scenarios;
+# until then the actions fire and the JS shows the not-yet-wired warning.
+DEFAULT_COMMERCIAL_MENU = [
+    {"id": "view_details", "label": "🏢 Commercial Details", "action": "viewCommercialDetails"},
+    {"id": "view_loan", "label": "💰 Loan Details", "action": "viewLoanDetails"},
+    {"id": "view_commercial_storms", "label": "🌧️ View Storm Scenarios", "action": "viewCommercialStorms"},
+    {"id": "view_commercial_hazard", "label": "📈 Physical Risk Swap", "action": "viewCommercialHazard"},
+    {"id": "generate_commercial_report", "label": "📊 Generate Commercial Report", "action": "generateCommercialReport"},
+    {"id": "generate_loan_report", "label": "🏦 Generate Loan Report", "action": "generateLoanReport"}
+]
+
 
 class ContextMenuHandler:
     """Handler for marker context menus."""
 
     def __init__(self,
                  property_menu: List[Dict] = None,
-                 gauge_menu: List[Dict] = None):
+                 gauge_menu: List[Dict] = None,
+                 commercial_menu: List[Dict] = None):
         """
         Initialize context menu handler.
 
         Args:
             property_menu: Custom property menu items
             gauge_menu: Custom gauge menu items
+            commercial_menu: Custom commercial menu items
         """
         self.property_menu = property_menu or DEFAULT_PROPERTY_MENU.copy()
         self.gauge_menu = gauge_menu or DEFAULT_GAUGE_MENU.copy()
+        self.commercial_menu = commercial_menu or DEFAULT_COMMERCIAL_MENU.copy()
 
     def get_js(self) -> str:
         """Generate CSS and JavaScript for context menu functionality."""
@@ -85,7 +100,8 @@ class ContextMenuHandler:
         js_code = (static_dir / 'js' / 'context-menus.js').read_text()
         menu_config = json.dumps({
             'property': self.property_menu,
-            'gauge': self.gauge_menu
+            'gauge': self.gauge_menu,
+            'commercial': self.commercial_menu,
         })
         nav_js = self._build_nav_menus_js()
         return (
@@ -227,17 +243,23 @@ class ContextMenuHandler:
         folium_map.get_root().html.add_child(folium.Element(self.get_js()))
 
     def configure(self, property_menu: List[Dict] = None,
-                 gauge_menu: List[Dict] = None) -> None:
+                 gauge_menu: List[Dict] = None,
+                 commercial_menu: List[Dict] = None) -> None:
         """Update menu configuration."""
         if property_menu:
             self.property_menu = property_menu
         if gauge_menu:
             self.gauge_menu = gauge_menu
+        if commercial_menu:
+            self.commercial_menu = commercial_menu
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get configuration statistics."""
         return {
             'property_menu_items': len(self.property_menu),
             'gauge_menu_items': len(self.gauge_menu),
-            'total_menu_items': len(self.property_menu) + len(self.gauge_menu)
+            'commercial_menu_items': len(self.commercial_menu),
+            'total_menu_items': (len(self.property_menu)
+                                  + len(self.gauge_menu)
+                                  + len(self.commercial_menu)),
         }
