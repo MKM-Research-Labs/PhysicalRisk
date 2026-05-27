@@ -618,10 +618,23 @@ class TestZoneSpreadConsistency:
         return stats
 
     def test_zone_3b_has_higher_avg_flood_count_than_zone_1(self):
-        """Zone 3b properties should flood more than Zone 1 on average."""
+        """Zone 3b properties should flood more than Zone 1 on average.
+
+        Skips when either zone has fewer than 3 properties — with very
+        small portfolios (e.g. --num-properties 20), one or both zones
+        may have n=1 and any single outcome dominates the average,
+        making the inequality meaningless.
+        """
         stats = self._zone_stats()
         if "Zone 3b" not in stats or "Zone 1" not in stats:
             pytest.skip("Need both Zone 3b and Zone 1 properties")
+        min_n = 3
+        if len(stats["Zone 3b"]["flood_counts"]) < min_n or len(stats["Zone 1"]["flood_counts"]) < min_n:
+            pytest.skip(
+                f"Need >= {min_n} properties per zone "
+                f"(have 3b={len(stats['Zone 3b']['flood_counts'])}, "
+                f"1={len(stats['Zone 1']['flood_counts'])})"
+            )
         avg_3b = sum(stats["Zone 3b"]["flood_counts"]) / len(stats["Zone 3b"]["flood_counts"])
         avg_1 = sum(stats["Zone 1"]["flood_counts"]) / len(stats["Zone 1"]["flood_counts"])
         assert avg_3b > avg_1, (
@@ -636,6 +649,13 @@ class TestZoneSpreadConsistency:
             pytest.skip("Need both Zone 3b and Zone 1 properties")
         if not stats["Zone 3b"]["spreads"] or not stats["Zone 1"]["spreads"]:
             pytest.skip("No spread data for both zones")
+        min_n = 3
+        if len(stats["Zone 3b"]["spreads"]) < min_n or len(stats["Zone 1"]["spreads"]) < min_n:
+            pytest.skip(
+                f"Need >= {min_n} properties per zone "
+                f"(have 3b={len(stats['Zone 3b']['spreads'])}, "
+                f"1={len(stats['Zone 1']['spreads'])})"
+            )
         avg_3b = sum(stats["Zone 3b"]["spreads"]) / len(stats["Zone 3b"]["spreads"])
         avg_1 = sum(stats["Zone 1"]["spreads"]) / len(stats["Zone 1"]["spreads"])
         assert avg_3b > avg_1, (
@@ -700,16 +720,21 @@ class TestZoneSpreadConsistency:
             )
 
     def test_spread_ordering_by_zone(self):
-        """Average spreads should decrease from Zone 3b → 3a → 2 → 1."""
+        """Average spreads should decrease from Zone 3b → 3a → 2 → 1.
+
+        Only includes zones with >= 3 properties so a single low-flood
+        outlier in a 1-property zone doesn't break the ordering.
+        """
         stats = self._zone_stats()
         zone_order = ["Zone 3b", "Zone 3a", "Zone 2", "Zone 1"]
+        min_n = 3
         avgs = {}
         for z in zone_order:
-            if z in stats and stats[z]["spreads"]:
+            if z in stats and len(stats[z]["spreads"]) >= min_n:
                 avgs[z] = sum(stats[z]["spreads"]) / len(stats[z]["spreads"])
         present = [z for z in zone_order if z in avgs]
         if len(present) < 2:
-            pytest.skip("Need at least 2 zones with spread data")
+            pytest.skip(f"Need at least 2 zones with >= {min_n} properties of spread data")
         for i in range(len(present) - 1):
             assert avgs[present[i]] >= avgs[present[i + 1]], (
                 f"Spread ordering violated: {present[i]}={avgs[present[i]]:.1f}bp "

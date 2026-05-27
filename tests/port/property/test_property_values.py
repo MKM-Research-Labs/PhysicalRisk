@@ -38,17 +38,18 @@ from .conftest import make_portfolio_gen, make_portfolio_params
 
 class TestSetSpecificPropertyValues:
 
-    def test_property_id_set_in_attrs(self, tmp_path):
+    def test_property_id_set_in_header(self, tmp_path):
+        """PropertyID lives at PropertyHeader.Header.PropertyID per schema."""
         gen = make_portfolio_gen(tmp_path)
         data = {}
         gen._set_specific_property_values(data, "PROP-abc", 0, {}, {"lat": 51.5, "lon": -0.1})
-        assert data["PropertyHeader"]["PropertyAttributes"]["PropertyID"] == "PROP-abc"
+        assert data["PropertyHeader"]["Header"]["PropertyID"] == "PROP-abc"
 
-    def test_catchment_id_set_in_attrs(self, tmp_path):
+    def test_catchment_id_set_in_header(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)
         data = {}
         gen._set_specific_property_values(data, "PROP-abc", 0, {}, {"lat": 51.5, "lon": -0.1})
-        assert data["PropertyHeader"]["PropertyAttributes"]["CatchmentID"] == "thames"
+        assert data["PropertyHeader"]["Header"]["CatchmentID"] == "thames"
 
     def test_lat_lon_set_in_location(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)
@@ -59,19 +60,33 @@ class TestSetSpecificPropertyValues:
         assert loc["LongitudeDegrees"] == pytest.approx(-0.31)
 
     def test_elevation_sets_ground_level(self, tmp_path):
+        """GroundLevelMeters lives at PropertyHeader.RiskAssessment (sibling
+        to Location), not under Location, per the current schema."""
         gen = make_portfolio_gen(tmp_path)
         data = {}
         gen._set_specific_property_values(data, "P", 0, {},
                                            {"lat": 51.5, "lon": -0.1, "elevation": 12.3})
-        loc = data["PropertyHeader"]["Location"]
-        assert loc["RiskAssessment"]["GroundLevelMeters"] == pytest.approx(12.3, abs=0.01)
+        header = data["PropertyHeader"]
+        assert header["RiskAssessment"]["GroundLevelMeters"] == pytest.approx(12.3, abs=0.01)
 
-    def test_no_elevation_in_location_does_not_set_ground_level(self, tmp_path):
+    def test_no_elevation_does_not_set_risk_assessment(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)
         data = {}
         gen._set_specific_property_values(data, "P", 0, {}, {"lat": 51.5, "lon": -0.1})
-        loc = data["PropertyHeader"]["Location"]
-        assert "RiskAssessment" not in loc
+        assert "RiskAssessment" not in data["PropertyHeader"]
+
+    def test_reference_gauges_use_synthetic_gauge_id_when_present(self, tmp_path):
+        """When the location was placed relative to a synthetic gauge, the
+        synthetic gauge ID takes precedence over reference_gauge_indices."""
+        gen = make_portfolio_gen(tmp_path)
+        gen._gauge_id_map = {0: "GAUGE-abc", 1: "GAUGE-def"}
+        data = {}
+        gen._set_specific_property_values(data, "P", 0, {},
+                                           {"lat": 51.5, "lon": -0.1,
+                                            "synthetic_gauge_id": "GAUGE-SYNTH-XYZ",
+                                            "reference_gauge_indices": [0, 1]})
+        # Synthetic ID wins; index-based fallback is not used
+        assert data["PropertyHeader"]["ReferenceGauges"] == ["GAUGE-SYNTH-XYZ"]
 
     def test_reference_gauges_set_from_gauge_id_map(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)

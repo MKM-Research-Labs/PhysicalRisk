@@ -32,15 +32,22 @@ def shd_setup(tmp_path):
 
 
 class TestShdOutputDirectory:
+    """Mode → output-dir mapping now lives on ASSET_CONFIG.ts_dirs so the
+    same generator class can target commercial assets via a different
+    asset config. The residential mapping must keep shd → propertytsd and
+    she → propertytse for backward compatibility with the report tests."""
 
     def test_shd_writes_to_propertytsd_dir(self, shd_setup, tmp_path):
-        """Mode shd should write PROP-*.json into propertytsd/ not propertyts/."""
         gen, _ = shd_setup
-        assert gen._MODE_DIRS["shd"] == "propertytsd"
+        assert gen.ASSET_CONFIG.ts_dirs["shd"] == "propertytsd"
 
     def test_she_writes_to_propertytse_dir(self, tmp_path):
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False, mode="she")
-        assert gen._MODE_DIRS["she"] == "propertytse"
+        assert gen.ASSET_CONFIG.ts_dirs["she"] == "propertytse"
+
+    def test_normal_writes_to_propertyts_dir(self, tmp_path):
+        gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False, mode="normal")
+        assert gen.ASSET_CONFIG.ts_dirs["normal"] == "propertyts"
 
 
 class TestShdFloodMixin:

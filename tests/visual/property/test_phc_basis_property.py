@@ -30,8 +30,10 @@ class TestBasisPropertyJS:
     def test_x_axis_is_gauge_peak(self, js):
         assert "Gauge Peak Water Level" in js
 
-    def test_y_axis_is_property_depth(self, js):
-        assert "Property Flood Depth" in js
+    def test_y_axis_is_asset_flood_depth(self, js):
+        # Renamed from "Property Flood Depth" -> "Asset Flood Depth"
+        # in the Property->Asset terminology pass (commit d3db6d5e).
+        assert "Asset Flood Depth" in js
 
     def test_quadrant_hedged(self, js):
         assert "qTopRight" in js

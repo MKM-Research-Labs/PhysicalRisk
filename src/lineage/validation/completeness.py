@@ -33,45 +33,58 @@ def check_pipeline_complete(data_dir: Path | str | None = None) -> dict:
             from config import PortfolioConfig
             data_dir = Path(PortfolioConfig().get_input_dir())
         except (ImportError, AttributeError):
-            data_dir = Path(__file__).resolve().parents[3] / "data" / "input" / "thames"
+            import os
+            catchment = os.getenv("MKM_CATCHMENT", "thames")
+            data_dir = Path(__file__).resolve().parents[3] / "data" / "input" / catchment
     else:
         data_dir = Path(data_dir)
 
     missing: list[dict] = []
     present = 0
+    optional = _val.OPTIONAL_STEPS
 
     for step_name, io in _val.STEP_IO.items():
+        step_missing: list[dict] = []
+        step_present = 0
         for output in io["outputs"]:
             path = data_dir / output
             is_dir = output.endswith("/")
 
             if is_dir:
                 if not path.is_dir():
-                    missing.append({
+                    step_missing.append({
                         "step": step_name,
                         "output": output,
                         "path": str(path),
                         "type": "directory",
                     })
                 elif not any(path.iterdir()):
-                    missing.append({
+                    step_missing.append({
                         "step": step_name,
                         "output": output,
                         "path": str(path),
                         "type": "empty_directory",
                     })
                 else:
-                    present += 1
+                    step_present += 1
             else:
                 if not path.is_file():
-                    missing.append({
+                    step_missing.append({
                         "step": step_name,
                         "output": output,
                         "path": str(path),
                         "type": "file",
                     })
                 else:
-                    present += 1
+                    step_present += 1
+
+        # Optional step with ZERO outputs on disk → not enabled for this
+        # catchment, skip entirely. If any outputs exist, fall through so
+        # partial generation is still flagged as broken.
+        if step_name in optional and step_present == 0:
+            continue
+        missing.extend(step_missing)
+        present += step_present
 
     return {
         "complete": len(missing) == 0,

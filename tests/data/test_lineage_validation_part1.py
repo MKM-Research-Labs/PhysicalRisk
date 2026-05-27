@@ -35,8 +35,13 @@ class TestCheckInputsFresh:
 
     def test_fresh_when_hashes_match(self):
         from lineage.validation import check_inputs_fresh
+        # properties' producer of gauge.json is synthetic_gauges (latest writer)
         manifest = _make_manifest({
             "gauges": {
+                "outputs": {"gauge.json": {"hash": "abc000"}},
+            },
+            "synthetic_gauges": {
+                "inputs": {"gauge.json": {"hash": "abc000"}},
                 "outputs": {"gauge.json": {"hash": "abc123"}},
             },
             "properties": {
@@ -53,6 +58,10 @@ class TestCheckInputsFresh:
         from lineage.validation import check_inputs_fresh
         manifest = _make_manifest({
             "gauges": {
+                "outputs": {"gauge.json": {"hash": "v0"}},
+            },
+            "synthetic_gauges": {
+                "inputs": {"gauge.json": {"hash": "v0"}},
                 "outputs": {"gauge.json": {"hash": "new_hash_12345"}},
             },
             "properties": {
@@ -94,6 +103,9 @@ class TestCheckInputsFresh:
         from lineage.validation import check_inputs_fresh
         manifest = _make_manifest({
             "gauges": {
+                "outputs": {"gauge.json": {"hash": "abc"}},
+            },
+            "synthetic_gauges": {
                 "outputs": {"gauge.json": {"type": "file"}},  # no hash key
             },
             "properties": {
@@ -110,6 +122,9 @@ class TestCheckInputsFresh:
         from lineage.validation import check_inputs_fresh
         manifest = _make_manifest({
             "gauges": {
+                "outputs": {"gauge.json": {"hash": "abc000"}},
+            },
+            "synthetic_gauges": {
                 "outputs": {"gauge.json": {"hash": "abc123"}},
             },
             "properties": {
@@ -128,7 +143,10 @@ class TestCheckStepPrerequisites:
 
     def test_all_present(self):
         from lineage.validation import check_step_prerequisites
-        manifest = _make_manifest({"gauges": {}, "properties": {}})
+        # properties depends on synthetic_gauges (which depends on gauges)
+        manifest = _make_manifest({
+            "gauges": {}, "synthetic_gauges": {}, "properties": {},
+        })
         with patch("lineage.validation.load_manifest", return_value=manifest):
             ok, missing = check_step_prerequisites("properties")
         assert ok
@@ -140,7 +158,8 @@ class TestCheckStepPrerequisites:
         with patch("lineage.validation.load_manifest", return_value=manifest):
             ok, missing = check_step_prerequisites("properties")
         assert not ok
-        assert "gauges" in missing
+        # properties' direct upstream is synthetic_gauges after the fix
+        assert "synthetic_gauges" in missing
 
 
 class TestGetStaleDownstream:

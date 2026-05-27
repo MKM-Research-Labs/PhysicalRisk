@@ -15,6 +15,13 @@ _PROP_INPUTS = lambda ctx: {
 }
 
 
+_COMM_INPUTS = lambda ctx: {
+    "commercial.json": ctx.input_dir / "commercial.json",
+    "gauge.json": ctx.input_dir / "gauge.json",
+    "gaugets/": ctx.input_dir / "gaugets",
+}
+
+
 def _summary_line(r, label):
     total = r.get('total_properties', '?')
     flooded = r.get('properties_with_floods', '?')
@@ -102,11 +109,23 @@ def run_commercialts(ctx: StageContext):
     if not (args.commercialts or (ctx.run_all and ctx.commercial_exists)):
         return
     print("7c. Generating Commercial Flood Time Series...")
+    inputs = _COMM_INPUTS(ctx)
+    pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.commercial_gen.CommercialTimeSeriesGenerator(ctx.output_dir, verbose=args.verbose).generate()
     elapsed = time.time() - t_step
     _summary_line(r, "commercial assets")
     print(f"   max depth: {r.get('max_depth_m', 0):.2f}m")
+    ctx.record(
+        step_name="commercialts",
+        generator="port.src.commercial.CommercialTimeSeriesGenerator",
+        inputs=inputs,
+        outputs={"commercialts/": ctx.input_dir / "commercialts"},
+        parameters={},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+        stale_name="commercialts",
+    )
     print()
 
 
@@ -115,10 +134,21 @@ def run_commercialtsd(ctx: StageContext):
     if not (args.commercialtsd or (ctx.run_all and ctx.commercial_exists)):
         return
     print("7d. Generating Synthetic Distance Timeseries (commercialtsd)...")
+    inputs = _COMM_INPUTS(ctx)
+    pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.commercial_gen.CommercialTimeSeriesGenerator(ctx.output_dir, verbose=args.verbose, mode="shd").generate()
     elapsed = time.time() - t_step
     _summary_line(r, "commercial assets")
+    ctx.record(
+        step_name="commercialtsd",
+        generator="port.src.commercial.CommercialTimeSeriesGenerator(mode=shd)",
+        inputs=inputs,
+        outputs={"commercialtsd/": ctx.input_dir / "commercialtsd"},
+        parameters={"mode": "shd"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
     print()
 
 
@@ -127,10 +157,21 @@ def run_commercialtse(ctx: StageContext):
     if not (args.commercialtse or (ctx.run_all and ctx.commercial_exists)):
         return
     print("7e. Generating Synthetic Elevation Timeseries (commercialtse)...")
+    inputs = _COMM_INPUTS(ctx)
+    pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.commercial_gen.CommercialTimeSeriesGenerator(ctx.output_dir, verbose=args.verbose, mode="she").generate()
     elapsed = time.time() - t_step
     _summary_line(r, "commercial assets")
+    ctx.record(
+        step_name="commercialtse",
+        generator="port.src.commercial.CommercialTimeSeriesGenerator(mode=she)",
+        inputs=inputs,
+        outputs={"commercialtse/": ctx.input_dir / "commercialtse"},
+        parameters={"mode": "she"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
     print()
 
 

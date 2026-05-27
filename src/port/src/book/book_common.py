@@ -285,8 +285,20 @@ def _price_and_save_trade(
     return record, ctpy_idx + 1
 
 
+# The REIT is the fixed counterparty for ALL property PRS trades — it must
+# never appear in the gauge-PRS counterparty pool. _load_counterparties is
+# only called by gauge-PRS books (book.py / book_thames.py); the property
+# book hardcodes the REIT entry itself.
+_REIT_PARTY_ID = "CTPY-REIT-001"
+
+
 def _load_counterparties(counterparty_path: Path) -> List[Dict]:
-    """Load counterparties from JSON file."""
+    """Load counterparties from JSON file, excluding the REIT.
+
+    Returns the random pool of external counterparties (banks, insurers,
+    reinsurers, etc.) suitable for gauge-PRS assignment. The REIT is
+    filtered because it is reserved for property-PRS trades only.
+    """
     counterparties = []
     if counterparty_path.exists():
         with open(counterparty_path) as f:
@@ -294,9 +306,12 @@ def _load_counterparties(counterparty_path: Path) -> List[Dict]:
         for c in ctpy_data.get('counterparties', []):
             cs = c.get('CounterpartySet', {})
             party = cs.get('Party', {})
+            party_id = party.get('PartyID', '')
+            if party_id == _REIT_PARTY_ID:
+                continue  # REIT reserved for property PRS
             platform = cs.get('_platform', {})
             counterparties.append({
-                'id': party.get('PartyID', ''),
+                'id': party_id,
                 'name': (f"{platform.get('ShortName', party.get('PartyName', ''))}"
                          f" ({platform.get('CreditRating', 'NR')})"),
             })

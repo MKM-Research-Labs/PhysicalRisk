@@ -24,6 +24,8 @@ Tests for governance helpers: _calculate_risk_rating and _vq_summary.
 
 from datetime import datetime, timedelta
 
+import pytest
+
 
 # ===========================================================================
 # _calculate_risk_rating
@@ -142,6 +144,42 @@ class TestCalculateRiskRating:
         model = self._make_model()
         result = _calculate_risk_rating(model)
         assert isinstance(result["calculated_score"], float)
+
+    def test_remediation_steps_list_of_strings_ignored(self):
+        """Freeform remediation_steps (list-of-strings) used to crash
+        with AttributeError on r.get(). Now silently treated as zero
+        open items so the wider rating calculation still runs."""
+        from routes.governance._helpers import _calculate_risk_rating
+        model = self._make_model()
+        model["remediation_steps"] = ["complete phase 2", "validate against history"]
+        result = _calculate_risk_rating(model)
+        # String entries don't contribute to open_count, so remediation_health = 1.0
+        assert result["component_scores"]["remediation_health"] == 1.0
+
+    def test_remediation_steps_none_treated_as_empty(self):
+        """remediation_steps explicitly None (some legacy entries) must
+        not raise TypeError on iteration."""
+        from routes.governance._helpers import _calculate_risk_rating
+        model = self._make_model()
+        model["remediation_steps"] = None
+        result = _calculate_risk_rating(model)
+        assert result["component_scores"]["remediation_health"] == 1.0
+
+    def test_remediation_steps_mixed_str_and_dict(self):
+        """Some entries str, some dict — only dict entries count toward
+        open/overdue. Defensive shape-handling shouldn't drop the dict."""
+        from routes.governance._helpers import _calculate_risk_rating
+        today = datetime.now()
+        future = (today + timedelta(days=60)).strftime("%Y-%m-%d")
+        model = self._make_model()
+        model["remediation_steps"] = [
+            "freeform descriptive remediation",
+            {"status": "Open", "due_date": future},
+            "another freeform item",
+        ]
+        result = _calculate_risk_rating(model)
+        # Exactly 1 open dict item → small penalty (0.15) → 0.85
+        assert result["component_scores"]["remediation_health"] == pytest.approx(0.85, abs=0.001)
 
 
 # ===========================================================================

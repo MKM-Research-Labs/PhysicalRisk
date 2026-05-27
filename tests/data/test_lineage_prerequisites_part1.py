@@ -101,13 +101,13 @@ class TestResolvePrerequisites:
                 "inputs": {},
                 "outputs": {"gauge.json": {"hash": "aaa"}},
             },
-            "properties": {
-                "inputs": {"gauge.json": {"hash": "aaa"}},
-                "outputs": {"property.json": {"hash": "bbb"}},
-            },
             "synthetic_gauges": {
-                "inputs": {"gauge.json": {"hash": "aaa"}, "property.json": {"hash": "bbb"}},
+                "inputs": {"gauge.json": {"hash": "aaa"}},
                 "outputs": {"gauge.json": {"hash": "aaa2"}},
+            },
+            "properties": {
+                "inputs": {"gauge.json": {"hash": "aaa2"}},
+                "outputs": {"property.json": {"hash": "bbb"}},
             },
             "gaugehd": {
                 "inputs": {"gauge.json": {"hash": "aaa2"}},

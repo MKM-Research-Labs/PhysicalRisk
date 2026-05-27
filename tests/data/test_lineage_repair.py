@@ -30,7 +30,9 @@ class TestRepairManifest:
                     d.mkdir(parents=True, exist_ok=True)
                     (d / "dummy.json").write_text("{}")
                 else:
-                    (data_dir / output).write_text("{}")
+                    p = data_dir / output
+                    p.parent.mkdir(parents=True, exist_ok=True)
+                    p.write_text("{}")
 
     def test_repair_from_scratch(self, tmp_path):
         """Repair with no existing manifest creates entries for all steps."""

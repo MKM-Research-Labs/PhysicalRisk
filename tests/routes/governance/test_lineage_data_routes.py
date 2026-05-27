@@ -17,33 +17,32 @@ class TestGetDataLineage:
 
     def test_with_no_manifest(self, lineage_env, lineage_client):
         """When lineage file does not exist, manifest is None but route succeeds."""
+        from routes.governance.lineage._trace import _PIPELINE_STEPS
         r = lineage_client.get("/api/v1/governance/data-lineage")
         assert r.status_code == 200
         data = r.get_json()
         assert data["status"] == "success"
         assert data["manifest"] is None
-        assert data["summary"]["missing"] == 14
+        assert data["summary"]["missing"] == len(_PIPELINE_STEPS)
         assert data["summary"]["health"] == "unhealthy"
 
     def test_all_fresh(self, lineage_env, lineage_client):
         """All pipeline outputs exist and are fresh."""
+        from routes.governance.lineage._trace import _PIPELINE_STEPS
         tmp = lineage_env["tmp_path"]
-        for step_out in [
-            "gauge.json", "property.json", "mortgage.json",
-            "gaugehc.json", "propertyhc.json", "propertyshd.json",
-            "propertyshe.json", "counterparty.json",
-        ]:
-            create_fresh_file(tmp, step_out)
-        for dir_out in ["gaugehd", "gaugets", "propertyts", "propertytsd",
-                         "propertytse", "prs"]:
-            create_fresh_file(tmp, f"{dir_out}/dummy.json")
+        for step_def in _PIPELINE_STEPS:
+            output = step_def["output"]
+            if output.endswith("/"):
+                create_fresh_file(tmp, f"{output}dummy.json")
+            else:
+                create_fresh_file(tmp, output)
 
         write_lineage(lineage_env, SAMPLE_LINEAGE)
 
         r = lineage_client.get("/api/v1/governance/data-lineage")
         data = r.get_json()
         assert data["status"] == "success"
-        assert data["summary"]["fresh"] == 14
+        assert data["summary"]["fresh"] == len(_PIPELINE_STEPS)
         assert data["summary"]["stale"] == 0
         assert data["summary"]["missing"] == 0
         assert data["summary"]["health"] == "healthy"
@@ -51,31 +50,34 @@ class TestGetDataLineage:
 
     def test_mixed_statuses(self, lineage_env, lineage_client):
         """Mix of fresh, stale, and missing."""
+        from routes.governance.lineage._trace import _PIPELINE_STEPS
         tmp = lineage_env["tmp_path"]
         create_fresh_file(tmp, "gauge.json")
         create_stale_file(tmp, "property.json", days_old=5)
 
         write_lineage(lineage_env, SAMPLE_LINEAGE)
 
+        # gauge.json freshens any step whose representative output is gauge.json;
+        # property.json staleness applies only to the properties step.
+        fresh_count = sum(1 for s in _PIPELINE_STEPS if s["output"] == "gauge.json")
+        stale_count = sum(1 for s in _PIPELINE_STEPS if s["output"] == "property.json")
         r = lineage_client.get("/api/v1/governance/data-lineage")
         data = r.get_json()
-        assert data["summary"]["fresh"] == 1
-        assert data["summary"]["stale"] == 1
-        assert data["summary"]["missing"] == 12
+        assert data["summary"]["fresh"] == fresh_count
+        assert data["summary"]["stale"] == stale_count
+        assert data["summary"]["missing"] == len(_PIPELINE_STEPS) - fresh_count - stale_count
         assert data["summary"]["health"] == "unhealthy"
 
     def test_degraded_health(self, lineage_env, lineage_client):
         """All present but some stale = degraded."""
+        from routes.governance.lineage._trace import _PIPELINE_STEPS
         tmp = lineage_env["tmp_path"]
-        for step_out in [
-            "gauge.json", "property.json", "mortgage.json",
-            "gaugehc.json", "propertyhc.json", "propertyshd.json",
-            "propertyshe.json", "counterparty.json",
-        ]:
-            create_fresh_file(tmp, step_out)
-        for dir_out in ["gaugehd", "gaugets", "propertyts", "propertytsd",
-                         "propertytse", "prs"]:
-            create_fresh_file(tmp, f"{dir_out}/dummy.json")
+        for step_def in _PIPELINE_STEPS:
+            output = step_def["output"]
+            if output.endswith("/"):
+                create_fresh_file(tmp, f"{output}dummy.json")
+            else:
+                create_fresh_file(tmp, output)
 
         # Make one stale
         create_stale_file(tmp, "gauge.json", days_old=5)
@@ -83,7 +85,10 @@ class TestGetDataLineage:
         r = lineage_client.get("/api/v1/governance/data-lineage")
         data = r.get_json()
         assert data["summary"]["missing"] == 0
-        assert data["summary"]["stale"] == 1
+        # gauge.json staleness applies to every step using it as representative output
+        assert data["summary"]["stale"] == sum(
+            1 for s in _PIPELINE_STEPS if s["output"] == "gauge.json"
+        )
         assert data["summary"]["health"] == "degraded"
 
     def test_has_as_of(self, lineage_env, lineage_client):
