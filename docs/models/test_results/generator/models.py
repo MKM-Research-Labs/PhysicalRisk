@@ -199,6 +199,14 @@ TEST_MODEL_MAP = {
     'tests/models/typhoon/pipeline/event.py':           'MKM-TC-001',
     'tests/models/typhoon/pipeline/ensemble.py':        'MKM-TC-001',
     'tests/models/typhoon/import_discipline.py':        'MKM-TC-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-WS-001  Event Wind Lookup (wind-at-point query)
+    # ---------------------------------------------------------------------------
+    'tests/models/windspeed/interpolation.py':          'MKM-WS-001',
+    'tests/models/windspeed/loader.py':                 'MKM-WS-001',
+    'tests/models/windspeed/query.py':                  'MKM-WS-001',
+    'tests/models/windspeed/timeseries.py':             'MKM-WS-001',
     'tests/catch/halong/test_tc.py':                    'MKM-TC-001',
 }
 
@@ -222,6 +230,7 @@ MODEL_INFO = {
     'MKM-DE-001': {'name': 'Delta Engine',                      'dir': 'delta_engine'},
     'MKM-BRI-001': {'name': 'Building Resilience Index Model',  'dir': 'bri_resilience'},
     'MKM-TC-001': {'name': 'Tropical Cyclone Progression and Wind-Field', 'dir': 'typhoon'},
+    'MKM-WS-001': {'name': 'Event Wind Lookup',                 'dir': None},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
     'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
@@ -238,5 +247,6 @@ MODEL_ALIASES = {
     'DE': 'MKM-DE-001', 'FPO': 'MKM-FPO-001',
     'BRI': 'MKM-BRI-001',
     'TC': 'MKM-TC-001',
+    'WS': 'MKM-WS-001',
     'E2E': 'E2E-ALL',
 }

@@ -149,3 +149,70 @@ class TestEventTrajectoryOutput:
             rng=np.random.default_rng(0), horizon_hours=4.0,
         )
         assert not any(tmp_path.glob("EVT-*.json"))
+
+
+class TestWindtsOutput:
+    """Per-property wind timeseries written during the pipeline run, for
+    downstream consumers (flood model, BRI scoring, visualisation)."""
+
+    def test_writes_one_file_per_event(self, minimal_config, tmp_path):
+        windts_dir = tmp_path / "windts"
+        simulate_typhoon_events(
+            config=minimal_config, n_events=3, n_particles=5,
+            rng=np.random.default_rng(0), horizon_hours=4.0,
+            windts_output_dir=windts_dir,
+        )
+        files = sorted(windts_dir.glob("EVT-*.json"))
+        assert len(files) == 3
+        assert files[0].name == "EVT-0000.json"
+
+    def test_windts_payload_shape(self, minimal_config, tmp_path):
+        import json
+        windts_dir = tmp_path / "windts"
+        simulate_typhoon_events(
+            config=minimal_config, n_events=1, n_particles=4,
+            rng=np.random.default_rng(0), horizon_hours=4.0,
+            windts_output_dir=windts_dir,
+        )
+        with (windts_dir / "EVT-0000.json").open() as f:
+            payload = json.load(f)
+        assert payload["event_id"] == "EVT-0000"
+        assert payload["horizon_hours"] == 4.0
+        assert payload["dt_hours"] == 1.0
+        assert "property_windts" in payload
+        # One WindFieldOutput per configured property point.
+        assert len(payload["property_windts"]) == len(minimal_config.property_points)
+        first = payload["property_windts"][0]
+        assert "point_id" in first
+        assert "sustained_ms" in first
+        assert "time_hours" in first
+        assert len(first["sustained_ms"]) == len(first["time_hours"])
+
+    def test_no_windts_dir_no_files_written(self, minimal_config, tmp_path):
+        # When windts_output_dir is None, nothing extra is written.
+        simulate_typhoon_events(
+            config=minimal_config, n_events=2, n_particles=4,
+            rng=np.random.default_rng(0), horizon_hours=4.0,
+        )
+        assert not any(tmp_path.glob("**/EVT-*.json"))
+
+    def test_events_and_windts_use_same_representative(self, minimal_config, tmp_path):
+        # The representative particle picked for events/ must be the same
+        # one whose wind outputs are written to windts/ — so the storm
+        # track and the per-property wind timeseries describe the same
+        # realization.
+        import json
+        events_dir = tmp_path / "events"
+        windts_dir = tmp_path / "windts"
+        simulate_typhoon_events(
+            config=minimal_config, n_events=1, n_particles=6,
+            rng=np.random.default_rng(0), horizon_hours=4.0,
+            events_output_dir=events_dir, windts_output_dir=windts_dir,
+        )
+        with (events_dir / "EVT-0000.json").open() as f:
+            event_payload = json.load(f)
+        with (windts_dir / "EVT-0000.json").open() as f:
+            windts_payload = json.load(f)
+        # The event's particle_id should match the scenario family the
+        # windts file records (the simple proxy that ties them together).
+        assert event_payload["scenario_family"] == windts_payload["scenario_family"]

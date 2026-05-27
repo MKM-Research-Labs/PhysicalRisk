@@ -68,6 +68,7 @@ def run_typhoon(ctx: StageContext):
     typhoon_dir = Path(config.get_output_dir()) / "typhoon"
     output_path = typhoon_dir / "ensemble.json"
     events_dir = typhoon_dir / "events"
+    windts_dir = typhoon_dir / "windts"
     inputs = {
         f"catch/{ctx.catchment}/tc.py":
             Path(__file__).resolve().parents[4] / "data" / "catch" / ctx.catchment / "tc.py",
@@ -88,6 +89,7 @@ def run_typhoon(ctx: StageContext):
         rng=rng,
         use_plausibility=not args.typhoon_no_plausibility,
         events_output_dir=events_dir,
+        windts_output_dir=windts_dir,
     )
     elapsed = time.time() - t_step
 
@@ -103,6 +105,7 @@ def run_typhoon(ctx: StageContext):
         print(f"   per-property p99 peak wind: mean across properties = {peak_mean:.1f} m/s")
     print(f"   wrote {output_path}")
     print(f"   per-event tracks in {events_dir}/")
+    print(f"   per-property wind timeseries in {windts_dir}/")
 
     ctx.record(
         step_name="typhoon",
@@ -111,6 +114,7 @@ def run_typhoon(ctx: StageContext):
         outputs={
             "typhoon/ensemble.json": output_path,
             "typhoon/events/": events_dir,
+            "typhoon/windts/": windts_dir,
         },
         parameters={
             "n_events": args.num_typhoon_events,

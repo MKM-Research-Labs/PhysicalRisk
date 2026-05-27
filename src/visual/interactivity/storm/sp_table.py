@@ -23,10 +23,11 @@ Storm portfolio — Table tab assembler.
 
 Returns the JS body for the Table tab, composed from sibling sub-modules:
 
-- sp_table_blotter:  REIT property blotter sub-tab
-- sp_table_trades:   REIT PRS trades sub-tab
-- sp_table_basis:    Basis (synthetic-gauge transmission) sub-tab
-- sp_table_damage:   Per-storm damage summary + sortable damage table
+- sp_table_blotter:    Residential property blotter sub-tab
+- sp_table_commercial: Commercial asset blotter sub-tab
+- sp_table_trades:     REIT PRS trades sub-tab
+- sp_table_basis:      Basis (synthetic-gauge transmission) sub-tab
+- sp_table_damage:     Per-storm damage summary + sortable damage table
 
 This file owns the cross-sub-tab state, DOM creation, sub-tab switching,
 and storm-list / portfolio-impact loaders (which reads the
@@ -36,7 +37,13 @@ and storm-list / portfolio-impact loaders (which reads the
 
 from config.format import storm_option_js as _storm_opt
 
-from . import sp_table_basis, sp_table_blotter, sp_table_damage, sp_table_trades
+from . import (
+    sp_table_basis,
+    sp_table_blotter,
+    sp_table_commercial,
+    sp_table_damage,
+    sp_table_trades,
+)
 
 
 def get_js() -> str:
@@ -52,8 +59,9 @@ def get_js() -> str:
             // ================================================================
             // Table tab — DOM creation
             // ================================================================
-            var spTableSubTab = 'damage';  // 'portfolio', 'damage', 'trades', or 'basis'
+            var spTableSubTab = 'damage';  // 'portfolio', 'commercial', 'damage', 'trades', or 'basis'
             var spBlotterData = null;
+            var spCommercialData = null;
             var spBasisData = null;
             var spTradesData = null;
 
@@ -62,7 +70,7 @@ def get_js() -> str:
                 view.id = 'sp-table-view';
                 view.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;';
 
-                // Sub-tab toggle: REIT Portfolio | Damage | REIT Blotter | Basis
+                // Sub-tab toggle: Residential | Commercial | Damage | REIT Blotter | Basis
                 var subTabBar = document.createElement('div');
                 subTabBar.id = 'sp-sub-tab-bar';
                 subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
@@ -70,9 +78,14 @@ def get_js() -> str:
                 var activeStyle = 'padding:5px 16px;font-size:11px;border:1px solid #1976d2;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:#1976d2;color:white;';
                 var subBtnPortfolio = document.createElement('button');
                 subBtnPortfolio.id = 'sp-sub-portfolio';
-                subBtnPortfolio.textContent = 'REIT Portfolio';
+                subBtnPortfolio.textContent = 'Residential';
                 subBtnPortfolio.style.cssText = inactiveStyle;
                 subBtnPortfolio.onclick = function() { switchSubTab('portfolio'); };
+                var subBtnCommercial = document.createElement('button');
+                subBtnCommercial.id = 'sp-sub-commercial';
+                subBtnCommercial.textContent = 'Commercial';
+                subBtnCommercial.style.cssText = inactiveStyle;
+                subBtnCommercial.onclick = function() { switchSubTab('commercial'); };
                 var subBtnDamage = document.createElement('button');
                 subBtnDamage.id = 'sp-sub-damage';
                 subBtnDamage.textContent = 'Damage';
@@ -89,6 +102,7 @@ def get_js() -> str:
                 subBtnBasis.style.cssText = inactiveStyle;
                 subBtnBasis.onclick = function() { switchSubTab('basis'); };
                 subTabBar.appendChild(subBtnPortfolio);
+                subTabBar.appendChild(subBtnCommercial);
                 subTabBar.appendChild(subBtnDamage);
                 subTabBar.appendChild(subBtnTrades);
                 subTabBar.appendChild(subBtnBasis);
@@ -111,6 +125,7 @@ def get_js() -> str:
                 spTableSubTab = sub;
                 var btns = [
                     document.getElementById('sp-sub-portfolio'),
+                    document.getElementById('sp-sub-commercial'),
                     document.getElementById('sp-sub-damage'),
                     document.getElementById('sp-sub-trades'),
                     document.getElementById('sp-sub-basis'),
@@ -123,6 +138,8 @@ def get_js() -> str:
 
                 if (sub === 'portfolio') {
                     loadBlotterData();
+                } else if (sub === 'commercial') {
+                    loadCommercialData();
                 } else if (sub === 'trades') {
                     loadTradesData();
                 } else if (sub === 'basis') {
@@ -266,6 +283,7 @@ def get_js() -> str:
     js = (
         state_dom_loaders
         + sp_table_blotter.get_js()
+        + sp_table_commercial.get_js()
         + sp_table_trades.get_js()
         + sp_table_basis.get_js()
         + sp_table_damage.get_js()

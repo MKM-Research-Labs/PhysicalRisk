@@ -25,8 +25,9 @@ interpolated. Heading uses circular interpolation via signed_compass_delta
 to handle the 0/360 seam. Discrete fields (regime, land_flag) take the
 nearest neighbour.
 
-Queries before the first state return the first state; queries after the
-last state return the last state. Both are clamped, not extrapolated.
+Queries before the first stored hour clamp to the first state; queries
+after the last clamp to the last. No extrapolation outside the trajectory's
+time range.
 """
 
 from typing import List
@@ -40,7 +41,6 @@ __all__ = ["interpolate_state_at_hour"]
 
 def _lerp_state(a: TyphoonState, b: TyphoonState, t: float) -> TyphoonState:
     """Linear interpolation between two states. t in [0, 1]."""
-    # Circular heading interpolation along the short arc.
     delta_heading = signed_compass_delta(b.heading_deg, a.heading_deg)
     new_heading = (a.heading_deg + delta_heading * t) % 360.0
 
@@ -68,27 +68,23 @@ def interpolate_state_at_hour(states: List[TyphoonState], hour: float) -> Typhoo
 
     Returns:
         TyphoonState at the requested hour. Clamped to first / last state
-        outside the trajectory's time range.
+        when the hour falls outside the trajectory's time range.
     """
     if not states:
         raise ValueError("Cannot interpolate empty state list")
-
     if hour <= states[0].time_hours:
         return states[0]
     if hour >= states[-1].time_hours:
         return states[-1]
 
-    # Binary search would be faster for long trajectories; linear scan is
-    # fine for the 168-state hourly trajectories the pipeline produces.
+    # Linear scan — adequate for the 168-state hourly trajectories the
+    # pipeline produces. Switch to bisect if event horizons grow large.
     for i in range(len(states) - 1):
         a, b = states[i], states[i + 1]
         if a.time_hours <= hour <= b.time_hours:
             span = b.time_hours - a.time_hours
             if span <= 0:
-                # Duplicate timestamps — return the earlier state.
                 return a
-            t = (hour - a.time_hours) / span
-            return _lerp_state(a, b, t)
+            return _lerp_state(a, b, (hour - a.time_hours) / span)
 
-    # Should be unreachable given the bounds checks above.
     return states[-1]

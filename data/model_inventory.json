@@ -4528,6 +4528,124 @@
         "last_calculated": null
       }
     }
+    ,
+    {
+      "model_id": "MKM-WS-001",
+      "name": "Event Wind Lookup",
+      "short_name": "Wind Speed",
+      "description": "Per-point sustained wind lookup model. Given a stored typhoon event (TyphoonTrajectory from MKM-TC-001), an hour, and a (longitude, latitude), returns the sustained wind speed in m/s. Composes linear state interpolation with the parametric wind-field forward model.",
+      "category": "Hazard",
+      "tier": 3,
+      "materiality": "Medium",
+      "complexity": "Low",
+      "tier_rationale": "Low complexity: thin query model that composes two already-tier-2 models (state interpolation + parametric wind-field from MKM-TC-001). Medium materiality: feeds wind exposure into downstream property / commercial CDM and BRI scoring.",
+      "status": "Development",
+      "lifecycle_stage": "Initial release — consumes MKM-TC-001 event outputs",
+      "version": "0.1.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/models/windspeed/",
+      "methodology": "Linear interpolation of the latent storm state at the requested hour (circular interpolation for heading; nearest-neighbour for discrete regime / land flag), followed by the wind-field forward model from MKM-TC-001 evaluated at the query point.",
+      "alternatives_considered": [
+        "Nearest-neighbour state lookup (rejected: too coarse for hourly storms)",
+        "Spline interpolation of state (deferred: linear is adequate for hourly trajectories)",
+        "Pre-computed gridded wind footprint cache (deferred to a later phase)"
+      ],
+      "methodology_rationale": "Linear interpolation is sufficient at hourly trajectory resolution and keeps the query path simple. Composing the existing wind-field model avoids duplicating the radial/asymmetry/surface math.",
+      "assumptions": [
+        {
+          "id": "WS-A1",
+          "description": "Linear interpolation between hourly states is adequate for the smoothness of synthetic typhoon trajectories",
+          "impact": "Low",
+          "monitoring": "Compare against fine-step trajectory sampling if dt_hours changes",
+          "mitigation": "Switch to spline or step-doubled trajectories"
+        },
+        {
+          "id": "WS-A2",
+          "description": "Heading interpolates along the short arc; nearest-neighbour assignment for regime and land_flag is acceptable",
+          "impact": "Low",
+          "monitoring": "Inspect state at regime boundaries",
+          "mitigation": "Refine if discrete flips materially affect downstream"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "WS-L1",
+          "description": "Clamps to endpoints outside the trajectory's time range — does not extrapolate",
+          "impact": "Low",
+          "monitoring_trigger": "Query hour outside [0, horizon]",
+          "compensating_control": "Document the convention; downstream callers respect the horizon"
+        },
+        {
+          "id": "WS-L2",
+          "description": "No caching of wind-field calibration values; outer-decay length recomputed per query",
+          "impact": "Low",
+          "monitoring_trigger": "Performance profiling under heavy lookup load",
+          "compensating_control": "Add per-state L cache if needed"
+        }
+      ],
+      "known_failure_modes": [
+        "Empty trajectory states raises ValueError (deliberate)",
+        "Missing event file raises FileNotFoundError (deliberate)"
+      ],
+      "key_parameters": [
+        "WindFieldParams (from CatchmentTyphoonConfig.wind_field) — inherited from MKM-TC-001",
+        "land_mask callable — inherited from CatchmentTyphoonConfig"
+      ],
+      "input_data": "TyphoonTrajectory (loaded from EVT-*.json produced by MKM-TC-001 pipeline) or in-memory; query (hour, longitude, latitude).",
+      "output_data": "Sustained wind speed in m/s at the query point.",
+      "downstream_models": [],
+      "upstream_models": ["MKM-TC-001"],
+      "validation_status": "Not yet validated",
+      "validation_date": null,
+      "next_review_date": null,
+      "recertification_date": null,
+      "review_frequency": "Annual",
+      "documents": [
+        "src/models/windspeed/__init__.py (module docstring)"
+      ],
+      "change_history": [
+        {
+          "date": "2026-05-27",
+          "version": "0.1.0",
+          "change": "Initial release. Four-submodule package: interpolation (linear state interp with circular heading), loader (EVT-*.json -> TyphoonTrajectory), query (windspeed function + WindSpeedModel class with event cache), timeseries (multi-hour convenience). Catchment-agnostic — consumes WindFieldParams + land_mask from CatchmentTyphoonConfig.",
+          "author": "David K Kelly"
+        }
+      ],
+      "test_coverage": "Initial release: tests under tests/models/windspeed/ — interpolation, loader, query, timeseries.",
+      "last_review_date": null,
+      "rag_rating": "Amber",
+      "mrc_signoff_date": null,
+      "remediation_steps": [
+        "Validate against MKM-TC-001 event outputs at known points",
+        "Performance profile under realistic portfolio load (100k+ queries)"
+      ],
+      "version_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Initial release of the wind-at-point query model."
+        }
+      ],
+      "validation_questions": [],
+      "overall_risk_rating": {
+        "computed": {
+          "validation_coverage": null,
+          "remediation_health": null,
+          "review_currency": null,
+          "assumption_risk": null,
+          "limitation_risk": null
+        },
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null
+      }
+    }
   ],
   "model_chain": {
     "description": "String of pearls: Storm Intensity -> Storm-Gauge -> GEV Hazard -> PRS Pricing -> Delta Engine. Stress branch: Storm-Gauge -> Flood Classifier -> Delta Engine",
