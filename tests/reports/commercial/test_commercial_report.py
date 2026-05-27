@@ -289,3 +289,46 @@ def test_loan_report_route_rejects_missing_property_id(app):
     client = app.test_client()
     r = client.post("/api/v1/commercial/loan-report", json={})
     assert r.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/commercial + /api/v1/commercial-loans — list endpoints used by
+# the startup preloader / bottom-left status popup.
+# ---------------------------------------------------------------------------
+
+def test_list_commercial_returns_assets(app):
+    """GET /api/v1/commercial returns count + commercial_assets list."""
+    client = app.test_client()
+    r = client.get("/api/v1/commercial")
+    assert r.status_code == 200
+    payload = r.get_json()
+    assert payload["status"] == "success"
+    assert "count" in payload
+    assert "commercial_assets" in payload
+    assert payload["count"] == len(payload["commercial_assets"])
+    assert payload["count"] >= 1
+
+
+def test_list_commercial_loans_returns_loans(app):
+    """GET /api/v1/commercial-loans returns count + commercial_loans list."""
+    client = app.test_client()
+    r = client.get("/api/v1/commercial-loans")
+    assert r.status_code == 200
+    payload = r.get_json()
+    assert payload["status"] == "success"
+    assert "count" in payload
+    assert "commercial_loans" in payload
+    assert payload["count"] == len(payload["commercial_loans"])
+
+
+def test_list_commercial_does_not_collide_with_per_asset_route(app, first_commercial_id):
+    """``/commercial`` (list) and ``/commercial/<id>`` (record) must both
+    resolve correctly — different segment counts, but Flask route
+    ordering bugs are easy to introduce."""
+    client = app.test_client()
+    r_list = client.get("/api/v1/commercial")
+    r_one = client.get(f"/api/v1/commercial/{first_commercial_id}")
+    assert r_list.status_code == 200
+    assert r_one.status_code == 200
+    assert "commercial_assets" in r_list.get_json()
+    assert "property" in r_one.get_json()
