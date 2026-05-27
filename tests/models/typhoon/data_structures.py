@@ -94,7 +94,8 @@ class TestScenarioFamily:
 class TestTyphoonState:
 
     def test_construction(self, sample_state):
-        assert sample_state.longitude == 120.0
+        # Coords come from the neutral test bbox in conftest.py.
+        assert sample_state.longitude == 5.0
         assert sample_state.regime is RegimeClass.STRAIGHT_WESTWARD
         assert sample_state.land_flag is False
 

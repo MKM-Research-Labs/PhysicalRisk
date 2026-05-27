@@ -66,14 +66,7 @@ from models.typhoon.transitions import step
 __all__ = [
     "ParticleFilter",
     "systematic_resample",
-    "DEFAULT_ESS_THRESHOLD_FRAC",
 ]
-
-
-# Phase 1 default: only resample when the effective sample size drops
-# below a quarter of the particle count. Loose by design — see module
-# docstring.
-DEFAULT_ESS_THRESHOLD_FRAC: float = 0.25
 
 
 # ===========================================================================
@@ -218,14 +211,26 @@ class ParticleFilter:
     # Weights and resampling
     # ------------------------------------------------------------------
 
-    def compute_weights(self, plausibility_fn: Callable[[TyphoonParticle], float]) -> None:
+    def compute_weights(
+        self,
+        plausibility_fn: Callable[[TyphoonParticle, Optional[TyphoonState]], float],
+    ) -> None:
         """Multiply each weight by a plausibility score and renormalise.
 
-        plausibility_fn returns a non-negative scalar per particle. If the
-        product collapses to zero (every particle invalid), weights are
-        reset to uniform to keep the simulation alive.
+        plausibility_fn(particle, prev_state) returns a non-negative scalar.
+        prev_state is the previous step's state for that particle (taken
+        from the recorded history) or None if the filter has not yet
+        propagated (history contains only the genesis state).
+
+        If the product collapses to zero (every particle invalid), weights
+        are reset to uniform to keep the simulation alive.
         """
-        scores = np.array([float(plausibility_fn(p)) for p in self.particles], dtype=float)
+        scores_list = []
+        for i, p in enumerate(self.particles):
+            history = self.histories[i]
+            prev_state: Optional[TyphoonState] = history[-2] if len(history) >= 2 else None
+            scores_list.append(float(plausibility_fn(p, prev_state)))
+        scores = np.array(scores_list, dtype=float)
         if np.any(scores < 0):
             raise ValueError("Plausibility scores must be non-negative")
 
@@ -291,8 +296,10 @@ class ParticleFilter:
         self,
         horizon_hours: Optional[float] = None,
         dt_hours: float = 1.0,
-        plausibility_fn: Optional[Callable[[TyphoonParticle], float]] = None,
-        ess_threshold_frac: float = DEFAULT_ESS_THRESHOLD_FRAC,
+        plausibility_fn: Optional[
+            Callable[[TyphoonParticle, Optional[TyphoonState]], float]
+        ] = None,
+        ess_threshold_frac: Optional[float] = None,
     ) -> List[TyphoonTrajectory]:
         """Propagate the filter to time horizon and return the trajectories.
 
@@ -305,6 +312,7 @@ class ParticleFilter:
                 are not updated and resampling never triggers — the filter
                 degenerates to a Monte Carlo ensemble.
             ess_threshold_frac: trigger resample when ESS < N * threshold_frac.
+                Defaults to config.filter.ess_threshold_frac.
 
         Returns:
             List of TyphoonTrajectory, one per surviving particle, each
@@ -315,6 +323,8 @@ class ParticleFilter:
 
         if horizon_hours is None:
             horizon_hours = self.config.horizon_hours
+        if ess_threshold_frac is None:
+            ess_threshold_frac = self.config.filter.ess_threshold_frac
 
         n_steps = int(round(horizon_hours / dt_hours))
         ess_threshold = self.n * ess_threshold_frac

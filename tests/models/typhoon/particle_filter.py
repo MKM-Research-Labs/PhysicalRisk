@@ -29,7 +29,6 @@ import pytest
 from config.typhoon import ScenarioFamily
 from models.typhoon.data_structures import TyphoonParticle, TyphoonTrajectory
 from models.typhoon.particle_filter import (
-    DEFAULT_ESS_THRESHOLD_FRAC,
     ParticleFilter,
     systematic_resample,
 )
@@ -230,14 +229,14 @@ class TestComputeWeights:
     def test_uniform_score_preserves_uniform_weights(self, minimal_config):
         pf = ParticleFilter(n_particles=10, config=minimal_config, rng=_rng(83))
         pf.initialize()
-        pf.compute_weights(lambda p: 1.0)
+        pf.compute_weights(lambda p, prev: 1.0)
         weights = [p.weight for p in pf.particles]
         assert all(abs(w - 0.1) < 1e-12 for w in weights)
 
     def test_renormalises_to_sum_one(self, minimal_config):
         pf = ParticleFilter(n_particles=10, config=minimal_config, rng=_rng(89))
         pf.initialize()
-        pf.compute_weights(lambda p: p.particle_id + 1.0)
+        pf.compute_weights(lambda p, prev: p.particle_id + 1.0)
         total = sum(p.weight for p in pf.particles)
         assert total == pytest.approx(1.0, abs=1e-12)
 
@@ -246,7 +245,7 @@ class TestComputeWeights:
         pf.initialize()
         # Every particle scored zero — engine must not divide by zero, must
         # not stop the simulation; weights reset to uniform.
-        pf.compute_weights(lambda p: 0.0)
+        pf.compute_weights(lambda p, prev: 0.0)
         weights = [p.weight for p in pf.particles]
         assert all(abs(w - 0.1) < 1e-12 for w in weights)
 
@@ -254,7 +253,29 @@ class TestComputeWeights:
         pf = ParticleFilter(n_particles=5, config=minimal_config, rng=_rng(101))
         pf.initialize()
         with pytest.raises(ValueError):
-            pf.compute_weights(lambda p: -1.0)
+            pf.compute_weights(lambda p, prev: -1.0)
+
+    def test_prev_state_is_previous_history_entry(self, minimal_config):
+        # After one propagate step, prev_state should be the genesis state
+        # for every particle.
+        pf = ParticleFilter(n_particles=5, config=minimal_config, rng=_rng(102))
+        pf.initialize()
+        genesis_states = [list(h) for h in pf.histories]   # snapshot before propagate
+        pf.propagate_one_step()
+        captured = []
+        pf.compute_weights(lambda p, prev: (captured.append(prev), 1.0)[1])
+        for i, prev in enumerate(captured):
+            assert prev == genesis_states[i][0]
+
+    def test_prev_state_is_none_before_any_propagation(self, minimal_config):
+        # Called right after initialize, history has only the genesis state,
+        # so there is no prev_state.
+        pf = ParticleFilter(n_particles=3, config=minimal_config, rng=_rng(103))
+        pf.initialize()
+        captured = []
+        pf.compute_weights(lambda p, prev: (captured.append(prev), 1.0)[1])
+        for prev in captured:
+            assert prev is None
 
 
 # ===========================================================================
@@ -293,7 +314,7 @@ class TestResample:
     def test_weights_reset_to_uniform(self, minimal_config):
         pf = ParticleFilter(n_particles=10, config=minimal_config, rng=_rng(109))
         pf.initialize()
-        pf.compute_weights(lambda p: p.particle_id + 1.0)
+        pf.compute_weights(lambda p, prev: p.particle_id + 1.0)
         pf.resample()
         weights = [p.weight for p in pf.particles]
         assert all(abs(w - 0.1) < 1e-12 for w in weights)
@@ -301,7 +322,7 @@ class TestResample:
     def test_particle_count_preserved(self, minimal_config):
         pf = ParticleFilter(n_particles=10, config=minimal_config, rng=_rng(113))
         pf.initialize()
-        pf.compute_weights(lambda p: p.particle_id + 1.0)
+        pf.compute_weights(lambda p, prev: p.particle_id + 1.0)
         pf.resample()
         assert len(pf.particles) == 10
         assert len(pf.histories) == 10
@@ -310,7 +331,7 @@ class TestResample:
     def test_new_ids_are_zero_to_n(self, minimal_config):
         pf = ParticleFilter(n_particles=10, config=minimal_config, rng=_rng(127))
         pf.initialize()
-        pf.compute_weights(lambda p: p.particle_id + 1.0)
+        pf.compute_weights(lambda p, prev: p.particle_id + 1.0)
         pf.resample()
         ids = [p.particle_id for p in pf.particles]
         assert ids == list(range(10))
@@ -335,7 +356,7 @@ class TestResample:
     def test_ess_recovers_to_n_after_resample(self, minimal_config):
         pf = ParticleFilter(n_particles=10, config=minimal_config, rng=_rng(137))
         pf.initialize()
-        pf.compute_weights(lambda p: 1.0 if p.particle_id == 0 else 0.01)
+        pf.compute_weights(lambda p, prev: 1.0 if p.particle_id == 0 else 0.01)
         ess_before = pf.effective_sample_size()
         assert ess_before < 10.0
         pf.resample()
@@ -418,7 +439,7 @@ class TestRunToHorizon:
         trajectories = pf.run_to_horizon(
             horizon_hours=10.0,
             dt_hours=1.0,
-            plausibility_fn=lambda p: float(p.particle_id + 1),
+            plausibility_fn=lambda p, prev: float(p.particle_id + 1),
             ess_threshold_frac=0.99,    # force resampling almost every step
         )
         # After resampling at least once, every new particle has a parent_id.

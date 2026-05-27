@@ -229,6 +229,9 @@ class SizeParams:
         r_outer_v_coef: slope of log(R_outer) on log(V_max) (typically positive)
         r_outer_sigma_log: multiplicative noise stddev in log-space
         mean_reversion_rate: per-hour pull toward the V-conditional mean (0..1)
+        r_outer_invariant_buffer: when a noisy draw violates R_max < R_outer,
+            R_outer is widened to r_outer_invariant_buffer * R_max. Buffer
+            > 1.0 keeps the geometry distinct without compressing the tail.
     """
     r_max_intercept_log_km: float = 3.0
     r_max_v_coef: float = -0.1
@@ -237,6 +240,7 @@ class SizeParams:
     r_outer_v_coef: float = 0.3
     r_outer_sigma_log: float = 0.08
     mean_reversion_rate: float = 0.2
+    r_outer_invariant_buffer: float = 1.5
 
 
 # ===========================================================================
@@ -316,6 +320,26 @@ class PlausibilityWeights:
 
 
 # ===========================================================================
+# Particle-filter algorithm parameters
+# ===========================================================================
+
+
+@dataclass
+class FilterParams:
+    """Hyperparameters for the Sequential Monte Carlo engine.
+
+    Distinct from PlausibilityWeights (which tune the soft likelihood) —
+    these are algorithm parameters of the particle filter itself.
+
+    Attributes:
+        ess_threshold_frac: resample when the effective sample size drops
+            below ess_threshold_frac * N. Phase 1 default of 0.25 (loose)
+            preserves trajectory breadth; calibration tightens it later.
+    """
+    ess_threshold_frac: float = 0.25
+
+
+# ===========================================================================
 # Property points — wind-field evaluation locations
 # ===========================================================================
 
@@ -360,6 +384,7 @@ class CatchmentTyphoonConfig:
         size: storm-size transition parameters
         wind_field: parametric wind-field parameters
         plausibility: simulation-mode plausibility weights
+        filter: particle-filter algorithm parameters (ESS threshold, etc.)
         land_mask: callable (lon, lat) -> True if land at that point
         property_points: locations at which the wind-field is evaluated
         output_thresholds_ms: wind thresholds (m/s) for duration-above output
@@ -374,6 +399,7 @@ class CatchmentTyphoonConfig:
     wind_field: WindFieldParams
     plausibility: PlausibilityWeights
     land_mask: LandMask
+    filter: FilterParams = field(default_factory=FilterParams)
     property_points: List[PropertyPoint] = field(default_factory=list)
     output_thresholds_ms: List[float] = field(default_factory=lambda: [17.5, 25.0, 33.0, 42.0, 50.0])
     horizon_hours: float = 168.0

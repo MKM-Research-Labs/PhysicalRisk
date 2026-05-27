@@ -198,10 +198,9 @@ def sample_initial_size(
     r_outer = math.exp(log_router)
 
     # Invariant: R_max < R_outer. If a noisy draw violates it, widen R_outer
-    # to keep the storm geometry physical. We log-space scale by 1.5x R_max
-    # which is far enough to remain distinct without compressing the tail.
+    # via the catchment-configured buffer factor (SizeParams.r_outer_invariant_buffer).
     if r_outer <= r_max:
-        r_outer = r_max * 1.5
+        r_outer = r_max * params.r_outer_invariant_buffer
 
     return r_max, r_outer
 
