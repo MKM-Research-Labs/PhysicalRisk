@@ -27,6 +27,7 @@ _NON_PREFIXED_DIRS = {
     # models
     "models", "mortgage", "schedule", "book", "delta", "pnl",
     "intensity", "stormgauge", "prs", "floodrisk", "valuation",
+    "typhoon",
     # port
     "gauge", "property", "storm", "hazard", "cdm",
     "pipeline", "propertyhc", "stress", "counterparty",
