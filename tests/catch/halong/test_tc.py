@@ -190,23 +190,19 @@ class TestProperties:
 
 
 class TestAssembly:
-    """Inlines the assembly the Phase 1.7 boundary adapter will do."""
+    """Verifies the build_typhoon_config() boundary adapter."""
 
-    def test_assembly_succeeds(self, halong_tc):
-        cfg = CatchmentTyphoonConfig(
-            catchment_id="halong",
-            genesis_prior=halong_tc.HALONG_TYPHOON_GENESIS_PRIOR,
-            peak_wind=halong_tc.HALONG_TYPHOON_PEAK_WIND,
-            motion=halong_tc.HALONG_TYPHOON_MOTION,
-            intensity=halong_tc.HALONG_TYPHOON_INTENSITY,
-            size=halong_tc.HALONG_TYPHOON_SIZE,
-            wind_field=halong_tc.HALONG_TYPHOON_WIND_FIELD,
-            plausibility=halong_tc.HALONG_TYPHOON_PLAUSIBILITY,
-            land_mask=halong_tc.halong_land_mask,
-            property_points=halong_tc.HALONG_TYPHOON_PROPERTIES,
-        )
+    def test_build_typhoon_config_returns_valid_assembly(self, halong_tc):
+        cfg = halong_tc.build_typhoon_config()
         assert cfg.catchment_id == "halong"
         ref_lon, ref_lat = halong_tc.HALONG_HANOI_REFERENCE
         assert cfg.land_mask(ref_lon, ref_lat) is True
         assert cfg.land_mask(110.0, 18.0) is False
         assert len(cfg.property_points) >= 1
+
+    def test_build_typhoon_config_accepts_explicit_catchment_id(self, halong_tc):
+        # The orchestrator passes config.catchment_id through to the builder
+        # so the resulting CatchmentTyphoonConfig.catchment_id matches the
+        # active catchment exactly.
+        cfg = halong_tc.build_typhoon_config(catchment_id="halong")
+        assert cfg.catchment_id == "halong"

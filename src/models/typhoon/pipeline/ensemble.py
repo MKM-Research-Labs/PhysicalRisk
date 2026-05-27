@@ -35,14 +35,21 @@ import numpy as np
 from config.typhoon import CatchmentTyphoonConfig
 from models.typhoon.data_structures import WindFieldOutput
 from models.typhoon.pipeline.aggregation import aggregate_property_winds
-from models.typhoon.pipeline.event import simulate_one_event
+from models.typhoon.pipeline.event import (
+    pick_representative_trajectory,
+    simulate_one_event,
+)
 from models.typhoon.pipeline.results import (
     PropertyPeakWindSummary,
     TyphoonEventEnsemble,
 )
 
 
-__all__ = ["simulate_typhoon_events", "write_ensemble_json"]
+__all__ = [
+    "simulate_typhoon_events",
+    "write_ensemble_json",
+    "write_event_trajectory",
+]
 
 
 def simulate_typhoon_events(
@@ -53,6 +60,7 @@ def simulate_typhoon_events(
     horizon_hours: Optional[float] = None,
     dt_hours: float = 1.0,
     use_plausibility: bool = True,
+    events_output_dir: Optional[Path] = None,
 ) -> TyphoonEventEnsemble:
     """Simulate n_events typhoons and aggregate per-property statistics.
 
@@ -86,9 +94,13 @@ def simulate_typhoon_events(
         p.property_id: [] for p in config.property_points
     }
 
+    if events_output_dir is not None:
+        events_output_dir = Path(events_output_dir)
+        events_output_dir.mkdir(parents=True, exist_ok=True)
+
     t_start = time.perf_counter()
-    for _ in range(n_events):
-        event_outputs = simulate_one_event(
+    for event_idx in range(n_events):
+        event_result = simulate_one_event(
             config=config,
             n_particles=n_particles,
             rng=rng,
@@ -96,8 +108,13 @@ def simulate_typhoon_events(
             dt_hours=dt_hours,
             use_plausibility=use_plausibility,
         )
-        for pid, outputs in event_outputs.items():
+        for pid, outputs in event_result.by_property.items():
             by_property[pid].extend(outputs)
+        if events_output_dir is not None:
+            representative = pick_representative_trajectory(event_result.trajectories)
+            if representative is not None:
+                event_path = events_output_dir / f"EVT-{event_idx:04d}.json"
+                write_event_trajectory(representative, event_path, event_idx=event_idx)
     elapsed = time.perf_counter() - t_start
 
     summaries: List[PropertyPeakWindSummary] = []
@@ -133,3 +150,36 @@ def write_ensemble_json(ensemble: TyphoonEventEnsemble, output_path: Path) -> No
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w") as f:
         json.dump(ensemble.to_dict(), f, indent=2)
+
+
+def write_event_trajectory(
+    trajectory,
+    output_path: Path,
+    event_idx: Optional[int] = None,
+) -> None:
+    """Persist a single TyphoonTrajectory to JSON.
+
+    Used by simulate_typhoon_events when events_output_dir is set: one
+    file per event holding the representative particle's full track.
+    The JSON shape is the standard TyphoonTrajectory.to_dict() plus a
+    small summary header listing peak V_max and time-of-peak for quick
+    visual inspection.
+    """
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = trajectory.to_dict()
+    if trajectory.states:
+        peak_idx = max(range(len(trajectory.states)),
+                       key=lambda i: trajectory.states[i].v_max_ms)
+        peak_state = trajectory.states[peak_idx]
+        payload["summary"] = {
+            "event_idx": event_idx,
+            "n_states": len(trajectory.states),
+            "horizon_hours": trajectory.horizon_hours,
+            "peak_v_max_ms": peak_state.v_max_ms,
+            "peak_time_hours": peak_state.time_hours,
+            "peak_longitude": peak_state.longitude,
+            "peak_latitude": peak_state.latitude,
+        }
+    with output_path.open("w") as f:
+        json.dump(payload, f, indent=2)

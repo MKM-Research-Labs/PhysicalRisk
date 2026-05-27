@@ -194,6 +194,10 @@ TEST_MODEL_MAP = {
     'tests/models/typhoon/wind_field/point.py':         'MKM-TC-001',
     'tests/models/typhoon/wind_field/time_series.py':   'MKM-TC-001',
     'tests/models/typhoon/wind_field/windfield_class.py':'MKM-TC-001',
+    'tests/models/typhoon/pipeline/results.py':         'MKM-TC-001',
+    'tests/models/typhoon/pipeline/aggregation.py':     'MKM-TC-001',
+    'tests/models/typhoon/pipeline/event.py':           'MKM-TC-001',
+    'tests/models/typhoon/pipeline/ensemble.py':        'MKM-TC-001',
     'tests/models/typhoon/import_discipline.py':        'MKM-TC-001',
     'tests/catch/halong/test_tc.py':                    'MKM-TC-001',
 }

@@ -39,8 +39,13 @@ from models.typhoon.pipeline.aggregation import aggregate_property_winds
 from models.typhoon.pipeline.ensemble import (
     simulate_typhoon_events,
     write_ensemble_json,
+    write_event_trajectory,
 )
-from models.typhoon.pipeline.event import simulate_one_event
+from models.typhoon.pipeline.event import (
+    EventResult,
+    pick_representative_trajectory,
+    simulate_one_event,
+)
 from models.typhoon.pipeline.results import (
     PropertyPeakWindSummary,
     TyphoonEventEnsemble,
@@ -50,8 +55,11 @@ from models.typhoon.pipeline.results import (
 __all__ = [
     "PropertyPeakWindSummary",
     "TyphoonEventEnsemble",
+    "EventResult",
     "aggregate_property_winds",
+    "pick_representative_trajectory",
     "simulate_one_event",
     "simulate_typhoon_events",
     "write_ensemble_json",
+    "write_event_trajectory",
 ]
