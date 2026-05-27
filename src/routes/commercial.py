@@ -15,6 +15,20 @@ Exposes:
       Mirrors GET /api/v1/properties/<prop_id>/storms — returns the
       flood-event hydrographs, nearest-gauge readings, and storm
       metadata used by the PropertyStormAnalysis panel.
+
+  GET  /api/v1/commercial/<prop_id>/hazard
+  GET  /api/v1/commercial/<prop_id>/she
+  GET  /api/v1/commercial/<prop_id>/shd
+      Mirror the /properties/<id>/hazard|she|shd routes — return the
+      per-asset hazard curve + PRS pricing payload consumed by the
+      PropertyHazardCurvePanel ("Physical Risk Swap" menu). Read from
+      commercialhc.json / commercialshe.json / commercialshd.json
+      respectively.
+
+  GET  /api/v1/commercial/<prop_id>
+      Returns the bare commercial asset record by PropertyID, used by
+      the hazard panel for address lookups when the preloader hasn't
+      cached the asset name.
 """
 
 import json
@@ -286,3 +300,129 @@ def commercial_storms(prop_id: str):
         'flood_events': pdata.get('flood_events', []),
         'summary': summary,
     })
+
+
+# ---------------------------------------------------------------------------
+# Hazard curves / PRS pricing  — /api/v1/commercial/<id>/{hazard,she,shd}
+#
+# Mirror the residential routes in src/routes/propertyhc.py. The data
+# files (commercialhc.json / commercialshe.json / commercialshd.json)
+# all use the SAME top-level key `property_hazard_curves` keyed by
+# PropertyID (CPROP-… for commercial), and the SAME per-asset payload
+# shape, so the routes can be near-verbatim mirrors of the residential
+# ones. Cross-route deduplication (lift into a shared helper) is a
+# future cleanup.
+# ---------------------------------------------------------------------------
+
+def _load_commercial_hazard(filename: str):
+    """Load a commercial hazard file (None if missing on disk)."""
+    path = config.get_input_dir() / filename
+    if not path.exists():
+        return None
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
+def _hazard_or_404(filename: str, label: str):
+    """OPTIONS preflight / file-missing handler."""
+    if request.method == 'OPTIONS':
+        return None, jsonify({'status': 'ok'})
+    data = _load_commercial_hazard(filename)
+    if not data:
+        return None, (jsonify({
+            'status': 'error',
+            'message': f'{label} not yet generated',
+        }), 404)
+    return data, None
+
+
+@commercial_bp.route('/commercial/<prop_id>/hazard', methods=['GET', 'OPTIONS'])
+def commercial_hazard(prop_id: str):
+    """Full hazard curve + PRS pricing for one commercial asset."""
+    data, err = _hazard_or_404('commercialhc.json',
+                               'Commercial hazard curves')
+    if err:
+        return err
+
+    curves = data.get('property_hazard_curves', {})
+    asset_data = curves.get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': (f'Commercial asset {prop_id} not found in hazard '
+                        f'curves (may have < 3 flood events)'),
+        }), 404
+
+    # Attach terrain grid from metadata so the PRS pricer can do zone
+    # repricing (same convention as the residential route).
+    metadata = data.get('metadata', {})
+    terrain_grid = metadata.get('terrain_grid')
+    if terrain_grid:
+        asset_data['_metadata'] = {'terrain_grid': terrain_grid}
+
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
+@commercial_bp.route('/commercial/<prop_id>/she', methods=['GET', 'OPTIONS'])
+def commercial_she(prop_id: str):
+    """Synthetic elevation hazard curve for one commercial asset."""
+    data, err = _hazard_or_404('commercialshe.json',
+                               'Commercial synthetic elevation hazard')
+    if err:
+        return err
+    asset_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': f'Commercial asset {prop_id} not in SHE curves',
+        }), 404
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
+@commercial_bp.route('/commercial/<prop_id>/shd', methods=['GET', 'OPTIONS'])
+def commercial_shd(prop_id: str):
+    """Synthetic distance hazard curve for one commercial asset."""
+    data, err = _hazard_or_404('commercialshd.json',
+                               'Commercial synthetic distance hazard')
+    if err:
+        return err
+    asset_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': f'Commercial asset {prop_id} not in SHD curves',
+        }), 404
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
+@commercial_bp.route('/commercial/<prop_id>', methods=['GET', 'OPTIONS'])
+def commercial_record(prop_id: str):
+    """Return the bare commercial asset record by PropertyID.
+
+    Mirrors GET /api/v1/properties/<id> — used by the hazard panel
+    to look up the display address when the preloader hasn't cached
+    the name. Payload shape: ``{'status': 'success', 'property': {...}}``
+    where ``property`` is the full record (CommercialAsset wrapper
+    intact, so the panel can read ``CommercialAsset.Location.BuildingName``).
+    """
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+
+    try:
+        with open(config.get_input_path('commercial.json'), 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return jsonify({
+            'status': 'error',
+            'message': 'commercial.json not found for the active catchment',
+        }), 404
+
+    for record in data.get('commercial_assets', []):
+        ca = record.get('CommercialAsset', {})
+        if ca.get('Header', {}).get('PropertyID') == prop_id:
+            return jsonify({'status': 'success', 'property': record})
+
+    return jsonify({
+        'status': 'error',
+        'message': f'Commercial asset {prop_id} not found',
+    }), 404

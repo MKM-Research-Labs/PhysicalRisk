@@ -375,3 +375,86 @@ class TestCommercialStormsPanel:
         assert "Commercial" in title, (
             f"Expected 'Commercial' in panel title, got: {title!r}"
         )
+
+
+class TestCommercialHazardPanel:
+    """Click-through: menu → 'Physical Risk Swap' → property-hc-panel opens.
+
+    Same shared-panel approach as the storms tab — PropertyHazardCurvePanel
+    detects the CPROP- prefix and routes all four fetches (/hazard, /she,
+    /shd, /<id>) to /api/v1/commercial/* instead of /api/v1/properties/*.
+    """
+
+    def test_window_view_commercial_hazard_is_function(self, map_page):
+        map_page.wait_for_function(
+            "() => typeof window.viewCommercialHazard === 'function'",
+            timeout=10_000,
+        )
+
+    def test_hazard_routes_reachable_from_browser(self, map_page):
+        """All four endpoints used by the hazard panel return 200."""
+        from pathlib import Path
+        import json as _json
+        commercial_path = Path("data/input/thames/commercial.json")
+        if not commercial_path.exists():
+            pytest.skip("No thames commercial.json on disk")
+        with open(commercial_path) as f:
+            cprop_id = (_json.load(f)["commercial_assets"][0]
+                        ["CommercialAsset"]["Header"]["PropertyID"])
+
+        result = map_page.evaluate(f"""async () => {{
+            const paths = ['/hazard', '/she', '/shd', ''];
+            const out = {{}};
+            for (const p of paths) {{
+                try {{
+                    const r = await fetch('/api/v1/commercial/{cprop_id}' + p);
+                    out[p || 'base'] = r.status;
+                }} catch (e) {{ out[p || 'base'] = 'err: ' + e.message; }}
+            }}
+            return out;
+        }}""")
+        assert result["/hazard"] == 200, f"/hazard: {result['/hazard']}"
+        assert result["/she"] == 200, f"/she: {result['/she']}"
+        assert result["/shd"] == 200, f"/shd: {result['/shd']}"
+        assert result["base"] == 200, f"base: {result['base']}"
+
+    def test_physical_risk_swap_opens_panel(self, map_page):
+        """Right-click → 'Physical Risk Swap' → property-hc-panel visible
+        with 'Commercial PRS Pricer' in the title."""
+        map_page.wait_for_function(
+            "() => typeof window.viewCommercialHazard === 'function'",
+            timeout=10_000,
+        )
+
+        _right_click_commercial_marker(map_page)
+        menu = map_page.locator(".ctx-menu")
+        if menu.count() == 0:
+            pytest.skip("No context menu appeared")
+
+        hazard_item = map_page.locator(".ctx-menu-item",
+                                       has_text="Physical Risk Swap")
+        if hazard_item.count() == 0:
+            pytest.skip("No 'Physical Risk Swap' menu item")
+        hazard_item.first.click()
+
+        # Panel issues 4 fetches + Chart.js render — generous window.
+        map_page.wait_for_timeout(10_000)
+
+        panel_visible = map_page.evaluate("""() => {
+            const panel = document.getElementById('property-hc-panel');
+            return panel !== null
+                && panel.style.display !== 'none'
+                && panel.style.display !== '';
+        }""")
+        assert panel_visible, (
+            "property-hc-panel did not open after clicking "
+            "'Physical Risk Swap' on a commercial marker"
+        )
+
+        title = map_page.evaluate("""() => {
+            const el = document.getElementById('phc-panel-title');
+            return el ? el.textContent : '';
+        }""")
+        assert "Commercial" in title, (
+            f"Expected 'Commercial' in PRS panel title, got: {title!r}"
+        )
