@@ -118,7 +118,7 @@ class TestTableStructure:
     def test_summary_cards_present(self, table_js):
         """Summary card labels must be present."""
         assert 'Properties Affected' in table_js
-        assert 'Total Damage' in table_js
+        assert 'Total Flood Damage' in table_js
 
     def test_sort_columns_defined(self, table_js):
         """Sort state variables must be initialised."""

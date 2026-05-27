@@ -63,9 +63,10 @@ class TestResidentialPortfolioColumns:
         self._open_blotter_tab(map_page)
         cells = map_page.locator("#sp-table-container td")
         cell_texts = [cells.nth(i).text_content() for i in range(cells.count())]
-        # Elevation is column index 4 (0-based: Property, Address, Value, River Dist, Elevation)
-        # Check that not every cell is a dash
-        elevation_cells = cell_texts[4::9]  # every 9th cell starting from 4
+        # Residential blotter has 6 cols after mortgage/LTV/Remaining moved
+        # to the Loan/Mortgage tab: Property | Address | Value | River Dist
+        # | Elevation | Flood Zone. Elevation is column index 4 (0-based).
+        elevation_cells = cell_texts[4::6]
         non_dash = [c for c in elevation_cells if c.strip() != "\u2014"]
         assert len(non_dash) > 0, "All elevation cells are dashes — data not loading"
 
@@ -74,6 +75,6 @@ class TestResidentialPortfolioColumns:
         self._open_blotter_tab(map_page)
         cells = map_page.locator("#sp-table-container td")
         cell_texts = [cells.nth(i).text_content() for i in range(cells.count())]
-        river_cells = cell_texts[3::9]
+        river_cells = cell_texts[3::6]
         non_dash = [c for c in river_cells if c.strip() != "\u2014"]
         assert len(non_dash) > 0, "All river distance cells are dashes — data not loading"
