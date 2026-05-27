@@ -28,6 +28,7 @@ Exposed constants:
 """
 
 from config.typhoon import (
+    CatchmentTyphoonConfig,
     GenesisPrior,
     IntensityParams,
     MotionParams,
@@ -227,6 +228,29 @@ HALONG_TYPHOON_PROPERTIES: list = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Boundary helper: assemble the model-side CatchmentTyphoonConfig
+# ---------------------------------------------------------------------------
+# This is the canonical production path the orchestrator stage uses. It
+# wires the catchment-specific constants above into the catchment-agnostic
+# CatchmentTyphoonConfig dataclass that the typhoon model consumes.
+
+def build_typhoon_config(catchment_id: str = "halong") -> CatchmentTyphoonConfig:
+    """Assemble the CatchmentTyphoonConfig for the Halong catchment."""
+    return CatchmentTyphoonConfig(
+        catchment_id=catchment_id,
+        genesis_prior=HALONG_TYPHOON_GENESIS_PRIOR,
+        peak_wind=HALONG_TYPHOON_PEAK_WIND,
+        motion=HALONG_TYPHOON_MOTION,
+        intensity=HALONG_TYPHOON_INTENSITY,
+        size=HALONG_TYPHOON_SIZE,
+        wind_field=HALONG_TYPHOON_WIND_FIELD,
+        plausibility=HALONG_TYPHOON_PLAUSIBILITY,
+        land_mask=halong_land_mask,
+        property_points=HALONG_TYPHOON_PROPERTIES,
+    )
+
+
 __all__ = [
     "HALONG_TYPHOON_GENESIS_PRIOR",
     "HALONG_TYPHOON_PEAK_WIND",
@@ -238,4 +262,5 @@ __all__ = [
     "halong_land_mask",
     "HALONG_HANOI_REFERENCE",
     "HALONG_TYPHOON_PROPERTIES",
+    "build_typhoon_config",
 ]

@@ -47,6 +47,8 @@ def register_parser(subparsers):
     sp.add_argument("--blotter", "--bl", action="store_true")
     sp.add_argument("--stressm", action="store_true",
                     help="Multi-storm stress test (sequence-based, replaces --stress)")
+    sp.add_argument("--typhoon", "--ty", action="store_true",
+                    help="Run typhoon (tropical cyclone) wind ensemble for the active catchment")
 
     # Modifiers ------------------------------------------------------------
     sp.add_argument("--gauge-id", "--gid", type=str, default=None,
@@ -70,6 +72,16 @@ def register_parser(subparsers):
     sp.add_argument("--history-years", "-hy", type=int, default=50)
     sp.add_argument("--tail-weight", "-tw", type=float, default=2.0)
     sp.add_argument("--distribution", "-d", choices=["gev", "gumbel"], default="gev")
+
+    # Typhoon ensemble (--typhoon) -----------------------------------------
+    sp.add_argument("--num-typhoon-events", type=int, default=50,
+                    help="Number of typhoon events to simulate (default 50)")
+    sp.add_argument("--num-typhoon-particles", type=int, default=100,
+                    help="Particles per event in the SMC engine (default 100)")
+    sp.add_argument("--typhoon-seed", type=int, default=None,
+                    help="RNG seed for typhoon simulation; None = nondeterministic")
+    sp.add_argument("--typhoon-no-plausibility", action="store_true",
+                    help="Disable simulation-mode plausibility weighting (pure Monte Carlo)")
 
     # Maintenance ----------------------------------------------------------
     sp.add_argument("--repair-manifest", action="store_true",
