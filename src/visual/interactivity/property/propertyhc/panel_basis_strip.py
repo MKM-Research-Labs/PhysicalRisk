@@ -14,9 +14,20 @@ def get_js() -> str:
                 var gaugeSevere = phcData._severe_at_gauge || 0;
                 var propFloods = phcData.flood_count || 0;
                 var sd = phcData.spread_decomposition || {};
-                // Gauge spread from GEV severe count — consistent with waterfall
-                var gaugeSpread = gaugeSevere > 0 ? (gaugeSevere / 20000 * 10000) : (sd.gauge_spread_bps || 0);
-                var propSpread = propFloods > 0 ? (propFloods / 20000 * 10000) : 0;
+
+                // Spread values come straight from spread_decomposition in the
+                // hazard data — the generator already used the correct storm
+                // count when it built that block. The previous implementation
+                // hard-coded /20000 (the thames default --num-storms) which made
+                // every catchment with a different storm count read 200x too
+                // small on the gauge/SHE/SHD side, while the property spread
+                // (which used the real value below) stayed correct — visually
+                // inconsistent.
+                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var propSpread = sd.property_spread_bps
+                    || ((phcData.term_structure || {}).severe
+                        ? phcData.term_structure.severe.prs_spread_bps[0]
+                        : 0);
 
                 // Physical measurements
                 var stormsGauges = (phcData._storms_data || {}).nearest_gauges || [];
@@ -72,10 +83,10 @@ def get_js() -> str:
 
                     '<span style="' + arrowStyle + '">\\u2192</span>' +
 
-                    // Property
+                    // Asset (residential property or commercial asset)
                     '<div style="' + chipStyle + 'background:#E3F2FD;color:#1565C0;flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + propFloods + '</span>' +
-                    '<span style="' + labelStyle + '">property</span>' +
+                    '<span style="' + labelStyle + '">asset</span>' +
                     '<span style="' + detailStyle + '">' + propSpread.toFixed(1) + 'bp</span>' +
                     '</div>' +
 

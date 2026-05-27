@@ -404,12 +404,17 @@ def commercial_hazard(prop_id: str):
                         f'curves (may have < 3 flood events)'),
         }), 404
 
-    # Attach terrain grid from metadata so the PRS pricer can do zone
-    # repricing (same convention as the residential route).
+    # Attach terrain grid + num_storms from metadata so the PRS pricer
+    # can do zone repricing and so the panel knows the denominator used
+    # by the generator (avoids the previous hard-coded 20000 default).
     metadata = data.get('metadata', {})
-    terrain_grid = metadata.get('terrain_grid')
-    if terrain_grid:
-        asset_data['_metadata'] = {'terrain_grid': terrain_grid}
+    meta_out = {}
+    if metadata.get('terrain_grid'):
+        meta_out['terrain_grid'] = metadata['terrain_grid']
+    if metadata.get('num_storms') is not None:
+        meta_out['num_storms'] = metadata['num_storms']
+    if meta_out:
+        asset_data['_metadata'] = meta_out
 
     return jsonify({'status': 'success', 'data': asset_data})
 
