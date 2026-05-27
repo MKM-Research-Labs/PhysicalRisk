@@ -4166,6 +4166,9 @@
     ],
     "run-20260526-151818": [
       "blotter"
+    ],
+    "run-20260527-142245": [
+      "typhoon"
     ]
   },
   "steps": {
@@ -4612,6 +4615,48 @@
         "propertyshe.json": {
           "hash": "07cb021780e7e6b8268a71d24814b811efad7c9b549163ad22cdd91d5982b765",
           "type": "file"
+        }
+      }
+    },
+    "typhoon": {
+      "run_id": "run-20260527-142245",
+      "timestamp": "2026-05-27T14:23:43.557952",
+      "user": "davidkerrkelly",
+      "hostname": "Mac-mini-3.local",
+      "generator": "models.typhoon.pipeline.simulate_typhoon_events",
+      "status": "success",
+      "elapsed_seconds": 57.551,
+      "parameters": {
+        "n_events": 50,
+        "n_particles": 100,
+        "use_plausibility": true,
+        "seed": null
+      },
+      "inputs": {
+        "catch/halong/tc.py": {
+          "hash": "04c0ca70e46ee484a5137e276d312e6d33211f09e337f0a5aa5a31ec195b3a86",
+          "type": "file"
+        }
+      },
+      "outputs": {
+        "typhoon/ensemble.json": {
+          "hash": "2266b1ba383c0d8c803ff408addabe4e3719f889ea16e2fc7bc0fb599fc1a508",
+          "type": "file"
+        },
+        "typhoon/events/": {
+          "hash": "511334419f25461806c53d2ebf781a4b781c05538c20437c791893c156471e64",
+          "file_count": 50,
+          "type": "directory"
+        },
+        "typhoon/windts/": {
+          "hash": "a22e450acb943f04c5605c9b093f83d06e1629d34d97d7e969dd5626b1f84187",
+          "file_count": 50,
+          "type": "directory"
+        },
+        "typhoon/damage/": {
+          "hash": "85cc03709f23d3b808e11b0baa4ff21aad5c211f2a645852175380b8460d57a2",
+          "file_count": 50,
+          "type": "directory"
         }
       }
     }

@@ -1,0 +1,113 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Property CDM record navigation.
+
+Single place that knows the on-disk shape of a property / commercial
+record. The damage model navigates the CDM exclusively through this
+module so a future schema refactor only touches one file.
+
+CDM paths used:
+  PropertyHeader.Header.PropertyID                                       — id
+  ProtectionMeasures.HazardProfile.WindThresholdKph                      — threshold
+  ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIWindScore    — wind BRI
+  ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIScore        — composite BRI
+"""
+
+from typing import Optional, Tuple
+
+
+__all__ = [
+    "extract_property_id",
+    "extract_wind_threshold_kph",
+    "extract_bri_scores",
+    "extract_lon_lat",
+]
+
+
+def _get_nested(record: dict, *path: str):
+    """Return record[path[0]][path[1]]... or None if any segment is missing."""
+    node = record
+    for key in path:
+        if not isinstance(node, dict):
+            return None
+        node = node.get(key)
+        if node is None:
+            return None
+    return node
+
+
+def extract_property_id(record: dict) -> Optional[str]:
+    """Return PROP-... / CPROP-... id from a property or commercial record."""
+    value = _get_nested(record, "PropertyHeader", "Header", "PropertyID")
+    if value is None:
+        # Commercial records may put the id at a slightly different path —
+        # check the common alternate without forcing a hard couple.
+        value = _get_nested(record, "Header", "PropertyID")
+    return value
+
+
+def extract_wind_threshold_kph(record: dict) -> Optional[float]:
+    """Return the property's WindThresholdKph or None if absent."""
+    value = _get_nested(record, "ProtectionMeasures", "HazardProfile", "WindThresholdKph")
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def extract_lon_lat(record: dict) -> Tuple[Optional[float], Optional[float]]:
+    """Return (longitude, latitude) from PropertyHeader.Location, or (None, None)."""
+    loc = _get_nested(record, "PropertyHeader", "Location")
+    if not isinstance(loc, dict):
+        return None, None
+
+    def _maybe(key: str) -> Optional[float]:
+        v = loc.get(key)
+        if v is None:
+            return None
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    return _maybe("LongitudeDegrees"), _maybe("LatitudeDegrees")
+
+
+def extract_bri_scores(record: dict) -> Tuple[Optional[float], Optional[float]]:
+    """Return (BRIWindScore, BRIScore) as (wind, composite); either may be None."""
+    ratings = _get_nested(
+        record, "ProtectionMeasures", "RiskAssessment", "GoverningBodyRatings"
+    )
+    if not isinstance(ratings, dict):
+        return None, None
+
+    def _maybe(key: str) -> Optional[float]:
+        v = ratings.get(key)
+        if v is None:
+            return None
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    return _maybe("BRIWindScore"), _maybe("BRIScore")
