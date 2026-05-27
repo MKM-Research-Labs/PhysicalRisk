@@ -251,6 +251,29 @@
             return generateCommercialReport(propertyId);
         }
 
+        function viewCommercialStorms(propertyId) {
+            // "View Storm Scenarios" on a commercial marker. The
+            // PropertyStormAnalysis panel itself detects the CPROP-
+            // prefix and fetches /api/v1/commercial/<id>/storms instead
+            // of the residential endpoint, so this handler is the same
+            // shape as viewPropertyStorms — no per-asset-type branching
+            // here.
+            if (!propertyId) {
+                if (root.showError) root.showError('Property ID not found');
+                return;
+            }
+            if (root.PropertyStormAnalysis && typeof root.PropertyStormAnalysis.show === 'function') {
+                root.PropertyStormAnalysis.show(propertyId);
+            } else {
+                var event = new CustomEvent('propertyStormRequested', {
+                    detail: { propertyId: propertyId },
+                    bubbles: true
+                });
+                root.document.dispatchEvent(event);
+                if (root.showInfo) root.showInfo('Loading storm scenarios for ' + propertyId + '...');
+            }
+        }
+
         async function checkBackendHealth() {
             try {
                 var response = await fetch(BACKEND.endpoints.health_check, {
@@ -293,6 +316,7 @@
             viewPropertyHazard: viewPropertyHazard,
             viewPropertyDetails: viewPropertyDetails,
             viewCommercialDetails: viewCommercialDetails,
+            viewCommercialStorms: viewCommercialStorms,
             showGaugeBlotter: showGaugeBlotter,
             checkBackendHealth: checkBackendHealth,
             getMapInstance: getMapInstance
@@ -318,6 +342,7 @@
         root.viewPropertyHazard = api.viewPropertyHazard;
         root.viewPropertyDetails = api.viewPropertyDetails;
         root.viewCommercialDetails = api.viewCommercialDetails;
+        root.viewCommercialStorms = api.viewCommercialStorms;
         root.showGaugeBlotter = api.showGaugeBlotter;
         root.checkBackendHealth = api.checkBackendHealth;
         root.getMapInstance = api.getMapInstance;

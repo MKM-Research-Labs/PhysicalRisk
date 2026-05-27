@@ -138,3 +138,46 @@ def test_route_rejects_missing_property_id(app):
     client = app.test_client()
     r = client.post("/api/v1/commercial/report", json={})
     assert r.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/commercial/<id>/storms — storm-scenarios endpoint
+# ---------------------------------------------------------------------------
+
+def test_storms_route_returns_expected_shape(app, first_commercial_id):
+    client = app.test_client()
+    r = client.get(f"/api/v1/commercial/{first_commercial_id}/storms")
+    assert r.status_code == 200
+    data = r.get_json()
+    assert data["status"] == "success"
+    assert data["property_id"] == first_commercial_id
+    # Same shape as /properties/<id>/storms so the frontend panel works
+    # against either endpoint without branching.
+    for key in (
+        "property_address", "property_info", "nearest_gauges",
+        "flood_events", "summary",
+    ):
+        assert key in data, f"Missing key: {key}"
+    assert isinstance(data["nearest_gauges"], list)
+    assert isinstance(data["flood_events"], list)
+    assert "severe_at_nearest_gauge" in data["summary"]
+
+
+def test_storms_route_enriches_flood_events(app, first_commercial_id):
+    """Each flood_event should be tagged with sequence_type + metadata."""
+    client = app.test_client()
+    r = client.get(f"/api/v1/commercial/{first_commercial_id}/storms")
+    events = r.get_json()["flood_events"]
+    if not events:
+        pytest.skip("No flood events for this asset")
+    sample = events[0]
+    # sequence_type comes from storm_sequences.json enrichment.
+    assert "sequence_type" in sample
+    # gauges_severe comes from stress_storms enrichment.
+    assert "gauges_severe" in sample
+
+
+def test_storms_route_returns_404_for_unknown_id(app):
+    client = app.test_client()
+    r = client.get("/api/v1/commercial/CPROP-doesnotexist/storms")
+    assert r.status_code == 404
