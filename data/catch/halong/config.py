@@ -70,9 +70,8 @@ from ..base import BaseCatchment
 # in river_polyline.json. Elevations reflect typical Red River bank
 # levels around Hanoi (~5–10 m above sea level).
 GAUGE_POINTS = [
-    (21.075, 105.840, 9.00),   # 0 Nhật Tân Bridge (upstream)
-    (21.045, 105.870, 7.50),   # 1 Long Biên / Chương Dương Bridge (mid)
-    (21.015, 105.900, 6.00),   # 2 Vĩnh Tuy Bridge (downstream)
+    (21.0770, 105.8437, 9.00), (21.0439, 105.8633, 7.50),
+    (21.0004, 105.8908, 6.00),
 ]
 
 # Hanoi districts along the Red River (right bank + east bank).

@@ -2,9 +2,9 @@
 
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -21,41 +21,52 @@
 # SOFTWARE.
 
 """
-Snap gauge points to the nearest point on the River Thames.
+Snap a catchment's gauge points to the nearest point on its river polyline.
 
-Queries the Thames waterway geometry from OpenStreetMap via the Overpass API,
-then projects each gauge point onto the nearest river segment. Updates
-data/catch/thames/config.py with corrected coordinates in-place.
+Projects each gauge listed in ``data/catch/<catchment>/config.py`` onto the
+cached river polyline at ``data/catch/<catchment>/river_polyline.json`` and
+rewrites the GAUGE_POINTS block in-place. If the polyline cache is missing
+and the catchment is Thames, the river geometry can be fetched from the
+OpenStreetMap Overpass API as a fallback.
 
 Usage:
-    python tools/snap_gauges_to_river.py          # run with auto-update
-    python tools/snap_gauges_to_river.py --dry-run # print only, no file update
+    python tools/snap_gauges_to_river.py --catchment halong
+    python tools/snap_gauges_to_river.py --catchment thames --dry-run
+    python tools/snap_gauges_to_river.py --catchment thames --fetch-overpass
 """
 
 import argparse
 import json
 import math
 import re
+import ssl
 import sys
 import urllib.request
 from pathlib import Path
 
+try:
+    import certifi
+    _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    _SSL_CTX = ssl.create_default_context()
+
 # ---------------------------------------------------------------------------
-# Constants
+# Overpass presets — add a catchment entry to enable --fetch-overpass for it
 # ---------------------------------------------------------------------------
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+USER_AGENT = "PhysicalRisk/1.0 (research; risk@kerrshearer.co.uk)"
 
-# Bounding box for the Thames from Richmond to Tilbury (S,W,N,E)
-THAMES_BBOX = "51.41,-0.35,51.52,0.35"
-
-# Overpass query: get the River Thames waterway within the bounding box
-# Fetch ways tagged as river/canal named Thames, then resolve their nodes
-OVERPASS_QUERY = (
-    '[out:json][timeout:120];'
-    f'way["waterway"]["name"~"Thames"]({THAMES_BBOX});'
-    'out body;>;out skel qt;'
-)
+OVERPASS_PRESETS = {
+    "thames": {
+        "bbox": "51.41,-0.35,51.52,0.35",  # S,W,N,E — Richmond to Tilbury
+        "name_regex": "Thames",
+    },
+    "halong": {
+        "bbox": "20.90,105.70,21.15,106.05",  # S,W,N,E — Red River through Hanoi
+        "relation_id": 2377017,  # OSM relation: Red River / Sông Hồng
+    },
+}
 
 
 # ---------------------------------------------------------------------------
@@ -79,10 +90,9 @@ def nearest_point_on_segment(px, py, ax, ay, bx, by):
     Coordinates are in degrees but the projection is done in a locally
     scaled Cartesian frame so the result is accurate for small distances.
     """
-    # Scale longitude by cos(latitude) so 1 degree lon ~ 1 degree lat
     cos_lat = math.cos(math.radians(px))
-    dx = (bx - ax)          # lat difference (already ~111 km / deg)
-    dy = (by - ay) * cos_lat  # lon scaled
+    dx = (bx - ax)
+    dy = (by - ay) * cos_lat
 
     seg_len_sq = dx * dx + dy * dy
     if seg_len_sq < 1e-18:
@@ -119,25 +129,55 @@ def snap_to_polyline(lat, lon, polyline):
 
 
 # ---------------------------------------------------------------------------
-# Overpass API
+# Polyline sources
 # ---------------------------------------------------------------------------
 
-def fetch_thames_geometry():
-    """Fetch Thames river nodes from Overpass API."""
-    print("Fetching Thames geometry from OpenStreetMap...")
-    data = urllib.request.urlopen(
-        urllib.request.Request(
-            OVERPASS_URL,
-            data=f"data={OVERPASS_QUERY}".encode(),
-            method="POST",
-        ),
-        timeout=90,
-    ).read()
+def load_polyline_cache(catchment_dir):
+    """Load polyline from data/catch/<catchment>/river_polyline.json."""
+    path = catchment_dir / "river_polyline.json"
+    if not path.exists():
+        return None
+    with open(path) as f:
+        raw = json.load(f)
+    points = [(float(p[0]), float(p[1])) for p in raw]
+    print(f"Loaded {len(points)} points from {path.name}")
+    return points
+
+
+def fetch_river_geometry(catchment):
+    """Fetch river polyline from Overpass for a known preset."""
+    preset = OVERPASS_PRESETS.get(catchment)
+    if not preset:
+        sys.exit(f"ERROR: no Overpass preset for catchment '{catchment}'. "
+                 f"Add one to OVERPASS_PRESETS or provide a river_polyline.json.")
+
+    bbox = preset["bbox"]
+    if "relation_id" in preset:
+        # Fetch via OSM relation — picks up unnamed segments too
+        query = (
+            '[out:json][timeout:120];'
+            f'relation({preset["relation_id"]});way(r)({bbox});'
+            'out body;>;out skel qt;'
+        )
+    else:
+        query = (
+            '[out:json][timeout:120];'
+            f'way["waterway"]["name"~"{preset["name_regex"]}"]({bbox});'
+            'out body;>;out skel qt;'
+        )
+
+    print(f"Fetching {catchment} river geometry from OpenStreetMap...")
+    req = urllib.request.Request(
+        OVERPASS_URL,
+        data=f"data={query}".encode(),
+        method="POST",
+        headers={"User-Agent": USER_AGENT},
+    )
+    data = urllib.request.urlopen(req, timeout=90, context=_SSL_CTX).read()
 
     result = json.loads(data)
     elements = result.get("elements", [])
 
-    # Separate nodes and ways
     nodes = {}
     ways = []
     for el in elements:
@@ -148,22 +188,12 @@ def fetch_thames_geometry():
 
     print(f"  Received {len(ways)} way(s) and {len(nodes)} node(s)")
 
-    # Build polylines from ways, resolving node refs to coordinates
-    polylines = []
+    all_points = []
     for way in ways:
-        coords = []
         for nid in way.get("nodes", []):
             if nid in nodes:
-                coords.append(nodes[nid])
-        if len(coords) >= 2:
-            polylines.append(coords)
+                all_points.append(nodes[nid])
 
-    # Merge into one big polyline sorted roughly west-to-east
-    all_points = []
-    for pl in polylines:
-        all_points.extend(pl)
-
-    # Deduplicate while preserving order
     seen = set()
     unique = []
     for p in all_points:
@@ -172,37 +202,37 @@ def fetch_thames_geometry():
             seen.add(key)
             unique.append(p)
 
-    # Sort west to east by longitude
     unique.sort(key=lambda p: p[1])
     print(f"  River polyline: {len(unique)} unique points")
     return unique
 
 
 # ---------------------------------------------------------------------------
-# Read / write thames.py
+# Read / write catchment config.py
 # ---------------------------------------------------------------------------
 
-def get_thames_path():
-    """Locate data/catch/thames/config.py from project root."""
+def get_catchment_paths(catchment):
+    """Resolve data/catch/<catchment>/ and its config.py."""
     script_dir = Path(__file__).resolve().parent
     project_root = script_dir.parent
-    path = project_root / "data" / "catch" / "thames" / "config.py"
-    if not path.exists():
-        sys.exit(f"ERROR: {path} not found")
-    return path
+    catchment_dir = project_root / "data" / "catch" / catchment
+    config_path = catchment_dir / "config.py"
+    if not catchment_dir.exists():
+        sys.exit(f"ERROR: {catchment_dir} not found")
+    if not config_path.exists():
+        sys.exit(f"ERROR: {config_path} not found")
+    return catchment_dir, config_path
 
 
 def parse_gauge_points(source):
-    """Extract GAUGE_POINTS list from thames.py source text."""
-    # Match the GAUGE_POINTS = [...] block
-    pattern = r"(GAUGE_POINTS\s*=\s*\[)(.*?)(\])"
+    """Extract GAUGE_POINTS list from a catchment config.py source."""
+    pattern = r"(GAUGE_POINTS\s*=\s*\[)(.*?)(\n\])"
     match = re.search(pattern, source, re.DOTALL)
     if not match:
-        sys.exit("ERROR: Could not find GAUGE_POINTS in thames.py")
+        sys.exit("ERROR: Could not find GAUGE_POINTS in config.py")
 
     inner = match.group(2)
-    # Parse tuples: (lat, lon, elev)
-    tuples = re.findall(r"\(\s*([\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*([\d.]+)\s*\)", inner)
+    tuples = re.findall(r"\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)", inner)
     points = [(float(lat), float(lon), float(elev)) for lat, lon, elev in tuples]
     return points, match
 
@@ -225,24 +255,38 @@ def format_gauge_points(points):
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Snap gauge points to River Thames")
+    parser = argparse.ArgumentParser(description="Snap gauge points to a catchment river polyline")
+    parser.add_argument("--catchment", required=True,
+                        help="Catchment name (matches data/catch/<name>/)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print corrections without updating the file")
+    parser.add_argument("--fetch-overpass", action="store_true",
+                        help="Force re-fetch from Overpass API (ignores cached polyline)")
     args = parser.parse_args()
 
-    thames_path = get_thames_path()
-    source = thames_path.read_text()
+    catchment_dir, config_path = get_catchment_paths(args.catchment)
+    source = config_path.read_text()
     original_points, match = parse_gauge_points(source)
 
-    print(f"Found {len(original_points)} gauge points in {thames_path.name}")
-    print()
+    print(f"Found {len(original_points)} gauge points in {args.catchment}/config.py")
 
-    # Fetch river geometry
-    river = fetch_thames_geometry()
-    if len(river) < 10:
-        sys.exit("ERROR: River polyline too short — Overpass query may have failed")
+    river = None
+    fetched_fresh = False
+    if not args.fetch_overpass:
+        river = load_polyline_cache(catchment_dir)
+    if river is None:
+        river = fetch_river_geometry(args.catchment)
+        fetched_fresh = True
 
-    # Snap each gauge point
+    if len(river) < 2:
+        sys.exit("ERROR: River polyline too short (need >= 2 points)")
+
+    if fetched_fresh and not args.dry_run:
+        polyline_path = catchment_dir / "river_polyline.json"
+        with open(polyline_path, "w") as f:
+            json.dump([[round(p[0], 7), round(p[1], 7)] for p in river], f, indent=2)
+        print(f"Wrote {len(river)} points to {polyline_path}")
+
     print()
     print(f"{'#':>3}  {'Old Lat':>10} {'Old Lon':>10}  ->  {'New Lat':>10} {'New Lon':>10}  {'Moved':>8}")
     print("-" * 72)
@@ -268,7 +312,6 @@ def main():
         print("\n[DRY RUN] No files updated.")
         return
 
-    # Update thames.py
     new_block = format_gauge_points(snapped)
     new_source = (source[:match.start()]
                   + "GAUGE_POINTS = [\n"
@@ -276,9 +319,10 @@ def main():
                   + "]"
                   + source[match.end():])
 
-    thames_path.write_text(new_source)
-    print(f"\nUpdated {thames_path}")
-    print("Run `python app.py port --all --no-backup` to regenerate portfolio with corrected gauges.")
+    config_path.write_text(new_source)
+    print(f"\nUpdated {config_path}")
+    print(f"Run `python app.py port --all --no-backup` to regenerate "
+          f"portfolio with corrected gauges.")
 
 
 if __name__ == "__main__":

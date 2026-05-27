@@ -120,6 +120,13 @@ HAZARD_PROFILE_SCHEMA = {
         "type": "decimal",
         "description": "Site design wind speed in km/h corresponding to WindHazardClass"
     },
+    "WindThresholdKph": {
+        "type": "decimal",
+        "description": "Operational peak sustained wind (km/h) the property can withstand "
+                       "before significant damage; consumed as the 50%-damage threshold "
+                       "(v_50) by the wind damage model. Default ~100 kph for residential "
+                       "when absent."
+    },
     "DesignFloodReturnYr": {
         "type": "integer",
         "description": "Design flood return period in years (e.g. 100 = 1-in-100yr)"

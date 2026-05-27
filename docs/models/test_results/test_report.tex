@@ -15,7 +15,7 @@
 
 \section{Executive Summary}
 
-This report documents the results of automated model tests run on \textbf{27 May 2026 at 13:13:01}.
+This report documents the results of automated model tests run on \textbf{27 May 2026 at 14:06:24}.
 
 \begin{table}[H]
     \centering
@@ -23,12 +23,12 @@ This report documents the results of automated model tests run on \textbf{27 May
     \label{tab:overall_summary}
     \begin{tabular}{lr}
         \toprule
-        Total Tests & 56 \\
-        \textcolor{green!60!black}{Passed} & 56 \\
+        Total Tests & 132 \\
+        \textcolor{green!60!black}{Passed} & 132 \\
         \textcolor{red}{Failed} & 0 \\
         Skipped & 0 \\
         Pass Rate & 100.0\% \\
-        Total Duration & 1.41s \\
+        Total Duration & 1.72s \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -56,7 +56,7 @@ This report documents the results of automated model tests run on \textbf{27 May
         \toprule
         \textbf{Model ID} & \textbf{Model Name} & \textbf{Total} & \textbf{Pass} & \textbf{Fail} & \textbf{Skip} & \textbf{Time (s)} \\
         \midrule
-        MKM-WS-001 & Event Wind Lookup & 56 & 56 & 0 & 0 & 0.03 \\
+        MKM-WD-001 & Wind Damage & 132 & 132 & 0 & 0 & 0.03 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -83,77 +83,153 @@ The following table maps every executed test to its assigned model component, pr
     \endfoot
     \bottomrule
     \endlastfoot
-    MKM-WS-001 & interpolation.py::TestInterpolation & \texttt{test\_after\_last\_returns\_last} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_after\_last\_returns\_last} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_at\_first\_endpoint\_returns\_first} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_at\_first\_endpoint\_returns\_first} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_at\_second\_endpoint\_returns\_second} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_at\_second\_endpoint\_returns\_second} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_before\_first\_returns\_first} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_before\_first\_returns\_first} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_duplicate\_timestamps\_return\_earlier} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_duplicate\_timestamps\_return\_earlier} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_empty\_states\_raises} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_empty\_states\_raises} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_heading\_circular\_short\_arc} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_heading\_circular\_short\_arc} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_land\_flag\_takes\_nearest\_neighbour} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_land\_flag\_takes\_nearest\_neighbour} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_midpoint\_lerps\_continuous\_fields} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_midpoint\_lerps\_continuous\_fields} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_regime\_takes\_nearest\_neighbour} & \textcolor{green!60!black}{Pass} \\
-     & interpolation.py::TestInterpolation & \texttt{test\_regime\_takes\_nearest\_neighbour} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_accepts\_string\_path} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_accepts\_string\_path} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_missing\_file\_raises} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_missing\_file\_raises} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_passes\_trajectory\_through} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_passes\_trajectory\_through} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_round\_trip\_via\_pipeline\_writer} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_round\_trip\_via\_pipeline\_writer} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_strips\_summary\_header} & \textcolor{green!60!black}{Pass} \\
-     & loader.py::TestLoadEvent & \texttt{test\_strips\_summary\_header} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_caches\_loaded\_events\_by\_path} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_caches\_loaded\_events\_by\_path} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_call\_is\_query\_alias} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_call\_is\_query\_alias} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_clear\_cache} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_clear\_cache} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_in\_memory\_trajectory\_is\_not\_cached} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_in\_memory\_trajectory\_is\_not\_cached} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_query\_matches\_function\_form} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindSpeedModel & \texttt{test\_query\_matches\_function\_form} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_accepts\_path\_via\_pipeline\_writer} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_accepts\_path\_via\_pipeline\_writer} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_far\_point\_has\_lower\_wind} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_far\_point\_has\_lower\_wind} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_returns\_float\_at\_query\_point} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_returns\_float\_at\_query\_point} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_strength\_grows\_as\_storm\_intensifies} & \textcolor{green!60!black}{Pass} \\
-     & query.py::TestWindspeedFunction & \texttt{test\_strength\_grows\_as\_storm\_intensifies} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_empty\_hours\_returns\_empty} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_empty\_hours\_returns\_empty} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_matches\_pointwise\_windspeed} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_matches\_pointwise\_windspeed} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_peaks\_when\_storm\_centre\_passes\_nearby} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_peaks\_when\_storm\_centre\_passes\_nearby} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_returns\_one\_value\_per\_hour} & \textcolor{green!60!black}{Pass} \\
-     & timeseries.py::TestWindspeedSeries & \texttt{test\_returns\_one\_value\_per\_hour} & \textcolor{green!60!black}{Pass} \\
+    MKM-WD-001 & bri\_shift.py::TestBriV50Shift & \texttt{test\_above\_reference\_gives\_positive\_shift} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_above\_reference\_gives\_positive\_shift} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_analytical\_value\_at\_2x\_reference} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_analytical\_value\_at\_2x\_reference} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_at\_references\_shift\_is\_zero} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_at\_references\_shift\_is\_zero} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_below\_reference\_gives\_negative\_shift} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_below\_reference\_gives\_negative\_shift} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_composite\_alone\_moves\_the\_shift} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_composite\_alone\_moves\_the\_shift} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_monotonic\_in\_composite\_score} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_monotonic\_in\_composite\_score} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_monotonic\_in\_wind\_score} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_monotonic\_in\_wind\_score} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_shift\_capped\_above} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_shift\_capped\_above} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_shift\_capped\_below} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_shift\_capped\_below} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_zero\_score\_is\_clamped\_not\_undefined} & \textcolor{green!60!black}{Pass} \\
+     & bri\_shift.py::TestBriV50Shift & \texttt{test\_zero\_score\_is\_clamped\_not\_undefined} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_both\_present} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_both\_present} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_empty\_dict\_returns\_none\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_empty\_dict\_returns\_none\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_garbage\_score\_value\_becomes\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_garbage\_score\_value\_becomes\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_missing\_ratings\_block\_returns\_none\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_missing\_ratings\_block\_returns\_none\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_only\_composite\_present} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_only\_composite\_present} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_only\_wind\_present} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractBriScores & \texttt{test\_only\_wind\_present} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_empty\_dict\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_empty\_dict\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_fallback\_to\_top\_level\_header} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_fallback\_to\_top\_level\_header} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_missing\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_missing\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_property\_header\_path} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractPropertyId & \texttt{test\_property\_header\_path} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_garbage\_value\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_garbage\_value\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_int\_value\_cast\_to\_float} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_int\_value\_cast\_to\_float} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_missing\_protection\_measures\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_missing\_protection\_measures\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_missing\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_missing\_returns\_none} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_present\_returns\_float} & \textcolor{green!60!black}{Pass} \\
+     & cdm.py::TestExtractWindThresholdKph & \texttt{test\_present\_returns\_float} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_bri\_scores\_shift\_v50} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_bri\_scores\_shift\_v50} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_low\_bri\_increases\_damage} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_low\_bri\_increases\_damage} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_missing\_threshold\_uses\_default} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_missing\_threshold\_uses\_default} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_one\_property\_one\_event} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_one\_property\_one\_event} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_property\_not\_in\_windts\_omitted} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_property\_not\_in\_windts\_omitted} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_records\_without\_id\_are\_skipped} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestBuildEventDamage & \texttt{test\_records\_without\_id\_are\_skipped} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestRunEvent & \texttt{test\_run\_event\_directory\_writes\_one\_file\_per\_input} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestRunEvent & \texttt{test\_run\_event\_directory\_writes\_one\_file\_per\_input} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestRunEvent & \texttt{test\_writes\_json\_to\_output\_path} & \textcolor{green!60!black}{Pass} \\
+     & event.py::TestRunEvent & \texttt{test\_writes\_json\_to\_output\_path} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_accepts\_string\_path} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_accepts\_string\_path} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_empty\_property\_windts} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_empty\_property\_windts} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_falls\_back\_to\_stem\_when\_event\_id\_missing} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_falls\_back\_to\_stem\_when\_event\_id\_missing} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_missing\_file\_raises} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_missing\_file\_raises} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_round\_trip\_from\_disk} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_round\_trip\_from\_disk} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_skips\_entries\_with\_missing\_id} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_skips\_entries\_with\_missing\_id} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_skips\_entries\_with\_missing\_peak} & \textcolor{green!60!black}{Pass} \\
+     & extraction.py::TestLoadEventPeaks & \texttt{test\_skips\_entries\_with\_missing\_peak} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestKphToMs & \texttt{test\_100\_kph\_is\_27\_78\_ms} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestKphToMs & \texttt{test\_100\_kph\_is\_27\_78\_ms} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestKphToMs & \texttt{test\_kmh\_to\_ms\_factor} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestKphToMs & \texttt{test\_kmh\_to\_ms\_factor} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestKphToMs & \texttt{test\_zero\_kph} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestKphToMs & \texttt{test\_zero\_kph} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_empty\_record\_uses\_default} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_empty\_record\_uses\_default} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_falls\_back\_to\_default\_when\_missing} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_falls\_back\_to\_default\_when\_missing} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_falls\_back\_when\_field\_value\_invalid} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_falls\_back\_when\_field\_value\_invalid} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_returns\_float\_in\_meters\_per\_second} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_returns\_float\_in\_meters\_per\_second} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_uses\_cdm\_field\_when\_present} & \textcolor{green!60!black}{Pass} \\
+     & threshold.py::TestResolveThresholdMs & \texttt{test\_uses\_cdm\_field\_when\_present} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_different\_thresholds\_produce\_different\_damage\_at\_same\_peak} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_different\_thresholds\_produce\_different\_damage\_at\_same\_peak} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_high\_bri\_reduces\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_high\_bri\_reduces\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_low\_bri\_increases\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_low\_bri\_increases\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_negative\_wind\_yields\_zero} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_negative\_wind\_yields\_zero} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_no\_bri\_scores\_matches\_pure\_curve\_at\_threshold} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_no\_bri\_scores\_matches\_pure\_curve\_at\_threshold} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_only\_composite\_score\_supplied\_uses\_neutral\_wind} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_only\_composite\_score\_supplied\_uses\_neutral\_wind} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_only\_wind\_score\_supplied\_uses\_neutral\_composite} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_only\_wind\_score\_supplied\_uses\_neutral\_composite} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_reference\_bri\_scores\_have\_no\_effect} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_reference\_bri\_scores\_have\_no\_effect} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_shift\_consistent\_with\_bri\_v50\_shift} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_shift\_consistent\_with\_bri\_v50\_shift} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_zero\_wind\_yields\_zero\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestBriPeakDamage & \texttt{test\_zero\_wind\_yields\_zero\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_at\_base\_v50\_yields\_half} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_at\_base\_v50\_yields\_half} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_far\_above\_threshold\_saturates\_at\_one} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_far\_above\_threshold\_saturates\_at\_one} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_far\_below\_threshold\_approaches\_zero} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_far\_below\_threshold\_approaches\_zero} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_monotonic\_increasing} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_monotonic\_increasing} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_negative\_wind\_yields\_zero} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_negative\_wind\_yields\_zero} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_slope\_at\_midpoint\_matches\_config} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_slope\_at\_midpoint\_matches\_config} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_symmetric\_around\_threshold} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_symmetric\_around\_threshold} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_zero\_wind\_yields\_zero\_damage} & \textcolor{green!60!black}{Pass} \\
+     & vulnerability.py::TestScalarPeakDamage & \texttt{test\_zero\_wind\_yields\_zero\_damage} & \textcolor{green!60!black}{Pass} \\
     \midrule
 \end{longtable}
 \end{center}
 \clearpage
 
-\section{Event Wind Lookup (MKM-WS-001)}
+\section{Wind Damage (MKM-WD-001)}
 
 \begin{table}[H]
     \centering
-    \caption{Test Results Summary --- Event Wind Lookup (MKM-WS-001)}
-    \label{tab:test_summary_mkm_ws_001}
+    \caption{Test Results Summary --- Wind Damage (MKM-WD-001)}
+    \label{tab:test_summary_mkm_wd_001}
     \begin{tabular}{lr}
         \toprule
-        Total Tests & 56 \\
-        \textcolor{green!60!black}{Passed} & 56 \\
+        Total Tests & 132 \\
+        \textcolor{green!60!black}{Passed} & 132 \\
         \textcolor{red}{Failed} & 0 \\
         Skipped & 0 \\
         Duration & 0.03s \\
@@ -162,8 +238,8 @@ The following table maps every executed test to its assigned model component, pr
 \end{table}
 
 \begin{longtable}{p{6cm}p{5.5cm}cc}
-    \caption{Detailed Test Results --- Event Wind Lookup} \\
-    \label{tab:test_detail_mkm_ws_001}
+    \caption{Detailed Test Results --- Wind Damage} \\
+    \label{tab:test_detail_mkm_wd_001}
     \toprule
     \textbf{Test Description} & \textbf{Acceptance Criteria} & \textbf{Result} & \textbf{Time} \\
     \midrule
@@ -174,62 +250,138 @@ The following table maps every executed test to its assigned model component, pr
     \endhead
     \bottomrule
     \endfoot
-    After last returns last & {\scriptsize \texttt{s == simple\_trajectory[-1]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    After last returns last & {\scriptsize \texttt{s == simple\_trajectory[-1]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    At first endpoint returns first & {\scriptsize \texttt{s == simple\_trajectory[0]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    At first endpoint returns first & {\scriptsize \texttt{s == simple\_trajectory[0]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    At second endpoint returns second & {\scriptsize \texttt{s == simple\_trajectory[-1]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    At second endpoint returns second & {\scriptsize \texttt{s == simple\_trajectory[-1]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Before first returns first & {\scriptsize \texttt{s == simple\_trajectory[0]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Before first returns first & {\scriptsize \texttt{s == simple\_trajectory[0]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Duplicate timestamps return earlier & {\scriptsize \texttt{s.longitude == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Duplicate timestamps return earlier & {\scriptsize \texttt{s.longitude == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Empty states raises & {\scriptsize ---} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Empty states raises & {\scriptsize ---} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Heading circular short arc & {\scriptsize \texttt{s.heading\_deg == pytest.approx(0.0, abs=1e-6)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Heading circular short arc & {\scriptsize \texttt{s.heading\_deg == pytest.approx(0.0, abs=1e-6)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Land flag takes nearest neighbour & {\scriptsize \texttt{early.land\_flag is False}; \texttt{late.land\_flag is True}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Land flag takes nearest neighbour & {\scriptsize \texttt{early.land\_flag is False}; \texttt{late.land\_flag is True}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Midpoint lerps continuous fields & {\scriptsize \texttt{s.longitude == pytest.approx(5.25, abs=1e-9)}; \texttt{s.v\_max\_ms == pytest.approx(40.0, abs=1e-9)} (+1 more)} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Midpoint lerps continuous fields & {\scriptsize \texttt{s.longitude == pytest.approx(5.25, abs=1e-9)}; \texttt{s.v\_max\_ms == pytest.approx(40.0, abs=1e-9)} (+1 more)} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Regime takes nearest neighbour & {\scriptsize \texttt{early.regime is RegimeClass.STRAIGHT\_WESTWARD}; \texttt{late.regime is RegimeClass.LANDFALL\_DECAY}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Regime takes nearest neighbour & {\scriptsize \texttt{early.regime is RegimeClass.STRAIGHT\_WESTWARD}; \texttt{late.regime is RegimeClass.LANDFALL\_DECAY}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Accepts string path & {\scriptsize \texttt{restored.event\_id == traj.event\_id}} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Accepts string path & {\scriptsize \texttt{restored.event\_id == traj.event\_id}} & \textcolor{green!60!black}{Pass} & 0.003s \\
+    Different thresholds produce different damage at same peak & {\scriptsize \texttt{weak > strong}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Different thresholds produce different damage at same peak & {\scriptsize \texttt{weak > strong}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    High bri reduces damage & {\scriptsize \texttt{hardened < baseline}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    High bri reduces damage & {\scriptsize \texttt{hardened < baseline}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Low bri increases damage & {\scriptsize \texttt{vulnerable > baseline}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Low bri increases damage & {\scriptsize \texttt{vulnerable > baseline}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Negative wind yields zero & {\scriptsize \texttt{scalar\_peak\_damage(-5.0) == 0.0}; \texttt{bri\_peak\_damage(-5.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Negative wind yields zero & {\scriptsize \texttt{scalar\_peak\_damage(-5.0) == 0.0}; \texttt{bri\_peak\_damage(-5.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    No bri scores matches pure curve at threshold & {\scriptsize \texttt{v == pytest.approx(0.5, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    No bri scores matches pure curve at threshold & {\scriptsize \texttt{v == pytest.approx(0.5, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only composite score supplied uses neutral wind & {\scriptsize \texttt{v == pytest.approx(expected, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only composite score supplied uses neutral wind & {\scriptsize \texttt{v == pytest.approx(expected, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only wind score supplied uses neutral composite & {\scriptsize \texttt{math.isfinite(v)}; \texttt{v == pytest.approx(expected, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only wind score supplied uses neutral composite & {\scriptsize \texttt{math.isfinite(v)}; \texttt{v == pytest.approx(expected, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Reference bri scores have no effect & {\scriptsize \texttt{a == pytest.approx(b, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Reference bri scores have no effect & {\scriptsize \texttt{a == pytest.approx(b, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Shift consistent with bri v50 shift & {\scriptsize \texttt{a == pytest.approx(b, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Shift consistent with bri v50 shift & {\scriptsize \texttt{a == pytest.approx(b, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero wind yields zero damage & {\scriptsize \texttt{scalar\_peak\_damage(0.0) == 0.0}; \texttt{bri\_peak\_damage(0.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero wind yields zero damage & {\scriptsize \texttt{scalar\_peak\_damage(0.0) == 0.0}; \texttt{bri\_peak\_damage(0.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Above reference gives positive shift & {\scriptsize \texttt{s > 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Above reference gives positive shift & {\scriptsize \texttt{s > 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Analytical value at 2x reference & {\scriptsize \texttt{s == pytest.approx(expected, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Analytical value at 2x reference & {\scriptsize \texttt{s == pytest.approx(expected, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    At references shift is zero & {\scriptsize \texttt{s == pytest.approx(0.0, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    At references shift is zero & {\scriptsize \texttt{s == pytest.approx(0.0, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Below reference gives negative shift & {\scriptsize \texttt{s < 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Below reference gives negative shift & {\scriptsize \texttt{s < 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Composite alone moves the shift & {\scriptsize \texttt{s == pytest.approx(expected, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Composite alone moves the shift & {\scriptsize \texttt{s == pytest.approx(expected, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Monotonic in composite score & {\scriptsize \texttt{a < b < c}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Monotonic in composite score & {\scriptsize \texttt{a < b < c}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Monotonic in wind score & {\scriptsize \texttt{a < b < c}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Monotonic in wind score & {\scriptsize \texttt{a < b < c}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Shift capped above & {\scriptsize \texttt{s <= WIND\_V50\_SHIFT\_MAX\_MS}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Shift capped above & {\scriptsize \texttt{s <= WIND\_V50\_SHIFT\_MAX\_MS}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Shift capped below & {\scriptsize \texttt{s >= -WIND\_V50\_SHIFT\_MAX\_MS}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Shift capped below & {\scriptsize \texttt{s >= -WIND\_V50\_SHIFT\_MAX\_MS}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero score is clamped not undefined & {\scriptsize \texttt{math.isfinite(s)}; \texttt{s == pytest.approx(-WIND\_V50\_SHIFT\_MAX\_MS, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero score is clamped not undefined & {\scriptsize \texttt{math.isfinite(s)}; \texttt{s == pytest.approx(-WIND\_V50\_SHIFT\_MAX\_MS, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Bri scores shift v50 & {\scriptsize \texttt{d["v\_50\_eff\_ms"] > d["threshold\_ms"]}; \texttt{d["damage\_ratio"] < baseline}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Bri scores shift v50 & {\scriptsize \texttt{d["v\_50\_eff\_ms"] > d["threshold\_ms"]}; \texttt{d["damage\_ratio"] < baseline}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Low bri increases damage & {\scriptsize \texttt{d\_vuln["damage\_ratio"] > d\_base["damage\_ratio"]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Low bri increases damage & {\scriptsize \texttt{d\_vuln["damage\_ratio"] > d\_base["damage\_ratio"]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing threshold uses default & {\scriptsize \texttt{d["threshold\_ms"] == DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing threshold uses default & {\scriptsize \texttt{d["threshold\_ms"] == DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    One property one event & {\scriptsize \texttt{payload["event\_id"] == "EVT-0001"}; \texttt{payload["scenario\_family"] == "moderate"} (+6 more)} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    One property one event & {\scriptsize \texttt{payload["event\_id"] == "EVT-0001"}; \texttt{payload["scenario\_family"] == "moderate"} (+6 more)} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Property not in windts omitted & {\scriptsize \texttt{ids == ["PROP-a"]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Property not in windts omitted & {\scriptsize \texttt{ids == ["PROP-a"]}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Records without id are skipped & {\scriptsize \texttt{len(payload["damages"]) == 1}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Records without id are skipped & {\scriptsize \texttt{len(payload["damages"]) == 1}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Both present & {\scriptsize \texttt{wind == 0.6214}; \texttt{comp == 0.6176}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Both present & {\scriptsize \texttt{wind == 0.6214}; \texttt{comp == 0.6176}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Empty dict returns none none & {\scriptsize \texttt{extract\_bri\_scores(\{\}) == (None, None)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Empty dict returns none none & {\scriptsize \texttt{extract\_bri\_scores(\{\}) == (None, None)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Garbage score value becomes none & {\scriptsize \texttt{wind is None}; \texttt{comp == 0.6176}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Garbage score value becomes none & {\scriptsize \texttt{wind is None}; \texttt{comp == 0.6176}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing ratings block returns none none & {\scriptsize \texttt{(wind, comp) == (None, None)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing ratings block returns none none & {\scriptsize \texttt{(wind, comp) == (None, None)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only composite present & {\scriptsize \texttt{wind is None}; \texttt{comp == 0.6176}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only composite present & {\scriptsize \texttt{wind is None}; \texttt{comp == 0.6176}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only wind present & {\scriptsize \texttt{wind == 0.6214}; \texttt{comp is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Only wind present & {\scriptsize \texttt{wind == 0.6214}; \texttt{comp is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Empty dict returns none & {\scriptsize \texttt{extract\_property\_id(\{\}) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Empty dict returns none & {\scriptsize \texttt{extract\_property\_id(\{\}) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Fallback to top level header & {\scriptsize \texttt{extract\_property\_id(rec) == "CPROP-abc"}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Fallback to top level header & {\scriptsize \texttt{extract\_property\_id(rec) == "CPROP-abc"}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing returns none & {\scriptsize \texttt{extract\_property\_id(rec) is None}; \texttt{extract\_wind\_threshold\_kph(rec) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing returns none & {\scriptsize \texttt{extract\_property\_id(rec) is None}; \texttt{extract\_wind\_threshold\_kph(rec) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Property header path & {\scriptsize \texttt{extract\_property\_id(\_record()) == "PROP-test-001"}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Property header path & {\scriptsize \texttt{extract\_property\_id(\_record()) == "PROP-test-001"}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Garbage value returns none & {\scriptsize \texttt{extract\_wind\_threshold\_kph(rec) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Garbage value returns none & {\scriptsize \texttt{extract\_wind\_threshold\_kph(rec) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Int value cast to float & {\scriptsize \texttt{extract\_wind\_threshold\_kph(rec) == 100.0}; \texttt{isinstance(extract\_wind\_threshold\_kph(rec), float)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Int value cast to float & {\scriptsize \texttt{extract\_wind\_threshold\_kph(rec) == 100.0}; \texttt{isinstance(extract\_wind\_threshold\_kph(rec), float)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing protection measures returns none & {\scriptsize \texttt{extract\_wind\_threshold\_kph(\{\}) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing protection measures returns none & {\scriptsize \texttt{extract\_wind\_threshold\_kph(\{\}) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing returns none & {\scriptsize \texttt{extract\_property\_id(rec) is None}; \texttt{extract\_wind\_threshold\_kph(rec) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Missing returns none & {\scriptsize \texttt{extract\_property\_id(rec) is None}; \texttt{extract\_wind\_threshold\_kph(rec) is None}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Present returns float & {\scriptsize \texttt{extract\_wind\_threshold\_kph(\_record()) == 120.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Present returns float & {\scriptsize \texttt{extract\_wind\_threshold\_kph(\_record()) == 120.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    100 kph is 27 78 ms & {\scriptsize \texttt{kph\_to\_ms(100.0) == pytest.approx(100.0 / 3.6, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    100 kph is 27 78 ms & {\scriptsize \texttt{kph\_to\_ms(100.0) == pytest.approx(100.0 / 3.6, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Kmh to ms factor & {\scriptsize \texttt{KMH\_TO\_MS == pytest.approx(1.0 / 3.6, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Kmh to ms factor & {\scriptsize \texttt{KMH\_TO\_MS == pytest.approx(1.0 / 3.6, abs=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero kph & {\scriptsize \texttt{kph\_to\_ms(0.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero kph & {\scriptsize \texttt{kph\_to\_ms(0.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Accepts string path & {\scriptsize \texttt{result.peaks\_by\_property == \{"PROP-a": 32.4, "PROP-b": 18.1\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Accepts string path & {\scriptsize \texttt{result.peaks\_by\_property == \{"PROP-a": 32.4, "PROP-b": 18.1\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Empty property windts & {\scriptsize \texttt{result.peaks\_by\_property == \{\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Empty property windts & {\scriptsize \texttt{result.peaks\_by\_property == \{\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Falls back to stem when event id missing & {\scriptsize \texttt{result.event\_id == "EVT-FALLBACK"}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Falls back to stem when event id missing & {\scriptsize \texttt{result.event\_id == "EVT-FALLBACK"}} & \textcolor{green!60!black}{Pass} & 0.001s \\
     Missing file raises & {\scriptsize ---} & \textcolor{green!60!black}{Pass} & 0.000s \\
     Missing file raises & {\scriptsize ---} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Passes trajectory through & {\scriptsize \texttt{load\_event(traj) is traj}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Passes trajectory through & {\scriptsize \texttt{load\_event(traj) is traj}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Round trip via pipeline writer & {\scriptsize \texttt{restored.event\_id == traj.event\_id}; \texttt{restored.scenario\_family is ScenarioFamily.BASELINE} (+1 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Round trip via pipeline writer & {\scriptsize \texttt{restored.event\_id == traj.event\_id}; \texttt{restored.scenario\_family is ScenarioFamily.BASELINE} (+1 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Strips summary header & {\scriptsize \texttt{"summary" in payload}; \texttt{restored.event\_id == traj.event\_id}} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Strips summary header & {\scriptsize \texttt{"summary" in payload}; \texttt{restored.event\_id == traj.event\_id}} & \textcolor{green!60!black}{Pass} & 0.002s \\
-    Caches loaded events by path & {\scriptsize \texttt{ws.cached\_event\_keys == ()}; \texttt{str(path) in ws.cached\_event\_keys} (+1 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Caches loaded events by path & {\scriptsize \texttt{ws.cached\_event\_keys == ()}; \texttt{str(path) in ws.cached\_event\_keys} (+1 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Call is query alias & {\scriptsize \texttt{ws(traj, 1.0, 5.0, 5.0) == ws.query(traj, 1.0, 5.0, 5.0)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Call is query alias & {\scriptsize \texttt{ws(traj, 1.0, 5.0, 5.0) == ws.query(traj, 1.0, 5.0, 5.0)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Clear cache & {\scriptsize \texttt{ws.cached\_event\_keys != ()}; \texttt{ws.cached\_event\_keys == ()}} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Clear cache & {\scriptsize \texttt{ws.cached\_event\_keys != ()}; \texttt{ws.cached\_event\_keys == ()}} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    In memory trajectory is not cached & {\scriptsize \texttt{ws.cached\_event\_keys == ()}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    In memory trajectory is not cached & {\scriptsize \texttt{ws.cached\_event\_keys == ()}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Query matches function form & {\scriptsize \texttt{a == pytest.approx(b, rel=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Query matches function form & {\scriptsize \texttt{a == pytest.approx(b, rel=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Accepts path via pipeline writer & {\scriptsize \texttt{v\_from\_path == pytest.approx(v\_from\_obj, rel=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.002s \\
-    Accepts path via pipeline writer & {\scriptsize \texttt{v\_from\_path == pytest.approx(v\_from\_obj, rel=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.001s \\
-    Far point has lower wind & {\scriptsize \texttt{v\_far < v\_near}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Far point has lower wind & {\scriptsize \texttt{v\_far < v\_near}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Returns float at query point & {\scriptsize \texttt{isinstance(v, float)}; \texttt{v >= 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Returns float at query point & {\scriptsize \texttt{isinstance(v, float)}; \texttt{v >= 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Strength grows as storm intensifies & {\scriptsize \texttt{v\_late > v\_early}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Strength grows as storm intensifies & {\scriptsize \texttt{v\_late > v\_early}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Empty hours returns empty & {\scriptsize \texttt{series == []}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Empty hours returns empty & {\scriptsize \texttt{series == []}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Matches pointwise windspeed & {\scriptsize \texttt{v == pytest.approx(v\_single, rel=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Matches pointwise windspeed & {\scriptsize \texttt{v == pytest.approx(v\_single, rel=1e-12)}} & \textcolor{green!60!black}{Pass} & 0.002s \\
-    Peaks when storm centre passes nearby & {\scriptsize \texttt{hours[peak\_idx] == 2.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Peaks when storm centre passes nearby & {\scriptsize \texttt{hours[peak\_idx] == 2.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Returns one value per hour & {\scriptsize \texttt{len(series) == len(hours)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
-    Returns one value per hour & {\scriptsize \texttt{len(series) == len(hours)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Round trip from disk & {\scriptsize \texttt{isinstance(result, EventWindts)}; \texttt{result.event\_id == "EVT-0001"} (+4 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Round trip from disk & {\scriptsize \texttt{isinstance(result, EventWindts)}; \texttt{result.event\_id == "EVT-0001"} (+4 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Skips entries with missing id & {\scriptsize \texttt{result.peaks\_by\_property == \{"PROP-a": 32.4\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Skips entries with missing id & {\scriptsize \texttt{result.peaks\_by\_property == \{"PROP-a": 32.4\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Skips entries with missing peak & {\scriptsize \texttt{result.peaks\_by\_property == \{"PROP-a": 32.4\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Skips entries with missing peak & {\scriptsize \texttt{result.peaks\_by\_property == \{"PROP-a": 32.4\}}} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Empty record uses default & {\scriptsize \texttt{v\_50 == pytest.approx(DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6, a...}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Empty record uses default & {\scriptsize \texttt{v\_50 == pytest.approx(DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6, a...}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Falls back to default when missing & {\scriptsize \texttt{v\_50 == pytest.approx(DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6, a...}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Falls back to default when missing & {\scriptsize \texttt{v\_50 == pytest.approx(DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6, a...}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Falls back when field value invalid & {\scriptsize \texttt{v\_50 == pytest.approx(DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6, a...}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Falls back when field value invalid & {\scriptsize \texttt{v\_50 == pytest.approx(DEFAULT\_WIND\_THRESHOLD\_KPH / 3.6, a...}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Returns float in meters per second & {\scriptsize \texttt{isinstance(v\_50, float)}; \texttt{25.0 < v\_50 < 45.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Returns float in meters per second & {\scriptsize \texttt{isinstance(v\_50, float)}; \texttt{25.0 < v\_50 < 45.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Uses cdm field when present & {\scriptsize \texttt{v\_50 == pytest.approx(120.0 / 3.6, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Uses cdm field when present & {\scriptsize \texttt{v\_50 == pytest.approx(120.0 / 3.6, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Run event directory writes one file per input & {\scriptsize \texttt{[p.name for p in written] == ["EVT-0000.json", "EVT-0001....}; \texttt{p.exists()}} & \textcolor{green!60!black}{Pass} & 0.003s \\
+    Run event directory writes one file per input & {\scriptsize \texttt{[p.name for p in written] == ["EVT-0000.json", "EVT-0001....}; \texttt{p.exists()}} & \textcolor{green!60!black}{Pass} & 0.002s \\
+    Writes json to output path & {\scriptsize \texttt{out\_path.exists()}; \texttt{on\_disk == payload} (+2 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    Writes json to output path & {\scriptsize \texttt{out\_path.exists()}; \texttt{on\_disk == payload} (+2 more)} & \textcolor{green!60!black}{Pass} & 0.001s \\
+    At base v50 yields half & {\scriptsize \texttt{v == pytest.approx(0.5, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    At base v50 yields half & {\scriptsize \texttt{v == pytest.approx(0.5, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Far above threshold saturates at one & {\scriptsize \texttt{v == pytest.approx(1.0, abs=1e-6)}; \texttt{v <= 1.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Far above threshold saturates at one & {\scriptsize \texttt{v == pytest.approx(1.0, abs=1e-6)}; \texttt{v <= 1.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Far below threshold approaches zero & {\scriptsize \texttt{v == pytest.approx(0.0, abs=1e-6)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Far below threshold approaches zero & {\scriptsize \texttt{v == pytest.approx(0.0, abs=1e-6)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Monotonic increasing & {\scriptsize \texttt{b >= a}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Monotonic increasing & {\scriptsize \texttt{b >= a}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Negative wind yields zero & {\scriptsize \texttt{scalar\_peak\_damage(-5.0) == 0.0}; \texttt{bri\_peak\_damage(-5.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Negative wind yields zero & {\scriptsize \texttt{scalar\_peak\_damage(-5.0) == 0.0}; \texttt{bri\_peak\_damage(-5.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Slope at midpoint matches config & {\scriptsize \texttt{slope == pytest.approx(expected, rel=1e-3)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Slope at midpoint matches config & {\scriptsize \texttt{slope == pytest.approx(expected, rel=1e-3)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Symmetric around threshold & {\scriptsize \texttt{(a + b) == pytest.approx(1.0, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Symmetric around threshold & {\scriptsize \texttt{(a + b) == pytest.approx(1.0, abs=1e-9)}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero wind yields zero damage & {\scriptsize \texttt{scalar\_peak\_damage(0.0) == 0.0}; \texttt{bri\_peak\_damage(0.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
+    Zero wind yields zero damage & {\scriptsize \texttt{scalar\_peak\_damage(0.0) == 0.0}; \texttt{bri\_peak\_damage(0.0, threshold\_ms=30.0) == 0.0}} & \textcolor{green!60!black}{Pass} & 0.000s \\
 \end{longtable}
 
 \clearpage
