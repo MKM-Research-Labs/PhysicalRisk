@@ -291,3 +291,87 @@ class TestCommercialReportRouteFromBrowser:
             "() => typeof window.generateCommercialReport === 'function'",
             timeout=10_000,
         )
+
+    def test_window_view_commercial_storms_is_function(self, map_page):
+        """``window.viewCommercialStorms`` exposed after backend handler init."""
+        map_page.wait_for_function(
+            "() => typeof window.viewCommercialStorms === 'function'",
+            timeout=10_000,
+        )
+
+    def test_storms_route_returns_data_for_real_id(self, map_page):
+        """GET /api/v1/commercial/<id>/storms → 200 + expected shape."""
+        from pathlib import Path
+        import json as _json
+        commercial_path = Path("data/input/thames/commercial.json")
+        if not commercial_path.exists():
+            pytest.skip("No thames commercial.json on disk")
+        with open(commercial_path) as f:
+            cprop_id = (_json.load(f)["commercial_assets"][0]
+                        ["CommercialAsset"]["Header"]["PropertyID"])
+
+        result = map_page.evaluate(f"""async () => {{
+            const resp = await fetch('/api/v1/commercial/{cprop_id}/storms');
+            const data = await resp.json();
+            return {{
+                status: resp.status,
+                ok: data.status === 'success',
+                hasEvents: Array.isArray(data.flood_events),
+                hasGauges: Array.isArray(data.nearest_gauges),
+                hasSummary: typeof data.summary === 'object',
+            }};
+        }}""")
+        assert result["status"] == 200, f"Status: {result['status']}"
+        assert result["ok"]
+        assert result["hasEvents"]
+        assert result["hasGauges"]
+        assert result["hasSummary"]
+
+
+class TestCommercialStormsPanel:
+    """Click-through: menu → 'View Storm Scenarios' → prop-storm-panel opens.
+
+    The frontend reuses the same PropertyStormAnalysis panel for both
+    asset types — the panel detects the CPROP- prefix and fetches the
+    commercial endpoint. So the panel-open assertion mirrors residential,
+    just gated on the commercial menu item.
+    """
+
+    def test_view_storm_scenarios_opens_panel(self, map_page):
+        map_page.wait_for_function(
+            "() => typeof window.viewCommercialStorms === 'function'",
+            timeout=10_000,
+        )
+
+        _right_click_commercial_marker(map_page)
+        menu = map_page.locator(".ctx-menu")
+        if menu.count() == 0:
+            pytest.skip("No context menu appeared")
+
+        storm_item = map_page.locator(".ctx-menu-item",
+                                      has_text="View Storm Scenarios")
+        if storm_item.count() == 0:
+            pytest.skip("No 'View Storm Scenarios' menu item")
+        storm_item.first.click()
+
+        # The panel issues a fetch + tab render — give it room.
+        map_page.wait_for_timeout(8_000)
+
+        panel_visible = map_page.evaluate("""() => {
+            const panel = document.getElementById('prop-storm-panel');
+            return panel !== null
+                && panel.style.display !== 'none'
+                && panel.style.display !== '';
+        }""")
+        assert panel_visible, (
+            "prop-storm-panel did not open after clicking 'View Storm Scenarios'"
+        )
+
+        # Title should say "Commercial Storm Scenarios" not "Property…"
+        title = map_page.evaluate("""() => {
+            const el = document.getElementById('prop-storm-title');
+            return el ? el.textContent : '';
+        }""")
+        assert "Commercial" in title, (
+            f"Expected 'Commercial' in panel title, got: {title!r}"
+        )
