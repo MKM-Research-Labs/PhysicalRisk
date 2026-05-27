@@ -4646,6 +4646,137 @@
         "last_calculated": null
       }
     }
+    ,
+    {
+      "model_id": "MKM-WD-001",
+      "name": "Wind Damage",
+      "short_name": "Wind Damage",
+      "description": "Per-property damage ratio from peak sustained wind during a typhoon event. Mirrors the flood-damage architecture: a pure piecewise saturated sigmoid plus a BRI-aware wrapper that shifts the curve's v_50 by a log-aggregated function of BRIWindScore and the composite BRIScore. Consumes the per-event wind timeseries produced by MKM-TC-001 + MKM-WS-001.",
+      "category": "Hazard",
+      "tier": 2,
+      "materiality": "Medium",
+      "complexity": "Low",
+      "tier_rationale": "Low complexity: closed-form sigmoid + log-aggregated shift. Medium materiality: feeds property / commercial damage estimates directly, parallel to MKM-DD-001 for flood.",
+      "status": "Development",
+      "lifecycle_stage": "Initial release — Phase 2.1 through 2.5 delivered",
+      "version": "0.1.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/models/winddamage/",
+      "methodology": "DR(v) = 1 / (1 + exp(-a * (v - v_50))). v_50 from CDM WindThresholdKph (default 100 kph) shifted by alpha*ln(bri_wind/ref) + beta*ln(bri_composite/ref) in m/s, capped.",
+      "alternatives_considered": [
+        "Power-law: DR = k*(v-v0)^p (rejected: harder to bound to [0,1] without ad-hoc clipping)",
+        "Empirical lookup table (deferred: needs calibration data)",
+        "Duration-aware integrated dose (deferred: Phase 3+)"
+      ],
+      "methodology_rationale": "Sigmoid is bounded to [0,1] by construction, monotonic, symmetric about v_50, and well-understood. Per-property v_50 from the CDM lets calibration analysts tune the threshold without touching the model. BRI integration mirrors flood's stilt for architectural consistency.",
+      "assumptions": [
+        {
+          "id": "WD-A1",
+          "description": "Peak sustained wind is sufficient damage driver; duration above threshold not yet modelled",
+          "impact": "Medium",
+          "monitoring": "Compare against duration-integrated reference once calibration data available",
+          "mitigation": "Phase 3 can add integrated-dose mode without API change"
+        },
+        {
+          "id": "WD-A2",
+          "description": "Sustained wind drives damage directly (no gust factor applied)",
+          "impact": "Medium",
+          "monitoring": "Compare against gust-factor-adjusted variants",
+          "mitigation": "Apply G at call site when needed (peak_gust = G * peak_sustained)"
+        },
+        {
+          "id": "WD-A3",
+          "description": "Single sigmoid shape for all property archetypes; BRI scores + WindThresholdKph capture all relevant property variation",
+          "impact": "Medium",
+          "monitoring": "Check residuals by archetype if loss data emerges",
+          "mitigation": "Phase 3 can add archetype-specific steepness a"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "WD-L1",
+          "description": "No historical loss calibration yet; parameters are first-pass placeholders",
+          "impact": "High",
+          "monitoring_trigger": "Any production use",
+          "compensating_control": "Model is Development status until Phase 3 calibration"
+        },
+        {
+          "id": "WD-L2",
+          "description": "Defaults WIND_V50_BASE_MS = 27.8 m/s (100 kph) tuned for residential; commercial may need different baseline",
+          "impact": "Medium",
+          "monitoring_trigger": "Commercial portfolio outputs",
+          "compensating_control": "Set WindThresholdKph on commercial properties explicitly"
+        }
+      ],
+      "known_failure_modes": [
+        "Zero or negative wind input short-circuits to zero damage (deliberate)",
+        "Extreme inputs use exp-overflow guards in the sigmoid (deliberate)",
+        "Missing WindThresholdKph silently falls back to default (intentional, logged via test coverage)"
+      ],
+      "key_parameters": [
+        "WIND_SIGMOID_A_PER_MS (config/damage.py)",
+        "WIND_V50_BASE_MS (config/damage.py)",
+        "DEFAULT_WIND_THRESHOLD_KPH (config/damage.py)",
+        "BRI_WIND_ALPHA_MS, BRI_COMPOSITE_BETA_MS (config/damage.py)",
+        "BRI_WIND_REFERENCE, BRI_COMPOSITE_REFERENCE (config/damage.py)",
+        "WIND_V50_SHIFT_MAX_MS (config/damage.py)"
+      ],
+      "input_data": "Per-event wind timeseries (windts/EVT-NNNN.json from MKM-TC-001) + property portfolio (property.json / commercial.json) with optional WindThresholdKph and BRI scores in the resilience CDM.",
+      "output_data": "Per-event damage JSON at data/<catch>/typhoon/damage/EVT-NNNN.json — per-property damage_ratio in [0,1] plus peak / threshold / v_50_eff for traceability.",
+      "downstream_models": [],
+      "upstream_models": ["MKM-TC-001", "MKM-WS-001", "MKM-BRI-001"],
+      "validation_status": "Not yet validated",
+      "validation_date": null,
+      "next_review_date": null,
+      "recertification_date": null,
+      "review_frequency": "Annual",
+      "documents": [
+        "src/models/winddamage/phase_2_plan.md"
+      ],
+      "change_history": [
+        {
+          "date": "2026-05-27",
+          "version": "0.1.0",
+          "change": "Initial release. Six-submodule package: vulnerability (scalar + BRI-aware sigmoid), bri_shift (log-aggregated v_50 shift), cdm (property navigation), threshold (CDM -> m/s), extraction (windts JSON -> peaks), event (composer + per-event JSON writer). Wired into the typhoon port stage so --typhoon emits events/, windts/, and damage/ atomically. CDM extended with WindThresholdKph in HAZARD_PROFILE_SCHEMA.",
+          "author": "David K Kelly"
+        }
+      ],
+      "test_coverage": "Initial release: tests under tests/models/winddamage/ — vulnerability (sigmoid invariants + BRI composition), bri_shift (cap / sign / monotonicity), cdm (record navigation), threshold (CDM -> v_50 fallback), extraction (windts loader), event (composer + disk round-trip).",
+      "last_review_date": null,
+      "rag_rating": "Amber",
+      "mrc_signoff_date": null,
+      "remediation_steps": [
+        "Calibrate sigmoid parameters and BRI weights against historical loss data (Phase 3)",
+        "Validate per-archetype damage ratios against published vulnerability curves",
+        "Decide on gust-factor integration before commercial portfolio rollout"
+      ],
+      "version_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Initial release of the wind damage model — peak sigmoid + BRI v_50 shift."
+        }
+      ],
+      "validation_questions": [],
+      "overall_risk_rating": {
+        "computed": {
+          "validation_coverage": null,
+          "remediation_health": null,
+          "review_currency": null,
+          "assumption_risk": null,
+          "limitation_risk": null
+        },
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null
+      }
+    }
   ],
   "model_chain": {
     "description": "String of pearls: Storm Intensity -> Storm-Gauge -> GEV Hazard -> PRS Pricing -> Delta Engine. Stress branch: Storm-Gauge -> Flood Classifier -> Delta Engine",

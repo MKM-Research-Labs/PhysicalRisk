@@ -207,6 +207,16 @@ TEST_MODEL_MAP = {
     'tests/models/windspeed/loader.py':                 'MKM-WS-001',
     'tests/models/windspeed/query.py':                  'MKM-WS-001',
     'tests/models/windspeed/timeseries.py':             'MKM-WS-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-WD-001  Wind Damage
+    # ---------------------------------------------------------------------------
+    'tests/models/winddamage/vulnerability.py':         'MKM-WD-001',
+    'tests/models/winddamage/bri_shift.py':             'MKM-WD-001',
+    'tests/models/winddamage/cdm.py':                   'MKM-WD-001',
+    'tests/models/winddamage/threshold.py':             'MKM-WD-001',
+    'tests/models/winddamage/extraction.py':            'MKM-WD-001',
+    'tests/models/winddamage/event.py':                 'MKM-WD-001',
     'tests/catch/halong/test_tc.py':                    'MKM-TC-001',
 }
 
@@ -231,6 +241,7 @@ MODEL_INFO = {
     'MKM-BRI-001': {'name': 'Building Resilience Index Model',  'dir': 'bri_resilience'},
     'MKM-TC-001': {'name': 'Tropical Cyclone Progression and Wind-Field', 'dir': 'typhoon'},
     'MKM-WS-001': {'name': 'Event Wind Lookup',                 'dir': None},
+    'MKM-WD-001': {'name': 'Wind Damage',                       'dir': None},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
     'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
@@ -248,5 +259,6 @@ MODEL_ALIASES = {
     'BRI': 'MKM-BRI-001',
     'TC': 'MKM-TC-001',
     'WS': 'MKM-WS-001',
+    'WD': 'MKM-WD-001',
     'E2E': 'E2E-ALL',
 }

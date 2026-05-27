@@ -65,10 +65,35 @@ def run_typhoon(ctx: StageContext):
 
     typhoon_cfg = _load_catchment_typhoon_config(ctx.catchment)
 
-    typhoon_dir = Path(config.get_output_dir()) / "typhoon"
+    # If a property portfolio exists, evaluate the wind-field at the actual
+    # property locations so the downstream damage step can match by id. The
+    # catchment-defined showcase points remain the fallback when no portfolio
+    # is present (typically: standalone --typhoon before --properties).
+    properties = _load_property_portfolio(ctx)
+    if properties:
+        from dataclasses import replace as _dc_replace
+        from config.typhoon import PropertyPoint
+        from models.winddamage import extract_lon_lat, extract_property_id
+
+        portfolio_points = []
+        for record in properties:
+            prop_id = extract_property_id(record)
+            lon, lat = extract_lon_lat(record)
+            if prop_id is None or lon is None or lat is None:
+                continue
+            portfolio_points.append(PropertyPoint(
+                property_id=prop_id, longitude=lon, latitude=lat,
+            ))
+        if portfolio_points:
+            typhoon_cfg = _dc_replace(typhoon_cfg, property_points=portfolio_points)
+
+    # Outputs land under the per-catchment input dir (data/input/<catch>/typhoon)
+    # alongside the other pipeline artefacts (gauge.json, gaugets/, etc.).
+    typhoon_dir = ctx.input_dir / "typhoon"
     output_path = typhoon_dir / "ensemble.json"
     events_dir = typhoon_dir / "events"
     windts_dir = typhoon_dir / "windts"
+    damage_dir = typhoon_dir / "damage"
     inputs = {
         f"catch/{ctx.catchment}/tc.py":
             Path(__file__).resolve().parents[4] / "data" / "catch" / ctx.catchment / "tc.py",
@@ -103,9 +128,30 @@ def run_typhoon(ctx: StageContext):
         peaks = [p.peak_sustained_p99 for p in ensemble.properties]
         peak_mean = sum(peaks) / len(peaks)
         print(f"   per-property p99 peak wind: mean across properties = {peak_mean:.1f} m/s")
+    # ------------------------------------------------------------------
+    # Wind damage — per-event damage ratio per property
+    # ------------------------------------------------------------------
+    # `properties` was loaded above so the wind-field could be evaluated at
+    # portfolio locations; reuse it directly.
+    from models.winddamage import run_event_directory
+    if properties:
+        damage_files = run_event_directory(
+            windts_dir=windts_dir,
+            damage_dir=damage_dir,
+            properties=properties,
+        )
+        n_damage_events = len(damage_files)
+    else:
+        n_damage_events = 0
+
     print(f"   wrote {output_path}")
     print(f"   per-event tracks in {events_dir}/")
     print(f"   per-property wind timeseries in {windts_dir}/")
+    if n_damage_events:
+        print(f"   per-event damage in {damage_dir}/  "
+              f"({n_damage_events} events x {len(properties)} properties)")
+    else:
+        print("   (no property portfolio found — skipped damage step)")
 
     ctx.record(
         step_name="typhoon",
@@ -115,6 +161,7 @@ def run_typhoon(ctx: StageContext):
             "typhoon/ensemble.json": output_path,
             "typhoon/events/": events_dir,
             "typhoon/windts/": windts_dir,
+            "typhoon/damage/": damage_dir,
         },
         parameters={
             "n_events": args.num_typhoon_events,
@@ -127,6 +174,36 @@ def run_typhoon(ctx: StageContext):
         stale_name="typhoon",
     )
     print()
+
+
+def _load_property_portfolio(ctx: StageContext) -> list:
+    """Read property.json + commercial.json (when present) for the active catchment.
+
+    Returns a list of property records. Commercial records are appended after
+    residential. Missing files are tolerated — the damage step skips when the
+    portfolio is empty.
+    """
+    import json
+
+    portfolio: list = []
+
+    for fname in ("property.json", "commercial.json"):
+        path = ctx.input_dir / fname
+        if not path.exists():
+            continue
+        try:
+            data = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(data, list):
+            portfolio.extend(data)
+        elif isinstance(data, dict):
+            # Common wrappers: {"properties": [...]} or {"Properties": [...]}
+            for key in ("properties", "Properties", "commercial", "Commercial"):
+                if isinstance(data.get(key), list):
+                    portfolio.extend(data[key])
+                    break
+    return portfolio
 
 
 def run_all(ctx: StageContext):
