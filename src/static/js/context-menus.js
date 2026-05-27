@@ -26,7 +26,8 @@
         config = config || {};
         var MENUS = {
             property: config.property || [],
-            gauge: config.gauge || []
+            gauge: config.gauge || [],
+            commercial: config.commercial || []
         };
 
         var currentId = null;
@@ -178,7 +179,24 @@
 
                     var tooltip = layer.getTooltip && layer.getTooltip();
                     var popup = layer.getPopup && layer.getPopup();
-                    var content = (tooltip && tooltip.getContent()) || (popup && popup.getContent()) || '';
+                    // Search BOTH tooltip and popup for the ID. Commercial
+                    // markers carry their human-readable name in the tooltip
+                    // (e.g. "Riverside House (Office) | Loan") and the
+                    // CPROP- id only in the popup HTML. Popups may return
+                    // either a string OR a DOM Element from getContent();
+                    // pull the HTML out either way so the regex sees the
+                    // raw text.
+                    function _asText(raw) {
+                        if (!raw) return '';
+                        if (typeof raw === 'string') return raw;
+                        if (raw.outerHTML) return raw.outerHTML;
+                        if (raw.innerHTML) return raw.innerHTML;
+                        if (raw.textContent) return raw.textContent;
+                        return '';
+                    }
+                    var tooltipContent = _asText(tooltip && tooltip.getContent());
+                    var popupContent = _asText(popup && popup.getContent());
+                    var content = tooltipContent + ' ' + popupContent;
 
                     var id = null, type = null;
 

@@ -154,16 +154,25 @@ def server_port(_isolated_catchment_dir, _e2e_admin_password):
         "MKM_SERVER_PORT": str(port),
         "MKM_SERVER_HOST": "127.0.0.1",
         "PYTHONUNBUFFERED": "1",
+        # Pin the catchment so the server resolver doesn't fall through to
+        # an interactive `input()` prompt (no TTY in the subprocess).
+        # MKM_CATCHMENT_INPUT_OVERRIDE points at the tmp dir copied above.
+        "MKM_CATCHMENT": "thames",
         "MKM_CATCHMENT_INPUT_OVERRIDE": str(_isolated_catchment_dir),
         "MKM_ADMIN_FILE_PATH": str(_e2e_admin_password),
     })
 
     # Always delete cached visualization so it regenerates with current
-    # BACKEND_CONFIG (url='', relative paths). Without this, a stale HTML
-    # file from a previous server run may contain an absolute URL pointing
-    # to a dead port — causing "Failed to load hazard curve data".
-    for cached in (ROOT / "data" / "results").glob("visualization_*.html"):
+    # BACKEND_CONFIG (url='', relative paths) and current JS source
+    # (context-menus.js / backend-handler.js are embedded INLINE in the
+    # generated HTML — edits to those source files have no effect until
+    # the HTML is rebuilt). Without this, stale HTML may carry both
+    # dead-port absolute URLs and out-of-date JS dispatch logic.
+    results_dir = ROOT / "data" / "results"
+    for cached in results_dir.glob("visualization_*.html"):
         cached.unlink(missing_ok=True)
+    interactive = results_dir / "interactive_visualization.html"
+    interactive.unlink(missing_ok=True)
 
     proc = subprocess.Popen(
         [sys.executable, "app.py", "server"],
