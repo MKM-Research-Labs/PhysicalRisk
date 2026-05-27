@@ -181,3 +181,52 @@ def test_storms_route_returns_404_for_unknown_id(app):
     client = app.test_client()
     r = client.get("/api/v1/commercial/CPROP-doesnotexist/storms")
     assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/commercial/<id>/{hazard,she,shd} + base record
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("subpath", ["hazard", "she", "shd"])
+def test_hazard_routes_return_data_payload(app, first_commercial_id, subpath):
+    client = app.test_client()
+    r = client.get(f"/api/v1/commercial/{first_commercial_id}/{subpath}")
+    assert r.status_code == 200, f"{subpath}: {r.status_code}"
+    payload = r.get_json()
+    assert payload["status"] == "success"
+    assert "data" in payload
+    assert "flood_count" in payload["data"], f"{subpath} missing flood_count"
+
+
+def test_hazard_attaches_terrain_grid_metadata(app, first_commercial_id):
+    """/hazard should embed _metadata.terrain_grid when present in commercialhc."""
+    client = app.test_client()
+    r = client.get(f"/api/v1/commercial/{first_commercial_id}/hazard")
+    data = r.get_json()["data"]
+    if "_metadata" in data:
+        assert "terrain_grid" in data["_metadata"]
+
+
+@pytest.mark.parametrize("subpath", ["hazard", "she", "shd"])
+def test_hazard_routes_return_404_for_unknown_id(app, subpath):
+    client = app.test_client()
+    r = client.get(f"/api/v1/commercial/CPROP-doesnotexist/{subpath}")
+    assert r.status_code == 404
+
+
+def test_base_record_route_returns_full_record(app, first_commercial_id):
+    """GET /api/v1/commercial/<id> returns the bare record by PropertyID."""
+    client = app.test_client()
+    r = client.get(f"/api/v1/commercial/{first_commercial_id}")
+    assert r.status_code == 200
+    payload = r.get_json()
+    assert payload["status"] == "success"
+    record = payload["property"]
+    assert "CommercialAsset" in record
+    assert record["CommercialAsset"]["Header"]["PropertyID"] == first_commercial_id
+
+
+def test_base_record_route_returns_404_for_unknown_id(app):
+    client = app.test_client()
+    r = client.get("/api/v1/commercial/CPROP-doesnotexist")
+    assert r.status_code == 404

@@ -274,6 +274,28 @@
             }
         }
 
+        function viewCommercialHazard(propertyId) {
+            // "Physical Risk Swap" on a commercial marker. The
+            // PropertyHazardCurvePanel + its loadData() detect the
+            // CPROP- prefix and route every fetch to
+            // /api/v1/commercial/<id>/{hazard,she,shd,<id>} so this
+            // handler stays shape-identical to viewPropertyHazard.
+            if (!propertyId) {
+                if (root.showError) root.showError('Property ID not found');
+                return;
+            }
+            if (root.PropertyHazardCurvePanel && typeof root.PropertyHazardCurvePanel.show === 'function') {
+                root.PropertyHazardCurvePanel.show(propertyId);
+            } else {
+                var event = new CustomEvent('propertyHazardRequested', {
+                    detail: { propertyId: propertyId },
+                    bubbles: true
+                });
+                root.document.dispatchEvent(event);
+                if (root.showInfo) root.showInfo('Loading PRS pricing for ' + propertyId + '...');
+            }
+        }
+
         async function checkBackendHealth() {
             try {
                 var response = await fetch(BACKEND.endpoints.health_check, {
@@ -317,6 +339,7 @@
             viewPropertyDetails: viewPropertyDetails,
             viewCommercialDetails: viewCommercialDetails,
             viewCommercialStorms: viewCommercialStorms,
+            viewCommercialHazard: viewCommercialHazard,
             showGaugeBlotter: showGaugeBlotter,
             checkBackendHealth: checkBackendHealth,
             getMapInstance: getMapInstance
@@ -343,6 +366,7 @@
         root.viewPropertyDetails = api.viewPropertyDetails;
         root.viewCommercialDetails = api.viewCommercialDetails;
         root.viewCommercialStorms = api.viewCommercialStorms;
+        root.viewCommercialHazard = api.viewCommercialHazard;
         root.showGaugeBlotter = api.showGaugeBlotter;
         root.checkBackendHealth = api.checkBackendHealth;
         root.getMapInstance = api.getMapInstance;
