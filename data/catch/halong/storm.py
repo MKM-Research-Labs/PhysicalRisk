@@ -12,6 +12,9 @@ use.
 
 Algorithm constants that don't vary by region (window length, sequence
 probability curve, correlation factors, etc.) stay in ``config/port.py``.
+
+Tropical-cyclone-specific configuration lives in the sibling ``tc.py``
+file (see ``data/catch/halong/tc.py``).
 """
 
 # Base precipitation (mm) at peak. Hanoi monsoon / typhoon-influenced;
