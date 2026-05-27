@@ -58,7 +58,6 @@ def get_js() -> str:
                 var cards = [
                     { label: 'Assets', value: s.num_assets || 0, color: '#1976d2' },
                     { label: 'Total Value', value: fmtGBP(s.total_property_value || 0), color: '#388e3c' },
-                    { label: 'Loan Exposure', value: fmtGBP(s.total_loan_exposure || 0), color: '#7b1fa2' },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
@@ -72,6 +71,7 @@ def get_js() -> str:
 
             function renderCommercialTable(assets) {
                 var container = document.getElementById('sp-table-container');
+                // Loan / LTV / Remaining moved to the Loan/Mortgage tab.
                 var cols = [
                     { key: 'property_id', label: 'Asset', fmt: function(v) { return v; } },
                     { key: 'property_address', label: 'Address', fmt: function(v) { return v || '\\u2014'; } },
@@ -81,9 +81,6 @@ def get_js() -> str:
                     { key: 'river_distance_km', label: 'River Dist (km)', fmt: function(v) { return (v !== null && v !== undefined) ? v.toFixed(2) : '\\u2014'; } },
                     { key: 'elevation_m', label: 'Elevation (m)', fmt: function(v) { return (v !== null && v !== undefined) ? (typeof v === 'number' ? v.toFixed(2) : v) : '\\u2014'; } },
                     { key: 'ea_flood_zone', label: 'Flood Zone', fmt: function(v) { return v || '\\u2014'; } },
-                    { key: 'outstanding_balance', label: 'Loan', fmt: fmtGBP },
-                    { key: 'current_ltv', label: 'LTV', fmt: fmtPct },
-                    { key: 'remaining_term_months', label: 'Remaining', fmt: fmtMonths },
                 ];
                 var leftAlignKeys = {
                     property_id: 1, property_address: 1, commercial_type: 1,
@@ -108,13 +105,7 @@ def get_js() -> str:
                 var tbody = document.createElement('tbody');
                 (assets || []).forEach(function(a, idx) {
                     var row = document.createElement('tr');
-                    if (a.current_ltv > 90) {
-                        row.style.background = '#ffebee';
-                    } else if (a.current_ltv > 75) {
-                        row.style.background = '#fff3e0';
-                    } else if (idx % 2 === 1) {
-                        row.style.background = '#fafafa';
-                    }
+                    if (idx % 2 === 1) row.style.background = '#fafafa';
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -136,10 +127,6 @@ def get_js() -> str:
                         td.textContent = col.fmt(a[col.key]);
                         td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
                         if (leftAlignKeys[col.key]) td.style.textAlign = 'left';
-                        if (col.key === 'current_ltv' && a.current_ltv > 90) {
-                            td.style.color = '#d32f2f';
-                            td.style.fontWeight = 'bold';
-                        }
                         row.appendChild(td);
                     });
                     tbody.appendChild(row);

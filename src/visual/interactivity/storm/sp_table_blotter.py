@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 """
-Storm portfolio Table tab — REIT Blotter sub-tab JS.
+Storm portfolio Table tab — Residential blotter sub-tab JS.
 
 Loads /api/v1/propertyts/blotter and renders a summary card row plus a
 sortable property-headlines table.  The JS fragment is concatenated into
@@ -28,10 +28,10 @@ the parent ``sp_table.get_js()`` IIFE.
 
 
 def get_js() -> str:
-    """Return JS fragment for the REIT-Blotter sub-tab (parent IIFE scope)."""
+    """Return JS fragment for the Residential blotter sub-tab (parent IIFE scope)."""
     return """
             // ================================================================
-            // REIT Blotter — property headlines
+            // Residential — property headlines
             // ================================================================
             function loadBlotterData() {
                 var summary = document.getElementById('sp-summary');
@@ -69,7 +69,6 @@ def get_js() -> str:
                 var cards = [
                     { label: 'Properties', value: s.num_properties || 0, color: '#1976d2' },
                     { label: 'Total Value', value: fmtGBP(s.total_property_value || 0), color: '#388e3c' },
-                    { label: 'Mortgage Exposure', value: fmtGBP(s.total_mortgage_exposure || 0), color: '#7b1fa2' },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
@@ -83,6 +82,7 @@ def get_js() -> str:
 
             function renderBlotterTable(properties) {
                 var container = document.getElementById('sp-table-container');
+                // Mortgage / LTV / Remaining moved to the Loan/Mortgage tab.
                 var blotterCols = [
                     { key: 'property_id', label: 'Property', fmt: function(v) { return v; } },
                     { key: 'property_address', label: 'Address', fmt: function(v) { return v || '\\u2014'; } },
@@ -90,9 +90,6 @@ def get_js() -> str:
                     { key: 'river_distance_km', label: 'River Dist (km)', fmt: function(v) { return (v !== null && v !== undefined) ? v.toFixed(2) : '\\u2014'; } },
                     { key: 'elevation_m', label: 'Elevation (m)', fmt: function(v) { return (v !== null && v !== undefined) ? (typeof v === 'number' ? v.toFixed(2) : v) : '\\u2014'; } },
                     { key: 'ea_flood_zone', label: 'Flood Zone', fmt: function(v) { return v || '\\u2014'; } },
-                    { key: 'outstanding_balance', label: 'Mortgage', fmt: fmtGBP },
-                    { key: 'current_ltv', label: 'LTV', fmt: fmtPct },
-                    { key: 'remaining_term_months', label: 'Remaining', fmt: fmtMonths },
                 ];
 
                 var table = document.createElement('table');
@@ -113,14 +110,7 @@ def get_js() -> str:
                 var tbody = document.createElement('tbody');
                 (properties || []).forEach(function(p, idx) {
                     var row = document.createElement('tr');
-                    // Shade rows: high LTV red, moderate LTV orange, else alternate grey
-                    if (p.current_ltv > 90) {
-                        row.style.background = '#ffebee';
-                    } else if (p.current_ltv > 75) {
-                        row.style.background = '#fff3e0';
-                    } else if (idx % 2 === 1) {
-                        row.style.background = '#fafafa';
-                    }
+                    if (idx % 2 === 1) row.style.background = '#fafafa';
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -142,10 +132,6 @@ def get_js() -> str:
                         td.textContent = col.fmt(p[col.key]);
                         td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
                         if (col.key === 'property_id' || col.key === 'property_address' || col.key === 'ea_flood_zone') td.style.textAlign = 'left';
-                        if (col.key === 'current_ltv' && p.current_ltv > 90) {
-                            td.style.color = '#d32f2f';
-                            td.style.fontWeight = 'bold';
-                        }
                         row.appendChild(td);
                     });
                     tbody.appendChild(row);

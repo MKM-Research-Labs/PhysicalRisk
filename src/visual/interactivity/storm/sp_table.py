@@ -25,9 +25,10 @@ Returns the JS body for the Table tab, composed from sibling sub-modules:
 
 - sp_table_blotter:    Residential property blotter sub-tab
 - sp_table_commercial: Commercial asset blotter sub-tab
-- sp_table_trades:     REIT PRS trades sub-tab
-- sp_table_basis:      Basis (synthetic-gauge transmission) sub-tab
-- sp_table_damage:     Per-storm damage summary + sortable damage table
+- sp_table_damage:     Flood Damage (combined residential + commercial) sub-tab
+- sp_table_wind:       Wind Damage sub-tab (model pending)
+- sp_table_mortgage:   Loan/Mortgage sub-tab (Flood + Wind LTV/Remaining)
+- sp_table_summary:    Summary report card
 
 This file owns the cross-sub-tab state, DOM creation, sub-tab switching,
 and storm-list / portfolio-impact loaders (which reads the
@@ -38,11 +39,12 @@ and storm-list / portfolio-impact loaders (which reads the
 from config.format import storm_option_js as _storm_opt
 
 from . import (
-    sp_table_basis,
     sp_table_blotter,
     sp_table_commercial,
     sp_table_damage,
-    sp_table_trades,
+    sp_table_mortgage,
+    sp_table_summary,
+    sp_table_wind,
 )
 
 
@@ -59,10 +61,10 @@ def get_js() -> str:
             // ================================================================
             // Table tab — DOM creation
             // ================================================================
-            var spTableSubTab = 'damage';  // 'portfolio', 'commercial', 'damage', 'trades', or 'basis'
+            var spTableSubTab = 'damage';  // residential | commercial | damage (flood) | wind | mortgage | summary
             var spBlotterData = null;
             var spCommercialData = null;
-            var spBasisData = null;
+            var spCommercialImpact = null;  // per-storm; invalidated on storm change
             var spTradesData = null;
 
             function createTableView() {
@@ -70,42 +72,27 @@ def get_js() -> str:
                 view.id = 'sp-table-view';
                 view.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;';
 
-                // Sub-tab toggle: Residential | Commercial | Damage | REIT Blotter | Basis
+                // Sub-tab toggle: Residential | Commercial | Flood Damage | Wind Damage | Loan/Mortgage | Summary
                 var subTabBar = document.createElement('div');
                 subTabBar.id = 'sp-sub-tab-bar';
                 subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
                 var inactiveStyle = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
                 var activeStyle = 'padding:5px 16px;font-size:11px;border:1px solid #1976d2;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:#1976d2;color:white;';
-                var subBtnPortfolio = document.createElement('button');
-                subBtnPortfolio.id = 'sp-sub-portfolio';
-                subBtnPortfolio.textContent = 'Residential';
-                subBtnPortfolio.style.cssText = inactiveStyle;
-                subBtnPortfolio.onclick = function() { switchSubTab('portfolio'); };
-                var subBtnCommercial = document.createElement('button');
-                subBtnCommercial.id = 'sp-sub-commercial';
-                subBtnCommercial.textContent = 'Commercial';
-                subBtnCommercial.style.cssText = inactiveStyle;
-                subBtnCommercial.onclick = function() { switchSubTab('commercial'); };
-                var subBtnDamage = document.createElement('button');
-                subBtnDamage.id = 'sp-sub-damage';
-                subBtnDamage.textContent = 'Damage';
-                subBtnDamage.style.cssText = activeStyle;
-                subBtnDamage.onclick = function() { switchSubTab('damage'); };
-                var subBtnTrades = document.createElement('button');
-                subBtnTrades.id = 'sp-sub-trades';
-                subBtnTrades.textContent = 'REIT Blotter';
-                subBtnTrades.style.cssText = inactiveStyle;
-                subBtnTrades.onclick = function() { switchSubTab('trades'); };
-                var subBtnBasis = document.createElement('button');
-                subBtnBasis.id = 'sp-sub-basis';
-                subBtnBasis.textContent = 'Basis';
-                subBtnBasis.style.cssText = inactiveStyle;
-                subBtnBasis.onclick = function() { switchSubTab('basis'); };
-                subTabBar.appendChild(subBtnPortfolio);
-                subTabBar.appendChild(subBtnCommercial);
-                subTabBar.appendChild(subBtnDamage);
-                subTabBar.appendChild(subBtnTrades);
-                subTabBar.appendChild(subBtnBasis);
+
+                function mkBtn(id, label, key, active) {
+                    var b = document.createElement('button');
+                    b.id = 'sp-sub-' + id;
+                    b.textContent = label;
+                    b.style.cssText = active ? activeStyle : inactiveStyle;
+                    b.onclick = function() { switchSubTab(key); };
+                    subTabBar.appendChild(b);
+                }
+                mkBtn('portfolio',  'Residential',   'portfolio', false);
+                mkBtn('commercial', 'Commercial',    'commercial', false);
+                mkBtn('damage',     'Flood Damage',  'damage', true);
+                mkBtn('wind',       'Wind Damage',   'wind', false);
+                mkBtn('mortgage',   'Loan/Mortgage', 'mortgage', false);
+                mkBtn('summary',    'Summary',       'summary', false);
                 view.appendChild(subTabBar);
 
                 var summaryRow = document.createElement('div');
@@ -123,34 +110,38 @@ def get_js() -> str:
 
             function switchSubTab(sub) {
                 spTableSubTab = sub;
-                var btns = [
-                    document.getElementById('sp-sub-portfolio'),
-                    document.getElementById('sp-sub-commercial'),
-                    document.getElementById('sp-sub-damage'),
-                    document.getElementById('sp-sub-trades'),
-                    document.getElementById('sp-sub-basis'),
-                ];
-                btns.forEach(function(b) {
+                ['portfolio','commercial','damage','wind','mortgage','summary'].forEach(function(k) {
+                    var b = document.getElementById('sp-sub-' + k);
                     if (b) { b.style.background = 'white'; b.style.color = '#555'; b.style.borderColor = '#ddd'; }
                 });
                 var active = document.getElementById('sp-sub-' + sub);
                 if (active) { active.style.background = '#1976d2'; active.style.color = 'white'; active.style.borderColor = '#1976d2'; }
 
+                // The Summary report card writes inline padding/overflow on the
+                // table container — reset to the default so other tabs render
+                // edge-to-edge as designed.
+                var tableContainer = document.getElementById('sp-table-container');
+                if (tableContainer) {
+                    tableContainer.style.padding = '0';
+                    tableContainer.style.overflowY = 'auto';
+                }
+
+                var ss = document.getElementById('sp-storm-select');
+                var sid = ss ? ss.value : '';
+
                 if (sub === 'portfolio') {
                     loadBlotterData();
                 } else if (sub === 'commercial') {
                     loadCommercialData();
-                } else if (sub === 'trades') {
-                    loadTradesData();
-                } else if (sub === 'basis') {
-                    var ss = document.getElementById('sp-storm-select');
-                    var sid = ss ? ss.value : '';
-                    if (sid) loadBasisData(sid);
+                } else if (sub === 'wind') {
+                    loadWindDamage();
+                } else if (sub === 'mortgage') {
+                    loadMortgageData();
+                } else if (sub === 'summary') {
+                    loadSummary();
                 } else {
-                    if (spData) {
-                        renderSummary(spData.portfolio, spData.derivatives);
-                        renderTable(spData.properties);
-                    }
+                    // 'damage' — flood damage
+                    loadFloodDamage(sid);
                 }
             }
 
@@ -219,40 +210,18 @@ def get_js() -> str:
                 fetch(baseUrl + '/api/v1/propertyts/' + stormId + '/portfolio-impact', {mode: 'cors'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
+                        // Invalidate per-storm commercial cache regardless of
+                        // residential outcome — Flood Damage refetches on demand.
+                        spCommercialImpact = null;
                         if (data.status !== 'success') {
                             spData = null;
-                            spBasisData = null;
-                            // Show empty state — storm exists but causes no property flooding
-                            var emptyPortfolio = {
-                                properties_affected: 0, total_properties: summary.dataset.totalProps || 0,
-                                total_affected_value: 0, total_damage: 0, total_post_damage_value: 0,
-                                total_affected_mortgages: 0, mortgages_in_negative_equity: 0, damage_pct: 0,
-                                total_portfolio_value: 0, total_portfolio_mortgages: 0
-                            };
-                            var emptyDerivatives = {
-                                total_prs_payout: 0, total_prs_notional: 0,
-                                num_trades_triggered: 0, net_portfolio_pnl: 0
-                            };
-                            renderSummary(emptyPortfolio, emptyDerivatives);
-                            // Render an empty-state table (keeps one <tr> in the DOM
-                            // so downstream consumers and tests that expect a table
-                            // structure still find rows, and gives the user a
-                            // consistent layout rather than a bare message.)
-                            tableContainer.innerHTML =
-                                '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
-                                  '<thead><tr style="background:#f5f5f5;border-bottom:1px solid #ddd;">' +
-                                    '<th style="padding:6px 8px;text-align:left;">Property</th>' +
-                                    '<th style="padding:6px 8px;text-align:right;">Damage</th>' +
-                                  '</tr></thead>' +
-                                  '<tbody><tr><td colspan="2" style="padding:40px;text-align:center;color:#999;font-size:13px;">' +
-                                    'This storm does not cause any property flooding' +
-                                  '</td></tr></tbody>' +
-                                '</table>';
                             statsBar.innerHTML = '<span style="color:#888;">No properties affected by this storm</span>';
+                            // Switch to flood damage so the user sees the empty
+                            // combined state instead of stale residential.
+                            switchSubTab('damage');
                             return;
                         }
                         spData = data;
-                        spBasisData = null;  // invalidate basis cache on storm change
                         console.log('[StormPortfolio] Impact loaded:', data.portfolio.properties_affected, 'affected, damage', data.portfolio.total_damage);
                         var _spSelect = document.getElementById('sp-storm-select');
                         var _stormLabel = _spSelect
@@ -261,11 +230,8 @@ def get_js() -> str:
                         document.getElementById('sp-panel-title').textContent =
                             'Portfolio Storm Impact — ' + _stormLabel;
 
-                        // Switch to damage sub-tab on storm change
+                        // Show the combined Flood Damage view by default.
                         switchSubTab('damage');
-
-                        renderSummary(data.portfolio, data.derivatives);
-                        renderTable(data.properties);
 
                         var pf = data.portfolio;
                         statsBar.innerHTML =
@@ -284,8 +250,9 @@ def get_js() -> str:
         state_dom_loaders
         + sp_table_blotter.get_js()
         + sp_table_commercial.get_js()
-        + sp_table_trades.get_js()
-        + sp_table_basis.get_js()
         + sp_table_damage.get_js()
+        + sp_table_wind.get_js()
+        + sp_table_mortgage.get_js()
+        + sp_table_summary.get_js()
     )
     return js.replace('__STORM_OPT__', _storm_opt('s'))
