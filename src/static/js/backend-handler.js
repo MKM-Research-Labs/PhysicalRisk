@@ -115,6 +115,9 @@
         var generateMortgageReport = _generateReport(
             BACKEND.endpoints.mortgage_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
         );
+        var generateCommercialReport = _generateReport(
+            BACKEND.endpoints.commercial_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        );
 
         function viewGaugeStorms(gaugeId) {
             if (!gaugeId) {
@@ -242,6 +245,12 @@
             return generateReport(propertyId);
         }
 
+        function viewCommercialDetails(propertyId) {
+            // "Commercial Details" right-click action → reuse the
+            // PDF-report code path.
+            return generateCommercialReport(propertyId);
+        }
+
         async function checkBackendHealth() {
             try {
                 var response = await fetch(BACKEND.endpoints.health_check, {
@@ -276,12 +285,14 @@
             generateReport: generateReport,
             generateGaugeReport: generateGaugeReport,
             generateMortgageReport: generateMortgageReport,
+            generateCommercialReport: generateCommercialReport,
             viewGaugeStorms: viewGaugeStorms,
             viewHazardCurve: viewHazardCurve,
             viewGaugeHistory: viewGaugeHistory,
             viewPropertyStorms: viewPropertyStorms,
             viewPropertyHazard: viewPropertyHazard,
             viewPropertyDetails: viewPropertyDetails,
+            viewCommercialDetails: viewCommercialDetails,
             showGaugeBlotter: showGaugeBlotter,
             checkBackendHealth: checkBackendHealth,
             getMapInstance: getMapInstance
@@ -299,12 +310,14 @@
         root.generateReport = api.generateReport;
         root.generateGaugeReport = api.generateGaugeReport;
         root.generateMortgageReport = api.generateMortgageReport;
+        root.generateCommercialReport = api.generateCommercialReport;
         root.viewGaugeStorms = api.viewGaugeStorms;
         root.viewHazardCurve = api.viewHazardCurve;
         root.viewGaugeHistory = api.viewGaugeHistory;
         root.viewPropertyStorms = api.viewPropertyStorms;
         root.viewPropertyHazard = api.viewPropertyHazard;
         root.viewPropertyDetails = api.viewPropertyDetails;
+        root.viewCommercialDetails = api.viewCommercialDetails;
         root.showGaugeBlotter = api.showGaugeBlotter;
         root.checkBackendHealth = api.checkBackendHealth;
         root.getMapInstance = api.getMapInstance;

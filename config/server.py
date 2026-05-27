@@ -54,14 +54,15 @@ class ServerMixin:
     # Unified API endpoint map (superset of what was in Config + PortfolioConfig).
     # health_check normalised to /api/v1/health; export_data to /api/v1/export.
     ENDPOINTS: dict = {
-        'health_check':    '/api/v1/health',
-        'properties':      '/api/v1/properties',
-        'gauges':          '/api/v1/gauges',
-        'property_report': '/api/v1/properties/report',
-        'gauge_report':    '/api/v1/gauges/report',
-        'mortgage_report': '/api/v1/properties/mortgage-report',
-        'gauge_history':   '/api/v1/gauges/{gauge_id}/history',
-        'export_data':     '/api/v1/export',
+        'health_check':      '/api/v1/health',
+        'properties':        '/api/v1/properties',
+        'gauges':            '/api/v1/gauges',
+        'property_report':   '/api/v1/properties/report',
+        'gauge_report':      '/api/v1/gauges/report',
+        'mortgage_report':   '/api/v1/properties/mortgage-report',
+        'commercial_report': '/api/v1/commercial/report',
+        'gauge_history':     '/api/v1/gauges/{gauge_id}/history',
+        'export_data':       '/api/v1/export',
     }
 
     @property
