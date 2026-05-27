@@ -19,8 +19,7 @@ import math
 
 import pytest
 
-from models.typhoon.data_structures import RegimeClass, ScenarioFamily
-from models.typhoon.parameters import (
+from config.typhoon import (
     CatchmentTyphoonConfig,
     GenesisPrior,
     IntensityParams,
@@ -28,6 +27,8 @@ from models.typhoon.parameters import (
     PeakWindParams,
     PlausibilityWeights,
     PropertyPoint,
+    RegimeClass,
+    ScenarioFamily,
     SizeParams,
     WindFieldParams,
 )

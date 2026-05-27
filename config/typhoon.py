@@ -19,25 +19,60 @@
 # SOFTWARE.
 
 """
-Parameter dataclasses for the typhoon model.
+Configuration schema for the typhoon model.
 
-These define the *shape* of the calibration knobs the model expects.
-Each catchment provides concrete instances in its own config file under
-data/catch/<id>/. The model imports nothing from data/catch/* — it only
-sees these dataclasses.
+Defines the *shape* of the calibration knobs the typhoon model expects:
+parameter dataclasses for each transition block, the aggregate
+CatchmentTyphoonConfig, and the regime / scenario-family enums.
 
-CatchmentTyphoonConfig is the single object passed into the pipeline; it
-aggregates every calibration input needed for a full simulation run.
+Each catchment that wants typhoon simulation provides a tc.py under
+data/catch/<id>/ that populates these dataclasses with concrete values.
+The model layer (src/models/typhoon/) imports its runtime types from
+here but never reads catchment-specific data.
 
-All numeric defaults here are *neutral placeholders*. Real values are
-provided by each catchment. The defaults exist so a parameter object can
-be constructed in tests without supplying every field.
+All numeric defaults are *neutral placeholders*. Real values come from
+the catchment's tc.py.
 """
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Callable, Dict, List, Tuple
 
-from models.typhoon.data_structures import RegimeClass, ScenarioFamily
+
+# ===========================================================================
+# Enums
+# ===========================================================================
+
+
+class RegimeClass(Enum):
+    """Discrete track regime — spec p.3.
+
+    The regime conditions the motion transition model. In Phase 1 the regime
+    is sampled at genesis and held fixed for the event (spec p.4).
+    """
+    STRAIGHT_WESTWARD = "straight_westward"
+    NW_RECURVER = "nw_recurver"
+    SHARP_RECURVE = "sharp_recurve"
+    STALLED = "stalled"
+    LANDFALL_DECAY = "landfall_decay"
+
+
+class ScenarioFamily(Enum):
+    """Stress-scenario family — spec p.10.
+
+    Scenario family drives peak-wind distribution params (mu, sigma, v_T, alpha),
+    size distribution shape, regime priors, and persistence/decay.
+    """
+    HISTORICAL = "historical"
+    BASELINE = "baseline"
+    MODERATE = "moderate"
+    SEVERE = "severe"
+    EXTREME = "extreme"
+
+
+# ===========================================================================
+# Type aliases
+# ===========================================================================
 
 
 # A land mask is a callable taking (longitude, latitude) -> True if land.
@@ -312,9 +347,9 @@ class CatchmentTyphoonConfig:
     """All catchment-specific inputs the typhoon model needs for one run.
 
     The boundary adapter (added in Phase 1.7) reads raw values from the
-    active catchment's tropical-cyclone config file via the config package
-    and assembles this object. The pipeline takes a single
-    CatchmentTyphoonConfig — no other route in.
+    active catchment's tropical-cyclone config file (data/catch/<id>/tc.py)
+    via the config package routing layer and assembles this object. The
+    pipeline takes a single CatchmentTyphoonConfig — no other route in.
 
     Attributes:
         catchment_id: identifier of the active catchment

@@ -4280,6 +4280,181 @@
         "mrc_override_by": null,
         "last_calculated": null
       }
+    },
+    {
+      "model_id": "MKM-TC-001",
+      "name": "Tropical Cyclone Progression and Wind-Field",
+      "short_name": "Tropical Cyclone",
+      "description": "Bayesian state-space model for tropical cyclone (typhoon) progression coupled with a parametric radial wind-field. Generates probabilistic trajectories and per-location peak-wind distributions for catchments exposed to typhoon hazard.",
+      "category": "Hazard",
+      "tier": 2,
+      "materiality": "TBD",
+      "complexity": "High",
+      "tier_rationale": "Provisional Tier 2 pending MRC review. High complexity: Bayesian state-space + particle filter + parametric wind-field with regime-conditioned dynamics.",
+      "status": "Development",
+      "lifecycle_stage": "Phase 1.3 — one-step transition model (motion, position, wind, size)",
+      "version": "0.3.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/models/typhoon/",
+      "methodology": "Bayesian state-space progression (regime-conditioned motion, intensity, size) + Sequential Monte Carlo particle filter + parametric radial wind-field (piecewise inner-core/outer-decay profile with motion-linked asymmetry).",
+      "alternatives_considered": [
+        "Deterministic best-track lookup",
+        "Full dynamical NWP simulation",
+        "Holland-only parametric model without state-space progression",
+        "Empirical wind-footprint catalogue"
+      ],
+      "methodology_rationale": "Bayesian state-space captures uncertainty explicitly while remaining interpretable. Reduced-form parametric wind-field is standard practice in engineering applications and avoids the cost of dynamical solvers. Particle filter handles the nonlinear non-Gaussian state evolution.",
+      "assumptions": [
+        {
+          "id": "TC-A1",
+          "description": "Regime is sampled at genesis and held fixed for the event (Phase 1 simplification)",
+          "impact": "Medium",
+          "monitoring": "Compare regime-fixed vs regime-switching trajectories in Phase 3 validation",
+          "mitigation": "Add regime-transition matrix in a later phase"
+        },
+        {
+          "id": "TC-A2",
+          "description": "Symmetric radial profile + first-order motion asymmetry adequately describes the wind field",
+          "impact": "Medium",
+          "monitoring": "Compare against Holland-style backend in Phase 3",
+          "mitigation": "Switchable Holland-profile backend interface is already in scope"
+        },
+        {
+          "id": "TC-A3",
+          "description": "Land-decay is exponential with a single basin-wide rate constant",
+          "impact": "Medium",
+          "monitoring": "Compare modelled decay against best-track records over land",
+          "mitigation": "Regime-specific or topography-aware decay in a later phase"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "TC-L1",
+          "description": "No historical calibration in Phase 1 — parameters are first-pass placeholders",
+          "impact": "High",
+          "monitoring_trigger": "Any production use",
+          "compensating_control": "Model is gated to Development status until Phase 3 calibration completes"
+        },
+        {
+          "id": "TC-L2",
+          "description": "Land mask is a simple bbox placeholder, not a true coastline polygon",
+          "impact": "Medium",
+          "monitoring_trigger": "Tracks intersecting complex coastline regions",
+          "compensating_control": "Replace with proper polygon in Phase 3"
+        },
+        {
+          "id": "TC-L3",
+          "description": "No real-observation assimilation in Phase 1 (simulation mode only, plausibility scores)",
+          "impact": "Medium",
+          "monitoring_trigger": "Real-time forecasting use case",
+          "compensating_control": "Real-observation likelihood interface is reserved in the spec"
+        },
+        {
+          "id": "TC-L4",
+          "description": "Joint surge/rain hazard layer not implemented in Phase 1",
+          "impact": "Medium",
+          "monitoring_trigger": "Coastal property exposure",
+          "compensating_control": "Phase 2 work item"
+        }
+      ],
+      "known_failure_modes": [
+        "Particle collapse if plausibility weights are over-tightened (suppresses tail breadth)",
+        "Unstable Pareto tail at very small sample sizes",
+        "Asymmetry correction can produce non-physical winds if epsilon clipping is disabled"
+      ],
+      "key_parameters": [
+        "GenesisPrior (bbox, regime_weights, scenario_mix)",
+        "PeakWindParams (mu, sigma, v_threshold, alpha) per scenario family",
+        "MotionParams (mean_speed, sigma_speed, mean_heading, sigma_heading per regime)",
+        "IntensityParams (drift, sigma, k_land)",
+        "SizeParams (R_max / R_outer log-space regression on V_max)",
+        "WindFieldParams (alpha_eye, outer_shape_p, v_outer_ref, eps_max, rho_surf_land)",
+        "PlausibilityWeights (heading/speed jump, basin boundary, regime consistency)"
+      ],
+      "input_data": "Catchment-specific tropical-cyclone calibration constants (data/catch/<id>/tc.py) assembled into a CatchmentTyphoonConfig via the config.typhoon parameter schema.",
+      "output_data": "Per-property posterior distribution of peak sustained wind; threshold-exceedance probabilities; footprint metadata (peak V_max, peak local wind, distance/azimuth at peak); time-of-peak distributions.",
+      "downstream_models": [],
+      "upstream_models": [],
+      "validation_status": "Not yet validated",
+      "validation_date": null,
+      "next_review_date": null,
+      "recertification_date": null,
+      "review_frequency": "Annual",
+      "documents": [
+        "docs/models/typhoon/typhoon.tex",
+        "src/models/typhoon/phase_1_plan.md",
+        "src/models/typhoon/bayesian_typhoon_progression_spec.pdf",
+        "src/models/typhoon/How does a storm turn into a typhoon.pdf"
+      ],
+      "change_history": [
+        {
+          "date": "2026-05-27",
+          "version": "0.1.0",
+          "change": "Skeleton entry created. Phase 1.1 delivered: config/typhoon.py parameter schema, src/models/typhoon/data_structures.py runtime types, data/catch/halong/tc.py launch-catchment values, 103 tests passing including import-discipline guard.",
+          "author": "David K Kelly"
+        },
+        {
+          "date": "2026-05-27",
+          "version": "0.2.0",
+          "change": "Phase 1.2 delivered: src/models/typhoon/genesis.py — genesis prior sampling including hybrid truncated-normal + Pareto tail peak wind (spec eq. 14), location/heading/speed/size/regime/scenario samplers, sample_genesis and sample_genesis_ensemble. 139 tests passing total; 72 new in tests/models/typhoon/genesis.py covering analytical exceedance, inverse-exceedance round-trip, empirical-vs-analytical quantile match, EXTREME-vs-BASELINE tail mass, and reproducibility under fixed seed.",
+          "author": "David K Kelly"
+        },
+        {
+          "date": "2026-05-27",
+          "version": "0.3.0",
+          "change": "Phase 1.3 delivered: src/models/typhoon/transitions.py — one-step state propagator. Motion update (regime-conditioned Gaussian with persistence and recurvature bias, spec eq. 5), position update (equirectangular advection with dateline wrap and pole clamp, spec eqs. 6-7), wind update (over-water drift+noise / over-land exponential decay, spec eqs. 8-9), size update (log-space mean-reverting with R_max<R_outer invariant, spec eq. 10). step() and advance() top-level propagators. 193 tests passing total; 108 new in tests/models/typhoon/transitions.py.",
+          "author": "David K Kelly"
+        }
+      ],
+      "test_coverage": "Phase 1.3: 193 tests across tests/config/test_typhoon.py, tests/models/typhoon/ (data_structures, genesis, transitions, import_discipline), tests/catch/halong/test_tc.py.",
+      "last_review_date": null,
+      "rag_rating": "Amber",
+      "mrc_signoff_date": null,
+      "remediation_steps": [
+        "Complete Phase 1.2 through Phase 1.8 per phase_1_plan.md",
+        "Replace placeholder calibration with JMA RSMC Tokyo best-track-derived values (Phase 3)",
+        "Replace placeholder land mask with proper coastline polygon (Phase 3)",
+        "Add historical validation against named typhoons (Phase 3)",
+        "Present to MRC for Tier confirmation and production approval"
+      ],
+      "version_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Phase 1.1 — data structures and parameter schema."
+        },
+        {
+          "version": "0.2.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Phase 1.2 — genesis prior + tail-aware peak-wind sampling."
+        },
+        {
+          "version": "0.3.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Phase 1.3 — one-step transition model (motion, position, wind, size)."
+        }
+      ],
+      "validation_questions": [],
+      "overall_risk_rating": {
+        "computed": {
+          "validation_coverage": null,
+          "remediation_health": null,
+          "review_currency": null,
+          "assumption_risk": null,
+          "limitation_risk": null
+        },
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null
+      }
     }
   ],
   "model_chain": {

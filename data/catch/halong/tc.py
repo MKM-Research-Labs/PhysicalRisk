@@ -27,14 +27,15 @@ Exposed constants:
 - HALONG_TYPHOON_PROPERTIES       — Phase 1 placeholder property points
 """
 
-from models.typhoon.data_structures import RegimeClass, ScenarioFamily
-from models.typhoon.parameters import (
+from config.typhoon import (
     GenesisPrior,
     IntensityParams,
     MotionParams,
     PeakWindParams,
     PlausibilityWeights,
     PropertyPoint,
+    RegimeClass,
+    ScenarioFamily,
     SizeParams,
     WindFieldParams,
 )

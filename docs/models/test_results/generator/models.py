@@ -177,6 +177,16 @@ TEST_MODEL_MAP = {
     'tests/port/cdm/property_mapping.py':               'CDM-ALL',
     'tests/port/cdm/mortgage_mapping.py':               'CDM-ALL',
     'tests/port/cdm/cdm_all.py':                        'CDM-ALL',
+
+    # ---------------------------------------------------------------------------
+    # MKM-TC-001  Tropical Cyclone Progression and Wind-Field
+    # ---------------------------------------------------------------------------
+    'tests/config/test_typhoon.py':                     'MKM-TC-001',
+    'tests/models/typhoon/data_structures.py':          'MKM-TC-001',
+    'tests/models/typhoon/genesis.py':                  'MKM-TC-001',
+    'tests/models/typhoon/transitions.py':              'MKM-TC-001',
+    'tests/models/typhoon/import_discipline.py':        'MKM-TC-001',
+    'tests/catch/halong/test_tc.py':                    'MKM-TC-001',
 }
 
 MODEL_INFO = {
@@ -198,6 +208,7 @@ MODEL_INFO = {
     'MKM-FPO-001': {'name': 'Flood Polynomial Model',            'dir': 'flood_poly'},
     'MKM-DE-001': {'name': 'Delta Engine',                      'dir': 'delta_engine'},
     'MKM-BRI-001': {'name': 'Building Resilience Index Model',  'dir': 'bri_resilience'},
+    'MKM-TC-001': {'name': 'Tropical Cyclone Progression and Wind-Field', 'dir': 'typhoon'},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
     'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
@@ -213,5 +224,6 @@ MODEL_ALIASES = {
     'GHD': 'MKM-GHD-001', 'ST': 'MKM-ST-001', 'PF': 'MKM-PF-001',
     'DE': 'MKM-DE-001', 'FPO': 'MKM-FPO-001',
     'BRI': 'MKM-BRI-001',
+    'TC': 'MKM-TC-001',
     'E2E': 'E2E-ALL',
 }
