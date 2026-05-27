@@ -122,10 +122,43 @@ class CommercialReportGenerator(BaseReportGenerator):
             pages.extend(self.categories["loan"])
         return pages
 
-    def _generate_filename(self, commercial_data: Dict[str, Any]) -> str:
+    def generate_loan_focused_report(
+        self,
+        commercial_data: Dict[str, Any],
+        loan_data: Dict[str, Any],
+        output_filename: Optional[str] = None,
+    ) -> Path:
+        """Generate a loan-focused PDF (title + location + loan overview).
+
+        Same pages as the full commercial report's ``loan`` category
+        plus a title page and location for context — equivalent to
+        the residential ``generate_mortgage_focused_report`` mode on
+        PropertyReportGenerator. Output filename is prefixed
+        ``commercial_loan_report_…`` so it doesn't collide with the
+        full commercial-report file.
+        """
+        pages = ["title_overview", "location", "loan_overview"]
+        if output_filename is None:
+            output_filename = self._generate_filename(
+                commercial_data, kind="loan_report",
+            )
+        output_path = self.output_dir / output_filename
+        return self._build_pdf(
+            output_path,
+            pages,
+            commercial_data=commercial_data,
+            loan_data=loan_data,
+        )
+
+    def _generate_filename(
+        self,
+        commercial_data: Dict[str, Any],
+        kind: str = "report",
+    ) -> str:
         try:
             pid = commercial_data["CommercialAsset"]["Header"]["PropertyID"]
         except (KeyError, TypeError):
             pid = "unknown"
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"commercial_report_{pid}_{ts}.pdf"
+        prefix = "commercial_loan_report" if kind == "loan_report" else "commercial_report"
+        return f"{prefix}_{pid}_{ts}.pdf"

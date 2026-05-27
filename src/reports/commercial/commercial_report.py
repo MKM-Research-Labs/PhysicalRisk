@@ -89,3 +89,48 @@ def generate_commercial_report(
             logger.warning("Could not open PDF: %s", exc)
 
     return pdf_path
+
+
+def generate_loan_report(
+    property_id: str,
+    output_dir: Optional[Path] = None,
+    open_pdf: bool = False,
+) -> Optional[Path]:
+    """Generate a loan-focused PDF for the commercial asset's loan.
+
+    Mirrors src/reports/property/property_generator.py's
+    ``generate_mortgage_focused_report`` mode — produces a slimmer
+    PDF covering only the title, location, and commercial-loan
+    overview pages.
+
+    Returns:
+        Path to the PDF on success, ``None`` if the commercial
+        record exists but has no linked loan, or if the asset id
+        is unknown.
+    """
+    from config import config
+
+    input_dir = config.get_input_dir()
+    commercial = _load_commercial_record(property_id, input_dir)
+    if commercial is None:
+        logger.error("No commercial record for %s in %s", property_id, input_dir)
+        return None
+    loan = _load_loan_record(property_id, input_dir)
+    if loan is None:
+        logger.warning(
+            "No loan record linked to %s — cannot generate loan-focused PDF",
+            property_id,
+        )
+        return None
+
+    generator = CommercialReportGenerator(output_dir=output_dir)
+    pdf_path = generator.generate_loan_focused_report(commercial, loan)
+
+    if open_pdf:
+        try:
+            from reports.utils.open_pdf import open_pdf_file
+            open_pdf_file(pdf_path)
+        except Exception as exc:
+            logger.warning("Could not open PDF: %s", exc)
+
+    return pdf_path

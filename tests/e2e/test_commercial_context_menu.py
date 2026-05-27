@@ -458,3 +458,93 @@ class TestCommercialHazardPanel:
         assert "Commercial" in title, (
             f"Expected 'Commercial' in PRS panel title, got: {title!r}"
         )
+
+
+class TestCommercialLoanReport:
+    """Wiring for the "Loan Details" + "Generate Loan Report" menu items.
+
+    Both menu actions resolve to the same PDF-report code path
+    (window.viewLoanDetails delegates to window.generateLoanReport,
+    same pattern as viewCommercialDetails / generateCommercialReport).
+    """
+
+    def test_window_generate_loan_report_is_function(self, map_page):
+        map_page.wait_for_function(
+            "() => typeof window.generateLoanReport === 'function'",
+            timeout=10_000,
+        )
+
+    def test_window_view_loan_details_is_function(self, map_page):
+        map_page.wait_for_function(
+            "() => typeof window.viewLoanDetails === 'function'",
+            timeout=10_000,
+        )
+
+    def test_loan_report_route_returns_pdf_for_real_id(self, map_page):
+        """POST /api/v1/commercial/loan-report → 200 + base64 PDF."""
+        from pathlib import Path
+        import json as _json
+        commercial_path = Path("data/input/thames/commercial.json")
+        if not commercial_path.exists():
+            pytest.skip("No thames commercial.json on disk")
+        with open(commercial_path) as f:
+            cprop_id = (_json.load(f)["commercial_assets"][0]
+                        ["CommercialAsset"]["Header"]["PropertyID"])
+
+        result = map_page.evaluate(f"""async () => {{
+            const resp = await fetch('/api/v1/commercial/loan-report', {{
+                method: 'POST',
+                headers: {{'Content-Type': 'application/json'}},
+                body: JSON.stringify({{'propertyId': '{cprop_id}'}})
+            }});
+            const data = await resp.json();
+            return {{
+                status: resp.status,
+                hasBase64: Boolean(data && data.pdf_base64),
+                pdfMagic: data && data.pdf_base64
+                          ? atob(data.pdf_base64).substring(0, 4)
+                          : null,
+            }};
+        }}""")
+        assert result["status"] == 200, f"Status: {result['status']}"
+        assert result["hasBase64"]
+        assert result["pdfMagic"] == "%PDF"
+
+    def test_loan_report_route_returns_404_for_unknown_id(self, map_page):
+        result = map_page.evaluate("""async () => {
+            const resp = await fetch('/api/v1/commercial/loan-report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({'propertyId': 'CPROP-doesnotexist'})
+            });
+            return {status: resp.status, payload: await resp.json()};
+        }""")
+        assert result["status"] == 404
+        assert result["payload"].get("status") == "error"
+
+    def test_generate_loan_report_menu_opens_pdf_panel(self, map_page):
+        """Right-click → 'Generate Loan Report' → property-pdf-panel visible."""
+        map_page.wait_for_function(
+            "() => typeof window.generateLoanReport === 'function'",
+            timeout=10_000,
+        )
+
+        _right_click_commercial_marker(map_page)
+        menu = map_page.locator(".ctx-menu")
+        if menu.count() == 0:
+            pytest.skip("No context menu appeared")
+
+        loan_item = map_page.locator(".ctx-menu-item",
+                                     has_text="Generate Loan Report")
+        if loan_item.count() == 0:
+            pytest.skip("No 'Generate Loan Report' menu item")
+        loan_item.first.click()
+
+        map_page.wait_for_timeout(8_000)
+        panel_visible = map_page.evaluate("""() => {
+            const panel = document.getElementById('property-pdf-panel');
+            return panel !== null && panel.style.display !== 'none';
+        }""")
+        assert panel_visible, (
+            "property-pdf-panel did not open after clicking 'Generate Loan Report'"
+        )

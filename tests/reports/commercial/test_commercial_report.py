@@ -230,3 +230,62 @@ def test_base_record_route_returns_404_for_unknown_id(app):
     client = app.test_client()
     r = client.get("/api/v1/commercial/CPROP-doesnotexist")
     assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/commercial/loan-report — loan-focused PDF for the
+# "Loan Details" + "Generate Loan Report" menu items.
+# ---------------------------------------------------------------------------
+
+def test_generate_loan_report_emits_pdf(first_commercial_id, tmp_path):
+    from reports.commercial import generate_loan_report
+    pdf_path = generate_loan_report(
+        property_id=first_commercial_id, output_dir=tmp_path,
+    )
+    assert pdf_path is not None
+    assert pdf_path.exists()
+    assert pdf_path.name.startswith("commercial_loan_report_"), (
+        f"Filename should be prefixed commercial_loan_report_, got {pdf_path.name}"
+    )
+    assert pdf_path.read_bytes()[:4] == b"%PDF"
+    assert pdf_path.stat().st_size > 2000
+
+
+def test_generate_loan_report_returns_none_for_unknown_id(halong_active, tmp_path):
+    from reports.commercial import generate_loan_report
+    assert generate_loan_report(
+        property_id="CPROP-doesnotexist", output_dir=tmp_path,
+    ) is None
+
+
+def test_loan_report_route_returns_pdf_for_known_id(app, first_commercial_id):
+    client = app.test_client()
+    r = client.post("/api/v1/commercial/loan-report",
+                    json={"propertyId": first_commercial_id})
+    assert r.status_code == 200
+    payload = r.get_json()
+    assert payload["status"] == "success"
+    pdf = base64.b64decode(payload["pdf_base64"])
+    assert pdf[:4] == b"%PDF"
+
+
+def test_loan_report_route_alias_works(app, first_commercial_id):
+    """/generate_commercial_loan_report alias should mirror the canonical path."""
+    client = app.test_client()
+    r = client.post("/api/v1/generate_commercial_loan_report",
+                    json={"propertyId": first_commercial_id})
+    assert r.status_code == 200
+
+
+def test_loan_report_route_returns_404_for_unknown_id(app):
+    client = app.test_client()
+    r = client.post("/api/v1/commercial/loan-report",
+                    json={"propertyId": "CPROP-doesnotexist"})
+    assert r.status_code == 404
+    assert "not found" in r.get_json()["message"].lower()
+
+
+def test_loan_report_route_rejects_missing_property_id(app):
+    client = app.test_client()
+    r = client.post("/api/v1/commercial/loan-report", json={})
+    assert r.status_code == 400

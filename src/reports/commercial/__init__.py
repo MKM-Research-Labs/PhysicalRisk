@@ -15,7 +15,11 @@ Mirrors the property report shape but:
   - shares all other section renderers via ``reports.asset``.
 """
 
-from .commercial_report import generate_commercial_report
+from .commercial_report import generate_commercial_report, generate_loan_report
 from .generator import CommercialReportGenerator
 
-__all__ = ["CommercialReportGenerator", "generate_commercial_report"]
+__all__ = [
+    "CommercialReportGenerator",
+    "generate_commercial_report",
+    "generate_loan_report",
+]
