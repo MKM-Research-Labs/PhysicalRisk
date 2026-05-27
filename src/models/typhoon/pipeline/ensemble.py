@@ -36,6 +36,7 @@ from config.typhoon import CatchmentTyphoonConfig
 from models.typhoon.data_structures import WindFieldOutput
 from models.typhoon.pipeline.aggregation import aggregate_property_winds
 from models.typhoon.pipeline.event import (
+    pick_representative_index,
     pick_representative_trajectory,
     simulate_one_event,
 )
@@ -49,6 +50,7 @@ __all__ = [
     "simulate_typhoon_events",
     "write_ensemble_json",
     "write_event_trajectory",
+    "write_event_windts",
 ]
 
 
@@ -61,6 +63,7 @@ def simulate_typhoon_events(
     dt_hours: float = 1.0,
     use_plausibility: bool = True,
     events_output_dir: Optional[Path] = None,
+    windts_output_dir: Optional[Path] = None,
 ) -> TyphoonEventEnsemble:
     """Simulate n_events typhoons and aggregate per-property statistics.
 
@@ -97,6 +100,9 @@ def simulate_typhoon_events(
     if events_output_dir is not None:
         events_output_dir = Path(events_output_dir)
         events_output_dir.mkdir(parents=True, exist_ok=True)
+    if windts_output_dir is not None:
+        windts_output_dir = Path(windts_output_dir)
+        windts_output_dir.mkdir(parents=True, exist_ok=True)
 
     t_start = time.perf_counter()
     for event_idx in range(n_events):
@@ -110,11 +116,38 @@ def simulate_typhoon_events(
         )
         for pid, outputs in event_result.by_property.items():
             by_property[pid].extend(outputs)
-        if events_output_dir is not None:
-            representative = pick_representative_trajectory(event_result.trajectories)
-            if representative is not None:
-                event_path = events_output_dir / f"EVT-{event_idx:04d}.json"
-                write_event_trajectory(representative, event_path, event_idx=event_idx)
+
+        # Pick a single representative particle for per-event artefacts so
+        # the storm track (events/EVT-NNNN.json) and the per-property wind
+        # timeseries (windts/EVT-NNNN.json) come from the same realization.
+        rep_idx = (
+            pick_representative_index(event_result.trajectories)
+            if (events_output_dir is not None or windts_output_dir is not None)
+            else None
+        )
+
+        if events_output_dir is not None and rep_idx is not None:
+            rep_traj = event_result.trajectories[rep_idx]
+            write_event_trajectory(
+                rep_traj,
+                events_output_dir / f"EVT-{event_idx:04d}.json",
+                event_idx=event_idx,
+            )
+
+        if windts_output_dir is not None and rep_idx is not None:
+            rep_wind_outputs = {
+                pid: outputs[rep_idx]
+                for pid, outputs in event_result.by_property.items()
+            }
+            scenario = event_result.trajectories[rep_idx].scenario_family
+            write_event_windts(
+                event_id=f"EVT-{event_idx:04d}",
+                scenario_family=scenario,
+                property_wind_outputs=rep_wind_outputs,
+                output_path=windts_output_dir / f"EVT-{event_idx:04d}.json",
+                horizon_hours=horizon_hours,
+                dt_hours=dt_hours,
+            )
     elapsed = time.perf_counter() - t_start
 
     summaries: List[PropertyPeakWindSummary] = []
@@ -150,6 +183,42 @@ def write_ensemble_json(ensemble: TyphoonEventEnsemble, output_path: Path) -> No
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w") as f:
         json.dump(ensemble.to_dict(), f, indent=2)
+
+
+def write_event_windts(
+    event_id: str,
+    scenario_family,
+    property_wind_outputs: Dict[str, "WindFieldOutput"],
+    output_path: Path,
+    horizon_hours: float,
+    dt_hours: float,
+) -> None:
+    """Persist per-property wind timeseries for one event to JSON.
+
+    The on-disk shape:
+        {
+          "event_id": "EVT-0001",
+          "scenario_family": "moderate",
+          "horizon_hours": 168.0,
+          "dt_hours": 1.0,
+          "property_windts": [<WindFieldOutput.to_dict()>, ...]
+        }
+
+    Downstream consumers (flood model, BRI scoring, visual review of
+    storm progression alongside flood) read these files. One file per
+    event, one WindFieldOutput per property point.
+    """
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "event_id": event_id,
+        "scenario_family": scenario_family.value if hasattr(scenario_family, "value") else scenario_family,
+        "horizon_hours": horizon_hours,
+        "dt_hours": dt_hours,
+        "property_windts": [wf.to_dict() for wf in property_wind_outputs.values()],
+    }
+    with output_path.open("w") as f:
+        json.dump(payload, f, indent=2)
 
 
 def write_event_trajectory(

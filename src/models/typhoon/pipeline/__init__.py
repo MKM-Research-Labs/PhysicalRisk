@@ -40,9 +40,11 @@ from models.typhoon.pipeline.ensemble import (
     simulate_typhoon_events,
     write_ensemble_json,
     write_event_trajectory,
+    write_event_windts,
 )
 from models.typhoon.pipeline.event import (
     EventResult,
+    pick_representative_index,
     pick_representative_trajectory,
     simulate_one_event,
 )
@@ -57,9 +59,11 @@ __all__ = [
     "TyphoonEventEnsemble",
     "EventResult",
     "aggregate_property_winds",
+    "pick_representative_index",
     "pick_representative_trajectory",
     "simulate_one_event",
     "simulate_typhoon_events",
     "write_ensemble_json",
     "write_event_trajectory",
+    "write_event_windts",
 ]

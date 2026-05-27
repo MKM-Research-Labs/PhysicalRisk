@@ -33,7 +33,12 @@ from models.typhoon.plausibility import make_particle_plausibility
 from models.typhoon.wind_field import WindField
 
 
-__all__ = ["EventResult", "simulate_one_event", "pick_representative_trajectory"]
+__all__ = [
+    "EventResult",
+    "simulate_one_event",
+    "pick_representative_index",
+    "pick_representative_trajectory",
+]
 
 
 class EventResult(NamedTuple):
@@ -92,19 +97,32 @@ def simulate_one_event(
     return EventResult(by_property=by_property, trajectories=trajectories)
 
 
-def pick_representative_trajectory(
+def pick_representative_index(
     trajectories: List[TyphoonTrajectory],
-) -> Optional[TyphoonTrajectory]:
-    """Pick the trajectory whose peak V_max sits closest to the median.
+) -> Optional[int]:
+    """Return the index of the trajectory whose peak V_max sits closest to the median.
 
-    A simple "central tendency" choice for inspection / visualisation:
-    avoids picking the outlier with the strongest winds, gives a
-    representative storm track for the event.
+    None if the input is empty. Splitting the index-picking from the
+    trajectory-returning lets callers reuse the same representative
+    index against parallel lists (e.g. per-particle wind outputs).
     """
     if not trajectories:
         return None
     peaks = np.array([max(s.v_max_ms for s in t.states) for t in trajectories])
     median_peak = float(np.median(peaks))
-    # Index of the trajectory whose peak is closest to the median.
-    idx = int(np.argmin(np.abs(peaks - median_peak)))
+    return int(np.argmin(np.abs(peaks - median_peak)))
+
+
+def pick_representative_trajectory(
+    trajectories: List[TyphoonTrajectory],
+) -> Optional[TyphoonTrajectory]:
+    """Pick the trajectory whose peak V_max sits closest to the median.
+
+    A simple "central tendency" choice for inspection / visualisation —
+    avoids picking the outlier with the strongest winds, gives a
+    representative storm track for the event.
+    """
+    idx = pick_representative_index(trajectories)
+    if idx is None:
+        return None
     return trajectories[idx]
