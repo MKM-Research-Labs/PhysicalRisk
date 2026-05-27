@@ -79,6 +79,6 @@ def update_size(
     r_outer_new = math.exp(log_router_new)
 
     if r_outer_new <= r_max_new:
-        r_outer_new = r_max_new * 1.5
+        r_outer_new = r_max_new * params.r_outer_invariant_buffer
 
     return r_max_new, r_outer_new

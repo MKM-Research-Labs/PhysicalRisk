@@ -5,9 +5,11 @@
 
 """Shared fixtures for typhoon model tests.
 
-Fixtures use neutral test data only — no catchment-specific coordinates
-or identifiers — so the model layer can be exercised without coupling
-the tests to any particular catchment.
+All geography in this file is deliberately neutral — a 10x10 deg box
+anchored at (0, 0). The bbox is chosen so it visually maps to no real
+cyclone basin, reinforcing that the model is catchment-agnostic. Real
+catchment data (Halong, etc.) lives only under data/catch/<id>/ and
+tests/catch/<id>/.
 """
 
 from datetime import datetime
@@ -36,6 +38,24 @@ from models.typhoon.data_structures import (
 
 
 # ---------------------------------------------------------------------------
+# Canonical neutral coordinates used throughout the typhoon model tests.
+# Any test fixture that needs a position should pull from here so the test
+# suite stays free of region-suggestive literals.
+# ---------------------------------------------------------------------------
+
+TEST_BBOX = (0.0, 0.0, 10.0, 10.0)                    # neutral genesis bbox
+TEST_BBOX_INTERIOR_LON = 5.0                          # midpoint, "open water" by default mask
+TEST_BBOX_INTERIOR_LAT = 5.0
+TEST_BBOX_LAND_LON = 1.0                              # west side, "over land" by default mask
+TEST_LAND_THRESHOLD_LON = 2.0                         # mask boundary: lon < threshold is land
+
+
+def _default_land_mask(longitude: float, latitude: float) -> bool:
+    """Neutral test land mask — land on the west side of the test bbox."""
+    return longitude < TEST_LAND_THRESHOLD_LON
+
+
+# ---------------------------------------------------------------------------
 # Sample state / particle / trajectory fixtures
 # ---------------------------------------------------------------------------
 
@@ -44,8 +64,8 @@ from models.typhoon.data_structures import (
 def sample_state():
     """A canonical mid-event state, over water, moving west."""
     return TyphoonState(
-        longitude=120.0,
-        latitude=18.0,
+        longitude=TEST_BBOX_INTERIOR_LON,
+        latitude=TEST_BBOX_INTERIOR_LAT,
         translation_speed_kmh=18.0,
         heading_deg=270.0,
         v_max_ms=40.0,
@@ -61,8 +81,8 @@ def sample_state():
 def landfall_state():
     """A state with the storm over land, decaying."""
     return TyphoonState(
-        longitude=115.0,
-        latitude=21.0,
+        longitude=TEST_BBOX_LAND_LON,
+        latitude=TEST_BBOX_INTERIOR_LAT,
         translation_speed_kmh=12.0,
         heading_deg=280.0,
         v_max_ms=25.0,
@@ -103,11 +123,14 @@ def sample_trajectory(sample_state, landfall_state):
 @pytest.fixture
 def minimal_config():
     """A self-contained config built from model defaults — exercises the
-    parameter dataclass shape without referencing any catchment file."""
+    parameter dataclass shape without referencing any catchment file.
+
+    Geography is deliberately neutral (see module docstring).
+    """
     return CatchmentTyphoonConfig(
         catchment_id="test",
         genesis_prior=GenesisPrior(
-            bbox=(115.0, 15.0, 125.0, 20.0),
+            bbox=TEST_BBOX,
             heading_mean_deg=270.0,
             heading_kappa=5.0,
             speed_shape=4.0,
@@ -129,9 +152,13 @@ def minimal_config():
         size=SizeParams(),
         wind_field=WindFieldParams(),
         plausibility=PlausibilityWeights(),
-        land_mask=lambda lon, lat: lon < 117.0,
+        land_mask=_default_land_mask,
         property_points=[
-            PropertyPoint(property_id="P1", longitude=115.0, latitude=21.0),
+            PropertyPoint(
+                property_id="P1",
+                longitude=TEST_BBOX_INTERIOR_LON,
+                latitude=TEST_BBOX_INTERIOR_LAT,
+            ),
         ],
     )
 
@@ -140,8 +167,8 @@ def minimal_config():
 def sample_wind_output():
     return WindFieldOutput(
         point_id="P1",
-        longitude=115.0,
-        latitude=21.0,
+        longitude=TEST_BBOX_INTERIOR_LON,
+        latitude=TEST_BBOX_INTERIOR_LAT,
         time_hours=[0.0, 1.0, 2.0, 3.0],
         sustained_ms=[5.0, 12.0, 22.0, 14.0],
         peak_sustained_ms=22.0,

@@ -349,11 +349,12 @@ class TestSampleGenesis:
             assert lat_min <= state.latitude <= lat_max
 
     def test_land_flag_matches_mask(self, minimal_config):
-        # The minimal_config land_mask is "lon < 117.0". Check a few samples.
+        # Reuse the same threshold the conftest land_mask uses.
+        from tests.models.typhoon.conftest import TEST_LAND_THRESHOLD_LON
         rng = _rng(67)
         for _ in range(100):
             state = sample_genesis(minimal_config, ScenarioFamily.BASELINE, rng)
-            expected_land = state.longitude < 117.0
+            expected_land = state.longitude < TEST_LAND_THRESHOLD_LON
             assert state.land_flag == expected_land
 
     def test_fixed_seed_reproducible(self, minimal_config):

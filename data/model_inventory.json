@@ -4292,8 +4292,8 @@
       "complexity": "High",
       "tier_rationale": "Provisional Tier 2 pending MRC review. High complexity: Bayesian state-space + particle filter + parametric wind-field with regime-conditioned dynamics.",
       "status": "Development",
-      "lifecycle_stage": "Phase 1.4 — hand-rolled SMC particle filter",
-      "version": "0.4.0",
+      "lifecycle_stage": "Phase 1.6 — parametric wind-field forward model (package + neutralised test geography)",
+      "version": "0.6.0",
       "owner": "David K Kelly",
       "model_owner_role": "Chief Science Officer",
       "peer_reviewer": "TBD",
@@ -4412,9 +4412,27 @@
           "version": "0.4.0",
           "change": "Phase 1.4 delivered: src/models/typhoon/particle_filter.py — hand-rolled SMC engine (spec eq. 13). ParticleFilter with initialize/propagate_one_step/compute_weights/effective_sample_size/resample/run_to_horizon. Systematic resampling exposed as a module-level function. Per-particle scenario tracking preserved across resampling generations. Default ESS threshold N/4 (loose) preserves trajectory breadth in pure-simulation mode. 236 tests passing total; 43 new in tests/models/typhoon/particle_filter.py. Performance: 1000 particles x 168 hours runs in ~1.9s on dev hardware (well below 10s target).",
           "author": "David K Kelly"
+        },
+        {
+          "date": "2026-05-27",
+          "version": "0.4.1",
+          "change": "Internal refactor: src/models/typhoon/transitions.py split into a package (transitions/) — compass / position / motion / wind / size / step submodules behind a re-exporting __init__. Public API unchanged; all transition tests pass post-refactor. Sets up Phase 1.5+ work to focus on individual transition blocks.",
+          "author": "David K Kelly"
+        },
+        {
+          "date": "2026-05-27",
+          "version": "0.5.0",
+          "change": "Phase 1.5 delivered: src/models/typhoon/plausibility/ — soft simulation-mode likelihood scoring (spec p.6). Four components in dedicated submodules (heading_jump, speed_jump, basin_boundary, regime_consistency) plus a composer (score.py). plausibility_score(state, prev_state, config) returns a multiplier in (0, 1]; make_particle_plausibility(config) is the adapter consumed by ParticleFilter.compute_weights. ParticleFilter.compute_weights signature updated to pass prev_state to the scoring function. 269 tests passing total; 62 new in tests/models/typhoon/plausibility.py.",
+          "author": "David K Kelly"
+        },
+        {
+          "date": "2026-05-27",
+          "version": "0.6.0",
+          "change": "Phase 1.6 delivered: src/models/typhoon/wind_field/ — parametric wind-field forward model (second spec, eqs. 20-29). Six-submodule package: geometry (Haversine + bearing), radial (piecewise symmetric profile with outer-decay calibration), asymmetry (motion-linked correction), surface (land/sea reduction), point (composer), time_series (trajectory aggregation -> WindFieldOutput). Optional Holland backend deferred to a later phase. Tests mirror the source structure: tests/models/typhoon/wind_field/ has eight files (per-component plus the WindField convenience class). All shared model-test geography neutralised — minimal_config bbox moved to (0, 0, 10, 10) so no test fixture evokes a real cyclone basin. 314 tests passing total; 45 new wind-field tests.",
+          "author": "David K Kelly"
         }
       ],
-      "test_coverage": "Phase 1.4: 236 tests across tests/config/test_typhoon.py, tests/models/typhoon/ (data_structures, genesis, transitions, particle_filter, import_discipline), tests/catch/halong/test_tc.py.",
+      "test_coverage": "Phase 1.6: 314 tests across tests/config/test_typhoon.py, tests/models/typhoon/ (data_structures, genesis, transitions, particle_filter, plausibility, wind_field/, import_discipline), tests/catch/halong/test_tc.py.",
       "last_review_date": null,
       "rag_rating": "Amber",
       "mrc_signoff_date": null,
@@ -4449,6 +4467,24 @@
           "date": "2026-05-27",
           "status": "Development",
           "description": "Phase 1.4 — hand-rolled SMC particle filter."
+        },
+        {
+          "version": "0.4.1",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Refactor — transitions split into a package."
+        },
+        {
+          "version": "0.5.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Phase 1.5 — plausibility scoring (soft simulation-mode likelihoods)."
+        },
+        {
+          "version": "0.6.0",
+          "date": "2026-05-27",
+          "status": "Development",
+          "description": "Phase 1.6 — parametric wind-field forward model (package layout, neutralised test geography)."
         }
       ],
       "validation_questions": [],
