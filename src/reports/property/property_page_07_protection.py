@@ -141,19 +141,28 @@ class ProtectionPage(PropertyBasePage):
                     elements.append(bri_table)
                     elements.append(Spacer(1, self.spacing['table_bottom']))
 
-                # Any remaining scalar fields
-                skip = {'InsuranceBodyRatings', 'GoverningBodyRatings', 'InsurancePremium', 'ExcessAmount'}
-                extra = [(k, v) for k, v in risk_assessment.items() if k not in skip and not isinstance(v, dict) and v is not None]
-                if extra:
+                # Insurance scalars (Premium, Excess) + any remaining scalar fields
+                # are collected into a single "Insurance Factor" table. The table
+                # is rendered whenever ANY of those scalars is present — earlier
+                # versions skipped the whole table if `extra` was empty, which
+                # meant a property with only InsurancePremium produced no output.
+                skip = {'InsuranceBodyRatings', 'GoverningBodyRatings',
+                        'InsurancePremium', 'ExcessAmount'}
+                extra = [(k, v) for k, v in risk_assessment.items()
+                         if k not in skip and not isinstance(v, dict) and v is not None]
+                premium = risk_assessment.get('InsurancePremium')
+                excess = risk_assessment.get('ExcessAmount')
+                if extra or isinstance(premium, (int, float)) or isinstance(excess, (int, float)):
                     extra_data = [["Insurance Factor", "Details"]]
-                    premium = risk_assessment.get('InsurancePremium')
                     if isinstance(premium, (int, float)):
-                        extra_data.append(["Annual Insurance Premium", self._format_currency(premium)])
-                    excess = risk_assessment.get('ExcessAmount')
+                        extra_data.append(["Annual Insurance Premium",
+                                           self._format_currency(premium)])
                     if isinstance(excess, (int, float)):
-                        extra_data.append(["Insurance Excess", self._format_currency(excess)])
+                        extra_data.append(["Insurance Excess",
+                                           self._format_currency(excess)])
                     for k, v in extra:
-                        extra_data.append([self._format_field_name(k), self._format_value(v)])
+                        extra_data.append([self._format_field_name(k),
+                                           self._format_value(v)])
                     extra_table = Table(extra_data, colWidths=self.table_widths['two_col'])
                     extra_table.setStyle(self.table_styles['financial'])
                     elements.append(extra_table)
@@ -275,12 +284,26 @@ class ProtectionPage(PropertyBasePage):
         return elements
 
     def _generate_protection_recommendations(self, protection_data: Dict[str, Any]) -> Dict[str, str]:
-        """Generate protection recommendations based on current measures."""
+        """Generate protection recommendations based on current measures.
+
+        Handles two data shapes that appear in different parts of the
+        codebase:
+
+        - **Nested** (production): ``ResilienceMeasures.FloodProtection.<key>``
+          carries a rating string (Enhanced/Meets/Partial/None). Partial/None
+          ratings drive the "Flood Protection" and "Site & Drainage" categories.
+        - **Flat boolean** (legacy + tests): ``ResilienceMeasures.<key>`` /
+          ``NaturalMeasures.<key>`` carries a bool. A False value drives the
+          "Priority Installations" and "Natural Solutions" categories.
+
+        Plus a Flood-Re flag on the RiskAssessment sub-dict drives the
+        "Insurance" category.
+        """
         recommendations = {}
 
         resilience_measures = protection_data.get('ResilienceMeasures', {})
 
-        # Flag any flood protection items rated Partial or None
+        # --- Nested rating-shape (production) ---
         flood_prot = resilience_measures.get('FloodProtection', {})
         needs_attention = [
             f"Upgrade {self._format_field_name(k)} (currently: {v})"
@@ -290,7 +313,6 @@ class ProtectionPage(PropertyBasePage):
         if needs_attention:
             recommendations["Flood Protection"] = needs_attention
 
-        # Flag site/drainage gaps
         site = resilience_measures.get('SiteAndDrainage', {})
         site_gaps = [
             f"Address {self._format_field_name(k)} (currently: {v})"
@@ -300,7 +322,28 @@ class ProtectionPage(PropertyBasePage):
         if site_gaps:
             recommendations["Site & Drainage"] = site_gaps
 
-        # Insurance recommendations
+        # --- Flat boolean shape ---
+        # Top-level False entries directly under ResilienceMeasures are
+        # treated as missing critical installations.
+        missing_critical = [
+            f"Install {self._format_field_name(k)}"
+            for k, v in resilience_measures.items()
+            if not isinstance(v, dict) and v is False
+        ]
+        if missing_critical:
+            recommendations["Priority Installations"] = missing_critical
+
+        # Same convention for NaturalMeasures.
+        natural_measures = protection_data.get('NaturalMeasures', {})
+        missing_natural = [
+            f"Consider {self._format_field_name(k)}"
+            for k, v in natural_measures.items()
+            if not isinstance(v, dict) and v is False
+        ]
+        if missing_natural:
+            recommendations["Natural Solutions"] = missing_natural
+
+        # --- Insurance ---
         risk_assessment = protection_data.get('RiskAssessment', {})
         flood_re_eligible = risk_assessment.get('FloodReEligible')
         if flood_re_eligible:
