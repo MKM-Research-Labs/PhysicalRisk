@@ -11,6 +11,7 @@ has changed since a downstream step was last executed.
 # ``lineage.validation.load_manifest`` etc. land correctly.
 from lineage.manifest import (  # noqa: F401
     DEPENDENCY_GRAPH,
+    OPTIONAL_STEPS,
     STEP_IO,
     hash_directory,
     hash_file,

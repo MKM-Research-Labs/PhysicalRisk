@@ -73,8 +73,15 @@ def get_models():
         else:
             review_status = "Not Scheduled"
 
-        remediation_steps = m.get("remediation_steps", [])
-        open_remediations = sum(1 for r in remediation_steps if r.get("status") == "Open")
+        # remediation_steps may be either list-of-dicts (structured) or
+        # list-of-strings (legacy/freeform). String entries can't have a
+        # status, so they're counted as 0 open. Defensive against either
+        # shape to avoid 500-ing the whole inventory endpoint.
+        remediation_steps = m.get("remediation_steps") or []
+        open_remediations = sum(
+            1 for r in remediation_steps
+            if isinstance(r, dict) and r.get("status") == "Open"
+        )
 
         summary.append({
             "model_id": m["model_id"],
@@ -101,8 +108,16 @@ def get_models():
             "limitations_count": len(m.get("limitations", [])),
             "assumptions_count": len(m.get("assumptions", [])),
             "open_remediations": open_remediations,
-            "has_benchmark": m.get("test_coverage", {}).get("benchmark_tests", False),
-            "risk_rating": m.get("overall_risk_rating", {}).get("effective_rating", "Not Rated"),
+            # test_coverage may be a dict (structured) or a string (legacy
+            # freeform). Only ask for keys when it's a dict.
+            "has_benchmark": (
+                m.get("test_coverage", {}).get("benchmark_tests", False)
+                if isinstance(m.get("test_coverage"), dict) else False
+            ),
+            "risk_rating": (
+                m.get("overall_risk_rating", {}).get("effective_rating", "Not Rated")
+                if isinstance(m.get("overall_risk_rating"), dict) else "Not Rated"
+            ),
             "validation_coverage": _vq_summary(m),
         })
 

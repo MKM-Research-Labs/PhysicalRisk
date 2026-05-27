@@ -119,6 +119,8 @@ def run_commercialhc(ctx: StageContext):
             (ctx.run_all and ctx.commercial_exists and (ctx.input_dir / 'commercialts').exists())):
         return
     print("8d. Building Commercial Hazard Curves + PRS Pricing...")
+    inputs = _hc_inputs(ctx, "commercialts")
+    pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.commercial_gen.CommercialHazardCurveGenerator(ctx.output_dir, verbose=args.verbose).generate()
     elapsed = time.time() - t_step
@@ -129,6 +131,16 @@ def run_commercialhc(ctx: StageContext):
     avg_tr = r.get('avg_transmission_rate', 0) * 100
     print(f"   {total} commercial assets  |  {processed} processed  |  {skipped} skipped")
     print(f"   avg spread: {avg_spread:.1f} bps  |  avg transmission: {avg_tr:.1f}%")
+    ctx.record(
+        step_name="commercialhc",
+        generator="port.src.commercial.CommercialHazardCurveGenerator",
+        inputs=inputs,
+        input_hashes=pre,
+        outputs={"commercialhc.json": ctx.input_dir / "commercialhc.json"},
+        parameters={},
+        elapsed_seconds=elapsed,
+        stale_name="commercialhc",
+    )
     print()
 
 
@@ -138,12 +150,23 @@ def run_commercialshd(ctx: StageContext):
             (ctx.run_all and ctx.commercial_exists and (ctx.input_dir / 'commercialtsd').exists())):
         return
     print("8e. Building Synthetic Distance Hazard Curves (commercialshd)...")
+    inputs = _hc_inputs(ctx, "commercialtsd")
+    pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.commercial_gen.CommercialHazardCurveGenerator(ctx.output_dir, verbose=args.verbose, mode="shd").generate()
     elapsed = time.time() - t_step
     total = r.get('total_properties', '?')
     avg_spread = r.get('avg_spread_bps', 0)
     print(f"   {total} commercial assets  |  avg spread: {avg_spread:.1f} bps")
+    ctx.record(
+        step_name="commercialshd",
+        generator="port.src.commercial.CommercialHazardCurveGenerator(mode=shd)",
+        inputs=inputs,
+        outputs={"commercialshd.json": ctx.input_dir / "commercialshd.json"},
+        parameters={"mode": "shd"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
     print()
 
 
@@ -153,12 +176,23 @@ def run_commercialshe(ctx: StageContext):
             (ctx.run_all and ctx.commercial_exists and (ctx.input_dir / 'commercialtse').exists())):
         return
     print("8f. Building Synthetic Elevation Hazard Curves (commercialshe)...")
+    inputs = _hc_inputs(ctx, "commercialtse")
+    pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.commercial_gen.CommercialHazardCurveGenerator(ctx.output_dir, verbose=args.verbose, mode="she").generate()
     elapsed = time.time() - t_step
     total = r.get('total_properties', '?')
     avg_spread = r.get('avg_spread_bps', 0)
     print(f"   {total} commercial assets  |  avg spread: {avg_spread:.1f} bps")
+    ctx.record(
+        step_name="commercialshe",
+        generator="port.src.commercial.CommercialHazardCurveGenerator(mode=she)",
+        inputs=inputs,
+        outputs={"commercialshe.json": ctx.input_dir / "commercialshe.json"},
+        parameters={"mode": "she"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
     print()
 
 

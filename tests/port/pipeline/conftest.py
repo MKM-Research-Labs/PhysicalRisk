@@ -51,13 +51,19 @@ def port_admin_pw(monkeypatch, tmp_path):
     overwriting real ``gauge.json``).
     """
     from app.commands import port as port_cmd
+    from app.commands.port import auth as port_auth
 
     admin_file = tmp_path / ".port_admin"
     salt = os.urandom(16).hex()
     h = hashlib.sha256((salt + _TEST_PORT_PW).encode()).hexdigest()
     admin_file.write_text(json.dumps({"salt": salt, "hash": h}))
 
+    # Patch both the re-exported alias in app.commands.port and the
+    # actual module-level binding in app.commands.port.auth — the verify
+    # function looks up the name locally in auth.py, so patching only
+    # the re-export silently misses.
     monkeypatch.setattr(port_cmd, "_ADMIN_FILE", admin_file)
+    monkeypatch.setattr(port_auth, "_ADMIN_FILE", admin_file)
     monkeypatch.setenv("MKM_PORT_ADMIN_PASSWORD", _TEST_PORT_PW)
 
     original_input_dir = getattr(config, "input_dir", None)

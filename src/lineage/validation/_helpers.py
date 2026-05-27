@@ -90,12 +90,14 @@ def _current_hash(artifact_name: str, manifest_step: dict):
 
 
 def _resolve_data_dir() -> Path:
-    """Resolve the pipeline data directory."""
+    """Resolve the pipeline data directory for the active catchment."""
     try:
         from config import PortfolioConfig
         return Path(PortfolioConfig().get_input_dir())
     except (ImportError, AttributeError):
-        return Path(__file__).resolve().parents[3] / "data" / "input" / "thames"
+        import os
+        catchment = os.getenv("MKM_CATCHMENT", "thames")
+        return Path(__file__).resolve().parents[3] / "data" / "input" / catchment
 
 
 def _live_hash(artifact: str, data_dir: Path | None = None) -> str | None:

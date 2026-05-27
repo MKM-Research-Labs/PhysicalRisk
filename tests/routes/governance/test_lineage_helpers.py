@@ -25,9 +25,10 @@ class TestCheckStaleness:
         monkeypatch.setattr(config, "get_input_dir",
                             lambda: pathlib.Path(lineage_env["tmp_path"]))
         from routes.governance.lineage import _check_staleness
+        from routes.governance.lineage._trace import _PIPELINE_STEPS
 
         results = _check_staleness(None)
-        assert len(results) == 14
+        assert len(results) == len(_PIPELINE_STEPS)
         for r in results:
             assert r["status"] == "missing"
             assert "Output not found on disk" in r["issues"]

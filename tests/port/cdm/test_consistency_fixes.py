@@ -114,6 +114,25 @@ class TestYearsSince:
     def test_bad_string(self):
         assert _years_since("not a date") is None
 
+    def test_datetime_instance(self):
+        from datetime import datetime
+        dt = datetime.now() - timedelta(days=365)
+        assert _years_since(dt) == pytest.approx(1.0, abs=0.01)
+
+    def test_date_instance(self):
+        d = date.today() - timedelta(days=365 * 4)
+        assert _years_since(d) == pytest.approx(4.0, abs=0.01)
+
+    def test_unsupported_type_returns_none(self):
+        # Integers/other types fall through to the `else: return None` branch.
+        assert _years_since(12345) is None
+        assert _years_since([2020, 1, 1]) is None
+
+    def test_future_date_clamped_to_zero(self):
+        # Negative interval clamps to 0.0, not negative.
+        d = (date.today() + timedelta(days=365)).isoformat()
+        assert _years_since(d) == 0.0
+
 
 # ---------------------------------------------------------------------------
 # _apply_consistency_fixes — individual rules

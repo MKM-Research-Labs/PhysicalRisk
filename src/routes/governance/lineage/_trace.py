@@ -23,23 +23,30 @@
 import os
 from datetime import datetime, timedelta
 
-# Pipeline steps in execution order with expected output files
-_PIPELINE_STEPS = [
-    {"step": "gauges", "generator": "port (step 1)", "output": "gauge.json"},
-    {"step": "properties", "generator": "port (step 2)", "output": "property.json"},
-    {"step": "mortgages", "generator": "port (step 3)", "output": "mortgage.json"},
-    {"step": "gaugehd", "generator": "port (step 4)", "output": "gaugehd/"},
-    {"step": "stressm", "generator": "port (step 5)", "output": "gaugets/"},
-    {"step": "hazard", "generator": "port (step 6)", "output": "gaugehc.json"},
-    {"step": "propertyts", "generator": "port (step 7)", "output": "propertyts/"},
-    {"step": "propertytsd", "generator": "port (step 7a)", "output": "propertytsd/"},
-    {"step": "propertytse", "generator": "port (step 7b)", "output": "propertytse/"},
-    {"step": "propertyhc", "generator": "port (step 8)", "output": "propertyhc.json"},
-    {"step": "propertyshd", "generator": "port (step 8a)", "output": "propertyshd.json"},
-    {"step": "propertyshe", "generator": "port (step 8b)", "output": "propertyshe.json"},
-    {"step": "counterparties", "generator": "port (step 9)", "output": "counterparty.json"},
-    {"step": "blotter", "generator": "port (step 10)", "output": "prs/"},
-]
+def _build_pipeline_steps():
+    """Derive pipeline-step descriptors from the lineage registry so the
+    governance staleness route stays in sync with DEPENDENCY_GRAPH /
+    STEP_IO automatically. Steps are emitted in topological order; the
+    representative output is the first declared in STEP_IO."""
+    from graphlib import TopologicalSorter
+
+    from lineage.manifest import DEPENDENCY_GRAPH, STEP_IO
+
+    topo_order = list(TopologicalSorter(DEPENDENCY_GRAPH).static_order())
+    steps: list[dict] = []
+    for i, step_name in enumerate(topo_order, start=1):
+        io = STEP_IO.get(step_name)
+        if io is None or not io["outputs"]:
+            continue
+        steps.append({
+            "step": step_name,
+            "generator": f"port (step {i})",
+            "output": io["outputs"][0],
+        })
+    return steps
+
+
+_PIPELINE_STEPS = _build_pipeline_steps()
 
 # Staleness threshold — centralised in config/port.py
 from config.port import LINEAGE_STALE_HOURS as _STALE_HOURS

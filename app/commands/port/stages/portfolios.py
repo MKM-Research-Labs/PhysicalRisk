@@ -127,10 +127,9 @@ def run_commercial_portfolio(ctx: StageContext):
     if not args.commercial:
         return
     print("3a. Generating Commercial Portfolio...")
-    t_step = time.time()
+    t_start = time.time()
     r = ctx.commercial_gen.CommercialPortfolioGenerator(
         ctx.output_dir, verbose=False).generate(args.num_commercial)
-    elapsed = time.time() - t_step
     n = len(r['data']['commercial_assets'])
     stats = r.get('processing_stats', {})
     ok = stats.get('successful_assets', n)
@@ -144,11 +143,22 @@ def run_commercial_portfolio(ctx: StageContext):
     print(f"   Type mix: {mix}")
 
     print("3b. Generating Commercial Loans...")
-    t_step = time.time()
     rl = ctx.commercial_loan_gen_cls(ctx.output_dir, verbose=False).generate()
-    elapsed = time.time() - t_step
+    elapsed = time.time() - t_start
     nl = len(rl['data']['commercial_loans'])
     print(f"   {nl} commercial loans generated  →  commercial_loan.json")
+    ctx.record(
+        step_name="commercial",
+        generator="port.src.commercial.CommercialPortfolioGenerator",
+        inputs={},
+        outputs={
+            "commercial.json": ctx.input_dir / "commercial.json",
+            "commercial_loan.json": ctx.input_dir / "commercial_loan.json",
+        },
+        parameters={"num_commercial": args.num_commercial},
+        elapsed_seconds=elapsed,
+        stale_name="commercial",
+    )
     print()
 
 

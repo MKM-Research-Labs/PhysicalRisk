@@ -2885,7 +2885,7 @@
       "model_id": "MKM-FC-001",
       "name": "Flood Probability Classifier",
       "short_name": "Flood Classifier",
-      "description": "Gradient Boosting Machine (GBM) classifier estimating per-gauge flood probability as a function of water level, storm hour, velocity, and acceleration: F(w,t,\u0394w,\u0394\u00b2w) \u2192 P(flood). Trained on stress test vectors with time-decaying noise injection. v1.2 adds hydrograph derivative features (velocity, acceleration) enabling rising/falling asymmetry; AUC improved from 0.9189 to 0.9557.",
+      "description": "Gradient Boosting Machine (GBM) classifier estimating per-gauge flood probability as a function of water level, storm hour, velocity, and acceleration: F(w,t,Δw,Δ²w) → P(flood). Trained on stress test vectors with time-decaying noise injection. v1.2 adds hydrograph derivative features (velocity, acceleration) enabling rising/falling asymmetry; AUC improved from 0.9189 to 0.9557.",
       "category": "Stress Testing",
       "tier": 2,
       "materiality": "Medium",
@@ -2946,7 +2946,7 @@
         },
         {
           "id": "FC-L2",
-          "description": "Binary classification only \u2014 no severity estimation",
+          "description": "Binary classification only — no severity estimation",
           "impact": "Medium",
           "monitoring_trigger": "Stress P&L underestimates from ignoring flood depth",
           "compensating_control": "Conservative notional assumptions in P&L calculation"
@@ -2960,14 +2960,14 @@
         },
         {
           "id": "FC-L4",
-          "description": "Stationarity assumed \u2014 no climate change adjustment",
+          "description": "Stationarity assumed — no climate change adjustment",
           "impact": "Medium",
           "monitoring_trigger": "Significant trend in flood frequency",
           "compensating_control": "Annual retraining with updated storm catalogue"
         }
       ],
       "known_failure_modes": [
-        "Single-class gauges (all flood or no flood) are skipped \u2014 cannot train classifier",
+        "Single-class gauges (all flood or no flood) are skipped — cannot train classifier",
         "Very low flood rate gauges may have unstable AUC due to small positive class",
         "Early-hour predictions are intentionally uncertain due to noise regime"
       ],
@@ -3262,7 +3262,7 @@
         "SEQUENCE_TYPE_WEIGHTS (doublet/cluster/persistent by category)",
         "DURATION_PARAMS (min/mode/max triangular by category)",
         "GAP_PARAMS (SHORT/MEDIUM triangular)",
-        "INTENSITY_VARIATION (\u00b120%)",
+        "INTENSITY_VARIATION (±20%)",
         "CORRELATION_PROB (0.70)",
         "EVENT_WINDOW_HOURS (168)",
         "MIN_DRAINAGE_WINDOW_HOURS (12)"
@@ -3852,7 +3852,7 @@
       "model_id": "MKM-FPO-001",
       "name": "Flood Polynomial Model",
       "short_name": "Flood Poly",
-      "description": "Logistic sigmoid with quadratic polynomial kernel approximating the GBM flood classifier. Maps log-space water level ln(w/s) and storm time ln((t+1)/T) to P(flood) via six fitted coefficients. R\u00b2=0.94 against the full GBM surface. Used for portfolio stress (time-independent variant) and single-gauge stress scenarios.",
+      "description": "Logistic sigmoid with quadratic polynomial kernel approximating the GBM flood classifier. Maps log-space water level ln(w/s) and storm time ln((t+1)/T) to P(flood) via six fitted coefficients. R²=0.94 against the full GBM surface. Used for portfolio stress (time-independent variant) and single-gauge stress scenarios.",
       "category": "Stress Testing",
       "tier": 3,
       "materiality": "Low",
@@ -3872,7 +3872,7 @@
         "Cubic polynomial",
         "Full GBM classifier"
       ],
-      "methodology_rationale": "Quadratic sigmoid captures the essential water level \u00d7 time interaction with only 6 parameters. Linear interpolation loses the time dimension; step functions create discontinuities; cubic adds marginal accuracy (MAE 0.033 vs 0.046) with more parameters; full GBM requires per-gauge trained models which are not always available.",
+      "methodology_rationale": "Quadratic sigmoid captures the essential water level × time interaction with only 6 parameters. Linear interpolation loses the time dimension; step functions create discontinuities; cubic adds marginal accuracy (MAE 0.033 vs 0.046) with more parameters; full GBM requires per-gauge trained models which are not always available.",
       "assumptions": [
         {
           "id": "FPO-A1",
@@ -3885,21 +3885,21 @@
           "id": "FPO-A2",
           "description": "Quadratic polynomial is sufficient to approximate the GBM decision surface",
           "impact": "Low",
-          "monitoring": "Track R\u00b2 and MAE against GBM surface at each retraining cycle",
-          "mitigation": "Upgrade to cubic polynomial if R\u00b2 drops below 0.90"
+          "monitoring": "Track R² and MAE against GBM surface at each retraining cycle",
+          "mitigation": "Upgrade to cubic polynomial if R² drops below 0.90"
         },
         {
           "id": "FPO-A3",
           "description": "Delta features (velocity, acceleration) can be ignored without material loss of accuracy",
           "impact": "Low",
-          "monitoring": "Compare polynomial predictions against 4-feature GBM at steady-state (\u0394w=0)",
+          "monitoring": "Compare polynomial predictions against 4-feature GBM at steady-state (Δw=0)",
           "mitigation": "Add derivative interaction terms if steady-state assumption proves inadequate"
         }
       ],
       "limitations": [
         {
           "id": "FPO-L1",
-          "description": "Fitted from a single gauge (GAUGE-dc5e88fb) \u2014 may not generalize to all catchments",
+          "description": "Fitted from a single gauge (GAUGE-dc5e88fb) — may not generalize to all catchments",
           "impact": "Medium",
           "monitoring_trigger": "Cross-gauge MAE exceeds 0.10 against GBM baseline",
           "compensating_control": "Use full GBM classifier where trained models are available"
@@ -3930,15 +3930,15 @@
         {
           "name": "c (h*t interaction)",
           "value": 26.549,
-          "description": "Coefficient for water level \u00d7 time interaction"
+          "description": "Coefficient for water level × time interaction"
         },
         {
-          "name": "d (h\u00b2 quadratic)",
+          "name": "d (h² quadratic)",
           "value": -22.8893,
           "description": "Coefficient for quadratic water level term"
         },
         {
-          "name": "e (t\u00b2 quadratic)",
+          "name": "e (t² quadratic)",
           "value": -7.0794,
           "description": "Coefficient for quadratic time term"
         },
@@ -4444,16 +4444,57 @@
           "author": "David K Kelly"
         }
       ],
-      "test_coverage": "Phase 1.7: 337 tests across tests/config/test_typhoon.py, tests/models/typhoon/ (data_structures, genesis, transitions, particle_filter, plausibility, wind_field/, pipeline/, import_discipline), tests/catch/halong/test_tc.py.",
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": false,
+        "benchmark_tests": false,
+        "test_file": "tests/models/typhoon/",
+        "notes": "Phase 1.7: 337 tests across tests/config/test_typhoon.py, tests/models/typhoon/ (data_structures, genesis, transitions, particle_filter, plausibility, wind_field/, pipeline/, import_discipline), tests/catch/halong/test_tc.py."
+      },
       "last_review_date": null,
       "rag_rating": "Amber",
       "mrc_signoff_date": null,
       "remediation_steps": [
-        "Complete Phase 1.2 through Phase 1.8 per phase_1_plan.md",
-        "Replace placeholder calibration with JMA RSMC Tokyo best-track-derived values (Phase 3)",
-        "Replace placeholder land mask with proper coastline polygon (Phase 3)",
-        "Add historical validation against named typhoons (Phase 3)",
-        "Present to MRC for Tier confirmation and production approval"
+        {
+          "id": "TC-R1",
+          "description": "Complete Phase 1.2 through Phase 1.8 per phase_1_plan.md",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "TC-R2",
+          "description": "Replace placeholder calibration with JMA RSMC Tokyo best-track-derived values (Phase 3)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "TC-R3",
+          "description": "Replace placeholder land mask with proper coastline polygon (Phase 3)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "TC-R4",
+          "description": "Add historical validation against named typhoons (Phase 3)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "TC-R5",
+          "description": "Present to MRC for Tier confirmation and production approval",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        }
       ],
       "version_history": [
         {
@@ -4513,22 +4554,23 @@
       ],
       "validation_questions": [],
       "overall_risk_rating": {
-        "computed": {
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null,
+        "component_scores": {
           "validation_coverage": null,
           "remediation_health": null,
           "review_currency": null,
           "assumption_risk": null,
           "limitation_risk": null
         },
-        "effective_rating": "Conditional",
-        "mrc_override": null,
-        "mrc_override_reason": null,
-        "mrc_override_date": null,
-        "mrc_override_by": null,
-        "last_calculated": null
+        "calculated_rating": "Conditional",
+        "calculated_score": null
       }
-    }
-    ,
+    },
     {
       "model_id": "MKM-WS-001",
       "name": "Event Wind Lookup",
@@ -4596,7 +4638,9 @@
       "input_data": "TyphoonTrajectory (loaded from EVT-*.json produced by MKM-TC-001 pipeline) or in-memory; query (hour, longitude, latitude).",
       "output_data": "Sustained wind speed in m/s at the query point.",
       "downstream_models": [],
-      "upstream_models": ["MKM-TC-001"],
+      "upstream_models": [
+        "MKM-TC-001"
+      ],
       "validation_status": "Not yet validated",
       "validation_date": null,
       "next_review_date": null,
@@ -4613,13 +4657,33 @@
           "author": "David K Kelly"
         }
       ],
-      "test_coverage": "Initial release: tests under tests/models/windspeed/ — interpolation, loader, query, timeseries.",
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": false,
+        "benchmark_tests": false,
+        "test_file": "tests/models/windspeed/",
+        "notes": "Initial release: tests under tests/models/windspeed/ — interpolation, loader, query, timeseries."
+      },
       "last_review_date": null,
       "rag_rating": "Amber",
       "mrc_signoff_date": null,
       "remediation_steps": [
-        "Validate against MKM-TC-001 event outputs at known points",
-        "Performance profile under realistic portfolio load (100k+ queries)"
+        {
+          "id": "WS-R1",
+          "description": "Validate against MKM-TC-001 event outputs at known points",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "WS-R2",
+          "description": "Performance profile under realistic portfolio load (100k+ queries)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        }
       ],
       "version_history": [
         {
@@ -4631,22 +4695,23 @@
       ],
       "validation_questions": [],
       "overall_risk_rating": {
-        "computed": {
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null,
+        "component_scores": {
           "validation_coverage": null,
           "remediation_health": null,
           "review_currency": null,
           "assumption_risk": null,
           "limitation_risk": null
         },
-        "effective_rating": "Conditional",
-        "mrc_override": null,
-        "mrc_override_reason": null,
-        "mrc_override_date": null,
-        "mrc_override_by": null,
-        "last_calculated": null
+        "calculated_rating": "Conditional",
+        "calculated_score": null
       }
-    }
-    ,
+    },
     {
       "model_id": "MKM-WD-001",
       "name": "Wind Damage",
@@ -4726,7 +4791,11 @@
       "input_data": "Per-event wind timeseries (windts/EVT-NNNN.json from MKM-TC-001) + property portfolio (property.json / commercial.json) with optional WindThresholdKph and BRI scores in the resilience CDM.",
       "output_data": "Per-event damage JSON at data/<catch>/typhoon/damage/EVT-NNNN.json — per-property damage_ratio in [0,1] plus peak / threshold / v_50_eff for traceability.",
       "downstream_models": [],
-      "upstream_models": ["MKM-TC-001", "MKM-WS-001", "MKM-BRI-001"],
+      "upstream_models": [
+        "MKM-TC-001",
+        "MKM-WS-001",
+        "MKM-BRI-001"
+      ],
       "validation_status": "Not yet validated",
       "validation_date": null,
       "next_review_date": null,
@@ -4743,14 +4812,41 @@
           "author": "David K Kelly"
         }
       ],
-      "test_coverage": "Initial release: tests under tests/models/winddamage/ — vulnerability (sigmoid invariants + BRI composition), bri_shift (cap / sign / monotonicity), cdm (record navigation), threshold (CDM -> v_50 fallback), extraction (windts loader), event (composer + disk round-trip).",
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": false,
+        "benchmark_tests": false,
+        "test_file": "tests/models/winddamage/",
+        "notes": "Initial release: tests under tests/models/winddamage/ — vulnerability (sigmoid invariants + BRI composition), bri_shift (cap / sign / monotonicity), cdm (record navigation), threshold (CDM -> v_50 fallback), extraction (windts loader), event (composer + disk round-trip)."
+      },
       "last_review_date": null,
       "rag_rating": "Amber",
       "mrc_signoff_date": null,
       "remediation_steps": [
-        "Calibrate sigmoid parameters and BRI weights against historical loss data (Phase 3)",
-        "Validate per-archetype damage ratios against published vulnerability curves",
-        "Decide on gust-factor integration before commercial portfolio rollout"
+        {
+          "id": "WD-R1",
+          "description": "Calibrate sigmoid parameters and BRI weights against historical loss data (Phase 3)",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "WD-R2",
+          "description": "Validate per-archetype damage ratios against published vulnerability curves",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "WD-R3",
+          "description": "Decide on gust-factor integration before commercial portfolio rollout",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        }
       ],
       "version_history": [
         {
@@ -4762,19 +4858,21 @@
       ],
       "validation_questions": [],
       "overall_risk_rating": {
-        "computed": {
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null,
+        "component_scores": {
           "validation_coverage": null,
           "remediation_health": null,
           "review_currency": null,
           "assumption_risk": null,
           "limitation_risk": null
         },
-        "effective_rating": "Conditional",
-        "mrc_override": null,
-        "mrc_override_reason": null,
-        "mrc_override_date": null,
-        "mrc_override_by": null,
-        "last_calculated": null
+        "calculated_rating": "Conditional",
+        "calculated_score": null
       }
     }
   ],
@@ -4801,7 +4899,7 @@
           {
             "name": "intensity_factor",
             "type": "float",
-            "description": "Multiplier on base precipitation (0.1\u20135.0)"
+            "description": "Multiplier on base precipitation (0.1–5.0)"
           },
           {
             "name": "storm_id",
@@ -4811,7 +4909,7 @@
           {
             "name": "peak_position",
             "type": "float",
-            "description": "Position of peak within storm (0\u20131)"
+            "description": "Position of peak within storm (0–1)"
           }
         ]
       },
@@ -4932,22 +5030,22 @@
           {
             "name": "gev_shape",
             "type": "float",
-            "description": "GEV shape parameter (\u03be); 0 = Gumbel"
+            "description": "GEV shape parameter (ξ); 0 = Gumbel"
           },
           {
             "name": "gev_loc",
             "type": "float",
-            "description": "GEV location parameter (\u03bc)"
+            "description": "GEV location parameter (μ)"
           },
           {
             "name": "gev_scale",
             "type": "float",
-            "description": "GEV scale parameter (\u03c3)"
+            "description": "GEV scale parameter (σ)"
           },
           {
             "name": "term_structure[]",
             "type": "array",
-            "description": "Cumulative default probabilities by year (1\u20135yr); drives CDS spread"
+            "description": "Cumulative default probabilities by year (1–5yr); drives CDS spread"
           }
         ]
       },
@@ -4976,7 +5074,7 @@
           {
             "name": "flood_risk_category",
             "type": "string",
-            "description": "Risk category (Very Low\u2013Very High); drives credit spread loading"
+            "description": "Risk category (Very Low–Very High); drives credit spread loading"
           },
           {
             "name": "latitude",
@@ -5000,7 +5098,7 @@
           {
             "name": "damage_ratio",
             "type": "float",
-            "description": "Fraction of property value destroyed (0\u20131); from UK depth-damage curve"
+            "description": "Fraction of property value destroyed (0–1); from UK depth-damage curve"
           },
           {
             "name": "flood_depth_m",
@@ -5039,7 +5137,7 @@
           {
             "name": "recovery_rate",
             "type": "float",
-            "description": "Recovery rate by trigger level (0.50\u20130.85)"
+            "description": "Recovery rate by trigger level (0.50–0.85)"
           }
         ]
       },

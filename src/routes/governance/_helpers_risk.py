@@ -119,11 +119,14 @@ def _calculate_risk_rating(model):
     coverage = addressed / max(applicable, 1)
 
     # 2. remediation_health (25%): penalise open and overdue items
+    # remediation_steps may be list-of-dicts (structured) or list-of-strings
+    # (legacy/freeform). Only dict entries can have a status/due_date.
     today = datetime.now().strftime("%Y-%m-%d")
-    rem = model.get("remediation_steps", [])
-    open_count = sum(1 for r in rem if r.get("status") == "Open")
+    rem = model.get("remediation_steps") or []
+    rem_dicts = [r for r in rem if isinstance(r, dict)]
+    open_count = sum(1 for r in rem_dicts if r.get("status") == "Open")
     overdue_count = sum(
-        1 for r in rem
+        1 for r in rem_dicts
         if r.get("status") == "Open" and r.get("due_date") and r["due_date"] < today
     )
     rem_score = max(0.0, min(1.0, 1.0 - 0.15 * open_count - 0.25 * overdue_count))

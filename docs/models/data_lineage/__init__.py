@@ -98,6 +98,14 @@ STEP_OWNERS = {
     'propertyshe':    'Quantitative Analytics',
     'counterparties': 'Data Engineering',
     'blotter':        'Trading / Risk',
+    'typhoon':          'Quantitative Analytics',
+    'commercial':       'Data Engineering',
+    'commercialts':     'Quantitative Analytics',
+    'commercialtsd':    'Quantitative Analytics',
+    'commercialtse':    'Quantitative Analytics',
+    'commercialhc':     'Quantitative Analytics',
+    'commercialshd':    'Quantitative Analytics',
+    'commercialshe':    'Quantitative Analytics',
 }
 
 # ---------------------------------------------------------------------------

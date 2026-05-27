@@ -154,7 +154,9 @@ class TestGetStepLineage:
         with patch("lineage.query.load_manifest", return_value=manifest):
             result = get_step_lineage("gauges")
         assert result["upstream"] == []
-        assert "properties" in result["downstream"]
+        # gauges' immediate downstream is synthetic_gauges + gaugehd
+        # (properties depends on synthetic_gauges, not gauges directly)
+        assert "synthetic_gauges" in result["downstream"]
         assert result["last_run"] == "r1"
         assert result["inputs"] == []
         assert "gauge.json" in result["outputs"]

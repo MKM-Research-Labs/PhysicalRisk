@@ -143,7 +143,12 @@ class TestNostressFlag:
     """Tests for --nostress flag behaviour in cmd_port."""
 
     def _make_args(self, **kwargs):
-        """Build a minimal args namespace for cmd_port."""
+        """Build a minimal args namespace for cmd_port.
+
+        Note ``catchment_id="thames"`` — without it ``resolve_catchment``
+        falls through to an interactive ``input()`` prompt which raises
+        OSError under pytest's stdout capture.
+        """
         import argparse
         defaults = dict(
             all=False, gauges=False, properties=False, mortgages=False,
@@ -151,11 +156,19 @@ class TestNostressFlag:
             propertyts=False, propertytsd=False, propertytse=False,
             propertyhc=False, propertyshd=False, propertyshe=False,
             counterparties=False, blotter=False, stressm=False,
+            # Commercial + typhoon stages added later — orchestrator reads
+            # all of these unconditionally when assembling segment_flags.
+            commercial=False, commercialts=False, commercialtsd=False,
+            commercialtse=False, commercialhc=False, commercialshd=False,
+            commercialshe=False, typhoon=False,
+            num_typhoon_events=10, num_typhoon_particles=10,
+            typhoon_seed=42, typhoon_no_plausibility=False,
             train_classifiers=False, nostress=False,
             gauge_id=None, strict=False, pdf=False,
             num_properties=2, num_gauges=2, num_storms=10,
             simulation_hours=12, history_years=1,
             tail_weight=2.0, distribution='gev', verbose=False,
+            catchment_id="thames",
         )
         defaults.update(kwargs)
         return argparse.Namespace(**defaults)

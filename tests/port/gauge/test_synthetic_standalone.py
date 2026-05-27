@@ -27,10 +27,28 @@ class TestSyntheticGaugeStandalone:
         synths = self._get_synthetics()
         assert len(synths) > 0, "No synthetic gauges found in gauge.json"
 
-    def test_at_least_100_synthetics(self):
-        """Should generate enough synthetics for the portfolio."""
+    def test_synthetics_match_property_count(self):
+        """Synthetic count should track the property portfolio size.
+
+        The generator targets one synthetic per property (see
+        app/commands/port/stages/portfolios.py — count=args.num_properties).
+        After dedup (50m), a few candidates may drop but most should
+        survive. Allow a generous 50% margin to absorb the dedup loss.
+        """
+        prop_path = config.get_input_dir() / "property.json"
+        if not prop_path.exists():
+            pytest.skip("property.json not found")
+        with open(prop_path) as f:
+            n_props = len(json.load(f).get("properties", []))
+        if n_props == 0:
+            pytest.skip("Empty property portfolio")
+
         synths = self._get_synthetics()
-        assert len(synths) >= 100, f"Only {len(synths)} synthetics, expected >= 100"
+        min_expected = max(1, int(n_props * 0.5))
+        assert len(synths) >= min_expected, (
+            f"Only {len(synths)} synthetics for {n_props} properties; "
+            f"expected >= {min_expected} (50% of property count, after dedup)"
+        )
 
     def test_synthetic_has_elevation(self):
         synths = self._get_synthetics()

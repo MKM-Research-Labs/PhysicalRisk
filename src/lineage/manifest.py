@@ -39,14 +39,13 @@ LINEAGE_PATH = _project_root / "data" / "data_lineage.json"
 # ---------------------------------------------------------------------------
 DEPENDENCY_GRAPH = {
     "gauges":             [],
-    # Pipeline order is gauges -> synthetic_gauges -> properties (commit
-    # 48b2d113 "restructure pipeline: synthetic gauges first, properties
-    # placed relative").  synthetic_gauges writes back into gauge.json
-    # before properties runs, so properties' producer of gauge.json is
-    # tracked via the gauges edge (gauge.json's hash on properties matches
-    # whatever was last written, whether by gauges or synthetic_gauges).
     "synthetic_gauges":   ["gauges"],
-    "properties":         ["gauges"],
+    # properties depends on synthetic_gauges (not gauges) because
+    # synthetic_gauges overwrites gauge.json before properties reads it.
+    # Without this edge, _find_producer resolves to gauges and the
+    # consumer/producer hash comparison flags properties as stale on
+    # every successful run.
+    "properties":         ["synthetic_gauges"],
     "mortgages":          ["properties"],
     "gaugehd":            ["gauges", "synthetic_gauges"],
     "stressm":            ["synthetic_gauges", "gaugehd"],
@@ -59,12 +58,28 @@ DEPENDENCY_GRAPH = {
     "propertyshe":        ["propertytse", "hazard"],
     "counterparties":     [],
     "blotter":            ["hazard", "counterparties"],
+    "typhoon":            ["properties"],
+    "commercial":         ["synthetic_gauges"],
+    "commercialts":       ["commercial", "hazard"],
+    "commercialtsd":      ["commercialts"],
+    "commercialtse":      ["commercialts"],
+    "commercialhc":       ["commercialts", "hazard"],
+    "commercialshd":      ["commercialtsd", "hazard"],
+    "commercialshe":      ["commercialtse", "hazard"],
 }
 
 # External inputs: config/data files consumed by pipeline steps but not
 # produced by any step.  The freshness check compares recorded hashes
 # against the live file on disk instead of against a producer step.
 EXTERNAL_INPUTS: set[str] = {"storm_control.json"}
+
+# Optional steps: opt-in stages whose absence is expected for catchments
+# that don't enable them. `typhoon` only runs for catchments with a
+# `data/catch/<id>/tc.py` (tropical-cyclone exposure). When a step in
+# this set has ZERO outputs on disk, the completeness check treats it
+# as "not enabled" and skips it. If some outputs exist but others
+# don't, the step is treated as partially-broken (still flagged).
+OPTIONAL_STEPS: set[str] = {"typhoon"}
 
 STEP_IO = {
     "gauges":         {"inputs": [],
@@ -102,6 +117,28 @@ STEP_IO = {
                        "outputs": ["prs/", "blotter/eod/",
                                    "blotter/market_state.json",
                                    "blotter/trade_marks.json"]},
+    # typhoon's recorded inputs are catchment code files (tc.py), not
+    # data artifacts produced by other steps, so STEP_IO inputs is empty.
+    # The DEPENDENCY_GRAPH edge to properties captures pipeline ordering.
+    "typhoon":        {"inputs": [],
+                       "outputs": ["typhoon/ensemble.json",
+                                   "typhoon/events/",
+                                   "typhoon/windts/",
+                                   "typhoon/damage/"]},
+    "commercial":     {"inputs": [],
+                       "outputs": ["commercial.json", "commercial_loan.json"]},
+    "commercialts":   {"inputs": ["commercial.json", "gauge.json", "gaugets/"],
+                       "outputs": ["commercialts/"]},
+    "commercialtsd":  {"inputs": ["commercial.json", "gauge.json", "gaugets/"],
+                       "outputs": ["commercialtsd/"]},
+    "commercialtse":  {"inputs": ["commercial.json", "gauge.json", "gaugets/"],
+                       "outputs": ["commercialtse/"]},
+    "commercialhc":   {"inputs": ["commercialts/", "gaugehc.json", "gauge.json"],
+                       "outputs": ["commercialhc.json"]},
+    "commercialshd":  {"inputs": ["commercialtsd/", "gaugehc.json", "gauge.json"],
+                       "outputs": ["commercialshd.json"]},
+    "commercialshe":  {"inputs": ["commercialtse/", "gaugehc.json", "gauge.json"],
+                       "outputs": ["commercialshe.json"]},
 }
 
 # ---------------------------------------------------------------------------
@@ -270,7 +307,8 @@ def repair_manifest(data_dir: str | Path | None = None) -> dict:
             from config import PortfolioConfig
             data_dir = Path(PortfolioConfig().get_input_dir())
         except (ImportError, AttributeError):
-            data_dir = Path(__file__).resolve().parents[2] / "data" / "input" / "thames"
+            catchment = os.getenv("MKM_CATCHMENT", "thames")
+            data_dir = Path(__file__).resolve().parents[2] / "data" / "input" / catchment
     else:
         data_dir = Path(data_dir)
 

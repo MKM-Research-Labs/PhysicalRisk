@@ -64,6 +64,7 @@ from .book_common import (  # noqa: F401
     _compute_leg_pvs,
     _load_counterparties,
     _price_and_save_trade,
+    _REIT_PARTY_ID,
 )
 
 # Re-export Thames Central book
@@ -113,7 +114,8 @@ def generate_market_making_book(
     if not curves:
         raise ValueError('No hazard curves found in gaugehc.json')
 
-    # Load counterparties
+    # Load counterparties — exclude the REIT (reserved for property PRS
+    # trades only; gauge PRS uses external counterparties).
     counterparties = []
     if counterparty_path.exists():
         with open(counterparty_path) as f:
@@ -121,9 +123,12 @@ def generate_market_making_book(
         for c in ctpy_data.get('counterparties', []):
             cs = c.get('CounterpartySet', {})
             party = cs.get('Party', {})
+            party_id = party.get('PartyID', '')
+            if party_id == _REIT_PARTY_ID:
+                continue
             platform = cs.get('_platform', {})
             counterparties.append({
-                'id': party.get('PartyID', ''),
+                'id': party_id,
                 'name': f"{platform.get('ShortName', party.get('PartyName', ''))} ({platform.get('CreditRating', 'NR')})",
             })
 
