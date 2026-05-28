@@ -4272,197 +4272,216 @@
       "counterparties",
       "blotter",
       "stressm"
+    ],
+    "run-20260527-193253": [
+      "gauges",
+      "synthetic_gauges",
+      "properties",
+      "mortgages",
+      "gaugehd",
+      "stressm",
+      "hazard",
+      "propertyts"
     ]
   },
   "steps": {
     "gauges": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.693405",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:32:53.179609",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.GaugePortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 0.018,
       "parameters": {
-        "num_gauges": 2
+        "num_gauges": 52
       },
       "inputs": {},
       "outputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "921151a6a91a7bbb4aa393993b787864a0076d3d5c9db6b1e292d088a9789832",
+          "type": "file"
         }
       }
     },
     "properties": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.698525",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:33:16.332996",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.PropertyPortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 22.904,
       "parameters": {
-        "num_properties": 2
+        "num_properties": 200
       },
       "inputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "05c89ef5b029be39b571eac24ae39aa896e2e88d0e3a905fc046da1bfce9c37a",
+          "type": "file"
         }
       },
       "outputs": {
         "property.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "d1029958fdd0eb81a61499d79754f21e3b760904a8c81880627dde4ffe64859c",
+          "type": "file"
         }
       }
     },
     "mortgages": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.700695",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:33:16.363999",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.mortgage.MortgagePortfolioGenerator",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 0.027,
       "parameters": {},
       "inputs": {
         "property.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "d1029958fdd0eb81a61499d79754f21e3b760904a8c81880627dde4ffe64859c",
+          "type": "file"
         }
       },
       "outputs": {
         "mortgage.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "68e6e74bd48eb457038b3623c1eea092654a9e887544272530de628f08a194eb",
+          "type": "file"
         }
       }
     },
     "gaugehd": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.702881",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:33:39.661142",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.gaugehd",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 23.118,
       "parameters": {
-        "history_years": 1
+        "history_years": 50
       },
       "inputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "05c89ef5b029be39b571eac24ae39aa896e2e88d0e3a905fc046da1bfce9c37a",
+          "type": "file"
         }
       },
       "outputs": {
         "gaugehd/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "0f9ab69974ac2978734ddba1a25a9b5ac29cd55c8bf11adac235bda5fc62afa4",
+          "file_count": 112,
+          "type": "directory"
         }
       }
     },
     "stressm": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.758065",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:43:27.627853",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.stressm.generate_stressm",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 581.053,
       "parameters": {
-        "num_storms": 10
+        "num_storms": 20000
       },
       "inputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "05c89ef5b029be39b571eac24ae39aa896e2e88d0e3a905fc046da1bfce9c37a",
+          "type": "file"
         },
         "gaugehd/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "0f9ab69974ac2978734ddba1a25a9b5ac29cd55c8bf11adac235bda5fc62afa4",
+          "file_count": 112,
+          "type": "directory"
         }
       },
       "outputs": {
         "gaugets/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "3987438ea81d68c7d69797a76f9eeee6f4431606d67871ce6deae0d13b075f94",
+          "file_count": 112,
+          "type": "directory"
         },
         "stress_storms/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "2686b9c7084252f0f1d86e1a179f57ce32f308f713c78221104b81eed3f55a5f",
+          "file_count": 15037,
+          "type": "directory"
         },
         "storm_sequences.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "b4e9bdd21013e3b4d99f8ec618e0185d896a536b451774778af58b7d79c67e76",
+          "type": "file"
         },
         "sequence_gauge/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "89e1c9366b5b33272deea5260c1d86f1448a6f5703e5536f036f0e94dff67060",
+          "file_count": 113,
+          "type": "directory"
         }
       }
     },
     "hazard": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.705204",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:45:19.545021",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.hazard.build_hazard_curves",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 105.575,
       "parameters": {
         "distribution": "gev"
       },
       "inputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "05c89ef5b029be39b571eac24ae39aa896e2e88d0e3a905fc046da1bfce9c37a",
+          "type": "file"
         },
         "gaugets/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "3987438ea81d68c7d69797a76f9eeee6f4431606d67871ce6deae0d13b075f94",
+          "file_count": 112,
+          "type": "directory"
         }
       },
       "outputs": {
         "gaugehc.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "6ebd103797259539af35e8f76e6937d61ce1aaf0c83c948fe040f5eecd737a58",
+          "type": "file"
         },
         "gaugets/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "863f5b4078b284e20882f4201a8f50f444fae9bc4f59adc5d5aa311973858f70",
+          "file_count": 112,
+          "type": "directory"
         }
       }
     },
     "propertyts": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.707435",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:50:46.285294",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.property.propertyts.PropertyTimeSeriesGenerator",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 319.026,
       "parameters": {},
       "inputs": {
         "property.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "d1029958fdd0eb81a61499d79754f21e3b760904a8c81880627dde4ffe64859c",
+          "type": "file"
         },
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "05c89ef5b029be39b571eac24ae39aa896e2e88d0e3a905fc046da1bfce9c37a",
+          "type": "file"
         },
         "gaugets/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "863f5b4078b284e20882f4201a8f50f444fae9bc4f59adc5d5aa311973858f70",
+          "file_count": 112,
+          "type": "directory"
         }
       },
       "outputs": {
         "propertyts/": {
-          "hash": null,
-          "type": "missing"
+          "hash": "887bf25eb87506c0aff990674f3d3d7bf632cbd890dc557b773d7737ef528ffb",
+          "file_count": 201,
+          "type": "directory"
         }
       }
     },
@@ -4554,26 +4573,26 @@
       }
     },
     "synthetic_gauges": {
-      "run_id": "run-20260527-185349",
-      "timestamp": "2026-05-27T18:53:49.696041",
+      "run_id": "run-20260527-193253",
+      "timestamp": "2026-05-27T19:32:53.422707",
       "user": "newdavid",
       "hostname": "Davids-MacBook-Pro-4.local",
       "generator": "port.src.gauge.synthetic.SyntheticGaugeGenerator",
       "status": "success",
-      "elapsed_seconds": 0.0,
+      "elapsed_seconds": 0.239,
       "parameters": {
-        "count": 2
+        "count": 200
       },
       "inputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "921151a6a91a7bbb4aa393993b787864a0076d3d5c9db6b1e292d088a9789832",
+          "type": "file"
         }
       },
       "outputs": {
         "gauge.json": {
-          "hash": null,
-          "type": "missing"
+          "hash": "05c89ef5b029be39b571eac24ae39aa896e2e88d0e3a905fc046da1bfce9c37a",
+          "type": "file"
         }
       }
     },
