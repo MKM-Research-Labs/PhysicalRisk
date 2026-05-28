@@ -114,6 +114,12 @@ def generate_market_making_book(
     if not curves:
         raise ValueError('No hazard curves found in gaugehc.json')
 
+    # Synthetic gauges (SYNTH-*) are interpolation anchors, not real
+    # market-quoted instruments — never trade against them.
+    curves = {gid: c for gid, c in curves.items() if not gid.startswith('SYNTH-')}
+    if not curves:
+        raise ValueError('No real (non-SYNTH) hazard curves found in gaugehc.json')
+
     # Load counterparties — exclude the REIT (reserved for property PRS
     # trades only; gauge PRS uses external counterparties).
     counterparties = []
