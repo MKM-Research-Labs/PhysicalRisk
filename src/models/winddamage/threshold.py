@@ -20,22 +20,20 @@
 
 """Threshold resolution — property record → v_50 (m/s) for the damage curve.
 
-The CDM carries the operational threshold in km/h
-(`ProtectionMeasures.HazardProfile.WindThresholdKph`). The damage curve
-takes m/s. This module is the single converter, with a fallback to the
-configured default when the field is absent.
+The CDM now carries the operational threshold in m/s
+(`ProtectionMeasures.HazardProfile.WindThresholdMajorMps`). Legacy records
+may still carry `WindThresholdKph` instead — extract_wind_threshold_mps
+handles the conversion. This module is the single converter, with a
+fallback to the configured default when neither field is present.
 """
 
 from config.damage import DEFAULT_WIND_THRESHOLD_KPH
-from models.winddamage.cdm import extract_wind_threshold_kph
+from models.winddamage.cdm import extract_wind_threshold_mps
 
 
 __all__ = ["KMH_TO_MS", "kph_to_ms", "resolve_threshold_ms"]
 
 
-# 1 km/h = 1000 m / 3600 s. Same conversion used in the wind-field
-# asymmetry module; redefined locally so this module has zero internal
-# dependencies beyond config.
 KMH_TO_MS: float = 1.0 / 3.6
 
 
@@ -47,10 +45,11 @@ def resolve_threshold_ms(property_record: dict) -> float:
     """Return the property's operational v_50 in m/s.
 
     Resolution rule:
-        1. CDM field WindThresholdKph present       → ../3.6
-        2. else                                     → DEFAULT_WIND_THRESHOLD_KPH / 3.6
+        1. CDM field WindThresholdMajorMps present     → use directly
+        2. CDM field WindThresholdKph present (legacy) → / 3.6
+        3. else                                        → DEFAULT_WIND_THRESHOLD_KPH / 3.6
     """
-    kph = extract_wind_threshold_kph(property_record)
-    if kph is None:
-        kph = DEFAULT_WIND_THRESHOLD_KPH
-    return kph_to_ms(kph)
+    mps = extract_wind_threshold_mps(property_record)
+    if mps is not None:
+        return mps
+    return kph_to_ms(DEFAULT_WIND_THRESHOLD_KPH)

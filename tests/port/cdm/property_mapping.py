@@ -39,10 +39,28 @@ _PROPERTY_SKIP = {
 _KNOWN_OPTIONAL_MISSING = {
     "PropertyHeader.Construction.RetrofitYear",
     "PropertyHeader.Location.BuildingName",
-    "PropertyHeader.Location.SubBuildingName",
     "ProtectionMeasures.HazardProfile.WindThresholdKph",
     "HistoryAndIncidents.FloodEvents.LastFloodDateHistory",
     "HistoryAndIncidents.GroundConditions.LastGroundIssueDate",
+    # Fixture-driven optionals: thames property.json has these as null /
+    # not-present for the seed that generated it. The generator may produce
+    # them on some seeds (e.g. LastClaimDate is gated on a 45% random roll).
+    "PropertyHeader.RiskAssessment.LastFloodDate",
+    "TransactionHistory.Insurance.LastClaimDate",
+    # Phase 2 fields not yet in the on-disk thames property.json fixture.
+    # Remove once the fixture is regenerated. Contract behaviour is
+    # exercised by tests/port/rand/halong/test_bri_codes.py against fresh
+    # generator output.
+    "ProtectionMeasures.HazardProfile.WindThresholdMajorMps",
+    "ProtectionMeasures.HazardProfile.WindThresholdMinorMps",
+    "ProtectionMeasures.HazardProfile.WaterThresholdMajorM",
+    "ProtectionMeasures.HazardProfile.WaterThresholdMinorM",
+    "ProtectionMeasures.HazardProfile.FlashThresholdMajorM",
+    "ProtectionMeasures.HazardProfile.FlashThresholdMinorM",
+    "ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIWaterRating",
+    "ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIWaterScore",
+    "ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIFlashRating",
+    "ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIFlashScore",
 }
 
 

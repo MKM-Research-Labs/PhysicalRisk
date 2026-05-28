@@ -238,6 +238,25 @@ def get_field_generators() -> Dict[str, Callable]:
         "BRIWindScore":      lambda _: None,
         "BRIFireScore":      lambda _: None,
         "BRISeismicScore":   lambda _: None,
+        # Water / Flash split-rating fields — populated by halong commercial
+        # only. Thames leaves them blank.
+        "BRIWaterRating":    lambda _: None,
+        "BRIWaterScore":     lambda _: None,
+        "BRIFlashRating":    lambda _: None,
+        "BRIFlashScore":     lambda _: None,
+        # HazardProfile split thresholds — populated by halong commercial only.
+        "WindThresholdMajorMps": lambda _: None,
+        "WindThresholdMinorMps": lambda _: None,
+        "WaterThresholdMajorM":  lambda _: None,
+        "WaterThresholdMinorM":  lambda _: None,
+        "FlashThresholdMajorM":  lambda _: None,
+        "FlashThresholdMinorM":  lambda _: None,
+        # IndustryGroups — empty everywhere except halong commercial.
+        "WindCodes":    lambda _: [],
+        "WaterCodes":   lambda _: [],
+        "FlashCodes":   lambda _: [],
+        "FireCodes":    lambda _: [],
+        "SeismicCodes": lambda _: [],
 
         # Insurance body ratings (was previously named RiskRating).
         "InsuranceRating":        lambda _: random.choice(['Very low', 'Low', 'Medium', 'High', 'Very high']),

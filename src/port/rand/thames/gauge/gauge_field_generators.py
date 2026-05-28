@@ -140,6 +140,14 @@ def generate_decimal_value(field_name: str, field_def: Dict, index: int, metadat
         return metadata['flood_warning']
     elif field_name == 'SevereFloodWarning':
         return metadata['severe_flood_warning']
+    elif field_name == 'FlashMinor':
+        return round(metadata['severe_flood_warning'] + 3.0, 2)
+    elif field_name == 'FlashMajor':
+        return round(metadata['severe_flood_warning'] + 5.0, 2)
+    elif field_name == 'TsunamiMinor':
+        return round(metadata['severe_flood_warning'] + 5.0, 2)
+    elif field_name == 'TsunamiMajor':
+        return round(metadata['severe_flood_warning'] + 10.0, 2)
     elif field_name == 'GaugeLatitude':
         return metadata['location']['lat']
     elif field_name == 'GaugeLongitude':

@@ -156,6 +156,32 @@ GAUGE_SCHEMA = {
                 "SevereFloodWarning": {
                     "type": "decimal",
                     "description": "Water level that triggers severe flood warning"
+                },
+                "FlashMinor": {
+                    "type": "decimal",
+                    "description": "Minor flash-flood / storm-surge stage (gauge level, m). "
+                                   "Computed as SevereFloodWarning + 3 m at generation time. "
+                                   "Above this stage, properties whose Flash protection is "
+                                   "graded only B are exposed."
+                },
+                "FlashMajor": {
+                    "type": "decimal",
+                    "description": "Major flash-flood / storm-surge stage (gauge level, m). "
+                                   "Computed as SevereFloodWarning + 5 m at generation time. "
+                                   "Above this stage, even Grade-A flash protection is overtopped."
+                },
+                "TsunamiMinor": {
+                    "type": "decimal",
+                    "description": "Minor tsunami stage (gauge level, m). Computed as "
+                                   "SevereFloodWarning + 5 m at generation time. Properties "
+                                   "with only Grade-B water (tsunami) protection are exposed "
+                                   "above this stage."
+                },
+                "TsunamiMajor": {
+                    "type": "decimal",
+                    "description": "Major tsunami stage (gauge level, m). Computed as "
+                                   "SevereFloodWarning + 10 m at generation time. Even "
+                                   "Grade-A water (tsunami) protection is overtopped above this."
                 }
             }
         },

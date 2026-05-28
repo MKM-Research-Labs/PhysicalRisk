@@ -29,7 +29,7 @@ from port.cdm.asset.resilience import (
 )
 
 
-_VALID_TYPES = {"string", "text", "menu", "decimal", "integer", "boolean", "date"}
+_VALID_TYPES = {"string", "text", "text[]", "menu", "decimal", "integer", "boolean", "date"}
 
 
 def _walk_leaves(node, path=""):

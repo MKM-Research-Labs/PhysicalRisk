@@ -28,7 +28,7 @@ Submodules:
     vulnerability.py  scalar_peak_damage(v), bri_peak_damage(v, threshold, ...)
     bri_shift.py      bri_v50_shift(bri_wind, bri_composite)
     cdm.py            property-record navigation (id, threshold, BRI scores)
-    threshold.py      WindThresholdKph -> v_50 (m/s), with default fallback
+    threshold.py      WindThresholdMajorMps -> v_50 (m/s), legacy WindThresholdKph alias, default fallback
     extraction.py     load windts/EVT-NNNN.json -> per-property peak winds
     event.py          per-event composer: windts + portfolio -> damage JSON
 """
