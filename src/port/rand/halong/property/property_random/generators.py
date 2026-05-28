@@ -238,6 +238,29 @@ def get_field_generators() -> Dict[str, Callable]:
         "BRIWindScore":      lambda _: None,
         "BRIFireScore":      lambda _: None,
         "BRISeismicScore":   lambda _: None,
+        # Water / Flash split-rating fields. The spreadsheet's prototypes are
+        # commercial-only; for residential we leave them null and let the
+        # BRI helper fall back to the legacy flat "Flood" rating.
+        "BRIWaterRating":    lambda _: None,
+        "BRIWaterScore":     lambda _: None,
+        "BRIFlashRating":    lambda _: None,
+        "BRIFlashScore":     lambda _: None,
+        # HazardProfile split thresholds — populated by halong commercial
+        # generators only. Residential keeps the legacy WindThresholdKph
+        # path (when present) and leaves the new fields blank.
+        "WindThresholdMajorMps": lambda _: None,
+        "WindThresholdMinorMps": lambda _: None,
+        "WaterThresholdMajorM":  lambda _: None,
+        "WaterThresholdMinorM":  lambda _: None,
+        "FlashThresholdMajorM":  lambda _: None,
+        "FlashThresholdMinorM":  lambda _: None,
+        # IndustryGroups BRI measure codes — populated for halong commercial
+        # from the SE-Asia prototype catalogue. Empty list everywhere else.
+        "WindCodes":    lambda _: [],
+        "WaterCodes":   lambda _: [],
+        "FlashCodes":   lambda _: [],
+        "FireCodes":    lambda _: [],
+        "SeismicCodes": lambda _: [],
 
         # Insurance body ratings (was previously named RiskRating).
         "InsuranceRating":        lambda _: random.choice(['Very low', 'Low', 'Medium', 'High', 'Very high']),

@@ -32,6 +32,7 @@ import logging
 from flask import jsonify, request
 
 from config import config
+from port.typhoon_storm_link import get_linkage
 
 from . import _get_propertyts_dir, propertyts_bp
 
@@ -215,6 +216,14 @@ def list_flood_storms():
     # Round estimated_damage for JSON
     for entry in flooding_storms:
         entry['estimated_damage'] = round(entry.get('estimated_damage', 0))
+
+    # Attach the typhoon "additional circumstance" to the top-N storms that
+    # the severity-bucket linkage paired with a typhoon event. Storms not
+    # in the linkage stay as water-only (typhoon=None) — no breaking change
+    # for existing consumers.
+    storm_to_typhoon = get_linkage().get('storm_to_typhoon', {})
+    for entry in flooding_storms:
+        entry['typhoon'] = storm_to_typhoon.get(entry['storm_id'])
 
     # Sort order — ?sort= query parameter, default 'damage'
     sort_mode = request.args.get('sort', 'damage')

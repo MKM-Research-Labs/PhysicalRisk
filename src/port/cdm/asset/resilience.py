@@ -120,12 +120,50 @@ HAZARD_PROFILE_SCHEMA = {
         "type": "decimal",
         "description": "Site design wind speed in km/h corresponding to WindHazardClass"
     },
+    "WindThresholdMajorMps": {
+        "type": "decimal",
+        "description": "Operational peak sustained wind (m/s) the property can withstand "
+                       "with Grade-A wind protection; consumed as the 50%-damage threshold "
+                       "(v_50) by the wind damage model. SE-Asia commercial Grade-A ~ 69.4 m/s "
+                       "(250 km/h). Replaces the legacy WindThresholdKph (still readable as a "
+                       "deprecated alias = MajorMps x 3.6)."
+    },
+    "WindThresholdMinorMps": {
+        "type": "decimal",
+        "description": "Operational peak sustained wind (m/s) the property can withstand "
+                       "with Grade-B wind protection. SE-Asia commercial Grade-B ~ 55.6 m/s "
+                       "(200 km/h). Used as the lower bound of the wind-damage curve."
+    },
+    "WaterThresholdMajorM": {
+        "type": "decimal",
+        "description": "Water (tsunami/storm-surge) overtopping height the property can "
+                       "withstand with Grade-A protection, in metres above the local gauge "
+                       "SevereFloodWarning level. SE-Asia commercial Grade-A = 10 m."
+    },
+    "WaterThresholdMinorM": {
+        "type": "decimal",
+        "description": "Water (tsunami/storm-surge) overtopping height the property can "
+                       "withstand with Grade-B protection, in metres above the local gauge "
+                       "SevereFloodWarning level. SE-Asia commercial Grade-B = 5 m."
+    },
+    "FlashThresholdMajorM": {
+        "type": "decimal",
+        "description": "Flash-flood / fluvial overtopping height the property can withstand "
+                       "with Grade-A protection, in metres above the local gauge "
+                       "SevereFloodWarning level. SE-Asia commercial Grade-A = 5 m."
+    },
+    "FlashThresholdMinorM": {
+        "type": "decimal",
+        "description": "Flash-flood / fluvial overtopping height the property can withstand "
+                       "with Grade-B protection, in metres above the local gauge "
+                       "SevereFloodWarning level. SE-Asia commercial Grade-B = 3 m."
+    },
     "WindThresholdKph": {
         "type": "decimal",
-        "description": "Operational peak sustained wind (km/h) the property can withstand "
-                       "before significant damage; consumed as the 50%-damage threshold "
-                       "(v_50) by the wind damage model. Default ~100 kph for residential "
-                       "when absent."
+        "description": "DEPRECATED: legacy single-grade wind threshold in km/h. Retained "
+                       "as a read-only alias = WindThresholdMajorMps x 3.6 so existing "
+                       "fixtures and the wind damage model continue to resolve. New writers "
+                       "MUST populate WindThresholdMajorMps / WindThresholdMinorMps instead."
     },
     "DesignFloodReturnYr": {
         "type": "integer",
@@ -172,11 +210,35 @@ RATINGS_SCHEMA = {
         "BRIFloodRating": {
             "type": "menu",
             "options": ["AA", "A", "B", "NR", "N/A"],
-            "description": "BRI sub-rating for flood resilience (N/A when FloodHazardClass is None)"
+            "description": "BRI sub-rating for the overall water envelope. Auto-computed as "
+                           "min(BRIWaterRating, BRIFlashRating) when both are present. "
+                           "N/A when FloodHazardClass is None."
         },
         "BRIFloodScore": {
             "type": "decimal",
             "description": "BRI sub-score for flood resilience (0.0-1.0); null when FloodHazardClass is None"
+        },
+        "BRIWaterRating": {
+            "type": "menu",
+            "options": ["AA", "A", "B", "NR", "N/A"],
+            "description": "BRI sub-rating for water (tsunami / storm-surge) resilience. "
+                           "Drives WaterThresholdMajorM / WaterThresholdMinorM coverage. "
+                           "N/A when the asset has no tsunami or storm-surge exposure."
+        },
+        "BRIWaterScore": {
+            "type": "decimal",
+            "description": "BRI sub-score for water (tsunami / storm-surge) resilience (0.0-1.0)"
+        },
+        "BRIFlashRating": {
+            "type": "menu",
+            "options": ["AA", "A", "B", "NR", "N/A"],
+            "description": "BRI sub-rating for flash-flood / fluvial resilience. Drives "
+                           "FlashThresholdMajorM / FlashThresholdMinorM coverage. N/A when "
+                           "the asset has no flash-flood exposure."
+        },
+        "BRIFlashScore": {
+            "type": "decimal",
+            "description": "BRI sub-score for flash-flood / fluvial resilience (0.0-1.0)"
         },
         "BRIWindRating": {
             "type": "menu",
@@ -216,6 +278,35 @@ RATINGS_SCHEMA = {
         "BRIRatingAgent": {
             "type": "string",
             "description": "Verifier or certifier that performed the BRI assessment (e.g., Bureau Veritas)"
+        },
+        "IndustryGroups": {
+            "WindCodes": {
+                "type": "text[]",
+                "description": "Free-string list of industry BRI wind-resilience measure codes "
+                               "applied to the asset (e.g. ['WD02','WD04','WD05','WD08']). "
+                               "Catalogue is regional; SE-Asia commercial codes live in "
+                               "port.rand.halong.commercial.bri_codes."
+            },
+            "WaterCodes": {
+                "type": "text[]",
+                "description": "Free-string list of BRI water (tsunami / storm-surge) resilience "
+                               "measure codes applied to the asset (e.g. ['WT08','WT09','WT13'])."
+            },
+            "FlashCodes": {
+                "type": "text[]",
+                "description": "Free-string list of BRI flash-flood / fluvial resilience measure "
+                               "codes applied to the asset (e.g. ['WT05','WT10','WT13','WT15'])."
+            },
+            "FireCodes": {
+                "type": "text[]",
+                "description": "Free-string list of BRI fire-resilience measure codes applied "
+                               "to the asset (e.g. ['FI04','FI12','FI14','FI16','FI17','FI21'])."
+            },
+            "SeismicCodes": {
+                "type": "text[]",
+                "description": "Free-string list of BRI seismic-resilience measure codes applied "
+                               "to the asset (e.g. ['GS02','GS08','GS11','GS15','GS16'])."
+            }
         }
     }
 }

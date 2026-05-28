@@ -51,7 +51,8 @@ Usage in visual modules (f-string get_js functions):
 
 def storm_option_js(var: str = 's',
                     show_warning: bool = False,
-                    show_peak: bool = False) -> str:
+                    show_peak: bool = False,
+                    show_typhoon: bool = True) -> str:
     """
     Return the JavaScript expression that builds a storm dropdown option label.
 
@@ -64,11 +65,20 @@ def storm_option_js(var: str = 's',
     With show_peak=True  (trading desk stress — endpoint provides peak_level_m):
         {name} ({storm_id}) | {category} | {N} severe | {N}mm | peak {N}m
 
+    With show_typhoon=True (default — endpoint provides typhoon block):
+        Adds '[TYPHOON evt_id | family vmax m/s]' suffix when s.typhoon is
+        non-null. Storms without a typhoon link get no suffix and look
+        identical to the base format.
+
     Args:
-        var:          JavaScript variable name for the storm object (default 's').
-                      Use 'r' for gsa_timeline.py which iterates with variable 'r'.
-        show_warning: Include gauges_warning count (default False).
-        show_peak:    Include peak water level reading (default False).
+        var:           JavaScript variable name for the storm object (default 's').
+                       Use 'r' for gsa_timeline.py which iterates with variable 'r'.
+        show_warning:  Include gauges_warning count (default False).
+        show_peak:     Include peak water level reading (default False).
+        show_typhoon:  Append the typhoon suffix when present (default True).
+                       Set False on legacy callers whose endpoint doesn't
+                       populate s.typhoon — the suffix would just produce
+                       'undefined' otherwise.
 
     Returns:
         JavaScript expression string, safe for embedding directly in JS source.
@@ -90,6 +100,16 @@ def storm_option_js(var: str = 's',
     parts.append(f"+ Math.round({v}.effective_precipitation_mm || 0) + 'mm'")
     if show_peak:
         parts.append(f"+ ' | peak ' + ({v}.peak_level_m || 0).toFixed(2) + 'm'")
+    if show_typhoon:
+        # Suffix is only emitted when the storm has a typhoon block —
+        # ternary keeps non-typhoon rows clean.
+        parts.append(
+            f"+ ({v}.typhoon ? "
+            f"  '  \\u26A1 TYPHOON ' + {v}.typhoon.event_id + ' ('"
+            f"  + ({v}.typhoon.scenario_family || '?') + ', '"
+            f"  + (({v}.typhoon.peak_wind_ms || 0).toFixed(1)) + ' m/s)'"
+            f"  : '')"
+        )
 
     return ' '.join(parts)
 

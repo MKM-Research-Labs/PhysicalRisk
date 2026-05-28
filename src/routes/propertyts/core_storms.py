@@ -28,15 +28,47 @@ GET /properties/<prop_id>/storms
 
 import json
 import logging
+from typing import Dict
 
 from flask import jsonify
 
 from config import config
+from port.typhoon_storm_link import get_linkage
 
 from . import propertyts_bp
 from .core_summary import _load_property_or_404
 
 logger = logging.getLogger(__name__)
+
+
+def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
+    """Walk typhoon/damage/EVT-*.json files and index this property's
+    per-event wind impact by event_id.
+
+    Returns {event_id: {peak_sustained_ms, threshold_ms, v_50_eff_ms,
+    damage_ratio}} or empty dict when the typhoon stage hasn't run.
+    """
+    damage_dir = config.get_input_dir() / 'typhoon' / 'damage'
+    if not damage_dir.exists():
+        return {}
+    result: Dict[str, Dict] = {}
+    for fp in damage_dir.glob('EVT-*.json'):
+        try:
+            with open(fp, 'r') as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        evt_id = data.get('event_id') or fp.stem
+        for entry in data.get('damages', []):
+            if entry.get('property_id') == prop_id:
+                result[evt_id] = {
+                    'peak_sustained_ms': entry.get('peak_sustained_ms'),
+                    'threshold_ms':      entry.get('threshold_ms'),
+                    'v_50_eff_ms':       entry.get('v_50_eff_ms'),
+                    'damage_ratio':      entry.get('damage_ratio'),
+                }
+                break
+    return result
 
 
 @propertyts_bp.route('/properties/<prop_id>/storms', methods=['GET', 'OPTIONS'])
@@ -97,6 +129,15 @@ def property_storms(prop_id: str):
         except Exception:
             pass
 
+    # Typhoon "additional circumstance" lookup for this property — joins
+    # the storm↔typhoon linkage with this property's per-event wind impact
+    # from typhoon/damage/EVT-*.json. Empty dict when the typhoon stage
+    # hasn't run; per-event lookup below stays None-safe.
+    storm_to_typhoon = get_linkage().get('storm_to_typhoon', {})
+    wind_damage_by_event = (
+        _load_typhoon_damage_for_property(prop_id) if storm_to_typhoon else {}
+    )
+
     # Tag each flood event with sequence_type and storm metadata
     # storm_id IS the sequence_id (sequences are the unit of risk)
     for event in pdata.get('flood_events', []):
@@ -113,6 +154,65 @@ def property_storms(prop_id: str):
                                       meta.get('total_precipitation_mm',
                                                meta.get('precipitation_mm', 0))))
         event.setdefault('gauges_severe', _storm_severe.get(sid, 0))
+
+        # Typhoon block — present only when the storm has been paired
+        # with a typhoon event by the severity-bucket linkage. Carries the
+        # property's per-event wind impact alongside the storm-level
+        # typhoon metadata so the UI doesn't need a second fetch.
+        typhoon_meta = storm_to_typhoon.get(sid)
+        if typhoon_meta:
+            evt_id = typhoon_meta.get('event_id')
+            wind = wind_damage_by_event.get(evt_id, {})
+            event['typhoon'] = {
+                'event_id':         evt_id,
+                'scenario_family':  typhoon_meta.get('scenario_family'),
+                'peak_wind_ms':     wind.get('peak_sustained_ms'),
+                'wind_threshold_ms': wind.get('threshold_ms'),
+                'v_50_eff_ms':      wind.get('v_50_eff_ms'),
+                'wind_damage_ratio': wind.get('damage_ratio'),
+            }
+        else:
+            event['typhoon'] = None
+
+    # Append synthetic flood_event rows for typhoons that hit this property's
+    # wind damage record but didn't otherwise appear in the property's
+    # flood_events array (i.e. the storm didn't trigger gauge response at
+    # any of the property's nearest gauges, but the typhoon track still
+    # produced wind damage here). These show up in the UI History tab so
+    # wind-only typhoons aren't hidden.
+    if storm_to_typhoon:
+        seen_sids = {e.get('storm_id') for e in pdata.get('flood_events', [])}
+        for sid, typhoon_meta in storm_to_typhoon.items():
+            if sid in seen_sids:
+                continue
+            evt_id = typhoon_meta.get('event_id')
+            wind = wind_damage_by_event.get(evt_id)
+            if not wind:
+                continue  # Property not present in this typhoon's damage file
+            meta = _storm_meta.get(sid, {})
+            cat = meta.get('intensity_category', '')
+            pdata.setdefault('flood_events', []).append({
+                'storm_id':       sid,
+                'sequence_type':  seq_lookup.get(sid, 'isolated'),
+                'intensity_category': cat,
+                'name':           meta.get('name', '') or (cat.capitalize() if cat else ''),
+                'effective_precipitation_mm':
+                    meta.get('effective_precipitation_mm',
+                             meta.get('total_precipitation_mm',
+                                      meta.get('precipitation_mm', 0))),
+                'gauges_severe':  _storm_severe.get(sid, 0),
+                'flood_depth_m':  0.0,
+                'damage_ratio':   0.0,
+                'flooded':        False,
+                'typhoon': {
+                    'event_id':         evt_id,
+                    'scenario_family':  typhoon_meta.get('scenario_family'),
+                    'peak_wind_ms':     wind.get('peak_sustained_ms'),
+                    'wind_threshold_ms': wind.get('threshold_ms'),
+                    'v_50_eff_ms':      wind.get('v_50_eff_ms'),
+                    'wind_damage_ratio': wind.get('damage_ratio'),
+                },
+            })
 
     # Enrich nearest gauge info with flood stages
     gauge_path = config.get_input_path('gauge.json')

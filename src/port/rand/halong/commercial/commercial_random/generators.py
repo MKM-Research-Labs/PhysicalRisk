@@ -12,8 +12,9 @@ ratings) use the same logic across asset classes.
 """
 
 import random
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
+from port.rand.halong.commercial import bri_codes as _bri_codes
 from port.rand.halong.property import property_random as _resi_random
 
 from .constants import (
@@ -26,6 +27,22 @@ from .constants import (
     TYPE_USE_CLASS,
 )
 from .metadata import anchor_tenant, period_from_year
+
+
+def _bri(info: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the asset's BRI prototype record. Falls back to a fresh draw
+    when missing (e.g. older test fixtures that bypass generate_commercial_metadata)."""
+    proto = info.get("bri_prototype")
+    if proto is None:
+        proto = _bri_codes.for_commercial(info.get("commercial_type") or "MixedUse")
+    return proto
+
+
+def _grade_to_rating(grade: Optional[str]) -> str:
+    """Map an internal grade ('A'/'B'/'N/A') to a CDM BRI letter rating."""
+    if grade in (None, "N/A"):
+        return "N/A"
+    return grade
 
 
 def _commercial_generators() -> Dict[str, Callable]:
@@ -73,6 +90,37 @@ def _commercial_generators() -> Dict[str, Callable]:
         "CovenantStrength":       lambda info: random.choices(
             ["AAA", "AA", "A", "BBB", "BB", "B", "Unrated"],
             weights=[0.05, 0.10, 0.30, 0.30, 0.15, 0.05, 0.05])[0],
+
+        # HazardProfile thresholds — populated for halong commercial assets
+        # from the BRI prototype. Wind / Flash always apply; Water (tsunami)
+        # only when the prototype's water_grade is not "N/A" (i.e. coastal-
+        # exposed buildings such as hotels in the source spreadsheet).
+        "WindThresholdMajorMps": lambda info: _bri(info)["wind_threshold_major_mps"],
+        "WindThresholdMinorMps": lambda info: _bri(info)["wind_threshold_minor_mps"],
+        "FlashThresholdMajorM":  lambda info: _bri(info)["flash_threshold_major_m"],
+        "FlashThresholdMinorM":  lambda info: _bri(info)["flash_threshold_minor_m"],
+        "WaterThresholdMajorM":  lambda info: (
+            _bri(info)["water_threshold_major_m"]
+            if _bri(info)["water_grade"] not in (None, "N/A") else None
+        ),
+        "WaterThresholdMinorM":  lambda info: (
+            _bri(info)["water_threshold_minor_m"]
+            if _bri(info)["water_grade"] not in (None, "N/A") else None
+        ),
+
+        # BRI water / flash sub-ratings. The flat BRIFloodRating is left to
+        # the BRI helper to compute as min(Water, Flash) post-build.
+        "BRIWaterRating": lambda info: _grade_to_rating(_bri(info)["water_grade"]),
+        "BRIFlashRating": lambda info: _grade_to_rating(_bri(info)["flash_grade"]),
+        "BRIWaterScore":  lambda _: None,
+        "BRIFlashScore":  lambda _: None,
+
+        # IndustryGroups — free-string BRI measure code lists per hazard.
+        "WindCodes":    lambda info: list(_bri(info)["wind_codes"]),
+        "WaterCodes":   lambda info: list(_bri(info)["water_codes"]),
+        "FlashCodes":   lambda info: list(_bri(info)["flash_codes"]),
+        "FireCodes":    lambda info: list(_bri(info)["fire_codes"]),
+        "SeismicCodes": lambda info: list(_bri(info)["seismic_codes"]),
     }
 
 
@@ -96,6 +144,7 @@ def generate_field_value(field_name: str, field_def: Dict, index: int,
         'area_name':        metadata.get('area_name'),
         'value_factor':     metadata.get('value_factor', 1.0),
         'streets_data':     metadata.get('streets_data', {}),
+        'bri_prototype':    metadata.get('bri_prototype'),
     }
 
     commercial_gens = _commercial_generators()

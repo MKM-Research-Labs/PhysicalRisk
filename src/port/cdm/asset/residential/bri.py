@@ -20,6 +20,22 @@ from port.rand.thames.property.property_random.resilience import compute_bri_rat
 
 _DEFAULT_VERSION = "BRI v1.6"
 
+# Ordering from strongest to weakest. Used to combine Water + Flash sub-ratings
+# into the overall BRIFloodRating envelope as min(Water, Flash).
+_RATING_ORDER = ["AA", "A", "B", "NR", "N/A"]
+
+
+def _weaker_rating(a: Optional[str], b: Optional[str]) -> Optional[str]:
+    """Return whichever of (a, b) is the weaker BRI letter (higher index)."""
+    if a is None:
+        return b
+    if b is None:
+        return a
+    try:
+        return a if _RATING_ORDER.index(a) >= _RATING_ORDER.index(b) else b
+    except ValueError:
+        return b if a == "N/A" else a
+
 
 def apply_bri_rating(
     property_record: Dict[str, Any],
@@ -56,8 +72,24 @@ def apply_bri_rating(
     # This helper only stamps the letter ratings and rating metadata.
     gbr["BRIRating"] = result["rating"]
     hazard_ratings = result.get("hazard_ratings", {})
-    for hazard in ("Flood", "Wind", "Fire", "Seismic"):
+    for hazard in ("Wind", "Fire", "Seismic"):
         gbr[f"BRI{hazard}Rating"] = hazard_ratings.get(hazard, "N/A")
+
+    # Water / Flash sub-ratings — only present once the scorer splits flood
+    # (Phase 2). When both are present, BRIFloodRating becomes the envelope
+    # = weakest of (Water, Flash). When neither is present, fall back to the
+    # legacy flat "Flood" rating from the scorer.
+    water_rating = hazard_ratings.get("Water")
+    flash_rating = hazard_ratings.get("Flash")
+    if water_rating is not None:
+        gbr["BRIWaterRating"] = water_rating
+    if flash_rating is not None:
+        gbr["BRIFlashRating"] = flash_rating
+    if water_rating is not None or flash_rating is not None:
+        gbr["BRIFloodRating"] = _weaker_rating(water_rating, flash_rating) or "N/A"
+    else:
+        gbr["BRIFloodRating"] = hazard_ratings.get("Flood", "N/A")
+
     gbr["BRIDate"] = rating_date or date.today().isoformat()
     gbr["BRIRatingVersion"] = version
     if agent is not None:

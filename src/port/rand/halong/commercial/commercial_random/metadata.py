@@ -11,6 +11,8 @@ import random
 from datetime import datetime
 from typing import Any, Dict
 
+from port.rand.halong.commercial.bri_codes import for_commercial as _bri_for_commercial
+
 from .constants import (
     ANCHOR_TENANT_POOL,
     COMMERCIAL_TYPE_ALLOCATION,
@@ -88,4 +90,7 @@ def generate_commercial_metadata(index: int, location: Dict[str, Any]) -> Dict[s
         'area_name': location.get('name', 'Unknown'),
         'value_factor': value_factor,
         'streets_data': location.get('streets_data', {}),
+        # BRI prototype record for this asset (codes + thresholds + grades).
+        # Sampled once here so every field lambda sees the same draw.
+        'bri_prototype': _bri_for_commercial(ctype),
     }

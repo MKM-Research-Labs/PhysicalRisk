@@ -26,7 +26,8 @@ module so a future schema refactor only touches one file.
 
 CDM paths used:
   PropertyHeader.Header.PropertyID                                       — id
-  ProtectionMeasures.HazardProfile.WindThresholdKph                      — threshold
+  ProtectionMeasures.HazardProfile.WindThresholdMajorMps                 — threshold (preferred)
+  ProtectionMeasures.HazardProfile.WindThresholdKph                      — threshold (legacy)
   ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIWindScore    — wind BRI
   ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIScore        — composite BRI
 """
@@ -36,6 +37,7 @@ from typing import Optional, Tuple
 
 __all__ = [
     "extract_property_id",
+    "extract_wind_threshold_mps",
     "extract_wind_threshold_kph",
     "extract_bri_scores",
     "extract_lon_lat",
@@ -64,13 +66,54 @@ def extract_property_id(record: dict) -> Optional[str]:
     return value
 
 
-def extract_wind_threshold_kph(record: dict) -> Optional[float]:
-    """Return the property's WindThresholdKph or None if absent."""
-    value = _get_nested(record, "ProtectionMeasures", "HazardProfile", "WindThresholdKph")
-    if value is None:
+def extract_wind_threshold_mps(record: dict) -> Optional[float]:
+    """Return the property's Grade-A wind threshold in m/s, or None if absent.
+
+    Resolution order:
+        1. ProtectionMeasures.HazardProfile.WindThresholdMajorMps (preferred)
+        2. ProtectionMeasures.HazardProfile.WindThresholdKph / 3.6 (legacy)
+    """
+    mps = _get_nested(
+        record, "ProtectionMeasures", "HazardProfile", "WindThresholdMajorMps"
+    )
+    if mps is not None:
+        try:
+            return float(mps)
+        except (TypeError, ValueError):
+            pass
+
+    kph = _get_nested(
+        record, "ProtectionMeasures", "HazardProfile", "WindThresholdKph"
+    )
+    if kph is None:
         return None
     try:
-        return float(value)
+        return float(kph) / 3.6
+    except (TypeError, ValueError):
+        return None
+
+
+def extract_wind_threshold_kph(record: dict) -> Optional[float]:
+    """Return the property's wind threshold in km/h.
+
+    DEPRECATED: prefer extract_wind_threshold_mps. Retained as an alias that
+    reads the legacy WindThresholdKph field directly, then falls back to
+    WindThresholdMajorMps × 3.6 when only the new field is populated.
+    """
+    value = _get_nested(record, "ProtectionMeasures", "HazardProfile", "WindThresholdKph")
+    if value is not None:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            pass
+
+    mps = _get_nested(
+        record, "ProtectionMeasures", "HazardProfile", "WindThresholdMajorMps"
+    )
+    if mps is None:
+        return None
+    try:
+        return float(mps) * 3.6
     except (TypeError, ValueError):
         return None
 

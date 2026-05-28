@@ -40,13 +40,24 @@ def get_js() -> str:
                     return;
                 }
 
-                var events = propStormData.flood_events.filter(function(e) { return e.flooded; });
+                // Show every event that EITHER flooded OR was a typhoon — so
+                // a typhoon that didn't flood this property still appears in
+                // the history with its wind impact.
+                var events = propStormData.flood_events.filter(function(e) {
+                    return e.flooded || (e.typhoon && e.typhoon.event_id);
+                });
                 var totalStorms = propStormData.flood_events.length;
                 var maxDepth = 0, sumDepth = 0, sumDmg = 0;
+                var typhoonCount = 0, maxWind = 0, sumWindDmg = 0;
                 events.forEach(function(e) {
                     maxDepth = Math.max(maxDepth, e.flood_depth_m || 0);
                     sumDepth += e.flood_depth_m || 0;
                     sumDmg += e.damage_ratio || 0;
+                    if (e.typhoon && e.typhoon.event_id) {
+                        typhoonCount += 1;
+                        maxWind = Math.max(maxWind, e.typhoon.peak_wind_ms || 0);
+                        sumWindDmg += e.typhoon.wind_damage_ratio || 0;
+                    }
                 });
                 var meanDepth = events.length > 0 ? sumDepth / events.length : 0;
                 var meanDmg = events.length > 0 ? sumDmg / events.length : 0;
@@ -64,6 +75,19 @@ def get_js() -> str:
                            'padding:1px 5px;border-radius:3px;font-weight:600;">' + c.label + '</span>';
                 };
 
+                // Typhoon badge — emitted for any event whose storm was
+                // paired with a typhoon by the severity-bucket linkage.
+                var typhoonBadge = function(typhoon) {
+                    if (!typhoon || !typhoon.event_id) return '';
+                    var fam = typhoon.scenario_family || '?';
+                    var peak = typhoon.peak_wind_ms;
+                    var title = 'Typhoon ' + typhoon.event_id + ' (' + fam +
+                                ', peak ' + (peak != null ? peak.toFixed(1) : '?') + ' m/s)';
+                    return '<span title="' + title + '" style="background:#fff3e0;color:#bf360c;' +
+                           'font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;' +
+                           'margin-left:4px;">⚡ ' + fam.toUpperCase() + '</span>';
+                };
+
                 // Table + chart layout
                 var html =
                     '<div style="display:flex;gap:12px;height:100%;">' +
@@ -73,23 +97,38 @@ def get_js() -> str:
                     '<th style="padding:4px 8px;text-align:left;">Storm</th>' +
                     '<th style="padding:4px 6px;text-align:left;">Sequence</th>' +
                     '<th style="padding:4px 8px;text-align:right;">Depth (m)</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Damage %</th>' +
+                    '<th style="padding:4px 8px;text-align:right;">Flood Dmg %</th>' +
+                    '<th style="padding:4px 8px;text-align:right;">Wind (m/s)</th>' +
+                    '<th style="padding:4px 8px;text-align:right;">Wind Dmg %</th>' +
                     '</tr></thead><tbody>';
 
                 events.forEach(function(e, i) {
                     var bg = i % 2 === 0 ? '#fff' : '#fafafa';
                     var depthColor = e.flood_depth_m >= 1.0 ? '#d32f2f' : e.flood_depth_m >= 0.5 ? '#f57c00' : '#333';
                     var sid = (e.storm_id || '').replace(/'/g, "\\\\'");
+                    var ty = e.typhoon;
+                    var windCell = '—', windDmgCell = '—', windColor = '#999';
+                    if (ty && ty.event_id) {
+                        if (ty.peak_wind_ms != null) windCell = ty.peak_wind_ms.toFixed(1);
+                        if (ty.wind_damage_ratio != null) {
+                            var wd = ty.wind_damage_ratio;
+                            windDmgCell = (wd * 100).toFixed(1) + '%';
+                            windColor = wd >= 0.5 ? '#d32f2f' : wd >= 0.1 ? '#f57c00' : '#333';
+                        }
+                    }
                     // Inline onclick runs in global scope; switchTab is local
                     // to the panel IIFE, so use the window-exposed alias.
                     html +=
                         '<tr style="background:' + bg + ';cursor:pointer;" ' +
                         'onclick="window.propStormSwitchTab(1, \\'' + sid + '\\')" ' +
                         'title="Click to view flood timeline">' +
-                        '<td style="padding:3px 8px;font-family:monospace;color:#1565c0;">' + (e.storm_id || '-').substring(0, 16) + '</td>' +
+                        '<td style="padding:3px 8px;font-family:monospace;color:#1565c0;">' +
+                          (e.storm_id || '-').substring(0, 16) + typhoonBadge(ty) + '</td>' +
                         '<td style="padding:3px 6px;">' + seqBadge(e.sequence_type) + '</td>' +
                         '<td style="padding:3px 8px;text-align:right;color:' + depthColor + ';font-weight:600;">' + (e.flood_depth_m || 0).toFixed(2) + '</td>' +
                         '<td style="padding:3px 8px;text-align:right;">' + ((e.damage_ratio || 0) * 100).toFixed(1) + '%</td>' +
+                        '<td style="padding:3px 8px;text-align:right;">' + windCell + '</td>' +
+                        '<td style="padding:3px 8px;text-align:right;color:' + windColor + ';font-weight:600;">' + windDmgCell + '</td>' +
                         '</tr>';
                 });
                 html += '</tbody></table></div>';
@@ -167,9 +206,12 @@ def get_js() -> str:
                     return seqCounts[t] + ' ' + t;
                 }).join(', ');
 
+                var meanWindDmg = typhoonCount > 0 ? sumWindDmg / typhoonCount : 0;
                 document.getElementById('prop-history-stats').innerHTML = [
                     '<span><b>Total storms:</b> ' + totalStorms + '</span>',
                     '<span><b>Floods:</b> ' + events.length + ' (' + (events.length / totalStorms * 100).toFixed(0) + '%)</span>',
+                    '<span><b>Typhoons:</b> ' + typhoonCount +
+                        (typhoonCount > 0 ? ' (max wind ' + maxWind.toFixed(1) + ' m/s, mean dmg ' + (meanWindDmg * 100).toFixed(1) + '%)' : '') + '</span>',
                     '<span><b>Max depth:</b> ' + maxDepth.toFixed(2) + 'm</span>',
                     '<span><b>Mean depth:</b> ' + meanDepth.toFixed(2) + 'm</span>',
                     '<span><b>Sequences:</b> ' + seqSummary + '</span>'

@@ -65,6 +65,10 @@ def create_gauge_mapping(gauge: dict) -> dict:
             'flood_alert': flood_stage.get('FloodAlert'),
             'flood_warning': flood_stage.get('FloodWarning'),
             'severe_flood_warning': flood_stage.get('SevereFloodWarning'),
+            'flash_minor': flood_stage.get('FlashMinor'),
+            'flash_major': flood_stage.get('FlashMajor'),
+            'tsunami_minor': flood_stage.get('TsunamiMinor'),
+            'tsunami_major': flood_stage.get('TsunamiMajor'),
 
             # NRFAMetadata
             'nrfa_station_id': nrfa.get('NRFAStationID'),
