@@ -211,14 +211,17 @@ def generate_property_book(
         if fair_spread <= 0:
             continue
 
-        # Reference gauge from nearest_gauges
+        # Reference gauge from nearest_gauges — skip synthetic (SYNTH-*)
+        # interpolation anchors; we only trade against real gauges.
         nearest = curve.get('nearest_gauges', [])
-        if nearest:
-            ref_gauge = nearest[0]
-            gauge_id = ref_gauge.get('gauge_id', '')
-            gauge_name = ref_gauge.get('gauge_name', gauge_id)
-        else:
+        ref_gauge = next(
+            (g for g in nearest if not str(g.get('gauge_id', '')).startswith('SYNTH-')),
+            None,
+        )
+        if ref_gauge is None:
             continue
+        gauge_id = ref_gauge.get('gauge_id', '')
+        gauge_name = ref_gauge.get('gauge_name', gauge_id)
 
         # Notional
         notional = random.randrange(
