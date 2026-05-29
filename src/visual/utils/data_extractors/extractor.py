@@ -26,11 +26,11 @@ from .property_extractor import (
     _calculate_age_factor,
     PropertyDataExtractor,
 )
-from .mortgage_extractor import (
-    extract_mortgage_info,
+from .rloan_extractor import (
+    extract_rloan_info,
     _extract_term_years,
-    build_mortgage_lookup,
-    _normalize_mortgage_list,
+    build_rloan_lookup,
+    _normalize_rloan_list,
 )
 from .gauge_extractor import (
     extract_gauge_info,
@@ -46,13 +46,13 @@ class DataExtractor:
     """Utility class for extracting data from complex nested structures."""
 
     extract_property_info = staticmethod(extract_property_info)
-    extract_mortgage_info = staticmethod(extract_mortgage_info)
+    extract_rloan_info = staticmethod(extract_rloan_info)
     extract_gauge_info = staticmethod(extract_gauge_info)
     extract_flood_risk_data = staticmethod(extract_flood_risk_data)
     extract_id_from_tooltip = staticmethod(extract_id_from_tooltip)
     extract_id_from_popup = staticmethod(extract_id_from_popup)
-    build_mortgage_lookup = staticmethod(build_mortgage_lookup)
+    build_rloan_lookup = staticmethod(build_rloan_lookup)
     _extract_property_value = staticmethod(_extract_property_value)
     _extract_term_years = staticmethod(_extract_term_years)
     _calculate_age_factor = staticmethod(_calculate_age_factor)
-    _normalize_mortgage_list = staticmethod(_normalize_mortgage_list)
+    _normalize_rloan_list = staticmethod(_normalize_rloan_list)

@@ -24,7 +24,7 @@ Data extraction utilities for the visualization system.
 Sub-modules:
 - extractor: DataExtractor class
 - property_extractor: Property data extraction
-- mortgage_extractor: Mortgage data extraction
+- rloan_extractor: Residential-loan data extraction
 - gauge_extractor: Gauge and flood risk data extraction
 - id_extractor: ID extraction from tooltips/popups
 """
@@ -36,11 +36,11 @@ from .property_extractor import (  # noqa: F401
     _calculate_age_factor,
     PropertyDataExtractor,
 )
-from .mortgage_extractor import (  # noqa: F401
-    extract_mortgage_info,
+from .rloan_extractor import (  # noqa: F401
+    extract_rloan_info,
     _extract_term_years,
-    build_mortgage_lookup,
-    _normalize_mortgage_list,
+    build_rloan_lookup,
+    _normalize_rloan_list,
 )
 from .gauge_extractor import (  # noqa: F401
     extract_gauge_info,
