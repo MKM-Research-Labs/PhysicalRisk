@@ -87,7 +87,7 @@ def test_config_endpoints_include_health_check():
     cfg = PortfolioConfig()
     required_endpoints = [
         'properties', 'gauges', 'property_report', 'gauge_report',
-        'mortgage_report', 'gauge_history', 'health_check',
+        'rloan_report', 'gauge_history', 'health_check',
     ]
     for ep in required_endpoints:
         assert ep in cfg.ENDPOINTS, f"Missing required endpoint: {ep}"

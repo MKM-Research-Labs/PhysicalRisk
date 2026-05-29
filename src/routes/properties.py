@@ -156,9 +156,9 @@ def generate_report():
         }), 500
 
 
-@properties_bp.route('/properties/mortgage-report', methods=['POST', 'OPTIONS'])
-@properties_bp.route('/generate_mortgage_report', methods=['POST', 'OPTIONS'])
-def generate_mortgage_report():
+@properties_bp.route('/properties/rloan-report', methods=['POST', 'OPTIONS'])
+@properties_bp.route('/generate_rloan_report', methods=['POST', 'OPTIONS'])
+def generate_rloan_report():
     """
     Generate a standalone mortgage report.
 
@@ -216,8 +216,8 @@ def generate_mortgage_report():
         }), 500
 
 
-@properties_bp.route('/mortgages', methods=['GET'])
-def list_mortgages():
+@properties_bp.route('/rloans', methods=['GET'])
+def list_rloans():
     """List all mortgages — used by the startup preloader for the count stat."""
     registry = _get_registry()
     rloan_loader = registry.get_rloan_loader()
@@ -234,8 +234,8 @@ def list_mortgages():
         return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 
-@properties_bp.route('/properties/<prop_id>/mortgage', methods=['GET', 'OPTIONS'])
-def property_mortgage(prop_id: str):
+@properties_bp.route('/properties/<prop_id>/rloan', methods=['GET', 'OPTIONS'])
+def property_rloan(prop_id: str):
     """Get mortgage details for a property."""
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})

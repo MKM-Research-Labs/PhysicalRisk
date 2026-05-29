@@ -22,7 +22,7 @@
 Tests for mortgage endpoints and mortgage report generation.
 
 Covers: mortgage report (success, error, import error, edge cases),
-GET /properties/<id>/mortgage, GET /mortgages list.
+GET /properties/<id>/rloan, GET /rloans list.
 """
 
 from unittest.mock import patch
@@ -31,19 +31,19 @@ import pytest
 
 
 # ===========================================================================
-# POST /properties/mortgage-report
+# POST /properties/rloan-report
 # ===========================================================================
 
 class TestGenerateMortgageReport:
 
     def test_no_json_returns_error(self, prop_client):
         client, _ = prop_client
-        r = client.post("/api/v1/properties/mortgage-report")
+        r = client.post("/api/v1/properties/rloan-report")
         assert r.status_code in (400, 415)
 
     def test_missing_property_id_returns_400(self, prop_client):
         client, _ = prop_client
-        r = client.post("/api/v1/properties/mortgage-report", json={})
+        r = client.post("/api/v1/properties/rloan-report", json={})
         assert r.status_code == 400
         assert "Property ID" in r.get_json()["message"]
 
@@ -51,7 +51,7 @@ class TestGenerateMortgageReport:
         client, reg = prop_client
         reg.get_property_loader.return_value.find_by_id.return_value = None
         r = client.post(
-            "/api/v1/properties/mortgage-report", json={"propertyId": "GHOST"}
+            "/api/v1/properties/rloan-report", json={"propertyId": "GHOST"}
         )
         assert r.status_code == 404
 
@@ -62,20 +62,20 @@ class TestGenerateMortgageReport:
         }
         reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
         r = client.post(
-            "/api/v1/properties/mortgage-report", json={"propertyId": "PROP-001"}
+            "/api/v1/properties/rloan-report", json={"propertyId": "PROP-001"}
         )
         assert r.status_code == 404
         assert "mortgage" in r.get_json()["message"].lower()
 
     def test_options_returns_ok(self, prop_client):
         client, _ = prop_client
-        r = client.options("/api/v1/properties/mortgage-report")
+        r = client.options("/api/v1/properties/rloan-report")
         assert r.status_code == 200
 
     def test_no_json_body_returns_400(self, prop_client):
         """Line 149: get_json() returns None -> 400."""
         client, _ = prop_client
-        r = client.post("/api/v1/properties/mortgage-report",
+        r = client.post("/api/v1/properties/rloan-report",
                         data='',
                         content_type='application/json')
         assert r.status_code in (400, 415, 500)
@@ -93,7 +93,7 @@ class TestGenerateMortgageReport:
 
         with patch("reports.rloan.rloan_generator.generate_rloan_report",
                    return_value=fake_pdf):
-            r = client.post("/api/v1/properties/mortgage-report",
+            r = client.post("/api/v1/properties/rloan-report",
                             json={"propertyId": "PROP-001"})
             assert r.status_code in (200, 500)
 
@@ -105,12 +105,12 @@ class TestGenerateMortgageReport:
 
         with patch("reports.rloan.rloan_generator.generate_rloan_report",
                    side_effect=RuntimeError("mort report error")):
-            r = client.post("/api/v1/properties/mortgage-report", json={"propertyId": "PROP-001"})
+            r = client.post("/api/v1/properties/rloan-report", json={"propertyId": "PROP-001"})
             assert r.status_code in (200, 500)
 
 
 # ===========================================================================
-# GET /properties/<id>/mortgage
+# GET /properties/<id>/rloan
 # ===========================================================================
 
 class TestPropertyMortgage:
@@ -118,7 +118,7 @@ class TestPropertyMortgage:
     def test_not_found_returns_404(self, prop_client):
         client, reg = prop_client
         reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
-        r = client.get("/api/v1/properties/PROP-GHOST/mortgage")
+        r = client.get("/api/v1/properties/PROP-GHOST/rloan")
         assert r.status_code == 404
         assert r.get_json()["status"] == "error"
 
@@ -128,7 +128,7 @@ class TestPropertyMortgage:
             "Mortgage": {"Header": {"PropertyID": "PROP-001"}, "Outstanding": 200000}
         }
         reg.get_rloan_loader.return_value.find_by_property_id.return_value = rloan_record
-        r = client.get("/api/v1/properties/PROP-001/mortgage")
+        r = client.get("/api/v1/properties/PROP-001/rloan")
         assert r.status_code == 200
         data = r.get_json()
         assert data["status"] == "success"
@@ -140,12 +140,12 @@ class TestPropertyMortgage:
         reg.get_rloan_loader.return_value.find_by_property_id.side_effect = (
             RuntimeError("db down")
         )
-        r = client.get("/api/v1/properties/PROP-001/mortgage")
+        r = client.get("/api/v1/properties/PROP-001/rloan")
         assert r.status_code == 500
 
     def test_options_returns_ok(self, prop_client):
         client, _ = prop_client
-        r = client.options("/api/v1/properties/PROP-001/mortgage")
+        r = client.options("/api/v1/properties/PROP-001/rloan")
         assert r.status_code == 200
 
 
@@ -169,7 +169,7 @@ class TestGenerateMortgageReportImportError:
         fake_mod.generate_rloan_report = _raise
         monkeypatch.setitem(sys.modules, "reports.rloan.rloan_generator", fake_mod)
 
-        r = client.post("/api/v1/properties/mortgage-report",
+        r = client.post("/api/v1/properties/rloan-report",
                         json={"propertyId": "PROP-001"})
         assert r.status_code == 500
         data = r.get_json()
@@ -180,16 +180,16 @@ class TestNoJsonBodyEdgeMortgageReport:
     """Line 168: generate_mortgage_report with None JSON body."""
 
     def test_mortgage_report_null_json_returns_400(self, prop_client):
-        """Same for mortgage-report: null JSON body -> line 168 -> 400."""
+        """Same for rloan-report: null JSON body -> line 168 -> 400."""
         client, _ = prop_client
-        r = client.post("/api/v1/properties/mortgage-report",
+        r = client.post("/api/v1/properties/rloan-report",
                         data='null',
                         content_type='application/json')
         assert r.status_code in (400, 500)
 
 
 class TestListMortgages:
-    """Lines 233-245: GET /mortgages endpoint."""
+    """Lines 233-245: GET /rloans endpoint."""
 
     def test_list_mortgages_success(self, prop_client):
         client, reg = prop_client
@@ -197,7 +197,7 @@ class TestListMortgages:
             {"mortgage_id": "MORT-001"},
             {"mortgage_id": "MORT-002"},
         ]
-        r = client.get("/api/v1/mortgages")
+        r = client.get("/api/v1/rloans")
         assert r.status_code == 200
         data = r.get_json()
         assert data["status"] == "success"
@@ -207,13 +207,13 @@ class TestListMortgages:
     def test_list_mortgages_empty(self, prop_client):
         client, reg = prop_client
         reg.get_rloan_loader.return_value.list_all.return_value = []
-        r = client.get("/api/v1/mortgages")
+        r = client.get("/api/v1/rloans")
         assert r.status_code == 200
         assert r.get_json()["count"] == 0
 
     def test_list_mortgages_exception_returns_500(self, prop_client):
         client, reg = prop_client
         reg.get_rloan_loader.return_value.list_all.side_effect = RuntimeError("db error")
-        r = client.get("/api/v1/mortgages")
+        r = client.get("/api/v1/rloans")
         assert r.status_code == 500
         assert r.get_json()["status"] == "error"
