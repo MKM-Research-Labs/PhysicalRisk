@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests that LoanCDM fields map correctly to generated mortgage JSON."""
+"""Tests that LoanCDM fields map correctly to generated loan JSON."""
 
 import pytest
 
@@ -26,27 +26,30 @@ from config import config
 from port.cdm import LoanCDM
 from tests.port.cdm._mapping_helpers import run_cdm_mapping_test
 
-_MORTGAGE_SKIP = {
+# NOTE: data-shape strings ("mortgage.json", the "mortgages" container key and
+# "MortgageID") still match the currently generated data; they are renamed in
+# the later data-key stage of the mortgage->loan sweep.
+_LOAN_SKIP = {
     "generation_metadata", "generated_at", "generator_version",
     "catchment", "total_mortgages_generated", "linked_properties",
     "CatchmentID", "MortgageID", "PropertyID",
 }
 
 @pytest.fixture(scope="module")
-def mortgage_mapping_summary():
+def loan_mapping_summary():
     json_path = config.get_input_path("mortgage.json")
-    return run_cdm_mapping_test(LoanCDM(), json_path, "mortgages", _MORTGAGE_SKIP)
+    return run_cdm_mapping_test(LoanCDM(), json_path, "mortgages", _LOAN_SKIP)
 
 
-def test_all_cdm_fields_present(mortgage_mapping_summary):
-    assert not mortgage_mapping_summary.missing_fields, (
-        f"Unexpected missing CDM fields: {mortgage_mapping_summary.missing_fields}"
+def test_all_cdm_fields_present(loan_mapping_summary):
+    assert not loan_mapping_summary.missing_fields, (
+        f"Unexpected missing CDM fields: {loan_mapping_summary.missing_fields}"
     )
 
 
-def test_all_types_valid(mortgage_mapping_summary):
-    assert mortgage_mapping_summary.fields_type_invalid == 0, "Type errors found"
+def test_all_types_valid(loan_mapping_summary):
+    assert loan_mapping_summary.fields_type_invalid == 0, "Type errors found"
 
 
-def test_all_values_valid(mortgage_mapping_summary):
-    assert mortgage_mapping_summary.fields_value_invalid == 0, "Value errors found"
+def test_all_values_valid(loan_mapping_summary):
+    assert loan_mapping_summary.fields_value_invalid == 0, "Value errors found"
