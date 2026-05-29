@@ -62,11 +62,11 @@ def _make_property(property_id="PROP-001", lat=51.5, lon=-0.1, year=2000):
 
 class MockLoadedData:
     def __init__(self, property_data=None, property_flood_info=None,
-                 mortgage_lookup=None,
+                 rloan_lookup=None,
                  property_hazard_data=None):
         self.property_data = property_data
         self.property_flood_info = property_flood_info or {}
-        self.mortgage_lookup = mortgage_lookup or {}
+        self.rloan_lookup = rloan_lookup or {}
         self.property_hazard_data = property_hazard_data
 
 
@@ -140,7 +140,7 @@ class TestGetPropertyStatistics:
         layer = PropertyLayer()
         layer._property_hazard = {}
         props = [_make_property("P1"), _make_property("P2")]
-        loaded = MockLoadedData(mortgage_lookup={"P1": {}})
+        loaded = MockLoadedData(rloan_lookup={"P1": {}})
         stats = layer.get_property_statistics(props, loaded)
         assert stats["mortgaged_properties"] == 1
 
@@ -148,7 +148,7 @@ class TestGetPropertyStatistics:
         layer = PropertyLayer()
         layer._property_hazard = {}
         props = [_make_property("P1"), _make_property("P2")]
-        loaded = MockLoadedData(mortgage_lookup={"P1": {}})
+        loaded = MockLoadedData(rloan_lookup={"P1": {}})
         stats = layer.get_property_statistics(props, loaded)
         assert stats["mortgage_percentage"] == pytest.approx(50.0)
 

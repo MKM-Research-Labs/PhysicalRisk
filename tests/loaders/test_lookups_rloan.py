@@ -18,30 +18,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for build_mortgage_lookup + build_all_lookups."""
+"""Tests for build_rloan_lookup + build_all_lookups."""
 
 import pytest
 
 from loaders.lookups import (
-    build_mortgage_lookup,
+    build_rloan_lookup,
     build_all_lookups,
 )
 
 
 # ===========================================================================
-# build_mortgage_lookup
+# build_rloan_lookup
 # ===========================================================================
 
-class TestBuildMortgageLookup:
+class TestBuildRLoanLookup:
 
     def test_none_returns_empty(self):
-        assert build_mortgage_lookup(None) == {}
+        assert build_rloan_lookup(None) == {}
 
     def test_empty_dict_returns_empty(self):
-        assert build_mortgage_lookup({}) == {}
+        assert build_rloan_lookup({}) == {}
 
     def test_no_items_key_returns_empty(self):
-        assert build_mortgage_lookup({"other": []}) == {}
+        assert build_rloan_lookup({"other": []}) == {}
 
     def test_single_mortgage(self):
         data = {
@@ -67,7 +67,7 @@ class TestBuildMortgageLookup:
                 }
             }]
         }
-        result = build_mortgage_lookup(data)
+        result = build_rloan_lookup(data)
         assert "PROP-001" in result
         assert result["PROP-001"]["mortgage_id"] == "MORT-001"
         assert result["PROP-001"]["OriginalLoan"] == 250_000
@@ -84,7 +84,7 @@ class TestBuildMortgageLookup:
                 }
             }]
         }
-        assert build_mortgage_lookup(data) == {}
+        assert build_rloan_lookup(data) == {}
 
     def test_missing_original_loan_defaults_to_zero(self):
         data = {
@@ -97,7 +97,7 @@ class TestBuildMortgageLookup:
                 }
             }]
         }
-        result = build_mortgage_lookup(data)
+        result = build_rloan_lookup(data)
         assert result["PROP-002"]["OriginalLoan"] == 0
 
     def test_multiple_mortgages(self):
@@ -111,7 +111,7 @@ class TestBuildMortgageLookup:
                 }
             }
         data = {"items": [_make_item("M1", "P1"), _make_item("M2", "P2")]}
-        result = build_mortgage_lookup(data)
+        result = build_rloan_lookup(data)
         assert set(result.keys()) == {"P1", "P2"}
 
 
@@ -124,12 +124,12 @@ class TestBuildAllLookups:
     def test_all_none_returns_three_keys(self):
         result = build_all_lookups()
         assert set(result.keys()) == {
-            "mortgage_lookup", "gauge_flood_info", "property_flood_info",
+            "rloan_lookup", "gauge_flood_info", "property_flood_info",
         }
 
     def test_all_none_returns_empty_dicts(self):
         result = build_all_lookups()
-        assert result["mortgage_lookup"] == {}
+        assert result["rloan_lookup"] == {}
         assert result["gauge_flood_info"] == {}
         assert result["property_flood_info"] == {}
 
@@ -145,4 +145,4 @@ class TestBuildAllLookups:
             }]
         }
         result = build_all_lookups(mortgage_data=mortgage_data)
-        assert "P1" in result["mortgage_lookup"]
+        assert "P1" in result["rloan_lookup"]

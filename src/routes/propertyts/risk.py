@@ -86,7 +86,7 @@ def portfolio_var():
 
     # Load mortgage data
     mortgage_path = config.get_input_path('mortgage.json')
-    mortgage_lookup = {}
+    rloan_lookup = {}
     try:
         with open(mortgage_path, 'r') as f:
             mdata = json.load(f)
@@ -94,12 +94,12 @@ def portfolio_var():
             mg = m.get('Mortgage', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             outstanding = mg.get('CurrentStatus', {}).get('OutstandingBalance', 0)
-            mortgage_lookup[pid] = outstanding
+            rloan_lookup[pid] = outstanding
     except Exception as e:
         logger.warning(f'Could not load mortgage.json: {e}')
 
     total_portfolio_value = sum(prop_values.values())
-    total_portfolio_mortgages = sum(mortgage_lookup.values())
+    total_portfolio_mortgages = sum(rloan_lookup.values())
 
     # Accumulate per-storm losses: {storm_id -> {prop_damage, mort_impairment, n_affected}}
     storm_data = {}
@@ -112,7 +112,7 @@ def portfolio_var():
             continue
 
         prop_value = prop_values[prop_id]
-        mortgage_bal = mortgage_lookup.get(prop_id, 0)
+        mortgage_bal = rloan_lookup.get(prop_id, 0)
 
         for event in pfdata.get('flood_events', []):
             depth = event.get('flood_depth_m', 0)

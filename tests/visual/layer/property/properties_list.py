@@ -109,7 +109,7 @@ class TestGetPropertiesList:
 class MockLoadedData:
     def __init__(self):
         self.property_flood_info = {}
-        self.mortgage_lookup = {}
+        self.rloan_lookup = {}
 
 
 class TestGetPropertyStatistics:

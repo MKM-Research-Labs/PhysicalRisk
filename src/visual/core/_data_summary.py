@@ -90,7 +90,7 @@ def print_loading_summary(loader) -> None:
     logger.info(
         f"Lookups:     {len(d.gauge_flood_info or {})} gauge flood | "
         f"{len(d.property_flood_info or {})} property flood | "
-        f"{len(d.mortgage_lookup or {})} mortgage"
+        f"{len(d.rloan_lookup or {})} mortgage"
     )
 
 

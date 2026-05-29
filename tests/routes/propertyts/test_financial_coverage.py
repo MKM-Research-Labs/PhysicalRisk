@@ -7,7 +7,7 @@
 
 Targets uncovered lines: 64-65, 84-85, 120, 193, 258.
 - 64-65: _load_prop_values exception path (property.json missing/broken)
-- 84-85: _load_mortgage_lookup exception path (mortgage.json missing/broken)
+- 84-85: _load_rloan_lookup exception path (mortgage.json missing/broken)
 - 120: property without mortgage → zero-fill branch in _build_property_entry
 - 193: property_id not in prop_values → break (per-storm)
 - 258: property_id not in prop_values → continue (sequence)
@@ -78,7 +78,7 @@ def pts_env_no_valuation(tmp_path, monkeypatch):
 def pts_env_missing_files(tmp_path, monkeypatch):
     """
     Environment where property.json and mortgage.json do not exist,
-    exercising the exception paths in _load_prop_values and _load_mortgage_lookup.
+    exercising the exception paths in _load_prop_values and _load_rloan_lookup.
     """
     from config import config
 
@@ -183,8 +183,8 @@ class TestLoadPropValuesException:
 
 
 # ===========================================================================
-# Tests: _load_mortgage_lookup exception (lines 84-85)
-# covered implicitly: when mortgage.json is missing, _load_mortgage_lookup
+# Tests: _load_rloan_lookup exception (lines 84-85)
+# covered implicitly: when mortgage.json is missing, _load_rloan_lookup
 # returns empty dict. Combined with missing property.json above, both
 # exception paths run. But let's also test with broken JSON.
 # ===========================================================================
@@ -193,7 +193,7 @@ class TestLoadMortgageLookupException:
 
     def test_corrupt_mortgage_json_still_returns_data(self, tmp_path, monkeypatch):
         """When mortgage.json has invalid JSON, the exception is caught
-        and mortgage_lookup is empty. Storm endpoint still works if
+        and rloan_lookup is empty. Storm endpoint still works if
         property data is fine."""
         from config import config
 

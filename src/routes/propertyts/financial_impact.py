@@ -40,7 +40,7 @@ from .blueprint import propertyts_bp
 from .financial_loaders import (
     _build_property_entry,
     _check_options_and_dir,
-    _load_mortgage_lookup,
+    _load_rloan_lookup,
     _load_prop_values,
     _load_property_details,
     _portfolio_totals,
@@ -61,7 +61,7 @@ def portfolio_impact(storm_id: str):
         return early
 
     prop_values = _load_prop_values()
-    mortgage_lookup = _load_mortgage_lookup()
+    rloan_lookup = _load_rloan_lookup()
     prop_details = _load_property_details()
 
     # Scan all property flood files for this storm
@@ -83,7 +83,7 @@ def portfolio_impact(storm_id: str):
                 event['flood_depth_m'],
                 event.get('damage_ratio', 0),
                 prop_values,
-                mortgage_lookup,
+                rloan_lookup,
             ))
             break
 
@@ -101,7 +101,7 @@ def portfolio_impact(storm_id: str):
     return jsonify({
         'status': 'success',
         'storm_id': storm_id,
-        'portfolio': _portfolio_totals(properties, prop_values, mortgage_lookup),
+        'portfolio': _portfolio_totals(properties, prop_values, rloan_lookup),
         'derivatives': derivatives,
         'properties': properties,
     })
@@ -124,7 +124,7 @@ def sequence_portfolio_impact(sequence_id: str):
         return early
 
     prop_values = _load_prop_values()
-    mortgage_lookup = _load_mortgage_lookup()
+    rloan_lookup = _load_rloan_lookup()
     prop_details = _load_property_details()
 
     # For each property, find the worst (max depth) flood event in this sequence
@@ -164,7 +164,7 @@ def sequence_portfolio_impact(sequence_id: str):
             worst['flood_depth_m'],
             worst.get('damage_ratio', 0),
             prop_values,
-            mortgage_lookup,
+            rloan_lookup,
         )
         entry['worst_storm_id'] = worst.get('storm_id', '')
         entry['num_sequence_floods'] = len(seq_events)
@@ -186,7 +186,7 @@ def sequence_portfolio_impact(sequence_id: str):
         'sequence_id': sequence_id,
         'num_storms_in_sequence': len(storms_in_sequence),
         'damage_model': 'max_depth',
-        'portfolio': _portfolio_totals(properties, prop_values, mortgage_lookup),
+        'portfolio': _portfolio_totals(properties, prop_values, rloan_lookup),
         'derivatives': derivatives,
         'properties': properties,
     })

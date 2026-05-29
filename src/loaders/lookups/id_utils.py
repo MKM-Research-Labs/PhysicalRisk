@@ -38,7 +38,7 @@ def extract_property_ids(property_data: Optional[Dict[str, Any]]) -> Set[str]:
     return ids
 
 
-def extract_mortgage_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
+def extract_rloan_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
     """Extract all mortgage IDs from mortgage data."""
     if not mortgage_data:
         return set()
@@ -51,7 +51,7 @@ def extract_mortgage_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
     return ids
 
 
-def extract_mortgage_property_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
+def extract_rloan_property_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
     """Extract property IDs referenced in mortgage data."""
     if not mortgage_data:
         return set()
@@ -90,8 +90,8 @@ def analyze_id_relationships(
         Dictionary with ID counts and overlap statistics
     """
     property_ids = extract_property_ids(property_data)
-    mortgage_property_ids = extract_mortgage_property_ids(mortgage_data)
-    mortgage_ids = extract_mortgage_ids(mortgage_data)
+    mortgage_property_ids = extract_rloan_property_ids(mortgage_data)
+    mortgage_ids = extract_rloan_ids(mortgage_data)
 
     # Extract IDs from flood risk data (gaugehc.json has hazard_curves key)
     flood_property_ids = set()
