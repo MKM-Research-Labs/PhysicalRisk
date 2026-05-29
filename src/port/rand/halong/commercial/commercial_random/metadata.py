@@ -74,7 +74,10 @@ def generate_commercial_metadata(index: int, location: Dict[str, Any]) -> Dict[s
     value_per_sqm = random.uniform(*TYPE_VALUE_PER_SQM[ctype])
     value_factor = location.get('value_factor', 1.0)
     value = round(area * value_per_sqm * value_factor, -3)
-    construction_year = random.randint(1880, datetime.now().year - 1)
+    # SE-Asia commercial stock is overwhelmingly post-2005 per the BRI-PRS
+    # prototype set (>2005 exceedance base + 2010/2015/2020 anchor years).
+    # Mid-2010s is the natural cluster.
+    construction_year = random.randint(2005, datetime.now().year - 1)
 
     return {
         'property_id': _deterministic_commercial_id(location, index),

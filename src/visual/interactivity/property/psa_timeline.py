@@ -65,6 +65,7 @@ def get_js() -> str:
                 selectorHtml += '</select></div>';
 
                 content.innerHTML = selectorHtml +
+                    '<div id="prop-timeline-typhoon-banner"></div>' +
                     '<canvas id="prop-timeline-chart" height="300"></canvas>' +
                     '<div id="prop-timeline-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#555;padding:8px 0;border-top:1px solid #eee;"></div>';
 
@@ -77,6 +78,34 @@ def get_js() -> str:
                 if (selectedStormId) {
                     var found = events.find(function(e) { return e.storm_id === selectedStormId; });
                     if (found) event = found;
+                }
+
+                // Typhoon banner — visible only when the selected storm was
+                // paired with a typhoon by the severity-bucket linkage.
+                var banner = document.getElementById('prop-timeline-typhoon-banner');
+                if (banner) {
+                    if (event.typhoon && event.typhoon.event_id) {
+                        var t = event.typhoon;
+                        var peak = (t.peak_wind_ms != null) ? t.peak_wind_ms.toFixed(1) : '?';
+                        var wd = (t.wind_damage_ratio != null) ? (t.wind_damage_ratio * 100).toFixed(1) + '%' : '—';
+                        var wdColor = (t.wind_damage_ratio || 0) >= 0.5 ? '#d32f2f'
+                                    : (t.wind_damage_ratio || 0) >= 0.1 ? '#f57c00'
+                                    : '#333';
+                        banner.innerHTML =
+                            '<div style="background:linear-gradient(90deg,#fff3e0 0%,#ffe0b2 100%);' +
+                            'border:1px solid #ef6c00;border-left:5px solid #bf360c;' +
+                            'border-radius:4px;padding:6px 12px;margin:4px 0 8px;' +
+                            'display:flex;align-items:center;gap:12px;font-size:12px;">' +
+                              '<span style="font-size:18px;">⚡</span>' +
+                              '<span style="font-weight:700;color:#bf360c;letter-spacing:0.5px;">TYPHOON</span>' +
+                              '<span style="color:#333;">' + (t.event_id || '?') + ' &nbsp;·&nbsp; ' +
+                                  '<b>' + (t.scenario_family || '?') + '</b> family</span>' +
+                              '<span style="color:#333;">peak <b>' + peak + ' m/s</b></span>' +
+                              '<span style="color:' + wdColor + ';">wind damage <b>' + wd + '</b></span>' +
+                            '</div>';
+                    } else {
+                        banner.innerHTML = '';
+                    }
                 }
 
                 var readings = event.readings || [];

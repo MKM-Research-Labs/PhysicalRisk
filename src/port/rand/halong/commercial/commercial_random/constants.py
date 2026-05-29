@@ -20,21 +20,28 @@ COMMERCIAL_TYPE_ALLOCATION = [
 
 
 # (min_sqm, max_sqm) — gross internal area
+# Halong ranges are centred on the BRI-PRS SE-Asia building prototypes
+# (data/catch/halong/BRI-PRS Building Prototypes.xlsx). Midpoints align
+# with the prototypes: MixedUse 40k, MultiFamily 30k, Hotel 45k.
 TYPE_AREA_RANGE = {
-    "Office":      (1500, 30000),
-    "MultiFamily": (3000, 25000),
-    "Hotel":       (4000, 35000),
-    "Retail":      (500, 8000),
-    "MixedUse":    (2500, 20000),
+    "Office":      (10000, 40000),     # mean 25k (no prototype anchor)
+    "MultiFamily": (20000, 40000),     # mean 30k → Bldg 2
+    "Hotel":       (35000, 55000),     # mean 45k → Bldg 3
+    "Retail":      (500, 8000),        # unchanged — small-footprint stock
+    "MixedUse":    (30000, 50000),     # mean 40k → Bldg 1
 }
 
-# £/sqm capital value
+# USD/sqm capital value. SE-Asia pricing — much lower than UK commercial.
+# Means picked so (mean sqm × mean value/sqm) ≈ prototype total value:
+#   MixedUse  40k × 625 = $25M  → Bldg 1
+#   MultiFamily 30k × 675 = $20.25M → Bldg 2
+#   Hotel     45k × 675 = $30M  → Bldg 3
 TYPE_VALUE_PER_SQM = {
-    "Office":      (8000, 15000),
-    "MultiFamily": (5000, 10000),
-    "Hotel":       (6000, 12000),
-    "Retail":      (4000, 12000),
-    "MixedUse":    (6000, 12000),
+    "Office":      (500, 800),
+    "MultiFamily": (550, 800),
+    "Hotel":       (550, 800),
+    "Retail":      (800, 1500),
+    "MixedUse":    (500, 750),
 }
 
 TYPE_USE_CLASS = {
@@ -53,13 +60,14 @@ TYPE_BUSINESS_RATES = {
     "MixedUse":    "Mixed",
 }
 
-# (min_storeys, max_storeys)
+# (min_storeys, max_storeys). Halong ranges centred on the BRI-PRS
+# prototypes: MixedUse 15, MultiFamily 25, Hotel 20.
 TYPE_STOREYS = {
-    "Office":      (4, 25),
-    "MultiFamily": (4, 20),
-    "Hotel":       (4, 30),
-    "Retail":      (1, 4),
-    "MixedUse":    (3, 15),
+    "Office":      (8, 22),            # mean ~15
+    "MultiFamily": (20, 30),           # mean 25 → Bldg 2
+    "Hotel":       (15, 25),           # mean 20 → Bldg 3
+    "Retail":      (1, 4),             # unchanged
+    "MixedUse":    (10, 20),           # mean 15 → Bldg 1
 }
 
 TYPE_TOTAL_UNITS = {
