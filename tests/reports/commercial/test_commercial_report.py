@@ -238,8 +238,8 @@ def test_base_record_route_returns_404_for_unknown_id(app):
 # ---------------------------------------------------------------------------
 
 def test_generate_loan_report_emits_pdf(first_commercial_id, tmp_path):
-    from reports.commercial import generate_loan_report
-    pdf_path = generate_loan_report(
+    from reports.commercial import generate_cloan_report
+    pdf_path = generate_cloan_report(
         property_id=first_commercial_id, output_dir=tmp_path,
     )
     assert pdf_path is not None
@@ -252,8 +252,8 @@ def test_generate_loan_report_emits_pdf(first_commercial_id, tmp_path):
 
 
 def test_generate_loan_report_returns_none_for_unknown_id(halong_active, tmp_path):
-    from reports.commercial import generate_loan_report
-    assert generate_loan_report(
+    from reports.commercial import generate_cloan_report
+    assert generate_cloan_report(
         property_id="CPROP-doesnotexist", output_dir=tmp_path,
     ) is None
 
@@ -352,21 +352,21 @@ def test_load_commercial_record_returns_none_when_file_missing(
 def test_load_loan_record_returns_none_when_file_missing(
     halong_active, tmp_path,
 ):
-    """``_load_loan_record`` returns None when commercial_loan.json
+    """``_load_cloan_record`` returns None when commercial_loan.json
     is absent (silent — same convention as a missing mortgage on the
     residential side)."""
-    from reports.commercial.commercial_report import _load_loan_record
-    assert _load_loan_record("CPROP-anything", tmp_path) is None
+    from reports.commercial.commercial_report import _load_cloan_record
+    assert _load_cloan_record("CPROP-anything", tmp_path) is None
 
 
 def test_load_loan_record_returns_none_when_id_not_in_file(
     halong_active,
 ):
-    """``_load_loan_record`` returns None when the file exists but no
+    """``_load_cloan_record`` returns None when the file exists but no
     record matches the given PropertyID."""
     from pathlib import Path
-    from reports.commercial.commercial_report import _load_loan_record
-    assert _load_loan_record("CPROP-NOTREAL", Path("data/input/halong")) is None
+    from reports.commercial.commercial_report import _load_cloan_record
+    assert _load_cloan_record("CPROP-NOTREAL", Path("data/input/halong")) is None
 
 
 def test_generate_commercial_report_open_pdf_branch(
@@ -406,24 +406,24 @@ def test_generate_loan_report_returns_none_when_no_linked_loan(
 ):
     """Asset exists but has no commercial-loan record → returns None."""
     from reports.commercial import commercial_report as cr
-    # Patch _load_loan_record to simulate "no loan linked".
-    monkeypatch.setattr(cr, "_load_loan_record", lambda pid, _dir: None)
+    # Patch _load_cloan_record to simulate "no loan linked".
+    monkeypatch.setattr(cr, "_load_cloan_record", lambda pid, _dir: None)
     # Use a real commercial id so _load_commercial_record finds the asset.
     import json as _json
     with open("data/input/halong/commercial.json") as f:
         pid = _json.load(f)["commercial_assets"][0]["CommercialAsset"]["Header"]["PropertyID"]
-    assert cr.generate_loan_report(pid, output_dir=tmp_path) is None
+    assert cr.generate_cloan_report(pid, output_dir=tmp_path) is None
 
 
 def test_generate_loan_report_open_pdf_branch(
     first_commercial_id, tmp_path, monkeypatch,
 ):
-    """open_pdf=True path through generate_loan_report."""
+    """open_pdf=True path through generate_cloan_report."""
     calls = []
     import reports.utils.open_pdf as opener
     monkeypatch.setattr(opener, "open_pdf_file", lambda p: calls.append(p))
-    from reports.commercial import generate_loan_report
-    path = generate_loan_report(
+    from reports.commercial import generate_cloan_report
+    path = generate_cloan_report(
         first_commercial_id, output_dir=tmp_path, open_pdf=True,
     )
     assert path is not None
@@ -437,8 +437,8 @@ def test_generate_loan_report_open_pdf_failure_is_swallowed(
     def _boom(_):
         raise RuntimeError("opener failure")
     monkeypatch.setattr(opener, "open_pdf_file", _boom)
-    from reports.commercial import generate_loan_report
-    path = generate_loan_report(
+    from reports.commercial import generate_cloan_report
+    path = generate_cloan_report(
         first_commercial_id, output_dir=tmp_path, open_pdf=True,
     )
     assert path is not None
@@ -465,12 +465,12 @@ def test_commercial_generator_filename_falls_back_when_no_property_id(tmp_path):
 
 
 def test_loan_overview_page_renders_placeholder_for_no_loan():
-    """``LoanOverviewPage`` emits a 'No loan record linked' placeholder
+    """``CLoanOverviewPage`` emits a 'No loan record linked' placeholder
     paragraph when loan_data is None — the only branch in the page
     not exercised by the happy-path PDF tests."""
-    from reports.commercial.pages.loan_overview import LoanOverviewPage
+    from reports.commercial.pages.loan_overview import CLoanOverviewPage
     from reportlab.platypus import Paragraph
-    page = LoanOverviewPage()
+    page = CLoanOverviewPage()
     flowables = page.generate_elements(commercial_data={}, loan_data=None)
     paragraphs = [f for f in flowables if isinstance(f, Paragraph)]
     text_blob = " ".join(p.text for p in paragraphs if hasattr(p, "text"))

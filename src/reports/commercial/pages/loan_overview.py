@@ -75,7 +75,7 @@ _META_FIELDS = [
 ]
 
 
-class LoanOverviewPage(CommercialBasePage):
+class CLoanOverviewPage(CommercialBasePage):
     """Renders the commercial loan record linked to this asset.
 
     Reads from ``loan_data['Mortgage']`` and the optional

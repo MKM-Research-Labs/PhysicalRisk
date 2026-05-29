@@ -71,7 +71,7 @@ DEFAULT_COMMERCIAL_MENU = [
     {"id": "view_commercial_storms", "label": "🌧️ View Storm Scenarios", "action": "viewCommercialStorms"},
     {"id": "view_commercial_hazard", "label": "📈 Physical Risk Swap", "action": "viewCommercialHazard"},
     {"id": "generate_commercial_report", "label": "📊 Generate Commercial Report", "action": "generateCommercialReport"},
-    {"id": "generate_loan_report", "label": "🏦 Generate Loan Report", "action": "generateLoanReport"}
+    {"id": "generate_cloan_report", "label": "🏦 Generate Loan Report", "action": "generateLoanReport"}
 ]
 
 
