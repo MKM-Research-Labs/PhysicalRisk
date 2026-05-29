@@ -1,14 +1,14 @@
-"""Tests for risk_page_05_mortgage_analysis.py coverage:
+"""Tests for risk_page_05_rloan_analysis.py coverage:
 - Lines 115-119: exception handler in generate_elements
 """
 
-from reports.risk.risk_page_05_mortgage_analysis import RiskMortgageAnalysisPage
+from reports.risk.risk_page_05_rloan_analysis import RiskRLoanAnalysisPage
 
 
-class TestRiskMortgageAnalysisErrorHandler:
+class TestRiskRLoanAnalysisErrorHandler:
     def test_no_summary_returns_unavailable_message(self):
         """flood_data without 'summary' → graceful empty path (not exception)."""
-        page = RiskMortgageAnalysisPage()
+        page = RiskRLoanAnalysisPage()
         elements = page.generate_elements({})
         assert len(elements) >= 1
 
@@ -16,7 +16,7 @@ class TestRiskMortgageAnalysisErrorHandler:
         """Lines 115-119: a malformed flood_data triggers the bare-except
         and a paragraph reporting the error is appended.
         """
-        page = RiskMortgageAnalysisPage()
+        page = RiskRLoanAnalysisPage()
         # mortgage_summary contains a non-numeric total_mortgages so the
         # f"{total_mortgages:,}" format spec raises TypeError
         bad = {
