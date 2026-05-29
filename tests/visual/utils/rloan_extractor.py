@@ -19,22 +19,22 @@
 # SOFTWARE.
 
 """
-Tests for visual.utils.data_extractors.mortgage_extractor.
+Tests for visual.utils.data_extractors.rloan_extractor.
 
-Covers: extract_mortgage_info, _extract_term_years,
-build_mortgage_lookup, _normalize_mortgage_list.
+Covers: extract_rloan_info, _extract_term_years,
+build_rloan_lookup, _normalize_rloan_list.
 """
 
 import pytest
 
-from visual.utils.data_extractors.mortgage_extractor import (
-    extract_mortgage_info,
-    build_mortgage_lookup,
+from visual.utils.data_extractors.rloan_extractor import (
+    extract_rloan_info,
+    build_rloan_lookup,
 )
 
 
 # ===========================================================================
-# extract_mortgage_info
+# extract_rloan_info
 # ===========================================================================
 
 def _make_mortgage(mortgage_id="MORT-001", property_id="PROP-001",
@@ -64,35 +64,35 @@ def _make_mortgage(mortgage_id="MORT-001", property_id="PROP-001",
     }
 
 
-class TestExtractMortgageInfo:
+class TestExtractRLoanInfo:
 
     def test_returns_dict_for_valid_mortgage(self):
-        result = extract_mortgage_info(_make_mortgage())
+        result = extract_rloan_info(_make_mortgage())
         assert isinstance(result, dict)
 
     def test_extracts_mortgage_id(self):
-        result = extract_mortgage_info(_make_mortgage(mortgage_id="M-999"))
+        result = extract_rloan_info(_make_mortgage(mortgage_id="M-999"))
         assert result["mortgage_id"] == "M-999"
 
     def test_extracts_property_id(self):
-        result = extract_mortgage_info(_make_mortgage(property_id="PROP-XYZ"))
+        result = extract_rloan_info(_make_mortgage(property_id="PROP-XYZ"))
         assert result["property_id"] == "PROP-XYZ"
 
     def test_extracts_original_loan(self):
-        result = extract_mortgage_info(_make_mortgage(original_loan=300_000))
+        result = extract_rloan_info(_make_mortgage(original_loan=300_000))
         assert result["original_loan"] == 300_000
 
     def test_extracts_term_years(self):
-        result = extract_mortgage_info(_make_mortgage(term_years=30))
+        result = extract_rloan_info(_make_mortgage(term_years=30))
         assert result["term_years"] == 30
 
     def test_extracts_provider(self):
-        result = extract_mortgage_info(_make_mortgage())
+        result = extract_rloan_info(_make_mortgage())
         assert result["mortgage_provider"] == "Halifax"
 
     def test_missing_property_id_returns_none(self):
         mort = {"Mortgage": {"Header": {"MortgageID": "M1"}, "FinancialTerms": {}, "Application": {}}}
-        assert extract_mortgage_info(mort) is None
+        assert extract_rloan_info(mort) is None
 
     def test_none_values_removed(self):
         # Fields that are None should be removed from result
@@ -103,7 +103,7 @@ class TestExtractMortgageInfo:
                 "Application": {},
             }
         }
-        result = extract_mortgage_info(mort)
+        result = extract_rloan_info(mort)
         assert result is not None
         # None values should not be in result
         for v in result.values():
@@ -115,7 +115,7 @@ class TestExtractMortgageInfo:
             "FinancialTerms": {"OriginalLoan": 200_000, "TermYears": 20},
             "Application": {},
         }
-        result = extract_mortgage_info(flat)
+        result = extract_rloan_info(flat)
         assert result is not None
         assert result["property_id"] == "P-FLAT"
 
@@ -128,7 +128,7 @@ class TestExtractMortgageInfo:
                 "Application": {},
             }
         }
-        result = extract_mortgage_info(mort)
+        result = extract_rloan_info(mort)
         assert result["term_years"] == pytest.approx(25.0)
 
     def test_original_term_not_converted_if_small(self):
@@ -140,47 +140,47 @@ class TestExtractMortgageInfo:
                 "Application": {},
             }
         }
-        result = extract_mortgage_info(mort)
+        result = extract_rloan_info(mort)
         assert result["term_years"] == 25
 
 
 # ===========================================================================
-# build_mortgage_lookup
+# build_rloan_lookup
 # ===========================================================================
 
-class TestBuildMortgageLookup:
+class TestBuildRLoanLookup:
 
     def test_list_input(self):
         mortgages = [_make_mortgage("M1", "P1"), _make_mortgage("M2", "P2")]
-        result = build_mortgage_lookup(mortgages)
+        result = build_rloan_lookup(mortgages)
         assert "P1" in result
         assert "P2" in result
 
     def test_dict_with_mortgages_key(self):
         data = {"mortgages": [_make_mortgage("M1", "P1")]}
-        result = build_mortgage_lookup(data)
+        result = build_rloan_lookup(data)
         assert "P1" in result
 
     def test_dict_with_Mortgages_key(self):
         data = {"Mortgages": [_make_mortgage("M1", "P1")]}
-        result = build_mortgage_lookup(data)
+        result = build_rloan_lookup(data)
         assert "P1" in result
 
     def test_dict_with_mortgage_portfolio_key(self):
         data = {"mortgage_portfolio": [_make_mortgage("M1", "P1")]}
-        result = build_mortgage_lookup(data)
+        result = build_rloan_lookup(data)
         assert "P1" in result
 
     def test_single_mortgage_dict_wrapped(self):
         # Dict without known key — treated as single mortgage
         mort = _make_mortgage("M1", "P1")
-        result = build_mortgage_lookup(mort)
+        result = build_rloan_lookup(mort)
         assert "P1" in result
 
     def test_empty_list_returns_empty(self):
-        assert build_mortgage_lookup([]) == {}
+        assert build_rloan_lookup([]) == {}
 
     def test_mortgage_without_property_id_skipped(self):
         bad = {"Mortgage": {"Header": {"MortgageID": "M1"}, "FinancialTerms": {}, "Application": {}}}
-        result = build_mortgage_lookup([bad])
+        result = build_rloan_lookup([bad])
         assert result == {}

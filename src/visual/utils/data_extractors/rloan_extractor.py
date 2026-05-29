@@ -31,7 +31,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Mortgage data extraction utilities."""
+"""Residential-loan data extraction utilities.
+
+NOTE: data-shape strings ('Mortgage', 'MortgageID', 'mortgages') and the
+result-dict keys ('mortgage_id', 'mortgage_provider', ...) still match the
+currently generated data; they are renamed in the later data-key stage.
+"""
 
 import logging
 from typing import Any, Dict, List, Optional, Union
@@ -39,7 +44,7 @@ from typing import Any, Dict, List, Optional, Union
 logger = logging.getLogger(__name__)
 
 
-def extract_mortgage_info(mortgage: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def extract_rloan_info(mortgage: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Extract mortgage information from mortgage data.
 
@@ -118,38 +123,38 @@ def _extract_term_years(financial_terms: Dict[str, Any]) -> Optional[float]:
     return None
 
 
-def build_mortgage_lookup(mortgage_data: Union[Dict, List]) -> Dict[str, Dict]:
+def build_rloan_lookup(mortgage_data: Union[Dict, List]) -> Dict[str, Dict]:
     """
-    Build a lookup dictionary of mortgages by property ID.
+    Build a lookup dictionary of residential loans by property ID.
 
     Args:
-        mortgage_data: Dictionary or list of mortgage data
+        mortgage_data: Dictionary or list of residential-loan data
 
     Returns:
-        Dictionary mapping property IDs to mortgage information
+        Dictionary mapping property IDs to residential-loan information
     """
     lookup = {}
 
-    logger.debug("Building mortgage lookup from data of type: %s", type(mortgage_data))
+    logger.debug("Building rloan lookup from data of type: %s", type(mortgage_data))
 
-    # Handle different possible formats of mortgage data
-    mortgages = _normalize_mortgage_list(mortgage_data)
+    # Handle different possible formats of rloan data
+    mortgages = _normalize_rloan_list(mortgage_data)
 
     if isinstance(mortgages, list):
         for mortgage in mortgages:
             try:
-                mortgage_info = extract_mortgage_info(mortgage)
+                mortgage_info = extract_rloan_info(mortgage)
                 if mortgage_info and mortgage_info.get('property_id'):
                     lookup[mortgage_info['property_id']] = mortgage_info
             except Exception as e:
                 logger.error("Error processing mortgage: %s", e)
 
-    logger.debug("Built mortgage lookup with %d entries", len(lookup))
+    logger.debug("Built rloan lookup with %d entries", len(lookup))
     return lookup
 
 
-def _normalize_mortgage_list(mortgage_data: Union[Dict, List]) -> List:
-    """Normalize mortgage data to a list format."""
+def _normalize_rloan_list(mortgage_data: Union[Dict, List]) -> List:
+    """Normalize residential-loan data to a list format."""
     if isinstance(mortgage_data, dict):
         if 'mortgages' in mortgage_data:
             return mortgage_data['mortgages']
