@@ -109,7 +109,7 @@ _PROPERTY_HARDCODED = [
     'src/visual/interactivity/storm/sp_table.py',
     'src/reports/property/property_page_15_data_summary.py',
     'src/reports/property/claim/page5_determination.py',
-    'src/reports/mortgage/mortgage_page_01_title.py',
+    'src/reports/rloan/rloan_page_01_title.py',
     'src/reports/port/sections_portfolio.py',
     'src/reports/risk/risk_page_04_risk_analysis.py',
 ]

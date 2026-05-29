@@ -187,7 +187,7 @@ def generate_mortgage_report():
                 'message': f'No mortgage found for property {property_id}'
             }), 404
 
-        from reports.mortgage.mortgage_generator import generate_mortgage_report as gen_mort_report
+        from reports.rloan.rloan_generator import generate_rloan_report as gen_mort_report
 
         report_path = gen_mort_report(
             property_data=property_data,

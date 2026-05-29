@@ -1,5 +1,5 @@
 """
-Tests for missing coverage in reports.mortgage.mortgage_generator.
+Tests for missing coverage in reports.rloan.rloan_generator.
 
 Covers:
 - Lines 55-56: __init__ without output_dir (uses config default)
@@ -22,8 +22,8 @@ class TestMortgageGeneratorDefaultOutputDir:
         from config import config
         reports_dir = tmp_path / "property_reports"
         monkeypatch.setattr(config, "get_property_reports_dir", lambda: reports_dir)
-        from reports.mortgage.mortgage_generator import MortgageReportGenerator
-        gen = MortgageReportGenerator(output_dir=None)
+        from reports.rloan.rloan_generator import RLoanReportGenerator
+        gen = RLoanReportGenerator(output_dir=None)
         assert gen.output_dir == reports_dir
         assert reports_dir.exists()
 
@@ -33,8 +33,8 @@ class TestMortgageGeneratorSkipUnknownPage:
 
     def test_unknown_page_in_order_is_skipped(self, tmp_path, sample_property_data,
                                                sample_mortgage_data):
-        from reports.mortgage.mortgage_generator import MortgageReportGenerator
-        gen = MortgageReportGenerator(output_dir=tmp_path)
+        from reports.rloan.rloan_generator import RLoanReportGenerator
+        gen = RLoanReportGenerator(output_dir=tmp_path)
         # Insert a bogus page name that's not in self.pages
         gen.page_order = ['nonexistent_page'] + gen.page_order
         elements = gen._generate_elements(sample_property_data, sample_mortgage_data)
@@ -48,8 +48,8 @@ class TestMortgageGeneratorPageException:
 
     def test_page_exception_is_caught(self, tmp_path, sample_property_data,
                                        sample_mortgage_data):
-        from reports.mortgage.mortgage_generator import MortgageReportGenerator
-        gen = MortgageReportGenerator(output_dir=tmp_path)
+        from reports.rloan.rloan_generator import RLoanReportGenerator
+        gen = RLoanReportGenerator(output_dir=tmp_path)
         # Replace one page with a mock that raises
         broken_page = MagicMock()
         broken_page.generate_elements.side_effect = RuntimeError("boom")
@@ -64,16 +64,16 @@ class TestMortgageGeneratorFilenameFallback:
     """Lines 125-126: _generate_filename exception fallback to 'unknown'."""
 
     def test_generate_filename_none_mortgage_data(self, tmp_path):
-        from reports.mortgage.mortgage_generator import MortgageReportGenerator
-        gen = MortgageReportGenerator(output_dir=tmp_path)
+        from reports.rloan.rloan_generator import RLoanReportGenerator
+        gen = RLoanReportGenerator(output_dir=tmp_path)
         # Pass None which will cause AttributeError on .get()
         fname = gen._generate_filename(None)
         assert "unknown" in fname
         assert fname.endswith(".pdf")
 
     def test_generate_filename_non_dict_raises_attribute_error(self, tmp_path):
-        from reports.mortgage.mortgage_generator import MortgageReportGenerator
-        gen = MortgageReportGenerator(output_dir=tmp_path)
+        from reports.rloan.rloan_generator import RLoanReportGenerator
+        gen = RLoanReportGenerator(output_dir=tmp_path)
         # Pass an integer: .get() raises AttributeError -> caught -> 'unknown'
         fname = gen._generate_filename(42)
         assert "unknown" in fname

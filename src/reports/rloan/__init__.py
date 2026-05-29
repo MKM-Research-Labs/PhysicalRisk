@@ -19,9 +19,9 @@
 # SOFTWARE.
 
 """
-Mortgage report generation module.
+Residential-loan report generation module.
 """
 
-from .mortgage_generator import MortgageReportGenerator, generate_mortgage_report
+from .rloan_generator import RLoanReportGenerator, generate_rloan_report
 
-__all__ = ['MortgageReportGenerator', 'generate_mortgage_report']
+__all__ = ['RLoanReportGenerator', 'generate_rloan_report']
