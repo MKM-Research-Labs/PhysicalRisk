@@ -304,16 +304,6 @@ class MortgagePortfolioGenerator:
         header['PropertyID'] = property_info.get('property_id', '')
         header['CatchmentID'] = config.CATCHMENT
 
-        if 'LoanDetails' not in mortgage:
-            mortgage['LoanDetails'] = {}
-
-        loan = mortgage['LoanDetails']
-        loan['OriginalLoanAmount'] = financial_data.get('loan_amount', 400000)
-        loan['CurrentBalance'] = financial_data.get('current_balance', 380000)
-        loan['InterestRate'] = financial_data.get('interest_rate', 4.5)
-        loan['LoanTerm'] = financial_data.get('loan_term', 25)
-        loan['LTV'] = financial_data.get('ltv', 80)
-
     def _quality_consistency_check(self, mortgage_data: Dict, financial_data: Dict) -> Dict:
         """Perform quality and consistency checks on mortgage data."""
         if hasattr(self.random, 'quality_consistency_check'):

@@ -36,6 +36,7 @@ from .gauge.gaugeha import GaugeGraphInteraction
 from .gauge.gaugehc import GaugeHazardCurve
 from .gauge.gaugepdf import GaugePDFPanel
 from .gauge.gaugesa import GaugeStormAnalysis
+from .property.loanpricer import LoanPricerPanel
 from .property.mortgagedetail import MortgageDetailPanel
 from .property.propertydetails import PropertyDetailsPanel
 from .property.propertyhc import PropertyHazardCurvePanel
@@ -73,6 +74,7 @@ class InteractivityManager:
         self.property_pdf = PropertyPDFPanel()
         self.property_details = PropertyDetailsPanel()
         self.mortgage_detail = MortgageDetailPanel()
+        self.loan_pricer = LoanPricerPanel()
         self.storm_portfolio = StormPortfolioPanel()
         self.model_governance = ModelGovernancePanel()
         self.trading_desk = TradingDeskPanel()
@@ -92,6 +94,7 @@ class InteractivityManager:
         self.property_pdf.add_to_map(folium_map)
         self.property_details.add_to_map(folium_map)
         self.mortgage_detail.add_to_map(folium_map)
+        self.loan_pricer.add_to_map(folium_map)
         self.storm_portfolio.add_to_map(folium_map)
         self.model_governance.add_to_map(folium_map)
         self.trading_desk.add_to_map(folium_map)

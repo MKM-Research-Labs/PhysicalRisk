@@ -171,43 +171,43 @@ class TestQualityConsistencyCheck:
     def _mortgage_data(self, original=400000, current=390000, ltv=80, interest=4.5):
         return {
             "Mortgage": {
-                "LoanDetails": {
-                    "OriginalLoanAmount": original,
-                    "CurrentBalance": current,
-                    "LTV": ltv,
-                    "InterestRate": interest,
-                }
+                "FinancialTerms": {"OriginalLoan": original},
+                "CurrentStatus": {
+                    "OutstandingBalance": current,
+                    "CurrentLTV": ltv,
+                    "CurrentInterestRate": interest,
+                },
             }
         }
 
     def test_current_exceeds_original_is_capped(self):
         data = self._mortgage_data(original=400000, current=420000)
         result = quality_consistency_check(data, {})
-        assert result["Mortgage"]["LoanDetails"]["CurrentBalance"] <= 400000
+        assert result["Mortgage"]["CurrentStatus"]["OutstandingBalance"] <= 400000
 
     def test_ltv_over_100_capped_at_95(self):
         data = self._mortgage_data(ltv=110)
         result = quality_consistency_check(data, {})
-        assert result["Mortgage"]["LoanDetails"]["LTV"] == 95
+        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 95
 
     def test_ltv_under_10_set_to_60(self):
         data = self._mortgage_data(ltv=5)
         result = quality_consistency_check(data, {})
-        assert result["Mortgage"]["LoanDetails"]["LTV"] == 60
+        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 60
 
     def test_interest_over_15_capped(self):
         data = self._mortgage_data(interest=20.0)
         result = quality_consistency_check(data, {})
-        assert result["Mortgage"]["LoanDetails"]["InterestRate"] == 12.0
+        assert result["Mortgage"]["CurrentStatus"]["CurrentInterestRate"] == 12.0
 
     def test_interest_under_1_raised(self):
         data = self._mortgage_data(interest=0.5)
         result = quality_consistency_check(data, {})
-        assert result["Mortgage"]["LoanDetails"]["InterestRate"] == 2.0
+        assert result["Mortgage"]["CurrentStatus"]["CurrentInterestRate"] == 2.0
 
     def test_valid_data_unchanged(self):
         data = self._mortgage_data(original=400000, current=350000, ltv=80, interest=4.5)
         result = quality_consistency_check(data, {})
-        assert result["Mortgage"]["LoanDetails"]["CurrentBalance"] == 350000
-        assert result["Mortgage"]["LoanDetails"]["LTV"] == 80
-        assert result["Mortgage"]["LoanDetails"]["InterestRate"] == 4.5
+        assert result["Mortgage"]["CurrentStatus"]["OutstandingBalance"] == 350000
+        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 80
+        assert result["Mortgage"]["CurrentStatus"]["CurrentInterestRate"] == 4.5

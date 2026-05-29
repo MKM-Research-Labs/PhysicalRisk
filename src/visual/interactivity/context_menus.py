@@ -46,6 +46,7 @@ import folium
 DEFAULT_PROPERTY_MENU = [
     {"id": "view_details", "label": "🏠 Property Details", "action": "viewPropertyDetails"},
     {"id": "view_mortgage", "label": "💰 Mortgage Details", "action": "viewMortgageDetail"},
+    {"id": "loan_pricer", "label": "🧮 Loan Pricer", "action": "viewLoanPricer"},
     {"id": "view_property_storms", "label": "🌧️ View Storm Scenarios", "action": "viewPropertyStorms"},
     {"id": "view_property_hazard", "label": "📈 Physical Risk Swap", "action": "viewPropertyHazard"},
     {"id": "generate_report", "label": "📊 Generate Property Report", "action": "generateReport"},
@@ -66,6 +67,7 @@ DEFAULT_GAUGE_MENU = [
 DEFAULT_COMMERCIAL_MENU = [
     {"id": "view_details", "label": "🏢 Commercial Details", "action": "viewCommercialDetails"},
     {"id": "view_loan", "label": "💰 Loan Details", "action": "viewLoanDetails"},
+    {"id": "loan_pricer", "label": "🧮 Loan Pricer", "action": "viewCommercialLoanPricer"},
     {"id": "view_commercial_storms", "label": "🌧️ View Storm Scenarios", "action": "viewCommercialStorms"},
     {"id": "view_commercial_hazard", "label": "📈 Physical Risk Swap", "action": "viewCommercialHazard"},
     {"id": "generate_commercial_report", "label": "📊 Generate Commercial Report", "action": "generateCommercialReport"},

@@ -126,29 +126,32 @@ class TestGenerateFullOutput:
             assert "PropertyID" in header
             assert "CatchmentID" in header
 
-    def test_loan_details_values_are_positive(self, tmp_path):
+    def test_loan_values_are_positive(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=3)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            loan = m["Mortgage"]["LoanDetails"]
-            assert loan["OriginalLoanAmount"] > 0
-            assert loan["CurrentBalance"] > 0
-            assert loan["InterestRate"] > 0
-            assert loan["LoanTerm"] > 0
-            assert loan["LTV"] > 0
+            terms = m["Mortgage"]["FinancialTerms"]
+            status = m["Mortgage"]["CurrentStatus"]
+            assert terms["OriginalLoan"] > 0
+            assert status["OutstandingBalance"] > 0
+            assert status["CurrentInterestRate"] > 0
+            assert terms["OriginalTerm"] > 0
+            assert status["CurrentLTV"] > 0
 
     def test_current_balance_does_not_exceed_original_loan(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=5)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            loan = m["Mortgage"]["LoanDetails"]
-            assert loan["CurrentBalance"] <= loan["OriginalLoanAmount"]
+            assert (
+                m["Mortgage"]["CurrentStatus"]["OutstandingBalance"]
+                <= m["Mortgage"]["FinancialTerms"]["OriginalLoan"]
+            )
 
     def test_ltv_within_valid_range(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=5)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            assert 10 <= m["Mortgage"]["LoanDetails"]["LTV"] <= 100
+            assert 10 <= m["Mortgage"]["CurrentStatus"]["CurrentLTV"] <= 100
 
     def test_output_file_is_valid_json(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=2)

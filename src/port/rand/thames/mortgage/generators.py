@@ -87,8 +87,12 @@ def generate_decimal_value(field_name: str, financial_data: Dict) -> float:
         return financial_data.get("ltv_ratio", 0.8) * 100
     elif field_name == "OriginalLendingRate":
         return round(financial_data.get("interest_rate", 0.035) * 100, 2)
-    elif field_name in ("CurrentLendingRate", "InterestRate"):
+    elif field_name in ("CurrentLendingRate", "CurrentInterestRate", "InterestRate"):
         return round(financial_data.get("interest_rate", 0.035) * 100, 2)
+    elif field_name == "InsuranceRate":
+        return round(random.uniform(0.0015, 0.003), 4)
+    elif field_name == "RecoveryHaircut":
+        return round(random.uniform(0.15, 0.30), 3)
     elif field_name == "CurrentPayment":
         return financial_data.get("monthly_payment", 1500)
     elif field_name == "BorrowerIncome":

@@ -63,7 +63,6 @@ class TestBuildMortgageLookup:
                         "CurrentLTV": 0.73,
                         "CurrentInterestRate": 0.035,
                     },
-                    "LoanDetails": {},
                     "Application": {},
                 }
             }]
@@ -82,26 +81,24 @@ class TestBuildMortgageLookup:
                     "Header": {"MortgageID": "MORT-X"},
                     "FinancialTerms": {},
                     "CurrentStatus": {},
-                    "LoanDetails": {},
                 }
             }]
         }
         assert build_mortgage_lookup(data) == {}
 
-    def test_loan_from_loan_details_fallback(self):
+    def test_missing_original_loan_defaults_to_zero(self):
         data = {
             "items": [{
                 "Mortgage": {
                     "Header": {"MortgageID": "MORT-002", "PropertyID": "PROP-002"},
-                    "FinancialTerms": {},  # No OriginalLoan here
+                    "FinancialTerms": {},  # No OriginalLoan
                     "CurrentStatus": {},
-                    "LoanDetails": {"OriginalLoanAmount": 300_000},
                     "Application": {},
                 }
             }]
         }
         result = build_mortgage_lookup(data)
-        assert result["PROP-002"]["OriginalLoan"] == 300_000
+        assert result["PROP-002"]["OriginalLoan"] == 0
 
     def test_multiple_mortgages(self):
         def _make_item(mid, pid):
@@ -110,7 +107,6 @@ class TestBuildMortgageLookup:
                     "Header": {"MortgageID": mid, "PropertyID": pid},
                     "FinancialTerms": {},
                     "CurrentStatus": {},
-                    "LoanDetails": {},
                     "Application": {},
                 }
             }
@@ -144,7 +140,6 @@ class TestBuildAllLookups:
                     "Header": {"MortgageID": "M1", "PropertyID": "P1"},
                     "FinancialTerms": {"OriginalLoan": 150_000},
                     "CurrentStatus": {},
-                    "LoanDetails": {},
                     "Application": {},
                 }
             }]
