@@ -30,8 +30,12 @@ from typing import Any, Dict
 import folium
 
 
-class MortgageDetailPanel:
-    """Handler for interactive mortgage detail popup."""
+class RLoanDetailPanel:
+    """Handler for interactive residential-loan detail popup.
+
+    NOTE: the emitted JS window names (window.viewMortgageDetail,
+    window.MortgageDetailPanel) are renamed in the JS+routes stage.
+    """
 
     def __init__(self,
                  panel_width: str = "600px",

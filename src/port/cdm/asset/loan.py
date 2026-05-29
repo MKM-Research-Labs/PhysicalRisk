@@ -375,12 +375,12 @@ class LoanCDM(BaseCDM):
         """
         try:
             from config.models import (
-                MORTGAGE_DEFAULT_INSURANCE_RATE,
-                MORTGAGE_DEFAULT_RECOVERY_HAIRCUT,
+                LOAN_DEFAULT_INSURANCE_RATE,
+                LOAN_DEFAULT_RECOVERY_HAIRCUT,
             )
         except Exception:
-            MORTGAGE_DEFAULT_INSURANCE_RATE = 0.002
-            MORTGAGE_DEFAULT_RECOVERY_HAIRCUT = 0.20
+            LOAN_DEFAULT_INSURANCE_RATE = 0.002
+            LOAN_DEFAULT_RECOVERY_HAIRCUT = 0.20
 
         flat = self.create_mapping(mortgage)
 
@@ -403,8 +403,8 @@ class LoanCDM(BaseCDM):
         original_term_months = flat.get('original_term')
         remaining_term_months = flat.get('remaining_term', original_term_months)
 
-        insurance_rate = flat.get('insurance_rate', MORTGAGE_DEFAULT_INSURANCE_RATE)
-        recovery_haircut = flat.get('recovery_haircut', MORTGAGE_DEFAULT_RECOVERY_HAIRCUT)
+        insurance_rate = flat.get('insurance_rate', LOAN_DEFAULT_INSURANCE_RATE)
+        recovery_haircut = flat.get('recovery_haircut', LOAN_DEFAULT_RECOVERY_HAIRCUT)
 
         inputs = {
             'mortgage_id': flat.get('mortgage_id'),

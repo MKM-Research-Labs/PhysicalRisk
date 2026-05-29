@@ -28,7 +28,7 @@ Sub-modules:
 - notifications: Notification system
 - startup: Startup preloader
 - gauge/: Gauge-level panels (gaugeha, gaugehc, gaugepdf, gaugesa)
-- property/: Property panels (mortgagedetail, propertyhc, propertypdf, propertysa)
+- property/: Property panels (rloandetail, propertyhc, propertypdf, propertysa)
 - storm/: Storm portfolio panel
 - trading/: Trading desk panels
 - governance/: Model governance panel
@@ -52,7 +52,7 @@ from .gauge.gaugeha import GaugeGraphInteraction  # noqa: F401
 from .gauge.gaugehc import GaugeHazardCurve  # noqa: F401
 from .gauge.gaugepdf import GaugePDFPanel  # noqa: F401
 from .gauge.gaugesa import GaugeStormAnalysis  # noqa: F401
-from .property.mortgagedetail import MortgageDetailPanel  # noqa: F401
+from .property.rloandetail import RLoanDetailPanel  # noqa: F401
 from .property.propertyhc import PropertyHazardCurvePanel  # noqa: F401
 from .property.propertypdf import PropertyPDFPanel  # noqa: F401
 from .property.propertysa import PropertyStormAnalysis  # noqa: F401
@@ -71,7 +71,7 @@ __all__ = [
     "PropertyHazardCurvePanel",
     "GaugePDFPanel",
     "PropertyPDFPanel",
-    "MortgageDetailPanel",
+    "RLoanDetailPanel",
     "ModelGovernancePanel",
     "StormPortfolioPanel",
     "TradingDeskPanel",

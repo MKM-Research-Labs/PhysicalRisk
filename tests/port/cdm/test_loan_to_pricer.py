@@ -6,8 +6,8 @@
 import pytest
 
 from config.models import (
-    MORTGAGE_DEFAULT_INSURANCE_RATE,
-    MORTGAGE_DEFAULT_RECOVERY_HAIRCUT,
+    LOAN_DEFAULT_INSURANCE_RATE,
+    LOAN_DEFAULT_RECOVERY_HAIRCUT,
 )
 from models.loan import LoanPricer
 from port.cdm import LoanCDM
@@ -82,8 +82,8 @@ class TestToPricerInputs:
         del rec["Mortgage"]["FinancialTerms"]["InsuranceRate"]
         del rec["Mortgage"]["RiskAssessment"]["RecoveryHaircut"]
         out = LoanCDM().to_pricer_inputs(rec)
-        assert out["insurance_rate"] == pytest.approx(MORTGAGE_DEFAULT_INSURANCE_RATE)
-        assert out["recovery_haircut"] == pytest.approx(MORTGAGE_DEFAULT_RECOVERY_HAIRCUT)
+        assert out["insurance_rate"] == pytest.approx(LOAN_DEFAULT_INSURANCE_RATE)
+        assert out["recovery_haircut"] == pytest.approx(LOAN_DEFAULT_RECOVERY_HAIRCUT)
 
     def test_current_rate_falls_back_to_original(self):
         rec = _record()
