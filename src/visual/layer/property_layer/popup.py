@@ -10,7 +10,7 @@ from ...utils import ColorSchemes, DataFormatter
 
 
 def create_property_popup(property_info: Dict[str, Any], property_flood_info: Dict[str, Any],
-                          has_mortgage: bool, mortgage_info: Dict[str, Any]) -> str:
+                          has_rloan: bool, mortgage_info: Dict[str, Any]) -> str:
     """Create detailed popup content for a property marker."""
     property_id = property_info['property_id']
     address = property_info.get('address', {})
@@ -58,7 +58,7 @@ def create_property_popup(property_info: Dict[str, Any], property_flood_info: Di
             </div>
     """
 
-    if has_mortgage and mortgage_info:
+    if has_rloan and mortgage_info:
         popup_content += create_mortgage_section(mortgage_info, property_value)
 
     popup_content += "</div>"

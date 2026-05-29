@@ -44,7 +44,7 @@ def property_blotter():
         entry = dict(d)
         # Mortgage enrichment
         mg = rloan_lookup.get(pid, {})
-        entry['has_mortgage'] = pid in rloan_lookup
+        entry['has_rloan'] = pid in rloan_lookup
         entry['outstanding_balance'] = mg.get('outstanding_balance', 0)
         entry['current_ltv'] = mg.get('current_ltv', 0)
         entry['remaining_term_months'] = mg.get('remaining_term_months', 0)

@@ -27,11 +27,11 @@ class PropertyPopupBuilder(PopupBuilder):
 
     def create_property_section(self, prop, property_id, address, coordinates,
                                 construction_year, property_age_factor,
-                                property_value, has_mortgage) -> str:
+                                property_value, has_rloan) -> str:
         """Create the property information section for the popup."""
         return create_property_section(
             self, prop, property_id, address, coordinates,
-            construction_year, property_age_factor, property_value, has_mortgage
+            construction_year, property_age_factor, property_value, has_rloan
         )
 
     def create_flood_info_section(self, flood_info) -> str:
@@ -68,7 +68,7 @@ class PropertyPopupBuilder(PopupBuilder):
                                       flood_risk: str, thames_proximity: str,
                                       ground_elevation: Any, elevation_estimated: bool,
                                       property_value: Any, construction_year: Any,
-                                      property_age_factor: str, has_mortgage: bool,
+                                      property_age_factor: str, has_rloan: bool,
                                       mortgage_info: Optional[Dict[str, Any]] = None,
                                       flood_info: Optional[Dict[str, Any]] = None) -> str:
         """Create the complete popup content by aggregating different sections."""
@@ -79,13 +79,13 @@ class PropertyPopupBuilder(PopupBuilder):
 
         property_section = self.create_property_section(
             prop, property_id, address, coordinates, construction_year,
-            property_age_factor, property_value, has_mortgage
+            property_age_factor, property_value, has_rloan
         )
 
         flood_section = self.create_flood_info_section(flood_info) if flood_info else ""
 
         mortgage_section = ""
-        if has_mortgage and mortgage_info:
+        if has_rloan and mortgage_info:
             mortgage_section = self.create_mortgage_section(
                 mortgage_info, property_value,
                 flood_info.get('risk_level', 'Unknown') if flood_info else 'Unknown'
@@ -99,13 +99,13 @@ class PropertyPopupBuilder(PopupBuilder):
                              flood_risk: str, thames_proximity: str,
                              ground_elevation: Any, elevation_estimated: bool,
                              property_value: Any, construction_year: Any,
-                             property_age_factor: str, has_mortgage: bool,
+                             property_age_factor: str, has_rloan: bool,
                              mortgage_info: Optional[Dict[str, Any]] = None,
                              flood_info: Optional[Dict[str, Any]] = None) -> folium.Popup:
         """Build a complete property popup."""
         content = self.create_complete_popup_content(
             prop, property_id, address, coordinates, flood_risk, thames_proximity,
             ground_elevation, elevation_estimated, property_value, construction_year,
-            property_age_factor, has_mortgage, mortgage_info, flood_info,
+            property_age_factor, has_rloan, mortgage_info, flood_info,
         )
         return self.build_popup(content)

@@ -239,7 +239,7 @@ class TestLoadMortgageLookupException:
         # Property should appear without mortgage
         props = r.get_json()["properties"]
         assert len(props) == 1
-        assert props[0]["has_mortgage"] is False
+        assert props[0]["has_rloan"] is False
 
 
 # ===========================================================================
@@ -255,7 +255,7 @@ class TestPropertyWithoutMortgage:
         )
         assert r.status_code == 200
         prop = r.get_json()["properties"][0]
-        assert prop["has_mortgage"] is False
+        assert prop["has_rloan"] is False
         assert prop["outstanding_balance"] == 0
         assert prop["current_ltv"] == 0
         assert prop["post_damage_ltv"] == 0
@@ -267,7 +267,7 @@ class TestPropertyWithoutMortgage:
         )
         assert r.status_code == 200
         prop = r.get_json()["properties"][0]
-        assert prop["has_mortgage"] is False
+        assert prop["has_rloan"] is False
 
 
 # ===========================================================================
