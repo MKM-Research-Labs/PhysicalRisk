@@ -39,7 +39,7 @@ class CommercialReportGenerator(BaseReportGenerator):
 
     Same orchestrator pattern as PropertyReportGenerator: a dict of
     named page instances + a categories dict picking which run for
-    each report mode. Forwards ``commercial_data`` and ``loan_data``
+    each report mode. Forwards ``commercial_data`` and ``cloan_data``
     kwargs to every page's ``generate_elements``; pages that don't
     care simply ignore the extras.
     """
@@ -86,7 +86,7 @@ class CommercialReportGenerator(BaseReportGenerator):
     def generate_report(
         self,
         commercial_data: Dict[str, Any],
-        loan_data: Optional[Dict[str, Any]] = None,
+        cloan_data: Optional[Dict[str, Any]] = None,
         pages_to_include: Optional[List[str]] = None,
         output_filename: Optional[str] = None,
     ) -> Path:
@@ -95,12 +95,12 @@ class CommercialReportGenerator(BaseReportGenerator):
         Args:
             commercial_data: A single commercial record (one element from
                 ``commercial.json['commercial_assets']``).
-            loan_data: Optional commercial_loan record linked by PropertyID.
+            cloan_data: Optional commercial_loan record linked by PropertyID.
             pages_to_include: Specific pages, or None for auto.
             output_filename: Override filename, or None for auto.
         """
         if pages_to_include is None:
-            pages_to_include = self._auto_select_pages(commercial_data, loan_data)
+            pages_to_include = self._auto_select_pages(commercial_data, cloan_data)
         if output_filename is None:
             output_filename = self._generate_filename(commercial_data)
 
@@ -109,23 +109,23 @@ class CommercialReportGenerator(BaseReportGenerator):
             output_path,
             pages_to_include,
             commercial_data=commercial_data,
-            loan_data=loan_data,
+            cloan_data=cloan_data,
         )
 
     def _auto_select_pages(
         self,
         commercial_data: Dict[str, Any],
-        loan_data: Optional[Dict[str, Any]],
+        cloan_data: Optional[Dict[str, Any]],
     ) -> List[str]:
         pages = list(self.categories["commercial"])
-        if loan_data:
+        if cloan_data:
             pages.extend(self.categories["loan"])
         return pages
 
     def generate_cloan_focused_report(
         self,
         commercial_data: Dict[str, Any],
-        loan_data: Dict[str, Any],
+        cloan_data: Dict[str, Any],
         output_filename: Optional[str] = None,
     ) -> Path:
         """Generate a loan-focused PDF (title + location + loan overview).
@@ -147,7 +147,7 @@ class CommercialReportGenerator(BaseReportGenerator):
             output_path,
             pages,
             commercial_data=commercial_data,
-            loan_data=loan_data,
+            cloan_data=cloan_data,
         )
 
     def _generate_filename(
