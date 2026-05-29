@@ -66,7 +66,8 @@ def _build_context(args) -> StageContext:
     # Auto-prerequisite resolution (single-step mode only).
     if not run_all and not args.strict and resolve_prerequisites is not None:
         _step_flag = {
-            "gauges": "gauges", "properties": "properties",
+            "gauges": "gauges", "synthetic_gauges": "gauges",
+            "properties": "properties",
             "mortgages": "mortgages", "gaugehd": "gaugehd",
             "stressm": "stressm", "hazard": "hazard",
             "propertyts": "propertyts", "propertyhc": "propertyhc",
