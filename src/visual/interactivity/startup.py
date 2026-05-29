@@ -157,7 +157,7 @@ def get_js() -> str:
                 ['_preGovBib',         'Bibliography',         '/api/v1/governance/bibliography'],
                 ['_prePropertyTS',     'Property flood TS',    '/api/v1/propertyts/summary'],
                 ['_preGaugeHist',      'Gauge history',        '/api/v1/gauges/history/summary'],
-                ['_preMortgages',      'Mortgages',            '/api/v1/mortgages'],
+                ['_preMortgages',      'Mortgages',            '/api/v1/rloans'],
                 ['_preAuditReports',   'Audit reports',        '/api/v1/governance/audit-reports'],
                 ['_prePropertyNames',  'Property names',       '/api/v1/properties'],
                 ['_preCommercial',     'Commercial assets',    '/api/v1/commercial'],

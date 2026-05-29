@@ -112,8 +112,8 @@
         var generateGaugeReport = _generateReport(
             BACKEND.endpoints.gauge_report, 'gaugeId', 'GaugePDFPanel', 'gaugePdfReady'
         );
-        var generateMortgageReport = _generateReport(
-            BACKEND.endpoints.mortgage_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        var generateRLoanReport = _generateReport(
+            BACKEND.endpoints.rloan_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
         );
         var generateCommercialReport = _generateReport(
             BACKEND.endpoints.commercial_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
@@ -339,7 +339,7 @@
             callAPI: callAPI,
             generateReport: generateReport,
             generateGaugeReport: generateGaugeReport,
-            generateMortgageReport: generateMortgageReport,
+            generateRLoanReport: generateRLoanReport,
             generateCommercialReport: generateCommercialReport,
             generateLoanReport: generateLoanReport,
             viewGaugeStorms: viewGaugeStorms,
@@ -368,7 +368,7 @@
         var api = createBackendHandler(root.__BACKEND_CONFIG);
         root.generateReport = api.generateReport;
         root.generateGaugeReport = api.generateGaugeReport;
-        root.generateMortgageReport = api.generateMortgageReport;
+        root.generateRLoanReport = api.generateRLoanReport;
         root.generateCommercialReport = api.generateCommercialReport;
         root.generateLoanReport = api.generateLoanReport;
         root.viewGaugeStorms = api.viewGaugeStorms;

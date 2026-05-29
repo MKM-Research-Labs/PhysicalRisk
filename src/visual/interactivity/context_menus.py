@@ -45,12 +45,12 @@ import folium
 # Default menu configurations
 DEFAULT_PROPERTY_MENU = [
     {"id": "view_details", "label": "🏠 Property Details", "action": "viewPropertyDetails"},
-    {"id": "view_mortgage", "label": "💰 Mortgage Details", "action": "viewMortgageDetail"},
+    {"id": "view_mortgage", "label": "💰 Mortgage Details", "action": "viewRLoanDetail"},
     {"id": "loan_pricer", "label": "🧮 Loan Pricer", "action": "viewLoanPricer"},
     {"id": "view_property_storms", "label": "🌧️ View Storm Scenarios", "action": "viewPropertyStorms"},
     {"id": "view_property_hazard", "label": "📈 Physical Risk Swap", "action": "viewPropertyHazard"},
     {"id": "generate_report", "label": "📊 Generate Property Report", "action": "generateReport"},
-    {"id": "generate_mortgage_report", "label": "🏦 Generate Mortgage Report", "action": "generateMortgageReport"}
+    {"id": "generate_mortgage_report", "label": "🏦 Generate Mortgage Report", "action": "generateRLoanReport"}
 ]
 
 DEFAULT_GAUGE_MENU = [

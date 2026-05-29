@@ -22,7 +22,7 @@
 Mortgage detail popup panel for property markers.
 
 Displays full mortgage information in an overlay panel,
-loaded from the /api/v1/properties/{id}/mortgage endpoint.
+loaded from the /api/v1/properties/{id}/rloan endpoint.
 """
 
 from typing import Any, Dict
@@ -33,8 +33,8 @@ import folium
 class RLoanDetailPanel:
     """Handler for interactive residential-loan detail popup.
 
-    NOTE: the emitted JS window names (window.viewMortgageDetail,
-    window.MortgageDetailPanel) are renamed in the JS+routes stage.
+    Emits JS window globals window.viewRLoanDetail and
+    window.RLoanDetailPanel.
     """
 
     def __init__(self,
@@ -147,7 +147,7 @@ class RLoanDetailPanel:
                 try {{
                     var cfg = window.__BACKEND_CONFIG || {{}};
                     var baseUrl = cfg.url || '';
-                    var url = baseUrl + '/api/v1/properties/' + propertyId + '/mortgage';
+                    var url = baseUrl + '/api/v1/properties/' + propertyId + '/rloan';
                     var response = await fetch(url, {{mode: 'cors'}});
                     if (!response.ok) throw new Error('HTTP ' + response.status);
                     var data = await response.json();
@@ -211,8 +211,8 @@ class RLoanDetailPanel:
                 }}
             }}
 
-            window.viewMortgageDetail = showPanel;
-            window.MortgageDetailPanel = {{
+            window.viewRLoanDetail = showPanel;
+            window.RLoanDetailPanel = {{
                 show: showPanel,
                 hide: hidePanel
             }};
