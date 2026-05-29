@@ -124,10 +124,10 @@ class TestPropertyMortgage:
 
     def test_found_returns_mortgage(self, prop_client):
         client, reg = prop_client
-        mortgage_record = {
+        rloan_record = {
             "Mortgage": {"Header": {"PropertyID": "PROP-001"}, "Outstanding": 200000}
         }
-        reg.get_rloan_loader.return_value.find_by_property_id.return_value = mortgage_record
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = rloan_record
         r = client.get("/api/v1/properties/PROP-001/mortgage")
         assert r.status_code == 200
         data = r.get_json()

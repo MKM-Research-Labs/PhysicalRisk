@@ -29,19 +29,19 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table
 # ---------------------------------------------------------------------------
 
 class TestPage1Cover:
-    def test_returns_list(self, prop_data, prop_record, mortgage_record,
+    def test_returns_list(self, prop_data, prop_record, rloan_record,
                           claim_ref, today, styles):
         from reports.property.claim.page1_cover import build_page1_cover
         result = build_page1_cover(
-            prop_data, prop_record, mortgage_record, claim_ref, today, styles)
+            prop_data, prop_record, rloan_record, claim_ref, today, styles)
         assert isinstance(result, list)
         assert len(result) > 0
 
     def test_contains_claim_ref_paragraph(self, prop_data, prop_record,
-                                          mortgage_record, claim_ref, today, styles):
+                                          rloan_record, claim_ref, today, styles):
         from reports.property.claim.page1_cover import build_page1_cover
         result = build_page1_cover(
-            prop_data, prop_record, mortgage_record, claim_ref, today, styles)
+            prop_data, prop_record, rloan_record, claim_ref, today, styles)
         # Look for a Table containing the claim reference banner
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) > 0

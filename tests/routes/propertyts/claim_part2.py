@@ -37,7 +37,7 @@ from .conftest import (
 
 class TestClaimReportHelperExceptions:
     """Cover exception branches in _load_sequence_lookup (L56-57),
-    _load_prop_record (L71-73), and _load_mortgage_record (L89-91).
+    _load_prop_record (L71-73), and _load_rloan_record (L89-91).
 
     These paths are hit when the underlying JSON files are missing or corrupt,
     but the propertyts flood data file itself is present with flood events.
@@ -83,7 +83,7 @@ class TestClaimReportHelperExceptions:
         assert r.status_code == 200
 
     def test_missing_mortgage_json_still_generates(self, claim_env_no_support_files, monkeypatch):
-        """_load_mortgage_record exception (L89-91) returns None; report still generated."""
+        """_load_rloan_record exception (L89-91) returns None; report still generated."""
         fake_pdf = b"%PDF-1.4 fake"
         class FakeGen:
             def generate(self, prop_data, prop_record, mort_record, seq_lookup):

@@ -21,7 +21,7 @@ from .styles import PURPLE_TABLE_STYLE
 def build_page4_rloan(
     prop_data: dict,
     prop_record: dict,
-    mortgage_record: Optional[dict],
+    rloan_record: Optional[dict],
     sequence_lookup: Dict[str, dict],
     styles,
 ) -> List:
@@ -31,7 +31,7 @@ def build_page4_rloan(
     elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#1A237E')))
     elements.append(Spacer(1, 0.1 * 72))
 
-    if mortgage_record is None:
+    if rloan_record is None:
         elements.append(Spacer(1, 0.5 * 72))
         no_mtg = [[Paragraph(
             'No mortgage registered against this property.',
@@ -54,8 +54,8 @@ def build_page4_rloan(
     valuation = prop_record.get('Valuation', {})
     prop_value = float(valuation.get('PropertyValue', 0) or 0)
 
-    fin_terms = mortgage_record.get('FinancialTerms', {})
-    curr_status = mortgage_record.get('CurrentStatus', {})
+    fin_terms = rloan_record.get('FinancialTerms', {})
+    curr_status = rloan_record.get('CurrentStatus', {})
     outstanding_balance = float(
         curr_status.get('OutstandingBalance', fin_terms.get('OriginalBalance', 0)) or 0
     )

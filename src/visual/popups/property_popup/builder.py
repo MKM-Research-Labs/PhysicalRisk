@@ -47,16 +47,16 @@ class PropertyPopupBuilder(PopupBuilder):
     # Private helpers — delegate to helpers.py                           #
     # ------------------------------------------------------------------ #
 
-    def _calculate_ltv_ratio(self, loan_amount, property_value, mortgage_financial):
-        return calculate_ltv_ratio(loan_amount, property_value, mortgage_financial)
+    def _calculate_ltv_ratio(self, loan_amount, property_value, rloan_financial):
+        return calculate_ltv_ratio(loan_amount, property_value, rloan_financial)
 
-    def _extract_term_years(self, mortgage_financial, rloan_info):
-        return extract_term_years(mortgage_financial, rloan_info)
+    def _extract_term_years(self, rloan_financial, rloan_info):
+        return extract_term_years(rloan_financial, rloan_info)
 
-    def _calculate_monthly_payment(self, mortgage_financial, loan_amount,
+    def _calculate_monthly_payment(self, rloan_financial, loan_amount,
                                    interest_rate, term_years):
         return calculate_monthly_payment(
-            mortgage_financial, loan_amount, interest_rate, term_years
+            rloan_financial, loan_amount, interest_rate, term_years
         )
 
     # ------------------------------------------------------------------ #

@@ -20,7 +20,7 @@ from .formatters import fmt_gbp
 def build_page5_determination(
     prop_data: dict,
     prop_record: dict,
-    mortgage_record: Optional[dict],
+    rloan_record: Optional[dict],
     sequence_lookup: Dict[str, dict],
     claim_ref: str,
     today: datetime,
@@ -82,9 +82,9 @@ def build_page5_determination(
     ]
 
     outstanding_balance: Optional[float] = None
-    if mortgage_record is not None:
-        fin_terms = mortgage_record.get('FinancialTerms', {})
-        curr_status = mortgage_record.get('CurrentStatus', {})
+    if rloan_record is not None:
+        fin_terms = rloan_record.get('FinancialTerms', {})
+        curr_status = rloan_record.get('CurrentStatus', {})
         outstanding_balance = float(
             curr_status.get('OutstandingBalance',
                             fin_terms.get('OriginalBalance', 0)) or 0
