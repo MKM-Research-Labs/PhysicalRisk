@@ -21,7 +21,7 @@ from .pages import (
     EnergyPage,
     HeaderPage,
     HistoryPage,
-    LoanOverviewPage,
+    CLoanOverviewPage,
     LocationPage,
     ProtectionPage,
     RiskAssessmentPage,
@@ -71,7 +71,7 @@ class CommercialReportGenerator(BaseReportGenerator):
             "history":         HistoryPage(),
             "transactions":    TransactionsPage(),
             # Loan
-            "loan_overview":   LoanOverviewPage(),
+            "loan_overview":   CLoanOverviewPage(),
         }
         self.categories = {
             "commercial": [
@@ -122,7 +122,7 @@ class CommercialReportGenerator(BaseReportGenerator):
             pages.extend(self.categories["loan"])
         return pages
 
-    def generate_loan_focused_report(
+    def generate_cloan_focused_report(
         self,
         commercial_data: Dict[str, Any],
         loan_data: Dict[str, Any],

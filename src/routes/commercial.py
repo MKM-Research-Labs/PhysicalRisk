@@ -134,9 +134,9 @@ def generate_loan_report_route():
         return result
 
     try:
-        from reports.commercial import generate_loan_report
+        from reports.commercial import generate_cloan_report
 
-        report_path = generate_loan_report(
+        report_path = generate_cloan_report(
             property_id=property_id,
             output_dir=config.get_reports_dir('commercial'),
             open_pdf=False,

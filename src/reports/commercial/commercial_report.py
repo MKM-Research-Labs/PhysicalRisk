@@ -39,7 +39,7 @@ def _load_commercial_record(
     return None
 
 
-def _load_loan_record(
+def _load_cloan_record(
     property_id: str,
     catchment_input_dir: Path,
 ) -> Optional[Dict[str, Any]]:
@@ -76,7 +76,7 @@ def generate_commercial_report(
     if commercial is None:
         logger.error("No commercial record for %s in %s", property_id, input_dir)
         return None
-    loan = _load_loan_record(property_id, input_dir)
+    loan = _load_cloan_record(property_id, input_dir)
 
     generator = CommercialReportGenerator(output_dir=output_dir)
     pdf_path = generator.generate_report(commercial, loan)
@@ -91,7 +91,7 @@ def generate_commercial_report(
     return pdf_path
 
 
-def generate_loan_report(
+def generate_cloan_report(
     property_id: str,
     output_dir: Optional[Path] = None,
     open_pdf: bool = False,
@@ -115,7 +115,7 @@ def generate_loan_report(
     if commercial is None:
         logger.error("No commercial record for %s in %s", property_id, input_dir)
         return None
-    loan = _load_loan_record(property_id, input_dir)
+    loan = _load_cloan_record(property_id, input_dir)
     if loan is None:
         logger.warning(
             "No loan record linked to %s — cannot generate loan-focused PDF",
@@ -124,7 +124,7 @@ def generate_loan_report(
         return None
 
     generator = CommercialReportGenerator(output_dir=output_dir)
-    pdf_path = generator.generate_loan_focused_report(commercial, loan)
+    pdf_path = generator.generate_cloan_focused_report(commercial, loan)
 
     if open_pdf:
         try:
