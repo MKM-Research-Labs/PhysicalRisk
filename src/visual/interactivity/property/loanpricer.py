@@ -22,7 +22,7 @@
 Loan Pricer popup panel for property and commercial markers.
 
 Provides an editable set of loan inputs (balance, value, rate, term, flood
-risk, …) and prices them live against the server-side MortgagePricer via the
+risk, …) and prices them live against the server-side LoanPricer via the
 ``/loan-pricer`` route. Residential (PROP-) and commercial (CPROP-) assets
 share one panel; the asset-id prefix selects the endpoint.
 """

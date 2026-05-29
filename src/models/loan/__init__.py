@@ -18,9 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Mortgage pricing models."""
+"""Loan pricing models."""
 
-from .pricer import MortgagePricer  # noqa: F401
+from .pricer import LoanPricer  # noqa: F401
 from .portfolio import calculate_portfolio_metrics  # noqa: F401
 
-__all__ = ['MortgagePricer', 'calculate_portfolio_metrics']
+__all__ = ['LoanPricer', 'calculate_portfolio_metrics']

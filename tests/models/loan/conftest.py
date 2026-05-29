@@ -22,17 +22,17 @@
 
 import pytest
 
-from models.mortgage.pricer import MortgagePricer
+from models.loan.pricer import LoanPricer
 
 
 @pytest.fixture
 def pricer():
     """Standard pricer instance with default 20% tax rate."""
-    return MortgagePricer()
+    return LoanPricer()
 
 
 @pytest.fixture
-def base_mortgage_params():
+def base_loan_params():
     """Representative mortgage parameters for reuse across tests."""
     return dict(
         loan_amount=400_000,

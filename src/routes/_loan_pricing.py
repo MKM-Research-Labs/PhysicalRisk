@@ -20,7 +20,7 @@
 
 """Shared loan-pricer bridge used by the property and commercial routes.
 
-Wraps ``LoanCDM.to_pricer_inputs`` + ``MortgagePricer.price_mortgage`` and
+Wraps ``LoanCDM.to_pricer_inputs`` + ``LoanPricer.price_loan`` and
 returns a JSON-serialisable ``{inputs, pricing}`` payload. The same helper
 backs the initial (GET) load of the Loan Pricer panel and every live
 re-price (POST with user overrides), so the editable form and the read-only
@@ -29,11 +29,11 @@ derivation share one code path.
 
 from typing import Any, Dict, Optional
 
-from models.mortgage import MortgagePricer
+from models.loan import LoanPricer
 from port.cdm import LoanCDM
 
 # Keys the panel is allowed to override. Anything else in the request body is
-# ignored so the form can't smuggle in unexpected price_mortgage kwargs.
+# ignored so the form can't smuggle in unexpected price_loan kwargs.
 OVERRIDE_KEYS = (
     "loan_amount",
     "property_value",
@@ -47,7 +47,7 @@ OVERRIDE_KEYS = (
 )
 
 # Defaults for any pricing input the CDM record doesn't supply. Mirrors the
-# fallbacks in MortgagePricer.batch_price_mortgages so a sparse loan still
+# fallbacks in LoanPricer.batch_price_loans so a sparse loan still
 # prices instead of raising a TypeError on a missing kwarg.
 _INPUT_DEFAULTS = {
     "gross_annual_income": 50000,
@@ -58,7 +58,7 @@ _INPUT_DEFAULTS = {
     "recovery_haircut": 0.2,
 }
 
-# Scalar pricing outputs returned to the client. The rest of price_mortgage's
+# Scalar pricing outputs returned to the client. The rest of price_loan's
 # result is numpy time-series (outstanding_balance, hazard_rates, …) which is
 # neither JSON-serialisable nor needed by the panel.
 _PRICING_KEYS = (
@@ -123,8 +123,8 @@ def compute_loan_pricing(mortgage_cdm: Dict[str, Any],
     if not effective.get("loan_amount") or not effective.get("property_value"):
         raise ValueError("Cannot price loan: missing loan amount or property value")
 
-    pricer = MortgagePricer()
-    result = pricer.price_mortgage(
+    pricer = LoanPricer()
+    result = pricer.price_loan(
         loan_amount=effective["loan_amount"],
         property_value=effective["property_value"],
         gross_annual_income=effective["gross_annual_income"],

@@ -22,7 +22,7 @@
 
 import pytest
 
-from models.mortgage.pricer import MortgagePricer
+from models.loan.pricer import LoanPricer
 
 
 class TestCreditSpread:
@@ -120,19 +120,19 @@ class TestFloodRiskFactor:
         ("Very High", 1.75),
     ])
     def test_flood_risk_multipliers(self, category, expected):
-        assert MortgagePricer.calculate_flood_risk_impact(category) == expected
+        assert LoanPricer.calculate_flood_risk_impact(category) == expected
 
     def test_none_returns_unity(self):
-        assert MortgagePricer.calculate_flood_risk_impact(None) == 1.0
+        assert LoanPricer.calculate_flood_risk_impact(None) == 1.0
 
     def test_unknown_category_returns_unity(self):
-        assert MortgagePricer.calculate_flood_risk_impact("Unknown") == 1.0
-        assert MortgagePricer.calculate_flood_risk_impact("Extreme") == 1.0
+        assert LoanPricer.calculate_flood_risk_impact("Unknown") == 1.0
+        assert LoanPricer.calculate_flood_risk_impact("Extreme") == 1.0
 
     def test_case_insensitive(self):
-        assert MortgagePricer.calculate_flood_risk_impact("very high") == 1.75
-        assert MortgagePricer.calculate_flood_risk_impact("VERY LOW") == 1.00
-        assert MortgagePricer.calculate_flood_risk_impact("medium") == 1.20
+        assert LoanPricer.calculate_flood_risk_impact("very high") == 1.75
+        assert LoanPricer.calculate_flood_risk_impact("VERY LOW") == 1.00
+        assert LoanPricer.calculate_flood_risk_impact("medium") == 1.20
 
     def test_flood_risk_increases_spread(self, pricer):
         base = dict(
@@ -141,18 +141,18 @@ class TestFloodRiskFactor:
             insurance_rate=0.002, original_maturity=25,
             current_term=20, recovery_haircut=0.25,
         )
-        low = pricer.price_mortgage(**base, flood_risk_category="Very Low")
-        high = pricer.price_mortgage(**base, flood_risk_category="Very High")
+        low = pricer.price_loan(**base, flood_risk_category="Very Low")
+        high = pricer.price_loan(**base, flood_risk_category="Very High")
         assert high["credit_spread"] > low["credit_spread"]
         assert high["flood_risk_factor"] > low["flood_risk_factor"]
         assert high["mortgage_value"] < low["mortgage_value"]
 
-    def test_flood_factor_in_result(self, pricer, base_mortgage_params):
-        result = pricer.price_mortgage(**base_mortgage_params, flood_risk_category="Medium")
+    def test_flood_factor_in_result(self, pricer, base_loan_params):
+        result = pricer.price_loan(**base_loan_params, flood_risk_category="Medium")
         assert result["flood_risk_factor"] == 1.20
 
-    def test_no_flood_risk_defaults_to_unity(self, pricer, base_mortgage_params):
-        result = pricer.price_mortgage(**base_mortgage_params)
+    def test_no_flood_risk_defaults_to_unity(self, pricer, base_loan_params):
+        result = pricer.price_loan(**base_loan_params)
         assert result["flood_risk_factor"] == 1.0
 
     def test_batch_passes_flood_risk(self, pricer):
@@ -162,7 +162,7 @@ class TestFloodRiskFactor:
             {"loan_amount": 200_000, "property_value": 300_000,
              "gross_annual_income": 50_000, "flood_risk_category": "Very Low"},
         ]
-        results = pricer.batch_price_mortgages(portfolio)
+        results = pricer.batch_price_loans(portfolio)
         assert results[0]["flood_risk_factor"] == 1.40
         assert results[1]["flood_risk_factor"] == 1.00
         assert results[0]["credit_spread"] > results[1]["credit_spread"]

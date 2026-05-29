@@ -349,7 +349,7 @@ class LoanCDM(BaseCDM):
     def to_pricer_inputs(self, mortgage: dict) -> dict:
         """
         Translate a CDM mortgage record into the keyword arguments expected by
-        ``models.mortgage.MortgagePricer.price_mortgage``.
+        ``models.loan.LoanPricer.price_loan``.
 
         Reconciles the differences between the CDM data shape and the pricing
         engine's vocabulary:
@@ -370,8 +370,8 @@ class LoanCDM(BaseCDM):
                       ``Mortgage`` key).
 
         Returns:
-            Dict suitable for ``price_mortgage(**inputs)`` /
-            ``batch_price_mortgages([inputs])``.
+            Dict suitable for ``price_loan(**inputs)`` /
+            ``batch_price_loans([inputs])``.
         """
         try:
             from config.models import (
@@ -421,7 +421,7 @@ class LoanCDM(BaseCDM):
         }
 
         # Drop keys the engine has no default for only when truly absent, so
-        # batch_price_mortgages' own .get() defaults can take over.
+        # batch_price_loans' own .get() defaults can take over.
         return {k: v for k, v in inputs.items() if v is not None}
 
     def get_required_fields(self) -> List[str]:

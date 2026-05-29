@@ -22,7 +22,7 @@
 
 import pytest
 
-from models.mortgage.pricer import MortgagePricer
+from models.loan.pricer import LoanPricer
 
 
 class TestMonthlyPayment:
@@ -30,22 +30,22 @@ class TestMonthlyPayment:
 
     def test_standard_mortgage(self):
         """£200k at 3.5% over 25yr ≈ £1,001.25/month."""
-        payment = MortgagePricer.calculate_monthly_payment(200_000, 0.035, 25)
+        payment = LoanPricer.calculate_monthly_payment(200_000, 0.035, 25)
         assert 995 < payment < 1010
 
     def test_zero_rate(self):
         """Zero-rate degenerate case: M = P / n."""
-        payment = MortgagePricer.calculate_monthly_payment(120_000, 0.0, 10)
+        payment = LoanPricer.calculate_monthly_payment(120_000, 0.0, 10)
         assert payment == pytest.approx(1000.0)
 
     def test_higher_rate_higher_payment(self):
-        low = MortgagePricer.calculate_monthly_payment(200_000, 0.03, 25)
-        high = MortgagePricer.calculate_monthly_payment(200_000, 0.06, 25)
+        low = LoanPricer.calculate_monthly_payment(200_000, 0.03, 25)
+        high = LoanPricer.calculate_monthly_payment(200_000, 0.06, 25)
         assert high > low
 
     def test_shorter_term_higher_payment(self):
-        long = MortgagePricer.calculate_monthly_payment(200_000, 0.04, 30)
-        short = MortgagePricer.calculate_monthly_payment(200_000, 0.04, 15)
+        long = LoanPricer.calculate_monthly_payment(200_000, 0.04, 30)
+        short = LoanPricer.calculate_monthly_payment(200_000, 0.04, 15)
         assert short > long
 
 
@@ -53,9 +53,9 @@ class TestTotalCost:
     """Tests for calculate_total_cost (static method)."""
 
     def test_zero_rate_equals_principal(self):
-        cost = MortgagePricer.calculate_total_cost(100_000, 0.0, 20)
+        cost = LoanPricer.calculate_total_cost(100_000, 0.0, 20)
         assert cost == pytest.approx(100_000.0)
 
     def test_positive_rate_exceeds_principal(self):
-        cost = MortgagePricer.calculate_total_cost(200_000, 0.04, 25)
+        cost = LoanPricer.calculate_total_cost(200_000, 0.04, 25)
         assert cost > 200_000
