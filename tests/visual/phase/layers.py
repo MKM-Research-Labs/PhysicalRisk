@@ -57,7 +57,7 @@ class TestLayerConfiguration:
     def test_property_layer_configure(self):
         from visual.layer import PropertyLayer
         layer = PropertyLayer()
-        layer.configure(show_risk_colors=False, show_mortgage_status=True, risk_based_sizing=True)
+        layer.configure(show_risk_colors=False, show_rloan_status=True, risk_based_sizing=True)
 
     def test_configure_returns_none_or_self(self):
         from visual.layer import GaugeLayer

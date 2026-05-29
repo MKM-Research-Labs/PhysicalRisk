@@ -93,14 +93,14 @@ class TestCreatePropertyPopup:
         html = layer._create_property_popup(info, {}, False, {})
         assert "N/A" in html
 
-    def test_mortgage_section_included_when_has_mortgage(self):
+    def test_rloan_section_included_when_has_mortgage(self):
         layer = PropertyLayer()
         html = layer._create_property_popup(
             make_property_info(), {}, True, make_mortgage_info()
         )
         assert "MORTGAGE DETAILS" in html
 
-    def test_mortgage_section_excluded_when_no_mortgage(self):
+    def test_rloan_section_excluded_when_no_mortgage(self):
         layer = PropertyLayer()
         html = layer._create_property_popup(make_property_info(), {}, False, {})
         assert "MORTGAGE DETAILS" not in html

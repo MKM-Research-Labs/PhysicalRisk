@@ -60,8 +60,8 @@ class CurrentStatusPage(PropertyBasePage):
         try:
             elements.append(Paragraph("Current Mortgage Status", self.styles['SectionHeader']))
 
-            mortgage_info = mortgage_data.get('Mortgage', mortgage_data)
-            current_status = mortgage_info.get('CurrentStatus', {})
+            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+            current_status = rloan_info.get('CurrentStatus', {})
 
             if not current_status:
                 elements.append(Paragraph("No current status data available.", self.styles['Normal']))

@@ -60,17 +60,17 @@ def create_flood_info_section(builder, flood_info: Dict[str, Any]) -> str:
     return builder.create_section("Detailed Flood Risk Information", content, "#D5F5E3", "#1E8449")
 
 
-def create_mortgage_section(builder, mortgage_info: Dict[str, Any],
+def create_rloan_section(builder, rloan_info: Dict[str, Any],
                             property_value: Any, flood_risk_level: str) -> str:
     """Create the mortgage information section for the popup."""
-    mortgage_header = mortgage_info.get('Header', {})
-    mortgage_financial = mortgage_info.get('FinancialTerms', {})
-    mortgage_application = mortgage_info.get('Application', {})
+    mortgage_header = rloan_info.get('Header', {})
+    mortgage_financial = rloan_info.get('FinancialTerms', {})
+    mortgage_application = rloan_info.get('Application', {})
 
-    if not mortgage_header and 'Mortgage' in mortgage_info:
-        mortgage_header = mortgage_info.get('Mortgage', {}).get('Header', {})
-        mortgage_financial = mortgage_info.get('Mortgage', {}).get('FinancialTerms', {})
-        mortgage_application = mortgage_info.get('Mortgage', {}).get('Application', {})
+    if not mortgage_header and 'Mortgage' in rloan_info:
+        mortgage_header = rloan_info.get('Mortgage', {}).get('Header', {})
+        mortgage_financial = rloan_info.get('Mortgage', {}).get('FinancialTerms', {})
+        mortgage_application = rloan_info.get('Mortgage', {}).get('Application', {})
 
     mortgage_id = mortgage_header.get('MortgageID', 'N/A')
     lender = mortgage_application.get('MortgageProvider', 'N/A')
@@ -84,7 +84,7 @@ def create_mortgage_section(builder, mortgage_info: Dict[str, Any],
     ltv_ratio = calculate_ltv_ratio(loan_amount, property_value, mortgage_financial)
     ltv_formatted = builder.format_percentage(ltv_ratio)
 
-    term_years = extract_term_years(mortgage_financial, mortgage_info)
+    term_years = extract_term_years(mortgage_financial, rloan_info)
     term_years_formatted = f"{term_years:.0f}" if isinstance(term_years, (int, float)) else 'N/A'
 
     monthly_payment = calculate_monthly_payment(

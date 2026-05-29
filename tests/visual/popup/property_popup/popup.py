@@ -31,7 +31,7 @@ import folium
 class TestCreateCompletePopupContent:
 
     def _build(self, builder, prop, address, flood_info=None,
-               has_rloan=False, mortgage_info=None):
+               has_rloan=False, rloan_info=None):
         return builder.create_complete_popup_content(
             prop=prop,
             property_id='PROP-aabbccdd',
@@ -45,7 +45,7 @@ class TestCreateCompletePopupContent:
             construction_year=1988,
             property_age_factor='Older (pre-1990)',
             has_rloan=has_rloan,
-            mortgage_info=mortgage_info,
+            rloan_info=rloan_info,
             flood_info=flood_info,
         )
 
@@ -69,18 +69,18 @@ class TestCreateCompletePopupContent:
         html = self._build(builder, prop, address, flood_info=flood_info)
         assert 'Chelsea Gauge' in html
 
-    def test_no_mortgage_section_when_has_mortgage_false(self, builder, prop, address, mortgage_info):
-        html = self._build(builder, prop, address, has_rloan=False, mortgage_info=mortgage_info)
+    def test_no_rloan_section_when_has_mortgage_false(self, builder, prop, address, rloan_info):
+        html = self._build(builder, prop, address, has_rloan=False, rloan_info=rloan_info)
         assert 'MORTGAGE DETAILS' not in html
 
-    def test_no_mortgage_section_when_mortgage_info_none(self, builder, prop, address):
-        html = self._build(builder, prop, address, has_rloan=True, mortgage_info=None)
+    def test_no_rloan_section_when_mortgage_info_none(self, builder, prop, address):
+        html = self._build(builder, prop, address, has_rloan=True, rloan_info=None)
         assert 'MORTGAGE DETAILS' not in html
 
-    def test_mortgage_section_present_when_has_mortgage(self, builder, prop, address,
-                                                         flood_info, mortgage_info):
+    def test_rloan_section_present_when_has_mortgage(self, builder, prop, address,
+                                                         flood_info, rloan_info):
         html = self._build(builder, prop, address, flood_info=flood_info,
-                           has_rloan=True, mortgage_info=mortgage_info)
+                           has_rloan=True, rloan_info=rloan_info)
         assert 'MORTGAGE DETAILS' in html
 
     def test_wrapped_in_popup_div(self, builder, prop, address):
@@ -94,9 +94,9 @@ class TestCreateCompletePopupContent:
         assert len(html) > 0
 
     def test_all_sections_combined(self, builder, prop, address, flood_info,
-                                   mortgage_info):
+                                   rloan_info):
         html = self._build(builder, prop, address, flood_info=flood_info,
-                           has_rloan=True, mortgage_info=mortgage_info)
+                           has_rloan=True, rloan_info=rloan_info)
         assert 'Property Information' in html
         assert 'Chelsea Gauge' in html
         assert 'MORTGAGE DETAILS' in html
@@ -140,13 +140,13 @@ class TestBuildPropertyPopup:
         assert popup is not None
 
     def test_popup_with_all_optional_params(self, builder, prop, address,
-                                            flood_info, mortgage_info):
+                                            flood_info, rloan_info):
         popup = self._popup(
             builder, prop, address,
             flood_risk='High',
             has_rloan=True,
             flood_info=flood_info,
-            mortgage_info=mortgage_info,
+            rloan_info=rloan_info,
         )
         assert isinstance(popup, folium.Popup)
 

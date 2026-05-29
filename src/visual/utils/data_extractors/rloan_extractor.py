@@ -73,7 +73,7 @@ def extract_rloan_info(mortgage: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         # Try different field names for term years
         term_years = _extract_term_years(financial_terms)
 
-        mortgage_info = {
+        rloan_info = {
             # Header section
             'mortgage_id': header.get('MortgageID'),
             'property_id': property_id,
@@ -100,7 +100,7 @@ def extract_rloan_info(mortgage: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         }
 
         # Remove None values
-        return {k: v for k, v in mortgage_info.items() if v is not None}
+        return {k: v for k, v in rloan_info.items() if v is not None}
 
     except Exception as e:
         logger.error("Error extracting mortgage info: %s", e)
@@ -143,9 +143,9 @@ def build_rloan_lookup(mortgage_data: Union[Dict, List]) -> Dict[str, Dict]:
     if isinstance(mortgages, list):
         for mortgage in mortgages:
             try:
-                mortgage_info = extract_rloan_info(mortgage)
-                if mortgage_info and mortgage_info.get('property_id'):
-                    lookup[mortgage_info['property_id']] = mortgage_info
+                rloan_info = extract_rloan_info(mortgage)
+                if rloan_info and rloan_info.get('property_id'):
+                    lookup[rloan_info['property_id']] = rloan_info
             except Exception as e:
                 logger.error("Error processing mortgage: %s", e)
 

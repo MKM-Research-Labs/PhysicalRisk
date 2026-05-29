@@ -38,7 +38,7 @@ def flood_info():
     }
 
 @pytest.fixture
-def mortgage_info():
+def rloan_info():
     return {
         'Header': {'MortgageID': 'MTG-001'},
         'FinancialTerms': {'OriginalLoan': 300000, 'OriginalLendingRate': 0.04, 'TermYears': 25, 'LoanToValueRatio': 0.75},

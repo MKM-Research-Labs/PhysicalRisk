@@ -186,8 +186,8 @@ class TestPropertyPopupBuilder:
         assert '£125,000.00' in section
         assert '2.50 km' in section
 
-    def test_mortgage_section(self):
-        section = self.builder.create_mortgage_section(self.sample_mortgage, 750000, 'Medium')
+    def test_rloan_section(self):
+        section = self.builder.create_rloan_section(self.sample_mortgage, 750000, 'Medium')
         assert 'MTG-test-001' in section
         assert 'Test Bank' in section
         assert '£500,000.00' in section

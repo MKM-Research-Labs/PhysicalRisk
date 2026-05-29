@@ -61,10 +61,10 @@ class RLoanOverviewPage(PropertyBasePage):
             elements.append(Paragraph("Mortgage Overview", self.styles['SectionHeader']))
 
             # Handle nested mortgage structure
-            mortgage_info = mortgage_data.get('Mortgage', mortgage_data)
+            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
 
             # MORTGAGE IDENTIFICATION
-            header_data = mortgage_info.get('Header', {})
+            header_data = rloan_info.get('Header', {})
             if header_data:
                 elements.append(Paragraph("Mortgage Identification", self.styles['SubSectionHeader']))
 
@@ -82,7 +82,7 @@ class RLoanOverviewPage(PropertyBasePage):
                 elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # APPLICATION INFORMATION
-            application_data = mortgage_info.get('Application', {})
+            application_data = rloan_info.get('Application', {})
             if application_data:
                 elements.append(Spacer(1, self.spacing['minor_section']))
                 elements.append(Paragraph("Application Information", self.styles['SubSectionHeader']))
@@ -118,7 +118,7 @@ class RLoanOverviewPage(PropertyBasePage):
                 elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # BASIC FINANCIAL TERMS
-            financial_data = mortgage_info.get('FinancialTerms', {})
+            financial_data = rloan_info.get('FinancialTerms', {})
             if financial_data:
                 elements.append(Spacer(1, self.spacing['minor_section']))
                 elements.append(Paragraph("Key Financial Terms", self.styles['SubSectionHeader']))
@@ -154,7 +154,7 @@ class RLoanOverviewPage(PropertyBasePage):
                 elements.append(Spacer(1, self.spacing['table_bottom']))
 
             # MORTGAGE FEATURES
-            features_data = mortgage_info.get('Features', {})
+            features_data = rloan_info.get('Features', {})
             if features_data:
                 elements.append(Spacer(1, self.spacing['minor_section']))
                 elements.append(Paragraph("Mortgage Features", self.styles['SubSectionHeader']))

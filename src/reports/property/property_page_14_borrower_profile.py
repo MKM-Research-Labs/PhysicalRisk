@@ -60,8 +60,8 @@ class BorrowerProfilePage(PropertyBasePage):
         try:
             elements.append(Paragraph("Borrower Profile", self.styles['SectionHeader']))
 
-            mortgage_info = mortgage_data.get('Mortgage', mortgage_data)
-            borrower_details = mortgage_info.get('BorrowerDetails', {})
+            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+            borrower_details = rloan_info.get('BorrowerDetails', {})
 
             if not borrower_details:
                 elements.append(Paragraph("No borrower details available.", self.styles['Normal']))
