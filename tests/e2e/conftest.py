@@ -89,9 +89,9 @@ def _isolated_catchment_dir(tmp_path_factory):
     (``gauge_data``, ``property_data``, ``first_traded_gauge_id``, etc.)
     continue to work unchanged because the tmp dir is a full copy.
     """
-    real_thames = ROOT / "data" / "input" / "thames"
+    real_thames = ROOT / "data" / "input" / "halong"
     tmp_root = tmp_path_factory.mktemp("e2e_catchment")
-    tmp_thames = tmp_root / "thames"
+    tmp_thames = tmp_root / "halong"
     shutil.copytree(real_thames, tmp_thames)
     # Scrub any user override that may live in the real file so the e2e
     # suite starts from Python-source defaults (as the control tests assert).
@@ -157,7 +157,7 @@ def server_port(_isolated_catchment_dir, _e2e_admin_password):
         # Pin the catchment so the server resolver doesn't fall through to
         # an interactive `input()` prompt (no TTY in the subprocess).
         # MKM_CATCHMENT_INPUT_OVERRIDE points at the tmp dir copied above.
-        "MKM_CATCHMENT": "thames",
+        "MKM_CATCHMENT": "halong",
         "MKM_CATCHMENT_INPUT_OVERRIDE": str(_isolated_catchment_dir),
         "MKM_ADMIN_FILE_PATH": str(_e2e_admin_password),
     })
@@ -278,7 +278,7 @@ def map_page(_browser_page):
 @pytest.fixture(scope="session")
 def gauge_data():
     """Load gauge.json for test assertions."""
-    path = ROOT / "data" / "input" / "thames" / "gauge.json"
+    path = ROOT / "data" / "input" / "halong" / "gauge.json"
     if not path.exists():
         pytest.skip("gauge.json not found — run `python app.py port` first")
     with open(path) as f:
@@ -288,7 +288,7 @@ def gauge_data():
 @pytest.fixture(scope="session")
 def property_data():
     """Load property.json for test assertions."""
-    path = ROOT / "data" / "input" / "thames" / "property.json"
+    path = ROOT / "data" / "input" / "halong" / "property.json"
     if not path.exists():
         pytest.skip("property.json not found — run `python app.py port` first")
     with open(path) as f:
@@ -310,7 +310,7 @@ def trade_data(base_url):
 def first_traded_gauge_id():
     """Return a gauge ID that has open (non-closed) trades."""
     # Trades live in data/input/<catchment>/prs/
-    prs_dir = ROOT / "data" / "input" / "thames" / "prs"
+    prs_dir = ROOT / "data" / "input" / "halong" / "prs"
     if not prs_dir.exists():
         # Fallback to legacy location
         prs_dir = ROOT / "data" / "output" / "prs"
