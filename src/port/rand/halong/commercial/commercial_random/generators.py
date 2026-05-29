@@ -66,7 +66,11 @@ def _commercial_generators() -> Dict[str, Callable]:
         "PlantRoomLocation":      lambda info: random.choice(["Basement", "Ground floor", "Roof", "External"]),
         "ServiceCore":            lambda info: random.choice(
             ["Central core", "Multiple cores", "External core", "None"]),
-        "ConstructionType":       lambda info: random.choice(COMMERCIAL_CONSTRUCTION_TYPES),
+        # SE-Asia commercial stock is reinforced concrete per the BRI-PRS
+        # prototypes (all three sheet buildings are RC). Forced here so
+        # halong commercials don't draw timber / brick alternatives that
+        # don't fit the cyclone-resilience grading model.
+        "ConstructionType":       lambda info: "Concrete frame",
         "ConstructionYear":       lambda info: info["construction_year"],
         "PropertyPeriod":         lambda info: period_from_year(info["construction_year"]),
         "PropertyCondition":      lambda info: random.choices(

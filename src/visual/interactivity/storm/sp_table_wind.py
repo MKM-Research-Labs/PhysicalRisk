@@ -10,15 +10,10 @@
 """
 Storm portfolio Table tab — Wind Damage sub-tab JS.
 
-Same shape as Flood Damage: a combined residential + commercial table
-with Damage £ and Damage % columns. Damage is computed as a function of
-peak wind speed and a percentile assumption — that model isn't wired
-up yet, so this tab currently lists every asset with the damage cells
-blank.
-
-When the wind model lands, override ``window.WindDamageModel.compute``
-to return ``{damage_amount, damage_ratio}`` per row and the table
-will repopulate without further frontend changes.
+Mirrors the Flood Damage sub-tab. Fetches per-storm wind impact from
+``/api/v1/propertyts/<storm_id>/wind-impact`` and renders via the shared
+``_renderDamageTable`` plumbing. Non-typhoon storms produce an empty
+state ("No typhoon paired with this storm").
 """
 
 
@@ -26,108 +21,81 @@ def get_js() -> str:
     """Return JS fragment for the Wind Damage sub-tab (parent IIFE scope)."""
     return """
             // ================================================================
-            // Wind Damage — combined residential + commercial rows
+            // Wind Damage — per-storm typhoon impact
             // ================================================================
             //
-            // Wind model not yet wired. Until then we list every asset in
-            // the portfolio so the user can see what *will* be in scope.
-            // Damage £ / Damage % are rendered as em-dashes (— ) by the
-            // shared _renderDamageTable when the field is null/undefined.
+            // Reads /api/v1/propertyts/<storm_id>/wind-impact, which joins
+            // typhoon/damage/EVT-NNNN.json with property + commercial values.
+            // For storms that aren't paired with a typhoon the endpoint
+            // returns rows:[] with typhoon:null, which renders as the
+            // "no typhoon" empty state.
             // ================================================================
 
-            window.WindDamageModel = window.WindDamageModel || {
-                // Stub: returns nulls until the model is connected.
-                // Future signature: compute({asset, peak_wind_mps, percentile})
-                //   -> {damage_amount, damage_ratio}
-                compute: function(_row) { return {damage_amount: null, damage_ratio: null}; },
-            };
-
-            function _windRows() {
-                var rows = [];
-
-                // Residential — from the blotter (full portfolio, not just affected)
-                if (spBlotterData && spBlotterData.properties) {
-                    spBlotterData.properties.forEach(function(p) {
-                        var d = window.WindDamageModel.compute(p);
-                        rows.push({
-                            asset_id: p.property_id,
-                            asset_class: 'residential',
-                            address: p.property_address,
-                            type: 'Residential',
-                            value: p.property_value,
-                            damage_amount: d.damage_amount,
-                            damage_ratio: d.damage_ratio,
-                            outstanding_balance: p.outstanding_balance,
-                            current_ltv: p.current_ltv,
-                            remaining_term_months: p.remaining_term_months,
-                        });
-                    });
-                }
-
-                // Commercial — from the commercial blotter
-                if (spCommercialData && spCommercialData.assets) {
-                    spCommercialData.assets.forEach(function(a) {
-                        var d = window.WindDamageModel.compute(a);
-                        rows.push({
-                            asset_id: a.property_id,
-                            asset_class: 'commercial',
-                            address: a.property_address,
-                            type: a.commercial_type || 'Commercial',
-                            value: a.property_value,
-                            damage_amount: d.damage_amount,
-                            damage_ratio: d.damage_ratio,
-                            outstanding_balance: a.outstanding_balance,
-                            current_ltv: a.current_ltv,
-                            remaining_term_months: a.remaining_term_months,
-                        });
-                    });
-                }
-                return rows;
-            }
+            var spWindData = null;  // last loaded wind-impact response
 
             function loadWindDamage() {
-                var summary = document.getElementById('sp-summary');
-
-                // The wind tab depends on both blotters being loaded so it
-                // can list every asset. Trigger loads if either is missing,
-                // then re-enter when the data arrives.
-                var pending = [];
-                if (!spBlotterData) pending.push(
-                    fetch(getBaseUrl() + '/api/v1/propertyts/blotter', {mode:'cors'})
-                        .then(function(r){return r.json();})
-                        .then(function(d){ if (d.status === 'success') spBlotterData = d; })
-                );
-                if (!spCommercialData) pending.push(
-                    fetch(getBaseUrl() + '/api/v1/commercial/blotter', {mode:'cors'})
-                        .then(function(r){return r.json();})
-                        .then(function(d){ if (d.status === 'success') spCommercialData = d; })
-                );
-
-                if (pending.length) {
-                    var container = document.getElementById('sp-table-container');
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">Loading portfolio for wind exposure...</div>';
-                    Promise.all(pending).then(_renderWindDamage);
-                } else {
-                    _renderWindDamage();
+                var sid = (document.getElementById('sp-storm-select') || {}).value || '';
+                var container = document.getElementById('sp-table-container');
+                if (!sid) {
+                    _renderWindEmpty('Select a storm to view wind impact.');
+                    return;
                 }
+                container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">Loading wind impact…</div>';
+                var baseUrl = getBaseUrl();
+                fetch(baseUrl + '/api/v1/propertyts/' + sid + '/wind-impact', {mode:'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        spWindData = d;
+                        if (d.status !== 'success') {
+                            _renderWindEmpty(d.message || 'Wind impact unavailable.');
+                            return;
+                        }
+                        _renderWindDamage();
+                    })
+                    .catch(function(err) {
+                        console.error('Wind impact error:', err);
+                        _renderWindEmpty('Failed to load wind impact.');
+                    });
+            }
+
+            function _renderWindEmpty(msg) {
+                _renderWindSummary(null);
+                var container = document.getElementById('sp-table-container');
+                container.innerHTML =
+                    '<div style="padding:48px 24px;text-align:center;color:#888;font-size:13px;">' +
+                    '<div style="font-size:36px;margin-bottom:12px;">\\u26A1</div>' +
+                    '<div>' + msg + '</div></div>';
             }
 
             function _renderWindDamage() {
-                var rows = _windRows();
-                _renderWindSummary(rows);
+                if (!spWindData) return;
+                var rows = spWindData.rows || [];
+                _renderWindSummary(spWindData);
+                if (!rows.length) {
+                    _renderWindEmpty('No typhoon paired with this storm — pick a storm with the ⚡ TYPHOON badge to see wind impact.');
+                    return;
+                }
                 _renderDamageTable(rows, 'wind');
             }
 
-            function _renderWindSummary(rows) {
+            function _renderWindSummary(data) {
                 var summary = document.getElementById('sp-summary');
-                var resCount = rows.filter(function(r){return r.asset_class === 'residential';}).length;
-                var comCount = rows.filter(function(r){return r.asset_class === 'commercial';}).length;
-                var totalDamage = rows.reduce(function(a,r){ return a + (r.damage_amount || 0); }, 0);
+                var typhoonInfo = '';
+                var resCount = 0, comCount = 0, totalDamage = 0;
+                if (data && data.summary) {
+                    resCount = data.summary.properties_in_scope || 0;
+                    comCount = data.summary.commercials_in_scope || 0;
+                    totalDamage = data.summary.total_wind_damage || 0;
+                }
+                var modelLabel = (data && data.typhoon)
+                    ? '⚡ ' + (data.typhoon.event_id || '?') + ' (' + (data.typhoon.scenario_family || '?') + ')'
+                    : 'No typhoon';
+                var modelColor = (data && data.typhoon) ? '#bf360c' : '#888';
                 var cards = [
-                    { label: 'Properties In Scope', value: resCount, color: '#1976d2' },
-                    { label: 'Commercials In Scope', value: comCount, color: '#1976d2' },
+                    { label: 'Properties Affected', value: resCount, color: '#1976d2' },
+                    { label: 'Commercials Affected', value: comCount, color: '#1976d2' },
                     { label: 'Total Wind Damage', value: totalDamage ? fmtGBP(totalDamage) : '\\u2014', color: '#d32f2f' },
-                    { label: 'Model Status', value: 'Pending', color: '#888' },
+                    { label: 'Typhoon', value: modelLabel, color: modelColor },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(card) {

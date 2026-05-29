@@ -37,3 +37,4 @@ from . import animation   # noqa: E402, F401
 from . import financial   # noqa: E402, F401
 from . import risk        # noqa: E402, F401
 from . import claim       # noqa: E402, F401
+from . import wind_impact  # noqa: E402, F401

@@ -83,10 +83,17 @@ def get_js() -> str:
                 header.appendChild(leftHeader);
                 header.appendChild(closeBtn);
 
-                // Shared storm selector row
+                // Shared storm selector — two rows so the storm dropdown
+                // gets the full panel width and the secondary controls
+                // (sort / typhoon-only / percentile) sit on a row below.
+                var selectorWrap = document.createElement('div');
+                selectorWrap.id = 'sp-selector-wrap';
+                selectorWrap.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;background:#fafafa;display:flex;flex-direction:column;gap:6px;';
+
+                // Top row: storm picker only
                 var selectorRow = document.createElement('div');
                 selectorRow.id = 'sp-selector-row';
-                selectorRow.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;background:#fafafa;';
+                selectorRow.style.cssText = 'display:flex;align-items:center;gap:12px;';
                 var selLabel = document.createElement('span');
                 selLabel.textContent = 'Storm:';
                 selLabel.style.cssText = 'font-size:12px;font-weight:600;color:#555;';
@@ -94,6 +101,13 @@ def get_js() -> str:
                 stormSelect.id = 'sp-storm-select';
                 stormSelect.style.cssText = 'flex:1;padding:4px 8px;font-size:12px;border:1px solid #ddd;border-radius:4px;';
                 stormSelect.onchange = function() { onStormChanged(this.value); };
+                selectorRow.appendChild(selLabel);
+                selectorRow.appendChild(stormSelect);
+
+                // Bottom row: sort + typhoon filter + percentile control
+                var controlsRow = document.createElement('div');
+                controlsRow.id = 'sp-controls-row';
+                controlsRow.style.cssText = 'display:flex;align-items:center;gap:16px;flex-wrap:wrap;';
                 var sortLabel = document.createElement('span');
                 sortLabel.textContent = 'Sort:';
                 sortLabel.style.cssText = 'font-size:12px;font-weight:600;color:#555;';
@@ -108,11 +122,34 @@ def get_js() -> str:
                 var pctWrap = document.createElement('span');
                 pctWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
                 pctWrap.innerHTML = '__SP_PCT_HTML__';
-                selectorRow.appendChild(selLabel);
-                selectorRow.appendChild(stormSelect);
-                selectorRow.appendChild(sortLabel);
-                selectorRow.appendChild(sortSelect);
-                selectorRow.appendChild(pctWrap);
+
+                // Typhoon-only filter — narrows the storm dropdown to storms
+                // that were paired with a typhoon event by the severity-bucket
+                // linkage. Click-handler lives in sp_table.py's loadStormList.
+                var typhoonWrap = document.createElement('label');
+                typhoonWrap.style.cssText = 'display:flex;align-items:center;gap:5px;font-size:12px;color:#333;cursor:pointer;user-select:none;';
+                typhoonWrap.title = 'Show only the storms that carried a typhoon';
+                var typhoonChk = document.createElement('input');
+                typhoonChk.type = 'checkbox';
+                typhoonChk.id = 'sp-typhoon-only';
+                typhoonChk.style.cssText = 'margin:0;cursor:pointer;';
+                typhoonChk.onchange = function() { _applyTyphoonFilter(); };
+                var typhoonLabel = document.createElement('span');
+                typhoonLabel.innerHTML = '⚡ <b>Typhoon only</b>';
+                var typhoonCount = document.createElement('span');
+                typhoonCount.id = 'sp-typhoon-count';
+                typhoonCount.style.cssText = 'color:#888;font-size:11px;margin-left:2px;';
+                typhoonWrap.appendChild(typhoonChk);
+                typhoonWrap.appendChild(typhoonLabel);
+                typhoonWrap.appendChild(typhoonCount);
+
+                controlsRow.appendChild(sortLabel);
+                controlsRow.appendChild(sortSelect);
+                controlsRow.appendChild(typhoonWrap);
+                controlsRow.appendChild(pctWrap);
+
+                selectorWrap.appendChild(selectorRow);
+                selectorWrap.appendChild(controlsRow);
 
                 // Tab views from sub-modules
                 var tableView = createTableView();
@@ -127,7 +164,7 @@ def get_js() -> str:
                 statsBar.style.cssText = 'padding:8px 16px;border-top:1px solid #eee;display:flex;gap:20px;font-size:11px;color:#666;background:#f9f9f9;border-radius:0 0 8px 8px;';
 
                 spPanel.appendChild(header);
-                spPanel.appendChild(selectorRow);
+                spPanel.appendChild(selectorWrap);
                 spPanel.appendChild(tableView);
                 spPanel.appendChild(simView);
                 spPanel.appendChild(visView);
