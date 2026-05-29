@@ -32,18 +32,6 @@ _MORTGAGE_SKIP = {
     "CatchmentID", "MortgageID", "PropertyID",
 }
 
-# Nullable CDM schema fields not yet present in the on-disk mortgage.json
-# fixture. Listed so test_all_cdm_fields_present still catches NEW unmapped
-# fields but tolerates these pre-existing intentional gaps. The generator
-# now emits them; remove once the fixture is regenerated. Contract behaviour
-# is exercised by tests/port/cdm/test_loan_to_pricer.py against in-memory
-# records.
-_KNOWN_OPTIONAL_MISSING = {
-    "Mortgage.FinancialTerms.InsuranceRate",
-    "Mortgage.RiskAssessment.RecoveryHaircut",
-}
-
-
 @pytest.fixture(scope="module")
 def mortgage_mapping_summary():
     json_path = config.get_input_path("mortgage.json")
@@ -51,21 +39,8 @@ def mortgage_mapping_summary():
 
 
 def test_all_cdm_fields_present(mortgage_mapping_summary):
-    unexpected = [
-        f for f in mortgage_mapping_summary.missing_fields
-        if f not in _KNOWN_OPTIONAL_MISSING
-    ]
-    assert not unexpected, f"Unexpected missing CDM fields: {unexpected}"
-
-
-def test_known_optional_fields_actually_missing(mortgage_mapping_summary):
-    fixed = [
-        f for f in _KNOWN_OPTIONAL_MISSING
-        if f not in mortgage_mapping_summary.missing_fields
-    ]
-    assert not fixed, (
-        f"These fields are now populated and should be removed from "
-        f"_KNOWN_OPTIONAL_MISSING: {fixed}"
+    assert not mortgage_mapping_summary.missing_fields, (
+        f"Unexpected missing CDM fields: {mortgage_mapping_summary.missing_fields}"
     )
 
 
