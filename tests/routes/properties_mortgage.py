@@ -60,7 +60,7 @@ class TestGenerateMortgageReport:
         reg.get_property_loader.return_value.find_by_id.return_value = {
             "property_id": "PROP-001"
         }
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = None
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
         r = client.post(
             "/api/v1/properties/mortgage-report", json={"propertyId": "PROP-001"}
         )
@@ -86,7 +86,7 @@ class TestGenerateMortgageReport:
         prop_data = {"PropertyHeader": {"PropertyID": "PROP-001"}}
         mort_data = {"Mortgage": {"Header": {"PropertyID": "PROP-001"}}}
         reg.get_property_loader.return_value.find_by_id.return_value = prop_data
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = mort_data
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = mort_data
 
         fake_pdf = tmp_path / "mort_report.pdf"
         fake_pdf.write_bytes(b"%PDF-1.4 mortgage content")
@@ -101,7 +101,7 @@ class TestGenerateMortgageReport:
         """Lines 203-208: exception -> 500."""
         client, reg = prop_client
         reg.get_property_loader.return_value.find_by_id.return_value = {"p": 1}
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = {"m": 1}
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = {"m": 1}
 
         with patch("reports.mortgage.mortgage_generator.generate_mortgage_report",
                    side_effect=RuntimeError("mort report error")):
@@ -117,7 +117,7 @@ class TestPropertyMortgage:
 
     def test_not_found_returns_404(self, prop_client):
         client, reg = prop_client
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = None
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
         r = client.get("/api/v1/properties/PROP-GHOST/mortgage")
         assert r.status_code == 404
         assert r.get_json()["status"] == "error"
@@ -127,7 +127,7 @@ class TestPropertyMortgage:
         mortgage_record = {
             "Mortgage": {"Header": {"PropertyID": "PROP-001"}, "Outstanding": 200000}
         }
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = mortgage_record
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = mortgage_record
         r = client.get("/api/v1/properties/PROP-001/mortgage")
         assert r.status_code == 200
         data = r.get_json()
@@ -137,7 +137,7 @@ class TestPropertyMortgage:
 
     def test_loader_exception_returns_500(self, prop_client):
         client, reg = prop_client
-        reg.get_mortgage_loader.return_value.find_by_property_id.side_effect = (
+        reg.get_rloan_loader.return_value.find_by_property_id.side_effect = (
             RuntimeError("db down")
         )
         r = client.get("/api/v1/properties/PROP-001/mortgage")
@@ -159,7 +159,7 @@ class TestGenerateMortgageReportImportError:
     def test_mortgage_import_error_returns_500(self, prop_client, monkeypatch):
         client, reg = prop_client
         reg.get_property_loader.return_value.find_by_id.return_value = {"p": 1}
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = {"m": 1}
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = {"m": 1}
 
         import sys
         import types
@@ -193,7 +193,7 @@ class TestListMortgages:
 
     def test_list_mortgages_success(self, prop_client):
         client, reg = prop_client
-        reg.get_mortgage_loader.return_value.list_all.return_value = [
+        reg.get_rloan_loader.return_value.list_all.return_value = [
             {"mortgage_id": "MORT-001"},
             {"mortgage_id": "MORT-002"},
         ]
@@ -206,14 +206,14 @@ class TestListMortgages:
 
     def test_list_mortgages_empty(self, prop_client):
         client, reg = prop_client
-        reg.get_mortgage_loader.return_value.list_all.return_value = []
+        reg.get_rloan_loader.return_value.list_all.return_value = []
         r = client.get("/api/v1/mortgages")
         assert r.status_code == 200
         assert r.get_json()["count"] == 0
 
     def test_list_mortgages_exception_returns_500(self, prop_client):
         client, reg = prop_client
-        reg.get_mortgage_loader.return_value.list_all.side_effect = RuntimeError("db error")
+        reg.get_rloan_loader.return_value.list_all.side_effect = RuntimeError("db error")
         r = client.get("/api/v1/mortgages")
         assert r.status_code == 500
         assert r.get_json()["status"] == "error"

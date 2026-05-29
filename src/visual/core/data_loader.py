@@ -34,7 +34,7 @@ from config import config
 from jsonfiles import JSONFileConfig
 from loaders import (
     GaugeLoader,
-    MortgageLoader,
+    RLoanLoader,
     PropertyLoader,
     build_all_lookups,
 )
@@ -94,7 +94,7 @@ class DataLoader:
         # Initialize loaders with input directory
         self._gauge_loader = GaugeLoader(self.input_dir, filename=JSONFileConfig.GAUGE_PORTFOLIO)
         self._property_loader = PropertyLoader(self.input_dir, filename=JSONFileConfig.PROPERTY_PORTFOLIO)
-        self._mortgage_loader = MortgageLoader(self.input_dir, filename=JSONFileConfig.MORTGAGE_PORTFOLIO)
+        self._rloan_loader = RLoanLoader(self.input_dir, filename=JSONFileConfig.MORTGAGE_PORTFOLIO)
 
         logger.info(f"DataLoader initialized with input directory: {self.input_dir}")
 
@@ -117,7 +117,7 @@ class DataLoader:
             self._property_loader, "property"
         )
         self.loaded_data.mortgage_data = self._load_with_validation(
-            self._mortgage_loader, "mortgage"
+            self._rloan_loader, "mortgage"
         )
 
         # --- Commercial portfolio (optional — silently absent for catchments

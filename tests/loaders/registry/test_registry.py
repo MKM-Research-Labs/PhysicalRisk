@@ -35,10 +35,10 @@ class TestLoaderRegistryLoaders:
         from loaders.property_loader import PropertyLoader
         assert isinstance(LoaderRegistry(data_dir=tmp_path).get_property_loader(), PropertyLoader)
 
-    def test_get_mortgage_loader(self, tmp_path):
+    def test_get_rloan_loader(self, tmp_path):
         from loaders.loader_registry import LoaderRegistry
-        from loaders.mortgage_loader import MortgageLoader
-        assert isinstance(LoaderRegistry(data_dir=tmp_path).get_mortgage_loader(), MortgageLoader)
+        from loaders.rloan_loader import RLoanLoader
+        assert isinstance(LoaderRegistry(data_dir=tmp_path).get_rloan_loader(), RLoanLoader)
 
     def test_get_storm_loader(self, tmp_path):
         from loaders.loader_registry import LoaderRegistry

@@ -32,7 +32,7 @@ from .base_loader import BaseLoader
 logger = logging.getLogger(__name__)
 
 
-class MortgageLoader(BaseLoader[Dict[str, Any]]):
+class RLoanLoader(BaseLoader[Dict[str, Any]]):
     """
     Loader for mortgage portfolio data.
 
@@ -163,7 +163,7 @@ class MortgageLoader(BaseLoader[Dict[str, Any]]):
                 exposure[lender] = exposure.get(lender, 0.0) + amount
         return exposure
 
-    def get_delinquent_mortgages(self) -> List[Dict[str, Any]]:
+    def get_delinquent_rloans(self) -> List[Dict[str, Any]]:
         """
         Get all delinquent mortgages.
 
@@ -172,7 +172,7 @@ class MortgageLoader(BaseLoader[Dict[str, Any]]):
         """
         return self.find_by_status('Delinquent')
 
-    def get_property_ids_with_mortgages(self) -> List[str]:
+    def get_property_ids_with_rloans(self) -> List[str]:
         """
         Get list of all property IDs that have associated mortgages.
 

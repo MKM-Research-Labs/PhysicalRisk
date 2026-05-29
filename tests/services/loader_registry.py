@@ -61,13 +61,13 @@ class TestLoaderRegistryTypedAccessors:
         assert isinstance(loader, PropertyLoader)
         assert loader.count() == 3
 
-    def test_get_mortgage_loader(self, loader_registry):
-        """Test getting MortgageLoader."""
-        from loaders.mortgage_loader import MortgageLoader
+    def test_get_rloan_loader(self, loader_registry):
+        """Test getting RLoanLoader."""
+        from loaders.rloan_loader import RLoanLoader
 
-        loader = loader_registry.get_mortgage_loader()
+        loader = loader_registry.get_rloan_loader()
 
-        assert isinstance(loader, MortgageLoader)
+        assert isinstance(loader, RLoanLoader)
         assert loader.count() == 3
 
     def test_get_gauge_loader(self, loader_registry):

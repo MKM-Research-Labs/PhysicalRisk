@@ -18,40 +18,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for MortgageLoader."""
+"""Tests for RLoanLoader."""
 
 import json
 from tests.loaders.conftest import mortgage_json, write_json
 
 
-class TestMortgageLoaderBasic:
+class TestRLoanLoaderBasic:
 
     def test_load_all_returns_list(self, tmp_path):
-        from loaders.mortgage_loader import MortgageLoader
+        from loaders.rloan_loader import RLoanLoader
         write_json(tmp_path / "mortgage.json", mortgage_json(3))
-        assert len(MortgageLoader(tmp_path).load_all()) == 3
+        assert len(RLoanLoader(tmp_path).load_all()) == 3
 
     def test_list_all_returns_summaries(self, tmp_path):
-        from loaders.mortgage_loader import MortgageLoader
+        from loaders.rloan_loader import RLoanLoader
         write_json(tmp_path / "mortgage.json", mortgage_json(2))
-        assert len(MortgageLoader(tmp_path).list_all()) == 2
+        assert len(RLoanLoader(tmp_path).list_all()) == 2
 
 
-class TestMortgageLoaderLookup:
+class TestRLoanLoaderLookup:
 
     def test_find_by_id(self, tmp_path):
-        from loaders.mortgage_loader import MortgageLoader
+        from loaders.rloan_loader import RLoanLoader
         write_json(tmp_path / "mortgage.json", mortgage_json(3))
-        assert MortgageLoader(tmp_path).find_by_id("MORT-001") is not None
+        assert RLoanLoader(tmp_path).find_by_id("MORT-001") is not None
 
     def test_missing_returns_none(self, tmp_path):
-        from loaders.mortgage_loader import MortgageLoader
+        from loaders.rloan_loader import RLoanLoader
         write_json(tmp_path / "mortgage.json", mortgage_json(2))
-        assert MortgageLoader(tmp_path).find_by_id("MORT-999") is None
+        assert RLoanLoader(tmp_path).find_by_id("MORT-999") is None
 
     def test_find_by_property_nested_structure(self, tmp_path):
         """Mortgage without top-level PropertyID falls back to nested Mortgage.Header.PropertyID."""
-        from loaders.mortgage_loader import MortgageLoader
+        from loaders.rloan_loader import RLoanLoader
         data = {
             "mortgages": [
                 {
@@ -61,4 +61,4 @@ class TestMortgageLoaderLookup:
             ]
         }
         write_json(tmp_path / "mortgage.json", data)
-        assert MortgageLoader(tmp_path).find_by_property_id("PROP-NESTED") is not None
+        assert RLoanLoader(tmp_path).find_by_property_id("PROP-NESTED") is not None
