@@ -464,19 +464,19 @@ class TestCommercialLoanReport:
     """Wiring for the "Loan Details" + "Generate Loan Report" menu items.
 
     Both menu actions resolve to the same PDF-report code path
-    (window.viewLoanDetails delegates to window.generateLoanReport,
+    (window.viewCLoanDetails delegates to window.generateCLoanReport,
     same pattern as viewCommercialDetails / generateCommercialReport).
     """
 
     def test_window_generate_loan_report_is_function(self, map_page):
         map_page.wait_for_function(
-            "() => typeof window.generateLoanReport === 'function'",
+            "() => typeof window.generateCLoanReport === 'function'",
             timeout=10_000,
         )
 
     def test_window_view_loan_details_is_function(self, map_page):
         map_page.wait_for_function(
-            "() => typeof window.viewLoanDetails === 'function'",
+            "() => typeof window.viewCLoanDetails === 'function'",
             timeout=10_000,
         )
 
@@ -525,7 +525,7 @@ class TestCommercialLoanReport:
     def test_generate_loan_report_menu_opens_pdf_panel(self, map_page):
         """Right-click → 'Generate Loan Report' → property-pdf-panel visible."""
         map_page.wait_for_function(
-            "() => typeof window.generateLoanReport === 'function'",
+            "() => typeof window.generateCLoanReport === 'function'",
             timeout=10_000,
         )
 
