@@ -72,7 +72,7 @@ class TestCurrentStatusPageBasics:
         return CurrentStatusPage()
 
     def test_no_mortgage_returns_message(self):
-        result = self._page().generate_elements({}, mortgage_data=None)
+        result = self._page().generate_elements({}, rloan_data=None)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No mortgage" in t for t in texts)
 

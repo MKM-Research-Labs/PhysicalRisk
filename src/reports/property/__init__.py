@@ -48,13 +48,13 @@ Usage:
     # Simple usage with convenience function
     report_path = generate_property_report(
         property_data=property_data,
-        mortgage_data=mortgage_data,
+        rloan_data=rloan_data,
         report_type="full"
     )
 
     # Advanced usage with generator class
     generator = PropertyReportGenerator(output_dir="./reports")
-    report_path = generator.generate_report(property_data, mortgage_data)
+    report_path = generator.generate_report(property_data, rloan_data)
 """
 
 from .generator import PropertyReportGenerator  # noqa: F401

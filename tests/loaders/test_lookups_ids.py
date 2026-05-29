@@ -142,12 +142,12 @@ class TestAnalyzeIdRelationships:
                 {"PropertyHeader": {"Header": {"PropertyID": "P2"}}},
             ]
         }
-        mortgage_data = {
+        rloan_data = {
             "items": [
                 {"Mortgage": {"Header": {"MortgageID": "M1", "PropertyID": "P1"}}},
             ]
         }
-        result = analyze_id_relationships(property_data, mortgage_data)
+        result = analyze_id_relationships(property_data, rloan_data)
         assert result["counts"]["properties"] == 2
         assert result["counts"]["mortgages"] == 1
         assert result["overlaps"]["properties_with_mortgages"] == 1
@@ -167,7 +167,7 @@ class TestAnalyzeIdRelationships:
         assert result["overlaps"]["properties_with_flood_risk"] == 1  # Only P1 overlaps
 
     def test_flood_mortgages_counted(self):
-        mortgage_data = {
+        rloan_data = {
             "items": [
                 {"Mortgage": {"Header": {"MortgageID": "M1", "PropertyID": "P1"}}},
                 {"Mortgage": {"Header": {"MortgageID": "M2", "PropertyID": "P2"}}},
@@ -176,5 +176,5 @@ class TestAnalyzeIdRelationships:
         flood_risk_data = {
             "property_hazard_curves": {"P1": {}}  # Only P1 has flood risk
         }
-        result = analyze_id_relationships(None, mortgage_data, flood_risk_data)
+        result = analyze_id_relationships(None, rloan_data, flood_risk_data)
         assert result["counts"]["flood_mortgages"] == 1

@@ -34,7 +34,7 @@ class RLoanTitlePage(PropertyBasePage):
     """Title page for residential-loan report with property context."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         elements = []
 
         try:
@@ -42,8 +42,8 @@ class RLoanTitlePage(PropertyBasePage):
             mortgage_id = 'Unknown'
             provider = 'N/A'
             app_date = 'N/A'
-            if mortgage_data:
-                mort = mortgage_data.get('Mortgage', mortgage_data)
+            if rloan_data:
+                mort = rloan_data.get('Mortgage', rloan_data)
                 hdr = mort.get('Header', {})
                 mortgage_id = hdr.get('MortgageID', 'Unknown')
                 app = mort.get('Application', {})
@@ -77,8 +77,8 @@ class RLoanTitlePage(PropertyBasePage):
             mort_summary.append(["Application Date", app_date])
             mort_summary.append(["Property ID", property_id])
 
-            if mortgage_data:
-                mort = mortgage_data.get('Mortgage', mortgage_data)
+            if rloan_data:
+                mort = rloan_data.get('Mortgage', rloan_data)
                 fin = mort.get('FinancialTerms', {})
                 cur = mort.get('CurrentStatus', {})
                 if fin.get('OriginalLoan'):

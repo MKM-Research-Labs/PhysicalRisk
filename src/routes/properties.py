@@ -123,14 +123,14 @@ def generate_report():
             }), 404
 
         # Find associated mortgage
-        mortgage_data = rloan_loader.find_by_property_id(property_id)
+        rloan_data = rloan_loader.find_by_property_id(property_id)
 
         # Import and generate report
         from reports.property.property_generator import generate_property_report
 
         report_path = generate_property_report(
             property_data=property_data,
-            mortgage_data=mortgage_data,
+            rloan_data=rloan_data,
             output_dir=config.get_property_reports_dir(),
             report_type=data.get('reportType', 'full'),
             auto_open=False
@@ -180,8 +180,8 @@ def generate_mortgage_report():
                 'message': f'Property {property_id} not found'
             }), 404
 
-        mortgage_data = rloan_loader.find_by_property_id(property_id)
-        if not mortgage_data:
+        rloan_data = rloan_loader.find_by_property_id(property_id)
+        if not rloan_data:
             return jsonify({
                 'status': 'error',
                 'message': f'No mortgage found for property {property_id}'
@@ -191,7 +191,7 @@ def generate_mortgage_report():
 
         report_path = gen_mort_report(
             property_data=property_data,
-            mortgage_data=mortgage_data,
+            rloan_data=rloan_data,
             output_dir=config.get_property_reports_dir(),
             auto_open=False
         )
@@ -244,15 +244,15 @@ def property_mortgage(prop_id: str):
     rloan_loader = registry.get_rloan_loader()
 
     try:
-        mortgage_data = rloan_loader.find_by_property_id(prop_id)
-        if not mortgage_data:
+        rloan_data = rloan_loader.find_by_property_id(prop_id)
+        if not rloan_data:
             return jsonify({
                 'status': 'error',
                 'message': f'No mortgage found for property {prop_id}'
             }), 404
 
         # Return the full nested CDM structure
-        mort = mortgage_data.get('Mortgage', mortgage_data)
+        mort = rloan_data.get('Mortgage', rloan_data)
 
         return jsonify({
             'status': 'success',
@@ -283,18 +283,18 @@ def property_loan_pricer(prop_id: str):
     rloan_loader = registry.get_rloan_loader()
 
     try:
-        mortgage_data = rloan_loader.find_by_property_id(prop_id)
-        if not mortgage_data:
+        rloan_data = rloan_loader.find_by_property_id(prop_id)
+        if not rloan_data:
             return jsonify({
                 'status': 'error',
                 'message': f'No mortgage found for property {prop_id}'
             }), 404
 
         # Normalise to the {"Mortgage": {...}} shape the CDM expects.
-        if 'Mortgage' in mortgage_data:
-            mortgage_cdm = mortgage_data
+        if 'Mortgage' in rloan_data:
+            mortgage_cdm = rloan_data
         else:
-            mortgage_cdm = {'Mortgage': mortgage_data}
+            mortgage_cdm = {'Mortgage': rloan_data}
 
         overrides = None
         if request.method == 'POST':

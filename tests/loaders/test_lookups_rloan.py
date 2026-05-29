@@ -134,7 +134,7 @@ class TestBuildAllLookups:
         assert result["property_flood_info"] == {}
 
     def test_with_data_populates_lookups(self):
-        mortgage_data = {
+        rloan_data = {
             "items": [{
                 "Mortgage": {
                     "Header": {"MortgageID": "M1", "PropertyID": "P1"},
@@ -144,5 +144,5 @@ class TestBuildAllLookups:
                 }
             }]
         }
-        result = build_all_lookups(mortgage_data=mortgage_data)
+        result = build_all_lookups(rloan_data=rloan_data)
         assert "P1" in result["rloan_lookup"]

@@ -51,7 +51,7 @@ class TitleOverviewPage(PropertyBasePage):
     """Generates the title page with property overview."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate title page elements."""
         elements = []
 

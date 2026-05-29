@@ -49,7 +49,7 @@ class FinancialPage(PropertyBasePage):
     """Generates financial information page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate financial information page elements."""
         elements = []
 

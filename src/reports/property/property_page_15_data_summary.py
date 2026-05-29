@@ -50,7 +50,7 @@ class DataSummaryPage(PropertyBasePage):
     """Generates data summary and report metadata page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate data summary page elements."""
         elements = []
 
@@ -60,7 +60,7 @@ class DataSummaryPage(PropertyBasePage):
             # DATA COMPLETENESS ANALYSIS
             elements.append(Paragraph("Data Completeness Analysis", self.styles['SubSectionHeader']))
 
-            completeness_stats = self._analyze_data_completeness(property_data, mortgage_data)
+            completeness_stats = self._analyze_data_completeness(property_data, rloan_data)
 
             completeness_data = [["Data Section", "Fields Used", "Total Available", "Completeness"]]
 
@@ -116,7 +116,7 @@ class DataSummaryPage(PropertyBasePage):
             elements.append(Spacer(1, self.spacing['minor_section']))
             elements.append(Paragraph("Report Generation Metadata", self.styles['SubSectionHeader']))
 
-            metadata = self._generate_report_metadata(property_data, mortgage_data)
+            metadata = self._generate_report_metadata(property_data, rloan_data)
 
             metadata_data = [["Metadata Item", "Value"]]
             for item, value in metadata.items():
@@ -153,7 +153,7 @@ class DataSummaryPage(PropertyBasePage):
         return elements
 
     def _analyze_data_completeness(self, property_data: Dict[str, Any],
-                                  mortgage_data: Dict[str, Any] = None) -> Dict[str, Dict]:
+                                  rloan_data: Dict[str, Any] = None) -> Dict[str, Dict]:
         """Analyze data completeness across all sections."""
 
         def count_fields(data, section_name=""):
@@ -195,8 +195,8 @@ class DataSummaryPage(PropertyBasePage):
                     }
 
         # Analyze mortgage data if available
-        if mortgage_data:
-            total, populated = count_fields(mortgage_data)
+        if rloan_data:
+            total, populated = count_fields(rloan_data)
             if total > 0:
                 completeness_stats['Mortgage Data'] = {
                     'used': populated,
@@ -252,7 +252,7 @@ class DataSummaryPage(PropertyBasePage):
         return assessment
 
     def _generate_report_metadata(self, property_data: Dict[str, Any],
-                                mortgage_data: Dict[str, Any] = None) -> Dict[str, str]:
+                                rloan_data: Dict[str, Any] = None) -> Dict[str, str]:
         """Generate report metadata."""
 
         metadata = {}
@@ -277,12 +277,12 @@ class DataSummaryPage(PropertyBasePage):
 
         # Data sources
         data_sources = ["Property Portfolio Database"]
-        if mortgage_data:
+        if rloan_data:
             data_sources.append("Mortgage Management System")
 
             # Try to get mortgage ID
             try:
-                rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+                rloan_info = rloan_data.get('Mortgage', rloan_data)
                 mortgage_id = rloan_info['Header']['MortgageID']
                 metadata["Mortgage ID"] = mortgage_id
             except (KeyError, TypeError):
@@ -291,7 +291,7 @@ class DataSummaryPage(PropertyBasePage):
         metadata["Data Sources"] = ", ".join(data_sources)
 
         # Report scope
-        if mortgage_data:
+        if rloan_data:
             metadata["Analysis Scope"] = "Property + Mortgage Comprehensive Analysis"
         else:
             metadata["Analysis Scope"] = "Property-Only Analysis"

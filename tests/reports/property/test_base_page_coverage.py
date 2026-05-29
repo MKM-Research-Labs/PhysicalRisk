@@ -25,7 +25,7 @@ class _ConcretePage:
             from reports.property.property_page_00_base import PropertyBasePage
 
             class Impl(PropertyBasePage):
-                def generate_elements(self, property_data, mortgage_data=None):
+                def generate_elements(self, property_data, rloan_data=None):
                     return []
 
             cls._instance = Impl()

@@ -92,7 +92,7 @@ def fin_env(tmp_path, monkeypatch):
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
     # Mortgage data
-    mortgage_data = {
+    rloan_data = {
         "mortgages": [
             {
                 "Mortgage": {
@@ -106,7 +106,7 @@ def fin_env(tmp_path, monkeypatch):
             }
         ]
     }
-    (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_data))
+    (tmp_path / "mortgage.json").write_text(json.dumps(rloan_data))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda name: tmp_path / name)

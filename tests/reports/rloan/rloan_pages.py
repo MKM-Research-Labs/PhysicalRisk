@@ -21,7 +21,7 @@
 """
 Tests for reports.rloan — RLoanTitlePage and RLoanReportGenerator.
 
-Covers: generate_elements (full data, empty data, no mortgage_data),
+Covers: generate_elements (full data, empty data, no rloan_data),
 RLoanReportGenerator.__init__, _generate_filename, _generate_elements,
 and generate_rloan_report convenience function.
 """

@@ -49,7 +49,7 @@ class LoadedData:
     """Container for all loaded visualization data."""
     gauge_data: Optional[Dict[str, Any]] = None
     property_data: Optional[Dict[str, Any]] = None
-    mortgage_data: Optional[Dict[str, Any]] = None
+    rloan_data: Optional[Dict[str, Any]] = None
     commercial_data: Optional[Dict[str, Any]] = None
     commercial_loan_data: Optional[Dict[str, Any]] = None
     hazard_data: Optional[Dict[str, Any]] = None
@@ -116,7 +116,7 @@ class DataLoader:
         self.loaded_data.property_data = self._load_with_validation(
             self._property_loader, "property"
         )
-        self.loaded_data.mortgage_data = self._load_with_validation(
+        self.loaded_data.rloan_data = self._load_with_validation(
             self._rloan_loader, "mortgage"
         )
 
@@ -332,7 +332,7 @@ class DataLoader:
         lookups = build_all_lookups(
             gauge_data=self.loaded_data.gauge_data,
             property_data=self.loaded_data.property_data,
-            mortgage_data=self.loaded_data.mortgage_data,
+            rloan_data=self.loaded_data.rloan_data,
             flood_risk_data=self.loaded_data.hazard_data,
             property_hazard_data=self.loaded_data.property_hazard_data
         )

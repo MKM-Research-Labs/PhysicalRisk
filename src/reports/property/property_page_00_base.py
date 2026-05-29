@@ -132,6 +132,6 @@ class PropertyBasePage(ReportBasePage):
 
     @abstractmethod
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate page elements. Must be implemented by subclasses."""
         pass
