@@ -18,7 +18,7 @@ from .layouts import white_hdr_style
 from .styles import PURPLE_TABLE_STYLE
 
 
-def build_page4_mortgage(
+def build_page4_rloan(
     prop_data: dict,
     prop_record: dict,
     mortgage_record: Optional[dict],

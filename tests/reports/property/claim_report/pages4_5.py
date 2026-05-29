@@ -18,28 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for page4_mortgage and page5_determination builders."""
+"""Tests for page4_rloan and page5_determination builders."""
 
 import pytest
 from reportlab.platypus import Paragraph, Table
 
 
 # ---------------------------------------------------------------------------
-# page4_mortgage.py
+# page4_rloan.py
 # ---------------------------------------------------------------------------
 
-class TestPage4Mortgage:
+class TestPage4RLoan:
     def test_with_mortgage(self, prop_data, prop_record, mortgage_record,
                            sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
-        result = build_page4_mortgage(
+        from reports.property.claim.page4_rloan import build_page4_rloan
+        result = build_page4_rloan(
             prop_data, prop_record, mortgage_record, sequence_lookup, styles)
         assert isinstance(result, list)
         assert len(result) > 0
 
     def test_without_mortgage(self, prop_data, prop_record, sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
-        result = build_page4_mortgage(
+        from reports.property.claim.page4_rloan import build_page4_rloan
+        result = build_page4_rloan(
             prop_data, prop_record, None, sequence_lookup, styles)
         assert isinstance(result, list)
         # Should render "No mortgage" notice
@@ -54,22 +54,22 @@ class TestPage4Mortgage:
 
     def test_contains_tables(self, prop_data, prop_record, mortgage_record,
                               sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
-        result = build_page4_mortgage(
+        from reports.property.claim.page4_rloan import build_page4_rloan
+        result = build_page4_rloan(
             prop_data, prop_record, mortgage_record, sequence_lookup, styles)
         assert any(isinstance(e, Table) for e in result)
 
     def test_no_flood_events_with_mortgage(self, prop_record, mortgage_record,
                                             sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
+        from reports.property.claim.page4_rloan import build_page4_rloan
         data = {'property_id': 'PROP-EMPTY', 'flood_events': []}
-        result = build_page4_mortgage(
+        result = build_page4_rloan(
             data, prop_record, mortgage_record, sequence_lookup, styles)
         assert isinstance(result, list)
 
     def test_negative_equity_highlights_row(self, sequence_lookup, styles):
         """High damage + large mortgage triggers negative equity highlighting."""
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
+        from reports.property.claim.page4_rloan import build_page4_rloan
         events = [
             {'storm_id': 'S1', 'sequence_id': 'SEQ-A',
              'flood_depth_m': 1.5, 'damage_ratio': 0.80, 'flooded': True},
@@ -81,7 +81,7 @@ class TestPage4Mortgage:
             'CurrentStatus':  {'OutstandingBalance': 190000},
         }
         lookup = {'SEQ-A': {'sequence_type': 'isolated', 'num_storms': 1}}
-        result = build_page4_mortgage(data, rec, mtg, lookup, styles)
+        result = build_page4_rloan(data, rec, mtg, lookup, styles)
         assert isinstance(result, list)
         assert any(isinstance(e, Table) for e in result)
 

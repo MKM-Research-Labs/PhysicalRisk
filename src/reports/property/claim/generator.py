@@ -19,7 +19,7 @@ from .layouts import build_header_footer
 from .page1_cover import build_page1_cover
 from .page2_chronology import build_page2_chronology
 from .page3_damage import build_page3_damage
-from .page4_mortgage import build_page4_mortgage
+from .page4_rloan import build_page4_rloan
 from .page5_determination import build_page5_determination
 from .styles import setup_styles
 
@@ -84,7 +84,7 @@ class ClaimReportGenerator:
             prop_data, prop_record, sequence_lookup, self.styles))
         story.append(PageBreak())
 
-        story.extend(build_page4_mortgage(
+        story.extend(build_page4_rloan(
             prop_data, prop_record, mortgage_record, sequence_lookup, self.styles))
         story.append(PageBreak())
 
