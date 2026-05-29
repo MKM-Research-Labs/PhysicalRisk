@@ -18,6 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Shared fixtures for mortgage report tests — re-exported from pdf/conftest."""
+"""Shared fixtures for residential-loan report tests — re-exported from pdf/conftest."""
 
 from tests.reports.pdf.conftest import sample_property_data, sample_mortgage_data

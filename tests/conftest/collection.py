@@ -41,7 +41,7 @@ _NON_PREFIXED_DIRS = {
     # shared names used in multiple trees
     "trading",
     # standalone
-    "services", "catch", "loaders", "mortgage",
+    "services", "catch", "loaders", "mortgage", "rloan",
     # split sub-packages (non-prefixed files)
     "property_generator", "data_loader", "storm_stress", "gauge_generator",
     "property_popup", "claim_report", "visualizer", "naming_conventions",

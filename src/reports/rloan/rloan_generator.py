@@ -40,13 +40,13 @@ from reports.property.property_page_11b_mortgage_costs import MortgageCostsPage
 from reports.property.property_page_12_current_status import CurrentStatusPage
 from reports.property.property_page_14_borrower_profile import BorrowerProfilePage
 
-from .mortgage_page_01_title import MortgageTitlePage
+from .rloan_page_01_title import RLoanTitlePage
 
 logger = logging.getLogger(__name__)
 
 
-class MortgageReportGenerator:
-    """Generates standalone mortgage analysis PDF reports."""
+class RLoanReportGenerator:
+    """Generates standalone residential-loan analysis PDF reports."""
 
     def __init__(self, output_dir: Optional[Union[str, Path]] = None):
         if output_dir:
@@ -59,7 +59,7 @@ class MortgageReportGenerator:
 
     def _initialize_pages(self):
         self.pages = {
-            'title': MortgageTitlePage(),
+            'title': RLoanTitlePage(),
             'mortgage_overview': MortgageOverviewPage(),
             'mortgage_details': MortgageDetailsPage(),
             'mortgage_costs': MortgageCostsPage(),
@@ -164,10 +164,10 @@ class MortgageReportGenerator:
         canvas.restoreState()
 
 
-def generate_mortgage_report(property_data: Dict[str, Any],
-                             mortgage_data: Dict[str, Any],
-                             output_dir: Optional[Union[str, Path]] = None,
-                             auto_open: bool = False) -> Path:
-    """Convenience function to generate a mortgage report."""
-    generator = MortgageReportGenerator(output_dir)
+def generate_rloan_report(property_data: Dict[str, Any],
+                          mortgage_data: Dict[str, Any],
+                          output_dir: Optional[Union[str, Path]] = None,
+                          auto_open: bool = False) -> Path:
+    """Convenience function to generate a residential-loan report."""
+    generator = RLoanReportGenerator(output_dir)
     return generator.generate_report(property_data, mortgage_data)

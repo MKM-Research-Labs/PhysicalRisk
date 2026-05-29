@@ -30,8 +30,8 @@ from reportlab.platypus import Paragraph, Spacer, Table
 from reports.property.property_page_00_base import PropertyBasePage
 
 
-class MortgageTitlePage(PropertyBasePage):
-    """Title page for mortgage report with property context."""
+class RLoanTitlePage(PropertyBasePage):
+    """Title page for residential-loan report with property context."""
 
     def generate_elements(self, property_data: Dict[str, Any],
                          mortgage_data: Dict[str, Any] = None) -> List:

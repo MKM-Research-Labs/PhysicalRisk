@@ -91,7 +91,7 @@ class TestGenerateMortgageReport:
         fake_pdf = tmp_path / "mort_report.pdf"
         fake_pdf.write_bytes(b"%PDF-1.4 mortgage content")
 
-        with patch("reports.mortgage.mortgage_generator.generate_mortgage_report",
+        with patch("reports.rloan.rloan_generator.generate_rloan_report",
                    return_value=fake_pdf):
             r = client.post("/api/v1/properties/mortgage-report",
                             json={"propertyId": "PROP-001"})
@@ -103,7 +103,7 @@ class TestGenerateMortgageReport:
         reg.get_property_loader.return_value.find_by_id.return_value = {"p": 1}
         reg.get_rloan_loader.return_value.find_by_property_id.return_value = {"m": 1}
 
-        with patch("reports.mortgage.mortgage_generator.generate_mortgage_report",
+        with patch("reports.rloan.rloan_generator.generate_rloan_report",
                    side_effect=RuntimeError("mort report error")):
             r = client.post("/api/v1/properties/mortgage-report", json={"propertyId": "PROP-001"})
             assert r.status_code in (200, 500)
@@ -163,11 +163,11 @@ class TestGenerateMortgageReportImportError:
 
         import sys
         import types
-        fake_mod = types.ModuleType("reports.mortgage.mortgage_generator")
+        fake_mod = types.ModuleType("reports.rloan.rloan_generator")
         def _raise(*a, **kw):
-            raise ImportError("no module reports.mortgage.mortgage_generator")
-        fake_mod.generate_mortgage_report = _raise
-        monkeypatch.setitem(sys.modules, "reports.mortgage.mortgage_generator", fake_mod)
+            raise ImportError("no module reports.rloan.rloan_generator")
+        fake_mod.generate_rloan_report = _raise
+        monkeypatch.setitem(sys.modules, "reports.rloan.rloan_generator", fake_mod)
 
         r = client.post("/api/v1/properties/mortgage-report",
                         json={"propertyId": "PROP-001"})
