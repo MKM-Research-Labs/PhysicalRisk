@@ -25,7 +25,7 @@ Lookup table builders linking properties, mortgages, gauges, and flood risk data
 from typing import Any, Dict, Optional
 
 
-def build_mortgage_lookup(mortgage_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
+def build_rloan_lookup(mortgage_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
     """
     Build property_id -> mortgage mapping.
 
@@ -235,7 +235,7 @@ def build_all_lookups(
     )
 
     return {
-        "mortgage_lookup": build_mortgage_lookup(mortgage_data),
+        "rloan_lookup": build_rloan_lookup(mortgage_data),
         "gauge_flood_info": build_gauge_flood_info(gauge_data, flood_risk_data),
         "property_flood_info": property_flood_info,
     }

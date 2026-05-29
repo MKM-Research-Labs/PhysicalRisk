@@ -73,8 +73,8 @@ class PropertyLayer:
                     property_id = property_info['property_id']
 
                     property_flood_info = loaded_data.property_flood_info.get(property_id, {}) if loaded_data.property_flood_info else {}
-                    has_mortgage = property_id in (loaded_data.mortgage_lookup or {})
-                    mortgage_info = loaded_data.mortgage_lookup.get(property_id, {}) if loaded_data.mortgage_lookup else {}
+                    has_mortgage = property_id in (loaded_data.rloan_lookup or {})
+                    mortgage_info = loaded_data.rloan_lookup.get(property_id, {}) if loaded_data.rloan_lookup else {}
 
                     if has_mortgage:
                         mortgaged_property_count += 1

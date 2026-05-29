@@ -24,8 +24,8 @@ import pytest
 
 from loaders.lookups import (
     extract_property_ids,
-    extract_mortgage_ids,
-    extract_mortgage_property_ids,
+    extract_rloan_ids,
+    extract_rloan_property_ids,
     extract_gauge_ids,
     analyze_id_relationships,
 )
@@ -58,13 +58,13 @@ class TestExtractPropertyIds:
 
 
 # ===========================================================================
-# extract_mortgage_ids
+# extract_rloan_ids
 # ===========================================================================
 
-class TestExtractMortgageIds:
+class TestExtractRLoanIds:
 
     def test_none_returns_empty_set(self):
-        assert extract_mortgage_ids(None) == set()
+        assert extract_rloan_ids(None) == set()
 
     def test_extracts_ids(self):
         data = {
@@ -73,17 +73,17 @@ class TestExtractMortgageIds:
                 {"Mortgage": {"Header": {"MortgageID": "M2"}}},
             ]
         }
-        assert extract_mortgage_ids(data) == {"M1", "M2"}
+        assert extract_rloan_ids(data) == {"M1", "M2"}
 
 
 # ===========================================================================
-# extract_mortgage_property_ids
+# extract_rloan_property_ids
 # ===========================================================================
 
 class TestExtractMortgagePropertyIds:
 
     def test_none_returns_empty_set(self):
-        assert extract_mortgage_property_ids(None) == set()
+        assert extract_rloan_property_ids(None) == set()
 
     def test_extracts_property_ids_from_mortgages(self):
         data = {
@@ -92,7 +92,7 @@ class TestExtractMortgagePropertyIds:
                 {"Mortgage": {"Header": {"MortgageID": "M2", "PropertyID": "P2"}}},
             ]
         }
-        assert extract_mortgage_property_ids(data) == {"P1", "P2"}
+        assert extract_rloan_property_ids(data) == {"P1", "P2"}
 
 
 # ===========================================================================

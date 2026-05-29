@@ -63,7 +63,7 @@ class LoadedData:
     propertyts_count: int = 0
 
     # Processed lookups
-    mortgage_lookup: Optional[Dict[str, Dict]] = None
+    rloan_lookup: Optional[Dict[str, Dict]] = None
     commercial_loan_lookup: Optional[Dict[str, Dict]] = None
     gauge_flood_info: Optional[Dict[str, Dict]] = None
     property_flood_info: Optional[Dict[str, Dict]] = None
@@ -337,12 +337,12 @@ class DataLoader:
             property_hazard_data=self.loaded_data.property_hazard_data
         )
 
-        self.loaded_data.mortgage_lookup = lookups["mortgage_lookup"]
+        self.loaded_data.rloan_lookup = lookups["rloan_lookup"]
         self.loaded_data.gauge_flood_info = lookups["gauge_flood_info"]
         self.loaded_data.property_flood_info = lookups["property_flood_info"]
         self._build_commercial_loan_lookup()
 
-        logger.info(f"Mortgage lookup: {len(self.loaded_data.mortgage_lookup)} entries")
+        logger.info(f"Mortgage lookup: {len(self.loaded_data.rloan_lookup)} entries")
         logger.info(f"Gauge flood info: {len(self.loaded_data.gauge_flood_info)} entries")
         logger.info(f"Property flood info: {len(self.loaded_data.property_flood_info)} entries")
         if self.loaded_data.commercial_loan_lookup:
