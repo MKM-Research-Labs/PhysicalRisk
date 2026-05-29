@@ -83,7 +83,7 @@ class TestPropertyLayerInit:
         assert PropertyLayer().show_risk_colors is True
 
     def test_show_mortgage_status_default(self):
-        assert PropertyLayer().show_mortgage_status is True
+        assert PropertyLayer().show_rloan_status is True
 
     def test_risk_based_sizing_default(self):
         assert PropertyLayer().risk_based_sizing is False
@@ -97,24 +97,24 @@ class TestConfigure:
 
     def test_configure_all_params(self):
         layer = PropertyLayer()
-        layer.configure(show_risk_colors=False, show_mortgage_status=False,
+        layer.configure(show_risk_colors=False, show_rloan_status=False,
                         risk_based_sizing=True)
         assert layer.show_risk_colors is False
-        assert layer.show_mortgage_status is False
+        assert layer.show_rloan_status is False
         assert layer.risk_based_sizing is True
 
     def test_configure_defaults(self):
         layer = PropertyLayer()
         layer.configure()
         assert layer.show_risk_colors is True
-        assert layer.show_mortgage_status is True
+        assert layer.show_rloan_status is True
         assert layer.risk_based_sizing is False
 
     def test_configure_partial(self):
         layer = PropertyLayer()
-        layer.configure(show_mortgage_status=False)
+        layer.configure(show_rloan_status=False)
         assert layer.show_risk_colors is True
-        assert layer.show_mortgage_status is False
+        assert layer.show_rloan_status is False
 
 
 # ===========================================================================

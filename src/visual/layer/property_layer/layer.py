@@ -12,7 +12,7 @@ from config.format import property_title_py
 from config.visual import PROPERTY_FLOOD_HIGH, PROPERTY_FLOOD_MEDIUM
 from ...utils import ColorSchemes, DataExtractor, DataFormatter
 from .popup import (create_property_popup, create_flood_risk_section,
-                    create_mortgage_section)
+                    create_rloan_section)
 from .stats import get_property_statistics
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class PropertyLayer:
         """Initialize the property layer."""
         self.layer_name = "Properties"
         self.show_risk_colors = True
-        self.show_mortgage_status = True
+        self.show_rloan_status = True
         self.risk_based_sizing = False
 
     def add_to_map(self, folium_map: folium.Map, loaded_data) -> folium.FeatureGroup:
@@ -74,13 +74,13 @@ class PropertyLayer:
 
                     property_flood_info = loaded_data.property_flood_info.get(property_id, {}) if loaded_data.property_flood_info else {}
                     has_rloan = property_id in (loaded_data.rloan_lookup or {})
-                    mortgage_info = loaded_data.rloan_lookup.get(property_id, {}) if loaded_data.rloan_lookup else {}
+                    rloan_info = loaded_data.rloan_lookup.get(property_id, {}) if loaded_data.rloan_lookup else {}
 
                     if has_rloan:
                         mortgaged_property_count += 1
 
                     self._add_property_marker(property_group, property_info, property_flood_info,
-                                            has_rloan, mortgage_info, loaded_data)
+                                            has_rloan, rloan_info, loaded_data)
 
             except Exception as e:
                 logger.warning(f"Error processing property: {e}")
@@ -93,7 +93,7 @@ class PropertyLayer:
 
     def _add_property_marker(self, feature_group: folium.FeatureGroup, property_info: Dict[str, Any],
                            property_flood_info: Dict[str, Any], has_rloan: bool,
-                           mortgage_info: Dict[str, Any], loaded_data) -> None:
+                           rloan_info: Dict[str, Any], loaded_data) -> None:
         """Add a single property marker to the feature group."""
         try:
             lat = property_info['coordinates']['latitude']
@@ -102,7 +102,7 @@ class PropertyLayer:
 
             popup_content = self._create_property_popup(
                 property_info, property_flood_info, has_rloan,
-                mortgage_info,
+                rloan_info,
             )
 
             phc = self._property_hazard.get(property_id, {})
@@ -140,7 +140,7 @@ class PropertyLayer:
         else:
             color = 'green'
 
-        if self.show_mortgage_status and has_rloan:
+        if self.show_rloan_status and has_rloan:
             icon_type = 'university'
         else:
             icon_type = 'home'
@@ -163,32 +163,32 @@ class PropertyLayer:
         from visual.layer import get_properties_list
         return get_properties_list(property_data)
 
-    def configure(self, show_risk_colors: bool = True, show_mortgage_status: bool = True,
+    def configure(self, show_risk_colors: bool = True, show_rloan_status: bool = True,
                  risk_based_sizing: bool = False):
         """Configure property layer display options."""
         self.show_risk_colors = show_risk_colors
-        self.show_mortgage_status = show_mortgage_status
+        self.show_rloan_status = show_rloan_status
         self.risk_based_sizing = risk_based_sizing
 
-        logger.info(f"Property layer configured: risk_colors={show_risk_colors}, mortgage={show_mortgage_status}, sizing={risk_based_sizing}")
+        logger.info(f"Property layer configured: risk_colors={show_risk_colors}, mortgage={show_rloan_status}, sizing={risk_based_sizing}")
 
     # -----------------------------------------------------------------------
     # Delegators to popup submodule (backward-compatible instance methods)
     # -----------------------------------------------------------------------
 
     def _create_property_popup(self, property_info, property_flood_info,
-                                has_rloan, mortgage_info) -> str:
+                                has_rloan, rloan_info) -> str:
         """Create detailed popup content for a property marker."""
         return create_property_popup(property_info, property_flood_info,
-                                     has_rloan, mortgage_info)
+                                     has_rloan, rloan_info)
 
     def _create_flood_risk_section(self, property_flood_info) -> str:
         """Create the flood risk information section."""
         return create_flood_risk_section(property_flood_info)
 
-    def _create_mortgage_section(self, mortgage_info, property_value) -> str:
+    def _create_rloan_section(self, rloan_info, property_value) -> str:
         """Create the mortgage information section."""
-        return create_mortgage_section(mortgage_info, property_value)
+        return create_rloan_section(rloan_info, property_value)
 
     def get_property_statistics(self, properties: List[Dict[str, Any]], loaded_data) -> Dict[str, Any]:
         """Calculate statistics for the properties."""

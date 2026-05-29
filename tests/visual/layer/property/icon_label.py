@@ -86,9 +86,9 @@ class TestGetPropertyIcon:
         assert icon.options["marker_color"] == "red"
 
     def test_mortgaged_uses_university_icon(self):
-        """show_mortgage_status=True + has_rloan → 'university' icon."""
+        """show_rloan_status=True + has_rloan → 'university' icon."""
         layer = self._layer()
-        layer.show_mortgage_status = True
+        layer.show_rloan_status = True
         icon = layer._get_property_icon({"property_id": "PROP-001"}, has_rloan=True)
         assert icon.options["icon"] == "university"
 
@@ -98,9 +98,9 @@ class TestGetPropertyIcon:
         assert icon.options["icon"] == "home"
 
     def test_show_mortgage_status_false_uses_home_even_with_mortgage(self):
-        """show_mortgage_status=False → home icon regardless of mortgage status."""
+        """show_rloan_status=False → home icon regardless of mortgage status."""
         layer = self._layer()
-        layer.show_mortgage_status = False
+        layer.show_rloan_status = False
         icon = layer._get_property_icon({"property_id": "PROP-001"}, has_rloan=True)
         assert icon.options["icon"] == "home"
 

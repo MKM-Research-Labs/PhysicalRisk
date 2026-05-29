@@ -60,8 +60,8 @@ class RegulatoryPage(PropertyBasePage):
         try:
             elements.append(Paragraph("Regulatory Compliance", self.styles['SectionHeader']))
 
-            mortgage_info = mortgage_data.get('Mortgage', mortgage_data)
-            regulatory_data = mortgage_info.get('Regulatory', {})
+            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+            regulatory_data = rloan_info.get('Regulatory', {})
 
             if not regulatory_data:
                 elements.append(Paragraph("No regulatory information available.", self.styles['Normal']))

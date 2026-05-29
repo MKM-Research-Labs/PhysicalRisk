@@ -17,7 +17,7 @@ def calculate_ltv_ratio(loan_amount: Any, property_value: Any,
 
 
 def extract_term_years(mortgage_financial: Dict[str, Any],
-                       mortgage_info: Dict[str, Any]) -> Optional[float]:
+                       rloan_info: Dict[str, Any]) -> Optional[float]:
     """Extract term years from various possible fields."""
     for field in ['TermYears', 'Term', 'LoanTerm', 'OriginalTerm']:
         if field in mortgage_financial:
@@ -31,7 +31,7 @@ def extract_term_years(mortgage_financial: Dict[str, Any],
         ['Term', 'Years'],
         ['LoanTerms', 'Years']
     ]:
-        current = mortgage_info
+        current = rloan_info
         for key in path:
             if isinstance(current, dict) and key in current:
                 current = current[key]

@@ -65,7 +65,7 @@ class TestFullPopupBuilds:
             construction_year=1985,
             property_age_factor='Medium (1925-1975)',
             has_rloan=True,
-            mortgage_info=sample_mortgage,
+            rloan_info=sample_mortgage,
             flood_info=sample_flood_info,
         )
         assert popup is not None
