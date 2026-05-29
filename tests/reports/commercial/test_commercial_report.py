@@ -466,12 +466,12 @@ def test_commercial_generator_filename_falls_back_when_no_property_id(tmp_path):
 
 def test_loan_overview_page_renders_placeholder_for_no_loan():
     """``CLoanOverviewPage`` emits a 'No loan record linked' placeholder
-    paragraph when loan_data is None — the only branch in the page
+    paragraph when cloan_data is None — the only branch in the page
     not exercised by the happy-path PDF tests."""
     from reports.commercial.pages.loan_overview import CLoanOverviewPage
     from reportlab.platypus import Paragraph
     page = CLoanOverviewPage()
-    flowables = page.generate_elements(commercial_data={}, loan_data=None)
+    flowables = page.generate_elements(commercial_data={}, cloan_data=None)
     paragraphs = [f for f in flowables if isinstance(f, Paragraph)]
     text_blob = " ".join(p.text for p in paragraphs if hasattr(p, "text"))
     assert "No loan record" in text_blob
