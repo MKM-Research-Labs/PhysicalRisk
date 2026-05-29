@@ -34,9 +34,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak, SimpleDocTemplate
 
-from reports.property.property_page_11_mortgage_overview import MortgageOverviewPage
-from reports.property.property_page_11a_mortgage_details import MortgageDetailsPage
-from reports.property.property_page_11b_mortgage_costs import MortgageCostsPage
+from reports.property.property_page_11_rloan_overview import RLoanOverviewPage
+from reports.property.property_page_11a_rloan_details import RLoanDetailsPage
+from reports.property.property_page_11b_rloan_costs import RLoanCostsPage
 from reports.property.property_page_12_current_status import CurrentStatusPage
 from reports.property.property_page_14_borrower_profile import BorrowerProfilePage
 
@@ -60,9 +60,9 @@ class RLoanReportGenerator:
     def _initialize_pages(self):
         self.pages = {
             'title': RLoanTitlePage(),
-            'mortgage_overview': MortgageOverviewPage(),
-            'mortgage_details': MortgageDetailsPage(),
-            'mortgage_costs': MortgageCostsPage(),
+            'mortgage_overview': RLoanOverviewPage(),
+            'mortgage_details': RLoanDetailsPage(),
+            'mortgage_costs': RLoanCostsPage(),
             'current_status': CurrentStatusPage(),
             'borrower_profile': BorrowerProfilePage(),
         }

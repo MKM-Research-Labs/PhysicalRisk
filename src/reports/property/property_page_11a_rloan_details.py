@@ -45,7 +45,7 @@ from reportlab.platypus import Paragraph, Spacer, Table
 from .property_page_00_base import PropertyBasePage
 
 
-class MortgageDetailsPage(PropertyBasePage):
+class RLoanDetailsPage(PropertyBasePage):
     """Generates detailed mortgage financial terms page."""
 
     def generate_elements(self, property_data: Dict[str, Any],

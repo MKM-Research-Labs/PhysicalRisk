@@ -21,9 +21,9 @@ from .property_page_06_financial import FinancialPage
 from .property_page_07_protection import ProtectionPage
 from .property_page_09_history import HistoryPage
 from .property_page_10_transactions import TransactionsPage
-from .property_page_11_mortgage_overview import MortgageOverviewPage
-from .property_page_11a_mortgage_details import MortgageDetailsPage
-from .property_page_11b_mortgage_costs import MortgageCostsPage
+from .property_page_11_rloan_overview import RLoanOverviewPage
+from .property_page_11a_rloan_details import RLoanDetailsPage
+from .property_page_11b_rloan_costs import RLoanCostsPage
 from .property_page_11c_regulatory import RegulatoryPage
 from .property_page_12_current_status import CurrentStatusPage
 from .property_page_13_risk_analysis import RiskAnalysisPage
@@ -59,9 +59,9 @@ class PropertyReportGenerator(BaseReportGenerator):
             'transactions': TransactionsPage(),
 
             # Mortgage pages
-            'mortgage_overview': MortgageOverviewPage(),
-            'mortgage_details': MortgageDetailsPage(),
-            'mortgage_costs': MortgageCostsPage(),
+            'mortgage_overview': RLoanOverviewPage(),
+            'mortgage_details': RLoanDetailsPage(),
+            'mortgage_costs': RLoanCostsPage(),
             'regulatory': RegulatoryPage(),
             'current_status': CurrentStatusPage(),
             'borrower_profile': BorrowerProfilePage(),
