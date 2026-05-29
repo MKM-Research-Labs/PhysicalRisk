@@ -51,7 +51,7 @@ from .risk_page_01_title import RiskTitlePage
 from .risk_page_02_executive_summary import RiskExecutiveSummaryPage
 from .risk_page_03_portfolio_overview import RiskPortfolioOverviewPage
 from .risk_page_04_risk_analysis import RiskAnalysisPage
-from .risk_page_05_mortgage_analysis import RiskMortgageAnalysisPage
+from .risk_page_05_rloan_analysis import RiskRLoanAnalysisPage
 from .risk_page_06_property_details import RiskPropertyDetailsPage
 from .risk_page_07_appendix import RiskAppendixPage
 
@@ -72,7 +72,7 @@ class RiskReportGenerator(BaseReportGenerator):
             'executive_summary': RiskExecutiveSummaryPage(),
             'portfolio_overview': RiskPortfolioOverviewPage(),
             'risk_analysis': RiskAnalysisPage(),
-            'mortgage_analysis': RiskMortgageAnalysisPage(),
+            'mortgage_analysis': RiskRLoanAnalysisPage(),
             'property_details': RiskPropertyDetailsPage(),
             'appendix': RiskAppendixPage(),
         }

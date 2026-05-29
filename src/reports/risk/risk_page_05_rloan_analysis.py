@@ -43,7 +43,7 @@ from reportlab.platypus import Paragraph, Spacer, Table
 from .risk_page_00_base import RiskBasePage
 
 
-class RiskMortgageAnalysisPage(RiskBasePage):
+class RiskRLoanAnalysisPage(RiskBasePage):
     """Generates the mortgage risk analysis page."""
 
     def generate_elements(self, flood_data: Dict[str, Any]) -> List:
