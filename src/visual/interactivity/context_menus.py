@@ -66,12 +66,12 @@ DEFAULT_GAUGE_MENU = [
 # until then the actions fire and the JS shows the not-yet-wired warning.
 DEFAULT_COMMERCIAL_MENU = [
     {"id": "view_details", "label": "🏢 Commercial Details", "action": "viewCommercialDetails"},
-    {"id": "view_loan", "label": "💰 Loan Details", "action": "viewLoanDetails"},
+    {"id": "view_loan", "label": "💰 Loan Details", "action": "viewCLoanDetails"},
     {"id": "loan_pricer", "label": "🧮 Loan Pricer", "action": "viewCommercialLoanPricer"},
     {"id": "view_commercial_storms", "label": "🌧️ View Storm Scenarios", "action": "viewCommercialStorms"},
     {"id": "view_commercial_hazard", "label": "📈 Physical Risk Swap", "action": "viewCommercialHazard"},
     {"id": "generate_commercial_report", "label": "📊 Generate Commercial Report", "action": "generateCommercialReport"},
-    {"id": "generate_cloan_report", "label": "🏦 Generate Loan Report", "action": "generateLoanReport"}
+    {"id": "generate_cloan_report", "label": "🏦 Generate Loan Report", "action": "generateCLoanReport"}
 ]
 
 
