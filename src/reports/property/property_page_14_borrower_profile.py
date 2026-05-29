@@ -49,18 +49,18 @@ class BorrowerProfilePage(PropertyBasePage):
     """Generates borrower profile page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate borrower profile page elements."""
         elements = []
 
-        if not mortgage_data:
+        if not rloan_data:
             elements.append(Paragraph("No mortgage/borrower data available.", self.styles['Normal']))
             return elements
 
         try:
             elements.append(Paragraph("Borrower Profile", self.styles['SectionHeader']))
 
-            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+            rloan_info = rloan_data.get('Mortgage', rloan_data)
             borrower_details = rloan_info.get('BorrowerDetails', {})
 
             if not borrower_details:

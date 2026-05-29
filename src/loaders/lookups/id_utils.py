@@ -38,26 +38,26 @@ def extract_property_ids(property_data: Optional[Dict[str, Any]]) -> Set[str]:
     return ids
 
 
-def extract_rloan_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
+def extract_rloan_ids(rloan_data: Optional[Dict[str, Any]]) -> Set[str]:
     """Extract all mortgage IDs from mortgage data."""
-    if not mortgage_data:
+    if not rloan_data:
         return set()
 
     ids = set()
-    for mortgage in mortgage_data.get("items", []):
+    for mortgage in rloan_data.get("items", []):
         mort_id = mortgage.get("Mortgage", {}).get("Header", {}).get("MortgageID")
         if mort_id:
             ids.add(mort_id)
     return ids
 
 
-def extract_rloan_property_ids(mortgage_data: Optional[Dict[str, Any]]) -> Set[str]:
+def extract_rloan_property_ids(rloan_data: Optional[Dict[str, Any]]) -> Set[str]:
     """Extract property IDs referenced in mortgage data."""
-    if not mortgage_data:
+    if not rloan_data:
         return set()
 
     ids = set()
-    for mortgage in mortgage_data.get("items", []):
+    for mortgage in rloan_data.get("items", []):
         prop_id = mortgage.get("Mortgage", {}).get("Header", {}).get("PropertyID")
         if prop_id:
             ids.add(prop_id)
@@ -80,7 +80,7 @@ def extract_gauge_ids(gauge_data: Optional[Dict[str, Any]]) -> Set[str]:
 
 def analyze_id_relationships(
     property_data: Optional[Dict[str, Any]] = None,
-    mortgage_data: Optional[Dict[str, Any]] = None,
+    rloan_data: Optional[Dict[str, Any]] = None,
     flood_risk_data: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
@@ -90,8 +90,8 @@ def analyze_id_relationships(
         Dictionary with ID counts and overlap statistics
     """
     property_ids = extract_property_ids(property_data)
-    mortgage_property_ids = extract_rloan_property_ids(mortgage_data)
-    mortgage_ids = extract_rloan_ids(mortgage_data)
+    mortgage_property_ids = extract_rloan_property_ids(rloan_data)
+    mortgage_ids = extract_rloan_ids(rloan_data)
 
     # Extract IDs from flood risk data (gaugehc.json has hazard_curves key)
     flood_property_ids = set()
@@ -104,8 +104,8 @@ def analyze_id_relationships(
 
     # Mortgages with flood risk = mortgages whose property has flood risk
     flood_mortgage_ids = set()
-    if mortgage_data and flood_property_ids:
-        for mortgage in mortgage_data.get("items", []):
+    if rloan_data and flood_property_ids:
+        for mortgage in rloan_data.get("items", []):
             mort = mortgage.get("Mortgage", {}).get("Header", {})
             prop_id = mort.get("PropertyID")
             mort_id = mort.get("MortgageID")

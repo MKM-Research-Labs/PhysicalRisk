@@ -117,11 +117,11 @@ class TestOverallRiskLevels:
         assert isinstance(result, list)
 
     def test_property_only_high_flood_risk(self):
-        result = self._page().generate_elements(make_property(flood_risk="High"), mortgage_data=None)
+        result = self._page().generate_elements(make_property(flood_risk="High"), rloan_data=None)
         assert isinstance(result, list)
 
     def test_property_only_very_low_flood_risk(self):
-        result = self._page().generate_elements(make_property(flood_risk="Very Low"), mortgage_data=None)
+        result = self._page().generate_elements(make_property(flood_risk="Very Low"), rloan_data=None)
         assert isinstance(result, list)
 
 

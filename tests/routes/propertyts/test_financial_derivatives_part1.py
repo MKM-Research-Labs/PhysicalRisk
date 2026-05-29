@@ -114,7 +114,7 @@ def pts_env_with_prs(tmp_path, monkeypatch):
     (tmp_path / 'property.json').write_text(json.dumps(property_data))
 
     # mortgage.json
-    mortgage_data = {'mortgages': [{
+    rloan_data = {'mortgages': [{
         'Mortgage': {
             'Header': {'MortgageID': 'MORT-001', 'PropertyID': PROP_ID},
             'CurrentStatus': {
@@ -124,7 +124,7 @@ def pts_env_with_prs(tmp_path, monkeypatch):
             },
         }
     }]}
-    (tmp_path / 'mortgage.json').write_text(json.dumps(mortgage_data))
+    (tmp_path / 'mortgage.json').write_text(json.dumps(rloan_data))
 
     # PRS trade linked to PROP-001
     trade = _make_property_prs('PRS-PROP-001', 'GAUGE-001', PROP_ID, 500000)

@@ -57,7 +57,7 @@ def _make_loaded_data(gauge=True, prop=True, mortgage=True):
     ld = MagicMock()
     ld.gauge_data = {"items": []} if gauge else None
     ld.property_data = {"properties": []} if prop else None
-    ld.mortgage_data = {"mortgages": []} if mortgage else None
+    ld.rloan_data = {"mortgages": []} if mortgage else None
     return ld
 
 

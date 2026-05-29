@@ -40,7 +40,7 @@ def print_relationship_analysis(loader) -> None:
 
     analysis = analyze_id_relationships(
         property_data=loader.loaded_data.property_data,
-        mortgage_data=loader.loaded_data.mortgage_data,
+        rloan_data=loader.loaded_data.rloan_data,
         flood_risk_data=loader.loaded_data.property_hazard_data
     )
 
@@ -69,7 +69,7 @@ def print_loading_summary(loader) -> None:
 
     gauge_count = d.gauge_data.get("count", 0) if d.gauge_data else 0
     prop_count = d.property_data.get("count", 0) if d.property_data else 0
-    mort_count = d.mortgage_data.get("count", 0) if d.mortgage_data else 0
+    mort_count = d.rloan_data.get("count", 0) if d.rloan_data else 0
     hc_count = len(d.hazard_data.get("hazard_curves", {})) if d.hazard_data else 0
     phc_count = (
         len(d.property_hazard_data.get("property_hazard_curves", {}))

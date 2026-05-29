@@ -196,7 +196,7 @@ def pts_env(tmp_path, monkeypatch):
     }]}
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
-    mortgage_data = {"mortgages": [{
+    rloan_data = {"mortgages": [{
         "Mortgage": {
             "Header": {"MortgageID": "MORT-001", "PropertyID": PROP_ID},
             "FinancialTerms": {"OriginalBalance": 300000},
@@ -207,7 +207,7 @@ def pts_env(tmp_path, monkeypatch):
             },
         }
     }]}
-    (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_data))
+    (tmp_path / "mortgage.json").write_text(json.dumps(rloan_data))
 
     summary = {"total_properties": 1, "storm_count": 1}
     (pts_dir / "portfolio_flood_summary.json").write_text(json.dumps(summary))

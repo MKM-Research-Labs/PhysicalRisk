@@ -57,8 +57,8 @@ def pts_env_no_valuation(tmp_path, monkeypatch):
     }]}
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
-    mortgage_data = {"mortgages": []}
-    (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_data))
+    rloan_data = {"mortgages": []}
+    (tmp_path / "mortgage.json").write_text(json.dumps(rloan_data))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
@@ -147,8 +147,8 @@ def pts_env_no_mortgage(tmp_path, monkeypatch):
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
     # Empty mortgage file — no mortgage for PROP-001
-    mortgage_data = {"mortgages": []}
-    (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_data))
+    rloan_data = {"mortgages": []}
+    (tmp_path / "mortgage.json").write_text(json.dumps(rloan_data))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)

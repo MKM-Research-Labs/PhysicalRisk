@@ -49,11 +49,11 @@ class RLoanOverviewPage(PropertyBasePage):
     """Generates mortgage overview page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate mortgage overview page elements."""
         elements = []
 
-        if not mortgage_data:
+        if not rloan_data:
             elements.append(Paragraph("No mortgage data available.", self.styles['Normal']))
             return elements
 
@@ -61,7 +61,7 @@ class RLoanOverviewPage(PropertyBasePage):
             elements.append(Paragraph("Mortgage Overview", self.styles['SectionHeader']))
 
             # Handle nested mortgage structure
-            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+            rloan_info = rloan_data.get('Mortgage', rloan_data)
 
             # MORTGAGE IDENTIFICATION
             header_data = rloan_info.get('Header', {})

@@ -73,7 +73,7 @@ class TestRLoanOverviewPage:
 
     def test_none_mortgage_data_returns_message(self):
         page = self._page()
-        result = page.generate_elements({}, mortgage_data=None)
+        result = page.generate_elements({}, rloan_data=None)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("No mortgage data available" in t for t in texts)
 
@@ -139,7 +139,7 @@ class TestRLoanOverviewPage:
         assert isinstance(result, list)
 
     def test_flat_mortgage_dict_accepted(self):
-        """mortgage_data without outer 'Mortgage' key is handled via fallback."""
+        """rloan_data without outer 'Mortgage' key is handled via fallback."""
         flat = {
             "Header": {"MortgageID": "MORT-002"},
         }

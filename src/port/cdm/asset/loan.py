@@ -221,12 +221,12 @@ class LoanCDM(BaseCDM):
         """Return the CDM schema."""
         return self._schema
 
-    def validate(self, mortgage_data: dict) -> Dict[str, List[str]]:
+    def validate(self, rloan_data: dict) -> Dict[str, List[str]]:
         """
         Validate mortgage data against the CDM schema.
 
         Args:
-            mortgage_data: Mortgage data to validate
+            rloan_data: Mortgage data to validate
 
         Returns:
             Dictionary of validation errors by section
@@ -234,7 +234,7 @@ class LoanCDM(BaseCDM):
         errors = {}
 
         try:
-            header = mortgage_data.get("Mortgage", {}).get("Header", {})
+            header = rloan_data.get("Mortgage", {}).get("Header", {})
             header_errors = []
 
             if not header.get("MortgageID"):
@@ -250,7 +250,7 @@ class LoanCDM(BaseCDM):
                 errors["Header"] = header_errors
 
             # Validate financial terms
-            terms = mortgage_data.get("Mortgage", {}).get("FinancialTerms", {})
+            terms = rloan_data.get("Mortgage", {}).get("FinancialTerms", {})
             terms_errors = []
 
             if not terms.get("OriginalLoan"):
@@ -284,7 +284,7 @@ class LoanCDM(BaseCDM):
             borrower = m.get('BorrowerDetails', {})
             risk = m.get('RiskAssessment', {})
 
-            mortgage_data = {
+            rloan_data = {
                 # Header
                 'mortgage_id': header.get('MortgageID'),
                 'catchment_id': header.get('CatchmentID'),
@@ -341,7 +341,7 @@ class LoanCDM(BaseCDM):
             }
 
             # Remove None values
-            return {k: v for k, v in mortgage_data.items() if v is not None}
+            return {k: v for k, v in rloan_data.items() if v is not None}
 
         except Exception as e:
             raise ValueError(f"Error creating mortgage mapping: {str(e)}")

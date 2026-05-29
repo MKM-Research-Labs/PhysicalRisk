@@ -49,18 +49,18 @@ class CurrentStatusPage(PropertyBasePage):
     """Generates current mortgage status page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate current mortgage status page elements."""
         elements = []
 
-        if not mortgage_data:
+        if not rloan_data:
             elements.append(Paragraph("No mortgage data available.", self.styles['Normal']))
             return elements
 
         try:
             elements.append(Paragraph("Current Mortgage Status", self.styles['SectionHeader']))
 
-            rloan_info = mortgage_data.get('Mortgage', mortgage_data)
+            rloan_info = rloan_data.get('Mortgage', rloan_data)
             current_status = rloan_info.get('CurrentStatus', {})
 
             if not current_status:

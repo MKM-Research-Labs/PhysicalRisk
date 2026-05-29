@@ -25,21 +25,21 @@ Lookup table builders linking properties, mortgages, gauges, and flood risk data
 from typing import Any, Dict, Optional
 
 
-def build_rloan_lookup(mortgage_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
+def build_rloan_lookup(rloan_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
     """
     Build property_id -> mortgage mapping.
 
     Args:
-        mortgage_data: Raw mortgage data with 'items' key
+        rloan_data: Raw mortgage data with 'items' key
 
     Returns:
         Dictionary mapping property IDs to mortgage information
     """
-    if not mortgage_data:
+    if not rloan_data:
         return {}
 
     lookup = {}
-    mortgages = mortgage_data.get("items", [])
+    mortgages = rloan_data.get("items", [])
 
     for mortgage in mortgages:
         mort_data = mortgage.get("Mortgage", {})
@@ -213,7 +213,7 @@ def _classify_property_risk(annual_prob: float) -> str:
 def build_all_lookups(
     gauge_data: Optional[Dict[str, Any]] = None,
     property_data: Optional[Dict[str, Any]] = None,
-    mortgage_data: Optional[Dict[str, Any]] = None,
+    rloan_data: Optional[Dict[str, Any]] = None,
     flood_risk_data: Optional[Dict[str, Any]] = None,
     property_hazard_data: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Dict]:
@@ -223,7 +223,7 @@ def build_all_lookups(
     Args:
         gauge_data: Raw gauge data
         property_data: Raw property data
-        mortgage_data: Raw mortgage data
+        rloan_data: Raw mortgage data
         flood_risk_data: Gauge hazard curve data (from gaugehc.json)
         property_hazard_data: Property hazard curve data (from propertyhc.json)
 
@@ -235,7 +235,7 @@ def build_all_lookups(
     )
 
     return {
-        "rloan_lookup": build_rloan_lookup(mortgage_data),
+        "rloan_lookup": build_rloan_lookup(rloan_data),
         "gauge_flood_info": build_gauge_flood_info(gauge_data, flood_risk_data),
         "property_flood_info": property_flood_info,
     }

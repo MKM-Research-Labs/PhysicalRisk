@@ -72,10 +72,10 @@ class RLoanReportGenerator:
         ]
 
     def generate_report(self, property_data: Dict[str, Any],
-                        mortgage_data: Dict[str, Any],
+                        rloan_data: Dict[str, Any],
                         output_filename: Optional[str] = None) -> Path:
         if output_filename is None:
-            output_filename = self._generate_filename(mortgage_data)
+            output_filename = self._generate_filename(rloan_data)
 
         output_path = self.output_dir / output_filename
 
@@ -88,7 +88,7 @@ class RLoanReportGenerator:
             bottomMargin=1 * inch,
         )
 
-        elements = self._generate_elements(property_data, mortgage_data)
+        elements = self._generate_elements(property_data, rloan_data)
         element_count = len(elements)
 
         doc.build(
@@ -101,7 +101,7 @@ class RLoanReportGenerator:
         logger.info(f"Pages: {len(self.page_order)} | Elements: {element_count}")
         return output_path
 
-    def _generate_elements(self, property_data, mortgage_data):
+    def _generate_elements(self, property_data, rloan_data):
         elements = []
         for i, page_name in enumerate(self.page_order):
             if page_name not in self.pages:
@@ -110,7 +110,7 @@ class RLoanReportGenerator:
                 if i > 0:
                     elements.append(PageBreak())
                 page_elements = self.pages[page_name].generate_elements(
-                    property_data, mortgage_data
+                    property_data, rloan_data
                 )
                 elements.extend(page_elements)
             except Exception as e:
@@ -118,9 +118,9 @@ class RLoanReportGenerator:
                 continue
         return elements
 
-    def _generate_filename(self, mortgage_data):
+    def _generate_filename(self, rloan_data):
         try:
-            mort = mortgage_data.get('Mortgage', mortgage_data)
+            mort = rloan_data.get('Mortgage', rloan_data)
             mortgage_id = mort.get('Header', {}).get('MortgageID', 'unknown')
         except (KeyError, TypeError, AttributeError):
             mortgage_id = 'unknown'
@@ -165,9 +165,9 @@ class RLoanReportGenerator:
 
 
 def generate_rloan_report(property_data: Dict[str, Any],
-                          mortgage_data: Dict[str, Any],
+                          rloan_data: Dict[str, Any],
                           output_dir: Optional[Union[str, Path]] = None,
                           auto_open: bool = False) -> Path:
     """Convenience function to generate a residential-loan report."""
     generator = RLoanReportGenerator(output_dir)
-    return generator.generate_report(property_data, mortgage_data)
+    return generator.generate_report(property_data, rloan_data)

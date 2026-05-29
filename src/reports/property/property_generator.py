@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_property_report(property_data: Dict[str, Any],
-                        mortgage_data: Optional[Dict[str, Any]] = None,
+                        rloan_data: Optional[Dict[str, Any]] = None,
                         output_dir: Optional[Union[str, Path]] = None,
                         report_type: str = "full",
                         auto_open: bool = True) -> Path:
@@ -47,7 +47,7 @@ def generate_property_report(property_data: Dict[str, Any],
 
     Args:
         property_data: Property information
-        mortgage_data: Mortgage information (optional)
+        rloan_data: Mortgage information (optional)
         output_dir: Output directory
         report_type: Type of report ('full', 'property-only', 'mortgage-focused', 'risk-focused')
         auto_open: Whether to automatically open the PDF after generation
@@ -59,12 +59,12 @@ def generate_property_report(property_data: Dict[str, Any],
 
     if report_type == 'property-only':
         report_path = generator.generate_property_only_report(property_data)
-    elif report_type == 'mortgage-focused' and mortgage_data:
-        report_path = generator.generate_mortgage_focused_report(property_data, mortgage_data)
+    elif report_type == 'mortgage-focused' and rloan_data:
+        report_path = generator.generate_mortgage_focused_report(property_data, rloan_data)
     elif report_type == 'risk-focused':
-        report_path = generator.generate_risk_focused_report(property_data, mortgage_data)
+        report_path = generator.generate_risk_focused_report(property_data, rloan_data)
     else:
-        report_path = generator.generate_report(property_data, mortgage_data)
+        report_path = generator.generate_report(property_data, rloan_data)
 
     if auto_open:
         logger.debug(f"Calling open_pdf_file({report_path})")
@@ -158,26 +158,26 @@ if __name__ == "__main__":
         with open(args.property_file) as f:
             property_data = json.load(f)
 
-        mortgage_data = None
+        rloan_data = None
         if args.mortgage_file:
             with open(args.mortgage_file) as f:
-                mortgage_data = json.load(f)
+                rloan_data = json.load(f)
 
         if args.property_id:
             property_data = _find_property_by_id(property_data, args.property_id)
-            if mortgage_data:
-                mortgage_data = _find_mortgage_by_property_id(mortgage_data, args.property_id)
+            if rloan_data:
+                rloan_data = _find_mortgage_by_property_id(rloan_data, args.property_id)
 
         generator = PropertyReportGenerator(args.output_dir)
 
         if args.report_type == 'property-only':
             report_path = generator.generate_property_only_report(property_data)
-        elif args.report_type == 'mortgage-focused' and mortgage_data:
-            report_path = generator.generate_mortgage_focused_report(property_data, mortgage_data)
+        elif args.report_type == 'mortgage-focused' and rloan_data:
+            report_path = generator.generate_mortgage_focused_report(property_data, rloan_data)
         elif args.report_type == 'risk-focused':
-            report_path = generator.generate_risk_focused_report(property_data, mortgage_data)
+            report_path = generator.generate_risk_focused_report(property_data, rloan_data)
         else:
-            report_path = generator.generate_report(property_data, mortgage_data, args.pages)
+            report_path = generator.generate_report(property_data, rloan_data, args.pages)
 
         logger.info("Report generated successfully!")
         logger.info(f"File: {report_path}")

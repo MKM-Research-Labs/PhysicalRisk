@@ -123,22 +123,22 @@ def _extract_term_years(financial_terms: Dict[str, Any]) -> Optional[float]:
     return None
 
 
-def build_rloan_lookup(mortgage_data: Union[Dict, List]) -> Dict[str, Dict]:
+def build_rloan_lookup(rloan_data: Union[Dict, List]) -> Dict[str, Dict]:
     """
     Build a lookup dictionary of residential loans by property ID.
 
     Args:
-        mortgage_data: Dictionary or list of residential-loan data
+        rloan_data: Dictionary or list of residential-loan data
 
     Returns:
         Dictionary mapping property IDs to residential-loan information
     """
     lookup = {}
 
-    logger.debug("Building rloan lookup from data of type: %s", type(mortgage_data))
+    logger.debug("Building rloan lookup from data of type: %s", type(rloan_data))
 
     # Handle different possible formats of rloan data
-    mortgages = _normalize_rloan_list(mortgage_data)
+    mortgages = _normalize_rloan_list(rloan_data)
 
     if isinstance(mortgages, list):
         for mortgage in mortgages:
@@ -153,20 +153,20 @@ def build_rloan_lookup(mortgage_data: Union[Dict, List]) -> Dict[str, Dict]:
     return lookup
 
 
-def _normalize_rloan_list(mortgage_data: Union[Dict, List]) -> List:
+def _normalize_rloan_list(rloan_data: Union[Dict, List]) -> List:
     """Normalize residential-loan data to a list format."""
-    if isinstance(mortgage_data, dict):
-        if 'mortgages' in mortgage_data:
-            return mortgage_data['mortgages']
-        elif 'Mortgages' in mortgage_data:
-            return mortgage_data['Mortgages']
-        elif 'mortgage_portfolio' in mortgage_data:
-            return mortgage_data['mortgage_portfolio']
+    if isinstance(rloan_data, dict):
+        if 'mortgages' in rloan_data:
+            return rloan_data['mortgages']
+        elif 'Mortgages' in rloan_data:
+            return rloan_data['Mortgages']
+        elif 'mortgage_portfolio' in rloan_data:
+            return rloan_data['mortgage_portfolio']
         else:
             # Assume it's a single mortgage wrapped in dict
-            return [mortgage_data]
-    elif isinstance(mortgage_data, list):
-        return mortgage_data
+            return [rloan_data]
+    elif isinstance(rloan_data, list):
+        return rloan_data
     else:
-        logger.warning("Unexpected mortgage data type: %s", type(mortgage_data))
+        logger.warning("Unexpected mortgage data type: %s", type(rloan_data))
         return []

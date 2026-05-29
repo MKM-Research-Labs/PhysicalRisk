@@ -87,12 +87,12 @@ class PropertyReportGenerator(BaseReportGenerator):
         }
 
     def generate_report(self, property_data: Dict[str, Any],
-                       mortgage_data: Optional[Dict[str, Any]] = None,
+                       rloan_data: Optional[Dict[str, Any]] = None,
                        pages_to_include: Optional[List[str]] = None,
                        output_filename: Optional[str] = None) -> Path:
         """Generate a property report."""
         if pages_to_include is None:
-            pages_to_include = self._auto_select_pages(property_data, mortgage_data)
+            pages_to_include = self._auto_select_pages(property_data, rloan_data)
 
         if output_filename is None:
             output_filename = self._generate_filename(property_data)
@@ -100,15 +100,15 @@ class PropertyReportGenerator(BaseReportGenerator):
         output_path = self.output_dir / output_filename
         return self._build_pdf(
             output_path, pages_to_include,
-            property_data=property_data, mortgage_data=mortgage_data
+            property_data=property_data, rloan_data=rloan_data
         )
 
     def _auto_select_pages(self, property_data: Dict[str, Any],
-                          mortgage_data: Optional[Dict[str, Any]]) -> List[str]:
+                          rloan_data: Optional[Dict[str, Any]]) -> List[str]:
         """Auto-select appropriate pages based on available data."""
         pages = self.categories['property'].copy()
 
-        if mortgage_data:
+        if rloan_data:
             pages.extend(self.categories['mortgage'])
 
         pages.extend(self.categories['analysis'])
@@ -131,21 +131,21 @@ class PropertyReportGenerator(BaseReportGenerator):
         return self.generate_report(property_data, None, pages, output_filename)
 
     def generate_mortgage_focused_report(self, property_data: Dict[str, Any],
-                                       mortgage_data: Dict[str, Any],
+                                       rloan_data: Dict[str, Any],
                                        output_filename: Optional[str] = None) -> Path:
         """Generate mortgage-focused report."""
         essential_property = ['title_overview', 'location', 'risk_assessment', 'financial']
         pages = essential_property + self.categories['mortgage'] + self.categories['analysis']
-        return self.generate_report(property_data, mortgage_data, pages, output_filename)
+        return self.generate_report(property_data, rloan_data, pages, output_filename)
 
     def generate_risk_focused_report(self, property_data: Dict[str, Any],
-                                   mortgage_data: Optional[Dict[str, Any]] = None,
+                                   rloan_data: Optional[Dict[str, Any]] = None,
                                    output_filename: Optional[str] = None) -> Path:
         """Generate risk-focused report."""
         risk_pages = ['title_overview', 'risk_assessment', 'protection', 'history']
 
-        if mortgage_data:
+        if rloan_data:
             risk_pages.extend(['current_status', 'borrower_profile'])
 
         risk_pages.extend(['risk_analysis', 'data_summary'])
-        return self.generate_report(property_data, mortgage_data, risk_pages, output_filename)
+        return self.generate_report(property_data, rloan_data, risk_pages, output_filename)

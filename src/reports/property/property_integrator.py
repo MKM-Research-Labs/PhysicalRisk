@@ -86,9 +86,9 @@ def generate_report_for_property(property_id: str, property_file: Path,
         rloan_info = None
         if mortgage_file.exists():
             with open(mortgage_file) as f:
-                mortgage_data = json.load(f)
+                rloan_data = json.load(f)
 
-            mortgages = mortgage_data.get('mortgages', [])
+            mortgages = rloan_data.get('mortgages', [])
             for mortgage in mortgages:
                 mtg_prop_id = mortgage.get('Mortgage', {}).get('Header', {}).get('PropertyID')
                 if mtg_prop_id == property_id:

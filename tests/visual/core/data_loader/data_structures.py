@@ -28,7 +28,7 @@ class TestLoadedData:
     def test_defaults_are_none(self):
         from visual.core.data_loader import LoadedData
         d = LoadedData()
-        for field in ("gauge_data", "property_data", "mortgage_data",
+        for field in ("gauge_data", "property_data", "rloan_data",
                       "hazard_data", "property_hazard_data",
                       "storm_data", "counterparty_data"):
             assert getattr(d, field) is None
