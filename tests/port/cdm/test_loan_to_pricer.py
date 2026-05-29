@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 # (see package __init__.py for full license text)
 
-"""Tests for LoanCDM.to_pricer_inputs — the CDM -> MortgagePricer adapter."""
+"""Tests for LoanCDM.to_pricer_inputs — the CDM -> LoanPricer adapter."""
 
 import pytest
 
@@ -9,7 +9,7 @@ from config.models import (
     MORTGAGE_DEFAULT_INSURANCE_RATE,
     MORTGAGE_DEFAULT_RECOVERY_HAIRCUT,
 )
-from models.mortgage import MortgagePricer
+from models.loan import LoanPricer
 from port.cdm import LoanCDM
 
 
@@ -93,7 +93,7 @@ class TestToPricerInputs:
 
     def test_output_feeds_pricer(self):
         out = LoanCDM().to_pricer_inputs(_record())
-        result = MortgagePricer().price_mortgage(
+        result = LoanPricer().price_loan(
             **{k: v for k, v in out.items()
                if k not in ("mortgage_id", "property_id")}
         )
@@ -102,7 +102,7 @@ class TestToPricerInputs:
 
     def test_batch_price_consumes_adapter_output(self):
         inputs = LoanCDM().to_pricer_inputs(_record())
-        results = MortgagePricer().batch_price_mortgages([inputs])
+        results = LoanPricer().batch_price_loans([inputs])
         assert len(results) == 1
         assert results[0]["mortgage_id"] == "MORT-1"
         assert "error" not in results[0]

@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 # (see package __init__.py for full license text)
 
-"""MortgagePricer — main pricing engine with cashflow modelling."""
+"""LoanPricer — main pricing engine with cashflow modelling."""
 
 import logging
 from typing import Any, Dict, List, Optional
@@ -19,7 +19,7 @@ from .credit import (
 logger = logging.getLogger(__name__)
 
 
-class MortgagePricer:
+class LoanPricer:
     """
     Mortgage pricing engine that calculates present value of mortgages considering
     credit risk, affordability, and external risk factors like flood risk.
@@ -81,7 +81,7 @@ class MortgagePricer:
         Returns:
             Total amount paid over the loan term
         """
-        monthly_payment = MortgagePricer.calculate_monthly_payment(
+        monthly_payment = LoanPricer.calculate_monthly_payment(
             principal, annual_interest_rate, term_years
         )
         return monthly_payment * term_years * 12
@@ -117,7 +117,7 @@ class MortgagePricer:
         """Calculate LTV-based risk adjustment factor."""
         return calculate_loan_to_value_impact(loan_amount, property_value)
 
-    def price_mortgage(self,
+    def price_loan(self,
                       loan_amount: float,
                       property_value: float,
                       gross_annual_income: float,
@@ -286,7 +286,7 @@ class MortgagePricer:
                                  (gross_annual_income * (1 - effective_tax_rate))
         }
 
-    def batch_price_mortgages(self, mortgage_portfolio: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def batch_price_loans(self, mortgage_portfolio: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Price a batch of mortgages efficiently.
 
@@ -300,7 +300,7 @@ class MortgagePricer:
 
         for i, mortgage in enumerate(mortgage_portfolio):
             try:
-                pricing_result = self.price_mortgage(
+                pricing_result = self.price_loan(
                     loan_amount=mortgage.get('loan_amount', 0),
                     property_value=mortgage.get('property_value', 0),
                     gross_annual_income=mortgage.get('gross_annual_income', 50000),

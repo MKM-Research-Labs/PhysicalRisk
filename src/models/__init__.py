@@ -35,7 +35,7 @@ Available models:
 - statistics: Timeseries analysis and synthetic generation
 - risk: Risk assessment and scoring
 - valuation: Property valuation and insurance
-- mortgage: Mortgage pricing and credit risk
+- loan: Loan pricing and credit risk
 - prs: Physical Risk Swap pricing (QuantLib CDS)
 
 Usage:
@@ -53,6 +53,6 @@ __all__ = [
     'statistics',
     'risk',
     'valuation',
-    'mortgage',
+    'loan',
     'prs',
 ]
