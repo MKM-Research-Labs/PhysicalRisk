@@ -45,7 +45,7 @@ from reportlab.platypus import Paragraph, Spacer, Table
 from .property_page_00_base import PropertyBasePage
 
 
-class MortgageCostsPage(PropertyBasePage):
+class RLoanCostsPage(PropertyBasePage):
     """Generates mortgage costs and fees page."""
 
     def generate_elements(self, property_data: Dict[str, Any],

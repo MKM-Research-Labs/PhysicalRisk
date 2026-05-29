@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for reports.property.property_page_11_mortgage_overview — MortgageOverviewPage."""
+"""Tests for reports.property.property_page_11_rloan_overview — RLoanOverviewPage."""
 
 from reportlab.platypus import Paragraph, Table
 
@@ -59,11 +59,11 @@ def _make_mortgage():
     }
 
 
-class TestMortgageOverviewPage:
+class TestRLoanOverviewPage:
 
     def _page(self):
-        from reports.property.property_page_11_mortgage_overview import MortgageOverviewPage
-        return MortgageOverviewPage()
+        from reports.property.property_page_11_rloan_overview import RLoanOverviewPage
+        return RLoanOverviewPage()
 
     def test_no_mortgage_data_returns_message(self):
         page = self._page()

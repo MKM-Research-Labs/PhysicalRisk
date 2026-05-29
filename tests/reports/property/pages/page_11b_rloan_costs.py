@@ -18,39 +18,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for reports.property.property_page_11a_mortgage_details — MortgageDetailsPage."""
+"""Tests for reports.property.property_page_11b_rloan_costs — RLoanCostsPage."""
 
 from reportlab.platypus import Paragraph, Table
 
 
-def _make_mortgage(original_ltv=0.75, dti=30.0, extra_terms=None):
+def _make_mortgage(origination=2_000, product_fee=995, discount_points=0,
+                   lender_credits=0, total_loan_costs=None, original_loan=400_000,
+                   original_rate=0.035):
     terms = {
-        "currency": "GBP",
-        "PurchaseValue": 500_000,
-        "OriginalLoan": 375_000,
-        "OriginalTerm": 300,
-        "DisbursalDate": "2015-06-01",
-        "MaturityDate": "2040-06-01",
-        "OriginalLendingRate": 0.035,
-        "OriginalRateType": "Fixed",
-        "OriginalBoEBase": 0.005,
-        "OriginalSpread": 0.03,
-        "HMDARateSpread": 0.015,
-        "InitialFixedTerm": 24,
-        "IntroductoryRatePeriod": 24,
-        "OriginalLTV": original_ltv,
-        "DebtToIncomeRatio": dti,
+        "OriginalLoan": original_loan,
+        "OriginalLendingRate": original_rate,
+        "OriginationCharges": origination,
+        "ProductFee": product_fee,
+        "EarlyRepaymentCharge": 3_000,
+        "PrepaymentPenaltyTerm": 24,
     }
-    if extra_terms:
-        terms.update(extra_terms)
+    if discount_points:
+        terms["DiscountPoints"] = discount_points
+    if lender_credits:
+        terms["LenderCredits"] = lender_credits
+    if total_loan_costs is not None:
+        terms["TotalLoanCosts"] = total_loan_costs
     return {"Mortgage": {"Header": {"MortgageID": "MORT-001"}, "FinancialTerms": terms}}
 
 
-class TestMortgageDetailsPage:
+class TestRLoanCostsPage:
 
     def _page(self):
-        from reports.property.property_page_11a_mortgage_details import MortgageDetailsPage
-        return MortgageDetailsPage()
+        from reports.property.property_page_11b_rloan_costs import RLoanCostsPage
+        return RLoanCostsPage()
 
     def test_no_mortgage_data_returns_message(self):
         page = self._page()
@@ -62,7 +59,7 @@ class TestMortgageDetailsPage:
         page = self._page()
         result = page.generate_elements({}, {"Mortgage": {"Header": {"MortgageID": "X"}}})
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
-        assert any("No detailed financial terms available" in t for t in texts)
+        assert any("No cost information available" in t for t in texts)
 
     def test_returns_list_with_data(self):
         page = self._page()
@@ -74,90 +71,90 @@ class TestMortgageDetailsPage:
         page = self._page()
         result = page.generate_elements({}, _make_mortgage())
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
-        assert any("Detailed Mortgage Financial Terms" in t for t in texts)
+        assert any("Mortgage Costs" in t for t in texts)
 
     def test_has_tables(self):
         page = self._page()
         result = page.generate_elements({}, _make_mortgage())
         assert any(isinstance(e, Table) for e in result)
 
-    def test_core_loan_terms_subsection(self):
+    def test_total_costs_overview_subsection(self):
+        page = self._page()
+        result = page.generate_elements({}, _make_mortgage(total_loan_costs=15_000))
+        texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
+        assert any("Total Loan Costs" in t for t in texts)
+
+    def test_origination_setup_subsection(self):
         page = self._page()
         result = page.generate_elements({}, _make_mortgage())
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
-        assert any("Core Loan Terms" in t for t in texts)
+        assert any("Origination" in t for t in texts)
 
-    def test_interest_rates_subsection(self):
+    def test_penalties_subsection(self):
         page = self._page()
         result = page.generate_elements({}, _make_mortgage())
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
-        assert any("Interest Rates" in t for t in texts)
+        assert any("Penalties" in t for t in texts)
 
-    def test_ltv_subsection(self):
+    def test_cost_analysis_subsection(self):
         page = self._page()
         result = page.generate_elements({}, _make_mortgage())
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
-        assert any("Loan-to-Value" in t for t in texts)
+        assert any("Cost Analysis" in t for t in texts)
 
-    def test_dti_subsection(self):
+    def test_cost_high_burden(self):
+        """Net upfront > 5% of loan → High assessment."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage())
-        texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
-        assert any("Debt-to-Income" in t for t in texts)
-
-    def test_ltv_very_high_risk(self):
-        page = self._page()
-        result = page.generate_elements({}, _make_mortgage(original_ltv=0.97))
+        result = page.generate_elements({}, _make_mortgage(
+            origination=15_000, product_fee=5_000, original_loan=300_000))
         assert isinstance(result, list)
 
-    def test_ltv_high_risk(self):
+    def test_cost_medium_high_burden(self):
+        """Net upfront 3–5% → Medium-High assessment."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(original_ltv=0.92))
+        result = page.generate_elements({}, _make_mortgage(
+            origination=8_000, product_fee=2_000, original_loan=250_000))
         assert isinstance(result, list)
 
-    def test_ltv_medium_risk(self):
+    def test_cost_medium_burden(self):
+        """Net upfront 1.5–3% → Medium assessment."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(original_ltv=0.85))
+        result = page.generate_elements({}, _make_mortgage(
+            origination=3_000, product_fee=1_000, original_loan=200_000))
         assert isinstance(result, list)
 
-    def test_ltv_low_medium_risk(self):
+    def test_cost_low_medium_burden(self):
+        """Net upfront 0.5–1.5% → Low-Medium assessment."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(original_ltv=0.77))
+        result = page.generate_elements({}, _make_mortgage(
+            origination=1_000, product_fee=500, original_loan=200_000))
         assert isinstance(result, list)
 
-    def test_ltv_low_risk(self):
+    def test_cost_low_burden(self):
+        """Net upfront < 0.5% → Low assessment."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(original_ltv=0.65))
+        result = page.generate_elements({}, _make_mortgage(
+            origination=200, product_fee=100, original_loan=200_000))
         assert isinstance(result, list)
 
-    def test_dti_high_risk(self):
+    def test_lender_credits_reduces_net_cost(self):
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(dti=50))
+        result = page.generate_elements({}, _make_mortgage(lender_credits=500))
         assert isinstance(result, list)
 
-    def test_dti_medium_high_risk(self):
+    def test_discount_points_analysis(self):
+        """Discount points + original rate triggers estimated points/rate reduction rows."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(dti=40))
+        result = page.generate_elements({}, _make_mortgage(discount_points=2_000))
         assert isinstance(result, list)
 
-    def test_dti_medium_risk(self):
+    def test_total_costs_as_percentage_of_loan(self):
+        """TotalLoanCosts + OriginalLoan triggers percentage row."""
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(dti=32))
+        result = page.generate_elements({}, _make_mortgage(total_loan_costs=12_000))
         assert isinstance(result, list)
 
-    def test_dti_low_risk(self):
+    def test_empty_mortgage_dict_does_not_crash(self):
         page = self._page()
-        result = page.generate_elements({}, _make_mortgage(dti=20))
-        assert isinstance(result, list)
-
-    def test_alternative_ltv_field(self):
-        """LoanToValueRatio shown when different from OriginalLTV."""
-        page = self._page()
-        result = page.generate_elements({}, _make_mortgage(extra_terms={"LoanToValueRatio": 0.80}))
-        assert isinstance(result, list)
-
-    def test_loan_percentage_of_purchase_calculated(self):
-        """Loan as % of purchase value row is computed when both fields present."""
-        page = self._page()
-        result = page.generate_elements({}, _make_mortgage())
+        result = page.generate_elements({}, {})
         assert isinstance(result, list)
