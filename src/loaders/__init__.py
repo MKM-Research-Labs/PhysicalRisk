@@ -70,7 +70,7 @@ from .lookups import (
     extract_mortgage_property_ids,
     extract_property_ids,
 )
-from .mortgage_loader import MortgageLoader
+from .rloan_loader import RLoanLoader
 from .property_loader import PropertyLoader
 from .storm_loader import StormLoader
 from .timeseries_loader import TimeseriesLoader
@@ -84,7 +84,7 @@ __all__ = [
     # Loaders
     "GaugeLoader",
     "PropertyLoader",
-    "MortgageLoader",
+    "RLoanLoader",
     "StormLoader",
     "TimeseriesLoader",
 

@@ -132,7 +132,7 @@ class TestGeneratePropertyReport:
         client, reg = prop_client
         prop_data = {"PropertyHeader": {"PropertyID": "PROP-001"}}
         reg.get_property_loader.return_value.find_by_id.return_value = prop_data
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = None
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
 
         fake_pdf = tmp_path / "prop_report.pdf"
         fake_pdf.write_bytes(b"%PDF-1.4 test content")
@@ -150,7 +150,7 @@ class TestGeneratePropertyReport:
         """Lines 128-133: exception in report generation -> 500."""
         client, reg = prop_client
         reg.get_property_loader.return_value.find_by_id.return_value = {"p": 1}
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = None
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
 
         with patch("reports.property.property_generator.generate_property_report",
                    side_effect=RuntimeError("report error")):
@@ -168,7 +168,7 @@ class TestGenerateReportImportError:
     def test_import_error_returns_500(self, prop_client, monkeypatch):
         client, reg = prop_client
         reg.get_property_loader.return_value.find_by_id.return_value = {"p": 1}
-        reg.get_mortgage_loader.return_value.find_by_property_id.return_value = None
+        reg.get_rloan_loader.return_value.find_by_property_id.return_value = None
 
         import sys
         import types

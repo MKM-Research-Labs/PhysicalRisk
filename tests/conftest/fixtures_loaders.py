@@ -31,10 +31,10 @@ def property_loader(populated_data_dir):
 
 
 @pytest.fixture
-def mortgage_loader(populated_data_dir):
-    """Create a MortgageLoader with test data."""
-    from loaders.mortgage_loader import MortgageLoader
-    return MortgageLoader(data_dir=populated_data_dir)
+def rloan_loader(populated_data_dir):
+    """Create a RLoanLoader with test data."""
+    from loaders.rloan_loader import RLoanLoader
+    return RLoanLoader(data_dir=populated_data_dir)
 
 
 @pytest.fixture

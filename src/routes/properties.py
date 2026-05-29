@@ -111,7 +111,7 @@ def generate_report():
 
     registry = _get_registry()
     property_loader = registry.get_property_loader()
-    mortgage_loader = registry.get_mortgage_loader()
+    rloan_loader = registry.get_rloan_loader()
 
     try:
         # Find property
@@ -123,7 +123,7 @@ def generate_report():
             }), 404
 
         # Find associated mortgage
-        mortgage_data = mortgage_loader.find_by_property_id(property_id)
+        mortgage_data = rloan_loader.find_by_property_id(property_id)
 
         # Import and generate report
         from reports.property.property_generator import generate_property_report
@@ -170,7 +170,7 @@ def generate_mortgage_report():
 
     registry = _get_registry()
     property_loader = registry.get_property_loader()
-    mortgage_loader = registry.get_mortgage_loader()
+    rloan_loader = registry.get_rloan_loader()
 
     try:
         property_data = property_loader.find_by_id(property_id)
@@ -180,7 +180,7 @@ def generate_mortgage_report():
                 'message': f'Property {property_id} not found'
             }), 404
 
-        mortgage_data = mortgage_loader.find_by_property_id(property_id)
+        mortgage_data = rloan_loader.find_by_property_id(property_id)
         if not mortgage_data:
             return jsonify({
                 'status': 'error',
@@ -220,10 +220,10 @@ def generate_mortgage_report():
 def list_mortgages():
     """List all mortgages — used by the startup preloader for the count stat."""
     registry = _get_registry()
-    mortgage_loader = registry.get_mortgage_loader()
+    rloan_loader = registry.get_rloan_loader()
 
     try:
-        mortgages = mortgage_loader.list_all()
+        mortgages = rloan_loader.list_all()
         return jsonify({
             'status': 'success',
             'count': len(mortgages),
@@ -241,10 +241,10 @@ def property_mortgage(prop_id: str):
         return jsonify({'status': 'ok'})
 
     registry = _get_registry()
-    mortgage_loader = registry.get_mortgage_loader()
+    rloan_loader = registry.get_rloan_loader()
 
     try:
-        mortgage_data = mortgage_loader.find_by_property_id(prop_id)
+        mortgage_data = rloan_loader.find_by_property_id(prop_id)
         if not mortgage_data:
             return jsonify({
                 'status': 'error',
@@ -280,10 +280,10 @@ def property_loan_pricer(prop_id: str):
         return jsonify({'status': 'ok'})
 
     registry = _get_registry()
-    mortgage_loader = registry.get_mortgage_loader()
+    rloan_loader = registry.get_rloan_loader()
 
     try:
-        mortgage_data = mortgage_loader.find_by_property_id(prop_id)
+        mortgage_data = rloan_loader.find_by_property_id(prop_id)
         if not mortgage_data:
             return jsonify({
                 'status': 'error',
