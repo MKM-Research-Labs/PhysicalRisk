@@ -82,12 +82,12 @@ class TestPortfolioImpact:
         assert "damage_ratio" in prop
         assert "damage_amount" in prop
         assert "post_damage_value" in prop
-        assert "has_mortgage" in prop
+        assert "has_rloan" in prop
 
     def test_mortgaged_property_has_ltv_fields(self, pts_env):
         r = pts_env["client"].get(f"/api/v1/propertyts/{pts_env['storm_id']}/portfolio-impact")
         props = r.get_json()["properties"]
-        mortgaged = [p for p in props if p["has_mortgage"]]
+        mortgaged = [p for p in props if p["has_rloan"]]
         assert len(mortgaged) >= 1
         p = mortgaged[0]
         assert "outstanding_balance" in p
@@ -194,4 +194,4 @@ class TestSequencePortfolioImpact:
         assert "property_value" in prop
         assert "damage_amount" in prop
         assert "post_damage_value" in prop
-        assert "has_mortgage" in prop
+        assert "has_rloan" in prop

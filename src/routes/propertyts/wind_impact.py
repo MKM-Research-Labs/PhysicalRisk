@@ -115,7 +115,7 @@ def _build_wind_entry(asset_id: str,
         'damage_ratio': round(damage_ratio, 4),
         'damage_amount': damage_amount,
         'post_damage_value': post_damage_value,
-        'has_mortgage': asset_id in rloan_lookup,
+        'has_rloan': asset_id in rloan_lookup,
     }
     if asset_id in rloan_lookup:
         mg = rloan_lookup[asset_id]

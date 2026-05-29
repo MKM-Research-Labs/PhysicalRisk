@@ -11,7 +11,7 @@ from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_
 def create_property_section(builder, prop: Dict[str, Any], property_id: str,
                             address: Dict[str, Any], coordinates: str,
                             construction_year: Any, property_age_factor: str,
-                            property_value: Any, has_mortgage: bool) -> str:
+                            property_value: Any, has_rloan: bool) -> str:
     """Create the property information section for the popup."""
     formatted_address = f"{address.get('building_number', '')} {address.get('street_name', '')}, {address.get('town_city', '')}"
     if address.get('post_code'):

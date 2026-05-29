@@ -73,14 +73,14 @@ class PropertyLayer:
                     property_id = property_info['property_id']
 
                     property_flood_info = loaded_data.property_flood_info.get(property_id, {}) if loaded_data.property_flood_info else {}
-                    has_mortgage = property_id in (loaded_data.rloan_lookup or {})
+                    has_rloan = property_id in (loaded_data.rloan_lookup or {})
                     mortgage_info = loaded_data.rloan_lookup.get(property_id, {}) if loaded_data.rloan_lookup else {}
 
-                    if has_mortgage:
+                    if has_rloan:
                         mortgaged_property_count += 1
 
                     self._add_property_marker(property_group, property_info, property_flood_info,
-                                            has_mortgage, mortgage_info, loaded_data)
+                                            has_rloan, mortgage_info, loaded_data)
 
             except Exception as e:
                 logger.warning(f"Error processing property: {e}")
@@ -92,7 +92,7 @@ class PropertyLayer:
         return property_group
 
     def _add_property_marker(self, feature_group: folium.FeatureGroup, property_info: Dict[str, Any],
-                           property_flood_info: Dict[str, Any], has_mortgage: bool,
+                           property_flood_info: Dict[str, Any], has_rloan: bool,
                            mortgage_info: Dict[str, Any], loaded_data) -> None:
         """Add a single property marker to the feature group."""
         try:
@@ -101,7 +101,7 @@ class PropertyLayer:
             property_id = property_info['property_id']
 
             popup_content = self._create_property_popup(
-                property_info, property_flood_info, has_mortgage,
+                property_info, property_flood_info, has_rloan,
                 mortgage_info,
             )
 
@@ -111,9 +111,9 @@ class PropertyLayer:
             addr = property_info.get('address', {})
             prop_address = f"{addr.get('building_number', '')} {addr.get('street_name', '')}".strip()
             prop_label = property_title_py(prop_address, property_id)
-            tooltip = f"{prop_label} | Floods: {flood_count} ({flood_freq_label}){' | Mortgaged' if has_mortgage else ''}"
+            tooltip = f"{prop_label} | Floods: {flood_count} ({flood_freq_label}){' | Mortgaged' if has_rloan else ''}"
 
-            icon = self._get_property_icon(property_info, has_mortgage)
+            icon = self._get_property_icon(property_info, has_rloan)
 
             marker = folium.Marker(
                 location=[lat, lon],
@@ -127,7 +127,7 @@ class PropertyLayer:
         except Exception as e:
             logger.warning(f"Error creating property marker for {property_info.get('property_id', 'Unknown')}: {e}")
 
-    def _get_property_icon(self, property_info: Dict[str, Any], has_mortgage: bool) -> folium.Icon:
+    def _get_property_icon(self, property_info: Dict[str, Any], has_rloan: bool) -> folium.Icon:
         """Determine the appropriate icon for a property marker."""
         property_id = property_info.get('property_id', '')
         phc = self._property_hazard.get(property_id, {}) if hasattr(self, '_property_hazard') else {}
@@ -140,7 +140,7 @@ class PropertyLayer:
         else:
             color = 'green'
 
-        if self.show_mortgage_status and has_mortgage:
+        if self.show_mortgage_status and has_rloan:
             icon_type = 'university'
         else:
             icon_type = 'home'
@@ -177,10 +177,10 @@ class PropertyLayer:
     # -----------------------------------------------------------------------
 
     def _create_property_popup(self, property_info, property_flood_info,
-                                has_mortgage, mortgage_info) -> str:
+                                has_rloan, mortgage_info) -> str:
         """Create detailed popup content for a property marker."""
         return create_property_popup(property_info, property_flood_info,
-                                     has_mortgage, mortgage_info)
+                                     has_rloan, mortgage_info)
 
     def _create_flood_risk_section(self, property_flood_info) -> str:
         """Create the flood risk information section."""

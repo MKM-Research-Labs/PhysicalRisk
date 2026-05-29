@@ -108,7 +108,7 @@ def _build_property_entry(prop_id, flood_depth, damage_ratio,
         'damage_ratio': round(damage_ratio, 4),
         'damage_amount': damage_amount,
         'post_damage_value': post_damage_value,
-        'has_mortgage': prop_id in rloan_lookup,
+        'has_rloan': prop_id in rloan_lookup,
     }
 
     if prop_id in rloan_lookup:
@@ -141,7 +141,7 @@ def _portfolio_totals(properties, prop_values, rloan_lookup):
     total_value = sum(p['property_value'] for p in properties)
     total_damage = sum(p['damage_amount'] for p in properties)
     total_post_value = sum(p['post_damage_value'] for p in properties)
-    mortgaged = [p for p in properties if p['has_mortgage']]
+    mortgaged = [p for p in properties if p['has_rloan']]
     total_outstanding = sum(p['outstanding_balance'] for p in mortgaged)
     neg_equity_count = sum(1 for p in mortgaged if p['negative_equity'])
     total_portfolio_value = sum(prop_values.values())

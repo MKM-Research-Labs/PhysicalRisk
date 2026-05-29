@@ -225,7 +225,7 @@ class TestPropertyBlotter:
         resp = client.get('/api/v1/propertyts/blotter')
         data = resp.get_json()
         prop = data['properties'][0]
-        assert prop['has_mortgage'] is True
+        assert prop['has_rloan'] is True
         assert prop['outstanding_balance'] == 280000
         assert prop['current_ltv'] == 70.0
 

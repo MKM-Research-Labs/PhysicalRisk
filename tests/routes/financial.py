@@ -196,7 +196,7 @@ class TestPortfolioImpactSuccess:
         r = fin_env.get("/api/v1/propertyts/STORM-001/portfolio-impact")
         data = json.loads(r.data)
         entry = data["properties"][0]
-        assert entry["has_mortgage"] is True
+        assert entry["has_rloan"] is True
         assert entry["outstanding_balance"] == pytest.approx(280_000)
         assert "post_damage_ltv" in entry
         assert "negative_equity" in entry
