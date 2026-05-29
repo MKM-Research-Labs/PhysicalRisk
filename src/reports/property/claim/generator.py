@@ -30,7 +30,7 @@ class ClaimReportGenerator:
     """
     Generates an in-memory PDF flood damage assessment / insurance claim report.
 
-    Call ``generate(prop_data, prop_record, mortgage_record, sequence_lookup)``
+    Call ``generate(prop_data, prop_record, rloan_record, sequence_lookup)``
     which returns raw PDF bytes.
     """
 
@@ -41,7 +41,7 @@ class ClaimReportGenerator:
         self,
         prop_data: dict,
         prop_record: dict,
-        mortgage_record: Optional[dict],
+        rloan_record: Optional[dict],
         sequence_lookup: Dict[str, dict],
     ) -> bytes:
         """
@@ -50,7 +50,7 @@ class ClaimReportGenerator:
         Args:
             prop_data:        Dict from PROP-xxx.json
             prop_record:      Dict from property.json PropertyHeader
-            mortgage_record:  Dict with Mortgage.FinancialTerms + CurrentStatus, or None
+            rloan_record:  Dict with Mortgage.FinancialTerms + CurrentStatus, or None
             sequence_lookup:  Dict mapping sequence_id -> {'sequence_type': str}
 
         Returns:
@@ -74,7 +74,7 @@ class ClaimReportGenerator:
 
         story: List = []
         story.extend(build_page1_cover(
-            prop_data, prop_record, mortgage_record, claim_ref, today, self.styles))
+            prop_data, prop_record, rloan_record, claim_ref, today, self.styles))
         story.append(PageBreak())
 
         story.extend(build_page2_chronology(prop_data, sequence_lookup, self.styles))
@@ -85,11 +85,11 @@ class ClaimReportGenerator:
         story.append(PageBreak())
 
         story.extend(build_page4_rloan(
-            prop_data, prop_record, mortgage_record, sequence_lookup, self.styles))
+            prop_data, prop_record, rloan_record, sequence_lookup, self.styles))
         story.append(PageBreak())
 
         story.extend(build_page5_determination(
-            prop_data, prop_record, mortgage_record, sequence_lookup,
+            prop_data, prop_record, rloan_record, sequence_lookup,
             claim_ref, today, self.styles))
 
         doc.build(story, onFirstPage=hf, onLaterPages=hf)

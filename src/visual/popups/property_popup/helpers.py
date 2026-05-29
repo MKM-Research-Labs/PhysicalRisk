@@ -7,21 +7,21 @@ from typing import Any, Dict, Optional
 
 
 def calculate_ltv_ratio(loan_amount: Any, property_value: Any,
-                        mortgage_financial: Dict[str, Any]) -> float:
+                        rloan_financial: Dict[str, Any]) -> float:
     """Calculate LTV ratio from available data."""
     if (isinstance(loan_amount, (int, float)) and property_value and
             isinstance(property_value, (int, float)) and property_value > 0):
         return loan_amount / property_value
     else:
-        return mortgage_financial.get('LoanToValueRatio', 0)
+        return rloan_financial.get('LoanToValueRatio', 0)
 
 
-def extract_term_years(mortgage_financial: Dict[str, Any],
+def extract_term_years(rloan_financial: Dict[str, Any],
                        rloan_info: Dict[str, Any]) -> Optional[float]:
     """Extract term years from various possible fields."""
     for field in ['TermYears', 'Term', 'LoanTerm', 'OriginalTerm']:
-        if field in mortgage_financial:
-            term_years = mortgage_financial.get(field)
+        if field in rloan_financial:
+            term_years = rloan_financial.get(field)
             if field == 'OriginalTerm' and term_years and term_years > 100:
                 return term_years / 12
             return term_years
@@ -44,13 +44,13 @@ def extract_term_years(mortgage_financial: Dict[str, Any],
     return None
 
 
-def calculate_monthly_payment(mortgage_financial: Dict[str, Any],
+def calculate_monthly_payment(rloan_financial: Dict[str, Any],
                               loan_amount: Any, interest_rate: Any,
                               term_years: Any) -> Optional[float]:
     """Calculate monthly payment from loan terms."""
     for field in ['MonthlyPayment', 'Payment', 'RegularPayment']:
-        if field in mortgage_financial:
-            return mortgage_financial.get(field)
+        if field in rloan_financial:
+            return rloan_financial.get(field)
 
     if (isinstance(loan_amount, (int, float)) and
             isinstance(interest_rate, (int, float)) and

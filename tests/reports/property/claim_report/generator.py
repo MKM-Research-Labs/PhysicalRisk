@@ -28,19 +28,19 @@ import pytest
 # ---------------------------------------------------------------------------
 
 class TestClaimReportGenerator:
-    def test_generate_returns_bytes(self, prop_data, prop_record, mortgage_record,
+    def test_generate_returns_bytes(self, prop_data, prop_record, rloan_record,
                                     sequence_lookup):
         from reports.property.claim import ClaimReportGenerator
         gen = ClaimReportGenerator()
-        result = gen.generate(prop_data, prop_record, mortgage_record, sequence_lookup)
+        result = gen.generate(prop_data, prop_record, rloan_record, sequence_lookup)
         assert isinstance(result, bytes)
         assert len(result) > 0
 
-    def test_output_is_valid_pdf(self, prop_data, prop_record, mortgage_record,
+    def test_output_is_valid_pdf(self, prop_data, prop_record, rloan_record,
                                   sequence_lookup):
         from reports.property.claim import ClaimReportGenerator
         gen = ClaimReportGenerator()
-        result = gen.generate(prop_data, prop_record, mortgage_record, sequence_lookup)
+        result = gen.generate(prop_data, prop_record, rloan_record, sequence_lookup)
         assert result[:4] == b'%PDF'
 
     def test_generate_without_mortgage(self, prop_data, prop_record, sequence_lookup):
@@ -51,10 +51,10 @@ class TestClaimReportGenerator:
         assert result[:4] == b'%PDF'
 
     def test_generate_empty_sequence_lookup(self, prop_data, prop_record,
-                                             mortgage_record):
+                                             rloan_record):
         from reports.property.claim import ClaimReportGenerator
         gen = ClaimReportGenerator()
-        result = gen.generate(prop_data, prop_record, mortgage_record, {})
+        result = gen.generate(prop_data, prop_record, rloan_record, {})
         assert isinstance(result, bytes)
 
     def test_claim_ref_contains_prop_id_suffix(self, prop_data, prop_record,
@@ -66,11 +66,11 @@ class TestClaimReportGenerator:
         result = gen.generate(prop_data, prop_record, None, sequence_lookup)
         assert len(result) > 1000
 
-    def test_pdf_size_reasonable(self, prop_data, prop_record, mortgage_record,
+    def test_pdf_size_reasonable(self, prop_data, prop_record, rloan_record,
                                   sequence_lookup):
         from reports.property.claim import ClaimReportGenerator
         gen = ClaimReportGenerator()
-        result = gen.generate(prop_data, prop_record, mortgage_record, sequence_lookup)
+        result = gen.generate(prop_data, prop_record, rloan_record, sequence_lookup)
         # 5-page PDF should be at least 8 KB
         assert len(result) > 8_000
 

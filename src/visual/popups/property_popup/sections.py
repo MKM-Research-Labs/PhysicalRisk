@@ -64,31 +64,31 @@ def create_rloan_section(builder, rloan_info: Dict[str, Any],
                             property_value: Any, flood_risk_level: str) -> str:
     """Create the mortgage information section for the popup."""
     mortgage_header = rloan_info.get('Header', {})
-    mortgage_financial = rloan_info.get('FinancialTerms', {})
+    rloan_financial = rloan_info.get('FinancialTerms', {})
     mortgage_application = rloan_info.get('Application', {})
 
     if not mortgage_header and 'Mortgage' in rloan_info:
         mortgage_header = rloan_info.get('Mortgage', {}).get('Header', {})
-        mortgage_financial = rloan_info.get('Mortgage', {}).get('FinancialTerms', {})
+        rloan_financial = rloan_info.get('Mortgage', {}).get('FinancialTerms', {})
         mortgage_application = rloan_info.get('Mortgage', {}).get('Application', {})
 
     mortgage_id = mortgage_header.get('MortgageID', 'N/A')
     lender = mortgage_application.get('MortgageProvider', 'N/A')
 
-    loan_amount = mortgage_financial.get('OriginalLoan', 0)
+    loan_amount = rloan_financial.get('OriginalLoan', 0)
     loan_amount_formatted = builder.format_currency(loan_amount)
 
-    interest_rate = mortgage_financial.get('OriginalLendingRate', 0)
+    interest_rate = rloan_financial.get('OriginalLendingRate', 0)
     interest_rate_formatted = builder.format_percentage(interest_rate)
 
-    ltv_ratio = calculate_ltv_ratio(loan_amount, property_value, mortgage_financial)
+    ltv_ratio = calculate_ltv_ratio(loan_amount, property_value, rloan_financial)
     ltv_formatted = builder.format_percentage(ltv_ratio)
 
-    term_years = extract_term_years(mortgage_financial, rloan_info)
+    term_years = extract_term_years(rloan_financial, rloan_info)
     term_years_formatted = f"{term_years:.0f}" if isinstance(term_years, (int, float)) else 'N/A'
 
     monthly_payment = calculate_monthly_payment(
-        mortgage_financial, loan_amount, interest_rate, term_years
+        rloan_financial, loan_amount, interest_rate, term_years
     )
     monthly_payment_formatted = builder.format_currency(monthly_payment)
 

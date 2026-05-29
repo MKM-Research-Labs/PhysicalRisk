@@ -18,7 +18,7 @@ from .formatters import fmt_gbp
 def build_page1_cover(
     prop_data: dict,
     prop_record: dict,
-    mortgage_record: Optional[dict],
+    rloan_record: Optional[dict],
     claim_ref: str,
     today: datetime,
     styles,
@@ -112,7 +112,7 @@ def build_page1_cover(
     total_events = len(flood_events)
     max_depth = max((e.get('flood_depth_m', 0) for e in flood_events), default=0.0)
     max_damage = max((e.get('damage_ratio', 0) for e in flood_events), default=0.0)
-    mortgage_impacted = 'Yes' if mortgage_record else 'No'
+    mortgage_impacted = 'Yes' if rloan_record else 'No'
 
     summary_data = [
         [
