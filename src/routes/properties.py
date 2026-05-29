@@ -266,3 +266,51 @@ def property_mortgage(prop_id: str):
             'status': 'error',
             'message': 'Internal server error'
         }), 500
+
+
+@properties_bp.route('/properties/<prop_id>/loan-pricer', methods=['GET', 'POST', 'OPTIONS'])
+def property_loan_pricer(prop_id: str):
+    """Price the mortgage linked to a residential property.
+
+    GET returns the CDM-derived inputs + pricing. POST accepts an
+    ``{"overrides": {...}}`` body so the editable Loan Pricer panel can
+    re-price live against user-edited inputs.
+    """
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+
+    registry = _get_registry()
+    mortgage_loader = registry.get_mortgage_loader()
+
+    try:
+        mortgage_data = mortgage_loader.find_by_property_id(prop_id)
+        if not mortgage_data:
+            return jsonify({
+                'status': 'error',
+                'message': f'No mortgage found for property {prop_id}'
+            }), 404
+
+        # Normalise to the {"Mortgage": {...}} shape the CDM expects.
+        if 'Mortgage' in mortgage_data:
+            mortgage_cdm = mortgage_data
+        else:
+            mortgage_cdm = {'Mortgage': mortgage_data}
+
+        overrides = None
+        if request.method == 'POST':
+            body = request.get_json(silent=True) or {}
+            overrides = body.get('overrides', body)
+
+        from routes._loan_pricing import compute_loan_pricing
+        result = compute_loan_pricing(mortgage_cdm, overrides)
+
+        return jsonify({'status': 'success', 'property_id': prop_id, **result})
+
+    except ValueError as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 422
+    except Exception as e:
+        logger.error(f"Error pricing loan for {prop_id}: {e}\n{traceback.format_exc()}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500

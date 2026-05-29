@@ -163,13 +163,6 @@ def sample_mortgage_data() -> Dict[str, Any]:
                 "BehavioralScore": 85,
                 "PrepaymentRisk": 3,
                 "FloodRiskCategory": "Medium"
-            },
-            "LoanDetails": {
-                "OriginalLoanAmount": 340000.00,
-                "CurrentBalance": 310000.00,
-                "InterestRate": 2.5,
-                "LoanTerm": 25,
-                "LTV": 80
             }
         }
     }

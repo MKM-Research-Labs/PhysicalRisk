@@ -115,18 +115,6 @@ class TestSetSpecificMortgageValues:
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {"property_id": "PROP-001"})
         assert data["Mortgage"]["Header"]["CatchmentID"] == "thames"
 
-    def test_sets_loan_details_fields(self, tmp_path):
-        gen = make_generator(tmp_path)
-        data = {}
-        fd = self._financial_data()
-        gen._set_specific_mortgage_values(data, "MORT-abc", 0, fd, {"property_id": "PROP-001"})
-        loan = data["Mortgage"]["LoanDetails"]
-        assert loan["OriginalLoanAmount"] == fd["loan_amount"]
-        assert loan["CurrentBalance"] == fd["current_balance"]
-        assert loan["InterestRate"] == fd["interest_rate"]
-        assert loan["LoanTerm"] == fd["loan_term"]
-        assert loan["LTV"] == fd["ltv"]
-
     def test_existing_mortgage_dict_updated(self, tmp_path):
         gen = make_generator(tmp_path)
         data = {"Mortgage": {"Header": {"ExistingField": "keep"}}}
@@ -148,9 +136,10 @@ class TestSetSpecificMortgageValues:
 class TestQualityConsistencyCheckFallback:
 
     def _data(self, original=400000, current=390000, ltv=80):
-        return {"Mortgage": {"LoanDetails": {
-            "OriginalLoanAmount": original, "CurrentBalance": current, "LTV": ltv,
-        }}}
+        return {"Mortgage": {
+            "FinancialTerms": {"OriginalLoan": original},
+            "CurrentStatus": {"OutstandingBalance": current, "CurrentLTV": ltv},
+        }}
 
     def _strip_qcc(self, gen):
         """Remove quality_consistency_check from random module and return it."""
@@ -167,35 +156,35 @@ class TestQualityConsistencyCheckFallback:
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(original=300000, current=400000), {})
-        assert result["Mortgage"]["LoanDetails"]["CurrentBalance"] <= 300000
+        assert result["Mortgage"]["CurrentStatus"]["OutstandingBalance"] <= 300000
         self._restore_qcc(gen, qcc)
 
     def test_current_within_original_unchanged(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(original=400000, current=350000), {})
-        assert result["Mortgage"]["LoanDetails"]["CurrentBalance"] == 350000
+        assert result["Mortgage"]["CurrentStatus"]["OutstandingBalance"] == 350000
         self._restore_qcc(gen, qcc)
 
     def test_ltv_over_100_set_to_95(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(ltv=120), {})
-        assert result["Mortgage"]["LoanDetails"]["LTV"] == 95
+        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 95
         self._restore_qcc(gen, qcc)
 
     def test_ltv_under_10_set_to_60(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(ltv=5), {})
-        assert result["Mortgage"]["LoanDetails"]["LTV"] == 60
+        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 60
         self._restore_qcc(gen, qcc)
 
     def test_valid_ltv_unchanged(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(ltv=75), {})
-        assert result["Mortgage"]["LoanDetails"]["LTV"] == 75
+        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 75
         self._restore_qcc(gen, qcc)
 
     def test_delegates_to_random_module_when_method_present(self, tmp_path):

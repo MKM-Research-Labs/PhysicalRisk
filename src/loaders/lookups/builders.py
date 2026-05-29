@@ -49,7 +49,6 @@ def build_mortgage_lookup(mortgage_data: Optional[Dict[str, Any]]) -> Dict[str, 
         if property_id:
             financial_terms = mort_data.get("FinancialTerms", {})
             current_status = mort_data.get("CurrentStatus", {})
-            loan_details = mort_data.get("LoanDetails", {})
 
             lookup[property_id] = {
                 "mortgage_id": header.get("MortgageID"),
@@ -58,11 +57,7 @@ def build_mortgage_lookup(mortgage_data: Optional[Dict[str, Any]]) -> Dict[str, 
                 "financial_terms": financial_terms,
                 "application": mort_data.get("Application", {}),
                 # Flatten key financial fields for direct access
-                "OriginalLoan": (
-                    financial_terms.get("OriginalLoan")
-                    or loan_details.get("OriginalLoanAmount")
-                    or 0
-                ),
+                "OriginalLoan": financial_terms.get("OriginalLoan", 0),
                 "OriginalLTV": financial_terms.get("OriginalLTV", 0),
                 "OriginalLendingRate": financial_terms.get("OriginalLendingRate", 0),
                 "OriginalTerm": financial_terms.get("OriginalTerm", 0),
