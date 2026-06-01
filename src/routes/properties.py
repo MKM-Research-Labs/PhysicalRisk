@@ -314,3 +314,34 @@ def property_loan_pricer(prop_id: str):
             'status': 'error',
             'message': 'Internal server error'
         }), 500
+
+
+@properties_bp.route('/loan-pricer', methods=['POST', 'OPTIONS'])
+def standalone_loan_pricer():
+    """Price a loan from user-supplied inputs alone — no property/loan record.
+
+    Backs the standalone Loan Calculator launched from the asset right-click
+    menu. The POST body supplies all pricing inputs directly, either as
+    ``{"inputs": {...}}`` or as a bare ``{...}`` of pricing fields.
+    ``loan_amount`` and ``property_value`` are required.
+    """
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+
+    try:
+        body = request.get_json(silent=True) or {}
+        inputs = body.get('inputs', body.get('overrides', body))
+
+        from routes._loan_pricing import compute_standalone_pricing
+        result = compute_standalone_pricing(inputs)
+
+        return jsonify({'status': 'success', **result})
+
+    except ValueError as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 422
+    except Exception as e:
+        logger.error(f"Error in standalone loan pricer: {e}\n{traceback.format_exc()}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500

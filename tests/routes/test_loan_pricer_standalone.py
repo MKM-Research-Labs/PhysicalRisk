@@ -1,0 +1,120 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Tests for the standalone Loan Calculator endpoint + pricing helper.
+
+The standalone calculator is launched from the asset right-click menu but is
+asset-independent: the client supplies every pricing input and POSTs to
+``/api/v1/loan-pricer`` (no property/loan id). It is backed by
+``routes._loan_pricing.compute_standalone_pricing``.
+"""
+
+import pytest
+
+
+# ===========================================================================
+# POST /api/v1/loan-pricer  (standalone — no asset id)
+# ===========================================================================
+
+class TestStandaloneLoanPricerRoute:
+
+    def test_options_returns_ok(self, prop_client):
+        client, _ = prop_client
+        r = client.options("/api/v1/loan-pricer")
+        assert r.status_code == 200
+
+    def test_prices_from_inputs_key(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000,
+            "property_value": 300000,
+            "interest_rate": 0.035,
+            "flood_risk_category": "Medium",
+        }})
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data["status"] == "success"
+        # Standalone: not tied to any record.
+        assert data["property_id"] is None
+        assert data["mortgage_id"] is None
+        assert "mortgage_value" in data["pricing"]
+        assert data["inputs"]["loan_amount"] == 200000
+
+    def test_bare_body_accepted(self, prop_client):
+        """A bare {...} of fields (no inputs/overrides wrapper) prices too."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={
+            "loan_amount": 150000,
+            "property_value": 250000,
+        })
+        assert r.status_code == 200
+        assert r.get_json()["status"] == "success"
+
+    def test_defaults_fill_missing_inputs(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000,
+            "property_value": 300000,
+        }})
+        data = r.get_json()
+        # interest_rate not supplied -> server default applied.
+        assert data["inputs"]["interest_rate"] == 0.035
+
+    def test_missing_required_returns_422(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer",
+                        json={"inputs": {"interest_rate": 0.04}})
+        assert r.status_code == 422
+        assert r.get_json()["status"] == "error"
+
+    def test_empty_body_returns_422(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={})
+        assert r.status_code == 422
+
+
+# ===========================================================================
+# compute_standalone_pricing helper
+# ===========================================================================
+
+class TestComputeStandalonePricing:
+
+    def test_returns_unbound_pricing(self):
+        from routes._loan_pricing import compute_standalone_pricing
+        res = compute_standalone_pricing({
+            "loan_amount": 200000,
+            "property_value": 300000,
+        })
+        assert res["mortgage_id"] is None
+        assert res["property_id"] is None
+        assert "mortgage_value" in res["pricing"]
+        # Defaults filled in for omitted inputs.
+        assert res["inputs"]["interest_rate"] == 0.035
+        assert res["inputs"]["current_term"] == 30
+
+    def test_missing_property_value_raises(self):
+        from routes._loan_pricing import compute_standalone_pricing
+        with pytest.raises(ValueError):
+            compute_standalone_pricing({"loan_amount": 200000})
+
+    def test_none_inputs_raises(self):
+        from routes._loan_pricing import compute_standalone_pricing
+        with pytest.raises(ValueError):
+            compute_standalone_pricing(None)
