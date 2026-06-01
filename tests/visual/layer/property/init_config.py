@@ -62,11 +62,11 @@ def _make_property(property_id="PROP-001", lat=51.5, lon=-0.1, year=2000):
 
 class MockLoadedData:
     def __init__(self, property_data=None, property_flood_info=None,
-                 mortgage_lookup=None,
+                 rloan_lookup=None,
                  property_hazard_data=None):
         self.property_data = property_data
         self.property_flood_info = property_flood_info or {}
-        self.mortgage_lookup = mortgage_lookup or {}
+        self.rloan_lookup = rloan_lookup or {}
         self.property_hazard_data = property_hazard_data
 
 
@@ -83,7 +83,7 @@ class TestPropertyLayerInit:
         assert PropertyLayer().show_risk_colors is True
 
     def test_show_mortgage_status_default(self):
-        assert PropertyLayer().show_mortgage_status is True
+        assert PropertyLayer().show_rloan_status is True
 
     def test_risk_based_sizing_default(self):
         assert PropertyLayer().risk_based_sizing is False
@@ -97,24 +97,24 @@ class TestConfigure:
 
     def test_configure_all_params(self):
         layer = PropertyLayer()
-        layer.configure(show_risk_colors=False, show_mortgage_status=False,
+        layer.configure(show_risk_colors=False, show_rloan_status=False,
                         risk_based_sizing=True)
         assert layer.show_risk_colors is False
-        assert layer.show_mortgage_status is False
+        assert layer.show_rloan_status is False
         assert layer.risk_based_sizing is True
 
     def test_configure_defaults(self):
         layer = PropertyLayer()
         layer.configure()
         assert layer.show_risk_colors is True
-        assert layer.show_mortgage_status is True
+        assert layer.show_rloan_status is True
         assert layer.risk_based_sizing is False
 
     def test_configure_partial(self):
         layer = PropertyLayer()
-        layer.configure(show_mortgage_status=False)
+        layer.configure(show_rloan_status=False)
         assert layer.show_risk_colors is True
-        assert layer.show_mortgage_status is False
+        assert layer.show_rloan_status is False
 
 
 # ===========================================================================
@@ -140,7 +140,7 @@ class TestGetPropertyStatistics:
         layer = PropertyLayer()
         layer._property_hazard = {}
         props = [_make_property("P1"), _make_property("P2")]
-        loaded = MockLoadedData(mortgage_lookup={"P1": {}})
+        loaded = MockLoadedData(rloan_lookup={"P1": {}})
         stats = layer.get_property_statistics(props, loaded)
         assert stats["mortgaged_properties"] == 1
 
@@ -148,7 +148,7 @@ class TestGetPropertyStatistics:
         layer = PropertyLayer()
         layer._property_hazard = {}
         props = [_make_property("P1"), _make_property("P2")]
-        loaded = MockLoadedData(mortgage_lookup={"P1": {}})
+        loaded = MockLoadedData(rloan_lookup={"P1": {}})
         stats = layer.get_property_statistics(props, loaded)
         assert stats["mortgage_percentage"] == pytest.approx(50.0)
 

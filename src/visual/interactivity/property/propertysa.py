@@ -284,14 +284,14 @@ class PropertyStormAnalysis:
                     status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' ' + floodLabel;
 
                     // Fetch mortgage / loan data for the impact tab.
-                    // Residential pulls from /properties/<id>/mortgage;
+                    // Residential pulls from /properties/<id>/rloan;
                     // commercial has no equivalent endpoint yet, so the
                     // tab simply renders with no loan data attached
                     // (graceful degradation — same behaviour as a
                     // residential property with no mortgage on file).
                     if (!isCommercial) {{
                         try {{
-                            var mortUrl = baseUrl + '/api/v1/properties/' + propertyId + '/mortgage';
+                            var mortUrl = baseUrl + '/api/v1/properties/' + propertyId + '/rloan';
                             var mortResp = await fetch(mortUrl, {{mode: 'cors'}});
                             if (mortResp.ok) {{
                                 var mortData = await mortResp.json();

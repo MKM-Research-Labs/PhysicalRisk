@@ -23,7 +23,7 @@ class LocationPage(PropertyBasePage):
     def generate_elements(
         self,
         property_data: Dict[str, Any],
-        mortgage_data: Dict[str, Any] = None,
+        rloan_data: Dict[str, Any] = None,
     ) -> List:
         location = (property_data.get("PropertyHeader", {}) or {}).get("Location", {}) or {}
         return render_location(location, self)

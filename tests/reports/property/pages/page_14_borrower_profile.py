@@ -48,7 +48,7 @@ def _make_mortgage(age=35, employment="Employed", years_employed=None,
         borrower["ResidencyStatus"] = residency_status
     if income_verification is not None:
         borrower["IncomeVerificationType"] = income_verification
-    return {"Mortgage": {"BorrowerDetails": borrower}}
+    return {"RLoan": {"BorrowerDetails": borrower}}
 
 
 class TestBorrowerProfilePageBasics:
@@ -58,7 +58,7 @@ class TestBorrowerProfilePageBasics:
         return BorrowerProfilePage()
 
     def test_no_mortgage_returns_message(self):
-        result = self._page().generate_elements({}, mortgage_data=None)
+        result = self._page().generate_elements({}, rloan_data=None)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No mortgage" in t for t in texts)
 
@@ -76,7 +76,7 @@ class TestBorrowerProfilePageBasics:
         assert any(isinstance(e, Table) for e in result)
 
     def test_no_borrower_details_returns_early(self):
-        mortgage = {"Mortgage": {"Header": {"MortgageID": "M1"}}}
+        mortgage = {"RLoan": {"Header": {"RLoanID": "M1"}}}
         result = self._page().generate_elements({}, mortgage)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No borrower" in t for t in texts)

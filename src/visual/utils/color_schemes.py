@@ -66,8 +66,8 @@ class ColorSchemes:
         'Unknown': '#3498DB'                 # Blue
     }
 
-    # Mortgage risk colors
-    MORTGAGE_RISK_COLORS = {
+    # Loan risk colors
+    LOAN_RISK_COLORS = {
         'Low': '#27AE60',           # Green
         'Moderate': '#F39C12',      # Orange
         'High': '#E74C3C',          # Red
@@ -119,9 +119,9 @@ class ColorSchemes:
         return cls.OPERATIONAL_STATUS_COLORS.get(status, cls.OPERATIONAL_STATUS_COLORS['Unknown'])
 
     @classmethod
-    def get_mortgage_risk_color(cls, risk_level: str) -> str:
+    def get_loan_risk_color(cls, risk_level: str) -> str:
         """
-        Get color for mortgage risk level.
+        Get color for loan risk level.
 
         Args:
             risk_level: Risk level string
@@ -129,7 +129,7 @@ class ColorSchemes:
         Returns:
             Hex color code
         """
-        return cls.MORTGAGE_RISK_COLORS.get(risk_level, cls.MORTGAGE_RISK_COLORS['Unknown'])
+        return cls.LOAN_RISK_COLORS.get(risk_level, cls.LOAN_RISK_COLORS['Unknown'])
 
     @classmethod
     def get_property_type_color(cls, property_type: str) -> str:

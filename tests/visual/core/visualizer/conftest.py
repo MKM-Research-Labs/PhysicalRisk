@@ -40,10 +40,10 @@ def _write_minimal_inputs(path: Path):
             }
         }]
     }))
-    (path / "mortgage.json").write_text(json.dumps({
-        "mortgages": [{
-            "Mortgage": {
-                "Header": {"MortgageID": "MORT-001", "PropertyID": "PROP-001"},
+    (path / "loan.json").write_text(json.dumps({
+        "loans": [{
+            "RLoan": {
+                "Header": {"RLoanID": "RLOAN-001", "PropertyID": "PROP-001"},
                 "FinancialTerms": {"OriginalLoan": 200000},
                 "CurrentStatus": {"OutstandingBalance": 180000},
             }
@@ -57,7 +57,7 @@ def _make_loaded_data(gauge=True, prop=True, mortgage=True):
     ld = MagicMock()
     ld.gauge_data = {"items": []} if gauge else None
     ld.property_data = {"properties": []} if prop else None
-    ld.mortgage_data = {"mortgages": []} if mortgage else None
+    ld.rloan_data = {"mortgages": []} if mortgage else None
     return ld
 
 

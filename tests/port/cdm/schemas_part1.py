@@ -114,7 +114,7 @@ class TestLoanCDM:
         assert len(list(mortgage_cdm.schema.keys())) > 0
 
     def test_required_fields_include_mortgage_id(self, mortgage_cdm):
-        assert any("MortgageID" in f for f in mortgage_cdm.get_required_fields())
+        assert any("RLoanID" in f for f in mortgage_cdm.get_required_fields())
 
     def test_validate_valid_mortgage(self, mortgage_cdm):
         data = {

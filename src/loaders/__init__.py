@@ -63,14 +63,14 @@ from .lookups import (
     analyze_id_relationships,
     build_all_lookups,
     build_gauge_flood_info,
-    build_mortgage_lookup,
+    build_rloan_lookup,
     build_property_flood_info,
     extract_gauge_ids,
-    extract_mortgage_ids,
-    extract_mortgage_property_ids,
+    extract_rloan_ids,
+    extract_rloan_property_ids,
     extract_property_ids,
 )
-from .mortgage_loader import MortgageLoader
+from .rloan_loader import RLoanLoader
 from .property_loader import PropertyLoader
 from .storm_loader import StormLoader
 from .timeseries_loader import TimeseriesLoader
@@ -84,18 +84,18 @@ __all__ = [
     # Loaders
     "GaugeLoader",
     "PropertyLoader",
-    "MortgageLoader",
+    "RLoanLoader",
     "StormLoader",
     "TimeseriesLoader",
 
     # Lookup builders
-    "build_mortgage_lookup",
+    "build_rloan_lookup",
     "build_gauge_flood_info",
     "build_property_flood_info",
     "build_all_lookups",
     "extract_property_ids",
-    "extract_mortgage_ids",
-    "extract_mortgage_property_ids",
+    "extract_rloan_ids",
+    "extract_rloan_property_ids",
     "extract_gauge_ids",
     "analyze_id_relationships",
 ]

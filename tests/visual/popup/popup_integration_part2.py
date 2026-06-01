@@ -45,7 +45,7 @@ class TestFullPopupBuilds:
             property_value=500000,
             construction_year=1985,
             property_age_factor='Medium (1925-1975)',
-            has_mortgage=False,
+            has_rloan=False,
         )
         assert popup is not None
 
@@ -64,8 +64,8 @@ class TestFullPopupBuilds:
             property_value=500000,
             construction_year=1985,
             property_age_factor='Medium (1925-1975)',
-            has_mortgage=True,
-            mortgage_info=sample_mortgage,
+            has_rloan=True,
+            rloan_info=sample_mortgage,
             flood_info=sample_flood_info,
         )
         assert popup is not None
@@ -120,7 +120,7 @@ class TestPopupLayerIntegration:
             property_value=500000,
             construction_year=1985,
             property_age_factor='Medium (1925-1975)',
-            has_mortgage=False,
+            has_rloan=False,
         )
         test_map = folium.Map(location=[51.5074, -0.1278])
         folium.Marker(location=[51.5074, -0.1278], popup=popup).add_to(test_map)

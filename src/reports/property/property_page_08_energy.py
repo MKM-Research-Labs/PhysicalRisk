@@ -49,7 +49,7 @@ class EnergyPage(PropertyBasePage):
     """Generates energy performance page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate energy performance page elements."""
         elements = []
 

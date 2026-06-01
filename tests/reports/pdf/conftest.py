@@ -111,9 +111,9 @@ def sample_property_data() -> Dict[str, Any]:
 def sample_mortgage_data() -> Dict[str, Any]:
     """Mortgage data in the CDM format expected by the report generator."""
     return {
-        "Mortgage": {
+        "RLoan": {
             "Header": {
-                "MortgageID": "MORT-test0001",
+                "RLoanID": "MORT-test0001",
                 "CatchmentID": "thames",
                 "PropertyID": "PROP-test0001",
                 "UPRN": "UPRN-12345678"

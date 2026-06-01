@@ -231,9 +231,9 @@ def full_trace_env(tmp_path, monkeypatch):
     with open(input_dir / "propertyts" / "PROP-FULL01.json", "w") as f:
         json.dump({"property_id": "PROP-FULL01"}, f)
 
-    # mortgage.json
-    with open(input_dir / "mortgage.json", "w") as f:
-        json.dump({"mortgages": [{"property_id": "PROP-FULL01", "ltv": 0.75}]}, f)
+    # loan.json
+    with open(input_dir / "loan.json", "w") as f:
+        json.dump({"loans": [{"property_id": "PROP-FULL01", "ltv": 0.75}]}, f)
 
     # propertyhc.json
     with open(input_dir / "propertyhc.json", "w") as f:

@@ -5,18 +5,18 @@ the panel classes, which are not exercised by JS-syntax/IIFE tests.
 """
 
 
-class TestMortgageDetailPanelStats:
+class TestRLoanDetailPanelStats:
     def test_get_statistics_default(self):
-        from visual.interactivity.property.mortgagedetail import MortgageDetailPanel
+        from visual.interactivity.property.rloandetail import RLoanDetailPanel
 
-        panel = MortgageDetailPanel()
+        panel = RLoanDetailPanel()
         stats = panel.get_statistics()
         assert stats == {"panel_width": "600px", "panel_height": "520px"}
 
     def test_get_statistics_custom(self):
-        from visual.interactivity.property.mortgagedetail import MortgageDetailPanel
+        from visual.interactivity.property.rloandetail import RLoanDetailPanel
 
-        panel = MortgageDetailPanel(panel_width="700px", panel_height="600px")
+        panel = RLoanDetailPanel(panel_width="700px", panel_height="600px")
         stats = panel.get_statistics()
         assert stats["panel_width"] == "700px"
         assert stats["panel_height"] == "600px"

@@ -87,7 +87,7 @@ STEP_IO = {
     "properties":     {"inputs": ["gauge.json"],
                        "outputs": ["property.json"]},
     "mortgages":      {"inputs": ["property.json"],
-                       "outputs": ["mortgage.json"]},
+                       "outputs": ["loan.json"]},
     "synthetic_gauges": {"inputs": ["gauge.json"],
                         "outputs": ["gauge.json"]},
     "gaugehd":        {"inputs": ["gauge.json"],

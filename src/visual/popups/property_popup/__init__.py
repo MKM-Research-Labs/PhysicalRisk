@@ -32,7 +32,7 @@ from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_
 from .sections import (  # noqa: F401
     create_property_section,
     create_flood_info_section,
-    create_mortgage_section,
+    create_rloan_section,
 )
 
 __all__ = [
@@ -42,5 +42,5 @@ __all__ = [
     'calculate_monthly_payment',
     'create_property_section',
     'create_flood_info_section',
-    'create_mortgage_section',
+    'create_rloan_section',
 ]

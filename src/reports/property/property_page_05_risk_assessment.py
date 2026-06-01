@@ -49,7 +49,7 @@ class RiskAssessmentPage(PropertyBasePage):
     """Generates property risk assessment page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate risk assessment page elements."""
         elements = []
 

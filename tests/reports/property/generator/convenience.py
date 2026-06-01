@@ -44,17 +44,17 @@ class TestGeneratePropertyReportConvenienceFunction:
         mock, _ = mock_generator(tmp_path)
         with patch(_TARGET, return_value=mock):
             from reports.property.property_generator import generate_property_report
-            generate_property_report(_PROP, mortgage_data=_MORT,
+            generate_property_report(_PROP, rloan_data=_MORT,
                                      output_dir=tmp_path, report_type="mortgage-focused",
                                      auto_open=False)
         mock.generate_mortgage_focused_report.assert_called_once()
 
     def test_mortgage_focused_without_mortgage_falls_back(self, tmp_path):
-        """mortgage-focused with no mortgage_data falls back to generate_report."""
+        """mortgage-focused with no rloan_data falls back to generate_report."""
         mock, _ = mock_generator(tmp_path)
         with patch(_TARGET, return_value=mock):
             from reports.property.property_generator import generate_property_report
-            generate_property_report(_PROP, mortgage_data=None,
+            generate_property_report(_PROP, rloan_data=None,
                                      output_dir=tmp_path, report_type="mortgage-focused",
                                      auto_open=False)
         mock.generate_report.assert_called_once()

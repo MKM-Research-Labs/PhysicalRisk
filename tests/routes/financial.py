@@ -56,7 +56,7 @@ def fin_env(tmp_path, monkeypatch):
     Creates:
       tmp_path/propertyts/PROP-001.json   — floods in STORM-001
       tmp_path/property.json              — valuation data
-      tmp_path/mortgage.json              — mortgage data
+      tmp_path/loan.json              — mortgage data
     """
     from config import config
 
@@ -92,11 +92,11 @@ def fin_env(tmp_path, monkeypatch):
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
     # Mortgage data
-    mortgage_data = {
-        "mortgages": [
+    rloan_data = {
+        "loans": [
             {
-                "Mortgage": {
-                    "Header": {"MortgageID": "MORT-001", "PropertyID": "PROP-001"},
+                "RLoan": {
+                    "Header": {"RLoanID": "MORT-001", "PropertyID": "PROP-001"},
                     "CurrentStatus": {
                         "OutstandingBalance": 280_000,
                         "CurrentLTV": 0.70,
@@ -106,7 +106,7 @@ def fin_env(tmp_path, monkeypatch):
             }
         ]
     }
-    (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_data))
+    (tmp_path / "loan.json").write_text(json.dumps(rloan_data))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda name: tmp_path / name)
@@ -196,7 +196,7 @@ class TestPortfolioImpactSuccess:
         r = fin_env.get("/api/v1/propertyts/STORM-001/portfolio-impact")
         data = json.loads(r.data)
         entry = data["properties"][0]
-        assert entry["has_mortgage"] is True
+        assert entry["has_rloan"] is True
         assert entry["outstanding_balance"] == pytest.approx(280_000)
         assert "post_damage_ltv" in entry
         assert "negative_equity" in entry

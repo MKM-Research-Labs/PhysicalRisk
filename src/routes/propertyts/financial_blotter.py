@@ -23,7 +23,7 @@
 from flask import jsonify, request
 
 from .blueprint import propertyts_bp
-from .financial_loaders import _load_mortgage_lookup, _load_property_details
+from .financial_loaders import _load_rloan_lookup, _load_property_details
 
 
 @propertyts_bp.route('/propertyts/blotter', methods=['GET', 'OPTIONS'])
@@ -37,14 +37,14 @@ def property_blotter():
         return jsonify({'status': 'ok'})
 
     prop_details = _load_property_details()
-    mortgage_lookup = _load_mortgage_lookup()
+    rloan_lookup = _load_rloan_lookup()
 
     properties = []
     for pid, d in prop_details.items():
         entry = dict(d)
         # Mortgage enrichment
-        mg = mortgage_lookup.get(pid, {})
-        entry['has_mortgage'] = pid in mortgage_lookup
+        mg = rloan_lookup.get(pid, {})
+        entry['has_rloan'] = pid in rloan_lookup
         entry['outstanding_balance'] = mg.get('outstanding_balance', 0)
         entry['current_ltv'] = mg.get('current_ltv', 0)
         entry['remaining_term_months'] = mg.get('remaining_term_months', 0)

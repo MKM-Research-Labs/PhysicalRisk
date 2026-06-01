@@ -77,8 +77,8 @@ def _make_prop_details(property_id=PROP_ID, value=400_000,
 
 def _make_mortgage(property_id=PROP_ID, outstanding=280_000,
                    ltv=70.0, term=240):
-    return {'mortgages': [{'Mortgage': {
-        'Header': {'MortgageID': 'MORT-001', 'PropertyID': property_id},
+    return {'loans': [{'RLoan': {
+        'Header': {'RLoanID': 'MORT-001', 'PropertyID': property_id},
         'CurrentStatus': {
             'OutstandingBalance': outstanding,
             'CurrentLTV': ltv,
@@ -141,7 +141,7 @@ def _build_client(tmp_path, monkeypatch, *,
     if property_json is not None:
         (tmp_path / 'property.json').write_text(json.dumps(property_json))
     if mortgage_json is not None:
-        (tmp_path / 'mortgage.json').write_text(json.dumps(mortgage_json))
+        (tmp_path / 'loan.json').write_text(json.dumps(mortgage_json))
     if gauge_json is not None:
         (tmp_path / 'gauge.json').write_text(json.dumps(gauge_json))
     if gaugehc_json is not None:

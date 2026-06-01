@@ -55,7 +55,7 @@ def claim_env(tmp_path, monkeypatch):
     pts_dir.mkdir()
     (pts_dir / f"{CLAIM_PROP_ID}.json").write_text(json.dumps(CLAIM_PROP_FLOOD_DATA))
     (tmp_path / "property.json").write_text(json.dumps(CLAIM_PROPERTY_JSON))
-    (tmp_path / "mortgage.json").write_text(json.dumps(CLAIM_MORTGAGE_JSON))
+    (tmp_path / "loan.json").write_text(json.dumps(CLAIM_MORTGAGE_JSON))
     (tmp_path / "storm_sequences.json").write_text(json.dumps(CLAIM_SEQUENCES_JSON))
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)

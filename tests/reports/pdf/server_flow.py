@@ -36,7 +36,7 @@ class TestServerReportFlow:
         # This is the exact call made by routes/properties.py line 98
         report_path = generate_property_report(
             property_data=sample_property_data,
-            mortgage_data=sample_mortgage_data,
+            rloan_data=sample_mortgage_data,
             output_dir=tmp_path,
             report_type='full',
             auto_open=False  # server passes True but we skip for testing
@@ -80,7 +80,7 @@ class TestServerReportFlow:
 
         report_path = generate_property_report(
             property_data=props['properties'][0],
-            mortgage_data=morts['mortgages'][0],
+            rloan_data=morts['mortgages'][0],
             output_dir=tmp_path,
             auto_open=False
         )

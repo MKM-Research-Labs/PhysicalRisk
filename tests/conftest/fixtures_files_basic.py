@@ -56,8 +56,8 @@ def sample_property_file(temp_data_dir):
 @pytest.fixture
 def sample_mortgage_file(temp_data_dir):
     """Create a sample mortgage portfolio file."""
-    data = {"mortgages": [SAMPLE_MORTGAGE, SAMPLE_MORTGAGE_2, SAMPLE_MORTGAGE_DELINQUENT]}
-    filepath = temp_data_dir / "mortgage.json"
+    data = {"loans": [SAMPLE_MORTGAGE, SAMPLE_MORTGAGE_2, SAMPLE_MORTGAGE_DELINQUENT]}
+    filepath = temp_data_dir / "loan.json"
     with open(filepath, 'w') as f:
         json.dump(data, f)
     return filepath

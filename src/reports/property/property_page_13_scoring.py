@@ -42,17 +42,17 @@ from typing import Any, Dict, List
 
 
 def comprehensive_risk_assessment(property_data: Dict[str, Any],
-                                  mortgage_data: Dict[str, Any]) -> Dict[str, Any]:
+                                  rloan_data: Dict[str, Any]) -> Dict[str, Any]:
     """Perform comprehensive risk assessment with both property and mortgage data."""
 
     # Extract key data
-    mortgage_info = mortgage_data.get('Mortgage', mortgage_data)
+    rloan_info = rloan_data.get('RLoan', rloan_data)
     property_flood_risk = (property_data.get('PropertyHeader', {})
                          .get('RiskAssessment', {})
                          .get('OverallFloodRisk', 'Unknown'))
 
-    current_status = mortgage_info.get('CurrentStatus', {})
-    borrower_details = mortgage_info.get('BorrowerDetails', {})
+    current_status = rloan_info.get('CurrentStatus', {})
+    borrower_details = rloan_info.get('BorrowerDetails', {})
 
     categories = {}
 

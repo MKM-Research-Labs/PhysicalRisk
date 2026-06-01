@@ -146,7 +146,7 @@ class TestOptionalLoading:
             '--output-dir', str(tmp_path),
             '--report-type', 'property-only',
         ])
-        # Line 489-490 executed; line 491 False (no mortgage_data)
+        # Line 489-490 executed; line 491 False (no rloan_data)
         mock_pdf.build.assert_called_once()
 
     def test_property_id_with_mortgage_file(self, tmp_path, mock_pdf):
@@ -193,7 +193,7 @@ class TestReportGeneration:
         mock_pdf.build.assert_called_once()
 
     def test_report_type_mortgage_focused_without_mortgage_falls_through(self, tmp_path, mock_pdf):
-        """Lines 499 condition False (no mortgage_data) → falls to else branch
+        """Lines 499 condition False (no rloan_data) → falls to else branch
         which calls generate_report with auto-selected pages."""
         _run_main([
             'prog',

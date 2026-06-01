@@ -72,7 +72,7 @@ def pts_env(tmp_path, monkeypatch):
       tmp_path/gauge.json                 -- one gauge
       tmp_path/gaugets/GAUGE-001.json     -- minimal gauge timeseries
       tmp_path/property.json              -- property valuation
-      tmp_path/mortgage.json              -- mortgage data
+      tmp_path/loan.json              -- mortgage data
 
     Returns: dict with keys 'client', 'storm_id', 'seq_id'
     """
@@ -196,9 +196,9 @@ def pts_env(tmp_path, monkeypatch):
     }]}
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
-    mortgage_data = {"mortgages": [{
-        "Mortgage": {
-            "Header": {"MortgageID": "MORT-001", "PropertyID": PROP_ID},
+    rloan_data = {"loans": [{
+        "RLoan": {
+            "Header": {"RLoanID": "MORT-001", "PropertyID": PROP_ID},
             "FinancialTerms": {"OriginalBalance": 300000},
             "CurrentStatus": {
                 "OutstandingBalance": 280000,
@@ -207,7 +207,7 @@ def pts_env(tmp_path, monkeypatch):
             },
         }
     }]}
-    (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_data))
+    (tmp_path / "loan.json").write_text(json.dumps(rloan_data))
 
     summary = {"total_properties": 1, "storm_count": 1}
     (pts_dir / "portfolio_flood_summary.json").write_text(json.dumps(summary))

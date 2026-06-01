@@ -22,7 +22,7 @@ class ConstructionPage(PropertyBasePage):
     def generate_elements(
         self,
         property_data: Dict[str, Any],
-        mortgage_data: Dict[str, Any] = None,
+        rloan_data: Dict[str, Any] = None,
     ) -> List:
         section = (property_data.get("PropertyHeader", {}) or {}).get("Construction", {}) or {}
         return self._emit_or_fallback(

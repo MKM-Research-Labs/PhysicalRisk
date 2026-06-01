@@ -102,8 +102,8 @@ def _make_property(prop_id, lat=51.5, lon=-0.1, value=500000):
 
 def _make_mortgage(mortgage_id, prop_id, ltv=75.0, term=300, rate=3.25, balance=375000):
     return {
-        'Mortgage': {
-            'Header': {'MortgageID': mortgage_id, 'PropertyID': prop_id},
+        'RLoan': {
+            'Header': {'RLoanID': mortgage_id, 'PropertyID': prop_id},
             'FinancialTerms': {
                 'OriginalLTV': ltv,
                 'OriginalTerm': term,
@@ -132,7 +132,7 @@ def _write_minimal_data(d):
     """Write minimal data files so _load_all() doesn't blow up."""
     (d / 'gauge.json').write_text(json.dumps({'flood_gauges': []}))
     (d / 'property.json').write_text(json.dumps({'properties': []}))
-    (d / 'mortgage.json').write_text(json.dumps({'mortgages': []}))
+    (d / 'loan.json').write_text(json.dumps({'loans': []}))
     (d / 'counterparty.json').write_text(json.dumps({'counterparties': []}))
     (d / 'gaugehc.json').write_text('{}')
     (d / 'propertyhc.json').write_text('{}')
@@ -156,8 +156,8 @@ def input_dir(tmp_path):
     }))
 
     # mortgage.json
-    (d / 'mortgage.json').write_text(json.dumps({
-        'mortgages': [_make_mortgage('MORT-0001', 'PROP-0001')]
+    (d / 'loan.json').write_text(json.dumps({
+        'loans': [_make_mortgage('MORT-0001', 'PROP-0001')]
     }))
 
     # counterparty.json

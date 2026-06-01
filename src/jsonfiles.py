@@ -49,7 +49,7 @@ class JSONFileConfig:
     # Portfolio data files
     PROPERTY_PORTFOLIO = 'property.json'
     GAUGE_PORTFOLIO = 'gauge.json'
-    MORTGAGE_PORTFOLIO = 'mortgage.json'
+    RLOAN_PORTFOLIO = 'loan.json'
     COMMERCIAL_PORTFOLIO = 'commercial.json'
     COMMERCIAL_LOAN_PORTFOLIO = 'commercial_loan.json'
 
@@ -99,7 +99,7 @@ class JSONFileConfig:
             # Portfolio files
             'property': cls.PROPERTY_PORTFOLIO,
             'gauge': cls.GAUGE_PORTFOLIO,
-            'mortgage': cls.MORTGAGE_PORTFOLIO,
+            'rloan': cls.RLOAN_PORTFOLIO,
             'commercial': cls.COMMERCIAL_PORTFOLIO,
             'commercial_loan': cls.COMMERCIAL_LOAN_PORTFOLIO,
 

@@ -90,13 +90,13 @@ class TestFindMortgageByPropertyId:
 
     def test_dict_with_mortgages_found(self):
         from reports.property.property_generator import _find_mortgage_by_property_id
-        data = {"mortgages": [{"PropertyID": "P-001", "amount": 100}]}
+        data = {"loans": [{"PropertyID": "P-001", "amount": 100}]}
         result = _find_mortgage_by_property_id(data, "P-001")
         assert result["amount"] == 100
 
     def test_dict_with_mortgages_not_found_returns_none(self):
         from reports.property.property_generator import _find_mortgage_by_property_id
-        data = {"mortgages": [{"PropertyID": "P-001"}]}
+        data = {"loans": [{"PropertyID": "P-001"}]}
         result = _find_mortgage_by_property_id(data, "P-999")
         assert result is None
 
@@ -125,7 +125,7 @@ class TestFindMortgageByPropertyId:
 
     def test_empty_mortgages_list_returns_none(self):
         from reports.property.property_generator import _find_mortgage_by_property_id
-        result = _find_mortgage_by_property_id({"mortgages": []}, "P-001")
+        result = _find_mortgage_by_property_id({"loans": []}, "P-001")
         assert result is None
 
 
@@ -228,7 +228,7 @@ class TestEdgeCases:
     def test_report_with_all_pages(self, tmp_path, prop_data, mort_data):
         gen = _make_generator(tmp_path)
         all_pages = list(gen.pages.keys())
-        path = gen.generate_report(prop_data, mortgage_data=mort_data,
+        path = gen.generate_report(prop_data, rloan_data=mort_data,
                                    pages_to_include=all_pages)
         assert path.exists()
         assert path.stat().st_size > 0

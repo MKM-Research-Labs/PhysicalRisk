@@ -49,19 +49,19 @@ class RegulatoryPage(PropertyBasePage):
     """Generates regulatory compliance page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate regulatory compliance page elements."""
         elements = []
 
-        if not mortgage_data:
+        if not rloan_data:
             elements.append(Paragraph("No mortgage data available.", self.styles['Normal']))
             return elements
 
         try:
             elements.append(Paragraph("Regulatory Compliance", self.styles['SectionHeader']))
 
-            mortgage_info = mortgage_data.get('Mortgage', mortgage_data)
-            regulatory_data = mortgage_info.get('Regulatory', {})
+            rloan_info = rloan_data.get('RLoan', rloan_data)
+            regulatory_data = rloan_info.get('Regulatory', {})
 
             if not regulatory_data:
                 elements.append(Paragraph("No regulatory information available.", self.styles['Normal']))

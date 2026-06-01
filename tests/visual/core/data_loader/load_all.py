@@ -62,7 +62,7 @@ class TestDataLoaderLoadAll:
         from visual.core.data_loader import DataLoader
         write_gauge(tmp_path); write_mortgage(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
-        assert result.mortgage_data is not None
+        assert result.rloan_data is not None
 
     def test_hazard_curves_loaded(self, tmp_path):
         from visual.core.data_loader import DataLoader
@@ -160,7 +160,7 @@ class TestDataLoaderLoadAll:
         from visual.core.data_loader import DataLoader
         write_gauge(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
-        assert result.mortgage_lookup is not None
+        assert result.rloan_lookup is not None
         assert result.gauge_flood_info is not None
 
     def test_no_gaugets_dir_count_stays_zero(self, tmp_path):

@@ -56,7 +56,7 @@ class TestGeneratePropertyReportConvenienceFunction:
         with patch("reports.property.property_generator.PropertyReportGenerator",
                    return_value=mock):
             from reports.property.property_generator import generate_property_report
-            generate_property_report(self.PROP, mortgage_data=self.MORT,
+            generate_property_report(self.PROP, rloan_data=self.MORT,
                                      output_dir=tmp_path, report_type="mortgage-focused",
                                      auto_open=False)
         mock.generate_mortgage_focused_report.assert_called_once()
@@ -66,7 +66,7 @@ class TestGeneratePropertyReportConvenienceFunction:
         with patch("reports.property.property_generator.PropertyReportGenerator",
                    return_value=mock):
             from reports.property.property_generator import generate_property_report
-            generate_property_report(self.PROP, mortgage_data=None,
+            generate_property_report(self.PROP, rloan_data=None,
                                      output_dir=tmp_path, report_type="mortgage-focused",
                                      auto_open=False)
         mock.generate_report.assert_called_once()

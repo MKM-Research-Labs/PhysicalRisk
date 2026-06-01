@@ -75,32 +75,32 @@ _META_FIELDS = [
 ]
 
 
-class LoanOverviewPage(CommercialBasePage):
+class CLoanOverviewPage(CommercialBasePage):
     """Renders the commercial loan record linked to this asset.
 
-    Reads from ``loan_data['Mortgage']`` and the optional
-    ``_commercial_meta`` sidecar. Pass ``loan_data=None`` when no loan
+    Reads from ``cloan_data['Mortgage']`` and the optional
+    ``_commercial_meta`` sidecar. Pass ``cloan_data=None`` when no loan
     is linked — the page emits a single placeholder paragraph.
     """
 
     def generate_elements(
         self,
         commercial_data: Dict[str, Any],
-        loan_data: Optional[Dict[str, Any]] = None,
+        cloan_data: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> List:
         elements: List = [
             Paragraph("Commercial Loan Overview", self.styles["SectionHeader"]),
         ]
-        if not loan_data:
+        if not cloan_data:
             elements.append(Paragraph(
                 "No loan record linked to this asset.",
                 self.styles["Normal"],
             ))
             return elements
 
-        mortgage = loan_data.get("Mortgage", {}) or {}
-        meta = loan_data.get("_commercial_meta", {}) or {}
+        mortgage = cloan_data.get("Mortgage", {}) or {}
+        meta = cloan_data.get("_commercial_meta", {}) or {}
 
         elements.extend(section_block(
             "Application",

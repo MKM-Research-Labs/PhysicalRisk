@@ -54,7 +54,7 @@ from .financial_loaders import (  # noqa: F401
     _build_property_entry,
     _check_options_and_dir,
     _load_gauge_elevations,
-    _load_mortgage_lookup,
+    _load_rloan_lookup,
     _load_prop_values,
     _load_property_details,
     _portfolio_totals,
