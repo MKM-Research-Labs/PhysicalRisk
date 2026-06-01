@@ -62,6 +62,12 @@ OVERRIDE_KEYS = (
     # When present it supersedes the coarse flood-category lookup so the flood
     # leg matches the property PRS pricer exactly.
     "flood_spread_bps",
+    # The asset's net initial yield (passing rent / capital value), forwarded
+    # by the calculator when launched from a commercial marker. Applied to the
+    # property value it gives the annual passing rent, which becomes the
+    # borrower income — so commercial income reflects the asset's real yield
+    # instead of the fixed residential default.
+    "income_yield",
 )
 
 # Override keys whose values are free-text categories, not numbers — kept
@@ -309,6 +315,16 @@ def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
         cap = COMMERCIAL_MAX_TERM_YEARS
         effective["original_maturity"] = min(effective["original_maturity"], cap)
         effective["current_term"] = min(effective["current_term"], cap)
+
+    # Derive the borrower income from the asset's net initial yield, if the
+    # calculator forwarded one (commercial markers). Annual passing rent =
+    # net initial yield x capital value, so the income tracks the property
+    # value and the asset's real yield rather than a fixed default. The yield
+    # itself is not a price_loan kwarg, so it's consumed here.
+    income_yield = effective.pop("income_yield", None)
+    if income_yield is not None and float(income_yield) > 0:
+        effective["gross_annual_income"] = round(
+            float(income_yield) * float(effective["property_value"]), 2)
 
     # Build the contractual coupon from its components and use it as the rate
     # the borrower pays; discount expected cashflows on the risk-free rate.

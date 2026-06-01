@@ -86,6 +86,29 @@ class TestLoanPricerPanelStandaloneJS:
         assert "lp-wind_risk_category" in js
         assert "WIND_OPTIONS" in js
 
+    def test_flood_risk_category_input_removed(self):
+        """The flood leg is driven by the asset's modelled PRS spread (with a
+        server-side category fallback), so the form no longer exposes a Flood
+        Risk Category dropdown."""
+        js = self._js()
+        assert "lp-flood_risk_category" not in js
+        assert "FLOOD_OPTIONS" not in js
+
+    def test_borrower_income_sourced_from_asset(self):
+        """The borrower income is pulled from the launching asset rather than
+        left at the fixed default: commercial markers forward the asset's net
+        initial yield (income = yield x property value, derived server-side);
+        residential markers forward the borrower's gross annual income."""
+        js = self._js()
+        assert "loadAssetIncome" in js
+        # Commercial: net initial yield -> income_yield override.
+        assert "NetInitialYield" in js
+        assert "income_yield" in js
+        assert "assetIncomeYield" in js
+        # Residential: gross annual income read from the linked loan pricer.
+        assert "assetGrossIncome" in js
+        assert "gross_annual_income" in js
+
     def test_coupon_buildup_rendered(self):
         js = self._js()
         # Standalone results show the coupon decomposition.
