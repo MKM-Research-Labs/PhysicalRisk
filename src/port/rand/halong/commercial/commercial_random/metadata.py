@@ -1,5 +1,5 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
-#
+
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
@@ -20,7 +20,6 @@ from .constants import (
     TYPE_VALUE_PER_SQM,
 )
 
-
 def get_commercial_type(index: int) -> str:
     """Return the allocated CommercialType for a given index.
 
@@ -30,70 +29,88 @@ def get_commercial_type(index: int) -> str:
         return COMMERCIAL_TYPE_ALLOCATION[index]
     return COMMERCIAL_TYPE_ALLOCATION[index % len(COMMERCIAL_TYPE_ALLOCATION)]
 
-
 def _deterministic_commercial_id(location: Dict[str, Any], index: int) -> str:
     """Stable CPROP-xxxxxxxx id derived from location + index."""
-    seed = f"{location.get('name','')}|{location.get('vertical_offset','')}|{index}"
+    seed = f"{location.get('name', '')}|{location.get('vertical_offset', '')}|{index}"
     h = hashlib.md5(seed.encode()).hexdigest()[:8]
     return f"CPROP-{h}"
 
-
 def period_from_year(year: int) -> str:
-    """Map a construction year to its PropertyPeriod menu value."""
-    if year < 1919:
-        return "Pre-1919"
-    if year < 1945:
-        return "1919-1944"
-    if year < 1976:
-        return "1945-1975"
-    if year < 2000:
-        return "1976-1999"
-    if year < 2009:
-        return "2000-2008"
-    return "2009-Present"
-
+    """Map a construction year to a simple period bucket."""
+    if year < 1980:
+        return "Pre-1980"
+    if year < 1995:
+        return "1980-1994"
+    if year < 2005:
+        return "1995-2004"
+    if year < 2015:
+        return "2005-2014"
+    return "2015-Present"
 
 def anchor_tenant(commercial_type: str) -> str:
-    """Draw an anchor tenant from the per-type pool. 'Multi-let' is the
-    fallback for unknown asset classes."""
+    """Draw an anchor tenant from the per-type pool."""
     pool = ANCHOR_TENANT_POOL.get(commercial_type, ["Multi-let"])
     return random.choice(pool)
 
+def _construction_year_for_type(commercial_type: str) -> int:
+    """Broad Hanoi-plausible year bands by commercial archetype."""
+    current_year = datetime.now().year - 1
+
+    year_bands = {
+        "Office": [
+            ((1995, 2004), 0.15),
+            ((2005, 2014), 0.45),
+            ((2015, current_year), 0.40),
+        ],
+        "MultiFamily": [
+            ((1995, 2004), 0.10),
+            ((2005, 2014), 0.40),
+            ((2015, current_year), 0.50),
+        ],
+        "Hotel": [
+            ((1995, 2004), 0.10),
+            ((2005, 2014), 0.35),
+            ((2015, current_year), 0.55),
+        ],
+        "Retail": [
+            ((1985, 1994), 0.15),
+            ((1995, 2004), 0.25),
+            ((2005, 2014), 0.35),
+            ((2015, current_year), 0.25),
+        ],
+        "MixedUse": [
+            ((2000, 2009), 0.20),
+            ((2010, 2017), 0.45),
+            ((2018, current_year), 0.35),
+        ],
+    }
+
+    bands = year_bands.get(commercial_type, [((2005, current_year), 1.0)])
+    ranges = [b[0] for b in bands]
+    weights = [b[1] for b in bands]
+    start, end = random.choices(ranges, weights=weights, k=1)[0]
+    return random.randint(start, end)
 
 def generate_commercial_metadata(index: int, location: Dict[str, Any]) -> Dict[str, Any]:
-    """Build the metadata dict for a single commercial asset.
-
-    Output keys are a superset of property_random.generate_property_metadata
-    so the shared schema walker and residential delegators read them
-    transparently. ``commercial_type`` is set deterministically by index
-    (see ``COMMERCIAL_TYPE_ALLOCATION``); area + value scale to the asset
-    class via the per-type tables.
-    """
+    """Build the metadata dict for a single commercial asset."""
     ctype = get_commercial_type(index)
     area = round(random.uniform(*TYPE_AREA_RANGE[ctype]), 0)
     value_per_sqm = random.uniform(*TYPE_VALUE_PER_SQM[ctype])
-    value_factor = location.get('value_factor', 1.0)
+    value_factor = location.get("value_factor", 1.0)
     value = round(area * value_per_sqm * value_factor, -3)
-    # SE-Asia commercial stock is overwhelmingly post-2005 per the BRI-PRS
-    # prototype set (>2005 exceedance base + 2010/2015/2020 anchor years).
-    # Mid-2010s is the natural cluster.
-    construction_year = random.randint(2005, datetime.now().year - 1)
+    construction_year = _construction_year_for_type(ctype)
 
     return {
-        'property_id': _deterministic_commercial_id(location, index),
-        'commercial_type': ctype,
-        # 'property_type' alias is required by residential generators that
-        # look up location_info['property_type'].
-        'property_type': ctype,
-        'construction_year': construction_year,
-        'property_area': area,
-        'property_value': value,
-        'elevation': location['elevation'],
-        'vertical_offset': location.get('vertical_offset', 0.5),
-        'area_name': location.get('name', 'Unknown'),
-        'value_factor': value_factor,
-        'streets_data': location.get('streets_data', {}),
-        # BRI prototype record for this asset (codes + thresholds + grades).
-        # Sampled once here so every field lambda sees the same draw.
-        'bri_prototype': _bri_for_commercial(ctype),
+        "property_id": _deterministic_commercial_id(location, index),
+        "commercial_type": ctype,
+        "property_type": ctype,
+        "construction_year": construction_year,
+        "property_area": area,
+        "property_value": value,
+        "elevation": location["elevation"],
+        "vertical_offset": location.get("vertical_offset", 0.5),
+        "area_name": location.get("name", "Unknown"),
+        "value_factor": value_factor,
+        "streets_data": location.get("streets_data", {}),
+        "bri_prototype": _bri_for_commercial(ctype),
     }
