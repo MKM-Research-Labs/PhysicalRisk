@@ -29,6 +29,12 @@ derivation share one code path.
 
 from typing import Any, Dict, Optional
 
+from config.loan import (
+    COMMERCIAL_MAX_TERM_YEARS,
+    DEFAULT_CREDIT_RATING,
+    DEFAULT_RISK_CATEGORY,
+    build_coupon,
+)
 from models.loan import LoanPricer
 from port.cdm import LoanCDM
 
@@ -44,7 +50,17 @@ OVERRIDE_KEYS = (
     "current_term",
     "recovery_haircut",
     "flood_risk_category",
+    "wind_risk_category",
+    "credit_rating",
 )
+
+# Override keys whose values are free-text categories, not numbers — kept
+# verbatim instead of coerced to float.
+_STRING_OVERRIDE_KEYS = frozenset({
+    "flood_risk_category",
+    "wind_risk_category",
+    "credit_rating",
+})
 
 # Defaults for any pricing input the CDM record doesn't supply. Mirrors the
 # fallbacks in LoanPricer.batch_price_loans so a sparse loan still
@@ -64,6 +80,7 @@ _INPUT_DEFAULTS = {
 _PRICING_KEYS = (
     "mortgage_value",
     "credit_spread",
+    "discount_rate",
     "ltv_factor",
     "flood_risk_factor",
     "annual_payment",
@@ -102,18 +119,22 @@ def _apply_overrides(effective: Dict[str, Any],
         return effective
     for key in OVERRIDE_KEYS:
         if key in overrides and overrides[key] is not None and overrides[key] != "":
-            if key == "flood_risk_category":
+            if key in _STRING_OVERRIDE_KEYS:
                 effective[key] = overrides[key]
             else:
                 effective[key] = _coerce_number(overrides[key])
     return effective
 
 
-def _price_effective(effective: Dict[str, Any]) -> Dict[str, Any]:
+def _price_effective(effective: Dict[str, Any],
+                     discount_rate: Optional[float] = None) -> Dict[str, Any]:
     """Run the pricer over a resolved input set and return JSON-safe payload.
 
     Raises ``ValueError`` if loan amount or property value is missing
     (nothing meaningful to price).
+
+    ``discount_rate`` (risk-free) is forwarded to the pricer; when None the
+    engine discounts at the contractual coupon (legacy behaviour).
     """
     if not effective.get("loan_amount") or not effective.get("property_value"):
         raise ValueError("Cannot price loan: missing loan amount or property value")
@@ -129,6 +150,7 @@ def _price_effective(effective: Dict[str, Any]) -> Dict[str, Any]:
         current_term=effective["current_term"],
         recovery_haircut=effective["recovery_haircut"],
         flood_risk_category=effective.get("flood_risk_category"),
+        discount_rate=discount_rate,
     )
 
     pricing = {k: float(result[k]) for k in _PRICING_KEYS}
@@ -169,30 +191,69 @@ def compute_loan_pricing(mortgage_cdm: Dict[str, Any],
     }
 
 
-def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+# Extra defaults for the standalone calculator: the contractual coupon is
+# built up from a credit rating + flood/wind hazard rather than typed in, so
+# the calculator seeds a rating and a wind category alongside the flood one.
+_STANDALONE_DEFAULTS = {
+    "credit_rating": DEFAULT_CREDIT_RATING,
+    "flood_risk_category": DEFAULT_RISK_CATEGORY,
+    "wind_risk_category": DEFAULT_RISK_CATEGORY,
+}
+
+
+def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
+                               asset_class: str = "residential") -> Dict[str, Any]:
     """Price a loan from user-supplied inputs alone — no CDM record.
 
     Backs the standalone Loan Calculator launched from the main screen, which
     is not tied to any property/loan. The caller supplies all pricing inputs
     (loan amount and property value are mandatory); anything omitted falls back
-    to ``_INPUT_DEFAULTS``.
+    to ``_INPUT_DEFAULTS`` / ``_STANDALONE_DEFAULTS``.
+
+    The contractual coupon is *built up* from components rather than supplied::
+
+        coupon = risk-free (discount curve) + credit spread (rating)
+                 + flood hazard spread + wind hazard spread
+
+    Expected cashflows are then discounted on the risk-free rate, so the
+    coupon's margin over risk-free is what pays for credit + hazard. Any
+    ``interest_rate`` in the inputs is ignored (the coupon is derived).
 
     Args:
-        inputs: Pricing inputs keyed by ``OVERRIDE_KEYS`` (loan_amount,
-            property_value, interest_rate, …). ``loan_amount`` and
+        inputs: Pricing inputs keyed by ``OVERRIDE_KEYS``. ``loan_amount`` and
             ``property_value`` are required.
+        asset_class: ``"residential"`` or ``"commercial"``. Commercial loans
+            cap the term at ``COMMERCIAL_MAX_TERM_YEARS`` (7 years).
 
     Returns:
-        ``{"mortgage_id": None, "property_id": None, "inputs", "pricing"}`` —
-        all JSON-serialisable. Raises ``ValueError`` if loan amount or property
-        value is missing.
+        ``{"mortgage_id": None, "property_id": None, "asset_class",
+        "inputs", "pricing", "coupon"}`` — all JSON-serialisable. Raises
+        ``ValueError`` if loan amount or property value is missing.
     """
-    effective: Dict[str, Any] = {**_INPUT_DEFAULTS}
+    effective: Dict[str, Any] = {**_INPUT_DEFAULTS, **_STANDALONE_DEFAULTS}
     effective = _apply_overrides(effective, inputs)
 
-    priced = _price_effective(effective)
+    # Commercial loans max out at 7 years.
+    if asset_class == "commercial":
+        cap = COMMERCIAL_MAX_TERM_YEARS
+        effective["original_maturity"] = min(effective["original_maturity"], cap)
+        effective["current_term"] = min(effective["current_term"], cap)
+
+    # Build the contractual coupon from its components and use it as the rate
+    # the borrower pays; discount expected cashflows on the risk-free rate.
+    coupon = build_coupon(
+        term_years=effective["current_term"],
+        credit_rating=effective.get("credit_rating"),
+        flood_category=effective.get("flood_risk_category"),
+        wind_category=effective.get("wind_risk_category"),
+    )
+    effective["interest_rate"] = coupon["rate"]
+
+    priced = _price_effective(effective, discount_rate=coupon["risk_free"])
     return {
         "mortgage_id": None,
         "property_id": None,
+        "asset_class": asset_class,
+        "coupon": coupon,
         **priced,
     }
