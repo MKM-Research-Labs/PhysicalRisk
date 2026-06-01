@@ -91,6 +91,54 @@ def _coerce_number(value: Any) -> Any:
     return value
 
 
+def _apply_overrides(effective: Dict[str, Any],
+                     overrides: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Overlay user-supplied overrides onto the effective input set.
+
+    Only keys in ``OVERRIDE_KEYS`` are honoured; blank/None values are
+    ignored so the form can clear nothing accidentally.
+    """
+    if not overrides:
+        return effective
+    for key in OVERRIDE_KEYS:
+        if key in overrides and overrides[key] is not None and overrides[key] != "":
+            if key == "flood_risk_category":
+                effective[key] = overrides[key]
+            else:
+                effective[key] = _coerce_number(overrides[key])
+    return effective
+
+
+def _price_effective(effective: Dict[str, Any]) -> Dict[str, Any]:
+    """Run the pricer over a resolved input set and return JSON-safe payload.
+
+    Raises ``ValueError`` if loan amount or property value is missing
+    (nothing meaningful to price).
+    """
+    if not effective.get("loan_amount") or not effective.get("property_value"):
+        raise ValueError("Cannot price loan: missing loan amount or property value")
+
+    pricer = LoanPricer()
+    result = pricer.price_loan(
+        loan_amount=effective["loan_amount"],
+        property_value=effective["property_value"],
+        gross_annual_income=effective["gross_annual_income"],
+        interest_rate=effective["interest_rate"],
+        insurance_rate=effective["insurance_rate"],
+        original_maturity=effective["original_maturity"],
+        current_term=effective["current_term"],
+        recovery_haircut=effective["recovery_haircut"],
+        flood_risk_category=effective.get("flood_risk_category"),
+    )
+
+    pricing = {k: float(result[k]) for k in _PRICING_KEYS}
+    inputs = {
+        k: (float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v)
+        for k, v in effective.items()
+    }
+    return {"inputs": inputs, "pricing": pricing}
+
+
 def compute_loan_pricing(mortgage_cdm: Dict[str, Any],
                          overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Price a CDM loan record, optionally with user overrides.
@@ -111,41 +159,40 @@ def compute_loan_pricing(mortgage_cdm: Dict[str, Any],
     property_id = base.pop("property_id", None)
 
     effective: Dict[str, Any] = {**_INPUT_DEFAULTS, **base}
+    effective = _apply_overrides(effective, overrides)
 
-    if overrides:
-        for key in OVERRIDE_KEYS:
-            if key in overrides and overrides[key] is not None and overrides[key] != "":
-                if key == "flood_risk_category":
-                    effective[key] = overrides[key]
-                else:
-                    effective[key] = _coerce_number(overrides[key])
-
-    if not effective.get("loan_amount") or not effective.get("property_value"):
-        raise ValueError("Cannot price loan: missing loan amount or property value")
-
-    pricer = LoanPricer()
-    result = pricer.price_loan(
-        loan_amount=effective["loan_amount"],
-        property_value=effective["property_value"],
-        gross_annual_income=effective["gross_annual_income"],
-        interest_rate=effective["interest_rate"],
-        insurance_rate=effective["insurance_rate"],
-        original_maturity=effective["original_maturity"],
-        current_term=effective["current_term"],
-        recovery_haircut=effective["recovery_haircut"],
-        flood_risk_category=effective.get("flood_risk_category"),
-    )
-
-    pricing = {k: float(result[k]) for k in _PRICING_KEYS}
-
-    inputs = {
-        k: (float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v)
-        for k, v in effective.items()
-    }
-
+    priced = _price_effective(effective)
     return {
         "mortgage_id": mortgage_id,
         "property_id": property_id,
-        "inputs": inputs,
-        "pricing": pricing,
+        **priced,
+    }
+
+
+def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Price a loan from user-supplied inputs alone — no CDM record.
+
+    Backs the standalone Loan Calculator launched from the main screen, which
+    is not tied to any property/loan. The caller supplies all pricing inputs
+    (loan amount and property value are mandatory); anything omitted falls back
+    to ``_INPUT_DEFAULTS``.
+
+    Args:
+        inputs: Pricing inputs keyed by ``OVERRIDE_KEYS`` (loan_amount,
+            property_value, interest_rate, …). ``loan_amount`` and
+            ``property_value`` are required.
+
+    Returns:
+        ``{"mortgage_id": None, "property_id": None, "inputs", "pricing"}`` —
+        all JSON-serialisable. Raises ``ValueError`` if loan amount or property
+        value is missing.
+    """
+    effective: Dict[str, Any] = {**_INPUT_DEFAULTS}
+    effective = _apply_overrides(effective, inputs)
+
+    priced = _price_effective(effective)
+    return {
+        "mortgage_id": None,
+        "property_id": None,
+        **priced,
     }
