@@ -113,7 +113,7 @@ class TestStandaloneLoanPricerRoute:
             "wind_risk_category": "Medium", "current_term": 30,
         }})
         c = r.get_json()["coupon"]
-        assert c["flood_priced_by"] == "PRS"
+        assert c["flood_priced_by"] == "PRS (category)"
         assert c["wind_priced_by"] == "static"
         assert c["flood_annual_hazard"] == pytest.approx(flood_annual_hazard("High"))
 
@@ -122,6 +122,22 @@ class TestStandaloneLoanPricerRoute:
             tenor=30, recovery=PRS_FLOOD_RECOVERY,
             risk_free_rate=c["risk_free"])
         assert c["flood_spread"] == pytest.approx(expected_bps / 10000.0)
+
+    def test_asset_flood_spread_overrides_category(self, prop_client):
+        """When the calculator passes the asset's own modelled flood spread
+        (flood_spread_bps, read from its hazard curve), it drives the flood
+        leg verbatim instead of the coarse flood-category lookup — so the leg
+        matches the property PRS pricer (e.g. 390 bp -> 3.9%)."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "flood_risk_category": "Medium",   # would be ~1% via the lookup
+            "flood_spread_bps": 390,           # asset curve says 3.9%
+        }})
+        c = r.get_json()["coupon"]
+        assert c["flood_priced_by"] == "PRS (asset curve)"
+        assert c["flood_spread"] == pytest.approx(0.039)
+        assert c["flood_annual_hazard"] == pytest.approx(0.039)
 
     def test_higher_flood_category_raises_coupon(self, prop_client):
         """A worse flood category must price a larger flood leg (PRS-driven)."""
