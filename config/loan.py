@@ -25,12 +25,18 @@ The loan coupon a borrower contractually pays is built up from components::
 
     coupon  =  risk-free discount rate          (DISCOUNT_CURVE, ~4.5%)
             +  credit spread                     (CREDIT_RATING_SPREADS, by rating)
-            +  hazard spread                     (FLOOD_ + WIND_HAZARD_SPREADS)
+            +  flood hazard spread               (PRS flood pricer — see below)
+            +  wind hazard spread                (WIND_HAZARD_SPREADS, static)
 
-A typical BBB borrower on a Medium flood / Medium wind asset at a ~3y tenor
-therefore prices near 7.0%::
+The flood component is priced by the platform's analytical Physical Risk Swap
+(PRS) pricer rather than a flat lookup: each flood-risk category maps to an
+annual flood probability (``FLOOD_CATEGORY_ANNUAL_HAZARD``, EA flood-zone
+aligned), which ``models.hazard.prs_analytical.compute_prs_spread`` converts to
+a fair CDS-equivalent spread. That call lives in the pricing layer
+(``routes._loan_pricing``) because ``config`` must not import ``models``.
 
-    0.045 (risk-free) + 0.015 (BBB) + 0.006 (flood) + 0.004 (wind) = 0.070
+Wind has no PRS pricer yet, so it keeps the static ``WIND_HAZARD_SPREADS``
+lookup as a placeholder.
 
 The expected-cashflow present values are discounted on the risk-free curve
 (``discount_rate``), NOT on the coupon — so the contractual margin over
@@ -77,19 +83,31 @@ CREDIT_RATINGS: List[str] = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC"]
 DEFAULT_CREDIT_RATING: str = "BBB"
 
 # ===========================================================================
-# Hazard spreads (physical risk → spread, decimal)
+# Flood hazard → annual flood probability (PRS pricer input)
 # ===========================================================================
-# Keyed lowercase; lookups normalise case/whitespace so "Very High",
-# "very high" and " Very high " all resolve. Flood is weighted a little more
-# heavily than wind for residential/commercial real estate.
-FLOOD_HAZARD_SPREADS: Dict[str, float] = {
-    "very low":  0.0010,
-    "low":       0.0030,
-    "medium":    0.0060,
-    "high":      0.0120,
-    "very high": 0.0220,
+# Each flood-risk category maps to a representative annual flood probability,
+# aligned with the EA flood-zone midpoints in config.models.EA_FLOOD_ZONE_RATES
+# (Zone 1 ≈ 0.001, Zone 2 ≈ 0.005, Zone 3a ≈ 0.020, Zone 3b ≈ 0.050). The
+# pricing layer feeds this probability to the PRS analytical pricer
+# (compute_prs_spread) to obtain the fair flood spread — so the flood component
+# of the coupon is genuinely PRS-priced rather than a flat assumption.
+FLOOD_CATEGORY_ANNUAL_HAZARD: Dict[str, float] = {
+    "very low":  0.001,   # ~1 in 1000  (EA Zone 1)
+    "low":       0.005,   # ~1 in 200   (EA Zone 2)
+    "medium":    0.010,   # ~1 in 100   (EA Zone 3 boundary)
+    "high":      0.020,   # ~1 in 50    (EA Zone 3a)
+    "very high": 0.050,   # ~1 in 20    (EA Zone 3b, functional floodplain)
 }
 
+# Recovery rate used when PRS-pricing the flood leg. 0% = full loss given a
+# flood trigger, matching config.models.RECOVERY_RATES['any_flood'].
+PRS_FLOOD_RECOVERY: float = 0.0
+
+# ---------------------------------------------------------------------------
+# Wind hazard spreads (static placeholder — no PRS wind pricer yet)
+# ---------------------------------------------------------------------------
+# Keyed lowercase; lookups normalise case/whitespace. These remain a flat
+# lookup until a PRS wind pricer exists to price them like flood.
 WIND_HAZARD_SPREADS: Dict[str, float] = {
     "very low":  0.0005,
     "low":       0.0020,
@@ -146,39 +164,14 @@ def credit_spread_for_rating(rating: str) -> float:
     )
 
 
-def flood_hazard_spread(category: str) -> float:
-    """Flood hazard spread (decimal) for a risk category."""
-    return FLOOD_HAZARD_SPREADS.get(_norm(category),
-                                    FLOOD_HAZARD_SPREADS[_norm(DEFAULT_RISK_CATEGORY)])
+def flood_annual_hazard(category: str) -> float:
+    """Annual flood probability for a risk category (PRS pricer input)."""
+    return FLOOD_CATEGORY_ANNUAL_HAZARD.get(
+        _norm(category),
+        FLOOD_CATEGORY_ANNUAL_HAZARD[_norm(DEFAULT_RISK_CATEGORY)])
 
 
 def wind_hazard_spread(category: str) -> float:
-    """Wind hazard spread (decimal) for a risk category."""
+    """Wind hazard spread (decimal) for a risk category (static placeholder)."""
     return WIND_HAZARD_SPREADS.get(_norm(category),
                                    WIND_HAZARD_SPREADS[_norm(DEFAULT_RISK_CATEGORY)])
-
-
-def build_coupon(term_years: float,
-                 credit_rating: str = DEFAULT_CREDIT_RATING,
-                 flood_category: str = DEFAULT_RISK_CATEGORY,
-                 wind_category: str = DEFAULT_RISK_CATEGORY) -> Dict[str, float]:
-    """Assemble the contractual coupon from its components.
-
-    Returns a dict with the total ``rate`` plus its decomposition into
-    ``risk_free``, ``credit_spread``, ``flood_spread``, ``wind_spread`` and the
-    combined ``hazard_spread`` — all decimals.
-    """
-    rf = discount_rate(term_years)
-    cs = credit_spread_for_rating(credit_rating)
-    fl = flood_hazard_spread(flood_category)
-    wi = wind_hazard_spread(wind_category)
-    return {
-        "rate": rf + cs + fl + wi,
-        "risk_free": rf,
-        "credit_spread": cs,
-        "flood_spread": fl,
-        "wind_spread": wi,
-        "hazard_spread": fl + wi,
-        "credit_rating": (str(credit_rating).strip().upper()
-                          if credit_rating else DEFAULT_CREDIT_RATING),
-    }

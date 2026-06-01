@@ -33,8 +33,13 @@ from config.loan import (
     COMMERCIAL_MAX_TERM_YEARS,
     DEFAULT_CREDIT_RATING,
     DEFAULT_RISK_CATEGORY,
-    build_coupon,
+    PRS_FLOOD_RECOVERY,
+    credit_spread_for_rating,
+    discount_rate,
+    flood_annual_hazard,
+    wind_hazard_spread,
 )
+from models.hazard.prs_analytical import compute_prs_spread
 from models.loan import LoanPricer
 from port.cdm import LoanCDM
 
@@ -201,6 +206,48 @@ _STANDALONE_DEFAULTS = {
 }
 
 
+def _build_coupon(term_years: float,
+                  credit_rating: str,
+                  flood_category: str,
+                  wind_category: str) -> Dict[str, Any]:
+    """Assemble the contractual coupon from its components.
+
+    ``coupon = risk-free + credit spread + flood spread + wind spread``
+
+    The flood spread is *PRS-priced*: the flood-risk category maps to an annual
+    flood probability which the analytical PRS pricer (``compute_prs_spread``)
+    converts to a fair CDS-equivalent spread, discounted on the risk-free rate.
+    Wind has no PRS pricer yet, so it uses the static lookup. Returns the total
+    ``rate`` plus the full decomposition (all decimals).
+    """
+    rf = discount_rate(term_years)
+    credit = credit_spread_for_rating(credit_rating)
+
+    annual_hazard = flood_annual_hazard(flood_category)
+    flood_bps = compute_prs_spread(
+        annual_hazard_rate=annual_hazard,
+        tenor=max(int(round(term_years)), 1),
+        recovery=PRS_FLOOD_RECOVERY,
+        risk_free_rate=rf,
+    )
+    flood = flood_bps / 10000.0
+    wind = wind_hazard_spread(wind_category)
+
+    return {
+        "rate": rf + credit + flood + wind,
+        "risk_free": rf,
+        "credit_spread": credit,
+        "flood_spread": flood,
+        "wind_spread": wind,
+        "hazard_spread": flood + wind,
+        "flood_annual_hazard": annual_hazard,
+        "flood_priced_by": "PRS",
+        "wind_priced_by": "static",
+        "credit_rating": (str(credit_rating).strip().upper()
+                          if credit_rating else DEFAULT_CREDIT_RATING),
+    }
+
+
 def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
                                asset_class: str = "residential") -> Dict[str, Any]:
     """Price a loan from user-supplied inputs alone — no CDM record.
@@ -241,7 +288,7 @@ def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
 
     # Build the contractual coupon from its components and use it as the rate
     # the borrower pays; discount expected cashflows on the risk-free rate.
-    coupon = build_coupon(
+    coupon = _build_coupon(
         term_years=effective["current_term"],
         credit_rating=effective.get("credit_rating"),
         flood_category=effective.get("flood_risk_category"),

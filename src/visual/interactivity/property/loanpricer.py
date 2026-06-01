@@ -57,6 +57,11 @@ class LoanPricerPanel:
             // 'residential' | 'commercial' — commercial caps the term at 7y
             // server-side and is sent as asset_class on the standalone POST.
             var standaloneAssetClass = 'residential';
+            // The asset the calculator was launched from (if any). The
+            // standalone calculator prices asset-independently, but when it
+            // was opened from a property/commercial marker we keep that id so
+            // the flood leg can deep-link to that asset's PRS pricer panel.
+            var standaloneOriginAssetId = null;
 
             // Sensible starting values for the standalone calculator so the
             // first price renders immediately. pct fields are stored as
@@ -64,8 +69,8 @@ class LoanPricerPanel:
             // there is no interest_rate here: the contractual coupon is built
             // up server-side from the credit rating + flood/wind hazard.
             var STANDALONE_DEFAULTS = {{
-                loan_amount: 200000,
-                property_value: 300000,
+                loan_amount: 7500000,
+                property_value: 10000000,
                 gross_annual_income: 50000,
                 insurance_rate: 0.002,
                 recovery_haircut: 0.2,
@@ -263,12 +268,8 @@ class LoanPricerPanel:
                     ['Fair Value', fmtCurrency(p.mortgage_value), '#1B5E20'],
                     ['Discount to Par', fmtCurrency(p.discount_to_par), '#C62828'],
                     ['Discount %', fmtNum(p.discount_percentage, 2) + '%', '#C62828'],
-                    ['Credit Spread', fmtPct(p.credit_spread), '#333'],
                     ['Discount Rate', fmtPct(p.discount_rate), '#333'],
                     ['LTV Ratio', fmtPct(p.ltv_ratio), '#333'],
-                    ['LTV Factor', fmtNum(p.ltv_factor), '#333'],
-                    ['Flood Risk Factor', fmtNum(p.flood_risk_factor), '#333'],
-                    ['Affordability Ratio', fmtPct(p.affordability_ratio), '#333'],
                     ['Monthly Payment', fmtCurrency(p.monthly_payment), '#333'],
                     ['Annual Payment', fmtCurrency(p.annual_payment), '#333'],
                     ['PV Cashflows', fmtCurrency(p.pv_cashflows), '#333'],
@@ -279,12 +280,21 @@ class LoanPricerPanel:
                 // contractual coupon decomposes into risk-free + credit + hazard.
                 var c = data && data.coupon;
                 if (c) {{
+                    // The flood leg is PRS-priced; when the calculator was
+                    // opened from an asset, deep-link the leg to that asset's
+                    // PRS pricer panel so the user can drill into the model.
+                    var floodLabel = 'Flood Hazard (PRS)';
+                    if (standaloneOriginAssetId && window.viewPropertyHazard) {{
+                        floodLabel += ' <a href="#" id="lp-flood-prs-link" ' +
+                            'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
+                            'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
+                    }}
                     var couponRows = [
                         ['Contractual Coupon', fmtPct(c.rate), '#0D47A1'],
                         ['Risk-free (curve)', fmtPct(c.risk_free), '#333'],
                         ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), '#333'],
-                        ['Flood Hazard', fmtPct(c.flood_spread), '#333'],
-                        ['Wind Hazard', fmtPct(c.wind_spread), '#333']
+                        [floodLabel, fmtPct(c.flood_spread), '#333'],
+                        ['Wind Hazard (static)', fmtPct(c.wind_spread), '#333']
                     ];
                     html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
                         'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
@@ -307,6 +317,17 @@ class LoanPricerPanel:
                         '<span style="font-weight:600;color:' + r[2] + ';">' + r[1] + '</span></div>';
                 }});
                 document.getElementById('loan-pricer-results').innerHTML = html;
+                // Wire the flood leg's PRS deep-link (added above only when the
+                // calculator was launched from an asset). Uses a listener rather
+                // than inline onclick to keep the id out of the HTML string.
+                var floodLink = document.getElementById('lp-flood-prs-link');
+                if (floodLink && standaloneOriginAssetId && window.viewPropertyHazard) {{
+                    floodLink.onclick = function(ev) {{
+                        ev.preventDefault();
+                        window.viewPropertyHazard(standaloneOriginAssetId);
+                        return false;
+                    }};
+                }}
             }}
 
             function endpointFor(assetId) {{
@@ -380,11 +401,12 @@ class LoanPricerPanel:
             // sensible defaults and prices on demand; ignores any asset id
             // passed by the menu. assetClass ('residential'|'commercial')
             // selects the server-side term cap (commercial = 7 years).
-            function showStandalone(assetClass) {{
+            function showStandalone(assetClass, originAssetId) {{
                 console.log('[LoanPricer] Opening standalone calculator', assetClass);
                 standaloneMode = true;
                 standaloneAssetClass = (assetClass === 'commercial') ? 'commercial' : 'residential';
                 currentAssetId = null;
+                standaloneOriginAssetId = originAssetId || null;
                 createPanel();
                 buildForm();
                 var titleText = (standaloneAssetClass === 'commercial')
@@ -403,8 +425,8 @@ class LoanPricerPanel:
             // Standalone launchers — distinct names so property/commercial
             // menu actions stay disjoint. Residential is uncapped; commercial
             // caps the term at 7 years server-side.
-            window.openLoanCalculator = function() {{ showStandalone('residential'); }};
-            window.openCommercialLoanCalculator = function() {{ showStandalone('commercial'); }};
+            window.openLoanCalculator = function(assetId) {{ showStandalone('residential', assetId); }};
+            window.openCommercialLoanCalculator = function(assetId) {{ showStandalone('commercial', assetId); }};
             window.LoanPricerPanel = {{
                 show: showPanel,
                 showStandalone: showStandalone,

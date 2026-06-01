@@ -92,10 +92,51 @@ class TestLoanPricerPanelStandaloneJS:
         assert "Coupon Build-up" in js
         assert "data.coupon" in js or "data && data.coupon" in js
 
+    def test_coupon_legs_labelled_by_pricer(self):
+        """Flood leg is PRS-priced; wind is the static placeholder — the
+        labels must say so to keep the provenance visible."""
+        js = self._js()
+        assert "Flood Hazard (PRS)" in js
+        assert "Wind Hazard (static)" in js
+
+    def test_redundant_pricing_rows_removed(self):
+        """The engine's affordability-derived credit spread, LTV factor, flood
+        risk factor and affordability ratio were misleading in the results
+        panel and must no longer be rendered there."""
+        js = self._js()
+        assert "LTV Factor" not in js
+        assert "Flood Risk Factor" not in js
+        assert "Affordability Ratio" not in js
+
+    def test_ten_million_region_defaults(self):
+        """Standalone defaults seed a ~10M property / loan, per spec."""
+        js = self._js()
+        assert "property_value: 10000000" in js
+        assert "loan_amount: 7500000" in js
+
+    def test_flood_leg_links_to_prs_pricer(self):
+        """The Flood Hazard (PRS) leg deep-links to the asset's PRS pricer
+        panel when the calculator was opened from a marker."""
+        js = self._js()
+        # The leg renders an anchor wired to the PRS pricer panel.
+        assert "lp-flood-prs-link" in js
+        assert "window.viewPropertyHazard(standaloneOriginAssetId)" in js
+        assert "PRS pricer" in js
+
+    def test_origin_asset_id_captured_from_launcher(self):
+        """Launchers forward the right-clicked asset id so the flood leg can
+        deep-link to that asset's PRS pricer."""
+        js = self._js()
+        assert "standaloneOriginAssetId" in js
+        assert "openLoanCalculator = function(assetId)" in js
+        assert "openCommercialLoanCalculator = function(assetId)" in js
+        assert "showStandalone('residential', assetId)" in js
+        assert "showStandalone('commercial', assetId)" in js
+
     def test_commercial_asset_class_sent(self):
         js = self._js()
         # Commercial launcher tags the request so the server caps the term.
         assert "standaloneAssetClass" in js
         assert "asset_class" in js
-        assert "showStandalone('commercial')" in js
-        assert "showStandalone('residential')" in js
+        assert "showStandalone('commercial', assetId)" in js
+        assert "showStandalone('residential', assetId)" in js
