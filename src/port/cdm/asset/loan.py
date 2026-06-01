@@ -4,22 +4,46 @@
 """
 Asset loan CDM.
 
-Holds the schema dict (MORTGAGE_SCHEMA) and the LoanCDM class. The schema
-keys still use 'Mortgage'/'MortgageID'/etc.; the 'Mortgage' → 'Loan'
-terminology rename in the underlying data shape, plus commercial extensions
-(DSCR, SPV borrower), are tracked separately and not part of this package.
+Holds the schema dict (MORTGAGE_SCHEMA) and the LoanCDM class. The canonical
+residential record is wrapped under the ``RLoan`` key with an ``RLoanID``
+header field. To stay backwards-compatible with commercial records (``CLoan``)
+and any legacy data still on the older ``Mortgage`` shape, the unwrap helpers
+below accept all three wrapper keys.
 """
 
 from typing import Dict, List
 
 from ..base import BaseCDM
 
+
+def _unwrap_loan(record: dict) -> dict:
+    """Return the inner loan dict from a CDM wrapper.
+
+    Tolerates the residential (``RLoan``), commercial (``CLoan``) and legacy
+    (``Mortgage``) top-level keys, or an already-unwrapped record.
+    """
+    if not isinstance(record, dict):
+        return {}
+    for key in ("RLoan", "CLoan", "Mortgage"):
+        inner = record.get(key)
+        if isinstance(inner, dict):
+            return inner
+    return record
+
+
+def _loan_id(header: dict) -> str:
+    """Read the loan id from a header, tolerating R/C/legacy field names."""
+    return (header.get("RLoanID")
+            or header.get("CLoanID")
+            or header.get("MortgageID"))
+
+
 MORTGAGE_SCHEMA = {
     "Mortgage": {
         "Header": {
             "MortgageID": {
                 "type": "text",
-                "description": "Unique identifier for the mortgage loan"
+                "description": "Unique identifier for the residential loan"
             },
             "CatchmentID": {
                 "type": "text",
@@ -221,12 +245,12 @@ class LoanCDM(BaseCDM):
         """Return the CDM schema."""
         return self._schema
 
-    def validate(self, mortgage_data: dict) -> Dict[str, List[str]]:
+    def validate(self, rloan_data: dict) -> Dict[str, List[str]]:
         """
         Validate mortgage data against the CDM schema.
 
         Args:
-            mortgage_data: Mortgage data to validate
+            rloan_data: Mortgage data to validate
 
         Returns:
             Dictionary of validation errors by section
@@ -234,11 +258,14 @@ class LoanCDM(BaseCDM):
         errors = {}
 
         try:
-            header = mortgage_data.get("Mortgage", {}).get("Header", {})
+            if not isinstance(rloan_data, dict):
+                raise ValueError("validate requires a loan record dict")
+            inner = _unwrap_loan(rloan_data)
+            header = inner.get("Header", {})
             header_errors = []
 
-            if not header.get("MortgageID"):
-                header_errors.append("Missing required field: MortgageID")
+            if not _loan_id(header):
+                header_errors.append("Missing required field: RLoanID")
 
             if not header.get("CatchmentID"):
                 header_errors.append("Missing recommended field: CatchmentID")
@@ -250,7 +277,7 @@ class LoanCDM(BaseCDM):
                 errors["Header"] = header_errors
 
             # Validate financial terms
-            terms = mortgage_data.get("Mortgage", {}).get("FinancialTerms", {})
+            terms = inner.get("FinancialTerms", {})
             terms_errors = []
 
             if not terms.get("OriginalLoan"):
@@ -275,7 +302,9 @@ class LoanCDM(BaseCDM):
             Flat dictionary with snake_case keys
         """
         try:
-            m = mortgage.get('Mortgage', {})
+            if not isinstance(mortgage, dict):
+                raise ValueError("create_mapping requires a loan record dict")
+            m = _unwrap_loan(mortgage)
             header = m.get('Header', {})
             app = m.get('Application', {})
             terms = m.get('FinancialTerms', {})
@@ -284,9 +313,9 @@ class LoanCDM(BaseCDM):
             borrower = m.get('BorrowerDetails', {})
             risk = m.get('RiskAssessment', {})
 
-            mortgage_data = {
+            rloan_data = {
                 # Header
-                'mortgage_id': header.get('MortgageID'),
+                'mortgage_id': _loan_id(header),
                 'catchment_id': header.get('CatchmentID'),
                 'property_id': header.get('PropertyID'),
                 'uprn': header.get('UPRN'),
@@ -341,7 +370,7 @@ class LoanCDM(BaseCDM):
             }
 
             # Remove None values
-            return {k: v for k, v in mortgage_data.items() if v is not None}
+            return {k: v for k, v in rloan_data.items() if v is not None}
 
         except Exception as e:
             raise ValueError(f"Error creating mortgage mapping: {str(e)}")
@@ -349,7 +378,7 @@ class LoanCDM(BaseCDM):
     def to_pricer_inputs(self, mortgage: dict) -> dict:
         """
         Translate a CDM mortgage record into the keyword arguments expected by
-        ``models.mortgage.MortgagePricer.price_mortgage``.
+        ``models.loan.LoanPricer.price_loan``.
 
         Reconciles the differences between the CDM data shape and the pricing
         engine's vocabulary:
@@ -370,17 +399,17 @@ class LoanCDM(BaseCDM):
                       ``Mortgage`` key).
 
         Returns:
-            Dict suitable for ``price_mortgage(**inputs)`` /
-            ``batch_price_mortgages([inputs])``.
+            Dict suitable for ``price_loan(**inputs)`` /
+            ``batch_price_loans([inputs])``.
         """
         try:
             from config.models import (
-                MORTGAGE_DEFAULT_INSURANCE_RATE,
-                MORTGAGE_DEFAULT_RECOVERY_HAIRCUT,
+                LOAN_DEFAULT_INSURANCE_RATE,
+                LOAN_DEFAULT_RECOVERY_HAIRCUT,
             )
         except Exception:
-            MORTGAGE_DEFAULT_INSURANCE_RATE = 0.002
-            MORTGAGE_DEFAULT_RECOVERY_HAIRCUT = 0.20
+            LOAN_DEFAULT_INSURANCE_RATE = 0.002
+            LOAN_DEFAULT_RECOVERY_HAIRCUT = 0.20
 
         flat = self.create_mapping(mortgage)
 
@@ -403,8 +432,8 @@ class LoanCDM(BaseCDM):
         original_term_months = flat.get('original_term')
         remaining_term_months = flat.get('remaining_term', original_term_months)
 
-        insurance_rate = flat.get('insurance_rate', MORTGAGE_DEFAULT_INSURANCE_RATE)
-        recovery_haircut = flat.get('recovery_haircut', MORTGAGE_DEFAULT_RECOVERY_HAIRCUT)
+        insurance_rate = flat.get('insurance_rate', LOAN_DEFAULT_INSURANCE_RATE)
+        recovery_haircut = flat.get('recovery_haircut', LOAN_DEFAULT_RECOVERY_HAIRCUT)
 
         inputs = {
             'mortgage_id': flat.get('mortgage_id'),
@@ -421,14 +450,14 @@ class LoanCDM(BaseCDM):
         }
 
         # Drop keys the engine has no default for only when truly absent, so
-        # batch_price_mortgages' own .get() defaults can take over.
+        # batch_price_loans' own .get() defaults can take over.
         return {k: v for k, v in inputs.items() if v is not None}
 
     def get_required_fields(self) -> List[str]:
         """Return list of required fields."""
         return [
-            'Mortgage.Header.MortgageID',
-            'Mortgage.Header.CatchmentID',
-            'Mortgage.Header.PropertyID',
-            'Mortgage.FinancialTerms.OriginalLoan'
+            'RLoan.Header.RLoanID',
+            'RLoan.Header.CatchmentID',
+            'RLoan.Header.PropertyID',
+            'RLoan.FinancialTerms.OriginalLoan'
         ]

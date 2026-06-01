@@ -56,16 +56,16 @@ class RiskAnalysisPage(PropertyBasePage):
     """Generates comprehensive risk analysis page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate comprehensive risk analysis page elements."""
         elements = []
 
         try:
             elements.append(Paragraph("Comprehensive Risk Analysis", self.styles['SectionHeader']))
 
-            if mortgage_data:
+            if rloan_data:
                 # Combined property and mortgage risk analysis
-                risk_assessment = self._comprehensive_risk_assessment(property_data, mortgage_data)
+                risk_assessment = self._comprehensive_risk_assessment(property_data, rloan_data)
             else:
                 # Property-only risk analysis
                 risk_assessment = self._property_risk_assessment(property_data)
@@ -175,9 +175,9 @@ class RiskAnalysisPage(PropertyBasePage):
         return elements
 
     def _comprehensive_risk_assessment(self, property_data: Dict[str, Any],
-                                     mortgage_data: Dict[str, Any]) -> Dict[str, Any]:
+                                     rloan_data: Dict[str, Any]) -> Dict[str, Any]:
         """Perform comprehensive risk assessment with both property and mortgage data."""
-        return comprehensive_risk_assessment(property_data, mortgage_data)
+        return comprehensive_risk_assessment(property_data, rloan_data)
 
     def _property_risk_assessment(self, property_data: Dict[str, Any]) -> Dict[str, Any]:
         """Perform property-only risk assessment."""

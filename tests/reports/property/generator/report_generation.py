@@ -61,7 +61,7 @@ class TestGenerateReport:
 
     def test_with_mortgage_data(self, tmp_path, prop_data, mort_data):
         gen = make_generator(tmp_path)
-        assert gen.generate_report(prop_data, mortgage_data=mort_data).exists()
+        assert gen.generate_report(prop_data, rloan_data=mort_data).exists()
 
     def test_auto_select_called_when_pages_none(self, tmp_path, prop_data):
         gen = make_generator(tmp_path)
@@ -81,7 +81,7 @@ class TestGenerateReport:
 
     def test_full_data_report(self, tmp_path, full_prop_data, mort_data):
         gen = make_generator(tmp_path)
-        path = gen.generate_report(full_prop_data, mortgage_data=mort_data)
+        path = gen.generate_report(full_prop_data, rloan_data=mort_data)
         assert path.exists()
         assert path.stat().st_size > 0
 
@@ -180,7 +180,7 @@ class TestEdgeCases:
     def test_report_with_all_pages(self, tmp_path, prop_data, mort_data):
         gen = make_generator(tmp_path)
         all_pages = list(gen.pages.keys())
-        path = gen.generate_report(prop_data, mortgage_data=mort_data, pages_to_include=all_pages)
+        path = gen.generate_report(prop_data, rloan_data=mort_data, pages_to_include=all_pages)
         assert path.exists()
         assert path.stat().st_size > 0
 

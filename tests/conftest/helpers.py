@@ -48,6 +48,6 @@ def assert_valid_gauge(data: Dict[str, Any]) -> None:
 
 
 def assert_valid_mortgage(data: Dict[str, Any]) -> None:
-    """Assert that data matches mortgage structure."""
-    assert 'MortgageID' in data
+    """Assert that data matches loan structure."""
+    assert 'RLoanID' in data
     assert 'PropertyID' in data

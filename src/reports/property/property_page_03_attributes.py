@@ -50,7 +50,7 @@ class AttributesPage(PropertyBasePage):
     """Generates property attributes page."""
 
     def generate_elements(self, property_data: Dict[str, Any],
-                         mortgage_data: Dict[str, Any] = None) -> List:
+                         rloan_data: Dict[str, Any] = None) -> List:
         """Generate property attributes page elements."""
         elements = []
 

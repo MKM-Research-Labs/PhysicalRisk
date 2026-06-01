@@ -63,11 +63,11 @@ def _make_property(property_id="PROP-001", lat=51.5, lon=-0.1, year=2000):
 
 class MockLoadedData:
     def __init__(self, property_data=None, property_flood_info=None,
-                 mortgage_lookup=None,
+                 rloan_lookup=None,
                  property_hazard_data=None):
         self.property_data = property_data
         self.property_flood_info = property_flood_info or {}
-        self.mortgage_lookup = mortgage_lookup or {}
+        self.rloan_lookup = rloan_lookup or {}
         self.property_hazard_data = property_hazard_data
 
 
@@ -145,7 +145,7 @@ class TestAddToMapWithData:
         layer = PropertyLayer()
         loaded = MockLoadedData(
             property_data={"items": [_make_property("PROP-001")]},
-            mortgage_lookup={"PROP-001": {"original_loan": 250_000}},
+            rloan_lookup={"PROP-001": {"original_loan": 250_000}},
         )
         result = layer.add_to_map(folium.Map(), loaded)
         assert isinstance(result, folium.FeatureGroup)

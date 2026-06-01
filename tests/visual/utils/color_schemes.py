@@ -79,20 +79,20 @@ class TestOperationalStatusColor:
 
 
 # ===========================================================================
-# Mortgage risk colors
+# Loan risk colors
 # ===========================================================================
 
-class TestMortgageRiskColor:
+class TestLoanRiskColor:
 
     @pytest.mark.parametrize("level", ["Low", "Moderate", "High", "Critical"])
     def test_known_levels(self, level):
-        result = ColorSchemes.get_mortgage_risk_color(level)
+        result = ColorSchemes.get_loan_risk_color(level)
         assert isinstance(result, str)
         assert result.startswith("#")
 
     def test_unknown_returns_default(self):
-        result = ColorSchemes.get_mortgage_risk_color("Extreme")
-        assert result == ColorSchemes.MORTGAGE_RISK_COLORS["Unknown"]
+        result = ColorSchemes.get_loan_risk_color("Extreme")
+        assert result == ColorSchemes.LOAN_RISK_COLORS["Unknown"]
 
 
 # ===========================================================================

@@ -341,8 +341,8 @@ FLOOD_RISK_MULTIPLIERS = {
 
 # Fallbacks used when a loan record carries no per-loan value (decimals of
 # property value / outstanding balance respectively).
-MORTGAGE_DEFAULT_INSURANCE_RATE = 0.002
-MORTGAGE_DEFAULT_RECOVERY_HAIRCUT = 0.20
+LOAN_DEFAULT_INSURANCE_RATE = 0.002
+LOAN_DEFAULT_RECOVERY_HAIRCUT = 0.20
 
 # ===========================================================================
 # Flood Poly — Polynomial Flood Probability Model  (models/stress/flood_poly.py)

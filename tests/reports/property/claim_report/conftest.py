@@ -52,7 +52,7 @@ def prop_record():
     }
 
 @pytest.fixture
-def mortgage_record():
+def rloan_record():
     return {
         'FinancialTerms': {'OriginalBalance': 400000},
         'CurrentStatus': {'OutstandingBalance': 320000},

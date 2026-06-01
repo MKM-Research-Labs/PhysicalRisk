@@ -276,7 +276,7 @@ class TestMortgageFinancials:
         assert result["monthly_payment"] > 0
 
     def test_quality_consistency_check(self, thames_mortgage_random):
-        mortgage_data = {
+        rloan_data = {
             "Mortgage": {
                 "CurrentStatus": {
                     "OutstandingBalance": 600000,  # > original
@@ -289,6 +289,6 @@ class TestMortgageFinancials:
         }
         financial_data = {"loan_amount": 400000, "property_value": 500000}
         corrected = thames_mortgage_random.quality_consistency_check(
-            mortgage_data, financial_data
+            rloan_data, financial_data
         )
         assert isinstance(corrected, dict)

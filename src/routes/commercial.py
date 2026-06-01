@@ -40,7 +40,7 @@ Exposes:
   GET  /api/v1/commercial-loans      (list all commercial loans)
       Used by the startup preloader for the bottom-left status popup
       and the in-browser asset-name lookup. Same response shape as
-      /api/v1/properties and /api/v1/mortgages on the residential side.
+      /api/v1/properties and /api/v1/rloans on the residential side.
 
   GET  /api/v1/commercial/blotter
       Commercial-asset portfolio blotter. Mirrors
@@ -125,7 +125,7 @@ def generate_report():
 def generate_loan_report_route():
     """Generate a loan-focused commercial PDF (title + location + loan overview).
 
-    Mirrors POST /api/v1/properties/mortgage-report on the residential
+    Mirrors POST /api/v1/properties/rloan-report on the residential
     side. The frontend hits this for both the "Loan Details" and the
     "Generate Loan Report" right-click items.
     """
@@ -134,9 +134,9 @@ def generate_loan_report_route():
         return result
 
     try:
-        from reports.commercial import generate_loan_report
+        from reports.commercial import generate_cloan_report
 
-        report_path = generate_loan_report(
+        report_path = generate_cloan_report(
             property_id=property_id,
             output_dir=config.get_reports_dir('commercial'),
             open_pdf=False,
@@ -867,7 +867,7 @@ def commercial_portfolio_impact(storm_id: str):
 def list_commercial_loans():
     """List all commercial loans in the active catchment.
 
-    Mirrors GET /api/v1/mortgages — used by the startup preloader for
+    Mirrors GET /api/v1/rloans — used by the startup preloader for
     the count stat.
 
     Response shape::

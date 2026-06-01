@@ -18,28 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for page4_mortgage and page5_determination builders."""
+"""Tests for page4_rloan and page5_determination builders."""
 
 import pytest
 from reportlab.platypus import Paragraph, Table
 
 
 # ---------------------------------------------------------------------------
-# page4_mortgage.py
+# page4_rloan.py
 # ---------------------------------------------------------------------------
 
-class TestPage4Mortgage:
-    def test_with_mortgage(self, prop_data, prop_record, mortgage_record,
+class TestPage4RLoan:
+    def test_with_mortgage(self, prop_data, prop_record, rloan_record,
                            sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
-        result = build_page4_mortgage(
-            prop_data, prop_record, mortgage_record, sequence_lookup, styles)
+        from reports.property.claim.page4_rloan import build_page4_rloan
+        result = build_page4_rloan(
+            prop_data, prop_record, rloan_record, sequence_lookup, styles)
         assert isinstance(result, list)
         assert len(result) > 0
 
     def test_without_mortgage(self, prop_data, prop_record, sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
-        result = build_page4_mortgage(
+        from reports.property.claim.page4_rloan import build_page4_rloan
+        result = build_page4_rloan(
             prop_data, prop_record, None, sequence_lookup, styles)
         assert isinstance(result, list)
         # Should render "No mortgage" notice
@@ -52,24 +52,24 @@ class TestPage4Mortgage:
                             texts.append(cell.text)
         assert any('No mortgage' in t for t in texts)
 
-    def test_contains_tables(self, prop_data, prop_record, mortgage_record,
+    def test_contains_tables(self, prop_data, prop_record, rloan_record,
                               sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
-        result = build_page4_mortgage(
-            prop_data, prop_record, mortgage_record, sequence_lookup, styles)
+        from reports.property.claim.page4_rloan import build_page4_rloan
+        result = build_page4_rloan(
+            prop_data, prop_record, rloan_record, sequence_lookup, styles)
         assert any(isinstance(e, Table) for e in result)
 
-    def test_no_flood_events_with_mortgage(self, prop_record, mortgage_record,
+    def test_no_flood_events_with_mortgage(self, prop_record, rloan_record,
                                             sequence_lookup, styles):
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
+        from reports.property.claim.page4_rloan import build_page4_rloan
         data = {'property_id': 'PROP-EMPTY', 'flood_events': []}
-        result = build_page4_mortgage(
-            data, prop_record, mortgage_record, sequence_lookup, styles)
+        result = build_page4_rloan(
+            data, prop_record, rloan_record, sequence_lookup, styles)
         assert isinstance(result, list)
 
     def test_negative_equity_highlights_row(self, sequence_lookup, styles):
         """High damage + large mortgage triggers negative equity highlighting."""
-        from reports.property.claim.page4_mortgage import build_page4_mortgage
+        from reports.property.claim.page4_rloan import build_page4_rloan
         events = [
             {'storm_id': 'S1', 'sequence_id': 'SEQ-A',
              'flood_depth_m': 1.5, 'damage_ratio': 0.80, 'flooded': True},
@@ -81,7 +81,7 @@ class TestPage4Mortgage:
             'CurrentStatus':  {'OutstandingBalance': 190000},
         }
         lookup = {'SEQ-A': {'sequence_type': 'isolated', 'num_storms': 1}}
-        result = build_page4_mortgage(data, rec, mtg, lookup, styles)
+        result = build_page4_rloan(data, rec, mtg, lookup, styles)
         assert isinstance(result, list)
         assert any(isinstance(e, Table) for e in result)
 
@@ -91,11 +91,11 @@ class TestPage4Mortgage:
 # ---------------------------------------------------------------------------
 
 class TestPage5Determination:
-    def test_returns_list(self, prop_data, prop_record, mortgage_record,
+    def test_returns_list(self, prop_data, prop_record, rloan_record,
                           sequence_lookup, claim_ref, today, styles):
         from reports.property.claim.page5_determination import build_page5_determination
         result = build_page5_determination(
-            prop_data, prop_record, mortgage_record,
+            prop_data, prop_record, rloan_record,
             sequence_lookup, claim_ref, today, styles)
         assert isinstance(result, list)
         assert len(result) > 0
@@ -108,11 +108,11 @@ class TestPage5Determination:
         assert isinstance(result, list)
         assert len(result) > 0
 
-    def test_contains_reference_table(self, prop_data, prop_record, mortgage_record,
+    def test_contains_reference_table(self, prop_data, prop_record, rloan_record,
                                        sequence_lookup, claim_ref, today, styles):
         from reports.property.claim.page5_determination import build_page5_determination
         result = build_page5_determination(
-            prop_data, prop_record, mortgage_record,
+            prop_data, prop_record, rloan_record,
             sequence_lookup, claim_ref, today, styles)
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) >= 2  # reference box + assessment table
@@ -146,11 +146,11 @@ class TestPage5Determination:
             data, rec, mtg, {}, claim_ref, today, styles)
         assert isinstance(result, list)
 
-    def test_signature_block_present(self, prop_data, prop_record, mortgage_record,
+    def test_signature_block_present(self, prop_data, prop_record, rloan_record,
                                       sequence_lookup, claim_ref, today, styles):
         from reports.property.claim.page5_determination import build_page5_determination
         result = build_page5_determination(
-            prop_data, prop_record, mortgage_record,
+            prop_data, prop_record, rloan_record,
             sequence_lookup, claim_ref, today, styles)
         # Signature lines are Paragraphs at the end
         paragraphs = [e for e in result if isinstance(e, Paragraph)]

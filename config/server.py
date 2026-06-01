@@ -59,7 +59,7 @@ class ServerMixin:
         'gauges':            '/api/v1/gauges',
         'property_report':   '/api/v1/properties/report',
         'gauge_report':      '/api/v1/gauges/report',
-        'mortgage_report':   '/api/v1/properties/mortgage-report',
+        'rloan_report':      '/api/v1/properties/rloan-report',
         'commercial_report': '/api/v1/commercial/report',
         'commercial_loan_report': '/api/v1/commercial/loan-report',
         'gauge_history':     '/api/v1/gauges/{gauge_id}/history',

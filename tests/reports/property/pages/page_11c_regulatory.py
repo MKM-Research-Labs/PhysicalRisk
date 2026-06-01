@@ -35,8 +35,8 @@ def _page():
 
 
 def _make_mortgage(regulatory=None):
-    """Build minimal mortgage_data dict."""
-    return {"Mortgage": {"Regulatory": regulatory or {}}}
+    """Build minimal rloan_data dict."""
+    return {"RLoan": {"Regulatory": regulatory or {}}}
 
 
 # ===========================================================================
@@ -47,7 +47,7 @@ class TestNoMortgageData:
 
     def test_no_mortgage_returns_list(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=None)
+        result = page.generate_elements({}, rloan_data=None)
         assert isinstance(result, list)
         assert len(result) > 0
 
@@ -66,13 +66,13 @@ class TestNoRegulatoryData:
 
     def test_empty_regulatory_returns_message(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=_make_mortgage())
+        result = page.generate_elements({}, rloan_data=_make_mortgage())
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("No regulatory information" in t for t in texts)
 
     def test_returns_list(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=_make_mortgage())
+        result = page.generate_elements({}, rloan_data=_make_mortgage())
         assert isinstance(result, list)
 
 
@@ -88,14 +88,14 @@ class TestCommonRegulatory:
 
     def test_common_section_returns_elements(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=self._mortgage_with_common())
+        result = page.generate_elements({}, rloan_data=self._mortgage_with_common())
         assert isinstance(result, list)
         assert len(result) > 2  # header + table + spacer
 
     def test_fca_reference_number(self):
         page = _page()
         result = page.generate_elements(
-            {}, mortgage_data=self._mortgage_with_common(FCAReferenceNumber="FCA99999")
+            {}, rloan_data=self._mortgage_with_common(FCAReferenceNumber="FCA99999")
         )
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) >= 1
@@ -103,21 +103,21 @@ class TestCommonRegulatory:
     def test_business_purpose_false(self):
         page = _page()
         result = page.generate_elements(
-            {}, mortgage_data=self._mortgage_with_common(BusinessOrCommercialPurpose=False)
+            {}, rloan_data=self._mortgage_with_common(BusinessOrCommercialPurpose=False)
         )
         assert isinstance(result, list)
 
     def test_business_purpose_true(self):
         page = _page()
         result = page.generate_elements(
-            {}, mortgage_data=self._mortgage_with_common(BusinessOrCommercialPurpose=True)
+            {}, rloan_data=self._mortgage_with_common(BusinessOrCommercialPurpose=True)
         )
         assert isinstance(result, list)
 
     def test_advised_flag(self):
         page = _page()
         result = page.generate_elements(
-            {}, mortgage_data=self._mortgage_with_common(AdvisedFlag=True)
+            {}, rloan_data=self._mortgage_with_common(AdvisedFlag=True)
         )
         assert isinstance(result, list)
 
@@ -132,7 +132,7 @@ class TestCommonRegulatory:
             "RecordKeepingCompliantFlag": True,
             "VulnerableCustomerFlag": False,
         }})
-        result = page.generate_elements({}, mortgage_data=mortgage)
+        result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)
 
 
@@ -170,19 +170,19 @@ class TestMcobSection:
 
     def test_mcob_section_creates_tables(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=self._mortgage_mcob())
+        result = page.generate_elements({}, rloan_data=self._mortgage_mcob())
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) >= 2  # main MCOB table + advice table
 
     def test_mcob_with_minimal_fields(self):
         page = _page()
         mortgage = _make_mortgage({"MCOB": {"MMRCompliantFlag": True}})
-        result = page.generate_elements({}, mortgage_data=mortgage)
+        result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)
 
     def test_mcob_all_fields_returns_list(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=self._mortgage_mcob())
+        result = page.generate_elements({}, rloan_data=self._mortgage_mcob())
         assert isinstance(result, list)
         assert len(result) > 5
 
@@ -192,7 +192,7 @@ class TestMcobSection:
             "AdviceRejectionFlag": True,
             "AdviceRejectionReason": "Client refused to take advice",
         }})
-        result = page.generate_elements({}, mortgage_data=mortgage)
+        result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)
 
 
@@ -215,19 +215,19 @@ class TestHmdaSection:
 
     def test_hmda_section_creates_table(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=self._mortgage_hmda())
+        result = page.generate_elements({}, rloan_data=self._mortgage_hmda())
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) >= 1
 
     def test_hmda_minimal_fields(self):
         page = _page()
         mortgage = _make_mortgage({"HMDA": {"HMDAReportableFlag": True}})
-        result = page.generate_elements({}, mortgage_data=mortgage)
+        result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)
 
     def test_hmda_rate_spread_formatted(self):
         page = _page()
-        result = page.generate_elements({}, mortgage_data=self._mortgage_hmda())
+        result = page.generate_elements({}, rloan_data=self._mortgage_hmda())
         assert isinstance(result, list)
 
 
@@ -244,15 +244,15 @@ class TestCombinedSections:
             "MCOB": {"MMRCompliantFlag": True, "CoolingOffPeriodDays": 14},
             "HMDA": {"HMDAReportableFlag": True},
         })
-        result = page.generate_elements({}, mortgage_data=mortgage)
+        result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) >= 2
 
     def test_flat_mortgage_structure(self):
-        """mortgage_data without 'Mortgage' key → uses top-level."""
+        """rloan_data without 'Mortgage' key → uses top-level."""
         page = _page()
-        result = page.generate_elements({}, mortgage_data={"Regulatory": {}})
+        result = page.generate_elements({}, rloan_data={"Regulatory": {}})
         # Should handle flat structure
         assert isinstance(result, list)
 
@@ -260,6 +260,6 @@ class TestCombinedSections:
         """Feeding bad data (non-dict regulatory) exercises the except block."""
         page = _page()
         # Pass something that causes getattr failures in the regulatory section
-        mortgage = {"Mortgage": {"Regulatory": "not_a_dict"}}
-        result = page.generate_elements({}, mortgage_data=mortgage)
+        mortgage = {"RLoan": {"Regulatory": "not_a_dict"}}
+        result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)

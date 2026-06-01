@@ -56,8 +56,8 @@ def _make_property(pid='PROP-0001'):
 
 def _make_mortgage(mid='MORT-0001', pid='PROP-0001'):
     return {
-        'Mortgage': {
-            'Header': {'MortgageID': mid, 'PropertyID': pid},
+        'RLoan': {
+            'Header': {'RLoanID': mid, 'PropertyID': pid},
             'FinancialTerms': {
                 'OriginalLTV': 75.0, 'OriginalTerm': 300,
                 'OriginalLendingRate': 3.25,
@@ -141,8 +141,8 @@ def populated_input(tmp_path):
     (d / 'property.json').write_text(json.dumps({
         'properties': [_make_property('PROP-0001'), _make_property('PROP-0002')]
     }))
-    (d / 'mortgage.json').write_text(json.dumps({
-        'mortgages': [_make_mortgage('MORT-0001', 'PROP-0001')]
+    (d / 'loan.json').write_text(json.dumps({
+        'loans': [_make_mortgage('MORT-0001', 'PROP-0001')]
     }))
     (d / 'counterparty.json').write_text(json.dumps({
         'counterparties': [_make_counterparty('CTP-001')]
@@ -228,7 +228,7 @@ def minimal_input(tmp_path):
     d.mkdir()
     (d / 'gauge.json').write_text(json.dumps({'flood_gauges': []}))
     (d / 'property.json').write_text(json.dumps({'properties': []}))
-    (d / 'mortgage.json').write_text(json.dumps({'mortgages': []}))
+    (d / 'loan.json').write_text(json.dumps({'loans': []}))
     (d / 'counterparty.json').write_text(json.dumps({'counterparties': []}))
     (d / 'gaugehc.json').write_text('{}')
     (d / 'propertyhc.json').write_text('{}')

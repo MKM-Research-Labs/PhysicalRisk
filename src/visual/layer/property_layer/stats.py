@@ -35,7 +35,7 @@ def get_property_statistics(properties: List[Dict[str, Any]], loaded_data) -> Di
                 risk_level = flood_info.get('risk_level', property_info.get('flood_risk', 'Unknown'))
                 risk_counts[risk_level] = risk_counts.get(risk_level, 0) + 1
 
-                if property_id in (loaded_data.mortgage_lookup or {}):
+                if property_id in (loaded_data.rloan_lookup or {}):
                     mortgage_count += 1
         except Exception:
             continue

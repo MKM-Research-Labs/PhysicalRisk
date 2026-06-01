@@ -89,8 +89,8 @@ class TestPropertySectionBuilders:
         assert 'Test Thames Gauge' in section
         assert 'Medium' in section
 
-    def test_mortgage_section(self):
-        section = self.builder.create_mortgage_section(self.mortgage, 500000, 'Medium')
+    def test_rloan_section(self):
+        section = self.builder.create_rloan_section(self.mortgage, 500000, 'Medium')
         assert 'MTG-INTG-001' in section
         assert 'Test Bank Ltd' in section
         assert 'MORTGAGE DETAILS' in section

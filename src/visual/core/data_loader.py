@@ -34,7 +34,7 @@ from config import config
 from jsonfiles import JSONFileConfig
 from loaders import (
     GaugeLoader,
-    MortgageLoader,
+    RLoanLoader,
     PropertyLoader,
     build_all_lookups,
 )
@@ -49,7 +49,7 @@ class LoadedData:
     """Container for all loaded visualization data."""
     gauge_data: Optional[Dict[str, Any]] = None
     property_data: Optional[Dict[str, Any]] = None
-    mortgage_data: Optional[Dict[str, Any]] = None
+    rloan_data: Optional[Dict[str, Any]] = None
     commercial_data: Optional[Dict[str, Any]] = None
     commercial_loan_data: Optional[Dict[str, Any]] = None
     hazard_data: Optional[Dict[str, Any]] = None
@@ -63,7 +63,7 @@ class LoadedData:
     propertyts_count: int = 0
 
     # Processed lookups
-    mortgage_lookup: Optional[Dict[str, Dict]] = None
+    rloan_lookup: Optional[Dict[str, Dict]] = None
     commercial_loan_lookup: Optional[Dict[str, Dict]] = None
     gauge_flood_info: Optional[Dict[str, Dict]] = None
     property_flood_info: Optional[Dict[str, Dict]] = None
@@ -94,7 +94,7 @@ class DataLoader:
         # Initialize loaders with input directory
         self._gauge_loader = GaugeLoader(self.input_dir, filename=JSONFileConfig.GAUGE_PORTFOLIO)
         self._property_loader = PropertyLoader(self.input_dir, filename=JSONFileConfig.PROPERTY_PORTFOLIO)
-        self._mortgage_loader = MortgageLoader(self.input_dir, filename=JSONFileConfig.MORTGAGE_PORTFOLIO)
+        self._rloan_loader = RLoanLoader(self.input_dir, filename=JSONFileConfig.RLOAN_PORTFOLIO)
 
         logger.info(f"DataLoader initialized with input directory: {self.input_dir}")
 
@@ -116,8 +116,8 @@ class DataLoader:
         self.loaded_data.property_data = self._load_with_validation(
             self._property_loader, "property"
         )
-        self.loaded_data.mortgage_data = self._load_with_validation(
-            self._mortgage_loader, "mortgage"
+        self.loaded_data.rloan_data = self._load_with_validation(
+            self._rloan_loader, "mortgage"
         )
 
         # --- Commercial portfolio (optional — silently absent for catchments
@@ -283,7 +283,7 @@ class DataLoader:
         loans = (self.loaded_data.commercial_loan_data or {}).get('commercial_loans', [])
         lookup = {}
         for loan in loans:
-            pid = loan.get('Mortgage', {}).get('Header', {}).get('PropertyID')
+            pid = loan.get('RLoan', {}).get('Header', {}).get('PropertyID')
             if pid:
                 lookup[pid] = loan
         self.loaded_data.commercial_loan_lookup = lookup
@@ -332,17 +332,17 @@ class DataLoader:
         lookups = build_all_lookups(
             gauge_data=self.loaded_data.gauge_data,
             property_data=self.loaded_data.property_data,
-            mortgage_data=self.loaded_data.mortgage_data,
+            rloan_data=self.loaded_data.rloan_data,
             flood_risk_data=self.loaded_data.hazard_data,
             property_hazard_data=self.loaded_data.property_hazard_data
         )
 
-        self.loaded_data.mortgage_lookup = lookups["mortgage_lookup"]
+        self.loaded_data.rloan_lookup = lookups["rloan_lookup"]
         self.loaded_data.gauge_flood_info = lookups["gauge_flood_info"]
         self.loaded_data.property_flood_info = lookups["property_flood_info"]
         self._build_commercial_loan_lookup()
 
-        logger.info(f"Mortgage lookup: {len(self.loaded_data.mortgage_lookup)} entries")
+        logger.info(f"Mortgage lookup: {len(self.loaded_data.rloan_lookup)} entries")
         logger.info(f"Gauge flood info: {len(self.loaded_data.gauge_flood_info)} entries")
         logger.info(f"Property flood info: {len(self.loaded_data.property_flood_info)} entries")
         if self.loaded_data.commercial_loan_lookup:

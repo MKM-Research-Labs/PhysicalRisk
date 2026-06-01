@@ -265,7 +265,7 @@ class TCEventVisualization:
         required_filenames = [
             JSONFileConfig.GAUGE_PORTFOLIO,
             JSONFileConfig.PROPERTY_PORTFOLIO,
-            JSONFileConfig.MORTGAGE_PORTFOLIO,
+            JSONFileConfig.RLOAN_PORTFOLIO,
         ]
 
         # Optional files

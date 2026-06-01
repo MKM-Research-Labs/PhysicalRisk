@@ -12,12 +12,12 @@ class TestMortgageDetail:
 
     def _open_mortgage_panel(self, map_page, prop_id):
         """Try to open mortgage detail via available functions."""
-        # Try viewMortgageDetail
+        # Try viewRLoanDetail
         has_fn = map_page.evaluate(
-            "() => typeof window.viewMortgageDetail === 'function'"
+            "() => typeof window.viewRLoanDetail === 'function'"
         )
         if has_fn:
-            map_page.evaluate(f"window.viewMortgageDetail('{prop_id}')")
+            map_page.evaluate(f"window.viewRLoanDetail('{prop_id}')")
             map_page.wait_for_timeout(3_000)
             return True
 

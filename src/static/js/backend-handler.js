@@ -112,13 +112,13 @@
         var generateGaugeReport = _generateReport(
             BACKEND.endpoints.gauge_report, 'gaugeId', 'GaugePDFPanel', 'gaugePdfReady'
         );
-        var generateMortgageReport = _generateReport(
-            BACKEND.endpoints.mortgage_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
+        var generateRLoanReport = _generateReport(
+            BACKEND.endpoints.rloan_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
         );
         var generateCommercialReport = _generateReport(
             BACKEND.endpoints.commercial_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
         );
-        var generateLoanReport = _generateReport(
+        var generateCLoanReport = _generateReport(
             BACKEND.endpoints.commercial_loan_report, 'propertyId', 'PropertyPDFPanel', 'propertyPdfReady'
         );
 
@@ -254,11 +254,11 @@
             return generateCommercialReport(propertyId);
         }
 
-        function viewLoanDetails(propertyId) {
+        function viewCLoanDetails(propertyId) {
             // "Loan Details" right-click action — same pattern as
             // viewCommercialDetails / generateCommercialReport: the
             // menu item just dispatches to the PDF-generator factory.
-            return generateLoanReport(propertyId);
+            return generateCLoanReport(propertyId);
         }
 
         function viewCommercialStorms(propertyId) {
@@ -339,9 +339,9 @@
             callAPI: callAPI,
             generateReport: generateReport,
             generateGaugeReport: generateGaugeReport,
-            generateMortgageReport: generateMortgageReport,
+            generateRLoanReport: generateRLoanReport,
             generateCommercialReport: generateCommercialReport,
-            generateLoanReport: generateLoanReport,
+            generateCLoanReport: generateCLoanReport,
             viewGaugeStorms: viewGaugeStorms,
             viewHazardCurve: viewHazardCurve,
             viewGaugeHistory: viewGaugeHistory,
@@ -351,7 +351,7 @@
             viewCommercialDetails: viewCommercialDetails,
             viewCommercialStorms: viewCommercialStorms,
             viewCommercialHazard: viewCommercialHazard,
-            viewLoanDetails: viewLoanDetails,
+            viewCLoanDetails: viewCLoanDetails,
             showGaugeBlotter: showGaugeBlotter,
             checkBackendHealth: checkBackendHealth,
             getMapInstance: getMapInstance
@@ -368,9 +368,9 @@
         var api = createBackendHandler(root.__BACKEND_CONFIG);
         root.generateReport = api.generateReport;
         root.generateGaugeReport = api.generateGaugeReport;
-        root.generateMortgageReport = api.generateMortgageReport;
+        root.generateRLoanReport = api.generateRLoanReport;
         root.generateCommercialReport = api.generateCommercialReport;
-        root.generateLoanReport = api.generateLoanReport;
+        root.generateCLoanReport = api.generateCLoanReport;
         root.viewGaugeStorms = api.viewGaugeStorms;
         root.viewHazardCurve = api.viewHazardCurve;
         root.viewGaugeHistory = api.viewGaugeHistory;
@@ -380,7 +380,7 @@
         root.viewCommercialDetails = api.viewCommercialDetails;
         root.viewCommercialStorms = api.viewCommercialStorms;
         root.viewCommercialHazard = api.viewCommercialHazard;
-        root.viewLoanDetails = api.viewLoanDetails;
+        root.viewCLoanDetails = api.viewCLoanDetails;
         root.showGaugeBlotter = api.showGaugeBlotter;
         root.checkBackendHealth = api.checkBackendHealth;
         root.getMapInstance = api.getMapInstance;

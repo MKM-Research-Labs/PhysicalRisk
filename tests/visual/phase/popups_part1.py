@@ -145,7 +145,7 @@ class TestPropertyPopupBuilder:
             'post_code': 'SW1A 1AA'
         }
         self.sample_mortgage = {
-            'Header': {'MortgageID': 'MTG-test-001'},
+            'Header': {'RLoanID': 'MTG-test-001'},
             'FinancialTerms': {
                 'OriginalLoan': 500000,
                 'OriginalLendingRate': 0.035,
@@ -186,8 +186,8 @@ class TestPropertyPopupBuilder:
         assert '£125,000.00' in section
         assert '2.50 km' in section
 
-    def test_mortgage_section(self):
-        section = self.builder.create_mortgage_section(self.sample_mortgage, 750000, 'Medium')
+    def test_rloan_section(self):
+        section = self.builder.create_rloan_section(self.sample_mortgage, 750000, 'Medium')
         assert 'MTG-test-001' in section
         assert 'Test Bank' in section
         assert '£500,000.00' in section

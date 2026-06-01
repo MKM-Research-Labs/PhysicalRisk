@@ -79,7 +79,7 @@ def sample_address():
 @pytest.fixture
 def sample_mortgage():
     return {
-        'Header': {'MortgageID': 'MTG-INTG-001'},
+        'Header': {'RLoanID': 'MTG-INTG-001'},
         'FinancialTerms': {
             'OriginalLoan': 400000,
             'OriginalLendingRate': 0.035,

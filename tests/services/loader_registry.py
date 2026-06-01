@@ -43,7 +43,7 @@ class TestLoaderRegistryBasics:
         loaders = loader_registry.get_available_loaders()
 
         assert 'property' in loaders
-        assert 'mortgage' in loaders
+        assert 'rloan' in loaders
         assert 'gauge' in loaders
         assert 'timeseries' in loaders
         assert 'storm' in loaders
@@ -61,13 +61,13 @@ class TestLoaderRegistryTypedAccessors:
         assert isinstance(loader, PropertyLoader)
         assert loader.count() == 3
 
-    def test_get_mortgage_loader(self, loader_registry):
-        """Test getting MortgageLoader."""
-        from loaders.mortgage_loader import MortgageLoader
+    def test_get_rloan_loader(self, loader_registry):
+        """Test getting RLoanLoader."""
+        from loaders.rloan_loader import RLoanLoader
 
-        loader = loader_registry.get_mortgage_loader()
+        loader = loader_registry.get_rloan_loader()
 
-        assert isinstance(loader, MortgageLoader)
+        assert isinstance(loader, RLoanLoader)
         assert loader.count() == 3
 
     def test_get_gauge_loader(self, loader_registry):
@@ -184,7 +184,7 @@ class TestLoaderRegistryStatus:
         status = loader_registry.check_data_files()
 
         assert status['property'] is True
-        assert status['mortgage'] is True
+        assert status['rloan'] is True
         assert status['gauge'] is True
         assert status['timeseries'] is True
         assert status['storm'] is True

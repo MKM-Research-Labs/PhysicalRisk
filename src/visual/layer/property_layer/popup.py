@@ -10,7 +10,7 @@ from ...utils import ColorSchemes, DataFormatter
 
 
 def create_property_popup(property_info: Dict[str, Any], property_flood_info: Dict[str, Any],
-                          has_mortgage: bool, mortgage_info: Dict[str, Any]) -> str:
+                          has_rloan: bool, rloan_info: Dict[str, Any]) -> str:
     """Create detailed popup content for a property marker."""
     property_id = property_info['property_id']
     address = property_info.get('address', {})
@@ -58,8 +58,8 @@ def create_property_popup(property_info: Dict[str, Any], property_flood_info: Di
             </div>
     """
 
-    if has_mortgage and mortgage_info:
-        popup_content += create_mortgage_section(mortgage_info, property_value)
+    if has_rloan and rloan_info:
+        popup_content += create_rloan_section(rloan_info, property_value)
 
     popup_content += "</div>"
     return popup_content
@@ -82,19 +82,19 @@ def create_flood_risk_section(property_flood_info: Dict[str, Any]) -> str:
         """
 
 
-def create_mortgage_section(mortgage_info: Dict[str, Any], property_value: Any) -> str:
+def create_rloan_section(rloan_info: Dict[str, Any], property_value: Any) -> str:
     """Create the mortgage information section."""
-    loan_amount = mortgage_info.get('original_loan', mortgage_info.get('OriginalLoan', 0))
-    interest_rate = mortgage_info.get('original_lending_rate', mortgage_info.get('OriginalLendingRate', 0))
-    term_years = mortgage_info.get('term_years', mortgage_info.get('TermYears', 'N/A'))
-    provider = mortgage_info.get('mortgage_provider', mortgage_info.get('MortgageProvider', 'N/A'))
+    loan_amount = rloan_info.get('original_loan', rloan_info.get('OriginalLoan', 0))
+    interest_rate = rloan_info.get('original_lending_rate', rloan_info.get('OriginalLendingRate', 0))
+    term_years = rloan_info.get('term_years', rloan_info.get('TermYears', 'N/A'))
+    provider = rloan_info.get('mortgage_provider', rloan_info.get('MortgageProvider', 'N/A'))
 
     ltv_ratio = 0
     if loan_amount and property_value:
         try:
             ltv_ratio = float(loan_amount) / float(property_value)
         except (ValueError, TypeError, ZeroDivisionError):
-            ltv_ratio = mortgage_info.get('loan_to_value_ratio', mortgage_info.get('LoanToValueRatio', 0))
+            ltv_ratio = rloan_info.get('loan_to_value_ratio', rloan_info.get('LoanToValueRatio', 0))
 
     return f"""
         <div style="margin-top: 20px; border-top: 3px solid #8E44AD; padding-top: 10px;">

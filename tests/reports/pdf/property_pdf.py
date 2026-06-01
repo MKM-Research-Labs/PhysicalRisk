@@ -32,7 +32,7 @@ class TestPropertyPdfGeneration:
 
         report_path = generate_property_report(
             property_data=sample_property_data,
-            mortgage_data=sample_mortgage_data,
+            rloan_data=sample_mortgage_data,
             output_dir=tmp_path,
             report_type='full',
             auto_open=False
@@ -48,7 +48,7 @@ class TestPropertyPdfGeneration:
 
         report_path = generate_property_report(
             property_data=sample_property_data,
-            mortgage_data=None,
+            rloan_data=None,
             output_dir=tmp_path,
             report_type='property-only',
             auto_open=False
@@ -64,7 +64,7 @@ class TestPropertyPdfGeneration:
 
         report_path = generate_property_report(
             property_data=sample_property_data,
-            mortgage_data=sample_mortgage_data,
+            rloan_data=sample_mortgage_data,
             output_dir=tmp_path,
             report_type='risk-focused',
             auto_open=False
@@ -80,7 +80,7 @@ class TestPropertyPdfGeneration:
 
         report_path = generate_property_report(
             property_data=sample_property_data,
-            mortgage_data=sample_mortgage_data,
+            rloan_data=sample_mortgage_data,
             output_dir=tmp_path,
             report_type='mortgage-focused',
             auto_open=False
@@ -108,7 +108,7 @@ class TestPropertyPdfGeneration:
 
         report_path = generate_property_report(
             property_data=sample_property_data,
-            mortgage_data=sample_mortgage_data,
+            rloan_data=sample_mortgage_data,
             output_dir=tmp_path,
             auto_open=False
         )

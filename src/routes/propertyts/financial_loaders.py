@@ -74,28 +74,28 @@ def _load_prop_values():
     return prop_values
 
 
-def _load_mortgage_lookup():
-    """Load property_id → mortgage info from mortgage.json."""
-    mortgage_lookup = {}
+def _load_rloan_lookup():
+    """Load property_id → mortgage info from loan.json."""
+    rloan_lookup = {}
     try:
-        with open(config.get_input_path('mortgage.json'), 'r') as f:
+        with open(config.get_input_path('loan.json'), 'r') as f:
             mdata = json.load(f)
-        for m in mdata.get('mortgages', []):
-            mg = m.get('Mortgage', {})
+        for m in mdata.get('loans', []):
+            mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             status = mg.get('CurrentStatus', {})
-            mortgage_lookup[pid] = {
+            rloan_lookup[pid] = {
                 'outstanding_balance': status.get('OutstandingBalance', 0),
                 'current_ltv': status.get('CurrentLTV', 0),
                 'remaining_term_months': status.get('RemainingTerm', 0),
             }
     except Exception as e:
-        logger.warning(f'Could not load mortgage.json: {e}')
-    return mortgage_lookup
+        logger.warning(f'Could not load loan.json: {e}')
+    return rloan_lookup
 
 
 def _build_property_entry(prop_id, flood_depth, damage_ratio,
-                           prop_values, mortgage_lookup):
+                           prop_values, rloan_lookup):
     """Build a single property impact record with mortgage enrichment."""
     prop_value = prop_values[prop_id]
     damage_amount = round(prop_value * damage_ratio, 2)
@@ -108,11 +108,11 @@ def _build_property_entry(prop_id, flood_depth, damage_ratio,
         'damage_ratio': round(damage_ratio, 4),
         'damage_amount': damage_amount,
         'post_damage_value': post_damage_value,
-        'has_mortgage': prop_id in mortgage_lookup,
+        'has_rloan': prop_id in rloan_lookup,
     }
 
-    if prop_id in mortgage_lookup:
-        mg = mortgage_lookup[prop_id]
+    if prop_id in rloan_lookup:
+        mg = rloan_lookup[prop_id]
         outstanding = mg['outstanding_balance']
         post_ltv = round(
             (outstanding / post_damage_value * 100) if post_damage_value > 0 else 999, 1
@@ -136,16 +136,16 @@ def _build_property_entry(prop_id, flood_depth, damage_ratio,
     return entry
 
 
-def _portfolio_totals(properties, prop_values, mortgage_lookup):
+def _portfolio_totals(properties, prop_values, rloan_lookup):
     """Compute portfolio-level aggregate figures."""
     total_value = sum(p['property_value'] for p in properties)
     total_damage = sum(p['damage_amount'] for p in properties)
     total_post_value = sum(p['post_damage_value'] for p in properties)
-    mortgaged = [p for p in properties if p['has_mortgage']]
+    mortgaged = [p for p in properties if p['has_rloan']]
     total_outstanding = sum(p['outstanding_balance'] for p in mortgaged)
     neg_equity_count = sum(1 for p in mortgaged if p['negative_equity'])
     total_portfolio_value = sum(prop_values.values())
-    total_portfolio_mortgages = sum(m['outstanding_balance'] for m in mortgage_lookup.values())
+    total_portfolio_mortgages = sum(m['outstanding_balance'] for m in rloan_lookup.values())
     return {
         'total_properties': len(prop_values),
         'properties_affected': len(properties),

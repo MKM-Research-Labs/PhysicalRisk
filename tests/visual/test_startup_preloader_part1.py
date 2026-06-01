@@ -123,7 +123,7 @@ class TestStartupPreloaderBehaviour:
             '/api/v1/governance/bibliography',
             '/api/v1/propertyts/summary',
             '/api/v1/gauges/history/summary',
-            '/api/v1/mortgages',
+            '/api/v1/rloans',
         ]
         for ep in endpoints:
             assert ep in js, f'Endpoint {ep!r} missing from startup.py'

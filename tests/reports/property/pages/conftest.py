@@ -92,8 +92,8 @@ def _make_property():
 
 def _make_mortgage():
     return {
-        "Mortgage": {
-            "Header": {"MortgageID": "MORT-001"},
+        "RLoan": {
+            "Header": {"RLoanID": "MORT-001"},
             "CurrentStatus": {
                 "CurrentLTV": 0.65,
                 "CurrentBalance": 400_000,
@@ -145,7 +145,7 @@ def make_mortgage(ltv=0.65, in_arrears=False, missed_payments=0,
     if current_payment is not None:
         status["CurrentPayment"] = current_payment
     return {
-        "Mortgage": {
+        "RLoan": {
             "CurrentStatus": status,
             "BorrowerDetails": {
                 "BorrowerCreditScore": credit_score,

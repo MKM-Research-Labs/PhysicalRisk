@@ -87,7 +87,7 @@ SAMPLE_PROPERTY_TX = {
 }
 
 SAMPLE_MORTGAGE = {
-    "MortgageID": "MORT-001",
+    "RLoanID": "RLOAN-001",
     "PropertyID": "PROP-001",
     "LoanAmount": 360000,
     "InterestRate": 6.5,
@@ -99,7 +99,7 @@ SAMPLE_MORTGAGE = {
 }
 
 SAMPLE_MORTGAGE_2 = {
-    "MortgageID": "MORT-002",
+    "RLoanID": "RLOAN-002",
     "PropertyID": "PROP-002",
     "LoanAmount": 1000000,
     "InterestRate": 7.0,
@@ -111,7 +111,7 @@ SAMPLE_MORTGAGE_2 = {
 }
 
 SAMPLE_MORTGAGE_DELINQUENT = {
-    "MortgageID": "MORT-003",
+    "RLoanID": "RLOAN-003",
     "PropertyID": "PROP-003",
     "LoanAmount": 280000,
     "InterestRate": 5.5,

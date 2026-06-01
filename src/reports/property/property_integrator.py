@@ -83,16 +83,16 @@ def generate_report_for_property(property_id: str, property_file: Path,
             return None
 
         # Load mortgage data if available
-        mortgage_info = None
+        rloan_info = None
         if mortgage_file.exists():
             with open(mortgage_file) as f:
-                mortgage_data = json.load(f)
+                rloan_data = json.load(f)
 
-            mortgages = mortgage_data.get('mortgages', [])
+            mortgages = rloan_data.get('loans', [])
             for mortgage in mortgages:
-                mtg_prop_id = mortgage.get('Mortgage', {}).get('Header', {}).get('PropertyID')
+                mtg_prop_id = mortgage.get('RLoan', {}).get('Header', {}).get('PropertyID')
                 if mtg_prop_id == property_id:
-                    mortgage_info = mortgage.get('Mortgage', {})
+                    rloan_info = mortgage.get('RLoan', {})
                     break
 
         # Generate simple text report (could be enhanced to PDF)
@@ -116,9 +116,9 @@ def generate_report_for_property(property_id: str, property_file: Path,
             f.write(f"Postcode: {location.get('Postcode', '')}\n")
 
             # Mortgage info if available
-            if mortgage_info:
+            if rloan_info:
                 f.write("\nMORTGAGE INFORMATION:\n")
-                financial = mortgage_info.get('FinancialTerms', {})
+                financial = rloan_info.get('FinancialTerms', {})
                 f.write(f"Loan Amount: £{financial.get('OriginalLoan', 0):,.2f}\n")
                 f.write(f"Interest Rate: {financial.get('OriginalLendingRate', 0):.2%}\n")
                 f.write(f"LTV Ratio: {financial.get('LoanToValueRatio', 0):.2%}\n")

@@ -131,7 +131,7 @@ class TestPrintLoadingSummary:
         dl.loaded_data.gauge_data = {"count": 2, "items": [{}, {}]}
         dl.loaded_data.gauge_flood_info = {}
         dl.loaded_data.property_flood_info = {}
-        dl.loaded_data.mortgage_lookup = {}
+        dl.loaded_data.rloan_lookup = {}
         dl._print_loading_summary()
 
     def test_summary_with_full_data_does_not_crash(self, tmp_path):

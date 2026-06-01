@@ -50,7 +50,7 @@ from config import config
 
 from .base_loader import BaseLoader
 from .gauge_loader import GaugeLoader
-from .mortgage_loader import MortgageLoader
+from .rloan_loader import RLoanLoader
 from .property_loader import PropertyLoader
 from .storm_loader import StormLoader
 from .timeseries_loader import TimeseriesLoader
@@ -73,7 +73,7 @@ class LoaderRegistry:
     # Maps loader names to classes
     LOADER_CLASSES: Dict[str, Type[BaseLoader]] = {
         'property': PropertyLoader,
-        'mortgage': MortgageLoader,
+        'rloan': RLoanLoader,
         'gauge': GaugeLoader,
         'timeseries': TimeseriesLoader,
         'storm': StormLoader,
@@ -139,9 +139,9 @@ class LoaderRegistry:
         """Get the property loader."""
         return self._get_or_create_loader('property', PropertyLoader)
 
-    def get_mortgage_loader(self) -> MortgageLoader:
+    def get_rloan_loader(self) -> RLoanLoader:
         """Get the mortgage loader."""
-        return self._get_or_create_loader('mortgage', MortgageLoader)
+        return self._get_or_create_loader('rloan', RLoanLoader)
 
     def get_gauge_loader(self) -> GaugeLoader:
         """Get the gauge loader."""

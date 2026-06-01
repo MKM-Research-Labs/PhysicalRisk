@@ -51,4 +51,4 @@ class TestDataLoaderInit:
         dl = DataLoader(input_dir=tmp_path)
         assert dl._gauge_loader is not None
         assert dl._property_loader is not None
-        assert dl._mortgage_loader is not None
+        assert dl._rloan_loader is not None

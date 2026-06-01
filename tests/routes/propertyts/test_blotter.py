@@ -113,9 +113,9 @@ def _make_gaugehc_json():
 
 
 def _make_mortgage_json():
-    return {"mortgages": [{
-        "Mortgage": {
-            "Header": {"MortgageID": "MORT-BLT-001", "PropertyID": PROP_ID_1},
+    return {"loans": [{
+        "RLoan": {
+            "Header": {"RLoanID": "MORT-BLT-001", "PropertyID": PROP_ID_1},
             "FinancialTerms": {"OriginalBalance": 350000},
             "CurrentStatus": {
                 "OutstandingBalance": 320000,
@@ -132,7 +132,7 @@ def blotter_env(tmp_path, monkeypatch):
     (tmp_path / "property.json").write_text(json.dumps(_make_property_json()))
     (tmp_path / "gauge.json").write_text(json.dumps(_make_gauge_json()))
     (tmp_path / "gaugehc.json").write_text(json.dumps(_make_gaugehc_json()))
-    (tmp_path / "mortgage.json").write_text(json.dumps(_make_mortgage_json()))
+    (tmp_path / "loan.json").write_text(json.dumps(_make_mortgage_json()))
     # propertyts dir must exist for other routes but blotter doesn't need it
     (tmp_path / "propertyts").mkdir()
 

@@ -75,9 +75,9 @@ def property_json(n=2):
 
 def mortgage_json(n=2):
     return {
-        "mortgages": [
+        "loans": [
             {
-                "MortgageID": f"MORT-{i:03d}",
+                "RLoanID": f"RLOAN-{i:03d}",
                 "PropertyID": f"PROP-{i:03d}",
                 "LoanAmount": 300_000,
                 "InterestRate": 0.035,

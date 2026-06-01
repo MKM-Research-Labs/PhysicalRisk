@@ -43,7 +43,7 @@ class TestLoanCDMValidation:
                              "FinancialTerms": {"OriginalLoan": 300000}}}
         errors = mortgage_cdm.validate(data)
         assert "Header" in errors
-        assert any("MortgageID" in e for e in errors["Header"])
+        assert any("RLoanID" in e for e in errors["Header"])
 
     def test_validate_missing_catchment_id(self, mortgage_cdm):
         """Line 262: Missing CatchmentID produces header error."""

@@ -40,7 +40,7 @@ def print_relationship_analysis(loader) -> None:
 
     analysis = analyze_id_relationships(
         property_data=loader.loaded_data.property_data,
-        mortgage_data=loader.loaded_data.mortgage_data,
+        rloan_data=loader.loaded_data.rloan_data,
         flood_risk_data=loader.loaded_data.property_hazard_data
     )
 
@@ -48,9 +48,9 @@ def print_relationship_analysis(loader) -> None:
     overlaps = analysis["overlaps"]
 
     logger.info(f"Properties: {counts['properties']}")
-    logger.info(f"Mortgages: {counts['mortgages']}")
+    logger.info(f"Mortgages: {counts['loans']}")
     logger.info(
-        f"Properties with mortgages: {overlaps['properties_with_mortgages']}/"
+        f"Properties with mortgages: {overlaps['properties_with_loans']}/"
         f"{counts['properties']}"
     )
     logger.info(
@@ -58,8 +58,8 @@ def print_relationship_analysis(loader) -> None:
         f"{counts['properties']}"
     )
     logger.info(
-        f"Mortgages with flood risk: {overlaps['mortgages_with_flood_risk']}/"
-        f"{counts['mortgages']}"
+        f"Mortgages with flood risk: {overlaps['loans_with_flood_risk']}/"
+        f"{counts['loans']}"
     )
 
 
@@ -69,7 +69,7 @@ def print_loading_summary(loader) -> None:
 
     gauge_count = d.gauge_data.get("count", 0) if d.gauge_data else 0
     prop_count = d.property_data.get("count", 0) if d.property_data else 0
-    mort_count = d.mortgage_data.get("count", 0) if d.mortgage_data else 0
+    mort_count = d.rloan_data.get("count", 0) if d.rloan_data else 0
     hc_count = len(d.hazard_data.get("hazard_curves", {})) if d.hazard_data else 0
     phc_count = (
         len(d.property_hazard_data.get("property_hazard_curves", {}))
@@ -90,7 +90,7 @@ def print_loading_summary(loader) -> None:
     logger.info(
         f"Lookups:     {len(d.gauge_flood_info or {})} gauge flood | "
         f"{len(d.property_flood_info or {})} property flood | "
-        f"{len(d.mortgage_lookup or {})} mortgage"
+        f"{len(d.rloan_lookup or {})} mortgage"
     )
 
 

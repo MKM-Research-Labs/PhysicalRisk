@@ -26,7 +26,7 @@ from config import config
 from port.typhoon_storm_link import link_for_storm
 
 from .blueprint import propertyts_bp
-from .financial_loaders import _load_mortgage_lookup, _load_prop_values
+from .financial_loaders import _load_rloan_lookup, _load_prop_values
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ def _build_wind_entry(asset_id: str,
                       damage: Dict,
                       address: str,
                       asset_type: str,
-                      mortgage_lookup: Dict) -> Dict:
+                      rloan_lookup: Dict) -> Dict:
     """Build one wind-impact row, mirroring the flood damage row shape."""
     damage_ratio = float(damage.get('damage_ratio', 0.0) or 0.0)
     damage_amount = round(asset_value * damage_ratio, 2)
@@ -115,10 +115,10 @@ def _build_wind_entry(asset_id: str,
         'damage_ratio': round(damage_ratio, 4),
         'damage_amount': damage_amount,
         'post_damage_value': post_damage_value,
-        'has_mortgage': asset_id in mortgage_lookup,
+        'has_rloan': asset_id in rloan_lookup,
     }
-    if asset_id in mortgage_lookup:
-        mg = mortgage_lookup[asset_id]
+    if asset_id in rloan_lookup:
+        mg = rloan_lookup[asset_id]
         outstanding = mg.get('outstanding_balance', 0)
         post_ltv = round(
             (outstanding / post_damage_value * 100) if post_damage_value > 0 else 999, 1
@@ -178,7 +178,7 @@ def wind_impact(storm_id: str):
     prop_values = _load_prop_values()
     prop_meta = _load_property_address_lookup()
     commercial_lookup = _load_commercial_lookup()
-    mortgage_lookup = _load_mortgage_lookup()
+    rloan_lookup = _load_rloan_lookup()
 
     rows: List[Dict] = []
     for d in damage_data.get('damages', []):
@@ -197,7 +197,7 @@ def wind_impact(storm_id: str):
                 damage=d,
                 address=meta['address'],
                 asset_type=meta['commercial_type'],
-                mortgage_lookup=mortgage_lookup,
+                rloan_lookup=rloan_lookup,
             ))
         else:
             asset_value = float(prop_values.get(asset_id, 0) or 0.0)
@@ -213,7 +213,7 @@ def wind_impact(storm_id: str):
                 damage=d,
                 address=meta.get('address', ''),
                 asset_type=meta.get('type', 'Residential'),
-                mortgage_lookup=mortgage_lookup,
+                rloan_lookup=rloan_lookup,
             ))
 
     rows.sort(key=lambda r: r['damage_amount'], reverse=True)

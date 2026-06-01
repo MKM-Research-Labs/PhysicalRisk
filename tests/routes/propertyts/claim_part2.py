@@ -37,7 +37,7 @@ from .conftest import (
 
 class TestClaimReportHelperExceptions:
     """Cover exception branches in _load_sequence_lookup (L56-57),
-    _load_prop_record (L71-73), and _load_mortgage_record (L89-91).
+    _load_prop_record (L71-73), and _load_rloan_record (L89-91).
 
     These paths are hit when the underlying JSON files are missing or corrupt,
     but the propertyts flood data file itself is present with flood events.
@@ -45,13 +45,13 @@ class TestClaimReportHelperExceptions:
 
     @pytest.fixture
     def claim_env_no_support_files(self, tmp_path, monkeypatch):
-        """Propertyts file present with floods, but property.json / mortgage.json /
+        """Propertyts file present with floods, but property.json / loan.json /
         storm_sequences.json are all missing so the helpers hit their except branches."""
         from config import config
         pts_dir = tmp_path / "propertyts"
         pts_dir.mkdir()
         (pts_dir / f"{CLAIM_PROP_ID}.json").write_text(json.dumps(CLAIM_PROP_FLOOD_DATA))
-        # Deliberately do NOT create property.json, mortgage.json, storm_sequences.json
+        # Deliberately do NOT create property.json, loan.json, storm_sequences.json
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
         from server import create_app
@@ -83,7 +83,7 @@ class TestClaimReportHelperExceptions:
         assert r.status_code == 200
 
     def test_missing_mortgage_json_still_generates(self, claim_env_no_support_files, monkeypatch):
-        """_load_mortgage_record exception (L89-91) returns None; report still generated."""
+        """_load_rloan_record exception (L89-91) returns None; report still generated."""
         fake_pdf = b"%PDF-1.4 fake"
         class FakeGen:
             def generate(self, prop_data, prop_record, mort_record, seq_lookup):
@@ -101,7 +101,7 @@ class TestClaimReportHelperExceptions:
         pts_dir.mkdir()
         (pts_dir / f"{CLAIM_PROP_ID}.json").write_text(json.dumps(CLAIM_PROP_FLOOD_DATA))
         (tmp_path / "property.json").write_text(json.dumps(CLAIM_PROPERTY_JSON))
-        (tmp_path / "mortgage.json").write_text(json.dumps(CLAIM_MORTGAGE_JSON))
+        (tmp_path / "loan.json").write_text(json.dumps(CLAIM_MORTGAGE_JSON))
         (tmp_path / "storm_sequences.json").write_text("NOT VALID JSON {{{")
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)

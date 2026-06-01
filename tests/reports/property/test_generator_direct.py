@@ -87,13 +87,13 @@ class TestPropertyReportGeneratorDirect:
         assert "unknown" in name
 
     def test_auto_select_pages_with_mortgage(self, tmp_path):
-        """Line 174-175: mortgage_data -> includes mortgage pages."""
+        """Line 174-175: rloan_data -> includes mortgage pages."""
         gen = self._gen(tmp_path)
         pages = gen._auto_select_pages(_PROP_DATA, _MORT_DATA)
         assert "mortgage_overview" in pages
 
     def test_auto_select_pages_without_mortgage(self, tmp_path):
-        """Line 174 (else): no mortgage_data -> no mortgage pages."""
+        """Line 174 (else): no rloan_data -> no mortgage pages."""
         gen = self._gen(tmp_path)
         pages = gen._auto_select_pages(_PROP_DATA, None)
         assert "mortgage_overview" not in pages
@@ -101,7 +101,7 @@ class TestPropertyReportGeneratorDirect:
     def test_generate_elements_skips_unknown(self, tmp_path):
         """Lines 198-199: unknown page -> skip."""
         gen = self._gen(tmp_path)
-        elements = gen._generate_elements(["bogus"], property_data=_PROP_DATA, mortgage_data=None)
+        elements = gen._generate_elements(["bogus"], property_data=_PROP_DATA, rloan_data=None)
         assert isinstance(elements, list)
 
     def test_generate_elements_exception_continues(self, tmp_path):
@@ -110,7 +110,7 @@ class TestPropertyReportGeneratorDirect:
         bad = MagicMock()
         bad.generate_elements.side_effect = RuntimeError("page crash")
         gen.pages["bad_page"] = bad
-        elements = gen._generate_elements(["bad_page", "title_overview"], property_data=_PROP_DATA, mortgage_data=None)
+        elements = gen._generate_elements(["bad_page", "title_overview"], property_data=_PROP_DATA, rloan_data=None)
         assert isinstance(elements, list)
 
     def test_generate_property_only_report(self, tmp_path):
@@ -175,11 +175,11 @@ class TestGeneratePropertyReport:
             mock.generate_property_only_report.assert_called_once()
 
     def test_mortgage_focused_type(self, tmp_path):
-        """Lines 319-320: 'mortgage-focused' with mortgage_data."""
+        """Lines 319-320: 'mortgage-focused' with rloan_data."""
         mock = self._mock_gen(tmp_path)
         with patch("reports.property.property_generator.PropertyReportGenerator", return_value=mock):
             from reports.property.property_generator import generate_property_report
-            generate_property_report(self.PROP, mortgage_data={"m": 1}, output_dir=tmp_path, report_type="mortgage-focused", auto_open=False)
+            generate_property_report(self.PROP, rloan_data={"m": 1}, output_dir=tmp_path, report_type="mortgage-focused", auto_open=False)
             mock.generate_mortgage_focused_report.assert_called_once()
 
     def test_risk_focused_type(self, tmp_path):

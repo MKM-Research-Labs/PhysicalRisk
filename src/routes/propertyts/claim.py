@@ -73,13 +73,13 @@ def _load_prop_record(prop_id):
     return {}
 
 
-def _load_mortgage_record(prop_id):
-    """Find and return mortgage data for this property from mortgage.json."""
+def _load_rloan_record(prop_id):
+    """Find and return mortgage data for this property from loan.json."""
     try:
-        with open(config.get_input_path('mortgage.json'), 'r') as f:
+        with open(config.get_input_path('loan.json'), 'r') as f:
             mdata = json.load(f)
-        for m in mdata.get('mortgages', []):
-            mg = m.get('Mortgage', {})
+        for m in mdata.get('loans', []):
+            mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             if pid == prop_id:
                 return {
@@ -123,13 +123,13 @@ def property_claim_report(prop_id: str):
         }), 404
 
     prop_record = _load_prop_record(prop_id)
-    mortgage_record = _load_mortgage_record(prop_id)
+    rloan_record = _load_rloan_record(prop_id)
     sequence_lookup = _load_sequence_lookup()
 
     try:
         from reports.property.claim import ClaimReportGenerator
         gen = ClaimReportGenerator()
-        pdf_bytes = gen.generate(prop_data, prop_record, mortgage_record, sequence_lookup)
+        pdf_bytes = gen.generate(prop_data, prop_record, rloan_record, sequence_lookup)
     except Exception as e:
         logger.error(f'Failed to generate claim report for {prop_id}: {e}', exc_info=True)
         return jsonify({'status': 'error', 'message': 'Internal server error'}), 500

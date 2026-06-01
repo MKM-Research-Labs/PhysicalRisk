@@ -24,8 +24,8 @@ import pytest
 
 from loaders.lookups import (
     extract_property_ids,
-    extract_mortgage_ids,
-    extract_mortgage_property_ids,
+    extract_rloan_ids,
+    extract_rloan_property_ids,
     extract_gauge_ids,
     analyze_id_relationships,
 )
@@ -58,41 +58,41 @@ class TestExtractPropertyIds:
 
 
 # ===========================================================================
-# extract_mortgage_ids
+# extract_rloan_ids
 # ===========================================================================
 
-class TestExtractMortgageIds:
+class TestExtractRLoanIds:
 
     def test_none_returns_empty_set(self):
-        assert extract_mortgage_ids(None) == set()
+        assert extract_rloan_ids(None) == set()
 
     def test_extracts_ids(self):
         data = {
             "items": [
-                {"Mortgage": {"Header": {"MortgageID": "M1"}}},
-                {"Mortgage": {"Header": {"MortgageID": "M2"}}},
+                {"RLoan": {"Header": {"RLoanID": "M1"}}},
+                {"RLoan": {"Header": {"RLoanID": "M2"}}},
             ]
         }
-        assert extract_mortgage_ids(data) == {"M1", "M2"}
+        assert extract_rloan_ids(data) == {"M1", "M2"}
 
 
 # ===========================================================================
-# extract_mortgage_property_ids
+# extract_rloan_property_ids
 # ===========================================================================
 
 class TestExtractMortgagePropertyIds:
 
     def test_none_returns_empty_set(self):
-        assert extract_mortgage_property_ids(None) == set()
+        assert extract_rloan_property_ids(None) == set()
 
     def test_extracts_property_ids_from_mortgages(self):
         data = {
             "items": [
-                {"Mortgage": {"Header": {"MortgageID": "M1", "PropertyID": "P1"}}},
-                {"Mortgage": {"Header": {"MortgageID": "M2", "PropertyID": "P2"}}},
+                {"RLoan": {"Header": {"RLoanID": "M1", "PropertyID": "P1"}}},
+                {"RLoan": {"Header": {"RLoanID": "M2", "PropertyID": "P2"}}},
             ]
         }
-        assert extract_mortgage_property_ids(data) == {"P1", "P2"}
+        assert extract_rloan_property_ids(data) == {"P1", "P2"}
 
 
 # ===========================================================================
@@ -127,8 +127,8 @@ class TestAnalyzeIdRelationships:
     def test_all_none_returns_zeros(self):
         result = analyze_id_relationships()
         assert result["counts"]["properties"] == 0
-        assert result["counts"]["mortgages"] == 0
-        assert result["overlaps"]["properties_with_mortgages"] == 0
+        assert result["counts"]["loans"] == 0
+        assert result["overlaps"]["properties_with_loans"] == 0
 
     def test_returns_required_keys(self):
         result = analyze_id_relationships()
@@ -142,15 +142,15 @@ class TestAnalyzeIdRelationships:
                 {"PropertyHeader": {"Header": {"PropertyID": "P2"}}},
             ]
         }
-        mortgage_data = {
+        rloan_data = {
             "items": [
-                {"Mortgage": {"Header": {"MortgageID": "M1", "PropertyID": "P1"}}},
+                {"RLoan": {"Header": {"RLoanID": "M1", "PropertyID": "P1"}}},
             ]
         }
-        result = analyze_id_relationships(property_data, mortgage_data)
+        result = analyze_id_relationships(property_data, rloan_data)
         assert result["counts"]["properties"] == 2
-        assert result["counts"]["mortgages"] == 1
-        assert result["overlaps"]["properties_with_mortgages"] == 1
+        assert result["counts"]["loans"] == 1
+        assert result["overlaps"]["properties_with_loans"] == 1
 
     def test_flood_properties_overlap(self):
         property_data = {
@@ -167,14 +167,14 @@ class TestAnalyzeIdRelationships:
         assert result["overlaps"]["properties_with_flood_risk"] == 1  # Only P1 overlaps
 
     def test_flood_mortgages_counted(self):
-        mortgage_data = {
+        rloan_data = {
             "items": [
-                {"Mortgage": {"Header": {"MortgageID": "M1", "PropertyID": "P1"}}},
-                {"Mortgage": {"Header": {"MortgageID": "M2", "PropertyID": "P2"}}},
+                {"RLoan": {"Header": {"RLoanID": "M1", "PropertyID": "P1"}}},
+                {"RLoan": {"Header": {"RLoanID": "M2", "PropertyID": "P2"}}},
             ]
         }
         flood_risk_data = {
             "property_hazard_curves": {"P1": {}}  # Only P1 has flood risk
         }
-        result = analyze_id_relationships(None, mortgage_data, flood_risk_data)
-        assert result["counts"]["flood_mortgages"] == 1
+        result = analyze_id_relationships(None, rloan_data, flood_risk_data)
+        assert result["counts"]["flood_loans"] == 1

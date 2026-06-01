@@ -16,7 +16,7 @@ Pages divide into two groups:
 
 from .accessibility import AccessibilityPage
 from .attributes import CommercialAttributesPage
-from .loan_overview import LoanOverviewPage
+from .loan_overview import CLoanOverviewPage
 from .shared_pages import (
     ConstructionPage,
     EnergyPage,
@@ -45,5 +45,5 @@ __all__ = [
     "ProtectionPage",
     "HistoryPage",
     "TransactionsPage",
-    "LoanOverviewPage",
+    "CLoanOverviewPage",
 ]

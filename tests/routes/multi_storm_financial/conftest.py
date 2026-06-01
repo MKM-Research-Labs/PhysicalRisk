@@ -44,11 +44,11 @@ def _property_json(path, properties):
 
 
 def _mortgage_json(path, mortgages):
-    """Write mortgage.json with outstanding balance data."""
+    """Write loan.json with outstanding balance data."""
     records = [
         {
-            "Mortgage": {
-                "Header": {"MortgageID": f"MORT-{pid}", "PropertyID": pid},
+            "RLoan": {
+                "Header": {"RLoanID": f"MORT-{pid}", "PropertyID": pid},
                 "CurrentStatus": {
                     "OutstandingBalance": balance,
                     "CurrentLTV": round(balance / value, 2),
@@ -58,7 +58,7 @@ def _mortgage_json(path, mortgages):
         }
         for pid, balance, value in mortgages
     ]
-    path.write_text(json.dumps({"mortgages": records}))
+    path.write_text(json.dumps({"loans": records}))
 
 
 def make_test_client(tmp_path, monkeypatch, pts_setup_fn):

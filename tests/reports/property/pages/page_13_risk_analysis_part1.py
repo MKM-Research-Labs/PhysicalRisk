@@ -38,7 +38,7 @@ class TestRiskAnalysisPageBasics:
         assert isinstance(self._page().generate_elements(make_property()), list)
 
     def test_property_only_mode(self):
-        result = self._page().generate_elements(make_property(), mortgage_data=None)
+        result = self._page().generate_elements(make_property(), rloan_data=None)
         assert isinstance(result, list) and len(result) > 0
 
     def test_combined_mode_with_mortgage(self):
