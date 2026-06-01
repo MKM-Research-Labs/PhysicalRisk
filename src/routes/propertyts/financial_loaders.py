@@ -75,13 +75,13 @@ def _load_prop_values():
 
 
 def _load_rloan_lookup():
-    """Load property_id → mortgage info from mortgage.json."""
+    """Load property_id → mortgage info from loan.json."""
     rloan_lookup = {}
     try:
-        with open(config.get_input_path('mortgage.json'), 'r') as f:
+        with open(config.get_input_path('loan.json'), 'r') as f:
             mdata = json.load(f)
-        for m in mdata.get('mortgages', []):
-            mg = m.get('Mortgage', {})
+        for m in mdata.get('loans', []):
+            mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             status = mg.get('CurrentStatus', {})
             rloan_lookup[pid] = {
@@ -90,7 +90,7 @@ def _load_rloan_lookup():
                 'remaining_term_months': status.get('RemainingTerm', 0),
             }
     except Exception as e:
-        logger.warning(f'Could not load mortgage.json: {e}')
+        logger.warning(f'Could not load loan.json: {e}')
     return rloan_lookup
 
 

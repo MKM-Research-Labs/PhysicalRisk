@@ -43,9 +43,9 @@ class RLoanTitlePage(PropertyBasePage):
             provider = 'N/A'
             app_date = 'N/A'
             if rloan_data:
-                mort = rloan_data.get('Mortgage', rloan_data)
+                mort = rloan_data.get('RLoan', rloan_data)
                 hdr = mort.get('Header', {})
-                mortgage_id = hdr.get('MortgageID', 'Unknown')
+                mortgage_id = hdr.get('RLoanID', 'Unknown')
                 app = mort.get('Application', {})
                 provider = app.get('MortgageProvider', 'N/A')
                 app_date = app.get('ApplicationDate', 'N/A')
@@ -78,7 +78,7 @@ class RLoanTitlePage(PropertyBasePage):
             mort_summary.append(["Property ID", property_id])
 
             if rloan_data:
-                mort = rloan_data.get('Mortgage', rloan_data)
+                mort = rloan_data.get('RLoan', rloan_data)
                 fin = mort.get('FinancialTerms', {})
                 cur = mort.get('CurrentStatus', {})
                 if fin.get('OriginalLoan'):

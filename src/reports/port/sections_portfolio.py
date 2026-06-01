@@ -113,12 +113,12 @@ class PortfolioSectionsMixin:
         header = ['#', 'Mortgage ID', 'Property ID', 'LTV (%)', 'Term (mo)', 'Rate (%)', 'Balance']
         rows = []
         for i, m in enumerate(mortgages, 1):
-            mg = m.get('Mortgage', m)
+            mg = m.get('RLoan', m)
             hdr = mg.get('Header', {})
             ft = mg.get('FinancialTerms', mg.get('Terms', {}))
             cs = mg.get('CurrentStatus', {})
 
-            mid = hdr.get('MortgageID', mg.get('mortgage_id', '-'))
+            mid = hdr.get('RLoanID', mg.get('mortgage_id', '-'))
             pid = hdr.get('PropertyID', mg.get('property_id', '-'))
             ltv = ft.get('OriginalLTV', ft.get('LTV', '-'))
             term = ft.get('OriginalTerm', ft.get('TermYears', '-'))

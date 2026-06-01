@@ -36,11 +36,11 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
     """
     Loader for mortgage portfolio data.
 
-    Handles the mortgage.json file with structure:
+    Handles the loan.json file with structure:
     {
         "mortgages": [
             {
-                "MortgageID": "...",
+                "RLoanID": "...",
                 "PropertyID": "...",
                 "LoanAmount": ...,
                 ...
@@ -49,18 +49,18 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
     }
     """
 
-    ENTITY_NAME = 'mortgage'
-    DEFAULT_FILENAME = 'mortgage.json'
-    CONTAINER_KEYS = ['mortgages', 'portfolio', 'loans']
+    ENTITY_NAME = 'rloan'
+    DEFAULT_FILENAME = 'loan.json'
+    CONTAINER_KEYS = ['loans', 'portfolio', 'mortgages']
 
     def get_entity_id(self, entity: Dict[str, Any]) -> Optional[str]:
-        """Extract MortgageID from entity."""
-        return entity.get('MortgageID')
+        """Extract RLoanID from entity."""
+        return entity.get('RLoanID')
 
     def get_entity_summary(self, entity: Dict[str, Any]) -> Dict[str, Any]:
         """Create mortgage summary for listing."""
         return {
-            'mortgageId': entity.get('MortgageID'),
+            'mortgageId': entity.get('RLoanID'),
             'propertyId': entity.get('PropertyID'),
             'loanAmount': entity.get('LoanAmount'),
             'interestRate': entity.get('InterestRate'),
@@ -90,7 +90,7 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
             # Check top-level and nested Mortgage.Header.PropertyID
             prop_id = entity.get('PropertyID')
             if not prop_id:
-                prop_id = entity.get('Mortgage', {}).get('Header', {}).get('PropertyID')
+                prop_id = entity.get('RLoan', {}).get('Header', {}).get('PropertyID')
             if prop_id == property_id:
                 logger.debug(f"Found mortgage for property: {property_id}")
                 return entity

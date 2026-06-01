@@ -105,7 +105,7 @@ def _find_property_by_id(data, property_id):
 def _find_mortgage_by_property_id(data, property_id):
     """Find mortgage for specific property."""
     if isinstance(data, dict):
-        mortgages = data.get('mortgages', [data])
+        mortgages = data.get('loans', [data])
     elif isinstance(data, list):
         mortgages = data
     else:

@@ -47,7 +47,7 @@ def cluster_env(tmp_path, monkeypatch):
         ])
 
     _property_json(tmp_path / "property.json", [("PROP-X", 500_000)])
-    _mortgage_json(tmp_path / "mortgage.json", [("PROP-X", 380_000, 500_000)])
+    _mortgage_json(tmp_path / "loan.json", [("PROP-X", 380_000, 500_000)])
     return make_test_client(tmp_path, monkeypatch, setup)
 
 
@@ -63,7 +63,7 @@ def neg_equity_env(tmp_path, monkeypatch):
         ])
 
     _property_json(tmp_path / "property.json", [("PROP-NE", 300_000)])
-    _mortgage_json(tmp_path / "mortgage.json", [("PROP-NE", 280_000, 300_000)])
+    _mortgage_json(tmp_path / "loan.json", [("PROP-NE", 280_000, 300_000)])
     return make_test_client(tmp_path, monkeypatch, setup)
 
 
@@ -156,7 +156,7 @@ class TestSequenceIsolation:
             ])
 
         _property_json(tmp_path / "property.json", [("PROP-001", 400_000)])
-        _mortgage_json(tmp_path / "mortgage.json", [("PROP-001", 270_000, 400_000)])
+        _mortgage_json(tmp_path / "loan.json", [("PROP-001", 270_000, 400_000)])
         return make_test_client(tmp_path, monkeypatch, setup)
 
     def test_seqA_first_storm_returns_only_its_damage(self, two_sequence_env):

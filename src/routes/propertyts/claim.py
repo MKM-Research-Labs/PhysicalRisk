@@ -74,12 +74,12 @@ def _load_prop_record(prop_id):
 
 
 def _load_rloan_record(prop_id):
-    """Find and return mortgage data for this property from mortgage.json."""
+    """Find and return mortgage data for this property from loan.json."""
     try:
-        with open(config.get_input_path('mortgage.json'), 'r') as f:
+        with open(config.get_input_path('loan.json'), 'r') as f:
             mdata = json.load(f)
-        for m in mdata.get('mortgages', []):
-            mg = m.get('Mortgage', {})
+        for m in mdata.get('loans', []):
+            mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             if pid == prop_id:
                 return {

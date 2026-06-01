@@ -7,7 +7,7 @@
 
 Targets uncovered lines: 64-65, 84-85, 120, 193, 258.
 - 64-65: _load_prop_values exception path (property.json missing/broken)
-- 84-85: _load_rloan_lookup exception path (mortgage.json missing/broken)
+- 84-85: _load_rloan_lookup exception path (loan.json missing/broken)
 - 120: property without mortgage → zero-fill branch in _build_property_entry
 - 193: property_id not in prop_values → break (per-storm)
 - 258: property_id not in prop_values → continue (sequence)
@@ -57,8 +57,8 @@ def pts_env_no_valuation(tmp_path, monkeypatch):
     }]}
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
-    rloan_data = {"mortgages": []}
-    (tmp_path / "mortgage.json").write_text(json.dumps(rloan_data))
+    rloan_data = {"loans": []}
+    (tmp_path / "loan.json").write_text(json.dumps(rloan_data))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
@@ -71,13 +71,13 @@ def pts_env_no_valuation(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Fixture: environment where property.json / mortgage.json are missing
+# Fixture: environment where property.json / loan.json are missing
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
 def pts_env_missing_files(tmp_path, monkeypatch):
     """
-    Environment where property.json and mortgage.json do not exist,
+    Environment where property.json and loan.json do not exist,
     exercising the exception paths in _load_prop_values and _load_rloan_lookup.
     """
     from config import config
@@ -100,7 +100,7 @@ def pts_env_missing_files(tmp_path, monkeypatch):
     }
     (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
 
-    # Intentionally do NOT create property.json or mortgage.json
+    # Intentionally do NOT create property.json or loan.json
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
     monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
@@ -147,8 +147,8 @@ def pts_env_no_mortgage(tmp_path, monkeypatch):
     (tmp_path / "property.json").write_text(json.dumps(property_data))
 
     # Empty mortgage file — no mortgage for PROP-001
-    rloan_data = {"mortgages": []}
-    (tmp_path / "mortgage.json").write_text(json.dumps(rloan_data))
+    rloan_data = {"loans": []}
+    (tmp_path / "loan.json").write_text(json.dumps(rloan_data))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
@@ -184,7 +184,7 @@ class TestLoadPropValuesException:
 
 # ===========================================================================
 # Tests: _load_rloan_lookup exception (lines 84-85)
-# covered implicitly: when mortgage.json is missing, _load_rloan_lookup
+# covered implicitly: when loan.json is missing, _load_rloan_lookup
 # returns empty dict. Combined with missing property.json above, both
 # exception paths run. But let's also test with broken JSON.
 # ===========================================================================
@@ -192,7 +192,7 @@ class TestLoadPropValuesException:
 class TestLoadMortgageLookupException:
 
     def test_corrupt_mortgage_json_still_returns_data(self, tmp_path, monkeypatch):
-        """When mortgage.json has invalid JSON, the exception is caught
+        """When loan.json has invalid JSON, the exception is caught
         and rloan_lookup is empty. Storm endpoint still works if
         property data is fine."""
         from config import config
@@ -222,8 +222,8 @@ class TestLoadMortgageLookupException:
         }]}
         (tmp_path / "property.json").write_text(json.dumps(property_data))
 
-        # Write invalid JSON to mortgage.json
-        (tmp_path / "mortgage.json").write_text("{BROKEN")
+        # Write invalid JSON to loan.json
+        (tmp_path / "loan.json").write_text("{BROKEN")
 
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
@@ -331,7 +331,7 @@ class TestSevereFloodFilter:
             }
         }]}
         (tmp_path / "property.json").write_text(json.dumps(property_data))
-        (tmp_path / "mortgage.json").write_text(json.dumps({"mortgages": []}))
+        (tmp_path / "loan.json").write_text(json.dumps({"loans": []}))
 
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)

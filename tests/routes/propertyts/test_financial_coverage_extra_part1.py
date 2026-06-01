@@ -122,7 +122,7 @@ class TestLoadAllPrsTrades:
         (pts_dir / f'{PROP_ID}.json').write_text(json.dumps(_make_prop_flood()))
         (tmp_path / 'property.json').write_text(
             json.dumps(_make_prop_details()))
-        (tmp_path / 'mortgage.json').write_text(json.dumps(_make_mortgage()))
+        (tmp_path / 'loan.json').write_text(json.dumps(_make_mortgage()))
 
         # One valid trade, one corrupt
         good = _make_prs_trade('PRS-GOOD', 'GAUGE-001', PROP_ID, 200_000)

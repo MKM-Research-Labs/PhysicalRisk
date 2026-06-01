@@ -68,7 +68,7 @@ class TestLoaderRegistryLoaders:
         available = LoaderRegistry(data_dir=tmp_path).get_available_loaders()
         assert "property" in available
         assert "gauge" in available
-        assert "mortgage" in available
+        assert "rloan" in available
 
 
 class TestLoaderRegistryDataFiles:

@@ -282,8 +282,8 @@ class DataSummaryPage(PropertyBasePage):
 
             # Try to get mortgage ID
             try:
-                rloan_info = rloan_data.get('Mortgage', rloan_data)
-                mortgage_id = rloan_info['Header']['MortgageID']
+                rloan_info = rloan_data.get('RLoan', rloan_data)
+                mortgage_id = rloan_info['Header']['RLoanID']
                 metadata["Mortgage ID"] = mortgage_id
             except (KeyError, TypeError):
                 pass

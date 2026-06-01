@@ -243,7 +243,7 @@ def _trace_data(lineage, data_type, data_id):
                  "Master property record (CDM PropertyHeader)")
 
         # Mortgage
-        mtg_path = input_dir / "mortgage.json"
+        mtg_path = input_dir / "loan.json"
         if mtg_path.exists() and _search_json(mtg_path, data_id):
             _add("mortgages", mtg_path, "derived",
                  "Linked mortgage (LTV, amortisation, terms)")

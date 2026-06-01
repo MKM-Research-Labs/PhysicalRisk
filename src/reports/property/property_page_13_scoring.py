@@ -46,7 +46,7 @@ def comprehensive_risk_assessment(property_data: Dict[str, Any],
     """Perform comprehensive risk assessment with both property and mortgage data."""
 
     # Extract key data
-    rloan_info = rloan_data.get('Mortgage', rloan_data)
+    rloan_info = rloan_data.get('RLoan', rloan_data)
     property_flood_risk = (property_data.get('PropertyHeader', {})
                          .get('RiskAssessment', {})
                          .get('OverallFloodRisk', 'Unknown'))

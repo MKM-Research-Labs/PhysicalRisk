@@ -73,7 +73,7 @@ class LoaderRegistry:
     # Maps loader names to classes
     LOADER_CLASSES: Dict[str, Type[BaseLoader]] = {
         'property': PropertyLoader,
-        'mortgage': RLoanLoader,
+        'rloan': RLoanLoader,
         'gauge': GaugeLoader,
         'timeseries': TimeseriesLoader,
         'storm': StormLoader,
@@ -141,7 +141,7 @@ class LoaderRegistry:
 
     def get_rloan_loader(self) -> RLoanLoader:
         """Get the mortgage loader."""
-        return self._get_or_create_loader('mortgage', RLoanLoader)
+        return self._get_or_create_loader('rloan', RLoanLoader)
 
     def get_gauge_loader(self) -> GaugeLoader:
         """Get the gauge loader."""

@@ -40,10 +40,10 @@ def _write_minimal_inputs(path: Path):
             }
         }]
     }))
-    (path / "mortgage.json").write_text(json.dumps({
-        "mortgages": [{
-            "Mortgage": {
-                "Header": {"MortgageID": "MORT-001", "PropertyID": "PROP-001"},
+    (path / "loan.json").write_text(json.dumps({
+        "loans": [{
+            "RLoan": {
+                "Header": {"RLoanID": "RLOAN-001", "PropertyID": "PROP-001"},
                 "FinancialTerms": {"OriginalLoan": 200000},
                 "CurrentStatus": {"OutstandingBalance": 180000},
             }

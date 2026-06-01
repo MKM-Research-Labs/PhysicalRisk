@@ -165,7 +165,7 @@ class RLoanDetailPanel:
 
                     var html = '';
                     html += section('Loan Summary', [
-                        ['Mortgage ID', fmt(hdr.MortgageID)],
+                        ['Mortgage ID', fmt(hdr.RLoanID)],
                         ['Provider', fmt(app.MortgageProvider)],
                         ['Purpose', fmt(app.LoanPurpose)],
                         ['Occupancy', fmt(app.OccupancyType)],

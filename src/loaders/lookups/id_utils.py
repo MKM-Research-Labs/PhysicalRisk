@@ -39,26 +39,26 @@ def extract_property_ids(property_data: Optional[Dict[str, Any]]) -> Set[str]:
 
 
 def extract_rloan_ids(rloan_data: Optional[Dict[str, Any]]) -> Set[str]:
-    """Extract all mortgage IDs from mortgage data."""
+    """Extract all loan IDs from loan data."""
     if not rloan_data:
         return set()
 
     ids = set()
-    for mortgage in rloan_data.get("items", []):
-        mort_id = mortgage.get("Mortgage", {}).get("Header", {}).get("MortgageID")
-        if mort_id:
-            ids.add(mort_id)
+    for loan in rloan_data.get("items", []):
+        loan_id = loan.get("RLoan", {}).get("Header", {}).get("RLoanID")
+        if loan_id:
+            ids.add(loan_id)
     return ids
 
 
 def extract_rloan_property_ids(rloan_data: Optional[Dict[str, Any]]) -> Set[str]:
-    """Extract property IDs referenced in mortgage data."""
+    """Extract property IDs referenced in loan data."""
     if not rloan_data:
         return set()
 
     ids = set()
-    for mortgage in rloan_data.get("items", []):
-        prop_id = mortgage.get("Mortgage", {}).get("Header", {}).get("PropertyID")
+    for loan in rloan_data.get("items", []):
+        prop_id = loan.get("RLoan", {}).get("Header", {}).get("PropertyID")
         if prop_id:
             ids.add(prop_id)
     return ids
@@ -90,8 +90,8 @@ def analyze_id_relationships(
         Dictionary with ID counts and overlap statistics
     """
     property_ids = extract_property_ids(property_data)
-    mortgage_property_ids = extract_rloan_property_ids(rloan_data)
-    mortgage_ids = extract_rloan_ids(rloan_data)
+    loan_property_ids = extract_rloan_property_ids(rloan_data)
+    loan_ids = extract_rloan_ids(rloan_data)
 
     # Extract IDs from flood risk data (gaugehc.json has hazard_curves key)
     flood_property_ids = set()
@@ -102,27 +102,27 @@ def analyze_id_relationships(
         if not flood_property_ids:
             flood_property_ids = set(flood_risk_data.get("property_risk", {}).keys())
 
-    # Mortgages with flood risk = mortgages whose property has flood risk
-    flood_mortgage_ids = set()
+    # Loans with flood risk = loans whose property has flood risk
+    flood_loan_ids = set()
     if rloan_data and flood_property_ids:
-        for mortgage in rloan_data.get("items", []):
-            mort = mortgage.get("Mortgage", {}).get("Header", {})
-            prop_id = mort.get("PropertyID")
-            mort_id = mort.get("MortgageID")
-            if prop_id in flood_property_ids and mort_id:
-                flood_mortgage_ids.add(mort_id)
+        for loan in rloan_data.get("items", []):
+            hdr = loan.get("RLoan", {}).get("Header", {})
+            prop_id = hdr.get("PropertyID")
+            loan_id = hdr.get("RLoanID")
+            if prop_id in flood_property_ids and loan_id:
+                flood_loan_ids.add(loan_id)
 
     return {
         "counts": {
             "properties": len(property_ids),
-            "mortgages": len(mortgage_ids),
-            "mortgage_properties": len(mortgage_property_ids),
+            "loans": len(loan_ids),
+            "loan_properties": len(loan_property_ids),
             "flood_properties": len(flood_property_ids),
-            "flood_mortgages": len(flood_mortgage_ids),
+            "flood_loans": len(flood_loan_ids),
         },
         "overlaps": {
-            "properties_with_mortgages": len(property_ids & mortgage_property_ids),
+            "properties_with_loans": len(property_ids & loan_property_ids),
             "properties_with_flood_risk": len(property_ids & flood_property_ids),
-            "mortgages_with_flood_risk": len(mortgage_ids & flood_mortgage_ids),
+            "loans_with_flood_risk": len(loan_ids & flood_loan_ids),
         },
     }

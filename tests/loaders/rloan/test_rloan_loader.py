@@ -28,12 +28,12 @@ class TestRLoanLoaderBasic:
 
     def test_load_all_returns_list(self, tmp_path):
         from loaders.rloan_loader import RLoanLoader
-        write_json(tmp_path / "mortgage.json", mortgage_json(3))
+        write_json(tmp_path / "loan.json", mortgage_json(3))
         assert len(RLoanLoader(tmp_path).load_all()) == 3
 
     def test_list_all_returns_summaries(self, tmp_path):
         from loaders.rloan_loader import RLoanLoader
-        write_json(tmp_path / "mortgage.json", mortgage_json(2))
+        write_json(tmp_path / "loan.json", mortgage_json(2))
         assert len(RLoanLoader(tmp_path).list_all()) == 2
 
 
@@ -41,24 +41,24 @@ class TestRLoanLoaderLookup:
 
     def test_find_by_id(self, tmp_path):
         from loaders.rloan_loader import RLoanLoader
-        write_json(tmp_path / "mortgage.json", mortgage_json(3))
-        assert RLoanLoader(tmp_path).find_by_id("MORT-001") is not None
+        write_json(tmp_path / "loan.json", mortgage_json(3))
+        assert RLoanLoader(tmp_path).find_by_id("RLOAN-001") is not None
 
     def test_missing_returns_none(self, tmp_path):
         from loaders.rloan_loader import RLoanLoader
-        write_json(tmp_path / "mortgage.json", mortgage_json(2))
-        assert RLoanLoader(tmp_path).find_by_id("MORT-999") is None
+        write_json(tmp_path / "loan.json", mortgage_json(2))
+        assert RLoanLoader(tmp_path).find_by_id("RLOAN-999") is None
 
     def test_find_by_property_nested_structure(self, tmp_path):
         """Mortgage without top-level PropertyID falls back to nested Mortgage.Header.PropertyID."""
         from loaders.rloan_loader import RLoanLoader
         data = {
-            "mortgages": [
+            "loans": [
                 {
-                    "MortgageID": "MORT-001",
-                    "Mortgage": {"Header": {"PropertyID": "PROP-NESTED"}},
+                    "RLoanID": "RLOAN-001",
+                    "RLoan": {"Header": {"PropertyID": "PROP-NESTED"}},
                 }
             ]
         }
-        write_json(tmp_path / "mortgage.json", data)
+        write_json(tmp_path / "loan.json", data)
         assert RLoanLoader(tmp_path).find_by_property_id("PROP-NESTED") is not None

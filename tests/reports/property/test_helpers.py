@@ -148,13 +148,13 @@ class TestFindMortgageByPropertyId:
 
     def test_dict_with_mortgages_found(self):
         from reports.property.property_generator import _find_mortgage_by_property_id
-        data = {"mortgages": [{"PropertyID": "PROP-001", "amount": 100}]}
+        data = {"loans": [{"PropertyID": "PROP-001", "amount": 100}]}
         result = _find_mortgage_by_property_id(data, "PROP-001")
         assert result["amount"] == 100
 
     def test_dict_with_mortgages_not_found_returns_none(self):
         from reports.property.property_generator import _find_mortgage_by_property_id
-        data = {"mortgages": [{"PropertyID": "PROP-001"}]}
+        data = {"loans": [{"PropertyID": "PROP-001"}]}
         result = _find_mortgage_by_property_id(data, "PROP-999")
         assert result is None
 

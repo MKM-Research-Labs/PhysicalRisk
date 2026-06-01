@@ -48,9 +48,9 @@ def print_relationship_analysis(loader) -> None:
     overlaps = analysis["overlaps"]
 
     logger.info(f"Properties: {counts['properties']}")
-    logger.info(f"Mortgages: {counts['mortgages']}")
+    logger.info(f"Mortgages: {counts['loans']}")
     logger.info(
-        f"Properties with mortgages: {overlaps['properties_with_mortgages']}/"
+        f"Properties with mortgages: {overlaps['properties_with_loans']}/"
         f"{counts['properties']}"
     )
     logger.info(
@@ -58,8 +58,8 @@ def print_relationship_analysis(loader) -> None:
         f"{counts['properties']}"
     )
     logger.info(
-        f"Mortgages with flood risk: {overlaps['mortgages_with_flood_risk']}/"
-        f"{counts['mortgages']}"
+        f"Mortgages with flood risk: {overlaps['loans_with_flood_risk']}/"
+        f"{counts['loans']}"
     )
 
 

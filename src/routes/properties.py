@@ -252,7 +252,7 @@ def property_rloan(prop_id: str):
             }), 404
 
         # Return the full nested CDM structure
-        mort = rloan_data.get('Mortgage', rloan_data)
+        mort = rloan_data.get('RLoan', rloan_data)
 
         return jsonify({
             'status': 'success',
@@ -290,11 +290,11 @@ def property_loan_pricer(prop_id: str):
                 'message': f'No mortgage found for property {prop_id}'
             }), 404
 
-        # Normalise to the {"Mortgage": {...}} shape the CDM expects.
-        if 'Mortgage' in rloan_data:
+        # Normalise to the {"RLoan": {...}} shape the CDM expects.
+        if 'RLoan' in rloan_data:
             mortgage_cdm = rloan_data
         else:
-            mortgage_cdm = {'Mortgage': rloan_data}
+            mortgage_cdm = {'RLoan': rloan_data}
 
         overrides = None
         if request.method == 'POST':

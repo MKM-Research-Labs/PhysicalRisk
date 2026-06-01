@@ -60,7 +60,7 @@ class RLoanDetailsPage(PropertyBasePage):
         try:
             elements.append(Paragraph("Detailed Mortgage Financial Terms", self.styles['SectionHeader']))
 
-            rloan_info = rloan_data.get('Mortgage', rloan_data)
+            rloan_info = rloan_data.get('RLoan', rloan_data)
             financial_data = rloan_info.get('FinancialTerms', {})
 
             if not financial_data:

@@ -40,9 +40,9 @@ from visual.utils.data_extractors.rloan_extractor import (
 def _make_mortgage(mortgage_id="MORT-001", property_id="PROP-001",
                    original_loan=250_000, term_years=25):
     return {
-        "Mortgage": {
+        "RLoan": {
             "Header": {
-                "MortgageID": mortgage_id,
+                "RLoanID": mortgage_id,
                 "PropertyID": property_id,
                 "UPRN": "12345",
             },
@@ -91,14 +91,14 @@ class TestExtractRLoanInfo:
         assert result["mortgage_provider"] == "Halifax"
 
     def test_missing_property_id_returns_none(self):
-        mort = {"Mortgage": {"Header": {"MortgageID": "M1"}, "FinancialTerms": {}, "Application": {}}}
+        mort = {"RLoan": {"Header": {"RLoanID": "M1"}, "FinancialTerms": {}, "Application": {}}}
         assert extract_rloan_info(mort) is None
 
     def test_none_values_removed(self):
         # Fields that are None should be removed from result
         mort = {
-            "Mortgage": {
-                "Header": {"MortgageID": "M1", "PropertyID": "P1"},
+            "RLoan": {
+                "Header": {"RLoanID": "M1", "PropertyID": "P1"},
                 "FinancialTerms": {},  # All None
                 "Application": {},
             }
@@ -122,8 +122,8 @@ class TestExtractRLoanInfo:
     def test_original_term_in_months_converted(self):
         # OriginalTerm = 300 months → 25 years
         mort = {
-            "Mortgage": {
-                "Header": {"MortgageID": "M1", "PropertyID": "P1"},
+            "RLoan": {
+                "Header": {"RLoanID": "M1", "PropertyID": "P1"},
                 "FinancialTerms": {"OriginalTerm": 300},  # 300 months > 100
                 "Application": {},
             }
@@ -134,8 +134,8 @@ class TestExtractRLoanInfo:
     def test_original_term_not_converted_if_small(self):
         # OriginalTerm = 25 (interpreted as years)
         mort = {
-            "Mortgage": {
-                "Header": {"MortgageID": "M1", "PropertyID": "P1"},
+            "RLoan": {
+                "Header": {"RLoanID": "M1", "PropertyID": "P1"},
                 "FinancialTerms": {"OriginalTerm": 25},
                 "Application": {},
             }
@@ -156,8 +156,8 @@ class TestBuildRLoanLookup:
         assert "P1" in result
         assert "P2" in result
 
-    def test_dict_with_mortgages_key(self):
-        data = {"mortgages": [_make_mortgage("M1", "P1")]}
+    def test_dict_with_loans_key(self):
+        data = {"loans": [_make_mortgage("M1", "P1")]}
         result = build_rloan_lookup(data)
         assert "P1" in result
 
@@ -181,6 +181,6 @@ class TestBuildRLoanLookup:
         assert build_rloan_lookup([]) == {}
 
     def test_mortgage_without_property_id_skipped(self):
-        bad = {"Mortgage": {"Header": {"MortgageID": "M1"}, "FinancialTerms": {}, "Application": {}}}
+        bad = {"RLoan": {"Header": {"RLoanID": "M1"}, "FinancialTerms": {}, "Application": {}}}
         result = build_rloan_lookup([bad])
         assert result == {}

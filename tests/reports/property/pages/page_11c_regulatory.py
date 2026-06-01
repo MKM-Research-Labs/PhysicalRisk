@@ -36,7 +36,7 @@ def _page():
 
 def _make_mortgage(regulatory=None):
     """Build minimal rloan_data dict."""
-    return {"Mortgage": {"Regulatory": regulatory or {}}}
+    return {"RLoan": {"Regulatory": regulatory or {}}}
 
 
 # ===========================================================================
@@ -260,6 +260,6 @@ class TestCombinedSections:
         """Feeding bad data (non-dict regulatory) exercises the except block."""
         page = _page()
         # Pass something that causes getattr failures in the regulatory section
-        mortgage = {"Mortgage": {"Regulatory": "not_a_dict"}}
+        mortgage = {"RLoan": {"Regulatory": "not_a_dict"}}
         result = page.generate_elements({}, rloan_data=mortgage)
         assert isinstance(result, list)

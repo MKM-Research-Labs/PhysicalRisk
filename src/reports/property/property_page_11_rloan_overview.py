@@ -61,7 +61,7 @@ class RLoanOverviewPage(PropertyBasePage):
             elements.append(Paragraph("Mortgage Overview", self.styles['SectionHeader']))
 
             # Handle nested mortgage structure
-            rloan_info = rloan_data.get('Mortgage', rloan_data)
+            rloan_info = rloan_data.get('RLoan', rloan_data)
 
             # MORTGAGE IDENTIFICATION
             header_data = rloan_info.get('Header', {})
@@ -70,7 +70,7 @@ class RLoanOverviewPage(PropertyBasePage):
 
                 header_table_data = [["Mortgage Details", "Value"]]
 
-                key_fields = ['MortgageID', 'PropertyID', 'UPRN']
+                key_fields = ['RLoanID', 'PropertyID', 'UPRN']
                 for field in key_fields:
                     value = header_data.get(field)
                     if value:
