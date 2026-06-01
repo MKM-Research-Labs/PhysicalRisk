@@ -12,11 +12,12 @@ from config.loan import (
     CREDIT_RATING_SPREADS,
     CREDIT_RATINGS,
     COMMERCIAL_MAX_TERM_YEARS,
+    FLOOD_CATEGORY_ANNUAL_HAZARD,
+    PRS_FLOOD_RECOVERY,
     discount_rate,
     credit_spread_for_rating,
-    flood_hazard_spread,
+    flood_annual_hazard,
     wind_hazard_spread,
-    build_coupon,
 )
 
 
@@ -51,34 +52,48 @@ class TestCreditSpreads:
         assert credit_spread_for_rating("bbb") == CREDIT_RATING_SPREADS["BBB"]
 
 
-class TestHazardSpreads:
+class TestFloodAnnualHazard:
+    """Flood category → annual flood probability (the PRS pricer's input)."""
 
-    def test_flood_monotonic_and_case_insensitive(self):
-        assert (flood_hazard_spread("Very low") < flood_hazard_spread("Medium")
-                < flood_hazard_spread("Very high"))
-        assert flood_hazard_spread("VERY HIGH") == flood_hazard_spread("very high")
+    def test_monotonic_with_severity(self):
+        assert (flood_annual_hazard("Very low") < flood_annual_hazard("Medium")
+                < flood_annual_hazard("Very high"))
 
-    def test_wind_monotonic(self):
+    def test_case_and_space_insensitive(self):
+        assert flood_annual_hazard("VERY HIGH") == flood_annual_hazard("very high")
+        assert flood_annual_hazard("  Medium  ") == flood_annual_hazard("medium")
+
+    def test_unknown_category_falls_back_to_medium(self):
+        assert flood_annual_hazard("bogus") == flood_annual_hazard("Medium")
+
+    def test_ea_zone_aligned_values(self):
+        # EA flood-zone midpoints: Zone 1 ≈ 0.001 … Zone 3b ≈ 0.050.
+        assert FLOOD_CATEGORY_ANNUAL_HAZARD["very low"] == pytest.approx(0.001)
+        assert FLOOD_CATEGORY_ANNUAL_HAZARD["very high"] == pytest.approx(0.050)
+        probs = [FLOOD_CATEGORY_ANNUAL_HAZARD[c]
+                 for c in ("very low", "low", "medium", "high", "very high")]
+        assert probs == sorted(probs)
+
+    def test_recovery_is_full_loss(self):
+        # 0% recovery == full loss given a flood trigger.
+        assert PRS_FLOOD_RECOVERY == pytest.approx(0.0)
+
+
+class TestWindHazardSpread:
+    """Wind keeps the static lookup (no PRS wind pricer yet)."""
+
+    def test_monotonic(self):
         assert (wind_hazard_spread("Very low") < wind_hazard_spread("Medium")
                 < wind_hazard_spread("Very high"))
 
+    def test_case_insensitive(self):
+        assert wind_hazard_spread("VERY HIGH") == wind_hazard_spread("very high")
+
     def test_unknown_category_falls_back_to_medium(self):
-        assert flood_hazard_spread("bogus") == flood_hazard_spread("Medium")
+        assert wind_hazard_spread("bogus") == wind_hazard_spread("Medium")
 
 
-class TestBuildCoupon:
-
-    def test_bbb_medium_medium_lands_near_seven_percent(self):
-        c = build_coupon(term_years=3, credit_rating="BBB",
-                         flood_category="Medium", wind_category="Medium")
-        assert c["rate"] == pytest.approx(0.070, abs=1e-9)
-
-    def test_components_sum_to_rate(self):
-        c = build_coupon(term_years=5, credit_rating="BB",
-                         flood_category="High", wind_category="Low")
-        assert c["rate"] == pytest.approx(
-            c["risk_free"] + c["credit_spread"] + c["flood_spread"] + c["wind_spread"])
-        assert c["hazard_spread"] == pytest.approx(c["flood_spread"] + c["wind_spread"])
+class TestTermCaps:
 
     def test_commercial_cap_constant(self):
         assert COMMERCIAL_MAX_TERM_YEARS == 7

@@ -99,6 +99,44 @@ class TestStandaloneLoanPricerRoute:
             c["risk_free"] + c["credit_spread"] + c["flood_spread"] + c["wind_spread"])
         assert c["hazard_spread"] == pytest.approx(c["flood_spread"] + c["wind_spread"])
 
+    def test_flood_leg_is_prs_priced(self, prop_client):
+        """The flood spread must come from the analytical PRS pricer, not a
+        flat lookup: it equals compute_prs_spread() for the category's annual
+        hazard at the loan tenor, on the risk-free curve."""
+        from config.loan import flood_annual_hazard, PRS_FLOOD_RECOVERY
+        from models.hazard.prs_analytical import compute_prs_spread
+
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "credit_rating": "BBB", "flood_risk_category": "High",
+            "wind_risk_category": "Medium", "current_term": 30,
+        }})
+        c = r.get_json()["coupon"]
+        assert c["flood_priced_by"] == "PRS"
+        assert c["wind_priced_by"] == "static"
+        assert c["flood_annual_hazard"] == pytest.approx(flood_annual_hazard("High"))
+
+        expected_bps = compute_prs_spread(
+            annual_hazard_rate=flood_annual_hazard("High"),
+            tenor=30, recovery=PRS_FLOOD_RECOVERY,
+            risk_free_rate=c["risk_free"])
+        assert c["flood_spread"] == pytest.approx(expected_bps / 10000.0)
+
+    def test_higher_flood_category_raises_coupon(self, prop_client):
+        """A worse flood category must price a larger flood leg (PRS-driven)."""
+        client, _ = prop_client
+
+        def flood_spread_for(category):
+            r = client.post("/api/v1/loan-pricer", json={"inputs": {
+                "loan_amount": 200000, "property_value": 300000,
+                "flood_risk_category": category,
+            }})
+            return r.get_json()["coupon"]["flood_spread"]
+
+        assert (flood_spread_for("Very low") < flood_spread_for("Medium")
+                < flood_spread_for("Very high"))
+
     def test_worse_rating_raises_coupon(self, prop_client):
         client, _ = prop_client
 
