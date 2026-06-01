@@ -1,0 +1,80 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Tests for the standalone Loan Calculator menu entry + panel wiring.
+
+The asset right-click menu gains a "Loan Calculator" item (distinct from the
+asset-linked "Loan Pricer") that opens the LoanPricerPanel in standalone mode.
+"""
+
+
+class TestLoanCalculatorMenuItems:
+
+    def test_property_menu_has_calculator(self):
+        from visual.interactivity.context_menus import DEFAULT_PROPERTY_MENU
+        actions = [i["action"] for i in DEFAULT_PROPERTY_MENU]
+        labels = [i["label"] for i in DEFAULT_PROPERTY_MENU]
+        assert "openLoanCalculator" in actions
+        assert any("Loan Calculator" in lbl for lbl in labels)
+
+    def test_commercial_menu_has_calculator(self):
+        from visual.interactivity.context_menus import DEFAULT_COMMERCIAL_MENU
+        actions = [i["action"] for i in DEFAULT_COMMERCIAL_MENU]
+        labels = [i["label"] for i in DEFAULT_COMMERCIAL_MENU]
+        assert "openCommercialLoanCalculator" in actions
+        assert any("Loan Calculator" in lbl for lbl in labels)
+
+    def test_calculator_distinct_from_pricer(self):
+        """The standalone calculator must not alias the asset-linked pricer."""
+        from visual.interactivity.context_menus import DEFAULT_PROPERTY_MENU
+        actions = [i["action"] for i in DEFAULT_PROPERTY_MENU]
+        assert "openLoanCalculator" in actions
+        assert "viewLoanPricer" in actions
+        assert actions.count("openLoanCalculator") == 1
+
+    def test_property_and_commercial_calculator_actions_disjoint(self):
+        from visual.interactivity.context_menus import (
+            DEFAULT_PROPERTY_MENU, DEFAULT_COMMERCIAL_MENU)
+        prop = {i["action"] for i in DEFAULT_PROPERTY_MENU}
+        com = {i["action"] for i in DEFAULT_COMMERCIAL_MENU}
+        assert prop.isdisjoint(com)
+
+
+class TestLoanPricerPanelStandaloneJS:
+
+    def _js(self):
+        from visual.interactivity.property.loanpricer import LoanPricerPanel
+        return LoanPricerPanel().get_js()
+
+    def test_standalone_window_functions_registered(self):
+        js = self._js()
+        assert "window.openLoanCalculator" in js
+        assert "window.openCommercialLoanCalculator" in js
+
+    def test_standalone_helper_and_endpoint_present(self):
+        js = self._js()
+        assert "showStandalone" in js
+        assert "/api/v1/loan-pricer" in js
+
+    def test_standalone_defaults_present(self):
+        js = self._js()
+        assert "STANDALONE_DEFAULTS" in js
+        # Calculator title shown in standalone mode.
+        assert "Loan Calculator" in js
