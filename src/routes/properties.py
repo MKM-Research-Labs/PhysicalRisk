@@ -331,9 +331,10 @@ def standalone_loan_pricer():
     try:
         body = request.get_json(silent=True) or {}
         inputs = body.get('inputs', body.get('overrides', body))
+        asset_class = body.get('asset_class', 'residential')
 
         from routes._loan_pricing import compute_standalone_pricing
-        result = compute_standalone_pricing(inputs)
+        result = compute_standalone_pricing(inputs, asset_class=asset_class)
 
         return jsonify({'status': 'success', **result})
 
