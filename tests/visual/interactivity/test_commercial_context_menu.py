@@ -24,8 +24,8 @@ from visual.interactivity.context_menus import (
 
 class TestDefaultCommercialMenu:
 
-    def test_has_seven_items(self):
-        assert len(DEFAULT_COMMERCIAL_MENU) == 7
+    def test_has_eight_items(self):
+        assert len(DEFAULT_COMMERCIAL_MENU) == 8
 
     def test_labels_use_commercial_and_loan_vocabulary(self):
         labels = [item["label"] for item in DEFAULT_COMMERCIAL_MENU]

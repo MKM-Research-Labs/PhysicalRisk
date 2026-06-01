@@ -50,6 +50,25 @@ class LoanPricerPanel:
             var PANEL_H = '{self.panel_height}';
             var lpPanel = null;
             var currentAssetId = null;
+            // standaloneMode = true when launched as the asset-independent
+            // "Loan Calculator": no asset is loaded; the user types every
+            // input and re-pricing POSTs to the standalone endpoint.
+            var standaloneMode = false;
+
+            // Sensible starting values for the standalone calculator so the
+            // first price renders immediately. pct fields are stored as
+            // decimals (populateInputs multiplies by 100 for display).
+            var STANDALONE_DEFAULTS = {{
+                loan_amount: 200000,
+                property_value: 300000,
+                gross_annual_income: 50000,
+                interest_rate: 0.035,
+                insurance_rate: 0.002,
+                recovery_haircut: 0.2,
+                original_maturity: 30,
+                current_term: 30,
+                flood_risk_category: 'Medium'
+            }};
 
             // field id -> {{label, kind}}. kind 'pct' fields are stored on the
             // server as decimals but shown to the user as percentages.
@@ -243,17 +262,25 @@ class LoanPricerPanel:
                 return baseUrl + path + assetId + '/loan-pricer';
             }}
 
+            function standaloneEndpoint() {{
+                var cfg = window.__BACKEND_CONFIG || {{}};
+                return (cfg.url || '') + '/api/v1/loan-pricer';
+            }}
+
             async function reprice() {{
-                if (!currentAssetId) return;
+                if (!standaloneMode && !currentAssetId) return;
                 var btn = document.getElementById('lp-reprice-btn');
                 if (btn) {{ btn.disabled = true; btn.textContent = 'Pricing...'; }}
                 try {{
                     var overrides = readOverrides();
-                    var response = await fetch(endpointFor(currentAssetId), {{
+                    var url = standaloneMode ? standaloneEndpoint() : endpointFor(currentAssetId);
+                    var payload = standaloneMode
+                        ? {{inputs: overrides}} : {{overrides: overrides}};
+                    var response = await fetch(url, {{
                         method: 'POST',
                         headers: {{'Content-Type': 'application/json'}},
                         mode: 'cors',
-                        body: JSON.stringify({{overrides: overrides}})
+                        body: JSON.stringify(payload)
                     }});
                     if (!response.ok) throw new Error('HTTP ' + response.status);
                     var data = await response.json();
@@ -270,6 +297,7 @@ class LoanPricerPanel:
 
             async function showPanel(assetId) {{
                 console.log('[LoanPricer] Opening panel for', assetId);
+                standaloneMode = false;
                 currentAssetId = assetId;
                 createPanel();
                 buildForm();
@@ -292,13 +320,33 @@ class LoanPricerPanel:
                 }}
             }}
 
+            // Standalone "Loan Calculator": asset-independent. Opens with
+            // sensible defaults and prices on demand; ignores any asset id
+            // passed by the menu.
+            function showStandalone() {{
+                console.log('[LoanPricer] Opening standalone calculator');
+                standaloneMode = true;
+                currentAssetId = null;
+                createPanel();
+                buildForm();
+                document.getElementById('loan-pricer-title').textContent = 'Loan Calculator';
+                populateInputs(STANDALONE_DEFAULTS);
+                lpPanel.style.display = 'flex';
+                reprice();
+            }}
+
             // Residential and commercial menus use distinct action names
             // (matching the viewPropertyStorms / viewCommercialStorms
             // convention); both resolve to the same self-routing panel.
             window.viewLoanPricer = showPanel;
             window.viewCommercialLoanPricer = showPanel;
+            // Standalone launchers — distinct names so property/commercial
+            // menu actions stay disjoint, both opening the blank calculator.
+            window.openLoanCalculator = showStandalone;
+            window.openCommercialLoanCalculator = showStandalone;
             window.LoanPricerPanel = {{
                 show: showPanel,
+                showStandalone: showStandalone,
                 hide: hidePanel
             }};
 
