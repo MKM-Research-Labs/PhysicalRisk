@@ -33,7 +33,7 @@ class TestLoadGaugeElevations:
 
         (tmp_path / 'property.json').write_text(
             json.dumps(_make_prop_details(gauge='GAUGE-XYZ')))
-        (tmp_path / 'mortgage.json').write_text(json.dumps(_make_mortgage()))
+        (tmp_path / 'loan.json').write_text(json.dumps(_make_mortgage()))
         (tmp_path / 'propertyts').mkdir()
 
         monkeypatch.setattr(config, 'get_input_dir', lambda: tmp_path)
@@ -118,7 +118,7 @@ class TestLoadPropertyDetailsException:
         from config import config
 
         (tmp_path / 'propertyts').mkdir()
-        (tmp_path / 'mortgage.json').write_text(json.dumps({'mortgages': []}))
+        (tmp_path / 'loan.json').write_text(json.dumps({'loans': []}))
 
         monkeypatch.setattr(config, 'get_input_dir', lambda: tmp_path)
         monkeypatch.setattr(config, 'get_input_path',

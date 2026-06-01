@@ -43,7 +43,7 @@ class TestLoaderRegistryBasics:
         loaders = loader_registry.get_available_loaders()
 
         assert 'property' in loaders
-        assert 'mortgage' in loaders
+        assert 'rloan' in loaders
         assert 'gauge' in loaders
         assert 'timeseries' in loaders
         assert 'storm' in loaders
@@ -184,7 +184,7 @@ class TestLoaderRegistryStatus:
         status = loader_registry.check_data_files()
 
         assert status['property'] is True
-        assert status['mortgage'] is True
+        assert status['rloan'] is True
         assert status['gauge'] is True
         assert status['timeseries'] is True
         assert status['storm'] is True

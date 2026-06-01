@@ -4,22 +4,46 @@
 """
 Asset loan CDM.
 
-Holds the schema dict (MORTGAGE_SCHEMA) and the LoanCDM class. The schema
-keys still use 'Mortgage'/'MortgageID'/etc.; the 'Mortgage' → 'Loan'
-terminology rename in the underlying data shape, plus commercial extensions
-(DSCR, SPV borrower), are tracked separately and not part of this package.
+Holds the schema dict (MORTGAGE_SCHEMA) and the LoanCDM class. The canonical
+residential record is wrapped under the ``RLoan`` key with an ``RLoanID``
+header field. To stay backwards-compatible with commercial records (``CLoan``)
+and any legacy data still on the older ``Mortgage`` shape, the unwrap helpers
+below accept all three wrapper keys.
 """
 
 from typing import Dict, List
 
 from ..base import BaseCDM
 
+
+def _unwrap_loan(record: dict) -> dict:
+    """Return the inner loan dict from a CDM wrapper.
+
+    Tolerates the residential (``RLoan``), commercial (``CLoan``) and legacy
+    (``Mortgage``) top-level keys, or an already-unwrapped record.
+    """
+    if not isinstance(record, dict):
+        return {}
+    for key in ("RLoan", "CLoan", "Mortgage"):
+        inner = record.get(key)
+        if isinstance(inner, dict):
+            return inner
+    return record
+
+
+def _loan_id(header: dict) -> str:
+    """Read the loan id from a header, tolerating R/C/legacy field names."""
+    return (header.get("RLoanID")
+            or header.get("CLoanID")
+            or header.get("MortgageID"))
+
+
 MORTGAGE_SCHEMA = {
     "Mortgage": {
         "Header": {
             "MortgageID": {
                 "type": "text",
-                "description": "Unique identifier for the mortgage loan"
+                "description": "Unique identifier for the residential loan"
             },
             "CatchmentID": {
                 "type": "text",
@@ -234,11 +258,14 @@ class LoanCDM(BaseCDM):
         errors = {}
 
         try:
-            header = rloan_data.get("Mortgage", {}).get("Header", {})
+            if not isinstance(rloan_data, dict):
+                raise ValueError("validate requires a loan record dict")
+            inner = _unwrap_loan(rloan_data)
+            header = inner.get("Header", {})
             header_errors = []
 
-            if not header.get("MortgageID"):
-                header_errors.append("Missing required field: MortgageID")
+            if not _loan_id(header):
+                header_errors.append("Missing required field: RLoanID")
 
             if not header.get("CatchmentID"):
                 header_errors.append("Missing recommended field: CatchmentID")
@@ -250,7 +277,7 @@ class LoanCDM(BaseCDM):
                 errors["Header"] = header_errors
 
             # Validate financial terms
-            terms = rloan_data.get("Mortgage", {}).get("FinancialTerms", {})
+            terms = inner.get("FinancialTerms", {})
             terms_errors = []
 
             if not terms.get("OriginalLoan"):
@@ -275,7 +302,9 @@ class LoanCDM(BaseCDM):
             Flat dictionary with snake_case keys
         """
         try:
-            m = mortgage.get('Mortgage', {})
+            if not isinstance(mortgage, dict):
+                raise ValueError("create_mapping requires a loan record dict")
+            m = _unwrap_loan(mortgage)
             header = m.get('Header', {})
             app = m.get('Application', {})
             terms = m.get('FinancialTerms', {})
@@ -286,7 +315,7 @@ class LoanCDM(BaseCDM):
 
             rloan_data = {
                 # Header
-                'mortgage_id': header.get('MortgageID'),
+                'mortgage_id': _loan_id(header),
                 'catchment_id': header.get('CatchmentID'),
                 'property_id': header.get('PropertyID'),
                 'uprn': header.get('UPRN'),
@@ -427,8 +456,8 @@ class LoanCDM(BaseCDM):
     def get_required_fields(self) -> List[str]:
         """Return list of required fields."""
         return [
-            'Mortgage.Header.MortgageID',
-            'Mortgage.Header.CatchmentID',
-            'Mortgage.Header.PropertyID',
-            'Mortgage.FinancialTerms.OriginalLoan'
+            'RLoan.Header.RLoanID',
+            'RLoan.Header.CatchmentID',
+            'RLoan.Header.PropertyID',
+            'RLoan.FinancialTerms.OriginalLoan'
         ]

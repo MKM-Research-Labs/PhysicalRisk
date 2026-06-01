@@ -33,7 +33,7 @@
 
 """Residential-loan data extraction utilities.
 
-NOTE: data-shape strings ('Mortgage', 'MortgageID', 'mortgages') and the
+NOTE: data-shape strings ('RLoan', 'RLoanID', 'loans') and the
 result-dict keys ('mortgage_id', 'mortgage_provider', ...) still match the
 currently generated data; they are renamed in the later data-key stage.
 """
@@ -56,7 +56,7 @@ def extract_rloan_info(mortgage: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     try:
         # Handle nested structure
-        mort_data = mortgage.get('Mortgage', mortgage)
+        mort_data = mortgage.get('RLoan', mortgage)
 
         # Extract the Header section
         header = mort_data.get('Header', {})
@@ -75,7 +75,7 @@ def extract_rloan_info(mortgage: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
         rloan_info = {
             # Header section
-            'mortgage_id': header.get('MortgageID'),
+            'mortgage_id': header.get('RLoanID'),
             'property_id': property_id,
             'uprn': header.get('UPRN'),
 
@@ -156,8 +156,8 @@ def build_rloan_lookup(rloan_data: Union[Dict, List]) -> Dict[str, Dict]:
 def _normalize_rloan_list(rloan_data: Union[Dict, List]) -> List:
     """Normalize residential-loan data to a list format."""
     if isinstance(rloan_data, dict):
-        if 'mortgages' in rloan_data:
-            return rloan_data['mortgages']
+        if 'loans' in rloan_data:
+            return rloan_data['loans']
         elif 'Mortgages' in rloan_data:
             return rloan_data['Mortgages']
         elif 'mortgage_portfolio' in rloan_data:

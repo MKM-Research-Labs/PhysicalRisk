@@ -46,9 +46,9 @@ class TestBuildRLoanLookup:
     def test_single_mortgage(self):
         data = {
             "items": [{
-                "Mortgage": {
+                "RLoan": {
                     "Header": {
-                        "MortgageID": "MORT-001",
+                        "RLoanID": "RLOAN-001",
                         "PropertyID": "PROP-001",
                         "UPRN": "12345",
                     },
@@ -69,7 +69,7 @@ class TestBuildRLoanLookup:
         }
         result = build_rloan_lookup(data)
         assert "PROP-001" in result
-        assert result["PROP-001"]["mortgage_id"] == "MORT-001"
+        assert result["PROP-001"]["mortgage_id"] == "RLOAN-001"
         assert result["PROP-001"]["OriginalLoan"] == 250_000
         assert result["PROP-001"]["OriginalLTV"] == pytest.approx(0.8)
         assert result["PROP-001"]["CurrentBalance"] == 220_000
@@ -77,8 +77,8 @@ class TestBuildRLoanLookup:
     def test_mortgage_without_property_id_skipped(self):
         data = {
             "items": [{
-                "Mortgage": {
-                    "Header": {"MortgageID": "MORT-X"},
+                "RLoan": {
+                    "Header": {"RLoanID": "RLOAN-X"},
                     "FinancialTerms": {},
                     "CurrentStatus": {},
                 }
@@ -89,8 +89,8 @@ class TestBuildRLoanLookup:
     def test_missing_original_loan_defaults_to_zero(self):
         data = {
             "items": [{
-                "Mortgage": {
-                    "Header": {"MortgageID": "MORT-002", "PropertyID": "PROP-002"},
+                "RLoan": {
+                    "Header": {"RLoanID": "RLOAN-002", "PropertyID": "PROP-002"},
                     "FinancialTerms": {},  # No OriginalLoan
                     "CurrentStatus": {},
                     "Application": {},
@@ -103,8 +103,8 @@ class TestBuildRLoanLookup:
     def test_multiple_mortgages(self):
         def _make_item(mid, pid):
             return {
-                "Mortgage": {
-                    "Header": {"MortgageID": mid, "PropertyID": pid},
+                "RLoan": {
+                    "Header": {"RLoanID": mid, "PropertyID": pid},
                     "FinancialTerms": {},
                     "CurrentStatus": {},
                     "Application": {},
@@ -136,8 +136,8 @@ class TestBuildAllLookups:
     def test_with_data_populates_lookups(self):
         rloan_data = {
             "items": [{
-                "Mortgage": {
-                    "Header": {"MortgageID": "M1", "PropertyID": "P1"},
+                "RLoan": {
+                    "Header": {"RLoanID": "M1", "PropertyID": "P1"},
                     "FinancialTerms": {"OriginalLoan": 150_000},
                     "CurrentStatus": {},
                     "Application": {},

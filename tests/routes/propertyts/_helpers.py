@@ -63,8 +63,8 @@ CLAIM_PROPERTY_JSON = {"properties": [{"PropertyHeader": {
     "Valuation": {"PropertyValue": 400000},
 }}]}
 
-CLAIM_MORTGAGE_JSON = {"mortgages": [{"Mortgage": {
-    "Header": {"MortgageID": "MORT-001", "PropertyID": CLAIM_PROP_ID},
+CLAIM_MORTGAGE_JSON = {"loans": [{"RLoan": {
+    "Header": {"RLoanID": "MORT-001", "PropertyID": CLAIM_PROP_ID},
     "FinancialTerms": {"OriginalBalance": 300000},
     "CurrentStatus": {"OutstandingBalance": 280000},
 }}]}
@@ -176,8 +176,8 @@ def make_property_json(property_id, value):
 
 
 def make_mortgage_json(property_id, outstanding):
-    return {"mortgages": [{"Mortgage": {
-        "Header": {"MortgageID": "MORT-001", "PropertyID": property_id},
+    return {"loans": [{"RLoan": {
+        "Header": {"RLoanID": "MORT-001", "PropertyID": property_id},
         "FinancialTerms": {"OriginalBalance": outstanding},
         "CurrentStatus": {"OutstandingBalance": outstanding},
     }}]}
@@ -201,7 +201,7 @@ def make_risk_client(tmp_path, monkeypatch, *, pts_dir=True, sequences=None,
         (tmp_path / "property.json").write_text(json.dumps(property_json))
 
     if mortgage_json is not None:
-        (tmp_path / "mortgage.json").write_text(json.dumps(mortgage_json))
+        (tmp_path / "loan.json").write_text(json.dumps(mortgage_json))
 
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)

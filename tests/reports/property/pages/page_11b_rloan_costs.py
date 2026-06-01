@@ -40,7 +40,7 @@ def _make_mortgage(origination=2_000, product_fee=995, discount_points=0,
         terms["LenderCredits"] = lender_credits
     if total_loan_costs is not None:
         terms["TotalLoanCosts"] = total_loan_costs
-    return {"Mortgage": {"Header": {"MortgageID": "MORT-001"}, "FinancialTerms": terms}}
+    return {"RLoan": {"Header": {"RLoanID": "MORT-001"}, "FinancialTerms": terms}}
 
 
 class TestRLoanCostsPage:
@@ -57,7 +57,7 @@ class TestRLoanCostsPage:
 
     def test_no_financial_terms_returns_message(self):
         page = self._page()
-        result = page.generate_elements({}, {"Mortgage": {"Header": {"MortgageID": "X"}}})
+        result = page.generate_elements({}, {"RLoan": {"Header": {"RLoanID": "X"}}})
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("No cost information available" in t for t in texts)
 

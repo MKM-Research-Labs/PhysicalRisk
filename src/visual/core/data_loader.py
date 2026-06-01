@@ -94,7 +94,7 @@ class DataLoader:
         # Initialize loaders with input directory
         self._gauge_loader = GaugeLoader(self.input_dir, filename=JSONFileConfig.GAUGE_PORTFOLIO)
         self._property_loader = PropertyLoader(self.input_dir, filename=JSONFileConfig.PROPERTY_PORTFOLIO)
-        self._rloan_loader = RLoanLoader(self.input_dir, filename=JSONFileConfig.MORTGAGE_PORTFOLIO)
+        self._rloan_loader = RLoanLoader(self.input_dir, filename=JSONFileConfig.RLOAN_PORTFOLIO)
 
         logger.info(f"DataLoader initialized with input directory: {self.input_dir}")
 
@@ -283,7 +283,7 @@ class DataLoader:
         loans = (self.loaded_data.commercial_loan_data or {}).get('commercial_loans', [])
         lookup = {}
         for loan in loans:
-            pid = loan.get('Mortgage', {}).get('Header', {}).get('PropertyID')
+            pid = loan.get('RLoan', {}).get('Header', {}).get('PropertyID')
             if pid:
                 lookup[pid] = loan
         self.loaded_data.commercial_loan_lookup = lookup

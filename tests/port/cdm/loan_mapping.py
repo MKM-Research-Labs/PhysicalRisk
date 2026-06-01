@@ -26,19 +26,16 @@ from config import config
 from port.cdm import LoanCDM
 from tests.port.cdm._mapping_helpers import run_cdm_mapping_test
 
-# NOTE: data-shape strings ("mortgage.json", the "mortgages" container key and
-# "MortgageID") still match the currently generated data; they are renamed in
-# the later data-key stage of the mortgage->loan sweep.
 _LOAN_SKIP = {
     "generation_metadata", "generated_at", "generator_version",
-    "catchment", "total_mortgages_generated", "linked_properties",
-    "CatchmentID", "MortgageID", "PropertyID",
+    "catchment", "total_loans_generated", "linked_properties",
+    "CatchmentID", "RLoanID", "MortgageID", "PropertyID",
 }
 
 @pytest.fixture(scope="module")
 def loan_mapping_summary():
-    json_path = config.get_input_path("mortgage.json")
-    return run_cdm_mapping_test(LoanCDM(), json_path, "mortgages", _LOAN_SKIP)
+    json_path = config.get_input_path("loan.json")
+    return run_cdm_mapping_test(LoanCDM(), json_path, "loans", _LOAN_SKIP)
 
 
 def test_all_cdm_fields_present(loan_mapping_summary):

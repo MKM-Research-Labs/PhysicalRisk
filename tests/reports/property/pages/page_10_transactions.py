@@ -94,8 +94,8 @@ def _make_property():
 
 def _make_mortgage():
     return {
-        "Mortgage": {
-            "Header": {"MortgageID": "MORT-001"},
+        "RLoan": {
+            "Header": {"RLoanID": "MORT-001"},
             "CurrentStatus": {
                 "CurrentLTV": 0.65,
                 "CurrentBalance": 400_000,

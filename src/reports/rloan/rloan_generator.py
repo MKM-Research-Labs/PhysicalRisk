@@ -120,8 +120,8 @@ class RLoanReportGenerator:
 
     def _generate_filename(self, rloan_data):
         try:
-            mort = rloan_data.get('Mortgage', rloan_data)
-            mortgage_id = mort.get('Header', {}).get('MortgageID', 'unknown')
+            mort = rloan_data.get('RLoan', rloan_data)
+            mortgage_id = mort.get('Header', {}).get('RLoanID', 'unknown')
         except (KeyError, TypeError, AttributeError):
             mortgage_id = 'unknown'
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

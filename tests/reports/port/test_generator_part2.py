@@ -74,7 +74,7 @@ class TestEdgeCases:
             }]
         }))
         (d / 'property.json').write_text('{"properties": []}')
-        (d / 'mortgage.json').write_text('{"mortgages": []}')
+        (d / 'loan.json').write_text('{"loans": []}')
         (d / 'counterparty.json').write_text('{"counterparties": []}')
         (d / 'gaugehc.json').write_text('{}')
         (d / 'propertyhc.json').write_text('{}')
@@ -100,7 +100,7 @@ class TestEdgeCases:
                 }
             }]
         }))
-        (d / 'mortgage.json').write_text('{"mortgages": []}')
+        (d / 'loan.json').write_text('{"loans": []}')
         (d / 'counterparty.json').write_text('{"counterparties": []}')
         (d / 'gaugehc.json').write_text('{}')
         (d / 'propertyhc.json').write_text('{}')
@@ -116,10 +116,10 @@ class TestEdgeCases:
         d.mkdir()
         (d / 'gauge.json').write_text('{"flood_gauges": []}')
         (d / 'property.json').write_text('{"properties": []}')
-        (d / 'mortgage.json').write_text(json.dumps({
-            'mortgages': [{
-                'Mortgage': {
-                    'Header': {'MortgageID': 'M1', 'PropertyID': 'P1'},
+        (d / 'loan.json').write_text(json.dumps({
+            'loans': [{
+                'RLoan': {
+                    'Header': {'RLoanID': 'M1', 'PropertyID': 'P1'},
                     'FinancialTerms': {
                         'OriginalLTV': None, 'OriginalTerm': 360,
                         'OriginalLendingRate': None,

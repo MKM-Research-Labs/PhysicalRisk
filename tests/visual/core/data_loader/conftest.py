@@ -53,14 +53,14 @@ def write_property(path: Path) -> None:
 
 
 def write_mortgage(path: Path) -> None:
-    data = {"mortgages": [{
-        "Mortgage": {
-            "Header": {"MortgageID": "MORT-001", "PropertyID": "PROP-001"},
+    data = {"loans": [{
+        "RLoan": {
+            "Header": {"RLoanID": "RLOAN-001", "PropertyID": "PROP-001"},
             "FinancialTerms": {"OriginalLoan": 200000},
             "CurrentStatus": {"OutstandingBalance": 180000},
         }
     }]}
-    (path / "mortgage.json").write_text(json.dumps(data))
+    (path / "loan.json").write_text(json.dumps(data))
 
 
 def write_hazard(path: Path) -> None:

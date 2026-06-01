@@ -42,7 +42,7 @@ def build_rloan_lookup(rloan_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
     mortgages = rloan_data.get("items", [])
 
     for mortgage in mortgages:
-        mort_data = mortgage.get("Mortgage", {})
+        mort_data = mortgage.get("RLoan", {})
         header = mort_data.get("Header", {})
         property_id = header.get("PropertyID")
 
@@ -51,7 +51,7 @@ def build_rloan_lookup(rloan_data: Optional[Dict[str, Any]]) -> Dict[str, Dict]:
             current_status = mort_data.get("CurrentStatus", {})
 
             lookup[property_id] = {
-                "mortgage_id": header.get("MortgageID"),
+                "mortgage_id": header.get("RLoanID"),
                 "property_id": property_id,
                 "uprn": header.get("UPRN"),
                 "financial_terms": financial_terms,

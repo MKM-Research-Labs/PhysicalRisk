@@ -88,11 +88,11 @@ def generate_report_for_property(property_id: str, property_file: Path,
             with open(mortgage_file) as f:
                 rloan_data = json.load(f)
 
-            mortgages = rloan_data.get('mortgages', [])
+            mortgages = rloan_data.get('loans', [])
             for mortgage in mortgages:
-                mtg_prop_id = mortgage.get('Mortgage', {}).get('Header', {}).get('PropertyID')
+                mtg_prop_id = mortgage.get('RLoan', {}).get('Header', {}).get('PropertyID')
                 if mtg_prop_id == property_id:
-                    rloan_info = mortgage.get('Mortgage', {})
+                    rloan_info = mortgage.get('RLoan', {})
                     break
 
         # Generate simple text report (could be enhanced to PDF)

@@ -42,7 +42,7 @@ class TestRLoanLoaderBasics:
         for mort in mortgages:
             mort_id = rloan_loader.get_entity_id(mort)
             assert mort_id is not None
-            assert mort_id.startswith("MORT-")
+            assert mort_id.startswith("RLOAN-")
 
     def test_entity_summary(self, rloan_loader):
         """Test mortgage summary generation."""
@@ -62,7 +62,7 @@ class TestRLoanLoaderQueries:
 
     def test_find_by_id(self, rloan_loader):
         """Test finding mortgage by ID."""
-        mort = rloan_loader.find_by_id("MORT-001")
+        mort = rloan_loader.find_by_id("RLOAN-001")
 
         assert mort is not None
         assert mort['PropertyID'] == "PROP-001"
@@ -73,7 +73,7 @@ class TestRLoanLoaderQueries:
         mort = rloan_loader.find_by_property_id("PROP-001")
 
         assert mort is not None
-        assert mort['MortgageID'] == "MORT-001"
+        assert mort['RLoanID'] == "RLOAN-001"
 
     def test_find_by_property_id_not_found(self, rloan_loader):
         """Test finding mortgage for property without mortgage."""
@@ -85,7 +85,7 @@ class TestRLoanLoaderQueries:
         """Test finding mortgages by lender."""
         morts = rloan_loader.find_by_lender("First National")
 
-        assert len(morts) == 2  # MORT-001 and MORT-003
+        assert len(morts) == 2  # RLOAN-001 and RLOAN-003
 
     def test_find_by_lender_case_insensitive(self, rloan_loader):
         """Test lender search is case insensitive."""
@@ -104,7 +104,7 @@ class TestRLoanLoaderQueries:
         morts = rloan_loader.find_by_status("Delinquent")
 
         assert len(morts) == 1
-        assert morts[0]['MortgageID'] == "MORT-003"
+        assert morts[0]['RLoanID'] == "RLOAN-003"
 
 
 class TestRLoanLoaderAggregations:
@@ -135,7 +135,7 @@ class TestRLoanLoaderAggregations:
         delinquent = rloan_loader.get_delinquent_rloans()
 
         assert len(delinquent) == 1
-        assert delinquent[0]['MortgageID'] == "MORT-003"
+        assert delinquent[0]['RLoanID'] == "RLOAN-003"
 
     def test_get_property_ids_with_rloans(self, rloan_loader):
         """Test getting property IDs that have mortgages."""

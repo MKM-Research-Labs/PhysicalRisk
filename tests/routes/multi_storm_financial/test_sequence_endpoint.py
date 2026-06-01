@@ -64,7 +64,7 @@ def seq_env(tmp_path, monkeypatch):
         ("PROP-B", 420_000),
         ("PROP-C", 300_000),
     ])
-    _mortgage_json(tmp_path / "mortgage.json", [
+    _mortgage_json(tmp_path / "loan.json", [
         ("PROP-A", 250_000, 350_000),
         ("PROP-B", 300_000, 420_000),
     ])
@@ -169,7 +169,7 @@ class TestSequenceEndpointNegativeEquity:
             ])
 
         _property_json(tmp_path / "property.json", [("PROP-NE2", 300_000)])
-        _mortgage_json(tmp_path / "mortgage.json", [("PROP-NE2", 280_000, 300_000)])
+        _mortgage_json(tmp_path / "loan.json", [("PROP-NE2", 280_000, 300_000)])
         return make_test_client(tmp_path, monkeypatch, setup)
 
     def test_sequence_selects_worst_storm(self, persistent_env):

@@ -25,9 +25,9 @@ from reportlab.platypus import Paragraph, Table
 
 def _make_mortgage():
     return {
-        "Mortgage": {
+        "RLoan": {
             "Header": {
-                "MortgageID": "MORT-001",
+                "RLoanID": "MORT-001",
                 "PropertyID": "PROP-001",
                 "UPRN": "12345678",
             },
@@ -126,14 +126,14 @@ class TestRLoanOverviewPage:
 
     def test_denial_reason_shown_when_not_default(self):
         mortgage = _make_mortgage()
-        mortgage["Mortgage"]["Application"]["DenialReason"] = "Insufficient income"
+        mortgage["RLoan"]["Application"]["DenialReason"] = "Insufficient income"
         page = self._page()
         result = page.generate_elements({}, mortgage)
         assert isinstance(result, list)
 
     def test_denial_reason_hidden_when_default(self):
         mortgage = _make_mortgage()
-        mortgage["Mortgage"]["Application"]["DenialReason"] = "Not specified"
+        mortgage["RLoan"]["Application"]["DenialReason"] = "Not specified"
         page = self._page()
         result = page.generate_elements({}, mortgage)
         assert isinstance(result, list)
@@ -141,7 +141,7 @@ class TestRLoanOverviewPage:
     def test_flat_mortgage_dict_accepted(self):
         """rloan_data without outer 'Mortgage' key is handled via fallback."""
         flat = {
-            "Header": {"MortgageID": "MORT-002"},
+            "Header": {"RLoanID": "MORT-002"},
         }
         page = self._page()
         result = page.generate_elements({}, flat)

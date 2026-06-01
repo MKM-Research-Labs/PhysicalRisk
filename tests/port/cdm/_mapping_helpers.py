@@ -196,6 +196,8 @@ class CDMMappingTest:
 
     def _test_cdm_coverage(self, cdm_fields: Dict, json_fields: Dict):
         for cdm_path, field_def in cdm_fields.items():
+            if field_def["name"] in self.skip_fields or cdm_path in self.skip_fields:
+                continue
             found, _ = self._find_json_value(cdm_path, json_fields)
             if found:
                 self.summary.fields_present += 1

@@ -67,12 +67,12 @@ def create_rloan_section(builder, rloan_info: Dict[str, Any],
     rloan_financial = rloan_info.get('FinancialTerms', {})
     mortgage_application = rloan_info.get('Application', {})
 
-    if not mortgage_header and 'Mortgage' in rloan_info:
-        mortgage_header = rloan_info.get('Mortgage', {}).get('Header', {})
-        rloan_financial = rloan_info.get('Mortgage', {}).get('FinancialTerms', {})
-        mortgage_application = rloan_info.get('Mortgage', {}).get('Application', {})
+    if not mortgage_header and 'RLoan' in rloan_info:
+        mortgage_header = rloan_info.get('RLoan', {}).get('Header', {})
+        rloan_financial = rloan_info.get('RLoan', {}).get('FinancialTerms', {})
+        mortgage_application = rloan_info.get('RLoan', {}).get('Application', {})
 
-    mortgage_id = mortgage_header.get('MortgageID', 'N/A')
+    mortgage_id = mortgage_header.get('RLoanID', 'N/A')
     lender = mortgage_application.get('MortgageProvider', 'N/A')
 
     loan_amount = rloan_financial.get('OriginalLoan', 0)

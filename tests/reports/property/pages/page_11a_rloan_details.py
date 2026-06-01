@@ -43,7 +43,7 @@ def _make_mortgage(original_ltv=0.75, dti=30.0, extra_terms=None):
     }
     if extra_terms:
         terms.update(extra_terms)
-    return {"Mortgage": {"Header": {"MortgageID": "MORT-001"}, "FinancialTerms": terms}}
+    return {"RLoan": {"Header": {"RLoanID": "MORT-001"}, "FinancialTerms": terms}}
 
 
 class TestRLoanDetailsPage:
@@ -60,7 +60,7 @@ class TestRLoanDetailsPage:
 
     def test_no_financial_terms_returns_message(self):
         page = self._page()
-        result = page.generate_elements({}, {"Mortgage": {"Header": {"MortgageID": "X"}}})
+        result = page.generate_elements({}, {"RLoan": {"Header": {"RLoanID": "X"}}})
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("No detailed financial terms available" in t for t in texts)
 

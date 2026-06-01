@@ -62,7 +62,7 @@ def _make_mortgage(ltv=0.65, missed_payments=0, in_arrears=False,
         status["TotalPaymentHolidays"] = total_holidays
     if last_holiday is not None:
         status["LastPaymentHolidayDate"] = last_holiday
-    return {"Mortgage": {"CurrentStatus": status}}
+    return {"RLoan": {"CurrentStatus": status}}
 
 
 class TestCurrentStatusPageBasics:
@@ -90,7 +90,7 @@ class TestCurrentStatusPageBasics:
         assert any("Status" in t or "Mortgage" in t for t in texts)
 
     def test_no_current_status_returns_message(self):
-        mortgage = {"Mortgage": {}}
+        mortgage = {"RLoan": {}}
         result = self._page().generate_elements({}, mortgage)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No current status" in t for t in texts)

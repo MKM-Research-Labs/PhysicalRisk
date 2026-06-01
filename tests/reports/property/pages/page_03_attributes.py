@@ -160,6 +160,6 @@ class TestAttributesPage:
 
     def test_with_mortgage_data_does_not_crash(self):
         page = self._page()
-        mortgage = {"Mortgage": {"Header": {"MortgageID": "MORT-001"}}}
+        mortgage = {"RLoan": {"Header": {"RLoanID": "MORT-001"}}}
         result = page.generate_elements(_make_property(), mortgage)
         assert isinstance(result, list)

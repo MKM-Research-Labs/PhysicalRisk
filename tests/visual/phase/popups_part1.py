@@ -145,7 +145,7 @@ class TestPropertyPopupBuilder:
             'post_code': 'SW1A 1AA'
         }
         self.sample_mortgage = {
-            'Header': {'MortgageID': 'MTG-test-001'},
+            'Header': {'RLoanID': 'MTG-test-001'},
             'FinancialTerms': {
                 'OriginalLoan': 500000,
                 'OriginalLendingRate': 0.035,

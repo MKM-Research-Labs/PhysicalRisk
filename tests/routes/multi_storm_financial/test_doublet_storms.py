@@ -56,7 +56,7 @@ def doublet_env(tmp_path, monkeypatch):
         ("PROP-A", 350_000),
         ("PROP-B", 420_000),
     ])
-    _mortgage_json(tmp_path / "mortgage.json", [
+    _mortgage_json(tmp_path / "loan.json", [
         ("PROP-A", 250_000, 350_000),
         ("PROP-B", 300_000, 420_000),
     ])
