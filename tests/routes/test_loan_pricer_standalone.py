@@ -74,8 +74,63 @@ class TestStandaloneLoanPricerRoute:
             "property_value": 300000,
         }})
         data = r.get_json()
-        # interest_rate not supplied -> server default applied.
-        assert data["inputs"]["interest_rate"] == 0.035
+        # Coupon is derived from defaults (BBB / Medium flood / Medium wind),
+        # not typed in: it should land in a sensible band around 7%.
+        coupon = data["coupon"]
+        assert coupon["credit_rating"] == "BBB"
+        assert 0.06 <= coupon["rate"] <= 0.08
+        # The derived coupon is used as the contractual interest rate.
+        assert data["inputs"]["interest_rate"] == coupon["rate"]
+        # Discount is the risk-free curve point, well below the coupon.
+        assert data["pricing"]["discount_rate"] == coupon["risk_free"]
+        assert coupon["risk_free"] < coupon["rate"]
+
+    def test_coupon_decomposes_to_components(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000,
+            "property_value": 300000,
+            "credit_rating": "BBB",
+            "flood_risk_category": "Medium",
+            "wind_risk_category": "Medium",
+        }})
+        c = r.get_json()["coupon"]
+        assert c["rate"] == pytest.approx(
+            c["risk_free"] + c["credit_spread"] + c["flood_spread"] + c["wind_spread"])
+        assert c["hazard_spread"] == pytest.approx(c["flood_spread"] + c["wind_spread"])
+
+    def test_worse_rating_raises_coupon(self, prop_client):
+        client, _ = prop_client
+
+        def coupon_for(rating):
+            r = client.post("/api/v1/loan-pricer", json={"inputs": {
+                "loan_amount": 200000, "property_value": 300000,
+                "credit_rating": rating,
+            }})
+            return r.get_json()["coupon"]["rate"]
+
+        assert coupon_for("CCC") > coupon_for("BBB") > coupon_for("AAA")
+
+    def test_commercial_caps_term_at_seven_years(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={
+            "asset_class": "commercial",
+            "inputs": {
+                "loan_amount": 200000, "property_value": 300000,
+                "original_maturity": 30, "current_term": 30,
+            }})
+        data = r.get_json()
+        assert data["asset_class"] == "commercial"
+        assert data["inputs"]["current_term"] == 7
+        assert data["inputs"]["original_maturity"] == 7
+
+    def test_residential_term_not_capped(self, prop_client):
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "current_term": 25,
+        }})
+        assert r.get_json()["inputs"]["current_term"] == 25
 
     def test_missing_required_returns_422(self, prop_client):
         client, _ = prop_client
@@ -104,10 +159,20 @@ class TestComputeStandalonePricing:
         })
         assert res["mortgage_id"] is None
         assert res["property_id"] is None
+        assert res["asset_class"] == "residential"
         assert "mortgage_value" in res["pricing"]
         # Defaults filled in for omitted inputs.
-        assert res["inputs"]["interest_rate"] == 0.035
         assert res["inputs"]["current_term"] == 30
+        # Coupon derived from defaults; interest_rate tracks it.
+        assert res["inputs"]["interest_rate"] == res["coupon"]["rate"]
+        assert res["pricing"]["discount_rate"] == res["coupon"]["risk_free"]
+
+    def test_commercial_term_cap_helper(self):
+        from routes._loan_pricing import compute_standalone_pricing
+        res = compute_standalone_pricing(
+            {"loan_amount": 200000, "property_value": 300000, "current_term": 30},
+            asset_class="commercial")
+        assert res["inputs"]["current_term"] == 7
 
     def test_missing_property_value_raises(self):
         from routes._loan_pricing import compute_standalone_pricing

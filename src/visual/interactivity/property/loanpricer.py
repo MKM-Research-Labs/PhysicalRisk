@@ -54,20 +54,26 @@ class LoanPricerPanel:
             // "Loan Calculator": no asset is loaded; the user types every
             // input and re-pricing POSTs to the standalone endpoint.
             var standaloneMode = false;
+            // 'residential' | 'commercial' — commercial caps the term at 7y
+            // server-side and is sent as asset_class on the standalone POST.
+            var standaloneAssetClass = 'residential';
 
             // Sensible starting values for the standalone calculator so the
             // first price renders immediately. pct fields are stored as
-            // decimals (populateInputs multiplies by 100 for display).
+            // decimals (populateInputs multiplies by 100 for display). Note
+            // there is no interest_rate here: the contractual coupon is built
+            // up server-side from the credit rating + flood/wind hazard.
             var STANDALONE_DEFAULTS = {{
                 loan_amount: 200000,
                 property_value: 300000,
                 gross_annual_income: 50000,
-                interest_rate: 0.035,
                 insurance_rate: 0.002,
                 recovery_haircut: 0.2,
                 original_maturity: 30,
                 current_term: 30,
-                flood_risk_category: 'Medium'
+                credit_rating: 'BBB',
+                flood_risk_category: 'Medium',
+                wind_risk_category: 'Medium'
             }};
 
             // field id -> {{label, kind}}. kind 'pct' fields are stored on the
@@ -83,6 +89,8 @@ class LoanPricerPanel:
                 {{id: 'lp-current_term',       label: 'Remaining Term (yrs)',kind: 'num'}}
             ];
             var FLOOD_OPTIONS = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
+            var WIND_OPTIONS = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
+            var CREDIT_RATINGS = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'];
 
             function createPanel() {{
                 if (lpPanel) return lpPanel;
@@ -152,7 +160,7 @@ class LoanPricerPanel:
 
             function fmtCurrency(v) {{
                 if (typeof v !== 'number' || isNaN(v)) return 'N/A';
-                return 'GBP ' + v.toLocaleString('en-GB', {{maximumFractionDigits: 0}});
+                return 'USD ' + v.toLocaleString('en-US', {{maximumFractionDigits: 0}});
             }}
 
             function fmtPct(v) {{
@@ -165,12 +173,29 @@ class LoanPricerPanel:
                 return v.toFixed(dp === undefined ? 2 : dp);
             }}
 
+            // Build a labelled <select> as an HTML string.
+            function selectHtml(id, label, options) {{
+                var h = '<div style="margin-bottom:6px;">' +
+                    '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                    label + '</label>' +
+                    '<select id="' + id + '" ' +
+                    'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
+                    'border:1px solid #ccc;border-radius:4px;font-size:13px;">';
+                options.forEach(function(o) {{
+                    h += '<option value="' + o + '">' + o + '</option>';
+                }});
+                return h + '</select></div>';
+            }}
+
             function buildForm() {{
                 var form = document.getElementById('loan-pricer-form');
                 var html = '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
                     'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
                     'Loan Inputs</div>';
                 FIELDS.forEach(function(f) {{
+                    // In standalone mode the coupon is derived (rating + hazard),
+                    // so the contractual rate isn't a free input.
+                    if (standaloneMode && f.id === 'lp-interest_rate') return;
                     html += '<div style="margin-bottom:6px;">' +
                         '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
                         f.label + '</label>' +
@@ -178,19 +203,17 @@ class LoanPricerPanel:
                         'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
                         'border:1px solid #ccc;border-radius:4px;font-size:13px;"></div>';
                 }});
-                // Flood risk dropdown
-                html += '<div style="margin-bottom:10px;">' +
-                    '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
-                    'Flood Risk Category</label>' +
-                    '<select id="lp-flood_risk_category" ' +
-                    'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                    'border:1px solid #ccc;border-radius:4px;font-size:13px;">';
-                FLOOD_OPTIONS.forEach(function(o) {{
-                    html += '<option value="' + o + '">' + o + '</option>';
-                }});
-                html += '</select></div>';
+                // Standalone calculator exposes the coupon build-up drivers:
+                // borrower credit rating + flood/wind hazard categories.
+                if (standaloneMode) {{
+                    html += selectHtml('lp-credit_rating', 'Borrower Credit Rating', CREDIT_RATINGS);
+                }}
+                html += selectHtml('lp-flood_risk_category', 'Flood Risk Category', FLOOD_OPTIONS);
+                if (standaloneMode) {{
+                    html += selectHtml('lp-wind_risk_category', 'Wind Risk Category', WIND_OPTIONS);
+                }}
                 html += '<button id="lp-reprice-btn" ' +
-                    'style="width:100%;padding:8px;background:#1565C0;color:white;' +
+                    'style="width:100%;margin-top:4px;padding:8px;background:#1565C0;color:white;' +
                     'border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">' +
                     'Re-price</button>';
                 form.innerHTML = html;
@@ -209,6 +232,10 @@ class LoanPricerPanel:
                 }});
                 var fr = document.getElementById('lp-flood_risk_category');
                 if (fr && inputs.flood_risk_category) fr.value = inputs.flood_risk_category;
+                var wr = document.getElementById('lp-wind_risk_category');
+                if (wr && inputs.wind_risk_category) wr.value = inputs.wind_risk_category;
+                var cr = document.getElementById('lp-credit_rating');
+                if (cr && inputs.credit_rating) cr.value = inputs.credit_rating;
             }}
 
             function readOverrides() {{
@@ -223,6 +250,10 @@ class LoanPricerPanel:
                 }});
                 var fr = document.getElementById('lp-flood_risk_category');
                 if (fr && fr.value) ov.flood_risk_category = fr.value;
+                var wr = document.getElementById('lp-wind_risk_category');
+                if (wr && wr.value) ov.wind_risk_category = wr.value;
+                var cr = document.getElementById('lp-credit_rating');
+                if (cr && cr.value) ov.credit_rating = cr.value;
                 return ov;
             }}
 
@@ -233,6 +264,7 @@ class LoanPricerPanel:
                     ['Discount to Par', fmtCurrency(p.discount_to_par), '#C62828'],
                     ['Discount %', fmtNum(p.discount_percentage, 2) + '%', '#C62828'],
                     ['Credit Spread', fmtPct(p.credit_spread), '#333'],
+                    ['Discount Rate', fmtPct(p.discount_rate), '#333'],
                     ['LTV Ratio', fmtPct(p.ltv_ratio), '#333'],
                     ['LTV Factor', fmtNum(p.ltv_factor), '#333'],
                     ['Flood Risk Factor', fmtNum(p.flood_risk_factor), '#333'],
@@ -242,7 +274,30 @@ class LoanPricerPanel:
                     ['PV Cashflows', fmtCurrency(p.pv_cashflows), '#333'],
                     ['PV Losses', fmtCurrency(p.pv_losses), '#333']
                 ];
-                var html = '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
+                var html = '';
+                // Coupon build-up (standalone calculator only): show how the
+                // contractual coupon decomposes into risk-free + credit + hazard.
+                var c = data && data.coupon;
+                if (c) {{
+                    var couponRows = [
+                        ['Contractual Coupon', fmtPct(c.rate), '#0D47A1'],
+                        ['Risk-free (curve)', fmtPct(c.risk_free), '#333'],
+                        ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), '#333'],
+                        ['Flood Hazard', fmtPct(c.flood_spread), '#333'],
+                        ['Wind Hazard', fmtPct(c.wind_spread), '#333']
+                    ];
+                    html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
+                        'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
+                        'Coupon Build-up</div>';
+                    couponRows.forEach(function(r) {{
+                        html += '<div style="display:flex;justify-content:space-between;padding:3px 0;' +
+                            'border-bottom:1px solid #f5f5f5;">' +
+                            '<span style="color:#666;">' + r[0] + '</span>' +
+                            '<span style="font-weight:600;color:' + r[2] + ';">' + r[1] + '</span></div>';
+                    }});
+                    html += '<div style="height:12px;"></div>';
+                }}
+                html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
                     'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
                     'Pricing Results</div>';
                 rows.forEach(function(r) {{
@@ -275,7 +330,8 @@ class LoanPricerPanel:
                     var overrides = readOverrides();
                     var url = standaloneMode ? standaloneEndpoint() : endpointFor(currentAssetId);
                     var payload = standaloneMode
-                        ? {{inputs: overrides}} : {{overrides: overrides}};
+                        ? {{inputs: overrides, asset_class: standaloneAssetClass}}
+                        : {{overrides: overrides}};
                     var response = await fetch(url, {{
                         method: 'POST',
                         headers: {{'Content-Type': 'application/json'}},
@@ -322,14 +378,18 @@ class LoanPricerPanel:
 
             // Standalone "Loan Calculator": asset-independent. Opens with
             // sensible defaults and prices on demand; ignores any asset id
-            // passed by the menu.
-            function showStandalone() {{
-                console.log('[LoanPricer] Opening standalone calculator');
+            // passed by the menu. assetClass ('residential'|'commercial')
+            // selects the server-side term cap (commercial = 7 years).
+            function showStandalone(assetClass) {{
+                console.log('[LoanPricer] Opening standalone calculator', assetClass);
                 standaloneMode = true;
+                standaloneAssetClass = (assetClass === 'commercial') ? 'commercial' : 'residential';
                 currentAssetId = null;
                 createPanel();
                 buildForm();
-                document.getElementById('loan-pricer-title').textContent = 'Loan Calculator';
+                var titleText = (standaloneAssetClass === 'commercial')
+                    ? 'Loan Calculator (Commercial — max 7y)' : 'Loan Calculator';
+                document.getElementById('loan-pricer-title').textContent = titleText;
                 populateInputs(STANDALONE_DEFAULTS);
                 lpPanel.style.display = 'flex';
                 reprice();
@@ -341,9 +401,10 @@ class LoanPricerPanel:
             window.viewLoanPricer = showPanel;
             window.viewCommercialLoanPricer = showPanel;
             // Standalone launchers — distinct names so property/commercial
-            // menu actions stay disjoint, both opening the blank calculator.
-            window.openLoanCalculator = showStandalone;
-            window.openCommercialLoanCalculator = showStandalone;
+            // menu actions stay disjoint. Residential is uncapped; commercial
+            // caps the term at 7 years server-side.
+            window.openLoanCalculator = function() {{ showStandalone('residential'); }};
+            window.openCommercialLoanCalculator = function() {{ showStandalone('commercial'); }};
             window.LoanPricerPanel = {{
                 show: showPanel,
                 showStandalone: showStandalone,

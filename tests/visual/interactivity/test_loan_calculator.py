@@ -78,3 +78,24 @@ class TestLoanPricerPanelStandaloneJS:
         assert "STANDALONE_DEFAULTS" in js
         # Calculator title shown in standalone mode.
         assert "Loan Calculator" in js
+
+    def test_credit_rating_and_wind_inputs_present(self):
+        js = self._js()
+        assert "CREDIT_RATINGS" in js
+        assert "lp-credit_rating" in js
+        assert "lp-wind_risk_category" in js
+        assert "WIND_OPTIONS" in js
+
+    def test_coupon_buildup_rendered(self):
+        js = self._js()
+        # Standalone results show the coupon decomposition.
+        assert "Coupon Build-up" in js
+        assert "data.coupon" in js or "data && data.coupon" in js
+
+    def test_commercial_asset_class_sent(self):
+        js = self._js()
+        # Commercial launcher tags the request so the server caps the term.
+        assert "standaloneAssetClass" in js
+        assert "asset_class" in js
+        assert "showStandalone('commercial')" in js
+        assert "showStandalone('residential')" in js
