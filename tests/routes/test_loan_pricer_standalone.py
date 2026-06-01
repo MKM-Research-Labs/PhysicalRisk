@@ -165,6 +165,35 @@ class TestStandaloneLoanPricerRoute:
 
         assert coupon_for("CCC") > coupon_for("BBB") > coupon_for("AAA")
 
+    def test_income_yield_derives_borrower_income(self, prop_client):
+        """A commercial marker forwards the asset's net initial yield; the
+        borrower income is then the annual passing rent (yield x property
+        value), not the fixed default."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "income_yield": 0.06,
+        }})
+        data = r.get_json()
+        assert data["status"] == "success"
+        assert data["inputs"]["gross_annual_income"] == pytest.approx(0.06 * 300000)
+        # The yield itself is consumed, not echoed back as a pricing input.
+        assert "income_yield" not in data["inputs"]
+
+    def test_income_yield_tracks_property_value(self, prop_client):
+        """Income = yield x value, so a larger property value lifts income."""
+        client, _ = prop_client
+
+        def income_for(value):
+            r = client.post("/api/v1/loan-pricer", json={"inputs": {
+                "loan_amount": 200000, "property_value": value,
+                "income_yield": 0.05,
+            }})
+            return r.get_json()["inputs"]["gross_annual_income"]
+
+        assert income_for(1_000_000) == pytest.approx(50_000)
+        assert income_for(10_000_000) == pytest.approx(500_000)
+
     def test_commercial_caps_term_at_seven_years(self, prop_client):
         client, _ = prop_client
         r = client.post("/api/v1/loan-pricer", json={
@@ -227,6 +256,15 @@ class TestComputeStandalonePricing:
             {"loan_amount": 200000, "property_value": 300000, "current_term": 30},
             asset_class="commercial")
         assert res["inputs"]["current_term"] == 7
+
+    def test_income_yield_helper(self):
+        from routes._loan_pricing import compute_standalone_pricing
+        res = compute_standalone_pricing({
+            "loan_amount": 200000, "property_value": 400000,
+            "income_yield": 0.07,
+        })
+        assert res["inputs"]["gross_annual_income"] == pytest.approx(0.07 * 400000)
+        assert "income_yield" not in res["inputs"]
 
     def test_missing_property_value_raises(self):
         from routes._loan_pricing import compute_standalone_pricing

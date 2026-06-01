@@ -67,6 +67,13 @@ class LoanPricerPanel:
             // coupon instead of the coarse flood-category lookup, so the
             // calculator matches the property PRS pricer. null = use category.
             var assetFloodSpreadBps = null;
+            // Borrower income sourced from the origin asset. Commercial markers
+            // forward the asset's net initial yield (passing rent / value) so
+            // the server can derive income = yield x property value; residential
+            // markers forward the borrower's gross annual income directly. Both
+            // null = use the STANDALONE_DEFAULTS income.
+            var assetIncomeYield = null;
+            var assetGrossIncome = null;
 
             // Sensible starting values for the standalone calculator so the
             // first price renders immediately. pct fields are stored as
@@ -82,7 +89,6 @@ class LoanPricerPanel:
                 original_maturity: 30,
                 current_term: 30,
                 credit_rating: 'BBB',
-                flood_risk_category: 'Medium',
                 wind_risk_category: 'Medium'
             }};
 
@@ -98,7 +104,6 @@ class LoanPricerPanel:
                 {{id: 'lp-original_maturity',  label: 'Original Term (yrs)', kind: 'num'}},
                 {{id: 'lp-current_term',       label: 'Remaining Term (yrs)',kind: 'num'}}
             ];
-            var FLOOD_OPTIONS = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
             var WIND_OPTIONS = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
             var CREDIT_RATINGS = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'];
 
@@ -214,12 +219,11 @@ class LoanPricerPanel:
                         'border:1px solid #ccc;border-radius:4px;font-size:13px;"></div>';
                 }});
                 // Standalone calculator exposes the coupon build-up drivers:
-                // borrower credit rating + flood/wind hazard categories.
+                // borrower credit rating + wind hazard category. The flood leg
+                // is driven by the asset's own modelled PRS spread (or the
+                // server-side category fallback), so it has no input here.
                 if (standaloneMode) {{
                     html += selectHtml('lp-credit_rating', 'Borrower Credit Rating', CREDIT_RATINGS);
-                }}
-                html += selectHtml('lp-flood_risk_category', 'Flood Risk Category', FLOOD_OPTIONS);
-                if (standaloneMode) {{
                     html += selectHtml('lp-wind_risk_category', 'Wind Risk Category', WIND_OPTIONS);
                 }}
                 html += '<button id="lp-reprice-btn" ' +
@@ -240,8 +244,6 @@ class LoanPricerPanel:
                     if (v == null) {{ el.value = ''; return; }}
                     el.value = (f.kind === 'pct') ? (v * 100) : v;
                 }});
-                var fr = document.getElementById('lp-flood_risk_category');
-                if (fr && inputs.flood_risk_category) fr.value = inputs.flood_risk_category;
                 var wr = document.getElementById('lp-wind_risk_category');
                 if (wr && inputs.wind_risk_category) wr.value = inputs.wind_risk_category;
                 var cr = document.getElementById('lp-credit_rating');
@@ -258,8 +260,6 @@ class LoanPricerPanel:
                     var key = f.id.replace('lp-', '');
                     ov[key] = (f.kind === 'pct') ? (num / 100) : num;
                 }});
-                var fr = document.getElementById('lp-flood_risk_category');
-                if (fr && fr.value) ov.flood_risk_category = fr.value;
                 var wr = document.getElementById('lp-wind_risk_category');
                 if (wr && wr.value) ov.wind_risk_category = wr.value;
                 var cr = document.getElementById('lp-credit_rating');
@@ -388,6 +388,54 @@ class LoanPricerPanel:
                 }}
             }}
 
+            // Backend endpoint for the origin asset's full commercial record
+            // (CommercialAsset wrapper intact) — used to read the net initial
+            // yield for the income derivation.
+            function commercialRecordEndpoint(assetId) {{
+                var cfg = window.__BACKEND_CONFIG || {{}};
+                return (cfg.url || '') + '/api/v1/commercial/' + assetId;
+            }}
+
+            // Backend endpoint for the origin asset's linked loan pricer (GET) —
+            // its derived inputs carry the residential borrower's income.
+            function loanPricerEndpointFor(assetId) {{
+                var cfg = window.__BACKEND_CONFIG || {{}};
+                return (cfg.url || '') + '/api/v1/properties/' + assetId + '/loan-pricer';
+            }}
+
+            // Source the borrower income from the origin asset (if any).
+            // Commercial: read the asset's net initial yield (passing rent /
+            // capital value) so the server derives income = yield x property
+            // value. Residential: read the borrower's gross annual income from
+            // the linked loan record. Leaves both null on any miss, in which
+            // case the calculator keeps the STANDALONE_DEFAULTS income.
+            async function loadAssetIncome() {{
+                assetIncomeYield = null;
+                assetGrossIncome = null;
+                if (!standaloneOriginAssetId) return;
+                try {{
+                    if (standaloneAssetClass === 'commercial') {{
+                        var resp = await fetch(
+                            commercialRecordEndpoint(standaloneOriginAssetId), {{mode: 'cors'}});
+                        if (!resp.ok) return;
+                        var body = await resp.json();
+                        var ca = body && body.property && body.property.CommercialAsset;
+                        var ten = ca && ca.Tenancy;
+                        var y = ten && ten.NetInitialYield;
+                        if (y != null && !isNaN(y) && y > 0) assetIncomeYield = parseFloat(y);
+                    }} else {{
+                        var resp2 = await fetch(
+                            loanPricerEndpointFor(standaloneOriginAssetId), {{mode: 'cors'}});
+                        if (!resp2.ok) return;
+                        var body2 = await resp2.json();
+                        var inc = body2 && body2.inputs && body2.inputs.gross_annual_income;
+                        if (inc != null && !isNaN(inc) && inc > 0) assetGrossIncome = parseFloat(inc);
+                    }}
+                }} catch (e) {{
+                    console.warn('[LoanPricer] asset income unavailable', e);
+                }}
+            }}
+
             async function reprice() {{
                 if (!standaloneMode && !currentAssetId) return;
                 var btn = document.getElementById('lp-reprice-btn');
@@ -398,6 +446,14 @@ class LoanPricerPanel:
                     // that asset's modelled PRS spread instead of the category.
                     if (standaloneMode && assetFloodSpreadBps != null) {{
                         overrides.flood_spread_bps = assetFloodSpreadBps;
+                    }}
+                    // Derive commercial income from the asset's net initial
+                    // yield x the (editable) property value, server-side. The
+                    // displayed income is informational here, so drop it from
+                    // the overrides to let the yield-derived value through.
+                    if (standaloneMode && assetIncomeYield != null) {{
+                        overrides.income_yield = assetIncomeYield;
+                        delete overrides.gross_annual_income;
                     }}
                     var url = standaloneMode ? standaloneEndpoint() : endpointFor(currentAssetId);
                     var payload = standaloneMode
@@ -464,10 +520,19 @@ class LoanPricerPanel:
                 document.getElementById('loan-pricer-title').textContent = titleText;
                 populateInputs(STANDALONE_DEFAULTS);
                 lpPanel.style.display = 'flex';
-                // Pull the origin asset's modelled flood spread (if any) before
-                // the first price so the flood leg reflects the real hazard
-                // curve rather than the flood-category fallback.
+                // Pull the origin asset's modelled flood spread + income basis
+                // (if any) before the first price so the flood leg reflects the
+                // real hazard curve (not the flood-category fallback) and the
+                // borrower income reflects the asset rather than the default.
                 await loadAssetFloodSpread();
+                await loadAssetIncome();
+                // Residential income is a fixed borrower figure, so seed the
+                // editable field with it; commercial income is derived from the
+                // yield server-side and shown via the repriced inputs.
+                if (assetGrossIncome != null) {{
+                    var incEl = document.getElementById('lp-gross_annual_income');
+                    if (incEl) incEl.value = assetGrossIncome;
+                }}
                 reprice();
             }}
 
