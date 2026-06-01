@@ -62,6 +62,11 @@ class LoanPricerPanel:
             // was opened from a property/commercial marker we keep that id so
             // the flood leg can deep-link to that asset's PRS pricer panel.
             var standaloneOriginAssetId = null;
+            // The origin asset's own modelled flood PRS spread (bps), read
+            // from its hazard curve. When set, it drives the flood leg of the
+            // coupon instead of the coarse flood-category lookup, so the
+            // calculator matches the property PRS pricer. null = use category.
+            var assetFloodSpreadBps = null;
 
             // Sensible starting values for the standalone calculator so the
             // first price renders immediately. pct fields are stored as
@@ -280,10 +285,14 @@ class LoanPricerPanel:
                 // contractual coupon decomposes into risk-free + credit + hazard.
                 var c = data && data.coupon;
                 if (c) {{
-                    // The flood leg is PRS-priced; when the calculator was
-                    // opened from an asset, deep-link the leg to that asset's
-                    // PRS pricer panel so the user can drill into the model.
-                    var floodLabel = 'Flood Hazard (PRS)';
+                    // The flood leg is PRS-priced; the label notes whether it
+                    // came from the asset's own hazard curve or the category
+                    // fallback. When opened from an asset, deep-link the leg to
+                    // that asset's PRS pricer panel so the user can drill in.
+                    var fromAsset = (c.flood_priced_by || '').indexOf('asset') >= 0;
+                    var floodLabel = fromAsset
+                        ? 'Flood Hazard (PRS \\u00b7 asset curve)'
+                        : 'Flood Hazard (PRS \\u00b7 category)';
                     if (standaloneOriginAssetId && window.viewPropertyHazard) {{
                         floodLabel += ' <a href="#" id="lp-flood-prs-link" ' +
                             'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
@@ -343,12 +352,53 @@ class LoanPricerPanel:
                 return (cfg.url || '') + '/api/v1/loan-pricer';
             }}
 
+            // Hazard endpoint for the asset the calculator was launched from.
+            // Commercial assets (CPROP- prefix) use the commercial route.
+            function hazardEndpointFor(assetId) {{
+                var cfg = window.__BACKEND_CONFIG || {{}};
+                var baseUrl = cfg.url || '';
+                var path = (assetId.indexOf('CPROP-') === 0)
+                    ? '/api/v1/commercial/' : '/api/v1/properties/';
+                return baseUrl + path + assetId + '/hazard';
+            }}
+
+            // Read the origin asset's own modelled flood PRS spread (severe
+            // trigger, bps) from its hazard curve. The spread is flat across
+            // tenors (storms are independent), so the first point is taken.
+            // Sets assetFloodSpreadBps; leaves it null on any miss (e.g. the
+            // asset has < 3 flood events and so has no hazard curve), in which
+            // case the coupon falls back to the flood-category lookup.
+            async function loadAssetFloodSpread() {{
+                assetFloodSpreadBps = null;
+                if (!standaloneOriginAssetId) return;
+                try {{
+                    var resp = await fetch(hazardEndpointFor(standaloneOriginAssetId),
+                                           {{mode: 'cors'}});
+                    if (!resp.ok) return;
+                    var body = await resp.json();
+                    var d = body && body.data;
+                    var ts = d && d.term_structure;
+                    var severe = ts && ts.severe;
+                    var arr = severe && severe.prs_spread_bps;
+                    if (arr && arr.length && arr[0] != null && !isNaN(arr[0])) {{
+                        assetFloodSpreadBps = parseFloat(arr[0]);
+                    }}
+                }} catch (e) {{
+                    console.warn('[LoanPricer] asset flood spread unavailable', e);
+                }}
+            }}
+
             async function reprice() {{
                 if (!standaloneMode && !currentAssetId) return;
                 var btn = document.getElementById('lp-reprice-btn');
                 if (btn) {{ btn.disabled = true; btn.textContent = 'Pricing...'; }}
                 try {{
                     var overrides = readOverrides();
+                    // When launched from an asset, drive the flood leg from
+                    // that asset's modelled PRS spread instead of the category.
+                    if (standaloneMode && assetFloodSpreadBps != null) {{
+                        overrides.flood_spread_bps = assetFloodSpreadBps;
+                    }}
                     var url = standaloneMode ? standaloneEndpoint() : endpointFor(currentAssetId);
                     var payload = standaloneMode
                         ? {{inputs: overrides, asset_class: standaloneAssetClass}}
@@ -401,7 +451,7 @@ class LoanPricerPanel:
             // sensible defaults and prices on demand; ignores any asset id
             // passed by the menu. assetClass ('residential'|'commercial')
             // selects the server-side term cap (commercial = 7 years).
-            function showStandalone(assetClass, originAssetId) {{
+            async function showStandalone(assetClass, originAssetId) {{
                 console.log('[LoanPricer] Opening standalone calculator', assetClass);
                 standaloneMode = true;
                 standaloneAssetClass = (assetClass === 'commercial') ? 'commercial' : 'residential';
@@ -414,6 +464,10 @@ class LoanPricerPanel:
                 document.getElementById('loan-pricer-title').textContent = titleText;
                 populateInputs(STANDALONE_DEFAULTS);
                 lpPanel.style.display = 'flex';
+                // Pull the origin asset's modelled flood spread (if any) before
+                // the first price so the flood leg reflects the real hazard
+                // curve rather than the flood-category fallback.
+                await loadAssetFloodSpread();
                 reprice();
             }}
 

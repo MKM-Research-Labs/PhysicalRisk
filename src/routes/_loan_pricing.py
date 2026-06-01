@@ -57,6 +57,11 @@ OVERRIDE_KEYS = (
     "flood_risk_category",
     "wind_risk_category",
     "credit_rating",
+    # The asset's own modelled flood PRS spread (bps), read from its hazard
+    # curve by the calculator when launched from a property/commercial marker.
+    # When present it supersedes the coarse flood-category lookup so the flood
+    # leg matches the property PRS pricer exactly.
+    "flood_spread_bps",
 )
 
 # Override keys whose values are free-text categories, not numbers — kept
@@ -209,27 +214,46 @@ _STANDALONE_DEFAULTS = {
 def _build_coupon(term_years: float,
                   credit_rating: str,
                   flood_category: str,
-                  wind_category: str) -> Dict[str, Any]:
+                  wind_category: str,
+                  flood_spread_bps: Optional[float] = None) -> Dict[str, Any]:
     """Assemble the contractual coupon from its components.
 
     ``coupon = risk-free + credit spread + flood spread + wind spread``
 
-    The flood spread is *PRS-priced*: the flood-risk category maps to an annual
-    flood probability which the analytical PRS pricer (``compute_prs_spread``)
-    converts to a fair CDS-equivalent spread, discounted on the risk-free rate.
+    The flood spread is *PRS-priced*. There are two sources, in priority order:
+
+    1. **Asset curve** — when ``flood_spread_bps`` is supplied (the calculator
+       was launched from a property/commercial asset and read that asset's own
+       modelled flood spread from its hazard curve), it is used verbatim. This
+       is the property's simulated flood frequency, so the flood leg matches
+       the property PRS pricer exactly (no coarse category bucket).
+    2. **Category lookup** — otherwise the flood-risk category maps to an annual
+       flood probability which the analytical PRS pricer (``compute_prs_spread``)
+       converts to a fair CDS-equivalent spread on the risk-free rate. This is
+       the fallback for a truly standalone calculator (no asset) or an asset
+       with too few flood events to have a hazard curve.
+
     Wind has no PRS pricer yet, so it uses the static lookup. Returns the total
     ``rate`` plus the full decomposition (all decimals).
     """
     rf = discount_rate(term_years)
     credit = credit_spread_for_rating(credit_rating)
 
-    annual_hazard = flood_annual_hazard(flood_category)
-    flood_bps = compute_prs_spread(
-        annual_hazard_rate=annual_hazard,
-        tenor=max(int(round(term_years)), 1),
-        recovery=PRS_FLOOD_RECOVERY,
-        risk_free_rate=rf,
-    )
+    if flood_spread_bps is not None and flood_spread_bps >= 0:
+        # Asset's own modelled flood spread — recovery is 0 for flood, so the
+        # spread is, to first order, the annual flood probability itself.
+        flood_bps = float(flood_spread_bps)
+        annual_hazard = flood_bps / 10000.0
+        flood_source = "PRS (asset curve)"
+    else:
+        annual_hazard = flood_annual_hazard(flood_category)
+        flood_bps = compute_prs_spread(
+            annual_hazard_rate=annual_hazard,
+            tenor=max(int(round(term_years)), 1),
+            recovery=PRS_FLOOD_RECOVERY,
+            risk_free_rate=rf,
+        )
+        flood_source = "PRS (category)"
     flood = flood_bps / 10000.0
     wind = wind_hazard_spread(wind_category)
 
@@ -241,7 +265,7 @@ def _build_coupon(term_years: float,
         "wind_spread": wind,
         "hazard_spread": flood + wind,
         "flood_annual_hazard": annual_hazard,
-        "flood_priced_by": "PRS",
+        "flood_priced_by": flood_source,
         "wind_priced_by": "static",
         "credit_rating": (str(credit_rating).strip().upper()
                           if credit_rating else DEFAULT_CREDIT_RATING),
@@ -293,6 +317,7 @@ def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
         credit_rating=effective.get("credit_rating"),
         flood_category=effective.get("flood_risk_category"),
         wind_category=effective.get("wind_risk_category"),
+        flood_spread_bps=effective.get("flood_spread_bps"),
     )
     effective["interest_rate"] = coupon["rate"]
 

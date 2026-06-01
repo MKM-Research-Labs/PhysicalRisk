@@ -94,10 +94,28 @@ class TestLoanPricerPanelStandaloneJS:
 
     def test_coupon_legs_labelled_by_pricer(self):
         """Flood leg is PRS-priced; wind is the static placeholder — the
-        labels must say so to keep the provenance visible."""
+        labels must say so to keep the provenance visible. The flood label
+        further distinguishes the asset's own hazard curve from the category
+        fallback."""
         js = self._js()
-        assert "Flood Hazard (PRS)" in js
+        assert "Flood Hazard (PRS" in js
+        assert "asset curve" in js
+        assert "category" in js
         assert "Wind Hazard (static)" in js
+
+    def test_flood_leg_sourced_from_asset_curve(self):
+        """When launched from an asset, the flood leg is driven by that asset's
+        modelled PRS spread (read from its hazard curve), not the category
+        lookup — so the calculator matches the property PRS pricer."""
+        js = self._js()
+        # Fetches the asset hazard endpoint and reads the severe PRS spread.
+        assert "loadAssetFloodSpread" in js
+        assert "hazardEndpointFor" in js
+        assert "prs_spread_bps" in js
+        assert "/hazard" in js
+        # Threads the modelled spread into the reprice request.
+        assert "assetFloodSpreadBps" in js
+        assert "overrides.flood_spread_bps" in js
 
     def test_redundant_pricing_rows_removed(self):
         """The engine's affordability-derived credit spread, LTV factor, flood
