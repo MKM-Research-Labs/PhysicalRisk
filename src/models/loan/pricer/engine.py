@@ -127,6 +127,7 @@ class LoanPricer:
                       current_term: float,
                       recovery_haircut: float,
                       flood_risk_category: Optional[str] = None,
+                      discount_rate: Optional[float] = None,
                       tax_rate: Optional[float] = None,
                       debug: bool = False) -> Dict[str, Any]:
         """
@@ -142,6 +143,11 @@ class LoanPricer:
             current_term: Remaining term in years
             recovery_haircut: Recovery haircut in default (as decimal)
             flood_risk_category: Flood risk category ("Very Low" to "Very High")
+            discount_rate: Risk-free rate used to discount expected cashflows.
+                When None (default) the contractual ``interest_rate`` is used,
+                preserving the legacy flat-discount behaviour. Supplying a
+                separate risk-free rate lets the coupon embed a credit/hazard
+                margin over the discount curve.
             tax_rate: Tax rate (optional)
             debug: Whether to print detailed calculations
 
@@ -246,9 +252,13 @@ class LoanPricer:
             # Expected loss in this period
             expected_losses[i] = lgds[period_idx] * default_prob
 
-        # Calculate present values
+        # Calculate present values.
+        # Discount on the supplied risk-free rate when given; otherwise fall
+        # back to the contractual coupon (legacy flat-discount behaviour).
+        disc_rate = discount_rate if discount_rate is not None else interest_rate
+        disc_rate = max(disc_rate, 0.0)
         periods_array = np.arange(1, n_periods + 1)
-        discount_factors = (1 + interest_rate/12) ** (-periods_array)
+        discount_factors = (1 + disc_rate/12) ** (-periods_array)
 
         pv_cashflows = np.sum(expected_cashflows * discount_factors)
         pv_losses = np.sum(expected_losses * discount_factors)
@@ -267,6 +277,7 @@ class LoanPricer:
         return {
             'mortgage_value': mortgage_value,
             'credit_spread': credit_spread,
+            'discount_rate': disc_rate,
             'ltv_factor': ltv_factor,
             'flood_risk_factor': flood_factor,
             'annual_payment': annual_payment,
