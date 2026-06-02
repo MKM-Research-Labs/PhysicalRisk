@@ -77,6 +77,8 @@ def residential(c):
         fmt.row('Synthetic distance TS', f'{c["propertytsd_ct"]} files')
     if c['propertytse_ct']:
         fmt.row('Synthetic elevation TS', f'{c["propertytse_ct"]} files')
+    if c['propertytsb_ct']:
+        fmt.row('BRI-adjusted floor TS', f'{c["propertytsb_ct"]} files')
     fmt.row('Mortgages linked', f'{c["mort_count"]}')
     fmt.row('Counterparties', f'{c["ctpy_count"]}')
 
@@ -93,6 +95,8 @@ def commercial(c):
         fmt.row('Commercial distance TS', f'{c["commercialtsd_ct"]} files')
     if c['commercialtse_ct']:
         fmt.row('Commercial elevation TS', f'{c["commercialtse_ct"]} files')
+    if c['commercialtsb_ct']:
+        fmt.row('Commercial BRI-adjusted floor TS', f'{c["commercialtsb_ct"]} files')
     if c['com_hc_ct']:
         fmt.row('Commercial hazard curves', f'{c["com_hc_ct"]}')
 
@@ -120,6 +124,8 @@ def output_files(c):
         fmt.row('propertyshd.json', f'{c["shd_count"]} synthetic distance curves')
     if c['she_count']:
         fmt.row('propertyshe.json', f'{c["she_count"]} synthetic elevation curves')
+    if c['bri_count']:
+        fmt.row('propertybri.json', f'{c["bri_count"]} BRI-adjusted floor curves')
     fmt.row('gaugets/', f'{c["gaugets_ct"]} gauge time series')
     fmt.row('gaugehd/', f'{c["gaugehd_ct"]} historical daily')
     fmt.row('propertyts/', f'{c["propertyts_ct"]} property flood series')
@@ -127,6 +133,8 @@ def output_files(c):
         fmt.row('propertytsd/', f'{c["propertytsd_ct"]} synthetic distance series')
     if c['propertytse_ct']:
         fmt.row('propertytse/', f'{c["propertytse_ct"]} synthetic elevation series')
+    if c['propertytsb_ct']:
+        fmt.row('propertytsb/', f'{c["propertytsb_ct"]} BRI-adjusted floor series')
     # Commercial outputs — only when a commercial portfolio exists.
     if c['com_count']:
         fmt.row('commercial.json', f'{c["com_count"]} commercial assets')
@@ -138,6 +146,8 @@ def output_files(c):
         fmt.row('commercialshd.json', f'{c["com_shd_ct"]} commercial distance curves')
     if c['com_she_ct']:
         fmt.row('commercialshe.json', f'{c["com_she_ct"]} commercial elevation curves')
+    if c['com_bri_ct']:
+        fmt.row('commercialbri.json', f'{c["com_bri_ct"]} commercial BRI-adjusted floor curves')
     if c['commercialts_ct']:
         fmt.row('commercialts/', f'{c["commercialts_ct"]} commercial flood series')
     if c['commercialtsd_ct']:
