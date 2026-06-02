@@ -17,8 +17,8 @@ from tests.data._id_consistency_helpers import (
     _load_propertyhc_ids,
     _load_propertyshd_ids,
     _load_propertyshe_ids,
-    THAMES_LAT_BOUNDS,
-    THAMES_LON_BOUNDS,
+    CATCHMENT_LAT_BOUNDS,
+    CATCHMENT_LON_BOUNDS,
 )
 
 
@@ -189,8 +189,8 @@ class TestGaugeFloodThresholds:
             f"{len(bad)} gauges have non-positive thresholds: {bad[:5]}"
         )
 
-    def test_coords_in_thames_bounds(self):
-        """Gauge coordinates must fall within Thames catchment bounds."""
+    def test_coords_in_catchment_bounds(self):
+        """Gauge coordinates must fall within the active catchment's bounds."""
         records = _load_gauge_records()
         if not records:
             pytest.skip("gauge.json empty or missing")
@@ -202,13 +202,13 @@ class TestGaugeFloodThresholds:
                       .get("GaugeInformation", {}))
             lat = info.get("GaugeLatitude", 0)
             lon = info.get("GaugeLongitude", 0)
-            if not (THAMES_LAT_BOUNDS[0] <= lat <= THAMES_LAT_BOUNDS[1]):
+            if not (CATCHMENT_LAT_BOUNDS[0] <= lat <= CATCHMENT_LAT_BOUNDS[1]):
                 bad.append(f"{gid} lat={lat}")
-            elif not (THAMES_LON_BOUNDS[0] <= lon <= THAMES_LON_BOUNDS[1]):
+            elif not (CATCHMENT_LON_BOUNDS[0] <= lon <= CATCHMENT_LON_BOUNDS[1]):
                 bad.append(f"{gid} lon={lon}")
         assert len(bad) == 0, (
-            f"{len(bad)} gauges outside Thames bounds: {bad[:5]}. "
-            f"Expected lat {THAMES_LAT_BOUNDS}, lon {THAMES_LON_BOUNDS}."
+            f"{len(bad)} gauges outside catchment bounds: {bad[:5]}. "
+            f"Expected lat {CATCHMENT_LAT_BOUNDS}, lon {CATCHMENT_LON_BOUNDS}."
         )
 
     def test_gauge_names_non_empty(self):

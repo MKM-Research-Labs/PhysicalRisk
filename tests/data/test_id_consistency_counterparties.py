@@ -18,8 +18,6 @@ from tests.data._id_consistency_helpers import (
     _load_propertyhc_ids,
     _load_propertyshd_ids,
     _load_propertyshe_ids,
-    THAMES_LAT_BOUNDS,
-    THAMES_LON_BOUNDS,
 )
 
 

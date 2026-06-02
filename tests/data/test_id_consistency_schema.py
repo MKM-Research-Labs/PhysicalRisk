@@ -13,8 +13,6 @@ from tests.data._id_consistency_helpers import (
     _load_property_ids,
     _load_mortgage_ids,
     _load_mortgage_property_ids,
-    THAMES_LAT_BOUNDS,
-    THAMES_LON_BOUNDS,
 )
 
 
