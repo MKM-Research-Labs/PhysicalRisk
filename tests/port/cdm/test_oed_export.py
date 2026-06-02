@@ -139,9 +139,10 @@ class TestDirectMappings:
         assert row["ContentsTIV"] == 0.0
         assert row["OtherTIV"] == 0.0
 
-    def test_currency_gbp(self, sample_prop):
+    def test_currency_matches_catchment(self, sample_prop):
+        from config import config
         row = cdm_to_oed_row(sample_prop)
-        assert row["LocCurrency"] == "GBP"
+        assert row["LocCurrency"] == config.CURRENCY
 
     def test_year_built(self, sample_prop):
         row = cdm_to_oed_row(sample_prop)

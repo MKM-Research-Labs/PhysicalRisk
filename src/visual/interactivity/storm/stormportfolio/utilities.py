@@ -17,7 +17,9 @@ def get_js() -> str:
 
             function fmtGBP(v) {
                 if (v == null || v === 0) return '\\u2014';
-                return '\\u00a3' + v.toLocaleString('en-GB', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                var cc = (window.__BACKEND_CONFIG || {}).currency || 'GBP';
+                var sym = {GBP: '\\u00a3', USD: '$', EUR: '\\u20ac'}[cc] || (cc + ' ');
+                return sym + v.toLocaleString('en-GB', {minimumFractionDigits: 0, maximumFractionDigits: 0});
             }
 
             function fmtPct(v) {

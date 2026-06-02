@@ -193,6 +193,19 @@ _CLADDING: Dict[str, int] = {
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+def _currency() -> str:
+    """ISO 4217 currency code for the active catchment (OED LocCurrency).
+
+    Function-local import keeps oed_export importable without forcing a
+    config load at module import time. Falls back to GBP defensively.
+    """
+    try:
+        from config import config
+        return config.CURRENCY
+    except Exception:
+        return "GBP"
+
+
 def _lookup(table: Dict[str, int], key: Optional[str], default: int = 0) -> int:
     if key is None:
         return default
@@ -337,7 +350,7 @@ def cdm_to_oed_row(prop: dict) -> dict:
         "OtherTIV":      0.0,
         "ContentsTIV":   0.0,
         "BITIV":         0.0,
-        "LocCurrency":   "GBP",
+        "LocCurrency":   _currency(),
         "LocGrossPremium": float(
             prop.get("TransactionHistory", {}).get("Insurance", {}).get("InsurancePremium") or 0.0
         ),

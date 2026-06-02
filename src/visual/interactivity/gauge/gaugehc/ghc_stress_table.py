@@ -47,7 +47,9 @@ def get_js() -> str:
                     var s = abs >= 1e6 ? (abs/1e6).toFixed(1) + 'M' :
                             abs >= 1e3 ? (abs/1e3).toFixed(1) + 'K' :
                             abs.toFixed(0);
-                    return (v < 0 ? '-' : '') + '\\u00A3' + s;
+                    var cc = (window.__BACKEND_CONFIG || {}).currency || 'GBP';
+                    var sym = {GBP: '\\u00A3', USD: '$', EUR: '\\u20AC'}[cc] || (cc + ' ');
+                    return (v < 0 ? '-' : '') + sym + s;
                 };
                 var pnlColor = function(v) { return v >= 0 ? '#2e7d32' : '#c62828'; };
 
@@ -133,7 +135,9 @@ def get_js() -> str:
                     var str = abs >= 1e6 ? (abs/1e6).toFixed(1) + 'M' :
                               abs >= 1e3 ? (abs/1e3).toFixed(1) + 'K' :
                               abs.toFixed(0);
-                    return (v < 0 ? '-' : '+') + '\\u00A3' + str;
+                    var cc = (window.__BACKEND_CONFIG || {}).currency || 'GBP';
+                    var sym = {GBP: '\\u00A3', USD: '$', EUR: '\\u20AC'}[cc] || (cc + ' ');
+                    return (v < 0 ? '-' : '+') + sym + str;
                 };
                 var pnlColor = function(v) { return v >= 0 ? '#2e7d32' : '#c62828'; };
 

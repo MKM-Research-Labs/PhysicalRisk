@@ -89,7 +89,7 @@ def commit_prs_trade():
                 "LegData": {
                     "LegType": "Fixed",
                     "Payer": data.get("payer", True),
-                    "Currency": "GBP",
+                    "Currency": config.CURRENCY,
                     "Notional": notional,
                     "DayCounter": "ACT/360",
                     "FixedLegRate": spread_bps / 10000,
@@ -118,7 +118,7 @@ def commit_prs_trade():
                     "TriggerThreshold": 1,
                 },
                 "Payouts": {
-                    "Currency": "GBP",
+                    "Currency": config.CURRENCY,
                     "MaxPayout": notional,
                 },
                 "Pricing": {

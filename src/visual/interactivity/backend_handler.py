@@ -73,7 +73,11 @@ class BackendHandler:
         backend_config = json.dumps({
             'url': '',
             'endpoints': self.endpoints,
-            'timeout': 30000
+            'timeout': 30000,
+            # ISO 4217 currency code for the active catchment. JS money
+            # formatters (fmtGBP et al.) read this so labels reflect the
+            # catchment's currency instead of a hardcoded "GBP".
+            'currency': getattr(config, 'CURRENCY', 'GBP'),
         })
         return f"<script>window.__BACKEND_CONFIG = {backend_config};\n{js_code}</script>"
 

@@ -68,7 +68,7 @@ def _load_property_trades() -> List[dict]:
                 'trade_date': header.get('ValuationDate', ''),
                 'trade_status': header.get('TradeStatus', 'Committed'),
                 'is_payer': is_payer,
-                'currency': leg.get('Currency', 'GBP'),
+                'currency': leg.get('Currency', config.CURRENCY),
                 'notional': notional,
                 'tenor': schedule.get('Tenor', ''),
                 'start_date': schedule.get('StartDate', ''),

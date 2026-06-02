@@ -252,8 +252,8 @@ class CounterpartyPortfolioGenerator:
                     "Accounts": [
                         {
                             "AccountID": f"ACC-{party_id}-GBP",
-                            "AccountDescription": f"GBP trading/settlement - {short_name}",
-                            "AccountCurrency": "GBP",
+                            "AccountDescription": f"{config.CURRENCY} trading/settlement - {short_name}",
+                            "AccountCurrency": config.CURRENCY,
                             "SortCode": sort_code,
                             "AccountNumber": account_number,
                             "IBAN": iban,
@@ -262,7 +262,7 @@ class CounterpartyPortfolioGenerator:
                         {
                             "AccountID": f"ACC-{party_id}-COLL",
                             "AccountDescription": f"Collateral account - {short_name}",
-                            "AccountCurrency": "GBP",
+                            "AccountCurrency": config.CURRENCY,
                         },
                     ],
                     "ContactInformation": {
@@ -322,7 +322,7 @@ class CounterpartyPortfolioGenerator:
                     "ISDAMasterAgreement": True,
                     "CSAAgreement": True,
                     "NettingAgreement": True,
-                    "PreferredCurrency": "GBP",
+                    "PreferredCurrency": config.CURRENCY,
                     # Marker so downstream consumers can filter
                     # (e.g., the property-PRS pricer / blotter REIT view).
                     "IsREIT": True,
@@ -378,8 +378,8 @@ class CounterpartyPortfolioGenerator:
                     "Accounts": [
                         {
                             "AccountID": f"ACC-{party_id}-GBP",
-                            "AccountDescription": f"GBP trading/settlement - {short_name}",
-                            "AccountCurrency": "GBP",
+                            "AccountDescription": f"{config.CURRENCY} trading/settlement - {short_name}",
+                            "AccountCurrency": config.CURRENCY,
                             "SortCode": sort_code,
                             "AccountNumber": account_number,
                             "IBAN": iban,
@@ -388,7 +388,7 @@ class CounterpartyPortfolioGenerator:
                         {
                             "AccountID": f"ACC-{party_id}-COLL",
                             "AccountDescription": f"Collateral account - {short_name}",
-                            "AccountCurrency": "GBP",
+                            "AccountCurrency": config.CURRENCY,
                         },
                     ],
                     "ContactInformation": {
@@ -445,7 +445,7 @@ class CounterpartyPortfolioGenerator:
                     "ISDAMasterAgreement": True,
                     "CSAAgreement": has_csa,
                     "NettingAgreement": True if ctpy_type in ("Bank", "Insurer", "Reinsurer") else random.choice([True, False]),
-                    "PreferredCurrency": "GBP",
+                    "PreferredCurrency": config.CURRENCY,
                 },
             }
         }

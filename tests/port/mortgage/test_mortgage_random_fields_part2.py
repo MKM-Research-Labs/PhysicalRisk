@@ -66,7 +66,8 @@ class TestGenerateTextValue:
         assert generate_text_value("CatchmentID", 0, self._fd()) == "thames"
 
     def test_currency(self):
-        assert generate_text_value("currency", 0, self._fd()) == "GBP"
+        from config import config
+        assert generate_text_value("currency", 0, self._fd()) == config.CURRENCY
 
     def test_account_status_defaulted(self):
         result = generate_text_value("AccountStatus", 0, self._fd(is_defaulted=True))

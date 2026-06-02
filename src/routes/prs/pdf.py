@@ -53,6 +53,18 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     pricing = ps["Pricing"]
     swap_id = header["SwapID"]
 
+    # Currency label: prefer the leg's recorded Currency (written from
+    # config.CURRENCY at trade build time); fall back to the active
+    # catchment's currency so the confirmation never mis-labels magnitudes.
+    def _default_currency() -> str:
+        try:
+            from config import config
+            return config.CURRENCY
+        except Exception:
+            return "GBP"
+
+    currency = leg.get("Currency") or _default_currency()
+
     pdf_path = output_dir / f"{swap_id}.pdf"
 
     doc = SimpleDocTemplate(
@@ -93,7 +105,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     elements.append(Paragraph("Trade Details", section_style))
 
     def fmt_money(v):
-        return f"GBP {v:,.2f}"
+        return f"{currency} {v:,.2f}"
 
     ctpy_name = header.get("CounterPartyName") or header.get("CounterParty", "N/A")
 
@@ -105,7 +117,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
         ["Protection Start", header.get("ProtectionStart", "")],
         ["Maturity", schedule.get("EndDate", "")],
         ["Notional", fmt_money(leg.get("Notional", 0))],
-        ["Currency", leg.get("Currency", "GBP")],
+        ["Currency", currency],
         ["Payment Frequency", "Semi-Annual"],
         ["Day Count", leg.get("DayCounter", "ACT/360")],
         ["Trigger Level", pricing.get("TriggerLevel", "").title()],

@@ -44,6 +44,13 @@ def create_interactive_map(properties: gpd.GeoDataFrame,
                             gauge_data: Optional[pd.DataFrame],
                             output_file: str):
     """Create interactive Folium map of flood risk."""
+    # Currency label for monetary popups — driven by the active catchment.
+    try:
+        from config import config
+        currency = config.CURRENCY
+    except Exception:
+        currency = "GBP"
+
     center_lat = properties.geometry.y.mean()
     center_lon = properties.geometry.x.mean()
 
@@ -67,8 +74,8 @@ def create_interactive_map(properties: gpd.GeoDataFrame,
         <b>Risk Level:</b> {risk_label}<br>
         <b>Flood Depth:</b> {depth:.2f}m<br>
         <b>Impact Ratio:</b> {impact:.2%}<br>
-        <b>Property Value:</b> GBP {row['value']:,.0f}<br>
-        <b>Value at Risk:</b> GBP {row['value'] * impact:,.0f}
+        <b>Property Value:</b> {currency} {row['value']:,.0f}<br>
+        <b>Value at Risk:</b> {currency} {row['value'] * impact:,.0f}
         """
 
         folium.CircleMarker(

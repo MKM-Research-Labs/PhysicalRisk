@@ -119,7 +119,7 @@ def _build_commercial_loan(asset: Dict[str, Any]) -> Dict[str, Any]:
                 "OccupancyType": "Investment",
             },
             "FinancialTerms": {
-                "currency": "GBP",
+                "currency": config.CURRENCY,
                 "DisbursalDate": disbursal_date,
                 "PurchaseValue": property_value,
                 "OriginalLoan": original_loan,

@@ -83,6 +83,21 @@ class CatchmentMixin:
         """Alias for catchment_id (for server.py compatibility)."""
         return self._catchment_id
 
+    @property
+    def CURRENCY(self) -> str:
+        """ISO 4217 currency code for the active catchment.
+
+        Single source of truth read from the catchment params module
+        (``catch.<catchment_id>.CURRENCY``), so loans, valuations, PRS
+        notionals, counterparties and book summaries all stamp the same
+        code without hardcoding it. Falls back to ``GBP`` if a catchment
+        does not define one.
+        """
+        try:
+            return getattr(self.load_params_module(), "CURRENCY", "GBP")
+        except Exception:
+            return "GBP"
+
     # ------------------------------------------------------------------
     # Module loaders
     # ------------------------------------------------------------------

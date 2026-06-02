@@ -184,7 +184,10 @@ def generate_text_value(field_name: str, index: int, financial_data: Dict) -> st
     elif field_name == "CatchmentID":
         return "thames"
     elif field_name == "currency":
-        return "GBP"
+        # Function-local import: rand modules are loaded *by* config, so a
+        # top-level "from config import config" risks a circular import.
+        from config import config
+        return config.CURRENCY
     elif field_name == "AccountStatus":
         if financial_data.get("is_defaulted"):
             return "Default"
