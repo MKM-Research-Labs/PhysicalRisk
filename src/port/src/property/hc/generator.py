@@ -178,6 +178,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         hc_path = self.output_dir / cfg.hc_files["normal"]
         shd_path = self.output_dir / cfg.hc_files["shd"]
         she_path = self.output_dir / cfg.hc_files["she"]
+        bri_path = self.output_dir / cfg.hc_files["bri"]
 
         if not hc_path.exists():
             self.log(f"{hc_path.name} not found — skipping decomposition")
@@ -196,6 +197,14 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
             with open(she_path, 'r') as f:
                 she_curves = json.load(f).get('property_hazard_curves', {})
 
+        # BRI-adjusted floor curves (the 5th basis step). Absent until the
+        # propertybri/commercialbri stage has run — decomposition then simply
+        # omits the resilience leg.
+        bri_curves = {}
+        if bri_path.exists():
+            with open(bri_path, 'r') as f:
+                bri_curves = json.load(f).get('property_hazard_curves', {})
+
         curves = hc_data.get('property_hazard_curves', {})
         count = 0
 
@@ -209,6 +218,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
 
             shd_pc = shd_curves.get(prop_id, {})
             she_pc = she_curves.get(prop_id, {})
+            bri_pc = bri_curves.get(prop_id, {})
 
             prop_spread = self._get_5yr_spread(pc, 'severe')
             shd_spread = self._get_5yr_spread(shd_pc, 'severe')
@@ -227,7 +237,7 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
                 gauge_spreads = pc.get('idw_gauge_spreads', {}).get('severe', [])
                 gauge_spread = gauge_spreads[4] if len(gauge_spreads) > 4 else 0.0
 
-            pc['spread_decomposition'] = {
+            decomposition = {
                 'gauge_spread_bps': round(gauge_spread, 2),
                 'property_spread_bps': round(prop_spread, 2),
                 'shd_spread_bps': round(shd_spread, 2),
@@ -241,6 +251,18 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
                     'distance_effect_bps': round(prop_spread - shd_spread, 2),
                 },
             }
+
+            # BRI-adjusted floor leg (5th basis step: no-BRI → BRI). Raising the
+            # floor to the resilience-credited level can only reduce the severe
+            # flood spread, so resilience_effect_bps = no-BRI − BRI ≥ 0. Only
+            # attached when the asset has a BRI-adjusted curve.
+            if prop_id in bri_curves:
+                bri_spread = self._get_5yr_spread(bri_pc, 'severe')
+                decomposition['bri_spread_bps'] = round(bri_spread, 2)
+                decomposition['resilience_effect_bps'] = round(
+                    prop_spread - bri_spread, 2)
+
+            pc['spread_decomposition'] = decomposition
             count += 1
 
         with open(hc_path, 'w') as f:
