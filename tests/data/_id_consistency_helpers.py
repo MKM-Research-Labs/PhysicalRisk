@@ -5,11 +5,17 @@ Shared helpers for ID consistency tests — constants and loader functions.
 """
 
 import json
+import os
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-INPUT_DIR = ROOT / "data" / "input" / "thames"
+# Catchment-aware: lineage checks run against whichever catchment the rest
+# of the stack is pinned to (MKM_CATCHMENT), defaulting to thames. Previously
+# this was hardcoded to "thames", so `MKM_CATCHMENT=halong app.py test
+# --lineage` silently validated the wrong catchment's data.
+CATCHMENT = os.getenv("MKM_CATCHMENT", "thames")
+INPUT_DIR = ROOT / "data" / "input" / CATCHMENT
 OUTPUT_DIR = ROOT / "data" / "output"
 
 
@@ -99,8 +105,42 @@ def _load_property_ids() -> set:
 # Additional loaders for expanded lineage tests
 # ---------------------------------------------------------------------------
 
-THAMES_LAT_BOUNDS = (51.2, 51.7)
-THAMES_LON_BOUNDS = (-1.5, 0.5)
+def _catchment_coord_bounds(margin: float = 0.5):
+    """Derive (lat_bounds, lon_bounds) for the active catchment.
+
+    Reads ``catch.<MKM_CATCHMENT>.GAUGE_POINTS`` (list of ``(lat, lon, elev)``)
+    and returns padded min/max envelopes, so gauge.json coordinates can be
+    sanity-checked against the catchment's own gauge definitions. This is
+    catchment-agnostic and replaces the previously hardcoded Thames bounds.
+    Falls back to global bounds if the catchment module / GAUGE_POINTS is
+    unavailable.
+    """
+    try:
+        import importlib
+        import sys
+
+        # Catchment params live at data/catch/<id>.py; data/ is added to
+        # sys.path by config.path._setup_paths. Trigger it here in case this
+        # helper is imported before config (e.g. test collection in isolation).
+        data_dir_str = str(ROOT / "data")
+        if data_dir_str not in sys.path:
+            sys.path.insert(0, data_dir_str)
+
+        mod = importlib.import_module(f"catch.{CATCHMENT}")
+        pts = getattr(mod, "GAUGE_POINTS", []) or []
+        lats = [p[0] for p in pts]
+        lons = [p[1] for p in pts]
+        if lats and lons:
+            return (
+                (min(lats) - margin, max(lats) + margin),
+                (min(lons) - margin, max(lons) + margin),
+            )
+    except Exception:
+        pass
+    return ((-90.0, 90.0), (-180.0, 180.0))
+
+
+CATCHMENT_LAT_BOUNDS, CATCHMENT_LON_BOUNDS = _catchment_coord_bounds()
 
 
 def _load_mortgage_ids() -> set:

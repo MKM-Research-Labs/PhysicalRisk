@@ -106,20 +106,28 @@ class TestDeterministicIDs:
         the location dicts from catchment GAUGE_POINTS + gauge_names).
         """
         import hashlib
+        import os
+        catchment = os.getenv("MKM_CATCHMENT", "thames")
         try:
             # Catchment params live at data/catch/<id>.py and the project
             # adds data/ to sys.path via config.path._setup_paths.  Trigger
             # that path setup if it hasn't happened (e.g. when this test
             # runs in isolation without first importing config).
+            import importlib
             import sys
             from pathlib import Path
             data_dir = Path(__file__).parent.parent.parent / "data"
             data_dir_str = str(data_dir)
             if data_dir_str not in sys.path:
                 sys.path.insert(0, data_dir_str)
-            from catch.thames import GAUGE_POINTS, GAUGE_NAMES, AREAS
-        except ImportError as e:
-            pytest.skip(f"Cannot import Thames catchment data: {e}")
+            # Catchment-aware: derive expected IDs from whichever catchment
+            # the data dir is pinned to (MKM_CATCHMENT), not always thames.
+            mod = importlib.import_module(f"catch.{catchment}")
+            GAUGE_POINTS = mod.GAUGE_POINTS
+            GAUGE_NAMES = mod.GAUGE_NAMES
+            AREAS = mod.AREAS
+        except (ImportError, AttributeError) as e:
+            pytest.skip(f"Cannot import {catchment} catchment data: {e}")
 
         gauge_ids = _load_gauge_ids()
         if not gauge_ids:

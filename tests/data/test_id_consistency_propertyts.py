@@ -17,8 +17,8 @@ from tests.data._id_consistency_helpers import (
     _load_propertyhc_ids,
     _load_propertyshd_ids,
     _load_propertyshe_ids,
-    THAMES_LAT_BOUNDS,
-    THAMES_LON_BOUNDS,
+    CATCHMENT_LAT_BOUNDS,
+    CATCHMENT_LON_BOUNDS,
 )
 
 
@@ -165,14 +165,14 @@ class TestPropertyTSDataQuality:
             loc = d.get("location", {})
             lat = loc.get("lat", 0)
             lon = loc.get("lon", 0)
-            if not (THAMES_LAT_BOUNDS[0] <= lat <= THAMES_LAT_BOUNDS[1]):
+            if not (CATCHMENT_LAT_BOUNDS[0] <= lat <= CATCHMENT_LAT_BOUNDS[1]):
                 bad.append(f"{pid} lat={lat}")
-            elif not (THAMES_LON_BOUNDS[0] <= lon <= THAMES_LON_BOUNDS[1]):
+            elif not (CATCHMENT_LON_BOUNDS[0] <= lon <= CATCHMENT_LON_BOUNDS[1]):
                 bad.append(f"{pid} lon={lon}")
         assert len(bad) == 0, (
             f"{len(bad)} propertyts files have out-of-bounds coords: "
-            f"{bad[:5]}. Expected lat {THAMES_LAT_BOUNDS}, "
-            f"lon {THAMES_LON_BOUNDS}."
+            f"{bad[:5]}. Expected lat {CATCHMENT_LAT_BOUNDS}, "
+            f"lon {CATCHMENT_LON_BOUNDS}."
         )
 
     def test_elevation_positive(self):

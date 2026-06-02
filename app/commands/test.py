@@ -37,6 +37,7 @@ import shutil
 import subprocess as sp
 
 from config import config
+from ._catchment import add_catchment_flags
 
 
 def register_parser(subparsers):
@@ -44,6 +45,11 @@ def register_parser(subparsers):
     sp_test = subparsers.add_parser(
         "test", help="Run tests and produce audit evidence package",
         formatter_class=_HelpFormatter)
+
+    # Catchment selection (--thames / --halong / --catchment-id ...).
+    # Pins MKM_CATCHMENT for the test subprocesses so suites run against
+    # the chosen catchment instead of the 'thames' default.
+    add_catchment_flags(sp_test)
 
     # Suite selectors — pick any combination
     suites = sp_test.add_argument_group("suite selectors (pick any combination)")
@@ -571,6 +577,23 @@ def cmd_test(args):
     if getattr(args, '_compat_code', False):
         print('WARNING: --code is deprecated, use --audit instead', file=sys.stderr)
         args.audit = True
+
+    # ---- Pin catchment for all test subprocesses ----
+    # An explicit --<catchment> / --catchment-id flag wins; otherwise we
+    # leave any existing MKM_CATCHMENT env var (or the 'thames' default)
+    # untouched so non-interactive/CI runs keep working. The child pytest
+    # and lineage processes inherit os.environ, so setting it here is
+    # enough — no interactive prompt is forced for the test command.
+    chosen_catchment = getattr(args, 'catchment_id', None)
+    if chosen_catchment:
+        available = config.list_catchments()
+        if available and chosen_catchment not in available:
+            print(f"\n  ✗ Unknown catchment '{chosen_catchment}'.")
+            print(f"  Available: {', '.join(available)}")
+            return 1
+        os.environ['MKM_CATCHMENT'] = chosen_catchment
+        config.catchment_id = chosen_catchment
+    print(f" Catchment: {os.environ.get('MKM_CATCHMENT', 'thames')}")
 
     # ---- Handle --check-deps early exit ----
     if getattr(args, 'check_deps', False):
