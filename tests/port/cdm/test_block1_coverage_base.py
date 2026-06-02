@@ -156,7 +156,7 @@ class TestBaseCDMCoverage:
         fields = mortgage_cdm.list_all_fields()
         assert isinstance(fields, list)
         assert len(fields) > 10
-        assert any("MortgageID" in f for f in fields)
+        assert any("RLoanID" in f for f in fields)
         assert any("OriginalLoan" in f for f in fields)
 
     def test_list_all_fields_prs(self, prs_cdm):
@@ -181,7 +181,7 @@ class TestBaseCDMCoverage:
 
     def test_get_field_info_leaf_returns_dict(self, mortgage_cdm):
         """get_field_info on a leaf field returns its definition."""
-        info = mortgage_cdm.get_field_info("Mortgage.Header.MortgageID")
+        info = mortgage_cdm.get_field_info("RLoan.Header.RLoanID")
         assert info is not None
         assert info["type"] == "text"
 

@@ -155,7 +155,7 @@ def input_dir(tmp_path):
         'properties': [_make_property('PROP-0001')]
     }))
 
-    # mortgage.json
+    # loan.json
     (d / 'loan.json').write_text(json.dumps({
         'loans': [_make_mortgage('MORT-0001', 'PROP-0001')]
     }))

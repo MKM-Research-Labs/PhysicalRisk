@@ -20,7 +20,7 @@ class TestGenerateReportForPropertyException:
         from reports.property.property_integrator import generate_report_for_property
         prop_file = tmp_path / "property.json"
         prop_file.write_text("{invalid json")
-        mort_file = tmp_path / "mortgage.json"
+        mort_file = tmp_path / "loan.json"
         output_dir = tmp_path / "output"
         result = generate_report_for_property("PROP-001", prop_file, mort_file, output_dir)
         assert result is None
@@ -41,7 +41,7 @@ class TestGenerateReportForPropertyException:
         }
         prop_file = tmp_path / "property.json"
         prop_file.write_text(json.dumps(data))
-        mort_file = tmp_path / "mortgage.json"  # does not exist
+        mort_file = tmp_path / "loan.json"  # does not exist
 
         # Patch open to raise on the report file write
         original_open = open

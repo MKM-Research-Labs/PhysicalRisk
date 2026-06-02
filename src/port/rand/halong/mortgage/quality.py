@@ -14,7 +14,7 @@ def quality_consistency_check(mortgage_data: Dict, financial_data: Dict) -> Dict
     Clamps the canonical CDM fields (FinancialTerms / CurrentStatus) so the
     constraints apply to the data downstream consumers actually read.
     """
-    mortgage = mortgage_data.get('Mortgage', {})
+    mortgage = mortgage_data.get('RLoan', {})
     terms = mortgage.get('FinancialTerms', {})
     status = mortgage.get('CurrentStatus', {})
 

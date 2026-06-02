@@ -115,7 +115,7 @@ class TestValidateFullChain:
             },
             "mortgages": {
                 "inputs": {"property.json": {"hash": "c"}},
-                "outputs": {"mortgage.json": {"hash": "d"}},
+                "outputs": {"loan.json": {"hash": "d"}},
             },
             "gaugehd": {
                 "inputs": {"gauge.json": {"hash": "a2"}},

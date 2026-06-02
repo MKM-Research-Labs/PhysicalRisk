@@ -66,7 +66,7 @@ class TestServerReportFlow:
     def test_property_report_with_real_data(self, tmp_path):
         """Test with actual Thames portfolio data if available."""
         portfolio_path = Path('data/input/thames/property.json')
-        mortgage_path = Path('data/input/thames/mortgage.json')
+        mortgage_path = Path('data/input/thames/loan.json')
 
         if not portfolio_path.exists():
             pytest.skip("Thames property portfolio not available")
@@ -80,7 +80,7 @@ class TestServerReportFlow:
 
         report_path = generate_property_report(
             property_data=props['properties'][0],
-            rloan_data=morts['mortgages'][0],
+            rloan_data=morts['loans'][0],
             output_dir=tmp_path,
             auto_open=False
         )
