@@ -205,7 +205,9 @@ class CommercialPortfolioGenerator(LocationsMixin):
 
         # Construction.BRIAdjustedFloorLevelMeters — raise the flood threshold
         # by the BRI resilience credit (see _stamp_bri_adjusted_floor).
-        self._stamp_bri_adjusted_floor(ca)
+        # Pass the record root: Construction lives under CommercialAsset, but
+        # ProtectionMeasures is a sibling of CommercialAsset, not a child.
+        self._stamp_bri_adjusted_floor(asset_data)
 
     def _flood_rating_envelope(self, gbr: Dict) -> Optional[str]:
         """Weakest applicable BRI flood letter for a commercial asset.
@@ -226,7 +228,7 @@ class CommercialPortfolioGenerator(LocationsMixin):
             return None
         return max(grades, key=self._RATING_ORDER.index)
 
-    def _stamp_bri_adjusted_floor(self, ca: Dict) -> None:
+    def _stamp_bri_adjusted_floor(self, asset_data: Dict) -> None:
         """Write Construction.BRIAdjustedFloorLevelMeters for a commercial asset.
 
         The surveyed FloorLevelMeters is raised by the BRI floor uplift derived
@@ -236,15 +238,19 @@ class CommercialPortfolioGenerator(LocationsMixin):
         water rises above this raised floor. No-op when the floor level or a
         flood grade is missing — the flood code then falls back to the surveyed
         floor.
+
+        ``asset_data`` is the record root: Construction lives under
+        ``CommercialAsset`` but ProtectionMeasures is a sibling of
+        ``CommercialAsset``, so both must be reached from the root.
         """
         from models.floodrisk.depth_damage import (
             bri_adjusted_floor_level, flood_rating_to_score)
 
-        construction = ca.get('Construction', {})
+        construction = asset_data.get('CommercialAsset', {}).get('Construction', {})
         floor_level = construction.get('FloorLevelMeters')
         if floor_level is None:
             return
-        gbr = (ca.get('ProtectionMeasures', {})
+        gbr = (asset_data.get('ProtectionMeasures', {})
                  .get('RiskAssessment', {})
                  .get('GoverningBodyRatings', {}))
         score = flood_rating_to_score(self._flood_rating_envelope(gbr))
