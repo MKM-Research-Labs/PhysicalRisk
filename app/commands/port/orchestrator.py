@@ -55,9 +55,11 @@ def _build_context(args) -> StageContext:
         args.gauges, args.properties, args.mortgages, args.commercial,
         args.commercialts, args.commercialtsd, args.commercialtse,
         args.commercialhc, args.commercialshd, args.commercialshe,
+        args.commercialtsb, args.commercialbri,
         args.gaugets, args.gaugehd, args.hazard,
         args.propertyts, args.propertytsd, args.propertytse,
         args.propertyhc, args.propertyshd, args.propertyshe,
+        args.propertytsb, args.propertybri,
         args.counterparties, args.blotter, args.stressm,
         args.typhoon,
     ]
@@ -73,6 +75,7 @@ def _build_context(args) -> StageContext:
             "propertyts": "propertyts", "propertyhc": "propertyhc",
             "propertytsd": "propertytsd", "propertytse": "propertytse",
             "propertyshd": "propertyshd", "propertyshe": "propertyshe",
+            "propertytsb": "propertytsb", "propertybri": "propertybri",
             "counterparties": "counterparties", "blotter": "blotter",
         }
         requested = [

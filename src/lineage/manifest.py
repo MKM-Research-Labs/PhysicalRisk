@@ -56,6 +56,8 @@ DEPENDENCY_GRAPH = {
     "propertyhc":         ["propertyts", "hazard"],
     "propertyshd":        ["propertytsd", "hazard"],
     "propertyshe":        ["propertytse", "hazard"],
+    "propertytsb":        ["propertyts"],
+    "propertybri":        ["propertytsb", "hazard"],
     "counterparties":     [],
     "blotter":            ["hazard", "counterparties"],
     "typhoon":            ["properties"],
@@ -66,6 +68,8 @@ DEPENDENCY_GRAPH = {
     "commercialhc":       ["commercialts", "hazard"],
     "commercialshd":      ["commercialtsd", "hazard"],
     "commercialshe":      ["commercialtse", "hazard"],
+    "commercialtsb":      ["commercialts"],
+    "commercialbri":      ["commercialtsb", "hazard"],
 }
 
 # External inputs: config/data files consumed by pipeline steps but not
@@ -111,6 +115,10 @@ STEP_IO = {
                        "outputs": ["propertyshd.json"]},
     "propertyshe":    {"inputs": ["propertytse/", "gaugehc.json", "gauge.json"],
                        "outputs": ["propertyshe.json"]},
+    "propertytsb":    {"inputs": ["property.json", "gauge.json", "gaugets/"],
+                       "outputs": ["propertytsb/"]},
+    "propertybri":    {"inputs": ["propertytsb/", "gaugehc.json", "gauge.json"],
+                       "outputs": ["propertybri.json"]},
     "counterparties": {"inputs": [],
                        "outputs": ["counterparty.json"]},
     "blotter":        {"inputs": ["gaugehc.json", "counterparty.json"],
@@ -139,6 +147,10 @@ STEP_IO = {
                        "outputs": ["commercialshd.json"]},
     "commercialshe":  {"inputs": ["commercialtse/", "gaugehc.json", "gauge.json"],
                        "outputs": ["commercialshe.json"]},
+    "commercialtsb":  {"inputs": ["commercial.json", "gauge.json", "gaugets/"],
+                       "outputs": ["commercialtsb/"]},
+    "commercialbri":  {"inputs": ["commercialtsb/", "gaugehc.json", "gauge.json"],
+                       "outputs": ["commercialbri.json"]},
 }
 
 # ---------------------------------------------------------------------------

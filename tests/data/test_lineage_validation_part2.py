@@ -182,6 +182,22 @@ class TestValidateFullChain:
                 },
                 "outputs": {"propertyshe.json": {"hash": "l2"}},
             },
+            "propertytsb": {
+                "inputs": {
+                    "property.json": {"hash": "c"},
+                    "gauge.json": {"hash": "a2"},
+                    "gaugets/": {"hash": "f"},
+                },
+                "outputs": {"propertytsb/": {"hash": "k3"}},
+            },
+            "propertybri": {
+                "inputs": {
+                    "propertytsb/": {"hash": "k3"},
+                    "gaugehc.json": {"hash": "j"},
+                    "gauge.json": {"hash": "a2"},
+                },
+                "outputs": {"propertybri.json": {"hash": "l3"}},
+            },
             "blotter": {
                 "inputs": {"gaugehc.json": {"hash": "j"}, "counterparty.json": {"hash": "b"}},
                 "outputs": {"prs/": {"hash": "m"}},
@@ -249,6 +265,22 @@ class TestValidateFullChain:
                     "gauge.json": {"hash": "a2"},
                 },
                 "outputs": {"commercialshe.json": {"hash": "u2"}},
+            },
+            "commercialtsb": {
+                "inputs": {
+                    "commercial.json": {"hash": "r"},
+                    "gauge.json": {"hash": "a2"},
+                    "gaugets/": {"hash": "f"},
+                },
+                "outputs": {"commercialtsb/": {"hash": "t3"}},
+            },
+            "commercialbri": {
+                "inputs": {
+                    "commercialtsb/": {"hash": "t3"},
+                    "gaugehc.json": {"hash": "j"},
+                    "gauge.json": {"hash": "a2"},
+                },
+                "outputs": {"commercialbri.json": {"hash": "u3"}},
             },
         })
         with patch("lineage.validation.load_manifest", return_value=manifest):

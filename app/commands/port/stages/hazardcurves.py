@@ -1,8 +1,9 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 # (see ../auth.py for full license text)
 
-"""Hazard-curve stages: property HC (8, 8a, 8b, 8c) + commercial HC
-(8d, 8e, 8f, 8g)."""
+"""Hazard-curve stages: property HC (8, 8a, 8b, 8h, 8c) + commercial HC
+(8d, 8e, 8f, 8i, 8g). The ``bri`` runs (8h/8i) price on the BRI-adjusted
+floor level."""
 
 import time
 
@@ -93,6 +94,31 @@ def run_propertyshe(ctx: StageContext):
         inputs=inputs,
         outputs={"propertyshe.json": ctx.input_dir / "propertyshe.json"},
         parameters={"mode": "she"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
+    print()
+
+
+def run_propertybri(ctx: StageContext):
+    args = ctx.args
+    if not (ctx.run_all or args.propertybri):
+        return
+    print("8h. Building BRI-Adjusted Floor Hazard Curves (propertybri)...")
+    inputs = _hc_inputs(ctx, "propertytsb")
+    pre = ctx.hash_inputs(inputs)
+    t_step = time.time()
+    r = ctx.propertyhc.PropertyHazardCurveGenerator(ctx.output_dir, verbose=args.verbose, mode="bri").generate()
+    elapsed = time.time() - t_step
+    total = r.get('total_properties', '?')
+    avg_spread = r.get('avg_spread_bps', 0)
+    print(f"   {total} properties  |  avg spread: {avg_spread:.1f} bps")
+    ctx.record(
+        step_name="propertybri",
+        generator="port.src.property.propertyhc.PropertyHazardCurveGenerator(mode=bri)",
+        inputs=inputs,
+        outputs={"propertybri.json": ctx.input_dir / "propertybri.json"},
+        parameters={"mode": "bri"},
         elapsed_seconds=elapsed,
         input_hashes=pre,
     )
@@ -196,6 +222,32 @@ def run_commercialshe(ctx: StageContext):
     print()
 
 
+def run_commercialbri(ctx: StageContext):
+    args = ctx.args
+    if not (args.commercialbri or
+            (ctx.run_all and ctx.commercial_exists and (ctx.input_dir / 'commercialtsb').exists())):
+        return
+    print("8i. Building BRI-Adjusted Floor Hazard Curves (commercialbri)...")
+    inputs = _hc_inputs(ctx, "commercialtsb")
+    pre = ctx.hash_inputs(inputs)
+    t_step = time.time()
+    r = ctx.commercial_gen.CommercialHazardCurveGenerator(ctx.output_dir, verbose=args.verbose, mode="bri").generate()
+    elapsed = time.time() - t_step
+    total = r.get('total_properties', '?')
+    avg_spread = r.get('avg_spread_bps', 0)
+    print(f"   {total} commercial assets  |  avg spread: {avg_spread:.1f} bps")
+    ctx.record(
+        step_name="commercialbri",
+        generator="port.src.commercial.CommercialHazardCurveGenerator(mode=bri)",
+        inputs=inputs,
+        outputs={"commercialbri.json": ctx.input_dir / "commercialbri.json"},
+        parameters={"mode": "bri"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
+    print()
+
+
 def run_commercial_spread_decomposition(ctx: StageContext):
     args = ctx.args
     if not ((args.commercialhc and args.commercialshd and args.commercialshe)
@@ -216,8 +268,10 @@ def run_all(ctx: StageContext):
     run_propertyhc(ctx)
     run_propertyshd(ctx)
     run_propertyshe(ctx)
+    run_propertybri(ctx)
     run_property_spread_decomposition(ctx)
     run_commercialhc(ctx)
     run_commercialshd(ctx)
     run_commercialshe(ctx)
+    run_commercialbri(ctx)
     run_commercial_spread_decomposition(ctx)

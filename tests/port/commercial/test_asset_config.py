@@ -41,6 +41,7 @@ class TestAssetTypeConfigDataclass:
             "normal": "propertyts",
             "shd": "propertytsd",
             "she": "propertytse",
+            "bri": "propertytsb",
         }
 
     def test_commercial_ts_dirs(self):
@@ -48,6 +49,7 @@ class TestAssetTypeConfigDataclass:
             "normal": "commercialts",
             "shd": "commercialtsd",
             "she": "commercialtse",
+            "bri": "commercialtsb",
         }
 
     def test_residential_hc_files(self):
@@ -55,6 +57,7 @@ class TestAssetTypeConfigDataclass:
             "normal": "propertyhc.json",
             "shd": "propertyshd.json",
             "she": "propertyshe.json",
+            "bri": "propertybri.json",
         }
 
     def test_commercial_hc_files(self):
@@ -62,6 +65,7 @@ class TestAssetTypeConfigDataclass:
             "normal": "commercialhc.json",
             "shd": "commercialshd.json",
             "she": "commercialshe.json",
+            "bri": "commercialbri.json",
         }
 
     def test_no_naming_collision_between_configs(self):
