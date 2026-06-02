@@ -18,6 +18,7 @@ def get_js() -> str:
                 var cols = [
                     {key: 'swap_id', label: 'Swap ID', w: '110px'},
                     {key: 'direction', label: 'Dir', w: '36px'},
+                    {key: 'prs_variant', label: 'Variant', w: '70px', fmt: 'variant'},
                     {key: '_property_label', label: 'Property', w: 'auto'},
                     {key: 'postcode', label: 'Postcode', w: '70px'},
                     {key: 'counterparty', label: 'Ctpy', w: 'auto'},
@@ -39,7 +40,7 @@ def get_js() -> str:
                 // Header
                 html += '<thead><tr style="background:#0d47a1;color:white;position:sticky;top:0;z-index:1;">';
                 for (var c = 0; c < cols.length; c++) {
-                    var align = c > 4 ? 'right' : 'left';
+                    var align = c > 5 ? 'right' : 'left';
                     html += '<th style="padding:6px 8px;text-align:' + align + ';font-weight:600;white-space:nowrap;">' + cols[c].label + '</th>';
                 }
                 html += '</tr></thead><tbody>';
@@ -56,7 +57,7 @@ def get_js() -> str:
                     for (var c = 0; c < cols.length; c++) {
                         var col = cols[c];
                         var val = t[col.key];
-                        var align = c > 4 ? 'right' : 'left';
+                        var align = c > 5 ? 'right' : 'left';
                         var display = '';
                         var color = '#333';
 
@@ -65,6 +66,15 @@ def get_js() -> str:
                         } else if (col.key === 'direction') {
                             // Trader is always receiver on PropertyPRS
                             display = '<span style="font-weight:bold;color:#2e7d32;">Rcv</span>';
+                        } else if (col.fmt === 'variant') {
+                            // Pure (surveyed floor) vs resilient (BRI-adjusted).
+                            var isResilient = (val === 'resilient');
+                            var vBg = isResilient ? '#EDE7F6' : '#E3F2FD';
+                            var vFg = isResilient ? '#4527A0' : '#1565C0';
+                            var vLbl = isResilient ? 'Resilient' : 'Pure';
+                            display = '<span style="background:' + vBg + ';color:' + vFg +
+                                ';padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;">' +
+                                vLbl + '</span>';
                         } else if (col.fmt === 'hedge') {
                             display = val != null ? val.toFixed(1) + '%' : '\\u2014';
                             color = val >= 100 ? '#2e7d32' : (val > 0 ? '#f57c00' : '#999');
@@ -110,7 +120,7 @@ def get_js() -> str:
 
                     for (var fc = 0; fc < cols.length; fc++) {
                         var fcol = cols[fc];
-                        var fAlign = fc > 4 ? 'right' : 'left';
+                        var fAlign = fc > 5 ? 'right' : 'left';
                         var fVal = '';
                         var fColor = '#333';
                         if (fcol.key === 'swap_id') { fVal = 'Total'; }

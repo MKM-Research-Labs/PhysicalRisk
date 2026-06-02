@@ -107,6 +107,14 @@ def _select_properties(phc_curves: Dict, num: int) -> List[Dict]:
     return selected[:num]
 
 
+def _match_tenor_idx(tenors_available: List[int], tenor: int) -> int:
+    """Return the index of the tenor in the curve closest to ``tenor``."""
+    if tenor in tenors_available:
+        return tenors_available.index(tenor)
+    return min(range(len(tenors_available)),
+               key=lambda i: abs(tenors_available[i] - tenor))
+
+
 def _lookup_property_metadata(property_json: List[Dict],
                               property_id: str) -> Dict:
     """Extract PropertySet metadata from property.json for a given property."""
@@ -141,6 +149,7 @@ def generate_property_book(
     output_dir: Path,
     catchment_id: str = 'thames',
     seed: Optional[int] = 43,
+    propertybri_path: Optional[Path] = None,
 ) -> List[Dict]:
     """
     Generate a property PRS client book for the Trading Desk Client tab.
@@ -148,13 +157,26 @@ def generate_property_book(
     Creates ~15 property-level trades across the flood-risk spectrum using
     fair spreads from propertyhc.json and property metadata from property.json.
 
+    Two PRS flavours are booked per eligible property when a BRI-adjusted
+    curve is available:
+
+    * ``pure`` — priced on the surveyed-floor spread (propertyhc.json); the
+      instrument ignores building resilience.
+    * ``resilient`` — priced on the BRI-adjusted floor spread
+      (propertybri.json); raising the effective flood floor removes some
+      severe floods, so the resilient spread is tighter. Each trade is tagged
+      with ``PropertySet.PRSVariant`` so the blotter can separate the lines.
+
     Args:
-        propertyhc_path: Path to propertyhc.json.
+        propertyhc_path: Path to propertyhc.json (pure / surveyed-floor curve).
         property_path:   Path to property.json.
         counterparty_path: Path to counterparty.json.
         output_dir:      Directory to write PRS-P*.json trade files.
         catchment_id:    Catchment identifier.
         seed:            Random seed (default 43, distinct from gauge book's 42).
+        propertybri_path: Optional path to propertybri.json (BRI-adjusted
+            curve). When present and a property has a BRI curve, a second
+            ``resilient`` trade is booked alongside the ``pure`` one.
 
     Returns:
         List of generated CDM records.
@@ -169,6 +191,13 @@ def generate_property_book(
     if not phc_curves:
         logger.warning('No property hazard curves found — skipping property book')
         return []
+
+    # Load BRI-adjusted curves (optional). Absent until the propertybri stage
+    # has run — the book then simply omits the resilient leg.
+    bri_curves = {}
+    if propertybri_path is not None and Path(propertybri_path).exists():
+        with open(propertybri_path) as f:
+            bri_curves = json.load(f).get('property_hazard_curves', {})
 
     # Load property metadata
     with open(property_path) as f:
@@ -190,6 +219,8 @@ def generate_property_book(
     ctpy_idx = 0
     base_date = datetime.now() - timedelta(days=random.randint(5, 30))
 
+    num_storms = phc_data.get('metadata', {}).get('num_storms', 20000)
+
     for item in selected:
         prop_id = item['property_id']
         curve = item['curve']
@@ -201,11 +232,7 @@ def generate_property_book(
         spreads_available = item['spreads']
 
         # Match tenor to available tenors (find closest)
-        if tenor in tenors_available:
-            idx = tenors_available.index(tenor)
-        else:
-            idx = min(range(len(tenors_available)),
-                      key=lambda i: abs(tenors_available[i] - tenor))
+        idx = _match_tenor_idx(tenors_available, tenor)
         fair_spread = spreads_available[idx]
 
         if fair_spread <= 0:
@@ -223,7 +250,8 @@ def generate_property_book(
         gauge_id = ref_gauge.get('gauge_id', '')
         gauge_name = ref_gauge.get('gauge_name', gauge_id)
 
-        # Notional
+        # Notional — fixed per property so the pure and resilient lines are
+        # directly comparable (the spread difference is the resilience credit).
         notional = random.randrange(
             PROPERTY_BOOK_NOTIONAL_MIN, PROPERTY_BOOK_NOTIONAL_MAX + 1,
             PROPERTY_BOOK_NOTIONAL_STEP)
@@ -233,11 +261,10 @@ def generate_property_book(
         is_payer = True
 
         # Use flood_count to derive a hazard rate for leg PV computation
-        num_storms = phc_data.get('metadata', {}).get('num_storms', 20000)
         flood_count = item['flood_count']
         hazard_rate = flood_count / num_storms if num_storms > 0 else 0.02
 
-        # Build PropertySet
+        # Build base PropertySet (shared by both flavours)
         prop_meta = _lookup_property_metadata(properties, prop_id)
         # Use flood zone from propertyhc (more reliable than property.json)
         prop_meta['EAFloodZone'] = curve.get('flood_zone', prop_meta.get(
@@ -249,6 +276,7 @@ def generate_property_book(
                 'Distance': round(ref_gauge.get('distance_km', 0), 3),
             }
 
+        # ---- Pure flavour: surveyed-floor spread (ignores BRI) ----
         record, ctpy_idx = _price_and_save_trade(
             gauge_id=gauge_id,
             gauge_name=gauge_name,
@@ -262,10 +290,43 @@ def generate_property_book(
             ctpy_idx=ctpy_idx,
             base_date=base_date,
             output_dir=output_dir,
-            property_set=prop_meta,
+            property_set={**prop_meta, 'PRSVariant': 'pure'},
             fair_spread_override=fair_spread,
         )
         trades.append(record)
+
+        # ---- Resilient flavour: BRI-adjusted floor spread ----
+        # Only when a BRI-adjusted curve exists for this property. Raising the
+        # effective floor can only remove severe floods, so the resilient
+        # spread is <= the pure spread.
+        bri_curve = bri_curves.get(prop_id)
+        if bri_curve:
+            bri_ts = bri_curve.get('term_structure', {}).get('severe', {})
+            bri_spreads = bri_ts.get('prs_spread_bps', [])
+            bri_tenors = bri_curve.get('term_structure', {}).get('tenors', [])
+            if bri_spreads and bri_tenors:
+                bri_idx = _match_tenor_idx(bri_tenors, tenor)
+                bri_fair_spread = bri_spreads[bri_idx]
+                bri_flood_count = bri_curve.get('flood_count', 0)
+                bri_hazard_rate = (bri_flood_count / num_storms
+                                   if num_storms > 0 else 0.02)
+                record, ctpy_idx = _price_and_save_trade(
+                    gauge_id=gauge_id,
+                    gauge_name=gauge_name,
+                    catchment_id=catchment_id,
+                    is_payer=is_payer,
+                    tenor=tenor,
+                    notional=notional,
+                    trigger='severe',
+                    hazard_rate=bri_hazard_rate,
+                    counterparties=counterparties,
+                    ctpy_idx=ctpy_idx,
+                    base_date=base_date,
+                    output_dir=output_dir,
+                    property_set={**prop_meta, 'PRSVariant': 'resilient'},
+                    fair_spread_override=bri_fair_spread,
+                )
+                trades.append(record)
 
     logger.info('Generated %d property PRS trades', len(trades))
     return trades

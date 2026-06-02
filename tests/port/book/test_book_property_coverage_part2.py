@@ -77,7 +77,7 @@ class TestGeneratePropertyBook:
         path.write_text(json.dumps(data))
 
     def _setup_files(self, tmp_path, phc_curves=None, properties=None,
-                     counterparties=None, num_storms=20000):
+                     counterparties=None, num_storms=20000, bri_curves=None):
         phc_path = tmp_path / 'propertyhc.json'
         prop_path = tmp_path / 'property.json'
         ctpy_path = tmp_path / 'counterparty.json'
@@ -98,6 +98,14 @@ class TestGeneratePropertyBook:
         if counterparties is None:
             counterparties = [_make_counterparty_entry()]
         self._write_json(ctpy_path, counterparties)
+
+        # Optional BRI-adjusted curve file (the resilient leg source).
+        if bri_curves is not None:
+            bri_path = tmp_path / 'propertybri.json'
+            self._write_json(bri_path, {
+                'metadata': {'num_storms': num_storms},
+                'property_hazard_curves': bri_curves,
+            })
 
         return phc_path, prop_path, ctpy_path, out_dir
 
@@ -306,3 +314,93 @@ class TestGeneratePropertyBook:
         pset = mock_price.call_args[1]['property_set']
         assert 'ReferenceGauge' in pset
         assert pset['ReferenceGauge']['GaugeID'] == 'G999'
+
+
+# ---------------------------------------------------------------------------
+# Pure vs resilient (BRI-adjusted) flavours
+# ---------------------------------------------------------------------------
+
+class TestResilientFlavour(TestGeneratePropertyBook):
+    """Booking the resilient (BRI) leg alongside the pure leg."""
+
+    @patch('port.src.book.book_property._price_and_save_trade')
+    @patch('port.src.book.book_property._load_counterparties')
+    def test_no_resilient_when_bri_file_absent(self, mock_load_ctpy,
+                                               mock_price, tmp_path):
+        """Without propertybri_path only the pure flavour is booked."""
+        mock_load_ctpy.return_value = [_make_counterparty_entry()]
+        mock_price.return_value = ({'trade_id': 'T1'}, 1)
+
+        curves = {'P1': _make_phc_curve(flood_count=40)}
+        props = [_make_property_entry('P1')]
+        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+            tmp_path, phc_curves=curves, properties=props,
+        )
+
+        trades = generate_property_book(
+            phc_path, prop_path, ctpy_path, out_dir, seed=11,
+        )
+
+        assert len(trades) == 1
+        variants = [c[1]['property_set'].get('PRSVariant')
+                    for c in mock_price.call_args_list]
+        assert variants == ['pure']
+
+    @patch('port.src.book.book_property._price_and_save_trade')
+    @patch('port.src.book.book_property._load_counterparties')
+    def test_resilient_trade_added_when_bri_present(self, mock_load_ctpy,
+                                                    mock_price, tmp_path):
+        """A property with a BRI curve gets both a pure and a resilient trade,
+        and the resilient fair spread is tighter (<=) than the pure spread."""
+        mock_load_ctpy.return_value = [_make_counterparty_entry()]
+        mock_price.return_value = ({'trade_id': 'T1'}, 1)
+
+        # Pure spreads higher than BRI-adjusted (resilience removes floods).
+        curves = {'P1': _make_phc_curve(
+            flood_count=40, tenors=[1, 2, 3, 5], spreads=[50, 80, 120, 200])}
+        bri = {'P1': _make_phc_curve(
+            flood_count=32, tenors=[1, 2, 3, 5], spreads=[40, 64, 96, 168])}
+        props = [_make_property_entry('P1')]
+        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+            tmp_path, phc_curves=curves, properties=props, bri_curves=bri,
+        )
+
+        trades = generate_property_book(
+            phc_path, prop_path, ctpy_path, out_dir, seed=11,
+            propertybri_path=tmp_path / 'propertybri.json',
+        )
+
+        assert len(trades) == 2
+        calls = mock_price.call_args_list
+        variants = [c[1]['property_set'].get('PRSVariant') for c in calls]
+        assert variants == ['pure', 'resilient']
+
+        # Both legs price the same tenor; resilient spread must be <= pure.
+        pure_spread = calls[0][1]['fair_spread_override']
+        resilient_spread = calls[1][1]['fair_spread_override']
+        assert resilient_spread <= pure_spread
+
+    @patch('port.src.book.book_property._price_and_save_trade')
+    @patch('port.src.book.book_property._load_counterparties')
+    def test_resilient_omitted_for_property_without_bri_curve(
+            self, mock_load_ctpy, mock_price, tmp_path):
+        """BRI file present but missing this property => pure-only."""
+        mock_load_ctpy.return_value = [_make_counterparty_entry()]
+        mock_price.return_value = ({'trade_id': 'T1'}, 1)
+
+        curves = {'P1': _make_phc_curve(flood_count=40)}
+        bri = {'P2': _make_phc_curve(flood_count=10)}  # different property
+        props = [_make_property_entry('P1')]
+        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+            tmp_path, phc_curves=curves, properties=props, bri_curves=bri,
+        )
+
+        trades = generate_property_book(
+            phc_path, prop_path, ctpy_path, out_dir, seed=11,
+            propertybri_path=tmp_path / 'propertybri.json',
+        )
+
+        assert len(trades) == 1
+        variants = [c[1]['property_set'].get('PRSVariant')
+                    for c in mock_price.call_args_list]
+        assert variants == ['pure']
