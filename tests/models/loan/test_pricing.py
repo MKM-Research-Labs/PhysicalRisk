@@ -197,6 +197,13 @@ class TestConstructor:
     def test_custom_tax_rate(self):
         assert LoanPricer(tax_rate=0.40).tax_rate == 0.40
 
+    def test_create_credit_spread_function_delegate(self):
+        """Backward-compatible delegate returns a callable interpolation function."""
+        fn = LoanPricer()._create_credit_spread_function()
+        assert callable(fn)
+        # interpolation function should return a finite spread for a mid ratio
+        assert float(fn(0.5)) >= 0.0
+
 
 class TestDebugAndEdgeCases:
     """Tests for debug branch and zero-rate branch coverage."""

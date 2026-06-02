@@ -170,7 +170,7 @@ class LoanPricer:
         n_periods = int(current_term * 12)
         monthly_rate = interest_rate / 12
 
-        if monthly_rate == 0:
+        if monthly_rate == 0:  # pragma: no cover - interest_rate clamped to >=0.001 above
             monthly_payment = loan_amount / n_periods
         else:
             monthly_payment = loan_amount * monthly_rate / (1 - (1 + monthly_rate)**(-n_periods))
