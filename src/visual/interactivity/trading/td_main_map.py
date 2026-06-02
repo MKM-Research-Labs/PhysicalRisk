@@ -66,7 +66,9 @@ class MainMapFS01:
         if (v == null || v === 0) return '\\u2014';
         var sign = v < 0 ? '-' : '';
         var abs = Math.abs(v);
-        return sign + '\\u00a3' + abs.toLocaleString('en-GB', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        var cc = (window.__BACKEND_CONFIG || {}).currency || 'GBP';
+        var sym = {GBP: '\\u00a3', USD: '$', EUR: '\\u20ac'}[cc] || (cc + ' ');
+        return sign + sym + abs.toLocaleString('en-GB', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     }
 
     function extractArea(name) {

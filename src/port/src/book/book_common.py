@@ -38,6 +38,7 @@ from port.cdm.prs import PhysicalRiskSwapCDM
 
 logger = logging.getLogger(__name__)
 
+from config import config
 from config.port import (
     DEFAULT_YIELD_CURVE,
     NOTIONALS,
@@ -144,7 +145,7 @@ def _build_cdm_record(
             'LegData': {
                 'LegType': 'Fixed',
                 'Payer': is_payer,
-                'Currency': 'GBP',
+                'Currency': config.CURRENCY,
                 'Notional': notional,
                 'DayCounter': 'ACT/360',
                 'FixedLegRate': trade_spread_bps / 10000,
@@ -171,7 +172,7 @@ def _build_cdm_record(
                 'TriggerThreshold': 1,
             },
             'Payouts': {
-                'Currency': 'GBP',
+                'Currency': config.CURRENCY,
                 'MaxPayout': notional,
             },
             'Pricing': {

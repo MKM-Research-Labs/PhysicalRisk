@@ -210,17 +210,13 @@ def print_book_summary(trades: List[Dict], currency: Optional[str] = None) -> No
     """Print a summary of the generated book.
 
     ``currency`` defaults to the active catchment's ``CURRENCY`` if not
-    passed, so summary labels reflect the right ISO code (GBP for
-    thames, USD for halong, etc.) without callers needing to know.
+    passed, so summary labels reflect the right ISO code (e.g. USD) without
+    callers needing to know.
     """
     if currency is None:
         try:
             from config import config as _cfg
-            import importlib
-            currency = getattr(
-                importlib.import_module(f"catch.{_cfg.catchment_id}"),
-                "CURRENCY", "GBP",
-            )
+            currency = _cfg.CURRENCY
         except Exception:
             currency = "GBP"
 

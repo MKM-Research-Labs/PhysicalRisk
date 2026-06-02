@@ -96,9 +96,10 @@ class TestBuildCommercialLoan:
             rt = loan["Mortgage"]["Features"]["RepaymentType"]
             assert rt in allowed
 
-    def test_currency_is_gbp(self):
+    def test_currency_matches_catchment(self):
+        from config import config
         loan = _build_commercial_loan(_stub_asset())
-        assert loan["Mortgage"]["FinancialTerms"]["currency"] == "GBP"
+        assert loan["Mortgage"]["FinancialTerms"]["currency"] == config.CURRENCY
 
     def test_flood_risk_category_inherited_from_asset(self):
         asset = _stub_asset()
