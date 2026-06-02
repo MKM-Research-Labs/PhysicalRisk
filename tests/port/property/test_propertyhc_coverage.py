@@ -156,6 +156,60 @@ class TestDecompositionIdwFallback:
         assert decomp['gauge_spread_bps'] == 60.0
 
 
+class TestDecompositionBriLeg:
+    """The 5th basis step: no-BRI property floor → BRI-adjusted floor."""
+
+    def _base_hc(self):
+        return {
+            'metadata': {'catchment_id': 'test', 'tenors': TENORS},
+            'property_hazard_curves': {
+                'PROP-001': {
+                    'nearest_gauges': [{'gauge_id': 'GAUGE-001', 'distance_km': 1.0}],
+                    'idw_gauge_spreads': {'severe': [10.0, 20.0, 30.0, 40.0, 50.0]},
+                    'term_structure': {
+                        'severe': {'prs_spread_bps': [5.0, 10.0, 15.0, 20.0, 200.0]},
+                    },
+                },
+            },
+        }
+
+    def test_bri_leg_attached_when_curve_present(self, tmp_path):
+        """propertybri.json present → bri_spread_bps + resilience_effect_bps =
+        no-BRI 5yr severe spread − BRI 5yr severe spread."""
+        (tmp_path / 'propertyhc.json').write_text(json.dumps(self._base_hc()))
+        # BRI-adjusted floor raises the threshold → lower severe spread (168 vs 200).
+        bri_data = {
+            'property_hazard_curves': {
+                'PROP-001': {
+                    'term_structure': {
+                        'severe': {'prs_spread_bps': [4.0, 8.0, 12.0, 16.0, 168.0]},
+                    },
+                },
+            },
+        }
+        (tmp_path / 'propertybri.json').write_text(json.dumps(bri_data))
+
+        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
+        assert gen.attach_spread_decomposition() == 1
+        with open(tmp_path / 'propertyhc.json') as f:
+            decomp = json.load(f)['property_hazard_curves']['PROP-001']['spread_decomposition']
+        assert decomp['bri_spread_bps'] == 168.0
+        assert decomp['resilience_effect_bps'] == pytest.approx(32.0)  # 200 - 168
+        assert decomp['resilience_effect_bps'] >= 0  # raising floor only reduces spread
+
+    def test_bri_leg_omitted_when_curve_absent(self, tmp_path):
+        """No propertybri.json → decomposition omits the resilience leg
+        (safe no-op for pipelines that never ran the bri stage)."""
+        (tmp_path / 'propertyhc.json').write_text(json.dumps(self._base_hc()))
+
+        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
+        assert gen.attach_spread_decomposition() == 1
+        with open(tmp_path / 'propertyhc.json') as f:
+            decomp = json.load(f)['property_hazard_curves']['PROP-001']['spread_decomposition']
+        assert 'bri_spread_bps' not in decomp
+        assert 'resilience_effect_bps' not in decomp
+
+
 # ===========================================================================
 # loader.py lines 50-57 — sequence_gauge enrichment
 # ===========================================================================
