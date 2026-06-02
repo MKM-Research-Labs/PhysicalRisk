@@ -44,6 +44,15 @@ class TestCreditSpread:
         )
         assert spread == 0.15
 
+    def test_zero_income_fallback_with_debug(self, pricer):
+        # debug=True exercises the logger.debug line inside the zero-income branch
+        spread = pricer.calculate_credit_spread(
+            gross_annual_income=0, annual_payment=12_000,
+            insurance_rate=0.002, property_value=300_000,
+            original_maturity=25, current_term=20, debug=True,
+        )
+        assert spread == 0.15
+
     def test_negative_income_fallback(self, pricer):
         spread = pricer.calculate_credit_spread(
             gross_annual_income=-10_000, annual_payment=12_000,

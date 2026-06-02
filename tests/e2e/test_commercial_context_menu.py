@@ -381,8 +381,9 @@ class TestCommercialHazardPanel:
     """Click-through: menu → 'Physical Risk Swap' → property-hc-panel opens.
 
     Same shared-panel approach as the storms tab — PropertyHazardCurvePanel
-    detects the CPROP- prefix and routes all four fetches (/hazard, /she,
-    /shd, /<id>) to /api/v1/commercial/* instead of /api/v1/properties/*.
+    detects the CPROP- prefix and routes all five fetches (/hazard, /she,
+    /shd, /bri, /<id>) to /api/v1/commercial/* instead of
+    /api/v1/properties/*.
     """
 
     def test_window_view_commercial_hazard_is_function(self, map_page):
@@ -392,7 +393,11 @@ class TestCommercialHazardPanel:
         )
 
     def test_hazard_routes_reachable_from_browser(self, map_page):
-        """All four endpoints used by the hazard panel return 200."""
+        """All five endpoints used by the hazard panel return 200.
+
+        Includes /bri — the panel's loadData() fetches it for the resilient
+        flood count, so a missing commercial /bri route surfaces here as a 404
+        (it previously slipped through because /bri wasn't asserted)."""
         from pathlib import Path
         import json as _json
         commercial_path = Path("data/input/thames/commercial.json")
@@ -403,7 +408,7 @@ class TestCommercialHazardPanel:
                         ["CommercialAsset"]["Header"]["PropertyID"])
 
         result = map_page.evaluate(f"""async () => {{
-            const paths = ['/hazard', '/she', '/shd', ''];
+            const paths = ['/hazard', '/she', '/shd', '/bri', ''];
             const out = {{}};
             for (const p of paths) {{
                 try {{
@@ -416,6 +421,7 @@ class TestCommercialHazardPanel:
         assert result["/hazard"] == 200, f"/hazard: {result['/hazard']}"
         assert result["/she"] == 200, f"/she: {result['/she']}"
         assert result["/shd"] == 200, f"/shd: {result['/shd']}"
+        assert result["/bri"] == 200, f"/bri: {result['/bri']}"
         assert result["base"] == 200, f"base: {result['base']}"
 
     def test_physical_risk_swap_opens_panel(self, map_page):

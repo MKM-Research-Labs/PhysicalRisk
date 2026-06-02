@@ -138,11 +138,20 @@ def get_js():
 
                 container.innerHTML = detailHtml + chartHtml;
 
+                // BRI-adjusted (resilient) stage — only present once the
+                // propertybri/commercialbri curve has been loaded. The spread
+                // comes from spread_decomposition; the resilient flood count
+                // comes from the /bri endpoint payload (phcData._bri).
+                var hasBri = (sd.bri_spread_bps !== undefined && sd.bri_spread_bps !== null);
+                var briSpread = sd.bri_spread_bps || 0;
+                var briCount = phcData._bri ? (phcData._bri.flood_count || 0) : null;
+
                 // --- Draw waterfall ---
                 _drawBasisWaterfall(
                     document.getElementById('phc-waterfall-container'),
                     gaugeSevere, sheCount, shdCount, floodCount,
-                    gaugeSpread, sheSpread, shdSpread, propSpread
+                    gaugeSpread, sheSpread, shdSpread, propSpread,
+                    hasBri, briCount, briSpread
                 );
 
                 // Bottom stats bar — spreads now come from spread_decomposition
@@ -162,7 +171,8 @@ def get_js():
             // Basis waterfall — simple table
             // ================================================================
             function _drawBasisWaterfall(container, gaugeCount, sheCount, shdCount, propCount,
-                                          gaugeSpread, sheSpread, shdSpread, propSpread) {
+                                          gaugeSpread, sheSpread, shdSpread, propSpread,
+                                          hasBri, briCount, briSpread) {
                 // All four spreads come from spread_decomposition in the
                 // hazard payload — no per-step storm-count arithmetic in
                 // the panel any more.
@@ -172,6 +182,17 @@ def get_js():
                     { label: 'SHD (distance)', count: shdCount, spread: shdSpread, color: '#2E7D32', bg: '#E8F5E9' },
                     { label: 'Asset', count: propCount, spread: propSpread, color: '#1565C0', bg: '#E3F2FD' },
                 ];
+
+                // 5th stage — BRI-adjusted (resilient) spread. Completes the
+                // basis: raising the effective flood floor removes severe floods,
+                // so the resilient spread <= the pure asset spread. The flood
+                // count may be null if the /bri endpoint wasn't loaded; the
+                // attenuation column then falls back to a count-free row.
+                if (hasBri) {
+                    steps.push({ label: 'BRI Resilient', count: (briCount == null ? propCount : briCount),
+                                 spread: briSpread, color: '#4527A0', bg: '#EDE7F6',
+                                 countMissing: (briCount == null) });
+                }
 
                 var maxCount = Math.max(gaugeCount, 1);
                 if (!container) return;
@@ -185,19 +206,26 @@ def get_js():
                     '</tr></thead><tbody>';
 
                 steps.forEach(function(s, i) {
-                    var loss = i > 0 ? steps[i - 1].count - s.count : 0;
-                    var lossPct = i > 0 && steps[i - 1].count > 0 ? (loss / steps[i - 1].count * 100).toFixed(0) : '';
-                    var barPct = maxCount > 0 ? (s.count / maxCount * 100) : 0;
+                    // A stage with a missing count (BRI when /bri didn't load)
+                    // shows a count-free row: dash for count, no loss, no bar.
+                    var loss = (!s.countMissing && i > 0 && !steps[i - 1].countMissing)
+                        ? steps[i - 1].count - s.count : 0;
+                    var lossPct = (loss > 0 && steps[i - 1].count > 0)
+                        ? (loss / steps[i - 1].count * 100).toFixed(0) : '';
+                    var barPct = (!s.countMissing && maxCount > 0) ? (s.count / maxCount * 100) : 0;
+                    var countCell = s.countMissing ? '\\u2014' : s.count.toLocaleString();
 
                     html += '<tr style="border-bottom:1px solid #f0f0f0;">' +
                         '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label + '</td>' +
-                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + s.count.toLocaleString() + '</td>' +
+                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + countCell + '</td>' +
                         '<td style="padding:8px;text-align:right;color:#555;">' + s.spread.toFixed(1) + 'bp</td>' +
                         '<td style="padding:8px;text-align:right;color:#E53935;">' + (loss > 0 ? '-' + loss.toLocaleString() + ' (' + lossPct + '%)' : '') + '</td>' +
                         '<td style="padding:8px 12px;">' +
+                        (s.countMissing ? '' :
                         '<div style="background:#f5f5f5;border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
                         '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:3px 0 0 3px;"></div>' +
-                        '</div></td></tr>';
+                        '</div>') +
+                        '</td></tr>';
                 });
 
                 html += '</tbody></table>';

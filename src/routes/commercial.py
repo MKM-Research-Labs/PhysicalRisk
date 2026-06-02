@@ -539,6 +539,26 @@ def commercial_shd(prop_id: str):
     return jsonify({'status': 'success', 'data': asset_data})
 
 
+@commercial_bp.route('/commercial/<prop_id>/bri', methods=['GET', 'OPTIONS'])
+def commercial_bri(prop_id: str):
+    """BRI-adjusted (resilient) hazard curve for one commercial asset.
+
+    Mirrors ``/properties/<id>/bri`` so the shared PRS-pricer panel can read
+    the resilient flood count for any asset type.
+    """
+    data, err = _hazard_or_404('commercialbri.json',
+                               'Commercial BRI-adjusted hazard')
+    if err:
+        return err
+    asset_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': f'Commercial asset {prop_id} not in BRI curves',
+        }), 404
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
 @commercial_bp.route('/commercial/<prop_id>', methods=['GET', 'OPTIONS'])
 def commercial_record(prop_id: str):
     """Return the bare commercial asset record by PropertyID.
