@@ -997,6 +997,23 @@ def apply_flood_resilience_score(
         4,
     )
 
+    # Stamp the BRI-adjusted flood-threshold floor level into Construction.
+    # A resilient building only counts as flooded once water rises above this
+    # raised floor; the PRS flood filter reads this field. Computed from the
+    # 0-1 BRIFloodScore just written above. If the surveyed FloorLevelMeters is
+    # missing, leave the field unset — the flood code falls back to deriving it
+    # from BRIFloodScore at evaluation time.
+    from models.floodrisk.depth_damage import bri_adjusted_floor_level
+    construction = property_record.setdefault("PropertyHeader", {}).setdefault(
+        "Construction", {})
+    floor_level = construction.get("FloorLevelMeters")
+    if floor_level is not None:
+        try:
+            construction["BRIAdjustedFloorLevelMeters"] = round(
+                bri_adjusted_floor_level(float(floor_level), flood_score), 2)
+        except (TypeError, ValueError):
+            pass
+
     return {
         **result,
         "damage_modifier": modifier,
