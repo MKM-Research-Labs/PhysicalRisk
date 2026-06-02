@@ -106,6 +106,7 @@ def run_blotter(ctx: StageContext):
         output_dir=blotter_dir,
         catchment_id=ctx.catchment,
         seed=43,
+        propertybri_path=config.get_input_dir() / 'propertybri.json',
     )
     trades.extend(prop_trades)
     if prop_trades:

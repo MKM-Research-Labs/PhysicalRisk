@@ -140,6 +140,21 @@ class TestLoanPricerPanelStandaloneJS:
         assert "assetFloodSpreadBps" in js
         assert "overrides.flood_spread_bps" in js
 
+    def test_flood_leg_prefers_bri_adjusted_spread(self):
+        """When the asset has a BRI-adjusted (resilient) curve, the loan's flood
+        leg is priced on that lower spread — the borrower gets credit for the
+        building's resilience. Read from spread_decomposition.bri_spread_bps,
+        which overrides the pure surveyed-floor spread when present."""
+        js = self._js()
+        assert "spread_decomposition" in js
+        assert "bri_spread_bps" in js
+        # The BRI read lives inside loadAssetFloodSpread and assigns the same
+        # target the pure read uses, so it supersedes it when present.
+        fn_start = js.index("function loadAssetFloodSpread")
+        fn_body = js[fn_start:js.index("async function loadAssetIncome")]
+        assert "bri_spread_bps" in fn_body
+        assert "assetFloodSpreadBps = parseFloat(briBps)" in fn_body
+
     def test_redundant_pricing_rows_removed(self):
         """The engine's affordability-derived credit spread, LTV factor, flood
         risk factor and affordability ratio were misleading in the results

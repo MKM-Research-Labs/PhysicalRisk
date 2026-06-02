@@ -368,6 +368,15 @@ class LoanPricerPanel:
             // Sets assetFloodSpreadBps; leaves it null on any miss (e.g. the
             // asset has < 3 flood events and so has no hazard curve), in which
             // case the coupon falls back to the flood-category lookup.
+            //
+            // BRI preference: when the asset has a Building Resilience Index
+            // curve, the loan's flood leg is priced on the BRI-adjusted
+            // (resilient) spread instead of the pure surveyed-floor spread.
+            // Raising the effective flood floor removes severe floods, so the
+            // resilient spread is lower — the borrower gets the credit for the
+            // building's resilience in their coupon. spread_decomposition.
+            // bri_spread_bps is flat across tenors (same construction as
+            // prs_spread_bps), so it is directly comparable to the first point.
             async function loadAssetFloodSpread() {{
                 assetFloodSpreadBps = null;
                 if (!standaloneOriginAssetId) return;
@@ -382,6 +391,12 @@ class LoanPricerPanel:
                     var arr = severe && severe.prs_spread_bps;
                     if (arr && arr.length && arr[0] != null && !isNaN(arr[0])) {{
                         assetFloodSpreadBps = parseFloat(arr[0]);
+                    }}
+                    // Prefer the BRI-adjusted (resilient) spread when present.
+                    var sd = d && d.spread_decomposition;
+                    var briBps = sd && sd.bri_spread_bps;
+                    if (briBps != null && !isNaN(briBps)) {{
+                        assetFloodSpreadBps = parseFloat(briBps);
                     }}
                 }} catch (e) {{
                     console.warn('[LoanPricer] asset flood spread unavailable', e);

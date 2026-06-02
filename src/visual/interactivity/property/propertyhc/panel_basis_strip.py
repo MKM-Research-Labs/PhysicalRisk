@@ -29,6 +29,16 @@ def get_js() -> str:
                         ? phcData.term_structure.severe.prs_spread_bps[0]
                         : 0);
 
+                // BRI-adjusted (resilient) spread — present once the propertybri
+                // stage has run. Raising the effective flood floor removes severe
+                // floods, so the resilient spread is <= the pure property spread.
+                var hasBri = (sd.bri_spread_bps !== undefined && sd.bri_spread_bps !== null);
+                var briSpread = sd.bri_spread_bps || 0;
+                var resilienceCredit = sd.resilience_effect_bps;
+                if (resilienceCredit === undefined || resilienceCredit === null) {
+                    resilienceCredit = propSpread - briSpread;
+                }
+
                 // Physical measurements
                 var stormsGauges = (phcData._storms_data || {}).nearest_gauges || [];
                 var stormGauge0 = stormsGauges.find(function(sg) { return sg.gauge_id === ng0.gauge_id; }) || {};
@@ -45,6 +55,7 @@ def get_js() -> str:
                 var gaugeCount = storms.filter(function(s) { return s.exceeded_severe; }).length || gaugeSevere;
                 var sheCount = phcData._she ? (phcData._she.flood_count || 0) : '\\u2014';
                 var shdCount = phcData._shd ? (phcData._shd.flood_count || 0) : '\\u2014';
+                var briCount = phcData._bri ? (phcData._bri.flood_count || 0) : '\\u2014';
 
                 var chipStyle = 'display:inline-flex;align-items:center;gap:4px;padding:4px 10px;' +
                     'border-radius:12px;font-weight:600;font-size:11px;';
@@ -52,6 +63,18 @@ def get_js() -> str:
                 var countStyle = 'font-size:15px;font-weight:700;';
                 var labelStyle = 'font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;';
                 var detailStyle = 'font-size:9px;color:#999;line-height:1.1;';
+
+                // Resilient (BRI) chip — only rendered when a BRI curve exists.
+                var briChip = '';
+                if (hasBri) {
+                    briChip =
+                        '<span style="' + arrowStyle + '">\\u2192</span>' +
+                        '<div style="' + chipStyle + 'background:#EDE7F6;color:#4527A0;flex-direction:column;min-width:70px;text-align:center;">' +
+                        '<span style="' + countStyle + '">' + briCount + '</span>' +
+                        '<span style="' + labelStyle + '">BRI resilient</span>' +
+                        '<span style="' + detailStyle + '">' + briSpread.toFixed(1) + 'bp</span>' +
+                        '</div>';
+                }
 
                 strip.innerHTML =
                     '<div style="display:flex;align-items:center;gap:2px;">' +
@@ -90,11 +113,15 @@ def get_js() -> str:
                     '<span style="' + detailStyle + '">' + propSpread.toFixed(1) + 'bp</span>' +
                     '</div>' +
 
+                    // Resilient (BRI) chip — appended only when present
+                    briChip +
+
                     // Separator + spread summary
                     '<div style="margin-left:12px;padding-left:12px;border-left:1px solid #ddd;font-size:10px;color:#666;line-height:1.5;">' +
                     '<div><b>Gauge:</b> ' + gaugeName + '</div>' +
                     '<div><b>Spread:</b> ' + gaugeSpread.toFixed(1) + 'bp \\u2192 ' + propSpread.toFixed(1) + 'bp</div>' +
                     '<div><b>Basis:</b> ' + (gaugeSpread - propSpread).toFixed(1) + 'bp</div>' +
+                    (hasBri ? '<div><b>Resilience:</b> \\u2212' + resilienceCredit.toFixed(1) + 'bp \\u2192 ' + briSpread.toFixed(1) + 'bp</div>' : '') +
                     '</div>' +
 
                     '</div>';

@@ -64,11 +64,12 @@ def get_js() -> str:
                         console.warn('Counterparty data not available:', ctpyErr.message);
                     }
 
-                    // Fetch SHE/SHD flood counts and gauge severe count for basis strip
+                    // Fetch SHE/SHD/BRI flood counts and gauge severe count for basis strip
                     try {
-                        var [sheResp, shdResp, stormsResp] = await Promise.all([
+                        var [sheResp, shdResp, briResp, stormsResp] = await Promise.all([
                             fetch(baseUrl + apiBase + propertyId + '/she', {mode: 'cors'}),
                             fetch(baseUrl + apiBase + propertyId + '/shd', {mode: 'cors'}),
+                            fetch(baseUrl + apiBase + propertyId + '/bri', {mode: 'cors'}),
                             fetch(baseUrl + apiBase + propertyId + '/storms', {mode: 'cors'}),
                         ]);
                         if (sheResp.ok) {
@@ -79,6 +80,10 @@ def get_js() -> str:
                             var shdData = await shdResp.json();
                             if (shdData.status === 'success') phcData._shd = shdData.data;
                         }
+                        if (briResp.ok) {
+                            var briData = await briResp.json();
+                            if (briData.status === 'success') phcData._bri = briData.data;
+                        }
                         if (stormsResp.ok) {
                             var stormsData = await stormsResp.json();
                             if (stormsData.status === 'success') {
@@ -87,7 +92,7 @@ def get_js() -> str:
                             }
                         }
                     } catch (basisErr) {
-                        console.warn('SHE/SHD/storms data not available:', basisErr.message);
+                        console.warn('SHE/SHD/BRI/storms data not available:', basisErr.message);
                     }
 
                     console.log('[PropertyHazard] Loaded hazard data for', propertyId, '(' + phcData.flood_count + ' floods)');

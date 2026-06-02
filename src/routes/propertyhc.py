@@ -244,3 +244,17 @@ def property_she(prop_id: str):
     if not prop_data:
         return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in she curves'}), 404
     return jsonify({'status': 'success', 'data': prop_data})
+
+
+@propertyhc_bp.route('/properties/<prop_id>/bri', methods=['GET', 'OPTIONS'])
+def property_bri(prop_id: str):
+    """Get BRI-adjusted (resilient) hazard curve for one property."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertybri.json')
+    if not data:
+        return jsonify({'status': 'error', 'message': 'BRI-adjusted hazard curves not yet generated'}), 404
+    prop_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not prop_data:
+        return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in bri curves'}), 404
+    return jsonify({'status': 'success', 'data': prop_data})

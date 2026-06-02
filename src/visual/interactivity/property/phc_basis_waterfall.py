@@ -46,10 +46,21 @@ def get_js() -> str:
 
                 var labels = ['Gauge', 'SHE (elevation)', 'SHD (distance)', 'Property'];
                 var values = [gaugeSpread, sheSpread, shdSpread, propSpread];
-
-                // Colours: muted for inactive, bold for active step
                 var baseColors = ['#EF5350', '#FF9800', '#66BB6A', '#42A5F5'];
                 var mutedColors = ['#FFCDD2', '#FFE0B2', '#C8E6C9', '#BBDEFB'];
+
+                // 5th stage — BRI-adjusted (resilient) spread. Only present once
+                // the propertybri stage has run; raising the effective flood
+                // floor removes severe floods so the resilient spread <= pure.
+                var hasBri = (sd.bri_spread_bps !== undefined && sd.bri_spread_bps !== null);
+                if (hasBri) {
+                    labels.push('BRI (resilient)');
+                    values.push(sd.bri_spread_bps || 0);
+                    baseColors.push('#7E57C2');
+                    mutedColors.push('#D1C4E9');
+                }
+
+                // Colours: muted for inactive, bold for active step
                 var bgColors = values.map(function(_, i) {
                     return i === activeStep ? baseColors[i] : mutedColors[i];
                 });
@@ -72,6 +83,14 @@ def get_js() -> str:
                         (shdEffect >= 0 ? '+' : '') + shdEffect.toFixed(1) + ' bps (distance)',
                         (propEffect >= 0 ? '+' : '') + propEffect.toFixed(1) + ' bps (total)',
                     ];
+                    if (hasBri) {
+                        // Resilience credit: pure spread - resilient spread >= 0,
+                        // shown as a negative delta off the property bar.
+                        var resilienceEffect = (sd.bri_spread_bps || 0) - propSpread;
+                        effects.push(
+                            (resilienceEffect >= 0 ? '+' : '') +
+                            resilienceEffect.toFixed(1) + ' bps (resilience)');
+                    }
                 }
 
                 var ctx = document.getElementById(canvasId).getContext('2d');

@@ -74,6 +74,10 @@ def _load_property_trades() -> List[dict]:
                 'start_date': schedule.get('StartDate', ''),
                 'end_date': schedule.get('EndDate', ''),
                 'property_id': prop.get('PropertyID', ''),
+                # PRS flavour: 'pure' (surveyed floor) vs 'resilient'
+                # (BRI-adjusted floor). Legacy trades predate the tag — treat
+                # them as pure so the blotter stays backward-compatible.
+                'prs_variant': prop.get('PRSVariant', 'pure'),
                 'property_address': prop.get('PropertyAddress', ''),
                 'postcode': prop.get('Postcode', ''),
                 'local_authority': prop.get('LocalAuthority', ''),
