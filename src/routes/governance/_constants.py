@@ -33,16 +33,21 @@ _data_dir = str(config.get_project_root() / "data")
 _output_dir = str(config.get_output_dir())
 _docs_dir = str(config.get_project_root() / "docs" / "models")
 
-INVENTORY_PATH = os.path.join(_data_dir, "model_inventory.json")
-AUDIT_LOG_PATH = os.path.join(_data_dir, "model_audit_log.json")
-MRC_MEETINGS_PATH = os.path.join(_data_dir, "mrc_meetings.json")
-MRC_UPLOADS_DIR = os.path.join(_data_dir, "mrc_uploads")
-BCBS239_PATH = os.path.join(_data_dir, "bcbs239_assessment.json")
-RACI_PATH = os.path.join(_data_dir, "raci_matrix.json")
-BIBLIOGRAPHY_PATH = os.path.join(_data_dir, "bibliography.json")
-GOV_DOCUMENTS_PATH = os.path.join(_data_dir, "governance_documents.json")
-GOV_DOCUMENTS_DIR = os.path.join(_data_dir, "governance_docs")
+# Governance metadata is version-controlled repo content, NOT shared data/.
+# It lives under docs/models/governance_data/ (see config.get_governance_data_dir).
+_gov_dir = str(config.get_governance_data_dir())
+
+INVENTORY_PATH = os.path.join(_gov_dir, "model_inventory.json")
+AUDIT_LOG_PATH = os.path.join(_gov_dir, "model_audit_log.json")
+MRC_MEETINGS_PATH = os.path.join(_gov_dir, "mrc_meetings.json")
+MRC_UPLOADS_DIR = os.path.join(_gov_dir, "mrc_uploads")
+BCBS239_PATH = os.path.join(_gov_dir, "bcbs239_assessment.json")
+RACI_PATH = os.path.join(_gov_dir, "raci_matrix.json")
+BIBLIOGRAPHY_PATH = os.path.join(_gov_dir, "bibliography.json")
+GOV_DOCUMENTS_PATH = os.path.join(_gov_dir, "governance_documents.json")
+GOV_DOCUMENTS_DIR = os.path.join(_gov_dir, "governance_docs")
 AUDIT_REPORTS_DIR = os.path.join(_output_dir, "audit")
+# Lineage manifests are pipeline-generated data-about-the-data and remain in data/.
 LINEAGE_PATH = os.path.join(_data_dir, "data_lineage.json")
 FIELD_LINEAGE_PATH = os.path.join(_data_dir, "field_lineage_registry.json")
 

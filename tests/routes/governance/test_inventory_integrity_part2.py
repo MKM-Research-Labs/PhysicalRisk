@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 """
-Structural integrity tests for the real data/model_inventory.json — part 2.
+Structural integrity tests for the real model_inventory.json — part 2.
 
 Covers: TestRequiredListFields, TestRequiredStringFields, TestAPIEndpointAvailability.
 """
@@ -30,7 +30,10 @@ import pathlib
 import pytest
 
 
-INVENTORY_PATH = pathlib.Path(__file__).parents[3] / "data" / "model_inventory.json"
+INVENTORY_PATH = (
+    pathlib.Path(__file__).parents[3]
+    / "docs" / "models" / "governance_data" / "model_inventory.json"
+)
 
 REQUIRED_LIST_FIELDS = ["upstream_models", "downstream_models", "limitations", "assumptions"]
 
@@ -129,7 +132,7 @@ class TestAPIEndpointAvailability:
         assert response.status_code == 200, (
             f"GET /api/v1/governance/models returned {response.status_code}. "
             f"Response: {data}. "
-            "Check that all models in data/model_inventory.json have test_coverage "
+            "Check that all models in governance_data/model_inventory.json have test_coverage "
             "and overall_risk_rating as dicts (not strings)."
         )
         assert data["status"] == "success"

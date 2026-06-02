@@ -169,6 +169,11 @@ TEST_MODEL_MAP = {
     'tests/port/cdm/test_flood_resilience_model.py':    'MKM-BRI-001',
 
     # ---------------------------------------------------------------------------
+    # MKM-BRF-001  BRI-Adjusted Floor Level Model
+    # ---------------------------------------------------------------------------
+    'tests/models/floodrisk/test_bri_floor_level.py':   'MKM-BRF-001',
+
+    # ---------------------------------------------------------------------------
     # CDM-ALL  CDM Schema Validation
     # ---------------------------------------------------------------------------
     'tests/port/cdm/schemas.py':                        'CDM-ALL',
@@ -239,6 +244,7 @@ MODEL_INFO = {
     'MKM-FPO-001': {'name': 'Flood Polynomial Model',            'dir': 'flood_poly'},
     'MKM-DE-001': {'name': 'Delta Engine',                      'dir': 'delta_engine'},
     'MKM-BRI-001': {'name': 'Building Resilience Index Model',  'dir': 'bri_resilience'},
+    'MKM-BRF-001': {'name': 'BRI-Adjusted Floor Level Model',   'dir': 'bri_floor'},
     'MKM-TC-001': {'name': 'Tropical Cyclone Progression and Wind-Field', 'dir': 'typhoon'},
     'MKM-WS-001': {'name': 'Event Wind Lookup',                 'dir': None},
     'MKM-WD-001': {'name': 'Wind Damage',                       'dir': None},
@@ -257,6 +263,7 @@ MODEL_ALIASES = {
     'GHD': 'MKM-GHD-001', 'ST': 'MKM-ST-001', 'PF': 'MKM-PF-001',
     'DE': 'MKM-DE-001', 'FPO': 'MKM-FPO-001',
     'BRI': 'MKM-BRI-001',
+    'BRF': 'MKM-BRF-001',
     'TC': 'MKM-TC-001',
     'WS': 'MKM-WS-001',
     'WD': 'MKM-WD-001',

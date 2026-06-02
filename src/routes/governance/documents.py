@@ -32,8 +32,8 @@ from datetime import datetime
 from flask import jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
-from . import governance_bp
-from ._constants import ALLOWED_UPLOAD_EXTENSIONS, GOV_DOCUMENTS_DIR, MAX_UPLOAD_SIZE
+from . import _constants, governance_bp
+from ._constants import ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_SIZE
 from ._helpers import (
     _load_gov_documents, _save_gov_documents,
     _discover_audit_docs, _discover_model_docs,
@@ -76,11 +76,11 @@ def upload_document():
     if size > MAX_UPLOAD_SIZE:
         return jsonify({"status": "error", "message": "File exceeds 50 MB limit"}), 413
 
-    os.makedirs(GOV_DOCUMENTS_DIR, exist_ok=True)
+    os.makedirs(_constants.GOV_DOCUMENTS_DIR, exist_ok=True)
 
     doc_id = str(uuid.uuid4())[:8]
     filename = secure_filename(f.filename)
-    save_path = os.path.join(GOV_DOCUMENTS_DIR, f"{doc_id}_{filename}")
+    save_path = os.path.join(_constants.GOV_DOCUMENTS_DIR, f"{doc_id}_{filename}")
     f.save(save_path)
 
     doc_entry = {
@@ -108,7 +108,7 @@ def download_document(doc_id):
     if not doc:
         return jsonify({"status": "error", "message": "Document not found"}), 404
 
-    file_path = os.path.join(GOV_DOCUMENTS_DIR, doc["stored_as"])
+    file_path = os.path.join(_constants.GOV_DOCUMENTS_DIR, doc["stored_as"])
     if not os.path.isfile(file_path):
         return jsonify({"status": "error", "message": "File not found on disk"}), 404
 
@@ -124,7 +124,7 @@ def delete_document(doc_id):
         return jsonify({"status": "error", "message": "Document not found"}), 404
 
     # Remove file
-    file_path = os.path.join(GOV_DOCUMENTS_DIR, doc["stored_as"])
+    file_path = os.path.join(_constants.GOV_DOCUMENTS_DIR, doc["stored_as"])
     if os.path.isfile(file_path):
         os.remove(file_path)
 

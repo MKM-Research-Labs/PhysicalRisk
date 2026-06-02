@@ -15,7 +15,9 @@ from config import config
 
 _root = Path(__file__).resolve().parents[3]
 
-DATA_DIR = _root / 'data'
+# Governance metadata is version-controlled repo content under
+# docs/models/governance_data/, not shared data/.
+DATA_DIR = config.get_governance_data_dir()
 AUDIT_DIR = config.get_reports_dir('audit')
 OUTPUT_PDF = AUDIT_DIR / 'model_risk_report.pdf'
 
