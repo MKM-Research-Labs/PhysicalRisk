@@ -53,17 +53,17 @@ def _make_property_file(path: Path, property_id: str = "PROP-001") -> Path:
 
 def _make_mortgage_file(path: Path, property_id: str = "PROP-001") -> Path:
     data = {
-        "mortgages": [
+        "loans": [
             {
-                "Mortgage": {
-                    "Header": {"MortgageID": "MORT-001", "PropertyID": property_id},
+                "RLoan": {
+                    "Header": {"RLoanID": "MORT-001", "PropertyID": property_id},
                     "FinancialTerms": {"OriginalLoan": 300_000},
                     "CurrentStatus": {"OutstandingBalance": 280_000},
                 }
             }
         ]
     }
-    p = path / "mortgage.json"
+    p = path / "loan.json"
     p.write_text(json.dumps(data))
     return p
 
@@ -79,7 +79,7 @@ class TestGenerateReportForProperty:
         result = generate_report_for_property(
             "PROP-001",
             tmp_path / "nonexistent.json",
-            tmp_path / "mortgage.json",
+            tmp_path / "loan.json",
             tmp_path / "output",
         )
         assert result is None
@@ -90,7 +90,7 @@ class TestGenerateReportForProperty:
         result = generate_report_for_property(
             "PROP-NONEXISTENT",
             prop_file,
-            tmp_path / "mortgage.json",
+            tmp_path / "loan.json",
             tmp_path / "output",
         )
         assert result is None

@@ -114,7 +114,7 @@ def output_files(c):
     seq_count = c['seq_summary'].get('num_sequences', 0)
     fmt.row('gauge.json', f'{c["gauge_count"]} flood gauges')
     fmt.row('property.json', f'{c["prop_count"]} properties')
-    fmt.row('mortgage.json', f'{c["mort_count"]} mortgages')
+    fmt.row('loan.json', f'{c["mort_count"]} loans')
     fmt.row('counterparty.json', f'{c["ctpy_count"]} counterparties')
     fmt.row('storm_sequences.json', f'{seq_count:,} sequences')
     fmt.row('stress_storms/', f'{c["stress_count"]:,} alert storms')

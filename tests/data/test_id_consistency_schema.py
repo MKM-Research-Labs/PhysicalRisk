@@ -39,11 +39,11 @@ def _properties():
 
 
 def _mortgages():
-    path = INPUT_DIR / "mortgage.json"
+    path = INPUT_DIR / "loan.json"
     if not path.exists():
         return []
     data = json.load(open(path))
-    return [m.get("Mortgage", {}) for m in data.get("mortgages", [])]
+    return [m.get("RLoan", {}) for m in data.get("loans", [])]
 
 
 def _counterparties():
@@ -218,11 +218,11 @@ class TestMortgageSchema:
         """Every mortgage must have MortgageID and PropertyID in Header."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
             hdr = m.get("Header", {})
-            mid = hdr.get("MortgageID", "")
+            mid = hdr.get("RLoanID", "")
             pid = hdr.get("PropertyID", "")
             if not mid or not pid:
                 bad.append(f"MortgageID={mid!r}, PropertyID={pid!r}")
@@ -234,10 +234,10 @@ class TestMortgageSchema:
         """Every mortgage must have FinancialTerms with OriginalLoan/OriginalTerm."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             ft = m.get("FinancialTerms", {})
             if "OriginalLoan" not in ft or "OriginalTerm" not in ft:
                 bad.append(mid)
@@ -249,10 +249,10 @@ class TestMortgageSchema:
         """Every mortgage must have BorrowerDetails with BorrowerAge/BorrowerIncome."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             bd = m.get("BorrowerDetails", {})
             if "BorrowerAge" not in bd or "BorrowerIncome" not in bd:
                 bad.append(mid)

@@ -84,7 +84,7 @@ class TestGenerateFullOutput:
         prop_path = write_property_portfolio(tmp_path, count=3)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         with open(result["file_path"]) as f:
-            assert "mortgages" in json.load(f)
+            assert "loans" in json.load(f)
 
     def test_output_json_contains_generation_metadata(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=2)
@@ -115,14 +115,14 @@ class TestGenerateFullOutput:
         prop_path = write_property_portfolio(tmp_path, count=2)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            assert "Mortgage" in m
+            assert "RLoan" in m
 
     def test_mortgage_header_has_required_fields(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=2)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            header = m["Mortgage"]["Header"]
-            assert "MortgageID" in header
+            header = m["RLoan"]["Header"]
+            assert "RLoanID" in header
             assert "PropertyID" in header
             assert "CatchmentID" in header
 
@@ -130,8 +130,8 @@ class TestGenerateFullOutput:
         prop_path = write_property_portfolio(tmp_path, count=3)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            terms = m["Mortgage"]["FinancialTerms"]
-            status = m["Mortgage"]["CurrentStatus"]
+            terms = m["RLoan"]["FinancialTerms"]
+            status = m["RLoan"]["CurrentStatus"]
             assert terms["OriginalLoan"] > 0
             assert status["OutstandingBalance"] > 0
             assert status["CurrentInterestRate"] > 0
@@ -143,15 +143,15 @@ class TestGenerateFullOutput:
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
             assert (
-                m["Mortgage"]["CurrentStatus"]["OutstandingBalance"]
-                <= m["Mortgage"]["FinancialTerms"]["OriginalLoan"]
+                m["RLoan"]["CurrentStatus"]["OutstandingBalance"]
+                <= m["RLoan"]["FinancialTerms"]["OriginalLoan"]
             )
 
     def test_ltv_within_valid_range(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=5)
         result = make_generator(tmp_path).generate(property_portfolio_path=prop_path)
         for m in result["data"]["mortgages"]:
-            assert 10 <= m["Mortgage"]["CurrentStatus"]["CurrentLTV"] <= 100
+            assert 10 <= m["RLoan"]["CurrentStatus"]["CurrentLTV"] <= 100
 
     def test_output_file_is_valid_json(self, tmp_path):
         prop_path = write_property_portfolio(tmp_path, count=2)

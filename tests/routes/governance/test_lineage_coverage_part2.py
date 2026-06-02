@@ -13,7 +13,7 @@ import pytest
 
 
 class TestPropertySubLookups:
-    """Exercise mortgage.json and propertyhc.json searches."""
+    """Exercise loan.json and propertyhc.json searches."""
 
     def test_property_trace_includes_mortgage(self, full_trace_env):
         from routes.governance.lineage import _trace_data

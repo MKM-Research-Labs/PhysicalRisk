@@ -144,26 +144,26 @@ CATCHMENT_LAT_BOUNDS, CATCHMENT_LON_BOUNDS = _catchment_coord_bounds()
 
 
 def _load_mortgage_ids() -> set:
-    """Load all MortgageIDs from mortgage.json."""
-    path = INPUT_DIR / "mortgage.json"
+    """Load all RLoanIDs from loan.json."""
+    path = INPUT_DIR / "loan.json"
     if not path.exists():
         return set()
     data = json.load(open(path))
     return {
-        m.get("Mortgage", {}).get("Header", {}).get("MortgageID", "")
-        for m in data.get("mortgages", [])
+        m.get("RLoan", {}).get("Header", {}).get("RLoanID", "")
+        for m in data.get("loans", [])
     } - {""}
 
 
 def _load_mortgage_property_ids() -> set:
-    """Load PropertyIDs referenced by mortgages."""
-    path = INPUT_DIR / "mortgage.json"
+    """Load PropertyIDs referenced by residential loans."""
+    path = INPUT_DIR / "loan.json"
     if not path.exists():
         return set()
     data = json.load(open(path))
     return {
-        m.get("Mortgage", {}).get("Header", {}).get("PropertyID", "")
-        for m in data.get("mortgages", [])
+        m.get("RLoan", {}).get("Header", {}).get("PropertyID", "")
+        for m in data.get("loans", [])
     } - {""}
 
 

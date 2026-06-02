@@ -57,8 +57,8 @@ def property_portfolio_path(input_dir):
 
 @pytest.fixture(scope="session")
 def mortgage_portfolio_path(input_dir):
-    """Return path to mortgage portfolio JSON."""
-    return input_dir / "mortgage.json"
+    """Return path to residential loan portfolio JSON."""
+    return input_dir / "loan.json"
 
 
 @pytest.fixture(scope="session")

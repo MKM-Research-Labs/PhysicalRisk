@@ -73,12 +73,12 @@ def _write_mortgage_json(tmp_path, property_id='PROP-001'):
     # Top-level PropertyID so _find_mortgage_by_property_id() can match it
     data = {
         'PropertyID': property_id,
-        'Mortgage': {
-            'Header': {'MortgageID': 'MORT-001', 'PropertyID': property_id},
+        'RLoan': {
+            'Header': {'RLoanID': 'MORT-001', 'PropertyID': property_id},
             'FinancialTerms': {'OriginalLoan': 300_000},
         }
     }
-    p = tmp_path / 'mortgage.json'
+    p = tmp_path / 'loan.json'
     p.write_text(json.dumps(data))
     return str(p)
 

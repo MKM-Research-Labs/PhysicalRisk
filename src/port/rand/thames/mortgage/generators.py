@@ -171,7 +171,7 @@ def generate_date_value(field_name: str, financial_data: Dict) -> str:
 
 def generate_text_value(field_name: str, index: int, financial_data: Dict) -> str:
     """Generate a text value based on field name."""
-    if field_name == "MortgageID":
+    if field_name == "RLoanID":
         return financial_data.get("mortgage_id", str(uuid.uuid4()))
     elif field_name == "MortgageProvider":
         return random.choice(UK_LENDERS)

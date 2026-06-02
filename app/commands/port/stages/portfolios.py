@@ -107,12 +107,12 @@ def run_mortgages(ctx: StageContext):
     stats = r.get('processing_stats', {})
     ok = stats.get('successful_mortgages', n)
     print(f"   {n} mortgages generated  ({ok}/{stats.get('total_mortgages', n)} successful)"
-          f"  →  mortgage.json")
+          f"  →  loan.json")
     ctx.record(
         step_name="mortgages",
         generator="port.src.mortgage.MortgagePortfolioGenerator",
         inputs=inputs,
-        outputs={"mortgage.json": ctx.input_dir / "mortgage.json"},
+        outputs={"loan.json": ctx.input_dir / "loan.json"},
         parameters={},
         elapsed_seconds=elapsed,
         input_hashes=pre,

@@ -36,9 +36,9 @@ class TestDependencyChains:
                 p["PropertyHeader"]["Header"]["PropertyID"]
                 for p in json.load(f)["properties"]
             }
-        with open(pipeline_dir / "mortgage.json") as f:
-            for m in json.load(f)["mortgages"]:
-                mid = m.get("Mortgage", {}).get("Header", {}).get("PropertyID", "")
+        with open(pipeline_dir / "loan.json") as f:
+            for m in json.load(f)["loans"]:
+                mid = m.get("RLoan", {}).get("Header", {}).get("PropertyID", "")
                 assert mid in prop_ids
 
     def test_gaugets_reads_gauge(self, pipeline_dir):
@@ -110,7 +110,7 @@ class TestEndToEndPipeline:
     """Verify the full pipeline produces all expected output artifacts."""
 
     def test_full_pipeline_generates_all_outputs(self, pipeline_dir):
-        for name in ["gauge.json", "property.json", "mortgage.json",
+        for name in ["gauge.json", "property.json", "loan.json",
                      "storm_sequences.json", "counterparty.json", "gaugehc.json"]:
             assert (pipeline_dir / name).exists()
         assert (pipeline_dir / "gaugets").is_dir()
@@ -122,7 +122,7 @@ class TestEndToEndPipeline:
         checks = {
             "gauge.json": "flood_gauges",
             "property.json": "properties",
-            "mortgage.json": "mortgages",
+            "loan.json": "loans",
             "storm_sequences.json": "sequences",
             "counterparty.json": "counterparties",
             "gaugehc.json": "hazard_curves",

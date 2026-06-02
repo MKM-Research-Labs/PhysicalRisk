@@ -39,9 +39,9 @@ def _loan_id(header: dict) -> str:
 
 
 MORTGAGE_SCHEMA = {
-    "Mortgage": {
+    "RLoan": {
         "Header": {
-            "MortgageID": {
+            "RLoanID": {
                 "type": "text",
                 "description": "Unique identifier for the residential loan"
             },

@@ -196,11 +196,11 @@ class MortgagePortfolioGenerator:
 
         # Save to JSON file
         self.log("Saving mortgage data to JSON file...", "INFO")
-        output_path = self.output_dir / "mortgage.json"
+        output_path = self.output_dir / "loan.json"
 
         try:
             output_data = {
-                "mortgages": mortgages,
+                "loans": mortgages,
                 "generation_metadata": {
                     "generated_at": datetime.now().isoformat(),
                     "generator_version": "Refactored v3.0",
@@ -290,17 +290,17 @@ class MortgagePortfolioGenerator:
 
     def _set_specific_mortgage_values(self, mortgage_data: Dict, mortgage_id: str,
                                      index: int, financial_data: Dict, property_info: Dict):
-        """Set specific mortgage values that need to be consistent across sections."""
-        if 'Mortgage' not in mortgage_data:
-            mortgage_data['Mortgage'] = {}
+        """Set specific loan values that need to be consistent across sections."""
+        if 'RLoan' not in mortgage_data:
+            mortgage_data['RLoan'] = {}
 
-        mortgage = mortgage_data['Mortgage']
+        mortgage = mortgage_data['RLoan']
 
         if 'Header' not in mortgage:
             mortgage['Header'] = {}
 
         header = mortgage['Header']
-        header['MortgageID'] = mortgage_id
+        header['RLoanID'] = mortgage_id
         header['PropertyID'] = property_info.get('property_id', '')
         header['CatchmentID'] = config.CATCHMENT
 

@@ -47,7 +47,7 @@ def _gather_counts(output_dir):
         'gauge_count': len(gauges),
         'gauges': gauges,
         'prop_count': _count_key(output_dir / 'property.json', 'properties'),
-        'mort_count': _count_key(output_dir / 'mortgage.json', 'mortgages'),
+        'mort_count': _count_key(output_dir / 'loan.json', 'loans'),
         'ctpy_count': _count_key(output_dir / 'counterparty.json', 'counterparties'),
         'gaugets_ct': _count_dir(output_dir / 'gaugets', 'GAUGE-*.json'),
         'gaugehd_ct': _count_dir(output_dir / 'gaugehd', 'gauge_GAUGE-*.json'),

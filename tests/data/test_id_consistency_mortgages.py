@@ -17,12 +17,12 @@ from tests.data._id_consistency_helpers import (
 
 
 def _mortgages():
-    """Load all mortgage records from mortgage.json."""
-    path = INPUT_DIR / "mortgage.json"
+    """Load all mortgage records from loan.json."""
+    path = INPUT_DIR / "loan.json"
     if not path.exists():
         return []
     data = json.load(open(path))
-    return [m.get("Mortgage", {}) for m in data.get("mortgages", [])]
+    return [m.get("RLoan", {}) for m in data.get("loans", [])]
 
 
 # =========================================================================
@@ -33,19 +33,19 @@ class TestMortgagePropertyLinkage:
     """Mortgages must reference valid properties with no orphans or duplicates."""
 
     def test_mortgage_json_has_mortgages(self):
-        """mortgage.json must contain at least one mortgage."""
+        """loan.json must contain at least one mortgage."""
         ids = _load_mortgage_ids()
-        assert len(ids) > 0, "mortgage.json is empty or missing"
+        assert len(ids) > 0, "loan.json is empty or missing"
 
     def test_every_mortgage_has_property_id(self):
         """Every mortgage must have a non-empty PropertyID."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
             hdr = m.get("Header", {})
-            mid = hdr.get("MortgageID", "?")
+            mid = hdr.get("RLoanID", "?")
             pid = hdr.get("PropertyID", "")
             if not pid:
                 bad.append(mid)
@@ -84,13 +84,13 @@ class TestMortgagePropertyLinkage:
 
     def test_mortgage_ids_unique(self):
         """MortgageIDs must be unique across the portfolio."""
-        path = INPUT_DIR / "mortgage.json"
+        path = INPUT_DIR / "loan.json"
         if not path.exists():
-            pytest.skip("mortgage.json not found")
+            pytest.skip("loan.json not found")
         data = json.load(open(path))
         all_ids = [
-            m.get("Mortgage", {}).get("Header", {}).get("MortgageID", "")
-            for m in data.get("mortgages", [])
+            m.get("RLoan", {}).get("Header", {}).get("RLoanID", "")
+            for m in data.get("loans", [])
         ]
         all_ids = [i for i in all_ids if i]
         dupes = [i for i in all_ids if all_ids.count(i) > 1]
@@ -111,9 +111,9 @@ class TestMortgageFinancialTerms:
         """Every mortgage must have a FinancialTerms key."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = [
-            m.get("Header", {}).get("MortgageID", "?")
+            m.get("Header", {}).get("RLoanID", "?")
             for m in mortgages
             if "FinancialTerms" not in m
         ]
@@ -125,10 +125,10 @@ class TestMortgageFinancialTerms:
         """OriginalLTV must be 0 < LTV <= 100."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             ltv = m.get("FinancialTerms", {}).get("OriginalLTV")
             if ltv is None:
                 continue  # separate test for presence
@@ -142,10 +142,10 @@ class TestMortgageFinancialTerms:
         """OriginalLoan must be > 0."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             loan = m.get("FinancialTerms", {}).get("OriginalLoan", 0)
             if loan <= 0:
                 bad.append(f"{mid}: OriginalLoan={loan}")
@@ -157,10 +157,10 @@ class TestMortgageFinancialTerms:
         """OriginalTerm must be > 0."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             term = m.get("FinancialTerms", {}).get("OriginalTerm", 0)
             if term <= 0:
                 bad.append(f"{mid}: OriginalTerm={term}")
@@ -172,10 +172,10 @@ class TestMortgageFinancialTerms:
         """OutstandingBalance must be >= 0."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             bal = m.get("FinancialTerms", {}).get("OutstandingBalance")
             if bal is not None and bal < 0:
                 bad.append(f"{mid}: OutstandingBalance={bal}")
@@ -196,7 +196,7 @@ class TestMortgageCount:
         mort_ids = _load_mortgage_ids()
         prop_ids = _load_property_ids()
         if not mort_ids:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         if not prop_ids:
             pytest.skip("property.json empty or missing")
         # Allow some tolerance — not every property needs a mortgage
@@ -212,7 +212,7 @@ class TestMortgageCount:
         mort_pids = _load_mortgage_property_ids()
         prop_ids = _load_property_ids()
         if not mort_pids or not prop_ids:
-            pytest.skip("mortgage.json or property.json missing")
+            pytest.skip("loan.json or property.json missing")
         uncovered = prop_ids - mort_pids
         if uncovered:
             import warnings
@@ -225,10 +225,10 @@ class TestMortgageCount:
         """All mortgages must be denominated in GBP."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             ccy = m.get("FinancialTerms", {}).get("Currency", "GBP")
             if ccy != "GBP":
                 bad.append(f"{mid}: Currency={ccy}")
@@ -241,10 +241,10 @@ class TestMortgageCount:
         """MaturityDate must be after DisbursalDate."""
         mortgages = _mortgages()
         if not mortgages:
-            pytest.skip("mortgage.json empty or missing")
+            pytest.skip("loan.json empty or missing")
         bad = []
         for m in mortgages:
-            mid = m.get("Header", {}).get("MortgageID", "?")
+            mid = m.get("Header", {}).get("RLoanID", "?")
             ft = m.get("FinancialTerms", {})
             maturity = ft.get("MaturityDate", "")
             disbursal = ft.get("DisbursalDate", "")

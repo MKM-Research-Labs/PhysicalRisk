@@ -89,44 +89,44 @@ class TestSetSpecificMortgageValues:
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {"property_id": "PROP-001"})
-        assert "Mortgage" in data
+        assert "RLoan" in data
 
     def test_initialises_header_key_when_absent(self, tmp_path):
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {"property_id": "PROP-001"})
-        assert "Header" in data["Mortgage"]
+        assert "Header" in data["RLoan"]
 
     def test_sets_mortgage_id(self, tmp_path):
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc12", 0, self._financial_data(), {"property_id": "PROP-001"})
-        assert data["Mortgage"]["Header"]["MortgageID"] == "MORT-abc12"
+        assert data["RLoan"]["Header"]["RLoanID"] == "MORT-abc12"
 
     def test_sets_property_id_in_header(self, tmp_path):
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {"property_id": "PROP-xyz"})
-        assert data["Mortgage"]["Header"]["PropertyID"] == "PROP-xyz"
+        assert data["RLoan"]["Header"]["PropertyID"] == "PROP-xyz"
 
     def test_sets_catchment_id(self, tmp_path):
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {"property_id": "PROP-001"})
-        assert data["Mortgage"]["Header"]["CatchmentID"] == "thames"
+        assert data["RLoan"]["Header"]["CatchmentID"] == "thames"
 
     def test_existing_mortgage_dict_updated(self, tmp_path):
         gen = make_generator(tmp_path)
-        data = {"Mortgage": {"Header": {"ExistingField": "keep"}}}
+        data = {"RLoan": {"Header": {"ExistingField": "keep"}}}
         gen._set_specific_mortgage_values(data, "MORT-new", 0, self._financial_data(), {"property_id": "P"})
-        assert data["Mortgage"]["Header"]["ExistingField"] == "keep"
-        assert data["Mortgage"]["Header"]["MortgageID"] == "MORT-new"
+        assert data["RLoan"]["Header"]["ExistingField"] == "keep"
+        assert data["RLoan"]["Header"]["RLoanID"] == "MORT-new"
 
     def test_missing_property_id_key_defaults_empty_string(self, tmp_path):
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {})
-        assert data["Mortgage"]["Header"]["PropertyID"] == ""
+        assert data["RLoan"]["Header"]["PropertyID"] == ""
 
 
 # ===========================================================================
@@ -136,7 +136,7 @@ class TestSetSpecificMortgageValues:
 class TestQualityConsistencyCheckFallback:
 
     def _data(self, original=400000, current=390000, ltv=80):
-        return {"Mortgage": {
+        return {"RLoan": {
             "FinancialTerms": {"OriginalLoan": original},
             "CurrentStatus": {"OutstandingBalance": current, "CurrentLTV": ltv},
         }}
@@ -156,35 +156,35 @@ class TestQualityConsistencyCheckFallback:
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(original=300000, current=400000), {})
-        assert result["Mortgage"]["CurrentStatus"]["OutstandingBalance"] <= 300000
+        assert result["RLoan"]["CurrentStatus"]["OutstandingBalance"] <= 300000
         self._restore_qcc(gen, qcc)
 
     def test_current_within_original_unchanged(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(original=400000, current=350000), {})
-        assert result["Mortgage"]["CurrentStatus"]["OutstandingBalance"] == 350000
+        assert result["RLoan"]["CurrentStatus"]["OutstandingBalance"] == 350000
         self._restore_qcc(gen, qcc)
 
     def test_ltv_over_100_set_to_95(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(ltv=120), {})
-        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 95
+        assert result["RLoan"]["CurrentStatus"]["CurrentLTV"] == 95
         self._restore_qcc(gen, qcc)
 
     def test_ltv_under_10_set_to_60(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(ltv=5), {})
-        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 60
+        assert result["RLoan"]["CurrentStatus"]["CurrentLTV"] == 60
         self._restore_qcc(gen, qcc)
 
     def test_valid_ltv_unchanged(self, tmp_path):
         gen = make_generator(tmp_path)
         qcc = self._strip_qcc(gen)
         result = gen._quality_consistency_check(self._data(ltv=75), {})
-        assert result["Mortgage"]["CurrentStatus"]["CurrentLTV"] == 75
+        assert result["RLoan"]["CurrentStatus"]["CurrentLTV"] == 75
         self._restore_qcc(gen, qcc)
 
     def test_delegates_to_random_module_when_method_present(self, tmp_path):

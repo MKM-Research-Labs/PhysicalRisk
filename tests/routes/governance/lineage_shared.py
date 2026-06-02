@@ -11,7 +11,7 @@ SAMPLE_LINEAGE = {
     "steps": {
         "gauges": {"last_run": "2026-03-18T10:00:00", "outputs": ["gauge.json"]},
         "properties": {"last_run": "2026-03-18T10:05:00", "outputs": ["property.json"]},
-        "mortgages": {"last_run": None, "outputs": ["mortgage.json"]},
+        "mortgages": {"last_run": None, "outputs": ["loan.json"]},
     },
     "traces": {
         "gauge": {
