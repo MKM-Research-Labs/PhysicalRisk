@@ -36,6 +36,9 @@ logger = logging.getLogger(__name__)
 class CommercialPortfolioGenerator(LocationsMixin):
     """Generates commercial asset portfolio data for the active catchment."""
 
+    # BRI letter grades strongest → weakest, for the flood envelope.
+    _RATING_ORDER = ("AA", "A", "B", "NR")
+
     def __init__(
         self,
         output_dir: Optional[Union[str, Path]] = None,
@@ -199,6 +202,59 @@ class CommercialPortfolioGenerator(LocationsMixin):
         risk = ca.setdefault('RiskAssessment', {})
         if 'GroundLevelMeters' not in risk:
             risk['GroundLevelMeters'] = location.get('elevation')
+
+        # Construction.BRIAdjustedFloorLevelMeters — raise the flood threshold
+        # by the BRI resilience credit (see _stamp_bri_adjusted_floor).
+        self._stamp_bri_adjusted_floor(ca)
+
+    def _flood_rating_envelope(self, gbr: Dict) -> Optional[str]:
+        """Weakest applicable BRI flood letter for a commercial asset.
+
+        Commercial flood resilience is recorded as a Water + Flash grade pair
+        (and an optional pre-computed BRIFloodRating envelope). The envelope is
+        the weaker (worst) of the applicable grades, ignoring ``N/A`` /
+        ``None``. Returns ``None`` when no flood grade applies.
+        """
+        existing = gbr.get('BRIFloodRating')
+        if existing in self._RATING_ORDER:
+            return existing
+        grades = [
+            g for g in (gbr.get('BRIWaterRating'), gbr.get('BRIFlashRating'))
+            if g in self._RATING_ORDER
+        ]
+        if not grades:
+            return None
+        return max(grades, key=self._RATING_ORDER.index)
+
+    def _stamp_bri_adjusted_floor(self, ca: Dict) -> None:
+        """Write Construction.BRIAdjustedFloorLevelMeters for a commercial asset.
+
+        The surveyed FloorLevelMeters is raised by the BRI floor uplift derived
+        from the asset's flood grade envelope (mapped to a representative score,
+        since commercial assets carry letter grades rather than a numeric
+        BRIFloodScore). A resilient asset therefore only counts as flooded once
+        water rises above this raised floor. No-op when the floor level or a
+        flood grade is missing — the flood code then falls back to the surveyed
+        floor.
+        """
+        from models.floodrisk.depth_damage import (
+            bri_adjusted_floor_level, flood_rating_to_score)
+
+        construction = ca.get('Construction', {})
+        floor_level = construction.get('FloorLevelMeters')
+        if floor_level is None:
+            return
+        gbr = (ca.get('ProtectionMeasures', {})
+                 .get('RiskAssessment', {})
+                 .get('GoverningBodyRatings', {}))
+        score = flood_rating_to_score(self._flood_rating_envelope(gbr))
+        if score is None:
+            return
+        try:
+            construction['BRIAdjustedFloorLevelMeters'] = round(
+                bri_adjusted_floor_level(float(floor_level), score), 2)
+        except (TypeError, ValueError):
+            return
 
     def _type_mix_summary(self, records: List[Dict]) -> Dict[str, int]:
         out: Dict[str, int] = {}

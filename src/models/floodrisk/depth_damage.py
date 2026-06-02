@@ -22,19 +22,27 @@
 Flood depth-damage calculations.
 
 Public interface:
-    is_prs_flood          — event filter for PRS pricing
-    scalar_depth_damage   — piecewise-linear damage ratio (baseline, no BRI)
-    bri_stilt             — signed depth offset derived from BRI scores
-    bri_depth_damage      — damage ratio with floor level + BRI stilt applied
+    is_prs_flood              — event filter for PRS pricing
+    scalar_depth_damage       — piecewise-linear damage ratio (baseline, no BRI)
+    bri_stilt                 — signed depth offset derived from BRI scores
+    bri_depth_damage          — damage ratio with floor level + BRI stilt applied
+    bri_floor_uplift          — additive floor-level credit from BRI flood score
+    bri_adjusted_floor_level  — surveyed floor level + BRI uplift (metres)
+    flood_rating_to_score     — BRI letter grade → representative flood score
 """
 
 import math
+from typing import Optional
 
 from config.damage import (
     BRI_COMPOSITE_BETA_M,
     BRI_COMPOSITE_REFERENCE,
     BRI_FLOOD_ALPHA_M,
     BRI_FLOOD_REFERENCE,
+    BRI_FLOOR_RATING_SCORES,
+    BRI_FLOOR_UPLIFT_MAX_M,
+    BRI_FLOOR_UPLIFT_SCORE_HI,
+    BRI_FLOOR_UPLIFT_SCORE_LO,
     BRI_STILT_MAX_M,
     DAMAGE_POINTS,
     DD_POLY_COEFFS,
@@ -134,3 +142,78 @@ def bri_depth_damage(
         return 0.0
     raw = sum(c * effective ** (i + 1) for i, c in enumerate(DD_POLY_COEFFS))
     return min(1.0, max(0.0, raw))
+
+
+def bri_floor_uplift(bri_flood_score: float) -> float:
+    """Additive floor-level credit (metres) earned from the BRI flood score.
+
+    A continuous, monotone ramp anchored on the BRIFloodScore grade bands:
+        • score ≤ SCORE_LO  → 0 m        (NR / B boundary — no credit)
+        • score ≥ SCORE_HI  → MAX_M      (AA anchor — full credit)
+        • linear in between
+
+    The credit is always ≥ 0: a poor BRI score never lowers the threshold
+    below the surveyed floor. Below-reference vulnerability is expressed
+    through ``bri_stilt`` on the damage curve, not here.
+
+    Args:
+        bri_flood_score: BRIFloodScore in [0, 1].
+
+    Returns:
+        Floor-level uplift in metres, in [0, BRI_FLOOR_UPLIFT_MAX_M].
+    """
+    lo = BRI_FLOOR_UPLIFT_SCORE_LO
+    hi = BRI_FLOOR_UPLIFT_SCORE_HI
+    score = max(0.0, min(1.0, bri_flood_score))
+    if score <= lo:
+        return 0.0
+    if score >= hi:
+        return BRI_FLOOR_UPLIFT_MAX_M
+    fraction = (score - lo) / (hi - lo)
+    return fraction * BRI_FLOOR_UPLIFT_MAX_M
+
+
+def bri_adjusted_floor_level(floor_level_m: float, bri_flood_score: float) -> float:
+    """Effective flood-threshold floor level after the BRI resilience credit.
+
+    ``adjusted = floor_level_m + bri_floor_uplift(bri_flood_score)``
+
+    Consumers compare ``GroundLevelMeters + adjusted`` against the attenuated
+    water-surface elevation to decide whether an event floods the property.
+    A highly resilient (AA) building therefore only floods once the water
+    rises well above its nominal floor, suppressing PRS flood counts.
+
+    Args:
+        floor_level_m:   Surveyed FloorLevelMeters (height of lowest occupied
+                         floor above ground).
+        bri_flood_score: BRIFloodScore in [0, 1].
+
+    Returns:
+        Adjusted floor level in metres (always ≥ floor_level_m).
+    """
+    return floor_level_m + bri_floor_uplift(bri_flood_score)
+
+
+def flood_rating_to_score(rating: Optional[str]) -> Optional[float]:
+    """Representative BRIFloodScore for a BRI letter grade.
+
+    Used when an asset records its flood resilience as a letter grade rather
+    than a numeric score — e.g. commercial assets carry a Water/Flash grade
+    envelope, not the residential 0-1 BRIFloodScore. The returned score is the
+    mid-point of the grade's band, so the continuous uplift curve can still be
+    evaluated.
+
+    A trailing ``+`` modifier (e.g. ``"A+"``) is stripped before lookup. An
+    unknown, ``None`` or ``"N/A"`` rating returns ``None`` (no representative
+    score — the caller decides how to treat a non-applicable grade).
+
+    Args:
+        rating: BRI letter grade ("AA", "A", "B", "NR", optionally with "+").
+
+    Returns:
+        Representative flood score in [0, 1], or None if not mappable.
+    """
+    if not rating:
+        return None
+    key = rating.rstrip("+").strip()
+    return BRI_FLOOR_RATING_SCORES.get(key)

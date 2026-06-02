@@ -139,6 +139,57 @@ BRI_STILT_MAX_M: float = 1.00
 
 
 # ===========================================================================
+# BRI Adjusted Floor Level  (Building Resilience Index → effective floor uplift)
+# ===========================================================================
+#
+# A separate, coarser mechanism from the depth-damage stilt above. Where the
+# stilt nudges the damage curve, the floor uplift raises the *flood threshold*
+# used by the PRS event filter: a highly-resilient building (raised thresholds,
+# barriers, flood-proof construction) only counts as flooded once the water
+# rises well above its nominal floor.
+#
+#   adjusted_floor = FloorLevelMeters + uplift(BRIFloodScore)
+#   floods         ⟺  attenuated_wse_m > GroundLevelMeters + adjusted_floor
+#
+# The uplift is a continuous, monotone ramp in the BRI flood sub-score, anchored
+# on the grade thresholds:
+#   • score ≤ SCORE_LO (NR band)  → +0 m   (no resilience credit)
+#   • score ≥ SCORE_HI (AA band)  → +MAX_M (full resilience credit)
+#   • linear in between
+#
+# This is deliberately additive (a credit on top of the surveyed floor level),
+# never subtractive: a poor BRI score cannot lower the threshold below the
+# physical floor. The damage-curve stilt above remains the channel for
+# below-reference vulnerability.
+#
+# Recalibrate MAX_M against post-event resilience performance when loss data
+# is available; the anchors track the BRIFloodScore grade bands.
+
+# Maximum floor-level uplift (metres) awarded at / above the AA anchor score.
+BRI_FLOOR_UPLIFT_MAX_M: float = 3.00
+
+# BRI flood sub-score at / below which no uplift is awarded (NR / B boundary).
+BRI_FLOOR_UPLIFT_SCORE_LO: float = 0.38
+
+# BRI flood sub-score at / above which the full uplift is awarded (AA anchor).
+BRI_FLOOR_UPLIFT_SCORE_HI: float = 0.87
+
+# Representative BRIFloodScore for each BRI letter grade. Used only when an
+# asset carries a letter rating but no numeric flood score — e.g. commercial
+# assets, whose flood resilience is recorded as a Water/Flash grade envelope
+# rather than the residential 0-1 BRIFloodScore. Each value is the mid-point of
+# that grade's score band (see RATING_THRESHOLDS in the rand resilience module:
+# AA ≥ 0.87, A ≥ 0.62, B ≥ 0.38, NR < 0.38), so the continuous uplift curve is
+# evaluated at a sensible point for the grade.
+BRI_FLOOR_RATING_SCORES: Dict[str, float] = {
+    "AA": 0.935,   # mid-point of [0.87, 1.00]
+    "A":  0.745,   # mid-point of [0.62, 0.87]
+    "B":  0.500,   # mid-point of [0.38, 0.62]
+    "NR": 0.190,   # mid-point of [0.00, 0.38]
+}
+
+
+# ===========================================================================
 # Wind Vulnerability  (peak sustained wind → damage ratio, sigmoid form)
 # ===========================================================================
 #

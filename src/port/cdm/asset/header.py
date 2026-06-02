@@ -173,6 +173,17 @@ HEADER_SCHEMA = {
             "type": "decimal",
             "description": "Height of ground floor above ground level in metres"
         },
+        "BRIAdjustedFloorLevelMeters": {
+            "type": "decimal",
+            "description": (
+                "Effective flood-threshold floor level (m) = FloorLevelMeters "
+                "plus a Building Resilience Index credit derived from the BRI "
+                "flood sub-score. A highly resilient (AA) building floods only "
+                "once water rises well above its nominal floor. Used by the PRS "
+                "flood event filter; falls back to FloorLevelMeters + a credit "
+                "computed from BRIFloodScore when absent."
+            )
+        },
         "BasementPresent": {
             "type": "boolean",
             "description": "Indicates presence of basement"
