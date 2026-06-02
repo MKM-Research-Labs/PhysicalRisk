@@ -24,3 +24,6 @@ data/.port_admin
 # Governance metadata lives under docs/models/governance_data/ (version-controlled,
 # NOT in data/). Ignore only the transient e2e backup of mrc_meetings.json.
 docs/models/governance_data/.mrc_meetings.json.bak
+# The model audit log is a capped (last 10000) append-only runtime log,
+# regenerated on every pipeline run. Tracking it caused constant merge churn.
+docs/models/governance_data/model_audit_log.json
