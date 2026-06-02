@@ -54,18 +54,22 @@ def _gather_counts(output_dir):
         'propertyts_ct': _count_dir(output_dir / 'propertyts', 'PROP-*.json'),
         'propertytsd_ct': _count_dir(output_dir / 'propertytsd', 'PROP-*.json'),
         'propertytse_ct': _count_dir(output_dir / 'propertytse', 'PROP-*.json'),
+        'propertytsb_ct': _count_dir(output_dir / 'propertytsb', 'PROP-*.json'),
         'gcurve_count': _count_key(output_dir / 'gaugehc.json', 'hazard_curves'),
         'pcurve_count': _count_key(output_dir / 'propertyhc.json', 'property_hazard_curves'),
         'shd_count': _count_key(output_dir / 'propertyshd.json', 'property_hazard_curves'),
         'she_count': _count_key(output_dir / 'propertyshe.json', 'property_hazard_curves'),
+        'bri_count': _count_key(output_dir / 'propertybri.json', 'property_hazard_curves'),
         'com_count': _count_key(output_dir / 'commercial.json', 'commercial_assets'),
         'com_loan_ct': _count_key(output_dir / 'commercial_loan.json', 'commercial_loans'),
         'commercialts_ct': _count_dir(output_dir / 'commercialts', 'CPROP-*.json'),
         'commercialtsd_ct': _count_dir(output_dir / 'commercialtsd', 'CPROP-*.json'),
         'commercialtse_ct': _count_dir(output_dir / 'commercialtse', 'CPROP-*.json'),
+        'commercialtsb_ct': _count_dir(output_dir / 'commercialtsb', 'CPROP-*.json'),
         'com_hc_ct': _count_key(output_dir / 'commercialhc.json', 'property_hazard_curves'),
         'com_shd_ct': _count_key(output_dir / 'commercialshd.json', 'property_hazard_curves'),
         'com_she_ct': _count_key(output_dir / 'commercialshe.json', 'property_hazard_curves'),
+        'com_bri_ct': _count_key(output_dir / 'commercialbri.json', 'property_hazard_curves'),
     }
 
     # Storm sequences + stress storms (split-directory or legacy fallbacks).
