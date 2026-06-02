@@ -40,8 +40,11 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
         residential, ``CommercialAsset`` for commercial).
 
         Args:
-            mode: "normal" (default), "shd" (zero elevation diff), or
-                  "she" (zero distance).
+            mode: "normal" (default), "shd" (zero elevation diff),
+                  "she" (zero distance), or "bri" (BRI-adjusted floor level —
+                  raises the flood threshold by the Building Resilience Index
+                  floor credit; distance and elevation stay at their real
+                  values).
         """
         cfg = self.ASSET_CONFIG
         ph = prop.get(cfg.root_section_key, {})
@@ -58,7 +61,17 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
         prop_lat = loc.get('LatitudeDegrees', 0)
         prop_lon = loc.get('LongitudeDegrees', 0)
         prop_elevation = risk.get('GroundLevelMeters', 0)
-        floor_level = construction.get('FloorLevelMeters', 0)
+        # BRI mode raises the flood threshold to the BRI-adjusted floor level
+        # (surveyed floor + resilience credit). Falls back to the surveyed
+        # floor when the adjusted value is absent, so the mode is a safe no-op
+        # for assets lacking the field. Distance/elevation are untouched —
+        # BRI only moves the floor side of the flood test.
+        if mode == "bri":
+            floor_level = construction.get(
+                'BRIAdjustedFloorLevelMeters',
+                construction.get('FloorLevelMeters', 0))
+        else:
+            floor_level = construction.get('FloorLevelMeters', 0)
         terrain_type = loc.get('TerrainType',
                                attrs.get('TerrainType', 'urban'))
 

@@ -30,6 +30,10 @@ def register_parser(subparsers):
                     help="Synthetic distance hazard curves for commercial")
     sp.add_argument("--commercialshe", action="store_true",
                     help="Synthetic elevation hazard curves for commercial")
+    sp.add_argument("--commercialtsb", action="store_true",
+                    help="BRI-adjusted floor timeseries for commercial (commercialtsb/)")
+    sp.add_argument("--commercialbri", action="store_true",
+                    help="BRI-adjusted floor hazard curves for commercial (commercialbri.json)")
     sp.add_argument("--gaugets", "--gt", action="store_true")
     sp.add_argument("--gaugehd", "--hd", action="store_true")
     sp.add_argument("--hazard", "--hz", action="store_true")
@@ -43,6 +47,10 @@ def register_parser(subparsers):
                     help="Synthetic distance hazard curves (elevation diff = 0)")
     sp.add_argument("--propertyshe", action="store_true",
                     help="Synthetic elevation hazard curves (distance = 0)")
+    sp.add_argument("--propertytsb", action="store_true",
+                    help="BRI-adjusted floor timeseries (floor = BRIAdjustedFloorLevelMeters)")
+    sp.add_argument("--propertybri", action="store_true",
+                    help="BRI-adjusted floor hazard curves (propertybri.json)")
     sp.add_argument("--counterparties", "--ctpy", action="store_true")
     sp.add_argument("--blotter", "--bl", action="store_true")
     sp.add_argument("--stressm", action="store_true",

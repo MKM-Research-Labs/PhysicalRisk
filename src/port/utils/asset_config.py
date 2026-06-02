@@ -20,9 +20,11 @@ input JSON shape and the output filenames:
   ts_dirs.normal        propertyts                 commercialts
   ts_dirs.shd           propertytsd                commercialtsd
   ts_dirs.she           propertytse                commercialtse
+  ts_dirs.bri           propertytsb                commercialtsb
   hc_files.normal       propertyhc.json            commercialhc.json
   hc_files.shd          propertyshd.json           commercialshd.json
   hc_files.she          propertyshe.json           commercialshe.json
+  hc_files.bri          propertybri.json           commercialbri.json
   type_field            PropertyResi               CommercialType
   type_default          Detached                   Office
 
@@ -73,11 +75,13 @@ RESIDENTIAL_CONFIG = AssetTypeConfig(
         "normal": "propertyts",
         "shd": "propertytsd",
         "she": "propertytse",
+        "bri": "propertytsb",
     },
     hc_files={
         "normal": "propertyhc.json",
         "shd": "propertyshd.json",
         "she": "propertyshe.json",
+        "bri": "propertybri.json",
     },
     label="Property",
 )
@@ -95,11 +99,13 @@ COMMERCIAL_CONFIG = AssetTypeConfig(
         "normal": "commercialts",
         "shd": "commercialtsd",
         "she": "commercialtse",
+        "bri": "commercialtsb",
     },
     hc_files={
         "normal": "commercialhc.json",
         "shd": "commercialshd.json",
         "she": "commercialshe.json",
+        "bri": "commercialbri.json",
     },
     label="Commercial",
 )

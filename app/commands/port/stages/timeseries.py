@@ -1,7 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 # (see ../auth.py for full license text)
 
-"""Time-series stages: property TS (7, 7a, 7b) + commercial TS (7c, 7d, 7e)."""
+"""Time-series stages: property TS (7, 7a, 7b, 7f) + commercial TS
+(7c, 7d, 7e, 7g). The ``b`` suffix (7f/7g) is the BRI-adjusted-floor run."""
 
 import time
 
@@ -104,6 +105,29 @@ def run_propertytse(ctx: StageContext):
     print()
 
 
+def run_propertytsb(ctx: StageContext):
+    args = ctx.args
+    if not (ctx.run_all or args.propertytsb):
+        return
+    print("7f. Generating BRI-Adjusted Floor Timeseries (propertytsb)...")
+    inputs = _PROP_INPUTS(ctx)
+    pre = ctx.hash_inputs(inputs)
+    t_step = time.time()
+    r = ctx.propertyts.PropertyTimeSeriesGenerator(ctx.output_dir, verbose=args.verbose, mode="bri").generate()
+    elapsed = time.time() - t_step
+    _summary_line(r, "properties")
+    ctx.record(
+        step_name="propertytsb",
+        generator="port.src.property.propertyts.PropertyTimeSeriesGenerator(mode=bri)",
+        inputs=inputs,
+        outputs={"propertytsb/": ctx.input_dir / "propertytsb"},
+        parameters={"mode": "bri"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
+    print()
+
+
 def run_commercialts(ctx: StageContext):
     args = ctx.args
     if not (args.commercialts or (ctx.run_all and ctx.commercial_exists)):
@@ -175,10 +199,35 @@ def run_commercialtse(ctx: StageContext):
     print()
 
 
+def run_commercialtsb(ctx: StageContext):
+    args = ctx.args
+    if not (args.commercialtsb or (ctx.run_all and ctx.commercial_exists)):
+        return
+    print("7g. Generating BRI-Adjusted Floor Timeseries (commercialtsb)...")
+    inputs = _COMM_INPUTS(ctx)
+    pre = ctx.hash_inputs(inputs)
+    t_step = time.time()
+    r = ctx.commercial_gen.CommercialTimeSeriesGenerator(ctx.output_dir, verbose=args.verbose, mode="bri").generate()
+    elapsed = time.time() - t_step
+    _summary_line(r, "commercial assets")
+    ctx.record(
+        step_name="commercialtsb",
+        generator="port.src.commercial.CommercialTimeSeriesGenerator(mode=bri)",
+        inputs=inputs,
+        outputs={"commercialtsb/": ctx.input_dir / "commercialtsb"},
+        parameters={"mode": "bri"},
+        elapsed_seconds=elapsed,
+        input_hashes=pre,
+    )
+    print()
+
+
 def run_all(ctx: StageContext):
     run_propertyts(ctx)
     run_propertytsd(ctx)
     run_propertytse(ctx)
+    run_propertytsb(ctx)
     run_commercialts(ctx)
     run_commercialtsd(ctx)
     run_commercialtse(ctx)
+    run_commercialtsb(ctx)
