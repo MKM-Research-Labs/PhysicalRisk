@@ -28,6 +28,20 @@ import random
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
+# Whether this catchment publishes certified BRI letter grades. Thames has no
+# certified BRI letter-rating regime, so generated properties report "NR" (No
+# Rating) for every letter field. Read by the shared builder, which forwards it
+# to apply_bri_rating.
+PUBLISH_BRI_LETTER_RATINGS: bool = False
+
+# Whether this catchment computes numeric BRI resilience scores. BRI is not a
+# Thames concept, so the five BRIScore fields are stamped 0.0 and no BRI-driven
+# floor uplift is applied (the flood filter falls back to the raw floor level).
+# Halong, which owns a certified BRI regime, sets this True. Read inside
+# apply_flood_resilience_score below.
+BRI_SCORES_ENABLED: bool = False
+
+
 # ============================================================================
 # 1. BRI letter-rating constants
 # ============================================================================
@@ -981,6 +995,18 @@ def apply_flood_resilience_score(
     pm = property_record.setdefault("ProtectionMeasures", {})
     ra = pm.setdefault("RiskAssessment", {})
     gbr = ra.setdefault("GoverningBodyRatings", {})
+
+    if not BRI_SCORES_ENABLED:
+        # BRI is not a Thames concept: stamp every numeric BRI score 0.0 and
+        # apply no BRI-driven floor uplift. The PRS flood filter falls back to
+        # the raw FloorLevelMeters when BRIAdjustedFloorLevelMeters is absent.
+        for field in ("BRIFloodScore", "BRIWindScore", "BRIFireScore",
+                      "BRISeismicScore", "BRIScore"):
+            gbr[field] = 0.0
+        return {
+            **result,
+            "damage_modifier": modifier,
+        }
 
     # Property-keyed RNG so jitter is deterministic for a given property ID.
     property_id = _get(property_record, ["PropertyHeader", "Header", "PropertyID"], "X")

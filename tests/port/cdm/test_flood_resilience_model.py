@@ -27,6 +27,7 @@ from copy import deepcopy
 
 import pytest
 
+import port.rand.thames.property.property_random.resilience as thames_resilience
 from port.rand.thames.property.property_random.resilience import (
     DEFAULT_MISSING_COMPLIANCE,
     DEFAULT_REGIME,
@@ -333,6 +334,14 @@ class TestComputeFloodResilienceScore:
 # ---------------------------------------------------------------------------
 
 class TestApplyFloodResilienceScore:
+    """Exercises the score write-back machinery. BRI is disabled for Thames in
+    production (``BRI_SCORES_ENABLED = False`` → all scores zeroed; see
+    ``TestBriScoresDisabled``), so these tests flip the flag on to verify the
+    scoring/jitter/mean logic that other catchments (e.g. Halong) rely on."""
+
+    @pytest.fixture(autouse=True)
+    def _enable_bri_scores(self, monkeypatch):
+        monkeypatch.setattr(thames_resilience, "BRI_SCORES_ENABLED", True)
 
     def test_writes_flood_and_three_jittered_scores(self):
         rec = _record(floor_meters=5.0, resilience_level="Meets minimum")
@@ -401,3 +410,37 @@ class TestApplyFloodResilienceScore:
         assert "score_raw" in result
         assert "score_final" in result
         assert "compliance" in result
+
+
+# ---------------------------------------------------------------------------
+# BRI disabled for Thames — scores stamped 0.0, no floor uplift
+# ---------------------------------------------------------------------------
+
+class TestBriScoresDisabled:
+    """Thames ships with ``BRI_SCORES_ENABLED = False`` because BRI is not a
+    Thames concept. In that mode apply_flood_resilience_score must stamp every
+    numeric BRI score 0.0 and apply no BRI-adjusted floor uplift, while still
+    returning the underlying model output for inspection."""
+
+    def test_flag_is_false_for_thames(self):
+        assert thames_resilience.BRI_SCORES_ENABLED is False
+
+    def test_all_five_scores_zeroed(self):
+        rec = _record(floor_meters=10.0, resilience_level="Verified")
+        apply_flood_resilience_score(rec)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        for field in ("BRIFloodScore", "BRIWindScore", "BRIFireScore",
+                      "BRISeismicScore", "BRIScore"):
+            assert gbr[field] == 0.0, f"{field} should be 0.0; got {gbr[field]!r}"
+
+    def test_no_floor_uplift_written(self):
+        rec = _record(floor_meters=5.0, resilience_level="Verified")
+        apply_flood_resilience_score(rec)
+        construction = rec["PropertyHeader"]["Construction"]
+        assert "BRIAdjustedFloorLevelMeters" not in construction
+
+    def test_return_value_still_carries_model_output(self):
+        rec = _record()
+        result = apply_flood_resilience_score(rec)
+        assert "damage_modifier" in result
+        assert "score_final" in result

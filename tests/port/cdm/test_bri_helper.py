@@ -175,6 +175,51 @@ class TestApplyBriRatingKwargs:
 
 
 # ---------------------------------------------------------------------------
+# publish_letter_ratings gate (catchments without a certified BRI regime)
+# ---------------------------------------------------------------------------
+
+class TestPublishLetterRatingsGate:
+    """When a catchment has no certified BRI letter-rating regime (e.g. Thames,
+    PUBLISH_BRI_LETTER_RATINGS=False) every letter grade is stamped 'NR' while
+    the numeric score fields (written by a separate helper) stay untouched."""
+
+    _LETTER_FIELDS = ("BRIRating", "BRIWindRating", "BRIFireRating",
+                      "BRISeismicRating", "BRIFloodRating")
+
+    def test_all_letter_ratings_are_NR_when_not_publishing(self):
+        # level_high=True would normally yield strong (AA/A) grades.
+        rec = _record(level_high=True)
+        apply_bri_rating(rec, agent="Bureau Veritas",
+                         publish_letter_ratings=False)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        for field in self._LETTER_FIELDS:
+            assert gbr[field] == "NR", f"{field} should be NR; got {gbr[field]!r}"
+
+    def test_metadata_still_written_when_not_publishing(self):
+        rec = _record(level_high=True)
+        apply_bri_rating(rec, agent="Bureau Veritas",
+                         publish_letter_ratings=False)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        assert gbr["BRIRatingVersion"] == "BRI v1.6"
+        assert gbr["BRIDate"] == date.today().isoformat()
+
+    def test_water_flash_subratings_not_written_when_not_publishing(self):
+        rec = _record(level_high=True)
+        apply_bri_rating(rec, publish_letter_ratings=False)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        assert "BRIWaterRating" not in gbr
+        assert "BRIFlashRating" not in gbr
+
+    def test_default_publishes_real_grades(self):
+        """Sanity: the default (publish=True) path still emits real grades."""
+        rec = _record(level_high=True)
+        apply_bri_rating(rec)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        # Strong resilience should not collapse every grade to NR.
+        assert any(gbr[f] != "NR" for f in self._LETTER_FIELDS)
+
+
+# ---------------------------------------------------------------------------
 # Return value mirrors the writes (and includes the unwritten scores)
 # ---------------------------------------------------------------------------
 

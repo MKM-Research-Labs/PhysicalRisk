@@ -219,7 +219,13 @@ class BuilderMixin:
         resilience = generate_resilience(property_data)
         pm = property_data.setdefault('ProtectionMeasures', {})
         pm['ResilienceMeasures'] = resilience
-        apply_bri_rating(property_data, agent='Bureau Veritas')
+        # Per-catchment policy: catchments without a certified BRI letter-rating
+        # regime (e.g. Thames) report "NR" for every letter grade while still
+        # computing the numeric resilience scores below.
+        publish_ratings = getattr(
+            resilience_module, 'PUBLISH_BRI_LETTER_RATINGS', True)
+        apply_bri_rating(property_data, agent='Bureau Veritas',
+                         publish_letter_ratings=publish_ratings)
         apply_flood_resilience_score(property_data)
 
     def _build_section(self, section_schema: Dict, index: int, metadata: Dict) -> Dict:
