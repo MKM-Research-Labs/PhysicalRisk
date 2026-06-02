@@ -44,8 +44,8 @@ from tests.e2e._helpers import (
 # Guard mutable data files against E2E mutation
 # ---------------------------------------------------------------------------
 
-_MRC_PATH = ROOT / "data" / "mrc_meetings.json"
-_MRC_BACKUP = ROOT / "data" / ".mrc_meetings.json.bak"
+_MRC_PATH = ROOT / "docs" / "models" / "governance_data" / "mrc_meetings.json"
+_MRC_BACKUP = ROOT / "docs" / "models" / "governance_data" / ".mrc_meetings.json.bak"
 
 # Shared across conftest and test_td_control — Playwright tests stub
 # window.prompt() with this value to exercise the admin password gate.
@@ -103,6 +103,33 @@ def _isolated_catchment_dir(tmp_path_factory):
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _isolated_governance_dir(tmp_path_factory):
+    """Point the Flask subprocess at a tmp copy of docs/models/governance_data/.
+
+    Governance metadata now lives in the version-controlled tree
+    (``docs/models/governance_data/``), not under ``data/``. The MRC and
+    document-upload e2e tests POST real files through the live endpoints,
+    which ``os.makedirs`` + ``save`` into the governance tree. Without
+    isolation those uploads land in ``mrc_uploads/`` and ``governance_docs/``
+    inside the git working tree and pollute the repo (and would survive a
+    SIGKILL).
+
+    The fix mirrors ``_isolated_catchment_dir``: copy the real governance dir
+    into ``tmp_path_factory`` once and set ``MKM_GOVERNANCE_DATA_OVERRIDE`` on
+    the subprocess env so ``config.get_governance_data_dir()`` resolves to the
+    copy. Every governance write (mrc_meetings.json, uploads, audit log, etc.)
+    lands in the tmp copy; the real tree is never touched, even on SIGKILL.
+    Reads continue to work because the tmp dir is a full copy of the real one.
+    """
+    real_gov = ROOT / "docs" / "models" / "governance_data"
+    tmp_root = tmp_path_factory.mktemp("e2e_governance")
+    tmp_gov = tmp_root / "governance_data"
+    shutil.copytree(real_gov, tmp_gov)
+    yield tmp_gov
+    # pytest auto-cleans tmp_path_factory dirs; no restore logic needed.
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _e2e_admin_password(tmp_path_factory):
     """Write a known admin credential to a tmp file for E2E tests.
 
@@ -132,7 +159,7 @@ def _e2e_admin_password(tmp_path_factory):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
-def server_port(_isolated_catchment_dir, _e2e_admin_password):
+def server_port(_isolated_catchment_dir, _isolated_governance_dir, _e2e_admin_password):
     """Start Flask server on a free port; yield the port; kill on teardown.
 
     Depends on ``_isolated_catchment_dir`` so the tmp copy of
@@ -159,6 +186,9 @@ def server_port(_isolated_catchment_dir, _e2e_admin_password):
         # MKM_CATCHMENT_INPUT_OVERRIDE points at the tmp dir copied above.
         "MKM_CATCHMENT": "halong",
         "MKM_CATCHMENT_INPUT_OVERRIDE": str(_isolated_catchment_dir),
+        # Redirect governance reads/writes to a tmp copy so MRC + document
+        # uploads never pollute the version-controlled governance tree.
+        "MKM_GOVERNANCE_DATA_OVERRIDE": str(_isolated_governance_dir),
         "MKM_ADMIN_FILE_PATH": str(_e2e_admin_password),
     })
 

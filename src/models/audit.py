@@ -85,15 +85,21 @@ MODEL_ID_MAP = {
 
 
 def _get_audit_path():
-    """Get audit log file path."""
+    """Get audit log file path.
+
+    The governance audit log is version-controlled repo content under
+    docs/models/governance_data/, not shared data/.
+    """
     # Try config first, fall back to relative path
     try:
         from config import config
-        return os.path.join(config.DATA_DIR, "model_audit_log.json")
+        return os.path.join(
+            str(config.get_governance_data_dir()), "model_audit_log.json"
+        )
     except (ImportError, AttributeError):
         return os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-            "data", "model_audit_log.json"
+            "docs", "models", "governance_data", "model_audit_log.json"
         )
 
 

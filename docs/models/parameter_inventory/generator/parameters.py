@@ -583,4 +583,30 @@ def get_parameter_sections():
                 ]),
             ],
         },
+
+        # ──────────────────────────────────────────────
+        # MKM-BRF-001: BRI-ADJUSTED FLOOR LEVEL MODEL
+        # ──────────────────────────────────────────────
+        {
+            'title': 'BRI-Adjusted Floor Level Model',
+            'model_id': 'MKM-BRF-001',
+            'source': 'models/floodrisk/depth_damage.py',
+            'subsections': [
+                ('Floor-Uplift Ramp (additive, continuous in BRIFloodScore)', [
+                    ('BRI\\_FLOOR\\_UPLIFT\\_MAX\\_M',      '3.00', 'Maximum floor-level uplift (m) at/above the AA anchor score',     'damage.py:BRI\\_FLOOR\\_UPLIFT\\_MAX\\_M'),
+                    ('BRI\\_FLOOR\\_UPLIFT\\_SCORE\\_LO',   '0.38', 'Score at/below which no uplift is awarded (NR / B boundary)',     'damage.py:BRI\\_FLOOR\\_UPLIFT\\_SCORE\\_LO'),
+                    ('BRI\\_FLOOR\\_UPLIFT\\_SCORE\\_HI',   '0.87', 'Score at/above which the full uplift is awarded (AA anchor)',     'damage.py:BRI\\_FLOOR\\_UPLIFT\\_SCORE\\_HI'),
+                ]),
+                ('Letter-Grade Fallback Scores (band mid-points)', [
+                    ('AA', '0.935', 'Mid-point of [0.87, 1.00]; used when no numeric flood score', 'damage.py:BRI\\_FLOOR\\_RATING\\_SCORES'),
+                    ('A',  '0.745', 'Mid-point of [0.62, 0.87]',                                    'damage.py:BRI\\_FLOOR\\_RATING\\_SCORES'),
+                    ('B',  '0.500', 'Mid-point of [0.38, 0.62]',                                    'damage.py:BRI\\_FLOOR\\_RATING\\_SCORES'),
+                    ('NR', '0.190', 'Mid-point of [0.00, 0.38]',                                    'damage.py:BRI\\_FLOOR\\_RATING\\_SCORES'),
+                ]),
+                ('Effective-Floor Formula', [
+                    ('adjusted\\_floor', 'FloorLevelMeters + uplift(s)', 'Effective flood threshold; floods iff attenuated WSE > GroundLevelMeters + adjusted\\_floor', 'depth\\_damage.py:bri\\_adjusted\\_floor\\_level'),
+                    ('uplift(s)',        'linear on [LO, HI]',           'uplift = 0 for s<=LO, = MAX\\_M for s>=HI, linear between; always >= 0',                      'depth\\_damage.py:bri\\_floor\\_uplift'),
+                ]),
+            ],
+        },
     ]

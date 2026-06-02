@@ -13,18 +13,14 @@ coverage.json
 # Port-generated data — receivers run `python app.py port` locally
 data/input/
 data/output/
-data/governance_docs/
 data/results/
 data/data_lineage.json
-data/model_audit_log.json
-data/mrc_meetings.json
 data/.port_admin
 
-# Keep catchment configs and metadata schemas tracked
+# Keep catchment configs and lineage registry tracked
 !data/catch/
-!data/bcbs239_assessment.json
-!data/bibliography.json
 !data/field_lineage_registry.json
-!data/governance_documents.json
-!data/model_inventory.json
-!data/raci_matrix.json
+
+# Governance metadata lives under docs/models/governance_data/ (version-controlled,
+# NOT in data/). Ignore only the transient e2e backup of mrc_meetings.json.
+docs/models/governance_data/.mrc_meetings.json.bak

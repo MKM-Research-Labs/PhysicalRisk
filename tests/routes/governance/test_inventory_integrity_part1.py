@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 """
-Structural integrity tests for the real data/model_inventory.json — part 1.
+Structural integrity tests for the real model_inventory.json — part 1.
 
 Covers: TestInventoryFileExists, TestModelIDs, TestRequiredDictFields,
 TestTestCoverageStructure, TestOverallRiskRatingStructure.
@@ -31,7 +31,10 @@ import pathlib
 import pytest
 
 
-INVENTORY_PATH = pathlib.Path(__file__).parents[3] / "data" / "model_inventory.json"
+INVENTORY_PATH = (
+    pathlib.Path(__file__).parents[3]
+    / "docs" / "models" / "governance_data" / "model_inventory.json"
+)
 
 REQUIRED_DICT_FIELDS = ["test_coverage", "overall_risk_rating"]
 TEST_COVERAGE_BOOL_FIELDS = ["unit_tests", "integration_tests", "benchmark_tests"]

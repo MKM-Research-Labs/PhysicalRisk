@@ -32,8 +32,8 @@ from datetime import datetime
 from flask import jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
-from . import governance_bp
-from ._constants import ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_SIZE, MRC_UPLOADS_DIR
+from . import _constants, governance_bp
+from ._constants import ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_SIZE
 from ._helpers import _load_meetings, _save_meetings
 
 
@@ -173,7 +173,7 @@ def upload_meeting_document(meeting_id):
     if size > MAX_UPLOAD_SIZE:
         return jsonify({"status": "error", "message": "File exceeds 50 MB limit"}), 413
 
-    upload_dir = os.path.join(MRC_UPLOADS_DIR, meeting_id)
+    upload_dir = os.path.join(_constants.MRC_UPLOADS_DIR, meeting_id)
     os.makedirs(upload_dir, exist_ok=True)
 
     filename = secure_filename(f.filename)
@@ -202,7 +202,7 @@ def upload_meeting_document(meeting_id):
 def get_meeting_document(meeting_id, filename):
     """Serve an uploaded meeting document."""
     safe_name = secure_filename(filename)
-    file_path = os.path.join(MRC_UPLOADS_DIR, meeting_id, safe_name)
+    file_path = os.path.join(_constants.MRC_UPLOADS_DIR, meeting_id, safe_name)
     if not os.path.isfile(file_path):
         return jsonify({"status": "error", "message": "Document not found"}), 404
     return send_file(file_path)
