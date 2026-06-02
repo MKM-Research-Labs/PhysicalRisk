@@ -504,12 +504,32 @@ def _cleanup_worktree_data(project_root: str) -> None:
         for wt_path in worktree_paths:
             if os.path.realpath(wt_path) == os.path.realpath(project_root):
                 continue  # skip main repo
+
+            # CRITICAL: a worktree's `data/` may be a symlink to shared
+            # storage (e.g. an external SSD that every checkout points at).
+            # Following it would make the rmtree below delete the REAL shared
+            # catchment data, not a disposable per-worktree copy.  Skip any
+            # worktree whose data dir is a symlink, or whose resolved
+            # data/input path escapes the worktree directory.
+            wt_data = os.path.join(wt_path, 'data')
+            if os.path.islink(wt_data):
+                print(f'  Skipping {wt_path}: data/ is a symlink '
+                      f'(would follow to shared storage)')
+                continue
             data_input = os.path.join(wt_path, 'data', 'input')
             if not os.path.isdir(data_input):
+                continue
+            wt_real = os.path.realpath(wt_path)
+            if not os.path.realpath(data_input).startswith(wt_real + os.sep):
+                print(f'  Skipping {data_input}: resolves outside worktree '
+                      f'({os.path.realpath(data_input)})')
                 continue
             for catchment in os.listdir(data_input):
                 catchment_dir = os.path.join(data_input, catchment)
                 if not os.path.isdir(catchment_dir):
+                    continue
+                # Belt-and-braces: never delete through a per-catchment symlink.
+                if os.path.islink(catchment_dir):
                     continue
                 try:
                     # du -s equivalent using os.walk
