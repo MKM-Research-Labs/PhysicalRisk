@@ -273,8 +273,18 @@ class TestProcessPropertySummary:
 
 class TestWindUnion:
 
+    @staticmethod
+    def _assert_inclusion_exclusion(perils):
+        """union = flood + wind − joint, and joint ≤ min(flood, wind)."""
+        f = perils["flood_only"]["count"]
+        w = perils["wind_only"]["count"]
+        u = perils["flood_or_wind"]["count"]
+        j = perils["flood_and_wind"]["count"]
+        assert u == f + w - j
+        assert j <= min(f, w)
+
     def test_no_typhoon_data_is_flood_only_fallback(self, basic_output_dir):
-        """Without typhoon/damage, the result carries no wind/union keys and the
+        """Without typhoon/damage, the result carries no peril block and the
         headline severe spread is the flood-only spread (byte-identical)."""
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-nowind", n_floods=3)
@@ -282,16 +292,16 @@ class TestWindUnion:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
             pts_dir / "PROP-nowind.json", gauge_hazard, None, num_storms=100)
-        assert "union_count" not in result
-        assert "wind_count" not in result
-        assert "union" not in result["term_structure"]
+        assert "prs_perils" not in result
+        assert "perils" not in result["term_structure"]
         assert result["term_structure"]["severe"]["prs_spread_bps"][0] == round(
             (3 / 100) * 10000, 2)
 
-    def test_union_dedups_overlap_and_adds_wind_only(self, basic_output_dir):
+    def test_four_peril_outcomes_overlap_and_wind_only(self, basic_output_dir):
         """Property floods in S0,S1 (EVT-0,EVT-1). Wind fires on EVT-0 (overlap)
         and EVT-2 (a wind-only sequence not in flood_events); EVT-1 wind is
-        below threshold. Union = {EVT-0,EVT-1,EVT-2} = 3, no double-count."""
+        below threshold. flood=2, wind=2, union={EVT-0,EVT-1,EVT-2}=3, joint
+        (EVT-0)=1."""
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-u", n_floods=2)  # storms S0, S1
         _write_wind_setup(
@@ -310,19 +320,22 @@ class TestWindUnion:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
             pts_dir / "PROP-u.json", gauge_hazard, None, num_storms=100)
-        assert result["flood_count"] == 2
-        assert result["wind_count"] == 2          # EVT-0, EVT-2
-        assert result["union_count"] == 3         # EVT-0, EVT-1, EVT-2
-        # Flood-only severe spread unchanged; union exposed separately.
+        perils = result["prs_perils"]
+        assert perils["flood_only"]["count"] == 2
+        assert perils["wind_only"]["count"] == 2          # EVT-0, EVT-2
+        assert perils["flood_or_wind"]["count"] == 3      # EVT-0, EVT-1, EVT-2
+        assert perils["flood_and_wind"]["count"] == 1     # EVT-0
+        assert perils["flood_and_wind"]["spread_bps"] == round((1 / 100) * 10000, 2)
+        self._assert_inclusion_exclusion(perils)
+        # Flood spine unchanged; peril spreads ride alongside in term_structure.
         assert result["term_structure"]["severe"]["prs_spread_bps"][0] == round(
             (2 / 100) * 10000, 2)
-        assert result["term_structure"]["union"]["prs_spread_bps"][0] == round(
-            (3 / 100) * 10000, 2)
-        assert result["prs_union_spread_bps"] == round((3 / 100) * 10000, 2)
+        assert result["term_structure"]["perils"]["flood_or_wind"][
+            "prs_spread_bps"][0] == round((3 / 100) * 10000, 2)
 
     def test_wind_below_threshold_never_triggers(self, basic_output_dir):
         """Typhoon present but every paired wind is below threshold → union ==
-        flood, wind_count == 0 (but keys present since typhoon data exists)."""
+        flood, wind == 0, joint == 0 (block present since typhoon data exists)."""
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-calm", n_floods=2)
         _write_wind_setup(
@@ -339,13 +352,16 @@ class TestWindUnion:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
             pts_dir / "PROP-calm.json", gauge_hazard, None, num_storms=100)
-        assert result["wind_count"] == 0
-        assert result["union_count"] == 2
-        assert result["prs_union_spread_bps"] == round((2 / 100) * 10000, 2)
+        perils = result["prs_perils"]
+        assert perils["wind_only"]["count"] == 0
+        assert perils["flood_or_wind"]["count"] == 2
+        assert perils["flood_and_wind"]["count"] == 0
+        assert perils["flood_or_wind"]["spread_bps"] == round((2 / 100) * 10000, 2)
+        self._assert_inclusion_exclusion(perils)
 
     def test_wind_only_property_no_floods(self, basic_output_dir):
         """Property never floods but is wind-damaged in a paired typhoon →
-        union counts the wind event even with flood_count == 0."""
+        union counts the wind event even with flood_count == 0; joint == 0."""
         output_dir, pts_dir = basic_output_dir
         write_property_ts(pts_dir, "PROP-windonly", n_floods=0)
         _write_wind_setup(
@@ -360,9 +376,38 @@ class TestWindUnion:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
             pts_dir / "PROP-windonly.json", gauge_hazard, None, num_storms=100)
-        assert result["flood_count"] == 0
-        assert result["wind_count"] == 1
-        assert result["union_count"] == 1
+        perils = result["prs_perils"]
+        assert perils["flood_only"]["count"] == 0
+        assert perils["wind_only"]["count"] == 1
+        assert perils["flood_or_wind"]["count"] == 1
+        assert perils["flood_and_wind"]["count"] == 0
+        self._assert_inclusion_exclusion(perils)
+
+    def test_full_overlap_joint_equals_both(self, basic_output_dir):
+        """Both floods are on storms whose paired typhoon also fires wind →
+        flood=2, wind=2, joint=2, union=2 (every event triggers both)."""
+        output_dir, pts_dir = basic_output_dir
+        write_property_ts(pts_dir, "PROP-both", n_floods=2)  # storms S0, S1
+        _write_wind_setup(
+            output_dir,
+            seq_to_event={"S0": "EVT-0", "S1": "EVT-1"},
+            damages_by_event={
+                "EVT-0": [{"property_id": "PROP-both",
+                           "peak_sustained_ms": 70.0, "threshold_ms": 30.0}],
+                "EVT-1": [{"property_id": "PROP-both",
+                           "peak_sustained_ms": 65.0, "threshold_ms": 30.0}],
+            },
+        )
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        result = gen._process_property(
+            pts_dir / "PROP-both.json", gauge_hazard, None, num_storms=100)
+        perils = result["prs_perils"]
+        assert perils["flood_only"]["count"] == 2
+        assert perils["wind_only"]["count"] == 2
+        assert perils["flood_and_wind"]["count"] == 2
+        assert perils["flood_or_wind"]["count"] == 2
+        self._assert_inclusion_exclusion(perils)
 
     def test_other_property_wind_not_attributed(self, basic_output_dir):
         """A damage roll naming a different property must not trigger wind for
@@ -381,5 +426,8 @@ class TestWindUnion:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
             pts_dir / "PROP-self.json", gauge_hazard, None, num_storms=100)
-        assert result["wind_count"] == 0
-        assert result["union_count"] == 1   # the flood on S0 still counts
+        perils = result["prs_perils"]
+        assert perils["wind_only"]["count"] == 0
+        assert perils["flood_or_wind"]["count"] == 1   # the flood on S0 still counts
+        assert perils["flood_and_wind"]["count"] == 0
+        self._assert_inclusion_exclusion(perils)
