@@ -160,6 +160,28 @@ def main():
         print(f"  Property Spread:     {ps:>8.1f} bp")
         print(f"  Total Basis:         {gs - ps:>+8.1f} bp")
 
+        # Peril outcomes fan (Stage 6/7) — only present for catchments whose
+        # typhoon stage has run. The flood spine fans into the four PRS peril
+        # outcomes at the property/BRI node (inclusion-exclusion holds:
+        # union = flood + wind - joint).
+        po = sd.get("peril_outcomes") or pc.get("prs_perils")
+        if po:
+            def _po(key):
+                o = po.get(key, {}) or {}
+                return o.get("count", 0), o.get("spread_bps", 0.0)
+
+            f_c, f_s = _po("flood_only")
+            w_c, w_s = _po("wind_only")
+            u_c, u_s = _po("flood_or_wind")
+            j_c, j_s = _po("flood_and_wind")
+            print(f"\n--- Peril Outcomes (property node, count / 5yr spread) ---")
+            print(f"  Flood only:          {f_c:>5}  {f_s:>8.1f} bp")
+            print(f"  Wind only:           {w_c:>5}  {w_s:>8.1f} bp")
+            print(f"  Flood OR Wind:       {u_c:>5}  {u_s:>8.1f} bp  (headline PRS)")
+            print(f"  Flood AND Wind:      {j_c:>5}  {j_s:>8.1f} bp")
+            print(f"  Inclusion-exclusion: union {u_c} == flood {f_c} + wind {w_c} - joint {j_c}"
+                  f"  [{'OK' if u_c == f_c + w_c - j_c else 'MISMATCH'}]")
+
 
 if __name__ == "__main__":
     main()
