@@ -134,6 +134,17 @@ class StormSequence:
     avg_intensity_factor: float = 0.0
     cumulative_intensity_factor: float = 0.0
 
+    # Storm<->typhoon coupling (Stage 2 — joint event driver).
+    # See docs/models/storm_typhoon_coupling/coupling_spec.md.
+    #   event_id       — shared 1:1 storm<->typhoon key, e.g. "EVT-00001".
+    #   base_intensity — severity latent z (the upstream Normal(mean_cat,std_cat)
+    #                    draw); drives both precipitation and, in Stage 3, wind.
+    #   seed           — per-event seed so the paired typhoon genesis is
+    #                    reproducible independently of batch draw order.
+    event_id: str = ""
+    base_intensity: float = 0.0
+    seed: int = 0
+
     # Antecedent conditions
     antecedent_soil_moisture: Optional[str] = "normal"
     antecedent_groundwater: Optional[str] = "normal"
@@ -162,6 +173,9 @@ class StormSequence:
             "max_intensity_factor": round(self.max_intensity_factor, 6),
             "avg_intensity_factor": round(self.avg_intensity_factor, 6),
             "cumulative_intensity_factor": round(self.cumulative_intensity_factor, 6),
+            "event_id": self.event_id,
+            "base_intensity": round(self.base_intensity, 6),
+            "seed": self.seed,
             "antecedent_soil_moisture": self.antecedent_soil_moisture,
             "antecedent_groundwater": self.antecedent_groundwater,
             "spatial_correlation_enabled": self.spatial_correlation_enabled,
@@ -188,6 +202,9 @@ class StormSequence:
             max_intensity_factor=d.get("max_intensity_factor", 0.0),
             avg_intensity_factor=d.get("avg_intensity_factor", 0.0),
             cumulative_intensity_factor=d.get("cumulative_intensity_factor", 0.0),
+            event_id=d.get("event_id", ""),
+            base_intensity=d.get("base_intensity", 0.0),
+            seed=d.get("seed", 0),
             antecedent_soil_moisture=d.get("antecedent_soil_moisture", "normal"),
             antecedent_groundwater=d.get("antecedent_groundwater", "normal"),
             spatial_correlation_enabled=d.get("spatial_correlation_enabled", False),
