@@ -86,8 +86,11 @@ class TestGaugeGeneratorOutput:
 
     def test_generate_correct_count(self, tmp_path):
         gen = GaugePortfolioGenerator(output_dir=tmp_path, verbose=False)
+        # Catchment-agnostic: count is capped to the catchment's available
+        # gauge points (thames has 52, halong only 3).
+        expected = min(5, len(gen.params.GAUGE_POINTS))
         result = gen.generate(count=5)
-        assert len(result["data"]["flood_gauges"]) == 5
+        assert len(result["data"]["flood_gauges"]) == expected
 
     def test_gauge_ids_unique(self, tmp_path):
         gen = GaugePortfolioGenerator(output_dir=tmp_path, verbose=False)
@@ -127,10 +130,11 @@ class TestGaugeGeneratorFile:
 
     def test_output_json_has_correct_count(self, tmp_path):
         gen = GaugePortfolioGenerator(output_dir=tmp_path, verbose=False)
+        expected = min(5, len(gen.params.GAUGE_POINTS))
         result = gen.generate(count=5)
         with open(result["file_path"]) as f:
             data = json.load(f)
-        assert len(data["flood_gauges"]) == 5
+        assert len(data["flood_gauges"]) == expected
 
 
 @pytest.mark.generator
@@ -238,9 +242,10 @@ class TestGaugeGeneratorDataQuality:
 
     def test_processing_stats(self, tmp_path):
         gen = GaugePortfolioGenerator(output_dir=tmp_path, verbose=False)
+        expected = min(5, len(gen.params.GAUGE_POINTS))
         result = gen.generate(count=5)
         stats = result["processing_stats"]
-        assert stats["successful_gauges"] == 5
+        assert stats["successful_gauges"] == expected
         assert stats["failed_gauges"] == 0
 
     def test_second_generate_hits_end_time_branch(self, tmp_path):

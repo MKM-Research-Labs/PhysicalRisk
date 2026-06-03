@@ -75,7 +75,28 @@ def port_admin_pw(monkeypatch, tmp_path):
             config.input_dir = original_input_dir
 
 
-N_GAUGES = 5
+def _available_gauge_points() -> int:
+    """Number of gauge points defined for the active catchment.
+
+    Generators cap the requested gauge count to the catchment's available
+    ``GAUGE_POINTS`` (thames has 52, halong only 3), so the pipeline
+    assertions must use the capped count, not a hardcoded 5.
+    """
+    try:
+        from port.src.gauge import GaugePortfolioGenerator
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            gen = GaugePortfolioGenerator(td, verbose=False)
+            n = len(gen.params.GAUGE_POINTS)
+            if n:
+                return n
+    except Exception:
+        pass
+    return 5
+
+
+# Catchment-agnostic: never request more gauges than the catchment defines.
+N_GAUGES = min(5, _available_gauge_points())
 N_PROPERTIES = 5
 N_STORMS = 50
 SIMULATION_HOURS = 12

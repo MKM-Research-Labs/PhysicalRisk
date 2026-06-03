@@ -10,6 +10,7 @@ import re
 
 import pytest
 
+from config import config
 from port.cdm import LoanCDM
 from port.src.commercial import CommercialPortfolioGenerator
 from port.src.commercial_loan import (
@@ -193,7 +194,7 @@ class TestCommercialLoanPortfolioGenerator:
         meta = d["generation_metadata"]
         assert meta["total_loans_generated"] == 10
         assert meta["linked_commercial_assets"] == 10
-        assert meta["catchment"] == "thames"
+        assert meta["catchment"] == config.CATCHMENT
 
     def test_missing_commercial_raises(self, tmp_path):
         # Don't generate a commercial portfolio — loan generator must refuse.

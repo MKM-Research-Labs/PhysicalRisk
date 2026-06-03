@@ -23,6 +23,7 @@
 from unittest.mock import MagicMock
 import pytest
 
+from config import config
 from tests.port.mortgage.conftest import make_generator
 
 
@@ -113,7 +114,7 @@ class TestSetSpecificMortgageValues:
         gen = make_generator(tmp_path)
         data = {}
         gen._set_specific_mortgage_values(data, "MORT-abc", 0, self._financial_data(), {"property_id": "PROP-001"})
-        assert data["RLoan"]["Header"]["CatchmentID"] == "thames"
+        assert data["RLoan"]["Header"]["CatchmentID"] == config.CATCHMENT
 
     def test_existing_mortgage_dict_updated(self, tmp_path):
         gen = make_generator(tmp_path)

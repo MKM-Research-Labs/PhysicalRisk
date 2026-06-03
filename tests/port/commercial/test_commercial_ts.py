@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pytest
 
+from config import config
 from port.src.commercial.ts import CommercialTimeSeriesGenerator
 from port.src.property.ts import PropertyTimeSeriesGenerator
 from port.utils.asset_config import COMMERCIAL_CONFIG
@@ -152,7 +153,7 @@ class TestCommercialTimeSeriesGenerate:
         summary_path = commercial_input / "commercialts" / "portfolio_flood_summary.json"
         assert summary_path.exists()
         data = json.loads(summary_path.read_text())
-        assert data["catchment"] == "thames"
+        assert data["catchment"] == config.CATCHMENT
         assert data["summary"]["total_properties"] == 3
 
     def test_shd_mode_writes_to_commercialtsd(self, commercial_input):
