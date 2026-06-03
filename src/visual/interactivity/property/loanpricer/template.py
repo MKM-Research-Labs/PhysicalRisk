@@ -19,35 +19,20 @@
 # SOFTWARE.
 
 """
-Loan Pricer popup panel for property and commercial markers.
+Loan Pricer panel - client-side JavaScript template.
 
-Provides an editable set of loan inputs (balance, value, rate, term, flood
-risk, …) and prices them live against the server-side LoanPricer via the
-``/loan-pricer`` route. Residential (PROP-) and commercial (CPROP-) assets
-share one panel; the asset-id prefix selects the endpoint.
+Holds the (large) JS/HTML body for the Loan Pricer popup as a ``str.format``
+template. Literal JavaScript braces are DOUBLED (``{{`` / ``}}``) so that
+``.format()`` leaves them intact; the only substituted placeholders are
+``{panel_width}`` and ``{panel_height}``, supplied by
+:class:`~visual.interactivity.property.loanpricer.panel.LoanPricerPanel`.
 """
 
-from typing import Any, Dict
-
-import folium
-
-
-class LoanPricerPanel:
-    """Handler for the interactive Loan Pricer popup."""
-
-    def __init__(self,
-                 panel_width: str = "720px",
-                 panel_height: str = "560px"):
-        self.panel_width = panel_width
-        self.panel_height = panel_height
-
-    def get_js(self) -> str:
-        """Generate JavaScript for the loan pricer panel."""
-        return f"""
+LOAN_PRICER_JS_TEMPLATE = """
         <script>
         (function() {{
-            var PANEL_W = '{self.panel_width}';
-            var PANEL_H = '{self.panel_height}';
+            var PANEL_W = '{panel_width}';
+            var PANEL_H = '{panel_height}';
             var lpPanel = null;
             var currentAssetId = null;
             // standaloneMode = true when launched as the asset-independent
@@ -571,13 +556,3 @@ class LoanPricerPanel:
         }})();
         </script>
         """
-
-    def add_to_map(self, folium_map: folium.Map) -> None:
-        """Add loan pricer panel to a Folium map."""
-        folium_map.get_root().html.add_child(folium.Element(self.get_js()))
-
-    def get_statistics(self) -> Dict[str, Any]:
-        return {
-            'panel_width': self.panel_width,
-            'panel_height': self.panel_height,
-        }
