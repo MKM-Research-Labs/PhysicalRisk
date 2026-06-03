@@ -32,7 +32,8 @@ shape settles, then we refine.
                    (flood, fire, wind, ground, environmental, HSE)
     energy.py      EPC, energy usage, building fabric (residential +
                    commercial; industrial process extensions included)
-    loan.py        loan/mortgage CDM (LoanCDM class + MORTGAGE_SCHEMA dict)
+    loan/          loan/mortgage CDM package (LoanCDM class + MORTGAGE_SCHEMA
+                   dict, split into schema.py + cdm.py)
     resilience.py  BRI resilience checklist, normalised hazard classes,
                    raw hazard exposure facts, industrial/safety/certifications,
                    insurance + governing-body ratings
