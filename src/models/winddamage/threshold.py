@@ -31,7 +31,7 @@ from config.damage import DEFAULT_WIND_THRESHOLD_KPH
 from models.winddamage.cdm import extract_wind_threshold_mps
 
 
-__all__ = ["KMH_TO_MS", "kph_to_ms", "resolve_threshold_ms"]
+__all__ = ["KMH_TO_MS", "kph_to_ms", "resolve_threshold_ms", "is_prs_wind"]
 
 
 KMH_TO_MS: float = 1.0 / 3.6
@@ -39,6 +39,35 @@ KMH_TO_MS: float = 1.0 / 3.6
 
 def kph_to_ms(value_kph: float) -> float:
     return value_kph * KMH_TO_MS
+
+
+def is_prs_wind(wind: dict) -> bool:
+    """True if the paired typhoon's wind counts toward PRS pricing.
+
+    Damage-onset trigger: the property's peak sustained wind for the event
+    reached or exceeded its operational damage threshold
+    (``peak_sustained_ms >= threshold_ms``). The threshold is already
+    BRI-adjusted per property at damage-roll time — a resilient (high-BRI)
+    building carries a higher threshold, so it fires less readily than a
+    low-BRI building exposed to the same wind. Wind-without-flood is therefore
+    possible, and how often it happens is governed by where the threshold
+    (exceedance) sits relative to the storm's coupled wind.
+
+    Binary by design: PRS is a frequency / event-count payout, NOT the
+    continuous wind damage amount (that is the insurance-loss view served by
+    the wind-impact route, which must not feed the spread).
+
+    ``wind`` is one per-property row from ``typhoon/damage/EVT-*.json`` and
+    must carry ``peak_sustained_ms`` and ``threshold_ms``.
+    """
+    peak = wind.get("peak_sustained_ms")
+    thr = wind.get("threshold_ms")
+    if peak is None or thr is None:
+        return False
+    try:
+        return float(peak) >= float(thr)
+    except (TypeError, ValueError):
+        return False
 
 
 def resolve_threshold_ms(property_record: dict) -> float:
