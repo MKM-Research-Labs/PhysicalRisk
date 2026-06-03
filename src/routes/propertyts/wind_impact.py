@@ -23,7 +23,7 @@ from typing import Dict, List, Optional
 from flask import jsonify
 
 from config import config
-from port.typhoon_storm_link import link_for_storm
+from port.storm_typhoon_pairing import typhoon_for_storm
 
 from .blueprint import propertyts_bp
 from .financial_loaders import _load_rloan_lookup, _load_prop_values
@@ -144,7 +144,7 @@ def wind_impact(storm_id: str):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    link = link_for_storm(storm_id)
+    link = typhoon_for_storm(storm_id)
     if not link:
         return jsonify({
             'status': 'success',

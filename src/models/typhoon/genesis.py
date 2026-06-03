@@ -63,6 +63,11 @@ __all__ = [
     "peak_wind_exceedance",
     "peak_wind_inverse_exceedance",
     "sample_peak_wind",
+    "mixture_peak_wind_exceedance",
+    "mixture_peak_wind_inverse",
+    "coupling_floor",
+    "coupled_genesis_wind",
+    "derive_scenario_family",
     "sample_genesis_location",
     "sample_initial_heading",
     "sample_initial_speed",
@@ -143,6 +148,162 @@ def sample_peak_wind(params: PeakWindParams, rng: np.random.Generator) -> float:
     """Draw a single peak-wind sample under the hybrid distribution."""
     u = float(rng.uniform())
     return peak_wind_inverse_exceedance(u, params)
+
+
+# ===========================================================================
+# Storm -> wind coupling — coupling_spec.md §3.3, §4
+# ===========================================================================
+#
+# Under the coupled event set the per-event genesis peak wind is no longer an
+# independent draw from a single scenario family. Instead the paired storm's
+# severity quantile q drives a band-limited draw against the catchment's
+# scenario-mix-weighted exceedance curve S_cat (re-roled as the attainable
+# CEILING curve, not a realised marginal):
+#
+#     ceiling(q) = q
+#     floor(q)   = 1 - (1 - q)^beta
+#     rho_w      = floor(q) + B * (ceiling(q) - floor(q)),   B ~ Uniform[0,1]
+#     u          = 1 - rho_w
+#     Vmax       = S_cat^{-1}(u)
+#
+# This forbids low-rain/high-wind (rho_w <= q) while pulling wind up in the
+# storm tail via the rising floor. beta is the single coupling-strength knob.
+
+
+def coupling_floor(q: float, beta: float) -> float:
+    """Rising wind floor f(q) = 1 - (1 - q)^beta  (coupling_spec.md §4.1).
+
+    Monotone increasing in q, with f(q) <= q for all q in [0,1] (the band
+    never inverts) and f(0) = 0. beta -> 0 collapses the floor to 0 (pure
+    ceiling); beta = 1 gives f(q) = q (deterministic comonotone).
+    """
+    q = min(max(q, 0.0), 1.0)
+    beta = max(beta, 0.0)
+    return 1.0 - (1.0 - q) ** beta
+
+
+def mixture_peak_wind_exceedance(
+    v_ms: float,
+    peak_wind: Dict[ScenarioFamily, PeakWindParams],
+    scenario_mix: Dict[ScenarioFamily, float],
+) -> float:
+    """S_cat(v): scenario-mix-weighted survival function (coupling_spec.md §3.3).
+
+        S_cat(v) = sum_family  w[family] * P(V > v | family)
+
+    Weights are renormalised over the families that have both a positive mix
+    weight and a PeakWindParams entry, so a partial config still yields a
+    proper survival curve.
+    """
+    total = 0.0
+    wsum = 0.0
+    for family, weight in scenario_mix.items():
+        params = peak_wind.get(family)
+        if params is None or weight <= 0.0:
+            continue
+        total += weight * peak_wind_exceedance(v_ms, params)
+        wsum += weight
+    return total / wsum if wsum > 0.0 else 0.0
+
+
+def mixture_peak_wind_inverse(
+    u: float,
+    peak_wind: Dict[ScenarioFamily, PeakWindParams],
+    scenario_mix: Dict[ScenarioFamily, float],
+    tol: float = 1e-4,
+    max_iter: int = 100,
+) -> float:
+    """S_cat^{-1}(u): invert the mixture survival by bisection.
+
+    S_cat is monotone decreasing in v, so a standard bisection on
+    [min v_min_ms, max v_max_ms] across the active families converges. u is
+    the exceedance probability (small u -> large Vmax). Out-of-range u clamps
+    to the curve's endpoints.
+    """
+    families = [
+        f for f, w in scenario_mix.items()
+        if w > 0.0 and f in peak_wind
+    ] or list(peak_wind.keys())
+
+    v_lo = min(peak_wind[f].v_min_ms for f in families)
+    v_hi = max(peak_wind[f].v_max_ms for f in families)
+
+    u = min(max(u, 0.0), 1.0)
+
+    def S(v: float) -> float:
+        return mixture_peak_wind_exceedance(v, peak_wind, scenario_mix)
+
+    # Endpoints: S(v_lo) is the largest attainable exceedance, S(v_hi) the
+    # smallest. Targets outside that range clamp to the nearest endpoint.
+    if u >= S(v_lo):
+        return v_lo
+    if u <= S(v_hi):
+        return v_hi
+
+    for _ in range(max_iter):
+        mid = 0.5 * (v_lo + v_hi)
+        if S(mid) > u:
+            # Exceedance still above target -> need a higher wind speed.
+            v_lo = mid
+        else:
+            v_hi = mid
+        if v_hi - v_lo < tol:
+            break
+    return 0.5 * (v_lo + v_hi)
+
+
+def derive_scenario_family(
+    v_max_ms: float,
+    peak_wind: Dict[ScenarioFamily, PeakWindParams],
+    scenario_mix: Dict[ScenarioFamily, float],
+) -> ScenarioFamily:
+    """Label a coupled Vmax with the nearest scenario family (by body mean mu).
+
+    Under coupling the scenario family is no longer sampled — it is a derived
+    tag for downstream display/grouping. Families are intensity-ordered by
+    mu_ms, so nearest-mu gives an intuitive label (a super-typhoon Vmax tags
+    EXTREME; a mild Vmax tags HISTORICAL).
+    """
+    families = [
+        f for f, w in scenario_mix.items()
+        if w > 0.0 and f in peak_wind
+    ] or list(peak_wind.keys())
+    return min(families, key=lambda f: abs(v_max_ms - peak_wind[f].mu_ms))
+
+
+def coupled_genesis_wind(
+    q: float,
+    beta: float,
+    peak_wind: Dict[ScenarioFamily, PeakWindParams],
+    scenario_mix: Dict[ScenarioFamily, float],
+    rng: np.random.Generator,
+) -> Tuple[float, ScenarioFamily]:
+    """Draw a coupled genesis (Vmax, scenario_family) for one event.
+
+    Implements the coupling_spec.md §4 band draw: given the paired storm's
+    severity quantile q and the coupling strength beta, draw the wind
+    strength-percentile rho_w uniformly in [floor(q), q], map to the
+    exceedance probability u = 1 - rho_w, and invert S_cat to a peak wind.
+
+    Args:
+        q: storm severity quantile in [0,1] (1 = most severe storm).
+        beta: coupling strength (>0). See coupling_floor.
+        peak_wind: per-family PeakWindParams (the ceiling curve).
+        scenario_mix: per-family mix weights.
+        rng: random generator (the within-band B ~ Uniform[0,1] draw).
+
+    Returns:
+        (v_max_ms, scenario_family) — the genesis peak wind and its derived
+        family label.
+    """
+    ceiling = min(max(q, 0.0), 1.0)
+    floor = coupling_floor(q, beta)
+    b = float(rng.uniform())
+    rho_w = floor + b * (ceiling - floor)
+    u = 1.0 - rho_w
+    v_max_ms = mixture_peak_wind_inverse(u, peak_wind, scenario_mix)
+    scenario = derive_scenario_family(v_max_ms, peak_wind, scenario_mix)
+    return v_max_ms, scenario
 
 
 # ===========================================================================
@@ -248,6 +409,7 @@ def sample_genesis(
     config: CatchmentTyphoonConfig,
     scenario: ScenarioFamily,
     rng: np.random.Generator,
+    v_max_override: float = None,
 ) -> TyphoonState:
     """Sample one genesis state under the given scenario family.
 
@@ -255,6 +417,11 @@ def sample_genesis(
         config: catchment configuration
         scenario: scenario family selecting the peak-wind distribution
         rng: random generator (caller-owned for reproducibility)
+        v_max_override: if not None, use this peak wind (m/s) instead of
+            drawing from the scenario's peak-wind distribution. Set by the
+            storm->wind coupling (coupling_spec.md §4) so the event's genesis
+            intensity is fixed by the paired storm's severity; location,
+            heading, speed, size and regime are still sampled from ``rng``.
 
     Returns:
         TyphoonState at t = 0.
@@ -264,7 +431,10 @@ def sample_genesis(
     lon, lat = sample_genesis_location(prior, rng)
     heading_deg = sample_initial_heading(prior, rng)
     speed_kmh = sample_initial_speed(prior, rng)
-    v_max_ms = sample_peak_wind(config.peak_wind[scenario], rng)
+    if v_max_override is not None:
+        v_max_ms = float(v_max_override)
+    else:
+        v_max_ms = sample_peak_wind(config.peak_wind[scenario], rng)
     r_max_km, r_outer_km = sample_initial_size(v_max_ms, config.size, rng)
     regime = sample_regime(prior.regime_weights, rng)
     land_flag = bool(config.land_mask(lon, lat))

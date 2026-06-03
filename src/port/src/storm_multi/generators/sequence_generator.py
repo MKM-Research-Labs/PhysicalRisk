@@ -91,13 +91,20 @@ class SequenceGenerator:
         intensity_category: str,
         base_intensity: float,
         force_sequence_type: str = None,
+        event_id: str = "",
+        event_seed: int = 0,
     ) -> StormSequence:
         """Generate a StormSequence from a seed storm.
 
         Args:
             intensity_category: Storm intensity level (moderate, severe, etc.)
             base_intensity: Base intensity factor from distribution sampling.
+                This is the severity latent ``z`` persisted on the sequence
+                for storm<->typhoon coupling (see coupling_spec.md).
             force_sequence_type: Force a specific type, or None to sample.
+            event_id: Shared 1:1 storm<->typhoon key (e.g. "EVT-00001").
+                Empty when the caller does not couple events.
+            event_seed: Per-event seed persisted for reproducible coupling.
 
         Returns:
             A valid StormSequence with 1-5 storms fitting within 168h window.
@@ -116,6 +123,7 @@ class SequenceGenerator:
         num_storms = get_storm_count(seq_type, self.rng)
         return self._build_sequence(
             seq_id, seq_type, num_storms, intensity_category, base_intensity, now,
+            event_id=event_id, event_seed=event_seed,
         )
 
     def _build_sequence(
@@ -126,6 +134,8 @@ class SequenceGenerator:
         intensity_category: str,
         base_intensity: float,
         generated_at: str,
+        event_id: str = "",
+        event_seed: int = 0,
     ) -> StormSequence:
         """Build a sequence that always fits within the event window.
 
@@ -185,6 +195,7 @@ class SequenceGenerator:
 
         return self._assemble_sequence(
             seq_id, seq_type, storms, gaps, generated_at, intensity_category,
+            base_intensity=base_intensity, event_id=event_id, event_seed=event_seed,
         )
 
     def _assemble_sequence(
@@ -195,6 +206,9 @@ class SequenceGenerator:
         gaps: list,
         generated_at: str,
         intensity_category: str = "",
+        base_intensity: float = 0.0,
+        event_id: str = "",
+        event_seed: int = 0,
     ) -> StormSequence:
         """Assemble a StormSequence from storms and gaps."""
         intensities = [s.intensity_factor for s in storms]
@@ -218,6 +232,9 @@ class SequenceGenerator:
             max_intensity_factor=max(intensities),
             avg_intensity_factor=sum(intensities) / len(intensities),
             cumulative_intensity_factor=sum(intensities),
+            event_id=event_id,
+            base_intensity=base_intensity,
+            seed=event_seed,
             antecedent_soil_moisture="normal",
             antecedent_groundwater="normal",
             generated_at=generated_at,

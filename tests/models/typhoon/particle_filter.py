@@ -161,6 +161,56 @@ class TestInitialize:
 
 
 # ===========================================================================
+# ParticleFilter — coupled genesis (Stage 3, coupling_spec.md §4)
+# ===========================================================================
+
+
+class TestCoupledInitialize:
+    """When genesis_v_max_override is supplied, every particle starts at the
+    SAME fixed peak wind and the SAME scenario label — the event's windiness
+    is fixed by the paired storm. SMC still explores track/size/location/regime.
+    """
+
+    def test_all_particles_share_override_v_max(self, minimal_config):
+        pf = ParticleFilter(
+            n_particles=30, config=minimal_config, rng=_rng(101),
+            genesis_v_max_override=57.5,
+            genesis_scenario_override=ScenarioFamily.SEVERE,
+        )
+        pf.initialize()
+        for p in pf.particles:
+            assert p.state.v_max_ms == pytest.approx(57.5)
+
+    def test_all_particles_share_scenario_label(self, minimal_config):
+        pf = ParticleFilter(
+            n_particles=20, config=minimal_config, rng=_rng(103),
+            genesis_v_max_override=57.5,
+            genesis_scenario_override=ScenarioFamily.EXTREME,
+        )
+        pf.initialize()
+        assert all(s == ScenarioFamily.EXTREME for s in pf.scenarios)
+
+    def test_other_dimensions_still_vary(self, minimal_config):
+        # Coupling fixes only Vmax+scenario; location/heading/etc still diverse.
+        pf = ParticleFilter(
+            n_particles=40, config=minimal_config, rng=_rng(107),
+            genesis_v_max_override=57.5,
+            genesis_scenario_override=ScenarioFamily.SEVERE,
+        )
+        pf.initialize()
+        lons = {round(p.state.longitude, 4) for p in pf.particles}
+        assert len(lons) > 1
+
+    def test_standalone_still_samples_per_particle(self, minimal_config):
+        # No override -> scenarios drawn from the prior mix (not all identical
+        # in general); Vmax varies across particles.
+        pf = ParticleFilter(n_particles=40, config=minimal_config, rng=_rng(109))
+        pf.initialize()
+        vmaxes = {round(p.state.v_max_ms, 4) for p in pf.particles}
+        assert len(vmaxes) > 1
+
+
+# ===========================================================================
 # ParticleFilter — propagate
 # ===========================================================================
 

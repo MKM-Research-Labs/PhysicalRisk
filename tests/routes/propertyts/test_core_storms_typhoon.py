@@ -3,11 +3,13 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Covers the typhoon-linkage branch of /properties/<id>/storms and the
-per-property typhoon damage loader in core_storms.py.
+"""Covers the typhoon branch of /properties/<id>/storms and the per-property
+typhoon damage loader in core_storms.py.
 
 Catchment-agnostic: synthesises propertyts/, typhoon/damage/,
-storm_sequences.json inside tmp_path and rebuilds the linkage cache.
+storm_sequences.json inside tmp_path. The storm↔typhoon join is the true 1:1
+map — each sequence carries the event_id of its paired typhoon (no separate
+linkage cache to rebuild).
 """
 
 import json
@@ -15,7 +17,6 @@ import json
 import pytest
 
 from routes.propertyts import core_storms as cs
-from port import typhoon_storm_link as tsl
 
 
 PROP_ID = "PROP-0001"
@@ -26,9 +27,7 @@ def cfg_tmp(tmp_path, monkeypatch):
     from config import config
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda fname: tmp_path / fname)
-    tsl.invalidate_cache()
-    yield tmp_path
-    tsl.invalidate_cache()
+    return tmp_path
 
 
 @pytest.fixture
@@ -59,6 +58,7 @@ def test_damage_loader_indexes_property(cfg_tmp):
     d.mkdir(parents=True)
     (d / "EVT-0001.json").write_text(json.dumps({
         "event_id": "EVT-0001",
+        "scenario_family": "extreme",
         "damages": [
             {"property_id": "PROP-OTHER", "damage_ratio": 0.1},
             {"property_id": PROP_ID, "peak_sustained_ms": 55,
@@ -68,6 +68,8 @@ def test_damage_loader_indexes_property(cfg_tmp):
     out = cs._load_typhoon_damage_for_property(PROP_ID)
     assert out["EVT-0001"]["peak_sustained_ms"] == 55
     assert out["EVT-0001"]["damage_ratio"] == 0.3
+    # scenario_family is surfaced from the event-level field.
+    assert out["EVT-0001"]["scenario_family"] == "extreme"
 
 
 def test_damage_loader_event_id_from_stem(cfg_tmp):
@@ -92,24 +94,28 @@ def _setup_catchment(tmp_path, flood_events):
         "summary": {},
         "flood_events": flood_events,
     }))
+    # Each sequence carries the event_id of its paired typhoon — the true 1:1
+    # key (no severity-bucket ranking).
     (tmp_path / "storm_sequences.json").write_text(json.dumps({
         "num_sequences": 2,
         "sequences": [
-            {"sequence_id": "SEQ-CAT", "intensity_category": "catastrophic",
+            {"sequence_id": "SEQ-CAT", "event_id": "EVT-0001",
+             "intensity_category": "catastrophic",
              "sequence_type": "isolated", "name": "Cat", "total_precipitation_mm": 200},
-            {"sequence_id": "SEQ-EXT", "intensity_category": "extreme",
+            {"sequence_id": "SEQ-EXT", "event_id": "EVT-0002",
+             "intensity_category": "extreme",
              "sequence_type": "isolated", "name": "Ext", "total_precipitation_mm": 150},
         ],
     }))
     dmg = tmp_path / "typhoon" / "damage"
     dmg.mkdir(parents=True)
-    # EVT-0001 (extreme family) → pairs with catastrophic flood SEQ-CAT
+    # EVT-0001 → paired with SEQ-CAT via shared event_id
     (dmg / "EVT-0001.json").write_text(json.dumps({
         "event_id": "EVT-0001", "scenario_family": "extreme",
         "damages": [{"property_id": PROP_ID, "peak_sustained_ms": 70,
                      "threshold_ms": 30, "v_50_eff_ms": 65, "damage_ratio": 0.5}],
     }))
-    # EVT-0002 (severe family) → pairs with extreme flood SEQ-EXT
+    # EVT-0002 → paired with SEQ-EXT via shared event_id
     (dmg / "EVT-0002.json").write_text(json.dumps({
         "event_id": "EVT-0002", "scenario_family": "severe",
         "damages": [{"property_id": PROP_ID, "peak_sustained_ms": 40,
@@ -129,6 +135,7 @@ def test_storms_attaches_typhoon_block(client, cfg_tmp):
     cat = events["SEQ-CAT"]
     assert cat["typhoon"] is not None
     assert cat["typhoon"]["event_id"] == "EVT-0001"
+    assert cat["typhoon"]["scenario_family"] == "extreme"
     assert cat["typhoon"]["peak_wind_ms"] == 70
     assert cat["typhoon"]["wind_damage_ratio"] == 0.5
 

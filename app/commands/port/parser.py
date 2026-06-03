@@ -90,6 +90,10 @@ def register_parser(subparsers):
                     help="RNG seed for typhoon simulation; None = nondeterministic")
     sp.add_argument("--typhoon-no-plausibility", action="store_true",
                     help="Disable simulation-mode plausibility weighting (pure Monte Carlo)")
+    sp.add_argument("--coupling-beta", type=float, default=None,
+                    help="Storm->wind coupling strength beta (coupling_spec.md §4): "
+                         "0=pure ceiling, 1=comonotone, ~0.5 expert default. "
+                         "None = config.port.COUPLING_BETA. Only used in coupled mode.")
 
     # Maintenance ----------------------------------------------------------
     sp.add_argument("--repair-manifest", action="store_true",
