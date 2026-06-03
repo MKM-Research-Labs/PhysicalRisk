@@ -3,7 +3,7 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Unit tests for src/routes/commercial.py.
+"""Unit tests for the src/routes/commercial/ package.
 
 Catchment-agnostic: all commercial.json / commercial_loan.json /
 commercialts / hazard files are synthesised inside tmp_path. Report PDF
@@ -520,3 +520,129 @@ def test_portfolio_impact_skips_non_prs_and_other_storms(client, cfg_tmp):
     resp = client.get("/api/v1/commercial/STORM-0001/portfolio-impact")
     assert resp.status_code == 200
     assert resp.get_json()["portfolio"]["assets_affected"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Defensive branches — loan-report missing id, no-match loan, malformed files
+# ---------------------------------------------------------------------------
+
+def test_loan_report_missing_property_id(client):
+    """reports.py: POST loan-report with no propertyId → 400."""
+    resp = client.post("/api/v1/commercial/loan-report",
+                       data=json.dumps({}), content_type="application/json")
+    assert resp.status_code == 400
+
+
+def test_loan_pricer_loan_file_present_but_no_match(client, cfg_tmp):
+    """pricing.py _find_commercial_loan: loans exist but none match → 404.
+
+    Distinct from the missing-file path: here the list is iterated to the
+    end without a hit (the final ``return None``).
+    """
+    (cfg_tmp / "commercial_loan.json").write_text(json.dumps({
+        "commercial_loans": [{
+            "Mortgage": {"Header": {"PropertyID": "CPROP-9999"}}
+        }]
+    }))
+    resp = client.get(f"/api/v1/commercial/{CPID}/loan-pricer")
+    assert resp.status_code == 404
+
+
+def test_portfolio_impact_commercial_json_missing(client, cfg_tmp):
+    """portfolio.py: commercialts dir exists but commercial.json absent.
+
+    asset_lookup stays empty (FileNotFoundError swallowed), so every
+    CPROP-*.json is skipped (pid not in asset_lookup → continue).
+    """
+    cts_dir = cfg_tmp / "commercialts"
+    cts_dir.mkdir()
+    (cts_dir / f"{CPID}.json").write_text(json.dumps({
+        "property_id": CPID,
+        "flood_events": [{"storm_id": "STORM-0001", "flooded": True,
+                          "exceeded_severe": True, "damage_ratio": 0.2}],
+    }))
+    resp = client.get("/api/v1/commercial/STORM-0001/portfolio-impact")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["portfolio"]["total_assets"] == 0
+    assert data["portfolio"]["assets_affected"] == 0
+
+
+def test_portfolio_impact_skips_asset_without_property_id(client, cfg_tmp):
+    """portfolio.py: a commercial record with no PropertyID is skipped."""
+    (cfg_tmp / "commercial.json").write_text(json.dumps({
+        "commercial_assets": [{"CommercialAsset": {"Header": {}}}]
+    }))
+    cts_dir = cfg_tmp / "commercialts"
+    cts_dir.mkdir()
+    resp = client.get("/api/v1/commercial/STORM-0001/portfolio-impact")
+    assert resp.status_code == 200
+    assert resp.get_json()["portfolio"]["total_assets"] == 0
+
+
+# ---------------------------------------------------------------------------
+# storms.py enrichment helpers — direct unit tests of the except branches
+# ---------------------------------------------------------------------------
+
+def test_lookup_address_swallows_malformed_json(cfg_tmp):
+    """storms.py _lookup_commercial_address: corrupt commercial.json → ''."""
+    from routes.commercial.storms import _lookup_commercial_address
+    (cfg_tmp / "commercial.json").write_text("{not valid json")
+    assert _lookup_commercial_address(CPID) == ""
+
+
+def test_enrich_flood_events_swallows_malformed_sequences(cfg_tmp):
+    """storms.py _enrich_flood_events: corrupt storm_sequences.json is tolerated."""
+    from routes.commercial.storms import _enrich_flood_events
+    (cfg_tmp / "storm_sequences.json").write_text("{bad json")
+    pdata = {"flood_events": [{"storm_id": "S1"}]}
+    _enrich_flood_events(pdata)  # must not raise
+    ev = pdata["flood_events"][0]
+    assert ev["sequence_type"] == "isolated"
+    assert ev["gauges_severe"] == 0
+
+
+def test_enrich_flood_events_reads_storms_metadata(cfg_tmp):
+    """storms.py _enrich_flood_events: storms.json (the 'storms' key branch)
+    supplies per-storm name/category metadata."""
+    from routes.commercial.storms import _enrich_flood_events
+    (cfg_tmp / "storms.json").write_text(json.dumps({
+        "storms": [{"storm_id": "S1", "name": "Bertha",
+                    "intensity_category": "severe",
+                    "effective_precipitation_mm": 42}]
+    }))
+    pdata = {"flood_events": [{"storm_id": "S1"}]}
+    _enrich_flood_events(pdata)
+    ev = pdata["flood_events"][0]
+    assert ev["name"] == "Bertha"
+    assert ev["intensity_category"] == "severe"
+    assert ev["effective_precipitation_mm"] == 42
+
+
+def test_enrich_flood_events_swallows_malformed_stress_storms(cfg_tmp):
+    """storms.py _enrich_flood_events: corrupt stress_storms.json is tolerated."""
+    from routes.commercial.storms import _enrich_flood_events
+    (cfg_tmp / "stress_storms.json").write_text("{bad json")
+    pdata = {"flood_events": [{"storm_id": "S1"}]}
+    _enrich_flood_events(pdata)  # must not raise
+    assert pdata["flood_events"][0]["gauges_severe"] == 0
+
+
+def test_enrich_nearest_gauges_swallows_malformed_gauge_json(cfg_tmp):
+    """storms.py _enrich_nearest_gauges: corrupt gauge.json → empty stages."""
+    from routes.commercial.storms import _enrich_nearest_gauges
+    (cfg_tmp / "gauge.json").write_text("{bad json")
+    pdata = {"nearest_gauges": [{"gauge_id": "G1"}]}
+    severe = _enrich_nearest_gauges(pdata)
+    assert severe == 0
+    assert pdata["nearest_gauges"][0]["flood_stages"] == {}
+
+
+def test_enrich_nearest_gauges_swallows_malformed_hc_json(cfg_tmp):
+    """storms.py _enrich_nearest_gauges: corrupt gaugehc.json is tolerated."""
+    from routes.commercial.storms import _enrich_nearest_gauges
+    (cfg_tmp / "gaugehc.json").write_text("{bad json")
+    (cfg_tmp / "storm_sequences.json").write_text(json.dumps({"num_sequences": 100}))
+    pdata = {"nearest_gauges": [{"gauge_id": "G1"}]}
+    severe = _enrich_nearest_gauges(pdata)
+    assert severe == 0

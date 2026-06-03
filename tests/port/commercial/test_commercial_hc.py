@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+from config import config
 from port.src.commercial.hc import CommercialHazardCurveGenerator
 from port.src.property.hc import PropertyHazardCurveGenerator
 from port.utils.asset_config import COMMERCIAL_CONFIG
@@ -110,7 +111,7 @@ class TestCommercialHazardCurveGenerate:
         gen = CommercialHazardCurveGenerator(output_dir=commercial_hc_input, verbose=False)
         gen.generate()
         d = json.loads((commercial_hc_input / "commercialhc.json").read_text())
-        assert d["metadata"]["catchment_id"] == "thames"
+        assert d["metadata"]["catchment_id"] == config.CATCHMENT
         assert d["metadata"]["num_properties"] == 2
         assert "property_hazard_curves" in d
 

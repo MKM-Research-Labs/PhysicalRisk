@@ -15,11 +15,32 @@ from collections import Counter
 
 import pytest
 
+from config import config
 from port.cdm import CommercialAssetCDM
 from port.src.commercial import (
     CommercialPortfolioGenerator,
     generate_commercials,
 )
+
+
+def _catchment_latlon_bounds(margin: float = 0.5):
+    """Padded (lat, lon) envelope from the active catchment's GAUGE_POINTS.
+
+    Commercial assets are placed within ~2km of synthetic gauges (which sit
+    on the catchment's gauge points), so a 0.5 degree margin comfortably
+    bounds them. Catchment-agnostic: thames sits ~51-52N, halong elsewhere.
+    """
+    import importlib
+    mod = importlib.import_module(f"catch.{config.CATCHMENT}")
+    pts = getattr(mod, "GAUGE_POINTS", []) or []
+    lats = [p[0] for p in pts]
+    lons = [p[1] for p in pts]
+    if lats and lons:
+        return (
+            (min(lats) - margin, max(lats) + margin),
+            (min(lons) - margin, max(lons) + margin),
+        )
+    return ((-90.0, 90.0), (-180.0, 180.0))
 
 
 @pytest.fixture
@@ -86,13 +107,14 @@ class TestRecordStructure:
             assert r["CommercialAsset"]["Header"]["CatchmentID"] == config.CATCHMENT
 
     def test_lat_lon_populated(self, records):
+        (lat_lo, lat_hi), (lon_lo, lon_hi) = _catchment_latlon_bounds()
         for r in records:
             loc = r["CommercialAsset"]["Location"]
             assert isinstance(loc["LatitudeDegrees"], (int, float))
             assert isinstance(loc["LongitudeDegrees"], (int, float))
-            # Thames basin sanity bounds
-            assert 50 < loc["LatitudeDegrees"] < 53
-            assert -2 < loc["LongitudeDegrees"] < 1
+            # Catchment sanity bounds derived from the active GAUGE_POINTS
+            assert lat_lo < loc["LatitudeDegrees"] < lat_hi
+            assert lon_lo < loc["LongitudeDegrees"] < lon_hi
 
     def test_commercial_type_valid_menu(self, records):
         valid = {"Office", "Retail", "Hotel", "Leisure", "Healthcare",
@@ -143,7 +165,7 @@ class TestOutputFile:
         assert "commercial_assets" in d
         assert "generation_metadata" in d
         assert d["generation_metadata"]["total_assets_generated"] == 10
-        assert d["generation_metadata"]["catchment"] == "thames"
+        assert d["generation_metadata"]["catchment"] == config.CATCHMENT
 
     def test_type_mix_in_metadata(self, gen, tmp_path):
         gen.generate(count=10)

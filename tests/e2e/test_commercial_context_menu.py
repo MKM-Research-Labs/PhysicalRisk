@@ -7,8 +7,10 @@ specific items → clicking "Generate Commercial Report" opens the
 PDF panel.
 
 Mirrors test_property_context_menu.py. The e2e fixture pins the
-active catchment to thames (data/input/thames/commercial.json has
-10 commercial assets, all rendered with purple markers).
+active catchment (see conftest ``_isolated_catchment_dir`` /
+``MKM_CATCHMENT``) and renders every commercial asset with a purple
+marker. Tests that need a real CPROP id fetch it from the running
+server via ``_active_commercial_id`` so they stay catchment-agnostic.
 """
 
 import pytest
@@ -80,6 +82,32 @@ def _right_click_commercial_marker(page):
         markers.first.click(button="right", force=True)
     # Short wait — the menu DOM is created synchronously in showMenu().
     page.wait_for_timeout(1_500)
+
+
+def _active_commercial_id(page):
+    """Return a real CPROP id from the *active* catchment via the server.
+
+    The e2e Flask subprocess is pinned to whichever catchment the run
+    targets (see conftest ``_isolated_catchment_dir`` /
+    ``MKM_CATCHMENT``). Picking the id from a hardcoded
+    ``data/input/thames/commercial.json`` breaks under any non-thames
+    catchment because that id is absent from the served dataset, so the
+    route 404s. Fetching ``/api/v1/commercial`` always yields an id that
+    exists in the data the app is actually serving.
+    """
+    cprop_id = page.evaluate("""async () => {
+        const resp = await fetch('/api/v1/commercial');
+        if (!resp.ok) return null;
+        try {
+            const data = await resp.json();
+            const list = data.commercial_assets || data;
+            if (!Array.isArray(list) || list.length === 0) return null;
+            return list[0]?.CommercialAsset?.Header?.PropertyID || null;
+        } catch (e) { return null; }
+    }""")
+    if not cprop_id:
+        pytest.skip("No commercial assets served by the active catchment")
+    return cprop_id
 
 
 # ---------------------------------------------------------------------------
@@ -223,30 +251,8 @@ class TestCommercialReportRouteFromBrowser:
             timeout=10_000,
         )
 
-        # Grab a real commercial PropertyID from the rendered tooltips.
-        cprop_id = map_page.evaluate("""async () => {
-            const resp = await fetch('/api/v1/commercial');
-            if (!resp.ok) return null;
-            try {
-                const data = await resp.json();
-                const list = data.commercial_assets || data;
-                if (!Array.isArray(list) || list.length === 0) return null;
-                return list[0]?.CommercialAsset?.Header?.PropertyID || null;
-            } catch (e) { return null; }
-        }""")
-
-        if not cprop_id:
-            # Fallback: read commercial.json directly via the fixture's
-            # tmp catchment dir is impossible from the browser, so try
-            # a hard-coded prefix probe.
-            from pathlib import Path
-            import json as _json
-            commercial_path = Path("data/input/thames/commercial.json")
-            if not commercial_path.exists():
-                pytest.skip("No thames commercial.json on disk")
-            with open(commercial_path) as f:
-                cprop_id = (_json.load(f)["commercial_assets"][0]
-                            ["CommercialAsset"]["Header"]["PropertyID"])
+        # Grab a real commercial PropertyID from the active catchment.
+        cprop_id = _active_commercial_id(map_page)
 
         # Hit the route from the browser context.
         result = map_page.evaluate(f"""async () => {{
@@ -301,14 +307,7 @@ class TestCommercialReportRouteFromBrowser:
 
     def test_storms_route_returns_data_for_real_id(self, map_page):
         """GET /api/v1/commercial/<id>/storms → 200 + expected shape."""
-        from pathlib import Path
-        import json as _json
-        commercial_path = Path("data/input/thames/commercial.json")
-        if not commercial_path.exists():
-            pytest.skip("No thames commercial.json on disk")
-        with open(commercial_path) as f:
-            cprop_id = (_json.load(f)["commercial_assets"][0]
-                        ["CommercialAsset"]["Header"]["PropertyID"])
+        cprop_id = _active_commercial_id(map_page)
 
         result = map_page.evaluate(f"""async () => {{
             const resp = await fetch('/api/v1/commercial/{cprop_id}/storms');
@@ -398,14 +397,7 @@ class TestCommercialHazardPanel:
         Includes /bri — the panel's loadData() fetches it for the resilient
         flood count, so a missing commercial /bri route surfaces here as a 404
         (it previously slipped through because /bri wasn't asserted)."""
-        from pathlib import Path
-        import json as _json
-        commercial_path = Path("data/input/thames/commercial.json")
-        if not commercial_path.exists():
-            pytest.skip("No thames commercial.json on disk")
-        with open(commercial_path) as f:
-            cprop_id = (_json.load(f)["commercial_assets"][0]
-                        ["CommercialAsset"]["Header"]["PropertyID"])
+        cprop_id = _active_commercial_id(map_page)
 
         result = map_page.evaluate(f"""async () => {{
             const paths = ['/hazard', '/she', '/shd', '/bri', ''];
@@ -488,14 +480,7 @@ class TestCommercialLoanReport:
 
     def test_loan_report_route_returns_pdf_for_real_id(self, map_page):
         """POST /api/v1/commercial/loan-report → 200 + base64 PDF."""
-        from pathlib import Path
-        import json as _json
-        commercial_path = Path("data/input/thames/commercial.json")
-        if not commercial_path.exists():
-            pytest.skip("No thames commercial.json on disk")
-        with open(commercial_path) as f:
-            cprop_id = (_json.load(f)["commercial_assets"][0]
-                        ["CommercialAsset"]["Header"]["PropertyID"])
+        cprop_id = _active_commercial_id(map_page)
 
         result = map_page.evaluate(f"""async () => {{
             const resp = await fetch('/api/v1/commercial/loan-report', {{
