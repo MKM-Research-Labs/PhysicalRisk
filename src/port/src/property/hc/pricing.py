@@ -9,14 +9,21 @@ v3.0: Replaced GEV/CDS pricing with simple severe event count.
 Spread (bp) = N(severe floods) / N(total scenarios) × 10,000.
 Term structure is flat (storms are independent).
 
-Stage 5 (wind into PRS): the spread becomes the union of flood OR wind
-triggers over the 1:1-paired event set (coupling_spec.md §11.5). The wind leg
-is the binary ``is_prs_wind`` damage-onset trigger — NOT the continuous wind
-damage amount. The flood-only ``prs_spread_bps`` is kept unchanged (it still
-drives the gauge basis and the spread decomposition, which stay flood-vs-gauge
-until Stage 6); the union is exposed alongside as ``term_structure['union']``
-and ``prs_union_spread_bps``. Catchments without a typhoon stage are
-byte-identical to before (flood-only fallback).
+Stage 6 (peril outcomes): the pricer emits a ``prs_perils`` block with all
+four peril outcomes at the property/BRI node (coupling_spec.md §11.6):
+
+* ``flood_only``    — severe flood triggers (the flood spine, unchanged)
+* ``wind_only``     — binary ``is_prs_wind`` damage-onset triggers
+* ``flood_or_wind`` — union over the 1:1-paired event set (one denominator)
+* ``flood_and_wind``— intersection (inclusion-exclusion: F + W − union)
+
+The wind leg is the binary ``is_prs_wind`` damage-onset trigger — NOT the
+continuous wind damage amount. The flood-only ``prs_spread_bps`` /
+``term_structure.severe`` (flood spine) is kept unchanged: it still drives the
+gauge basis and the flood-vs-gauge spread decomposition. Wind has no gauge
+intermediary — it is a pure intersect/union at the property node. Catchments
+without a typhoon stage emit no ``prs_perils`` block and are byte-identical to
+before (flood-only fallback).
 """
 
 import json
@@ -50,22 +57,35 @@ class PricingMixin:
         # decomposition, which stay flood-vs-gauge until Stage 6.
         spread_bps = round((flood_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0
 
-        # Stage 5 — wind into PRS. The headline PRS payout is the union of
-        # flood OR wind triggers over the 1:1-paired event set (one event_id,
-        # one denominator, no double-count). None when the catchment has no
-        # typhoon damage → union == flood (byte-identical flood-only fallback).
+        # Stage 6 — peril outcomes. Wind is a pure intersect/union at the
+        # property/BRI node (no gauge propagation). Returns None when the
+        # catchment has no typhoon damage → flood-only fallback (no prs_perils
+        # block, byte-identical output).
         wind_info = self._wind_union(prop_id, flood_events, num_storms)
 
-        # Term structure is flat — storms are independent
+        # The four peril outcomes (Stage 6). flood_only is the flood spine
+        # (unchanged); the others are derived from the 1:1-paired event set.
+        prs_perils = None
+        if wind_info is not None:
+            prs_perils = {
+                'flood_only':     {'count': flood_count,               'spread_bps': spread_bps},
+                'wind_only':      {'count': wind_info['wind_count'],   'spread_bps': wind_info['wind_spread_bps']},
+                'flood_or_wind':  {'count': wind_info['union_count'],  'spread_bps': wind_info['union_spread_bps']},
+                'flood_and_wind': {'count': wind_info['joint_count'],  'spread_bps': wind_info['joint_spread_bps']},
+            }
+
+        # Term structure is flat — storms are independent. The severe leg is the
+        # flood spine; the four peril outcomes (Stage 6) ride alongside it.
         term_structure = {
             'tenors': TENORS,
             'severe': {
                 'prs_spread_bps': [spread_bps] * len(TENORS),
             },
         }
-        if wind_info is not None:
-            term_structure['union'] = {
-                'prs_spread_bps': [wind_info['union_spread_bps']] * len(TENORS),
+        if prs_perils is not None:
+            term_structure['perils'] = {
+                name: {'prs_spread_bps': [o['spread_bps']] * len(TENORS)}
+                for name, o in prs_perils.items()
             }
 
         # Compute basis vs nearest gauges
@@ -180,7 +200,9 @@ class PricingMixin:
         if wind_info is not None:
             audit_params["wind_count"] = wind_info["wind_count"]
             audit_params["union_count"] = wind_info["union_count"]
+            audit_params["joint_count"] = wind_info["joint_count"]
             audit_params["union_spread_bps"] = wind_info["union_spread_bps"]
+            audit_params["joint_spread_bps"] = wind_info["joint_spread_bps"]
         log_model_usage("prs", "prs_spread", parameters=audit_params,
                         context="Property PRS spread (event count)")
 
@@ -228,12 +250,10 @@ class PricingMixin:
             'summary': summary_data,
             'storm_details': storm_details,
         }
-        # Stage 5 wind/union transparency — only present for catchments whose
-        # typhoon stage ran (keeps flood-only output byte-identical).
-        if wind_info is not None:
-            result['wind_count'] = wind_info['wind_count']
-            result['union_count'] = wind_info['union_count']
-            result['prs_union_spread_bps'] = wind_info['union_spread_bps']
+        # Stage 6 peril outcomes — only present for catchments whose typhoon
+        # stage ran (keeps flood-only output byte-identical).
+        if prs_perils is not None:
+            result['prs_perils'] = prs_perils
         return result
 
     @staticmethod
@@ -250,17 +270,18 @@ class PricingMixin:
         return gauge_hc.get('severe_event_count', 0)
 
     # ------------------------------------------------------------------
-    # Stage 5 — wind into PRS (flood ∪ wind over the 1:1-paired event set)
+    # Stage 6 — peril outcomes (flood ∪/∩ wind over the 1:1-paired event set)
     # ------------------------------------------------------------------
 
     def _wind_union(self, prop_id: str, flood_events: List[Dict],
                     num_storms: int) -> Optional[Dict]:
-        """Count flood ∪ wind PRS triggers for one property.
+        """Count flood ∪ wind and flood ∩ wind PRS triggers for one property.
 
         Returns ``None`` when the catchment has no typhoon damage (flood-only
         fallback — the headline flood spread is unchanged). Otherwise returns
-        the wind-leg and union counts/spreads, deduplicated on the shared 1:1
-        ``event_id`` so an event that triggers BOTH flood and wind counts once.
+        the wind-leg, union and intersection counts/spreads, deduplicated on the
+        shared 1:1 ``event_id`` so an event that triggers BOTH flood and wind
+        counts once in the union and once in the intersection.
 
         The wind trigger is :func:`is_prs_wind` (binary damage-onset). Each
         storm sequence carries its paired typhoon's ``event_id`` (Stage 2), so
@@ -293,13 +314,17 @@ class PricingMixin:
 
         wind_count = len(wind_eids)
         union_count = len(flood_eids | wind_eids) + flood_unmapped
+        # Intersection (flood AND wind) lives in event_id space only — a
+        # flood-triggered storm with no event_id cannot also be a wind event.
+        joint_count = len(flood_eids & wind_eids)
+        bps = lambda c: round((c / num_storms) * 10000, 2) if num_storms > 0 else 0.0
         return {
             'wind_count': wind_count,
             'union_count': union_count,
-            'wind_spread_bps': (
-                round((wind_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0),
-            'union_spread_bps': (
-                round((union_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0),
+            'joint_count': joint_count,
+            'wind_spread_bps': bps(wind_count),
+            'union_spread_bps': bps(union_count),
+            'joint_spread_bps': bps(joint_count),
         }
 
     def _seq_to_event_map(self) -> Dict[str, str]:
