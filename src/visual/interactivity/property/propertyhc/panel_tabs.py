@@ -105,6 +105,7 @@ def get_js() -> str:
                 if (basisSHDChart) { basisSHDChart.destroy(); basisSHDChart = null; }
                 if (basisPropertyChart) { basisPropertyChart.destroy(); basisPropertyChart = null; }
                 if (_basisWaterfallChart) { _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }
+                if (typeof _perilOutcomesChart !== 'undefined' && _perilOutcomesChart) { _perilOutcomesChart.destroy(); _perilOutcomesChart = null; }
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
 
                 // Set container to flex-column for basis layouts
