@@ -174,9 +174,17 @@ class TestEnumKeyConversion:
 
     def test_str_keys_to_gap_type_fallback_on_import_error(self):
         """If GapType import fails, returns string-keyed dict with tuples."""
+        import sys
+        from unittest.mock import patch
         from config.storm_control import _str_keys_to_gap_type
-        # Without the module loaded, falls back to string keys
-        result = _str_keys_to_gap_type({"short": [6, 18, 36]})
+        # Setting the module to None in sys.modules makes the inner
+        # `from ... import GapType` raise ImportError, exercising the
+        # string-key fallback branch.
+        with patch.dict(
+            sys.modules,
+            {"src.port.src.storm_multi.core.data_structures": None},
+        ):
+            result = _str_keys_to_gap_type({"short": [6, 18, 36]})
         assert "short" in result
         assert result["short"] == (6, 18, 36)
 

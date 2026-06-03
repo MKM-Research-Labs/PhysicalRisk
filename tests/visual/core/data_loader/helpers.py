@@ -118,6 +118,58 @@ class TestDataLoaderHelpers:
         assert DataLoader(input_dir=tmp_path).get_data_summary() == {}
 
 
+class TestLoadOptionalJson:
+    """Covers _load_optional_json + _build_commercial_loan_lookup."""
+
+    def test_missing_file_returns_none(self, tmp_path):
+        from visual.core.data_loader import DataLoader
+        dl = DataLoader(input_dir=tmp_path)
+        assert dl._load_optional_json(tmp_path / "nope.json", "commercial") is None
+
+    def test_loads_commercial_assets_count(self, tmp_path):
+        import json
+        from visual.core.data_loader import DataLoader
+        p = tmp_path / "commercial.json"
+        p.write_text(json.dumps({"commercial_assets": [{"a": 1}, {"b": 2}]}))
+        dl = DataLoader(input_dir=tmp_path)
+        out = dl._load_optional_json(p, "commercial")
+        assert out["commercial_assets"][0] == {"a": 1}
+
+    def test_loads_commercial_loans_count(self, tmp_path):
+        import json
+        from visual.core.data_loader import DataLoader
+        p = tmp_path / "commercial_loan.json"
+        p.write_text(json.dumps({"commercial_loans": [{"x": 1}]}))
+        dl = DataLoader(input_dir=tmp_path)
+        out = dl._load_optional_json(p, "commercial_loan")
+        assert out["commercial_loans"] == [{"x": 1}]
+
+    def test_bad_json_returns_none(self, tmp_path):
+        from visual.core.data_loader import DataLoader
+        p = tmp_path / "commercial.json"
+        p.write_text("{not valid")
+        dl = DataLoader(input_dir=tmp_path)
+        assert dl._load_optional_json(p, "commercial") is None
+
+    def test_build_commercial_loan_lookup_indexes_by_pid(self, tmp_path):
+        from visual.core.data_loader import DataLoader
+        dl = DataLoader(input_dir=tmp_path)
+        dl.loaded_data.commercial_loan_data = {"commercial_loans": [
+            {"RLoan": {"Header": {"PropertyID": "CPROP-1"}}},
+            {"RLoan": {"Header": {}}},  # no PID → skipped
+        ]}
+        dl._build_commercial_loan_lookup()
+        assert "CPROP-1" in dl.loaded_data.commercial_loan_lookup
+        assert len(dl.loaded_data.commercial_loan_lookup) == 1
+
+    def test_build_commercial_loan_lookup_empty(self, tmp_path):
+        from visual.core.data_loader import DataLoader
+        dl = DataLoader(input_dir=tmp_path)
+        dl.loaded_data.commercial_loan_data = None
+        dl._build_commercial_loan_lookup()
+        assert dl.loaded_data.commercial_loan_lookup == {}
+
+
 class TestPrintLoadingSummary:
 
     def test_summary_with_no_data_does_not_crash(self, tmp_path):
