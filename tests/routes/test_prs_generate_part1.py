@@ -159,6 +159,61 @@ class TestGenerateTradePDF:
         pdf_path = _generate_trade_pdf(cdm, [], tmp_path)
         assert pdf_path.exists()
 
+    def test_currency_falls_back_to_config_when_leg_missing(self, tmp_path):
+        """Leg without Currency → _default_currency() (lines 59-64)."""
+        from routes.prs import _generate_trade_pdf
+
+        cdm = {
+            "PhysicalSwap": {
+                "Header": {
+                    "SwapID": "PRS-NOCCY01",
+                    "CounterParty": "CTPY-001",
+                    "CounterPartyName": "Test Bank",
+                    "ValuationDate": "2025-01-01",
+                    "ProtectionStart": "2025-01-03",
+                    "CatchmentID": "thames",
+                },
+                # No "Currency" key → triggers _default_currency().
+                "LegData": {"Notional": 1_000_000, "DayCounter": "ACT/360",
+                            "Payer": True, "FixedLegRate": 0.015},
+                "ScheduleData": {"StartDate": "2025-01-03", "EndDate": "2028-01-03"},
+                "Pricing": {"SpreadBps": 150, "FairSpreadBps": 145, "NPV": -5000,
+                            "PremiumLegPV": 100000, "ProtectionLegPV": 105000,
+                            "RiskyAnnuity": 2.5, "RiskFreeRate": 0.04,
+                            "Recovery": 0.0, "TriggerLevel": "warning"},
+                "GaugeSet": {}, "Triggers": {}, "Payouts": {},
+            }
+        }
+        pdf_path = _generate_trade_pdf(cdm, [], tmp_path)
+        assert pdf_path.exists()
+
+    def test_close_out_with_unparseable_trade_date(self, tmp_path):
+        """CloseOutOf with bad ValuationDate → settlement parse except (line 170)."""
+        from routes.prs import _generate_trade_pdf
+
+        cdm = {
+            "PhysicalSwap": {
+                "Header": {
+                    "SwapID": "PRS-BADDATE01",
+                    "CounterParty": "CTPY-001",
+                    "CounterPartyName": "Test Bank",
+                    "ValuationDate": "not-a-date",  # strptime raises → except pass
+                    "CatchmentID": "thames",
+                    "CloseOutOf": "PRS-ORIG01",
+                },
+                "LegData": {"Notional": 500_000, "Currency": "GBP",
+                            "DayCounter": "ACT/360", "Payer": False},
+                "ScheduleData": {"StartDate": "2025-01-03", "EndDate": "2027-01-03"},
+                "Pricing": {"SpreadBps": 150, "FairSpreadBps": 140, "NPV": -2500,
+                            "PremiumLegPV": 90000, "ProtectionLegPV": 95000,
+                            "RiskyAnnuity": 2.3, "Recovery": 0.0,
+                            "TriggerLevel": "alert"},
+                "GaugeSet": {}, "Triggers": {}, "Payouts": {},
+            }
+        }
+        pdf_path = _generate_trade_pdf(cdm, [], tmp_path)
+        assert pdf_path.exists()
+
     def test_close_out_payable_direction(self, tmp_path):
         """CloseOutDate with Payable SettlementDirection."""
         from routes.prs import _generate_trade_pdf

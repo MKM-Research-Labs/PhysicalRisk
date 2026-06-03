@@ -172,6 +172,19 @@ class TestLoadGaugehdBaselines:
         loader = _LoaderHelper(tmp_path)
         assert loader._load_gaugehd_baselines(ghd) == []
 
+    def test_swallows_error_during_processing(self, tmp_path):
+        """Lines 116-118: a non-numeric monthly mean raises float() ValueError
+        inside the loop, which is caught and the file is skipped."""
+        ghd = tmp_path / 'gaugehd'
+        ghd.mkdir()
+        (ghd / 'gauge_Z_hd.json').write_text(json.dumps({
+            'gauge_metadata': {'gauge_id': 'Z'},
+            'statistics': {'mean_level': 1.0,
+                           'monthly_means': {'12': 'not-a-number'}},
+        }))
+        loader = _LoaderHelper(tmp_path)
+        assert loader._load_gaugehd_baselines(ghd) == []
+
     def test_handles_missing_monthly_means(self, tmp_path):
         ghd = tmp_path / 'gaugehd'
         ghd.mkdir()

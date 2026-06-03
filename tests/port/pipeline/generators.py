@@ -160,7 +160,8 @@ class TestNostressFlag:
             # all of these unconditionally when assembling segment_flags.
             commercial=False, commercialts=False, commercialtsd=False,
             commercialtse=False, commercialhc=False, commercialshd=False,
-            commercialshe=False, typhoon=False,
+            commercialshe=False, commercialtsb=False, commercialbri=False,
+            propertytsb=False, propertybri=False, typhoon=False,
             num_typhoon_events=10, num_typhoon_particles=10,
             typhoon_seed=42, typhoon_no_plausibility=False,
             train_classifiers=False, nostress=False,

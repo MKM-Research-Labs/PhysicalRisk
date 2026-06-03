@@ -71,12 +71,11 @@ class TestDeterministicCommercialId:
 
 class TestPeriodFromYear:
     @pytest.mark.parametrize("year,expected", [
-        (1900, "Pre-1919"),
-        (1930, "1919-1944"),
-        (1960, "1945-1975"),
-        (1990, "1976-1999"),
-        (2005, "2000-2008"),
-        (2025, "2009-Present"),
+        (1970, "Pre-1980"),
+        (1990, "1980-1994"),
+        (2000, "1995-2004"),
+        (2010, "2005-2014"),
+        (2020, "2015-Present"),
     ])
     def test_all_year_branches(self, year, expected):
         from port.rand.halong.commercial.commercial_random.metadata import period_from_year
@@ -161,7 +160,8 @@ class TestCommercialGenerators:
     def test_use_class_dispatches_by_type(self, commercial_metadata):
         from port.rand.halong.commercial.commercial_random.generators import generate_field_value
         commercial_metadata["commercial_type"] = "Retail"
-        assert generate_field_value("UseClassUKO", {}, 0, commercial_metadata) == "E(a)"
+        # halong uses Vietnam-local use-class labels (not UK O-classes): Retail -> "Retail"
+        assert generate_field_value("UseClassUKO", {}, 0, commercial_metadata) == "Retail"
 
     def test_unknown_field_delegates_to_residential(self, commercial_metadata):
         from port.rand.halong.commercial.commercial_random.generators import generate_field_value

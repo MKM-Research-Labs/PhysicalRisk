@@ -663,7 +663,7 @@ class TestFreshnessExternalInputs:
             },
         })
         with _patch.object(_val, "load_manifest", return_value=manifest), \
-             _patch("lineage.validation._helpers._resolve_data_dir",
+             _patch("lineage.validation.freshness._resolve_data_dir",
                     return_value=tmp_path):
             ok, issues = check_inputs_fresh("stressm")
         assert not ok

@@ -19,7 +19,8 @@ from datetime import date
 
 import pytest
 
-from port.cdm.asset.residential.bri import apply_bri_rating
+import port.cdm.asset.residential.bri as bri_mod
+from port.cdm.asset.residential.bri import _weaker_rating, apply_bri_rating
 
 
 _LEVELS_HIGH = "Verified"
@@ -238,3 +239,75 @@ class TestReturnValue:
         assert "hazard_scores" in result
         # Score breakdown isn't written to the record but is in the result.
         assert set(result["hazard_scores"]) == {"Flood", "Wind", "Fire", "Seismic"}
+
+
+# ---------------------------------------------------------------------------
+# _weaker_rating helper
+# ---------------------------------------------------------------------------
+
+class TestWeakerRating:
+
+    def test_a_none_returns_b(self):
+        assert _weaker_rating(None, "A") == "A"
+
+    def test_b_none_returns_a(self):
+        assert _weaker_rating("AA", None) == "AA"
+
+    def test_returns_weaker_of_two(self):
+        # "B" (index 2) is weaker than "A" (index 1).
+        assert _weaker_rating("A", "B") == "B"
+        assert _weaker_rating("B", "A") == "B"
+
+    def test_equal_returns_first(self):
+        assert _weaker_rating("A", "A") == "A"
+
+    def test_invalid_rating_na_fallback(self):
+        # "ZZ" not in order → ValueError; a=="N/A"? no → return a.
+        assert _weaker_rating("ZZ", "A") == "ZZ"
+
+    def test_invalid_rating_with_na_first(self):
+        # a == "N/A" → ValueError branch returns b.
+        assert _weaker_rating("N/A", "ZZ") == "ZZ"
+
+
+# ---------------------------------------------------------------------------
+# Water / Flash envelope branches in apply_bri_rating (lines 100/102/104)
+# ---------------------------------------------------------------------------
+
+class TestWaterFlashEnvelope:
+
+    def _patch_ratings(self, monkeypatch, hazard_ratings):
+        def fake_compute(resilience, hazard_profile=None):
+            return {"rating": "A", "score": 0.6,
+                    "section_scores": {}, "hazard_ratings": hazard_ratings,
+                    "hazard_scores": {}}
+        monkeypatch.setattr(bri_mod, "compute_bri_rating", fake_compute)
+
+    def test_water_and_flash_envelope_is_weakest(self, monkeypatch):
+        self._patch_ratings(monkeypatch, {
+            "Wind": "A", "Fire": "A", "Seismic": "A",
+            "Water": "AA", "Flash": "B"})
+        rec = {}
+        apply_bri_rating(rec)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        assert gbr["BRIWaterRating"] == "AA"
+        assert gbr["BRIFlashRating"] == "B"
+        assert gbr["BRIFloodRating"] == "B"  # weakest of (AA, B)
+
+    def test_only_water_present(self, monkeypatch):
+        self._patch_ratings(monkeypatch, {
+            "Wind": "A", "Fire": "A", "Seismic": "A", "Water": "A"})
+        rec = {}
+        apply_bri_rating(rec)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        assert gbr["BRIWaterRating"] == "A"
+        assert "BRIFlashRating" not in gbr
+        assert gbr["BRIFloodRating"] == "A"
+
+    def test_neither_water_nor_flash_uses_flood(self, monkeypatch):
+        self._patch_ratings(monkeypatch, {
+            "Wind": "A", "Fire": "A", "Seismic": "A", "Flood": "AA"})
+        rec = {}
+        apply_bri_rating(rec)
+        gbr = rec["ProtectionMeasures"]["RiskAssessment"]["GoverningBodyRatings"]
+        assert gbr["BRIFloodRating"] == "AA"
