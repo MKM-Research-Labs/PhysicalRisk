@@ -42,7 +42,7 @@ class LoanPricerPanel:
 
     def __init__(self,
                  panel_width: str = "720px",
-                 panel_height: str = "560px"):
+                 panel_height: str = "680px"):
         self.panel_width = panel_width
         self.panel_height = panel_height
 
