@@ -24,6 +24,8 @@ input JSON shape and the output filenames:
   ts_dirs.win           propertytsw                commercialtsw
   ts_dirs.faw           propertytsfaw              commercialtsfaw
   ts_dirs.fow           propertytsfow              commercialtsfow
+  ts_dirs.bow           propertytsbow              commercialtsbow
+  ts_dirs.baw           propertytsbaw              commercialtsbaw
   hc_files.normal       propertyhc.json            commercialhc.json
   hc_files.shd          propertyshd.json           commercialshd.json
   hc_files.she          propertyshe.json           commercialshe.json
@@ -31,12 +33,21 @@ input JSON shape and the output filenames:
   hc_files.win          propertywin.json           commercialwin.json
   hc_files.faw          propertyfaw.json           commercialfaw.json
   hc_files.fow          propertyfow.json           commercialfow.json
+  hc_files.bow          propertybow.json           commercialbow.json
+  hc_files.baw          propertybaw.json           commercialbaw.json
   type_field            PropertyResi               CommercialType
   type_default          Detached                   Office
 
 The TS + HC generator classes read an ``ASSET_CONFIG`` class attribute. The
 residential generators set it to ``RESIDENTIAL_CONFIG``; the commercial
 subclasses override only that attribute.
+
+Wind-coupled peril scenarios. ``win``/``faw``/``fow`` combine the RAW asset
+flood spine with wind (flood-only / flood AND wind / flood OR wind). ``bow``
+(BRI OR wind) and ``baw`` (BRI AND wind) are the same union/intersection but
+anchored on the BRI-resilient flood (the ``bri`` ts) — i.e. the flood level the
+book actually trades at. The peril ts generator derives ``bow``/``baw`` from the
+``bri`` ts rather than the ``normal`` ts; everything downstream is identical.
 """
 
 from dataclasses import dataclass
@@ -85,6 +96,8 @@ RESIDENTIAL_CONFIG = AssetTypeConfig(
         "win": "propertytsw",
         "faw": "propertytsfaw",
         "fow": "propertytsfow",
+        "bow": "propertytsbow",
+        "baw": "propertytsbaw",
     },
     hc_files={
         "normal": "propertyhc.json",
@@ -94,6 +107,8 @@ RESIDENTIAL_CONFIG = AssetTypeConfig(
         "win": "propertywin.json",
         "faw": "propertyfaw.json",
         "fow": "propertyfow.json",
+        "bow": "propertybow.json",
+        "baw": "propertybaw.json",
     },
     label="Property",
 )
@@ -115,6 +130,8 @@ COMMERCIAL_CONFIG = AssetTypeConfig(
         "win": "commercialtsw",
         "faw": "commercialtsfaw",
         "fow": "commercialtsfow",
+        "bow": "commercialtsbow",
+        "baw": "commercialtsbaw",
     },
     hc_files={
         "normal": "commercialhc.json",
@@ -124,6 +141,8 @@ COMMERCIAL_CONFIG = AssetTypeConfig(
         "win": "commercialwin.json",
         "faw": "commercialfaw.json",
         "fow": "commercialfow.json",
+        "bow": "commercialbow.json",
+        "baw": "commercialbaw.json",
     },
     label="Commercial",
 )

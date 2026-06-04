@@ -1,16 +1,22 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 # (see ../auth.py for full license text)
 
-"""Wind-coupled hazard-curve stages: win / faw / fow for property + commercial.
+"""Wind-coupled hazard-curve stages: win/faw/fow/bow/baw for property + commercial.
 
-These three scenarios sit alongside the flood spine (propertyhc) and the
-shd/she/bri basis steps, following the IDENTICAL scenario protocol:
+These scenarios sit alongside the flood spine (propertyhc) and the shd/she/bri
+basis steps, following the IDENTICAL scenario protocol:
 
     flag  →  per-mode ts input dir  →  hc generator(mode)  →  hc output json
 
-    win   wind-only        propertytsw    →  propertywin.json
-    faw   flood AND wind    propertytsfaw  →  propertyfaw.json
-    fow   flood OR wind     propertytsfow  →  propertyfow.json   (+ commercial*)
+    win   wind-only         propertytsw    →  propertywin.json
+    faw   flood AND wind     propertytsfaw  →  propertyfaw.json
+    fow   flood OR wind      propertytsfow  →  propertyfow.json   (+ commercial*)
+    bow   BRI OR wind        propertytsbow  →  propertybow.json
+    baw   BRI AND wind       propertytsbaw  →  propertybaw.json
+
+bow/baw mirror fow/faw but anchor the flood leg on the BRI-resilient flood
+(derived from the bri ts rather than the raw flood spine) — the level the book
+actually trades at. They are skipped when the bri ts is absent.
 
 The wind leg has no gauge intermediary, so instead of a flood-propagation
 timeseries we DERIVE the three ts dirs from the flood spine: the peril
@@ -38,7 +44,9 @@ def _peril_requested(ctx: StageContext) -> bool:
     a = ctx.args
     return any(getattr(a, f, False) for f in (
         "propertytsw", "propertytsfaw", "propertytsfow",
+        "propertytsbow", "propertytsbaw",
         "propertywin", "propertyfaw", "propertyfow",
+        "propertybow", "propertybaw",
     ))
 
 
@@ -46,7 +54,9 @@ def _commercial_peril_requested(ctx: StageContext) -> bool:
     a = ctx.args
     return any(getattr(a, f, False) for f in (
         "commercialtsw", "commercialtsfaw", "commercialtsfow",
+        "commercialtsbow", "commercialtsbaw",
         "commercialwin", "commercialfaw", "commercialfow",
+        "commercialbow", "commercialbaw",
     ))
 
 
@@ -84,6 +94,8 @@ def run_property_peril_ts(ctx: StageContext):
             "propertytsw/": ctx.input_dir / "propertytsw",
             "propertytsfaw/": ctx.input_dir / "propertytsfaw",
             "propertytsfow/": ctx.input_dir / "propertytsfow",
+            "propertytsbow/": ctx.input_dir / "propertytsbow",
+            "propertytsbaw/": ctx.input_dir / "propertytsbaw",
         },
         parameters={"modes": list(r["modes"].keys())},
         elapsed_seconds=elapsed,
@@ -93,12 +105,15 @@ def run_property_peril_ts(ctx: StageContext):
 
 def _run_property_peril_hc(ctx: StageContext, mode: str, label: str, step: str):
     args = ctx.args
-    flag = {"win": "propertywin", "faw": "propertyfaw", "fow": "propertyfow"}[mode]
+    flag = {"win": "propertywin", "faw": "propertyfaw", "fow": "propertyfow",
+            "bow": "propertybow", "baw": "propertybaw"}[mode]
     if not ((ctx.run_all or getattr(args, flag, False)) and _damage_available(ctx)):
         return
-    ts_dir = {"win": "propertytsw", "faw": "propertytsfaw", "fow": "propertytsfow"}[mode]
+    ts_dir = {"win": "propertytsw", "faw": "propertytsfaw", "fow": "propertytsfow",
+              "bow": "propertytsbow", "baw": "propertytsbaw"}[mode]
     out_file = {"win": "propertywin.json", "faw": "propertyfaw.json",
-                "fow": "propertyfow.json"}[mode]
+                "fow": "propertyfow.json", "bow": "propertybow.json",
+                "baw": "propertybaw.json"}[mode]
     if not (ctx.input_dir / ts_dir).exists():
         return
     print(f"{step}. Building {label} Hazard Curves ({flag})...")
@@ -139,6 +154,14 @@ def run_propertyfow(ctx: StageContext):
     _run_property_peril_hc(ctx, "fow", "Flood-OR-Wind (fow)", "9c")
 
 
+def run_propertybow(ctx: StageContext):
+    _run_property_peril_hc(ctx, "bow", "BRI-OR-Wind (bow)", "9c1")
+
+
+def run_propertybaw(ctx: StageContext):
+    _run_property_peril_hc(ctx, "baw", "BRI-AND-Wind (baw)", "9c2")
+
+
 # ----------------------------------------------------------------------
 # Commercial
 # ----------------------------------------------------------------------
@@ -176,6 +199,8 @@ def run_commercial_peril_ts(ctx: StageContext):
             "commercialtsw/": ctx.input_dir / "commercialtsw",
             "commercialtsfaw/": ctx.input_dir / "commercialtsfaw",
             "commercialtsfow/": ctx.input_dir / "commercialtsfow",
+            "commercialtsbow/": ctx.input_dir / "commercialtsbow",
+            "commercialtsbaw/": ctx.input_dir / "commercialtsbaw",
         },
         parameters={"modes": list(r["modes"].keys())},
         elapsed_seconds=elapsed,
@@ -185,15 +210,18 @@ def run_commercial_peril_ts(ctx: StageContext):
 
 def _run_commercial_peril_hc(ctx: StageContext, mode: str, label: str, step: str):
     args = ctx.args
-    flag = {"win": "commercialwin", "faw": "commercialfaw", "fow": "commercialfow"}[mode]
+    flag = {"win": "commercialwin", "faw": "commercialfaw", "fow": "commercialfow",
+            "bow": "commercialbow", "baw": "commercialbaw"}[mode]
     run = (getattr(args, flag, False)
            or (ctx.run_all and ctx.commercial_exists))
     if not (run and _damage_available(ctx)):
         return
     ts_dir = {"win": "commercialtsw", "faw": "commercialtsfaw",
-              "fow": "commercialtsfow"}[mode]
+              "fow": "commercialtsfow", "bow": "commercialtsbow",
+              "baw": "commercialtsbaw"}[mode]
     out_file = {"win": "commercialwin.json", "faw": "commercialfaw.json",
-                "fow": "commercialfow.json"}[mode]
+                "fow": "commercialfow.json", "bow": "commercialbow.json",
+                "baw": "commercialbaw.json"}[mode]
     if not (ctx.input_dir / ts_dir).exists():
         return
     print(f"{step}. Building {label} Commercial Hazard Curves ({flag})...")
@@ -234,6 +262,14 @@ def run_commercialfow(ctx: StageContext):
     _run_commercial_peril_hc(ctx, "fow", "Flood-OR-Wind (fow)", "9g")
 
 
+def run_commercialbow(ctx: StageContext):
+    _run_commercial_peril_hc(ctx, "bow", "BRI-OR-Wind (bow)", "9g1")
+
+
+def run_commercialbaw(ctx: StageContext):
+    _run_commercial_peril_hc(ctx, "baw", "BRI-AND-Wind (baw)", "9g2")
+
+
 # ----------------------------------------------------------------------
 # Re-attach spread decomposition (canonical peril fan from win/faw/fow)
 # ----------------------------------------------------------------------
@@ -248,9 +284,10 @@ def run_property_peril_decomposition(ctx: StageContext):
     if not (ctx.output_dir / "propertyhc.json").exists():
         return
     if not any((ctx.output_dir / f).exists()
-               for f in ("propertywin.json", "propertyfaw.json", "propertyfow.json")):
+               for f in ("propertywin.json", "propertyfaw.json", "propertyfow.json",
+                         "propertybow.json", "propertybaw.json")):
         return
-    print("9h. Re-attaching Spread Decomposition (peril fan from win/faw/fow)...")
+    print("9h. Re-attaching Spread Decomposition (peril fan from win/faw/fow/bow/baw)...")
     gen = ctx.propertyhc.PropertyHazardCurveGenerator(
         ctx.output_dir, verbose=ctx.args.verbose)
     n = gen.attach_spread_decomposition()
@@ -262,9 +299,10 @@ def run_commercial_peril_decomposition(ctx: StageContext):
     if not (ctx.output_dir / "commercialhc.json").exists():
         return
     if not any((ctx.output_dir / f).exists()
-               for f in ("commercialwin.json", "commercialfaw.json", "commercialfow.json")):
+               for f in ("commercialwin.json", "commercialfaw.json", "commercialfow.json",
+                         "commercialbow.json", "commercialbaw.json")):
         return
-    print("9i. Re-attaching Commercial Spread Decomposition (peril fan from win/faw/fow)...")
+    print("9i. Re-attaching Commercial Spread Decomposition (peril fan from win/faw/fow/bow/baw)...")
     gen = ctx.commercial_gen.CommercialHazardCurveGenerator(
         ctx.output_dir, verbose=ctx.args.verbose)
     n = gen.attach_spread_decomposition()
@@ -277,9 +315,13 @@ def run_all(ctx: StageContext):
     run_propertywin(ctx)
     run_propertyfaw(ctx)
     run_propertyfow(ctx)
+    run_propertybow(ctx)
+    run_propertybaw(ctx)
     run_property_peril_decomposition(ctx)
     run_commercial_peril_ts(ctx)
     run_commercialwin(ctx)
     run_commercialfaw(ctx)
     run_commercialfow(ctx)
+    run_commercialbow(ctx)
+    run_commercialbaw(ctx)
     run_commercial_peril_decomposition(ctx)

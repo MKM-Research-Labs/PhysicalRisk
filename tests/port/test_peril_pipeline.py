@@ -63,6 +63,14 @@ _OVERLAP = {
 }
 EXP_FLOOD, EXP_WIND, EXP_FAW, EXP_FOW = 4, 5, 2, 7
 
+# BRI-resilient flood: raising the floor removes the two shallowest floods
+# (storms 0 and 1), leaving {2, 3}. Combined with the same wind {2,3,4,5,6}:
+#   baw (∩) = {2,3}            → 2
+#   bow (∪) = {2,3,4,5,6}      → 5   (== 2 + 5 − 2)
+_BRI_FLOOD = {0: False, 1: False, 2: True, 3: True,
+              4: False, 5: False, 6: False, 7: False, 8: False, 9: False}
+EXP_BRI, EXP_BAW, EXP_BOW = 2, 2, 5
+
 
 def _write_portfolio(input_dir, ts_subdir, prop_id):
     """Write flood spine ts + typhoon damage + storm_sequences for one asset."""
@@ -131,6 +139,25 @@ def _write_portfolio(input_dir, ts_subdir, prop_id):
         json.dump(gauge_hc, f)
 
 
+def _write_bri_ts(input_dir, normal_subdir, bri_subdir, prop_id):
+    """Derive a BRI-resilient ts from the normal ts (floor raised → fewer floods).
+
+    The BRI ts carries the SAME storms but re-stamps flooded/exceeded_severe per
+    ``_BRI_FLOOD``, mirroring how the BRI ts generator (mode='bri') re-floors the
+    flood test. bow/baw read their flood leg off this dir.
+    """
+    with open(input_dir / normal_subdir / f"{prop_id}.json") as f:
+        record = json.load(f)
+    for i, e in enumerate(record["flood_events"]):
+        bri = _BRI_FLOOD[i]
+        e["flooded"] = bri
+        e["exceeded_severe"] = bri
+    bri_dir = input_dir / bri_subdir
+    bri_dir.mkdir(parents=True, exist_ok=True)
+    with open(bri_dir / f"{prop_id}.json", "w") as f:
+        json.dump(record, f)
+
+
 @pytest.fixture
 def property_dir(tmp_path):
     input_dir = tmp_path / "input" / "thames"
@@ -140,11 +167,24 @@ def property_dir(tmp_path):
 
 
 @pytest.fixture
+def property_dir_bri(property_dir):
+    """property_dir plus a BRI-resilient ts dir (enables bow/baw)."""
+    _write_bri_ts(property_dir, "propertyts", "propertytsb", "PROP-001")
+    return property_dir
+
+
+@pytest.fixture
 def commercial_dir(tmp_path):
     input_dir = tmp_path / "input" / "thames"
     input_dir.mkdir(parents=True)
     _write_portfolio(input_dir, "commercialts", "CPROP-001")
     return input_dir
+
+
+@pytest.fixture
+def commercial_dir_bri(commercial_dir):
+    _write_bri_ts(commercial_dir, "commercialts", "commercialtsb", "CPROP-001")
+    return commercial_dir
 
 
 def _triggers(ts_dir, prop_id):
@@ -270,3 +310,80 @@ class TestPerilSpreadDecomposition:
         assert fow == f + w - faw
         assert fow >= w
         assert faw <= min(f, w)
+
+
+class TestBriPerilTimeseriesDerivation:
+    """bow/baw derive their flood leg from the BRI ts, not the raw flood spine."""
+
+    def test_bow_baw_derived_from_bri_floor(self, property_dir_bri):
+        result = PerilTimeseriesGenerator(property_dir_bri, verbose=False).generate()
+        assert result["available"] is True
+        # bow/baw use the BRI-resilient flood {2,3}, not the raw flood {0,1,2,3}.
+        assert _triggers(property_dir_bri / "propertytsbow", "PROP-001") == EXP_BOW
+        assert _triggers(property_dir_bri / "propertytsbaw", "PROP-001") == EXP_BAW
+
+    def test_bri_inclusion_exclusion_identity(self, property_dir_bri):
+        PerilTimeseriesGenerator(property_dir_bri, verbose=False).generate()
+        bow = _triggers(property_dir_bri / "propertytsbow", "PROP-001")
+        baw = _triggers(property_dir_bri / "propertytsbaw", "PROP-001")
+        # bow (BRI ∪ wind) = bri + wind − baw (BRI ∩ wind)
+        assert bow == EXP_BRI + EXP_WIND - baw
+        assert bow >= EXP_WIND
+        assert baw <= min(EXP_BRI, EXP_WIND)
+
+    def test_bow_baw_skipped_without_bri_ts(self, property_dir):
+        # No BRI ts → bow/baw silently skipped; win/faw/fow still produced.
+        PerilTimeseriesGenerator(property_dir, verbose=False).generate()
+        assert not (property_dir / "propertytsbow").exists()
+        assert not (property_dir / "propertytsbaw").exists()
+        assert (property_dir / "propertytsfow").exists()
+
+    def test_commercial_bow_baw(self, commercial_dir_bri):
+        CommercialPerilTimeseriesGenerator(commercial_dir_bri, verbose=False).generate()
+        assert _triggers(commercial_dir_bri / "commercialtsbow", "CPROP-001") == EXP_BOW
+        assert _triggers(commercial_dir_bri / "commercialtsbaw", "CPROP-001") == EXP_BAW
+
+
+class TestBriPerilSpreadDecomposition:
+    """attach_spread_decomposition emits bow/baw scalars + the BRI-anchored
+    peril_outcomes legs when the bow/baw scenario files exist."""
+
+    def _decompose(self, input_dir, prop_id):
+        PerilTimeseriesGenerator(input_dir, verbose=False).generate()
+        PropertyHazardCurveGenerator(input_dir, verbose=False).generate()
+        for mode in ("win", "faw", "fow", "bow", "baw"):
+            PropertyHazardCurveGenerator(
+                input_dir, verbose=False, mode=mode).generate()
+        gen = PropertyHazardCurveGenerator(input_dir, verbose=False)
+        gen.attach_spread_decomposition()
+        with open(input_dir / "propertyhc.json") as f:
+            data = json.load(f)
+        return data["property_hazard_curves"][prop_id]["spread_decomposition"]
+
+    def test_bow_baw_scalar_spreads(self, property_dir_bri):
+        dec = self._decompose(property_dir_bri, "PROP-001")
+        assert dec["bow_spread_bps"] == round(EXP_BOW / NUM_STORMS * 10000, 2)
+        assert dec["baw_spread_bps"] == round(EXP_BAW / NUM_STORMS * 10000, 2)
+
+    def test_bri_peril_outcomes_legs(self, property_dir_bri):
+        po = self._decompose(property_dir_bri, "PROP-001")["peril_outcomes"]
+        assert po["bri_or_wind"]["count"] == EXP_BOW
+        assert po["bri_and_wind"]["count"] == EXP_BAW
+        # The raw-flood legs are unchanged (anchored on the asset, not BRI).
+        assert po["flood_only"]["count"] == EXP_FLOOD
+        assert po["flood_or_wind"]["count"] == EXP_FOW
+
+    def test_bow_baw_absent_without_scenario_files(self, property_dir_bri):
+        # Build only the raw win/faw/fow scenarios (no bow/baw hc) → decomposition
+        # keeps the four raw legs and omits the BRI-anchored ones.
+        PerilTimeseriesGenerator(property_dir_bri, verbose=False).generate()
+        PropertyHazardCurveGenerator(property_dir_bri, verbose=False).generate()
+        for mode in ("win", "faw", "fow"):
+            PropertyHazardCurveGenerator(
+                property_dir_bri, verbose=False, mode=mode).generate()
+        gen = PropertyHazardCurveGenerator(property_dir_bri, verbose=False)
+        gen.attach_spread_decomposition()
+        with open(property_dir_bri / "propertyhc.json") as f:
+            dec = json.load(f)["property_hazard_curves"]["PROP-001"]["spread_decomposition"]
+        assert "bow_spread_bps" not in dec
+        assert "bri_or_wind" not in dec["peril_outcomes"]

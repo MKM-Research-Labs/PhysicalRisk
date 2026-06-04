@@ -3,7 +3,7 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Peril timeseries generator (win / faw / fow scenario inputs).
+"""Peril timeseries generator (win / faw / fow / bow / baw scenario inputs).
 
 The flood spine writes a per-asset timeseries directory (``propertyts`` /
 ``commercialts``) whose ``flood_events`` carry ``flooded`` + ``exceeded_severe``
@@ -11,16 +11,26 @@ flags. The hazard-curve generator counts a PRS trigger as
 ``is_prs_flood(e) == flooded AND exceeded_severe`` and prices
 ``count / num_storms × 10 000`` bps.
 
-The three wind-coupled scenarios reuse that EXACT pricing path. We do not
-re-implement counting — instead we derive three new timeseries directories
-from the flood spine, re-stamping each event's ``flooded`` +
-``exceeded_severe`` so the peril of interest is what the generator counts:
+The wind-coupled scenarios reuse that EXACT pricing path. We do not
+re-implement counting — instead we derive new timeseries directories from a
+flood-base ts, re-stamping each event's ``flooded`` + ``exceeded_severe`` so the
+peril of interest is what the generator counts:
 
 * ``win`` (wind-only)      — flag set iff the paired typhoon's wind triggers
                              :func:`is_prs_wind` for this asset/event.
 * ``faw`` (flood AND wind) — flag set iff the event triggers BOTH flood and
                              wind (the joint / intersection leg).
 * ``fow`` (flood OR wind)  — flag set iff the event triggers EITHER (union).
+* ``bow`` (BRI OR wind)    — like ``fow`` but the flood leg is the BRI-resilient
+                             flood (derived from the ``bri`` ts, not ``normal``).
+* ``baw`` (BRI AND wind)   — like ``faw`` but anchored on the BRI flood.
+
+``win``/``faw``/``fow`` derive from the RAW flood spine (``normal`` ts); the
+flood trigger is the asset's own flood. ``bow``/``baw`` derive from the
+BRI-adjusted ts (``bri``) — the BRI mode re-stamps ``flooded``/
+``exceeded_severe`` at the resilience-credited floor, so ``is_prs_flood(e)``
+read off that ts already IS the BRI-resilient flood trigger. ``bow``/``baw``
+are skipped when the ``bri`` ts is absent.
 
 The join contract matches :meth:`PricingMixin._wind_union`: a flood event is
 keyed by ``storm_id`` (== ``sequence_id``); ``storm_sequences.json`` maps that
@@ -47,7 +57,18 @@ from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 logger = logging.getLogger(__name__)
 
 # The peril scenarios this generator produces, in their canonical order.
-PERIL_MODES = ("win", "faw", "fow")
+PERIL_MODES = ("win", "faw", "fow", "bow", "baw")
+
+# Each peril mode's flood-base ts: win/faw/fow use the raw flood spine; the
+# BRI-anchored bow/baw read the BRI-resilient ts so is_prs_flood off the base
+# is already the BRI floor trigger.
+PERIL_BASE_MODE = {
+    "win": "normal",
+    "faw": "normal",
+    "fow": "normal",
+    "bow": "bri",
+    "baw": "bri",
+}
 
 
 class PerilTimeseriesGenerator:
@@ -136,12 +157,17 @@ class PerilTimeseriesGenerator:
     # ------------------------------------------------------------------
 
     def _peril_flag(self, mode: str, flood_trig: bool, wind_trig: bool) -> bool:
-        """Map (flood, wind) triggers to the scenario's PRS trigger."""
+        """Map (flood, wind) triggers to the scenario's PRS trigger.
+
+        For bow/baw the ``flood_trig`` passed in is the BRI-resilient flood
+        (the base ts is the bri ts), so the OR/AND logic is identical to
+        fow/faw — only the flood anchor differs.
+        """
         if mode == "win":
             return wind_trig
-        if mode == "faw":
+        if mode in ("faw", "baw"):
             return flood_trig and wind_trig
-        if mode == "fow":
+        if mode in ("fow", "bow"):
             return flood_trig or wind_trig
         raise ValueError(f"unknown peril mode: {mode!r}")
 
@@ -159,18 +185,25 @@ class PerilTimeseriesGenerator:
 
         seq_to_event = self._seq_to_event_map()
 
-        base_dir = self.output_dir / cfg.ts_dirs["normal"]
-        if not base_dir.exists():
+        normal_dir = self.output_dir / cfg.ts_dirs["normal"]
+        if not normal_dir.exists():
             raise FileNotFoundError(
-                f"{cfg.label} base timeseries directory not found: {base_dir}\n"
+                f"{cfg.label} base timeseries directory not found: {normal_dir}\n"
                 f"Run the flood timeseries stage first."
             )
 
-        base_files = sorted(base_dir.glob(cfg.id_glob))
-        self.log(f"{cfg.label}: deriving peril ts from {len(base_files)} files")
-
         mode_stats: Dict[str, Dict] = {}
         for mode in PERIL_MODES:
+            base_mode = PERIL_BASE_MODE[mode]
+            base_dir = self.output_dir / cfg.ts_dirs[base_mode]
+            if not base_dir.exists():
+                # bow/baw need the BRI ts; skip silently when it hasn't run
+                # (the flood-only / pre-BRI portfolio keeps its layout).
+                self.log(
+                    f"{cfg.label} [{mode}]: base ts {base_dir.name} absent — skipped"
+                )
+                continue
+            base_files = sorted(base_dir.glob(cfg.id_glob))
             out_dir = self.output_dir / cfg.ts_dirs[mode]
             out_dir.mkdir(parents=True, exist_ok=True)
             triggers = 0

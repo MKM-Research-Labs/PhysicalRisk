@@ -42,6 +42,11 @@ class TestAssetTypeConfigDataclass:
             "shd": "propertytsd",
             "she": "propertytse",
             "bri": "propertytsb",
+            "win": "propertytsw",
+            "faw": "propertytsfaw",
+            "fow": "propertytsfow",
+            "bow": "propertytsbow",
+            "baw": "propertytsbaw",
         }
 
     def test_commercial_ts_dirs(self):
@@ -50,6 +55,11 @@ class TestAssetTypeConfigDataclass:
             "shd": "commercialtsd",
             "she": "commercialtse",
             "bri": "commercialtsb",
+            "win": "commercialtsw",
+            "faw": "commercialtsfaw",
+            "fow": "commercialtsfow",
+            "bow": "commercialtsbow",
+            "baw": "commercialtsbaw",
         }
 
     def test_residential_hc_files(self):
@@ -58,6 +68,11 @@ class TestAssetTypeConfigDataclass:
             "shd": "propertyshd.json",
             "she": "propertyshe.json",
             "bri": "propertybri.json",
+            "win": "propertywin.json",
+            "faw": "propertyfaw.json",
+            "fow": "propertyfow.json",
+            "bow": "propertybow.json",
+            "baw": "propertybaw.json",
         }
 
     def test_commercial_hc_files(self):
@@ -66,7 +81,19 @@ class TestAssetTypeConfigDataclass:
             "shd": "commercialshd.json",
             "she": "commercialshe.json",
             "bri": "commercialbri.json",
+            "win": "commercialwin.json",
+            "faw": "commercialfaw.json",
+            "fow": "commercialfow.json",
+            "bow": "commercialbow.json",
+            "baw": "commercialbaw.json",
         }
+
+    def test_bri_anchored_peril_modes_present(self):
+        """bow/baw (BRI-anchored union/intersection) exist for both configs."""
+        for cfg in (RESIDENTIAL_CONFIG, COMMERCIAL_CONFIG):
+            for mode in ("bow", "baw"):
+                assert mode in cfg.ts_dirs
+                assert mode in cfg.hc_files
 
     def test_no_naming_collision_between_configs(self):
         """The two configs must never reference the same output directory or

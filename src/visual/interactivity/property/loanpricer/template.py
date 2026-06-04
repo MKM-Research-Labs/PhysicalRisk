@@ -435,7 +435,7 @@ LOAN_PRICER_JS_TEMPLATE = """
             async function loadAssetFloodSpread() {{
                 assetFloodSpreadBps = null;
                 assetUnionSpreadBps = null;
-                assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null}};
+                assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null, baw: null, bow: null}};
                 if (!standaloneOriginAssetId) return;
                 try {{
                     var resp = await fetch(hazardEndpointFor(standaloneOriginAssetId),

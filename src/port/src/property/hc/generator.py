@@ -182,6 +182,8 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         win_path = self.output_dir / cfg.hc_files["win"]
         faw_path = self.output_dir / cfg.hc_files["faw"]
         fow_path = self.output_dir / cfg.hc_files["fow"]
+        bow_path = self.output_dir / cfg.hc_files["bow"]
+        baw_path = self.output_dir / cfg.hc_files["baw"]
 
         if not hc_path.exists():
             self.log(f"{hc_path.name} not found — skipping decomposition")
@@ -224,6 +226,18 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         if fow_path.exists():
             with open(fow_path, 'r') as f:
                 fow_curves = json.load(f).get('property_hazard_curves', {})
+
+        # BRI-anchored peril scenarios (bow = BRI OR wind, baw = BRI AND wind).
+        # Same Option-A protocol as win/faw/fow, but the flood leg is the
+        # BRI-resilient flood (the level the book trades at) rather than the raw
+        # asset flood. Absent until the bow/baw windhazard sub-stages run.
+        bow_curves, baw_curves = {}, {}
+        if bow_path.exists():
+            with open(bow_path, 'r') as f:
+                bow_curves = json.load(f).get('property_hazard_curves', {})
+        if baw_path.exists():
+            with open(baw_path, 'r') as f:
+                baw_curves = json.load(f).get('property_hazard_curves', {})
 
         curves = hc_data.get('property_hazard_curves', {})
         count = 0
@@ -315,6 +329,24 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
                         'spread_bps': round(faw_spread, 2)},
                     'source': 'scenario_files',
                 }
+
+                # BRI-anchored peril legs (bow = BRI OR wind, baw = BRI AND
+                # wind). Same scenario protocol; the flood leg is the
+                # BRI-resilient flood. Only attached when the bow/baw scenario
+                # files exist (else the four raw-flood legs stand alone).
+                bow_pc = bow_curves.get(prop_id, {})
+                baw_pc = baw_curves.get(prop_id, {})
+                if bow_pc or baw_pc:
+                    bow_spread = self._get_5yr_spread(bow_pc, 'severe')
+                    baw_spread = self._get_5yr_spread(baw_pc, 'severe')
+                    decomposition['bow_spread_bps'] = round(bow_spread, 2)
+                    decomposition['baw_spread_bps'] = round(baw_spread, 2)
+                    decomposition['peril_outcomes']['bri_or_wind'] = {
+                        'count': bow_pc.get('flood_count', 0),
+                        'spread_bps': round(bow_spread, 2)}
+                    decomposition['peril_outcomes']['bri_and_wind'] = {
+                        'count': baw_pc.get('flood_count', 0),
+                        'spread_bps': round(baw_spread, 2)}
             else:
                 # Fallback: damage-join prs_perils (no scenario files on disk).
                 # Prefer the BRI-adjusted node when present (the level the book

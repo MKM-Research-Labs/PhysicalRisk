@@ -68,6 +68,10 @@ def _build_context(args) -> StageContext:
         args.propertywin, args.propertyfaw, args.propertyfow,
         args.commercialtsw, args.commercialtsfaw, args.commercialtsfow,
         args.commercialwin, args.commercialfaw, args.commercialfow,
+        args.propertytsbow, args.propertytsbaw,
+        args.propertybow, args.propertybaw,
+        args.commercialtsbow, args.commercialtsbaw,
+        args.commercialbow, args.commercialbaw,
     ]
     run_all = args.all or not any(segment_flags)
 

@@ -70,12 +70,12 @@ OVERRIDE_KEYS = (
     # catchments, in which case the wind leg falls back to the static category.
     "union_spread_bps",
     # The PRS hazard scenario the user picked in the calculator's dropdown
-    # (flo | bri | win | faw | fow) and that scenario's modelled spread (bps),
-    # read from the asset's hazard-curve peril fan. When present, this single
-    # spread becomes the coupon's entire hazard leg, superseding the
+    # (flo | bri | win | faw | fow | bow | baw) and that scenario's modelled
+    # spread (bps), read from the asset's hazard-curve peril fan. When present,
+    # this single spread becomes the coupon's entire hazard leg, superseding the
     # flood_spread_bps / union_spread_bps split — so the borrower's coupon can
-    # be priced against any one of the five peril scenarios, not just the
-    # combined flood-OR-wind union.
+    # be priced against any one of the peril scenarios, not just the combined
+    # flood-OR-wind union.
     "prs_scenario",
     "prs_spread_bps",
     # The asset's net initial yield (passing rent / capital value), forwarded

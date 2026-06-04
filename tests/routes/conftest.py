@@ -228,3 +228,27 @@ def fow_env(tmp_path, monkeypatch):
     app = create_app()
     app.config["TESTING"] = True
     return app.test_client()
+
+
+@pytest.fixture
+def bow_env(tmp_path, monkeypatch):
+    """Client with a minimal propertybow.json (BRI OR wind) in tmp_path."""
+    from config import config
+    (tmp_path / "propertybow.json").write_text(json.dumps(_sample_peril("bow")))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+@pytest.fixture
+def baw_env(tmp_path, monkeypatch):
+    """Client with a minimal propertybaw.json (BRI AND wind) in tmp_path."""
+    from config import config
+    (tmp_path / "propertybaw.json").write_text(json.dumps(_sample_peril("baw")))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
