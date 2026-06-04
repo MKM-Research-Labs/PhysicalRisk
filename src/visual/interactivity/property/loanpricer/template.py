@@ -66,7 +66,7 @@ LOAN_PRICER_JS_TEMPLATE = """
             // coupon's single hazard leg. Any entry left null (scenario absent
             // for this asset/catchment) makes that menu choice fall back to the
             // legacy flood+wind category lookup server-side.
-            var assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null}};
+            var assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null, baw: null, bow: null}};
             // Borrower income sourced from the origin asset. Commercial markers
             // forward the asset's net initial yield (passing rent / value) so
             // the server can derive income = yield x property value; residential
@@ -116,7 +116,9 @@ LOAN_PRICER_JS_TEMPLATE = """
                 {{value: 'bri', label: 'Flood only + BRI resilience'}},
                 {{value: 'win', label: 'Wind only'}},
                 {{value: 'faw', label: 'Flood AND wind'}},
-                {{value: 'fow', label: 'Flood OR wind (combined)'}}
+                {{value: 'fow', label: 'Flood OR wind (combined)'}},
+                {{value: 'baw', label: 'BRI AND wind'}},
+                {{value: 'bow', label: 'BRI OR wind (resilient combined)'}}
             ];
 
             function createPanel() {{
@@ -479,6 +481,15 @@ LOAN_PRICER_JS_TEMPLATE = """
                     if (sd && sd.fow_spread_bps != null && !isNaN(sd.fow_spread_bps)) {{
                         assetScenarioSpreads.fow = parseFloat(sd.fow_spread_bps);
                     }}
+                    // BRI-anchored peril scalars: BRI-AND-wind and BRI-OR-wind.
+                    // Same union/intersection as faw/fow but on the resilient
+                    // (BRI-adjusted) flood leg rather than the raw asset flood.
+                    if (sd && sd.baw_spread_bps != null && !isNaN(sd.baw_spread_bps)) {{
+                        assetScenarioSpreads.baw = parseFloat(sd.baw_spread_bps);
+                    }}
+                    if (sd && sd.bow_spread_bps != null && !isNaN(sd.bow_spread_bps)) {{
+                        assetScenarioSpreads.bow = parseFloat(sd.bow_spread_bps);
+                    }}
                     // Prefer the BRI-adjusted union (peril outcomes are attached
                     // to the decomposition from the BRI node) to stay consistent
                     // with the BRI-preferred flood leg above.
@@ -502,6 +513,14 @@ LOAN_PRICER_JS_TEMPLATE = """
                         var pfaw = po.flood_and_wind && po.flood_and_wind.spread_bps;
                         if (assetScenarioSpreads.faw == null && pfaw != null && !isNaN(pfaw)) {{
                             assetScenarioSpreads.faw = parseFloat(pfaw);
+                        }}
+                        var pbaw = po.bri_and_wind && po.bri_and_wind.spread_bps;
+                        if (assetScenarioSpreads.baw == null && pbaw != null && !isNaN(pbaw)) {{
+                            assetScenarioSpreads.baw = parseFloat(pbaw);
+                        }}
+                        var pbow = po.bri_or_wind && po.bri_or_wind.spread_bps;
+                        if (assetScenarioSpreads.bow == null && pbow != null && !isNaN(pbow)) {{
+                            assetScenarioSpreads.bow = parseFloat(pbow);
                         }}
                     }}
                 }} catch (e) {{

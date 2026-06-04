@@ -249,7 +249,7 @@ def _build_coupon(term_years: float,
     **PRS scenario override.** When ``prs_spread_bps`` is supplied (the user
     picked a hazard scenario in the calculator's dropdown), that single
     modelled spread *is* the coupon's entire hazard leg and supersedes the
-    flood/union split below. ``prs_scenario`` (flo | bri | win | faw | fow)
+    flood/union split below. ``prs_scenario`` (flo | bri | win | faw | fow | baw | bow)
     only labels the leg and controls how it is shown back as a flood/wind
     decomposition (e.g. ``win`` is all wind; ``fow`` splits into flood plus the
     incremental wind). The total hazard always equals the chosen spread.
@@ -293,17 +293,18 @@ def _build_coupon(term_years: float,
         if scenario == "win":
             # Pure wind frequency — no flood component.
             flood_leg, wind_leg = 0.0, total
-        elif scenario == "fow":
+        elif scenario in ("fow", "bow"):
             # Union splits into flood + incremental wind so the legs still read
             # naturally; the asset flood spread (BRI-preferred) is the base when
-            # available, else the whole leg is flood.
+            # available, else the whole leg is flood. 'bow' is the same union on
+            # the BRI-resilient flood leg, so the same split applies.
             base_bps = (float(flood_spread_bps)
                         if (flood_spread_bps is not None and flood_spread_bps >= 0)
                         else total_bps)
             base_bps = min(base_bps, total_bps)
             flood_leg, wind_leg = base_bps / 10000.0, (total_bps - base_bps) / 10000.0
         else:
-            # flo / bri / faw are flood-side scenarios — shown as a flood leg.
+            # flo / bri / faw / baw are flood-side scenarios — shown as a flood leg.
             flood_leg, wind_leg = total, 0.0
         return {
             "rate": rf + credit + total,
