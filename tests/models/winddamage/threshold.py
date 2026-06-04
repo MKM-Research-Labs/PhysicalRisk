@@ -70,7 +70,12 @@ class TestResolveThresholdMs:
 
 
 class TestIsPrsWind:
-    """Binary damage-onset wind trigger: peak_sustained_ms >= threshold_ms."""
+    """Binary damage-onset wind trigger: peak_sustained_ms >= v_50_eff_ms.
+
+    The BRI-adjusted ``v_50_eff_ms`` is the preferred exceedance level; the
+    raw ``threshold_ms`` is only used as a fallback for legacy damage rows
+    written before ``v_50_eff_ms`` existed.
+    """
 
     def test_peak_above_threshold_triggers(self):
         assert is_prs_wind({"peak_sustained_ms": 55.0, "threshold_ms": 30.0}) is True
@@ -100,3 +105,30 @@ class TestIsPrsWind:
 
     def test_non_numeric_values_return_false(self):
         assert is_prs_wind({"peak_sustained_ms": "fast", "threshold_ms": 30.0}) is False
+
+    # --- v_50_eff_ms (BRI-adjusted) is the preferred exceedance level ---
+
+    def test_v50_eff_is_preferred_over_raw_threshold(self):
+        # Resilient building: raw threshold would fire, but the higher
+        # BRI-adjusted v_50_eff suppresses it. The effective level wins.
+        row = {"peak_sustained_ms": 32.0, "threshold_ms": 30.0, "v_50_eff_ms": 40.0}
+        assert is_prs_wind(row) is False
+
+    def test_v50_eff_fires_when_raw_threshold_would_not(self):
+        # Vulnerable building: BRI shifts the curve left (lower v_50_eff),
+        # so a wind below the raw threshold still triggers.
+        row = {"peak_sustained_ms": 25.0, "threshold_ms": 30.0, "v_50_eff_ms": 20.0}
+        assert is_prs_wind(row) is True
+
+    def test_v50_eff_boundary_is_inclusive(self):
+        row = {"peak_sustained_ms": 22.7, "threshold_ms": 27.78, "v_50_eff_ms": 22.7}
+        assert is_prs_wind(row) is True
+
+    def test_falls_back_to_threshold_when_v50_eff_absent(self):
+        # Legacy rows without v_50_eff_ms keep working off threshold_ms.
+        assert is_prs_wind({"peak_sustained_ms": 35.0, "threshold_ms": 30.0}) is True
+        assert is_prs_wind({"peak_sustained_ms": 25.0, "threshold_ms": 30.0}) is False
+
+    def test_non_numeric_v50_eff_returns_false(self):
+        row = {"peak_sustained_ms": 55.0, "v_50_eff_ms": "fast", "threshold_ms": 30.0}
+        assert is_prs_wind(row) is False

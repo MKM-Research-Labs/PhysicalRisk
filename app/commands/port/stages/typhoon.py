@@ -289,8 +289,10 @@ def _load_property_portfolio(ctx: StageContext) -> list:
         if isinstance(data, list):
             portfolio.extend(data)
         elif isinstance(data, dict):
-            # Common wrappers: {"properties": [...]} or {"Properties": [...]}
-            for key in ("properties", "Properties", "commercial", "Commercial"):
+            # Common wrappers: {"properties": [...]} or {"Properties": [...]}.
+            # commercial.json wraps its records under "commercial_assets".
+            for key in ("properties", "Properties", "commercial", "Commercial",
+                        "commercial_assets", "CommercialAssets"):
                 if isinstance(data.get(key), list):
                     portfolio.extend(data[key])
                     break

@@ -176,3 +176,55 @@ def she_env(tmp_path, monkeypatch):
     app = create_app()
     app.config["TESTING"] = True
     return app.test_client()
+
+
+# Wind-coupled peril scenario curves (win / faw / fow). Same shape as shd/she —
+# property_hazard_curves keyed by PropertyID, with a peril spread on the spine.
+def _sample_peril(mode: str) -> dict:
+    return {
+        "metadata": {"catchment": "thames", "mode": mode},
+        "summary": {"total_properties": 1},
+        "property_hazard_curves": {
+            "PROP-001": {
+                "property_id": "PROP-001",
+                "flood_count": 5,
+                "term_structure": {"severe": {"prs_spread_bps": [5000.0] * 5}},
+            },
+        },
+    }
+
+
+@pytest.fixture
+def win_env(tmp_path, monkeypatch):
+    """Client with a minimal propertywin.json in tmp_path."""
+    from config import config
+    (tmp_path / "propertywin.json").write_text(json.dumps(_sample_peril("win")))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+@pytest.fixture
+def faw_env(tmp_path, monkeypatch):
+    """Client with a minimal propertyfaw.json in tmp_path."""
+    from config import config
+    (tmp_path / "propertyfaw.json").write_text(json.dumps(_sample_peril("faw")))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+@pytest.fixture
+def fow_env(tmp_path, monkeypatch):
+    """Client with a minimal propertyfow.json in tmp_path."""
+    from config import config
+    (tmp_path / "propertyfow.json").write_text(json.dumps(_sample_peril("fow")))
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    from server import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()

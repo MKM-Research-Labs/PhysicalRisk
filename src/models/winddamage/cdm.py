@@ -26,7 +26,8 @@ module so a future schema refactor only touches one file.
 
 CDM paths used:
   PropertyHeader.Header.PropertyID                                       — id
-  ProtectionMeasures.HazardProfile.WindThresholdMajorMps                 — threshold (preferred)
+  ProtectionMeasures.HazardProfile.WindThresholdMinorMps                 — threshold (preferred, damage-onset)
+  ProtectionMeasures.HazardProfile.WindThresholdMajorMps                 — threshold (severe fallback)
   ProtectionMeasures.HazardProfile.WindThresholdKph                      — threshold (legacy)
   ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIWindScore    — wind BRI
   ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIScore        — composite BRI
@@ -60,27 +61,35 @@ def extract_property_id(record: dict) -> Optional[str]:
     """Return PROP-... / CPROP-... id from a property or commercial record."""
     value = _get_nested(record, "PropertyHeader", "Header", "PropertyID")
     if value is None:
-        # Commercial records may put the id at a slightly different path —
-        # check the common alternate without forcing a hard couple.
+        # Commercial records nest the id under CommercialAsset/Header.
+        value = _get_nested(record, "CommercialAsset", "Header", "PropertyID")
+    if value is None:
+        # Older/alternate commercial layout puts the id at the top-level Header.
         value = _get_nested(record, "Header", "PropertyID")
     return value
 
 
 def extract_wind_threshold_mps(record: dict) -> Optional[float]:
-    """Return the property's Grade-A wind threshold in m/s, or None if absent.
+    """Return the property's wind damage-onset threshold in m/s, or None if absent.
 
     Resolution order:
-        1. ProtectionMeasures.HazardProfile.WindThresholdMajorMps (preferred)
-        2. ProtectionMeasures.HazardProfile.WindThresholdKph / 3.6 (legacy)
+        1. ProtectionMeasures.HazardProfile.WindThresholdMinorMps (preferred —
+           the damage-ONSET level the binary PRS wind trigger keys off)
+        2. ProtectionMeasures.HazardProfile.WindThresholdMajorMps (severe-damage
+           level; used when no Minor threshold is published)
+        3. ProtectionMeasures.HazardProfile.WindThresholdKph / 3.6 (legacy)
+
+    Minor is preferred because PRS counts the onset of wind damage, not the
+    onset of *severe* damage: keying off the Major (catastrophic) level made
+    commercial wind effectively never trigger.
     """
-    mps = _get_nested(
-        record, "ProtectionMeasures", "HazardProfile", "WindThresholdMajorMps"
-    )
-    if mps is not None:
-        try:
-            return float(mps)
-        except (TypeError, ValueError):
-            pass
+    for field in ("WindThresholdMinorMps", "WindThresholdMajorMps"):
+        mps = _get_nested(record, "ProtectionMeasures", "HazardProfile", field)
+        if mps is not None:
+            try:
+                return float(mps)
+            except (TypeError, ValueError):
+                pass  # garbage at this level — fall through to the next
 
     kph = _get_nested(
         record, "ProtectionMeasures", "HazardProfile", "WindThresholdKph"
@@ -119,8 +128,11 @@ def extract_wind_threshold_kph(record: dict) -> Optional[float]:
 
 
 def extract_lon_lat(record: dict) -> Tuple[Optional[float], Optional[float]]:
-    """Return (longitude, latitude) from PropertyHeader.Location, or (None, None)."""
+    """Return (longitude, latitude) from PropertyHeader.Location (residential)
+    or CommercialAsset.Location (commercial), or (None, None)."""
     loc = _get_nested(record, "PropertyHeader", "Location")
+    if not isinstance(loc, dict):
+        loc = _get_nested(record, "CommercialAsset", "Location")
     if not isinstance(loc, dict):
         return None, None
 

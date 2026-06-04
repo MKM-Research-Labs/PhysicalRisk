@@ -45,23 +45,32 @@ def is_prs_wind(wind: dict) -> bool:
     """True if the paired typhoon's wind counts toward PRS pricing.
 
     Damage-onset trigger: the property's peak sustained wind for the event
-    reached or exceeded its operational damage threshold
-    (``peak_sustained_ms >= threshold_ms``). The threshold is already
-    BRI-adjusted per property at damage-roll time — a resilient (high-BRI)
-    building carries a higher threshold, so it fires less readily than a
-    low-BRI building exposed to the same wind. Wind-without-flood is therefore
-    possible, and how often it happens is governed by where the threshold
-    (exceedance) sits relative to the storm's coupled wind.
+    reached or exceeded its BRI-adjusted operational damage threshold
+    (``peak_sustained_ms >= v_50_eff_ms``). ``v_50_eff_ms`` is the raw
+    operational ``threshold_ms`` translated by the property's resilience
+    (``v_50_eff = threshold_ms + bri_v50_shift(...)``, see
+    ``winddamage/bri_shift.py``): a resilient (high-BRI) building carries a
+    higher effective threshold, so it fires less readily than a low-BRI
+    building exposed to the same wind. Wind-without-flood is therefore
+    possible, and how often it happens is governed by where the BRI-adjusted
+    exceedance sits relative to the storm's coupled wind.
+
+    Falls back to the raw ``threshold_ms`` when ``v_50_eff_ms`` is absent
+    (e.g. legacy damage rows written before the effective-threshold field
+    was added).
 
     Binary by design: PRS is a frequency / event-count payout, NOT the
     continuous wind damage amount (that is the insurance-loss view served by
     the wind-impact route, which must not feed the spread).
 
     ``wind`` is one per-property row from ``typhoon/damage/EVT-*.json`` and
-    must carry ``peak_sustained_ms`` and ``threshold_ms``.
+    must carry ``peak_sustained_ms`` and either ``v_50_eff_ms`` or the legacy
+    ``threshold_ms``.
     """
     peak = wind.get("peak_sustained_ms")
-    thr = wind.get("threshold_ms")
+    thr = wind.get("v_50_eff_ms")
+    if thr is None:
+        thr = wind.get("threshold_ms")
     if peak is None or thr is None:
         return False
     try:
@@ -73,10 +82,11 @@ def is_prs_wind(wind: dict) -> bool:
 def resolve_threshold_ms(property_record: dict) -> float:
     """Return the property's operational v_50 in m/s.
 
-    Resolution rule:
-        1. CDM field WindThresholdMajorMps present     → use directly
-        2. CDM field WindThresholdKph present (legacy) → / 3.6
-        3. else                                        → DEFAULT_WIND_THRESHOLD_KPH / 3.6
+    Resolution rule (see extract_wind_threshold_mps):
+        1. CDM field WindThresholdMinorMps present     → use directly (damage-onset)
+        2. CDM field WindThresholdMajorMps present     → use directly (severe fallback)
+        3. CDM field WindThresholdKph present (legacy) → / 3.6
+        4. else                                        → DEFAULT_WIND_THRESHOLD_KPH / 3.6
     """
     mps = extract_wind_threshold_mps(property_record)
     if mps is not None:
