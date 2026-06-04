@@ -124,6 +124,21 @@ class TestExtractWindThresholdMps:
         rec["ProtectionMeasures"]["HazardProfile"]["WindThresholdMajorMps"] = 33.0
         assert extract_wind_threshold_mps(rec) == 33.0
 
+    def test_minor_preferred_over_major(self):
+        # Damage-onset: when both Minor and Major are published, Minor wins.
+        rec = _record()
+        hp = rec["ProtectionMeasures"]["HazardProfile"]
+        hp["WindThresholdMinorMps"] = 55.56
+        hp["WindThresholdMajorMps"] = 69.44
+        assert extract_wind_threshold_mps(rec) == 55.56
+
+    def test_minor_garbage_falls_through_to_major(self):
+        rec = _record()
+        hp = rec["ProtectionMeasures"]["HazardProfile"]
+        hp["WindThresholdMinorMps"] = "x"
+        hp["WindThresholdMajorMps"] = 69.44
+        assert extract_wind_threshold_mps(rec) == 69.44
+
     def test_mps_garbage_falls_through_to_kph(self):
         # mps present but non-numeric → except → fall to kph/3.6.
         rec = _record()
