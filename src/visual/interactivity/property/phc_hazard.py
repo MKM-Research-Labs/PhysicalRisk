@@ -204,12 +204,20 @@ def get_js():
                 var _psd = (typeof phcData !== 'undefined' && phcData.spread_decomposition) || {};
                 var _pp = (typeof phcData !== 'undefined' && phcData.prs_perils) || {};
                 function _perilCount(p) { return (p && typeof p.count === 'number') ? p.count : 0; }
+                if (_psd.win_spread_bps !== undefined && _psd.win_spread_bps !== null) {
+                    steps.push({ label: 'WIN (wind only)',
+                                 count: _perilCount(_pp.wind_only),
+                                 spread: _psd.win_spread_bps || 0,
+                                 color: '#00897B', bg: '#E0F2F1',
+                                 isPeril: true, perilFirst: true });
+                }
                 if (_psd.faw_spread_bps !== undefined && _psd.faw_spread_bps !== null) {
                     steps.push({ label: 'FAW (flood\\u2227wind)',
                                  count: _perilCount(_pp.flood_and_wind),
                                  spread: _psd.faw_spread_bps || 0,
                                  color: '#00838F', bg: '#E0F7FA',
-                                 isPeril: true, perilFirst: true });
+                                 isPeril: true,
+                                 perilFirst: (_psd.win_spread_bps === undefined || _psd.win_spread_bps === null) });
                 }
                 if (_psd.fow_spread_bps !== undefined && _psd.fow_spread_bps !== null) {
                     steps.push({ label: 'FOW (flood\\u2228wind)',
