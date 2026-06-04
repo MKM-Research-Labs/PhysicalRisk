@@ -262,6 +262,15 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
                 decomposition['resilience_effect_bps'] = round(
                     prop_spread - bri_spread, 2)
 
+            # Stage 6 — the four peril outcomes branch at the property/BRI node
+            # (flood spine stays geographic; wind is a pure intersect/union with
+            # no gauge propagation). Prefer the BRI-adjusted node when present
+            # (that is the level the book actually trades at), else the property
+            # node. Absent for flood-only catchments (no typhoon stage).
+            peril_outcomes = bri_pc.get('prs_perils') or pc.get('prs_perils')
+            if peril_outcomes:
+                decomposition['peril_outcomes'] = peril_outcomes
+
             pc['spread_decomposition'] = decomposition
             count += 1
 

@@ -25,7 +25,7 @@ import folium
 from visual.interactivity.panel_mixin import FoliumPanelMixin
 from .. import phc_hazard, phc_term, phc_prs, phc_basis
 from .. import phc_basis_gauge, phc_basis_she, phc_basis_shd, phc_basis_property
-from .. import phc_basis_waterfall
+from .. import phc_basis_waterfall, phc_peril_outcomes
 from . import panel_create, panel_tabs, panel_data, panel_basis_strip
 
 
@@ -58,6 +58,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
 {phc_prs.get_js()}
 {phc_basis.get_js()}
 {phc_basis_waterfall.get_js()}
+{phc_peril_outcomes.get_js()}
 {phc_basis_gauge.get_js()}
 {phc_basis_she.get_js()}
 {phc_basis_shd.get_js()}
@@ -103,6 +104,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
                 if (basisSHDChart) {{ basisSHDChart.destroy(); basisSHDChart = null; }}
                 if (basisPropertyChart) {{ basisPropertyChart.destroy(); basisPropertyChart = null; }}
                 if (_basisWaterfallChart) {{ _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }}
+                if (_perilOutcomesChart) {{ _perilOutcomesChart.destroy(); _perilOutcomesChart = null; }}
                 var subBar = document.getElementById('phc-basis-subtab-bar');
                 if (subBar) subBar.remove();
                 basisSelectedStorm = null;

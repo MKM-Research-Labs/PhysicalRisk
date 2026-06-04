@@ -85,6 +85,17 @@ def generate_event_set(
     rng = np.random.RandomState(seed)
     gen = SequenceGenerator(catchment_id=catchment_id, seed=seed)
 
+    # Per-event seeds for storm<->typhoon coupling. Spawned from a SeedSequence
+    # on the master seed so they are deterministic, mutually independent, and
+    # — crucially — drawn from a SEPARATE stream that does not consume from the
+    # storm `rng`. This keeps the storm draws (and therefore the flood numbers)
+    # bit-identical to the pre-coupling pipeline. The paired typhoon genesis
+    # (Stage 3) reseeds off seq.seed so each event reproduces independently.
+    event_seeds = [
+        int(child.generate_state(1, dtype=np.uint32)[0])
+        for child in np.random.SeedSequence(seed).spawn(count)
+    ]
+
     # Pre-draw all category assignments
     category_draws = rng.choice(len(categories), size=count, p=probs)
 
@@ -98,6 +109,8 @@ def generate_event_set(
             intensity_category=category,
             base_intensity=base_intensity,
             force_sequence_type=force_sequence_type,
+            event_id=f"EVT-{i:05d}",
+            event_seed=event_seeds[i],
         )
         sequences.append(seq)
 

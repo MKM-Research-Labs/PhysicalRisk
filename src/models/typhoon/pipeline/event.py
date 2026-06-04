@@ -59,6 +59,8 @@ def simulate_one_event(
     horizon_hours: Optional[float] = None,
     dt_hours: float = 1.0,
     use_plausibility: bool = True,
+    genesis_v_max: Optional[float] = None,
+    genesis_scenario=None,
 ) -> EventResult:
     """Simulate one typhoon event and evaluate the wind-field at every property.
 
@@ -70,6 +72,12 @@ def simulate_one_event(
         dt_hours: step length (hours)
         use_plausibility: if True, wire the simulation-mode plausibility
             adapter into the particle filter so weights track soft constraints
+        genesis_v_max: storm->wind coupling override (coupling_spec.md §4) —
+            when set, every particle's genesis peak wind is fixed to this
+            value (the event's windiness, set by the paired storm severity)
+            rather than drawn independently per particle.
+        genesis_scenario: derived scenario-family label that accompanies the
+            coupled Vmax (used only for trajectory tagging).
 
     Returns:
         EventResult bundling the wind-field outputs per property and the
@@ -79,7 +87,11 @@ def simulate_one_event(
     """
     plausibility_fn = make_particle_plausibility(config) if use_plausibility else None
 
-    pf = ParticleFilter(n_particles=n_particles, config=config, rng=rng)
+    pf = ParticleFilter(
+        n_particles=n_particles, config=config, rng=rng,
+        genesis_v_max_override=genesis_v_max,
+        genesis_scenario_override=genesis_scenario,
+    )
     trajectories = pf.run_to_horizon(
         horizon_hours=horizon_hours,
         dt_hours=dt_hours,
