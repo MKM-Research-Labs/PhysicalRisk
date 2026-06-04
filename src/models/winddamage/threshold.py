@@ -82,10 +82,11 @@ def is_prs_wind(wind: dict) -> bool:
 def resolve_threshold_ms(property_record: dict) -> float:
     """Return the property's operational v_50 in m/s.
 
-    Resolution rule:
-        1. CDM field WindThresholdMajorMps present     → use directly
-        2. CDM field WindThresholdKph present (legacy) → / 3.6
-        3. else                                        → DEFAULT_WIND_THRESHOLD_KPH / 3.6
+    Resolution rule (see extract_wind_threshold_mps):
+        1. CDM field WindThresholdMinorMps present     → use directly (damage-onset)
+        2. CDM field WindThresholdMajorMps present     → use directly (severe fallback)
+        3. CDM field WindThresholdKph present (legacy) → / 3.6
+        4. else                                        → DEFAULT_WIND_THRESHOLD_KPH / 3.6
     """
     mps = extract_wind_threshold_mps(property_record)
     if mps is not None:
