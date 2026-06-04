@@ -53,6 +53,17 @@ class TestExtractPropertyId:
         rec = {"Header": {"PropertyID": "CPROP-abc"}}
         assert extract_property_id(rec) == "CPROP-abc"
 
+    def test_commercial_asset_header_path(self):
+        # Commercial records nest the id under CommercialAsset/Header.
+        rec = {"CommercialAsset": {"Header": {"PropertyID": "CPROP-08ac3589"}}}
+        assert extract_property_id(rec) == "CPROP-08ac3589"
+
+    def test_property_header_preferred_over_commercial_asset(self):
+        # When both shapes are present, the residential PropertyHeader wins.
+        rec = _record()
+        rec["CommercialAsset"] = {"Header": {"PropertyID": "CPROP-should-not-win"}}
+        assert extract_property_id(rec) == "PROP-test-001"
+
 
 class TestExtractWindThresholdKph:
 
@@ -186,6 +197,21 @@ class TestExtractLonLat:
     def test_returns_lon_lat(self):
         rec = {"PropertyHeader": {"Location": {
             "LongitudeDegrees": -0.1, "LatitudeDegrees": 51.5}}}
+        assert extract_lon_lat(rec) == (-0.1, 51.5)
+
+    def test_commercial_asset_location_fallback(self):
+        # Commercial records carry coords under CommercialAsset.Location.
+        rec = {"CommercialAsset": {"Location": {
+            "LongitudeDegrees": 105.837, "LatitudeDegrees": 21.067}}}
+        assert extract_lon_lat(rec) == (105.837, 21.067)
+
+    def test_property_header_location_preferred_over_commercial(self):
+        rec = {
+            "PropertyHeader": {"Location": {
+                "LongitudeDegrees": -0.1, "LatitudeDegrees": 51.5}},
+            "CommercialAsset": {"Location": {
+                "LongitudeDegrees": 999.0, "LatitudeDegrees": 999.0}},
+        }
         assert extract_lon_lat(rec) == (-0.1, 51.5)
 
     def test_missing_location_returns_none_none(self):
