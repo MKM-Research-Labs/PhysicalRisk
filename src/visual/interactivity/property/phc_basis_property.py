@@ -102,10 +102,23 @@ def get_js() -> str:
                     '<b>No Event</b><br>' + qBottomLeft + ' storms</div>' +
                     '</div>';
 
+                // When the catchment has wind data the spread fans into the
+                // four peril outcomes at the property node — stack the peril
+                // fan beneath the waterfall in the right column. Flood-only
+                // catchments keep the full-height waterfall (unchanged layout).
+                var hasPerils = (typeof _perilOutcomesData === 'function')
+                    && _perilOutcomesData();
+                var rightCol = hasPerils
+                    ? ('<div style="display:flex;flex-direction:column;width:38%;min-width:240px;gap:6px;">' +
+                       '<canvas id="basis-prop-waterfall" style="flex:1.4;min-height:0;"></canvas>' +
+                       '<canvas id="basis-prop-perils" style="flex:1;min-height:0;"></canvas>' +
+                       '</div>')
+                    : '<canvas id="basis-prop-waterfall" style="width:35%;min-width:220px;"></canvas>';
+
                 container.innerHTML = summaryHtml +
                     '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
                     '<canvas id="basis-prop-canvas" style="flex:1;"></canvas>' +
-                    '<canvas id="basis-prop-waterfall" style="width:35%;min-width:220px;"></canvas>' +
+                    rightCol +
                     '</div>';
 
                 var ctx = document.getElementById('basis-prop-canvas').getContext('2d');
@@ -204,18 +217,28 @@ def get_js() -> str:
                     }
                 }
 
-                // Spread waterfall (right panel)
+                // Spread waterfall (right panel) + peril fan when wind present
                 _renderSpreadWaterfall('basis-prop-waterfall', 3);
+                if (hasPerils) _renderPerilOutcomes('basis-prop-perils');
 
                 var bar = document.getElementById('phc-stats-bar');
                 if (bar) {
-                    bar.innerHTML =
+                    var statsHtml =
                         '<span><b>Gauge Spread:</b> ' + gaugeSpread.toFixed(1) + ' bps</span>' +
                         '<span><b>Asset Spread:</b> ' + propSpread.toFixed(1) + ' bps</span>' +
                         '<span><b>Basis:</b> ' + (basis >= 0 ? '+' : '') + basis.toFixed(1) + ' bps</span>' +
                         '<span><b>Hedged:</b> ' + qTopRight + '</span>' +
                         '<span><b>Basis Risk:</b> ' + qBottomRight + '</span>' +
                         '<span><b>Unhedged:</b> ' + qTopLeft + '</span>';
+                    if (hasPerils) {
+                        var po = _perilOutcomesData();
+                        var uw = (po.flood_or_wind && po.flood_or_wind.spread_bps) || 0;
+                        var ww = (po.wind_only && po.wind_only.spread_bps) || 0;
+                        statsHtml +=
+                            '<span style="color:#7E57C2;"><b>Flood\\u222AWind:</b> ' + uw.toFixed(1) + ' bps</span>' +
+                            '<span style="color:#26A69A;"><b>Wind only:</b> ' + ww.toFixed(1) + ' bps</span>';
+                    }
+                    bar.innerHTML = statsHtml;
                 }
             }
 """

@@ -8,6 +8,22 @@
 v3.0: Replaced GEV/CDS pricing with simple severe event count.
 Spread (bp) = N(severe floods) / N(total scenarios) × 10,000.
 Term structure is flat (storms are independent).
+
+Stage 6 (peril outcomes): the pricer emits a ``prs_perils`` block with all
+four peril outcomes at the property/BRI node (coupling_spec.md §11.6):
+
+* ``flood_only``    — severe flood triggers (the flood spine, unchanged)
+* ``wind_only``     — binary ``is_prs_wind`` damage-onset triggers
+* ``flood_or_wind`` — union over the 1:1-paired event set (one denominator)
+* ``flood_and_wind``— intersection (inclusion-exclusion: F + W − union)
+
+The wind leg is the binary ``is_prs_wind`` damage-onset trigger — NOT the
+continuous wind damage amount. The flood-only ``prs_spread_bps`` /
+``term_structure.severe`` (flood spine) is kept unchanged: it still drives the
+gauge basis and the flood-vs-gauge spread decomposition. Wind has no gauge
+intermediary — it is a pure intersect/union at the property node. Catchments
+without a typhoon stage emit no ``prs_perils`` block and are byte-identical to
+before (flood-only fallback).
 """
 
 import json
@@ -17,6 +33,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from models.floodrisk.depth_damage import is_prs_flood
+from models.winddamage.threshold import is_prs_wind
 
 from .constants import TENORS
 
@@ -35,16 +52,41 @@ class PricingMixin:
         flood_events = pdata.get('flood_events', [])
         flood_count = len([e for e in flood_events if is_prs_flood(e)])
 
-        # Spread = severe flood count / total scenarios (in bp)
+        # Flood-only spread = severe flood count / total scenarios (in bp).
+        # Kept unchanged: it drives the gauge basis and the spread
+        # decomposition, which stay flood-vs-gauge until Stage 6.
         spread_bps = round((flood_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0
 
-        # Term structure is flat — storms are independent
+        # Stage 6 — peril outcomes. Wind is a pure intersect/union at the
+        # property/BRI node (no gauge propagation). Returns None when the
+        # catchment has no typhoon damage → flood-only fallback (no prs_perils
+        # block, byte-identical output).
+        wind_info = self._wind_union(prop_id, flood_events, num_storms)
+
+        # The four peril outcomes (Stage 6). flood_only is the flood spine
+        # (unchanged); the others are derived from the 1:1-paired event set.
+        prs_perils = None
+        if wind_info is not None:
+            prs_perils = {
+                'flood_only':     {'count': flood_count,               'spread_bps': spread_bps},
+                'wind_only':      {'count': wind_info['wind_count'],   'spread_bps': wind_info['wind_spread_bps']},
+                'flood_or_wind':  {'count': wind_info['union_count'],  'spread_bps': wind_info['union_spread_bps']},
+                'flood_and_wind': {'count': wind_info['joint_count'],  'spread_bps': wind_info['joint_spread_bps']},
+            }
+
+        # Term structure is flat — storms are independent. The severe leg is the
+        # flood spine; the four peril outcomes (Stage 6) ride alongside it.
         term_structure = {
             'tenors': TENORS,
             'severe': {
                 'prs_spread_bps': [spread_bps] * len(TENORS),
             },
         }
+        if prs_perils is not None:
+            term_structure['perils'] = {
+                name: {'prs_spread_bps': [o['spread_bps']] * len(TENORS)}
+                for name, o in prs_perils.items()
+            }
 
         # Compute basis vs nearest gauges
         nearest_gauges_data = pdata.get('nearest_gauges', [])
@@ -149,12 +191,20 @@ class PricingMixin:
             idw_gauge_spreads['severe'] = weighted_spreads
 
         from models.audit import log_model_usage
-        log_model_usage("prs", "prs_spread", parameters={
+        audit_params = {
             "property_id": prop_id,
             "flood_count": flood_count,
             "num_storms": num_storms,
             "spread_bps": spread_bps,
-        }, context="Property PRS spread (event count)")
+        }
+        if wind_info is not None:
+            audit_params["wind_count"] = wind_info["wind_count"]
+            audit_params["union_count"] = wind_info["union_count"]
+            audit_params["joint_count"] = wind_info["joint_count"]
+            audit_params["union_spread_bps"] = wind_info["union_spread_bps"]
+            audit_params["joint_spread_bps"] = wind_info["joint_spread_bps"]
+        log_model_usage("prs", "prs_spread", parameters=audit_params,
+                        context="Property PRS spread (event count)")
 
         flood_depths = [e['flood_depth_m'] for e in flood_events if e.get('flooded', False)]
         summary_data = {
@@ -177,7 +227,7 @@ class PricingMixin:
                 'retention_factor': round(e.get('retention_factor', 0), 4),
             })
 
-        return {
+        result = {
             'property_id': prop_id,
             'location': pdata.get('location', {}),
             'elevation_m': pdata.get('elevation_m', 0),
@@ -200,6 +250,11 @@ class PricingMixin:
             'summary': summary_data,
             'storm_details': storm_details,
         }
+        # Stage 6 peril outcomes — only present for catchments whose typhoon
+        # stage ran (keeps flood-only output byte-identical).
+        if prs_perils is not None:
+            result['prs_perils'] = prs_perils
+        return result
 
     @staticmethod
     def _get_gauge_severe_count(gauge_hc: Dict, num_storms: int = 0) -> int:
@@ -213,3 +268,120 @@ class PricingMixin:
         if prob > 0 and num_storms > 0:
             return round(prob * num_storms)
         return gauge_hc.get('severe_event_count', 0)
+
+    # ------------------------------------------------------------------
+    # Stage 6 — peril outcomes (flood ∪/∩ wind over the 1:1-paired event set)
+    # ------------------------------------------------------------------
+
+    def _wind_union(self, prop_id: str, flood_events: List[Dict],
+                    num_storms: int) -> Optional[Dict]:
+        """Count flood ∪ wind and flood ∩ wind PRS triggers for one property.
+
+        Returns ``None`` when the catchment has no typhoon damage (flood-only
+        fallback — the headline flood spread is unchanged). Otherwise returns
+        the wind-leg, union and intersection counts/spreads, deduplicated on the
+        shared 1:1 ``event_id`` so an event that triggers BOTH flood and wind
+        counts once in the union and once in the intersection.
+
+        The wind trigger is :func:`is_prs_wind` (binary damage-onset). Each
+        storm sequence carries its paired typhoon's ``event_id`` (Stage 2), so
+        the flood leg (keyed by ``storm_id`` == ``sequence_id``) and the wind
+        leg (keyed by ``event_id``) meet in ``event_id`` space.
+        """
+        wind_index = self._wind_damage_index()
+        if not wind_index:
+            return None
+        seq_to_event = self._seq_to_event_map()
+
+        # Wind-triggered events for this property.
+        wind_eids = {
+            eid for eid, pmap in wind_index.items()
+            if prop_id in pmap and is_prs_wind(pmap[prop_id])
+        }
+
+        # Flood-triggered events, mapped storm_id → event_id. A flood-triggered
+        # storm with no paired event_id can't collide with a wind event, so it
+        # is counted on its own (keeps flood-only totals exact).
+        flood_eids = set()
+        flood_unmapped = 0
+        for e in flood_events:
+            if is_prs_flood(e):
+                eid = seq_to_event.get(e.get('storm_id', ''))
+                if eid:
+                    flood_eids.add(eid)
+                else:
+                    flood_unmapped += 1
+
+        wind_count = len(wind_eids)
+        union_count = len(flood_eids | wind_eids) + flood_unmapped
+        # Intersection (flood AND wind) lives in event_id space only — a
+        # flood-triggered storm with no event_id cannot also be a wind event.
+        joint_count = len(flood_eids & wind_eids)
+        bps = lambda c: round((c / num_storms) * 10000, 2) if num_storms > 0 else 0.0
+        return {
+            'wind_count': wind_count,
+            'union_count': union_count,
+            'joint_count': joint_count,
+            'wind_spread_bps': bps(wind_count),
+            'union_spread_bps': bps(union_count),
+            'joint_spread_bps': bps(joint_count),
+        }
+
+    def _seq_to_event_map(self) -> Dict[str, str]:
+        """``sequence_id → event_id`` from ``storm_sequences.json`` (cached).
+
+        Only sequences carrying both ids are included; empty when the file is
+        absent or pre-coupling (no ``event_id`` field).
+        """
+        cached = getattr(self, '_seq_to_event_cache', None)
+        if cached is not None:
+            return cached
+        out: Dict[str, str] = {}
+        seq_path = self.output_dir / 'storm_sequences.json'
+        if seq_path.exists():
+            try:
+                with open(seq_path, 'r') as f:
+                    data = json.load(f)
+                for seq in data.get('sequences', []):
+                    sid = seq.get('sequence_id')
+                    eid = seq.get('event_id')
+                    if sid and eid:
+                        out[sid] = eid
+            except (OSError, json.JSONDecodeError):
+                pass
+        self._seq_to_event_cache = out
+        return out
+
+    def _wind_damage_index(self) -> Dict[str, Dict[str, Dict]]:
+        """``event_id → {property_id → {peak_sustained_ms, threshold_ms}}``.
+
+        Walks ``typhoon/damage/EVT-*.json`` once and caches the result. Empty
+        when the typhoon stage hasn't run for this catchment. Built once for
+        the whole portfolio (not per-property) so pricing stays O(events) not
+        O(events × properties).
+        """
+        cached = getattr(self, '_wind_damage_cache', None)
+        if cached is not None:
+            return cached
+        out: Dict[str, Dict[str, Dict]] = {}
+        damage_dir = self.output_dir / 'typhoon' / 'damage'
+        if damage_dir.exists():
+            for fp in sorted(damage_dir.glob('EVT-*.json')):
+                try:
+                    with open(fp, 'r') as f:
+                        data = json.load(f)
+                except (OSError, json.JSONDecodeError):
+                    continue
+                eid = data.get('event_id') or fp.stem
+                pmap: Dict[str, Dict] = {}
+                for d in data.get('damages', []):
+                    pid = d.get('property_id')
+                    if pid:
+                        pmap[pid] = {
+                            'peak_sustained_ms': d.get('peak_sustained_ms'),
+                            'threshold_ms': d.get('threshold_ms'),
+                        }
+                if pmap:
+                    out[eid] = pmap
+        self._wind_damage_cache = out
+        return out

@@ -290,6 +290,22 @@ DEFAULT_INTENSITY_WEIGHTS: Dict[str, float] = {
 
 
 # ===========================================================================
+# Storm <-> Typhoon Coupling  (docs/models/storm_typhoon_coupling/coupling_spec.md)
+# ===========================================================================
+
+# Coupling-strength knob beta for the directed-asymmetric storm->wind map (§4).
+# The wind percentile floor is f(q) = 1 - (1-q)^beta, the ceiling is q, and
+# rho_w = f(q) + B*(q - f(q)), B~Uniform[0,1]; Vmax = S_cat^-1(1 - rho_w).
+#   beta -> 0  : pure ceiling, no tail pull (wind only bounded above by severity)
+#   beta = 1   : deterministic comonotone (wind percentile == severity quantile)
+#   beta ~ 0.52: fits the expert anchors (90th-pct storm -> 70th-pct wind floor,
+#                99th -> 90th).
+# Calibration is an open work item (coupling_spec.md §10); ship the documented
+# default and expose --coupling-beta for the planned PRS sensitivity study.
+COUPLING_BETA: float = 0.5
+
+
+# ===========================================================================
 # Storm Multi — Sequence Generator
 # ===========================================================================
 #

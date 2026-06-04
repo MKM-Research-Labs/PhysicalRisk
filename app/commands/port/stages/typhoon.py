@@ -106,23 +106,57 @@ def run_typhoon(ctx: StageContext):
     seed = args.typhoon_seed
     rng = np.random.default_rng(seed)
 
+    # Slave the typhoon count to the storm event set when one exists: one
+    # typhoon per storm sequence, paired by the shared event_id (Stage 2
+    # coupling). Falls back to the standalone --num-typhoon-events count when
+    # storm_sequences.json is absent or pre-coupling (no event_id field).
+    drivers = _load_storm_event_drivers(ctx)
+    coupling_beta = getattr(args, "coupling_beta", None)
+    if coupling_beta is None:
+        from config.port import COUPLING_BETA
+        coupling_beta = COUPLING_BETA
+    if drivers:
+        event_ids = [d["event_id"] for d in drivers]
+        n_events = len(event_ids)
+        # Stage 3: condition genesis on the paired storm severity. Convert each
+        # event's severity latent z (base_intensity) into its empirical quantile
+        # q_i = rank(z_i)/(N+1), then hand q + the per-event seed to the
+        # pipeline so the §4 band-draw map fixes one coupled genesis Vmax per
+        # event (coupling_spec.md §3-§4).
+        event_severity_q = _severity_quantiles([d["base_intensity"] for d in drivers])
+        event_seeds = [d["seed"] for d in drivers]
+        print(f"   coupled mode: {n_events:,} typhoons slaved 1:1 to storm "
+              f"sequences (paired by event_id, genesis conditioned on severity "
+              f"z, beta={coupling_beta})")
+    else:
+        event_ids = None
+        event_severity_q = None
+        event_seeds = None
+        n_events = args.num_typhoon_events
+        print(f"   standalone mode: {n_events:,} typhoons "
+              f"(no coupled storm set found)")
+
     t_step = time.time()
     ensemble = simulate_typhoon_events(
         config=typhoon_cfg,
-        n_events=args.num_typhoon_events,
+        n_events=n_events,
         n_particles=args.num_typhoon_particles,
         rng=rng,
         use_plausibility=not args.typhoon_no_plausibility,
         events_output_dir=events_dir,
         windts_output_dir=windts_dir,
+        event_ids=event_ids,
+        event_severity_q=event_severity_q,
+        event_seeds=event_seeds,
+        coupling_beta=coupling_beta,
     )
     elapsed = time.time() - t_step
 
     write_ensemble_json(ensemble, output_path)
 
-    n_realizations = args.num_typhoon_events * args.num_typhoon_particles
+    n_realizations = n_events * args.num_typhoon_particles
     n_properties = len(typhoon_cfg.property_points)
-    print(f"   {args.num_typhoon_events} events x {args.num_typhoon_particles} particles "
+    print(f"   {n_events} events x {args.num_typhoon_particles} particles "
           f"= {n_realizations:,} realizations at {n_properties} property points")
     if ensemble.properties:
         peaks = [p.peak_sustained_p99 for p in ensemble.properties]
@@ -164,8 +198,10 @@ def run_typhoon(ctx: StageContext):
             "typhoon/damage/": damage_dir,
         },
         parameters={
-            "n_events": args.num_typhoon_events,
+            "n_events": n_events,
             "n_particles": args.num_typhoon_particles,
+            "coupled_to_storms": bool(drivers),
+            "coupling_beta": coupling_beta if drivers else None,
             "use_plausibility": not args.typhoon_no_plausibility,
             "seed": seed,
         },
@@ -174,6 +210,61 @@ def run_typhoon(ctx: StageContext):
         stale_name="typhoon",
     )
     print()
+
+
+def _severity_quantiles(z_values: list) -> list:
+    """Map per-event severity latents z to empirical quantiles q_i.
+
+    ``q_i = rank(z_i) / (N+1)`` using average ranks for ties (coupling_spec.md
+    §3). The (N+1) denominator keeps every q strictly inside (0, 1) so the §4
+    inverse-survival map ``Vmax = S_cat⁻¹(1−ρ_w)`` never hits the degenerate
+    endpoints. Returns a list aligned 1:1 with the input order.
+    """
+    from scipy.stats import rankdata
+
+    if not z_values:
+        return []
+    n = len(z_values)
+    ranks = rankdata(z_values, method="average")
+    return [float(r / (n + 1)) for r in ranks]
+
+
+def _load_storm_event_drivers(ctx: StageContext) -> list:
+    """Read storm_sequences.json and return the per-event coupling drivers.
+
+    Each driver is ``{"event_id", "base_intensity", "seed"}`` in file order —
+    the 1:1 storm<->typhoon pairing produced by the storm stage (Stage 2).
+    ``base_intensity`` is the severity latent ``z`` that Stage 3 will use to
+    condition typhoon genesis; ``seed`` makes that genesis reproducible per
+    event.
+
+    Returns an empty list when storm_sequences.json is missing or carries no
+    coupling fields (a pre-Stage-2 file). The caller then falls back to the
+    standalone ``--num-typhoon-events`` count.
+    """
+    import json
+
+    seq_path = ctx.input_dir / "storm_sequences.json"
+    if not seq_path.exists():
+        return []
+    try:
+        data = json.loads(seq_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+
+    drivers = []
+    for seq in data.get("sequences", []):
+        event_id = seq.get("event_id")
+        if not event_id:
+            # Pre-coupling file (no event_id) — cannot pair; bail out so the
+            # caller uses the standalone count rather than a partial pairing.
+            return []
+        drivers.append({
+            "event_id": event_id,
+            "base_intensity": float(seq.get("base_intensity", 0.0)),
+            "seed": int(seq.get("seed", 0)),
+        })
+    return drivers
 
 
 def _load_property_portfolio(ctx: StageContext) -> list:

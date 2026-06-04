@@ -8,7 +8,12 @@
 import pytest
 
 from config.damage import DEFAULT_WIND_THRESHOLD_KPH
-from models.winddamage.threshold import KMH_TO_MS, kph_to_ms, resolve_threshold_ms
+from models.winddamage.threshold import (
+    KMH_TO_MS,
+    is_prs_wind,
+    kph_to_ms,
+    resolve_threshold_ms,
+)
 
 
 def _record(**overrides):
@@ -62,3 +67,36 @@ class TestResolveThresholdMs:
         # 120 kph -> 33.33 m/s; type must be float, units must be reasonable.
         assert isinstance(v_50, float)
         assert 25.0 < v_50 < 45.0
+
+
+class TestIsPrsWind:
+    """Binary damage-onset wind trigger: peak_sustained_ms >= threshold_ms."""
+
+    def test_peak_above_threshold_triggers(self):
+        assert is_prs_wind({"peak_sustained_ms": 55.0, "threshold_ms": 30.0}) is True
+
+    def test_peak_equal_threshold_triggers(self):
+        # Boundary is inclusive (>=).
+        assert is_prs_wind({"peak_sustained_ms": 30.0, "threshold_ms": 30.0}) is True
+
+    def test_peak_below_threshold_does_not_trigger(self):
+        assert is_prs_wind({"peak_sustained_ms": 20.0, "threshold_ms": 30.0}) is False
+
+    def test_high_bri_threshold_suppresses_trigger(self):
+        # Same wind, resilient building (higher BRI-adjusted threshold) -> no fire;
+        # low-BRI building (lower threshold) -> fires. Encodes the user's point.
+        wind = 45.0
+        assert is_prs_wind({"peak_sustained_ms": wind, "threshold_ms": 60.0}) is False
+        assert is_prs_wind({"peak_sustained_ms": wind, "threshold_ms": 35.0}) is True
+
+    def test_missing_peak_returns_false(self):
+        assert is_prs_wind({"threshold_ms": 30.0}) is False
+
+    def test_missing_threshold_returns_false(self):
+        assert is_prs_wind({"peak_sustained_ms": 55.0}) is False
+
+    def test_empty_row_returns_false(self):
+        assert is_prs_wind({}) is False
+
+    def test_non_numeric_values_return_false(self):
+        assert is_prs_wind({"peak_sustained_ms": "fast", "threshold_ms": 30.0}) is False

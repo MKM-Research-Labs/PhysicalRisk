@@ -151,6 +151,60 @@ class TestEventTrajectoryOutput:
         assert not any(tmp_path.glob("EVT-*.json"))
 
 
+class TestEventIdSlaving:
+    """Stage 2 — caller-supplied event_ids slave the count and name artefacts.
+
+    When the typhoon stage couples to a storm event set it passes the shared
+    1:1 keys (e.g. EVT-00001) so the count follows the storm sequences and the
+    per-event files carry the join key used downstream (Stage 4).
+    """
+
+    def test_event_ids_slave_the_count(self, minimal_config):
+        # n_events is ignored when event_ids is supplied.
+        ensemble = simulate_typhoon_events(
+            config=minimal_config, n_events=999, n_particles=3,
+            rng=np.random.default_rng(0), horizon_hours=2.0,
+            event_ids=["EVT-00000", "EVT-00001", "EVT-00002"],
+        )
+        assert ensemble.n_events == 3
+
+    def test_event_ids_name_trajectory_and_windts_files(self, minimal_config, tmp_path):
+        events_dir = tmp_path / "events"
+        windts_dir = tmp_path / "windts"
+        ids = ["EVT-00007", "EVT-00042"]
+        simulate_typhoon_events(
+            config=minimal_config, n_events=2, n_particles=4,
+            rng=np.random.default_rng(0), horizon_hours=4.0,
+            events_output_dir=events_dir, windts_output_dir=windts_dir,
+            event_ids=ids,
+        )
+        for d in (events_dir, windts_dir):
+            names = sorted(p.name for p in d.glob("EVT-*.json"))
+            assert names == ["EVT-00007.json", "EVT-00042.json"]
+
+    def test_windts_payload_carries_supplied_event_id(self, minimal_config, tmp_path):
+        windts_dir = tmp_path / "windts"
+        simulate_typhoon_events(
+            config=minimal_config, n_events=1, n_particles=3,
+            rng=np.random.default_rng(0), horizon_hours=2.0,
+            windts_output_dir=windts_dir, event_ids=["EVT-01234"],
+        )
+        with (windts_dir / "EVT-01234.json").open() as f:
+            payload = json.load(f)
+        assert payload["event_id"] == "EVT-01234"
+
+    def test_none_event_ids_keeps_index_naming(self, minimal_config, tmp_path):
+        # Backward-compatible fallback: index naming when event_ids is None.
+        events_dir = tmp_path / "events"
+        simulate_typhoon_events(
+            config=minimal_config, n_events=2, n_particles=3,
+            rng=np.random.default_rng(0), horizon_hours=2.0,
+            events_output_dir=events_dir,
+        )
+        names = sorted(p.name for p in events_dir.glob("EVT-*.json"))
+        assert names == ["EVT-0000.json", "EVT-0001.json"]
+
+
 class TestWindtsOutput:
     """Per-property wind timeseries written during the pipeline run, for
     downstream consumers (flood model, BRI scoring, visualisation)."""
@@ -216,3 +270,85 @@ class TestWindtsOutput:
         # The event's particle_id should match the scenario family the
         # windts file records (the simple proxy that ties them together).
         assert event_payload["scenario_family"] == windts_payload["scenario_family"]
+
+
+class TestCoupledGenesis:
+    """Stage 3 — event_severity_q couples genesis Vmax to the paired storm.
+
+    Higher severity quantiles must yield stronger storms on average; per-event
+    seeds make the coupled draw reproducible irrespective of loop order; and
+    the standalone path (no q) is left untouched.
+    """
+
+    def test_severity_q_length_must_match_events(self, minimal_config):
+        with pytest.raises(ValueError):
+            simulate_typhoon_events(
+                config=minimal_config, n_events=3, n_particles=3,
+                rng=np.random.default_rng(0), horizon_hours=2.0,
+                event_severity_q=[0.5, 0.9],   # 2 != 3
+            )
+
+    def test_event_seeds_length_must_match_events(self, minimal_config):
+        with pytest.raises(ValueError):
+            simulate_typhoon_events(
+                config=minimal_config, n_events=2, n_particles=3,
+                rng=np.random.default_rng(0), horizon_hours=2.0,
+                event_seeds=[1, 2, 3],   # 3 != 2
+            )
+
+    def test_metadata_flags_coupled_run(self, minimal_config):
+        ensemble = simulate_typhoon_events(
+            config=minimal_config, n_events=2, n_particles=3,
+            rng=np.random.default_rng(0), horizon_hours=2.0,
+            event_severity_q=[0.3, 0.95], event_seeds=[11, 22],
+            coupling_beta=0.5,
+        )
+        assert ensemble.metadata["coupled_genesis"] is True
+        assert ensemble.metadata["coupling_beta"] == 0.5
+
+    def test_standalone_metadata_has_no_beta(self, minimal_config):
+        ensemble = simulate_typhoon_events(
+            config=minimal_config, n_events=2, n_particles=3,
+            rng=np.random.default_rng(0), horizon_hours=2.0,
+        )
+        assert ensemble.metadata["coupled_genesis"] is False
+        assert ensemble.metadata["coupling_beta"] is None
+
+    def test_per_event_seed_makes_genesis_reproducible(self, minimal_config, tmp_path):
+        # Same q + same seed -> identical representative track peak, regardless
+        # of the shared rng (so loop order / other events cannot perturb it).
+        def run(outdir):
+            simulate_typhoon_events(
+                config=minimal_config, n_events=2, n_particles=5,
+                rng=np.random.default_rng(0), horizon_hours=3.0,
+                event_ids=["EVT-00000", "EVT-00001"],
+                event_severity_q=[0.4, 0.92], event_seeds=[123, 456],
+                coupling_beta=0.5, events_output_dir=outdir,
+            )
+        run(tmp_path / "a")
+        run(tmp_path / "b")
+        for name in ("EVT-00000.json", "EVT-00001.json"):
+            with (tmp_path / "a" / name).open() as f:
+                pa = json.load(f)
+            with (tmp_path / "b" / name).open() as f:
+                pb = json.load(f)
+            assert pa["summary"]["peak_v_max_ms"] == pytest.approx(
+                pb["summary"]["peak_v_max_ms"])
+
+    def test_higher_severity_yields_stronger_storms(self, minimal_config):
+        # Average p99 peak wind across properties should rise with severity.
+        low = simulate_typhoon_events(
+            config=minimal_config, n_events=12, n_particles=8,
+            rng=np.random.default_rng(1), horizon_hours=3.0,
+            event_severity_q=[0.15] * 12,
+            event_seeds=list(range(12)), coupling_beta=0.5,
+        )
+        high = simulate_typhoon_events(
+            config=minimal_config, n_events=12, n_particles=8,
+            rng=np.random.default_rng(1), horizon_hours=3.0,
+            event_severity_q=[0.95] * 12,
+            event_seeds=list(range(12)), coupling_beta=0.5,
+        )
+        low_peak = np.mean([p.peak_sustained_p99 for p in low.properties])
+        high_peak = np.mean([p.peak_sustained_p99 for p in high.properties])
+        assert high_peak > low_peak

@@ -132,6 +132,8 @@ class ParticleFilter:
         config: CatchmentTyphoonConfig,
         rng: np.random.Generator,
         genesis_time: Optional[datetime] = None,
+        genesis_v_max_override: Optional[float] = None,
+        genesis_scenario_override: Optional[ScenarioFamily] = None,
     ):
         if n_particles <= 0:
             raise ValueError(f"n_particles must be positive, got {n_particles}")
@@ -141,6 +143,13 @@ class ParticleFilter:
         # Genesis time is metadata for the output trajectories; it does not
         # affect sampling. Pinned default keeps tests reproducible.
         self.genesis_time: datetime = genesis_time or datetime(2026, 1, 1)
+
+        # Storm->wind coupling (coupling_spec.md §4): when set, every particle
+        # initialises at this peak wind and scenario label rather than drawing
+        # an independent scenario + Vmax. The event's windiness is fixed by the
+        # paired storm; the filter still explores track/size/location/regime.
+        self.genesis_v_max_override: Optional[float] = genesis_v_max_override
+        self.genesis_scenario_override: Optional[ScenarioFamily] = genesis_scenario_override
 
         self.particles: List[TyphoonParticle] = []
         self.histories: List[List[TyphoonState]] = []
@@ -161,12 +170,22 @@ class ParticleFilter:
         """
         mix = self.config.genesis_prior.scenario_mix
         uniform = 1.0 / self.n
+        coupled = self.genesis_v_max_override is not None
         particles: List[TyphoonParticle] = []
         histories: List[List[TyphoonState]] = []
         scenarios: List[ScenarioFamily] = []
         for i in range(self.n):
-            scenario = sample_scenario_family(mix, self.rng)
-            state = sample_genesis(self.config, scenario, self.rng)
+            if coupled:
+                # Coupled mode: genesis Vmax and scenario label are fixed for
+                # the event; only the non-intensity genesis dimensions vary.
+                scenario = self.genesis_scenario_override
+                state = sample_genesis(
+                    self.config, scenario, self.rng,
+                    v_max_override=self.genesis_v_max_override,
+                )
+            else:
+                scenario = sample_scenario_family(mix, self.rng)
+                state = sample_genesis(self.config, scenario, self.rng)
             particles.append(TyphoonParticle(
                 state=state,
                 weight=uniform,

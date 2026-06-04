@@ -190,7 +190,7 @@ def test_wind_impact_options(client):
 
 
 def test_wind_impact_no_typhoon_link(client, monkeypatch):
-    monkeypatch.setattr(wi, "link_for_storm", lambda sid: None)
+    monkeypatch.setattr(wi, "typhoon_for_storm", lambda sid: None)
     resp = client.get("/api/v1/propertyts/STORM-0001/wind-impact")
     assert resp.status_code == 200
     body = resp.get_json()
@@ -200,14 +200,14 @@ def test_wind_impact_no_typhoon_link(client, monkeypatch):
 
 
 def test_wind_impact_damage_file_missing(client, monkeypatch):
-    monkeypatch.setattr(wi, "link_for_storm", lambda sid: {"event_id": "EVT-9999"})
+    monkeypatch.setattr(wi, "typhoon_for_storm", lambda sid: {"event_id": "EVT-9999"})
     resp = client.get("/api/v1/propertyts/STORM-0001/wind-impact")
     assert resp.status_code == 404
     assert "missing" in resp.get_json()["message"].lower()
 
 
 def test_wind_impact_damage_file_unreadable(client, cfg_tmp, monkeypatch):
-    monkeypatch.setattr(wi, "link_for_storm", lambda sid: {"event_id": "EVT-0001"})
+    monkeypatch.setattr(wi, "typhoon_for_storm", lambda sid: {"event_id": "EVT-0001"})
     dmg_dir = cfg_tmp / "typhoon" / "damage"
     dmg_dir.mkdir(parents=True)
     (dmg_dir / "EVT-0001.json").write_text("{bad json")
@@ -256,7 +256,7 @@ def test_wind_impact_full_rows(client, cfg_tmp, monkeypatch):
             {"damage_ratio": 0.9},  # no id → skip
         ],
     }))
-    monkeypatch.setattr(wi, "link_for_storm", lambda sid: {
+    monkeypatch.setattr(wi, "typhoon_for_storm", lambda sid: {
         "event_id": "EVT-0001", "scenario_family": "fam",
         "peak_wind_ms": 55, "mean_damage_ratio": 0.15,
     })
