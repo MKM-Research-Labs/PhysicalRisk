@@ -21,10 +21,16 @@ input JSON shape and the output filenames:
   ts_dirs.shd           propertytsd                commercialtsd
   ts_dirs.she           propertytse                commercialtse
   ts_dirs.bri           propertytsb                commercialtsb
+  ts_dirs.win           propertytsw                commercialtsw
+  ts_dirs.faw           propertytsfaw              commercialtsfaw
+  ts_dirs.fow           propertytsfow              commercialtsfow
   hc_files.normal       propertyhc.json            commercialhc.json
   hc_files.shd          propertyshd.json           commercialshd.json
   hc_files.she          propertyshe.json           commercialshe.json
   hc_files.bri          propertybri.json           commercialbri.json
+  hc_files.win          propertywin.json           commercialwin.json
+  hc_files.faw          propertyfaw.json           commercialfaw.json
+  hc_files.fow          propertyfow.json           commercialfow.json
   type_field            PropertyResi               CommercialType
   type_default          Detached                   Office
 
@@ -76,12 +82,18 @@ RESIDENTIAL_CONFIG = AssetTypeConfig(
         "shd": "propertytsd",
         "she": "propertytse",
         "bri": "propertytsb",
+        "win": "propertytsw",
+        "faw": "propertytsfaw",
+        "fow": "propertytsfow",
     },
     hc_files={
         "normal": "propertyhc.json",
         "shd": "propertyshd.json",
         "she": "propertyshe.json",
         "bri": "propertybri.json",
+        "win": "propertywin.json",
+        "faw": "propertyfaw.json",
+        "fow": "propertyfow.json",
     },
     label="Property",
 )
@@ -100,12 +112,18 @@ COMMERCIAL_CONFIG = AssetTypeConfig(
         "shd": "commercialtsd",
         "she": "commercialtse",
         "bri": "commercialtsb",
+        "win": "commercialtsw",
+        "faw": "commercialtsfaw",
+        "fow": "commercialtsfow",
     },
     hc_files={
         "normal": "commercialhc.json",
         "shd": "commercialshd.json",
         "she": "commercialshe.json",
         "bri": "commercialbri.json",
+        "win": "commercialwin.json",
+        "faw": "commercialfaw.json",
+        "fow": "commercialfow.json",
     },
     label="Commercial",
 )

@@ -52,6 +52,21 @@ LOAN_PRICER_JS_TEMPLATE = """
             // coupon instead of the coarse flood-category lookup, so the
             // calculator matches the property PRS pricer. null = use category.
             var assetFloodSpreadBps = null;
+            // The origin asset's modelled combined flood-OR-wind PRS spread
+            // (the union, bps), read from the same hazard curve when the
+            // catchment has a coupled typhoon stage. When set, the wind leg is
+            // PRS-priced as the incremental hazard on top of flood
+            // (union - flood). null = no wind curve -> wind stays on the static
+            // category lookup (flood-only catchments).
+            var assetUnionSpreadBps = null;
+            // The origin asset's full PRS scenario fan, in bps, read from the
+            // hazard curve: flo (raw flood), bri (flood with BRI resilience),
+            // win (wind only), faw (flood AND wind), fow (flood OR wind). The
+            // calculator's PRS-scenario dropdown picks one of these to drive the
+            // coupon's single hazard leg. Any entry left null (scenario absent
+            // for this asset/catchment) makes that menu choice fall back to the
+            // legacy flood+wind category lookup server-side.
+            var assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null}};
             // Borrower income sourced from the origin asset. Commercial markers
             // forward the asset's net initial yield (passing rent / value) so
             // the server can derive income = yield x property value; residential
@@ -74,7 +89,8 @@ LOAN_PRICER_JS_TEMPLATE = """
                 original_maturity: 30,
                 current_term: 30,
                 credit_rating: 'BBB',
-                wind_risk_category: 'Medium'
+                wind_risk_category: 'Medium',
+                prs_scenario: 'fow'
             }};
 
             // field id -> {{label, kind}}. kind 'pct' fields are stored on the
@@ -91,6 +107,17 @@ LOAN_PRICER_JS_TEMPLATE = """
             ];
             var WIND_OPTIONS = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
             var CREDIT_RATINGS = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'];
+            // PRS hazard scenarios offered by the dropdown. The chosen scenario's
+            // modelled spread becomes the coupon's single hazard leg. 'fow'
+            // (flood OR wind) is the default so the calculator opens on the full
+            // combined peril, matching the prior flood+wind behaviour.
+            var PRS_SCENARIOS = [
+                {{value: 'flo', label: 'Flood only'}},
+                {{value: 'bri', label: 'Flood only + BRI resilience'}},
+                {{value: 'win', label: 'Wind only'}},
+                {{value: 'faw', label: 'Flood AND wind'}},
+                {{value: 'fow', label: 'Flood OR wind (combined)'}}
+            ];
 
             function createPanel() {{
                 if (lpPanel) return lpPanel;
@@ -182,7 +209,12 @@ LOAN_PRICER_JS_TEMPLATE = """
                     'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
                     'border:1px solid #ccc;border-radius:4px;font-size:13px;">';
                 options.forEach(function(o) {{
-                    h += '<option value="' + o + '">' + o + '</option>';
+                    // Accept either a plain string (value === text) or a
+                    // {{value, label}} object so the same helper builds both the
+                    // category selects and the PRS-scenario selector.
+                    var val = (o && o.value !== undefined) ? o.value : o;
+                    var txt = (o && o.label !== undefined) ? o.label : o;
+                    h += '<option value="' + val + '">' + txt + '</option>';
                 }});
                 return h + '</select></div>';
             }}
@@ -210,6 +242,11 @@ LOAN_PRICER_JS_TEMPLATE = """
                 if (standaloneMode) {{
                     html += selectHtml('lp-credit_rating', 'Borrower Credit Rating', CREDIT_RATINGS);
                     html += selectHtml('lp-wind_risk_category', 'Wind Risk Category', WIND_OPTIONS);
+                    // PRS hazard scenario: which modelled peril spread drives
+                    // the coupon's hazard leg. Only meaningful when launched
+                    // from an asset (its fan supplies the spreads); otherwise
+                    // the chosen scenario falls back to the category lookup.
+                    html += selectHtml('lp-prs_scenario', 'PRS Hazard Scenario', PRS_SCENARIOS);
                 }}
                 html += '<button id="lp-reprice-btn" ' +
                     'style="width:100%;margin-top:4px;padding:8px;background:#1565C0;color:white;' +
@@ -233,6 +270,8 @@ LOAN_PRICER_JS_TEMPLATE = """
                 if (wr && inputs.wind_risk_category) wr.value = inputs.wind_risk_category;
                 var cr = document.getElementById('lp-credit_rating');
                 if (cr && inputs.credit_rating) cr.value = inputs.credit_rating;
+                var ps = document.getElementById('lp-prs_scenario');
+                if (ps && inputs.prs_scenario) ps.value = inputs.prs_scenario;
             }}
 
             function readOverrides() {{
@@ -249,6 +288,8 @@ LOAN_PRICER_JS_TEMPLATE = """
                 if (wr && wr.value) ov.wind_risk_category = wr.value;
                 var cr = document.getElementById('lp-credit_rating');
                 if (cr && cr.value) ov.credit_rating = cr.value;
+                var ps = document.getElementById('lp-prs_scenario');
+                if (ps && ps.value) ov.prs_scenario = ps.value;
                 return ov;
             }}
 
@@ -283,13 +324,40 @@ LOAN_PRICER_JS_TEMPLATE = """
                             'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
                             'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
                     }}
+                    // The wind leg is either PRS-priced from the asset's modelled
+                    // union (incremental flood OR wind) or, for flood-only assets,
+                    // the static wind-category lookup. Label it accordingly.
+                    var windFromUnion = (c.wind_priced_by || '').indexOf('union') >= 0;
+                    var windLabel = windFromUnion
+                        ? 'Wind Hazard (PRS \\u00b7 combined)'
+                        : 'Wind Hazard (static)';
                     var couponRows = [
                         ['Contractual Coupon', fmtPct(c.rate), '#0D47A1'],
                         ['Risk-free (curve)', fmtPct(c.risk_free), '#333'],
-                        ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), '#333'],
-                        [floodLabel, fmtPct(c.flood_spread), '#333'],
-                        ['Wind Hazard (static)', fmtPct(c.wind_spread), '#333']
+                        ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), '#333']
                     ];
+                    // When the user picked a PRS scenario the coupon carries a
+                    // single hazard leg (that scenario's modelled spread); show
+                    // it as one labelled row. Otherwise fall back to the legacy
+                    // flood + wind two-leg decomposition.
+                    if (c.prs_scenario) {{
+                        var SCEN_LABELS = {{
+                            flo: 'Flood only', bri: 'Flood only \\u00b7 BRI resilience',
+                            win: 'Wind only', faw: 'Flood AND wind',
+                            fow: 'Flood OR wind (combined)'
+                        }};
+                        var scLabel = SCEN_LABELS[c.prs_scenario] || c.prs_scenario;
+                        var prsLabel = 'PRS Hazard (' + scLabel + ')';
+                        if (standaloneOriginAssetId && window.viewPropertyHazard) {{
+                            prsLabel += ' <a href="#" id="lp-flood-prs-link" ' +
+                                'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
+                                'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
+                        }}
+                        couponRows.push([prsLabel, fmtPct(c.hazard_spread), '#333']);
+                    }} else {{
+                        couponRows.push([floodLabel, fmtPct(c.flood_spread), '#333']);
+                        couponRows.push([windLabel, fmtPct(c.wind_spread), '#333']);
+                    }}
                     html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
                         'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
                         'Coupon Build-up</div>';
@@ -364,6 +432,8 @@ LOAN_PRICER_JS_TEMPLATE = """
             // prs_spread_bps), so it is directly comparable to the first point.
             async function loadAssetFloodSpread() {{
                 assetFloodSpreadBps = null;
+                assetUnionSpreadBps = null;
+                assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null}};
                 if (!standaloneOriginAssetId) return;
                 try {{
                     var resp = await fetch(hazardEndpointFor(standaloneOriginAssetId),
@@ -376,12 +446,63 @@ LOAN_PRICER_JS_TEMPLATE = """
                     var arr = severe && severe.prs_spread_bps;
                     if (arr && arr.length && arr[0] != null && !isNaN(arr[0])) {{
                         assetFloodSpreadBps = parseFloat(arr[0]);
+                        // Raw surveyed-floor flood spread (flo scenario).
+                        assetScenarioSpreads.flo = assetFloodSpreadBps;
+                    }}
+                    // Combined flood-OR-wind PRS (the union) — present only when
+                    // the catchment has a coupled typhoon stage. Flat across
+                    // tenors, so the first point is taken. Absent for flood-only
+                    // catchments, leaving assetUnionSpreadBps null (wind stays
+                    // on the static category lookup).
+                    var perils = ts && ts.perils;
+                    var fow = perils && perils.flood_or_wind;
+                    var uarr = fow && fow.prs_spread_bps;
+                    if (uarr && uarr.length && uarr[0] != null && !isNaN(uarr[0])) {{
+                        assetUnionSpreadBps = parseFloat(uarr[0]);
                     }}
                     // Prefer the BRI-adjusted (resilient) spread when present.
                     var sd = d && d.spread_decomposition;
                     var briBps = sd && sd.bri_spread_bps;
                     if (briBps != null && !isNaN(briBps)) {{
                         assetFloodSpreadBps = parseFloat(briBps);
+                        assetScenarioSpreads.bri = parseFloat(briBps);
+                    }}
+                    // Peril fan scalars (Option A): wind-only, flood-AND-wind,
+                    // flood-OR-wind. Each is the canonical scenario spread read
+                    // from the win/faw/fow hazard files via the decomposition.
+                    if (sd && sd.win_spread_bps != null && !isNaN(sd.win_spread_bps)) {{
+                        assetScenarioSpreads.win = parseFloat(sd.win_spread_bps);
+                    }}
+                    if (sd && sd.faw_spread_bps != null && !isNaN(sd.faw_spread_bps)) {{
+                        assetScenarioSpreads.faw = parseFloat(sd.faw_spread_bps);
+                    }}
+                    if (sd && sd.fow_spread_bps != null && !isNaN(sd.fow_spread_bps)) {{
+                        assetScenarioSpreads.fow = parseFloat(sd.fow_spread_bps);
+                    }}
+                    // Prefer the BRI-adjusted union (peril outcomes are attached
+                    // to the decomposition from the BRI node) to stay consistent
+                    // with the BRI-preferred flood leg above.
+                    var po = sd && sd.peril_outcomes;
+                    var pou = po && po.flood_or_wind;
+                    var pouBps = pou && pou.spread_bps;
+                    if (pouBps != null && !isNaN(pouBps)) {{
+                        assetUnionSpreadBps = parseFloat(pouBps);
+                        if (assetScenarioSpreads.fow == null) {{
+                            assetScenarioSpreads.fow = parseFloat(pouBps);
+                        }}
+                    }}
+                    // Fall back to the peril-fan scalars for win/faw too, so the
+                    // dropdown is populated even on payloads that carry only the
+                    // peril_outcomes block (not the flat *_spread_bps mirrors).
+                    if (po) {{
+                        var pw = po.wind_only && po.wind_only.spread_bps;
+                        if (assetScenarioSpreads.win == null && pw != null && !isNaN(pw)) {{
+                            assetScenarioSpreads.win = parseFloat(pw);
+                        }}
+                        var pfaw = po.flood_and_wind && po.flood_and_wind.spread_bps;
+                        if (assetScenarioSpreads.faw == null && pfaw != null && !isNaN(pfaw)) {{
+                            assetScenarioSpreads.faw = parseFloat(pfaw);
+                        }}
                     }}
                 }} catch (e) {{
                     console.warn('[LoanPricer] asset flood spread unavailable', e);
@@ -446,6 +567,26 @@ LOAN_PRICER_JS_TEMPLATE = """
                     // that asset's modelled PRS spread instead of the category.
                     if (standaloneMode && assetFloodSpreadBps != null) {{
                         overrides.flood_spread_bps = assetFloodSpreadBps;
+                    }}
+                    // When the asset has a coupled wind curve, drive the wind
+                    // leg from the modelled union (flood OR wind) so the coupon
+                    // prices the combined peril. The server takes the wind leg
+                    // as the incremental union - flood. Absent for flood-only
+                    // assets -> wind stays on the static category lookup.
+                    if (standaloneMode && assetUnionSpreadBps != null) {{
+                        overrides.union_spread_bps = assetUnionSpreadBps;
+                    }}
+                    // PRS hazard scenario: the chosen peril spread becomes the
+                    // coupon's single hazard leg server-side. Send the scenario
+                    // tag plus its modelled spread (bps). When the asset has no
+                    // spread for that scenario the value is null and the server
+                    // falls back to the legacy flood+wind category lookup.
+                    if (standaloneMode) {{
+                        var scen = overrides.prs_scenario || 'fow';
+                        var scenBps = assetScenarioSpreads[scen];
+                        if (scenBps != null && !isNaN(scenBps)) {{
+                            overrides.prs_spread_bps = scenBps;
+                        }}
                     }}
                     // Derive commercial income from the asset's net initial
                     // yield x the (editable) property value, server-side. The

@@ -34,6 +34,19 @@ def register_parser(subparsers):
                     help="BRI-adjusted floor timeseries for commercial (commercialtsb/)")
     sp.add_argument("--commercialbri", action="store_true",
                     help="BRI-adjusted floor hazard curves for commercial (commercialbri.json)")
+    # Wind-coupled peril scenarios for commercial (require --typhoon damage)
+    sp.add_argument("--commercialtsw", action="store_true",
+                    help="Wind-only peril timeseries for commercial (commercialtsw/)")
+    sp.add_argument("--commercialtsfaw", action="store_true",
+                    help="Flood-AND-wind peril timeseries for commercial (commercialtsfaw/)")
+    sp.add_argument("--commercialtsfow", action="store_true",
+                    help="Flood-OR-wind peril timeseries for commercial (commercialtsfow/)")
+    sp.add_argument("--commercialwin", action="store_true",
+                    help="Wind-only hazard curves for commercial (commercialwin.json)")
+    sp.add_argument("--commercialfaw", action="store_true",
+                    help="Flood-AND-wind hazard curves for commercial (commercialfaw.json)")
+    sp.add_argument("--commercialfow", action="store_true",
+                    help="Flood-OR-wind hazard curves for commercial (commercialfow.json)")
     sp.add_argument("--gaugets", "--gt", action="store_true")
     sp.add_argument("--gaugehd", "--hd", action="store_true")
     sp.add_argument("--hazard", "--hz", action="store_true")
@@ -51,6 +64,19 @@ def register_parser(subparsers):
                     help="BRI-adjusted floor timeseries (floor = BRIAdjustedFloorLevelMeters)")
     sp.add_argument("--propertybri", action="store_true",
                     help="BRI-adjusted floor hazard curves (propertybri.json)")
+    # Wind-coupled peril scenarios (require --typhoon damage)
+    sp.add_argument("--propertytsw", action="store_true",
+                    help="Wind-only peril timeseries (propertytsw/)")
+    sp.add_argument("--propertytsfaw", action="store_true",
+                    help="Flood-AND-wind peril timeseries (propertytsfaw/)")
+    sp.add_argument("--propertytsfow", action="store_true",
+                    help="Flood-OR-wind peril timeseries (propertytsfow/)")
+    sp.add_argument("--propertywin", action="store_true",
+                    help="Wind-only hazard curves (propertywin.json)")
+    sp.add_argument("--propertyfaw", action="store_true",
+                    help="Flood-AND-wind hazard curves (propertyfaw.json)")
+    sp.add_argument("--propertyfow", action="store_true",
+                    help="Flood-OR-wind hazard curves (propertyfow.json)")
     sp.add_argument("--counterparties", "--ctpy", action="store_true")
     sp.add_argument("--blotter", "--bl", action="store_true")
     sp.add_argument("--stressm", action="store_true",

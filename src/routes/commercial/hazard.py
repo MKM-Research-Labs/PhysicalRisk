@@ -9,10 +9,14 @@
   GET /api/v1/commercial/<prop_id>/she
   GET /api/v1/commercial/<prop_id>/shd
   GET /api/v1/commercial/<prop_id>/bri
-      Mirror the /properties/<id>/{hazard,she,shd,bri} routes — return the
-      per-asset hazard curve + PRS pricing payload. Read from
+  GET /api/v1/commercial/<prop_id>/win   (wind-only peril)
+  GET /api/v1/commercial/<prop_id>/faw   (flood AND wind)
+  GET /api/v1/commercial/<prop_id>/fow   (flood OR wind)
+      Mirror the /properties/<id>/{hazard,she,shd,bri,win,faw,fow} routes —
+      return the per-asset hazard curve + PRS pricing payload. Read from
       commercialhc.json / commercialshe.json / commercialshd.json /
-      commercialbri.json. All use the SAME top-level key
+      commercialbri.json / commercialwin.json / commercialfaw.json /
+      commercialfow.json. All use the SAME top-level key
       `property_hazard_curves` keyed by PropertyID (CPROP-…).
 
   GET /api/v1/commercial/<prop_id>
@@ -131,6 +135,63 @@ def commercial_bri(prop_id: str):
         return jsonify({
             'status': 'error',
             'message': f'Commercial asset {prop_id} not in BRI curves',
+        }), 404
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
+@commercial_bp.route('/commercial/<prop_id>/win', methods=['GET', 'OPTIONS'])
+def commercial_win(prop_id: str):
+    """Wind-only peril hazard curve for one commercial asset.
+
+    Mirrors ``/properties/<id>/win`` — wind-only PRS spread (commercialwin.json).
+    """
+    data, err = _hazard_or_404('commercialwin.json',
+                               'Commercial wind-only hazard')
+    if err:
+        return err
+    asset_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': f'Commercial asset {prop_id} not in win curves',
+        }), 404
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
+@commercial_bp.route('/commercial/<prop_id>/faw', methods=['GET', 'OPTIONS'])
+def commercial_faw(prop_id: str):
+    """Flood-AND-wind peril hazard curve for one commercial asset.
+
+    Mirrors ``/properties/<id>/faw`` (commercialfaw.json).
+    """
+    data, err = _hazard_or_404('commercialfaw.json',
+                               'Commercial flood-AND-wind hazard')
+    if err:
+        return err
+    asset_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': f'Commercial asset {prop_id} not in faw curves',
+        }), 404
+    return jsonify({'status': 'success', 'data': asset_data})
+
+
+@commercial_bp.route('/commercial/<prop_id>/fow', methods=['GET', 'OPTIONS'])
+def commercial_fow(prop_id: str):
+    """Flood-OR-wind peril hazard curve for one commercial asset.
+
+    Mirrors ``/properties/<id>/fow`` (commercialfow.json).
+    """
+    data, err = _hazard_or_404('commercialfow.json',
+                               'Commercial flood-OR-wind hazard')
+    if err:
+        return err
+    asset_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not asset_data:
+        return jsonify({
+            'status': 'error',
+            'message': f'Commercial asset {prop_id} not in fow curves',
         }), 404
     return jsonify({'status': 'success', 'data': asset_data})
 

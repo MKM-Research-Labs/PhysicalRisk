@@ -14,7 +14,9 @@ from .._catchment import resolve_catchment
 from .auth import _authenticate
 from .context import StageContext
 from .pdf_reports import run_lineage_chain_validation, run_pdf_reports
-from .stages import hazardcurves, portfolios, storm, timeseries, trading, typhoon
+from .stages import (
+    hazardcurves, portfolios, storm, timeseries, trading, typhoon, windhazard,
+)
 from .summary import _print_port_summary
 
 
@@ -62,6 +64,10 @@ def _build_context(args) -> StageContext:
         args.propertytsb, args.propertybri,
         args.counterparties, args.blotter, args.stressm,
         args.typhoon,
+        args.propertytsw, args.propertytsfaw, args.propertytsfow,
+        args.propertywin, args.propertyfaw, args.propertyfow,
+        args.commercialtsw, args.commercialtsfaw, args.commercialtsfow,
+        args.commercialwin, args.commercialfaw, args.commercialfow,
     ]
     run_all = args.all or not any(segment_flags)
 
@@ -197,6 +203,9 @@ def cmd_port(args):
     hazardcurves.run_all(ctx)
     trading.run_all(ctx)
     typhoon.run_all(ctx)
+    # Wind-coupled hazard curves (win/faw/fow) must run AFTER typhoon: they
+    # derive their ts inputs from the flood spine joined against typhoon/damage.
+    windhazard.run_all(ctx)
 
     # --- Post-run reporting ----------------------------------------------
     if ctx.run_all:
