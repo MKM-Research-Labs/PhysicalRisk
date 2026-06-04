@@ -139,6 +139,70 @@ class TestStandaloneLoanPricerRoute:
         assert c["flood_spread"] == pytest.approx(0.039)
         assert c["flood_annual_hazard"] == pytest.approx(0.039)
 
+    def test_union_spread_prices_wind_leg_incrementally(self, prop_client):
+        """When the calculator passes the asset's modelled flood-OR-wind union
+        (union_spread_bps) alongside the asset flood spread, the wind leg is the
+        incremental hazard union - flood (inclusion-exclusion), so flood + wind
+        equals the union exactly and the joint events are not double-counted."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "flood_risk_category": "Medium",
+            "flood_spread_bps": 300,    # flood marginal 3.0%
+            "union_spread_bps": 500,    # flood OR wind 5.0%
+        }})
+        c = r.get_json()["coupon"]
+        assert c["flood_priced_by"] == "PRS (asset curve)"
+        assert c["wind_priced_by"] == "PRS (asset curve, union)"
+        assert c["flood_spread"] == pytest.approx(0.030)
+        # Wind leg is the incremental union - flood = 5.0% - 3.0% = 2.0%.
+        assert c["wind_spread"] == pytest.approx(0.020)
+        # Total hazard leg equals the union — no double-count of joint events.
+        assert c["hazard_spread"] == pytest.approx(0.050)
+
+    def test_union_below_flood_clamps_wind_to_zero(self, prop_client):
+        """Defensive: union >= flood always holds in the model, but a union at
+        or below the flood spread must clamp the incremental wind leg to 0
+        rather than go negative."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "flood_spread_bps": 400,
+            "union_spread_bps": 400,    # equal -> no incremental wind
+        }})
+        c = r.get_json()["coupon"]
+        assert c["wind_spread"] == pytest.approx(0.0)
+        assert c["hazard_spread"] == pytest.approx(0.040)
+
+    def test_union_ignored_without_asset_flood(self, prop_client):
+        """A union spread without an asset flood leg must NOT PRS-price wind:
+        mixing an asset union against a coarse flood-category leg would compare
+        incompatible scales, so the wind leg stays on the static category."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000,
+            "flood_risk_category": "Medium", "wind_risk_category": "Medium",
+            "union_spread_bps": 500,    # no flood_spread_bps -> ignored for wind
+        }})
+        c = r.get_json()["coupon"]
+        assert c["wind_priced_by"] == "static"
+
+    def test_larger_union_raises_wind_leg(self, prop_client):
+        """Holding the flood leg fixed, a larger union (more wind-driven events)
+        must price a larger incremental wind leg and thus a larger coupon."""
+        client, _ = prop_client
+        base = {"loan_amount": 200000, "property_value": 300000,
+                "flood_spread_bps": 300}
+
+        def coupon_for(union_bps):
+            r = client.post("/api/v1/loan-pricer",
+                            json={"inputs": {**base, "union_spread_bps": union_bps}})
+            return r.get_json()["coupon"]
+
+        low, high = coupon_for(400), coupon_for(600)
+        assert high["wind_spread"] > low["wind_spread"]
+        assert high["rate"] > low["rate"]
+
     def test_higher_flood_category_raises_coupon(self, prop_client):
         """A worse flood category must price a larger flood leg (PRS-driven)."""
         client, _ = prop_client
@@ -226,6 +290,81 @@ class TestStandaloneLoanPricerRoute:
         client, _ = prop_client
         r = client.post("/api/v1/loan-pricer", json={})
         assert r.status_code == 422
+
+
+class TestPrsScenarioCoupon:
+    """The calculator's PRS Hazard Scenario dropdown sends a single chosen
+    spread (prs_spread_bps) + its tag (prs_scenario); that spread becomes the
+    coupon's entire hazard leg and supersedes the flood/union split."""
+
+    def _coupon(self, client, **inputs):
+        base = {"loan_amount": 200000, "property_value": 300000}
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {**base, **inputs}})
+        assert r.status_code == 200
+        return r.get_json()
+
+    def test_win_scenario_is_all_wind(self, prop_client):
+        client, _ = prop_client
+        c = self._coupon(client, prs_scenario="win", prs_spread_bps=250)["coupon"]
+        assert c["prs_scenario"] == "win"
+        assert c["hazard_spread"] == pytest.approx(0.025)
+        assert c["wind_spread"] == pytest.approx(0.025)
+        assert c["flood_spread"] == pytest.approx(0.0)
+        assert "scenario: win" in c["flood_priced_by"]
+
+    @pytest.mark.parametrize("scenario", ["flo", "bri", "faw"])
+    def test_flood_side_scenarios_are_all_flood(self, prop_client, scenario):
+        client, _ = prop_client
+        c = self._coupon(client, prs_scenario=scenario, prs_spread_bps=180)["coupon"]
+        assert c["prs_scenario"] == scenario
+        assert c["flood_spread"] == pytest.approx(0.018)
+        assert c["wind_spread"] == pytest.approx(0.0)
+        assert c["hazard_spread"] == pytest.approx(0.018)
+
+    def test_fow_splits_into_flood_plus_incremental_wind(self, prop_client):
+        client, _ = prop_client
+        c = self._coupon(client, prs_scenario="fow", prs_spread_bps=500,
+                         flood_spread_bps=300)["coupon"]
+        assert c["flood_spread"] == pytest.approx(0.030)
+        assert c["wind_spread"] == pytest.approx(0.020)
+        assert c["hazard_spread"] == pytest.approx(0.050)
+
+    def test_fow_without_base_flood_is_all_flood(self, prop_client):
+        client, _ = prop_client
+        c = self._coupon(client, prs_scenario="fow", prs_spread_bps=500)["coupon"]
+        assert c["flood_spread"] == pytest.approx(0.050)
+        assert c["wind_spread"] == pytest.approx(0.0)
+
+    def test_scenario_supersedes_union_split(self, prop_client):
+        """When a scenario spread is present it wins over flood/union, so the
+        hazard leg is the scenario spread, not union - flood."""
+        client, _ = prop_client
+        c = self._coupon(client, prs_scenario="win", prs_spread_bps=250,
+                         flood_spread_bps=300, union_spread_bps=900)["coupon"]
+        assert c["hazard_spread"] == pytest.approx(0.025)
+        assert c["wind_spread"] == pytest.approx(0.025)
+
+    def test_coupon_decomposes_with_scenario(self, prop_client):
+        client, _ = prop_client
+        c = self._coupon(client, prs_scenario="faw", prs_spread_bps=120)["coupon"]
+        assert c["rate"] == pytest.approx(
+            c["risk_free"] + c["credit_spread"] + c["hazard_spread"])
+        assert c["hazard_spread"] == pytest.approx(c["flood_spread"] + c["wind_spread"])
+
+    def test_scenario_echoed_in_inputs(self, prop_client):
+        """prs_scenario round-trips so the dropdown re-selects after a price."""
+        client, _ = prop_client
+        data = self._coupon(client, prs_scenario="win", prs_spread_bps=250)
+        assert data["inputs"]["prs_scenario"] == "win"
+
+    def test_no_scenario_keeps_legacy_two_leg(self, prop_client):
+        """Without a scenario spread the coupon keeps the flood/wind split and
+        carries no prs_scenario tag (backward compatible)."""
+        client, _ = prop_client
+        c = self._coupon(client, flood_spread_bps=300, union_spread_bps=500)["coupon"]
+        assert "prs_scenario" not in c
+        assert c["flood_spread"] == pytest.approx(0.030)
+        assert c["wind_spread"] == pytest.approx(0.020)
 
 
 # ===========================================================================

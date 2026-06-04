@@ -155,6 +155,34 @@ class TestLoanPricerPanelStandaloneJS:
         assert "bri_spread_bps" in fn_body
         assert "assetFloodSpreadBps = parseFloat(briBps)" in fn_body
 
+    def test_wind_leg_sourced_from_union_when_coupled(self):
+        """When the asset has a coupled typhoon stage, the calculator reads the
+        modelled flood-OR-wind union (term_structure.perils.flood_or_wind) and
+        threads it into the reprice request so the server prices the wind leg as
+        the incremental union - flood. Absent for flood-only assets, in which
+        case the variable stays null and wind uses the static category."""
+        js = self._js()
+        assert "assetUnionSpreadBps" in js
+        assert "flood_or_wind" in js
+        assert "overrides.union_spread_bps" in js
+        # The union read lives inside loadAssetFloodSpread and is reset to null
+        # alongside the flood spread on every (re)load.
+        fn_start = js.index("function loadAssetFloodSpread")
+        fn_body = js[fn_start:js.index("async function loadAssetIncome")]
+        assert "assetUnionSpreadBps = null" in fn_body
+        assert "flood_or_wind" in fn_body
+
+    def test_wind_leg_prefers_bri_adjusted_union(self):
+        """The union, like the flood leg, prefers the BRI-adjusted value when
+        present: peril outcomes are attached to spread_decomposition from the
+        BRI node, so the wind leg stays consistent with the BRI-preferred flood
+        leg (resilient building -> lower combined spread)."""
+        js = self._js()
+        fn_start = js.index("function loadAssetFloodSpread")
+        fn_body = js[fn_start:js.index("async function loadAssetIncome")]
+        assert "peril_outcomes" in fn_body
+        assert "assetUnionSpreadBps = parseFloat(pouBps)" in fn_body
+
     def test_redundant_pricing_rows_removed(self):
         """The engine's affordability-derived credit spread, LTV factor, flood
         risk factor and affordability ratio were misleading in the results

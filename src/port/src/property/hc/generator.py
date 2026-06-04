@@ -179,6 +179,9 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         shd_path = self.output_dir / cfg.hc_files["shd"]
         she_path = self.output_dir / cfg.hc_files["she"]
         bri_path = self.output_dir / cfg.hc_files["bri"]
+        win_path = self.output_dir / cfg.hc_files["win"]
+        faw_path = self.output_dir / cfg.hc_files["faw"]
+        fow_path = self.output_dir / cfg.hc_files["fow"]
 
         if not hc_path.exists():
             self.log(f"{hc_path.name} not found — skipping decomposition")
@@ -204,6 +207,23 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
         if bri_path.exists():
             with open(bri_path, 'r') as f:
                 bri_curves = json.load(f).get('property_hazard_curves', {})
+
+        # Wind-coupled peril scenario files (win/faw/fow). Each is a full hc
+        # produced by the SAME pricer over a re-stamped peril timeseries, so a
+        # curve's 'severe' 5yr spread (and its top-level flood_count) ARE the
+        # peril spread/count. When present they are the CANONICAL source for the
+        # peril-outcomes fan (Option A); absent until the windhazard stage runs
+        # (flood-only catchments then fall back to the damage-join prs_perils).
+        win_curves, faw_curves, fow_curves = {}, {}, {}
+        if win_path.exists():
+            with open(win_path, 'r') as f:
+                win_curves = json.load(f).get('property_hazard_curves', {})
+        if faw_path.exists():
+            with open(faw_path, 'r') as f:
+                faw_curves = json.load(f).get('property_hazard_curves', {})
+        if fow_path.exists():
+            with open(fow_path, 'r') as f:
+                fow_curves = json.load(f).get('property_hazard_curves', {})
 
         curves = hc_data.get('property_hazard_curves', {})
         count = 0
@@ -264,12 +284,44 @@ class PropertyHazardCurveGenerator(LoaderMixin, PricingMixin, GeneratorInitMixin
 
             # Stage 6 — the four peril outcomes branch at the property/BRI node
             # (flood spine stays geographic; wind is a pure intersect/union with
-            # no gauge propagation). Prefer the BRI-adjusted node when present
-            # (that is the level the book actually trades at), else the property
-            # node. Absent for flood-only catchments (no typhoon stage).
-            peril_outcomes = bri_pc.get('prs_perils') or pc.get('prs_perils')
-            if peril_outcomes:
-                decomposition['peril_outcomes'] = peril_outcomes
+            # no gauge propagation). Absent for flood-only catchments.
+            #
+            # Option A (canonical): when the dedicated win/faw/fow scenario files
+            # exist, the fan is sourced from THEM — each scenario's 'severe' 5yr
+            # spread and top-level flood_count is the peril spread/count. The
+            # flood_only leg is the (geographic) flood spine itself.
+            win_pc = win_curves.get(prop_id, {})
+            faw_pc = faw_curves.get(prop_id, {})
+            fow_pc = fow_curves.get(prop_id, {})
+            if win_pc or faw_pc or fow_pc:
+                win_spread = self._get_5yr_spread(win_pc, 'severe')
+                faw_spread = self._get_5yr_spread(faw_pc, 'severe')
+                fow_spread = self._get_5yr_spread(fow_pc, 'severe')
+                decomposition['win_spread_bps'] = round(win_spread, 2)
+                decomposition['faw_spread_bps'] = round(faw_spread, 2)
+                decomposition['fow_spread_bps'] = round(fow_spread, 2)
+                decomposition['peril_outcomes'] = {
+                    'flood_only': {
+                        'count': pc.get('flood_count', 0),
+                        'spread_bps': round(prop_spread, 2)},
+                    'wind_only': {
+                        'count': win_pc.get('flood_count', 0),
+                        'spread_bps': round(win_spread, 2)},
+                    'flood_or_wind': {
+                        'count': fow_pc.get('flood_count', 0),
+                        'spread_bps': round(fow_spread, 2)},
+                    'flood_and_wind': {
+                        'count': faw_pc.get('flood_count', 0),
+                        'spread_bps': round(faw_spread, 2)},
+                    'source': 'scenario_files',
+                }
+            else:
+                # Fallback: damage-join prs_perils (no scenario files on disk).
+                # Prefer the BRI-adjusted node when present (the level the book
+                # actually trades at), else the property node.
+                peril_outcomes = bri_pc.get('prs_perils') or pc.get('prs_perils')
+                if peril_outcomes:
+                    decomposition['peril_outcomes'] = peril_outcomes
 
             pc['spread_decomposition'] = decomposition
             count += 1
