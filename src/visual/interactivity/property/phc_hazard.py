@@ -194,6 +194,31 @@ def get_js():
                                  countMissing: (briCount == null) });
                 }
 
+                // Peril stages — wind's effect on the asset spread. These sit on
+                // a different axis to the flood attenuation above: FAW is flood
+                // AND wind (intersection, <= asset flood), FOW is flood OR wind
+                // (union, the default PRS coupon, >= asset flood). Spreads come
+                // from spread_decomposition; storm counts from prs_perils. For
+                // FOW the Loss column carries the wind uplift in bps over the
+                // pure (flood-only) asset spread; FAW shows the overlap value.
+                var _psd = (typeof phcData !== 'undefined' && phcData.spread_decomposition) || {};
+                var _pp = (typeof phcData !== 'undefined' && phcData.prs_perils) || {};
+                function _perilCount(p) { return (p && typeof p.count === 'number') ? p.count : 0; }
+                if (_psd.faw_spread_bps !== undefined && _psd.faw_spread_bps !== null) {
+                    steps.push({ label: 'FAW (flood\\u2227wind)',
+                                 count: _perilCount(_pp.flood_and_wind),
+                                 spread: _psd.faw_spread_bps || 0,
+                                 color: '#00838F', bg: '#E0F7FA',
+                                 isPeril: true, perilFirst: true });
+                }
+                if (_psd.fow_spread_bps !== undefined && _psd.fow_spread_bps !== null) {
+                    steps.push({ label: 'FOW (flood\\u2228wind)',
+                                 count: _perilCount(_pp.flood_or_wind),
+                                 spread: _psd.fow_spread_bps || 0,
+                                 color: '#5D4037', bg: '#EFEBE9',
+                                 isPeril: true, perilUplift: true });
+                }
+
                 var maxCount = Math.max(gaugeCount, 1);
                 if (!container) return;
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;">';
@@ -206,20 +231,44 @@ def get_js():
                     '</tr></thead><tbody>';
 
                 steps.forEach(function(s, i) {
-                    // A stage with a missing count (BRI when /bri didn't load)
-                    // shows a count-free row: dash for count, no loss, no bar.
-                    var loss = (!s.countMissing && i > 0 && !steps[i - 1].countMissing)
-                        ? steps[i - 1].count - s.count : 0;
-                    var lossPct = (loss > 0 && steps[i - 1].count > 0)
-                        ? (loss / steps[i - 1].count * 100).toFixed(0) : '';
                     var barPct = (!s.countMissing && maxCount > 0) ? (s.count / maxCount * 100) : 0;
                     var countCell = s.countMissing ? '\\u2014' : s.count.toLocaleString();
+                    var lossCell = '';
 
-                    html += '<tr style="border-bottom:1px solid #f0f0f0;">' +
+                    if (s.isPeril) {
+                        // Peril rows aren't part of the flood attenuation chain.
+                        // FOW (union) shows the wind uplift in bps over the pure
+                        // asset (flood-only) spread; FAW (overlap) shows no delta.
+                        if (s.perilUplift) {
+                            var wUp = s.spread - propSpread;
+                            if (Math.abs(wUp) >= 0.05) {
+                                var upCol = wUp > 0 ? '#2E7D32' : '#E53935';
+                                lossCell = '<span style="color:' + upCol + ';">' +
+                                    (wUp > 0 ? '+' : '') + wUp.toFixed(1) + 'bp wind</span>';
+                            }
+                        }
+                    } else {
+                        // A stage with a missing count (BRI when /bri didn't load)
+                        // shows a count-free row: dash for count, no loss, no bar.
+                        var loss = (!s.countMissing && i > 0 && !steps[i - 1].countMissing)
+                            ? steps[i - 1].count - s.count : 0;
+                        var lossPct = (loss > 0 && steps[i - 1].count > 0)
+                            ? (loss / steps[i - 1].count * 100).toFixed(0) : '';
+                        if (loss > 0) {
+                            lossCell = '<span style="color:#E53935;">-' + loss.toLocaleString() +
+                                ' (' + lossPct + '%)</span>';
+                        }
+                    }
+
+                    var rowStyle = s.perilFirst
+                        ? 'border-top:2px solid #cfcfcf;border-bottom:1px solid #f0f0f0;'
+                        : 'border-bottom:1px solid #f0f0f0;';
+
+                    html += '<tr style="' + rowStyle + '">' +
                         '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label + '</td>' +
                         '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + countCell + '</td>' +
                         '<td style="padding:8px;text-align:right;color:#555;">' + s.spread.toFixed(1) + 'bp</td>' +
-                        '<td style="padding:8px;text-align:right;color:#E53935;">' + (loss > 0 ? '-' + loss.toLocaleString() + ' (' + lossPct + '%)' : '') + '</td>' +
+                        '<td style="padding:8px;text-align:right;">' + lossCell + '</td>' +
                         '<td style="padding:8px 12px;">' +
                         (s.countMissing ? '' :
                         '<div style="background:#f5f5f5;border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
