@@ -212,7 +212,7 @@ def get_js():
                                  isPeril: true, perilFirst: true });
                 }
                 if (_psd.faw_spread_bps !== undefined && _psd.faw_spread_bps !== null) {
-                    steps.push({ label: 'FAW (flood\\u2227wind)',
+                    steps.push({ label: 'FAW (flood AND wind)',
                                  count: _perilCount(_pp.flood_and_wind),
                                  spread: _psd.faw_spread_bps || 0,
                                  color: '#00838F', bg: '#E0F7FA',
@@ -220,7 +220,7 @@ def get_js():
                                  perilFirst: (_psd.win_spread_bps === undefined || _psd.win_spread_bps === null) });
                 }
                 if (_psd.fow_spread_bps !== undefined && _psd.fow_spread_bps !== null) {
-                    steps.push({ label: 'FOW (flood\\u2228wind)',
+                    steps.push({ label: 'FOW (flood OR wind)',
                                  count: _perilCount(_pp.flood_or_wind),
                                  spread: _psd.fow_spread_bps || 0,
                                  color: '#5D4037', bg: '#EFEBE9',
