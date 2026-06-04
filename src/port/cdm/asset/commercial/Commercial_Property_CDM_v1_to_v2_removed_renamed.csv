@@ -1,0 +1,60 @@
+Field (v1),v1 Data Type,v1 Description,v1 Section
+AccessType,menu,Type of access to property,CommercialProperty > PropertyAttributes > PropertyHeader
+AirbrickCovers,boolean,Presence of airbrick flood covers,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+AirQualityPermit,boolean,Air quality permit required/held,CommercialProperty > RiskAssessment > Certifications
+AssemblyPoints,integer,Number of emergency assembly points,CommercialProperty > RiskAssessment > SafetyCompliance
+Bioswales,boolean,Presence of bioswales,CommercialProperty > ProtectionMeasures > NaturalMeasures
+BuildingResidency,menu,Number of separate business units,CommercialProperty > PropertyAttributes > PropertyHeader
+BusinessContinuity,boolean,Business continuity plan in place,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+ChangeOfUseDate,date,Date of last use type change,CommercialProperty > TransactionHistory > BusinessHistory
+ChemicalStorage,boolean,Hazardous chemical storage on site,CommercialProperty > RiskAssessment > HazardFeatures
+COMAHStatus,menu,COMAH classification,CommercialProperty > RiskAssessment > SafetyCompliance
+CompressedAir,boolean,Compressed air systems present,CommercialProperty > EnergyPerformance > BuildingFabric
+ConstructionDate,numeric,Year property was built,CommercialProperty > PropertyAttributes > PropertyHeader
+DetentionPonds,boolean,Presence of water detention ponds,CommercialProperty > ProtectionMeasures > NaturalMeasures
+DrainageSystems,boolean,Enhanced drainage systems present,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+EffluentTreatment,boolean,Industrial effluent treatment plant,CommercialProperty > RiskAssessment > IndustrialFeatures
+ElevatedSockets,boolean,Electrical sockets raised above flood level,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+EmergencyPower,boolean,Emergency power system present,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+EmergencyResponseTime,integer,Average emergency response time (minutes),CommercialProperty > RiskAssessment > SafetyCompliance
+EnvironmentalPermit,text,Environmental permit reference,CommercialProperty > RiskAssessment > Certifications
+EvacuationTime,integer,Building evacuation time (minutes),CommercialProperty > RiskAssessment > SafetyCompliance
+FireLoadRating,menu,Fire load classification,CommercialProperty > RiskAssessment > HazardFeatures
+FireStationDistance,decimal,Distance to nearest fire station (km),CommercialProperty > RiskAssessment > SafetyCompliance
+FireSuppressionType,menu,Type of fire suppression system,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+FloodPanels,boolean,Presence of permanent flood panels,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+GoodsLiftCapacity,decimal,Maximum goods lift capacity (kg),CommercialProperty > PropertyAttributes > AccessibilityFeatures
+GreenRoof,boolean,Installation of green roof system,CommercialProperty > ProtectionMeasures > NaturalMeasures
+HazardousZones,menu,DSEAR zone classification,CommercialProperty > RiskAssessment > IndustrialFeatures
+HeavyMachineryZones,integer,Number of heavy machinery zones,CommercialProperty > RiskAssessment > IndustrialFeatures
+HeightMeters,numeric,Height of property in meters,CommercialProperty > PropertyAttributes > PropertyHeader
+HSECertification,menu,HSE certification status,CommercialProperty > RiskAssessment > Certifications
+HSEIncidents,numeric_count,Number of health & safety incidents,CommercialProperty > History
+IndustrialProcessLoad,numeric_kwh_year,Annual energy use from industrial processes,CommercialProperty > EnergyPerformance > BuildingFabric
+IndustrialProcessRisk,menu,Risk level from industrial processes,CommercialProperty > RiskAssessment > HazardFeatures
+LastHSEIncidentDate,date,Date of last HSE incident,CommercialProperty > History
+NonReturnValve,boolean,Non-return valves installed,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+OccupancyType,menu,Primary use classification of the property,CommercialProperty > PropertyAttributes > PropertyHeader
+OperatingHours,menu,Typical operating hours,CommercialProperty > RiskAssessment > HazardFeatures
+PermeablePaving,boolean,Installation of permeable paving,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+PreviousUseType,menu,Previous business use type,CommercialProperty > TransactionHistory > BusinessHistory
+ProcessCooling,boolean,Process cooling systems present,CommercialProperty > EnergyPerformance > BuildingFabric
+PropertyType,menu,Building category,CommercialProperty > PropertyAttributes > PropertyHeader
+RainGardens,boolean,Presence of rain gardens,CommercialProperty > ProtectionMeasures > NaturalMeasures
+RaisedFoundationsMm,decimal,Height of raised foundations (mm),CommercialProperty > ProtectionMeasures > ResilienceMeasures
+ReinforcedWalls,boolean,Presence of reinforced wall construction,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+ResilientDoors,boolean,Flood-resistant door installation,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+SafetyDistance,decimal,Distance to nearest residential area (m),CommercialProperty > RiskAssessment > SafetyCompliance
+SecuritySystem,menu,Type of security system,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+SprinklerSystem,boolean,Automatic sprinkler system installed,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+StorageCapacity,decimal,Total storage capacity in cubic meters,CommercialProperty > RiskAssessment > IndustrialFeatures
+StorageTankCount,integer,Number of storage tanks,CommercialProperty > RiskAssessment > IndustrialFeatures
+StrategicPlanting,boolean,Strategic flood-resistant landscaping,CommercialProperty > ProtectionMeasures > NaturalMeasures
+SumpPumpSystem,boolean,Sump pump system installed,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+WarningSystemStatus,menu,Type of flood warning system in place,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+WastePermit,boolean,Waste management permit held,CommercialProperty > RiskAssessment > Certifications
+WasteTreatment,boolean,On-site waste treatment facility,CommercialProperty > RiskAssessment > IndustrialFeatures
+WaterDiversion,boolean,Water diversion measures installed,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+WaterproofFlooring,boolean,Water-resistant flooring installed,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+WaterproofWalls,boolean,Waterproof wall treatment applied,CommercialProperty > ProtectionMeasures > ResilienceMeasures
+WaterStorage,boolean,Rainwater storage systems installed,CommercialProperty > ProtectionMeasures > NaturalMeasures
