@@ -162,6 +162,17 @@ class TestNostressFlag:
             commercialtse=False, commercialhc=False, commercialshd=False,
             commercialshe=False, commercialtsb=False, commercialbri=False,
             propertytsb=False, propertybri=False, typhoon=False,
+            # Wind-coupled peril stages (win/faw/fow) and BRI-anchored
+            # combined-peril stages (bow/baw) — orchestrator reads all of
+            # these unconditionally when assembling segment_flags.
+            propertytsw=False, propertytsfaw=False, propertytsfow=False,
+            propertywin=False, propertyfaw=False, propertyfow=False,
+            commercialtsw=False, commercialtsfaw=False, commercialtsfow=False,
+            commercialwin=False, commercialfaw=False, commercialfow=False,
+            propertytsbow=False, propertytsbaw=False,
+            propertybow=False, propertybaw=False,
+            commercialtsbow=False, commercialtsbaw=False,
+            commercialbow=False, commercialbaw=False,
             num_typhoon_events=10, num_typhoon_particles=10,
             typhoon_seed=42, typhoon_no_plausibility=False,
             train_classifiers=False, nostress=False,

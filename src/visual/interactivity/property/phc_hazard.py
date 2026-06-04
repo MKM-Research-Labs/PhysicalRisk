@@ -227,6 +227,28 @@ def get_js():
                                  isPeril: true, perilUplift: true });
                 }
 
+                // BRI-anchored peril rows (BOW = BRI OR wind, BAW = BRI AND
+                // wind). Same union/intersection as FOW/FAW but the flood leg is
+                // the BRI-resilient flood — the level the book trades at — so the
+                // uplift is measured over briSpread, not the raw asset spread.
+                // Counts come from the canonical peril_outcomes block.
+                var _po = _psd.peril_outcomes || _pp;
+                if (_psd.bow_spread_bps !== undefined && _psd.bow_spread_bps !== null) {
+                    steps.push({ label: 'BOW (BRI OR wind)',
+                                 count: _perilCount(_po.bri_or_wind),
+                                 spread: _psd.bow_spread_bps || 0,
+                                 color: '#6A1B9A', bg: '#F3E5F5',
+                                 isPeril: true, perilUplift: true, perilUpliftBase: briSpread,
+                                 perilFirst: (_psd.win_spread_bps == null && _psd.faw_spread_bps == null && _psd.fow_spread_bps == null) });
+                }
+                if (_psd.baw_spread_bps !== undefined && _psd.baw_spread_bps !== null) {
+                    steps.push({ label: 'BAW (BRI AND wind)',
+                                 count: _perilCount(_po.bri_and_wind),
+                                 spread: _psd.baw_spread_bps || 0,
+                                 color: '#4A148C', bg: '#EDE7F6',
+                                 isPeril: true });
+                }
+
                 var maxCount = Math.max(gaugeCount, 1);
                 if (!container) return;
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;">';
@@ -247,8 +269,11 @@ def get_js():
                         // Peril rows aren't part of the flood attenuation chain.
                         // FOW (union) shows the wind uplift in bps over the pure
                         // asset (flood-only) spread; FAW (overlap) shows no delta.
+                        // BOW measures its uplift over the BRI-resilient spread
+                        // (perilUpliftBase) rather than the raw asset spread.
                         if (s.perilUplift) {
-                            var wUp = s.spread - propSpread;
+                            var _base = (typeof s.perilUpliftBase === 'number') ? s.perilUpliftBase : propSpread;
+                            var wUp = s.spread - _base;
                             if (Math.abs(wUp) >= 0.05) {
                                 var upCol = wUp > 0 ? '#2E7D32' : '#E53935';
                                 lossCell = '<span style="color:' + upCol + ';">' +

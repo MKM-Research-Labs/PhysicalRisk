@@ -261,10 +261,12 @@ def property_bri(prop_id: str):
 
 
 # ---------------------------------------------------------------------------
-# Wind-coupled peril scenario routes (win / faw / fow)
+# Wind-coupled peril scenario routes (win / faw / fow / bow / baw)
 #   win  — wind-only PRS spread (propertywin.json)
 #   faw  — flood AND wind  (propertyfaw.json)
 #   fow  — flood OR wind   (propertyfow.json)
+#   bow  — BRI OR wind     (propertybow.json)
+#   baw  — BRI AND wind    (propertybaw.json)
 # Mirror /properties/<id>/{shd,she,bri}: same property_hazard_curves shape.
 # ---------------------------------------------------------------------------
 
@@ -307,4 +309,32 @@ def property_fow(prop_id: str):
     prop_data = data.get('property_hazard_curves', {}).get(prop_id)
     if not prop_data:
         return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in fow curves'}), 404
+    return jsonify({'status': 'success', 'data': prop_data})
+
+
+@propertyhc_bp.route('/properties/<prop_id>/bow', methods=['GET', 'OPTIONS'])
+def property_bow(prop_id: str):
+    """Get BRI-OR-wind peril hazard curve for one property."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertybow.json')
+    if not data:
+        return jsonify({'status': 'error', 'message': 'BRI-OR-wind hazard curves not yet generated'}), 404
+    prop_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not prop_data:
+        return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in bow curves'}), 404
+    return jsonify({'status': 'success', 'data': prop_data})
+
+
+@propertyhc_bp.route('/properties/<prop_id>/baw', methods=['GET', 'OPTIONS'])
+def property_baw(prop_id: str):
+    """Get BRI-AND-wind peril hazard curve for one property."""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    data = _get_hazard_data('propertybaw.json')
+    if not data:
+        return jsonify({'status': 'error', 'message': 'BRI-AND-wind hazard curves not yet generated'}), 404
+    prop_data = data.get('property_hazard_curves', {}).get(prop_id)
+    if not prop_data:
+        return jsonify({'status': 'error', 'message': f'Property {prop_id} not found in baw curves'}), 404
     return jsonify({'status': 'success', 'data': prop_data})
