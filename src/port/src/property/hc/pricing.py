@@ -61,7 +61,16 @@ class PricingMixin:
         # property/BRI node (no gauge propagation). Returns None when the
         # catchment has no typhoon damage → flood-only fallback (no prs_perils
         # block, byte-identical output).
-        wind_info = self._wind_union(prop_id, flood_events, num_storms)
+        #
+        # Suppressed for the dedicated wind scenario modes (win/faw/fow): those
+        # files already ARE the peril spread (the flood_events were re-stamped
+        # by the peril timeseries generator so this very count IS the peril
+        # count). Attaching a prs_perils block there would double-count and
+        # confuse the basis/waterfall, so the headline spread stands alone.
+        if getattr(self, "mode", "normal") in ("win", "faw", "fow"):
+            wind_info = None
+        else:
+            wind_info = self._wind_union(prop_id, flood_events, num_storms)
 
         # The four peril outcomes (Stage 6). flood_only is the flood spine
         # (unchanged); the others are derived from the 1:1-paired event set.
@@ -353,7 +362,7 @@ class PricingMixin:
         return out
 
     def _wind_damage_index(self) -> Dict[str, Dict[str, Dict]]:
-        """``event_id → {property_id → {peak_sustained_ms, threshold_ms}}``.
+        """``event_id → {property_id → {peak_sustained_ms, threshold_ms, v_50_eff_ms}}``.
 
         Walks ``typhoon/damage/EVT-*.json`` once and caches the result. Empty
         when the typhoon stage hasn't run for this catchment. Built once for
@@ -372,7 +381,10 @@ class PricingMixin:
                         data = json.load(f)
                 except (OSError, json.JSONDecodeError):
                     continue
-                eid = data.get('event_id') or fp.stem
+                # Key on the filename stem (canonical 5-digit event id that
+                # matches storm_sequences). The internal event_id field can be
+                # mis-stamped by genesis, so do not trust it for the join.
+                eid = fp.stem
                 pmap: Dict[str, Dict] = {}
                 for d in data.get('damages', []):
                     pid = d.get('property_id')
@@ -380,6 +392,7 @@ class PricingMixin:
                         pmap[pid] = {
                             'peak_sustained_ms': d.get('peak_sustained_ms'),
                             'threshold_ms': d.get('threshold_ms'),
+                            'v_50_eff_ms': d.get('v_50_eff_ms'),
                         }
                 if pmap:
                     out[eid] = pmap

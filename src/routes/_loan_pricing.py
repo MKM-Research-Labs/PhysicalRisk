@@ -62,6 +62,22 @@ OVERRIDE_KEYS = (
     # When present it supersedes the coarse flood-category lookup so the flood
     # leg matches the property PRS pricer exactly.
     "flood_spread_bps",
+    # The asset's modelled combined flood-OR-wind PRS spread (the union, bps),
+    # read from the same hazard curve when the catchment has a coupled typhoon
+    # stage. When present the wind leg is PRS-priced as the *incremental* hazard
+    # on top of flood (union - flood), so flood + wind == union exactly and the
+    # joint flood-and-wind events are not double-counted. Absent for flood-only
+    # catchments, in which case the wind leg falls back to the static category.
+    "union_spread_bps",
+    # The PRS hazard scenario the user picked in the calculator's dropdown
+    # (flo | bri | win | faw | fow) and that scenario's modelled spread (bps),
+    # read from the asset's hazard-curve peril fan. When present, this single
+    # spread becomes the coupon's entire hazard leg, superseding the
+    # flood_spread_bps / union_spread_bps split — so the borrower's coupon can
+    # be priced against any one of the five peril scenarios, not just the
+    # combined flood-OR-wind union.
+    "prs_scenario",
+    "prs_spread_bps",
     # The asset's net initial yield (passing rent / capital value), forwarded
     # by the calculator when launched from a commercial marker. Applied to the
     # property value it gives the annual passing rent, which becomes the
@@ -76,6 +92,7 @@ _STRING_OVERRIDE_KEYS = frozenset({
     "flood_risk_category",
     "wind_risk_category",
     "credit_rating",
+    "prs_scenario",
 })
 
 # Defaults for any pricing input the CDM record doesn't supply. Mirrors the
@@ -221,10 +238,21 @@ def _build_coupon(term_years: float,
                   credit_rating: str,
                   flood_category: str,
                   wind_category: str,
-                  flood_spread_bps: Optional[float] = None) -> Dict[str, Any]:
+                  flood_spread_bps: Optional[float] = None,
+                  union_spread_bps: Optional[float] = None,
+                  prs_spread_bps: Optional[float] = None,
+                  prs_scenario: Optional[str] = None) -> Dict[str, Any]:
     """Assemble the contractual coupon from its components.
 
     ``coupon = risk-free + credit spread + flood spread + wind spread``
+
+    **PRS scenario override.** When ``prs_spread_bps`` is supplied (the user
+    picked a hazard scenario in the calculator's dropdown), that single
+    modelled spread *is* the coupon's entire hazard leg and supersedes the
+    flood/union split below. ``prs_scenario`` (flo | bri | win | faw | fow)
+    only labels the leg and controls how it is shown back as a flood/wind
+    decomposition (e.g. ``win`` is all wind; ``fow`` splits into flood plus the
+    incremental wind). The total hazard always equals the chosen spread.
 
     The flood spread is *PRS-priced*. There are two sources, in priority order:
 
@@ -239,13 +267,62 @@ def _build_coupon(term_years: float,
        the fallback for a truly standalone calculator (no asset) or an asset
        with too few flood events to have a hazard curve.
 
-    Wind has no PRS pricer yet, so it uses the static lookup. Returns the total
-    ``rate`` plus the full decomposition (all decimals).
+    The wind spread has two sources, in priority order:
+
+    1. **Asset curve (union)** — when ``union_spread_bps`` (the modelled
+       flood-OR-wind PRS spread) is supplied alongside an asset flood spread,
+       the wind leg is the *incremental* hazard on top of flood. By
+       inclusion-exclusion ``union = flood + wind - joint``, so the incremental
+       ``wind = union - flood`` is exactly the genuinely-wind-driven frequency
+       (the joint flood-and-wind events are already in the flood leg and are not
+       double-counted). The total hazard leg then equals the union spread.
+    2. **Category lookup** — otherwise wind has no PRS curve, so it falls back
+       to the static wind-category spread (flood-only catchments, or a truly
+       standalone calculator).
+
+    Returns the total ``rate`` plus the full decomposition (all decimals).
     """
     rf = discount_rate(term_years)
     credit = credit_spread_for_rating(credit_rating)
 
-    if flood_spread_bps is not None and flood_spread_bps >= 0:
+    # PRS scenario override: one modelled spread drives the whole hazard leg.
+    if prs_spread_bps is not None and float(prs_spread_bps) >= 0:
+        scenario = (str(prs_scenario).strip().lower() if prs_scenario else "fow")
+        total_bps = float(prs_spread_bps)
+        total = total_bps / 10000.0
+        if scenario == "win":
+            # Pure wind frequency — no flood component.
+            flood_leg, wind_leg = 0.0, total
+        elif scenario == "fow":
+            # Union splits into flood + incremental wind so the legs still read
+            # naturally; the asset flood spread (BRI-preferred) is the base when
+            # available, else the whole leg is flood.
+            base_bps = (float(flood_spread_bps)
+                        if (flood_spread_bps is not None and flood_spread_bps >= 0)
+                        else total_bps)
+            base_bps = min(base_bps, total_bps)
+            flood_leg, wind_leg = base_bps / 10000.0, (total_bps - base_bps) / 10000.0
+        else:
+            # flo / bri / faw are flood-side scenarios — shown as a flood leg.
+            flood_leg, wind_leg = total, 0.0
+        return {
+            "rate": rf + credit + total,
+            "risk_free": rf,
+            "credit_spread": credit,
+            "flood_spread": flood_leg,
+            "wind_spread": wind_leg,
+            "hazard_spread": total,
+            "flood_annual_hazard": total,
+            "flood_priced_by": "PRS (scenario: %s)" % scenario,
+            "wind_priced_by": "PRS (scenario: %s)" % scenario,
+            "prs_scenario": scenario,
+            "prs_spread_bps": total_bps,
+            "credit_rating": (str(credit_rating).strip().upper()
+                              if credit_rating else DEFAULT_CREDIT_RATING),
+        }
+
+    asset_flood = flood_spread_bps is not None and flood_spread_bps >= 0
+    if asset_flood:
         # Asset's own modelled flood spread — recovery is 0 for flood, so the
         # spread is, to first order, the annual flood probability itself.
         flood_bps = float(flood_spread_bps)
@@ -261,7 +338,18 @@ def _build_coupon(term_years: float,
         )
         flood_source = "PRS (category)"
     flood = flood_bps / 10000.0
-    wind = wind_hazard_spread(wind_category)
+
+    # Wind leg. Only PRS-price it from the union when the flood leg is *also*
+    # asset-priced — mixing an asset union against a coarse flood-category leg
+    # would compare incompatible scales. union >= flood always holds (the union
+    # count >= the flood count), but clamp at 0 defensively.
+    if union_spread_bps is not None and union_spread_bps >= 0 and asset_flood:
+        wind_bps = max(0.0, float(union_spread_bps) - flood_bps)
+        wind = wind_bps / 10000.0
+        wind_source = "PRS (asset curve, union)"
+    else:
+        wind = wind_hazard_spread(wind_category)
+        wind_source = "static"
 
     return {
         "rate": rf + credit + flood + wind,
@@ -272,7 +360,7 @@ def _build_coupon(term_years: float,
         "hazard_spread": flood + wind,
         "flood_annual_hazard": annual_hazard,
         "flood_priced_by": flood_source,
-        "wind_priced_by": "static",
+        "wind_priced_by": wind_source,
         "credit_rating": (str(credit_rating).strip().upper()
                           if credit_rating else DEFAULT_CREDIT_RATING),
     }
@@ -334,6 +422,9 @@ def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
         flood_category=effective.get("flood_risk_category"),
         wind_category=effective.get("wind_risk_category"),
         flood_spread_bps=effective.get("flood_spread_bps"),
+        union_spread_bps=effective.get("union_spread_bps"),
+        prs_spread_bps=effective.get("prs_spread_bps"),
+        prs_scenario=effective.get("prs_scenario"),
     )
     effective["interest_rate"] = coupon["rate"]
 

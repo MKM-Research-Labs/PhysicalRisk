@@ -70,6 +70,15 @@ DEPENDENCY_GRAPH = {
     "commercialshe":      ["commercialtse", "hazard"],
     "commercialtsb":      ["commercialts"],
     "commercialbri":      ["commercialtsb", "hazard"],
+    # Wind-coupled peril scenarios (opt-in, require the typhoon damage join).
+    "property_peril_ts":  ["propertyts", "typhoon"],
+    "propertywin":        ["property_peril_ts"],
+    "propertyfaw":        ["property_peril_ts"],
+    "propertyfow":        ["property_peril_ts"],
+    "commercial_peril_ts": ["commercialts", "typhoon"],
+    "commercialwin":      ["commercial_peril_ts"],
+    "commercialfaw":      ["commercial_peril_ts"],
+    "commercialfow":      ["commercial_peril_ts"],
 }
 
 # External inputs: config/data files consumed by pipeline steps but not
@@ -83,7 +92,13 @@ EXTERNAL_INPUTS: set[str] = {"storm_control.json"}
 # this set has ZERO outputs on disk, the completeness check treats it
 # as "not enabled" and skips it. If some outputs exist but others
 # don't, the step is treated as partially-broken (still flagged).
-OPTIONAL_STEPS: set[str] = {"typhoon"}
+OPTIONAL_STEPS: set[str] = {
+    "typhoon",
+    # Wind-coupled peril scenarios only run when the typhoon stage has
+    # produced damage to join against (same opt-in gate as typhoon itself).
+    "property_peril_ts", "propertywin", "propertyfaw", "propertyfow",
+    "commercial_peril_ts", "commercialwin", "commercialfaw", "commercialfow",
+}
 
 STEP_IO = {
     "gauges":         {"inputs": [],
@@ -151,6 +166,29 @@ STEP_IO = {
                        "outputs": ["commercialtsb/"]},
     "commercialbri":  {"inputs": ["commercialtsb/", "gaugehc.json", "gauge.json"],
                        "outputs": ["commercialbri.json"]},
+    # Wind-coupled peril scenarios. The peril ts step derives three dirs from
+    # the flood spine joined against typhoon/damage + storm_sequences.json;
+    # each hc step prices one derived dir into its scenario file.
+    "property_peril_ts":  {"inputs": ["propertyts/", "typhoon/damage/",
+                                      "storm_sequences.json"],
+                           "outputs": ["propertytsw/", "propertytsfaw/",
+                                       "propertytsfow/"]},
+    "propertywin":        {"inputs": ["propertytsw/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["propertywin.json"]},
+    "propertyfaw":        {"inputs": ["propertytsfaw/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["propertyfaw.json"]},
+    "propertyfow":        {"inputs": ["propertytsfow/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["propertyfow.json"]},
+    "commercial_peril_ts": {"inputs": ["commercialts/", "typhoon/damage/",
+                                       "storm_sequences.json"],
+                            "outputs": ["commercialtsw/", "commercialtsfaw/",
+                                        "commercialtsfow/"]},
+    "commercialwin":      {"inputs": ["commercialtsw/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["commercialwin.json"]},
+    "commercialfaw":      {"inputs": ["commercialtsfaw/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["commercialfaw.json"]},
+    "commercialfow":      {"inputs": ["commercialtsfow/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["commercialfow.json"]},
 }
 
 # ---------------------------------------------------------------------------
