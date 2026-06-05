@@ -66,6 +66,20 @@ def get_js() -> str:
                 var order = ['flood_only', 'wind_only', 'flood_or_wind', 'flood_and_wind'];
                 var labels = ['Flood only', 'Wind only', 'Flood \\u222A Wind', 'Flood \\u2229 Wind'];
                 var colors = ['#42A5F5', '#26A69A', '#7E57C2', '#5E35B1'];
+                // BRI-anchored combined perils (bow/baw) — same union/intersection
+                // but on the BRI-resilient flood leg. Appended only when present
+                // (catchments/runs that produced the bow/baw scenario files), so
+                // raw-flood-only payloads keep the four-bar layout unchanged.
+                if (perils.bri_or_wind) {
+                    order.push('bri_or_wind');
+                    labels.push('BRI \\u222A Wind');
+                    colors.push('#6A1B9A');
+                }
+                if (perils.bri_and_wind) {
+                    order.push('bri_and_wind');
+                    labels.push('BRI \\u2229 Wind');
+                    colors.push('#4A148C');
+                }
 
                 var spreads = order.map(function(k) {
                     return (perils[k] && perils[k].spread_bps) || 0;

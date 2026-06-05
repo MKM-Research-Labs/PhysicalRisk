@@ -49,6 +49,14 @@ class TestPerilOutcomesModule:
         # No peril data -> return false (caller keeps the flood-only layout).
         assert "if (!perils) return false" in js
 
+    def test_bri_anchored_perils_appended_when_present(self, js):
+        # bow/baw (BRI-resilient combined perils) are appended to the fan only
+        # when present, so raw-flood-only payloads keep the four-bar layout.
+        assert "perils.bri_or_wind" in js
+        assert "perils.bri_and_wind" in js
+        assert "order.push('bri_or_wind')" in js
+        assert "order.push('bri_and_wind')" in js
+
 
 class TestPerilFanPanelWiring:
     """The parent panel injects and cleans up the peril fan."""
@@ -109,3 +117,10 @@ class TestTermStructurePerilOverlay:
     def test_flood_spread_relabelled(self, js):
         # The base severe line is now labelled the flood spine.
         assert "Flood Spread (bp)" in js
+
+    def test_overlays_bri_anchored_perils_from_decomposition(self, js):
+        # bow/baw are not in ts.perils (raw-flood fan only); they overlay as
+        # flat lines pulled from spread_decomposition when present.
+        assert "spread_decomposition" in js
+        assert "bow_spread_bps" in js
+        assert "baw_spread_bps" in js
