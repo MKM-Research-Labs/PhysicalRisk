@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{PRS Pricing Model}
 \newcommand{\docsubtitle}{Physical Risk Swap Fair Spread and Basis Calculation}
-\newcommand{\docversion}{2.0}
-\newcommand{\docdate}{01-April-2026}
+\newcommand{\docversion}{3.0}
+\newcommand{\docdate}{05-June-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -56,10 +56,22 @@ external dependencies, and an alternative QuantLib-based implementation using th
 CDS engine for cross-validation. Both paths produce consistent results to within
 rounding tolerance for flat hazard rate inputs.
 
+The model additionally prices the property PRS as a \textbf{flood-or-wind union}
+using a coupled storm--typhoon event set. Each event carries one storm sequence
+and one tropical cyclone, paired 1:1 by a shared event identifier, and the pricer
+emits four peril outcomes --- flood-only, wind-only, flood-or-wind (the headline),
+and flood-and-wind --- that obey an inclusion--exclusion identity at the property
+node. The wind leg is a binary damage-onset trigger against a BRI-adjusted wind
+threshold, so a building's resilience governs how readily it counts. This
+multi-peril extension is described in Section~\ref{sec:multiperil}; the underlying
+storm--typhoon coupling is specified in the companion
+\texttt{storm\_typhoon\_coupling} document.
+
 \textbf{Key risk:} The model assumes a constant (flat) hazard rate over the contract
 tenor. Time-varying hazard rates arising from climate change trends are not captured.
 The spread decomposition is path-dependent (distance-first vs elevation-first ordering
-yields different component magnitudes).
+yields different component magnitudes). The wind-coupling strength parameter
+$\beta$ is a provisional expert prior pending calibration.
 
 
 % ===================================================================
@@ -91,7 +103,9 @@ The model prices single-name PRS contracts with the following characteristics:
 
 \begin{itemize}[nosep]
     \item Quarterly premium payments (CDS-standard schedule).
-    \item Single trigger event (flood occurrence at a defined severity level).
+    \item Single trigger event (flood occurrence at a defined severity level); the
+          property PRS optionally extends to a flood-or-wind union trigger
+          (Section~\ref{sec:multiperil}).
     \item Zero recovery rate (100\% loss given default).
     \item Flat risk-free discount curve.
     \item Tenors of 1 to 30 years (typically 5 years).
@@ -429,6 +443,116 @@ The QuantLib CDS is constructed with:
     \item Actual/365~Fixed for the hazard and discount curves,
     \item Running spread set to 100\,bp (reference; fair spread derived from NPV).
 \end{itemize}
+
+
+\subsection{Multi-Peril Extension: Flood-or-Wind Union}
+\label{sec:multiperil}
+
+The pricing described above is \textbf{flood-only}. The platform additionally
+prices the property PRS as a combination of \textbf{flood \emph{or} wind} loss,
+driven by a coupled storm--typhoon event set in which each event carries one
+storm sequence and one tropical cyclone, paired 1:1 by a shared
+\texttt{event\_id}. The generation-layer coupling (the directed, asymmetric
+severity dependence that ties wind strength to storm severity) is specified in
+the companion document \texttt{storm\_typhoon\_coupling/coupling\_spec.md}
+(\texttt{MKM-TC-001} provides the underlying tropical-cyclone wind field).
+This subsection documents the \emph{pricing} consequences only.
+
+\subsubsection{Binary Wind Trigger}
+
+PRS is a \textbf{frequency / event-count} payout, not a loss-amount payout. The
+wind leg is therefore a binary damage-onset trigger, \texttt{is\_prs\_wind}, and
+\emph{not} the continuous wind-damage ratio (the latter is the insurance-loss
+view served separately by the wind-impact route and is deliberately excluded
+from the spread). For a given event and property,
+\begin{equation}
+    \texttt{is\_prs\_wind} \;=\; \mathbb{1}\!\left[\, v^{\text{peak}}_{\text{sus}}
+    \;\ge\; v_{50}^{\text{eff}} \,\right],
+    \label{eq:is_prs_wind}
+\end{equation}
+where $v^{\text{peak}}_{\text{sus}}$ is the property's peak sustained wind for
+the event and $v_{50}^{\text{eff}} = v_{50} + \Delta_{\text{BRI}}$ is the
+\textbf{BRI-adjusted effective damage threshold}: the operational
+damage-onset threshold $v_{50}$ shifted by the building's resilience
+(\texttt{bri\_v50\_shift}). A resilient (high-BRI) building carries a higher
+effective threshold and so fires less readily than a low-BRI building exposed to
+the same wind. The threshold resolves the \emph{Minor} (damage-onset, $\approx
+200$\,km/h) CDM field in preference to the \emph{Major} (catastrophic,
+$250$\,km/h) field, since PRS counts the onset of damage rather than
+catastrophic damage. When no effective threshold is recorded (legacy damage
+rows) the raw $v_{50}$ is used as a fallback.
+
+\subsubsection{Four Peril Outcomes}
+
+Over the 1:1-paired event set, let $F$ be the set of events that trigger the
+flood leg (\texttt{is\_prs\_flood}) and $W$ the set that trigger the wind leg
+(\eqref{eq:is_prs_wind}). The pricer emits four peril outcomes at the
+property node, each priced through the same frequency-to-spread conversion as
+the flood-only spread:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Outcome} & \textbf{Event set} & \textbf{Field} \\
+        \midrule
+        Flood only      & $F$            & \texttt{flood\_only} \\
+        Wind only       & $W$            & \texttt{wind\_only} \\
+        Flood OR wind   & $F \cup W$     & \texttt{flood\_or\_wind} (the headline) \\
+        Flood AND wind  & $F \cap W$     & \texttt{flood\_and\_wind} \\
+        \bottomrule
+    \end{tabular}
+    \caption{The four PRS peril outcomes emitted at the property node.}
+    \label{tab:peril_outcomes}
+\end{table}
+
+\noindent The union deduplicates events that trigger both legs, so wind inherits
+the flood frequency basis (one event set, one denominator). The four counts obey
+the inclusion--exclusion identity
+\begin{equation}
+    |F \cup W| \;=\; |F| + |W| - |F \cap W|,
+    \qquad |F \cap W| \le \min(|F|, |W|),
+    \label{eq:inclusion_exclusion}
+\end{equation}
+which the implementation asserts. Wind is applied per-property straight from the
+typhoon roll and has \textbf{no gauge\,$\to$\,SHE\,$\to$\,SHD transmission
+geometry}; the four outcomes therefore branch at the property/BRI node, while
+the geographic basis spine (\S\ref{sec:decomposition}) stays flood-only.
+Catchments without a tropical-cyclone stage emit no peril block and price exactly
+as the flood-only model (byte-identical fallback).
+
+\subsubsection{Tradeable Peril Scenarios}
+
+The four outcomes are surfaced as separately-priceable PRS scenarios. The
+flood leg of each can be anchored either on the raw asset flood or on the
+\textbf{BRI-resilient} flood floor (the level at which the book actually trades):
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Scenario} & \textbf{Definition} & \textbf{Flood anchor} \\
+        \midrule
+        \texttt{win} & wind only ($W$)                         & --- \\
+        \texttt{fow} & flood OR wind ($F \cup W$)              & raw asset \\
+        \texttt{faw} & flood AND wind ($F \cap W$)             & raw asset \\
+        \texttt{bow} & BRI-flood OR wind                       & BRI-resilient floor \\
+        \texttt{baw} & BRI-flood AND wind                      & BRI-resilient floor \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tradeable peril scenarios. \texttt{bow}/\texttt{baw} mirror
+    \texttt{fow}/\texttt{faw} but anchor the flood leg on the BRI-resilient floor,
+    so inclusion--exclusion holds as $\texttt{bow} = \texttt{bri} + \texttt{wind}
+    - \texttt{baw}$.}
+    \label{tab:peril_scenarios}
+\end{table}
+
+\noindent Each scenario has its own peril timeseries and hazard curve, generated
+by the \texttt{windhazard} pipeline stage, exposed through the property and
+commercial hazard-curve routes, and selectable in the loan-pricer coupon
+builder. In the pricer basis waterfall these appear as WIN / FAW / FOW rows
+beneath the BRI-resilient row, with FOW reporting the wind uplift
+(\texttt{fow}\,$-$\,flood spread).
 
 
 % ===================================================================
@@ -886,7 +1010,8 @@ Conditionally acceptable. As a Tier~1 model with direct pricing impact, the PRS 
 \mkmhistorypage{13-Feb-2026 & 1.0 & Initial documentation & D. Kelly \\
 18-Feb-2026 & 1.1 & Added Section 9: Governance Validation Questions (Chapter 5) & D. Kelly \\
 26-Feb-2026 & 1.2 & Added Delta Engine model to inventory; updated models in scope & D. Kelly \\
-01-Apr-2026 & 2.0 & Complete rewrite: data-driven basis replaces 5-component waterfall; SHD/SHE spread decomposition; distance/elevation/combined sensitivity tables; removed composition and construction year components & D. Kelly \\}
+01-Apr-2026 & 2.0 & Complete rewrite: data-driven basis replaces 5-component waterfall; SHD/SHE spread decomposition; distance/elevation/combined sensitivity tables; removed composition and construction year components & D. Kelly \\
+05-Jun-2026 & 3.0 & Added Section~3.4 Multi-Peril Extension: flood-or-wind union pricing over the coupled storm--typhoon event set; binary BRI-adjusted wind trigger (\texttt{is\_prs\_wind}); four peril outcomes with inclusion--exclusion; win/faw/fow/bow/baw tradeable scenarios & D. Kelly \\}
 
 
 \end{document}

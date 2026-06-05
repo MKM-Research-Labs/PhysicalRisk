@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Tropical Cyclone Progression and Wind-Field Model}
 \newcommand{\docsubtitle}{Bayesian State-Space Progression with Parametric Wind-Field}
-\newcommand{\docversion}{0.1.0}
-\newcommand{\docdate}{27-May-2026}
+\newcommand{\docversion}{0.2.0}
+\newcommand{\docdate}{05-June-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -97,6 +97,52 @@ discrete regime class.
 
 \textit{To be completed — spec eqs. (22)--(29).}
 
+\subsection{Storm-Coupled Genesis (Wind-into-PRS)}
+\label{sec:coupled_genesis}
+
+When invoked as part of the coupled storm--typhoon event set for PRS pricing,
+genesis is no longer drawn independently. Each typhoon is paired 1:1 with a
+storm sequence sharing an \texttt{event\_id}, and the genesis peak wind is
+\emph{conditioned} on that storm's meteorological severity. The full coupling
+specification (motivation, calibration, validation criteria) lives in
+\texttt{docs/models/storm\_typhoon\_coupling/coupling\_spec.md}; this subsection
+records the genesis-layer realisation in \texttt{src/models/typhoon/genesis.py}.
+
+Let $z$ be the paired storm's severity latent (\texttt{base\_intensity}) and
+$q \in (0,1)$ its empirical severity quantile across the $N$-event batch,
+$q_i = \operatorname{rank}(z_i)/(N+1)$. The event's wind strength percentile
+$\rho_w$ is drawn within a $q$-dependent band:
+\begin{align}
+    \text{floor}(q) &= 1 - (1-q)^{\beta}, &
+    \text{ceiling}(q) &= q, \\
+    \rho_w &= \text{floor}(q) + B\,[\,q - \text{floor}(q)\,], & B &\sim \mathrm{Uniform}[0,1],
+\end{align}
+and the genesis peak wind is recovered by inverting the scenario-mix-weighted
+catchment wind-exceedance curve, $V_{\max} = S_{\text{cat}}^{-1}(1-\rho_w)$
+(\texttt{coupled\_genesis\_wind}, using \texttt{coupling\_floor},
+\texttt{mixture\_peak\_wind\_exceedance}, and \texttt{mixture\_peak\_wind\_inverse}).
+The coupling is \textbf{directed and asymmetric}: wind can never rank above the
+storm ($\rho_w \le q$, forbidding high-wind/low-rain), but a rising floor pulls
+the wind up in the storm tail. The single parameter $\beta$ tunes the strength
+($\beta \to 0$ pure ceiling, $\beta = 1$ comonotone; interim $\beta \approx 0.52$
+matching expert anchors), shipped as \texttt{config.port.COUPLING\_BETA} with a
+\texttt{--coupling-beta} override.
+
+Within an event the coupled $V_{\max}$ (and its derived scenario family)
+\textbf{override} the genesis draw for all particles, so the whole SMC ensemble
+starts from the one coupled intensity while still exploring track, size,
+location, and regime; \texttt{step()} subsequently evolves $V_{\max}$ so
+trajectory diversity persists. The typhoon count is slaved to the storm count
+(\texttt{--num-storms}), giving a bijective \texttt{event\_id} pairing.
+
+\textbf{Effect on the wind marginal.} Because winds are gated below the
+storm-severity ceiling, the realised marginal distribution of $V_{\max}$ shifts
+\emph{downward} relative to the standalone (uncoupled) genesis prior: the
+\texttt{tc.py} bands now define the attainable ceiling, not the realised
+frequency. This is the deliberate cost of ``rain without wind, but no wind
+without rain.'' Catchments without a \texttt{tc.py} produce no wind component
+(flood-only fallback).
+
 % ===================================================================
 % 4. INPUT PARAMETERS AND CALIBRATION
 % ===================================================================
@@ -189,6 +235,10 @@ the canonical list. Phase 1 limitations include:
   \item Land mask is a simple bbox placeholder rather than a true coastline polygon.
   \item No real-observation assimilation in Phase 1 (simulation mode only).
   \item Joint surge/rain hazard layer deferred to Phase 2.
+  \item In storm-coupled mode (Section~\ref{sec:coupled_genesis}) the wind
+        marginal is conditional and shifts downward versus the standalone prior;
+        the coupling strength $\beta$ is a provisional expert prior pending
+        calibration.
 \end{itemize}
 
 % ===================================================================
@@ -201,6 +251,7 @@ the canonical list. Phase 1 limitations include:
 Version & Date & Description \\
 \midrule
 0.1.0 & 27-May-2026 & Skeleton document. Phase 1.1 delivered: parameter schema, runtime types, launch-catchment values, import-discipline tests. \\
+0.2.0 & 05-Jun-2026 & Added Section~3.5 Storm-Coupled Genesis: severity-quantile band draw (\texttt{coupled\_genesis\_wind}), $\beta$ coupling parameter, per-event $V_{\max}$ override, downward-shifted wind marginal, and the flood-only fallback. \\
 \bottomrule
 \end{tabular}
 
