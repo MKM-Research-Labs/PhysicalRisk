@@ -202,6 +202,10 @@ class ResponseProfile:
         response_effectiveness: aggregate active response in [0,1].
         height_penalty: >= 1 multiplier on suppression difficulty (storeys).
         controllability: aggregate score in [0,1] selecting the pre-PNR matrix.
+        suppression_reachable: False when the building is above the fire-service
+            reach height with no adequate internal sprinklers — suppression can
+            never engage, so the fire is uncontrollable from ignition (the PNR
+            gate latches immediately regardless of the intensity race).
     """
     detection_steps: float
     suppression_bite_steps: float
@@ -212,6 +216,7 @@ class ResponseProfile:
     response_effectiveness: float
     height_penalty: float
     controllability: float
+    suppression_reachable: bool = True
 
     @property
     def suppression_active_step(self) -> float:

@@ -87,8 +87,9 @@ def advance_intensity(
     """Advance the intensity track by one 15-minute step.
 
     Determines whether suppression has bitten by this step, grows the intensity,
-    and latches the point of no return if intensity crosses i_crit while
-    suppression is not yet active.
+    and latches the point of no return when suppression has not yet bitten and
+    either intensity crosses i_crit or suppression is structurally unreachable
+    (a tall building with no internal sprinklers — uncontrollable from ignition).
     """
     next_step = track.step + 1
     suppression_active = next_step >= profile.suppression_active_step
@@ -98,7 +99,8 @@ def advance_intensity(
 
     point_of_no_return = track.point_of_no_return
     pnr_step = track.point_of_no_return_step
-    if not point_of_no_return and intensity > profile.i_crit and not suppression_active:
+    crossed = intensity > profile.i_crit or not profile.suppression_reachable
+    if not point_of_no_return and crossed and not suppression_active:
         point_of_no_return = True
         pnr_step = next_step
 

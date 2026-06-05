@@ -176,6 +176,7 @@ def derive_response_profile(
     """
     timing = cfg.timing
     dynamics = cfg.intensity_dynamics
+    suppression_idx = level_index(features.suppression_systems_level)
 
     # Detection: faster (fewer steps) the better the detection level.
     detect_mult = cfg.detection_time_multiplier_by_level.get(
@@ -183,9 +184,21 @@ def derive_response_profile(
     )
     detection_steps = timing["detection_base_steps"] * detect_mult
 
-    # Suppression bite: slower the taller the building (height penalty).
+    # Suppression bite. The fire service can only mount an effective external
+    # attack up to the fire-truck reach height; above it, suppression must come
+    # from internal sprinklers. A building taller than the reach with no
+    # adequate internal suppression never achieves effective suppression — the
+    # bite time is pushed beyond the step budget, so the fire runs to the point
+    # of no return. Otherwise the gentle per-storey height penalty applies.
     penalty = height_penalty(features, cfg)
-    suppression_bite_steps = timing["suppression_bite_base_steps"] * penalty
+    reach = cfg.fire_service_reach
+    internal_ok = suppression_idx >= reach["internal_suppression_threshold"]
+    within_reach = (features.number_of_storeys or 1) <= reach["reach_storeys"]
+    suppression_reachable = internal_ok or within_reach
+    if suppression_reachable:
+        suppression_bite_steps = timing["suppression_bite_base_steps"] * penalty
+    else:
+        suppression_bite_steps = reach["no_reach_bite_steps"]
 
     # Intensity growth: compartmentation quality (mean of compartments +
     # fire-stopping level indices) selects the well/poorly-compartmented rate.
@@ -206,7 +219,6 @@ def derive_response_profile(
     )
 
     # Critical intensity threshold: strong vs weak suppression by level index.
-    suppression_idx = level_index(features.suppression_systems_level)
     i_crit_key = (
         "strong_suppression"
         if suppression_idx >= dynamics["strong_suppression_threshold"]
@@ -230,4 +242,5 @@ def derive_response_profile(
         response_effectiveness=response,
         height_penalty=penalty,
         controllability=controllability,
+        suppression_reachable=suppression_reachable,
     )
