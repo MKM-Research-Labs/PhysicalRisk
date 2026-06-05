@@ -106,6 +106,30 @@ def get_js() -> str:
                     });
                 }
 
+                // BRI-anchored combined perils (bow/baw). These are not in
+                // term_structure.perils (which carries only the raw-flood fan);
+                // they live as flat scalars in spread_decomposition. Overlay them
+                // as flat lines, only when the bow/baw scenario files were run.
+                var sd = phcData.spread_decomposition || {};
+                [
+                    ['bow_spread_bps', 'BRI \\u222A Wind (union)', '#6A1B9A', [8, 4]],
+                    ['baw_spread_bps', 'BRI \\u2229 Wind (joint)', '#4A148C', [2, 4]],
+                ].forEach(function(spec) {
+                    var v = sd[spec[0]];
+                    if (v == null) return;
+                    datasets.push({
+                        label: spec[1],
+                        data: tenors.map(function() { return v; }),
+                        borderColor: spec[2],
+                        borderDash: spec[3],
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointBackgroundColor: spec[2],
+                        fill: false,
+                        yAxisID: 'y1'
+                    });
+                });
+
                 currentChart = new Chart(ctx, {
                     type: 'line',
                     data: { labels: labels, datasets: datasets },
