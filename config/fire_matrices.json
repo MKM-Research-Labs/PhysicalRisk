@@ -1,0 +1,179 @@
+{
+  "_meta": {
+    "description": "Seed (placeholder) numeric parameters for the BRI fire-resilience credit model. ALL VALUES ARE ENGINEERING-JUDGEMENT SEEDS, not calibrated. They are physically defensible starting points intended to be recalibrated against loss data later. Source structure derives from the BRI fire research doc (docs/fire/); the numbers themselves are invented for the simulation to run.",
+    "version": "seed-0",
+    "states": ["S0_ExposureOrIgnition", "S1_Growth", "S2_Detected", "S3_InternalResponse", "S4_ExternalResponse", "S5_Contained", "S6_PartialLoss", "S7_TotalLoss"],
+    "step_minutes": 15
+  },
+
+  "initiation": {
+    "_doc": "Model A — Poisson initiation. lambda_i = lambda_0,c * m_occ * m_proc * m_cond * m_protection * m_history. A fire instantiates for an asset-draw when the Poisson count N_i >= 1.",
+
+    "base_annual_frequency_by_type": {
+      "_doc": "lambda_0,c — base annual ignition frequency per asset by CommercialType (events/year).",
+      "Office": 0.02,
+      "Retail": 0.03,
+      "Hotel": 0.035,
+      "Leisure": 0.03,
+      "Healthcare": 0.025,
+      "MultiFamily": 0.03,
+      "MixedUse": 0.04,
+      "Other": 0.04
+    },
+
+    "m_occ_by_status": {
+      "_doc": "Occupancy multiplier (range ~0.75-1.30). Occupied buildings have more ignition sources but faster human detection; vacant buildings have fewer sources but also no occupant intervention. Seeds keep occupied as the 1.0 reference.",
+      "Fully occupied": 1.00,
+      "Partially vacant": 0.90,
+      "Vacant": 0.85
+    },
+
+    "m_proc_by_type": {
+      "_doc": "Process-load multiplier (range ~1.00-2.50) — proxy for ignition-prone processes/equipment by CommercialType. Re-derives the v1 FireLoadRating/IndustrialProcessRisk that v2 CDM removed.",
+      "Office": 1.00,
+      "Retail": 1.10,
+      "Hotel": 1.25,
+      "Leisure": 1.25,
+      "Healthcare": 1.10,
+      "MultiFamily": 1.05,
+      "MixedUse": 1.15,
+      "Other": 1.15
+    },
+
+    "m_proc_business_rates_override": {
+      "_doc": "If BusinessRatesCategory indicates a higher-process use, override/raise m_proc. Restaurant => kitchen process load.",
+      "Restaurant": 1.25
+    },
+
+    "m_cond_by_condition": {
+      "_doc": "Condition multiplier (range ~0.85-1.40). Poor condition => degraded wiring, deferred maintenance => higher ignition.",
+      "Excellent": 0.85,
+      "Good": 0.95,
+      "Fair": 1.05,
+      "Poor": 1.20,
+      "Very poor": 1.40
+    },
+
+    "m_protection_by_level": {
+      "_doc": "Protection multiplier (range ~0.85-1.10) keyed on resilience level. Derived as the mean level index across AutomaticDetectionInstalled, SuppressionSystemsInstalled, EmergencyProceduresTested. Better protection slightly lowers ignition frequency (housekeeping/inspection effect).",
+      "Not assessed": 1.10,
+      "Partial": 1.00,
+      "Meets minimum": 0.95,
+      "Enhanced": 0.90,
+      "Verified": 0.85
+    },
+
+    "m_history": {
+      "_doc": "History multiplier (range ~0.90-1.60). Recent fires signal latent unaddressed risk. recent_years = window (years) for 'recent'.",
+      "recent_years": 5,
+      "no_prior": 1.00,
+      "old_minor": 1.05,
+      "recent_minor": 1.10,
+      "recent_moderate_or_severe": 1.40
+    },
+
+    "initiation_class_priors_by_type": {
+      "_doc": "Categorical over the entry-point / cause class given a fire occurs. Each row sums to 1.0. Order: [InternalElectrical, KitchenOccupant, PlantTechnical, ProcessRelated, BasementService, ExternalExposure, Other]. The class seeds the building entry point used by the progression stage.",
+      "classes": ["InternalElectrical", "KitchenOccupant", "PlantTechnical", "ProcessRelated", "BasementService", "ExternalExposure", "Other"],
+      "Office":      [0.35, 0.10, 0.15, 0.05, 0.15, 0.10, 0.10],
+      "Retail":      [0.30, 0.30, 0.10, 0.05, 0.10, 0.10, 0.05],
+      "Hotel":       [0.28, 0.25, 0.15, 0.05, 0.12, 0.10, 0.05],
+      "Leisure":     [0.30, 0.22, 0.13, 0.05, 0.10, 0.10, 0.10],
+      "Healthcare":  [0.32, 0.12, 0.20, 0.06, 0.12, 0.08, 0.10],
+      "MultiFamily": [0.35, 0.30, 0.08, 0.02, 0.10, 0.08, 0.07],
+      "MixedUse":    [0.28, 0.12, 0.15, 0.12, 0.10, 0.08, 0.15],
+      "Other":       [0.28, 0.12, 0.15, 0.12, 0.10, 0.08, 0.15]
+    }
+  },
+
+  "progression": {
+    "_doc": "Model B/C/D seeds — used by the next build stage (15-min stepwise progression and the point-of-no-return gate). Stored here now so all numeric governance lives in one file.",
+
+    "growth_per_step_intensity": {
+      "_doc": "Latent intensity I_t additive growth per 15-min step before suppression bites, by compartmentation quality.",
+      "well_compartmented": 1.5,
+      "poorly_compartmented": 3.0
+    },
+
+    "i_crit_by_suppression": {
+      "_doc": "Critical intensity threshold I_crit. If I_t crosses this before suppression bites, the chain hits the point of no return (S5 column collapses to ~0).",
+      "strong_suppression": 75,
+      "weak_suppression": 25
+    },
+
+    "detection_time_multiplier_by_level": {
+      "_doc": "Scales time-to-detect; lower = faster detection. Keyed on AutomaticDetectionInstalled resilience level.",
+      "Not assessed": 1.00,
+      "Partial": 0.90,
+      "Meets minimum": 0.80,
+      "Enhanced": 0.72,
+      "Verified": 0.65
+    },
+
+    "suppression_growth_multiplier_by_level": {
+      "_doc": "Scales intensity growth once suppression is active; lower = more effective suppression. Keyed on SuppressionSystemsInstalled resilience level.",
+      "Not assessed": 1.00,
+      "Partial": 0.85,
+      "Meets minimum": 0.75,
+      "Enhanced": 0.62,
+      "Verified": 0.50
+    },
+
+    "passive_effectiveness_ranges": {
+      "_doc": "Passive (structural) defence effectiveness in [0,1] mapped across the 5 resilience levels (Not assessed -> Verified). Higher = slows growth / limits spread.",
+      "StructuralFireResistanceAdequate": [0.60, 0.95],
+      "CompartmentsProvided": [0.55, 0.90],
+      "FireStoppingAtPenetrations": [0.70, 0.95],
+      "ExternalMaterialsFireResistant": [0.65, 0.95]
+    },
+
+    "response_effectiveness_ranges": {
+      "_doc": "Active response effectiveness in [0,1] across the 5 resilience levels. Higher = faster/more effective external + procedural response.",
+      "AccessRouteResilient": [0.70, 0.95],
+      "EmergencyProceduresTested": [0.80, 0.97],
+      "BusinessContinuityPlanInPlace": [0.85, 0.98]
+    },
+
+    "upper_floor_penalty_per_storey": {
+      "_doc": "Height/vertical penalty multiplier applied per storey to suppression difficulty (NumberOfStoreys proxy; commercial schema has no explicit FloorLevelMeters). Range across few -> many storeys.",
+      "range": [1.05, 1.60]
+    },
+
+    "transition_matrices": {
+      "_doc": "Example 8x8 row-stochastic transition matrices over states [S0..S7]. Row i = P(next state | current state i). The progression stage selects/blends a matrix per step from the asset's controllability state. point_of_no_return zeroes the S5 (Contained) column so the chain is absorbing into {S6, S7}.",
+
+      "AA_controllable": [
+        [0.05, 0.25, 0.70, 0.00, 0.00, 0.00, 0.00, 0.00],
+        [0.00, 0.10, 0.85, 0.00, 0.00, 0.00, 0.05, 0.00],
+        [0.00, 0.00, 0.00, 0.90, 0.08, 0.00, 0.02, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.10, 0.85, 0.05, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.75, 0.20, 0.05],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.85, 0.15],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00]
+      ],
+
+      "weak_controllable": [
+        [0.05, 0.70, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00],
+        [0.00, 0.10, 0.45, 0.00, 0.00, 0.00, 0.45, 0.00],
+        [0.00, 0.00, 0.00, 0.40, 0.40, 0.00, 0.20, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.15, 0.15, 0.70, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.50, 0.25],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.50, 0.50],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00]
+      ],
+
+      "point_of_no_return": [
+        [0.00, 1.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.40, 0.60],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.40, 0.60],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.40, 0.60],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.40, 0.60],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.35, 0.65],
+        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00]
+      ]
+    }
+  }
+}
