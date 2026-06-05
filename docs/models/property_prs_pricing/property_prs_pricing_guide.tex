@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{Property PRS Pricing}
 \newcommand{\docsubtitle}{User Guide --- Property-Level Physical Risk Swap Valuation}
-\newcommand{\docversion}{1.0}
-\newcommand{\docdate}{10-April-2026}
+\newcommand{\docversion}{2.0}
+\newcommand{\docdate}{05-June-2026}
 \newcommand{\docauthor}{MKM Research Labs}
 
 \input{../shared/mkm_header}
@@ -97,6 +97,35 @@ A storm scenario produces a severe flood at a property when:
         distance, retention, elevation, and infiltration).
   \item The resulting flood depth at the property exceeds zero.
 \end{enumerate}
+
+\subsection{Extending to Wind: the Flood-or-Wind Union}
+
+Each storm scenario is now paired one-to-one with a tropical cyclone, so a
+single event can flood a property, blow it, or both. Because the spread is a
+frequency count, adding wind is just a question of \emph{which events count}.
+A scenario triggers the \textbf{wind} leg when the property's peak sustained
+wind reaches its damage-onset threshold --- a threshold that is raised for
+resilient (high-BRI) buildings, so a sturdier property counts less often. The
+headline property spread becomes the \textbf{union}: count every scenario that
+floods \emph{or} blows the property, dividing by the same number of scenarios so
+the denominator is unchanged.
+
+\[
+  s^{\text{flood or wind}}_{\mathrm{bps}}
+  = \frac{\#\{\text{scenarios that flood OR blow the property}\}}{\text{total scenarios}}
+  \times 10{,}000
+\]
+
+\noindent The same catalogue yields four counts --- flood-only, wind-only,
+flood-or-wind (the union), and flood-and-wind (the overlap) --- which always
+satisfy $\text{union} = \text{flood} + \text{wind} - \text{both}$. These are
+exposed as tradeable scenarios in the loan pricer (\texttt{win}, \texttt{fow},
+\texttt{faw}), with BRI-anchored variants (\texttt{bow}, \texttt{baw}) that take
+the flood leg at the resilient level the book trades at. A property in a
+catchment with no tropical-cyclone exposure simply has an empty wind set and
+prices exactly as the flood-only formula above. The full multi-peril mechanics
+are in the PRS Pricing model document and the storm--typhoon coupling
+specification.
 
 
 % =========================================================================
@@ -263,6 +292,7 @@ is visible in stress testing.
 \textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
 \midrule
 1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+2.0 & 05-Jun-2026 & MKM Research Labs & Added the flood-or-wind union extension: binary BRI-adjusted wind trigger, four peril counts with inclusion--exclusion, and the win/fow/faw/bow/baw tradeable scenarios \\
 \bottomrule
 \end{tabular}
 
