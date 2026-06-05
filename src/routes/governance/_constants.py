@@ -71,6 +71,7 @@ _MODEL_DOC_DIRS = {
     'MKM-PF-001': 'property_flood_response',
     'MKM-FPO-001': 'flood_poly',
     'MKM-BRI-001': 'bri_resilience',
+    'MKM-FIRE-001': 'fire_resilience',
 }
 
 MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB

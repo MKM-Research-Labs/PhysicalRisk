@@ -5046,6 +5046,194 @@
         "calculated_rating": "Conditional",
         "calculated_score": null
       }
+    },
+    {
+      "model_id": "MKM-FIRE-001",
+      "name": "Building Fire-Resilience Credit Model",
+      "short_name": "Fire Resilience Credit",
+      "description": "Prices the fire-resilience of a commercial asset so fire loss aggregates into the same resilience-credit currency as the storm and typhoon hazards. Built from four governance-separated component models: A (Poisson ignition frequency), B (deterministic 15-minute latent intensity track), C (CDM resilience levels -> response dynamics), and D (an 8-state discrete-time Bayesian containment chain). The central concept is the point of no return: the first step at which latent intensity exceeds a critical threshold before suppression bites, after which the chain switches to an absorbing matrix whose Contained column is zero. Outputs an unconditional annual loss frequency and a fire-conditional containment rate.",
+      "category": "Hazard",
+      "tier": 2,
+      "materiality": "TBD",
+      "complexity": "High",
+      "tier_rationale": "Materiality TBD: the fire-resilience credit is intended to feed PRS-style pricing pari-passu with the flood and wind legs, but is not yet wired into the pricing chain, so its priced impact is not yet realised. High complexity: a four-stage pipeline combining Poisson initiation, a deterministic intensity track, a controllability-driven matrix selection, and an 8-state Bayesian chain with a latching point-of-no-return gate.",
+      "status": "Development",
+      "lifecycle_stage": "Stage 2 complete - Models A-D and the end-to-end orchestrator built with unit tests; Stage 3 governance integration in progress",
+      "version": "0.2.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/models/fire/",
+      "methodology": "Initiation (Model A): lambda_i = lambda_0,c * m_occ * m_proc * m_cond * m_protection * m_history; a fire instantiates for an asset-draw when the Poisson count N_i >= 1. Intensity track (Model B): I_{t+1} = I_t + g_t where g_t = growth_per_step * (1 - passive_damp_weight * passive_effectiveness), scaled by the suppression multiplier once suppression is active. Response effectiveness (Model C): maps CDM resilience levels to detection time, suppression-bite time (with a storey-based height penalty), growth rate, critical threshold and an aggregate controllability score. Containment (Model D): each 15-minute step selects a row-stochastic 8x8 transition matrix from the controllability score (pre-PNR) or the absorbing point-of-no-return matrix (post-PNR), and samples the state until an absorbing terminal state {Contained, PartialLoss, TotalLoss} is reached or the step budget runs out. Aggregated into loss_frequency = (n_partial + n_total) / n_sim and containment_rate = n_contained / n_fires.",
+      "alternatives_considered": [
+        "Continuous coupled-ODE intensity/suppression formulation (rejected for the first build: harder to calibrate and govern than the discrete 8-state chain; the discrete chain was chosen to show one formulation working end-to-end).",
+        "Flat resilience-level list on AssetFireFeatures (rejected: Model C needs to read detection, suppression and the passive/response fields separately, so the features were refactored to named fields with a protection_levels convenience property)."
+      ],
+      "methodology_rationale": "An 8-state discrete-time Bayesian chain in 15-minute steps mirrors the storm Monte Carlo engine's event/step structure, keeps every transition probability an auditable governance artefact in config/fire_matrices.json, and makes the point-of-no-return an explicit, testable gate rather than an emergent ODE property.",
+      "assumptions": [
+        {
+          "id": "FIRE-A1",
+          "description": "Ignition is a Poisson process per asset-year; at most the fire/no-fire decision (N_i >= 1) is used, multiple ignitions are not modelled separately.",
+          "impact": "Low",
+          "monitoring": "Compare empirical fire frequency against lambda_i in calibration",
+          "mitigation": "Lambda is small so P(N_i >= 2) is negligible at current seeds"
+        },
+        {
+          "id": "FIRE-A2",
+          "description": "The latent intensity track is deterministic given the asset profile; all stochasticity lives in the chain march.",
+          "impact": "Medium",
+          "monitoring": "Sensitivity of containment rate to a stochastic intensity track",
+          "mitigation": "Add noise to the intensity track in a later phase if needed"
+        },
+        {
+          "id": "FIRE-A3",
+          "description": "Building height is proxied by NumberOfStoreys via a linear vertical suppression penalty; the commercial schema has no explicit floor-level metric.",
+          "impact": "Medium",
+          "monitoring": "Compare modelled height penalty against fire-service reach data",
+          "mitigation": "Replace with a true floor-level field if added to the CDM"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "FIRE-L1",
+          "description": "No historical calibration - every numeric parameter in config/fire_matrices.json is a first-pass engineering-judgement seed.",
+          "impact": "High",
+          "monitoring_trigger": "Any production or pricing use",
+          "compensating_control": "Model is gated to Development status until calibration completes and the MRC approves it"
+        },
+        {
+          "id": "FIRE-L2",
+          "description": "The initiation-class draw seeds an entry-point label but does not yet change the chain start state.",
+          "impact": "Low",
+          "monitoring_trigger": "Class-dependent containment analysis",
+          "compensating_control": "Reserved for a later phase; all fires start at S0"
+        },
+        {
+          "id": "FIRE-L3",
+          "description": "Not yet wired into the PRS pricing chain or the port data pipeline; runs as a standalone orchestrator.",
+          "impact": "Medium",
+          "monitoring_trigger": "Any attempt to price the fire leg",
+          "compensating_control": "Pricing integration deferred to a later stage"
+        }
+      ],
+      "known_failure_modes": [
+        "A transition-matrix row that sums to zero raises at sample time rather than silently absorbing (defensive renormalisation handles non-zero drift).",
+        "Mis-tuned seeds can make the point of no return unreachable, turning the absorbing matrix into dead code (regression-tested against this).",
+        "Very small n_sim gives noisy containment_rate / loss_frequency estimates."
+      ],
+      "key_parameters": [
+        "base_annual_frequency_by_type and the m_* frequency multipliers (Model A)",
+        "growth_per_step_intensity by compartmentation quality (Model B)",
+        "i_crit_by_suppression - the point-of-no-return critical thresholds",
+        "timing (detection_base_steps, suppression_bite_base_steps) and the height penalty",
+        "passive_effectiveness_ranges and response_effectiveness_ranges by CDM field",
+        "controllability weights and switch_threshold (matrix selection)",
+        "transition_matrices (AA_controllable, weak_controllable, point_of_no_return)"
+      ],
+      "input_data": "Per-commercial-asset CDM features (AssetFireFeatures): commercial type, occupancy, condition, business-rates category, storey count, fire history, and the detection/suppression/passive/response resilience levels. Seed parameters from config/fire_matrices.json via the config.fire loader.",
+      "output_data": "Per-asset AssetFireResult: annual loss_frequency (unconditional), partial/total loss split, fire-conditional containment_rate, point-of-no-return count, and the per-fire ContainmentOutcome records (terminal state, steps, peak intensity).",
+      "downstream_models": [],
+      "upstream_models": [],
+      "validation_status": "Not yet validated",
+      "validation_date": null,
+      "next_review_date": null,
+      "recertification_date": null,
+      "review_frequency": "Annual",
+      "documents": [
+        "docs/models/fire_resilience/fire_resilience.tex",
+        "docs/fire/FIRE_MODEL_HANDOFF.md",
+        "docs/fire/Can you review the BRI user handbook on building r.pdf"
+      ],
+      "change_history": [
+        {
+          "date": "2026-06-05",
+          "version": "0.1.0",
+          "change": "Stage 1 delivered: config/fire.py schema + config/fire_matrices.json seeds, Model A Poisson initiation, data structures, 19 tests.",
+          "author": "David K Kelly"
+        },
+        {
+          "date": "2026-06-05",
+          "version": "0.2.0",
+          "change": "Stage 2 delivered: Models B (intensity_track), C (response_effectiveness) and D (containment) + end-to-end orchestrator; AssetFireFeatures refactored to named resilience fields; point-of-no-return seeds tuned to be reachable for weak assets; v0.01 LaTeX placeholder docs; 50 tests passing.",
+          "author": "David K Kelly"
+        }
+      ],
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": false,
+        "benchmark_tests": false,
+        "test_file": "tests/models/fire/",
+        "notes": "50 tests across tests/models/fire/ (test_initiation, test_response_effectiveness, test_intensity_track, test_containment), including point-of-no-return reachability regression guards and a strong-vs-weak directional check."
+      },
+      "last_review_date": null,
+      "rag_rating": "Amber",
+      "mrc_signoff_date": null,
+      "remediation_steps": [
+        {
+          "id": "FIRE-R1",
+          "description": "Replace placeholder seed calibration in fire_matrices.json with values derived from fire-incident / loss data.",
+          "owner": "David K Kelly",
+          "priority": "High",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "FIRE-R2",
+          "description": "Wire the fire-resilience credit into the PRS pricing chain and the port data pipeline (CLI stage + lineage manifest).",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "FIRE-R3",
+          "description": "Wire MKM-FIRE-001 into the test_results and sensitivity generators so docs/models/fire_resilience placeholders populate.",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "FIRE-R4",
+          "description": "Present to the MRC for Tier confirmation and production approval.",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        }
+      ],
+      "version_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-05",
+          "status": "Development",
+          "description": "Stage 1 - Poisson initiation (Model A)."
+        },
+        {
+          "version": "0.2.0",
+          "date": "2026-06-05",
+          "status": "Development",
+          "description": "Stage 2 - intensity track, response effectiveness, containment."
+        }
+      ],
+      "validation_questions": [],
+      "overall_risk_rating": {
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null,
+        "component_scores": {
+          "validation_coverage": null,
+          "remediation_health": null,
+          "review_currency": null,
+          "assumption_risk": null,
+          "limitation_risk": null
+        },
+        "calculated_rating": "Conditional",
+        "calculated_score": null
+      }
     }
   ],
   "model_chain": {
