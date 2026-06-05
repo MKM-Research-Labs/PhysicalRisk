@@ -59,17 +59,20 @@ class TestStandaloneLoanCalculator:
         assert "Loan Calculator" in title
 
     def test_exposes_coupon_drivers(self, map_page):
-        """Standalone-only inputs: credit rating + wind category selects.
+        """Standalone-only inputs: credit rating select + user-defined
+        contractual coupon.
 
         (Flood has no input here — its leg is PRS-driven from the asset curve
-        or the server-side category fallback.)
+        or the server-side category fallback. The Wind Risk Category selector
+        was removed, to be replaced later.)
         """
         if not self._open(map_page, "openLoanCalculator"):
             pytest.skip("window.openLoanCalculator not available")
 
         # The build-up drivers are only rendered in standalone mode.
         assert map_page.locator("#lp-credit_rating").count() > 0
-        assert map_page.locator("#lp-wind_risk_category").count() > 0
+        assert map_page.locator("#lp-contractual_coupon").count() > 0
+        assert map_page.locator("#lp-wind_risk_category").count() == 0
         assert map_page.locator("#lp-reprice-btn").count() > 0
 
     def test_prices_and_shows_results(self, map_page):

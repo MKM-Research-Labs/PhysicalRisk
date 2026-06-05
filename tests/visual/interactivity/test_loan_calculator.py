@@ -79,12 +79,28 @@ class TestLoanPricerPanelStandaloneJS:
         # Calculator title shown in standalone mode.
         assert "Loan Calculator" in js
 
-    def test_credit_rating_and_wind_inputs_present(self):
+    def test_credit_rating_input_present(self):
         js = self._js()
         assert "CREDIT_RATINGS" in js
         assert "lp-credit_rating" in js
-        assert "lp-wind_risk_category" in js
-        assert "WIND_OPTIONS" in js
+
+    def test_wind_risk_category_input_removed(self):
+        """The Wind Risk Category selector was removed from the calculator's
+        left panel (to be replaced later), so the form no longer exposes it."""
+        js = self._js()
+        assert "lp-wind_risk_category" not in js
+        assert "WIND_OPTIONS" not in js
+
+    def test_user_defined_contractual_coupon_input_present(self):
+        """The left panel exposes a user-defined contractual coupon, seeded with
+        the model-derived coupon and read into the reprice overrides."""
+        js = self._js()
+        assert "lp-contractual_coupon" in js
+        assert "Contractual Coupon (%)" in js
+        # Sent to the server as a decimal override.
+        assert "ov.contractual_coupon" in js
+        # The model-derived coupon is relabelled to distinguish it from the input.
+        assert "Original Contractual Coupon" in js
 
     def test_flood_risk_category_input_removed(self):
         """The flood leg is driven by the asset's modelled PRS spread (with a
