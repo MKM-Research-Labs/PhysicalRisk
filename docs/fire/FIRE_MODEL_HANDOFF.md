@@ -278,3 +278,50 @@ Open design choices to decide tomorrow (pick one, show it working — do not sta
 5. Decide whether to commit Stage 1 first (currently uncommitted) before starting Stage 2.
 6. Build Stage 2 per §7: `src/models/fire/progression.py` + extend `data_structures.py` + `tests/models/fire/test_progression.py`.
 7. Keep all new numbers in `config/fire_matrices.json` (the progression seeds are already there).
+
+---
+
+## 12. Final stage — governance integration (REMINDER, not yet done)
+
+Once the model is built and tested, a **separate final stage** wires it into the
+firm's model-governance process. This is a deliberate, explicit step — do **not**
+start it without the user's go-ahead. Checklist for that stage:
+
+- **Register the model in the inventory.** Add an `MKM-FIRE-001` entry (ID is
+  provisional — confirm the next free ID) to the model inventory with
+  `test_coverage`, `remediation_steps`, `overall_risk_rating` as **dict-shaped**
+  values (the inventory route + contract tests are strict on this).
+  ⚠️ **Governance data is version-controlled, NOT in `data/`** (the `data/`
+  symlink points at the shared SSD). The inventory and all governance artefacts
+  live in the repo; check `src/routes/governance/_constants.py` for the canonical
+  path before writing.
+- **MRC tier / Model Risk classification.** Assign a tier and document the
+  placeholder-calibration caveat (not production-approved until historical
+  calibration + MRC sign-off).
+- **BCBS 239 lineage.** Add the fire model to the data-lineage manifest
+  (`src/lineage/manifest.py`) — likely an OPTIONAL/opt-in step per catchment,
+  mirroring how typhoon is handled.
+- **Auto-generated governance docs.** Wire `MKM-FIRE-001` into the
+  `docs/models/test_results` generator and the parameter-inventory / MRC-ToR /
+  BCBS239 generators so its tables populate the placeholders in
+  `docs/models/fire_resilience/` (`test_results.tex`, `sensitivity_tables.tex`).
+- **Sensitivity generator.** Add `docs/models/sensitivities/fire_resilience/`
+  to produce the one-input-at-a-time tables the doc references.
+
+### Stage 2 status (done — 2026-06-05)
+
+- Models B/C/D built with **descriptive names**: `intensity_track.py` (B),
+  `response_effectiveness.py` (C), `containment.py` (D + orchestrator).
+- `AssetFireFeatures` refactored to named resilience fields (with a
+  backward-compatible `protection_levels` property so Model A needed no change).
+- Stage 2 seed blocks added to `fire_matrices.json` + `config/fire.py`.
+- **Seed tuning:** PNR was structurally unreachable with the first seeds (high
+  passive-effectiveness floors damped growth below the weak `i_crit`). Fixed by
+  raising `poorly_compartmented` growth to 4.0 and lowering `weak_suppression`
+  `i_crit` to 12, so a genuinely weak asset can lose the controllability race
+  (PNR ~ step 5) while strong assets never approach it. Covered by regression
+  tests in `test_intensity_track.py` / `test_containment.py`.
+- v0.01 LaTeX placeholder created at `docs/models/fire_resilience/` (added to the
+  top-level `docs/models/Makefile`).
+- Tests: `tests/models/fire/` now has 50 passing (initiation +
+  response_effectiveness + intensity_track + containment).

@@ -171,7 +171,10 @@ class ProgressionConfig:
         suppression_growth_multiplier_by_level: growth scale once suppressing.
         passive_effectiveness_ranges: [min,max] passive defence by field.
         response_effectiveness_ranges: [min,max] active response by field.
-        upper_floor_penalty_per_storey: {"range": [min,max]} height penalty.
+        upper_floor_penalty_per_storey: {"range":[min,max], "max_storeys":int}.
+        timing: base steps for detection and suppression-bite.
+        intensity_dynamics: passive_damp_weight + level-index thresholds.
+        controllability: matrix-selection weights + switch_threshold.
         transition_matrices: named 8x8 row-stochastic matrices.
     """
     growth_per_step_intensity: Dict[str, float] = field(default_factory=dict)
@@ -180,7 +183,10 @@ class ProgressionConfig:
     suppression_growth_multiplier_by_level: Dict[str, float] = field(default_factory=dict)
     passive_effectiveness_ranges: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     response_effectiveness_ranges: Dict[str, Tuple[float, float]] = field(default_factory=dict)
-    upper_floor_penalty_per_storey: Dict[str, List[float]] = field(default_factory=dict)
+    upper_floor_penalty_per_storey: Dict[str, object] = field(default_factory=dict)
+    timing: Dict[str, float] = field(default_factory=dict)
+    intensity_dynamics: Dict[str, float] = field(default_factory=dict)
+    controllability: Dict[str, object] = field(default_factory=dict)
     transition_matrices: Dict[str, List[List[float]]] = field(default_factory=dict)
 
 
@@ -258,6 +264,9 @@ def load_fire_config(
             k: tuple(v) for k, v in prog_raw["response_effectiveness_ranges"].items()
         },
         upper_floor_penalty_per_storey=prog_raw["upper_floor_penalty_per_storey"],
+        timing=prog_raw["timing"],
+        intensity_dynamics=prog_raw["intensity_dynamics"],
+        controllability=prog_raw["controllability"],
         transition_matrices=prog_raw["transition_matrices"],
     )
 

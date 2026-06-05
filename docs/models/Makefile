@@ -1,6 +1,6 @@
 MODELS = gev_hazard prs_pricing storm_intensity flood_risk storm_gauge \
          mortgage_pricer property_valuation timeseries_statistics risk_assessment \
-         flood_classifier typhoon
+         flood_classifier typhoon fire_resilience
 
 .PHONY: all clean $(MODELS)
 

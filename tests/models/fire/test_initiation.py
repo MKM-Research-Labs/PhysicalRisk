@@ -71,7 +71,9 @@ def office():
         occupancy_status="Fully occupied",
         business_rates_category="Office",
         property_condition="Good",
-        protection_levels=["Enhanced", "Enhanced", "Meets minimum"],
+        automatic_detection_level="Enhanced",
+        suppression_systems_level="Enhanced",
+        emergency_procedures_level="Meets minimum",
         fire_damage_severity="None",
         years_since_last_fire=None,
         number_of_storeys=4,
@@ -171,7 +173,9 @@ def test_m_protection_uses_mean_level(config):
     # Mean of [Verified(4), Verified(4), Enhanced(3)] -> round(3.67)=4 -> Verified.
     feats = AssetFireFeatures(
         asset_id="X", commercial_type="Office",
-        protection_levels=["Verified", "Verified", "Enhanced"],
+        automatic_detection_level="Verified",
+        suppression_systems_level="Verified",
+        emergency_procedures_level="Enhanced",
     )
     assert m_protection(feats, cfg) == pytest.approx(
         cfg.m_protection_by_level["Verified"]
@@ -273,7 +277,7 @@ def test_higher_risk_asset_has_higher_lambda(config, office):
     high_risk = AssetFireFeatures(
         asset_id="HR", commercial_type="MixedUse",
         occupancy_status="Vacant", property_condition="Very poor",
-        protection_levels=["Not assessed"],
+        automatic_detection_level="Not assessed",
         fire_damage_severity="Severe", years_since_last_fire=1.0,
     )
     assert asset_lambda(high_risk, config.initiation) > asset_lambda(
