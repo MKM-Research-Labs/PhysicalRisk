@@ -1,0 +1,212 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Building Fire-Resilience Credit Model}
+\newcommand{\docsubtitle}{Poisson Initiation with an 8-State Bayesian Containment Chain}
+\newcommand{\docversion}{0.01}
+\newcommand{\docdate}{05-June-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+\textit{Skeleton document (v0.01) --- content to be filled out as the model
+matures. All numeric parameters are engineering-judgement seeds, not calibrated
+values; see \texttt{config/fire\_matrices.json}.}
+
+The Building Fire-Resilience Credit Model (\texttt{MKM-FIRE-001}, provisional
+ID) prices the fire-resilience of a commercial asset so that fire loss
+aggregates into the same resilience-credit currency as the existing
+10,000-storm Monte Carlo engine. It is built from four governance-separated
+component models:
+
+\begin{itemize}
+  \item \textbf{Model A --- Initiation.} A Poisson ignition frequency
+        $\lambda_i$ per asset, composed from a base rate by commercial type and
+        multipliers for occupancy, process load, condition, protection and fire
+        history.
+  \item \textbf{Model B --- Intensity Track.} A deterministic 15-minute latent
+        intensity $I_t$ whose growth is damped by passive (structural) defence
+        and cut once active suppression bites.
+  \item \textbf{Model C --- Response Effectiveness.} A deterministic mapping
+        from the asset's CDM resilience levels to the dynamic quantities Models
+        B and D consume (detection time, suppression-bite time, growth rate,
+        critical threshold, controllability).
+  \item \textbf{Model D --- Containment, Loss \& Resilience Credit.} An 8-state
+        discrete-time Bayesian chain marched in 15-minute steps to an absorbing
+        terminal state, aggregated into the credit currency.
+\end{itemize}
+
+The central concept is the \emph{point of no return} (PNR): the first step at
+which latent intensity $I_t$ exceeds the critical threshold $I_{\text{crit}}$
+\emph{before} suppression has bitten. Once PNR latches, the containment chain
+switches to an absorbing matrix whose Contained column is zero --- the fire can
+no longer be contained and absorbs into \{partial loss, total loss\}.
+
+\textbf{Status:} Development. Stage 1 (Model A) and Stage 2 (Models B/C/D and
+the end-to-end orchestrator) delivered as of the document date, with unit
+tests. Numbers are placeholders.
+
+\textbf{Key risk:} The model uses placeholder calibration throughout. It is not
+approved for production use until historical calibration completes and the Model
+Risk Committee (MRC) issues approval.
+
+% ===================================================================
+% 2. MODEL PURPOSE AND SCOPE
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+
+To assign each commercial asset a fire-resilience credit, expressed as an annual
+unconditional loss frequency and a conditional containment rate, that can be
+priced pari-passu with the flood and wind hazards already in the portfolio
+engine.
+
+\subsection{Scope}
+
+\textit{To be completed.} Commercial assets described by the v2 commercial-asset
+and resilience CDM sections. The model reads only the
+\texttt{AssetFireFeatures} bundle, never the raw CDM record.
+
+\subsection{Out of Scope}
+
+\begin{itemize}
+  \item Physical (CFD) fire-spread modelling.
+  \item Smoke / life-safety egress modelling.
+  \item Wildland--urban interface and external conflagration spread.
+  \item Business-interruption quantum (only the resilience credit is produced).
+\end{itemize}
+
+% ===================================================================
+% 3. MATHEMATICAL FRAMEWORK
+% ===================================================================
+\section{Mathematical Framework}
+
+\subsection{Initiation (Model A)}
+
+\[
+\lambda_i = \lambda_{0,c}\; m_{\text{occ}}\; m_{\text{proc}}\; m_{\text{cond}}\;
+            m_{\text{protection}}\; m_{\text{history}}.
+\]
+A fire instantiates for an asset-draw when the Poisson count $N_i \ge 1$.
+
+\subsection{Intensity Track (Model B)}
+
+\[
+g_t = g_{\text{base}}\,(1 - w_{\text{damp}}\, e_{\text{passive}}), \qquad
+g_t \leftarrow g_t \cdot \mu_{\text{supp}} \text{ once suppression is active},
+\]
+\[
+I_{t+1} = I_t + g_t.
+\]
+
+\subsection{Point of No Return}
+
+PNR latches at the first step $t$ with $I_t > I_{\text{crit}}$ while suppression
+is not yet active; the latch is sticky. \textit{Full derivation to be completed.}
+
+\subsection{Containment Chain (Model D)}
+
+An 8-state row-stochastic transition matrix is selected each step from the
+asset's controllability (pre-PNR) or the absorbing PNR matrix (post-PNR), and
+the state is sampled until it reaches an absorbing terminal state
+$\{S_5, S_6, S_7\}$ or the step budget runs out. \textit{To be completed.}
+
+% ===================================================================
+% 4. INPUT PARAMETERS AND CALIBRATION
+% ===================================================================
+\section{Input Parameters and Calibration}
+
+\textit{To be completed. All seeds live in \texttt{config/fire\_matrices.json}
+and are loaded by \texttt{config/fire.py}; the model code embeds no numbers. The
+resilience-level vocabulary is imported from \texttt{port.cdm.asset.resilience}
+to remain single-source. See the parameter inventory section of the governance
+report for the full enumeration.}
+
+% ===================================================================
+% 5. IMPLEMENTATION
+% ===================================================================
+\section{Implementation}
+
+\subsection{Module Layout}
+
+\begin{itemize}
+  \item \texttt{config/fire.py} --- parameter schema (enums, dataclasses, loader).
+  \item \texttt{config/fire\_matrices.json} --- seed numeric parameters.
+  \item \texttt{src/models/fire/data\_structures.py} --- runtime types
+        (\texttt{AssetFireFeatures}, \texttt{ResponseProfile},
+        \texttt{IntensityTrack}, \texttt{ContainmentOutcome},
+        \texttt{AssetFireResult}).
+  \item \texttt{src/models/fire/initiation.py} --- Model A (Poisson initiation).
+  \item \texttt{src/models/fire/response\_effectiveness.py} --- Model C.
+  \item \texttt{src/models/fire/intensity\_track.py} --- Model B.
+  \item \texttt{src/models/fire/containment.py} --- Model D and the end-to-end
+        orchestrator (\texttt{simulate\_asset\_fire},
+        \texttt{simulate\_portfolio\_fire}).
+\end{itemize}
+
+\subsection{Randomness}
+
+All randomness flows through a single caller-owned
+\texttt{numpy.random.Generator}, so an entire portfolio run is reproducible from
+one seed --- matching the storm and typhoon model convention.
+
+% ===================================================================
+% 6. VALIDATION AND BACKTESTING
+% ===================================================================
+\section{Validation and Backtesting}
+
+\textit{Calibration-stage work --- to be completed. Will include historical fire
+loss reconciliation and stability under particle/step counts.} Current unit
+tests confirm the model is directionally correct: a strong asset contains far
+more often and loses far less than a weak one, and the point-of-no-return gate
+is reachable for genuinely weak assets but not for strong ones.
+
+\input{test_results}
+
+% ===================================================================
+% 7. SENSITIVITY ANALYSIS
+% ===================================================================
+\section{Sensitivity Analysis}
+
+\textit{To be completed. Sensitivities will be generated under
+\texttt{docs/models/sensitivities/fire\_resilience/}.}
+
+% \input{sensitivity_tables}
+
+% ===================================================================
+% 8. LIMITATIONS AND ASSUMPTIONS
+% ===================================================================
+\section{Limitations and Assumptions}
+
+\begin{itemize}
+  \item No historical calibration --- every parameter is a first-pass placeholder.
+  \item Building height is proxied by \texttt{NumberOfStoreys}; the commercial
+        schema has no explicit floor-level metric.
+  \item The initiation-class draw seeds an entry-point label but does not yet
+        change the chain start state.
+  \item The intensity track is deterministic; all stochasticity lives in the
+        chain march.
+\end{itemize}
+
+% ===================================================================
+% 9. CHANGE HISTORY
+% ===================================================================
+\section{Change History}
+
+\begin{tabular}{lll}
+\toprule
+Version & Date & Description \\
+\midrule
+0.01 & 05-June-2026 & Skeleton document. Stage 1 (Model A) and Stage 2 (Models B/C/D + orchestrator) delivered with unit tests; placeholder calibration. \\
+\bottomrule
+\end{tabular}
+
+\end{document}

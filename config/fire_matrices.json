@@ -92,13 +92,13 @@
     "growth_per_step_intensity": {
       "_doc": "Latent intensity I_t additive growth per 15-min step before suppression bites, by compartmentation quality.",
       "well_compartmented": 1.5,
-      "poorly_compartmented": 3.0
+      "poorly_compartmented": 4.0
     },
 
     "i_crit_by_suppression": {
-      "_doc": "Critical intensity threshold I_crit. If I_t crosses this before suppression bites, the chain hits the point of no return (S5 column collapses to ~0).",
+      "_doc": "Critical intensity threshold I_crit. If I_t crosses this before suppression bites, the chain hits the point of no return (S5 column collapses to ~0). The weak value is set so a poorly-compartmented, weakly-suppressed asset can actually lose the controllability race (PNR reachable around step 5); the strong value is high enough that a well-protected asset suppresses long before I_t approaches it (PNR effectively unreachable).",
       "strong_suppression": 75,
-      "weak_suppression": 25
+      "weak_suppression": 12
     },
 
     "detection_time_multiplier_by_level": {
@@ -135,8 +135,32 @@
     },
 
     "upper_floor_penalty_per_storey": {
-      "_doc": "Height/vertical penalty multiplier applied per storey to suppression difficulty (NumberOfStoreys proxy; commercial schema has no explicit FloorLevelMeters). Range across few -> many storeys.",
-      "range": [1.05, 1.60]
+      "_doc": "Height/vertical penalty multiplier applied per storey to suppression difficulty (NumberOfStoreys proxy; commercial schema has no explicit FloorLevelMeters). Interpolated linearly from 1 storey -> range[0] to max_storeys -> range[1].",
+      "range": [1.05, 1.60],
+      "max_storeys": 20
+    },
+
+    "timing": {
+      "_doc": "Base timing in 15-min steps for the controllability race. detection_base_steps = expected steps from ignition to detection at a neutral detection level; suppression_bite_base_steps = expected steps from detection until active suppression takes effect. The height penalty multiplies the suppression-bite time (harder to reach upper floors).",
+      "detection_base_steps": 2.0,
+      "suppression_bite_base_steps": 3.0
+    },
+
+    "intensity_dynamics": {
+      "_doc": "Knobs governing the latent intensity track I_t. passive_damp_weight scales how much aggregate passive effectiveness slows per-step growth (effective_growth = growth_per_step * (1 - passive_damp_weight * passive_effectiveness)). compartmentation_well_threshold = mean level index (0-4) of CompartmentsProvided+FireStoppingAtPenetrations at/above which growth uses the well_compartmented rate. strong_suppression_threshold = SuppressionSystemsInstalled level index (0-4) at/above which i_crit uses the strong_suppression value.",
+      "passive_damp_weight": 0.6,
+      "compartmentation_well_threshold": 2.0,
+      "strong_suppression_threshold": 2.0
+    },
+
+    "controllability": {
+      "_doc": "Aggregate controllability score in [0,1] combining passive, response and suppression effectiveness; selects which pre-PNR transition matrix is used. weights are normalised over the three components. score >= switch_threshold uses AA_controllable, else weak_controllable. suppression_component maps the SuppressionSystemsInstalled level index (0-4) to [0,1] via idx/4.",
+      "weights": {
+        "passive": 0.35,
+        "response": 0.35,
+        "suppression": 0.30
+      },
+      "switch_threshold": 0.55
     },
 
     "transition_matrices": {
