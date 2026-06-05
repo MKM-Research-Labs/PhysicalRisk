@@ -172,6 +172,8 @@ class ProgressionConfig:
         passive_effectiveness_ranges: [min,max] passive defence by field.
         response_effectiveness_ranges: [min,max] active response by field.
         upper_floor_penalty_per_storey: {"range":[min,max], "max_storeys":int}.
+        fire_service_reach: {"reach_storeys":int, "internal_suppression_threshold":int,
+            "no_reach_bite_steps":float} — the fire-truck reach cut-off.
         timing: base steps for detection and suppression-bite.
         intensity_dynamics: passive_damp_weight + level-index thresholds.
         controllability: matrix-selection weights + switch_threshold.
@@ -184,6 +186,7 @@ class ProgressionConfig:
     passive_effectiveness_ranges: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     response_effectiveness_ranges: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     upper_floor_penalty_per_storey: Dict[str, object] = field(default_factory=dict)
+    fire_service_reach: Dict[str, float] = field(default_factory=dict)
     timing: Dict[str, float] = field(default_factory=dict)
     intensity_dynamics: Dict[str, float] = field(default_factory=dict)
     controllability: Dict[str, object] = field(default_factory=dict)
@@ -264,6 +267,7 @@ def load_fire_config(
             k: tuple(v) for k, v in prog_raw["response_effectiveness_ranges"].items()
         },
         upper_floor_penalty_per_storey=prog_raw["upper_floor_penalty_per_storey"],
+        fire_service_reach=prog_raw["fire_service_reach"],
         timing=prog_raw["timing"],
         intensity_dynamics=prog_raw["intensity_dynamics"],
         controllability=prog_raw["controllability"],

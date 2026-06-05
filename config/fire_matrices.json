@@ -135,9 +135,16 @@
     },
 
     "upper_floor_penalty_per_storey": {
-      "_doc": "Height/vertical penalty multiplier applied per storey to suppression difficulty (NumberOfStoreys proxy; commercial schema has no explicit FloorLevelMeters). Interpolated linearly from 1 storey -> range[0] to max_storeys -> range[1].",
+      "_doc": "Height/vertical penalty multiplier applied per storey to suppression difficulty (NumberOfStoreys proxy; commercial schema has no explicit FloorLevelMeters). Interpolated linearly from 1 storey -> range[0] to max_storeys -> range[1]. Applies when suppression can actually engage (internal sprinklers, or external fire-service reach); see fire_service_reach for the height cut-off.",
       "range": [1.05, 1.60],
       "max_storeys": 20
+    },
+
+    "fire_service_reach": {
+      "_doc": "External fire-service suppression only reaches up to reach_storeys — the height a fire appliance / aerial ladder can effectively service (~4 storeys, the BRI fire-truck reach). At or below the reach the fire service can mount an effective external attack even with no internal systems. Above the reach, suppression must come from internal sprinklers: a building taller than reach_storeys with no adequate internal suppression never achieves effective suppression (the suppression flag never bites) and runs to the point of no return. internal_suppression_threshold = SuppressionSystemsInstalled level index (0-4) at/above which the asset counts as having effective, height-independent internal sprinklers. no_reach_bite_steps = suppression-bite time (steps) when neither internal sprinklers nor fire-service reach is available — set beyond the step budget so suppression effectively never engages.",
+      "reach_storeys": 4,
+      "internal_suppression_threshold": 2,
+      "no_reach_bite_steps": 999.0
     },
 
     "timing": {

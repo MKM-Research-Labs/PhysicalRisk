@@ -188,3 +188,76 @@ def test_weak_asset_uses_weak_i_crit_and_poorly_compartmented(prog):
     assert weak.growth_per_step == pytest.approx(
         prog.growth_per_step_intensity["poorly_compartmented"]
     )
+
+
+# ===========================================================================
+# Fire-service reach (fire-truck height) x internal sprinklers
+# ===========================================================================
+
+
+def _office(storeys, suppression=None):
+    return AssetFireFeatures(
+        asset_id="O", commercial_type="Office",
+        number_of_storeys=storeys, suppression_systems_level=suppression,
+    )
+
+
+def test_lowrise_unsprinklered_suppression_engages_within_reach(prog):
+    # At/below the fire-truck reach the external service engages even with no
+    # internal sprinklers, so suppression bites within the step budget.
+    reach = prog.fire_service_reach
+    asset = _office(reach["reach_storeys"], suppression=None)
+    profile = derive_response_profile(asset, prog)
+    assert profile.suppression_active_step < prog.fire_service_reach["no_reach_bite_steps"]
+
+
+def test_tall_unsprinklered_suppression_never_engages(prog):
+    # Above the reach with no internal sprinklers the suppression flag never
+    # bites — the bite time is the configured no-reach (beyond-budget) value.
+    reach = prog.fire_service_reach
+    asset = _office(reach["reach_storeys"] + 1, suppression=None)
+    profile = derive_response_profile(asset, prog)
+    assert profile.suppression_bite_steps == pytest.approx(reach["no_reach_bite_steps"])
+
+
+def test_tall_sprinklered_suppression_engages(prog):
+    # Internal sprinklers restore suppression at any height — a tall building
+    # with adequate sprinklers bites within the step budget.
+    reach = prog.fire_service_reach
+    asset = _office(reach["reach_storeys"] + 10, suppression="Verified")
+    profile = derive_response_profile(asset, prog)
+    assert profile.suppression_bite_steps < reach["no_reach_bite_steps"]
+
+
+def test_tall_unsprinklered_asset_reaches_pnr(config, prog):
+    # End-to-end: a tall, unsprinklered asset whose suppression never engages
+    # must actually cross the point of no return.
+    from models.fire.intensity_track import (
+        advance_intensity,
+        initial_intensity_track,
+    )
+
+    asset = _office(prog.fire_service_reach["reach_storeys"] + 1, suppression=None)
+    profile = derive_response_profile(asset, prog)
+    track = initial_intensity_track()
+    for _ in range(config.run.max_steps):
+        track = advance_intensity(track, profile, prog)
+        if track.point_of_no_return:
+            break
+    assert track.point_of_no_return
+
+
+def test_tall_sprinklered_asset_avoids_pnr(config, prog):
+    # The same tall asset with adequate sprinklers suppresses and never crosses
+    # the point of no return.
+    from models.fire.intensity_track import (
+        advance_intensity,
+        initial_intensity_track,
+    )
+
+    asset = _office(prog.fire_service_reach["reach_storeys"] + 1, suppression="Verified")
+    profile = derive_response_profile(asset, prog)
+    track = initial_intensity_track()
+    for _ in range(config.run.max_steps):
+        track = advance_intensity(track, profile, prog)
+    assert not track.point_of_no_return
