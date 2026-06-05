@@ -62,12 +62,13 @@ class PricingMixin:
         # catchment has no typhoon damage → flood-only fallback (no prs_perils
         # block, byte-identical output).
         #
-        # Suppressed for the dedicated wind scenario modes (win/faw/fow): those
-        # files already ARE the peril spread (the flood_events were re-stamped
-        # by the peril timeseries generator so this very count IS the peril
-        # count). Attaching a prs_perils block there would double-count and
-        # confuse the basis/waterfall, so the headline spread stands alone.
-        if getattr(self, "mode", "normal") in ("win", "faw", "fow"):
+        # Suppressed for the dedicated peril scenario modes (win/faw/fow and the
+        # BRI-anchored bow/baw): those files already ARE the peril spread (the
+        # flood_events were re-stamped by the peril timeseries generator so this
+        # very count IS the peril count). Attaching a prs_perils block there
+        # would double-count and confuse the basis/waterfall, so the headline
+        # spread stands alone.
+        if getattr(self, "mode", "normal") in ("win", "faw", "fow", "bow", "baw"):
             wind_info = None
         else:
             wind_info = self._wind_union(prop_id, flood_events, num_storms)

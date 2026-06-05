@@ -71,14 +71,20 @@ DEPENDENCY_GRAPH = {
     "commercialtsb":      ["commercialts"],
     "commercialbri":      ["commercialtsb", "hazard"],
     # Wind-coupled peril scenarios (opt-in, require the typhoon damage join).
-    "property_peril_ts":  ["propertyts", "typhoon"],
+    # bow/baw additionally anchor on the BRI-resilient flood, so the peril ts
+    # step also consumes the bri ts (propertytsb / commercialtsb).
+    "property_peril_ts":  ["propertyts", "propertytsb", "typhoon"],
     "propertywin":        ["property_peril_ts"],
     "propertyfaw":        ["property_peril_ts"],
     "propertyfow":        ["property_peril_ts"],
-    "commercial_peril_ts": ["commercialts", "typhoon"],
+    "propertybow":        ["property_peril_ts"],
+    "propertybaw":        ["property_peril_ts"],
+    "commercial_peril_ts": ["commercialts", "commercialtsb", "typhoon"],
     "commercialwin":      ["commercial_peril_ts"],
     "commercialfaw":      ["commercial_peril_ts"],
     "commercialfow":      ["commercial_peril_ts"],
+    "commercialbow":      ["commercial_peril_ts"],
+    "commercialbaw":      ["commercial_peril_ts"],
 }
 
 # External inputs: config/data files consumed by pipeline steps but not
@@ -97,7 +103,9 @@ OPTIONAL_STEPS: set[str] = {
     # Wind-coupled peril scenarios only run when the typhoon stage has
     # produced damage to join against (same opt-in gate as typhoon itself).
     "property_peril_ts", "propertywin", "propertyfaw", "propertyfow",
+    "propertybow", "propertybaw",
     "commercial_peril_ts", "commercialwin", "commercialfaw", "commercialfow",
+    "commercialbow", "commercialbaw",
 }
 
 STEP_IO = {
@@ -166,29 +174,41 @@ STEP_IO = {
                        "outputs": ["commercialtsb/"]},
     "commercialbri":  {"inputs": ["commercialtsb/", "gaugehc.json", "gauge.json"],
                        "outputs": ["commercialbri.json"]},
-    # Wind-coupled peril scenarios. The peril ts step derives three dirs from
+    # Wind-coupled peril scenarios. The peril ts step derives five dirs from
     # the flood spine joined against typhoon/damage + storm_sequences.json;
-    # each hc step prices one derived dir into its scenario file.
-    "property_peril_ts":  {"inputs": ["propertyts/", "typhoon/damage/",
-                                      "storm_sequences.json"],
+    # each hc step prices one derived dir into its scenario file. win/faw/fow
+    # anchor on the raw flood spine; bow/baw anchor on the BRI-resilient flood
+    # (propertytsb / commercialtsb), so the peril ts step also reads that dir.
+    "property_peril_ts":  {"inputs": ["propertyts/", "propertytsb/",
+                                      "typhoon/damage/", "storm_sequences.json"],
                            "outputs": ["propertytsw/", "propertytsfaw/",
-                                       "propertytsfow/"]},
+                                       "propertytsfow/", "propertytsbow/",
+                                       "propertytsbaw/"]},
     "propertywin":        {"inputs": ["propertytsw/", "gaugehc.json", "gauge.json"],
                            "outputs": ["propertywin.json"]},
     "propertyfaw":        {"inputs": ["propertytsfaw/", "gaugehc.json", "gauge.json"],
                            "outputs": ["propertyfaw.json"]},
     "propertyfow":        {"inputs": ["propertytsfow/", "gaugehc.json", "gauge.json"],
                            "outputs": ["propertyfow.json"]},
-    "commercial_peril_ts": {"inputs": ["commercialts/", "typhoon/damage/",
-                                       "storm_sequences.json"],
+    "propertybow":        {"inputs": ["propertytsbow/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["propertybow.json"]},
+    "propertybaw":        {"inputs": ["propertytsbaw/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["propertybaw.json"]},
+    "commercial_peril_ts": {"inputs": ["commercialts/", "commercialtsb/",
+                                       "typhoon/damage/", "storm_sequences.json"],
                             "outputs": ["commercialtsw/", "commercialtsfaw/",
-                                        "commercialtsfow/"]},
+                                        "commercialtsfow/", "commercialtsbow/",
+                                        "commercialtsbaw/"]},
     "commercialwin":      {"inputs": ["commercialtsw/", "gaugehc.json", "gauge.json"],
                            "outputs": ["commercialwin.json"]},
     "commercialfaw":      {"inputs": ["commercialtsfaw/", "gaugehc.json", "gauge.json"],
                            "outputs": ["commercialfaw.json"]},
     "commercialfow":      {"inputs": ["commercialtsfow/", "gaugehc.json", "gauge.json"],
                            "outputs": ["commercialfow.json"]},
+    "commercialbow":      {"inputs": ["commercialtsbow/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["commercialbow.json"]},
+    "commercialbaw":      {"inputs": ["commercialtsbaw/", "gaugehc.json", "gauge.json"],
+                           "outputs": ["commercialbaw.json"]},
 }
 
 # ---------------------------------------------------------------------------
