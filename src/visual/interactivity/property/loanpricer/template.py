@@ -89,7 +89,6 @@ LOAN_PRICER_JS_TEMPLATE = """
                 original_maturity: 30,
                 current_term: 30,
                 credit_rating: 'BBB',
-                wind_risk_category: 'Medium',
                 prs_scenario: 'fow'
             }};
 
@@ -105,7 +104,6 @@ LOAN_PRICER_JS_TEMPLATE = """
                 {{id: 'lp-original_maturity',  label: 'Original Term (yrs)', kind: 'num'}},
                 {{id: 'lp-current_term',       label: 'Remaining Term (yrs)',kind: 'num'}}
             ];
-            var WIND_OPTIONS = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
             var CREDIT_RATINGS = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'];
             // PRS hazard scenarios offered by the dropdown. The chosen scenario's
             // modelled spread becomes the coupon's single hazard leg. 'fow'
@@ -243,12 +241,21 @@ LOAN_PRICER_JS_TEMPLATE = """
                 // server-side category fallback), so it has no input here.
                 if (standaloneMode) {{
                     html += selectHtml('lp-credit_rating', 'Borrower Credit Rating', CREDIT_RATINGS);
-                    html += selectHtml('lp-wind_risk_category', 'Wind Risk Category', WIND_OPTIONS);
                     // PRS hazard scenario: which modelled peril spread drives
                     // the coupon's hazard leg. Only meaningful when launched
                     // from an asset (its fan supplies the spreads); otherwise
                     // the chosen scenario falls back to the category lookup.
                     html += selectHtml('lp-prs_scenario', 'PRS Hazard Scenario', PRS_SCENARIOS);
+                    // User-defined contractual coupon. Seeded with the model-
+                    // derived coupon on the first price; editing it overrides the
+                    // rate the borrower pays, while the model coupon stays visible
+                    // in the build-up as the "Original Contractual Coupon".
+                    html += '<div style="margin-bottom:6px;">' +
+                        '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                        'Contractual Coupon (%)</label>' +
+                        '<input id="lp-contractual_coupon" type="number" step="any" ' +
+                        'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
+                        'border:1px solid #ccc;border-radius:4px;font-size:13px;"></div>';
                 }}
                 html += '<button id="lp-reprice-btn" ' +
                     'style="width:100%;margin-top:4px;padding:8px;background:#1565C0;color:white;' +
@@ -268,8 +275,6 @@ LOAN_PRICER_JS_TEMPLATE = """
                     if (v == null) {{ el.value = ''; return; }}
                     el.value = (f.kind === 'pct') ? (v * 100) : v;
                 }});
-                var wr = document.getElementById('lp-wind_risk_category');
-                if (wr && inputs.wind_risk_category) wr.value = inputs.wind_risk_category;
                 var cr = document.getElementById('lp-credit_rating');
                 if (cr && inputs.credit_rating) cr.value = inputs.credit_rating;
                 var ps = document.getElementById('lp-prs_scenario');
@@ -286,12 +291,17 @@ LOAN_PRICER_JS_TEMPLATE = """
                     var key = f.id.replace('lp-', '');
                     ov[key] = (f.kind === 'pct') ? (num / 100) : num;
                 }});
-                var wr = document.getElementById('lp-wind_risk_category');
-                if (wr && wr.value) ov.wind_risk_category = wr.value;
                 var cr = document.getElementById('lp-credit_rating');
                 if (cr && cr.value) ov.credit_rating = cr.value;
                 var ps = document.getElementById('lp-prs_scenario');
                 if (ps && ps.value) ov.prs_scenario = ps.value;
+                // User-defined contractual coupon (shown as %, sent as a decimal).
+                // Overrides the model-derived coupon as the rate the borrower pays.
+                var cc = document.getElementById('lp-contractual_coupon');
+                if (cc && cc.value !== '') {{
+                    var ccNum = parseFloat(cc.value);
+                    if (!isNaN(ccNum)) ov.contractual_coupon = ccNum / 100;
+                }}
                 return ov;
             }}
 
@@ -305,14 +315,22 @@ LOAN_PRICER_JS_TEMPLATE = """
                     ['LTV Ratio', fmtPct(p.ltv_ratio), '#333'],
                     ['Monthly Payment', fmtCurrency(p.monthly_payment), '#333'],
                     ['Annual Payment', fmtCurrency(p.annual_payment), '#333'],
-                    ['PV Cashflows', fmtCurrency(p.pv_cashflows), '#333'],
-                    ['PV Losses', fmtCurrency(p.pv_losses), '#333']
+                    ['PV Cashflows', fmtCurrency(p.pv_cashflows), '#333']
                 ];
                 var html = '';
                 // Coupon build-up (standalone calculator only): show how the
                 // contractual coupon decomposes into risk-free + credit + hazard.
                 var c = data && data.coupon;
                 if (c) {{
+                    // Seed the user-defined contractual coupon field with the
+                    // model-derived coupon on the first price (when still empty),
+                    // so the left panel opens on the model value and the user can
+                    // adjust from there. A non-empty field is the user's own input
+                    // and is left untouched on re-price.
+                    var ccEl = document.getElementById('lp-contractual_coupon');
+                    if (ccEl && ccEl.value === '' && typeof c.rate === 'number') {{
+                        ccEl.value = (c.rate * 100).toFixed(2);
+                    }}
                     // The flood leg is PRS-priced; the label notes whether it
                     // came from the asset's own hazard curve or the category
                     // fallback. When opened from an asset, deep-link the leg to
@@ -334,7 +352,7 @@ LOAN_PRICER_JS_TEMPLATE = """
                         ? 'Wind Hazard (PRS \\u00b7 combined)'
                         : 'Wind Hazard (static)';
                     var couponRows = [
-                        ['Contractual Coupon', fmtPct(c.rate), '#0D47A1'],
+                        ['Original Contractual Coupon', fmtPct(c.rate), '#0D47A1'],
                         ['Risk-free (curve)', fmtPct(c.risk_free), '#333'],
                         ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), '#333']
                     ];

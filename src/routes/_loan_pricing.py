@@ -84,6 +84,11 @@ OVERRIDE_KEYS = (
     # borrower income — so commercial income reflects the asset's real yield
     # instead of the fixed residential default.
     "income_yield",
+    # User-defined contractual coupon (decimal) from the standalone calculator's
+    # left panel. When supplied it overrides the model-derived coupon as the rate
+    # the borrower pays; the model coupon is still returned (as ``coupon``) for
+    # display as the "Original Contractual Coupon". Blank -> use the model coupon.
+    "contractual_coupon",
 )
 
 # Override keys whose values are free-text categories, not numbers — kept
@@ -427,7 +432,15 @@ def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
         prs_spread_bps=effective.get("prs_spread_bps"),
         prs_scenario=effective.get("prs_scenario"),
     )
-    effective["interest_rate"] = coupon["rate"]
+    # A user-supplied contractual coupon (left panel) overrides the model-derived
+    # rate the borrower pays; the model coupon stays in ``coupon`` for display as
+    # the "Original Contractual Coupon". Cashflows still discount on the risk-free
+    # curve, so the override only moves the contractual leg.
+    user_coupon = effective.pop("contractual_coupon", None)
+    if user_coupon is not None and float(user_coupon) > 0:
+        effective["interest_rate"] = float(user_coupon)
+    else:
+        effective["interest_rate"] = coupon["rate"]
 
     priced = _price_effective(effective, discount_rate=coupon["risk_free"])
     return {

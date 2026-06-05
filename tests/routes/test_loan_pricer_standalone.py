@@ -85,6 +85,37 @@ class TestStandaloneLoanPricerRoute:
         assert data["pricing"]["discount_rate"] == coupon["risk_free"]
         assert coupon["risk_free"] < coupon["rate"]
 
+    def test_user_contractual_coupon_overrides_model_rate(self, prop_client):
+        """A user-supplied contractual coupon becomes the rate the borrower
+        pays, while the returned ``coupon`` still reports the model-derived rate
+        (the "Original Contractual Coupon"). The risk-free discount is unchanged."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000,
+            "property_value": 300000,
+            "credit_rating": "BBB",
+            "contractual_coupon": 0.09,
+        }})
+        data = r.get_json()
+        coupon = data["coupon"]
+        # The model coupon is preserved for display, distinct from the override.
+        assert coupon["rate"] != pytest.approx(0.09)
+        # The borrower pays the user-defined coupon.
+        assert data["inputs"]["interest_rate"] == pytest.approx(0.09)
+        # Discounting still happens on the risk-free curve, not the override.
+        assert data["pricing"]["discount_rate"] == coupon["risk_free"]
+        # The override is consumed, not echoed back as a pricing input.
+        assert "contractual_coupon" not in data["inputs"]
+
+    def test_blank_contractual_coupon_uses_model_rate(self, prop_client):
+        """Without a user coupon, the borrower pays the model-derived rate."""
+        client, _ = prop_client
+        r = client.post("/api/v1/loan-pricer", json={"inputs": {
+            "loan_amount": 200000, "property_value": 300000, "credit_rating": "BBB",
+        }})
+        data = r.get_json()
+        assert data["inputs"]["interest_rate"] == data["coupon"]["rate"]
+
     def test_coupon_decomposes_to_components(self, prop_client):
         client, _ = prop_client
         r = client.post("/api/v1/loan-pricer", json={"inputs": {
