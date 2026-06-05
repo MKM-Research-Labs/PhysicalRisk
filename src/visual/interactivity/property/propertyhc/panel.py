@@ -34,7 +34,7 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
 
     def __init__(self,
                  panel_width: str = "1100px",
-                 panel_height: str = "750px"):
+                 panel_height: str = "92vh"):
         self.panel_width = panel_width
         self.panel_height = panel_height
 
