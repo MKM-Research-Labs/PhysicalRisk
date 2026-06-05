@@ -312,5 +312,58 @@ def get_js():
 
                 html += '</tbody></table>';
                 container.insertAdjacentHTML('beforeend', html);
+
+                // ============================================================
+                // Independent perils — separate from the flood/wind waterfall.
+                // Fire (and, later, seismic) are independent hazards: they don't
+                // attenuate or combine linearly with the flood/wind basis. The
+                // only defensible way to fold them into a single coupon is a
+                // root-sum-of-squares of the (assumed independent) leg spreads,
+                // which gives the all-in PRS price.
+                // ============================================================
+                var _fireBps = (_psd.fire_spread_bps !== undefined && _psd.fire_spread_bps !== null)
+                    ? _psd.fire_spread_bps : null;
+                if (_fireBps !== null) {
+                    // Base flood/wind coupon the waterfall lands on. Prefer the
+                    // widest available union scenario (BRI-OR-wind, then flood-OR-
+                    // wind), then the resilient flood, then the raw asset spread.
+                    var _fwBase = (_psd.bow_spread_bps != null) ? _psd.bow_spread_bps
+                                : (_psd.fow_spread_bps != null) ? _psd.fow_spread_bps
+                                : (hasBri ? briSpread : propSpread);
+
+                    var _legs = [
+                        { label: 'Flood / Wind PRS', sub: 'basis coupon', bps: _fwBase, color: '#1565C0' },
+                        { label: 'FIRE (full conflagration)',
+                          sub: _perilCount(_po.fire_conflagration).toLocaleString() + ' PNR events',
+                          bps: _fireBps, color: '#BF360C' }
+                    ];
+
+                    var _sumSq = 0;
+                    _legs.forEach(function(l) { _sumSq += (l.bps || 0) * (l.bps || 0); });
+                    var _allIn = Math.sqrt(_sumSq);
+
+                    var ih = '<div style="margin-top:16px;border-top:2px solid #e0e0e0;padding-top:10px;">';
+                    ih += '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:0 8px 6px;">' +
+                          'Independent perils \\u2014 all-in (\\u221a\\u03a3 squares)</div>';
+                    ih += '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;">';
+                    ih += '<tbody>';
+                    _legs.forEach(function(l) {
+                        ih += '<tr style="border-bottom:1px solid #f0f0f0;">' +
+                            '<td style="padding:8px;font-weight:600;color:' + l.color + ';">' + l.label +
+                            ' <span style="color:#aaa;font-weight:400;font-size:10px;">' + l.sub + '</span></td>' +
+                            '<td style="padding:8px;text-align:right;color:#555;">' + (l.bps || 0).toFixed(1) + 'bp</td>' +
+                            '</tr>';
+                    });
+                    // Seismic placeholder — reserved, not yet modelled.
+                    ih += '<tr style="border-bottom:1px solid #f0f0f0;color:#bbb;">' +
+                        '<td style="padding:8px;font-weight:600;">Seismic <span style="font-weight:400;font-size:10px;">reserved</span></td>' +
+                        '<td style="padding:8px;text-align:right;">\\u2014</td></tr>';
+                    ih += '<tr style="border-top:2px solid #cfcfcf;">' +
+                        '<td style="padding:8px;font-weight:700;color:#111;">All-in PRS</td>' +
+                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:15px;color:#111;">' +
+                        _allIn.toFixed(1) + 'bp</td></tr>';
+                    ih += '</tbody></table></div>';
+                    container.insertAdjacentHTML('beforeend', ih);
+                }
             }
 """
