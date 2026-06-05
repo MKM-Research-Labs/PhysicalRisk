@@ -85,6 +85,8 @@ DEPENDENCY_GRAPH = {
     "commercialfow":      ["commercial_peril_ts"],
     "commercialbow":      ["commercial_peril_ts"],
     "commercialbaw":      ["commercial_peril_ts"],
+    # Fire-resilience credit over the commercial portfolio (opt-in).
+    "fire":               ["commercial"],
 }
 
 # External inputs: config/data files consumed by pipeline steps but not
@@ -106,6 +108,8 @@ OPTIONAL_STEPS: set[str] = {
     "propertybow", "propertybaw",
     "commercial_peril_ts", "commercialwin", "commercialfaw", "commercialfow",
     "commercialbow", "commercialbaw",
+    # Fire only runs when a commercial portfolio exists for the catchment.
+    "fire",
 }
 
 STEP_IO = {
@@ -209,6 +213,8 @@ STEP_IO = {
                            "outputs": ["commercialbow.json"]},
     "commercialbaw":      {"inputs": ["commercialtsbaw/", "gaugehc.json", "gauge.json"],
                            "outputs": ["commercialbaw.json"]},
+    "fire":           {"inputs": ["commercial.json"],
+                       "outputs": ["fire/fire.json"]},
 }
 
 # ---------------------------------------------------------------------------

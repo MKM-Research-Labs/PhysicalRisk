@@ -99,6 +99,8 @@ def register_parser(subparsers):
                     help="Multi-storm stress test (sequence-based, replaces --stress)")
     sp.add_argument("--typhoon", "--ty", action="store_true",
                     help="Run typhoon (tropical cyclone) wind ensemble for the active catchment")
+    sp.add_argument("--fire", "--fi", action="store_true",
+                    help="Run the BRI fire-resilience credit model over the commercial portfolio")
 
     # Modifiers ------------------------------------------------------------
     sp.add_argument("--gauge-id", "--gid", type=str, default=None,
@@ -136,6 +138,12 @@ def register_parser(subparsers):
                     help="Storm->wind coupling strength beta (coupling_spec.md §4): "
                          "0=pure ceiling, 1=comonotone, ~0.5 expert default. "
                          "None = config.port.COUPLING_BETA. Only used in coupled mode.")
+
+    # Fire model (--fire) --------------------------------------------------
+    sp.add_argument("--num-fire-sims", "-nf", type=int, default=1000,
+                    help="Monte Carlo draws per commercial asset in the fire model (default 1000)")
+    sp.add_argument("--fire-seed", type=int, default=None,
+                    help="RNG seed for the fire model; None = nondeterministic")
 
     # Maintenance ----------------------------------------------------------
     sp.add_argument("--repair-manifest", action="store_true",

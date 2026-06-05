@@ -110,6 +110,7 @@ STEP_OWNERS = {
     'commercialshe':    'Quantitative Analytics',
     'commercialtsb':    'Quantitative Analytics',
     'commercialbri':    'Quantitative Analytics',
+    'fire':             'Quantitative Analytics',
 }
 
 # ---------------------------------------------------------------------------
