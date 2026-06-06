@@ -23,9 +23,9 @@
 The JavaScript fragment lives in the companion ``psa_impact.js`` file.
 """
 
-from visual.interactivity._jsbundle import js_sibling
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js() -> str:
     """Return JS fragment for flood history and mortgage impact tabs."""
-    return js_sibling(__file__)
+    return js_static('psa-impact.js')

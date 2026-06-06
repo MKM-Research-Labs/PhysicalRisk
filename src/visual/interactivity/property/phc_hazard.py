@@ -23,9 +23,9 @@
 The JavaScript fragment lives in the companion ``phc_hazard.js`` file.
 """
 
-from visual.interactivity._jsbundle import js_sibling
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js():
     """Return JS fragment for hazard curve tab (injected into parent IIFE)."""
-    return js_sibling(__file__)
+    return js_static('phc-hazard.js')

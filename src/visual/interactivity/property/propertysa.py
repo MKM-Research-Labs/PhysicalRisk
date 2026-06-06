@@ -38,7 +38,7 @@ from typing import Any, Dict
 
 import folium
 
-from visual.interactivity._jsbundle import js_sibling
+from visual.interactivity._jsbundle import js_static
 
 from . import psa_charts, psa_impact, psa_timeline
 
@@ -55,7 +55,7 @@ class PropertyStormAnalysis:
     def get_js(self) -> str:
         """Generate JavaScript for property storm analysis panel."""
         return (
-            js_sibling(__file__)
+            js_static('propertysa.js')
             .replace("__PANEL_W__", self.panel_width)
             .replace("__PANEL_H__", self.panel_height)
             .replace("__PSA_CHARTS_JS__", psa_charts.get_js())
