@@ -110,6 +110,50 @@ def get_catchment_display_name() -> str:
     return name if name[:1].isupper() else name.title()
 
 
+def get_lat_position_label(lat: float) -> str:
+    """Describe a latitude's north/south position within the active catchment.
+
+    Returns ``"Northern part of catchment"`` / ``"Central part of catchment"``
+    / ``"Southern part of catchment"`` based on which third of the catchment's
+    own latitude span the point falls in — no hardcoded region. Falls back to
+    ``"Location within catchment"`` when bounds are unavailable.
+    """
+    try:
+        _, min_lat, _, max_lat = get_catchment_bounds()
+        third = (max_lat - min_lat) / 3.0
+        if third <= 0:
+            return "Location within catchment"
+        if lat >= min_lat + 2 * third:
+            return "Northern part of catchment"
+        if lat >= min_lat + third:
+            return "Central part of catchment"
+        return "Southern part of catchment"
+    except Exception:
+        return "Location within catchment"
+
+
+def get_lon_position_label(lon: float) -> str:
+    """Describe a longitude's east/west position within the active catchment.
+
+    Returns ``"Eastern part of catchment"`` / ``"Central part of catchment"``
+    / ``"Western part of catchment"`` based on which third of the catchment's
+    own longitude span the point falls in — no hardcoded region. Falls back to
+    ``"Location within catchment"`` when bounds are unavailable.
+    """
+    try:
+        min_lon, _, max_lon, _ = get_catchment_bounds()
+        third = (max_lon - min_lon) / 3.0
+        if third <= 0:
+            return "Location within catchment"
+        if lon >= min_lon + 2 * third:
+            return "Eastern part of catchment"
+        if lon >= min_lon + third:
+            return "Central part of catchment"
+        return "Western part of catchment"
+    except Exception:
+        return "Location within catchment"
+
+
 # ===========================================================================
 # Gauge Flood-Frequency RAG Thresholds  (visual/layer/gauge_layer.py)
 # ===========================================================================
