@@ -51,7 +51,7 @@ _PROPERTY_DISPLAY_FILES_JS = [
 # Files that build storm dropdowns — must use pipe-separated format
 _STORM_DROPDOWN_FILES = [
     'src/static/js/sp-table.js',
-    'src/visual/interactivity/storm/fa_render.py',
+    'src/static/js/storm/fa_render.js',
     'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
     'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',
     'src/visual/interactivity/property/psa_timeline.py',
