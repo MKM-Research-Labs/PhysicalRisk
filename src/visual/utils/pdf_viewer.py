@@ -9,6 +9,10 @@ Shared PDF viewer panel factory.
 Generates JavaScript for an inline overlay panel that displays
 base64-encoded PDFs in an iframe.  Used by PropertyPDFPanel,
 GaugePDFPanel, and the insurance claim-report viewer.
+
+The JS body lives in ``src/static/js/pdf_viewer.js`` (plus the optional
+custom-event listener in ``pdf_viewer_event.js``); the parameters are spliced
+in here via ``__SENTINEL__`` placeholders.
 """
 
 
@@ -49,120 +53,28 @@ def pdf_viewer_js(namespace: str,
         for seg in namespace.split("-")
     ) + "Panel"
 
+    # Lazy import: pdf_viewer lives in visual.utils, but the js_static helper
+    # is inside the visual.interactivity package whose __init__ imports the PDF
+    # panels (which import this module). Importing at call time avoids that
+    # module-load cycle.
+    from visual.interactivity._jsbundle import js_static
+
     event_listener = ""
     if event_name:
-        event_listener = f"""
-            document.addEventListener('{event_name}', function(e) {{
-                if (e.detail && e.detail.{event_id_key} && e.detail.pdfBase64) {{
-                    showPanel(e.detail.{event_id_key}, e.detail.pdfBase64);
-                }}
-            }});"""
+        event_listener = (
+            js_static('pdf_viewer_event.js')
+            .replace('__EVENT_NAME__', event_name)
+            .replace('__EVENT_ID_KEY__', event_id_key)
+        )
 
-    return f"""
-            (function() {{
-                var PANEL_W = '{panel_width}';
-                var PANEL_H = '{panel_height}';
-                var pdfPanel = null;
-
-                function createPanel() {{
-                    if (pdfPanel) return pdfPanel;
-
-                    pdfPanel = document.createElement('div');
-                    pdfPanel.id = '{namespace}-panel';
-                    pdfPanel.style.cssText =
-                        'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-                        'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                        'background:white;border:1px solid #ccc;border-radius:8px;' +
-                        'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
-                        'display:none;flex-direction:column;font-family:Arial,sans-serif;';
-
-                    var header = document.createElement('div');
-                    header.style.cssText =
-                        'display:flex;justify-content:space-between;align-items:center;' +
-                        'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
-                        'border-radius:8px 8px 0 0;min-height:40px;';
-
-                    var title = document.createElement('span');
-                    title.id = '{namespace}-title';
-                    title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
-                    title.textContent = '{default_title}';
-
-                    var btnGroup = document.createElement('div');
-                    btnGroup.style.cssText = 'display:flex;gap:8px;';
-
-                    var downloadBtn = document.createElement('button');
-                    downloadBtn.id = '{namespace}-download';
-                    downloadBtn.textContent = 'Download';
-                    downloadBtn.style.cssText =
-                        'padding:4px 12px;border:1px solid {btn_color};border-radius:4px;' +
-                        'background:{btn_color};color:white;cursor:pointer;font-size:12px;';
-                    downloadBtn.onclick = function() {{
-                        var iframe = document.getElementById('{namespace}-iframe');
-                        if (iframe && iframe.src) {{
-                            var a = document.createElement('a');
-                            a.href = iframe.src;
-                            a.download = (title.textContent || '{default_title}') + '.pdf';
-                            a.click();
-                        }}
-                    }};
-
-                    var closeBtn = document.createElement('button');
-                    closeBtn.textContent = 'Close';
-                    closeBtn.style.cssText =
-                        'padding:4px 12px;border:1px solid #dc3545;border-radius:4px;' +
-                        'background:#dc3545;color:white;cursor:pointer;font-size:12px;';
-                    closeBtn.onclick = function() {{ hidePanel(); }};
-
-                    btnGroup.appendChild(downloadBtn);
-                    btnGroup.appendChild(closeBtn);
-                    header.appendChild(title);
-                    header.appendChild(btnGroup);
-
-                    var container = document.createElement('div');
-                    container.id = '{namespace}-container';
-                    container.style.cssText = 'flex:1;overflow:hidden;border-radius:0 0 8px 8px;';
-
-                    var iframe = document.createElement('iframe');
-                    iframe.id = '{namespace}-iframe';
-                    iframe.style.cssText = 'width:100%;height:100%;border:none;';
-                    container.appendChild(iframe);
-
-                    pdfPanel.appendChild(header);
-                    pdfPanel.appendChild(container);
-                    document.body.appendChild(pdfPanel);
-
-                    document.addEventListener('keydown', function(e) {{
-                        if (e.key === 'Escape' && pdfPanel.style.display !== 'none') {{
-                            hidePanel();
-                        }}
-                    }});
-
-                    return pdfPanel;
-                }}
-
-                function showPanel(entityId, pdfBase64) {{
-                    var panel = createPanel();
-                    var title = document.getElementById('{namespace}-title');
-                    var displayLabel = {display_name_js or 'entityId'};
-                    title.textContent = '{default_title}: ' + (displayLabel || entityId);
-
-                    var iframe = document.getElementById('{namespace}-iframe');
-                    iframe.src = 'data:application/pdf;base64,' + pdfBase64;
-
-                    panel.style.display = 'flex';
-                }}
-
-                function hidePanel() {{
-                    if (pdfPanel) {{
-                        pdfPanel.style.display = 'none';
-                        var iframe = document.getElementById('{namespace}-iframe');
-                        if (iframe) iframe.src = '';
-                    }}
-                }}
-
-                window.{api_name} = {{
-                    show: showPanel,
-                    hide: hidePanel
-                }};
-                {event_listener}
-            }})();"""
+    return (
+        js_static('pdf_viewer.js')
+        .replace('__PANEL_W__', panel_width)
+        .replace('__PANEL_H__', panel_height)
+        .replace('__DEFAULT_TITLE__', default_title)
+        .replace('__BTN_COLOR__', btn_color)
+        .replace('__DISPLAY_LABEL__', display_name_js or 'entityId')
+        .replace('__API_NAME__', api_name)
+        .replace('__EVENT_LISTENER__', event_listener)
+        .replace('__NS__', namespace)
+    )
