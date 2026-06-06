@@ -44,8 +44,114 @@ MAP_DEFAULT_ZOOM: int = 8
 # Default tile provider
 MAP_DEFAULT_TILES: str = 'OpenStreetMap'
 
-# Default map centre — central London (lat, lon)
+# Last-resort map centre (lat, lon) — only used if the active catchment's
+# BOUNDS cannot be read. Prefer get_map_center(), which follows the catchment
+# in play, so maps never default to a fixed region.
 MAP_DEFAULT_CENTER: Tuple[float, float] = (51.5074, -0.1278)
+
+
+def get_catchment_bounds() -> Tuple[float, float, float, float]:
+    """Return the active catchment's geographic bounds.
+
+    Bounds are ``(min_lon, min_lat, max_lon, max_lat)`` read from the
+    catchment params module (single source of truth). Raises if unavailable.
+    """
+    from config import config
+    return config.load_params_module().BOUNDS
+
+
+def get_map_center() -> Tuple[float, float]:
+    """Return ``(lat, lon)`` centre of the active catchment.
+
+    Derived from the catchment's BOUNDS so every map opens over the catchment
+    in play rather than a hardcoded region. Falls back to MAP_DEFAULT_CENTER
+    only when BOUNDS cannot be read.
+    """
+    try:
+        min_lon, min_lat, max_lon, max_lat = get_catchment_bounds()
+        return ((min_lat + max_lat) / 2.0, (min_lon + max_lon) / 2.0)
+    except Exception:
+        return MAP_DEFAULT_CENTER
+
+
+def get_catchment_display_name() -> str:
+    """Return the active catchment's human-readable name (e.g. ``Thames``,
+    ``Halong``).
+
+    Single source of truth for report/prose text that names the catchment's
+    river/region, so copy follows the catchment in play rather than a
+    hardcoded "Thames". Reads ``DISPLAYNAME`` from the catchment params module,
+    falling back to a title-cased ``NAME`` and finally ``"catchment"``.
+    """
+    import inspect
+
+    from config import config
+
+    try:
+        mod = config.load_params_module()
+    except Exception:
+        return "catchment"
+
+    # Direct module-level attributes first.
+    name = getattr(mod, 'DISPLAYNAME', None) or getattr(mod, 'NAME', None)
+    if not name:
+        # Otherwise locate the catchment class generically (its name varies
+        # per catchment: ThamesCatchment, HalongCatchment, ...).
+        for attr in dir(mod):
+            obj = getattr(mod, attr)
+            if inspect.isclass(obj) and hasattr(obj, 'DISPLAYNAME'):
+                name = getattr(obj, 'DISPLAYNAME', None) or getattr(obj, 'NAME', None)
+                if name:
+                    break
+
+    if not name:
+        return "catchment"
+    name = str(name)
+    return name if name[:1].isupper() else name.title()
+
+
+def get_lat_position_label(lat: float) -> str:
+    """Describe a latitude's north/south position within the active catchment.
+
+    Returns ``"Northern part of catchment"`` / ``"Central part of catchment"``
+    / ``"Southern part of catchment"`` based on which third of the catchment's
+    own latitude span the point falls in — no hardcoded region. Falls back to
+    ``"Location within catchment"`` when bounds are unavailable.
+    """
+    try:
+        _, min_lat, _, max_lat = get_catchment_bounds()
+        third = (max_lat - min_lat) / 3.0
+        if third <= 0:
+            return "Location within catchment"
+        if lat >= min_lat + 2 * third:
+            return "Northern part of catchment"
+        if lat >= min_lat + third:
+            return "Central part of catchment"
+        return "Southern part of catchment"
+    except Exception:
+        return "Location within catchment"
+
+
+def get_lon_position_label(lon: float) -> str:
+    """Describe a longitude's east/west position within the active catchment.
+
+    Returns ``"Eastern part of catchment"`` / ``"Central part of catchment"``
+    / ``"Western part of catchment"`` based on which third of the catchment's
+    own longitude span the point falls in — no hardcoded region. Falls back to
+    ``"Location within catchment"`` when bounds are unavailable.
+    """
+    try:
+        min_lon, _, max_lon, _ = get_catchment_bounds()
+        third = (max_lon - min_lon) / 3.0
+        if third <= 0:
+            return "Location within catchment"
+        if lon >= min_lon + 2 * third:
+            return "Eastern part of catchment"
+        if lon >= min_lon + third:
+            return "Central part of catchment"
+        return "Western part of catchment"
+    except Exception:
+        return "Location within catchment"
 
 
 # ===========================================================================

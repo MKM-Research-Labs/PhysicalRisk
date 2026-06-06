@@ -40,6 +40,8 @@ from typing import Any, Dict, List
 
 from reportlab.platypus import Paragraph, Spacer, Table
 
+from config.visual import get_catchment_display_name
+
 from .risk_page_00_base import RiskBasePage
 
 
@@ -116,7 +118,7 @@ class RiskAppendixPage(RiskBasePage):
                 ["Temporal Resolution", "Real-time monitoring capability"],
                 ["Flood Depth Precision", "±0.1 meters"],
                 ["Risk Assessment Accuracy", f"{tech_specs['assessment_accuracy']:.1f}%"],
-                ["Coverage Area", "Thames River Basin"],
+                ["Coverage Area", f"{get_catchment_display_name()} River Basin"],
                 ["Model Validation", "Historical flood event correlation"]
             ]
 

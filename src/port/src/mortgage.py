@@ -250,6 +250,9 @@ class MortgagePortfolioGenerator:
         valuation = header.get('Valuation', {})
         location = header.get('Location', {})
 
+        from config.visual import get_map_center
+        _center_lat, _center_lon = get_map_center()
+
         return {
             'property_id': header_info.get('PropertyID', ''),  # FIXED: Use Header.PropertyID
             'property_value': valuation.get('PropertyValue', 500000),
@@ -257,9 +260,9 @@ class MortgagePortfolioGenerator:
             'construction_year': attrs.get('ConstructionYear', 1990),
             'property_condition': attrs.get('PropertyCondition', 'Good'),
             'flood_risk': header.get('RiskAssessment', {}).get('OverallFloodRisk', 'Low'),
-            'postcode': location.get('PostCode', 'SW1A 1AA'),
-            'latitude': location.get('LatitudeDegrees', 51.5),
-            'longitude': location.get('LongitudeDegrees', -0.1)
+            'postcode': location.get('PostCode', ''),
+            'latitude': location.get('LatitudeDegrees', _center_lat),
+            'longitude': location.get('LongitudeDegrees', _center_lon)
         }
 
     def _generate_single_mortgage(self, index: int, schema: Dict, property_info: Dict) -> tuple:
