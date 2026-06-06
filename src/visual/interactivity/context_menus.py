@@ -42,6 +42,8 @@ from typing import Any, Dict, List
 
 import folium
 
+from visual.interactivity._jsbundle import js_static, css_static
+
 # Default menu configurations
 DEFAULT_PROPERTY_MENU = [
     {"id": "view_details", "label": "🏠 Property Details", "action": "viewPropertyDetails"},
@@ -98,10 +100,8 @@ class ContextMenuHandler:
 
     def get_js(self) -> str:
         """Generate CSS and JavaScript for context menu functionality."""
-        from pathlib import Path
-        static_dir = Path(__file__).parent.parent.parent / 'static'
-        css_code = (static_dir / 'css' / 'context-menus.css').read_text()
-        js_code = (static_dir / 'js' / 'context-menus.js').read_text()
+        css_code = css_static('context-menus.css')
+        js_code = js_static('context-menus.js')
         menu_config = json.dumps({
             'property': self.property_menu,
             'gauge': self.gauge_menu,
@@ -121,126 +121,14 @@ class ContextMenuHandler:
         that the right-click context menus use.  Data comes from the startup
         preloader globals (_tdPreGauges, _prePropertyTS).
         """
-        gauge_items = json.dumps(self.gauge_menu)
-        property_items = json.dumps(self.property_menu)
-
-        return f"""
-        <style>
-        #nav-menu-container {{
-            position: fixed; top: 10px; left: 60px; z-index: 1500;
-            display: flex; gap: 6px; align-items: center;
-            font-family: Arial, sans-serif;
-        }}
-        #nav-menu-container select {{
-            padding: 5px 8px; font-size: 11px; border: 1px solid #bbb;
-            border-radius: 4px; background: white; color: #333;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.15); cursor: pointer;
-            max-width: 220px;
-        }}
-        #nav-menu-container select:focus {{ outline: none; border-color: #1976d2; }}
-        #nav-action-bar {{
-            display: flex; gap: 3px;
-        }}
-        #nav-action-bar button {{
-            padding: 4px 8px; font-size: 10px; border: 1px solid #ccc;
-            border-radius: 3px; background: #f8f9fa; cursor: pointer;
-            color: #333; white-space: nowrap;
-        }}
-        #nav-action-bar button:hover {{ background: #e3f2fd; border-color: #1976d2; }}
-        </style>
-        <script>
-        (function() {{
-            var gaugeMenuItems = {gauge_items};
-            var propertyMenuItems = {property_items};
-
-            var container = document.createElement('div');
-            container.id = 'nav-menu-container';
-
-            // Gauge select
-            var gSel = document.createElement('select');
-            gSel.id = 'nav-gauge-select';
-            gSel.innerHTML = '<option value="">Gauges</option>';
-
-            // Property select
-            var pSel = document.createElement('select');
-            pSel.id = 'nav-prop-select';
-            pSel.innerHTML = '<option value="">Properties</option>';
-
-            // Action bar (hidden until selection)
-            var actionBar = document.createElement('div');
-            actionBar.id = 'nav-action-bar';
-
-            container.appendChild(gSel);
-            container.appendChild(pSel);
-            container.appendChild(actionBar);
-            document.body.appendChild(container);
-
-            function showActions(entityId, entityLabel, menuItems) {{
-                actionBar.innerHTML = '';
-                if (!entityId) return;
-                menuItems.forEach(function(mi) {{
-                    var btn = document.createElement('button');
-                    btn.textContent = mi.label;
-                    btn.onclick = function() {{
-                        if (window[mi.action]) window[mi.action](entityId, entityLabel);
-                    }};
-                    actionBar.appendChild(btn);
-                }});
-            }}
-
-            gSel.onchange = function() {{
-                pSel.value = '';
-                var gid = gSel.value;
-                var label = gSel.options[gSel.selectedIndex].text;
-                showActions(gid, label, gaugeMenuItems);
-            }};
-
-            pSel.onchange = function() {{
-                gSel.value = '';
-                var pid = pSel.value;
-                showActions(pid, pid, propertyMenuItems);
-            }};
-
-            // Populate when preloader data arrives
-            function populateGauges() {{
-                if (!window._tdPreGauges || !window._tdPreGauges.gauges) return false;
-                var gauges = window._tdPreGauges.gauges
-                    .filter(function(g) {{ return g.gaugeId && g.gaugeId.indexOf('SYNTH') !== 0; }})
-                    .sort(function(a, b) {{ return (a.name || a.gaugeId).localeCompare(b.name || b.gaugeId); }});
-                gSel.innerHTML = '<option value="">Gauges (' + gauges.length + ')</option>';
-                gauges.forEach(function(g) {{
-                    var opt = document.createElement('option');
-                    opt.value = g.gaugeId;
-                    opt.textContent = g.name || g.gaugeId;
-                    gSel.appendChild(opt);
-                }});
-                return true;
-            }}
-
-            function populateProperties() {{
-                if (!window._prePropertyTS || !window._prePropertyTS.data || !window._prePropertyTS.data.properties) return false;
-                var props = window._prePropertyTS.data.properties
-                    .sort(function(a, b) {{ return (a.property_id || '').localeCompare(b.property_id || ''); }});
-                pSel.innerHTML = '<option value="">Properties (' + props.length + ')</option>';
-                props.forEach(function(p) {{
-                    var opt = document.createElement('option');
-                    opt.value = p.property_id;
-                    opt.textContent = window.propertyDisplayName(p.property_id);
-                    pSel.appendChild(opt);
-                }});
-                return true;
-            }}
-
-            var tries = 0;
-            var poll = setInterval(function() {{
-                tries++;
-                var gDone = populateGauges();
-                var pDone = populateProperties();
-                if ((gDone && pDone) || tries > 120) clearInterval(poll);
-            }}, 500);
-        }})();
-        </script>
-        """
+        nav_config = json.dumps({
+            'gauge': self.gauge_menu,
+            'property': self.property_menu,
+        })
+        return (
+            f"<style>{css_static('nav-menus.css')}</style>\n"
+            f"<script>window.__NAV_MENU_CONFIG = {nav_config};\n{js_static('nav-menus.js')}</script>"
+        )
 
     def add_to_map(self, folium_map: folium.Map) -> None:
         """Add context menu functionality to a Folium map."""
