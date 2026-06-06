@@ -127,7 +127,7 @@ class TestBasisExplorerPanelConfig:
     def test_default_panel_dimensions(self):
         panel = PropertyHazardCurvePanel()
         assert panel.panel_width == "1100px"
-        assert panel.panel_height == "750px"
+        assert panel.panel_height == "92vh"
 
     def test_custom_panel_dimensions(self):
         panel = PropertyHazardCurvePanel(panel_width="1400px", panel_height="900px")

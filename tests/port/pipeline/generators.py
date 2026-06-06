@@ -173,6 +173,7 @@ class TestNostressFlag:
             propertybow=False, propertybaw=False,
             commercialtsbow=False, commercialtsbaw=False,
             commercialbow=False, commercialbaw=False,
+            fire=False,
             num_typhoon_events=10, num_typhoon_particles=10,
             typhoon_seed=42, typhoon_no_plausibility=False,
             train_classifiers=False, nostress=False,
