@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Building Fire-Resilience Credit Model}
 \newcommand{\docsubtitle}{Poisson Initiation with an 8-State Bayesian Containment Chain}
-\newcommand{\docversion}{0.01}
-\newcommand{\docdate}{05-June-2026}
+\newcommand{\docversion}{0.20}
+\newcommand{\docdate}{06-June-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -16,28 +16,26 @@
 % ===================================================================
 \mkmexecsummary
 
-\textit{Skeleton document (v0.01) --- content to be filled out as the model
-matures. All numeric parameters are engineering-judgement seeds, not calibrated
-values; see \texttt{config/fire\_matrices.json}.}
-
-The Building Fire-Resilience Credit Model (\texttt{MKM-FIRE-001}, provisional
-ID) prices the fire-resilience of a commercial asset so that fire loss
-aggregates into the same resilience-credit currency as the existing
-10,000-storm Monte Carlo engine. It is built from four governance-separated
-component models:
+The Building Fire-Resilience Credit Model (\texttt{MKM-FIRE-001}) prices the
+fire resilience of a commercial asset so that fire loss aggregates into the same
+resilience-credit currency as the existing 10{,}000-storm Monte Carlo engine.
+The credit is consumed by the Commercial PRS Pricer as an independent
+\emph{full-conflagration} leg, combined with the flood and wind legs through a
+root-sum-of-squares all-in coupon. The model is built from four
+governance-separated component models:
 
 \begin{itemize}
   \item \textbf{Model A --- Initiation.} A Poisson ignition frequency
-        $\lambda_i$ per asset, composed from a base rate by commercial type and
-        multipliers for occupancy, process load, condition, protection and fire
-        history.
+        $\lambda_i$ per asset, composed from a base annual rate by commercial
+        type and multiplicative modifiers for occupancy, process load,
+        condition, protection and fire history.
   \item \textbf{Model B --- Intensity Track.} A deterministic 15-minute latent
         intensity $I_t$ whose growth is damped by passive (structural) defence
         and cut once active suppression bites.
   \item \textbf{Model C --- Response Effectiveness.} A deterministic mapping
         from the asset's CDM resilience levels to the dynamic quantities Models
         B and D consume (detection time, suppression-bite time, growth rate,
-        critical threshold, controllability).
+        critical threshold, controllability, and the fire-service-reach gate).
   \item \textbf{Model D --- Containment, Loss \& Resilience Credit.} An 8-state
         discrete-time Bayesian chain marched in 15-minute steps to an absorbing
         terminal state, aggregated into the credit currency.
@@ -45,17 +43,24 @@ component models:
 
 The central concept is the \emph{point of no return} (PNR): the first step at
 which latent intensity $I_t$ exceeds the critical threshold $I_{\text{crit}}$
-\emph{before} suppression has bitten. Once PNR latches, the containment chain
-switches to an absorbing matrix whose Contained column is zero --- the fire can
-no longer be contained and absorbs into \{partial loss, total loss\}.
+\emph{before} suppression has bitten --- or, equivalently, the first step of any
+fire in a building where suppression is structurally unreachable. Once PNR
+latches, the containment chain switches to an absorbing matrix whose
+Contained column is zero: the fire can no longer be contained and absorbs into
+\{partial loss, total loss\}. The PNR frequency, $n_{\text{PNR}}/n_{\text{sim}}$,
+multiplied by a 100\% loss-given-event, is the bps the PRS pricer charges for
+the fire leg.
 
-\textbf{Status:} Development. Stage 1 (Model A) and Stage 2 (Models B/C/D and
-the end-to-end orchestrator) delivered as of the document date, with unit
-tests. Numbers are placeholders.
+\textbf{Status:} Development (Tier 2, RAG Amber). All four component models and
+the end-to-end orchestrator are delivered with unit tests, including the
+fire-service-reach interaction. Every numeric parameter is a first-pass
+engineering-judgement seed (\texttt{config/fire\_matrices.json},
+\texttt{version "seed-0"}); the results in this document are therefore
+\emph{directional, not calibrated}.
 
 \textbf{Key risk:} The model uses placeholder calibration throughout. It is not
-approved for production use until historical calibration completes and the Model
-Risk Committee (MRC) issues approval.
+approved for production until historical calibration completes and the Model
+Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R4).
 
 % ===================================================================
 % 2. MODEL PURPOSE AND SCOPE
@@ -64,76 +69,213 @@ Risk Committee (MRC) issues approval.
 
 \subsection{Purpose}
 
-To assign each commercial asset a fire-resilience credit, expressed as an annual
-unconditional loss frequency and a conditional containment rate, that can be
-priced pari-passu with the flood and wind hazards already in the portfolio
-engine.
+To assign each commercial asset a fire-resilience credit --- expressed as an
+annual unconditional loss frequency, a conditional containment rate, and a
+full-conflagration (PNR) frequency --- that can be priced pari-passu with the
+flood and wind hazards already in the portfolio engine. The credit rewards
+genuine, evidenced fire resilience (detection, suppression, compartmentation,
+tested procedures) and penalises the configurations that historically drive
+total losses, most notably tall buildings without adequate internal
+suppression.
 
 \subsection{Scope}
 
-\textit{To be completed.} Commercial assets described by the v2 commercial-asset
-and resilience CDM sections. The model reads only the
-\texttt{AssetFireFeatures} bundle, never the raw CDM record.
+The model covers commercial assets described by the v2 commercial-asset and
+resilience sections of the Common Data Model (CDM). It reads only the derived
+\texttt{AssetFireFeatures} bundle --- never the raw CDM record --- so that the
+feature contract is explicit, testable and stable against CDM schema churn. The
+in-scope drivers are: commercial type, occupancy status, business-rates
+category, property condition, the nine resilience-level fields (automatic
+detection, suppression systems, emergency procedures, structural fire
+resistance, compartments, fire stopping, external materials, access route,
+business continuity), fire-damage history, and number of storeys. The model
+produces a per-asset resilience credit and a portfolio roll-up; both are
+reproducible from a single random seed.
 
 \subsection{Out of Scope}
 
 \begin{itemize}
-  \item Physical (CFD) fire-spread modelling.
-  \item Smoke / life-safety egress modelling.
+  \item Physical (CFD) fire-spread and thermal-plume modelling.
+  \item Smoke / life-safety egress and casualty modelling.
   \item Wildland--urban interface and external conflagration spread.
-  \item Business-interruption quantum (only the resilience credit is produced).
+  \item Business-interruption quantum (only the resilience credit is produced;
+        the loss-given-event is fixed at 100\% for the conflagration leg).
+  \item Explicit floor-level geometry --- building height enters only through
+        \texttt{NumberOfStoreys}.
 \end{itemize}
 
 % ===================================================================
 % 3. MATHEMATICAL FRAMEWORK
 % ===================================================================
-\section{Mathematical Framework}
+\mkmframework
 
 \subsection{Initiation (Model A)}
 
+The per-asset annual ignition rate is the base rate for the commercial type
+scaled by five independent multipliers:
 \[
 \lambda_i = \lambda_{0,c}\; m_{\text{occ}}\; m_{\text{proc}}\; m_{\text{cond}}\;
-            m_{\text{protection}}\; m_{\text{history}}.
+            m_{\text{protection}}\; m_{\text{history}},
 \]
-A fire instantiates for an asset-draw when the Poisson count $N_i \ge 1$.
+where $\lambda_{0,c}$ is the base annual frequency by commercial type $c$;
+$m_{\text{occ}}$ from occupancy status; $m_{\text{proc}}$ from the process load
+implied by type (raised, never lowered, by a business-rates override such as
+\emph{Restaurant}); $m_{\text{cond}}$ from property condition;
+$m_{\text{protection}}$ from the mean resilience level across the protection
+fields; and $m_{\text{history}}$ from the severity and recency of any prior
+fire. Unknown CDM options fall back to a neutral multiplier of $1.0$, so a
+partial record still yields a usable $\lambda_i$.
+
+Over a run horizon of $h$ years the effective rate is
+$\lambda_{\text{eff}} = \lambda_i\, h$. For each of $n_{\text{sim}}$ draws a
+Poisson count $N \sim \text{Poisson}(\lambda_{\text{eff}})$ is sampled, and a
+fire instantiates for that draw when $N \ge 1$ --- the direct analogue of
+storm-event generation, where only a subset of draws produce an event. Each
+instantiated fire is tagged with an \texttt{InitiationClass} drawn from the
+per-type categorical prior (Appendix~\ref{app:priors}).
+
+\subsection{Response Effectiveness (Model C)}
+
+Each resilience level is mapped to an index $k \in \{0,\dots,4\}$ in the CDM
+\texttt{RESILIENCE\_LEVELS} vocabulary and to a fraction
+$f = k/4 \in [0,1]$. A field-group effectiveness is the mean over its fields of
+the field's configured range linearly interpolated by $f$:
+\[
+e_{\text{group}} = \frac{1}{|G|}\sum_{j\in G}
+   \big[\,\ell_j + f_j\,(u_j - \ell_j)\,\big],
+\]
+giving the aggregate passive effectiveness $e_{\text{passive}}$ (structural
+resistance, compartments, fire stopping, external materials) and response
+effectiveness $e_{\text{response}}$ (access route, procedures, continuity).
+
+Detection time is $\tau_{\text{det}} = \tau_{\text{det,0}}\,\delta_{\ell}$ where
+$\delta_\ell$ is the detection multiplier for the asset's detection level.
+Suppression-bite time applies a gentle per-storey height penalty
+$p \in [p_{\min},p_{\max}]$ interpolated over storeys, but is governed first by
+the \textbf{fire-service-reach gate}: external attack reaches only up to
+$R$ storeys, and above $R$ effective suppression requires internal sprinklers,
+i.e. a suppression level index $\ge \theta_{\text{int}}$. Writing $s$ for the
+storey count and $k_{\text{supp}}$ for the suppression-level index,
+\[
+\text{reachable} \;=\; \big(k_{\text{supp}} \ge \theta_{\text{int}}\big)
+                       \;\lor\; \big(s \le R\big),
+\]
+\[
+\tau_{\text{supp}} =
+\begin{cases}
+\tau_{\text{supp,0}}\; p & \text{if reachable},\\[2pt]
+\tau_{\infty} \;(\gg \text{step budget}) & \text{otherwise.}
+\end{cases}
+\]
+Compartmentation quality
+$q = \tfrac12\big(k_{\text{comp}}+k_{\text{stop}}\big)$ selects the
+well- vs.\ poorly-compartmented growth rate; the suppression level selects both
+the post-bite growth multiplier $\mu_{\text{supp}}$ and the critical intensity
+$I_{\text{crit}}$ (strong vs.\ weak). Finally the controllability score is the
+weighted blend
+\[
+C = w_p\,e_{\text{passive}} + w_r\,e_{\text{response}}
+    + w_s\,f_{\text{supp}},
+\]
+(renormalised by $w_p+w_r+w_s$), which selects the pre-PNR transition matrix.
 
 \subsection{Intensity Track (Model B)}
 
+The latent intensity starts at $I_0=0$ and grows each 15-minute step by
 \[
 g_t = g_{\text{base}}\,(1 - w_{\text{damp}}\, e_{\text{passive}}), \qquad
-g_t \leftarrow g_t \cdot \mu_{\text{supp}} \text{ once suppression is active},
+g_t \leftarrow g_t \cdot \mu_{\text{supp}} \;\text{ once suppression is active},
 \]
 \[
-I_{t+1} = I_t + g_t.
+I_{t+1} = I_t + g_t, \qquad g_t \ge 0,
 \]
+where $g_{\text{base}}$ is the compartmentation-selected growth rate and
+suppression becomes active at the step $\lceil \tau_{\text{supp}} \rceil$. The
+track is fully deterministic; all stochasticity lives in the chain march
+(Model~D).
 
 \subsection{Point of No Return}
 
-PNR latches at the first step $t$ with $I_t > I_{\text{crit}}$ while suppression
-is not yet active; the latch is sticky. \textit{Full derivation to be completed.}
+PNR latches at the first step $t$ for which suppression is not yet active and
+\[
+I_t > I_{\text{crit}} \quad\lor\quad \neg\,\text{reachable},
+\]
+and the latch is sticky (once set, it stays set). The second disjunct is the
+operational heart of the model: a building taller than the fire-service reach
+with no adequate internal suppression is uncontrollable \emph{from ignition},
+so PNR latches at step~1. This is what turns building height into a live driver
+of total loss.
 
 \subsection{Containment Chain (Model D)}
 
-An 8-state row-stochastic transition matrix is selected each step from the
-asset's controllability (pre-PNR) or the absorbing PNR matrix (post-PNR), and
-the state is sampled until it reaches an absorbing terminal state
-$\{S_5, S_6, S_7\}$ or the step budget runs out. \textit{To be completed.}
+Each fire is a discrete-time chain over the eight states
+\[
+S_0\text{ Ignition},\;S_1\text{ Growth},\;S_2\text{ Detected},\;
+S_3\text{ Internal response},\;S_4\text{ External response},
+\]
+\[
+S_5\text{ Contained},\;S_6\text{ Partial loss},\;S_7\text{ Total loss},
+\]
+with $\{S_5,S_6,S_7\}$ absorbing. At each step the intensity track advances and
+the active $8\times8$ row-stochastic matrix is selected: while PNR is unlatched,
+a hard switch on $C$ against the threshold picks the controllable matrix
+($C \ge$ threshold) or the weak matrix; once PNR latches, every transient state
+uses the absorbing point-of-no-return matrix, whose $S_5$ (Contained) column is
+identically zero. The next state is sampled from the current state's row (with
+defensive renormalisation) until an absorbing state is reached or the step
+budget is exhausted. The three matrices are given in
+Appendix~\ref{app:transitions}.
+
+\subsection{Resilience Credit}
+
+Aggregating over the $n_{\text{sim}}$ draws (of which $n_{\text{fires}}$
+ignite), with terminal counts $n_{\text{contained}}$, $n_{\text{partial}}$,
+$n_{\text{total}}$ and $n_{\text{PNR}}$ fires that reached the point of no
+return, the credit currency is
+\[
+\text{loss frequency} = \frac{n_{\text{partial}}+n_{\text{total}}}{n_{\text{sim}}},
+\qquad
+\text{containment rate} = \frac{n_{\text{contained}}}{n_{\text{fires}}},
+\]
+\[
+\text{fire spread (bps)} =
+   \frac{n_{\text{PNR}}}{n_{\text{sim}}}\times 1.0 \times 10{,}000,
+\]
+the last being the full-conflagration leg the Commercial PRS Pricer consumes
+(frequency $\times$ 100\% loss-given-event). It is combined with the flood/wind
+legs into an all-in coupon by root-sum-of-squares,
+$\text{all-in} = \sqrt{\sum_{\text{perils}} \text{leg}^2}$, treating the perils
+as independent.
 
 % ===================================================================
 % 4. INPUT PARAMETERS AND CALIBRATION
 % ===================================================================
-\section{Input Parameters and Calibration}
+\mkminputs
 
-\textit{To be completed. All seeds live in \texttt{config/fire\_matrices.json}
-and are loaded by \texttt{config/fire.py}; the model code embeds no numbers. The
-resilience-level vocabulary is imported from \texttt{port.cdm.asset.resilience}
-to remain single-source. See the parameter inventory section of the governance
-report for the full enumeration.}
+All numeric seeds live in \texttt{config/fire\_matrices.json}
+(\texttt{version "seed-0"}) and are loaded by \texttt{config/fire.py}; no number
+is embedded in the model code. The resilience-level vocabulary is imported from
+\texttt{port.cdm.asset.resilience} so the level-to-index-to-fraction
+mapping stays single-source with the rest of the CDM. The full
+parameter set --- initiation base rates and the five modifier tables,
+initiation-class priors, the progression dynamics (growth, critical intensity,
+detection/suppression multipliers, passive/response ranges, height penalty,
+fire-service reach, timing, controllability weights) and the three transition
+matrices --- is reproduced verbatim in the Appendices.
+
+\textbf{Calibration status.} Every value is a first-pass engineering-judgement
+seed chosen for plausible \emph{direction} and \emph{ordering}, not magnitude:
+e.g.\ hotels and mixed-use ignite more often than offices; worse condition and
+worse protection raise frequency; better resilience levels shorten detection and
+suppression times and raise the critical intensity. Calibration against
+historical commercial fire-loss data (FIRE-R1) and an independent benchmarking
+exercise (FIRE-R2) are open remediation items; until they close, the outputs
+must be read as relative resilience signals, not absolute loss probabilities.
 
 % ===================================================================
 % 5. IMPLEMENTATION
 % ===================================================================
-\section{Implementation}
+\mkmimplementation
 
 \subsection{Module Layout}
 
@@ -150,63 +292,407 @@ report for the full enumeration.}
   \item \texttt{src/models/fire/containment.py} --- Model D and the end-to-end
         orchestrator (\texttt{simulate\_asset\_fire},
         \texttt{simulate\_portfolio\_fire}).
+  \item \texttt{src/routes/commercial/hazard.py} --- read-time join that attaches
+        the fire leg (\texttt{fire\_spread\_bps}) to the asset hazard payload.
 \end{itemize}
 
 \subsection{Randomness}
 
 All randomness flows through a single caller-owned
 \texttt{numpy.random.Generator}, so an entire portfolio run is reproducible from
-one seed --- matching the storm and typhoon model convention.
+one seed --- matching the storm and typhoon model convention. Model C is
+deterministic, Model B is deterministic, and only the chain march in Model D
+draws from the generator.
 
 % ===================================================================
 % 6. VALIDATION AND BACKTESTING
 % ===================================================================
-\section{Validation and Backtesting}
+\mkmvalidation
 
-\textit{Calibration-stage work --- to be completed. Will include historical fire
-loss reconciliation and stability under particle/step counts.} Current unit
-tests confirm the model is directionally correct: a strong asset contains far
-more often and loses far less than a weak one, and the point-of-no-return gate
-is reachable for genuinely weak assets but not for strong ones.
+\textit{Historical calibration and backtesting are open remediation items
+(FIRE-R1, FIRE-R2) --- to be completed before production sign-off.} Current
+validation is by directional unit tests, which confirm the model behaves as
+designed: a strong asset contains far more often and loses far less than a weak
+one; the point-of-no-return gate is reachable for genuinely weak or tall-and-
+unsprinklered assets but not for strong ones; the fire-service-reach interaction
+flips a building from fully containable to a guaranteed conflagration exactly at
+the reach height when internal suppression is inadequate; and a whole-portfolio
+run is bit-for-bit reproducible from a single seed. The sensitivity tables in
+the next section are produced by running the \emph{actual} end-to-end model.
 
-\input{test_results}
+\mkmtestresults
 
 % ===================================================================
 % 7. SENSITIVITY ANALYSIS
 % ===================================================================
-\section{Sensitivity Analysis}
+\mkmsensitivity
 
-\textit{To be completed. Sensitivities will be generated under
-\texttt{docs/models/sensitivities/fire\_resilience/}.}
+The tables below are generated by
+\texttt{docs/models/sensitivities/fire\_resilience/} running the real
+\texttt{simulate\_asset\_fire} against a fixed baseline (a fully-occupied
+3-storey \emph{Office} in \emph{Fair} condition with every resilience field at
+\emph{Meets minimum}), varying one input at a time over
+20{,}000 Monte Carlo draws per cell.
 
-% \input{sensitivity_tables}
+Two findings dominate. First, on the single-variable sweeps the fire-spread
+(PNR) leg is \emph{zero}: the 3-storey baseline is always within the
+fire-service reach, so suppression is reachable and no fire runs to
+conflagration; the resilience levels move only the containment rate and the
+ordinary loss frequency, and commercial type / condition move loss frequency in
+the expected order (hotels, mixed-use and poor condition are worst). Second, the
+height $\times$ suppression grid exposes the headline non-linearity: a building
+\emph{above} the 4-storey reach with only \emph{Partial} internal suppression
+jumps to $\approx 203$~bps of fire spread, while the same building at
+\emph{Meets minimum} or better, or at or below the reach height, stays at zero.
+This cliff --- not a smooth gradient --- is the economically important
+behaviour the credit is designed to price.
+
+\input{sensitivity_tables}
 
 % ===================================================================
 % 8. LIMITATIONS AND ASSUMPTIONS
 % ===================================================================
-\section{Limitations and Assumptions}
+\mkmlimitations
 
 \begin{itemize}
-  \item No historical calibration --- every parameter is a first-pass placeholder.
-  \item Building height is proxied by \texttt{NumberOfStoreys}; the commercial
-        schema has no explicit floor-level metric.
-  \item The initiation-class draw seeds an entry-point label but does not yet
-        change the chain start state.
-  \item The intensity track is deterministic; all stochasticity lives in the
-        chain march.
+  \item \textbf{No historical calibration (FIRE-L1).} Every parameter is a
+        first-pass placeholder; outputs are relative signals, not absolute loss
+        probabilities.
+  \item \textbf{Height proxy (FIRE-L2).} Building height is proxied by
+        \texttt{NumberOfStoreys}; the commercial schema carries no explicit
+        floor-level or floor-area metric, and the fire-service reach is a single
+        global threshold rather than a brigade-specific capability.
+  \item \textbf{Deterministic intensity track (FIRE-L3).} All stochasticity
+        lives in the chain march; the intensity growth and PNR timing are
+        deterministic given the asset profile.
+  \item \textbf{Initiation class is cosmetic.} The initiation-class draw seeds an
+        entry-point label but does not yet change the chain start state or
+        dynamics.
+  \item \textbf{Fixed loss-given-event.} The conflagration leg assumes a 100\%
+        loss given a point-of-no-return event; partial-loss quantum is not
+        modelled.
+  \item \textbf{Independence assumption.} The root-sum-of-squares all-in coupon
+        treats fire, flood and wind as independent perils.
 \end{itemize}
 
 % ===================================================================
-% 9. CHANGE HISTORY
+% 9. GOVERNANCE VALIDATION QUESTIONS
 % ===================================================================
-\section{Change History}
+\mkmgovernance
 
-\begin{tabular}{lll}
+\mkmvqitem{1}{Model purpose and use}{What is the model used for, and is that use
+consistent with its design?}
+The model produces a fire-resilience credit (loss frequency, containment rate
+and a full-conflagration bps leg) consumed by the Commercial PRS Pricer as an
+independent peril. Use is consistent with design; it is \emph{not} a life-safety
+or absolute-loss model and must not be used as one.
+
+\mkmvqitem{2}{Data quality and lineage}{Are the model inputs of sufficient
+quality, and is their lineage documented?}
+Inputs are the CDM-derived \texttt{AssetFireFeatures}; lineage runs from the
+v2 CDM resilience fields through Model~C. Missing options degrade gracefully to
+neutral multipliers. Data \emph{quality} for calibration (historical fire-loss
+records) is not yet established --- open under FIRE-R1.
+
+\mkmvqitem{3}{Conceptual soundness}{Is the methodology theoretically sound and
+appropriate?}
+The four-model decomposition (Poisson initiation, deterministic intensity track,
+resilience$\rightarrow$dynamics mapping, absorbing Bayesian chain) is a standard
+and defensible structure. The point-of-no-return gate is the one bespoke
+mechanism and is documented in Section~3.4.
+
+\mkmvqitem{4}{Calibration and parameters}{How were parameters estimated, and are
+they appropriate?}
+All parameters are engineering-judgement seeds (\texttt{version "seed-0"}) chosen
+for direction and ordering, not magnitude. Statistical calibration is an open
+remediation item (FIRE-R1, FIRE-R2). This is the dominant model limitation.
+
+\mkmvqitem{5}{Implementation verification}{Has the implementation been verified
+against the specification?}
+Yes, by unit tests covering each component model, the orchestrator and the
+fire-service-reach interaction, plus a reproducibility test. The sensitivity
+harness exercises the full end-to-end path.
+
+\mkmvqitem{6}{Sensitivity and stability}{How sensitive are outputs to inputs and
+assumptions?}
+See Section~7. Outputs respond in the expected order to type, condition and
+resilience levels, and exhibit the designed height$\times$suppression cliff.
+Stability under draw count is adequate at $n_{\text{sim}}=20{,}000$;
+formal stability bands are an open item.
+
+\mkmvqitem{7}{Limitations and weaknesses}{Are the model's limitations understood
+and documented?}
+Yes --- see Section~8 (FIRE-L1--L3 plus four further documented assumptions).
+The placeholder calibration and the height proxy are the most material.
+
+\mkmvqitem{8}{Ongoing monitoring}{How will the model be monitored in production?}
+Not yet in production. A monitoring plan (drift in input distributions,
+backtest of realised vs.\ predicted fire frequency) will be defined as part of
+FIRE-R3 before sign-off.
+
+\mkmvqitem{9}{Governance and approval}{What is the approval status and who owns
+the model?}
+Owner: David K Kelly. Status: Development, Tier~2, RAG Amber. Not approved for
+production; MRC sign-off is contingent on closing FIRE-R1--R4.
+
+% ===================================================================
+% 10. CHANGE HISTORY
+% ===================================================================
+\mkmchangelog
+
+\begin{tabular}{ll p{0.62\textwidth}}
 \toprule
 Version & Date & Description \\
 \midrule
 0.01 & 05-June-2026 & Skeleton document. Stage 1 (Model A) and Stage 2 (Models B/C/D + orchestrator) delivered with unit tests; placeholder calibration. \\
+0.20 & 06-June-2026 & Completed all narrative sections; added the full mathematical framework (Models A--D, PNR, credit currency), governance validation questions, the matrices appendix, and the end-to-end sensitivity analysis. \\
 \bottomrule
 \end{tabular}
+
+% ===================================================================
+% APPENDICES --- ALL SEED MATRICES (config/fire_matrices.json)
+% ===================================================================
+\clearpage
+\appendix
+
+\section{Initiation Parameters (Model A)}
+\label{app:initiation}
+
+\begin{table}[H]
+\centering
+\caption{Base annual ignition frequency $\lambda_{0,c}$ by commercial type.}
+\begin{tabular}{lr}
+\toprule
+Commercial type & $\lambda_{0,c}$ \\
+\midrule
+Office       & 0.020 \\
+Retail       & 0.030 \\
+Hotel        & 0.035 \\
+Leisure      & 0.030 \\
+Healthcare   & 0.025 \\
+MultiFamily  & 0.030 \\
+MixedUse     & 0.040 \\
+Other        & 0.040 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Frequency modifiers. Process load is by type with a business-rates
+override (\emph{Restaurant} $= 1.25$) that only ever raises the value.}
+\begin{tabular}{llr}
+\toprule
+Modifier & Option & Value \\
+\midrule
+$m_{\text{occ}}$ (occupancy) & Fully occupied & 1.00 \\
+                             & Partially vacant & 0.90 \\
+                             & Vacant & 0.85 \\
+\midrule
+$m_{\text{proc}}$ (process) & Office & 1.00 \\
+                            & Retail & 1.10 \\
+                            & Hotel & 1.25 \\
+                            & Leisure & 1.25 \\
+                            & Healthcare & 1.10 \\
+                            & MultiFamily & 1.05 \\
+                            & MixedUse & 1.15 \\
+                            & Other & 1.15 \\
+\midrule
+$m_{\text{cond}}$ (condition) & Excellent & 0.85 \\
+                              & Good & 0.95 \\
+                              & Fair & 1.05 \\
+                              & Poor & 1.20 \\
+                              & Very poor & 1.40 \\
+\midrule
+$m_{\text{protection}}$ (level) & Not assessed & 1.10 \\
+                                & Partial & 1.00 \\
+                                & Meets minimum & 0.95 \\
+                                & Enhanced & 0.90 \\
+                                & Verified & 0.85 \\
+\midrule
+$m_{\text{history}}$ & No prior & 1.00 \\
+                     & Old minor & 1.05 \\
+                     & Recent minor & 1.10 \\
+                     & Recent moderate/severe & 1.40 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent A fire counts as \emph{recent} if it occurred within
+\texttt{recent\_years} $= 5$ years.
+
+\section{Initiation-Class Priors}
+\label{app:priors}
+
+\begin{table}[H]
+\centering
+\caption{Categorical priors over initiation class by commercial type
+(IE = Internal\-Electrical, KO = Kitchen\-Occupant, PT = Plant\-Technical,
+PR = Process\-Related, BS = Basement\-Service, EE = External\-Exposure,
+Oth = Other). Rows sum to 1.}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Type & IE & KO & PT & PR & BS & EE & Oth \\
+\midrule
+Office      & 0.35 & 0.10 & 0.15 & 0.05 & 0.15 & 0.10 & 0.10 \\
+Retail      & 0.30 & 0.30 & 0.10 & 0.05 & 0.10 & 0.10 & 0.05 \\
+Hotel       & 0.28 & 0.25 & 0.15 & 0.05 & 0.12 & 0.10 & 0.05 \\
+Leisure     & 0.30 & 0.22 & 0.13 & 0.05 & 0.10 & 0.10 & 0.10 \\
+Healthcare  & 0.32 & 0.12 & 0.20 & 0.06 & 0.12 & 0.08 & 0.10 \\
+MultiFamily & 0.35 & 0.30 & 0.08 & 0.02 & 0.10 & 0.08 & 0.07 \\
+MixedUse    & 0.28 & 0.12 & 0.15 & 0.12 & 0.10 & 0.08 & 0.15 \\
+Other       & 0.28 & 0.12 & 0.15 & 0.12 & 0.10 & 0.08 & 0.15 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Progression Dynamics (Models B \& C)}
+\label{app:progression}
+
+\begin{table}[H]
+\centering
+\caption{Growth, critical intensity, and per-level detection / suppression
+multipliers.}
+\begin{tabular}{llr}
+\toprule
+Block & Key & Value \\
+\midrule
+Growth per step & well\_compartmented & 1.5 \\
+                & poorly\_compartmented & 4.0 \\
+\midrule
+$I_{\text{crit}}$ & strong\_suppression & 75 \\
+                  & weak\_suppression & 12 \\
+\midrule
+Detection mult.\ & Not assessed & 1.00 \\
+$\delta_\ell$    & Partial & 0.90 \\
+                 & Meets minimum & 0.80 \\
+                 & Enhanced & 0.72 \\
+                 & Verified & 0.65 \\
+\midrule
+Suppression growth & Not assessed & 1.00 \\
+mult.\ $\mu_{\text{supp}}$ & Partial & 0.85 \\
+                 & Meets minimum & 0.75 \\
+                 & Enhanced & 0.62 \\
+                 & Verified & 0.50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Passive and response effectiveness ranges $[\ell,u]$, interpolated by
+the field's resilience-level fraction.}
+\begin{tabular}{llrr}
+\toprule
+Group & Field & $\ell$ & $u$ \\
+\midrule
+Passive  & StructuralFireResistanceAdequate & 0.60 & 0.95 \\
+         & CompartmentsProvided & 0.55 & 0.90 \\
+         & FireStoppingAtPenetrations & 0.70 & 0.95 \\
+         & ExternalMaterialsFireResistant & 0.65 & 0.95 \\
+\midrule
+Response & AccessRouteResilient & 0.70 & 0.95 \\
+         & EmergencyProceduresTested & 0.80 & 0.97 \\
+         & BusinessContinuityPlanInPlace & 0.85 & 0.98 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Height penalty, fire-service reach, timing, intensity dynamics and
+controllability.}
+\begin{tabular}{llr}
+\toprule
+Block & Key & Value \\
+\midrule
+Height penalty & range & $[1.05,\,1.60]$ \\
+               & max\_storeys & 20 \\
+\midrule
+Fire-service reach & reach\_storeys $R$ & 4 \\
+                   & internal\_suppression\_threshold $\theta_{\text{int}}$ & 2 \\
+                   & no\_reach\_bite\_steps $\tau_\infty$ & 999.0 \\
+\midrule
+Timing & detection\_base\_steps $\tau_{\text{det,0}}$ & 2.0 \\
+       & suppression\_bite\_base\_steps $\tau_{\text{supp,0}}$ & 3.0 \\
+\midrule
+Intensity dynamics & passive\_damp\_weight $w_{\text{damp}}$ & 0.60 \\
+                   & compartmentation\_well\_threshold & 2.0 \\
+                   & strong\_suppression\_threshold & 2.0 \\
+\midrule
+Controllability & weight (passive) $w_p$ & 0.35 \\
+                & weight (response) $w_r$ & 0.35 \\
+                & weight (suppression) $w_s$ & 0.30 \\
+                & switch\_threshold & 0.55 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Containment Transition Matrices (Model D)}
+\label{app:transitions}
+
+\noindent Each is an $8\times8$ row-stochastic matrix over
+$\{S_0,\dots,S_7\}$; the step length is 15 minutes. The point-of-no-return
+matrix has a zero $S_5$ (Contained) column --- once latched, containment is
+unreachable.
+
+\begin{table}[H]
+\centering
+\caption{\texttt{AA\_controllable} --- pre-PNR, controllable asset
+($C \ge 0.55$).}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+From\textbackslash To & $S_0$ & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $S_5$ & $S_6$ & $S_7$ \\
+\midrule
+$S_0$ & 0.05 & 0.25 & 0.70 & 0 & 0 & 0 & 0 & 0 \\
+$S_1$ & 0 & 0.10 & 0.85 & 0 & 0 & 0 & 0.05 & 0 \\
+$S_2$ & 0 & 0 & 0 & 0.90 & 0.08 & 0 & 0.02 & 0 \\
+$S_3$ & 0 & 0 & 0 & 0 & 0.10 & 0.85 & 0.05 & 0 \\
+$S_4$ & 0 & 0 & 0 & 0 & 0 & 0.75 & 0.20 & 0.05 \\
+$S_5$ & 0 & 0 & 0 & 0 & 0 & 1.00 & 0 & 0 \\
+$S_6$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.85 & 0.15 \\
+$S_7$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{\texttt{weak\_controllable} --- pre-PNR, weak asset ($C < 0.55$).}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+From\textbackslash To & $S_0$ & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $S_5$ & $S_6$ & $S_7$ \\
+\midrule
+$S_0$ & 0.05 & 0.70 & 0.25 & 0 & 0 & 0 & 0 & 0 \\
+$S_1$ & 0 & 0.10 & 0.45 & 0 & 0 & 0 & 0.45 & 0 \\
+$S_2$ & 0 & 0 & 0 & 0.40 & 0.40 & 0 & 0.20 & 0 \\
+$S_3$ & 0 & 0 & 0 & 0 & 0.15 & 0.15 & 0.70 & 0 \\
+$S_4$ & 0 & 0 & 0 & 0 & 0 & 0.25 & 0.50 & 0.25 \\
+$S_5$ & 0 & 0 & 0 & 0 & 0 & 1.00 & 0 & 0 \\
+$S_6$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.50 & 0.50 \\
+$S_7$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{\texttt{point\_of\_no\_return} --- absorbing, post-PNR. The $S_5$
+column is identically zero.}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+From\textbackslash To & $S_0$ & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $S_5$ & $S_6$ & $S_7$ \\
+\midrule
+$S_0$ & 0 & 1.00 & 0 & 0 & 0 & 0 & 0 & 0 \\
+$S_1$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.40 & 0.60 \\
+$S_2$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.40 & 0.60 \\
+$S_3$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.40 & 0.60 \\
+$S_4$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.40 & 0.60 \\
+$S_5$ & 0 & 0 & 0 & 0 & 0 & 1.00 & 0 & 0 \\
+$S_6$ & 0 & 0 & 0 & 0 & 0 & 0 & 0.35 & 0.65 \\
+$S_7$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \end{document}
