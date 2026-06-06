@@ -74,6 +74,42 @@ def get_map_center() -> Tuple[float, float]:
         return MAP_DEFAULT_CENTER
 
 
+def get_catchment_display_name() -> str:
+    """Return the active catchment's human-readable name (e.g. ``Thames``,
+    ``Halong``).
+
+    Single source of truth for report/prose text that names the catchment's
+    river/region, so copy follows the catchment in play rather than a
+    hardcoded "Thames". Reads ``DISPLAYNAME`` from the catchment params module,
+    falling back to a title-cased ``NAME`` and finally ``"catchment"``.
+    """
+    import inspect
+
+    from config import config
+
+    try:
+        mod = config.load_params_module()
+    except Exception:
+        return "catchment"
+
+    # Direct module-level attributes first.
+    name = getattr(mod, 'DISPLAYNAME', None) or getattr(mod, 'NAME', None)
+    if not name:
+        # Otherwise locate the catchment class generically (its name varies
+        # per catchment: ThamesCatchment, HalongCatchment, ...).
+        for attr in dir(mod):
+            obj = getattr(mod, attr)
+            if inspect.isclass(obj) and hasattr(obj, 'DISPLAYNAME'):
+                name = getattr(obj, 'DISPLAYNAME', None) or getattr(obj, 'NAME', None)
+                if name:
+                    break
+
+    if not name:
+        return "catchment"
+    name = str(name)
+    return name if name[:1].isupper() else name.title()
+
+
 # ===========================================================================
 # Gauge Flood-Frequency RAG Thresholds  (visual/layer/gauge_layer.py)
 # ===========================================================================

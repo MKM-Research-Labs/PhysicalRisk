@@ -44,6 +44,7 @@ from typing import Any, Dict, List
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from config.format import gauge_title_py
+from config.visual import get_catchment_display_name
 
 from .gauge_page_00_base import GaugeBasePage
 
@@ -57,6 +58,10 @@ class GaugeRiskAssessmentPage(GaugeBasePage):
         elements = []
 
         try:
+            # Name of the active catchment's river/water body, so prose
+            # follows the catchment in play rather than a hardcoded "Thames".
+            river = get_catchment_display_name()
+
             # Extract gauge ID and name for reference
             gauge_id = self._get_gauge_id(gauge_data)
             gauge_name = self._get_gauge_name(gauge_data)
@@ -101,12 +106,12 @@ class GaugeRiskAssessmentPage(GaugeBasePage):
                         formatted_value = self._format_value(value)
                     profile_data.append([label, formatted_value])
 
-            # Add distance to Thames as risk factor
+            # Add distance to river as risk factor
             distance_to_thames = thames_info.get('DistanceToThamesMeters', 0)
             if distance_to_thames == 0:
-                profile_data.append(["Location Risk Factor", "On Thames River (Highest Risk)"])
+                profile_data.append(["Location Risk Factor", f"On {river} River (Highest Risk)"])
             elif distance_to_thames < 100:
-                profile_data.append(["Location Risk Factor", f"Very close to Thames ({distance_to_thames}m)"])
+                profile_data.append(["Location Risk Factor", f"Very close to {river} ({distance_to_thames}m)"])
 
             profile_table = Table(profile_data, colWidths=self.table_widths['two_col'])
             profile_table.setStyle(self.table_styles['flood_risk'])

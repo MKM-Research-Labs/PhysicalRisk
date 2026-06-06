@@ -43,7 +43,7 @@ from typing import Any, Dict, List
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from config.format import gauge_title_py
-from config.visual import get_catchment_bounds
+from config.visual import get_catchment_bounds, get_catchment_display_name
 
 from .gauge_page_00_base import GaugeBasePage
 
@@ -57,6 +57,10 @@ class GaugeLocationPage(GaugeBasePage):
         elements = []
 
         try:
+            # Name of the active catchment's river/water body, so all prose
+            # follows the catchment in play rather than a hardcoded "Thames".
+            river = get_catchment_display_name()
+
             # Extract gauge ID and name for reference
             gauge_id = self._get_gauge_id(gauge_data)
             gauge_name = self._get_gauge_name(gauge_data)
@@ -102,21 +106,21 @@ class GaugeLocationPage(GaugeBasePage):
 
             # THAMES RIVER CONTEXT SECTION
             elements.append(Spacer(1, self.spacing['minor_section']))
-            elements.append(Paragraph("Thames River Context", self.styles['SectionHeader']))
+            elements.append(Paragraph(f"{river} River Context", self.styles['SectionHeader']))
 
             thames_info = flood_gauge_data.get('ThamesInfo', {})
-            thames_data = [["Thames Parameter", "Value"]]
+            thames_data = [[f"{river} Parameter", "Value"]]
 
-            # Thames context fields
+            # River context fields
             thames_fields = [
-                ('DistanceToThamesMeters', 'Distance to Thames')
+                ('DistanceToThamesMeters', f'Distance to {river}')
             ]
 
             for field, label in thames_fields:
                 value = thames_info.get(field)
                 if value is not None:
                     if value == 0:
-                        formatted_value = "On Thames River"
+                        formatted_value = f"On {river} River"
                     else:
                         formatted_value = self._format_measurement(value, 'm')
                     thames_data.append([label, formatted_value])
@@ -186,9 +190,9 @@ class GaugeLocationPage(GaugeBasePage):
                     summary_data.append(["Regional Position", lat_desc])
 
             if distance_to_thames == 0:
-                summary_data.append(["River Position", "Directly on Thames River"])
+                summary_data.append(["River Position", f"Directly on {river} River"])
             elif distance_to_thames is not None and distance_to_thames < 100:
-                summary_data.append(["River Position", f"Very close to Thames ({distance_to_thames}m)"])
+                summary_data.append(["River Position", f"Very close to {river} ({distance_to_thames}m)"])
 
             # Add risk category summary
             risk_category = flood_risk.get('FloodRiskCategory')

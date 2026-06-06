@@ -42,6 +42,7 @@ from datetime import datetime, timedelta
 from typing import Dict
 
 from config.port import GAUGE_TYPE_WEIGHTS
+from config.visual import get_catchment_bounds
 
 # =============================================================================
 # CONSTANTS - Thames specific gauge choices
@@ -244,12 +245,24 @@ def generate_menu_value(field_name: str, field_def: Dict, index: int, metadata: 
     if field_name == 'DataSourceType':
         return "SensorGauge"  # Most common for Thames river gauges
     elif field_name == 'TidalInfluence':
-        # Thames tidal limit is Teddington Lock (~longitude -0.32)
-        # East of that is tidal, west is non-tidal
-        lon = metadata.get('location', {}).get('lon', -0.5)
-        if lon > -0.25:
+        # Tidal influence follows position along the active catchment's own
+        # east-west span (downstream/seaward end is tidal) rather than a
+        # hardcoded London tidal limit. The Thames tidal limit (Teddington
+        # Lock, ~lon -0.32) sits ~4% in from the western edge of the Thames
+        # bounds, so the western sliver is non-tidal and the rest tidal —
+        # preserving Thames behaviour while generalising to any catchment.
+        lon = metadata.get('location', {}).get('lon')
+        if lon is None:
+            return "Non-tidal"
+        try:
+            min_lon, _, max_lon, _ = get_catchment_bounds()
+            span = max(max_lon - min_lon, 1e-9)
+            frac = (lon - min_lon) / span
+        except Exception:
+            return "Non-tidal"
+        if frac > 0.14:
             return "Tidal"
-        elif lon > -0.35:
+        elif frac > 0.04:
             return "Partially tidal"
         else:
             return "Non-tidal"
