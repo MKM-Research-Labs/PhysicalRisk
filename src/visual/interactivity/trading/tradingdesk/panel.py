@@ -61,8 +61,16 @@ from typing import Any, Dict
 
 import folium
 
+from visual.interactivity._jsbundle import js_static
 from .. import client, blotter, market, fs01, aggregate, eod, curves, stress, port_stress, classifiers, preloader
 from . import panel_create, panel_tabs, panel_lifecycle
+
+# CDN dependencies for the Chart.js trading desk panel.
+_CHARTJS_CDN = (
+    '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>\n'
+    '<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>\n'
+    '<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.3.0/dist/chartjs-plugin-dragdata.min.js"></script>\n'
+)
 
 
 class TradingDeskPanel:
@@ -75,61 +83,32 @@ class TradingDeskPanel:
         self.panel_height = panel_height
 
     def get_js(self) -> str:
-        """Generate JavaScript for the trading desk panel."""
-        return f"""
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.3.0/dist/chartjs-plugin-dragdata.min.js"></script>
-        <script>
-        (function() {{
-            var PANEL_W = '{self.panel_width}';
-            var PANEL_H = '{self.panel_height}';
-            var tdPanel = null;
-            var tdActiveTab = 'blotter';
+        """Generate JavaScript for the trading desk panel.
 
-            // ==============================================================
-            // Shared utilities
-            // ==============================================================
-            function getBaseUrl() {{
-                var cfg = window.__BACKEND_CONFIG || {{}};
-                return cfg.url || '';
-            }}
-
-            function fmtGBP(v) {{
-                if (v == null || v === 0) return '\\u2014';
-                var sign = v < 0 ? '-' : '';
-                var abs = Math.abs(v);
-                var cc = (window.__BACKEND_CONFIG || {{}}).currency || 'GBP';
-                var sym = {{GBP: '\\u00a3', USD: '$', EUR: '\\u20ac'}}[cc] || (cc + ' ');
-                return sign + sym + abs.toLocaleString('en-GB', {{minimumFractionDigits: 0, maximumFractionDigits: 0}});
-            }}
-
-            function fmtBps(v) {{
-                if (v == null) return '\\u2014';
-                return v.toFixed(1) + ' bps';
-            }}
-
-            // ==============================================================
-            // Sub-module code
-            // ==============================================================
-{preloader.get_js()}
-{client.get_js()}
-{blotter.get_js()}
-{market.get_js()}
-{fs01.get_js()}
-{aggregate.get_js()}
-{eod.get_js()}
-{curves.get_js()}
-{stress.get_js()}
-{port_stress.get_js()}
-{classifiers.get_js()}
-
-{panel_create.get_js()}
-{panel_tabs.get_js()}
-{panel_lifecycle.get_js()}
-        }})();
-        </script>
+        The IIFE shell lives in ``src/static/js/tradingdesk-panel.js``; panel
+        dimensions and every sub-module fragment are spliced in via
+        ``__TOKEN__`` placeholders.
         """
+        js = (
+            js_static('tradingdesk-panel.js')
+            .replace('__PANEL_W__', self.panel_width)
+            .replace('__PANEL_H__', self.panel_height)
+            .replace('__TD_PRELOADER_JS__', preloader.get_js())
+            .replace('__TD_CLIENT_JS__', client.get_js())
+            .replace('__TD_BLOTTER_JS__', blotter.get_js())
+            .replace('__TD_MARKET_JS__', market.get_js())
+            .replace('__TD_FS01_JS__', fs01.get_js())
+            .replace('__TD_AGGREGATE_JS__', aggregate.get_js())
+            .replace('__TD_EOD_JS__', eod.get_js())
+            .replace('__TD_CURVES_JS__', curves.get_js())
+            .replace('__TD_STRESS_JS__', stress.get_js())
+            .replace('__TD_PORT_STRESS_JS__', port_stress.get_js())
+            .replace('__TD_CLASSIFIERS_JS__', classifiers.get_js())
+            .replace('__TD_PANEL_CREATE_JS__', panel_create.get_js())
+            .replace('__TD_PANEL_TABS_JS__', panel_tabs.get_js())
+            .replace('__TD_PANEL_LIFECYCLE_JS__', panel_lifecycle.get_js())
+        )
+        return f"{_CHARTJS_CDN}<script>\n{js}\n</script>"
 
     def add_to_map(self, folium_map: folium.Map) -> None:
         """Add trading desk panel to a Folium map."""
