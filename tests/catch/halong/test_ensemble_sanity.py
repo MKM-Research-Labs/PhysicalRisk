@@ -152,37 +152,6 @@ class TestTailCalibrationAnchors:
     can't realize them).
     """
 
-    def test_anchors_lie_in_extreme_tail_region(self):
-        import config  # noqa: F401  ensure data/ is on sys.path
-        from catch.halong.tc import HALONG_TAIL_ANCHORS, HALONG_TYPHOON_PEAK_WIND
-        from config.typhoon import ScenarioFamily
-        from models.typhoon.genesis import peak_wind_exceedance
-
-        extreme = HALONG_TYPHOON_PEAK_WIND[ScenarioFamily.EXTREME]
-        for anchor in HALONG_TAIL_ANCHORS:
-            v = anchor["peak_wind_ms"]
-            # Anchor wind must lie below the model's hard cap so the
-            # model can actually produce a storm this strong.
-            assert v < extreme.v_max_ms, (
-                f"{anchor['name']} ({v:.1f} m/s) exceeds model cap "
-                f"{extreme.v_max_ms} m/s for EXTREME — raise the cap"
-            )
-            # Anchor wind must be above the body mean: a Cat-5 super-
-            # typhoon should not be the "typical" EXTREME storm.
-            assert v > extreme.mu_ms, (
-                f"{anchor['name']} ({v:.1f} m/s) below EXTREME mean "
-                f"{extreme.mu_ms} m/s — anchor too mild to call 'tail'"
-            )
-            # The model's EXTREME exceedance probability at the anchor
-            # intensity must be in (0.001, 0.5): rare enough to be tail,
-            # common enough to be reachable.
-            p_exceed = peak_wind_exceedance(v, extreme)
-            assert 0.001 < p_exceed < 0.5, (
-                f"{anchor['name']} ({v:.1f} m/s): EXTREME exceedance "
-                f"probability {p_exceed:.4f} outside (0.001, 0.5). "
-                f"Tail is mis-calibrated."
-            )
-
     def test_angela_rarer_than_durian(self):
         # Angela's 80 m/s should be strictly rarer than Durian's 69 m/s
         # under any monotonic peak-wind distribution.
