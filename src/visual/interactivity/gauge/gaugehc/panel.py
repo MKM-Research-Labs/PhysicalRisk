@@ -33,6 +33,7 @@ import folium
 from . import ghc_hazard, ghc_return, ghc_prs, ghc_historical, ghc_stress
 from .panel_create import get_create_panel_js
 from .panel_nav import get_nav_js
+from visual.interactivity._jsbundle import js_static
 from visual.interactivity.panel_mixin import FoliumPanelMixin
 from .panel_data import get_data_js
 
@@ -47,51 +48,25 @@ class GaugeHazardCurve(FoliumPanelMixin):
         self.panel_height = panel_height
 
     def get_js(self) -> str:
-        """Generate JavaScript for gauge hazard curve panel."""
-        return f"""
-        <script>
-        (function() {{
-            var PANEL_W = '{self.panel_width}';
-            var PANEL_H = '{self.panel_height}';
-            var currentChart = null;
-            var hazardPanel = null;
-            var hazardData = null;
-            var counterpartyData = [];
+        """Generate JavaScript for gauge hazard curve panel.
 
-            // ==============================================================
-            // Sub-module code (state vars + functions)
-            // ==============================================================
-{ghc_hazard.get_js()}
-{ghc_return.get_js()}
-{ghc_prs.get_js()}
-{ghc_historical.get_js()}
-{ghc_stress.get_js()}
-
-{get_create_panel_js()}
-{get_nav_js()}
-{get_data_js()}
-
-            // ================================================================
-            // Event listeners
-            // ================================================================
-            document.addEventListener('hazardCurveRequested', function(e) {{
-                if (e.detail && e.detail.gaugeId) showPanel(e.detail.gaugeId);
-            }});
-
-            document.addEventListener('keydown', function(e) {{
-                if (e.key === 'Escape' && hazardPanel && hazardPanel.style.display !== 'none') {{
-                    hidePanel();
-                }}
-            }});
-
-            window.GaugeHazardCurve = {{
-                show: showPanel,
-                hide: hidePanel
-            }};
-
-            console.log('Gauge hazard curve ready');
-        }})();
-        </script>
+        The IIFE shell lives in ``src/static/js/gaugehc-panel.js``; panel
+        dimensions and the sub-module fragments are spliced in via
+        ``__TOKEN__`` placeholders.
         """
+        js = (
+            js_static('gaugehc-panel.js')
+            .replace('__PANEL_W__', self.panel_width)
+            .replace('__PANEL_H__', self.panel_height)
+            .replace('__GHC_HAZARD_JS__', ghc_hazard.get_js())
+            .replace('__GHC_RETURN_JS__', ghc_return.get_js())
+            .replace('__GHC_PRS_JS__', ghc_prs.get_js())
+            .replace('__GHC_HISTORICAL_JS__', ghc_historical.get_js())
+            .replace('__GHC_STRESS_JS__', ghc_stress.get_js())
+            .replace('__GHC_CREATE_PANEL_JS__', get_create_panel_js())
+            .replace('__GHC_NAV_JS__', get_nav_js())
+            .replace('__GHC_DATA_JS__', get_data_js())
+        )
+        return f"<script>\n{js}\n</script>"
 
     # add_to_map, configure, get_statistics inherited from FoliumPanelMixin
