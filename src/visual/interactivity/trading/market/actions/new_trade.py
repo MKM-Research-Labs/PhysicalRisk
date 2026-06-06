@@ -20,26 +20,9 @@
 
 """Market tab — New Trade button: navigate to PRS pricing screen."""
 
+from visual.interactivity._jsbundle import js_static
+
 
 def get_js() -> str:
     """Return JS fragment for tdMarketNewTrade."""
-    return """
-            // ==============================================================
-            // New Trade — navigate to PRS pricing screen for selected gauge
-            // ==============================================================
-            window.tdMarketNewTrade = function() {
-                var gaugeId = tdSelectedGauge;
-                if (!gaugeId) {
-                    if (window.showError) window.showError('Select a gauge first');
-                    return;
-                }
-                if (window.TradingDesk && window.TradingDesk.hide) window.TradingDesk.hide();
-                if (window.GaugeHazardCurve && window.GaugeHazardCurve.show) {
-                    window.GaugeHazardCurve.show(gaugeId);
-                } else if (window.viewHazardCurve) {
-                    window.viewHazardCurve(gaugeId);
-                } else {
-                    if (window.showError) window.showError('PRS pricer not available');
-                }
-            };
-"""
+    return js_static('trading/market/actions/new_trade.js')

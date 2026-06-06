@@ -89,8 +89,8 @@ _PROPERTY_COMPLIANT_JS = [
     'src/static/js/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
     'src/static/js/nav-menus.js',
-    'src/visual/interactivity/trading/aggregate/map_view.py',
-    'src/visual/interactivity/trading/client/table.py',
+    'src/static/js/trading/aggregate/map_view.js',
+    'src/static/js/trading/client/table.js',
 ]
 
 # Python files using property_title_py from config.format.

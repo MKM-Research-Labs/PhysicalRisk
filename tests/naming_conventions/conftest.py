@@ -44,8 +44,8 @@ _PROPERTY_DISPLAY_FILES_JS = [
     'src/static/js/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
     'src/static/js/nav-menus.js',
-    'src/visual/interactivity/trading/aggregate/map_view.py',
-    'src/visual/interactivity/trading/client/table.py',
+    'src/static/js/trading/aggregate/map_view.js',
+    'src/static/js/trading/client/table.js',
 ]
 
 # Files that build storm dropdowns — must use pipe-separated format
@@ -55,8 +55,8 @@ _STORM_DROPDOWN_FILES = [
     'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
     'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',
     'src/visual/interactivity/property/psa_timeline.py',
-    'src/visual/interactivity/trading/port_stress/setup.py',
-    'src/visual/interactivity/trading/stress/setup_data.py',
+    'src/static/js/trading/port_stress/setup.js',
+    'src/static/js/trading/stress/setup_data.js',
 ]
 
 
