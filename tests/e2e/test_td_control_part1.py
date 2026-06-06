@@ -1,7 +1,7 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
 """
-Storm Portfolio — Control tab e2e tests.
+Storm Portfolio — Control tab e2e tests (part 1).
 
 Verifies that the Storm Sequence Control tab opens in the Storm Portfolio
 panel, displays parameter sections, loads data from the API, and supports
@@ -249,69 +249,4 @@ class TestControlTab:
         first_input.fill(original_value)
         save_btn.click()
         ind.wait_for(state="hidden", timeout=5_000)
-
-    def test_reset_button_reverts_to_defaults(self, map_page):
-        """Reset button should revert all values to Python defaults."""
-        # Stub both prompt (password) and confirm (reset-defaults dialog)
-        _stub_prompt(map_page, E2E_ADMIN_PW)
-        map_page.evaluate("() => { window.confirm = function() { return true; }; }")
-
-        # Get a known default value
-        result = map_page.evaluate("""async () => {
-            var cfg = window.__BACKEND_CONFIG || {};
-            var base = cfg.url || '';
-            var resp = await fetch(base + '/api/v1/trading/control/params');
-            var data = await resp.json();
-            return data.params.sections.storm_generation.event_window_hours;
-        }""")
-        original = result
-
-        # Modify event_window_hours
-        ew_input = map_page.locator(
-            "input[data-ctrl-key='storm_generation.event_window_hours']"
-        )
-        if ew_input.count() > 0:
-            ew_input.fill("120")
-            map_page.locator("#sp-ctrl-save-btn").click()
-            map_page.locator("#sp-ctrl-dirty").wait_for(
-                state="hidden", timeout=5_000
-            )
-
-            # Click reset (confirm + prompt already stubbed).
-            # After save, dirty is already hidden — waiting for dirty=hidden
-            # here resolves immediately and does not prove the async reset
-            # .then() (which re-renders section inputs with defaults) has
-            # run. Wait instead for the status bar to confirm the reset,
-            # which is set inside that same .then().
-            map_page.locator("#sp-ctrl-reset-btn").click()
-            map_page.wait_for_function(
-                "() => {"
-                "  var b = document.getElementById('sp-ctrl-status');"
-                "  return !!b && /reset/i.test(b.textContent || '');"
-                "}",
-                timeout=10_000,
-            )
-
-            # Verify the value is back to the original
-            new_value = ew_input.input_value()
-            assert new_value == str(original), (
-                f"Expected {original} after reset, got {new_value}"
-            )
-
-    def test_user_guide_button_opens_pdf(self, map_page):
-        """Clicking User Guide button should request the guide PDF."""
-        # Intercept the window.open call to verify URL
-        result = map_page.evaluate("""() => {
-            var openedUrl = null;
-            var origOpen = window.open;
-            window.open = function(url, target) { openedUrl = url; };
-            var btn = document.getElementById('sp-ctrl-guide-btn');
-            if (btn) btn.click();
-            window.open = origOpen;
-            return openedUrl;
-        }""")
-        assert result is not None, "window.open was not called"
-        assert "/governance/storm-control/guide/pdf" in result, (
-            f"Expected guide PDF URL, got: {result}"
-        )
 
