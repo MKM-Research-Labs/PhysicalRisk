@@ -43,7 +43,7 @@ from typing import Any, Dict, List
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from config.format import gauge_title_py
-from config.visual import get_catchment_bounds, get_catchment_display_name
+from config.visual import get_catchment_display_name, get_lat_position_label
 
 from .gauge_page_00_base import GaugeBasePage
 
@@ -173,21 +173,7 @@ class GaugeLocationPage(GaugeBasePage):
             if latitude is not None:
                 # Classify north/central/south relative to the active
                 # catchment's own latitude span — no hardcoded region.
-                lat_desc = None
-                try:
-                    _, min_lat, _, max_lat = get_catchment_bounds()
-                    third = (max_lat - min_lat) / 3.0
-                    if third > 0:
-                        if latitude >= min_lat + 2 * third:
-                            lat_desc = "Northern part of catchment"
-                        elif latitude >= min_lat + third:
-                            lat_desc = "Central part of catchment"
-                        else:
-                            lat_desc = "Southern part of catchment"
-                except Exception:
-                    lat_desc = None
-                if lat_desc:
-                    summary_data.append(["Regional Position", lat_desc])
+                summary_data.append(["Regional Position", get_lat_position_label(latitude)])
 
             if distance_to_thames == 0:
                 summary_data.append(["River Position", f"Directly on {river} River"])

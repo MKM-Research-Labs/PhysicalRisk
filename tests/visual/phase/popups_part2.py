@@ -73,14 +73,25 @@ class TestGaugePopupBuilder:
     def test_status_color_offline(self):
         assert self.builder.get_status_color('Temporarily offline') == '#C0392B'
 
+    def _lon_bounds(self):
+        from config.visual import get_catchment_bounds
+        min_lon, _, max_lon, _ = get_catchment_bounds()
+        return min_lon, max_lon
+
+    def test_location_description_western(self):
+        min_lon, max_lon = self._lon_bounds()
+        lon = min_lon + 0.1 * (max_lon - min_lon)
+        assert 'Western part of catchment' in self.builder.determine_location_description(lon)
+
     def test_location_description_central(self):
-        assert 'Central London' in self.builder.determine_location_description(-0.1)
+        min_lon, max_lon = self._lon_bounds()
+        lon = min_lon + 0.5 * (max_lon - min_lon)
+        assert 'Central part of catchment' in self.builder.determine_location_description(lon)
 
-    def test_location_description_southeast(self):
-        assert 'Southeast' in self.builder.determine_location_description(0.5)
-
-    def test_location_description_east(self):
-        assert 'East London' in self.builder.determine_location_description(0.1)
+    def test_location_description_eastern(self):
+        min_lon, max_lon = self._lon_bounds()
+        lon = min_lon + 0.9 * (max_lon - min_lon)
+        assert 'Eastern part of catchment' in self.builder.determine_location_description(lon)
 
     def test_equipment_details_section(self):
         section = self.builder.create_equipment_details_section(self.sample_gauge_info)
@@ -117,12 +128,14 @@ class TestGaugePopupBuilder:
         assert 'Flood Risk Data' in section
 
     def test_complete_gauge_popup(self):
+        min_lon, max_lon = self._lon_bounds()
+        eastern_lon = min_lon + 0.9 * (max_lon - min_lon)
         popup = self.builder.create_complete_gauge_popup_content(
-            'GAUGE-test-001', 51.4975, 0.1, self.sample_gauge_info, self.sample_flood_info
+            'GAUGE-test-001', 51.4975, eastern_lon, self.sample_gauge_info, self.sample_flood_info
         )
         assert 'Flood Gauge Analysis' in popup
         assert 'GAUGE-test-001' in popup
-        assert 'East London' in popup
+        assert 'Eastern part of catchment' in popup
         assert 'font-family: Arial' in popup
 
     def test_tooltip_creation(self):

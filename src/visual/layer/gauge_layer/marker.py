@@ -120,15 +120,13 @@ def create_gauge_tooltip(gauge_info: Dict[str, Any], gauge_hazard: dict,
 
 
 def get_location_description(lat: float, lon: float) -> str:
-    """Generate a location description based on coordinates."""
-    if lon < -0.5:
-        return "West London area"
-    elif lon < 0:
-        return "Central London (near Canary Wharf)"
-    elif lon < 0.5:
-        return "East London area"
-    else:
-        return "Southeast of London"
+    """Generate a location description based on coordinates.
+
+    Describes the east/west position within the active catchment rather than a
+    hardcoded London region, so it follows the catchment in play.
+    """
+    from config.visual import get_lon_position_label
+    return get_lon_position_label(lon)
 
 
 def add_gauge_marker(feature_group: folium.FeatureGroup,

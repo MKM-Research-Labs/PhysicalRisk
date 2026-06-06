@@ -181,28 +181,28 @@ class TestGetGaugeIcon:
 # ===========================================================================
 
 class TestGetLocationDescription:
+    """Location description follows the active catchment's own longitude span,
+    not a hardcoded London region."""
 
-    def test_west_london(self):
-        assert GaugeLayer()._get_location_description(51.5, -0.6) == "West London area"
+    def _bounds(self):
+        from config.visual import get_catchment_bounds
+        min_lon, min_lat, max_lon, max_lat = get_catchment_bounds()
+        return min_lon, max_lon, (min_lat + max_lat) / 2.0
 
-    def test_central_london(self):
-        assert GaugeLayer()._get_location_description(51.5, -0.1) == "Central London (near Canary Wharf)"
+    def test_western_part(self):
+        min_lon, max_lon, lat = self._bounds()
+        lon = min_lon + 0.1 * (max_lon - min_lon)
+        assert GaugeLayer()._get_location_description(lat, lon) == "Western part of catchment"
 
-    def test_east_london(self):
-        assert GaugeLayer()._get_location_description(51.5, 0.1) == "East London area"
+    def test_central_part(self):
+        min_lon, max_lon, lat = self._bounds()
+        lon = min_lon + 0.5 * (max_lon - min_lon)
+        assert GaugeLayer()._get_location_description(lat, lon) == "Central part of catchment"
 
-    def test_southeast(self):
-        assert GaugeLayer()._get_location_description(51.5, 0.6) == "Southeast of London"
-
-    def test_boundary_minus_0_5(self):
-        """lon == -0.5 → Central London (not West)."""
-        result = GaugeLayer()._get_location_description(51.5, -0.5)
-        assert result == "Central London (near Canary Wharf)"
-
-    def test_boundary_0(self):
-        """lon == 0 → East London (not Central)."""
-        result = GaugeLayer()._get_location_description(51.5, 0.0)
-        assert result == "East London area"
+    def test_eastern_part(self):
+        min_lon, max_lon, lat = self._bounds()
+        lon = min_lon + 0.9 * (max_lon - min_lon)
+        assert GaugeLayer()._get_location_description(lat, lon) == "Eastern part of catchment"
 
 
 # ===========================================================================
