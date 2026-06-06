@@ -52,8 +52,8 @@ _PROPERTY_DISPLAY_FILES_JS = [
 _STORM_DROPDOWN_FILES = [
     'src/static/js/sp-table.js',
     'src/static/js/storm/fa_render.js',
-    'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
-    'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',
+    'src/static/js/gauge/gaugehc/ghc_stress_setup.js',
+    'src/static/js/gauge/gaugesa/gsa_timeline.js',
     'src/visual/interactivity/property/psa_timeline.py',
     'src/static/js/trading/port_stress/setup.js',
     'src/static/js/trading/stress/setup_data.js',
