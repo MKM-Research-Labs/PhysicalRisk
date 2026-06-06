@@ -84,7 +84,7 @@ _GAUGE_HARDCODED = [
 # propertyDisplayName() usage now lives in the static asset files.
 _PROPERTY_COMPLIANT_JS = [
     'src/static/js/propertyhc-panel.js',
-    'src/visual/interactivity/property/propertyhc/panel_data.py',
+    'src/static/js/property/propertyhc/panel_data.js',
     'src/static/js/propertydetails.js',
     'src/static/js/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
