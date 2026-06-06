@@ -18,14 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Property hazard curve — Hazard Curve tab (basis waterfall + property detail).
+"""Helpers for loading JavaScript fragments from companion ``.js`` files.
 
-The JavaScript fragment lives in the companion ``phc_hazard.js`` file.
+JavaScript belongs in ``.js`` files, not embedded as Python strings. A panel
+module keeps its JS in a sibling file (``foo.py`` → ``foo.js``) and calls
+:func:`js_sibling` from its ``get_js()`` so the fragment is read from disk.
 """
 
-from visual.interactivity._jsbundle import js_sibling
+from functools import lru_cache
+from pathlib import Path
 
 
-def get_js():
-    """Return JS fragment for hazard curve tab (injected into parent IIFE)."""
-    return js_sibling(__file__)
+@lru_cache(maxsize=None)
+def js_sibling(module_file: str) -> str:
+    """Read the ``.js`` file sitting next to *module_file*.
+
+    Pass ``__file__`` from the calling module; the companion file shares the
+    module's stem with a ``.js`` suffix (``phc_hazard.py`` → ``phc_hazard.js``).
+    """
+    return Path(module_file).with_suffix(".js").read_text(encoding="utf-8")
