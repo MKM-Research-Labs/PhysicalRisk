@@ -29,7 +29,7 @@ def _load_heod():
         return sys.modules[mod_name]
     mod_path = (
         Path(__file__).parent.parent.parent.parent.parent
-        / 'src' / 'port' / 'src' / 'historical_eod.py'
+        / 'src' / 'port' / 'src' / 'historical_eod' / '__init__.py'
     )
     spec = importlib.util.spec_from_file_location(mod_name, mod_path)
     mod = importlib.util.module_from_spec(spec)
