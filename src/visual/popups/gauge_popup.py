@@ -75,18 +75,17 @@ class GaugePopupBuilder(PopupBuilder):
         """
         Determine location description based on coordinates.
 
+        Describes the east/west position within the active catchment rather
+        than a hardcoded London region, so it follows the catchment in play.
+
         Args:
             lon: Longitude coordinate
 
         Returns:
             Location description string
         """
-        if lon < 0:
-            return "Central London (near Canary Wharf)"
-        elif lon > 0.3:
-            return "Southeast of London"
-        else:
-            return "East London"
+        from config.visual import get_lon_position_label
+        return get_lon_position_label(lon)
 
     def create_equipment_details_section(self, info: Dict[str, Any]) -> str:
         """

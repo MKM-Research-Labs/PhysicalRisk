@@ -29,9 +29,16 @@ gauges to properties with play/pause, speed control, and scrubber.
 def get_js() -> str:
     """Return JS fragment for sim/map tab (injected into parent IIFE)."""
     from config.models import STORM_SIMULATION_HOURS
+    from . import catchment_map_center
     _max = STORM_SIMULATION_HOURS - 1
+    _lat, _lon = catchment_map_center()
     js = _get_js_template()
-    return js.replace("'__SCRUBBER_MAX__'", f"'{_max}'").replace('__ANIM_MAX__', str(_max))
+    return (
+        js.replace("'__SCRUBBER_MAX__'", f"'{_max}'")
+        .replace('__ANIM_MAX__', str(_max))
+        .replace('__MAP_LAT__', f"{_lat:.5f}")
+        .replace('__MAP_LON__', f"{_lon:.5f}")
+    )
 
 
 def _get_js_template() -> str:
@@ -147,7 +154,7 @@ def _get_js_template() -> str:
                 spSimMap = L.map(container, {
                     zoomControl: true,
                     attributionControl: false,
-                }).setView([51.49, -0.05], 11);
+                }).setView([__MAP_LAT__, __MAP_LON__], 11);
 
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18,
@@ -164,6 +171,23 @@ def _get_js_template() -> str:
                 spSimGaugeMarkers = {};
                 spSimPropMarkers = {};
                 spSimFloodCircles = [];
+            }
+
+            // Fit the viewport to the loaded catchment's gauges + properties.
+            // The initial setView() is only a placeholder until data arrives —
+            // fitting to real coordinates keeps the map catchment-agnostic.
+            function spFitSimBounds() {
+                if (!spSimMap || !spSimMapData || !spSimMapData.frames || !spSimMapData.frames.length) return;
+                var frame = spSimMapData.frames[0];
+                var coords = [];
+                (frame.gauges || []).forEach(function(g) {
+                    if (g.lat || g.lon) coords.push([g.lat, g.lon]);
+                });
+                (frame.properties || []).forEach(function(p) {
+                    if (p.lat || p.lon) coords.push([p.lat, p.lon]);
+                });
+                if (!coords.length) return;
+                spSimMap.fitBounds(L.latLngBounds(coords), {padding: [40, 40], maxZoom: 13});
             }
 
             // ================================================================
@@ -187,6 +211,7 @@ def _get_js_template() -> str:
                         spSimMapData = data;
                         console.log('[StormPortfolio] Sim map loaded:', data.n_frames, 'frames');
                         renderSimFrame(0);
+                        spFitSimBounds();
                     })
                     .catch(function(err) {
                         if (statsBar) statsBar.innerHTML = '<span style="color:red;">Failed to load storm</span>';

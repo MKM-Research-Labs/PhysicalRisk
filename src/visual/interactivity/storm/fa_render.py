@@ -25,6 +25,8 @@ from config.format import storm_option_js as _storm_opt
 
 def get_js():
     """Return JS fragment for mini-map, data loading, and frame rendering."""
+    from . import catchment_map_center
+    _lat, _lon = catchment_map_center()
     return """
             // ================================================================
             // Leaflet mini-map
@@ -45,7 +47,7 @@ def get_js():
                 miniMap = L.map(container, {
                     zoomControl: true,
                     attributionControl: false,
-                }).setView([51.49, -0.05], 11);
+                }).setView([__MAP_LAT__, __MAP_LON__], 11);
 
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     maxZoom: 18,
@@ -61,6 +63,23 @@ def get_js():
                 gaugeMarkers = {};
                 propMarkers = {};
                 floodCircles = [];
+            }
+
+            // Fit the viewport to the loaded catchment's gauges + properties.
+            // The initial setView() is only a placeholder until data arrives —
+            // fitting to real coordinates keeps the map catchment-agnostic.
+            function fitMiniMapBounds() {
+                if (!miniMap || !animData || !animData.frames || !animData.frames.length) return;
+                var frame = animData.frames[0];
+                var coords = [];
+                (frame.gauges || []).forEach(function(g) {
+                    if (g.lat || g.lon) coords.push([g.lat, g.lon]);
+                });
+                (frame.properties || []).forEach(function(p) {
+                    if (p.lat || p.lon) coords.push([p.lat, p.lon]);
+                });
+                if (!coords.length) return;
+                miniMap.fitBounds(L.latLngBounds(coords), {padding: [40, 40], maxZoom: 13});
             }
 
             // ================================================================
@@ -122,6 +141,7 @@ def get_js():
                         document.getElementById('anim-panel-title').textContent =
                             'Flood Animation — ' + stormId + ' (' + data.n_properties_affected + ' properties)';
                         renderFrame(0);
+                        fitMiniMapBounds();
                     })
                     .catch(function(err) {
                         statsBar.innerHTML = '<span style="color:red;">Failed to load storm data</span>';
@@ -210,4 +230,6 @@ def get_js():
                 document.getElementById('anim-scrubber').value = hour;
                 document.getElementById('anim-hour-label').textContent = 'Hour ' + hour;
             }
-""".replace('__STORM_OPT__', _storm_opt('s'))
+""".replace('__STORM_OPT__', _storm_opt('s')) \
+       .replace('__MAP_LAT__', f"{_lat:.5f}") \
+       .replace('__MAP_LON__', f"{_lon:.5f}")
