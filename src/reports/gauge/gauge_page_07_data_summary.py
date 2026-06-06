@@ -32,7 +32,6 @@
 # SOFTWARE.
 
 # src/utilities/gauge_page_07_data_summary.py
-
 """
 Page 7: Comprehensive Data Summary
 Handles complete data overview, key metrics summary, and report conclusions.
@@ -45,59 +44,9 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from .gauge_page_00_base import GaugeBasePage
-
-
-class GaugeDataSummaryPage(GaugeBasePage):
+from ._gauge_page_07_data_table import _DataTableMixin
+class GaugeDataSummaryPage(_DataTableMixin, GaugeBasePage):
     """Generates the comprehensive data summary page."""
-
-    def _add_data_table(
-        self,
-        elements: List,
-        headers: List[str],
-        fields: List[tuple],
-        style_key: str = 'standard',
-        col_widths: Optional[List[float]] = None,
-        value_formatter: Optional[Callable] = None,
-    ) -> None:
-        """Build a two-column data table and append it to *elements*.
-
-        Parameters
-        ----------
-        elements:
-            The list to which the Table and trailing Spacer are appended.
-        headers:
-            Column header strings, e.g. ``["Parameter", "Value"]``.
-        fields:
-            Sequence of ``(raw_value, label)`` pairs.  Rows where
-            *raw_value* is ``None`` are silently skipped.
-        style_key:
-            Key into ``self.table_styles`` (default ``'standard'``).
-        col_widths:
-            Explicit column widths; falls back to ``self.table_widths['two_col']``.
-        value_formatter:
-            Optional ``(value, label) -> str`` callable.  When *None* the
-            default ``self._format_value`` is used.
-        """
-        data = [headers]
-        for raw_value, label in fields:
-            if raw_value is None:
-                continue
-            if value_formatter is not None:
-                formatted = value_formatter(raw_value, label)
-            else:
-                formatted = self._format_value(raw_value)
-            data.append([label, formatted])
-
-        if len(data) <= 1:
-            # Nothing beyond the header row — skip the table entirely.
-            return
-
-        widths = col_widths or self.table_widths['two_col']
-        tbl = Table(data, colWidths=widths)
-        tbl.setStyle(self.table_styles[style_key])
-        elements.append(tbl)
-        elements.append(Spacer(1, self.spacing['table_bottom']))
-
     def generate_elements(self, gauge_data: Dict[str, Any],
                          timeseries_data: Dict[str, Any] = None) -> List:
         """Generate data summary page elements."""
@@ -332,4 +281,3 @@ class GaugeDataSummaryPage(GaugeBasePage):
             ))
 
         return elements
-
