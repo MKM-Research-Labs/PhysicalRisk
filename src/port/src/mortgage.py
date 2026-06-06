@@ -260,7 +260,7 @@ class MortgagePortfolioGenerator:
             'construction_year': attrs.get('ConstructionYear', 1990),
             'property_condition': attrs.get('PropertyCondition', 'Good'),
             'flood_risk': header.get('RiskAssessment', {}).get('OverallFloodRisk', 'Low'),
-            'postcode': location.get('PostCode', 'SW1A 1AA'),
+            'postcode': location.get('PostCode', ''),
             'latitude': location.get('LatitudeDegrees', _center_lat),
             'longitude': location.get('LongitudeDegrees', _center_lon)
         }

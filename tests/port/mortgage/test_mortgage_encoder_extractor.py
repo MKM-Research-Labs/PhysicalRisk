@@ -164,6 +164,6 @@ class TestExtractPropertyInfo:
         center_lat, center_lon = get_map_center()
         gen = make_generator(tmp_path)
         info = gen._extract_property_info({"PropertyHeader": {"Header": {}}})
-        assert info["postcode"] == "SW1A 1AA"
+        assert info["postcode"] == ""
         assert abs(info["latitude"] - center_lat) < 0.01
         assert abs(info["longitude"] - center_lon) < 0.01
