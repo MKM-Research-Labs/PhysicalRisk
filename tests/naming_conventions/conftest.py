@@ -39,7 +39,7 @@ _PROPERTY_DISPLAY_FILES_PY = [
 
 _PROPERTY_DISPLAY_FILES_JS = [
     'src/visual/interactivity/property/propertyhc/panel.py',
-    'src/visual/interactivity/property/propertysa.py',
+    'src/visual/interactivity/property/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
     'src/visual/interactivity/context_menus.py',
     'src/visual/interactivity/trading/aggregate/map_view.py',
@@ -48,7 +48,7 @@ _PROPERTY_DISPLAY_FILES_JS = [
 
 # Files that build storm dropdowns — must use pipe-separated format
 _STORM_DROPDOWN_FILES = [
-    'src/visual/interactivity/storm/sp_table.py',
+    'src/visual/interactivity/storm/sp_table.js',
     'src/visual/interactivity/storm/fa_render.py',
     'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
     'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',

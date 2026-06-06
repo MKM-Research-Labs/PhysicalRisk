@@ -25,6 +25,9 @@ Interactive Chart.js tabbed panel showing property flood depth distribution,
 worst-storm rankings, flood history, and mortgage impact.
 Loads data from the /api/v1/properties/{id}/storms endpoint.
 
+The JavaScript fragment lives in the companion ``propertysa.js`` file;
+panel dimensions and sub-module fragments are substituted in at render time.
+
 Sub-modules:
 - psa_charts: Distribution (Tab 0) and Worst Storms (Tab 2)
 - psa_timeline: Flood Timeline hydrograph (Tab 1)
@@ -34,6 +37,8 @@ Sub-modules:
 from typing import Any, Dict
 
 import folium
+
+from visual.interactivity._jsbundle import js_sibling
 
 from . import psa_charts, psa_impact, psa_timeline
 
@@ -49,283 +54,14 @@ class PropertyStormAnalysis:
 
     def get_js(self) -> str:
         """Generate JavaScript for property storm analysis panel."""
-        return f"""
-        <script>
-        (function() {{
-            var PANEL_W = '{self.panel_width}';
-            var PANEL_H = '{self.panel_height}';
-            var currentChart = null;
-            var propStormPanel = null;
-            var propStormData = null;
-            var propMortgageData = null;
-            var activeTab = 0;
-
-            // ==============================================================
-            // Sub-module code (state vars + functions)
-            // ==============================================================
-{psa_charts.get_js()}
-{psa_timeline.get_js()}
-{psa_impact.get_js()}
-
-            // ================================================================
-            // Panel creation
-            // ================================================================
-            function createPanel() {{
-                if (propStormPanel) return propStormPanel;
-
-                propStormPanel = document.createElement('div');
-                propStormPanel.id = 'prop-storm-panel';
-                propStormPanel.style.cssText =
-                    'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-                    'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
-                    'display:none;flex-direction:column;font-family:Arial,sans-serif;';
-
-                // Header
-                var header = document.createElement('div');
-                header.style.cssText =
-                    'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
-                    'border-radius:8px 8px 0 0;';
-
-                var title = document.createElement('span');
-                title.id = 'prop-storm-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
-
-                var rightHeader = document.createElement('div');
-                rightHeader.style.cssText = 'display:flex;align-items:center;gap:10px;';
-
-                var status = document.createElement('span');
-                status.id = 'prop-storm-status';
-                status.style.cssText = 'font-size:11px;color:#888;';
-
-                var closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.style.cssText =
-                    'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
-                closeBtn.onclick = hidePanel;
-
-                rightHeader.appendChild(status);
-                rightHeader.appendChild(closeBtn);
-                header.appendChild(title);
-                header.appendChild(rightHeader);
-
-                // Tab bar
-                var tabBar = document.createElement('div');
-                tabBar.id = 'prop-storm-tab-bar';
-                tabBar.style.cssText =
-                    'display:flex;gap:0;border-bottom:2px solid #eee;padding:0 16px;background:#fafafa;';
-
-                var tabs = ['Distribution', 'Flood Timeline', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report', 'PRS Pricing'];
-                tabs.forEach(function(name, i) {{
-                    var tab = document.createElement('button');
-                    tab.className = 'prop-storm-tab';
-                    tab.textContent = name;
-                    tab.dataset.idx = i;
-                    if (i === 5) {{
-                        // Insurance Report: fetch PDF and show in popup
-                        tab.style.cssText =
-                            'padding:8px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:600;color:#c62828;' +
-                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:8px;';
-                        tab.title = 'View flood damage claim report';
-                        tab.onclick = async function() {{
-                            var propId = document.getElementById('prop-storm-panel') &&
-                                         document.getElementById('prop-storm-panel').dataset.propertyId;
-                            if (!propId) return;
-                            var cfg = window.__BACKEND_CONFIG || {{}};
-                            var baseUrl = cfg.url || '';
-                            tab.textContent = 'Loading...';
-                            try {{
-                                var resp = await fetch(baseUrl + '/api/v1/properties/' + propId + '/claim-report', {{mode: 'cors'}});
-                                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                                var blob = await resp.blob();
-                                var reader = new FileReader();
-                                reader.onload = function() {{
-                                    var base64 = reader.result.split(',')[1];
-                                    if (window.PropertyPDFPanel && typeof window.PropertyPDFPanel.show === 'function') {{
-                                        window.PropertyPDFPanel.show(propId, base64);
-                                    }} else {{
-                                        window.open(baseUrl + '/api/v1/properties/' + propId + '/claim-report', '_blank');
-                                    }}
-                                    tab.textContent = 'Insurance Report';
-                                }};
-                                reader.readAsDataURL(blob);
-                            }} catch (err) {{
-                                console.error('Claim report error:', err);
-                                if (window.showError) window.showError('Failed to load claim report: ' + err.message);
-                                tab.textContent = 'Insurance Report';
-                            }}
-                        }};
-                    }} else if (i === 6) {{
-                        // PRS Pricing: open PRS Pricer panel
-                        tab.style.cssText =
-                            'padding:8px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:600;color:#1565c0;' +
-                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:4px;';
-                        tab.title = 'Open PRS pricing workflow';
-                        tab.onclick = function() {{
-                            var propId = document.getElementById('prop-storm-panel') &&
-                                         document.getElementById('prop-storm-panel').dataset.propertyId;
-                            if (propId && window.viewPropertyHazard) {{
-                                window.viewPropertyHazard(propId);
-                            }}
-                        }};
-                    }} else {{
-                        tab.style.cssText =
-                            'padding:8px 16px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:500;color:#666;' +
-                            'border-bottom:2px solid transparent;margin-bottom:-2px;';
-                        tab.onclick = function() {{ switchTab(i); }};
-                    }}
-                    tabBar.appendChild(tab);
-                }});
-
-                // Content area
-                var content = document.createElement('div');
-                content.id = 'prop-storm-content';
-                content.style.cssText = 'flex:1;padding:12px 16px;overflow-y:auto;position:relative;';
-
-                propStormPanel.appendChild(header);
-                propStormPanel.appendChild(tabBar);
-                propStormPanel.appendChild(content);
-                document.body.appendChild(propStormPanel);
-                return propStormPanel;
-            }}
-
-            var pendingStormId = null;
-
-            function switchTab(idx, stormId) {{
-                activeTab = idx;
-                document.querySelectorAll('.prop-storm-tab').forEach(function(t, i) {{
-                    t.style.color = i === idx ? '#1976d2' : '#666';
-                    t.style.borderBottomColor = i === idx ? '#1976d2' : 'transparent';
-                    t.style.fontWeight = i === idx ? '700' : '500';
-                }});
-                if (!propStormData) return;
-                if (idx === 0) renderDistribution();
-                else if (idx === 1) renderTimeline(stormId || null);
-                else if (idx === 2) renderWorstStorms();
-                else if (idx === 3) renderFloodHistory();
-                else if (idx === 4) renderMortgageImpact();
-            }}
-
-            // ================================================================
-            // Show / hide / load
-            // ================================================================
-            // Commercial assets use CPROP-* ids; residential use PROP-*.
-            // The frontend panel + summary stats are identical between
-            // the two asset types; only the API URLs and the title
-            // wording differ.
-            function _isCommercialId(propertyId) {{
-                return typeof propertyId === 'string'
-                       && propertyId.indexOf('CPROP-') === 0;
-            }}
-
-            function showPanel(propertyId) {{
-                console.log('[PropertyStorm] Opening panel for', propertyId);
-                var panel = createPanel();
-                panel.dataset.propertyId = propertyId;
-                var titleLabel = _isCommercialId(propertyId)
-                    ? 'Commercial Storm Scenarios: '
-                    : 'Property Storm Scenarios: ';
-                document.getElementById('prop-storm-title').textContent =
-                    titleLabel + window.propertyDisplayName(propertyId);
-                document.getElementById('prop-storm-status').textContent = 'Loading...';
-                panel.style.display = 'flex';
-                activeTab = 0;
-                switchTab(0);
-                loadData(propertyId);
-            }}
-
-            function hidePanel() {{
-                if (propStormPanel) propStormPanel.style.display = 'none';
-                if (currentChart) {{ currentChart.destroy(); currentChart = null; }}
-                console.log('[PropertyStorm] Panel closed');
-            }}
-
-            async function loadData(propertyId) {{
-                var status = document.getElementById('prop-storm-status');
-                status.textContent = 'Loading...';
-                propMortgageData = null;
-                var isCommercial = _isCommercialId(propertyId);
-                try {{
-                    var cfg = window.__BACKEND_CONFIG || {{}};
-                    var baseUrl = cfg.url || '';
-                    // Commercial assets live at /api/v1/commercial/<id>/storms;
-                    // residential at /api/v1/properties/<id>/storms.
-                    // The response shape is identical (same flood_events,
-                    // nearest_gauges, summary keys), so all the downstream
-                    // chart-rendering code works against either.
-                    var stormsBase = isCommercial
-                        ? baseUrl + '/api/v1/commercial/'
-                        : baseUrl + '/api/v1/properties/';
-                    var url = stormsBase + propertyId + '/storms';
-                    var response = await fetch(url, {{mode: 'cors'}});
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    var data = await response.json();
-                    if (data.status !== 'success') throw new Error(data.message || 'Failed');
-                    propStormData = data;
-                    var allEvents = data.flood_events || [];
-                    var nPropertyFloods = allEvents.filter(function(e) {{ return e.flooded; }}).length;
-                    var summary = data.summary || {{}};
-                    console.log('[PropertyStorm] Loaded', allEvents.length, 'events,', nPropertyFloods, 'asset floods for', propertyId);
-                    // Refresh title with address from API response
-                    var titleEl = document.getElementById('prop-storm-title');
-                    var titleLabel = isCommercial
-                        ? 'Commercial Storm Scenarios: '
-                        : 'Property Storm Scenarios: ';
-                    if (titleEl) titleEl.textContent =
-                        titleLabel + window.propertyDisplayName(propertyId, data.property_address || '');
-                    var severeCount = summary.severe_at_nearest_gauge || summary.floods_at_nearest_gauge || 0;
-                    var floodLabel = isCommercial ? 'commercial floods' : 'property floods';
-                    status.textContent = severeCount + ' gauge severe, ' + nPropertyFloods + ' ' + floodLabel;
-
-                    // Fetch mortgage / loan data for the impact tab.
-                    // Residential pulls from /properties/<id>/rloan;
-                    // commercial has no equivalent endpoint yet, so the
-                    // tab simply renders with no loan data attached
-                    // (graceful degradation — same behaviour as a
-                    // residential property with no mortgage on file).
-                    if (!isCommercial) {{
-                        try {{
-                            var mortUrl = baseUrl + '/api/v1/properties/' + propertyId + '/rloan';
-                            var mortResp = await fetch(mortUrl, {{mode: 'cors'}});
-                            if (mortResp.ok) {{
-                                var mortData = await mortResp.json();
-                                if (mortData.status === 'success') propMortgageData = mortData.mortgage;
-                            }}
-                        }} catch(e) {{ /* mortgage data optional */ }}
-                    }}
-
-                    switchTab(activeTab);
-                }} catch (error) {{
-                    console.error('Property storm data error:', error);
-                    status.textContent = 'Error: ' + error.message;
-                    if (window.showError) window.showError('Failed to load property storm data');
-                }}
-            }}
-
-            // ================================================================
-            // Event listeners
-            // ================================================================
-            document.addEventListener('propertyStormRequested', function(e) {{
-                if (e.detail && e.detail.propertyId) showPanel(e.detail.propertyId);
-            }});
-
-            window.PropertyStormAnalysis = {{
-                show: showPanel,
-                hide: hidePanel,
-                switchTab: switchTab
-            }};
-            window.propStormSwitchTab = switchTab;
-
-            console.log('Property storm analysis ready');
-        }})();
-        </script>
-        """
+        return (
+            js_sibling(__file__)
+            .replace("__PANEL_W__", self.panel_width)
+            .replace("__PANEL_H__", self.panel_height)
+            .replace("__PSA_CHARTS_JS__", psa_charts.get_js())
+            .replace("__PSA_TIMELINE_JS__", psa_timeline.get_js())
+            .replace("__PSA_IMPACT_JS__", psa_impact.get_js())
+        )
 
     def add_to_map(self, folium_map: folium.Map) -> None:
         """Add property storm analysis to a Folium map."""
