@@ -54,7 +54,7 @@ _STORM_DROPDOWN_FILES = [
     'src/static/js/storm/fa_render.js',
     'src/static/js/gauge/gaugehc/ghc_stress_setup.js',
     'src/static/js/gauge/gaugesa/gsa_timeline.js',
-    'src/visual/interactivity/property/psa_timeline.py',
+    'src/static/js/property/psa_timeline.js',
     'src/static/js/trading/port_stress/setup.js',
     'src/static/js/trading/stress/setup_data.js',
 ]
