@@ -44,8 +44,34 @@ MAP_DEFAULT_ZOOM: int = 8
 # Default tile provider
 MAP_DEFAULT_TILES: str = 'OpenStreetMap'
 
-# Default map centre — central London (lat, lon)
+# Last-resort map centre (lat, lon) — only used if the active catchment's
+# BOUNDS cannot be read. Prefer get_map_center(), which follows the catchment
+# in play, so maps never default to a fixed region.
 MAP_DEFAULT_CENTER: Tuple[float, float] = (51.5074, -0.1278)
+
+
+def get_catchment_bounds() -> Tuple[float, float, float, float]:
+    """Return the active catchment's geographic bounds.
+
+    Bounds are ``(min_lon, min_lat, max_lon, max_lat)`` read from the
+    catchment params module (single source of truth). Raises if unavailable.
+    """
+    from config import config
+    return config.load_params_module().BOUNDS
+
+
+def get_map_center() -> Tuple[float, float]:
+    """Return ``(lat, lon)`` centre of the active catchment.
+
+    Derived from the catchment's BOUNDS so every map opens over the catchment
+    in play rather than a hardcoded region. Falls back to MAP_DEFAULT_CENTER
+    only when BOUNDS cannot be read.
+    """
+    try:
+        min_lon, min_lat, max_lon, max_lat = get_catchment_bounds()
+        return ((min_lat + max_lat) / 2.0, (min_lon + max_lon) / 2.0)
+    except Exception:
+        return MAP_DEFAULT_CENTER
 
 
 # ===========================================================================

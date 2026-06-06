@@ -157,9 +157,13 @@ class TestExtractPropertyInfo:
         gen = make_generator(tmp_path)
         assert gen._extract_property_info({"PropertyHeader": {"Header": {}}})["construction_year"] == 1990
 
-    def test_missing_location_defaults_postcode_and_coords(self, tmp_path):
+    def test_missing_location_defaults_to_catchment_centre(self, tmp_path):
+        """Missing coords fall back to the active catchment centre, not a
+        hardcoded London point."""
+        from config.visual import get_map_center
+        center_lat, center_lon = get_map_center()
         gen = make_generator(tmp_path)
         info = gen._extract_property_info({"PropertyHeader": {"Header": {}}})
         assert info["postcode"] == "SW1A 1AA"
-        assert abs(info["latitude"] - 51.5) < 0.01
-        assert abs(info["longitude"] + 0.1) < 0.01
+        assert abs(info["latitude"] - center_lat) < 0.01
+        assert abs(info["longitude"] - center_lon) < 0.01

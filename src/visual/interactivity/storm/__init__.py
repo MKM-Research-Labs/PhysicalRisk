@@ -19,3 +19,13 @@
 # SOFTWARE.
 
 """Storm simulation and flood animation interactivity modules."""
+
+
+def catchment_map_center():
+    """Return ``(lat, lon)`` centre of the active catchment for map init.
+
+    Thin wrapper over :func:`config.visual.get_map_center` — the single
+    source of truth — so the storm maps open over the catchment in play.
+    """
+    from config.visual import get_map_center
+    return get_map_center()

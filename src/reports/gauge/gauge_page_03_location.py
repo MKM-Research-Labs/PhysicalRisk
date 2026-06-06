@@ -43,6 +43,7 @@ from typing import Any, Dict, List
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from config.format import gauge_title_py
+from config.visual import get_catchment_bounds
 
 from .gauge_page_00_base import GaugeBasePage
 
@@ -166,13 +167,23 @@ class GaugeLocationPage(GaugeBasePage):
             distance_to_thames = thames_info.get('DistanceToThamesMeters', 0)
 
             if latitude is not None:
-                if latitude > 51.5:
-                    lat_desc = "North London area"
-                elif latitude > 51.4:
-                    lat_desc = "Central London area"
-                else:
-                    lat_desc = "South London area"
-                summary_data.append(["Regional Position", lat_desc])
+                # Classify north/central/south relative to the active
+                # catchment's own latitude span — no hardcoded region.
+                lat_desc = None
+                try:
+                    _, min_lat, _, max_lat = get_catchment_bounds()
+                    third = (max_lat - min_lat) / 3.0
+                    if third > 0:
+                        if latitude >= min_lat + 2 * third:
+                            lat_desc = "Northern part of catchment"
+                        elif latitude >= min_lat + third:
+                            lat_desc = "Central part of catchment"
+                        else:
+                            lat_desc = "Southern part of catchment"
+                except Exception:
+                    lat_desc = None
+                if lat_desc:
+                    summary_data.append(["Regional Position", lat_desc])
 
             if distance_to_thames == 0:
                 summary_data.append(["River Position", "Directly on Thames River"])
