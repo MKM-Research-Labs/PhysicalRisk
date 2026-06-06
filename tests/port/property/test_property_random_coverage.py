@@ -33,7 +33,7 @@ class TestGeneratorExceptionFallback:
         # PropertyValue is a registered generator. If it raises, should fallback.
         field_def = {"type": "number"}
         with patch(
-            "port.rand.thames.property.property_random.generators.get_field_generators",
+            "port.rand.thames.property.property_random.generators._value.get_field_generators",
             return_value={"PropertyValue": lambda _: (_ for _ in ()).throw(ValueError("boom"))},
         ):
             result = generate_field_value("PropertyValue", field_def, 0, metadata)
