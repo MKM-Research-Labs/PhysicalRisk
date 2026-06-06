@@ -18,14 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Property storm-analysis — flood history and mortgage impact tabs.
+"""Business-day calendar helper for the historical EOD simulation."""
 
-The JavaScript fragment lives in the companion ``psa_impact.js`` file.
-"""
-
-from visual.interactivity._jsbundle import js_sibling
+from datetime import date, timedelta
+from typing import List
 
 
-def get_js() -> str:
-    """Return JS fragment for flood history and mortgage impact tabs."""
-    return js_sibling(__file__)
+def _business_days(start: date, count: int) -> List[date]:
+    """Generate a list of business days (Mon-Fri) ending at start."""
+    days = []
+    d = start
+    while len(days) < count:
+        d -= timedelta(days=1)
+        if d.weekday() < 5:  # Mon=0, Fri=4
+            days.append(d)
+    days.reverse()
+    return days

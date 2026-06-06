@@ -17,15 +17,34 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""
+Historical EOD series generator.
 
-"""Property storm-analysis — flood history and mortgage impact tabs.
+Simulates 3 months (~63 business days) of trading history:
+1. Starts with an empty portfolio
+2. Adds trades one-at-a-time from the book (one per day up to ~50)
+3. Applies a random walk to hazard term structures each day
+4. Saves market state, revalues all open trades, generates EOD snapshots
 
-The JavaScript fragment lives in the companion ``psa_impact.js`` file.
+This produces realistic daily P&L, running P&L, and curve history data
+for the Curves tab and EOD P&L charts.
 """
 
-from visual.interactivity._jsbundle import js_sibling
+from config.port import DAILY_HAZARD_VOL, MAX_TOTAL_MOVE, NUM_BUSINESS_DAYS
 
+from ._business_days import _business_days
+from ._history import (
+    generate_hazard_curve_history_file,
+    generate_trade_pnl_history_file,
+)
+from ._series import generate_historical_eod_series
 
-def get_js() -> str:
-    """Return JS fragment for flood history and mortgage impact tabs."""
-    return js_sibling(__file__)
+__all__ = [
+    "_business_days",
+    "generate_hazard_curve_history_file",
+    "generate_trade_pnl_history_file",
+    "generate_historical_eod_series",
+    "DAILY_HAZARD_VOL",
+    "MAX_TOTAL_MOVE",
+    "NUM_BUSINESS_DAYS",
+]
