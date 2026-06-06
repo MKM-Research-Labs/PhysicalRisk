@@ -22,6 +22,7 @@ from typing import Any, Dict
 
 import folium
 
+from visual.interactivity._jsbundle import js_static
 from visual.interactivity.panel_mixin import FoliumPanelMixin
 from .. import phc_hazard, phc_term, phc_prs, phc_basis
 from .. import phc_basis_gauge, phc_basis_she, phc_basis_shd, phc_basis_property
@@ -39,111 +40,31 @@ class PropertyHazardCurvePanel(FoliumPanelMixin):
         self.panel_height = panel_height
 
     def get_js(self) -> str:
-        """Generate JavaScript for property hazard curve panel."""
-        return f"""
-        <script>
-        (function() {{
-            var PANEL_W = '{self.panel_width}';
-            var PANEL_H = '{self.panel_height}';
-            var currentChart = null;
-            var phcPanel = null;
-            var phcData = null;
-            var counterpartyData = [];
+        """Generate JavaScript for property hazard curve panel.
 
-            // ==============================================================
-            // Sub-module code (state vars + functions)
-            // ==============================================================
-{phc_hazard.get_js()}
-{phc_term.get_js()}
-{phc_prs.get_js()}
-{phc_basis.get_js()}
-{phc_basis_waterfall.get_js()}
-{phc_peril_outcomes.get_js()}
-{phc_basis_gauge.get_js()}
-{phc_basis_she.get_js()}
-{phc_basis_shd.get_js()}
-{phc_basis_property.get_js()}
-
-            // ==============================================================
-            // Panel creation
-            // ==============================================================
-{panel_create.get_js()}
-
-            // ==============================================================
-            // Tab switching
-            // ==============================================================
-{panel_tabs.get_js()}
-
-            // ==============================================================
-            // Show / Hide
-            // ==============================================================
-            function showPanel(propertyId) {{
-                console.log('[PropertyHazard] Opening panel for', propertyId);
-                var panel = createPanel();
-                panel.dataset.propertyId = propertyId;
-                var isCommercial = (typeof propertyId === 'string'
-                                     && propertyId.indexOf('CPROP-') === 0);
-                var titleLabel = isCommercial
-                    ? 'Commercial PRS Pricer: '
-                    : 'PRS Pricer: ';
-                document.getElementById('phc-panel-title').textContent =
-                    titleLabel + window.propertyDisplayName(propertyId);
-                document.getElementById('phc-status').textContent = 'Loading...';
-                panel.style.display = 'flex';
-
-                activeTab = 0;
-                switchTab(0);
-                loadData(propertyId);
-            }}
-
-            function hidePanel() {{
-                if (phcPanel) phcPanel.style.display = 'none';
-                if (currentChart) {{ currentChart.destroy(); currentChart = null; }}
-                if (basisGaugeChart) {{ basisGaugeChart.destroy(); basisGaugeChart = null; }}
-                if (basisSHEChart) {{ basisSHEChart.destroy(); basisSHEChart = null; }}
-                if (basisSHDChart) {{ basisSHDChart.destroy(); basisSHDChart = null; }}
-                if (basisPropertyChart) {{ basisPropertyChart.destroy(); basisPropertyChart = null; }}
-                if (_basisWaterfallChart) {{ _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }}
-                if (_perilOutcomesChart) {{ _perilOutcomesChart.destroy(); _perilOutcomesChart = null; }}
-                var subBar = document.getElementById('phc-basis-subtab-bar');
-                if (subBar) subBar.remove();
-                basisSelectedStorm = null;
-                basisActiveSubTab = 0;
-                phcData = null;
-                console.log('[PropertyHazard] Panel closed');
-            }}
-
-            // ==============================================================
-            // Data loading
-            // ==============================================================
-{panel_data.get_js()}
-
-            // ==============================================================
-            // Basis summary strip — storm journey at a glance
-            // ==============================================================
-{panel_basis_strip.get_js()}
-
-            // ==============================================================
-            // Event listeners
-            // ==============================================================
-            document.addEventListener('propertyHazardRequested', function(e) {{
-                if (e.detail && e.detail.propertyId) showPanel(e.detail.propertyId);
-            }});
-
-            document.addEventListener('keydown', function(e) {{
-                if (e.key === 'Escape' && phcPanel && phcPanel.style.display !== 'none') {{
-                    hidePanel();
-                }}
-            }});
-
-            window.PropertyHazardCurvePanel = {{
-                show: showPanel,
-                hide: hidePanel
-            }};
-
-            console.log('Property hazard curve panel ready');
-        }})();
-        </script>
+        The IIFE shell lives in ``src/static/js/propertyhc-panel.js``; panel
+        dimensions and every sub-module fragment are spliced in via
+        ``__TOKEN__`` placeholders.
         """
+        js = (
+            js_static('propertyhc-panel.js')
+            .replace('__PANEL_W__', self.panel_width)
+            .replace('__PANEL_H__', self.panel_height)
+            .replace('__PHC_HAZARD_JS__', phc_hazard.get_js())
+            .replace('__PHC_TERM_JS__', phc_term.get_js())
+            .replace('__PHC_PRS_JS__', phc_prs.get_js())
+            .replace('__PHC_BASIS_JS__', phc_basis.get_js())
+            .replace('__PHC_BASIS_WATERFALL_JS__', phc_basis_waterfall.get_js())
+            .replace('__PHC_PERIL_OUTCOMES_JS__', phc_peril_outcomes.get_js())
+            .replace('__PHC_BASIS_GAUGE_JS__', phc_basis_gauge.get_js())
+            .replace('__PHC_BASIS_SHE_JS__', phc_basis_she.get_js())
+            .replace('__PHC_BASIS_SHD_JS__', phc_basis_shd.get_js())
+            .replace('__PHC_BASIS_PROPERTY_JS__', phc_basis_property.get_js())
+            .replace('__PHC_PANEL_CREATE_JS__', panel_create.get_js())
+            .replace('__PHC_PANEL_TABS_JS__', panel_tabs.get_js())
+            .replace('__PHC_PANEL_DATA_JS__', panel_data.get_js())
+            .replace('__PHC_PANEL_BASIS_STRIP_JS__', panel_basis_strip.get_js())
+        )
+        return f"<script>\n{js}\n</script>"
 
     # add_to_map, configure, get_statistics inherited from FoliumPanelMixin
