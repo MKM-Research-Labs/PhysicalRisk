@@ -615,6 +615,7 @@ def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
         ('code modularisation analysis',   'docs.models.project'),
         ('code duplication analysis',      'docs.models.duplication'),
         ('hard-coding parameter audit',    'docs.models.hardcoding'),
+        ('embedded JS/CSS audit',          'docs.models.embedded_js'),
         ('data lineage report (BCBS 239)', 'docs.models.data_lineage'),
         ('full audit report',              'docs.models.full_audit'),
     ):
@@ -818,6 +819,7 @@ def cmd_test(args):
         ('Large Test Report TXT',  os.path.join(audit_dir, 'large_test_report.txt')),
         ('Code Duplication PDF',   os.path.join(audit_dir, 'code_duplication_report.pdf')),
         ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
+        ('Embedded JS/CSS PDF',    os.path.join(audit_dir, 'embedded_js_report.pdf')),
         ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
         ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
     ]

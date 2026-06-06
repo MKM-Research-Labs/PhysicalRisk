@@ -244,6 +244,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
         'large_file_report.pdf &nbsp;|&nbsp; large_test_report.txt &nbsp;|&nbsp; '
         'code_duplication_report.pdf &nbsp;|&nbsp; '
         'hardcoding_report.pdf &nbsp;|&nbsp; '
+        'embedded_js_report.pdf &nbsp;|&nbsp; '
         'coverage/ (HTML) &nbsp;|&nbsp; '
         'junit.xml &nbsp;|&nbsp; coverage.xml',
         styles['small']))
