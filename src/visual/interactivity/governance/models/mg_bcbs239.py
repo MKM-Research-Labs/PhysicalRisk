@@ -28,9 +28,9 @@
 The JavaScript fragment lives in the companion ``mg_bcbs239.js`` file.
 """
 
-from visual.interactivity._jsbundle import js_sibling
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js():
     """Return JS fragment for BCBS 239 compliance dashboard."""
-    return js_sibling(__file__)
+    return js_static('mg-bcbs239.js')

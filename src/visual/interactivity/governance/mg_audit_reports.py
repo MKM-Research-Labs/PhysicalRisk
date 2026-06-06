@@ -26,9 +26,9 @@ test-run panel. The JavaScript fragment lives in the companion
 ``mg_audit_reports.js`` file.
 """
 
-from visual.interactivity._jsbundle import js_sibling
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js():
     """Return JS fragment for the Audit Reports tab."""
-    return js_sibling(__file__)
+    return js_static('mg-audit-reports.js')

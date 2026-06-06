@@ -38,7 +38,7 @@ and storm-list / portfolio-impact loaders (which reads the
 
 from config.format import storm_option_js as _storm_opt
 
-from visual.interactivity._jsbundle import js_sibling
+from visual.interactivity._jsbundle import js_static
 
 from . import (
     sp_table_blotter,
@@ -53,11 +53,11 @@ from . import (
 def get_js() -> str:
     """Return JS fragment for table tab (injected into parent IIFE).
 
-    The state / DOM / loader JavaScript lives in the companion
-    ``sp_table.js`` file; sub-tab fragments come from sibling modules.
+    The state / DOM / loader JavaScript lives in ``static/js/sp-table.js``;
+    sub-tab fragments come from sibling modules.
     """
     js = (
-        js_sibling(__file__)
+        js_static('sp-table.js')
         + sp_table_blotter.get_js()
         + sp_table_commercial.get_js()
         + sp_table_damage.get_js()
