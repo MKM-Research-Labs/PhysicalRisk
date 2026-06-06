@@ -116,8 +116,13 @@ class TestFloodPolyJsHasNoHardcodedStormHours:
 
     def test_fpStormHours_is_not_hardcoded(self):
         from pathlib import Path
+        from tests.visual.conftest import _augment_with_static
+        repo = str(Path('.').resolve())
         setup = Path('src/visual/interactivity/trading/port_stress/setup.py')
-        src = setup.read_text()
+        # The factory JS body now lives in src/static/js/trading/port_stress/
+        # setup.js (returned via js_static()); fold it back in so the source
+        # assertions see the migrated JS.
+        src = _augment_with_static(setup.read_text(), repo)
         # The literal form "var _fpStormHours = 168;" is the known bug.
         # We want a getter that reads from window.__STORM_CONTROL_HOURS.
         assert 'var _fpStormHours = 168' not in src, (
