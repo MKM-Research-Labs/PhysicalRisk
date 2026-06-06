@@ -39,230 +39,33 @@ import io
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-# ---------------------------------------------------------------------------
-# Lookup tables  (CDM value → OED integer code)
-# ---------------------------------------------------------------------------
+from port.cdm.oed_export._lookups import (
+    _BUILDING_CONDITION,
+    _CLADDING,
+    _CONSTRUCTION_CODE,
+    _FOUNDATION_CODE,
+    _OCCUPANCY_CODE,
+    _ROOF_ANCHORAGE,
+    _SEP,
+    _SOIL_LIQUEFIABLE,
+    _SOIL_TYPE,
+    _TERRAIN_ROUGHNESS,
+    _WINDOW_PROTECTION,
+)
+from port.cdm.oed_export._helpers import (
+    _bri_user_defs,
+    _currency,
+    _lookup,
+    _perils_covered,
+    _street_address,
+)
 
-# OED OccupancyCode — OED v5 Chapter 3 Appendix A
-# CDM OccupancyType / PropertyResi → OED 4-digit code
-_OCCUPANCY_CODE: Dict[str, int] = {
-    # Residential
-    "Residential owner-occupied":     1000,
-    "Residential rented":             1000,
-    "Residential social":             1000,
-    "Detached house":                 1050,
-    "Semi-detached house":            1050,
-    "Terraced house":                 1050,
-    "Bungalow":                       1050,
-    "Flat":                           1100,
-    "Maisonette":                     1100,
-    "Apartment":                      1100,
-    "Studio":                         1100,
-    # Commercial
-    "Commercial":                     1150,
-    "Office":                         1160,
-    "Retail":                         1170,
-    "Restaurant":                     1180,
-    "Hotel":                          1190,
-    # Industrial
-    "Industrial":                     1200,
-    "Warehouse":                      1210,
-    "Factory":                        1210,
-    "Mixed Use":                      1300,
-}
+__all__ = [
+    "cdm_to_oed_row",
+    "cdm_to_oed_rows",
+    "export_oed_csv",
+]
 
-# OED ConstructionCode — Chapter 3 Appendix B
-# CDM ConstructionType → OED code
-_CONSTRUCTION_CODE: Dict[str, int] = {
-    "Brick":                     5000,
-    "Stone":                     5010,
-    "Concrete":                  5050,
-    "Reinforced Concrete":       5055,
-    "Timber frame":              5100,
-    "Steel frame":               5150,
-    "Steel":                     5150,
-    "Masonry":                   5010,
-    "Mixed":                     5999,
-    "Other":                     5999,
-}
-
-# OED FoundationType — Chapter 3 Appendix C
-# CDM FoundationType → OED code
-_FOUNDATION_CODE: Dict[str, int] = {
-    "Strip foundations":         1,
-    "Pad foundations":           2,
-    "Raft foundations":          3,
-    "Pile foundations":          4,
-    "Deep foundations":          4,
-    "Basement":                  5,
-    "Slab on grade":             6,
-    "Unknown":                   99,
-    "Other":                     99,
-}
-
-# OED BuildingCondition — CDM PropertyCondition → OED code
-# OED: 1=Good, 2=Average, 3=Poor
-_BUILDING_CONDITION: Dict[str, int] = {
-    "Excellent":   1,
-    "Good":        1,
-    "Average":     2,
-    "Fair":        2,
-    "Poor":        3,
-    "Very poor":   3,
-}
-
-# OED TerrainRoughness — CDM UrbanRuralClassification → OED
-# OED: 1=Open, 2=Rural, 3=Suburban, 4=Urban, 5=Dense urban
-_TERRAIN_ROUGHNESS: Dict[str, int] = {
-    "Rural":         2,
-    "Semi-rural":    2,
-    "Suburban":      3,
-    "Urban":         4,
-    "Dense urban":   5,
-}
-
-# OED SoilType — CDM SoilType → OED (NEHRP site class)
-# OED: 1=Rock(A/B), 2=Stiff soil(C), 3=Soft soil(D), 4=Very soft(E), 5=Mixed
-_SOIL_TYPE: Dict[str, int] = {
-    "Rock":          1,
-    "Chalk":         1,
-    "Hard":          1,
-    "Gravel":        2,
-    "Clay":          3,
-    "Sand":          3,
-    "Alluvial":      3,
-    "Peat":          4,
-    "Soft":          4,
-    "Mixed":         5,
-}
-
-# OED SoilLiquefiable — CDM LiquefactionMitigationProvided inverse proxy
-# "Not assessed" / absent → 1 (unknown); "Partial"/"Verified" → 0 (no/mitigated)
-_SOIL_LIQUEFIABLE: Dict[str, int] = {
-    "Not assessed":  1,
-    "Partial":       0,
-    "Verified":      0,
-    "Enhanced":      0,
-}
-
-# OED ServiceEquipmentProtection — CDM ElectricalSystemsAboveFlood proxy
-_SEP: Dict[str, int] = {
-    "Not assessed":  0,
-    "Partial":       1,
-    "Verified":      2,
-    "Enhanced":      2,
-}
-
-# OED PerilsCovered codes (bitfield-style, represented as OED string)
-# Derived from CDM HazardProfile classes: None/Low/Medium/High/Extreme
-_HAZARD_OASIS_CODE: Dict[str, str] = {
-    "FloodHazardClass":   "WF",   # Windstorm Flood
-    "WindHazardClass":    "WSS",  # Windstorm Straight-line
-    "SeismicHazardClass": "QEQ",  # Earthquake
-    "FireHazardClass":    "BFR",  # Bushfire
-}
-_HAZARD_ACTIVE_CLASSES = {"Medium", "High", "Extreme", "Very High"}
-
-# OED RoofAnchorage proxy from roof-related CDM booleans
-# "RoofRatedForDesignWind" / "RoofEdgeDetailWindResistant"
-_ROOF_ANCHORAGE: Dict[str, int] = {
-    "Not assessed":  1,
-    "Partial":       2,
-    "Verified":      3,
-    "Enhanced":      3,
-}
-
-# OED WindowProtection proxy from OpeningsWindResistant
-_WINDOW_PROTECTION: Dict[str, int] = {
-    "Not assessed":  0,
-    "Partial":       1,
-    "Verified":      2,
-    "Enhanced":      2,
-}
-
-# OED CladdingType proxy from CladdingRatedForDesignWind
-_CLADDING: Dict[str, int] = {
-    "Not assessed":  0,
-    "Partial":       1,
-    "Verified":      2,
-    "Enhanced":      2,
-}
-
-
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-def _currency() -> str:
-    """ISO 4217 currency code for the active catchment (OED LocCurrency).
-
-    Function-local import keeps oed_export importable without forcing a
-    config load at module import time. Falls back to GBP defensively.
-    """
-    try:
-        from config import config
-        return config.CURRENCY
-    except Exception:
-        return "GBP"
-
-
-def _lookup(table: Dict[str, int], key: Optional[str], default: int = 0) -> int:
-    if key is None:
-        return default
-    return table.get(key, default)
-
-
-def _lookup_str(table: Dict[str, str], key: Optional[str], default: str = "") -> str:
-    if key is None:
-        return default
-    return table.get(key, default)
-
-
-def _perils_covered(hazard_profile: dict) -> str:
-    """Build the OED LocPerilsCovered string from CDM HazardProfile.
-
-    WF (flood) is always included unless FloodHazardClass is explicitly None —
-    this is a flood risk platform and every property is subject to flood modelling.
-    All other perils require Medium or above to be included.
-    """
-    active = []
-    flood_class = hazard_profile.get("FloodHazardClass")
-    if flood_class not in (None, "None", ""):
-        active.append("WF")
-    for cdm_field, oasis_code in _HAZARD_OASIS_CODE.items():
-        if oasis_code == "WF":
-            continue
-        val = hazard_profile.get(cdm_field)
-        if val and val in _HAZARD_ACTIVE_CLASSES:
-            active.append(oasis_code)
-    return ";".join(active) if active else "WF"
-
-
-def _street_address(location: dict) -> str:
-    parts = [
-        location.get("BuildingNumber", ""),
-        location.get("StreetName", ""),
-    ]
-    return " ".join(p for p in parts if p).strip()
-
-
-def _bri_user_defs(governing: dict, ref_gauges: list) -> dict:
-    """Pack BRI fields into OED LocUserDef slots 1–5."""
-    sub_scores = "|".join(str(governing.get(f"BRI{h}Score", "")) for h in ("Flood", "Wind", "Fire", "Seismic"))
-    sub_ratings = "|".join(governing.get(f"BRI{h}Rating", "N/A") for h in ("Flood", "Wind", "Fire", "Seismic"))
-    gauges = "|".join(ref_gauges[:3]) if ref_gauges else ""
-    return {
-        "LocUserDef1": governing.get("BRIRating", ""),
-        "LocUserDef2": str(round(governing.get("BRIScore", 0.0), 4)),
-        "LocUserDef3": sub_scores,
-        "LocUserDef4": sub_ratings,
-        "LocUserDef5": gauges,
-    }
-
-
-# ---------------------------------------------------------------------------
-# Main converter
-# ---------------------------------------------------------------------------
 
 _OED_FIELDS = [
     "PortNumber", "AccNumber", "LocNumber", "IsTenant",
