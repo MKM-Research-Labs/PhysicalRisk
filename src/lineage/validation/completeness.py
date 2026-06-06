@@ -102,7 +102,9 @@ def validate_full_chain() -> dict:
     recorded = set(manifest.get("steps", {}).keys())
     all_steps = set(_val.DEPENDENCY_GRAPH.keys())
 
-    missing_steps = sorted(all_steps - recorded)
+    # Optional steps are opt-in: their absence from the manifest means the
+    # catchment didn't enable them, not that the chain is broken.
+    missing_steps = sorted(all_steps - recorded - _val.OPTIONAL_STEPS)
     stale_steps: list[str] = []
     details: dict[str, list[str]] = {}
 

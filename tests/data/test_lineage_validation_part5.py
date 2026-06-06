@@ -19,12 +19,14 @@ class TestValidateFullChain:
 
     def test_empty_manifest(self):
         from lineage.validation import validate_full_chain
-        from lineage.manifest import DEPENDENCY_GRAPH
+        from lineage.manifest import DEPENDENCY_GRAPH, OPTIONAL_STEPS
         with patch("lineage.validation.load_manifest", return_value=_make_manifest({})):
             result = validate_full_chain()
         assert not result["is_consistent"]
-        # Every registered step should appear as missing
-        assert len(result["missing_steps"]) == len(DEPENDENCY_GRAPH)
+        # Every required (non-optional) step should appear as missing;
+        # opt-in steps absent from the manifest are not flagged.
+        assert len(result["missing_steps"]) == len(
+            set(DEPENDENCY_GRAPH) - OPTIONAL_STEPS)
 
     def test_consistent_chain(self):
         from lineage.validation import validate_full_chain
