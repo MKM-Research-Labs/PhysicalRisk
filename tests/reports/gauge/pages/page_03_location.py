@@ -98,23 +98,23 @@ class TestGaugeLocationPage:
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("Positioning Summary" in t for t in texts)
 
-    def test_lat_north_london(self):
-        """Latitude > 51.5 → 'North London area'."""
+    def test_lat_northern_catchment(self):
+        """Latitude in the top third of catchment bounds → 'Northern part'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(lat=51.6))
-        assert "North London area" in str(result)
+        assert "Northern part of catchment" in str(result)
 
-    def test_lat_central_london(self):
-        """Latitude 51.4–51.5 → 'Central London area'."""
+    def test_lat_central_catchment(self):
+        """Latitude in the middle third of catchment bounds → 'Central part'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(lat=51.45))
-        assert "Central London area" in str(result)
+        assert "Central part of catchment" in str(result)
 
-    def test_lat_south_london(self):
-        """Latitude < 51.4 → 'South London area'."""
+    def test_lat_southern_catchment(self):
+        """Latitude in the bottom third of catchment bounds → 'Southern part'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(lat=51.3))
-        assert "South London area" in str(result)
+        assert "Southern part of catchment" in str(result)
 
     def test_distance_zero_on_thames(self):
         """Distance == 0 → 'On Thames River' and 'Directly on Thames'."""

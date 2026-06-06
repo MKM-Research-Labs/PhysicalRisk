@@ -41,7 +41,12 @@ from typing import List, Optional, Tuple, Union
 
 import folium
 
-from config.visual import MAP_DEFAULT_CENTER, MAP_DEFAULT_TILES, MAP_DEFAULT_ZOOM
+from config.visual import (
+    MAP_DEFAULT_CENTER,
+    MAP_DEFAULT_TILES,
+    MAP_DEFAULT_ZOOM,
+    get_map_center,
+)
 from .zoom_bounds import calculate_zoom_for_range, calculate_bounds
 from .controls import MapControls
 
@@ -102,10 +107,10 @@ class MapBuilder:
                 max_range = max(bounds['lat_range'], bounds['lon_range'])
                 map_zoom = zoom or calculate_zoom_for_range(max_range, padding_factor)
             else:
-                map_center = self.DEFAULT_CENTER
+                map_center = get_map_center()
                 map_zoom = self.default_zoom
         else:
-            map_center = self.DEFAULT_CENTER
+            map_center = get_map_center()
             map_zoom = zoom or self.default_zoom
 
         # Create map

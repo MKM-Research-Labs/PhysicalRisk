@@ -30,7 +30,9 @@ Embedded Leaflet map showing:
 
 def get_js() -> str:
     """Return JavaScript fragment for the aggregate view tab."""
-    return """
+    from config.visual import get_map_center
+    _lat, _lon = get_map_center()
+    return ("""
             // ==============================================================
             // Aggregate View (was Map tab)
             // ==============================================================
@@ -94,7 +96,7 @@ def get_js() -> str:
                 }
 
                 // Create map
-                tdTradeMap = L.map(container, {zoomControl: true}).setView([51.48, -0.22], 13);
+                tdTradeMap = L.map(container, {zoomControl: true}).setView([__MAP_LAT__, __MAP_LON__], 13);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '\\u00a9 OpenStreetMap',
                     maxZoom: 18
@@ -315,4 +317,4 @@ def get_js() -> str:
                     tdTradeMap = null;
                 }
             }
-"""
+""".replace('__MAP_LAT__', f"{_lat:.5f}").replace('__MAP_LON__', f"{_lon:.5f}"))
