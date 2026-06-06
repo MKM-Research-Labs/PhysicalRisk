@@ -59,6 +59,7 @@ GENERATORS = {
     'stormmulti': ('Storm Sequence', 'docs.models.sensitivities.storm_multi.generator'),
     'gaugehd': ('GaugeHD Synthetic', 'docs.models.sensitivities.gaugehd_synthetic.generator'),
     'bri': ('Building Resilience Index', 'docs.models.sensitivities.bri_resilience.generator'),
+    'fire': ('Fire-Resilience Credit', 'docs.models.sensitivities.fire_resilience.generator'),
 }
 
 
