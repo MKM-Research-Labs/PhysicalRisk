@@ -39,9 +39,14 @@ _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 
 
 def _src(rel_path: str) -> str:
-    """Read a source file relative to repo root."""
+    """Read a source file relative to repo root.
+
+    JS factory bodies now live in src/static/js (returned via js_static());
+    fold any referenced asset back in so substring assertions still see the JS.
+    """
+    from tests.visual.conftest import _augment_with_static
     with open(os.path.join(_REPO, rel_path)) as f:
-        return f.read()
+        return _augment_with_static(f.read(), _REPO)
 
 
 # ---------------------------------------------------------------------------

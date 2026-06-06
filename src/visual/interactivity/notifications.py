@@ -43,6 +43,8 @@ from typing import Any, Dict
 
 import folium
 
+from visual.interactivity._jsbundle import js_static
+
 
 class NotificationType(Enum):
     """Notification types with associated styling."""
@@ -98,19 +100,7 @@ class NotificationSystem:
 
     def _build_position_css(self) -> str:
         """Build CSS for position mapping."""
-        return """
-        function getPositionStyles(pos) {
-            const positions = {
-                'top-right': 'top:20px;right:20px;',
-                'top-left': 'top:20px;left:20px;',
-                'top-center': 'top:20px;left:50%;transform:translateX(-50%);',
-                'bottom-right': 'bottom:20px;right:20px;',
-                'bottom-left': 'bottom:20px;left:20px;',
-                'bottom-center': 'bottom:20px;left:50%;transform:translateX(-50%);'
-            };
-            return positions[pos] || positions['top-right'];
-        }
-        """
+        return js_static('notifications_position.js')
 
     def get_js(self) -> str:
         """Generate the notification system CSS and JavaScript."""

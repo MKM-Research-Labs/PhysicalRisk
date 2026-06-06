@@ -146,8 +146,9 @@ class TestPreloadDoneScoping:
         import os
         repo = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__)))))
+        from tests.visual.conftest import _augment_with_static
         with open(os.path.join(repo, 'src/visual/interactivity/startup.py')) as f:
-            src = f.read()
+            src = _augment_with_static(f.read(), repo)
         assert 'window._tdPreloadDone = false' in src, (
             'startup.py must use window._tdPreloadDone = false so other IIFEs can read it'
         )
@@ -160,8 +161,9 @@ class TestPreloadDoneScoping:
         import os
         repo = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__)))))
+        from tests.visual.conftest import _augment_with_static
         with open(os.path.join(repo, 'src/visual/interactivity/startup.py')) as f:
-            src = f.read()
+            src = _augment_with_static(f.read(), repo)
         assert 'window._tdPreloadDone = true' in src
 
     def test_tradingdesk_reads_window_preload_done(self):
@@ -178,8 +180,9 @@ class TestPreloadDoneScoping:
         import os
         repo = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__)))))
+        from tests.visual.conftest import _augment_with_static
         with open(os.path.join(repo, 'src/visual/interactivity/trading/preloader.py')) as f:
-            src = f.read()
+            src = _augment_with_static(f.read(), repo)
         assert 'window._tdPreloadDone = true' in src
 
 

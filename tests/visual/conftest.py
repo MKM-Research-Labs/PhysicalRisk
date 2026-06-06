@@ -42,10 +42,28 @@ import sys
 _IIFE_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _IIFE_SRC = os.path.join(_IIFE_REPO, 'src')
 
+# JS/CSS factory bodies were migrated out of the .py shells into the central
+# src/static tree (returned via js_static()/css_static()). Source-text contract
+# tests still want to see that JS, so when a shell references a static asset we
+# fold the asset's contents back in. This keeps the "JS lives on disk, not in
+# Python" rule while letting substring assertions stay pointed at the .py.
+_STATIC_REF_RE = re.compile(r"(js|css)_static\(\s*['\"]([^'\"]+)['\"]")
+
+
+def _augment_with_static(src: str, repo: str) -> str:
+    extra = []
+    for kind, name in _STATIC_REF_RE.findall(src):
+        asset = os.path.join(repo, 'src', 'static', kind, name)
+        if os.path.exists(asset):
+            with open(asset) as f:
+                extra.append(f.read())
+    return src + ('\n' + '\n'.join(extra) if extra else '')
+
 
 def iife_src_file(rel: str) -> str:
     with open(os.path.join(_IIFE_REPO, rel)) as f:
-        return f.read()
+        src = f.read()
+    return _augment_with_static(src, _IIFE_REPO)
 
 
 def iife_has_node() -> bool:
