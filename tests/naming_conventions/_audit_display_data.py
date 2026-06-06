@@ -83,7 +83,7 @@ _PROPERTY_COMPLIANT_JS = [
     'src/visual/interactivity/property/propertyhc/panel.py',
     'src/visual/interactivity/property/propertyhc/panel_data.py',
     'src/visual/interactivity/property/propertydetails.py',
-    'src/visual/interactivity/property/propertysa.py',
+    'src/visual/interactivity/property/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
     'src/visual/interactivity/context_menus.py',
     'src/visual/interactivity/trading/aggregate/map_view.py',
