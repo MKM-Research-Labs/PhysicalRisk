@@ -37,18 +37,20 @@ _PROPERTY_DISPLAY_FILES_PY = [
     'src/reports/risk/risk_page_06_property_details.py',
 ]
 
+# Panel JS migrated out of the .py shells into src/static/js
+# (see "Extract … inline JS to static/js" commits).
 _PROPERTY_DISPLAY_FILES_JS = [
-    'src/visual/interactivity/property/propertyhc/panel.py',
-    'src/visual/interactivity/property/propertysa.js',
+    'src/static/js/propertyhc-panel.js',
+    'src/static/js/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
-    'src/visual/interactivity/context_menus.py',
+    'src/static/js/nav-menus.js',
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/trading/client/table.py',
 ]
 
 # Files that build storm dropdowns — must use pipe-separated format
 _STORM_DROPDOWN_FILES = [
-    'src/visual/interactivity/storm/sp_table.js',
+    'src/static/js/sp-table.js',
     'src/visual/interactivity/storm/fa_render.py',
     'src/visual/interactivity/gauge/gaugehc/ghc_stress_setup.py',
     'src/visual/interactivity/gauge/gaugesa/gsa_timeline.py',

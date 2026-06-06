@@ -79,13 +79,16 @@ _GAUGE_HARDCODED = [
 # =========================================================================
 
 # JS files using window.propertyDisplayName (canonical JS helper).
+# Panel JS was migrated out of the .py shells into src/static/js
+# (see "Extract … inline JS to static/js" commits). The compliant
+# propertyDisplayName() usage now lives in the static asset files.
 _PROPERTY_COMPLIANT_JS = [
-    'src/visual/interactivity/property/propertyhc/panel.py',
+    'src/static/js/propertyhc-panel.js',
     'src/visual/interactivity/property/propertyhc/panel_data.py',
-    'src/visual/interactivity/property/propertydetails.py',
-    'src/visual/interactivity/property/propertysa.js',
+    'src/static/js/propertydetails.js',
+    'src/static/js/propertysa.js',
     'src/visual/interactivity/property/propertypdf.py',
-    'src/visual/interactivity/context_menus.py',
+    'src/static/js/nav-menus.js',
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/trading/client/table.py',
 ]
