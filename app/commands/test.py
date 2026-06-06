@@ -563,6 +563,65 @@ def _cleanup_worktree_data(project_root: str) -> None:
         print(f'WARNING: worktree data cleanup failed: {exc}')
 
 
+def _parse_coverage_pct(cov_xml: str):
+    """Return line coverage as a percentage from a coverage.xml, or None."""
+    if not os.path.exists(cov_xml):
+        return None
+    try:
+        import xml.etree.ElementTree as ET
+        root = ET.parse(cov_xml).getroot()
+        return float(root.get('line-rate', 0)) * 100
+    except Exception:
+        return None
+
+
+def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
+                       git_sha, do_pdf):
+    """Phase 4: generate the audit doc artefacts — LaTeX/PDF model docs plus
+    the modularisation, duplication, hard-coding, lineage and full-audit
+    reports. ``python_exe`` (the venv Python) runs the model-doc generator;
+    the code analyses run under ``sys.executable``, matching the original."""
+    # If unit tests weren't run this time, fall back to an existing coverage xml.
+    if coverage_pct is None:
+        coverage_pct = _parse_coverage_pct(os.path.join(audit_dir, 'coverage.xml'))
+        if coverage_pct is not None:
+            print(f' Coverage (from existing xml): {coverage_pct:.1f}%')
+
+    # 4a. Model test documentation (LaTeX)
+    print('\nGenerating model documentation...')
+    doc_cmd = [python_exe, '-m', 'docs.models.test_results.generator']
+    if do_pdf:
+        doc_cmd.append('--pdf')
+    if git_sha:
+        doc_cmd.extend(['--git-sha', git_sha])
+    if coverage_pct is not None:
+        doc_cmd.extend(['--coverage-pct', f'{coverage_pct:.2f}'])
+    e2e_xml = os.path.join(audit_dir, 'e2e_junit.xml')
+    if os.path.exists(e2e_xml):
+        doc_cmd.extend(['--e2e-junit', e2e_xml])
+    sp.run(doc_cmd, cwd=str(project_root))
+
+    # Copy generated PDF into audit directory
+    _test_report_pdf = os.path.join(
+        str(project_root),
+        'docs', 'models', 'test_results', 'test_results', 'test_report.pdf')
+    if os.path.exists(_test_report_pdf):
+        dest = os.path.join(audit_dir, 'test_report.pdf')
+        shutil.copy2(_test_report_pdf, dest)
+        print(f' Copied test_report.pdf → {dest}')
+
+    # 4b-4f. Code analyses + consolidated audit
+    for label, module in (
+        ('code modularisation analysis',   'docs.models.project'),
+        ('code duplication analysis',      'docs.models.duplication'),
+        ('hard-coding parameter audit',    'docs.models.hardcoding'),
+        ('data lineage report (BCBS 239)', 'docs.models.data_lineage'),
+        ('full audit report',              'docs.models.full_audit'),
+    ):
+        print(f'\nGenerating {label}...')
+        sp.run([sys.executable, '-m', module], cwd=str(project_root))
+
+
 def cmd_test(args):
     """Run tests and produce audit evidence package.
 
@@ -719,16 +778,9 @@ def cmd_test(args):
         print()
 
         # Parse coverage percentage
-        if os.path.exists(cov_xml):
-            try:
-                import xml.etree.ElementTree as ET
-                tree = ET.parse(cov_xml)
-                root = tree.getroot()
-                line_rate = float(root.get('line-rate', 0))
-                coverage_pct = line_rate * 100
-                print(f' Coverage: {coverage_pct:.1f}%')
-            except Exception:
-                pass
+        coverage_pct = _parse_coverage_pct(cov_xml)
+        if coverage_pct is not None:
+            print(f' Coverage: {coverage_pct:.1f}%')
 
         # Write test failures report
         _write_failures_report(junit_xml, audit_dir)
@@ -744,60 +796,8 @@ def cmd_test(args):
     # 4. Audit reports (doc generators)
     # ------------------------------------------------------------------
     if do_audit:
-        # If we didn't run unit tests this time, try to read existing coverage
-        if coverage_pct is None and os.path.exists(cov_xml):
-            try:
-                import xml.etree.ElementTree as ET
-                tree = ET.parse(cov_xml)
-                root = tree.getroot()
-                line_rate = float(root.get('line-rate', 0))
-                coverage_pct = line_rate * 100
-                print(f' Coverage (from existing xml): {coverage_pct:.1f}%')
-            except Exception:
-                pass
-
-        # 4a. Model test documentation (LaTeX)
-        print('\nGenerating model documentation...')
-        doc_cmd = [_python_exe, '-m', 'docs.models.test_results.generator']
-        if do_pdf:
-            doc_cmd.append('--pdf')
-        if git_sha:
-            doc_cmd.extend(['--git-sha', git_sha])
-        if coverage_pct is not None:
-            doc_cmd.extend(['--coverage-pct', f'{coverage_pct:.2f}'])
-        e2e_xml = os.path.join(audit_dir, 'e2e_junit.xml')
-        if os.path.exists(e2e_xml):
-            doc_cmd.extend(['--e2e-junit', e2e_xml])
-        sp.run(doc_cmd, cwd=str(project_root))
-
-        # Copy generated PDF into audit directory
-        _test_report_pdf = os.path.join(
-            str(project_root),
-            'docs', 'models', 'test_results', 'test_results', 'test_report.pdf')
-        if os.path.exists(_test_report_pdf):
-            dest = os.path.join(audit_dir, 'test_report.pdf')
-            shutil.copy2(_test_report_pdf, dest)
-            print(f' Copied test_report.pdf → {dest}')
-
-        # 4b. Code modularisation analysis
-        print('\nGenerating code modularisation analysis...')
-        sp.run([sys.executable, '-m', 'docs.models.project'], cwd=str(project_root))
-
-        # 4c. Code duplication report
-        print('\nGenerating code duplication analysis...')
-        sp.run([sys.executable, '-m', 'docs.models.duplication'], cwd=str(project_root))
-
-        # 4d. Hard-coding parameter audit
-        print('\nGenerating hard-coding parameter audit...')
-        sp.run([sys.executable, '-m', 'docs.models.hardcoding'], cwd=str(project_root))
-
-        # 4e. Data lineage report (BCBS 239)
-        print('\nGenerating data lineage report (BCBS 239)...')
-        sp.run([sys.executable, '-m', 'docs.models.data_lineage'], cwd=str(project_root))
-
-        # 4f. Full consolidated audit report
-        print('\nGenerating full audit report...')
-        sp.run([sys.executable, '-m', 'docs.models.full_audit'], cwd=str(project_root))
+        _run_audit_reports(project_root, audit_dir, _python_exe,
+                           coverage_pct, git_sha, do_pdf)
 
     # ------------------------------------------------------------------
     # 5. Summary
