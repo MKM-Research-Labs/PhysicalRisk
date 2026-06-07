@@ -192,3 +192,90 @@ class TestVariableCount:
         gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
         result = gen.generate(count=count)
         assert len(result["data"]["commercial_assets"]) == count
+
+
+@pytest.mark.generator
+class TestGaugeIdMap:
+    """Cover the optional gauge.json sidecar load (generator.py:94-104)."""
+
+    def test_gauge_map_populated_from_flood_gauges(self, tmp_path):
+        gauge_data = {"flood_gauges": [
+            {"FloodGauge": {"Header": {"GaugeID": "GAUGE-001"}}},
+            {"FloodGauge": {"Header": {"GaugeID": "GAUGE-002"}}},
+        ]}
+        (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
+        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen.generate(count=3)
+        assert gen._gauge_id_map == {0: "GAUGE-001", 1: "GAUGE-002"}
+
+    def test_gauge_map_falls_back_to_gauges_key(self, tmp_path):
+        """Legacy 'gauges' key is used when 'flood_gauges' is absent."""
+        gauge_data = {"gauges": [
+            {"FloodGauge": {"Header": {"GaugeID": "G-9"}}},
+        ]}
+        (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
+        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen.generate(count=2)
+        assert gen._gauge_id_map == {0: "G-9"}
+
+    def test_entries_without_gauge_id_are_skipped(self, tmp_path):
+        gauge_data = {"flood_gauges": [
+            {"FloodGauge": {"Header": {"GaugeID": "GAUGE-001"}}},
+            {"FloodGauge": {"Header": {}}},          # no GaugeID -> skipped
+            {"FloodGauge": {"Header": {"GaugeID": "GAUGE-003"}}},
+        ]}
+        (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
+        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen.generate(count=2)
+        assert gen._gauge_id_map == {0: "GAUGE-001", 2: "GAUGE-003"}
+
+    def test_malformed_gauge_json_is_tolerated(self, tmp_path):
+        """A corrupt gauge.json must not abort generation (exception branch)."""
+        (tmp_path / "gauge.json").write_text("{ this is not valid json")
+        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        result = gen.generate(count=3)
+        assert gen._gauge_id_map == {}
+        assert len(result["data"]["commercial_assets"]) == 3
+
+    def test_no_gauge_file_leaves_map_empty(self, tmp_path):
+        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen.generate(count=2)
+        assert gen._gauge_id_map == {}
+
+
+@pytest.mark.generator
+class TestAssetFailureHandling:
+    """Cover the per-asset failure path in the generation loop (generator.py:135-138)."""
+
+    def test_failed_asset_is_counted_and_skipped(self, gen, monkeypatch):
+        """A metadata error on one asset is counted and the loop continues."""
+        original = gen.random.generate_commercial_metadata
+
+        def flaky(i, location):
+            if i == 0:
+                raise RuntimeError("synthetic metadata failure")
+            return original(i, location)
+
+        monkeypatch.setattr(gen.random, "generate_commercial_metadata", flaky)
+
+        result = gen.generate(count=5)
+        stats = result["processing_stats"]
+        assert stats["failed_assets"] == 1
+        assert stats["successful_assets"] == 4
+        assert len(result["data"]["commercial_assets"]) == 4
+        assert len(result["data"]["asset_ids"]) == 4
+
+    def test_all_assets_failing_yields_empty_records(self, gen, monkeypatch):
+        def always_boom(i, location):
+            raise RuntimeError("everything is broken")
+
+        monkeypatch.setattr(gen.random, "generate_commercial_metadata",
+                            always_boom)
+
+        result = gen.generate(count=4)
+        stats = result["processing_stats"]
+        assert stats["failed_assets"] == 4
+        assert stats["successful_assets"] == 0
+        assert result["data"]["commercial_assets"] == []
+        # Output file is still written, just empty.
+        assert (gen.output_dir / "commercial.json").exists()
