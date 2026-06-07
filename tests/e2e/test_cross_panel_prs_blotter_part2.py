@@ -77,11 +77,25 @@ class TestPropertyStormToPRS:
         hist_tab.click()
         map_page.wait_for_timeout(3_000)
 
-        # Click first table row
-        row = map_page.locator("#prop-storm-content table tr").nth(1)
-        if row.count() == 0:
-            pytest.skip("No flood history rows")
-        row.click()
+        # The Flood Timeline is a hydrograph, so it can only render for a
+        # storm that actually flooded this property. The Flood History
+        # table also lists wind-only typhoon events (depth 0), which have
+        # no hydrograph. Click the first row whose depth column is > 0; if
+        # the property is wind-dominated with no floods, there's nothing
+        # to open, so skip rather than assert a timeline that can't exist.
+        clicked = map_page.evaluate("""() => {
+            var rows = document.querySelectorAll('#prop-storm-content table tbody tr');
+            for (var i = 0; i < rows.length; i++) {
+                var depthCell = rows[i].querySelectorAll('td')[2];
+                if (depthCell && parseFloat(depthCell.textContent) > 0) {
+                    rows[i].click();
+                    return true;
+                }
+            }
+            return false;
+        }""")
+        if not clicked:
+            pytest.skip("No flooded history rows — no hydrograph timeline")
         map_page.wait_for_timeout(3_000)
 
         # Should now be on Flood Timeline (idx 1)
