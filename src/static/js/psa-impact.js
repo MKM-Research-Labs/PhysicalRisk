@@ -17,9 +17,11 @@
                     return e.flooded || (e.typhoon && e.typhoon.event_id);
                 });
                 var totalStorms = propStormData.flood_events.length;
+                var floodedCount = 0;
                 var maxDepth = 0, sumDepth = 0, sumDmg = 0;
                 var typhoonCount = 0, maxWind = 0, sumWindDmg = 0;
                 events.forEach(function(e) {
+                    if (e.flooded) floodedCount += 1;
                     maxDepth = Math.max(maxDepth, e.flood_depth_m || 0);
                     sumDepth += e.flood_depth_m || 0;
                     sumDmg += e.damage_ratio || 0;
@@ -179,7 +181,7 @@
                 var meanWindDmg = typhoonCount > 0 ? sumWindDmg / typhoonCount : 0;
                 document.getElementById('prop-history-stats').innerHTML = [
                     '<span><b>Total storms:</b> ' + totalStorms + '</span>',
-                    '<span><b>Floods:</b> ' + events.length + ' (' + (events.length / totalStorms * 100).toFixed(0) + '%)</span>',
+                    '<span><b>Floods:</b> ' + floodedCount + ' (' + (totalStorms > 0 ? (floodedCount / totalStorms * 100).toFixed(0) : '0') + '%)</span>',
                     '<span><b>Typhoons:</b> ' + typhoonCount +
                         (typhoonCount > 0 ? ' (max wind ' + maxWind.toFixed(1) + ' m/s, mean dmg ' + (meanWindDmg * 100).toFixed(1) + '%)' : '') + '</span>',
                     '<span><b>Max depth:</b> ' + maxDepth.toFixed(2) + 'm</span>',
