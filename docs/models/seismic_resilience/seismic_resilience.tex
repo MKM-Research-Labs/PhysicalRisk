@@ -290,6 +290,44 @@ $R_{JB} = 100$~km). All five gates pass against the current seeds.
 
 \input{sensitivity_tables}
 
+\subsection{Portfolio resilience credit --- worked example}
+\label{sec:portfolio_resilience}
+
+The tables above vary one input from a synthetic baseline. To show the credit on
+a real book, Table~\ref{tab:seis_portfolio_resilience} prices an actual 20-asset
+commercial portfolio (the Halong catchment, RC pre-code / modern construction,
+near the Red River Fault, in the High and Very-high hazard zones) at each BRI
+geoseismic resilience level. The assets, fault geometry and random seed are held
+fixed; only the installed measures change.
+
+\begin{table}[H]
+  \centering
+  \caption{Seismic spread by BRI resilience level --- 20-asset Halong commercial
+  portfolio (20{,}000 draws per asset, fixed seed). The credit is the spread
+  reduction relative to the un-resilient (NR) configuration.}
+  \label{tab:seis_portfolio_resilience}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{BRI level} & \textbf{Mean spread (bps)} & \textbf{Max (bps)} &
+    \textbf{No-collapse (\%)} & \textbf{Credit vs NR} \\
+    \midrule
+    NR (no measures)        & 14.57 & 101.5 & 95.89 & ---        \\
+    B (basic)               & 10.32 &  71.5 & 96.59 & $-29\%$    \\
+    A (strong)              &  7.10 &  39.5 & 97.92 & $-51\%$    \\
+    AA (base-isolated)      &  3.30 &  19.5 & 99.06 & $-77\%$    \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+A portfolio with no seismic resilience measures prices at $\sim$14.6 bps; the
+same portfolio with best-practice measures (lateral-force resistance, bracing,
+connections and seismic base isolation) prices at $\sim$3.3 bps --- a 77\%
+reduction, with the worst single-asset spread falling from 101.5 to 19.5 bps and
+the no-collapse rate rising from 95.9\% to 99.1\%. The NR$\to$B$\to$A steps are
+roughly linear; the largest single jump is A$\to$AA ($-54\%$), driven by GS12
+seismic base isolation (a $+0.40$ shift on every fragility median) --- the
+headline non-linearity the credit is designed to price.
+
 % ===================================================================
 % 8. MODEL LIMITATIONS AND KNOWN WEAKNESSES
 % ===================================================================
