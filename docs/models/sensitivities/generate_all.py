@@ -60,7 +60,7 @@ GENERATORS = {
     'gaugehd': ('GaugeHD Synthetic', 'docs.models.sensitivities.gaugehd_synthetic.generator'),
     'bri': ('Building Resilience Index', 'docs.models.sensitivities.bri_resilience.generator'),
     'fire': ('Fire-Resilience Credit', 'docs.models.sensitivities.fire_resilience.generator'),
-    'seismic': ('Seismic-Resilience Credit', 'docs.models.sensitivities.seismicresilience.generator'),
+    'seismic': ('Seismic-Resilience Credit', 'docs.models.sensitivities.seismic_resilience.generator'),
 }
 
 

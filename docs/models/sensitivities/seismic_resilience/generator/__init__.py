@@ -6,7 +6,7 @@
 """Seismic-Resilience Credit Model (MKM-SEIS-001) sensitivity analysis.
 
 Generates the Section 7 LaTeX tables for
-``docs/models/seismicresilience/sensitivity_tables.tex`` by running the *actual*
+``docs/models/seismic_resilience/sensitivity_tables.tex`` by running the *actual*
 end-to-end seismic model (``simulate_asset_seismic``) against the Section 7.1
 baseline and varying one axis at a time over 20,000 Monte Carlo draws per cell.
 
@@ -24,7 +24,7 @@ seed parameters and are therefore directional, not calibrated.
 """
 
 from docs.models.sensitivities import latex_table, write_tables
-from docs.models.sensitivities.seismicresilience.generator._support import (
+from docs.models.sensitivities.seismic_resilience.generator._support import (
     BRI, CONSTRUCTION, HAZARD_CLASS, N_SIM, SEED, VS30, ZONES,
     baseline, metrics, replace,
 )
@@ -228,7 +228,7 @@ def generate():
         f"% Section 7.7 gates: {gate_summary}\n\n".replace(",", "{,}")
         + "\n\n".join(sections)
     )
-    write_tables("seismicresilience", content)
+    write_tables("seismic_resilience", content)
 
 
 if __name__ == "__main__":
