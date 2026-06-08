@@ -8,8 +8,8 @@
 from datetime import datetime
 from pathlib import Path
 
-from ._constants import MIN_LINES
-from .analysis import analyze_code_files, analyze_init_files
+from ._constants import MIN_LINES, REPO_SCAN_DIRS
+from .analysis import analyze_code_files, analyze_repo_files, analyze_init_files
 from .pdf import create_pdf_report
 
 
@@ -57,20 +57,21 @@ def main():
     audit_dir.mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
-    # 1. PDF report — scope: root/src/
+    # 1. PDF report — scope: all non-test source (src/, app/, config/,
+    #    tools/, docs/ generators + root-level files), by raw line count.
     # ------------------------------------------------------------------
     src_root = project_root / 'src'
     pdf_output = audit_dir / 'large_file_report.pdf'
 
-    print("Scanning src/ for large-file PDF report...")
-    all_files, large_files = analyze_code_files(src_root)
+    print(f"Scanning {', '.join(REPO_SCAN_DIRS)}/ for large-file PDF report...")
+    all_files, large_files = analyze_repo_files(project_root)
     print(f"  {len(all_files)} files scanned, {len(large_files)} exceed {MIN_LINES} lines")
 
     print("Auditing __init__.py files for substantive code...")
     init_issues = analyze_init_files(src_root)
     print(f"  {len(init_issues)} __init__.py file(s) contain substantive code")
 
-    create_pdf_report(large_files, all_files, pdf_output, src_root,
+    create_pdf_report(large_files, all_files, pdf_output, project_root,
                       init_issues=init_issues)
 
     # ------------------------------------------------------------------

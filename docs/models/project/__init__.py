@@ -26,12 +26,14 @@ from ._constants import (
     FileInfo,
     InitIssue,
 )
-from .analysis import count_lines, analyze_code_files, analyze_init_files
+from .analysis import (
+    count_lines, analyze_code_files, analyze_repo_files, analyze_init_files,
+)
 from .pdf import _add_init_audit_section, create_pdf_report
 from .report import generate_txt_report, main
 
 __all__ = [
     'CODE_EXTENSIONS', 'EXCLUDED_FOLDERS', 'MIN_LINES', 'FileInfo', 'InitIssue',
-    'count_lines', 'analyze_code_files', 'analyze_init_files',
+    'count_lines', 'analyze_code_files', 'analyze_repo_files', 'analyze_init_files',
     '_add_init_audit_section', 'create_pdf_report', 'generate_txt_report', 'main',
 ]

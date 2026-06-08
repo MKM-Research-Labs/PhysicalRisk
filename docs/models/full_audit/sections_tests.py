@@ -163,8 +163,8 @@ def _build_modularisation(styles) -> list:
     elems.append(Spacer(1, 3 * mm))
 
     try:
-        from docs.models.project import analyze_code_files
-        all_files, large_files = analyze_code_files(_root / 'src')
+        from docs.models.project import analyze_repo_files
+        all_files, large_files = analyze_repo_files(_root)
     except Exception as exc:
         elems.append(Paragraph(
             f'Could not run modularisation scan: {exc}', styles['body']))
@@ -174,10 +174,10 @@ def _build_modularisation(styles) -> list:
     total_large = len(large_files)
 
     elems.append(Paragraph(
-        f'Scope: <b>src/</b> &nbsp;|&nbsp; '
-        f'Files scanned: <b>{total_files}</b> &nbsp;|&nbsp; '
+        f'Scope: <b>all non-test source</b> (src/, app/, config/, tools/, docs/) '
+        f'&nbsp;|&nbsp; Files scanned: <b>{total_files}</b> &nbsp;|&nbsp; '
         f'Files over 300 lines: <b>{total_large}</b>. '
-        'Files exceeding 300 non-blank lines are candidates for modularisation.',
+        'Files exceeding 300 raw lines are candidates for modularisation.',
         styles['body']))
     elems.append(Spacer(1, 2 * mm))
 
