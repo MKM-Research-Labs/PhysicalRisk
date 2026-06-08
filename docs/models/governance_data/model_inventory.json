@@ -5241,6 +5241,204 @@
         "calculated_rating": "Conditional",
         "calculated_score": null
       }
+    },
+    {
+      "model_id": "MKM-SEIS-001",
+      "name": "Building Seismic-Resilience Credit Model",
+      "short_name": "Seismic Resilience Credit",
+      "description": "Prices the seismic resilience of a commercial asset so seismic loss aggregates into the same resilience-credit currency as the 10,000-storm engine and the fire model, and is consumed by the Commercial PRS Pricer as an independent leg combined with the flood, wind and fire legs through a root-sum-of-squares all-in coupon.",
+      "category": "Hazard",
+      "tier": 2,
+      "materiality": "TBD",
+      "complexity": "High",
+      "tier_rationale": "Materiality TBD: the seismic-resilience credit feeds the PRS-priced coupon as an independent peril leg, but the model is on placeholder (seed-0) calibration, so the priced impact is directional, not absolute. Tier 2 reflects a multi-component hazard model that prices into the loan/PRS chain.",
+      "status": "Development",
+      "lifecycle_stage": "Stages 0-8 complete - Models A-D (occurrence + fault-geometry spatial draw, GMPE, response effectiveness, lognormal fragility chain), the port stage, the PRS-pricer and Loan-Calculator integration, and the sensitivity harness (all Section 7.7 acceptance gates pass). Placeholder seed-0 calibration pending.",
+      "version": "0.10.0",
+      "owner": "David K Kelly",
+      "model_owner_role": "Chief Science Officer",
+      "peer_reviewer": "TBD",
+      "source_module": "src/models/seismic/",
+      "methodology": "Four governance-separated component models. Model A (occurrence): a homogeneous Poisson process with per-asset rate lambda_i = lambda_zone * m_fault * m_soil; magnitude from the truncated Gutenberg-Richter law; rupture centroid sampled by arc-length along the catchment fault trace; Wells-Coppersmith rupture length; Joyner-Boore distance R_JB to the rupture. Model B (ground motion): a lognormal GMPE maps (M, R_JB, V_S30) to a site PGA, with a soft-soil F_a gate. Model C (response effectiveness): a deterministic mapping from the BRI geoseismic measures (GS01-GS18) to fragility-median multipliers, recovery acceleration and the post-earthquake-fire probability. Model D (damage): a single-step lognormal fragility draw assigns DS0-DS3, a loss draw gives the structural loss (DS3 = 100%), a conditional post-earthquake-fire cascade applies max(L_seismic, L_fire), and aggregation emits the seismic spread = n_DS3 / n_sim * 10,000 bps.",
+      "alternatives_considered": [
+        "Full probabilistic-seismic-hazard logic-tree with an epistemic GMPE ensemble (rejected for the first build: harder to govern and calibrate than a single seeded GMPE; only the aleatory residual is sampled for now).",
+        "A site-only hazard lookup with no fault geometry (rejected: it cannot price source-to-site distance, which is a first-order driver; the fault-trace spatial draw reuses the storm river-centreline primitive instead)."
+      ],
+      "methodology_rationale": "The four-model PSHA/PBEE decomposition (Poisson occurrence with a fault-geometry spatial draw, GMPE intensity sampling, BRI measure -> modifier mapping, lognormal fragility with a loss draw) is the standard framework used in HAZUS, GEM and Eurocode 8 seismic risk assessment, and is a structural twin of the fire-resilience credit model so the two price pari-passu.",
+      "assumptions": [
+        {
+          "id": "SEIS-A1",
+          "description": "Mainshock occurrence is a homogeneous Poisson process; an earthquake instantiates for a draw when N >= 1, and multiple events in one draw are collapsed to a single event.",
+          "impact": "Low",
+          "monitoring": "Compare empirical event frequency against lambda_i in calibration",
+          "mitigation": "Lambda is small so P(N >= 2) is negligible at current seeds"
+        },
+        {
+          "id": "SEIS-A2",
+          "description": "Fragility is a single-step lognormal function (the HAZUS/GEM/Eurocode 8 standard form); damage state is assigned from one uniform draw against the adjusted medians.",
+          "impact": "Low",
+          "monitoring": "Benchmark damage-state distributions against published fragility curves",
+          "mitigation": "The lognormal form is the universally used convention"
+        },
+        {
+          "id": "SEIS-A3",
+          "description": "The post-earthquake-fire cascade loss L_fire uses a seed conditional-loss draw; the full MKM-FIRE-001 coupling (simulate_fire_containment with InitiationClass = ExternalExposure) is deferred and plugged via the fire_loss_fn hook.",
+          "impact": "Medium",
+          "monitoring": "Compare the conditional-loss seed against fire-model output once coupled",
+          "mitigation": "The seam is in place; the seed is a defensible high-mean draw"
+        }
+      ],
+      "limitations": [
+        {
+          "id": "SEIS-L1",
+          "description": "No historical calibration - every numeric parameter in config/seismicmatrices.json and config/seismic_zones.json is a first-pass engineering-judgement seed (version seed-0).",
+          "impact": "High",
+          "monitoring_trigger": "Any production or pricing use",
+          "compensating_control": "Model is gated to Development status until calibration completes and the MRC approves it"
+        },
+        {
+          "id": "SEIS-L2",
+          "description": "Mainshock-only Poisson occurrence - the HPP assumption ignores aftershock clustering, so short-term post-event hazard is underestimated.",
+          "impact": "Medium",
+          "monitoring_trigger": "Real-time post-event risk updates",
+          "compensating_control": "Appropriate for long-run annualised loss; documented as out of scope"
+        },
+        {
+          "id": "SEIS-L3",
+          "description": "A single fault trace per catchment - assets with multiple independent fault sources require a superposition of Poisson processes (one draw per source).",
+          "impact": "Medium",
+          "monitoring_trigger": "Catchments with multiple active faults",
+          "compensating_control": "Planned extension (SEIS-R4); current implementation uses a single fault file"
+        },
+        {
+          "id": "SEIS-L4",
+          "description": "Deterministic GMPE median - only the aleatory residual epsilon is sampled; epistemic GMPE uncertainty (a logic-tree ensemble) is not represented.",
+          "impact": "Medium",
+          "monitoring_trigger": "Tail (long return period) pricing",
+          "compensating_control": "Deferred to a future version; a single vetted GMPE is benchmarked under SEIS-R2"
+        },
+        {
+          "id": "SEIS-L5",
+          "description": "Building height enters only through NumberOfStoreys; floor-level geometry and structural irregularity are not modelled beyond the GS14 flag.",
+          "impact": "Low",
+          "monitoring_trigger": "Tall-building seismic analysis",
+          "compensating_control": "Construction class plus the GS measures carry the dominant fragility signal"
+        }
+      ],
+      "known_failure_modes": [
+        "Mis-tuned seeds can make the baseline (Moderate zone, 20 km) produce zero collapses, so the resilience sweep needs a near-fault condition to show differentiation (the sensitivity harness handles this).",
+        "Very small n_sim gives noisy seismic-spread / no-collapse estimates (1 bps ~ 2 collapses in 20,000 draws); the Section 7.7 gates apply a sampling-noise tolerance.",
+        "A fault trace shorter than the rupture length clips every rupture to the fault endpoints; intended for the sensitivity harness, but a real short fault would understate rupture extent."
+      ],
+      "key_parameters": [
+        "lambda_zone, b-value, m_min, m_max per seismic hazard zone (config/seismic_zones.json)",
+        "GMPE coefficients (c0..c4, mref, vref, h, sigma_total) per tectonic regime",
+        "V_S30 site-class proxies and the soft-soil F_a amplification gate",
+        "Fragility median PGA (DS1/DS2/DS3) and beta by construction class",
+        "BRI geoseismic measure modifiers delta_j (GS01-GS18) and the GS16-18 governance cap",
+        "Loss-given-damage-state distributions (DS3 fixed at 1.0)",
+        "Recovery acceleration r_acc by BRI rating and the GS18 uplift",
+        "Post-earthquake-fire cascade probabilities and the conditional fire-loss seed"
+      ],
+      "input_data": "Per-commercial-asset CDM features (AssetSeismicFeatures): commercial type, fragility-class construction key, number of storeys, latitude/longitude, soil type and V_S30, seismic hazard class, design PGA, and the set of present BRI geoseismic measures (GS01-GS18). Plus the per-catchment fault trace (data/catch/<id>/fault_trace.json).",
+      "output_data": "Per-asset AssetSeismicResult: annual loss_frequency (unconditional), conditional no_collapse_rate, the full-collapse seismic_spread_bps (the PRS leg), mean_resilience_index, PML at the 475- and 2,475-year return periods, and per-damage-state counts.",
+      "downstream_models": [],
+      "upstream_models": [],
+      "validation_status": "Not yet validated",
+      "validation_date": null,
+      "next_review_date": null,
+      "recertification_date": null,
+      "review_frequency": "Annual",
+      "documents": [
+        "docs/seismic/MKM-SEIS-001-v0.10.md",
+        "docs/models/seismicresilience/sensitivity_tables.tex"
+      ],
+      "change_history": [
+        {
+          "date": "2026-06-08",
+          "version": "0.10.0",
+          "change": "Stages 0-8 delivered: config/seismic schema + seed-0 matrices; Models A-D (occurrence + fault spatial draw, GMPE, response effectiveness, fragility chain) with 87 tests; port stage writing seismic/seismic.json; PRS-pricer read-time join + UI; Loan-Calculator fire/seismic root-sum-of-squares toggles; sensitivity harness with all six Section 7.7 acceptance gates passing.",
+          "author": "David K Kelly"
+        }
+      ],
+      "test_coverage": {
+        "unit_tests": true,
+        "integration_tests": true,
+        "benchmark_tests": false,
+        "test_file": "tests/models/seismic/",
+        "notes": "87 unit tests across tests/models/seismic/ (test_config, test_cdm_adapter, test_occurrence, test_groundmotion, test_responseeffectiveness, test_damage), plus route-join tests (tests/routes/test_commercial_routes_part5.py) and Loan-Calculator coupon tests (tests/routes/test_loan_pricer_standalone_part4.py). The sensitivity harness asserts the six Section 7.7 acceptance gates."
+      },
+      "last_review_date": null,
+      "rag_rating": "Amber",
+      "mrc_signoff_date": null,
+      "remediation_steps": [
+        {
+          "id": "SEIS-R1",
+          "description": "Replace the seed-0 calibration (fragility medians, GMPE coefficients, zone rates, BRI modifiers, PEF cascade probabilities and the conditional fire-loss) with values derived from historical seismic-loss data.",
+          "owner": "David K Kelly",
+          "priority": "High",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "SEIS-R2",
+          "description": "Independent benchmarking of the seeded GMPE against a vetted published ground-motion model (NGA-West2 / subduction).",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "SEIS-R3",
+          "description": "Define the production monitoring plan: drift in input distributions and a backtest of realised vs predicted seismic-loss frequency.",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "SEIS-R4",
+          "description": "Extend the occurrence layer to multiple independent fault sources (one Poisson draw per source, superposed rates), and replace the seed conditional fire-loss with the full MKM-FIRE-001 cascade via the fire_loss_fn hook.",
+          "owner": "David K Kelly",
+          "priority": "Low",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "SEIS-R5",
+          "description": "Present to the MRC for Tier confirmation and production approval.",
+          "owner": "David K Kelly",
+          "priority": "High",
+          "due_date": null,
+          "status": "Open"
+        }
+      ],
+      "version_history": [
+        {
+          "version": "0.10.0",
+          "date": "2026-06-08",
+          "status": "Development",
+          "description": "Stages 0-8 - Models A-D, port + PRS + loan-calculator integration, sensitivity harness."
+        }
+      ],
+      "validation_questions": [],
+      "overall_risk_rating": {
+        "effective_rating": "Conditional",
+        "mrc_override": null,
+        "mrc_override_reason": null,
+        "mrc_override_date": null,
+        "mrc_override_by": null,
+        "last_calculated": null,
+        "component_scores": {
+          "validation_coverage": null,
+          "remediation_health": null,
+          "review_currency": null,
+          "assumption_risk": null,
+          "limitation_risk": null
+        },
+        "calculated_rating": "Conditional",
+        "calculated_score": null
+      }
     }
   ],
   "model_chain": {
