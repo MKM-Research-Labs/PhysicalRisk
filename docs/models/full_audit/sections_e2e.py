@@ -32,7 +32,7 @@ def _build_e2e(styles) -> list:
         styles['body']))
     elems.append(Spacer(1, 2 * mm))
 
-    data = _load_json_report('e2e_results.json')
+    data = _load_json_report('e2e/e2e_results.json')
     if not data:
         elems.append(Paragraph(
             'E2E test results not available — tests were not run or '
@@ -180,7 +180,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
                          'port --gauge → port --stressm → port --hazard → port --blotter'))
 
     # E2E check
-    e2e_road = _load_json_report('e2e_results.json')
+    e2e_road = _load_json_report('e2e/e2e_results.json')
     if e2e_road and e2e_road.get('failed', 0) > 0:
         e2e_n = e2e_road['failed']
         actions.append(('P2', 'HIGH',

@@ -12,9 +12,11 @@ def run_pdf_reports(args, output_dir, run_all):
         return
     try:
         from reports.port import PortReportGenerator
-        audit_dir = config.get_output_dir() / 'audit'
-        audit_dir.mkdir(parents=True, exist_ok=True)
-        pdf_path = audit_dir / f'port_{config.catchment_id}.pdf'
+        # Port/PRS deliverables are not part of the `app.py test` audit
+        # sequence — keep them out of the audit root, under audit/archive/.
+        archive_dir = config.get_output_dir() / 'audit' / 'archive'
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        pdf_path = archive_dir / f'port_{config.catchment_id}.pdf'
         gen = PortReportGenerator(input_dir=output_dir, output_path=pdf_path)
         result_path = gen.generate()
         print(f"\n  PDF report: {result_path}")
@@ -25,7 +27,7 @@ def run_pdf_reports(args, output_dir, run_all):
     # PRS portfolio report
     try:
         from reports.port.prs_report import PRSPortfolioReport
-        prs_path = audit_dir / 'prs_portfolio_report.pdf'
+        prs_path = archive_dir / 'prs_portfolio_report.pdf'
         prs_gen = PRSPortfolioReport(input_dir=output_dir, output_path=prs_path)
         prs_result = prs_gen.generate()
         print(f"  PRS report: {prs_result}")

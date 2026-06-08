@@ -60,6 +60,7 @@ _AUDIT_LABELS = {
     "hardcoding_report.pdf": "Hard-Coding Parameter Audit",
     "data_lineage_report.pdf": "Data Lineage Report (BCBS 239)",
     "large_file_report.pdf": "Code Modularisation Analysis",
+    "init_audit_report.pdf": "__init__.py Substantive-Code Audit",
     "model_risk_report.pdf": "Model Risk Report",
 }
 

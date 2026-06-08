@@ -49,7 +49,9 @@ def build_remediation(data, story, S):
     def _sort_key(x):
         return (
             {'High': 0, 'Medium': 1, 'Low': 2}.get(x.get('priority'), 3),
-            x.get('due_date', '9999'),
+            # due_date may be present but explicitly None — `or` covers both
+            # the missing-key and None cases so sorting never compares None<str.
+            x.get('due_date') or '9999',
         )
 
     # Full table

@@ -250,7 +250,11 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
     import json
     import xml.etree.ElementTree as ET
 
-    e2e_xml = os.path.join(audit_dir, 'e2e_junit.xml')
+    # All E2E artefacts (combined + per-batch JUnit, results JSON) live in a
+    # dedicated audit/e2e/ subfolder to keep the audit root uncluttered.
+    e2e_out_dir = os.path.join(audit_dir, 'e2e')
+    os.makedirs(e2e_out_dir, exist_ok=True)
+    e2e_xml = os.path.join(e2e_out_dir, 'e2e_junit.xml')
     e2e_dir = os.path.join(str(project_root), 'tests', 'e2e')
 
     if not os.path.isdir(e2e_dir):
@@ -281,7 +285,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
                 'status': 'SKIPPED', 'reason': 'playwright not installed',
                 'failures': [],
             }
-            report_path = os.path.join(audit_dir, 'e2e_results.json')
+            report_path = os.path.join(e2e_out_dir, 'e2e_results.json')
             try:
                 with open(report_path, 'w') as f:
                     json.dump(summary, f, indent=2)
@@ -320,7 +324,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
                 'reason': f'Chromium install failed: {msg[:200]}',
                 'failures': [],
             }
-            report_path = os.path.join(audit_dir, 'e2e_results.json')
+            report_path = os.path.join(e2e_out_dir, 'e2e_results.json')
             try:
                 with open(report_path, 'w') as f:
                     json.dump(summary, f, indent=2)
@@ -367,7 +371,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
 
     all_xml_files = []
     for batch_idx, batch_files in enumerate(batches, 1):
-        batch_xml = os.path.join(audit_dir, f'e2e_junit_batch{batch_idx}.xml')
+        batch_xml = os.path.join(e2e_out_dir, f'e2e_junit_batch{batch_idx}.xml')
         all_xml_files.append(batch_xml)
         n_files = len(batch_files)
         print(f'  Batch {batch_idx}/{len(batches)} ({n_files} files)...')
@@ -437,7 +441,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
           f'{summary["skipped"]} skipped [{status_str}]')
 
     # Persist results for the PDF generator
-    report_path = os.path.join(audit_dir, 'e2e_results.json')
+    report_path = os.path.join(e2e_out_dir, 'e2e_results.json')
     try:
         with open(report_path, 'w') as f:
             json.dump(summary, f, indent=2)
@@ -596,7 +600,7 @@ def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
         doc_cmd.extend(['--git-sha', git_sha])
     if coverage_pct is not None:
         doc_cmd.extend(['--coverage-pct', f'{coverage_pct:.2f}'])
-    e2e_xml = os.path.join(audit_dir, 'e2e_junit.xml')
+    e2e_xml = os.path.join(audit_dir, 'e2e', 'e2e_junit.xml')
     if os.path.exists(e2e_xml):
         doc_cmd.extend(['--e2e-junit', e2e_xml])
     sp.run(doc_cmd, cwd=str(project_root))
@@ -613,10 +617,12 @@ def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
     # 4b-4f. Code analyses + consolidated audit
     for label, module in (
         ('code modularisation analysis',   'docs.models.project'),
+        ('__init__.py substantive-code audit', 'docs.models.init_audit'),
         ('code duplication analysis',      'docs.models.duplication'),
         ('hard-coding parameter audit',    'docs.models.hardcoding'),
         ('embedded JS/CSS audit',          'docs.models.embedded_js'),
         ('data lineage report (BCBS 239)', 'docs.models.data_lineage'),
+        ('model risk governance report',   'docs.models.model_risk'),
         ('full audit report',              'docs.models.full_audit'),
     ):
         print(f'\nGenerating {label}...')
@@ -812,15 +818,18 @@ def cmd_test(args):
         ('Coverage HTML',          cov_html),
         ('Data Lineage Results',   os.path.join(audit_dir, 'data_lineage_results.json')),
         ('Data Lineage JUnit',     os.path.join(audit_dir, 'data_lineage_junit.xml')),
-        ('E2E Results',            os.path.join(audit_dir, 'e2e_results.json')),
-        ('E2E JUnit',              os.path.join(audit_dir, 'e2e_junit.xml')),
+        ('E2E Results',            os.path.join(audit_dir, 'e2e', 'e2e_results.json')),
+        ('E2E JUnit',              os.path.join(audit_dir, 'e2e', 'e2e_junit.xml')),
         ('Test Report PDF',        os.path.join(audit_dir, 'test_report.pdf')),
         ('Large File Report PDF',  os.path.join(audit_dir, 'large_file_report.pdf')),
         ('Large Test Report TXT',  os.path.join(audit_dir, 'large_test_report.txt')),
+        ('Init Audit Report PDF',  os.path.join(audit_dir, 'init_audit_report.pdf')),
+        ('Init Audit Results JSON', os.path.join(audit_dir, 'init_audit_results.json')),
         ('Code Duplication PDF',   os.path.join(audit_dir, 'code_duplication_report.pdf')),
         ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
         ('Embedded JS/CSS PDF',    os.path.join(audit_dir, 'embedded_js_report.pdf')),
         ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
+        ('Model Risk Report PDF',  os.path.join(audit_dir, 'model_risk_report.pdf')),
         ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
     ]
     for label, path in artefacts:
