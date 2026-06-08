@@ -15,9 +15,9 @@ from .helpers import _load_json_report, _status, _status_inv
 
 
 def _build_data_lineage(styles) -> list:
-    """Section 6: Data Lineage Consistency (BCBS 239 Principle 3)."""
+    """Section 7: Data Lineage Consistency (BCBS 239 Principle 3)."""
     elems = []
-    elems.append(Paragraph('6. Data Lineage Consistency', styles['h2']))
+    elems.append(Paragraph('7. Data Lineage Consistency', styles['h2']))
     elems.append(HRFlowable(width='100%', thickness=1, color=NAVY))
     elems.append(Spacer(1, 3 * mm))
 

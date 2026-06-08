@@ -163,13 +163,8 @@ def _build_modularisation(styles) -> list:
     elems.append(Spacer(1, 3 * mm))
 
     try:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(
-            '_proj_mod',
-            str(_root / 'docs' / 'models' / 'project' / '__init__.py'))
-        proj = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(proj)
-        all_files, large_files = proj.analyze_code_files(_root / 'src')
+        from docs.models.project import analyze_code_files
+        all_files, large_files = analyze_code_files(_root / 'src')
     except Exception as exc:
         elems.append(Paragraph(
             f'Could not run modularisation scan: {exc}', styles['body']))
@@ -189,45 +184,109 @@ def _build_modularisation(styles) -> list:
     if not large_files:
         elems.append(Paragraph(
             'No files exceed the 300-line threshold.', styles['body']))
+    else:
+        tbl_data = [[
+            Paragraph('<b>File (relative to project root)</b>', styles['tbl_hdr']),
+            Paragraph('<b>Ext</b>', styles['tbl_hdr']),
+            Paragraph('<b>Lines</b>', styles['tbl_hdr']),
+            Paragraph('<b>Priority</b>', styles['tbl_hdr']),
+        ]]
+        row_extras = []
+        for fi in large_files[:40]:
+            rel = str(fi.relative_path)
+            if len(rel) > 70:
+                rel = '…' + rel[-68:]
+            lc = fi.line_count
+            priority = 'High' if lc > 600 else ('Medium' if lc > 400 else 'Low')
+            p_col = RED if lc > 600 else (AMBER if lc > 400 else GREEN)
+
+            tbl_data.append([
+                Paragraph(rel, styles['tbl_cell']),
+                Paragraph(fi.extension, styles['tbl_cell']),
+                Paragraph(str(lc), styles['tbl_cell_r']),
+                Paragraph(f'<b>{priority}</b>',
+                          ParagraphStyle('Pri', parent=getSampleStyleSheet()['Normal'],
+                                         fontSize=8, textColor=p_col,
+                                         fontName='Helvetica-Bold')),
+            ])
+            if lc > 600:
+                idx = len(tbl_data) - 1
+                row_extras.append(('BACKGROUND', (0, idx), (-1, idx),
+                                    colors.HexColor('#FFF3E0')))
+
+        tbl = Table(tbl_data, colWidths=[108 * mm, 14 * mm, 18 * mm, 28 * mm])
+        tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + row_extras))
+        elems.append(tbl)
+
+        if total_large > 40:
+            elems.append(Spacer(1, 2 * mm))
+            elems.append(Paragraph(
+                f'Showing top 40 of {total_large} files over threshold.',
+                styles['small']))
+
+    # 4.1 — __init__.py substantive-code audit
+    elems.extend(_build_init_audit(styles))
+
+    return elems
+
+
+def _build_init_audit(styles) -> list:
+    """Subsection 4.1: flag __init__.py files that contain functions, classes,
+    or route decorators — substantive code that should live in a dedicated
+    module, not in a package initialiser."""
+    elems = []
+    elems.append(Spacer(1, 5 * mm))
+    elems.append(Paragraph('4.1 __init__.py Substantive-Code Audit', styles['h3']))
+    elems.append(Spacer(1, 2 * mm))
+    elems.append(Paragraph(
+        'Policy: <b>__init__.py</b> files must only wire a package together — '
+        'imports, re-exports, <b>__all__</b>, and Blueprint assignment. Any '
+        'function, class, or route/view decorator defined directly in an '
+        'initialiser should be moved to a dedicated module.',
+        styles['body']))
+    elems.append(Spacer(1, 2 * mm))
+
+    try:
+        from docs.models.project import analyze_init_files
+        issues = analyze_init_files(_root / 'src')
+    except Exception as exc:
+        elems.append(Paragraph(
+            f'Could not run __init__.py audit: {exc}', styles['body']))
         return elems
 
-    tbl_data = [[
-        Paragraph('<b>File (relative to project root)</b>', styles['tbl_hdr']),
-        Paragraph('<b>Ext</b>', styles['tbl_hdr']),
-        Paragraph('<b>Lines</b>', styles['tbl_hdr']),
-        Paragraph('<b>Priority</b>', styles['tbl_hdr']),
-    ]]
-    row_extras = []
-    for fi in large_files[:40]:
-        rel = str(fi.relative_path)
-        if len(rel) > 70:
-            rel = '…' + rel[-68:]
-        lc = fi.line_count
-        priority = 'High' if lc > 600 else ('Medium' if lc > 400 else 'Low')
-        p_col = RED if lc > 600 else (AMBER if lc > 400 else GREEN)
-
-        tbl_data.append([
-            Paragraph(rel, styles['tbl_cell']),
-            Paragraph(fi.extension, styles['tbl_cell']),
-            Paragraph(str(lc), styles['tbl_cell_r']),
-            Paragraph(f'<b>{priority}</b>',
-                      ParagraphStyle('Pri', parent=getSampleStyleSheet()['Normal'],
-                                     fontSize=8, textColor=p_col,
-                                     fontName='Helvetica-Bold')),
-        ])
-        if lc > 600:
-            idx = len(tbl_data) - 1
-            row_extras.append(('BACKGROUND', (0, idx), (-1, idx),
-                                colors.HexColor('#FFF3E0')))
-
-    tbl = Table(tbl_data, colWidths=[108 * mm, 14 * mm, 18 * mm, 28 * mm])
-    tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + row_extras))
-    elems.append(tbl)
-
-    if total_large > 40:
-        elems.append(Spacer(1, 2 * mm))
+    if not issues:
         elems.append(Paragraph(
-            f'Showing top 40 of {total_large} files over threshold.',
-            styles['small']))
+            'No __init__.py file contains substantive code. '
+            '<b>PASS</b>', styles['body']))
+        return elems
+
+    elems.append(Paragraph(
+        f'{len(issues)} __init__.py file(s) contain substantive code '
+        f'(showing up to 25):', styles['body']))
+    elems.append(Spacer(1, 2 * mm))
+
+    data = [[
+        Paragraph('<b>File (relative to src/)</b>', styles['tbl_hdr']),
+        Paragraph('<b>Lines</b>', styles['tbl_hdr']),
+        Paragraph('<b>Functions</b>', styles['tbl_hdr']),
+        Paragraph('<b>Classes</b>', styles['tbl_hdr']),
+        Paragraph('<b>Routes</b>', styles['tbl_hdr']),
+    ]]
+    for it in issues[:25]:
+        rel = it.relative_path
+        if len(rel) > 60:
+            rel = '…' + rel[-58:]
+        data.append([
+            Paragraph(rel, styles['tbl_cell']),
+            Paragraph(str(it.line_count), styles['tbl_cell_r']),
+            Paragraph(str(len(it.functions)), styles['tbl_cell_r']),
+            Paragraph(str(len(it.classes)), styles['tbl_cell_r']),
+            Paragraph(str(it.routes), styles['tbl_cell_r']),
+        ])
+    tbl = Table(data, colWidths=[96 * mm, 16 * mm, 22 * mm, 18 * mm, 16 * mm])
+    tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF3E0')),
+    ]))
+    elems.append(tbl)
 
     return elems

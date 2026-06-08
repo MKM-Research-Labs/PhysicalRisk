@@ -21,6 +21,7 @@ from .sections_tests import (
     _build_test_detail, _build_coverage, _build_modularisation,
 )
 from .sections_hardcoding import _build_hardcoding
+from .sections_embedded_js import _build_embedded_js
 from .sections_lineage import _build_data_lineage
 from .sections_e2e import _build_e2e, _build_roadmap
 
@@ -64,6 +65,10 @@ def create_pdf_report() -> Path:
 
     # Hard-coding audit
     story.extend(_build_hardcoding(sty))
+    story.append(PageBreak())
+
+    # Embedded JavaScript / CSS in Python (zero tolerance)
+    story.extend(_build_embedded_js(sty))
     story.append(PageBreak())
 
     # Data lineage consistency
