@@ -35,6 +35,12 @@ __PHC_PANEL_TABS_JS__
             // ==============================================================
             function showPanel(propertyId) {
                 console.log('[PropertyHazard] Opening panel for', propertyId);
+                // Both panels are centered modals at z-index 2000, so they
+                // overlap and intercept each other's clicks if both are open.
+                // Close the loan pricer before showing this panel.
+                if (window.LoanPricerPanel && window.LoanPricerPanel.hide) {
+                    window.LoanPricerPanel.hide();
+                }
                 var panel = createPanel();
                 panel.dataset.propertyId = propertyId;
                 var isCommercial = (typeof propertyId === 'string'
