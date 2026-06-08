@@ -63,11 +63,11 @@ class TestBasisExplorerPanel:
         assert sub_tabs.count() == 4
 
     def test_sub_tab_labels(self, map_page, first_property_id):
-        """Sub-tabs must be labelled Gauge, SHE, SHD, Property."""
+        """Sub-tabs must be labelled Gauge, SHE, SHD, Asset."""
         self._open_basis_explorer(map_page, first_property_id)
         sub_tabs = map_page.locator(".phc-basis-subtab")
         labels = [sub_tabs.nth(i).inner_text() for i in range(sub_tabs.count())]
-        assert labels == ["Gauge", "SHE", "SHD", "Property"]
+        assert labels == ["Gauge", "SHE", "SHD", "Asset"]
 
     # ------------------------------------------------------------------
     # storm_details data availability
@@ -178,12 +178,12 @@ class TestBasisExplorerPanel:
         assert "Basis Risk" in container_text
 
     def test_property_sub_tab_shows_spread_info(self, map_page, first_property_id):
-        """Property tab stats must show gauge and property spread."""
+        """Asset tab stats must show gauge and asset spread."""
         self._open_basis_explorer(map_page, first_property_id)
         switch_basis_sub_tab(map_page, 3)
         stats = map_page.locator("#phc-stats-bar").inner_text()
         assert "Gauge Spread:" in stats
-        assert "Property Spread:" in stats
+        assert "Asset Spread:" in stats
 
     # ------------------------------------------------------------------
     # Cross-tab storm selection

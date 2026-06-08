@@ -36,6 +36,16 @@ class TestPropertyPRSDecomposition:
         if not has_fn:
             pytest.skip("Property hazard panel function not available")
 
+        # Hard-close any existing panel first: close_all_panels only sets
+        # display:none, leaving phcData and the EA-zone dropdown override from
+        # a prior test in place. hide() nulls phcData so the reopen rebuilds
+        # the controls (and re-selects the property's actual zone) from scratch,
+        # making these tests order-independent.
+        map_page.evaluate(
+            "() => window.PropertyHazardCurvePanel && "
+            "window.PropertyHazardCurvePanel.hide && "
+            "window.PropertyHazardCurvePanel.hide()"
+        )
         open_property_panel(map_page, first_property_id)
         switch_to_prs_tab_property(map_page)
         map_page.wait_for_timeout(3_000)
