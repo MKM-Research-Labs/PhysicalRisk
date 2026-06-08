@@ -97,14 +97,22 @@ def effective_vs30(
 def gmpe_median_pga(
     magnitude: float, r_jb_km: float, vs30: float, gmpe: dict,
 ) -> float:
-    """Evaluate the parametric GMPE median PGA (g) — no residual, no F_a."""
+    """Evaluate the parametric GMPE median PGA (g) — no residual, no F_a.
+
+    The geometric-spreading coefficient is magnitude-dependent,
+    ``(c3 + c5 (M - mref))``, so large ruptures attenuate more slowly and remain
+    damaging at far greater distances than small ones (c5 >= 0). With c5 = 0 the
+    form reduces to plain magnitude-independent spreading.
+    """
     dm = magnitude - gmpe["mref"]
     r = math.sqrt(r_jb_km * r_jb_km + gmpe["h_km"] * gmpe["h_km"])
+    ln_r = math.log(r)
+    spreading = (gmpe["c3"] + gmpe.get("c5", 0.0) * dm) * ln_r
     ln_pga = (
         gmpe["c0"]
         + gmpe["c1"] * dm
         + gmpe["c2"] * dm * dm
-        + gmpe["c3"] * math.log(r)
+        + spreading
         + gmpe["c4"] * math.log(vs30 / gmpe["vref"])
     )
     return math.exp(ln_pga)

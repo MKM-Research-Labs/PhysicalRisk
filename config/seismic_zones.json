@@ -26,14 +26,15 @@
   "default_zone": "Moderate",
 
   "ground_motion": {
-    "_doc": "Model B — Ground Motion Prediction Equation (GMPE). Seed uses a single parametric Boore-Atkinson-style functional form per tectonic regime: ln(PGA_g) = c0 + c1*(M - mref) + c2*(M - mref)^2 + c3*ln(sqrt(R_JB^2 + h^2)) + c4*ln(Vs30 / vref). PGA is in g. These coefficients are SEED placeholders tuned to reproduce the indicative attenuation in Section 7.2 (Table 1): ~0.42 g at 2 km to ~0.02 g at 100 km for M6.5 on stiff soil. Replace under SEIS-R2 with a vetted published GMPE.",
+    "_doc": "Model B — Ground Motion Prediction Equation (GMPE). Seed uses a single parametric Boore-Atkinson-style form per tectonic regime: ln(PGA_g) = c0 + c1*(M - mref) + c2*(M - mref)^2 + (c3 + c5*(M - mref))*ln(sqrt(R_JB^2 + h^2)) + c4*ln(Vs30 / vref). PGA is in g. The geometric-spreading term is MAGNITUDE-DEPENDENT (c5 >= 0): large ruptures decay more slowly and remain damaging at far greater distances than small ones, so an M8+ event is felt/damaging out to ~500-1000 km while an M6.5 attenuates within ~100 km. Seeds reproduce the M6.5 near-field of Section 7.2 (Table 1) and a realistic large-event reach. Replace under SEIS-R2 with a vetted published GMPE.",
     "gmpe_by_regime": {
       "active_shallow_crust": {
         "label": "Boore-Atkinson 2014 (NGA-West2) — seed parametric proxy",
-        "c0": -0.05,
-        "c1": 1.15,
+        "c0": -0.33,
+        "c1": 1.10,
         "c2": -0.10,
-        "c3": -1.05,
+        "c3": -0.88,
+        "c5": 0.06,
         "c4": -0.40,
         "mref": 6.0,
         "vref": 760.0,
@@ -42,10 +43,11 @@
       },
       "subduction_interface": {
         "label": "Zhao et al. 2006 — seed parametric proxy (Halong / Red River system)",
-        "c0": 1.40,
-        "c1": 1.10,
+        "c0": 1.10,
+        "c1": 1.05,
         "c2": -0.08,
-        "c3": -0.95,
+        "c3": -0.80,
+        "c5": 0.06,
         "c4": -0.45,
         "mref": 6.0,
         "vref": 760.0,
