@@ -189,14 +189,21 @@ def derive_response_profile(
     # from internal sprinklers. A building taller than the reach with no
     # adequate internal suppression never achieves effective suppression — the
     # bite time is pushed beyond the step budget, so the fire runs to the point
-    # of no return. Otherwise the gentle per-storey height penalty applies.
+    # of no return. Otherwise the bite time scales by both the per-storey height
+    # penalty and the suppression-system level: a better system engages sooner
+    # (smaller multiplier), which is how it wins the controllability race.
     penalty = height_penalty(features, cfg)
+    bite_mult = cfg.suppression_bite_multiplier_by_level.get(
+        features.suppression_systems_level or _WORST_LEVEL, 1.0,
+    )
     reach = cfg.fire_service_reach
     internal_ok = suppression_idx >= reach["internal_suppression_threshold"]
     within_reach = (features.number_of_storeys or 1) <= reach["reach_storeys"]
     suppression_reachable = internal_ok or within_reach
     if suppression_reachable:
-        suppression_bite_steps = timing["suppression_bite_base_steps"] * penalty
+        suppression_bite_steps = (
+            timing["suppression_bite_base_steps"] * penalty * bite_mult
+        )
     else:
         suppression_bite_steps = reach["no_reach_bite_steps"]
 
@@ -218,13 +225,12 @@ def derive_response_profile(
         features.suppression_systems_level or _WORST_LEVEL, 1.0,
     )
 
-    # Critical intensity threshold: strong vs weak suppression by level index.
-    i_crit_key = (
-        "strong_suppression"
-        if suppression_idx >= dynamics["strong_suppression_threshold"]
-        else "weak_suppression"
+    # Critical intensity threshold: graded by suppression level so every level
+    # shifts the controllability race (not a binary strong/weak step).
+    i_crit = cfg.i_crit_by_level.get(
+        features.suppression_systems_level or _WORST_LEVEL,
+        cfg.i_crit_by_level[_WORST_LEVEL],
     )
-    i_crit = cfg.i_crit_by_suppression[i_crit_key]
 
     passive = passive_effectiveness(features, cfg)
     response = response_effectiveness(features, cfg)

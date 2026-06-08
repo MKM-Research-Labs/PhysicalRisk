@@ -89,9 +89,14 @@ def _metrics(features: AssetFireFeatures, seed: int = _SEED):
     return containment_pct, loss_pct, spread_bps
 
 
-def _sweep(field: str, values, label_fmt=str):
-    """Vary one feature field across *values*; return rows of metrics."""
-    base = _baseline()
+def _sweep(field: str, values, label_fmt=str, **base_overrides):
+    """Vary one feature field across *values*; return rows of metrics.
+
+    Extra keyword overrides are applied to the baseline before the swept field,
+    so a sweep can fix a second input (e.g. hold suppression below the
+    internal-sprinkler threshold while sweeping height to expose the reach cliff).
+    """
+    base = replace(_baseline(), **base_overrides) if base_overrides else _baseline()
     rows = []
     for v in values:
         feat = replace(base, **{field: v})
@@ -116,12 +121,20 @@ def generate():
         label="fire_suppression_sensitivity",
         headers=_HEADERS, rows=rows, col_fmt="lrrr"))
 
-    # 2. Building height (storeys) --- crosses the 4-storey fire-service reach.
+    # 2. Building height (storeys) --- the 4-storey fire-service-reach cliff.
+    # Held at sub-threshold ('Partial') internal suppression so the external
+    # reach governs: at or below 4 storeys a fire appliance can mount an attack;
+    # above 4 storeys, with no adequate internal sprinklers, suppression never
+    # engages and every fire runs to the point of no return. (A building with
+    # 'Meets minimum' or better internal suppression is reachable at any height,
+    # so its height sweep is intentionally flat and is not the cliff case.)
     rows = _sweep("number_of_storeys", [1, 3, 4, 5, 8, 12, 20],
-                  label_fmt=lambda n: f"{n} storeys")
+                  label_fmt=lambda n: f"{n} storeys",
+                  suppression_systems_level="Partial")
     sections.append(latex_table(
-        caption="Fire-resilience credit by building height "
-                "(reach = 4 storeys; 'Meets minimum' suppression)",
+        caption="Fire-resilience credit by building height --- the fire-service "
+                "reach cliff (reach = 4 storeys; sub-threshold 'Partial' "
+                "internal suppression)",
         label="fire_height_sensitivity",
         headers=_HEADERS, rows=rows, col_fmt="lrrr"))
 

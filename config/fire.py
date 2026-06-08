@@ -166,9 +166,11 @@ class ProgressionConfig:
 
     Attributes:
         growth_per_step_intensity: I_t additive growth per step by compartmentation.
-        i_crit_by_suppression: critical intensity threshold by suppression strength.
+        i_crit_by_level: critical intensity threshold graded by suppression level.
         detection_time_multiplier_by_level: time-to-detect scale per level.
         suppression_growth_multiplier_by_level: growth scale once suppressing.
+        suppression_bite_multiplier_by_level: time-to-bite scale per suppression level.
+        race_jitter: per-fire lognormal sigmas for the intensity-race timing/growth.
         passive_effectiveness_ranges: [min,max] passive defence by field.
         response_effectiveness_ranges: [min,max] active response by field.
         upper_floor_penalty_per_storey: {"range":[min,max], "max_storeys":int}.
@@ -180,9 +182,11 @@ class ProgressionConfig:
         transition_matrices: named 8x8 row-stochastic matrices.
     """
     growth_per_step_intensity: Dict[str, float] = field(default_factory=dict)
-    i_crit_by_suppression: Dict[str, float] = field(default_factory=dict)
+    i_crit_by_level: Dict[str, float] = field(default_factory=dict)
     detection_time_multiplier_by_level: Dict[str, float] = field(default_factory=dict)
     suppression_growth_multiplier_by_level: Dict[str, float] = field(default_factory=dict)
+    suppression_bite_multiplier_by_level: Dict[str, float] = field(default_factory=dict)
+    race_jitter: Dict[str, float] = field(default_factory=dict)
     passive_effectiveness_ranges: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     response_effectiveness_ranges: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     upper_floor_penalty_per_storey: Dict[str, object] = field(default_factory=dict)
@@ -257,9 +261,11 @@ def load_fire_config(
     prog_raw = data["progression"]
     progression = ProgressionConfig(
         growth_per_step_intensity=prog_raw["growth_per_step_intensity"],
-        i_crit_by_suppression=prog_raw["i_crit_by_suppression"],
+        i_crit_by_level=prog_raw["i_crit_by_level"],
         detection_time_multiplier_by_level=prog_raw["detection_time_multiplier_by_level"],
         suppression_growth_multiplier_by_level=prog_raw["suppression_growth_multiplier_by_level"],
+        suppression_bite_multiplier_by_level=prog_raw["suppression_bite_multiplier_by_level"],
+        race_jitter=prog_raw["race_jitter"],
         passive_effectiveness_ranges={
             k: tuple(v) for k, v in prog_raw["passive_effectiveness_ranges"].items()
         },

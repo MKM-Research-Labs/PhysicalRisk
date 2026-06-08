@@ -165,7 +165,9 @@ All values are **engineering-judgement seeds** (placeholders), physically defens
 
 ### Models B/C/D — progression seeds (already in JSON, consumed in Stage 2)
 - **growth_per_step_intensity** (additive `I_t` growth per 15-min step before suppression): well_compartmented 1.5, poorly_compartmented 3.0.
-- **i_crit_by_suppression** (critical intensity threshold): strong_suppression 75, weak_suppression 25.
+- **i_crit_by_level** (critical intensity threshold, graded by SuppressionSystemsInstalled level): Not assessed 6, Partial 10, Meets minimum 16, Enhanced 30, Verified 55.
+- **suppression_bite_multiplier_by_level** (scales time-to-active-suppression; lower = bites sooner): Not assessed 3.00, Partial 2.00, Meets minimum 1.30, Enhanced 0.85, Verified 0.55.
+- **race_jitter** (per-fire lognormal sigmas making the PNR race a Bernoulli outcome per fire rather than a deterministic asset property): timing_sigma 0.50, growth_sigma 0.40.
 - **detection_time_multiplier_by_level** (lower = faster detect; keyed on AutomaticDetectionInstalled level): Not assessed 1.00, Partial 0.90, Meets minimum 0.80, Enhanced 0.72, Verified 0.65.
 - **suppression_growth_multiplier_by_level** (lower = more effective; keyed on SuppressionSystemsInstalled level): 1.00, 0.85, 0.75, 0.62, 0.50.
 - **passive_effectiveness_ranges** `[min,max]` across the 5 levels: StructuralFireResistanceAdequate [0.60,0.95], CompartmentsProvided [0.55,0.90], FireStoppingAtPenetrations [0.70,0.95], ExternalMaterialsFireResistant [0.65,0.95].

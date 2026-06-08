@@ -39,6 +39,7 @@ Randomness flows through a single caller-owned numpy.random.Generator, matching
 the typhoon model and Stage 1 convention.
 """
 
+from dataclasses import replace
 from typing import List
 
 import numpy as np
@@ -56,6 +57,7 @@ from models.fire.response_effectiveness import derive_response_profile
 
 __all__ = [
     "TERMINAL_STATES",
+    "controllability_blend_weight",
     "select_transition_matrix",
     "sample_next_state",
     "simulate_fire_containment",
@@ -72,6 +74,27 @@ TERMINAL_STATES = frozenset({
 })
 
 
+def controllability_blend_weight(
+    profile: ResponseProfile,
+    cfg: ProgressionConfig,
+) -> float:
+    """Map the controllability score to a pre-PNR matrix blend weight in [0, 1].
+
+    w = clamp((controllability - blend_floor) / (blend_ceiling - blend_floor)).
+    w = 1 is pure AA_controllable; w = 0 is pure weak_controllable. The linear
+    remap positions and stretches the gradient over the score band the portfolio
+    actually spans, so the (well-graded) controllability score grades containment
+    rather than being collapsed by a hard threshold.
+    """
+    block = cfg.controllability
+    floor = block["blend_floor"]
+    ceiling = block["blend_ceiling"]
+    if ceiling <= floor:
+        return 1.0 if profile.controllability >= ceiling else 0.0
+    w = (profile.controllability - floor) / (ceiling - floor)
+    return min(max(w, 0.0), 1.0)
+
+
 def select_transition_matrix(
     profile: ResponseProfile,
     point_of_no_return: bool,
@@ -80,16 +103,22 @@ def select_transition_matrix(
     """Pick the active 8x8 transition matrix for the current step.
 
     Once the point of no return has latched the absorbing point_of_no_return
-    matrix is used. Otherwise a hard switch on the controllability score selects
-    AA_controllable (controllable) or weak_controllable (weak).
+    matrix is used. Otherwise the pre-PNR matrix is a controllability-weighted
+    blend of weak_controllable and AA_controllable: M = w*AA + (1-w)*weak, with
+    w from controllability_blend_weight. Blending (rather than a hard switch)
+    turns the continuous controllability score into a continuous containment
+    response, so suppression, passive and response defences all grade the credit.
     """
     matrices = cfg.transition_matrices
     if point_of_no_return:
         return matrices["point_of_no_return"]
-    threshold = cfg.controllability["switch_threshold"]
-    if profile.controllability >= threshold:
-        return matrices["AA_controllable"]
-    return matrices["weak_controllable"]
+    w = controllability_blend_weight(profile, cfg)
+    aa = matrices["AA_controllable"]
+    weak = matrices["weak_controllable"]
+    return [
+        [w * a + (1.0 - w) * k for a, k in zip(aa_row, weak_row)]
+        for aa_row, weak_row in zip(aa, weak)
+    ]
 
 
 def sample_next_state(
@@ -111,6 +140,33 @@ def sample_next_state(
     return FireState(idx)
 
 
+def _jitter_profile_for_fire(
+    profile: ResponseProfile,
+    prog: ProgressionConfig,
+    rng: np.random.Generator,
+) -> ResponseProfile:
+    """Draw this fire's race realisation from the asset's mean profile.
+
+    The intensity race is otherwise deterministic per asset, which would force
+    every fire of an asset to share one point-of-no-return verdict (so spread
+    could only be 0 or the full ignition rate). Drawing per-fire lognormal jitter
+    on the suppression-bite time and the per-step growth makes the PNR verdict a
+    Bernoulli outcome per fire, so the conflagration probability grades smoothly.
+    A reachable asset still suppresses on average; an unlucky draw (late bite /
+    fast growth) can lose the race. sigma = 0 recovers the deterministic race.
+    """
+    jitter = prog.race_jitter
+    timing_sigma = jitter.get("timing_sigma", 0.0)
+    growth_sigma = jitter.get("growth_sigma", 0.0)
+    bite = profile.suppression_bite_steps
+    growth = profile.growth_per_step
+    if timing_sigma > 0.0:
+        bite *= float(rng.lognormal(0.0, timing_sigma))
+    if growth_sigma > 0.0:
+        growth *= float(rng.lognormal(0.0, growth_sigma))
+    return replace(profile, suppression_bite_steps=bite, growth_per_step=growth)
+
+
 def simulate_fire_containment(
     profile: ResponseProfile,
     config: FireModelConfig,
@@ -118,10 +174,12 @@ def simulate_fire_containment(
 ) -> ContainmentOutcome:
     """March one fire from ignition to a terminal state.
 
-    Steps the intensity track and samples the chain (starting at S0) under the
-    per-step matrix until an absorbing state is reached or max_steps is hit.
+    Draws this fire's race realisation (per-fire jitter on bite time and growth),
+    then steps the intensity track and samples the chain (starting at S0) under
+    the per-step matrix until an absorbing state is reached or max_steps is hit.
     """
     prog = config.progression
+    profile = _jitter_profile_for_fire(profile, prog, rng)
     state = FireState.S0_EXPOSURE_OR_IGNITION
     track = initial_intensity_track()
     peak_intensity = track.intensity

@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Building Fire-Resilience Credit Model}
 \newcommand{\docsubtitle}{Poisson Initiation with an 8-State Bayesian Containment Chain}
-\newcommand{\docversion}{0.20}
-\newcommand{\docdate}{06-June-2026}
+\newcommand{\docversion}{0.30}
+\newcommand{\docdate}{08-June-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -60,7 +60,7 @@ engineering-judgement seed (\texttt{config/fire\_matrices.json},
 
 \textbf{Key risk:} The model uses placeholder calibration throughout. It is not
 approved for production until historical calibration completes and the Model
-Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R4).
+Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R6).
 
 % ===================================================================
 % 2. MODEL PURPOSE AND SCOPE
@@ -151,11 +151,13 @@ effectiveness $e_{\text{response}}$ (access route, procedures, continuity).
 Detection time is $\tau_{\text{det}} = \tau_{\text{det,0}}\,\delta_{\ell}$ where
 $\delta_\ell$ is the detection multiplier for the asset's detection level.
 Suppression-bite time applies a gentle per-storey height penalty
-$p \in [p_{\min},p_{\max}]$ interpolated over storeys, but is governed first by
-the \textbf{fire-service-reach gate}: external attack reaches only up to
-$R$ storeys, and above $R$ effective suppression requires internal sprinklers,
-i.e. a suppression level index $\ge \theta_{\text{int}}$. Writing $s$ for the
-storey count and $k_{\text{supp}}$ for the suppression-level index,
+$p \in [p_{\min},p_{\max}]$ interpolated over storeys \emph{and} a
+suppression-level multiplier $b_{\text{supp}}$ (a better system engages sooner),
+but is governed first by the \textbf{fire-service-reach gate}: external attack
+reaches only up to $R$ storeys, and above $R$ effective suppression requires
+internal sprinklers, i.e. a suppression level index $\ge \theta_{\text{int}}$.
+Writing $s$ for the storey count and $k_{\text{supp}}$ for the suppression-level
+index,
 \[
 \text{reachable} \;=\; \big(k_{\text{supp}} \ge \theta_{\text{int}}\big)
                        \;\lor\; \big(s \le R\big),
@@ -163,7 +165,7 @@ storey count and $k_{\text{supp}}$ for the suppression-level index,
 \[
 \tau_{\text{supp}} =
 \begin{cases}
-\tau_{\text{supp,0}}\; p & \text{if reachable},\\[2pt]
+\tau_{\text{supp,0}}\; p \; b_{\text{supp}} & \text{if reachable},\\[2pt]
 \tau_{\infty} \;(\gg \text{step budget}) & \text{otherwise.}
 \end{cases}
 \]
@@ -171,13 +173,22 @@ Compartmentation quality
 $q = \tfrac12\big(k_{\text{comp}}+k_{\text{stop}}\big)$ selects the
 well- vs.\ poorly-compartmented growth rate; the suppression level selects both
 the post-bite growth multiplier $\mu_{\text{supp}}$ and the critical intensity
-$I_{\text{crit}}$ (strong vs.\ weak). Finally the controllability score is the
-weighted blend
+$I_{\text{crit}}$, the latter graded across all five levels (not a binary
+strong/weak step) so every suppression level shifts the controllability race.
+Finally the controllability score is the weighted blend
 \[
 C = w_p\,e_{\text{passive}} + w_r\,e_{\text{response}}
     + w_s\,f_{\text{supp}},
 \]
-(renormalised by $w_p+w_r+w_s$), which selects the pre-PNR transition matrix.
+(renormalised by $w_p+w_r+w_s$), which is remapped to a matrix-blend weight
+\[
+w \;=\; \operatorname{clamp}\!\Big(\frac{C - C_{\text{floor}}}
+        {C_{\text{ceil}} - C_{\text{floor}}},\,0,\,1\Big) \in [0,1]
+\]
+that mixes the pre-PNR transition matrices (Model~D). A continuous blend, rather
+than a hard threshold, is what lets the well-graded score $C$ actually grade
+containment: a hard switch saturates because passive and response defences alone
+already clear it, leaving suppression unable to move the matrix.
 
 \subsection{Intensity Track (Model B)}
 
@@ -191,8 +202,14 @@ I_{t+1} = I_t + g_t, \qquad g_t \ge 0,
 \]
 where $g_{\text{base}}$ is the compartmentation-selected growth rate and
 suppression becomes active at the step $\lceil \tau_{\text{supp}} \rceil$. The
-track is fully deterministic; all stochasticity lives in the chain march
-(Model~D).
+\emph{mean} profile fixes $g_{\text{base}}$ and $\tau_{\text{supp}}$, but each
+fire draws its own race realisation: per-fire lognormal jitter is applied once to
+the growth rate ($g_{\text{base}}\!\cdot\!e^{\sigma_g Z}$) and to the bite time
+($\tau_{\text{supp}}\!\cdot\!e^{\sigma_\tau Z}$) before the march. Without this
+the PNR verdict would be a deterministic property of the asset, forcing the
+conflagration leg to be all-or-nothing (0 or the full ignition rate); the jitter
+makes it a per-fire Bernoulli outcome so the conflagration probability grades
+smoothly. Setting $\sigma_g=\sigma_\tau=0$ recovers the deterministic track.
 
 \subsection{Point of No Return}
 
@@ -217,13 +234,17 @@ S_3\text{ Internal response},\;S_4\text{ External response},
 S_5\text{ Contained},\;S_6\text{ Partial loss},\;S_7\text{ Total loss},
 \]
 with $\{S_5,S_6,S_7\}$ absorbing. At each step the intensity track advances and
-the active $8\times8$ row-stochastic matrix is selected: while PNR is unlatched,
-a hard switch on $C$ against the threshold picks the controllable matrix
-($C \ge$ threshold) or the weak matrix; once PNR latches, every transient state
-uses the absorbing point-of-no-return matrix, whose $S_5$ (Contained) column is
-identically zero. The next state is sampled from the current state's row (with
-defensive renormalisation) until an absorbing state is reached or the step
-budget is exhausted. The three matrices are given in
+the active $8\times8$ row-stochastic matrix is selected: while PNR is unlatched
+the pre-PNR matrix is the controllability-weighted blend
+\[
+M \;=\; w\,M_{\text{AA}} \;+\; (1-w)\,M_{\text{weak}},
+\]
+(row-stochastic for any $w\in[0,1]$), interpolating continuously from the weak
+matrix at $w=0$ to the controllable matrix at $w=1$; once PNR latches, every
+transient state uses the absorbing point-of-no-return matrix, whose $S_5$
+(Contained) column is identically zero. The next state is sampled from the
+current state's row (with defensive renormalisation) until an absorbing state is
+reached or the step budget is exhausted. The three base matrices are given in
 Appendix~\ref{app:transitions}.
 
 \subsection{Resilience Credit}
@@ -300,9 +321,12 @@ must be read as relative resilience signals, not absolute loss probabilities.
 
 All randomness flows through a single caller-owned
 \texttt{numpy.random.Generator}, so an entire portfolio run is reproducible from
-one seed --- matching the storm and typhoon model convention. Model C is
-deterministic, Model B is deterministic, and only the chain march in Model D
-draws from the generator.
+one seed --- matching the storm and typhoon model convention. Model~C is
+deterministic, and Model~B is deterministic \emph{given a profile}; the per-asset
+mean profile is drawn into a per-fire realisation inside Model~D, which jitters
+the bite time and growth rate once per fire and then samples the chain march.
+Every draw from the generator therefore still happens in Model~D, and the whole
+run stays bit-for-bit reproducible.
 
 % ===================================================================
 % 6. VALIDATION AND BACKTESTING
@@ -334,20 +358,75 @@ The tables below are generated by
 \emph{Meets minimum}), varying one input at a time over
 20{,}000 Monte Carlo draws per cell.
 
-Two findings dominate. First, on the single-variable sweeps the fire-spread
-(PNR) leg is \emph{zero}: the 3-storey baseline is always within the
-fire-service reach, so suppression is reachable and no fire runs to
-conflagration; the resilience levels move only the containment rate and the
-ordinary loss frequency, and commercial type / condition move loss frequency in
-the expected order (hotels, mixed-use and poor condition are worst). Second, the
-height $\times$ suppression grid exposes the headline non-linearity: a building
-\emph{above} the 4-storey reach with only \emph{Partial} internal suppression
-jumps to $\approx 203$~bps of fire spread, while the same building at
-\emph{Meets minimum} or better, or at or below the reach height, stays at zero.
-This cliff --- not a smooth gradient --- is the economically important
-behaviour the credit is designed to price.
+The results show a clear \textbf{division of labour} across the three levers,
+which is how the credit is designed to respond.
+
+\emph{Suppression drives containment and loss frequency.} On the suppression
+sweep the containment rate climbs monotonically from $\approx 47\%$ at
+\emph{Not assessed} to $\approx 88\%$ at \emph{Verified}, and the annual loss
+frequency falls roughly five-fold ($1.14\% \to 0.24\%$). This is the continuous
+matrix blend at work: a better-suppressed asset has a higher controllability
+score $C$, a blend weight $w$ nearer the controllable matrix, and so a higher
+chance of reaching $S_5$ (Contained). This is the economically meaningful credit
+the suppression system buys.
+
+\emph{Compartmentation drives conflagration.} Passive compartmentation selects
+the growth rate, so a poorly-compartmented asset grows fast enough to cross
+$I_{\text{crit}}$ before the chain absorbs and shows a small but non-zero
+fire-spread ($\approx 9$~bps), whereas a well-compartmented one stays at zero.
+Commercial type and condition move loss frequency in the expected order (hotels,
+mixed-use and poor condition worst).
+
+\emph{The fire-service reach drives the catastrophic tail.} The height sweep
+(held at sub-threshold \emph{Partial} internal suppression) is the headline
+non-linearity: at or below the 4-storey reach the credit is ordinary
+($\approx 56\%$ containment, zero spread), but at \emph{five storeys and above}
+suppression can no longer engage and the asset collapses to $0\%$ containment and
+$\approx 203$~bps of fire spread --- a \textbf{cliff, not a gradient}. The
+height~$\times$~suppression grid confirms the cliff appears precisely when
+internal suppression is below the sprinkler threshold; \emph{Meets minimum} or
+better keeps the asset reachable at any height.
 
 \input{sensitivity_tables}
+
+\subsection{Interpretation and known model weaknesses}
+
+The sensitivity surface above is directionally correct, but two structural
+features of the seed model deserve to be read alongside it:
+
+\begin{itemize}
+  \item \textbf{The conflagration leg is muted for reachable buildings (by
+        construction).} The chain march absorbs in $\approx 3$ steps on average,
+        while latent intensity climbs only $\approx 0.8$ per step, so a
+        \emph{reachable} fire is contained or lost long before the slow
+        point-of-no-return race can cross $I_{\text{crit}}$. The PNR gate
+        therefore fires almost only for the structural reach cliff (tall,
+        under-sprinklered) plus a sliver of no-suppression cases. This is
+        \emph{semantically} correct --- a fire contained in three steps did not
+        reach a point of no return --- but it means fire-spread (bps) is driven
+        chiefly by compartmentation and the reach cliff rather than by the active
+        suppression level. Making spread respond strongly to suppression as well
+        would require retuning the intensity-race timescale (a lower
+        $I_{\text{crit}}$, of order 2--4) so the race competes with the
+        three-step march; that is deferred as an enhancement because it is
+        arguably less physical than letting compartmentation own conflagration.
+  \item \textbf{The height sweep only shows the cliff at sub-threshold internal
+        suppression.} A building with \emph{Meets minimum} or better internal
+        sprinklers is reachable at any height, so its height sweep is flat by
+        design; the cliff table here deliberately holds suppression at
+        \emph{Partial} to expose the reach behaviour. A future enhancement would
+        model fire-service reach as a brigade-specific, possibly height-graded
+        capability rather than a single global 4-storey threshold, and would let
+        internal-suppression adequacy degrade with height rather than flip at a
+        hard index.
+\end{itemize}
+
+The exposed calibration knobs make the surface tunable without code changes:
+$C_{\text{floor}}$/$C_{\text{ceil}}$ position and stretch the containment band;
+\texttt{suppression\_bite\_multiplier\_by\_level} and \texttt{i\_crit\_by\_level}
+set the gradient steepness; and the \texttt{race\_jitter} sigmas
+($\sigma_\tau,\sigma_g$) control how smoothly the conflagration probability
+grades.
 
 % ===================================================================
 % 8. LIMITATIONS AND ASSUMPTIONS
@@ -362,9 +441,20 @@ behaviour the credit is designed to price.
         \texttt{NumberOfStoreys}; the commercial schema carries no explicit
         floor-level or floor-area metric, and the fire-service reach is a single
         global threshold rather than a brigade-specific capability.
-  \item \textbf{Deterministic intensity track (FIRE-L3).} All stochasticity
-        lives in the chain march; the intensity growth and PNR timing are
-        deterministic given the asset profile.
+  \item \textbf{Muted conflagration leg for reachable buildings (FIRE-L3).} The
+        chain march absorbs faster ($\approx 3$ steps) than the latent intensity
+        race reaches $I_{\text{crit}}$, so the point-of-no-return / fire-spread
+        leg responds chiefly to compartmentation and the reach cliff rather than
+        to the active suppression level (see Section~7, ``Interpretation and
+        known model weaknesses''). Suppression instead expresses itself through
+        containment rate and loss frequency. Retuning the intensity-race
+        timescale to make spread suppression-sensitive is an open enhancement
+        (FIRE-R5).
+  \item \textbf{Single global reach threshold (FIRE-L4).} The fire-service reach
+        is one global 4-storey cut-off and internal-suppression adequacy flips at
+        a hard index, so the height cliff only appears at sub-threshold internal
+        suppression. A brigade-specific, height-graded reach and a graded
+        internal-suppression adequacy are an open enhancement (FIRE-R6).
   \item \textbf{Initiation class is cosmetic.} The initiation-class draw seeds an
         entry-point label but does not yet change the chain start state or
         dynamics.
@@ -396,10 +486,13 @@ records) is not yet established --- open under FIRE-R1.
 
 \mkmvqitem{3}{Conceptual soundness}{Is the methodology theoretically sound and
 appropriate?}
-The four-model decomposition (Poisson initiation, deterministic intensity track,
-resilience$\rightarrow$dynamics mapping, absorbing Bayesian chain) is a standard
-and defensible structure. The point-of-no-return gate is the one bespoke
-mechanism and is documented in Section~3.4.
+The four-model decomposition (Poisson initiation, per-fire-stochastic intensity
+track, resilience$\rightarrow$dynamics mapping, controllability-blended absorbing
+Bayesian chain) is a standard and defensible structure. The point-of-no-return
+gate is the one bespoke mechanism and is documented in Section~3.4. Its known
+weakness --- that the gate is muted for reachable buildings because the chain
+absorbs faster than the intensity race --- is documented in Sections~7 and~8
+(FIRE-L3).
 
 \mkmvqitem{4}{Calibration and parameters}{How were parameters estimated, and are
 they appropriate?}
@@ -422,8 +515,11 @@ formal stability bands are an open item.
 
 \mkmvqitem{7}{Limitations and weaknesses}{Are the model's limitations understood
 and documented?}
-Yes --- see Section~8 (FIRE-L1--L3 plus four further documented assumptions).
-The placeholder calibration and the height proxy are the most material.
+Yes --- see Section~8 (FIRE-L1--L4 plus three further documented assumptions) and
+the ``Interpretation and known model weaknesses'' discussion in Section~7. The
+placeholder calibration and the height proxy are the most material; the muted
+conflagration leg (FIRE-L3) and single global reach threshold (FIRE-L4) are
+documented enhancements.
 
 \mkmvqitem{8}{Ongoing monitoring}{How will the model be monitored in production?}
 Not yet in production. A monitoring plan (drift in input distributions,
@@ -433,7 +529,7 @@ FIRE-R3 before sign-off.
 \mkmvqitem{9}{Governance and approval}{What is the approval status and who owns
 the model?}
 Owner: David K Kelly. Status: Development, Tier~2, RAG Amber. Not approved for
-production; MRC sign-off is contingent on closing FIRE-R1--R4.
+production; MRC sign-off is contingent on closing FIRE-R1--R6.
 
 % ===================================================================
 % 10. CHANGE HISTORY
@@ -446,6 +542,7 @@ Version & Date & Description \\
 \midrule
 0.01 & 05-June-2026 & Skeleton document. Stage 1 (Model A) and Stage 2 (Models B/C/D + orchestrator) delivered with unit tests; placeholder calibration. \\
 0.20 & 06-June-2026 & Completed all narrative sections; added the full mathematical framework (Models A--D, PNR, credit currency), governance validation questions, the matrices appendix, and the end-to-end sensitivity analysis. \\
+0.30 & 08-June-2026 & Recalibrated the resilience response: replaced the saturated hard controllability switch with a continuous matrix blend ($M=wM_{\text{AA}}+(1-w)M_{\text{weak}}$); graded $I_{\text{crit}}$ across all five suppression levels; added a per-level suppression-bite multiplier and per-fire race jitter ($\sigma_\tau,\sigma_g$) so the conflagration probability is no longer all-or-nothing. Containment now grades $47\%\!\to\!88\%$ across suppression levels (previously flat $\approx 88.7\%$). Reworked the height sweep to expose the 4-storey reach cliff and documented the muted-conflagration and single-reach-threshold weaknesses (FIRE-L3/L4, FIRE-R5/R6). \\
 \bottomrule
 \end{tabular}
 
@@ -560,8 +657,11 @@ Block & Key & Value \\
 Growth per step & well\_compartmented & 1.5 \\
                 & poorly\_compartmented & 4.0 \\
 \midrule
-$I_{\text{crit}}$ & strong\_suppression & 75 \\
-                  & weak\_suppression & 12 \\
+$I_{\text{crit}}$ & Not assessed & 6 \\
+by suppression    & Partial & 10 \\
+level             & Meets minimum & 16 \\
+                  & Enhanced & 30 \\
+                  & Verified & 55 \\
 \midrule
 Detection mult.\ & Not assessed & 1.00 \\
 $\delta_\ell$    & Partial & 0.90 \\
@@ -574,6 +674,12 @@ mult.\ $\mu_{\text{supp}}$ & Partial & 0.85 \\
                  & Meets minimum & 0.75 \\
                  & Enhanced & 0.62 \\
                  & Verified & 0.50 \\
+\midrule
+Suppression bite & Not assessed & 3.00 \\
+mult.\ $b_{\text{supp}}$ & Partial & 2.00 \\
+(lower = sooner) & Meets minimum & 1.30 \\
+                 & Enhanced & 0.85 \\
+                 & Verified & 0.55 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -618,12 +724,15 @@ Timing & detection\_base\_steps $\tau_{\text{det,0}}$ & 2.0 \\
 \midrule
 Intensity dynamics & passive\_damp\_weight $w_{\text{damp}}$ & 0.60 \\
                    & compartmentation\_well\_threshold & 2.0 \\
-                   & strong\_suppression\_threshold & 2.0 \\
+\midrule
+Race jitter & timing\_sigma $\sigma_\tau$ & 0.50 \\
+            & growth\_sigma $\sigma_g$ & 0.40 \\
 \midrule
 Controllability & weight (passive) $w_p$ & 0.35 \\
                 & weight (response) $w_r$ & 0.35 \\
                 & weight (suppression) $w_s$ & 0.30 \\
-                & switch\_threshold & 0.55 \\
+                & blend\_floor $C_{\text{floor}}$ & 0.18 \\
+                & blend\_ceiling $C_{\text{ceil}}$ & 0.88 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -638,8 +747,8 @@ unreachable.
 
 \begin{table}[H]
 \centering
-\caption{\texttt{AA\_controllable} --- pre-PNR, controllable asset
-($C \ge 0.55$).}
+\caption{\texttt{AA\_controllable} --- pre-PNR controllable endpoint; the active
+matrix at blend weight $w=1$ (controllability $C \ge C_{\text{ceil}}$).}
 \begin{tabular}{lrrrrrrrr}
 \toprule
 From\textbackslash To & $S_0$ & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $S_5$ & $S_6$ & $S_7$ \\
@@ -658,7 +767,9 @@ $S_7$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
 
 \begin{table}[H]
 \centering
-\caption{\texttt{weak\_controllable} --- pre-PNR, weak asset ($C < 0.55$).}
+\caption{\texttt{weak\_controllable} --- pre-PNR weak endpoint; the active matrix
+at blend weight $w=0$ (controllability $C \le C_{\text{floor}}$). For intermediate
+$C$ the active matrix is $w\,M_{\text{AA}} + (1-w)\,M_{\text{weak}}$.}
 \begin{tabular}{lrrrrrrrr}
 \toprule
 From\textbackslash To & $S_0$ & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $S_5$ & $S_6$ & $S_7$ \\

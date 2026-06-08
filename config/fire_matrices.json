@@ -95,10 +95,13 @@
       "poorly_compartmented": 4.0
     },
 
-    "i_crit_by_suppression": {
-      "_doc": "Critical intensity threshold I_crit. If I_t crosses this before suppression bites, the chain hits the point of no return (S5 column collapses to ~0). The weak value is set so a poorly-compartmented, weakly-suppressed asset can actually lose the controllability race (PNR reachable around step 5); the strong value is high enough that a well-protected asset suppresses long before I_t approaches it (PNR effectively unreachable).",
-      "strong_suppression": 75,
-      "weak_suppression": 12
+    "i_crit_by_level": {
+      "_doc": "Critical intensity threshold I_crit, graded across the 5 SuppressionSystemsInstalled levels. If I_t crosses this before suppression bites, the chain hits the point of no return (S5 column collapses to ~0). Graded (not a binary strong/weak step) so every suppression level shifts the controllability race: a poorly-suppressed asset has little margin and can lose the race (PNR reachable within a few pre-suppression steps), while a well-suppressed asset has a high threshold it never approaches before suppression bites.",
+      "Not assessed": 6.0,
+      "Partial": 10.0,
+      "Meets minimum": 16.0,
+      "Enhanced": 30.0,
+      "Verified": 55.0
     },
 
     "detection_time_multiplier_by_level": {
@@ -117,6 +120,21 @@
       "Meets minimum": 0.75,
       "Enhanced": 0.62,
       "Verified": 0.50
+    },
+
+    "suppression_bite_multiplier_by_level": {
+      "_doc": "Scales time-to-active-suppression by SuppressionSystemsInstalled level; lower = suppression bites SOONER (better systems engage faster and shorten the pre-suppression window in which the fire can reach the point of no return). Multiplies suppression_bite_base_steps alongside the height penalty. This is the lever by which a better suppression system wins the controllability race; without it the bite time is the same for every level.",
+      "Not assessed": 3.00,
+      "Partial": 2.00,
+      "Meets minimum": 1.30,
+      "Enhanced": 0.85,
+      "Verified": 0.55
+    },
+
+    "race_jitter": {
+      "_doc": "Per-fire lognormal variability injected into the otherwise-deterministic intensity race so a given asset's fires do NOT all share one point-of-no-return verdict. Without this the PNR latch is a deterministic property of the asset, forcing fire-spread to be all-or-nothing (0 or the full ignition rate). timing_sigma jitters the suppression-bite step; growth_sigma jitters the per-step intensity growth. Larger sigma => more spread in race outcomes => a smoother graded conflagration probability. sigma=0 recovers the deterministic race.",
+      "timing_sigma": 0.50,
+      "growth_sigma": 0.40
     },
 
     "passive_effectiveness_ranges": {
@@ -154,20 +172,20 @@
     },
 
     "intensity_dynamics": {
-      "_doc": "Knobs governing the latent intensity track I_t. passive_damp_weight scales how much aggregate passive effectiveness slows per-step growth (effective_growth = growth_per_step * (1 - passive_damp_weight * passive_effectiveness)). compartmentation_well_threshold = mean level index (0-4) of CompartmentsProvided+FireStoppingAtPenetrations at/above which growth uses the well_compartmented rate. strong_suppression_threshold = SuppressionSystemsInstalled level index (0-4) at/above which i_crit uses the strong_suppression value.",
+      "_doc": "Knobs governing the latent intensity track I_t. passive_damp_weight scales how much aggregate passive effectiveness slows per-step growth (effective_growth = growth_per_step * (1 - passive_damp_weight * passive_effectiveness)). compartmentation_well_threshold = mean level index (0-4) of CompartmentsProvided+FireStoppingAtPenetrations at/above which growth uses the well_compartmented rate.",
       "passive_damp_weight": 0.6,
-      "compartmentation_well_threshold": 2.0,
-      "strong_suppression_threshold": 2.0
+      "compartmentation_well_threshold": 2.0
     },
 
     "controllability": {
-      "_doc": "Aggregate controllability score in [0,1] combining passive, response and suppression effectiveness; selects which pre-PNR transition matrix is used. weights are normalised over the three components. score >= switch_threshold uses AA_controllable, else weak_controllable. suppression_component maps the SuppressionSystemsInstalled level index (0-4) to [0,1] via idx/4.",
+      "_doc": "Aggregate controllability score in [0,1] combining passive, response and suppression effectiveness; sets how the pre-PNR transition matrix is BLENDED between weak_controllable and AA_controllable. weights are normalised over the three components. The score is remapped to a blend weight w in [0,1] by w = clamp((score - blend_floor) / (blend_ceiling - blend_floor)); the active pre-PNR matrix is w*AA_controllable + (1-w)*weak_controllable. A continuous blend (rather than a hard switch) is what lets the well-graded controllability score actually grade containment: a hard threshold saturates because passive+response alone already clear it, leaving suppression unable to move the matrix. blend_floor/blend_ceiling position and stretch the gradient over the score range the portfolio actually spans.",
       "weights": {
         "passive": 0.35,
         "response": 0.35,
         "suppression": 0.30
       },
-      "switch_threshold": 0.55
+      "blend_floor": 0.18,
+      "blend_ceiling": 0.88
     },
 
     "transition_matrices": {

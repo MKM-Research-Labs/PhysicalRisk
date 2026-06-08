@@ -176,7 +176,8 @@ def test_strong_profile_beats_weak_profile(prog):
 
 def test_strong_asset_uses_strong_i_crit_and_well_compartmented(prog):
     strong = derive_response_profile(_strong(), prog)
-    assert strong.i_crit == pytest.approx(prog.i_crit_by_suppression["strong_suppression"])
+    # i_crit is graded by suppression level; a Verified asset gets the top value.
+    assert strong.i_crit == pytest.approx(prog.i_crit_by_level["Verified"])
     assert strong.growth_per_step == pytest.approx(
         prog.growth_per_step_intensity["well_compartmented"]
     )
@@ -184,10 +185,33 @@ def test_strong_asset_uses_strong_i_crit_and_well_compartmented(prog):
 
 def test_weak_asset_uses_weak_i_crit_and_poorly_compartmented(prog):
     weak = derive_response_profile(_weak(), prog)
-    assert weak.i_crit == pytest.approx(prog.i_crit_by_suppression["weak_suppression"])
+    # The weak asset has no assessed suppression -> the worst (lowest) i_crit.
+    assert weak.i_crit == pytest.approx(prog.i_crit_by_level["Not assessed"])
     assert weak.growth_per_step == pytest.approx(
         prog.growth_per_step_intensity["poorly_compartmented"]
     )
+
+
+def test_i_crit_grades_monotonically_with_suppression_level(prog):
+    # Every suppression level shifts the point-of-no-return threshold, so the
+    # controllability race is graded rather than a binary strong/weak step.
+    levels = ["Not assessed", "Partial", "Meets minimum", "Enhanced", "Verified"]
+    crits = [
+        derive_response_profile(_strong(suppression_systems_level=lv), prog).i_crit
+        for lv in levels
+    ]
+    assert crits == sorted(crits)
+    assert crits[0] < crits[-1]
+
+
+def test_better_suppression_bites_sooner(prog):
+    # A better suppression system engages sooner (smaller bite time), within the
+    # fire-service reach so the height/reach path does not dominate.
+    enhanced = derive_response_profile(
+        _strong(number_of_storeys=2, suppression_systems_level="Enhanced"), prog)
+    partial = derive_response_profile(
+        _strong(number_of_storeys=2, suppression_systems_level="Partial"), prog)
+    assert enhanced.suppression_bite_steps < partial.suppression_bite_steps
 
 
 # ===========================================================================
