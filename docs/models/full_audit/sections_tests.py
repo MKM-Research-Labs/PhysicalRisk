@@ -5,6 +5,8 @@
 
 """Test suite detail, coverage analysis, and modularisation sections."""
 
+from xml.sax.saxutils import escape as _xml_escape
+
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -12,6 +14,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from ._constants import NAVY, STEEL, GREEN, AMBER, RED, GREY, _root, _TBL_STYLE_BASE
+from .helpers import _load_json_report
 
 
 def _build_test_detail(junit: dict, styles) -> list:
@@ -70,6 +73,82 @@ def _build_test_detail(junit: dict, styles) -> list:
     tbl.setStyle(TableStyle(style_cmds))
     elems.append(tbl)
 
+    # 2.1 — individual unit-test failures
+    elems.extend(_build_unit_failures(styles))
+
+    return elems
+
+
+def _short_msg(longrepr: str) -> str:
+    """Pull a concise one-line message from a pytest longrepr blob.
+
+    The last non-empty line of a pytest traceback is usually the assertion or
+    error (e.g. ``AssertionError: ...``), which is the most useful summary.
+    """
+    if not longrepr:
+        return '—'
+    lines = [ln.strip() for ln in longrepr.splitlines() if ln.strip()]
+    if not lines:
+        return '—'
+    msg = lines[-1]
+    return msg[:160] + ('…' if len(msg) > 160 else '')
+
+
+def _build_unit_failures(styles) -> list:
+    """Subsection 2.1: list the individual failing unit tests, sourced from
+    test_failures_report.json (written by ``app.py test --unit``). Section 2's
+    table only gives per-package counts — this names the actual failures."""
+    elems = []
+    elems.append(Spacer(1, 5 * mm))
+    elems.append(Paragraph('2.1 Failed Unit Tests', styles['h3']))
+    elems.append(Spacer(1, 2 * mm))
+
+    report = _load_json_report('test_failures_report.json')
+    if not report:
+        elems.append(Paragraph(
+            'test_failures_report.json not found — run '
+            '<b>python app.py test --unit</b> to generate it.', styles['body']))
+        return elems
+
+    summary = report.get('summary', {})
+    failures = report.get('failures', [])
+    total = summary.get('total', 0)
+    failed = summary.get('failed', len(failures))
+
+    if not failures:
+        elems.append(Paragraph(
+            f'All <b>{total:,}</b> unit tests passed — <b>0 failures</b>. '
+            '<b>PASS</b>', styles['body']))
+        return elems
+
+    elems.append(Paragraph(
+        f'<b>{failed}</b> of {total:,} unit tests failed (showing up to 60):',
+        styles['body']))
+    elems.append(Spacer(1, 2 * mm))
+
+    data = [[
+        Paragraph('<b>Test</b>', styles['tbl_hdr']),
+        Paragraph('<b>File</b>', styles['tbl_hdr']),
+        Paragraph('<b>Message</b>', styles['tbl_hdr']),
+    ]]
+    for f in failures[:60]:
+        fpath = f.get('file', '') or f.get('class', '')
+        data.append([
+            Paragraph(_xml_escape(f.get('name', '')), styles['tbl_cell']),
+            Paragraph(_xml_escape(fpath), styles['tbl_cell']),
+            Paragraph(_xml_escape(_short_msg(f.get('longrepr', ''))), styles['tbl_cell']),
+        ])
+    tbl = Table(data, colWidths=[50 * mm, 53 * mm, 65 * mm])
+    tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFEBEE')),
+    ]))
+    elems.append(tbl)
+
+    if len(failures) > 60:
+        elems.append(Spacer(1, 2 * mm))
+        elems.append(Paragraph(
+            f'… and {len(failures) - 60} more. See '
+            '<b>test_failures_report.json</b> for the full list.', styles['body']))
     return elems
 
 
