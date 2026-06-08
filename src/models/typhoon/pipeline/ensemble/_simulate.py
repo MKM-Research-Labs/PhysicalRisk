@@ -57,6 +57,7 @@ def simulate_typhoon_events(
     event_severity_q: Optional[List[float]] = None,
     event_seeds: Optional[List[int]] = None,
     coupling_beta: float = 0.5,
+    progress_every: int = 100,
 ) -> TyphoonEventEnsemble:
     """Simulate n_events typhoons and aggregate per-property statistics.
 
@@ -96,6 +97,10 @@ def simulate_typhoon_events(
             ``f(q)=1−(1−q)^β``. β→0 = pure ceiling (no tail pull), β=1 =
             deterministic comonotone. Only consulted when event_severity_q
             is supplied.
+        progress_every: emit an interim progress line every this many events
+            (and once more at the final event). The line reports events done,
+            elapsed time, throughput, an ETA, and running peak-wind statistics
+            across the events simulated so far. Set to 0 to disable.
 
     Returns:
         TyphoonEventEnsemble with per-property PropertyPeakWindSummary
@@ -140,6 +145,13 @@ def simulate_typhoon_events(
         windts_output_dir = Path(windts_output_dir)
         windts_output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Running interim-result accumulators (cheap scalars updated per event)
+    # so the progress line can report partial results without rescanning the
+    # full by_property accumulator.
+    run_peak_max = 0.0      # largest per-event peak sustained wind so far
+    run_peak_sum = 0.0      # sum of per-event peaks (for a running mean)
+    run_peak_n = 0          # number of events contributing a peak
+
     t_start = time.perf_counter()
     for event_idx in range(n_events):
         # Per-event RNG: when seeds are supplied (coupled mode), reseed a
@@ -181,6 +193,19 @@ def simulate_typhoon_events(
         for pid, outputs in event_result.by_property.items():
             by_property[pid].extend(outputs)
 
+        # Interim result: peak sustained wind reached anywhere in this event
+        # (max across its particles and property points). Cheap — operates on
+        # this event's outputs only.
+        ev_peak = 0.0
+        for outputs in event_result.by_property.values():
+            for o in outputs:
+                if o.peak_sustained_ms > ev_peak:
+                    ev_peak = o.peak_sustained_ms
+        if event_result.by_property:
+            run_peak_max = max(run_peak_max, ev_peak)
+            run_peak_sum += ev_peak
+            run_peak_n += 1
+
         # Pick a single representative particle for per-event artefacts so
         # the storm track (events/EVT-NNNN.json) and the per-property wind
         # timeseries (windts/EVT-NNNN.json) come from the same realization.
@@ -213,6 +238,31 @@ def simulate_typhoon_events(
                 output_path=windts_output_dir / f"{event_label}.json",
                 horizon_hours=horizon_hours,
                 dt_hours=dt_hours,
+            )
+
+        # Interim progress: every `progress_every` events and at the final
+        # event, print a one-line update with throughput, ETA, and the
+        # running peak-wind result so a long run shows steady signs of life.
+        done = event_idx + 1
+        is_block = progress_every > 0 and done % progress_every == 0
+        is_last = done == n_events
+        if progress_every > 0 and (is_block or is_last):
+            since = time.perf_counter() - t_start
+            rate = done / since if since > 0 else 0.0
+            remaining = (n_events - done) / rate if rate > 0 else 0.0
+            pct = 100.0 * done / n_events if n_events else 100.0
+            if run_peak_n:
+                peak_str = (
+                    f"peak wind so far: max {run_peak_max:.1f} m/s, "
+                    f"mean {run_peak_sum / run_peak_n:.1f} m/s"
+                )
+            else:
+                peak_str = "peak wind so far: n/a (no property points)"
+            print(
+                f"   [typhoon] {done:,}/{n_events:,} events ({pct:4.1f}%)  |  "
+                f"{since:6.1f}s elapsed, {rate:5.1f} ev/s, "
+                f"~{remaining:6.1f}s remaining  |  {peak_str}",
+                flush=True,
             )
     elapsed = time.perf_counter() - t_start
 
