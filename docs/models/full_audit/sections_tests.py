@@ -76,29 +76,33 @@ def _build_test_detail(junit: dict, styles) -> list:
     # 2.1 — individual unit-test failures
     elems.extend(_build_unit_failures(styles))
     # 2.2 — skipped tests, grouped by reason
-    elems.extend(_build_skipped_tests(junit, styles))
+    elems.extend(_build_skipped_tests(styles))
 
     return elems
 
 
-def _build_skipped_tests(junit: dict, styles) -> list:
-    """Subsection 2.2: skipped tests grouped by reason. Most skips are
-    data-dependent (port/blotter/PRS data not generated on disk), so grouping
-    by reason is far more useful than a flat list of test names."""
-    from collections import Counter
+def _build_skipped_tests(styles) -> list:
+    """Subsection 2.2: skipped tests grouped by reason, sourced from
+    test_failures_report.json (written by ``app.py test --unit``). Most skips
+    are data-dependent (port/blotter/PRS data not generated on disk), so
+    grouping by reason — with an example test — is far more useful than a flat
+    list of 50+ test names."""
+    from collections import defaultdict
 
     elems = []
     elems.append(Spacer(1, 5 * mm))
     elems.append(Paragraph('2.2 Skipped Tests', styles['h3']))
     elems.append(Spacer(1, 2 * mm))
 
-    skipped = junit.get('skipped_tests', [])
-    n_skip = junit.get('skipped', len(skipped))
+    report = _load_json_report('test_failures_report.json')
+    skipped = report.get('skipped', []) if report else []
+    n_skip = (report.get('summary', {}) or {}).get('skipped', len(skipped))
 
     if not skipped:
         elems.append(Paragraph(
-            f'No tests were skipped ({n_skip} skips).' if not n_skip else
-            f'{n_skip} test(s) skipped — per-test reasons unavailable in junit.xml.',
+            'No tests were skipped.' if not n_skip else
+            f'{n_skip} test(s) skipped — per-test reasons unavailable (regenerate '
+            'with <b>python app.py test --unit</b> to capture them).',
             styles['body']))
         return elems
 
@@ -110,19 +114,30 @@ def _build_skipped_tests(junit: dict, styles) -> list:
         styles['body']))
     elems.append(Spacer(1, 2 * mm))
 
-    by_reason = Counter(s.get('reason', '(no reason given)') for s in skipped)
+    # Group by reason, keeping count + one example test per reason.
+    groups = defaultdict(lambda: {'count': 0, 'example': ''})
+    for s in skipped:
+        reason = s.get('reason', '') or '(no reason given)'
+        g = groups[reason]
+        g['count'] += 1
+        if not g['example']:
+            g['example'] = s.get('name', '') or s.get('file', '')
 
     data = [[
         Paragraph('<b>Skip reason</b>', styles['tbl_hdr']),
+        Paragraph('<b>Example test</b>', styles['tbl_hdr']),
         Paragraph('<b>Count</b>', styles['tbl_hdr']),
     ]]
-    for reason, count in by_reason.most_common():
-        text = reason if len(reason) <= 110 else reason[:108] + '…'
+    for reason, g in sorted(groups.items(), key=lambda kv: -kv[1]['count']):
+        rtext = reason if len(reason) <= 90 else reason[:88] + '…'
+        ex = g['example']
+        ex = ex if len(ex) <= 40 else ex[:38] + '…'
         data.append([
-            Paragraph(_xml_escape(text), styles['tbl_cell']),
-            Paragraph(str(count), styles['tbl_cell_r']),
+            Paragraph(_xml_escape(rtext), styles['tbl_cell']),
+            Paragraph(_xml_escape(ex), styles['tbl_cell']),
+            Paragraph(str(g['count']), styles['tbl_cell_r']),
         ])
-    tbl = Table(data, colWidths=[150 * mm, 18 * mm])
+    tbl = Table(data, colWidths=[104 * mm, 46 * mm, 18 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
         ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF8E1')),
     ]))
