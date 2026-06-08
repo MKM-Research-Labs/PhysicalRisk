@@ -109,6 +109,7 @@ def _write_failures_report(junit_xml_path: str, audit_dir: str) -> None:
 
     summary = {'total': 0, 'passed': 0, 'failed': 0, 'skipped': 0}
     failures = []
+    skipped = []
 
     if os.path.exists(junit_xml_path):
         try:
@@ -134,6 +135,18 @@ def _write_failures_report(junit_xml_path: str, audit_dir: str) -> None:
                     })
                 elif skip_el is not None:
                     summary['skipped'] += 1
+                    classname = tc.get('classname', '')
+                    # pytest puts the skip reason in @message (and/or the body).
+                    reason = (skip_el.get('message', '') or
+                              (skip_el.text or '')).strip()
+                    if reason.startswith('Skipped: '):
+                        reason = reason[len('Skipped: '):]
+                    skipped.append({
+                        'name': tc.get('name', ''),
+                        'class': classname.split('.')[-1],
+                        'file': classname.replace('.', '/') + '.py',
+                        'reason': reason.split('\n')[0].strip() or '(no reason given)',
+                    })
                 else:
                     summary['passed'] += 1
         except Exception as exc:
@@ -143,11 +156,13 @@ def _write_failures_report(junit_xml_path: str, audit_dir: str) -> None:
         'generated_at': datetime.now().isoformat(),
         'summary': summary,
         'failures': failures,
+        'skipped': skipped,
     }
     try:
         with open(report_path, 'w') as f:
             json.dump(report, f, indent=2)
-        print(f' Updated test_failures_report.json ({summary["total"]} tests, {summary["failed"]} failures)')
+        print(f' Updated test_failures_report.json ({summary["total"]} tests, '
+              f'{summary["failed"]} failures, {summary["skipped"]} skipped)')
     except Exception as exc:
         print(f' Warning: could not write test_failures_report.json: {exc}')
 

@@ -18,7 +18,6 @@ def _parse_junit(junit_path: Path) -> dict:
         'total': 0, 'passed': 0, 'failed': 0,
         'errors': 0, 'skipped': 0, 'time_s': 0.0,
         'by_package': {},
-        'skipped_tests': [],   # [{name, classname, reason}]
     }
     if not junit_path.exists():
         return result
@@ -57,8 +56,7 @@ def _parse_junit(junit_path: Path) -> dict:
             else:
                 pkg = 'other'
 
-            skip_el = tc.find('skipped')
-            is_skip = skip_el is not None
+            is_skip = tc.find('skipped') is not None
             is_fail = (tc.find('failure') is not None or
                        tc.find('error') is not None)
 
@@ -67,16 +65,6 @@ def _parse_junit(junit_path: Path) -> dict:
                 pkg_counts[pkg]['fail'] += 1
             if is_skip:
                 pkg_counts[pkg]['skip'] += 1
-                reason = (skip_el.get('message', '') or
-                          (skip_el.text or '')).strip()
-                # pytest prefixes the reason with "Skipped: " — drop it.
-                if reason.startswith('Skipped: '):
-                    reason = reason[len('Skipped: '):]
-                result['skipped_tests'].append({
-                    'name': tc.get('name', ''),
-                    'classname': classname,
-                    'reason': reason.split('\n')[0].strip() or '(no reason given)',
-                })
 
     result['passed'] = result['total'] - result['failed'] - result['skipped']
     result['by_package'] = dict(pkg_counts)
