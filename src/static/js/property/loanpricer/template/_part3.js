@@ -40,6 +40,8 @@
                 assetFloodSpreadBps = null;
                 assetUnionSpreadBps = null;
                 assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null, baw: null, bow: null}};
+                assetFireSpreadBps = null;
+                assetSeismicSpreadBps = null;
                 if (!standaloneOriginAssetId) return;
                 try {{
                     var resp = await fetch(hazardEndpointFor(standaloneOriginAssetId),
@@ -72,6 +74,15 @@
                     if (briBps != null && !isNaN(briBps)) {{
                         assetFloodSpreadBps = parseFloat(briBps);
                         assetScenarioSpreads.bri = parseFloat(briBps);
+                    }}
+                    // Independent peril legs (fire / seismic) folded in by the
+                    // peril toggle buttons. Written to the decomposition by the
+                    // commercial hazard route's fire/seismic read-time joins.
+                    if (sd && sd.fire_spread_bps != null && !isNaN(sd.fire_spread_bps)) {{
+                        assetFireSpreadBps = parseFloat(sd.fire_spread_bps);
+                    }}
+                    if (sd && sd.seismic_spread_bps != null && !isNaN(sd.seismic_spread_bps)) {{
+                        assetSeismicSpreadBps = parseFloat(sd.seismic_spread_bps);
                     }}
                     // Peril fan scalars (Option A): wind-only, flood-AND-wind,
                     // flood-OR-wind. Each is the canonical scenario spread read

@@ -58,6 +58,16 @@ OVERRIDE_KEYS = (
     # flood-OR-wind union.
     "prs_scenario",
     "prs_spread_bps",
+    # The asset's modelled independent-peril legs (bps), read from the same
+    # hazard curve (spread_decomposition.{fire,seismic}_spread_bps, written by
+    # the commercial hazard route's fire/seismic read-time joins), plus the two
+    # binary on/off toggles from the calculator's peril buttons. When a toggle
+    # is on and its leg is present, that leg is folded into the all-in coupon by
+    # root-sum-of-squares alongside the flood/wind basis; off legs are excluded.
+    "fire_spread_bps",
+    "seismic_spread_bps",
+    "include_fire",
+    "include_seismic",
     # The asset's net initial yield (passing rent / capital value), forwarded
     # by the calculator when launched from a commercial marker. Applied to the
     # property value it gives the annual passing rent, which becomes the

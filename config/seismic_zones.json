@@ -1,0 +1,78 @@
+{
+  "_meta": {
+    "description": "Seed (placeholder) seismic hazard ZONE and GROUND-MOTION parameters for MKM-SEIS-001. ALL VALUES ARE ENGINEERING-JUDGEMENT SEEDS, not calibrated. Zone annual rates and Gutenberg-Richter coefficients are Appendix A; GMPE selection, V_S30 site-class proxies and total sigma are Appendix C of docs/seismic/MKM-SEIS-001-v0.10.md. Numbers are physically defensible starting points to be recalibrated under SEIS-R1/SEIS-R2.",
+    "version": "seed-0",
+    "damage_states": ["DS0", "DS1", "DS2", "DS3"]
+  },
+
+  "zones": {
+    "_doc": "Appendix A1 — seismic hazard zone annual rates (M >= m_min mainshock). lambda_zone is the mean annual rate of events at or above m_min; b is the Gutenberg-Richter b-value; m_min/m_max bound the truncated G-R magnitude draw. tectonic_regime selects the GMPE.",
+    "Very low":  {"lambda_zone": 0.0005, "b": 1.0, "m_min": 5.0, "m_max": 6.5, "tectonic_regime": "active_shallow_crust", "notes": "Intraplate stable continental"},
+    "Low":       {"lambda_zone": 0.002,  "b": 1.0, "m_min": 5.0, "m_max": 7.0, "tectonic_regime": "active_shallow_crust", "notes": "e.g. UK, north-west Europe"},
+    "Moderate":  {"lambda_zone": 0.008,  "b": 1.0, "m_min": 5.0, "m_max": 7.5, "tectonic_regime": "active_shallow_crust", "notes": "e.g. central Italy, Romania"},
+    "High":      {"lambda_zone": 0.030,  "b": 1.0, "m_min": 5.0, "m_max": 8.0, "tectonic_regime": "active_shallow_crust", "notes": "e.g. Turkey, Greece, coastal Vietnam"},
+    "Very high": {"lambda_zone": 0.080,  "b": 1.0, "m_min": 5.0, "m_max": 8.5, "tectonic_regime": "active_shallow_crust", "notes": "e.g. Japan, Philippines, Sumatra"}
+  },
+
+  "hazard_class_to_zone": {
+    "_doc": "Maps the CDM HazardProfile.SeismicHazardClass menu (None/Low/Medium/High/Extreme) to the model's zone labels above. The CDM class is the read-time selector; the zone carries the rate/magnitude parameters.",
+    "None": "Very low",
+    "Low": "Low",
+    "Medium": "Moderate",
+    "High": "High",
+    "Extreme": "Very high"
+  },
+
+  "default_zone": "Moderate",
+
+  "ground_motion": {
+    "_doc": "Model B — Ground Motion Prediction Equation (GMPE). Seed uses a single parametric Boore-Atkinson-style functional form per tectonic regime: ln(PGA_g) = c0 + c1*(M - mref) + c2*(M - mref)^2 + c3*ln(sqrt(R_JB^2 + h^2)) + c4*ln(Vs30 / vref). PGA is in g. These coefficients are SEED placeholders tuned to reproduce the indicative attenuation in Section 7.2 (Table 1): ~0.42 g at 2 km to ~0.02 g at 100 km for M6.5 on stiff soil. Replace under SEIS-R2 with a vetted published GMPE.",
+    "gmpe_by_regime": {
+      "active_shallow_crust": {
+        "label": "Boore-Atkinson 2014 (NGA-West2) — seed parametric proxy",
+        "c0": -0.05,
+        "c1": 1.15,
+        "c2": -0.10,
+        "c3": -1.05,
+        "c4": -0.40,
+        "mref": 6.0,
+        "vref": 760.0,
+        "h_km": 4.0,
+        "sigma_total": 0.65
+      },
+      "subduction_interface": {
+        "label": "Zhao et al. 2006 — seed parametric proxy (Halong / Red River system)",
+        "c0": 1.40,
+        "c1": 1.10,
+        "c2": -0.08,
+        "c3": -0.95,
+        "c4": -0.45,
+        "mref": 6.0,
+        "vref": 760.0,
+        "h_km": 20.0,
+        "sigma_total": 0.68
+      }
+    },
+    "default_regime": "active_shallow_crust",
+    "default_sigma_total": 0.65
+  },
+
+  "site_class": {
+    "_doc": "Appendix C2 — Eurocode 8 site-class V_S30 proxies and the GS02 soil-amplification gate. When CDM SoilVs30Mps is present it is used directly; otherwise the proxy for the derived class applies. site_class is derived from V_S30 by the bands below (m/s).",
+    "vs30_proxy_by_class": {"A": 800, "B": 450, "C": 270, "D": 150, "E": 100},
+    "vs30_bands": {
+      "_doc": "Lower V_S30 bound (m/s) for each Eurocode 8 class; a V_S30 at or above the bound and below the next-higher class' bound takes that class. A >= 760, B >= 360, C >= 180, D >= 120, E < 120.",
+      "A": 760, "B": 360, "C": 180, "D": 120, "E": 0
+    },
+    "default_class": "B",
+    "soil_recurrence_m_soil": {
+      "_doc": "Appendix A3 — soil recurrence modifier m_soil applied to the asset occurrence rate.",
+      "A": 1.00, "B": 1.00, "C": 1.10, "D": 1.15, "E": 1.20
+    },
+    "soil_amplification": {
+      "_doc": "Appendix C2 — when GS02 (seismic foundation design) is ABSENT and the site class is in applies_classes, the GMPE median is multiplied by fa before sampling.",
+      "fa": 1.30,
+      "applies_classes": ["D", "E"]
+    }
+  }
+}

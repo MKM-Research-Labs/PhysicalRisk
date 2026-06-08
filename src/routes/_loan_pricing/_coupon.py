@@ -20,6 +20,7 @@
 
 """Standalone-calculator contractual coupon assembly."""
 
+import math
 from typing import Any, Dict, Optional
 
 from config.loan import (
@@ -34,6 +35,37 @@ from models.hazard.prs_analytical import compute_prs_spread
 from routes._loan_pricing._constants import DEFAULT_CREDIT_RATING
 
 
+def _truthy(value: Any) -> bool:
+    """Interpret a toggle value (bool / number / "true"/"on"/"1") as on/off."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    return False
+
+
+def _peril_leg(spread_bps: Optional[float], include: Any) -> float:
+    """Decimal leg for an independent peril — 0.0 when toggled off or absent."""
+    if not _truthy(include) or spread_bps is None:
+        return 0.0
+    try:
+        bps = float(spread_bps)
+    except (TypeError, ValueError):
+        return 0.0
+    return bps / 10000.0 if bps >= 0 else 0.0
+
+
+def _all_in(fw_base: float, *peril_legs: float) -> float:
+    """Root-sum-of-squares of the flood/wind basis and the independent peril
+    legs — the all-in hazard spread, matching the PRS pricer's coupon."""
+    total = fw_base * fw_base
+    for leg in peril_legs:
+        total += leg * leg
+    return math.sqrt(total)
+
+
 def _build_coupon(term_years: float,
                   credit_rating: str,
                   flood_category: str,
@@ -41,10 +73,25 @@ def _build_coupon(term_years: float,
                   flood_spread_bps: Optional[float] = None,
                   union_spread_bps: Optional[float] = None,
                   prs_spread_bps: Optional[float] = None,
-                  prs_scenario: Optional[str] = None) -> Dict[str, Any]:
+                  prs_scenario: Optional[str] = None,
+                  fire_spread_bps: Optional[float] = None,
+                  seismic_spread_bps: Optional[float] = None,
+                  include_fire: Any = False,
+                  include_seismic: Any = False) -> Dict[str, Any]:
     """Assemble the contractual coupon from its components.
 
-    ``coupon = risk-free + credit spread + flood spread + wind spread``
+    ``coupon = risk-free + credit spread + all-in hazard spread``
+
+    The flood/wind basis (a single correlated waterfall — the menu scenario, or
+    the flood+wind category split) forms the base hazard leg. Fire and seismic
+    are *independent* perils, toggled on/off by the calculator's binary buttons;
+    each toggled leg is folded into the basis by root-sum-of-squares so the loan
+    coupon matches the PRS pricer's all-in:
+
+        all-in = sqrt(flood_wind_base^2 + [fire^2] + [seismic^2])
+
+    When both peril toggles are off (or the asset has no fire/seismic leg) the
+    all-in reduces to the flood/wind basis, so the coupon is unchanged.
 
     **PRS scenario override.** When ``prs_spread_bps`` is supplied (the user
     picked a hazard scenario in the calculator's dropdown), that single
@@ -85,14 +132,20 @@ def _build_coupon(term_years: float,
     rf = discount_rate(term_years)
     credit = credit_spread_for_rating(credit_rating)
 
-    # PRS scenario override: one modelled spread drives the whole hazard leg.
+    # Independent peril legs (toggled on/off by the calculator's buttons).
+    fire_leg = _peril_leg(fire_spread_bps, include_fire)
+    seismic_leg = _peril_leg(seismic_spread_bps, include_seismic)
+    fire_on = _truthy(include_fire)
+    seismic_on = _truthy(include_seismic)
+
+    # PRS scenario override: one modelled spread drives the flood/wind basis.
     if prs_spread_bps is not None and float(prs_spread_bps) >= 0:
         scenario = (str(prs_scenario).strip().lower() if prs_scenario else "fow")
         total_bps = float(prs_spread_bps)
-        total = total_bps / 10000.0
+        fw_base = total_bps / 10000.0
         if scenario == "win":
             # Pure wind frequency — no flood component.
-            flood_leg, wind_leg = 0.0, total
+            flood_leg, wind_leg = 0.0, fw_base
         elif scenario in ("fow", "bow"):
             # Union splits into flood + incremental wind so the legs still read
             # naturally; the asset flood spread (BRI-preferred) is the base when
@@ -105,15 +158,21 @@ def _build_coupon(term_years: float,
             flood_leg, wind_leg = base_bps / 10000.0, (total_bps - base_bps) / 10000.0
         else:
             # flo / bri / faw / baw are flood-side scenarios — shown as a flood leg.
-            flood_leg, wind_leg = total, 0.0
+            flood_leg, wind_leg = fw_base, 0.0
+        all_in = _all_in(fw_base, fire_leg, seismic_leg)
         return {
-            "rate": rf + credit + total,
+            "rate": rf + credit + all_in,
             "risk_free": rf,
             "credit_spread": credit,
             "flood_spread": flood_leg,
             "wind_spread": wind_leg,
-            "hazard_spread": total,
-            "flood_annual_hazard": total,
+            "fire_spread": fire_leg,
+            "seismic_spread": seismic_leg,
+            "fire_included": fire_on,
+            "seismic_included": seismic_on,
+            "flood_wind_base": fw_base,
+            "hazard_spread": all_in,
+            "flood_annual_hazard": fw_base,
             "flood_priced_by": "PRS (scenario: %s)" % scenario,
             "wind_priced_by": "PRS (scenario: %s)" % scenario,
             "prs_scenario": scenario,
@@ -152,13 +211,20 @@ def _build_coupon(term_years: float,
         wind = wind_hazard_spread(wind_category)
         wind_source = "static"
 
+    fw_base = flood + wind
+    all_in = _all_in(fw_base, fire_leg, seismic_leg)
     return {
-        "rate": rf + credit + flood + wind,
+        "rate": rf + credit + all_in,
         "risk_free": rf,
         "credit_spread": credit,
         "flood_spread": flood,
         "wind_spread": wind,
-        "hazard_spread": flood + wind,
+        "fire_spread": fire_leg,
+        "seismic_spread": seismic_leg,
+        "fire_included": fire_on,
+        "seismic_included": seismic_on,
+        "flood_wind_base": fw_base,
+        "hazard_spread": all_in,
         "flood_annual_hazard": annual_hazard,
         "flood_priced_by": flood_source,
         "wind_priced_by": wind_source,
