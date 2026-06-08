@@ -75,7 +75,58 @@ def _build_test_detail(junit: dict, styles) -> list:
 
     # 2.1 — individual unit-test failures
     elems.extend(_build_unit_failures(styles))
+    # 2.2 — skipped tests, grouped by reason
+    elems.extend(_build_skipped_tests(junit, styles))
 
+    return elems
+
+
+def _build_skipped_tests(junit: dict, styles) -> list:
+    """Subsection 2.2: skipped tests grouped by reason. Most skips are
+    data-dependent (port/blotter/PRS data not generated on disk), so grouping
+    by reason is far more useful than a flat list of test names."""
+    from collections import Counter
+
+    elems = []
+    elems.append(Spacer(1, 5 * mm))
+    elems.append(Paragraph('2.2 Skipped Tests', styles['h3']))
+    elems.append(Spacer(1, 2 * mm))
+
+    skipped = junit.get('skipped_tests', [])
+    n_skip = junit.get('skipped', len(skipped))
+
+    if not skipped:
+        elems.append(Paragraph(
+            f'No tests were skipped ({n_skip} skips).' if not n_skip else
+            f'{n_skip} test(s) skipped — per-test reasons unavailable in junit.xml.',
+            styles['body']))
+        return elems
+
+    elems.append(Paragraph(
+        f'<b>{len(skipped)}</b> test(s) skipped, grouped by reason. Skips are '
+        'usually conditional (data not generated on disk, or a known issue '
+        'gated behind <b>pytest.skip</b>) — they are excluded from the Pass Rate '
+        'but tracked here so nothing is silently dropped.',
+        styles['body']))
+    elems.append(Spacer(1, 2 * mm))
+
+    by_reason = Counter(s.get('reason', '(no reason given)') for s in skipped)
+
+    data = [[
+        Paragraph('<b>Skip reason</b>', styles['tbl_hdr']),
+        Paragraph('<b>Count</b>', styles['tbl_hdr']),
+    ]]
+    for reason, count in by_reason.most_common():
+        text = reason if len(reason) <= 110 else reason[:108] + '…'
+        data.append([
+            Paragraph(_xml_escape(text), styles['tbl_cell']),
+            Paragraph(str(count), styles['tbl_cell_r']),
+        ])
+    tbl = Table(data, colWidths=[150 * mm, 18 * mm])
+    tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF8E1')),
+    ]))
+    elems.append(tbl)
     return elems
 
 

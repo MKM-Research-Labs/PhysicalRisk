@@ -46,7 +46,12 @@ def _build_cover(junit: dict, cov: dict, git_sha: str,
     # Summary metrics row
     cov_pct = cov['line_rate'] * 100
     total_tests = junit['total']
-    pass_rate = (junit['passed'] / total_tests * 100) if total_tests else 0
+    # Pass Rate is of *executed* tests (passed + failed). Skipped tests — most
+    # of which are data-dependent (port/blotter/PRS data not on disk) — would
+    # otherwise drag a 0-failure suite below 100%. Skips are surfaced
+    # separately in the exec summary and section 2.2.
+    executed = junit['passed'] + junit['failed']
+    pass_rate = (junit['passed'] / executed * 100) if executed else 0
 
     cov_col = GREEN if cov_pct >= 90 else (AMBER if cov_pct >= 70 else RED)
     pass_col = GREEN if pass_rate >= 99 else (AMBER if pass_rate >= 95 else RED)
@@ -98,8 +103,8 @@ def _build_cover(junit: dict, cov: dict, git_sha: str,
         ('1', 'Executive Summary',
          'Key metrics, pass/fail totals, coverage headline, and test run metadata.'),
         ('2', 'Test Suite Detail',
-         'Test counts by package with pass, fail, and skip breakdown, '
-         'plus the list of individual failing unit tests.'),
+         'Test counts by package, the list of individual failing unit tests '
+         '(2.1), and skipped tests grouped by reason (2.2).'),
         ('3', 'Code Coverage Analysis',
          'Line coverage by package, files with coverage gaps.'),
         ('4', 'Code Modularisation',
@@ -218,10 +223,16 @@ def _build_exec_summary(junit: dict, cov: dict, report_date: datetime,
     elems.append(tbl)
 
     elems.append(Spacer(1, 4 * mm))
+    executed = passed + failed
+    exec_rate = (passed / executed * 100) if executed else 0
     elems.append(Paragraph(
         f'The test suite comprises <b>{total:,} tests</b> across all packages '
         f'with <b>{passed:,} passing</b>, <b>{failed} failing</b>, and '
-        f'<b>{skipped} skipped</b>. '
+        f'<b>{skipped} skipped</b>. The headline <b>Pass Rate ({exec_rate:.1f}%)</b> '
+        f'is measured over the <b>{executed:,} executed</b> tests — skipped tests '
+        f'are excluded so they do not mask the true pass/fail health. Most skips '
+        f'are data-dependent (port/blotter/PRS data not generated on disk); see '
+        f'<b>section 2.2</b> for the breakdown by reason. '
         f'Line coverage stands at <b>{cov_pct:.1f}%</b> across '
         f'{lines_valid:,} analysed source lines.',
         styles['body']))
