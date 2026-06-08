@@ -32,6 +32,7 @@ from .scanners import (
     scan_inline_styles,
     scan_js_factories,
     collect_all,
+    collect_all_repo,
 )
 from .pdf import create_pdf_report
 from .report import main
@@ -39,5 +40,5 @@ from .report import main
 __all__ = [
     'MIN_JS_LINES', 'MIN_CSS_LINES', 'MIN_FACTORY_LINES',
     'scan_inline_scripts', 'scan_inline_styles', 'scan_js_factories',
-    'collect_all', 'create_pdf_report', 'main',
+    'collect_all', 'collect_all_repo', 'create_pdf_report', 'main',
 ]

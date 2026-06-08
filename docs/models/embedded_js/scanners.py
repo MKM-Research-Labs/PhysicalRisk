@@ -13,6 +13,15 @@ literals.  These passes flag the three ways JS/CSS leaks into ``.py`` files.
 import re
 from pathlib import Path
 
+# Top-level dirs scanned by the repo-wide audit (all non-test source). Mirrors
+# the modularisation report's scope so the two audits cover the same tree.
+from docs.models.project._constants import REPO_SCAN_DIRS
+
+# The audit tooling itself contains <script>…</script> as a *regex literal*
+# (this module's _SCRIPT_RE) and similar markup in its PDF builder, so it would
+# self-report a false positive. Exclude this package from its own scan.
+_SELF_PKG = Path(__file__).resolve().parent  # docs/models/embedded_js
+
 # A ``<script>`` body must contain at least this many JavaScript lines before
 # it is flagged.  This deliberately lets through the accepted thin wrapper
 # (``<script>window.__X_CONFIG = {cfg};\n{js_code}</script>``), whose body is a
@@ -55,6 +64,9 @@ _CSS_LINE_RE = re.compile(r'[{}]|[\w-]+\s*:\s*[^;]+;')
 def _src_files(src_dir: Path):
     for p in sorted(src_dir.rglob('*.py')):
         if '__pycache__' in p.parts:
+            continue
+        # Skip the audit tooling itself (see _SELF_PKG above).
+        if _SELF_PKG in p.resolve().parents:
             continue
         yield p
 
@@ -205,3 +217,33 @@ def collect_all(src_dir: Path, root: Path) -> dict:
         'files_scanned': sum(1 for _ in _src_files(src_dir)),
         'files_flagged': len(flagged),
     }
+
+
+def collect_all_repo(root: Path, scan_dirs=REPO_SCAN_DIRS) -> dict:
+    """Run the embedded JS/CSS scan across all non-test source dirs under
+    *root* (src/, app/, config/, tools/, docs/ + root-level files), merging the
+    findings. The audit tooling excludes itself via ``_src_files``.
+
+    This is the repo-wide counterpart to ``collect_all`` (single dir).
+    """
+    merged = {'scripts': [], 'styles': [], 'factories': [], 'files_scanned': 0}
+    # Scan only the explicit non-test dirs — never `root` itself, whose rglob
+    # would pull in tests/, .venv, .claude worktrees and the data symlink.
+    seen_dirs = set()
+    for d in scan_dirs:
+        base = root / d
+        if not base.is_dir():
+            continue
+        key = base.resolve()
+        if key in seen_dirs:
+            continue
+        seen_dirs.add(key)
+        part = collect_all(base, root)
+        merged['scripts'].extend(part['scripts'])
+        merged['styles'].extend(part['styles'])
+        merged['factories'].extend(part['factories'])
+        merged['files_scanned'] += part['files_scanned']
+    flagged = {f['file'] for f in
+               merged['scripts'] + merged['styles'] + merged['factories']}
+    merged['files_flagged'] = len(flagged)
+    return merged

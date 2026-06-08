@@ -59,13 +59,14 @@ def create_pdf_report(findings: dict, output_path: Path, root: Path):
     # Title
     # ------------------------------------------------------------------
     story.append(Paragraph("Embedded JS/CSS Audit Report", S['title']))
-    story.append(Paragraph("Front-End Asset Governance — src/ Directory", S['h3']))
+    story.append(Paragraph("Front-End Asset Governance — All Non-Test Source", S['h3']))
     story.append(Spacer(1, 0.1 * inch))
 
     meta = (
         f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}&nbsp;&nbsp;&nbsp;"
         f"<b>Project Root:</b> {root}<br/>"
-        f"<b>Scope:</b> All .py files in src/ (excluding __pycache__)<br/>"
+        f"<b>Scope:</b> All non-test .py files (src/, app/, config/, tools/, docs/; "
+        f"excluding __pycache__ and the audit tooling itself)<br/>"
         f"<b>Files Scanned:</b> {findings['files_scanned']}&nbsp;&nbsp;&nbsp;"
         f"<b>Files With Embedded Assets:</b> {findings['files_flagged']}<br/>"
         f"<b>Policy:</b> JavaScript and CSS must live in companion .js/.css files "
