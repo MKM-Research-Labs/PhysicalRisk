@@ -245,7 +245,13 @@ def _browser_page(browser, base_url):
     """
     context = browser.new_context(viewport={"width": 1400, "height": 900})
     page = context.new_page()
-    page.set_default_timeout(300_000)  # 5 min for all actions (storm sequences take 3-5 min to load)
+    # Default for actions/assertions. Kept generous (well above any real
+    # click/fill) but not so high that a blocked action — e.g. a modal
+    # overlapping the target — hangs for minutes before failing. The genuinely
+    # slow operations (page load, preloader, storm sequences) set their own
+    # explicit timeouts at the call site, so they are unaffected by this.
+    page.set_default_timeout(60_000)
+    page.set_default_navigation_timeout(180_000)
 
     viz_url = f"{base_url}/visualization"
     page.goto(viz_url, wait_until="networkidle", timeout=180_000)
@@ -289,6 +295,7 @@ def map_page(_browser_page):
             'storm-portfolio-panel',
             'gauge-pdf-panel',
             'gauge-graph-panel',
+            'loan-pricer-panel',
         ];
         panels.forEach(id => {
             const el = document.getElementById(id);

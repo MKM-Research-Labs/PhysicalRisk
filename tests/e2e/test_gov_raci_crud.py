@@ -119,9 +119,12 @@ class TestMRCMeetingCRUD:
         ).or_(
             content.locator("button").filter(has_text="Schedule")
         ).or_(
-            content.locator("[title*='New']")
+            # Restrict title fallbacks to button-like elements: the union's
+            # .first resolves in DOM order, so a non-button [title] element
+            # earlier in #mg-content would otherwise win and break is_enabled().
+            content.locator("button[title*='New'], [role='button'][title*='New']")
         ).or_(
-            content.locator("[title*='Add']")
+            content.locator("button[title*='Add'], [role='button'][title*='Add']")
         )
 
         if add_btn.count() == 0:
@@ -140,9 +143,9 @@ class TestMRCMeetingCRUD:
         ).or_(
             content.locator("button").filter(has_text="Schedule")
         ).or_(
-            content.locator("[title*='New']")
+            content.locator("button[title*='New'], [role='button'][title*='New']")
         ).or_(
-            content.locator("[title*='Add']")
+            content.locator("button[title*='Add'], [role='button'][title*='Add']")
         )
 
         if add_btn.count() == 0:

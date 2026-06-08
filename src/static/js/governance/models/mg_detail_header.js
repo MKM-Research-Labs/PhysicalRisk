@@ -110,6 +110,15 @@ function switchDetailTab(tabId) {
     var m = window._mgCurrentModel;
     var auditEntries = window._mgAuditEntries;
     var dc = document.getElementById('mg-detail-content');
+    if (!dc) return;
+
+    // No model loaded (e.g. detail view never opened): render an empty-state
+    // rather than throwing on m.model_id inside the per-tab renderers.
+    if (!m && tabId !== 'modelaudit') {
+        dc.innerHTML = '<div style="padding:40px;text-align:center;color:#888;' +
+            'font-size:12px;">No model selected.</div>';
+        return;
+    }
 
     if (tabId === 'overview') dc.innerHTML = renderOverviewTab(m);
     else if (tabId === 'remediation') dc.innerHTML = renderRemediationTab(m);

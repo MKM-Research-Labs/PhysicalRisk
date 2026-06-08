@@ -1,5 +1,9 @@
 
 function renderDocsTab(m) {
+    if (!m || !m.model_id) {
+        return '<div style="padding:40px;text-align:center;color:#888;font-size:12px;">' +
+            'No model selected.</div>';
+    }
     var docUrl = '/api/v1/governance/models/' + m.model_id + '/documentation/pdf';
     var testUrl = '/api/v1/governance/models/' + m.model_id + '/test-results/pdf';
     var analysisUrl = '/api/v1/governance/models/' + m.model_id + '/analysis/pdf';

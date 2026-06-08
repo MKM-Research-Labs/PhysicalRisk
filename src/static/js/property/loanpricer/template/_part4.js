@@ -112,6 +112,11 @@
 
             async function showPanel(assetId) {{
                 console.log('[LoanPricer] Opening panel for', assetId);
+                // Mutual exclusion: this and the property hazard panel are both
+                // centered z-index 2000 modals and would intercept each other's
+                // clicks if both stayed open. Close the property panel first.
+                if (window.PropertyHazardCurvePanel && window.PropertyHazardCurvePanel.hide)
+                    window.PropertyHazardCurvePanel.hide();
                 standaloneMode = false;
                 currentAssetId = assetId;
                 createPanel();
@@ -141,6 +146,8 @@
             // selects the server-side term cap (commercial = 7 years).
             async function showStandalone(assetClass, originAssetId) {{
                 console.log('[LoanPricer] Opening standalone calculator', assetClass);
+                if (window.PropertyHazardCurvePanel && window.PropertyHazardCurvePanel.hide)
+                    window.PropertyHazardCurvePanel.hide();
                 standaloneMode = true;
                 standaloneAssetClass = (assetClass === 'commercial') ? 'commercial' : 'residential';
                 currentAssetId = null;
