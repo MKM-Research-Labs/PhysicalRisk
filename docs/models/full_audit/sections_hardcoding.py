@@ -28,13 +28,8 @@ def _build_hardcoding(styles) -> list:
     elems.append(Spacer(1, 2 * mm))
 
     try:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(
-            '_hc_mod',
-            str(_root / 'docs' / 'models' / 'hardcoding' / '__init__.py'))
-        hc = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(hc)
-        findings = hc.collect_all(SRC_DIR, _root)
+        from docs.models.hardcoding import collect_all
+        findings = collect_all(SRC_DIR, _root)
     except Exception as exc:
         elems.append(Paragraph(
             f'Could not run hard-coding scan: {exc}', styles['body']))

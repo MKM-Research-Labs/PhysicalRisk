@@ -5,10 +5,11 @@
 
 """Full audit report generator (SR 11-7 / SS1/23 model governance).
 
-This package assembles an 8-section PDF audit covering test results, code
-coverage, modularisation, hard-coding, data lineage, and E2E browser tests.
-Invoke via ``python -m docs.models.full_audit``. All functional code lives in
-the submodules below; this file is a pure re-export façade.
+This package assembles a 9-section PDF audit covering test results, code
+coverage, modularisation (incl. the __init__.py audit), hard-coding, embedded
+JavaScript/CSS in Python, data lineage, and E2E browser tests. Invoke via
+``python -m docs.models.full_audit``. All functional code lives in the
+submodules below; this file is a pure re-export façade.
 """
 
 from ._constants import (
@@ -25,8 +26,10 @@ from .helpers import (
 from .sections_overview import _build_cover, _build_exec_summary
 from .sections_tests import (
     _build_test_detail, _build_coverage, _build_modularisation,
+    _build_init_audit,
 )
 from .sections_hardcoding import _build_hardcoding
+from .sections_embedded_js import _build_embedded_js
 from .sections_lineage import _build_data_lineage
 from .sections_e2e import _build_e2e, _build_roadmap
 from .report import create_pdf_report, main
@@ -41,7 +44,7 @@ __all__ = [
     '_status_colour', '_map_sev', '_header_footer',
     '_build_cover', '_build_exec_summary',
     '_build_test_detail', '_build_coverage', '_build_modularisation',
-    '_build_hardcoding', '_build_data_lineage',
-    '_build_e2e', '_build_roadmap',
+    '_build_init_audit', '_build_hardcoding', '_build_embedded_js',
+    '_build_data_lineage', '_build_e2e', '_build_roadmap',
     'create_pdf_report', 'main',
 ]

@@ -39,7 +39,10 @@ def analyze_code_files(root_path: Path,
 
     all_files = []
     for item in root_path.rglob('*'):
-        if any(ex in item.parts for ex in exclude_folders):
+        # Match exclusions against the path *below* root_path only, so an
+        # ancestor directory (e.g. a .claude worktree) does not exclude the
+        # entire tree.
+        if any(ex in item.relative_to(root_path).parts for ex in exclude_folders):
             continue
         if item.is_file() and item.suffix.lower() in code_extensions:
             rel = item.relative_to(root_path)
@@ -73,7 +76,7 @@ def analyze_init_files(root_path: Path, exclude_folders=None) -> list:
     issues = []
 
     for init_path in root_path.rglob('__init__.py'):
-        if any(ex in init_path.parts for ex in exclude_folders):
+        if any(ex in init_path.relative_to(root_path).parts for ex in exclude_folders):
             continue
 
         src = ''

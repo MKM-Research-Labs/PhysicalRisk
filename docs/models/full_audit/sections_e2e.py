@@ -19,9 +19,9 @@ from .helpers import (
 
 
 def _build_e2e(styles) -> list:
-    """Section 7: E2E Browser Tests (Playwright)."""
+    """Section 8: E2E Browser Tests (Playwright)."""
     elems = []
-    elems.append(Paragraph('7. E2E Browser Tests', styles['h2']))
+    elems.append(Paragraph('8. E2E Browser Tests', styles['h2']))
     elems.append(HRFlowable(width='100%', thickness=1, color=NAVY))
     elems.append(Spacer(1, 3 * mm))
 
@@ -136,7 +136,7 @@ def _build_e2e(styles) -> list:
 
 def _build_roadmap(junit: dict, cov: dict, styles) -> list:
     elems = []
-    elems.append(Paragraph('8. Remediation Roadmap', styles['h2']))
+    elems.append(Paragraph('9. Remediation Roadmap', styles['h2']))
     elems.append(HRFlowable(width='100%', thickness=1, color=NAVY))
     elems.append(Spacer(1, 3 * mm))
 
