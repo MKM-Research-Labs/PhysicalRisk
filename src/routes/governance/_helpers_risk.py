@@ -58,6 +58,7 @@ _AUDIT_LABELS = {
     "test_report.pdf": "Test Results Report",
     "code_duplication_report.pdf": "Code Duplication Report",
     "hardcoding_report.pdf": "Hard-Coding Parameter Audit",
+    "embedded_js_report.pdf": "Embedded JS/CSS Audit",
     "data_lineage_report.pdf": "Data Lineage Report (BCBS 239)",
     "large_file_report.pdf": "Code Modularisation Analysis",
     "init_audit_report.pdf": "__init__.py Substantive-Code Audit",

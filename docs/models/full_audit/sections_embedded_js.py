@@ -16,7 +16,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
-from ._constants import NAVY, SRC_DIR, _root, _TBL_STYLE_BASE
+from ._constants import NAVY, _root, _TBL_STYLE_BASE
 from .helpers import _status_colour
 
 
@@ -34,13 +34,14 @@ def _build_embedded_js(styles) -> list:
         'check — any finding fails the audit. Three leak paths are scanned: '
         'inline <b>&lt;script&gt;</b> blocks of hand-written JavaScript, inline '
         '<b>&lt;style&gt;</b> blocks of CSS, and large JavaScript "factory" '
-        'strings built without a <b>&lt;script&gt;</b> tag.',
+        'strings built without a <b>&lt;script&gt;</b> tag. Scope: all non-test '
+        'source (src/, app/, config/, tools/, docs/).',
         styles['body']))
     elems.append(Spacer(1, 2 * mm))
 
     try:
-        from docs.models.embedded_js import collect_all
-        findings = collect_all(SRC_DIR, _root)
+        from docs.models.embedded_js import collect_all_repo
+        findings = collect_all_repo(_root)
     except Exception as exc:
         elems.append(Paragraph(
             f'Could not run embedded JS/CSS scan: {exc}', styles['body']))
