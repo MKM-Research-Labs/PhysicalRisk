@@ -27,6 +27,29 @@ EXCLUDED_FOLDERS = {
 
 MIN_LINES = 300
 
+# Top-level directories scanned by the repo-wide modularisation report.
+# Scope: all non-test source. Tests get their own plain-text report and are
+# excluded from the >300-line refactor initiative.
+REPO_SCAN_DIRS = ('src', 'app', 'config', 'tools', 'docs')
+
+# Folders pruned during the repo-wide scan. Unlike EXCLUDED_FOLDERS this keeps
+# 'docs'/'project' in scope (the report generators are non-test code too) but
+# adds 'tests' so the test suite is not double-counted here.
+REPO_SCAN_EXCLUDE = {
+    '.git',
+    '.claude',
+    '__pycache__',
+    'node_modules',
+    '.venv',
+    'venv',
+    'data',
+    'dist',
+    'build',
+    '.pytest_cache',
+    '.mypy_cache',
+    'tests',
+}
+
 FileInfo = namedtuple('FileInfo', ['path', 'relative_path', 'extension', 'line_count'])
 
 # Findings from the __init__.py audit
