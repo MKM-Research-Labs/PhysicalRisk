@@ -40,7 +40,9 @@ from . import governance_bp
 from ._constants import AUDIT_REPORTS_DIR
 
 _REPORT_FILE = os.path.join(AUDIT_REPORTS_DIR, "test_failures_report.json")
-_LOG_FILE    = os.path.join(AUDIT_REPORTS_DIR, "test_run.log")
+# Web-UI test-run log is not part of the `app.py test` audit artefacts —
+# keep it out of the audit root, under audit/archive/.
+_LOG_FILE    = os.path.join(AUDIT_REPORTS_DIR, "archive", "test_run.log")
 _LOCK = threading.Lock()
 _running = False
 _output_lines = []          # live stdout buffer
@@ -160,6 +162,7 @@ print(f'Report: {len(failures)} failures / {len(results)} tests')
         try:
             with _output_lock:
                 lines = list(_output_lines)
+            os.makedirs(os.path.dirname(_LOG_FILE), exist_ok=True)
             with open(_LOG_FILE, 'w') as f:
                 f.write('\n'.join(lines))
         except Exception:

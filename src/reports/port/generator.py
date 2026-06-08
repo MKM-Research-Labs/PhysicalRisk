@@ -54,9 +54,11 @@ class PortReportGenerator(StylesMixin, DataLoaderMixin, PortfolioSectionsMixin, 
             self.output_path = Path(output_path)
         else:
             from config import config
-            audit_dir = config.get_output_dir() / 'audit'
-            audit_dir.mkdir(parents=True, exist_ok=True)
-            self.output_path = audit_dir / f'port_{self.input_dir.name}.pdf'
+            # Port deliverables are not part of the `app.py test` audit
+            # sequence — keep them out of the audit root, under audit/archive/.
+            archive_dir = config.get_output_dir() / 'audit' / 'archive'
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            self.output_path = archive_dir / f'port_{self.input_dir.name}.pdf'
         self._styles = getSampleStyleSheet()
         self._setup_styles()
 

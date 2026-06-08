@@ -53,7 +53,7 @@ def _build_cover(junit: dict, cov: dict, git_sha: str,
 
     # Load supplementary results for cover metrics
     dl_cov = _load_json_report('data_lineage_results.json')
-    e2e_cov = _load_json_report('e2e_results.json')
+    e2e_cov = _load_json_report('e2e/e2e_results.json')
     dl_ok = dl_cov.get('failed', 0) == 0 if dl_cov else True
     dl_label = 'PASS' if dl_ok else 'FAIL'
     dl_col = GREEN if dl_ok else RED
@@ -156,7 +156,7 @@ def _build_exec_summary(junit: dict, cov: dict, report_date: datetime,
 
     # Load supplementary results for exec summary
     dl_data = _load_json_report('data_lineage_results.json')
-    e2e_data = _load_json_report('e2e_results.json')
+    e2e_data = _load_json_report('e2e/e2e_results.json')
 
     dl_status_str = 'Not run'
     if dl_data:

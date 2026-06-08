@@ -289,4 +289,10 @@ def _build_init_audit(styles) -> list:
     ]))
     elems.append(tbl)
 
+    elems.append(Spacer(1, 2 * mm))
+    elems.append(Paragraph(
+        'Full breakdown (with function/class names per file) in the standalone '
+        '<b>init_audit_report.pdf</b> / <b>init_audit_results.json</b> under '
+        'data/output/audit/.', styles['body']))
+
     return elems
