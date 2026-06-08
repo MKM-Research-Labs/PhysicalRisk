@@ -296,9 +296,9 @@
                 // root-sum-of-squares of the (assumed independent) leg spreads,
                 // which gives the all-in PRS price.
                 // ============================================================
-                var _fireBps = (_psd.fire_spread_bps !== undefined && _psd.fire_spread_bps !== null)
-                    ? _psd.fire_spread_bps : null;
-                if (_fireBps !== null) {
+                var _fireBps = (_psd.fire_spread_bps != null) ? _psd.fire_spread_bps : null;
+                var _seisBps = (_psd.seismic_spread_bps != null) ? _psd.seismic_spread_bps : null;
+                if (_fireBps !== null || _seisBps !== null) {
                     // Base flood/wind coupon the waterfall lands on. Prefer the
                     // widest available union scenario (BRI-OR-wind, then flood-OR-
                     // wind), then the resilient flood, then the raw asset spread.
@@ -308,20 +308,20 @@
                                 : (_psd.fow_spread_bps != null) ? _psd.fow_spread_bps
                                 : (hasBri ? briSpread : propSpread);
 
-                    // Seismic placeholder — one notional event, priced on the same
-                    // frequency x 100% LGD convention as fire (1 event / n_sim x
-                    // 10000). Reserved until the seismic model lands.
-                    var _fireMeta = (typeof phcData !== 'undefined' && phcData.fire) || {};
-                    var _nSim = _fireMeta.n_sim || 0;
-                    var _seisBps = _nSim ? (1 / _nSim * 10000.0) : 0;
-
-                    var _indSteps = [
-                        { label: 'FIRE (full conflagration)', sub: 'PNR events',
-                          count: _perilCount(_po.fire_conflagration), spread: _fireBps,
-                          color: '#BF360C' },
-                        { label: 'Seismic', sub: 'placeholder',
-                          count: 1, spread: _seisBps, color: '#455A64' }
-                    ];
+                    // Independent peril legs. Each is shown only when its model
+                    // has produced a result for this asset; the seismic leg is the
+                    // full-collapse (DS3) frequency priced at 100% LGD.
+                    var _indSteps = [];
+                    if (_fireBps !== null) {
+                        _indSteps.push({ label: 'FIRE (full conflagration)', sub: 'PNR events',
+                                         count: _perilCount(_po.fire_conflagration), spread: _fireBps,
+                                         color: '#BF360C' });
+                    }
+                    if (_seisBps !== null) {
+                        _indSteps.push({ label: 'SEISMIC (collapse)', sub: 'DS3 events',
+                                         count: _perilCount(_po.seismic), spread: _seisBps,
+                                         color: '#455A64' });
+                    }
 
                     // All-in coupon = root-sum-of-squares of the flood/wind basis
                     // and each (independent) peril leg.

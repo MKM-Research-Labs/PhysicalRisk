@@ -1,0 +1,101 @@
+{
+  "_meta": {
+    "description": "Seed (placeholder) numeric parameters for the Building Seismic-Resilience Credit Model (MKM-SEIS-001). ALL VALUES ARE ENGINEERING-JUDGEMENT SEEDS, not calibrated. They are physically defensible starting points (direction and ordering, not magnitude) intended to be recalibrated against historical seismic-loss data under SEIS-R1. Structure derives from docs/seismic/MKM-SEIS-001-v0.10.md Appendices A, D and E; this module never embeds numbers in code. Zone rates, G-R coefficients, GMPE and V_S30 proxies live in config/seismic_zones.json.",
+    "version": "seed-0",
+    "damage_states": ["DS0", "DS1", "DS2", "DS3"]
+  },
+
+  "occurrence": {
+    "_doc": "Model A — Poisson occurrence and fault spatial draw scalars (Appendix A2 + Section 3.2). Zone-level lambda/b/m_max live in seismic_zones.json; these are the cross-zone constants.",
+    "fault_proximity": {
+      "_doc": "Appendix A2 — fault proximity modifier. When FaultProximityKm < threshold_km and GS01 (fault distance / seismic design) is ABSENT, the asset occurrence rate is multiplied by (1 + delta_gs01).",
+      "delta_gs01": 0.15,
+      "threshold_km": 1.0
+    },
+    "wells_coppersmith": {
+      "_doc": "Section 3.2 — Wells-Coppersmith surface rupture-length scaling. log10(L_r_km) = a + b * M. The rupture segment occupies [s* - L_r/2, s* + L_r/2] along the fault trace.",
+      "a": -2.44,
+      "b": 0.59
+    }
+  },
+
+  "fragility": {
+    "_doc": "Model D — Appendix E1. Baseline lognormal fragility median PGA (g) per damage state by FRAGILITY CLASS, plus beta (log-standard deviation). The CDM ConstructionType menu is mapped to these classes by the CDM adapter (CONSTRUCTION_FRAGILITY_MAP). Sensitivity harnesses address classes directly.",
+    "medians_by_construction": {
+      "RC_Modern":   {"DS1": 0.15, "DS2": 0.35, "DS3": 0.65, "beta": 0.60, "label": "RC modern seismic design"},
+      "RC_PreCode":  {"DS1": 0.10, "DS2": 0.22, "DS3": 0.42, "beta": 0.60, "label": "RC pre-code / gravity only"},
+      "Masonry_RC":  {"DS1": 0.12, "DS2": 0.28, "DS3": 0.52, "beta": 0.60, "label": "Masonry reinforced"},
+      "Masonry_URM": {"DS1": 0.07, "DS2": 0.14, "DS3": 0.28, "beta": 0.60, "label": "Masonry unreinforced"},
+      "Steel_MRF":   {"DS1": 0.18, "DS2": 0.40, "DS3": 0.75, "beta": 0.60, "label": "Steel moment frame"},
+      "Timber":      {"DS1": 0.12, "DS2": 0.28, "DS3": 0.55, "beta": 0.60, "label": "Timber frame"},
+      "Default":     {"DS1": 0.10, "DS2": 0.22, "DS3": 0.42, "beta": 0.60, "label": "Unknown / default"}
+    },
+    "default_beta": 0.60,
+    "loss_given_damage_state": {
+      "_doc": "Appendix E2 — per-damage-state structural loss ratio L_s, truncated lognormal on [0,1] parameterised by mean and log-std. DS3 is fixed at 1.00 (no draw).",
+      "DS0": {"mean": 0.01, "logstd": 0.50},
+      "DS1": {"mean": 0.10, "logstd": 0.50},
+      "DS2": {"mean": 0.35, "logstd": 0.40},
+      "DS3": {"fixed": 1.00}
+    },
+    "recovery": {
+      "_doc": "Appendix E3 — post-event functionality Q(t0) and default recovery time T_rec (months) by damage state. T_rec is divided by r_acc (Model C) to give the effective recovery time. control_horizon_months is T_LC for the resilience-index area-under-Q(t).",
+      "q_t0_by_ds": {"DS0": 1.00, "DS1": 0.75, "DS2": 0.30, "DS3": 0.00},
+      "t_rec_months_by_ds": {"DS0": 0, "DS1": 3, "DS2": 12, "DS3": 36},
+      "control_horizon_months": 12
+    }
+  },
+
+  "response": {
+    "_doc": "Model C — Appendix D. Deterministic mapping from present BRI geoseismic measures (GS01-GS18) to fragility median multipliers, the governance cap, the recovery acceleration factor and the post-earthquake-fire probability. A measure with 'applies' = 'all' shifts every damage-state median; otherwise it shifts only the listed states. theta_mult = product over present measures of (1 + delta).",
+    "measure_modifiers": {
+      "GS03": {"applies": ["DS2", "DS3"], "delta": 0.12, "label": "Foundation piling to rock"},
+      "GS04": {"applies": ["DS2", "DS3"], "delta": 0.08, "label": "Subsidence foundation design"},
+      "GS08": {"applies": ["DS2", "DS3"], "delta": 0.20, "label": "Lateral force resistance all floors"},
+      "GS09": {"applies": ["DS1", "DS2", "DS3"], "delta": 0.12, "label": "Connected and braced structure"},
+      "GS10": {"applies": ["DS1", "DS2"], "delta": 0.08, "label": "Steel reinforced walls"},
+      "GS12": {"applies": "all", "delta": 0.40, "label": "Seismic base isolation (largest single modifier)"},
+      "GS14": {"applies": ["DS2", "DS3"], "delta": 0.15, "label": "No vertical irregularities"}
+    },
+    "governance": {
+      "_doc": "Appendix D1 — governance measures GS16-GS18 each add delta_each to all damage-state medians but share combined_cap to prevent double-counting. GS18 additionally accelerates recovery (see r_acc.gs18_multiplier).",
+      "codes": ["GS16", "GS17", "GS18"],
+      "delta_each": 0.03,
+      "combined_cap": 0.05,
+      "applies": "all"
+    },
+    "gs02_soil_gate": {
+      "_doc": "Section 3.3 — GS02 (seismic foundation design) removes the soft-soil amplification factor F_a (config/seismic_zones.json site_class.soil_amplification) for site classes D/E.",
+      "code": "GS02",
+      "removes_fa": true
+    },
+    "post_earthquake_fire": {
+      "_doc": "Appendix E4 / Section 3.6 — conditional probability of a fire cascade given damage state. GS15 (flexible gas piping with automatic seismic shut-off) reduces p_PEF by gs15_reduction. When the cascade fires, the fire model is invoked with InitiationClass = ExternalExposure and the scenario loss is max(L_seismic, L_fire).",
+      "gs15_code": "GS15",
+      "gs15_reduction": 0.80,
+      "p_pef_by_ds": {
+        "DS0": 0.00,
+        "DS1": 0.00,
+        "DS2": 0.08,
+        "DS3": 0.18
+      },
+      "conditional_fire_loss": {
+        "_doc": "Seed loss-given-cascade L_fire (truncated lognormal on [0,1], median = mean) used when a post-earthquake fire ignites in a DS2/DS3-damaged asset with disrupted suppression. The scenario loss becomes max(L_seismic, L_fire). Placeholder until the full MKM-FIRE-001 coupling (simulate_fire_containment with InitiationClass = ExternalExposure) is wired via the fire_loss_fn hook (SEIS-R1).",
+        "mean": 0.85,
+        "logstd": 0.30
+      }
+    },
+    "recovery_acceleration": {
+      "_doc": "Appendix D2 — recovery acceleration factor r_acc by derived BRI geoseismic rating. Effective T_rec = T_rec_default / r_acc. The rating is derived from which measures are present (see grade_code_sets).",
+      "r_acc_by_rating": {"AA": 1.00, "A": 0.67, "B": 0.40, "NR": 0.25},
+      "gs18_multiplier": 1.30,
+      "gs18_code": "GS18"
+    },
+    "grade_code_sets": {
+      "_doc": "Section 7.4 Table 5 — BRI geoseismic rating positions used to derive r_acc. A rating is the highest tier whose cumulative measure set is materially present. 'B' = the basic set; 'A' = B plus a_extra; 'AA' = A plus aa_extra. Model C derives the rating from the present measures using these sets.",
+      "B": ["GS01", "GS05", "GS07", "GS10", "GS11", "GS14"],
+      "A_extra": ["GS02", "GS08", "GS09", "GS15", "GS16"],
+      "AA_extra": ["GS03", "GS12", "GS13", "GS17", "GS18"]
+    }
+  }
+}

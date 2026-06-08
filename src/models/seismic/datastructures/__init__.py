@@ -1,0 +1,51 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Runtime types for the seismic model (MKM-SEIS-001).
+
+One module per model stage so each value type lives beside the others it is
+produced with:
+
+- ``_features``     — AssetSeismicFeatures (CDM-derived input bundle)
+- ``_occurrence``   — EarthquakeEvent, OccurrenceResult (Model A)
+- ``_groundmotion`` — GroundMotionSample, GroundMotionResult (Model B)
+- ``_response``     — SeismicResponseProfile (Model C)
+- ``_damage``       — DamageOutcome, AssetSeismicResult (Model D)
+"""
+
+from models.seismic.datastructures._damage import AssetSeismicResult, DamageOutcome
+from models.seismic.datastructures._features import AssetSeismicFeatures
+from models.seismic.datastructures._groundmotion import (
+    GroundMotionResult,
+    GroundMotionSample,
+)
+from models.seismic.datastructures._occurrence import EarthquakeEvent, OccurrenceResult
+from models.seismic.datastructures._response import SeismicResponseProfile
+
+__all__ = [
+    "AssetSeismicFeatures",
+    "EarthquakeEvent",
+    "OccurrenceResult",
+    "GroundMotionSample",
+    "GroundMotionResult",
+    "SeismicResponseProfile",
+    "DamageOutcome",
+    "AssetSeismicResult",
+]

@@ -37,6 +37,14 @@
             // for this asset/catchment) makes that menu choice fall back to the
             // legacy flood+wind category lookup server-side.
             var assetScenarioSpreads = {{flo: null, bri: null, win: null, faw: null, fow: null, baw: null, bow: null}};
+            // The origin asset's independent-peril legs (bps), read from the
+            // hazard curve's spread_decomposition. Fire and seismic are toggled
+            // on/off by the calculator's peril buttons; when on, each leg is
+            // folded into the all-in coupon by root-sum-of-squares. null = the
+            // asset has no such leg (no fire/seismic model run) -> button stays
+            // disabled.
+            var assetFireSpreadBps = null;
+            var assetSeismicSpreadBps = null;
             // Borrower income sourced from the origin asset. Commercial markers
             // forward the asset's net initial yield (passing rent / value) so
             // the server can derive income = yield x property value; residential

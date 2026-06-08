@@ -6,8 +6,8 @@
 """Commercial hazard route handlers (registered on commercial_bp).
 
 Split out of ``routes/commercial/hazard.py`` so each file stays under the
-300-line limit. Helpers (``_hazard_or_404``, ``_attach_fire``) live in the
-package ``__init__`` and are imported here.
+300-line limit. The functional helpers (``_hazard_or_404``, ``_attach_fire``,
+``_attach_seismic``) live in ``_helpers.py`` and are imported here.
 """
 
 import json
@@ -17,7 +17,7 @@ from flask import jsonify, request
 from config import config
 
 from ..blueprint import commercial_bp
-from . import _attach_fire, _hazard_or_404
+from ._helpers import _attach_fire, _attach_seismic, _hazard_or_404
 
 
 @commercial_bp.route('/commercial/<prop_id>/hazard', methods=['GET', 'OPTIONS'])
@@ -49,9 +49,11 @@ def commercial_hazard(prop_id: str):
     if meta_out:
         asset_data['_metadata'] = meta_out
 
-    # Read-time join: fold the fire model's full-conflagration leg into the
-    # spread_decomposition so the PRS pricer waterfall can render a FIRE row.
+    # Read-time joins: fold the independent fire and seismic legs into the
+    # spread_decomposition so the PRS pricer waterfall can render FIRE and
+    # SEISMIC rows and the all-in root-sum-of-squares coupon.
     _attach_fire(asset_data, prop_id)
+    _attach_seismic(asset_data, prop_id)
 
     return jsonify({'status': 'success', 'data': asset_data})
 

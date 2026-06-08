@@ -15,7 +15,7 @@ from .auth import _authenticate
 from .context import StageContext
 from .pdf_reports import run_lineage_chain_validation, run_pdf_reports
 from .stages import (
-    fire, hazardcurves, portfolios, storm, timeseries, trading, typhoon,
+    fire, hazardcurves, portfolios, seismic, storm, timeseries, trading, typhoon,
     windhazard,
 )
 from .summary import _print_port_summary
@@ -64,7 +64,7 @@ def _build_context(args) -> StageContext:
         args.propertyhc, args.propertyshd, args.propertyshe,
         args.propertytsb, args.propertybri,
         args.counterparties, args.blotter, args.stressm,
-        args.typhoon, args.fire,
+        args.typhoon, args.fire, args.seismic,
         args.propertytsw, args.propertytsfaw, args.propertytsfow,
         args.propertywin, args.propertyfaw, args.propertyfow,
         args.commercialtsw, args.commercialtsfaw, args.commercialtsfow,
@@ -213,6 +213,7 @@ def cmd_port(args):
     windhazard.run_all(ctx)
     # Fire-resilience credit over the commercial portfolio (reads commercial.json).
     fire.run_all(ctx)
+    seismic.run_all(ctx)
 
     # --- Post-run reporting ----------------------------------------------
     if ctx.run_all:

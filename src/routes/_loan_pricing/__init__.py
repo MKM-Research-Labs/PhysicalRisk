@@ -140,6 +140,10 @@ def compute_standalone_pricing(inputs: Optional[Dict[str, Any]] = None,
         union_spread_bps=effective.get("union_spread_bps"),
         prs_spread_bps=effective.get("prs_spread_bps"),
         prs_scenario=effective.get("prs_scenario"),
+        fire_spread_bps=effective.get("fire_spread_bps"),
+        seismic_spread_bps=effective.get("seismic_spread_bps"),
+        include_fire=effective.get("include_fire"),
+        include_seismic=effective.get("include_seismic"),
     )
     # A user-supplied contractual coupon (left panel) overrides the model-derived
     # rate the borrower pays; the model coupon stays in ``coupon`` for display as

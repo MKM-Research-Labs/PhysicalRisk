@@ -16,6 +16,33 @@
                 return h + '</select></div>';
             }}
 
+            // A binary on/off button for an independent peril (fire / seismic).
+            // State lives in the button's data-on attribute; setToggle reflects
+            // it visually and toggleState reads it back for the overrides.
+            function toggleHtml(id, label) {{
+                return '<div style="margin-bottom:6px;">' +
+                    '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                    label + '</label>' +
+                    '<button id="' + id + '" type="button" data-on="0" ' +
+                    'style="width:100%;box-sizing:border-box;padding:6px;border:1px solid #ccc;' +
+                    'border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;' +
+                    'background:#f5f5f5;color:#888;">Off</button></div>';
+            }}
+
+            function setToggle(btn, on) {{
+                if (!btn) return;
+                btn.setAttribute('data-on', on ? '1' : '0');
+                btn.textContent = on ? 'On' : 'Off';
+                btn.style.background = on ? '#1565C0' : '#f5f5f5';
+                btn.style.color = on ? '#fff' : '#888';
+                btn.style.borderColor = on ? '#1565C0' : '#ccc';
+            }}
+
+            function toggleState(id) {{
+                var b = document.getElementById(id);
+                return !!(b && b.getAttribute('data-on') === '1');
+            }}
+
             function buildForm() {{
                 var form = document.getElementById('loan-pricer-form');
                 var html = '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
@@ -43,6 +70,14 @@
                     // from an asset (its fan supplies the spreads); otherwise
                     // the chosen scenario falls back to the category lookup.
                     html += selectHtml('lp-prs_scenario', 'PRS Hazard Scenario', PRS_SCENARIOS);
+                    // Independent perils — binary on/off. The storm/flood menu
+                    // above sets the basis; fire and seismic are independent
+                    // legs folded into the all-in coupon by root-sum-of-squares
+                    // when toggled on (their spreads come from the asset curve).
+                    html += '<div style="font-size:11px;color:#888;text-transform:uppercase;' +
+                        'letter-spacing:0.5px;margin:8px 0 2px;">Independent Perils</div>';
+                    html += toggleHtml('lp-include_fire', 'Fire');
+                    html += toggleHtml('lp-include_seismic', 'Seismic');
                     // User-defined contractual coupon. Seeded with the model-
                     // derived coupon on the first price; editing it overrides the
                     // rate the borrower pays, while the model coupon stays visible
@@ -60,6 +95,16 @@
                     'Re-price</button>';
                 form.innerHTML = html;
                 document.getElementById('lp-reprice-btn').onclick = reprice;
+                // Wire the peril toggles: each click flips its state and reprices
+                // so the all-in coupon updates live.
+                ['lp-include_fire', 'lp-include_seismic'].forEach(function(id) {{
+                    var b = document.getElementById(id);
+                    if (!b) return;
+                    b.onclick = function() {{
+                        setToggle(b, b.getAttribute('data-on') !== '1');
+                        reprice();
+                    }};
+                }});
             }}
 
             function populateInputs(inputs) {{
@@ -76,6 +121,8 @@
                 if (cr && inputs.credit_rating) cr.value = inputs.credit_rating;
                 var ps = document.getElementById('lp-prs_scenario');
                 if (ps && inputs.prs_scenario) ps.value = inputs.prs_scenario;
+                setToggle(document.getElementById('lp-include_fire'), !!inputs.include_fire);
+                setToggle(document.getElementById('lp-include_seismic'), !!inputs.include_seismic);
             }}
 
             function readOverrides() {{
@@ -92,6 +139,9 @@
                 if (cr && cr.value) ov.credit_rating = cr.value;
                 var ps = document.getElementById('lp-prs_scenario');
                 if (ps && ps.value) ov.prs_scenario = ps.value;
+                // Independent-peril toggle states (binary on/off buttons).
+                ov.include_fire = toggleState('lp-include_fire');
+                ov.include_seismic = toggleState('lp-include_seismic');
                 // User-defined contractual coupon (shown as %, sent as a decimal).
                 // Overrides the model-derived coupon as the rate the borrower pays.
                 var cc = document.getElementById('lp-contractual_coupon');
@@ -170,10 +220,26 @@
                                 'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
                                 'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
                         }}
-                        couponRows.push([prsLabel, fmtPct(c.hazard_spread), '#333']);
+                        // The flood/wind basis (pre-RSS). Falls back to the all-in
+                        // for older payloads that don't carry flood_wind_base.
+                        var basis = (c.flood_wind_base != null) ? c.flood_wind_base : c.hazard_spread;
+                        couponRows.push([prsLabel, fmtPct(basis), '#333']);
                     }} else {{
                         couponRows.push([floodLabel, fmtPct(c.flood_spread), '#333']);
                         couponRows.push([windLabel, fmtPct(c.wind_spread), '#333']);
+                    }}
+                    // Independent peril legs — shown when their toggle is on, then
+                    // the all-in (root-sum-of-squares of the basis + peril legs).
+                    if (c.fire_included) {{
+                        var fl = (c.fire_spread > 0) ? '' : ' · no asset leg';
+                        couponRows.push(['Fire (independent' + fl + ')', fmtPct(c.fire_spread), '#BF360C']);
+                    }}
+                    if (c.seismic_included) {{
+                        var sl = (c.seismic_spread > 0) ? '' : ' · no asset leg';
+                        couponRows.push(['Seismic (independent' + sl + ')', fmtPct(c.seismic_spread), '#455A64']);
+                    }}
+                    if (c.fire_included || c.seismic_included) {{
+                        couponRows.push(['All-in Hazard (√Σ sq)', fmtPct(c.hazard_spread), '#0D47A1']);
                     }}
                     html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
                         'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +

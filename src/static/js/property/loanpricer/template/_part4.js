@@ -67,6 +67,18 @@
                             overrides.prs_spread_bps = scenBps;
                         }}
                     }}
+                    // Independent peril legs: forward the asset's fire/seismic
+                    // spreads so the server can fold them into the all-in coupon
+                    // by root-sum-of-squares when their toggle (include_fire /
+                    // include_seismic, set by readOverrides) is on.
+                    if (standaloneMode) {{
+                        if (assetFireSpreadBps != null) {{
+                            overrides.fire_spread_bps = assetFireSpreadBps;
+                        }}
+                        if (assetSeismicSpreadBps != null) {{
+                            overrides.seismic_spread_bps = assetSeismicSpreadBps;
+                        }}
+                    }}
                     // Derive commercial income from the asset's net initial
                     // yield x the (editable) property value, server-side. The
                     // displayed income is informational here, so drop it from

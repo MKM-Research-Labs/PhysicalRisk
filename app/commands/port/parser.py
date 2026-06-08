@@ -101,6 +101,8 @@ def register_parser(subparsers):
                     help="Run typhoon (tropical cyclone) wind ensemble for the active catchment")
     sp.add_argument("--fire", "--fi", action="store_true",
                     help="Run the BRI fire-resilience credit model over the commercial portfolio")
+    sp.add_argument("--seismic", "--se", action="store_true",
+                    help="Run the BRI seismic-resilience credit model over the commercial portfolio")
 
     # Modifiers ------------------------------------------------------------
     sp.add_argument("--gauge-id", "--gid", type=str, default=None,
@@ -144,6 +146,12 @@ def register_parser(subparsers):
                     help="Monte Carlo draws per commercial asset in the fire model (default 1000)")
     sp.add_argument("--fire-seed", type=int, default=None,
                     help="RNG seed for the fire model; None = nondeterministic")
+
+    # Seismic model (--seismic) --------------------------------------------
+    sp.add_argument("--num-seismic-sims", "-nse", type=int, default=10000,
+                    help="Monte Carlo draws per commercial asset in the seismic model (default 10000)")
+    sp.add_argument("--seismic-seed", type=int, default=None,
+                    help="RNG seed for the seismic model; None = nondeterministic")
 
     # Maintenance ----------------------------------------------------------
     sp.add_argument("--repair-manifest", action="store_true",
