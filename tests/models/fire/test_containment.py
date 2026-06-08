@@ -37,6 +37,7 @@ import pytest
 from config.fire import FireModelConfig, FireRunConfig, FireState, load_fire_config
 from models.fire.containment import (
     TERMINAL_STATES,
+    controllability_blend_weight,
     sample_next_state,
     select_transition_matrix,
     simulate_asset_fire,
@@ -105,18 +106,37 @@ def test_pnr_selects_absorbing_matrix(config, prog):
     assert chosen is prog.transition_matrices["point_of_no_return"]
 
 
-def test_controllability_switches_pre_pnr_matrix(prog):
+def test_controllability_blends_pre_pnr_matrix(prog):
+    # The pre-PNR matrix is a controllability-weighted blend of weak and AA.
+    # A strong asset blends near AA_controllable; a weak one near weak_controllable.
     strong = derive_response_profile(_strong(), prog)
     weak = derive_response_profile(_weak(), prog)
-    threshold = prog.controllability["switch_threshold"]
-    assert strong.controllability >= threshold
-    assert weak.controllability < threshold
-    assert select_transition_matrix(strong, False, prog) is (
-        prog.transition_matrices["AA_controllable"]
-    )
-    assert select_transition_matrix(weak, False, prog) is (
-        prog.transition_matrices["weak_controllable"]
-    )
+    assert controllability_blend_weight(strong, prog) > controllability_blend_weight(weak, prog)
+
+    aa = prog.transition_matrices["AA_controllable"]
+    weak_m = prog.transition_matrices["weak_controllable"]
+
+    strong_mat = select_transition_matrix(strong, False, prog)
+    weak_mat = select_transition_matrix(weak, False, prog)
+    w_strong = controllability_blend_weight(strong, prog)
+    w_weak = controllability_blend_weight(weak, prog)
+    for i in range(len(aa)):
+        for j in range(len(aa[i])):
+            assert strong_mat[i][j] == pytest.approx(
+                w_strong * aa[i][j] + (1 - w_strong) * weak_m[i][j])
+            assert weak_mat[i][j] == pytest.approx(
+                w_weak * aa[i][j] + (1 - w_weak) * weak_m[i][j])
+    # Each blended row is still a probability distribution.
+    assert all(sum(row) == pytest.approx(1.0) for row in strong_mat)
+
+
+def test_blend_weight_endpoints_clamp(prog):
+    # Controllability at/above the ceiling -> pure AA (w=1); at/below floor -> 0.
+    strong = derive_response_profile(_strong(), prog)
+    weak = derive_response_profile(_weak(), prog)
+    for w in (controllability_blend_weight(strong, prog),
+              controllability_blend_weight(weak, prog)):
+        assert 0.0 <= w <= 1.0
 
 
 # ===========================================================================

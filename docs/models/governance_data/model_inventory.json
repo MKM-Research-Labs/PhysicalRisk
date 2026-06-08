@@ -5059,7 +5059,7 @@
       "tier_rationale": "Materiality TBD: the fire-resilience credit is intended to feed PRS-style pricing pari-passu with the flood and wind legs, but is not yet wired into the pricing chain, so its priced impact is not yet realised. High complexity: a four-stage pipeline combining Poisson initiation, a deterministic intensity track, a controllability-driven matrix selection, and an 8-state Bayesian chain with a latching point-of-no-return gate.",
       "status": "Development",
       "lifecycle_stage": "Stage 2 complete - Models A-D and the end-to-end orchestrator built with unit tests; Stage 3 governance integration in progress",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "owner": "David K Kelly",
       "model_owner_role": "Chief Science Officer",
       "peer_reviewer": "TBD",
@@ -5124,10 +5124,11 @@
       "key_parameters": [
         "base_annual_frequency_by_type and the m_* frequency multipliers (Model A)",
         "growth_per_step_intensity by compartmentation quality (Model B)",
-        "i_crit_by_suppression - the point-of-no-return critical thresholds",
-        "timing (detection_base_steps, suppression_bite_base_steps) and the height penalty",
+        "i_crit_by_level - the point-of-no-return critical thresholds, graded by suppression level",
+        "timing (detection_base_steps, suppression_bite_base_steps), suppression_bite_multiplier_by_level and the height penalty",
+        "race_jitter (timing_sigma, growth_sigma) - per-fire variability that grades the conflagration probability",
         "passive_effectiveness_ranges and response_effectiveness_ranges by CDM field",
-        "controllability weights and switch_threshold (matrix selection)",
+        "controllability weights and blend_floor/blend_ceiling (pre-PNR matrix blend)",
         "transition_matrices (AA_controllable, weak_controllable, point_of_no_return)"
       ],
       "input_data": "Per-commercial-asset CDM features (AssetFireFeatures): commercial type, occupancy, condition, business-rates category, storey count, fire history, and the detection/suppression/passive/response resilience levels. Seed parameters from config/fire_matrices.json via the config.fire loader.",
@@ -5155,6 +5156,12 @@
           "date": "2026-06-05",
           "version": "0.2.0",
           "change": "Stage 2 delivered: Models B (intensity_track), C (response_effectiveness) and D (containment) + end-to-end orchestrator; AssetFireFeatures refactored to named resilience fields; point-of-no-return seeds tuned to be reachable for weak assets; v0.01 LaTeX placeholder docs; 50 tests passing.",
+          "author": "David K Kelly"
+        },
+        {
+          "date": "2026-06-08",
+          "version": "0.3.0",
+          "change": "Recalibrated the resilience response so the credit grades with suppression: replaced the saturated hard controllability switch with a continuous matrix blend (M = w*AA + (1-w)*weak); graded i_crit across all five suppression levels; added a per-level suppression-bite multiplier and per-fire race jitter so the conflagration leg is no longer all-or-nothing. Containment now grades 47%->88% across suppression levels (was flat ~88.7%). Reworked the height sweep to expose the 4-storey reach cliff; documented the muted-conflagration (FIRE-L3/R5) and single-reach-threshold (FIRE-L4/R6) weaknesses; regenerated sensitivity tables and v0.30 LaTeX docs.",
           "author": "David K Kelly"
         }
       ],
