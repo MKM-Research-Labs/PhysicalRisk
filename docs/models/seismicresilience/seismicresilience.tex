@@ -1,0 +1,529 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Building Seismic-Resilience Credit Model}
+\newcommand{\docsubtitle}{Poisson Occurrence, Fault-Geometry Spatial Draw, GMPE Intensity and a Lognormal Fragility Chain}
+\newcommand{\docversion}{0.10}
+\newcommand{\docdate}{08-June-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\begin{document}
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+% 1. EXECUTIVE SUMMARY
+% ===================================================================
+\mkmexecsummary
+
+The Building Seismic-Resilience Credit Model (\texttt{MKM-SEIS-001}) prices the
+seismic resilience of a commercial asset so that seismic loss aggregates into
+the same resilience-credit currency as the existing 10{,}000-storm Monte Carlo
+engine and the fire model (\texttt{MKM-FIRE-001}). The credit is consumed by the
+Commercial PRS Pricer as an independent \emph{seismic} leg, combined with the
+flood, wind and fire legs through a root-sum-of-squares all-in coupon. The model
+is built from four governance-separated component models:
+
+\begin{itemize}
+  \item \textbf{Model A --- Occurrence.} A Poisson occurrence model with
+        per-asset annual rate $\lambda_i = \lambda_{\text{zone}}\, m_{\text{fault}}\,
+        m_{\text{soil}}$. A spatial sub-layer draws the rupture location along the
+        catchment fault-trace polyline --- structured identically to the
+        river-centreline geometry used in the storm module --- and computes the
+        Joyner-Boore source-to-site distance $R_{JB}$.
+  \item \textbf{Model B --- Ground Motion Intensity.} A Ground Motion Prediction
+        Equation (GMPE) maps the sampled $(M, R_{JB})$ pair to a site peak ground
+        acceleration (PGA), adjusted for local soil amplification through
+        $V_{S30}$.
+  \item \textbf{Model C --- Seismic Response Effectiveness.} A deterministic
+        mapping from the asset's BRI geoseismic measures (GS01--GS18) to the
+        fragility median multipliers, the soil-amplification gate, the
+        post-earthquake-fire cascade probability and the recovery acceleration
+        factor consumed by Model D.
+  \item \textbf{Model D --- Damage State, Loss \& Resilience Credit.} A
+        single-step lognormal fragility draw assigns one of four damage states
+        (DS0--DS3). Aggregated over $n_{\text{sim}}$ draws the model emits annual
+        expected loss, the no-collapse rate, and the full-collapse (DS3)
+        frequency in basis points --- the seismic leg the PRS pricer consumes.
+\end{itemize}
+
+The \emph{point-of-no-return analogue} is DS3 (complete damage / collapse): once
+this state is assigned, loss is 100\% and recovery requires demolition and
+rebuild. The DS3 frequency, $n_{\text{DS3}}/n_{\text{sim}} \times 1.0 \times
+10{,}000$, is the bps the PRS pricer charges for the seismic leg.
+
+The model is designed to be \emph{sensitive to all three primary axes}:
+\textbf{distance} (the source-to-site $R_{JB}$ governs GMPE attenuation),
+\textbf{intensity} (the hazard zone governs occurrence frequency and the
+magnitude distribution) and \textbf{resilience} (the BRI geoseismic measures
+shift the fragility medians). Section~\ref{sec:sensitivity} demonstrates each.
+
+\textbf{Status:} Development (Tier 2, RAG Amber). All four component models, the
+end-to-end orchestrator, the port stage, the PRS-pricer and Loan-Calculator
+integration and the sensitivity harness are delivered with unit tests; the six
+Section~\ref{sec:sensitivity} acceptance gates all pass. Every numeric parameter
+is a first-pass engineering-judgement seed (\texttt{config/seismicmatrices.json}
+and \texttt{config/seismic\_zones.json}, \texttt{version "seed-0"}); the results
+in this document are therefore \emph{directional, not calibrated}.
+
+\textbf{Key risk:} The model uses placeholder calibration throughout. It is not
+approved for production until historical calibration completes and the Model Risk
+Committee (MRC) issues sign-off (remediation items SEIS-R1--R5).
+
+% ===================================================================
+% 2. MODEL PURPOSE AND SCOPE
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+To assign each commercial asset a seismic-resilience credit --- an annual
+unconditional loss frequency, a conditional no-collapse rate and a full-collapse
+(DS3) frequency in bps --- priced pari-passu with the flood, wind and fire
+hazards. The credit rewards genuine, evidenced seismic resilience (seismic
+foundation design, lateral force resistance, base isolation, independent audit)
+and penalises the configurations that historically drive total losses, most
+notably unreinforced masonry or pre-code concrete frames in high-hazard zones
+without base isolation or lateral bracing.
+
+\subsection{Scope}
+The model covers commercial assets described by the v2 commercial-asset and
+resilience sections of the Common Data Model (CDM). It reads only the derived
+\texttt{AssetSeismicFeatures} bundle --- never the raw CDM record --- so the
+feature contract is explicit, testable and stable against CDM schema churn. The
+in-scope drivers are commercial type, construction type, number of storeys, soil
+type, seismic hazard zone, the eighteen BRI geoseismic measures (GS01--GS18) and
+fault proximity. The catchment fault trace is a companion spatial file
+(\texttt{data/catch/<name>/fault\_trace.json}) structured identically to the
+river polyline used in the storm module.
+
+\subsection{Out of Scope}
+\begin{itemize}
+  \item Finite-element or nonlinear time-history structural analysis.
+  \item Casualty, life-safety or evacuation modelling.
+  \item Aftershock sequences (Poisson mainshock occurrence only --- SEIS-L2).
+  \item Liquefaction or landslide as independent primary hazards.
+  \item Business-interruption quantum (the DS3 leg is fixed at 100\% loss).
+  \item Explicit floor-level geometry (height enters only through
+        \texttt{NumberOfStoreys}).
+\end{itemize}
+
+% ===================================================================
+% 3. MATHEMATICAL FRAMEWORK
+% ===================================================================
+\mkmframework
+
+\subsection{Occurrence (Model A)}
+Earthquake occurrence is a homogeneous Poisson process. The per-asset annual
+rate is
+\[
+  \lambda_i = \lambda_{\text{zone}}\; m_{\text{fault}}\; m_{\text{soil}},
+\]
+where $\lambda_{\text{zone}}$ is the mean annual rate of events $M \ge m_{\min}$
+at the asset's seismic hazard zone (Appendix~\ref{app:occ}), $m_{\text{fault}} =
+1.0 + \delta_{\text{GS01}}\,\mathbf{1}[\text{FaultProximityKm} < 1.0 \text{ and
+GS01 absent}]$ with $\delta_{\text{GS01}} = 0.15$, and $m_{\text{soil}}$ is the
+soil recurrence modifier. Over a run horizon $h$, $N \sim \text{Poisson}(\lambda_i
+h)$ is sampled per draw; an earthquake instantiates when $N \ge 1$. The magnitude
+is drawn from the truncated Gutenberg-Richter law
+\[
+  P(M > m) = \frac{10^{-b m} - 10^{-b\, m_{\max}}}
+                  {10^{-b\, m_{\min}} - 10^{-b\, m_{\max}}},
+\]
+with $b = 1.0$, $m_{\min} = 5.0$, $m_{\max} = 7.5$ by default (zone-configurable).
+
+\subsection{Fault Geometry and Spatial Draw}
+For each instantiated earthquake the rupture location is sampled from the
+catchment fault-trace polyline. Cumulative arc-length $S(k)$ is computed at each
+vertex with the Haversine formula; a uniform draw $u$ selects $s^\star = u\,
+S(n)$ and the rupture centroid is linearly interpolated. The surface rupture
+length follows the Wells-Coppersmith scaling $\log_{10} L_r = -2.44 + 0.59\,M$,
+and the rupture occupies $[s^\star - L_r/2,\, s^\star + L_r/2]$ clipped to the
+fault endpoints. The Joyner-Boore distance $R_{JB}$ is the minimum distance from
+the asset to the rupture segment --- the same flat-Earth polyline primitive the
+flood module uses for river-bank distance, so no new GIS dependency is
+introduced.
+
+\subsection{Ground Motion Intensity (Model B)}
+The site PGA is sampled from a GMPE in lognormal form,
+\[
+  \ln(\text{PGA}) = \ln\overline{\text{PGA}}(M, R_{JB}, V_{S30}) + \sigma_{\text{tot}}\,
+  \varepsilon, \qquad \varepsilon \sim \mathcal{N}(0,1),
+\]
+with $\sigma_{\text{tot}} = 0.65$ by default. Soil amplification enters
+implicitly through $V_{S30}$ (mapped from \texttt{SoilType} or read directly from
+\texttt{SoilVs30Mps}). When GS02 is absent and the site class is D or E an
+additional factor $F_a = 1.30$ multiplies the GMPE median before sampling. The
+seed GMPE is a parametric Boore-Atkinson-style form per tectonic regime,
+calibrated to reproduce the indicative attenuation of
+Table~\ref{tab:seis_distance}.
+
+\subsection{Seismic Response Effectiveness (Model C)}
+Model C is deterministic. The fragility median multiplier per damage state is the
+product of upward shifts for each present measure,
+\[
+  \theta^{\text{adj}}_{i} = \theta^{\text{base}}_{i}\; \theta^{\text{mult}}_{i},
+  \qquad
+  \theta^{\text{mult}}_{i} = \prod_{j} \bigl(1 + \delta_j\,
+  \mathbf{1}[\text{measure } j \text{ present}]\bigr),
+\]
+with the modifiers $\delta_j$ of Appendix~\ref{app:resp}. The governance measures
+GS16--GS18 contribute a single combined factor capped at $+0.05$. Model C also
+emits the recovery acceleration $r_{\text{acc}}$ (from the BRI geoseismic rating,
+with a GS18 uplift) and the post-earthquake-fire probability $p_{\text{PEF}}$
+(reduced 80\% by GS15).
+
+\subsection{Damage State, Loss and Resilience Credit (Model D)}
+For each instantiated earthquake the lognormal fragility CDF is evaluated at the
+sampled PGA for each damage-state threshold,
+\[
+  P(\text{DS} \ge \text{DS}_i \mid \text{PGA}) =
+  \Phi\!\left(\frac{\ln(\text{PGA}) - \ln(\theta^{\text{adj}}_{i})}{\beta}\right),
+  \qquad \beta = 0.60,
+\]
+and the highest $\text{DS}_i$ with $P(\text{DS} \ge \text{DS}_i) > U$ is assigned
+($U \sim \text{Uniform}(0,1)$). A loss draw conditioned on the damage state gives
+the structural loss ratio (DS3 fixed at $1.0$). If $\text{DS} \ge \text{DS2}$ a
+post-earthquake-fire cascade may fire ($V < p_{\text{PEF}}$); the fire model is
+invoked with \texttt{InitiationClass = ExternalExposure} and the scenario loss
+becomes $\max(L_{\text{seismic}}, L_{\text{fire}})$. A functionality-recovery
+curve $Q(t)$ ramps from $Q(t_0)$ to $1.0$ over $T_{\text{rec}}/r_{\text{acc}}$.
+
+Aggregating over $n_{\text{sim}}$ draws (of which $n_{\text{events}}$ instantiate
+earthquakes),
+\[
+  \text{loss frequency} = \frac{\sum_s L_s}{n_{\text{sim}}}, \quad
+  \text{no-collapse rate} = \frac{n_{\text{DS0}}+n_{\text{DS1}}+n_{\text{DS2}}}
+                                  {n_{\text{events}}}, \quad
+  \text{seismic spread (bps)} = \frac{n_{\text{DS3}}}{n_{\text{sim}}}\times 10{,}000.
+\]
+The seismic spread is combined with the flood, wind and fire legs by
+root-sum-of-squares: $\text{all-in} = \sqrt{\sum_{\text{perils}} \text{leg}^2}$.
+
+% ===================================================================
+% 4. INPUT PARAMETERS AND CALIBRATION
+% ===================================================================
+\mkminputs
+
+All numeric seeds live in \texttt{config/seismicmatrices.json} and
+\texttt{config/seismic\_zones.json} (\texttt{version "seed-0"}) and are loaded by
+\texttt{config/seismic}; no number is embedded in the model code. The
+resilience-measure vocabulary (GS01--GS18) is single-sourced from the CDM via the
+model's CDM adapter. \emph{Calibration status:} every value is a first-pass
+engineering-judgement seed chosen for plausible direction and ordering, not
+magnitude. Statistical calibration against historical commercial seismic-loss
+data (SEIS-R1) and independent GMPE benchmarking (SEIS-R2) are open remediation
+items; until they close the outputs must be read as relative resilience signals,
+not absolute loss probabilities. The full parameter set is reproduced in the
+Appendices.
+
+% ===================================================================
+% 5. IMPLEMENTATION DETAILS
+% ===================================================================
+\mkmimplementation
+
+\subsection{Module Layout}
+\begin{itemize}
+  \item \texttt{config/seismic/} --- parameter schema (enums, dataclasses,
+        loader); \texttt{seismicmatrices.json} and \texttt{seismic\_zones.json}
+        --- seed numeric parameters.
+  \item \texttt{src/models/seismic/datastructures/} --- runtime value types.
+  \item \texttt{src/models/seismic/occurrence/} --- Model A (Poisson draw,
+        magnitude sample, fault spatial draw, $R_{JB}$).
+  \item \texttt{src/models/seismic/groundmotion.py} --- Model B (GMPE).
+  \item \texttt{src/models/seismic/responseeffectiveness.py} --- Model C.
+  \item \texttt{src/models/seismic/damage.py} --- Model D, plus the
+        \texttt{simulate\_asset\_seismic} / \texttt{simulate\_portfolio\_seismic}
+        orchestrators.
+  \item \texttt{app/commands/port/stages/seismic.py} --- the port stage writing
+        \texttt{seismic/seismic.json}.
+  \item \texttt{src/routes/commercial/hazard/} --- the read-time join attaching
+        \texttt{seismic\_spread\_bps} to the asset hazard payload.
+\end{itemize}
+
+\subsection{Randomness}
+All randomness flows through a single caller-owned
+\texttt{numpy.random.Generator}, so an entire portfolio run is reproducible from
+one seed --- matching the storm, typhoon and fire convention. Model A draws the
+Poisson count, the magnitude and the rupture location; Model B draws one GMPE
+residual per event; Model D draws the damage-state uniform, the loss sample and
+the cascade gate. Model C is deterministic.
+
+% ===================================================================
+% 6. VALIDATION AND BACKTESTING
+% ===================================================================
+\mkmvalidation
+
+Historical calibration and backtesting are open remediation items (SEIS-R1,
+SEIS-R2) to be completed before production sign-off. Current validation is by
+directional unit tests, which confirm the model behaves as designed: a BRI-AA
+asset has materially lower DS3 frequency than a BRI-NR asset; base isolation
+(GS12) produces the largest single-measure shift; low-hazard zones have
+near-zero collapse frequency; the post-earthquake-fire cascade fires at the
+expected conditional rate; and a whole-portfolio run is bit-for-bit reproducible
+from a single seed.
+
+\mkmtestresults
+
+% ===================================================================
+% 7. SENSITIVITY ANALYSIS
+% ===================================================================
+\mkmsensitivity
+\label{sec:sensitivity}
+
+The tables below are generated by
+\texttt{docs/models/sensitivities/seismicresilience} running the real
+\texttt{simulate\_asset\_seismic} against the baseline of Section~7.1 and varying
+one input at a time over 20{,}000 Monte Carlo draws per cell. The baseline asset
+is a 4-storey Office in Fair condition, RC pre-code construction, stiff soil
+(class B), Moderate seismic zone, located 20~km from the fault trace, with all
+BRI geoseismic measures absent.
+
+The model is required to exhibit monotonic and material sensitivity along each of
+the three primary axes --- distance, intensity and resilience --- and to satisfy
+five acceptance conditions: (i)~distance monotonicity (spread non-increasing in
+$R_{JB}$); (ii)~intensity monotonicity (spread non-decreasing in zone);
+(iii)~resilience monotonicity (no-collapse non-decreasing and spread
+non-increasing from NR to AA); (iv)~interaction ordering
+$(\text{Very high}, \text{NR}) > (\text{High}, \text{AA}) \ge (\text{Moderate},
+\text{AA})$; and (v)~a near-zero floor ($< 1$~bps in the Very low zone at
+$R_{JB} = 100$~km). All five gates pass against the current seeds.
+
+\input{sensitivity_tables}
+
+% ===================================================================
+% 8. MODEL LIMITATIONS AND KNOWN WEAKNESSES
+% ===================================================================
+\mkmlimitations
+
+\begin{itemize}
+  \item \textbf{No historical calibration (SEIS-L1).} Every parameter is a
+        first-pass placeholder; outputs are relative signals, not absolute loss
+        probabilities.
+  \item \textbf{Mainshock-only Poisson (SEIS-L2).} The HPP assumption ignores
+        aftershock clustering; appropriate for long-run annualised loss but not
+        real-time post-event risk.
+  \item \textbf{Single fault trace per catchment (SEIS-L3).} Multiple
+        independent sources require a superposition of Poisson processes
+        (planned, SEIS-R4).
+  \item \textbf{Deterministic GMPE median (SEIS-L4).} Only the aleatory residual
+        is sampled; epistemic logic-tree uncertainty is not represented.
+  \item \textbf{Height proxy (SEIS-L5).} Building height enters only through
+        \texttt{NumberOfStoreys}.
+\end{itemize}
+
+% ===================================================================
+% 9. GOVERNANCE VALIDATION QUESTIONS
+% ===================================================================
+\mkmgovernance
+
+\mkmvqitem{1}{Model purpose and use}{The model produces a seismic-resilience
+credit (loss frequency, no-collapse rate and a full-collapse bps leg) consumed by
+the Commercial PRS Pricer as an independent peril. Use is consistent with design;
+it is not a life-safety or absolute-loss model and must not be used as one.}
+
+\mkmvqitem{2}{Data quality and lineage}{Inputs are the CDM-derived
+\texttt{AssetSeismicFeatures}; lineage runs from the v2 CDM resilience fields
+(GS01--GS18) through Model C. Seismic zone and fault-trace files are
+catchment-level spatial assets versioned alongside the model. Missing GS flags
+default to the absence case. Calibration data quality is not yet established
+(SEIS-R1).}
+
+\mkmvqitem{3}{Conceptual soundness}{The four-model decomposition (Poisson
+occurrence with a fault-geometry spatial draw, GMPE intensity, BRI measure
+mapping, lognormal fragility with a loss draw) is the standard PSHA/PBEE
+framework used in HAZUS, GEM and Eurocode 8 risk assessment. The Poisson
+mainshock assumption is well supported for engineering annual-loss estimation.}
+
+\mkmvqitem{4}{Calibration and parameters}{All parameters are
+engineering-judgement seeds (\texttt{seed-0}) chosen for direction and ordering,
+not magnitude. Statistical calibration is open (SEIS-R1, SEIS-R2); this is the
+dominant model limitation.}
+
+\mkmvqitem{5}{Implementation verification}{Verified by unit tests covering each
+component model, the orchestrator and the cascade gate, plus a reproducibility
+test. The sensitivity harness exercises the full path and passes the five
+Section~\ref{sec:sensitivity} acceptance gates.}
+
+\mkmvqitem{6}{Sensitivity and stability}{See Section~\ref{sec:sensitivity}. The
+model exhibits monotonic and material sensitivity along distance, intensity and
+resilience, with the designed intensity~$\times$~resilience non-linearity
+(strong BRI measures most valuable in high-hazard zones). Stability is adequate
+at $n_{\text{sim}} = 20{,}000$.}
+
+\mkmvqitem{7}{Limitations and weaknesses}{Documented in Section~8 (SEIS-L1--L5).
+The placeholder calibration and the single fault-trace restriction are the most
+material.}
+
+\mkmvqitem{8}{Ongoing monitoring}{Not yet in production. A monitoring plan
+(input-distribution drift; backtest of realised vs predicted seismic-loss
+frequency) is defined under SEIS-R3 before sign-off.}
+
+\mkmvqitem{9}{Governance and approval}{Owner: David K Kelly. Status: Development,
+Tier 2, RAG Amber. Not approved for production; MRC sign-off is contingent on
+closing SEIS-R1--R5.}
+
+% ===================================================================
+% 10. CHANGE HISTORY
+% ===================================================================
+\mkmchangelog
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Version} & \textbf{Date} & \textbf{Description} \\
+    \midrule
+    0.10 & 08-June-2026 & Stages 0--9: Models A--D, port stage, PRS-pricer and
+    Loan-Calculator integration, sensitivity harness (all gates pass) and
+    governance inventory entry. First-pass \texttt{seed-0} calibration. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ===================================================================
+% APPENDICES
+% ===================================================================
+\appendix
+
+\section{Occurrence Parameters (Model A)}\label{app:occ}
+
+\begin{table}[H]
+  \centering
+  \caption{Seismic hazard zone annual rates ($M \ge 5.0$ mainshock) --- seed-0}
+  \begin{tabular}{lrrrl}
+    \toprule
+    \textbf{Zone} & \textbf{$\lambda_{\text{zone}}$ (/yr)} & \textbf{$b$} &
+    \textbf{$m_{\max}$} & \textbf{Notes} \\
+    \midrule
+    Very low  & 0.0005 & 1.0 & 6.5 & Intraplate stable continental \\
+    Low       & 0.002  & 1.0 & 7.0 & e.g. UK, NW Europe \\
+    Moderate  & 0.008  & 1.0 & 7.5 & e.g. central Italy, Romania \\
+    High      & 0.030  & 1.0 & 8.0 & e.g. Turkey, Greece, coastal Vietnam \\
+    Very high & 0.080  & 1.0 & 8.5 & e.g. Japan, Philippines, Sumatra \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Fault proximity (GS01) and soil recurrence modifiers}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Condition} & \textbf{Modifier} \\
+    \midrule
+    FaultProximityKm $< 1.0$ and GS01 absent & $m_{\text{fault}} = 1.15$ \\
+    Otherwise & $m_{\text{fault}} = 1.00$ \\
+    Soil class A / B & $m_{\text{soil}} = 1.00$ \\
+    Soil class C & $m_{\text{soil}} = 1.10$ \\
+    Soil class D & $m_{\text{soil}} = 1.15$ \\
+    Soil class E & $m_{\text{soil}} = 1.20$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{GMPE and Site Amplification (Model B)}\label{app:gmpe}
+
+\begin{table}[H]
+  \centering
+  \caption{Site-class $V_{S30}$ proxies and the GS02 amplification gate}
+  \begin{tabular}{llrl}
+    \toprule
+    \textbf{SoilType} & \textbf{EC8} & \textbf{$V_{S30}$ (m/s)} &
+    \textbf{$F_a$ if GS02 absent} \\
+    \midrule
+    Rock          & A & 800 & 1.00 \\
+    Stiff soil    & B & 450 & 1.00 \\
+    Dense soil    & C & 270 & 1.00 \\
+    Soft soil     & D & 150 & 1.30 \\
+    Very soft     & E & 100 & 1.30 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The default GMPE is a Boore-Atkinson 2014 (NGA-West2) parametric proxy for active
+shallow crust ($\sigma_{\text{tot}} = 0.65$) and a Zhao et al. 2006 proxy for
+subduction interface ($\sigma_{\text{tot}} = 0.68$), selectable per catchment
+zone.
+
+\section{Response Effectiveness Modifiers (Model C)}\label{app:resp}
+
+\begin{table}[H]
+  \centering
+  \caption{Fragility median multiplier $\delta_j$ by BRI geoseismic measure --- seed-0}
+  \begin{tabular}{llr}
+    \toprule
+    \textbf{Measure} & \textbf{Applies to} & \textbf{$\delta_j$} \\
+    \midrule
+    GS03 Foundation piling to rock        & DS2, DS3 & $+0.12$ \\
+    GS04 Subsidence foundation design     & DS2, DS3 & $+0.08$ \\
+    GS08 Lateral force resistance         & DS2, DS3 & $+0.20$ \\
+    GS09 Connected and braced structure   & DS1--DS3 & $+0.12$ \\
+    GS10 Steel reinforced walls           & DS1, DS2 & $+0.08$ \\
+    GS12 Seismic base isolation           & All DS   & $+0.40$ \\
+    GS14 No vertical irregularities       & DS2, DS3 & $+0.15$ \\
+    GS16--GS18 Governance (combined cap)  & All DS   & $+0.05$ \\
+    \midrule
+    GS02 Seismic foundation (soil gate)   & Removes $F_a$ (class D/E) & --- \\
+    GS15 Flexible gas piping / shut-off    & $p_{\text{PEF}}$ & $-80\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Recovery acceleration $r_{\text{acc}}$ by BRI geoseismic rating}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Rating} & \textbf{$r_{\text{acc}}$} \\
+    \midrule
+    AA & 1.00 \\
+    A  & 0.67 \\
+    B  & 0.40 \\
+    NR & 0.25 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Fragility and Damage-State Parameters (Model D)}\label{app:frag}
+
+\begin{table}[H]
+  \centering
+  \caption{Baseline fragility median PGA (g) by construction class --- seed-0}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Construction class} & \textbf{DS1} & \textbf{DS2} & \textbf{DS3} &
+    \textbf{$\beta$} \\
+    \midrule
+    RC modern seismic   & 0.15 & 0.35 & 0.65 & 0.60 \\
+    RC pre-code         & 0.10 & 0.22 & 0.42 & 0.60 \\
+    Masonry reinforced  & 0.12 & 0.28 & 0.52 & 0.60 \\
+    Masonry unreinforced& 0.07 & 0.14 & 0.28 & 0.60 \\
+    Steel moment frame  & 0.18 & 0.40 & 0.75 & 0.60 \\
+    Timber frame        & 0.12 & 0.28 & 0.55 & 0.60 \\
+    Default             & 0.10 & 0.22 & 0.42 & 0.60 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Loss, functionality and post-earthquake-fire parameters --- seed-0}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Damage state} & \textbf{Mean $L$} & \textbf{$Q(t_0)$} &
+    \textbf{$T_{\text{rec}}$ (mo)} & \textbf{$p_{\text{PEF}}$ (no GS15)} \\
+    \midrule
+    DS0 None/Slight  & 0.01 & 1.00 & 0  & 0.00 \\
+    DS1 Moderate     & 0.10 & 0.75 & 3  & 0.00 \\
+    DS2 Extensive    & 0.35 & 0.30 & 12 & 0.08 \\
+    DS3 Complete     & 1.00 & 0.00 & 36 & 0.18 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+DS3 loss is fixed at $1.0$ (no draw); DS0--DS2 losses are truncated-lognormal on
+$[0,1]$ with the means above and log-standard deviations 0.50/0.50/0.40. GS15
+reduces $p_{\text{PEF}}$ by 80\%. $T_{\text{rec}}$ is divided by
+$r_{\text{acc}}$ to give the effective recovery time.
+
+\end{document}

@@ -5350,6 +5350,7 @@
       "recertification_date": null,
       "review_frequency": "Annual",
       "documents": [
+        "docs/models/seismicresilience/seismicresilience.tex",
         "docs/seismic/MKM-SEIS-001-v0.10.md",
         "docs/models/seismicresilience/sensitivity_tables.tex"
       ],

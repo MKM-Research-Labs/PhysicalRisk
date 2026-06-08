@@ -1,0 +1,44 @@
+% Hand-curated snapshot of the MKM-SEIS-001 test suites and the Section 7.7
+% acceptance gates. To be replaced by the test_results generator
+% (python -m docs.models.test_results.generator) when MKM-SEIS-001 is wired in.
+
+The model is exercised by 87 unit tests across \texttt{tests/models/seismic/}
+plus route-join and loan-coupon integration tests, and the sensitivity harness
+asserts the six Section~\ref{sec:sensitivity} acceptance gates.
+
+\begin{table}[H]
+  \centering
+  \caption{Test suites covering MKM-SEIS-001}
+  \begin{tabular}{llr}
+    \toprule
+    \textbf{Suite} & \textbf{Scope} & \textbf{Tests} \\
+    \midrule
+    \texttt{test\_config}                & Config schema + seed values & 18 \\
+    \texttt{test\_cdm\_adapter}          & CDM $\rightarrow$ features mapping & 12 \\
+    \texttt{test\_occurrence}            & Model A (occurrence + fault draw) & 20 \\
+    \texttt{test\_groundmotion}          & Model B (GMPE) & 14 \\
+    \texttt{test\_responseeffectiveness} & Model C (BRI modifiers) & 11 \\
+    \texttt{test\_damage}                & Model D (fragility, loss, orchestrator) & 17 \\
+    \midrule
+    \texttt{test\_commercial\_routes\_part5} & PRS-pricer read-time join & 5 \\
+    \texttt{test\_loan\_pricer\_standalone\_part4} & Loan-Calculator RSS coupon & 6 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Section~\ref{sec:sensitivity} acceptance gates ($n_{\text{sim}} = 20{,}000$ per cell)}
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Gate} & \textbf{Result} \\
+    \midrule
+    Distance monotonic (spread non-increasing in $R_{JB}$)      & PASS \\
+    Intensity monotonic (spread non-decreasing in zone)         & PASS \\
+    Resilience: no-collapse non-decreasing NR\,$\rightarrow$\,AA & PASS \\
+    Resilience: spread non-increasing NR\,$\rightarrow$\,AA      & PASS \\
+    Interaction (Very high, NR) $>$ (High, AA) $\ge$ (Moderate, AA) & PASS \\
+    Near-zero floor (Very low, $R_{JB} = 100$~km) $< 1$~bps      & PASS \\
+    \bottomrule
+  \end{tabular}
+\end{table}

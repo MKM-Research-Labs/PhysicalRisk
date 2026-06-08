@@ -153,7 +153,7 @@ def generate():
                        ("GS09", "Connected / braced"),
                        ("GS12", "Base isolation"),
                        ("GS14", "No vertical irregularities"),
-                       ("GS02", "Seismic foundation (F_a gate)")]:
+                       ("GS02", "Seismic foundation ($F_a$ gate)")]:
         feat = replace(baseline(_RES_RJB), measures=frozenset({code}))
         _, nc, _, bps = metrics(feat)
         t6.append((f"{code}: {desc}", nc, bps, bps - base_bps))
