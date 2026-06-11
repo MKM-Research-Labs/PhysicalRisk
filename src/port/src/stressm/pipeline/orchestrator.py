@@ -209,7 +209,7 @@ def generate_stressm(
     t2 = time.time()
 
     for i, seq in enumerate(sequences):
-        if verbose and (i % 500 == 0) and i > 0:
+        if verbose and (i % 100 == 0) and i > 0:
             elapsed = time.time() - t2
             rate = i / elapsed
             eta = (count - i) / rate
