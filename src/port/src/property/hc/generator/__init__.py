@@ -77,17 +77,15 @@ class PropertyHazardCurveGenerator(
             Dictionary with generation metadata and summary statistics.
         """
         cfg = self.ASSET_CONFIG
-        pts_subdir = cfg.ts_dirs[self.mode]
-        output_filename = cfg.hc_files[self.mode]
         mode_label = f" [{self.mode}]" if self.mode != "normal" else ""
         self.log(f"{cfg.label} Hazard Curve Generator{mode_label}")
         self.log(f"Catchment: {config.CATCHMENT}")
 
-        pts_dir = self.output_dir / pts_subdir
+        pts_dir = cfg.ts_dir(self.output_dir, self.mode)
         if not pts_dir.exists():
             raise FileNotFoundError(
                 f"{cfg.label} timeseries directory not found: {pts_dir}\n"
-                f"Run: python app.py port --{pts_subdir} first"
+                f"Run: python app.py port --{cfg.ts_dirs[self.mode]} first"
             )
 
         property_files = sorted(pts_dir.glob(cfg.id_glob))
@@ -138,7 +136,7 @@ class PropertyHazardCurveGenerator(
         stats['avg_transmission_rate'] = round(np.mean(transmission_rates), 4) if transmission_rates else 0.0
         stats['avg_spread_bps'] = round(np.mean(spread_values), 2) if spread_values else 0.0
 
-        output_path = self.output_dir / output_filename
+        output_path = cfg.hc_file(self.output_dir, self.mode)
         output_data = {
             'metadata': {
                 'catchment_id': config.CATCHMENT,

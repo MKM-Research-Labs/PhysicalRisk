@@ -26,15 +26,15 @@ class _DecompositionMixin:
             Number of assets with decomposition attached.
         """
         cfg = self.ASSET_CONFIG
-        hc_path = self.output_dir / cfg.hc_files["normal"]
-        shd_path = self.output_dir / cfg.hc_files["shd"]
-        she_path = self.output_dir / cfg.hc_files["she"]
-        bri_path = self.output_dir / cfg.hc_files["bri"]
-        win_path = self.output_dir / cfg.hc_files["win"]
-        faw_path = self.output_dir / cfg.hc_files["faw"]
-        fow_path = self.output_dir / cfg.hc_files["fow"]
-        bow_path = self.output_dir / cfg.hc_files["bow"]
-        baw_path = self.output_dir / cfg.hc_files["baw"]
+        hc_path = cfg.hc_file(self.output_dir, "normal")
+        shd_path = cfg.hc_file(self.output_dir, "shd")
+        she_path = cfg.hc_file(self.output_dir, "she")
+        bri_path = cfg.hc_file(self.output_dir, "bri")
+        win_path = cfg.hc_file(self.output_dir, "win")
+        faw_path = cfg.hc_file(self.output_dir, "faw")
+        fow_path = cfg.hc_file(self.output_dir, "fow")
+        bow_path = cfg.hc_file(self.output_dir, "bow")
+        baw_path = cfg.hc_file(self.output_dir, "baw")
 
         if not hc_path.exists():
             self.log(f"{hc_path.name} not found — skipping decomposition")
