@@ -51,7 +51,8 @@ book actually trades at. The peril ts generator derives ``bow``/``baw`` from the
 """
 
 from dataclasses import dataclass
-from typing import Mapping
+from pathlib import Path
+from typing import Mapping, Union
 
 
 @dataclass(frozen=True)
@@ -78,6 +79,12 @@ class AssetTypeConfig:
     def id_glob(self) -> str:
         """Glob pattern matching the per-asset JSON files in the ts output dirs."""
         return f"{self.id_prefix}*.json"
+
+    def ts_dir(self, output_dir: Union[str, Path], mode: str) -> Path:
+        return Path(output_dir) / self.ts_dirs[mode]
+
+    def hc_file(self, output_dir: Union[str, Path], mode: str) -> Path:
+        return Path(output_dir) / self.hc_files[mode]
 
 
 RESIDENTIAL_CONFIG = AssetTypeConfig(
