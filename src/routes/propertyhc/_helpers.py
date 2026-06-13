@@ -17,19 +17,36 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""
-Property hazard curve and PRS pricing endpoints.
 
-Provides access to property-level hazard curves, PRS pricing,
-and basis calculations against nearest gauge PRS prices.
-"""
+"""Shared data-loading helpers for the property hazard-curve routes."""
 
-from flask import Blueprint
+import json
 
-propertyhc_bp = Blueprint('propertyhc', __name__)
+from flask import jsonify, request
 
-# Shared helpers live in _helpers; re-exported so the route submodules can
-# ``from . import _get_hazard_data, _load_or_404``.
-from ._helpers import _get_hazard_data, _load_or_404  # noqa: E402,F401
+from config import config
 
-from . import _summary, _perils  # noqa: E402,F401  (register routes)
+
+def _get_hazard_data(filename: str = 'propertyhc.json') -> dict:
+    """Load property hazard curves data."""
+    path = config.get_input_dir() / filename
+    if not path.exists():
+        return None
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
+def _load_or_404(filename: str = 'propertyhc.json', label: str = 'Property hazard curves'):
+    """Load hazard data or return a 404 JSON response.
+
+    Returns ``(data, None)`` on success or ``(None, response)`` on failure.
+    """
+    if request.method == 'OPTIONS':
+        return None, jsonify({'status': 'ok'})
+    data = _get_hazard_data(filename)
+    if not data:
+        return None, (jsonify({
+            'status': 'error',
+            'message': f'{label} not yet generated'
+        }), 404)
+    return data, None
