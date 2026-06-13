@@ -11,10 +11,6 @@ Sub-modules:
 - risk_rating: Overall Risk Rating tab (composite score, MRC override)
 """
 
-from . import questions, risk_rating
+from ._js import get_js
 
-
-def get_js():
-    """Return combined JS fragment for validation and risk rating tabs."""
-    return (questions.get_js() +
-            risk_rating.get_js())
+__all__ = ["get_js"]

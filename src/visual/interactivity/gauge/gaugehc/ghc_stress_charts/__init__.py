@@ -12,11 +12,6 @@ Sub-modules:
 - surface: Tab 3 — P(flood) surface heat-map table
 """
 
-from . import probability, pnl, surface
+from ._js import get_js
 
-
-def get_js() -> str:
-    """Return combined JS fragment for all stress test charts."""
-    return (probability.get_js() +
-            pnl.get_js() +
-            surface.get_js())
+__all__ = ["get_js"]
