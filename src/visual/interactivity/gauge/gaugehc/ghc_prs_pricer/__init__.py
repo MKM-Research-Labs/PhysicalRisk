@@ -7,10 +7,6 @@ Semi-annual cashflow computation (premium + protection legs),
 fair spread calculation, and dual-chart layout (hazard curve + cashflow bars).
 """
 
-from .engine import get_engine_js
-from .renderer import get_renderer_js
+from ._js import get_js
 
-
-def get_js() -> str:
-    """Return JS fragment for PRS cashflow engine and chart rendering."""
-    return get_engine_js() + get_renderer_js()
+__all__ = ["get_js"]
