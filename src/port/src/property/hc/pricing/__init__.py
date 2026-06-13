@@ -25,11 +25,6 @@ without a typhoon stage emit no ``prs_perils`` block and are byte-identical to
 before (flood-only fallback).
 """
 
-from ._process import _ProcessMixin
-from ._wind import _WindMixin
+from ._pricing import PricingMixin
 
 __all__ = ["PricingMixin"]
-
-
-class PricingMixin(_ProcessMixin, _WindMixin):
-    """Mixin providing property processing, PRS pricing, and basis methods."""
