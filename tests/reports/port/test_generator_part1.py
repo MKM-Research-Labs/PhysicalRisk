@@ -31,8 +31,10 @@ class TestInit:
         assert isinstance(gen.input_dir, Path)
 
     def test_default_output_path_uses_audit_dir(self, tmp_path, monkeypatch):
-        """Lines 56-59: when output_path is None, default to
-        ``<output>/audit/port_<catchment>.pdf`` using config.get_output_dir().
+        """When output_path is None, default to
+        ``<output>/audit/archive/port_<catchment>.pdf`` using
+        config.get_output_dir(). Port deliverables live under audit/archive/
+        so they stay out of the `app.py test` audit root.
         """
         from config import config
 
@@ -40,10 +42,10 @@ class TestInit:
         monkeypatch.setattr(config, 'get_output_dir', lambda: out_root)
 
         gen = PortReportGenerator(tmp_path / 'thames')
-        # audit dir was created
-        assert (out_root / 'audit').is_dir()
-        # output path is the audit / port_<input_dir.name>.pdf
-        assert gen.output_path == out_root / 'audit' / 'port_thames.pdf'
+        # audit/archive dir was created
+        assert (out_root / 'audit' / 'archive').is_dir()
+        # output path is the audit / archive / port_<input_dir.name>.pdf
+        assert gen.output_path == out_root / 'audit' / 'archive' / 'port_thames.pdf'
 
 
 # ---------------------------------------------------------------------------

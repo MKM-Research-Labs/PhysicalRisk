@@ -92,6 +92,7 @@ STEP_OWNERS = {
     'commercialbow':    'Quantitative Analytics',
     'commercialbaw':    'Quantitative Analytics',
     'fire':             'Quantitative Analytics',
+    'seismic':          'Quantitative Analytics',
 }
 
 # ---------------------------------------------------------------------------
