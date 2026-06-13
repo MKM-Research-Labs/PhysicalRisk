@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,118 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Timeseries data loader for MKM Research Labs PRS Platform.
+"""Reading queries, statistics and BaseLoader-compatible registry methods."""
 
-Handles loading and querying gauge timeseries/readings data
-from per-gauge JSON files in the gaugets/ directory.
-"""
-
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
-class TimeseriesLoader:
-    """
-    Loader for gauge timeseries data from per-gauge files.
-
-    Reads from gaugets/ directory where each gauge has its own JSON file:
-        gaugets/GAUGE-xxx.json
-
-    Each file contains:
-    {
-        "gauge_id": "GAUGE-xxx",
-        "flood_simulation": {
-            "readings": [{"timestamp": "...", "waterLevel": ..., ...}, ...]
-        },
-        "storm_responses": {
-            "responses": [{"storm_id": "...", "peak_level_m": ..., ...}, ...]
-        }
-    }
-    """
-
-    ENTITY_NAME = 'timeseries'
-    DEFAULT_DIRNAME = 'gaugets'
-    DEFAULT_FILENAME = 'gaugets'  # Compatibility alias for loader_registry
-
-    def __init__(self, data_dir: Path, filename: Optional[str] = None):
-        self.data_dir = Path(data_dir)
-        self.dirname = filename or self.DEFAULT_DIRNAME
-        self._cache: Dict[str, Dict] = {}
-        self._cache_valid = False
-
-    def _get_gaugets_dir(self) -> Path:
-        """Get path to gaugets directory."""
-        return self.data_dir / self.dirname
-
-    def _load_gauge_file(self, gauge_id: str) -> Optional[Dict]:
-        """Load a single per-gauge JSON file."""
-        if gauge_id in self._cache:
-            return self._cache[gauge_id]
-
-        gauge_file = self._get_gaugets_dir() / f"{gauge_id}.json"
-        if not gauge_file.exists():
-            logger.warning(f"Gauge file not found: {gauge_file}")
-            return None
-
-        with open(gauge_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        self._cache[gauge_id] = data
-        return data
-
-    def _load_all_gauge_files(self) -> Dict[str, Dict]:
-        """Load all per-gauge files from the directory."""
-        if self._cache_valid and self._cache:
-            return self._cache
-
-        gaugets_dir = self._get_gaugets_dir()
-        if not gaugets_dir.exists():
-            logger.warning(f"Gaugets directory not found: {gaugets_dir}")
-            return {}
-
-        for gauge_file in sorted(gaugets_dir.glob("*.json")):
-            gauge_id = gauge_file.stem
-            if gauge_id not in self._cache:
-                with open(gauge_file, 'r', encoding='utf-8') as f:
-                    self._cache[gauge_id] = json.load(f)
-
-        self._cache_valid = True
-        logger.info(f"Loaded {len(self._cache)} gauge files from {gaugets_dir}")
-        return self._cache
-
-    def load_all(self, force_reload: bool = False) -> List[Dict[str, Any]]:
-        """
-        Load all timeseries records (backwards compatible).
-
-        Returns data in the old timestep-interleaved format for
-        consumers that expect it.
-        """
-        if force_reload:
-            self.clear_cache()
-
-        all_data = self._load_all_gauge_files()
-
-        # Reconstruct timestep records from per-gauge data
-        timestep_map = {}  # hour -> readings list
-        for gauge_id, gauge_data in all_data.items():
-            sim = gauge_data.get('flood_simulation', {})
-            for reading in sim.get('readings', []):
-                ts = reading.get('timestamp', '')
-                if ts not in timestep_map:
-                    timestep_map[ts] = {'timestamp': ts, 'readings': []}
-                timestep_map[ts]['readings'].append(reading)
-
-        return list(timestep_map.values())
-
-    # =========================================================================
-    # Timeseries-specific query methods
-    # =========================================================================
+class _QueriesMixin:
+    """Timeseries query, statistics and entity-registry helpers."""
 
     def get_readings_for_gauge(
         self,
@@ -301,15 +200,6 @@ class TimeseriesLoader:
     def exists(self, entity_id: str) -> bool:
         """Check if a timestep record exists."""
         return self.find_by_id(entity_id) is not None
-
-    def clear_cache(self) -> None:
-        """Clear the cache."""
-        self._cache = {}
-        self._cache_valid = False
-
-    def invalidate_cache(self) -> None:
-        """Invalidate the cache (alias for clear_cache)."""
-        self.clear_cache()
 
     def count(self) -> int:
         """Get count of gauge files."""
