@@ -13,16 +13,7 @@ residential generator — only the input filename, JSON shape, and output
 directory names differ.
 """
 
-from port.src.property.ts import DateTimeEncoder, PropertyTimeSeriesGenerator  # noqa: F401
-from port.utils.asset_config import COMMERCIAL_CONFIG
-
-
-class CommercialTimeSeriesGenerator(PropertyTimeSeriesGenerator):
-    """Commercial asset flood timeseries — reads commercial.json, writes
-    commercialts/ (normal), commercialtsd/ (zero-elevation), or
-    commercialtse/ (zero-distance) per-asset JSON files."""
-
-    ASSET_CONFIG = COMMERCIAL_CONFIG
-
+from port.src.property.ts import DateTimeEncoder  # noqa: F401
+from ._generator import CommercialTimeSeriesGenerator
 
 __all__ = ["CommercialTimeSeriesGenerator", "DateTimeEncoder"]

@@ -12,15 +12,7 @@ generator prices it unchanged. This package builds those input dirs by
 re-stamping the flood timeseries with the peril outcome.
 """
 
-from port.utils.asset_config import COMMERCIAL_CONFIG, AssetTypeConfig
-
 from .peril_ts import PerilTimeseriesGenerator
-
-
-class CommercialPerilTimeseriesGenerator(PerilTimeseriesGenerator):
-    """Peril ts generator for the commercial portfolio (CPROP-* assets)."""
-
-    ASSET_CONFIG: AssetTypeConfig = COMMERCIAL_CONFIG
-
+from ._commercial import CommercialPerilTimeseriesGenerator
 
 __all__ = ["PerilTimeseriesGenerator", "CommercialPerilTimeseriesGenerator"]

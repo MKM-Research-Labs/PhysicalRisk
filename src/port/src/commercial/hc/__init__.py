@@ -22,18 +22,8 @@ from port.src.property.hc import (  # noqa: F401
     MIN_PRS_SPREAD_BPS,
     RECOVERY_RATES,
     TENORS,
-    PropertyHazardCurveGenerator,
 )
-from port.utils.asset_config import COMMERCIAL_CONFIG
-
-
-class CommercialHazardCurveGenerator(PropertyHazardCurveGenerator):
-    """Commercial hazard curves, PRS pricing, basis, and spread
-    decomposition. Inherits all behaviour from the residential generator
-    via ASSET_CONFIG."""
-
-    ASSET_CONFIG = COMMERCIAL_CONFIG
-
+from ._generator import CommercialHazardCurveGenerator
 
 __all__ = [
     "CommercialHazardCurveGenerator",
