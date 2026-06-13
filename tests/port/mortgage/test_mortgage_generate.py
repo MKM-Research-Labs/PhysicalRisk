@@ -167,7 +167,7 @@ class TestGenerateFullOutput:
 class TestGenerateMortgagesFunction:
 
     def test_raises_without_property_file(self, tmp_path):
-        with patch("port.src.mortgage.config") as mock_cfg:
+        with patch("port.src.mortgage._generator.config") as mock_cfg:
             mock_cfg.get_input_dir.return_value = tmp_path
             mock_cfg.CATCHMENT = "thames"
             mock_cfg.get_input_path.return_value = tmp_path / "property.json"

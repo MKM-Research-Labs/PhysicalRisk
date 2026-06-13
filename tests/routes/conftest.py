@@ -11,9 +11,13 @@ import pytest
 @pytest.fixture
 def mock_registry(monkeypatch):
     """Return a mock LoaderRegistry wired into the properties route."""
-    from routes.properties import _get_registry
-
     mock_reg = MagicMock()
+    # _get_registry is defined in routes.properties._routes and re-exported on
+    # the package. The property handlers (routes.properties._routes) call it
+    # bare, while the loan-pricer handlers (routes.properties._loan_routes)
+    # call it via the package attribute (``_pp._get_registry()``). Patch both
+    # binding sites so the mock registry reaches every handler.
+    monkeypatch.setattr("routes.properties._routes._get_registry", lambda: mock_reg)
     monkeypatch.setattr("routes.properties._get_registry", lambda: mock_reg)
     return mock_reg
 
