@@ -18,23 +18,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Hand-rolled Sequential Monte Carlo (particle filter) engine.
+"""Property-vs-gauge effective elevation — the PRS flood threshold."""
 
-Drives Phase 1's pure-simulation mode (soft plausibility scores, no real
-observations). The ``ParticleFilter`` SMC engine and the
-``systematic_resample`` index sampler are re-exported from ``_core``.
 
-Usage:
-    rng = np.random.default_rng(seed)
-    pf = ParticleFilter(n_particles=1000, config=cfg, rng=rng)
-    pf.initialize()
-    trajectories = pf.run_to_horizon(horizon_hours=168.0)
-"""
+def relative_elevation(prop_ground_m: float, gauge_ground_m: float,
+                       floor_level_m: float = 0.0) -> float:
+    """Effective elevation of a property above its reference gauge.
 
-from ._core import ParticleFilter, systematic_resample
+    This is the flood threshold used throughout the PRS pricer and storm
+    simulation pipeline: a property floods only when water rises above
+    ``max(0, prop_ground - gauge_ground) + floor_level``.
 
-__all__ = [
-    "ParticleFilter",
-    "systematic_resample",
-]
+    Parameters
+    ----------
+    prop_ground_m : float
+        Property ground-level elevation in metres (from RiskAssessment.GroundLevelMeters).
+    gauge_ground_m : float
+        Reference gauge ground-level elevation in metres.
+    floor_level_m : float, optional
+        Height of the lowest occupied floor above ground (from Construction.FloorLevelMeters).
+
+    Returns
+    -------
+    float
+        Effective elevation in metres above the gauge datum, including floor.
+    """
+    height_diff = max(0.0, prop_ground_m - gauge_ground_m)
+    return height_diff + floor_level_m

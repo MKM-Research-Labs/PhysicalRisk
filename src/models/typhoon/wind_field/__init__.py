@@ -31,44 +31,26 @@ engine into a local wind speed at any (lon, lat). Architecture:
     point.py       composes the above into evaluate_point()
     time_series.py iterates over a trajectory to produce WindFieldOutput
 
-The package re-exports the user-facing surface here:
-
-    evaluate_point(state, lon, lat, params, land_mask) -> float
-    evaluate_point_with_geometry(...) -> PointWind(sustained, distance, azimuth)
-    evaluate_time_series(traj, property, params, land_mask, thresholds)
-        -> WindFieldOutput
-    WindField(config) — convenience class binding the config once
-
-Holland-style profile is reserved for a later phase; the symmetric
-profile lives in radial.py and can be replaced without touching the
-calling sites.
+The user-facing surface (re-exported below) is built in ``_core``; the
+``WindField`` convenience class binds the config once.
 """
 
-from typing import Iterable, Optional
-
-from config.typhoon import CatchmentTyphoonConfig, PropertyPoint
-from models.typhoon.data_structures import TyphoonState, TyphoonTrajectory, WindFieldOutput
-from models.typhoon.wind_field.asymmetry import (
+from ._core import (
+    haversine_distance_km,
+    bearing_deg,
+    calibrate_outer_decay_length,
+    symmetric_profile,
     asymmetry_factor,
     compute_epsilon,
     compute_phi_deg,
-)
-from models.typhoon.wind_field.geometry import bearing_deg, haversine_distance_km
-from models.typhoon.wind_field.point import (
+    surface_factor,
     PointWind,
     evaluate_point,
     evaluate_point_with_geometry,
-)
-from models.typhoon.wind_field.radial import (
-    calibrate_outer_decay_length,
-    symmetric_profile,
-)
-from models.typhoon.wind_field.surface import surface_factor
-from models.typhoon.wind_field.time_series import (
     duration_above_threshold,
     evaluate_time_series,
+    WindField,
 )
-
 
 __all__ = [
     # geometry
@@ -93,48 +75,3 @@ __all__ = [
     # convenience class
     "WindField",
 ]
-
-
-class WindField:
-    """Convenience wrapper binding a CatchmentTyphoonConfig.
-
-    Holds references to the wind-field parameters and the catchment's
-    land mask so callers can repeatedly evaluate without re-passing the
-    same arguments. The pipeline (Phase 1.7) constructs one of these
-    per catchment and reuses it across all events and properties.
-    """
-
-    def __init__(self, config: CatchmentTyphoonConfig):
-        self.config = config
-        self.params = config.wind_field
-        self.land_mask = config.land_mask
-        self.thresholds_ms = config.output_thresholds_ms
-
-    def evaluate(
-        self,
-        state: TyphoonState,
-        longitude: float,
-        latitude: float,
-    ) -> float:
-        return evaluate_point(state, longitude, latitude, self.params, self.land_mask)
-
-    def evaluate_property(
-        self,
-        state: TyphoonState,
-        property_point: PropertyPoint,
-    ) -> float:
-        return self.evaluate(state, property_point.longitude, property_point.latitude)
-
-    def evaluate_trajectory(
-        self,
-        trajectory: TyphoonTrajectory,
-        property_point: PropertyPoint,
-        thresholds_ms: Optional[Iterable[float]] = None,
-    ) -> WindFieldOutput:
-        return evaluate_time_series(
-            trajectory=trajectory,
-            property_point=property_point,
-            params=self.params,
-            land_mask=self.land_mask,
-            thresholds_ms=thresholds_ms if thresholds_ms is not None else self.thresholds_ms,
-        )
