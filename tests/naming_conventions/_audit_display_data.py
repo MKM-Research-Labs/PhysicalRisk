@@ -110,7 +110,7 @@ _PROPERTY_HARDCODED = [
     'src/visual/interactivity/storm/sp_sim.py',
     'src/visual/interactivity/storm/fa_render.py',
     'src/visual/interactivity/storm/sp_table.py',
-    'src/reports/property/property_page_15_data_summary.py',
+    'src/reports/property/property_page_15_data_summary/_core.py',
     'src/reports/property/claim/page5_determination.py',
     'src/reports/rloan/rloan_page_01_title.py',
     'src/reports/port/sections_portfolio.py',
