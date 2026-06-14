@@ -90,6 +90,11 @@ class TestGenerateDecimalValue:
         ("FloodAlert", 4.32),
         ("FloodWarning", 5.76),
         ("SevereFloodWarning", 6.84),
+        # Flash / tsunami thresholds are fixed offsets above severe (6.84)
+        ("FlashMinor", 9.84),
+        ("FlashMajor", 11.84),
+        ("TsunamiMinor", 11.84),
+        ("TsunamiMajor", 16.84),
         ("GaugeLatitude", 20.95),
         ("GaugeLongitude", 107.05),
         ("elevation", 4.2),
@@ -155,6 +160,24 @@ class TestGenerateMenuValue:
             meta["location"]["lon"] = lon
             v = generate_menu_value("TidalInfluence", {}, 0, meta)
             assert expected_keyword in v
+
+    def test_tidal_influence_missing_lon_returns_non_tidal(self, gauge_metadata):
+        """No longitude in metadata → can't place along the span → Non-tidal."""
+        from port.rand.halong.gauge.gauge_field_generators import generate_menu_value
+        meta = dict(gauge_metadata)
+        meta["location"] = dict(gauge_metadata["location"])
+        meta["location"]["lon"] = None
+        assert generate_menu_value("TidalInfluence", {}, 0, meta) == "Non-tidal"
+
+    def test_tidal_influence_bounds_error_returns_non_tidal(self, gauge_metadata, monkeypatch):
+        """If get_catchment_bounds() raises, fall back safely to Non-tidal."""
+        from port.rand.halong.gauge import gauge_field_generators as gfg
+
+        def _boom():
+            raise RuntimeError("no catchment bounds available")
+
+        monkeypatch.setattr(gfg, "get_catchment_bounds", _boom)
+        assert gfg.generate_menu_value("TidalInfluence", {}, 0, gauge_metadata) == "Non-tidal"
 
     def test_unknown_field_with_options_picks_by_index(self, gauge_metadata):
         from port.rand.halong.gauge.gauge_field_generators import generate_menu_value
