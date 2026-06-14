@@ -39,7 +39,7 @@ class TestRepairManifest:
         from lineage.manifest import repair_manifest, STEP_IO
         fake_path = tmp_path / "lineage.json"
         self._create_pipeline_files(tmp_path)
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = repair_manifest(data_dir=tmp_path)
         assert len(result["repaired"]) == len(STEP_IO)
         assert result["skipped"] == []
@@ -67,7 +67,7 @@ class TestRepairManifest:
             },
         }
         fake_path.write_text(json.dumps(existing))
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = repair_manifest(data_dir=tmp_path)
         assert "gauges" in result["repaired"]
         data = json.loads(fake_path.read_text())
@@ -83,7 +83,7 @@ class TestRepairManifest:
         fake_path = tmp_path / "lineage.json"
         # Only create gauge.json — everything else missing
         (tmp_path / "gauge.json").write_text("{}")
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = repair_manifest(data_dir=tmp_path)
         assert "gauges" in result["repaired"]
         assert "properties" in result["skipped"]
@@ -95,7 +95,7 @@ class TestRepairManifest:
         fake_path = tmp_path / "lineage.json"
         gauge_file = tmp_path / "gauge.json"
         gauge_file.write_text('{"flood_gauges": []}')
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             repair_manifest(data_dir=tmp_path)
         data = json.loads(fake_path.read_text())
         recorded_hash = data["steps"]["gauges"]["outputs"]["gauge.json"]["hash"]
@@ -106,7 +106,7 @@ class TestRepairManifest:
         from lineage.manifest import repair_manifest
         fake_path = tmp_path / "lineage.json"
         (tmp_path / "gauge.json").write_text("{}")
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             repair_manifest(data_dir=tmp_path)
         data = json.loads(fake_path.read_text())
         gauges_entry = data["steps"]["gauges"]
@@ -120,7 +120,7 @@ class TestRepairManifest:
         # Empty out propertyts/
         for f in (tmp_path / "propertyts").iterdir():
             f.unlink()
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = repair_manifest(data_dir=tmp_path)
         assert "propertyts" in result["skipped"]
 
@@ -129,7 +129,7 @@ class TestRepairManifest:
         from lineage.manifest import repair_manifest
         fake_path = tmp_path / "lineage.json"
         self._create_pipeline_files(tmp_path)
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = repair_manifest(data_dir=tmp_path)
         data = json.loads(fake_path.read_text())
         repair_runs = [k for k in data["runs"] if k.startswith("repair-")]
@@ -141,7 +141,7 @@ class TestRepairManifest:
         from lineage.manifest import repair_manifest
         fake_path = tmp_path / "lineage.json"
         self._create_pipeline_files(tmp_path)
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             repair_manifest(data_dir=tmp_path)
         data = json.loads(fake_path.read_text())
         # properties takes gauge.json as input — its recorded input hash
@@ -155,7 +155,7 @@ class TestRepairManifest:
         from lineage.manifest import repair_manifest
         fake_path = tmp_path / "lineage.json"
         self._create_pipeline_files(tmp_path)
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             repair_manifest(data_dir=tmp_path)
             data1 = json.loads(fake_path.read_text())
             repair_manifest(data_dir=tmp_path)

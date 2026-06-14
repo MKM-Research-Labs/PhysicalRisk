@@ -40,7 +40,7 @@ class TestRecordStep:
         out_dir.mkdir()
         (out_dir / "a.json").write_text("{}")
 
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             entry = record_step(
                 step_name="gaugehd",
                 generator="test_gen",
@@ -71,7 +71,7 @@ class TestRecordStep:
         inp = tmp_path / "x.json"
         inp.write_text("{}")
 
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             entry = record_step(
                 step_name="gauges",
                 generator="gen",
@@ -89,7 +89,7 @@ class TestRecordStep:
         inp = tmp_path / "u.json"
         inp.write_text("{}")
 
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path), \
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path), \
              patch.dict(os.environ, {"USER": "test_admin"}):
             entry = record_step(
                 step_name="test_user",
@@ -109,7 +109,7 @@ class TestRecordStep:
         inp = tmp_path / "h.json"
         inp.write_text("{}")
 
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             entry = record_step(
                 step_name="test_host",
                 generator="gen",

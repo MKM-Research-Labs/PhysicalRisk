@@ -92,7 +92,7 @@ class TestLoadManifest:
     def test_load_missing_returns_skeleton(self, tmp_path):
         from lineage.manifest import load_manifest
         fake_path = tmp_path / "nonexistent.json"
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = load_manifest()
         assert result == {"runs": {}, "steps": {}}
 
@@ -101,7 +101,7 @@ class TestLoadManifest:
         fake_path = tmp_path / "lineage.json"
         data = {"runs": {"r1": ["gauges"]}, "steps": {"gauges": {}}}
         fake_path.write_text(json.dumps(data))
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = load_manifest()
         assert result == data
 
@@ -109,7 +109,7 @@ class TestLoadManifest:
         from lineage.manifest import load_manifest
         fake_path = tmp_path / "lineage.json"
         fake_path.write_text("{{{not valid json")
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             result = load_manifest()
         assert result == {"runs": {}, "steps": {}}
 
@@ -121,7 +121,7 @@ class TestSaveManifest:
         from lineage.manifest import save_manifest, load_manifest
         fake_path = tmp_path / "lineage.json"
         data = {"runs": {}, "steps": {"gauges": {"status": "ok"}}}
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             save_manifest(data)
             result = load_manifest()
         assert result == data
@@ -131,7 +131,7 @@ class TestSaveManifest:
         fake_path = tmp_path / "lineage.json"
         fake_path.write_text('{"old": true}')
         new_data = {"runs": {}, "steps": {}}
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             save_manifest(new_data)
             result = load_manifest()
         assert result == new_data
@@ -140,7 +140,7 @@ class TestSaveManifest:
         from lineage.manifest import save_manifest
         fake_path = tmp_path / "lineage.json"
         # Make json.dump fail by passing un-serialisable data
-        with patch("lineage.manifest.LINEAGE_PATH", fake_path):
+        with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
             with pytest.raises(TypeError):
                 save_manifest({"bad": {1, 2, 3}})  # sets aren't JSON-serialisable
         # Temp file should be cleaned up
