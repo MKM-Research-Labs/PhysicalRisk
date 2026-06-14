@@ -18,26 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Core property timeseries endpoints — per-property storm analysis.
-
-Endpoints
----------
-GET /properties/<prop_id>/storms
-"""
+"""Lookup builders and per-property enrichment for the storms endpoint."""
 
 import json
-import logging
 from typing import Dict
 
-from flask import jsonify
-
 from config import config
-
-from . import propertyts_bp
-from .core_summary import _load_property_or_404
-
-logger = logging.getLogger(__name__)
 
 
 def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
@@ -75,18 +61,11 @@ def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
     return result
 
 
-@propertyts_bp.route('/properties/<prop_id>/storms', methods=['GET', 'OPTIONS'])
-def property_storms(prop_id: str):
-    """
-    Get storm scenario analysis for a property.
+def _build_storm_lookups():
+    """Build the storm metadata lookups used to tag a property's flood events.
 
-    Returns flood events with hydrograph readings, nearest gauge info,
-    and summary statistics — structured for the property storm analysis panel.
+    Returns ``(seq_lookup, storm_meta, storm_severe, seq_to_event)``.
     """
-    early, pdata = _load_property_or_404(prop_id)
-    if early is not None:
-        return early
-
     # Build sequence_id → sequence_type lookup
     seq_lookup = {}
     try:
@@ -133,18 +112,20 @@ def property_storms(prop_id: str):
         except Exception:
             pass
 
-    # Typhoon "additional circumstance" lookup for this property. The 1:1
-    # coupling (coupling_spec.md, Stages 2-3) means each storm sequence
-    # carries the event_id of its paired typhoon, so the join is a direct
-    # sequence_id → event_id map straight off the storm metadata already
-    # loaded above — no separate severity-bucket linkage. The per-event wind
-    # impact is read from typhoon/damage/EVT-*.json. Both stay empty/None-safe
-    # when the typhoon stage hasn't run (flood-only fallback).
+    # Typhoon "additional circumstance" lookup. The 1:1 coupling means each
+    # storm sequence carries the event_id of its paired typhoon, so the join is
+    # a direct sequence_id → event_id map straight off the storm metadata.
     seq_to_event = {
         sid: meta.get('event_id')
         for sid, meta in _storm_meta.items()
         if meta.get('event_id')
     }
+    return seq_lookup, _storm_meta, _storm_severe, seq_to_event
+
+
+def _tag_flood_events(pdata, prop_id, seq_lookup, storm_meta, storm_severe, seq_to_event):
+    """Tag each flood event with sequence type, storm metadata and typhoon block,
+    and append synthetic rows for wind-only typhoons. Mutates ``pdata``."""
     wind_damage_by_event = (
         _load_typhoon_damage_for_property(prop_id) if seq_to_event else {}
     )
@@ -155,7 +136,7 @@ def property_storms(prop_id: str):
         sid = event.get('storm_id', '')
         event['sequence_type'] = seq_lookup.get(sid, 'isolated') if sid else 'isolated'
         # Storm metadata for canonical display format
-        meta = _storm_meta.get(sid)
+        meta = storm_meta.get(sid)
         if meta:
             cat = meta.get('intensity_category', '')
             event.setdefault('intensity_category', cat)
@@ -164,12 +145,10 @@ def property_storms(prop_id: str):
                              meta.get('effective_precipitation_mm',
                                       meta.get('total_precipitation_mm',
                                                meta.get('precipitation_mm', 0))))
-        event.setdefault('gauges_severe', _storm_severe.get(sid, 0))
+        event.setdefault('gauges_severe', storm_severe.get(sid, 0))
 
         # Typhoon block — present only when the storm's paired typhoon
-        # (shared event_id) produced wind damage at this property. Carries the
-        # property's per-event wind impact so the UI doesn't need a second
-        # fetch. None when the storm is water-only here.
+        # (shared event_id) produced wind damage at this property.
         evt_id = seq_to_event.get(sid)
         wind = wind_damage_by_event.get(evt_id) if evt_id else None
         if wind:
@@ -185,11 +164,8 @@ def property_storms(prop_id: str):
             event['typhoon'] = None
 
     # Append synthetic flood_event rows for typhoons that hit this property's
-    # wind damage record but didn't otherwise appear in the property's
-    # flood_events array (i.e. the storm didn't trigger gauge response at
-    # any of the property's nearest gauges, but the typhoon track still
-    # produced wind damage here). These show up in the UI History tab so
-    # wind-only typhoons aren't hidden.
+    # wind damage record but didn't otherwise appear in flood_events (wind-only
+    # typhoons that didn't trigger gauge response). These show in the History tab.
     if seq_to_event:
         seen_sids = {e.get('storm_id') for e in pdata.get('flood_events', [])}
         for sid, evt_id in seq_to_event.items():
@@ -198,7 +174,7 @@ def property_storms(prop_id: str):
             wind = wind_damage_by_event.get(evt_id)
             if not wind:
                 continue  # Property not present in this typhoon's damage file
-            meta = _storm_meta.get(sid, {})
+            meta = storm_meta.get(sid, {})
             cat = meta.get('intensity_category', '')
             pdata.setdefault('flood_events', []).append({
                 'storm_id':       sid,
@@ -209,7 +185,7 @@ def property_storms(prop_id: str):
                     meta.get('effective_precipitation_mm',
                              meta.get('total_precipitation_mm',
                                       meta.get('precipitation_mm', 0))),
-                'gauges_severe':  _storm_severe.get(sid, 0),
+                'gauges_severe':  storm_severe.get(sid, 0),
                 'flood_depth_m':  0.0,
                 'damage_ratio':   0.0,
                 'flooded':        False,
@@ -223,6 +199,10 @@ def property_storms(prop_id: str):
                 },
             })
 
+
+def _enrich_nearest_gauges(pdata):
+    """Attach flood stages and GEV severe counts to nearest gauges; mutates
+    ``pdata`` and returns the controlling gauge's severe count."""
     # Enrich nearest gauge info with flood stages
     gauge_path = config.get_input_path('gauge.json')
     gauge_stages = {}
@@ -275,10 +255,11 @@ def property_storms(prop_id: str):
     except Exception:
         pass
 
-    summary = pdata.get('summary', {})
-    summary['severe_at_nearest_gauge'] = severe_at_gauge
+    return severe_at_gauge
 
-    # Look up property address from property.json for canonical display
+
+def _lookup_property_address(prop_id: str) -> str:
+    """Look up a property's display address from property.json."""
     prop_address = ''
     try:
         prop_path = config.get_input_path('property.json')
@@ -295,17 +276,4 @@ def property_storms(prop_id: str):
                 break
     except Exception:
         pass
-
-    return jsonify({
-        'status': 'success',
-        'property_id': prop_id,
-        'property_address': prop_address,
-        'property_info': {
-            'elevation_m': pdata.get('elevation_m', 0),
-            'floor_level_m': pdata.get('floor_level_m', 0),
-            'location': pdata.get('location', {}),
-        },
-        'nearest_gauges': nearest,
-        'flood_events': pdata.get('flood_events', []),
-        'summary': summary,
-    })
+    return prop_address

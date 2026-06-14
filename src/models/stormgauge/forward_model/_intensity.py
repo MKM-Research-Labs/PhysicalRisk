@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,54 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Storm gauge forward model.
-
-Computes gauge water level responses given storm parameters.
-Maps storm characteristics (track, intensity, footprint) to
-water level timeseries at each gauge location.
-"""
+"""Geometry, spatial decay, and intensity-at-gauge computations."""
 
 import math
 from typing import List, Tuple
 
-from models.stormgauge.data_structures import (
-    DecayKernel,
-    GaugeConfig,
-    GaugeResponse,
-    Storm,
-    TrackPoint,
-)
+from ..data_structures import DecayKernel, GaugeConfig, Storm, TrackPoint
 
 
-class StormGaugeModel:
-    """
-    Forward model: Storm parameters -> Gauge water level responses.
-
-    The model computes water level at each gauge based on:
-    1. Storm track proximity (distance from gauge to nearest track point)
-    2. Storm intensity at that track point
-    3. Spatial decay based on distance and footprint
-    4. Gauge-specific transfer function (intensity -> water level)
-
-    Parameters:
-        intensity_to_level_scale: Multiplier from intensity to water level contribution
-        time_resolution_hours: Time step for simulation
-        response_lag_hours: Lag between storm passage and peak gauge response
-        response_decay_hours: How quickly gauge level returns to normal after storm
-    """
-
-    def __init__(
-        self,
-        intensity_to_level_scale: float = 0.1,
-        time_resolution_hours: float = 0.5,
-        response_lag_hours: float = 2.0,
-        response_decay_hours: float = 12.0,
-    ):
-        self.intensity_to_level_scale = intensity_to_level_scale
-        self.time_resolution_hours = time_resolution_hours
-        self.response_lag_hours = response_lag_hours
-        self.response_decay_hours = response_decay_hours
+class _IntensityMixin:
+    """Distance, decay, track interpolation and intensity-to-level mapping."""
 
     def haversine_km(self, lon1: float, lat1: float, lon2: float, lat2: float) -> float:
         """Calculate distance in km between two points using Haversine formula."""
@@ -216,94 +178,3 @@ class StormGaugeModel:
         level_contribution = normalised * level_range * gauge.sensitivity
 
         return level_contribution
-
-    def compute_response(
-        self,
-        storm: Storm,
-        gauge: GaugeConfig,
-    ) -> GaugeResponse:
-        """
-        Compute full gauge response to a storm event.
-
-        Simulates both intensity and water level timeseries,
-        extracting summary statistics.
-        """
-        # Generate time points
-        num_steps = int(storm.duration_hours / self.time_resolution_hours) + 1
-        times = [i * self.time_resolution_hours for i in range(num_steps)]
-
-        # Compute intensity timeseries at gauge
-        intensity_ts = []
-        for t in times:
-            intensity = self.compute_intensity_at_gauge(
-                t, gauge.longitude, gauge.latitude, storm
-            )
-            intensity_ts.append({"time_hours": t, "intensity": intensity})
-
-        # Find peak intensity
-        intensities = [p["intensity"] for p in intensity_ts]
-        peak_intensity = max(intensities)
-        peak_intensity_idx = intensities.index(peak_intensity)
-        peak_intensity_time = times[peak_intensity_idx]
-
-        # Convert intensity to water level with lag and decay
-        level_ts = []
-        current_contribution = 0.0
-
-        for i, t in enumerate(times):
-            lag_steps = int(self.response_lag_hours / self.time_resolution_hours)
-            lagged_idx = max(0, i - lag_steps)
-            lagged_intensity = intensities[lagged_idx]
-
-            target_contribution = self.intensity_to_level(lagged_intensity, gauge)
-
-            decay_rate = self.time_resolution_hours / self.response_decay_hours
-            if target_contribution > current_contribution:
-                current_contribution += (target_contribution - current_contribution) * min(1.0, decay_rate * 3)
-            else:
-                current_contribution += (target_contribution - current_contribution) * decay_rate
-
-            level = gauge.base_level + current_contribution
-            level_ts.append({"time_hours": t, "level": level})
-
-        # Extract summary statistics
-        levels = [p["level"] for p in level_ts]
-        peak_level = max(levels)
-        peak_idx = levels.index(peak_level)
-        peak_time = times[peak_idx]
-        peak_exceedance = peak_level - gauge.flood_alert
-
-        dt = self.time_resolution_hours
-        duration_alert = sum(dt for l in levels if l >= gauge.flood_alert)
-        duration_warning = sum(dt for l in levels if l >= gauge.flood_warning)
-        duration_severe = sum(dt for l in levels if l >= gauge.severe_warning)
-
-        accumulation = sum(
-            max(0, l - gauge.flood_alert) * dt
-            for l in levels
-        )
-
-        return GaugeResponse(
-            gauge_id=gauge.gauge_id,
-            storm_id=storm.storm_id,
-            flooded=peak_level >= gauge.flood_alert,
-            peak_level=peak_level,
-            peak_exceedance=peak_exceedance,
-            peak_time_hours=peak_time,
-            peak_intensity=peak_intensity,
-            peak_intensity_time_hours=peak_intensity_time,
-            duration_above_alert=duration_alert,
-            duration_above_warning=duration_warning,
-            duration_above_severe=duration_severe,
-            accumulation=accumulation,
-            intensity_timeseries=intensity_ts,
-            level_timeseries=level_ts,
-        )
-
-    def compute_all_responses(
-        self,
-        storm: Storm,
-        gauges: List[GaugeConfig],
-    ) -> List[GaugeResponse]:
-        """Compute responses for all gauges."""
-        return [self.compute_response(storm, g) for g in gauges]
