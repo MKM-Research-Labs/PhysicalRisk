@@ -25,7 +25,7 @@ class TestBuildCdmRecordValidationWarning:
     def test_cdm_validation_warning_logged(self, caplog):
         """Line 186: when CDM validation returns errors, a warning is logged."""
         # Force the CDM validator to return errors by mocking it
-        with patch("port.src.book.book_common._cdm") as mock_cdm:
+        with patch("port.src.book.book_common._records._cdm") as mock_cdm:
             mock_cdm.validate.return_value = {"Header": ["Missing SwapID"]}
 
             with caplog.at_level(logging.WARNING):

@@ -109,8 +109,8 @@ class TestGeneratePropertyBook:
 
         return phc_path, prop_path, ctpy_path, out_dir
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_happy_path(self, mock_load_ctpy, mock_price, tmp_path):
         """Full generation with a handful of properties."""
         ctpys = [_make_counterparty_entry('Bank A'), _make_counterparty_entry('Bank B')]
@@ -157,8 +157,8 @@ class TestGeneratePropertyBook:
         assert 'property_set' in first_call_kwargs
         assert 'PropertyID' in first_call_kwargs['property_set']
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_empty_phc_curves(self, mock_load_ctpy, mock_price, tmp_path):
         """No property hazard curves => empty result, warning logged."""
         mock_load_ctpy.return_value = []
@@ -174,8 +174,8 @@ class TestGeneratePropertyBook:
         assert trades == []
         mock_price.assert_not_called()
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_no_eligible_properties(self, mock_load_ctpy, mock_price, tmp_path):
         """All curves have flood_count == 0 => _select returns [] => empty."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
@@ -195,8 +195,8 @@ class TestGeneratePropertyBook:
         assert trades == []
         mock_price.assert_not_called()
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_closest_tenor_matching(self, mock_load_ctpy, mock_price, tmp_path):
         """Curves with non-standard tenors should still match closest."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
@@ -222,8 +222,8 @@ class TestGeneratePropertyBook:
         call_kw = mock_price.call_args[1]
         assert call_kw['fair_spread_override'] > 0
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_zero_spread_skipped(self, mock_load_ctpy, mock_price, tmp_path):
         """A curve whose matched spread is 0 should be skipped (line 213-214)."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
