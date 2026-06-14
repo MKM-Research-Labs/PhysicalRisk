@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,82 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Book generator — shared constants and pricing helpers.
-
-Constants, yield curve, CDM record builder, leg PV computation,
-and counterparty loading used by both market-making and Thames Central styles.
-"""
+"""PRS CDM record construction and counterparty loading."""
 
 import json
 import logging
-import math
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from models.hazard.prs_analytical import compute_prs_spread, interpolate_yield_rate
+from config import config
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
 
-logger = logging.getLogger(__name__)
+from ._constants import DEFAULT_YIELD_CURVE, RECOVERY, _REIT_PARTY_ID
 
-from config import config
-from config.port import (
-    DEFAULT_YIELD_CURVE,
-    NOTIONALS,
-    RECOVERY,
-    SPREAD_OFFSET_MAX,
-    SPREAD_OFFSET_MIN,
-    TENORS,
-    TRIGGER_RATE_KEY,
-    TRIGGERS,
-)
+logger = logging.getLogger(__name__)
 
 # CDM validator (instantiated once)
 _cdm = PhysicalRiskSwapCDM()
-
-
-def _compute_leg_pvs(hazard_rate: float, trade_spread_bps: float,
-                     tenor: int, notional: float,
-                     yield_curve: Optional[Dict] = None) -> Dict:
-    """Compute premium and protection leg present values using yield curve."""
-    if hazard_rate <= 0:
-        return {
-            'premium_leg_pv': 0.0,
-            'protection_leg_pv': 0.0,
-            'risky_annuity': float(tenor),
-        }
-
-    yc = yield_curve or DEFAULT_YIELD_CURVE
-    hazard_lambda = -math.log(1.0 - min(hazard_rate, 0.999))
-    dt = 0.25
-    n_periods = tenor * 4
-
-    annuity = 0.0
-    protection_pv = 0.0
-
-    for i in range(1, n_periods + 1):
-        t = i * dt
-        t_prev = (i - 1) * dt
-        survival = math.exp(-hazard_lambda * t)
-        surv_prev = math.exp(-hazard_lambda * t_prev)
-        rf = interpolate_yield_rate(yc, t)
-        discount = math.exp(-rf * t)
-        rf_mid = interpolate_yield_rate(yc, t - dt / 2)
-        discount_mid = math.exp(-rf_mid * (t - dt / 2))
-
-        annuity += dt * survival * discount
-        protection_pv += (1.0 - RECOVERY) * (surv_prev - survival) * discount_mid
-
-    premium_pv = (trade_spread_bps / 10000) * annuity * notional
-    prot_pv_scaled = protection_pv * notional
-
-    return {
-        'premium_leg_pv': round(premium_pv, 2),
-        'protection_leg_pv': round(prot_pv_scaled, 2),
-        'risky_annuity': round(annuity, 6),
-    }
 
 
 def _build_cdm_record(
@@ -198,99 +140,6 @@ def _build_cdm_record(
         logger.warning('CDM validation for %s: %s', swap_id, errors)
 
     return record
-
-
-def _price_and_save_trade(
-    gauge_id: str,
-    gauge_name: str,
-    catchment_id: str,
-    is_payer: bool,
-    tenor: int,
-    notional: float,
-    trigger: str,
-    hazard_rate: float,
-    counterparties: List[Dict],
-    ctpy_idx: int,
-    base_date: datetime,
-    output_dir: Path,
-    property_set: Optional[Dict] = None,
-    fair_spread_override: Optional[float] = None,
-) -> tuple:
-    """Price a single trade, build CDM, save JSON, return (record, new_ctpy_idx).
-
-    Args:
-        property_set: Optional PropertySet dict for property PRS trades.
-        fair_spread_override: Optional fair spread in bps (skips hazard-rate
-            computation).  Used by property trades where spread comes from
-            propertyhc.json event-count model rather than the analytical pricer.
-    """
-    import random
-    import uuid
-
-    if fair_spread_override is not None:
-        fair_spread = fair_spread_override
-    else:
-        fair_spread = compute_prs_spread(hazard_rate, tenor, RECOVERY,
-                                          yield_curve=DEFAULT_YIELD_CURVE)
-    prefix = 'PRS-P' if property_set else 'PRS-'
-    swap_id = f'{prefix}{uuid.uuid4().hex[:8].upper()}'
-    offset = random.uniform(SPREAD_OFFSET_MIN, SPREAD_OFFSET_MAX)
-    if property_set:
-        # PropertyPRS: REIT (payer) buys protection above fair value;
-        # desk (receiver) sells above fair — client always pays the ask.
-        trade_spread = fair_spread + offset
-    else:
-        # Gauge PRS: desk perspective — payer pays below fair, receiver
-        # receives above fair (desk always gets the favourable side).
-        trade_spread = fair_spread - offset if is_payer else fair_spread + offset
-
-    pvs = _compute_leg_pvs(hazard_rate, trade_spread, tenor, notional)
-    direction = 1.0 if is_payer else -1.0
-    npv = (pvs['protection_leg_pv'] - pvs['premium_leg_pv']) * direction
-
-    ctpy = counterparties[ctpy_idx % len(counterparties)]
-    td = base_date + timedelta(days=random.randint(0, 20))
-
-    record = _build_cdm_record(
-        swap_id=swap_id,
-        gauge_id=gauge_id,
-        gauge_name=gauge_name,
-        catchment_id=catchment_id,
-        counterparty_id=ctpy['id'],
-        counterparty_name=ctpy['name'],
-        is_payer=is_payer,
-        notional=notional,
-        tenor=tenor,
-        trigger=trigger,
-        trade_spread_bps=trade_spread,
-        fair_spread_bps=fair_spread,
-        npv=npv,
-        premium_leg_pv=pvs['premium_leg_pv'],
-        protection_leg_pv=pvs['protection_leg_pv'],
-        risky_annuity=pvs['risky_annuity'],
-        trade_date=td,
-        property_set=property_set,
-    )
-
-    json_path = output_dir / f'{swap_id}.json'
-    with open(json_path, 'w') as f:
-        json.dump(record, f, indent=2)
-
-    dir_label = 'PAY' if is_payer else 'RCV'
-    logger.info(
-        '%s %s %s %s %dY %.1f/%.1f bps MTM=%.0f',
-        swap_id, dir_label, gauge_id[:16], trigger,
-        tenor, trade_spread, fair_spread, npv
-    )
-
-    return record, ctpy_idx + 1
-
-
-# The REIT is the fixed counterparty for ALL property PRS trades — it must
-# never appear in the gauge-PRS counterparty pool. _load_counterparties is
-# only called by gauge-PRS books (book.py / book_thames.py); the property
-# book hardcodes the REIT entry itself.
-_REIT_PARTY_ID = "CTPY-REIT-001"
 
 
 def _load_counterparties(counterparty_path: Path) -> List[Dict]:

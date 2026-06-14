@@ -117,8 +117,8 @@ class _PropertyBookSetup:
 
 class TestGeneratePropertyBookPart2(_PropertyBookSetup):
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_no_nearest_gauges_skipped(self, mock_load_ctpy, mock_price, tmp_path):
         """Property with empty nearest_gauges should be skipped (line 223)."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
@@ -139,8 +139,8 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
         assert trades == []
         mock_price.assert_not_called()
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_all_trades_are_payer(self, mock_load_ctpy, mock_price, tmp_path):
         """PropertyPRS: REIT is always payer (buys protection), Trader always receiver."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
@@ -161,8 +161,8 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
             assert call[1]['is_payer'] is True, \
                 'All PropertyPRS trades must have is_payer=True (REIT buys protection)'
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_property_set_includes_reference_gauge(self, mock_load_ctpy,
                                                     mock_price, tmp_path):
         """property_set passed to _price_and_save_trade should contain ReferenceGauge."""
@@ -192,8 +192,8 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
 class TestResilientFlavour(_PropertyBookSetup):
     """Booking the resilient (BRI) leg alongside the pure leg."""
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_no_resilient_when_bri_file_absent(self, mock_load_ctpy,
                                                mock_price, tmp_path):
         """Without propertybri_path only the pure flavour is booked."""
@@ -215,8 +215,8 @@ class TestResilientFlavour(_PropertyBookSetup):
                     for c in mock_price.call_args_list]
         assert variants == ['pure']
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_resilient_trade_added_when_bri_present(self, mock_load_ctpy,
                                                     mock_price, tmp_path):
         """A property with a BRI curve gets both a pure and a resilient trade,
@@ -249,8 +249,8 @@ class TestResilientFlavour(_PropertyBookSetup):
         resilient_spread = calls[1][1]['fair_spread_override']
         assert resilient_spread <= pure_spread
 
-    @patch('port.src.book.book_property._price_and_save_trade')
-    @patch('port.src.book.book_property._load_counterparties')
+    @patch('port.src.book.book_property._core._price_and_save_trade')
+    @patch('port.src.book.book_property._core._load_counterparties')
     def test_resilient_omitted_for_property_without_bri_curve(
             self, mock_load_ctpy, mock_price, tmp_path):
         """BRI file present but missing this property => pure-only."""
