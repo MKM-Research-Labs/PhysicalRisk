@@ -26,7 +26,7 @@ class TestPortfolioStressErrors:
 
     def test_engine_error_returns_500(self, port_stress_client, port_stress_env):
         """patch _get_engines to raise RuntimeError -> 500."""
-        with patch('routes.trading.port_stress._get_engines',
+        with patch('routes.trading.port_stress._routes._get_engines',
                    side_effect=RuntimeError('engine fail')):
             resp = port_stress_client.post(
                 '/api/v1/trading/stress/portfolio-run',

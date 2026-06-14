@@ -91,7 +91,7 @@ class TestPortfolioStormsException:
 
     def test_exception_returns_500(self, port_stress_client, port_stress_env):
         """Exception in _load_stress_storms causes 500."""
-        with patch('routes.trading.port_stress._load_stress_storms',
+        with patch('routes.trading.port_stress._routes._load_stress_storms',
                    side_effect=RuntimeError('boom')):
             resp = port_stress_client.get('/api/v1/trading/stress/portfolio-storms')
             assert resp.status_code == 500
