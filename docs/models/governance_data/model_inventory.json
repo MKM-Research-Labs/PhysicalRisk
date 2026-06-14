@@ -274,21 +274,21 @@
         }
       ],
       "overall_risk_rating": {
-        "calculated_rating": "Conditional",
-        "calculated_score": 0.545,
+        "calculated_rating": "Unacceptable",
+        "calculated_score": 0.32,
         "component_scores": {
           "validation_coverage": 0.0,
-          "remediation_health": 0.7,
-          "review_currency": 1.0,
+          "remediation_health": 0.2,
+          "review_currency": 0.5,
           "assumption_risk": 0.6,
           "limitation_risk": 0.8
         },
-        "effective_rating": "Conditional",
+        "effective_rating": "Unacceptable",
         "mrc_override": null,
         "mrc_override_reason": null,
         "mrc_override_date": null,
         "mrc_override_by": null,
-        "last_calculated": "2026-02-18T15:22:17.531551"
+        "last_calculated": "2026-06-12T12:09:17.953317"
       }
     },
     {
@@ -4176,7 +4176,9 @@
       ],
       "input_data": "PropertyHeader (PropertyPeriod, PropertyCondition, EAFloodZone, BasementPresent, FloorLevelMeters, FloodRiskType); ProtectionMeasures.ResilienceMeasures (5 sub-sections of 5-level checklists); ProtectionMeasures.HazardProfile (FloodHazardClass, WindHazardClass, FireHazardClass, SeismicHazardClass); HistoryAndIncidents.FloodEvents.FloodDamageSeverity.",
       "output_data": "ProtectionMeasures.RiskAssessment.GoverningBodyRatings fields: BRIRating (letter), BRIScore (mean of hazard scores), BRIFloodRating/BRIWindRating/BRIFireRating/BRISeismicRating (per-hazard letters), BRIFloodScore (flood-spec score 0-1) plus jittered siblings BRIWindScore/BRIFireScore/BRISeismicScore, BRIDate/BRIRatingVersion/BRIRatingAgent (metadata). Damage modifier returned by apply_flood_resilience_score but not persisted.",
-      "downstream_models": ["MKM-BRF-001"],
+      "downstream_models": [
+        "MKM-BRF-001"
+      ],
       "upstream_models": [],
       "validation_status": "Initial",
       "validation_date": null,
@@ -4360,15 +4362,19 @@
         "If MAX_M is set large relative to local flood depths, the uplift can drive flood_count to zero and the resilient spread to the MIN_PRS_SPREAD_BPS floor"
       ],
       "key_parameters": [
-        "BRI_FLOOR_UPLIFT_MAX_M (3.00 m — maximum uplift at/above the AA anchor)",
-        "BRI_FLOOR_UPLIFT_SCORE_LO (0.38 — score at/below which no uplift is awarded)",
-        "BRI_FLOOR_UPLIFT_SCORE_HI (0.87 — score at/above which full uplift is awarded)",
+        "BRI_FLOOR_UPLIFT_MAX_M (3.00 m \u2014 maximum uplift at/above the AA anchor)",
+        "BRI_FLOOR_UPLIFT_SCORE_LO (0.38 \u2014 score at/below which no uplift is awarded)",
+        "BRI_FLOOR_UPLIFT_SCORE_HI (0.87 \u2014 score at/above which full uplift is awarded)",
         "BRI_FLOOR_RATING_SCORES (letter grade -> representative score: AA 0.935, A 0.745, B 0.500, NR 0.190)"
       ],
       "input_data": "BRIFloodScore (0-1) from MKM-BRI-001, or a BRI flood letter grade mapped via BRI_FLOOR_RATING_SCORES; surveyed FloorLevelMeters and GroundLevelMeters from the PropertyHeader; per-event attenuated water-surface elevation from the property flood response.",
       "output_data": "BRIAdjustedFloorLevelMeters CDM field; BRI-adjusted hazard curves (propertybri.json / commercialbri.json); spread_decomposition.bri_spread_bps and resilience_effect_bps attached to propertyhc.json / commercialhc.json; the 'resilient' PRS trade variant (PRSVariant='resilient') booked alongside the 'pure' variant; the BRI-adjusted flood spread consumed by the standalone loan calculator's flood leg.",
-      "downstream_models": ["MKM-PR-001"],
-      "upstream_models": ["MKM-BRI-001"],
+      "downstream_models": [
+        "MKM-PR-001"
+      ],
+      "upstream_models": [
+        "MKM-BRI-001"
+      ],
       "validation_status": "Initial",
       "validation_date": null,
       "next_review_date": "2026-08-15",
