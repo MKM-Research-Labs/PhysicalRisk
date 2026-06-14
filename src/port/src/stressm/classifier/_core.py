@@ -32,72 +32,14 @@ from pathlib import Path
 
 import numpy as np
 
-# Log-transform & near-miss constants — centralised in config/port.py
 from config.port import (
     LOG_END as _LOG_END,
     LOG_EPS as _LOG_EPS,
     NUM_CLASSIFIER_HOURS as _NUM_HOURS,
     NEARMISS_COUNT as _NEARMISS_COUNT,
-    NEARMISS_LOW as _NEARMISS_LOW,
-    NEARMISS_HIGH as _NEARMISS_HIGH,
 )
 
-
-def _generate_nearmiss_vectors(
-    severe_l: float,
-    base_level: float,
-    rng,
-) -> list:
-    """Synthesise near-miss hydrographs that peak at 80–99% of severe.
-
-    Each hydrograph uses a sin(rise) + exp(decay) shape — the same physical
-    model as the real storm response — but scaled so the peak sits just below
-    the severe threshold.  All 168 hours carry flood_flag=0.
-
-    This provides the GBM with gradient data in the transition zone so P(flood)
-    rises smoothly (e.g. 10% → 30% → 60% → 80%) rather than jumping 5% → 95%.
-    """
-    vectors = []
-    for _ in range(_NEARMISS_COUNT):
-        # Peak at a random fraction of severe level (80–99%)
-        peak_frac = rng.uniform(_NEARMISS_LOW, _NEARMISS_HIGH)
-        peak_level = severe_l * peak_frac
-
-        # Random rise time (10–50 hours) and decay rate
-        rise_hours = rng.randint(10, 50)
-        decay_rate = rng.uniform(0.02, 0.08)
-
-        # Build 168-hour hydrograph: sin rise → peak → exp decay
-        levels = np.full(_NUM_HOURS, base_level, dtype=float)
-        for h in range(_NUM_HOURS):
-            if h < rise_hours:
-                # Rising limb — sinusoidal
-                phase = (h / rise_hours) * (math.pi / 2)
-                levels[h] = base_level + (peak_level - base_level) * math.sin(phase)
-            else:
-                # Falling limb — exponential decay back to base
-                dt = h - rise_hours
-                levels[h] = base_level + (peak_level - base_level) * math.exp(-decay_rate * dt)
-
-        # Convert to log-space features (same as real sequences)
-        log_hs = [math.log(max(lv / severe_l, _LOG_EPS)) for lv in levels]
-
-        for h in range(_NUM_HOURS):
-            log_t = math.log((h + 1) / _LOG_END)
-            delta = log_hs[h] - log_hs[h - 1] if h > 0 else 0.0
-            prev_delta = log_hs[h - 1] - log_hs[h - 2] if h > 1 else 0.0
-            delta2 = delta - prev_delta
-
-            # ALL near-miss vectors are label=0 — peak is below severe
-            vectors.append([
-                round(log_hs[h], 6),
-                round(log_t, 6),
-                round(delta, 6),
-                round(delta2, 6),
-                0,  # flood_flag = 0 (never breaches severe)
-            ])
-
-    return vectors
+from ._nearmiss import _generate_nearmiss_vectors
 
 
 def train_gauge_stressm_classifier(
@@ -264,42 +206,3 @@ def train_gauge_stressm_classifier(
     result["label_threshold"] = label_name
     result["label_level_m"] = label_level
     return result
-
-
-def _print_classifier_result(result: dict) -> None:
-    """Print GBM classifier training result."""
-    W = 62
-    status = result.get("status", "unknown")
-    gid = result.get("gauge_id", "")
-    print(f"\n{'=' * W}")
-    print(f"  Multi-Storm Classifier — {gid}")
-    print(f"{'=' * W}")
-
-    if status != "trained":
-        print(f"  Status: {status}  ({result.get('reason', '')})")
-        print(f"  Positive samples: {result.get('n_positive', 0)}")
-        print(f"{'=' * W}\n")
-        return
-
-    m = result["metrics"]
-    fi = result.get("feature_importance", {})
-    label = result.get("label_threshold", "severe_warning")
-    label_m = result.get("label_level_m", result.get("severe_level", 0))
-    print(f"  Status      : trained")
-    print(f"  Label       : {label} (≥ {label_m:.2f} m)")
-    print(f"  Samples     : {result['n_samples']:,}  "
-          f"(train: {result['n_samples']-result['test_size']:,}  "
-          f"test: {result['test_size']:,})")
-    print(f"  Flood rate  : {result['flood_rate']:.1%}")
-    print()
-    print(f"  AUC-ROC     : {m['auc_roc']:.4f}")
-    print(f"  Accuracy    : {m['accuracy']:.4f}")
-    print(f"  Brier score : {m['brier_score']:.4f}")
-    print(f"  Log loss    : {m['log_loss']:.4f}")
-    print()
-    print(f"  Feature importance:")
-    for fname, fval in sorted(fi.items(), key=lambda x: -x[1]):
-        bar = "█" * int(fval * 40)
-        print(f"    {fname:<18} {fval:.4f}  {bar}")
-    print(f"\n  Model saved → {result['model_path']}")
-    print(f"{'=' * W}\n")
