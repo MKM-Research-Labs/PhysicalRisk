@@ -66,11 +66,11 @@ class TestZoneFromOffset:
         # 3.0 ≤ 5.0 (no upper bound) → Zone 1 (line 30-31)
         assert _zone_from_offset(5.0) == "Zone 1"
 
-    def test_negative_offset_falls_through_to_default(self):
-        """Negative offsets don't match any (lo, hi) → default 'Zone 1'."""
-        # Hits the trailing `return 'Zone 1'` (line 34) when the loop
-        # exits without matching any bucket.
-        assert _zone_from_offset(-0.1) == "Zone 1"
+    def test_negative_offset_is_zone_3b(self):
+        """A property at/below river level is functional floodplain (Zone 3b),
+        not the lowest-risk Zone 1. Zone 3b's lower bound is unbounded."""
+        assert _zone_from_offset(-0.1) == "Zone 3b"
+        assert _zone_from_offset(-25.0) == "Zone 3b"
 
 
 # ---------------------------------------------------------------------------

@@ -23,10 +23,10 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
         """Derive EA flood zone from vertical offset above river (metres)."""
         from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
         for zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
-            if hi is None:
-                if offset >= lo:
-                    return zone
-            elif lo <= offset < hi:
+            # A None bound is unbounded on that side: Zone 3b (functional
+            # floodplain) extends to/below river level (lo=None); Zone 1
+            # extends arbitrarily high (hi=None).
+            if (lo is None or offset >= lo) and (hi is None or offset < hi):
                 return zone
         return 'Zone 1'
 
