@@ -23,8 +23,16 @@ class _ProcessMixin:
                           price_prs_func, num_storms: int = 1000,
                           **kwargs) -> Optional[Dict]:
         """Process a single property: count severe floods that reach property, compute spread and basis."""
-        with open(prop_file, 'r') as f:
-            pdata = json.load(f)
+        try:
+            with open(prop_file, 'r') as f:
+                pdata = json.load(f)
+        except (FileNotFoundError, OSError, json.JSONDecodeError) as exc:
+            # The per-property timeseries file vanished or is unreadable — e.g.
+            # a stale/incomplete peril ts directory, or a concurrent
+            # regeneration removing files mid-build. Skip this property rather
+            # than aborting the entire hazard-curve generation.
+            self.log(f"Skipping {getattr(prop_file, 'name', prop_file)}: {exc}")
+            return None
 
         prop_id = pdata['property_id']
         flood_events = pdata.get('flood_events', [])
