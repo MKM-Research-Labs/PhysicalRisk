@@ -7,6 +7,7 @@ import time
 
 from ...context import StageContext
 from ._helpers import _commercial_peril_requested, _damage_available
+from ._placeholders import write_peril_placeholders
 
 
 def run_commercial_peril_ts(ctx: StageContext):
@@ -111,6 +112,25 @@ def run_commercialbow(ctx: StageContext):
 
 def run_commercialbaw(ctx: StageContext):
     _run_commercial_peril_hc(ctx, "baw", "BRI-AND-Wind (baw)", "9g2")
+
+
+def run_commercial_peril_placeholders(ctx: StageContext):
+    """No-typhoon fallback: write zero-event commercial scenario placeholders.
+
+    Mirror of run_property_peril_placeholders for commercial assets. No-op when
+    typhoon damage is present, when commercial isn't part of the run, or when
+    commercialhc.json is absent.
+    """
+    if _damage_available(ctx):
+        return
+    if not ((ctx.run_all and ctx.commercial_exists)
+            or _commercial_peril_requested(ctx)):
+        return
+    if not (ctx.output_dir / "commercialhc.json").exists():
+        return
+    print("9i. Writing zero-event Commercial peril placeholders (no typhoon)...")
+    write_peril_placeholders(ctx.output_dir, "commercial")
+    print()
 
 
 def run_commercial_peril_decomposition(ctx: StageContext):
