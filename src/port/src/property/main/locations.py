@@ -34,6 +34,27 @@ def _zone_from_offset(offset: float) -> str:
     return 'Zone 1'
 
 
+def _zone_seed_offsets() -> List[float]:
+    """One representative in-band vertical offset (m) per EA flood zone.
+
+    Used to guarantee every zone is represented in a generated portfolio.
+    The distance x gradient placement model cannot reach the functional
+    floodplain on its own — MIN_RIVER_DISTANCE_M (400 m) times the minimum
+    gradient (2 m/km) already exceeds Zone 3b's 0.5 m ceiling — so a property
+    would never naturally land in Zone 3b. Offsets are derived from
+    EA_FLOOD_ZONE_ELEVATION_BOUNDS (not hard-coded) so they track the config.
+    """
+    seeds = []
+    for _zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
+        if lo is None:        # unbounded below (Zone 3b): mid of [0, hi)
+            seeds.append(hi / 2.0)
+        elif hi is None:      # unbounded above (Zone 1): a bit into the band
+            seeds.append(lo + 1.0)
+        else:
+            seeds.append((lo + hi) / 2.0)
+    return seeds
+
+
 class LocationsMixin(GeometryMixin):
     """Mixin providing spatial/location generation methods."""
 
@@ -87,6 +108,12 @@ class LocationsMixin(GeometryMixin):
         locations = []
         n_synth = len(synthetics)
 
+        # Seed the first property of each EA flood zone so every zone is
+        # represented (the distance x gradient model alone can't reach the
+        # functional floodplain — see _zone_seed_offsets). The shuffle at the
+        # end removes any ordering bias these seeds introduce.
+        zone_seeds = _zone_seed_offsets()
+
         for i in range(count):
             # Round-robin assignment to synthetic gauges
             synth = synthetics[i % n_synth]
@@ -118,6 +145,11 @@ class LocationsMixin(GeometryMixin):
             # Vertical offset proportional to distance
             gradient_m_per_km = random.uniform(2.0, 5.0)
             vertical_offset = max(0.0, (dist_m / 1000.0) * gradient_m_per_km)
+
+            # Seed one property per zone at a representative in-band offset so
+            # every EA flood zone (incl. the functional floodplain) appears.
+            if i < len(zone_seeds):
+                vertical_offset = zone_seeds[i]
             elev = synth_elev + vertical_offset
 
             # Derive zone from offset
