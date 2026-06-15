@@ -17,9 +17,12 @@ class TestZoneElevationBoundsConfig:
     def test_has_four_zones(self):
         assert set(EA_FLOOD_ZONE_ELEVATION_BOUNDS.keys()) == set(self.EXPECTED_ZONES)
 
-    def test_zone_3b_starts_at_zero(self):
+    def test_zone_3b_unbounded_below(self):
+        # Zone 3b (functional floodplain) extends to/below river level: its
+        # lower bound is None (unbounded), so a property at or below the river
+        # classifies as 3b rather than falling through to Zone 1.
         lo, _ = EA_FLOOD_ZONE_ELEVATION_BOUNDS['Zone 3b']
-        assert lo == 0.0
+        assert lo is None
 
     def test_zone_1_has_no_upper_bound(self):
         _, hi = EA_FLOOD_ZONE_ELEVATION_BOUNDS['Zone 1']
@@ -37,7 +40,13 @@ class TestZoneElevationBoundsConfig:
 
     def test_lower_bounds_strictly_increasing(self):
         ordered = self.EXPECTED_ZONES
-        lowers = [EA_FLOOD_ZONE_ELEVATION_BOUNDS[z][0] for z in ordered]
+        # Zone 3b's lower bound is None (unbounded below); treat it as -inf so
+        # the remaining finite lower bounds must still strictly increase.
+        lowers = [
+            EA_FLOOD_ZONE_ELEVATION_BOUNDS[z][0] if EA_FLOOD_ZONE_ELEVATION_BOUNDS[z][0] is not None
+            else float('-inf')
+            for z in ordered
+        ]
         for i in range(len(lowers) - 1):
             assert lowers[i] < lowers[i + 1], (
                 f"Lower bounds not increasing: {ordered[i]}={lowers[i]} >= "
@@ -45,9 +54,11 @@ class TestZoneElevationBoundsConfig:
             )
 
     @pytest.mark.parametrize("zone", EXPECTED_ZONES)
-    def test_lower_bound_non_negative(self, zone):
+    def test_lower_bound_non_negative_or_unbounded(self, zone):
+        # A finite lower bound must be non-negative; Zone 3b's is None
+        # (unbounded below), which is allowed.
         lo, _ = EA_FLOOD_ZONE_ELEVATION_BOUNDS[zone]
-        assert lo >= 0.0
+        assert lo is None or lo >= 0.0
 
     @pytest.mark.parametrize("zone", ['Zone 3b', 'Zone 3a', 'Zone 2'])
     def test_bounded_zones_have_finite_upper(self, zone):
