@@ -7,6 +7,7 @@ import time
 
 from ...context import StageContext
 from ._helpers import _damage_available, _peril_requested
+from ._placeholders import write_peril_placeholders
 
 
 def run_property_peril_ts(ctx: StageContext):
@@ -114,6 +115,27 @@ def run_propertybaw(ctx: StageContext):
 # is sourced canonically from the freshly-written scenario files rather than the
 # damage-join fallback. Idempotent — it simply re-reads every basis file and
 # rewrites the decomposition block on the normal hc file.
+
+def run_property_peril_placeholders(ctx: StageContext):
+    """No-typhoon fallback: write zero-event scenario placeholders.
+
+    When the typhoon ensemble has not run, the real win/faw/fow/bow/baw stages
+    skip, so the wind UI tabs would 404 (or serve stale files from an earlier
+    typhoon run). Project the degenerate peril fan already embedded in
+    propertyhc/propertybri into the standalone scenario files so the routes
+    serve consistent zero-event data. No-op when typhoon damage IS present
+    (the real files were generated) or when no property peril output is wanted.
+    """
+    if _damage_available(ctx):
+        return
+    if not (ctx.run_all or _peril_requested(ctx)):
+        return
+    if not (ctx.output_dir / "propertyhc.json").exists():
+        return
+    print("9h. Writing zero-event Property peril placeholders (no typhoon)...")
+    write_peril_placeholders(ctx.output_dir, "property")
+    print()
+
 
 def run_property_peril_decomposition(ctx: StageContext):
     if not (ctx.output_dir / "propertyhc.json").exists():
