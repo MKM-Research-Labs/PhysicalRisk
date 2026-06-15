@@ -31,15 +31,15 @@ from .conftest import GAUGE_POINTS, make_portfolio_gen, make_portfolio_params
 # locations.py line 34 -- _zone_from_offset fallback
 # ===========================================================================
 
-class TestZoneFromOffsetFallback:
+class TestZoneFromOffsetBelowRiver:
 
-    def test_negative_offset_returns_zone_1(self):
-        """A negative offset doesn't match any (lo, hi) range, so
-        the loop falls through and the function returns 'Zone 1'."""
-        assert _zone_from_offset(-1.0) == 'Zone 1'
+    def test_negative_offset_returns_zone_3b(self):
+        """A below-river property is functional floodplain (Zone 3b), whose
+        lower bound is unbounded — not the lowest-risk Zone 1."""
+        assert _zone_from_offset(-1.0) == 'Zone 3b'
 
-    def test_very_large_negative_offset_returns_zone_1(self):
-        assert _zone_from_offset(-100.0) == 'Zone 1'
+    def test_very_large_negative_offset_returns_zone_3b(self):
+        assert _zone_from_offset(-100.0) == 'Zone 3b'
 
 
 # ===========================================================================
