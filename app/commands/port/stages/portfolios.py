@@ -122,9 +122,15 @@ def run_mortgages(ctx: StageContext):
 
 
 def run_commercial_portfolio(ctx: StageContext):
-    """Commercial assets + commercial loans (steps 3a + 3b). Opt-in only."""
+    """Commercial assets + commercial loans (steps 3a + 3b).
+
+    Runs under ``--all`` (like the property portfolio) or when ``--commercial``
+    is set, so ``-nc/--num-commercial`` takes effect in a default port run
+    rather than silently leaving a stale commercial.json that the downstream
+    commercial hazard stages then build on.
+    """
     args = ctx.args
-    if not args.commercial:
+    if not (ctx.run_all or args.commercial):
         return
     print("3a. Generating Commercial Portfolio...")
     t_start = time.time()
