@@ -255,19 +255,10 @@ WIND_V50_SHIFT_MAX_MS: float = 12.0
 
 
 # ---------------------------------------------------------------------------
-# Shared numerical floor + property-resilience generation defaults
+# Shared numerical floor for the BRI log-uplift terms
 # ---------------------------------------------------------------------------
 
 # Small floor to prevent ln(0) in the BRI log-uplift terms; scores at or below
 # this are treated as effectively zero. Shared by the flood and wind BRI shifts.
+# (BRI resilience defaults live in config/bri.py.)
 LN_FLOOR: float = 1e-6
-
-# Default 0-1 compliance for a missing resilience value
-# (spec recommends 0.25 + a confidence penalty).
-DEFAULT_MISSING_COMPLIANCE: float = 0.25
-
-# Synthetic property-resilience generation fallbacks: flood-defence adoption
-# probability for an unknown construction period, and the condition multiplier
-# for an unknown building condition.
-RESILIENCE_DEFAULT_PERIOD_PROB: float = 0.40
-RESILIENCE_DEFAULT_CONDITION_MULT: float = 1.0
