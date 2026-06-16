@@ -35,9 +35,11 @@ import pytest
 from config.fire import load_fire_config
 from models.fire.data_structures import AssetFireFeatures
 from models.fire.response_effectiveness import (
+    combustibility,
     controllability_score,
     derive_response_profile,
     height_penalty,
+    intensity_ceiling,
     level_fraction,
     level_index,
     passive_effectiveness,
@@ -285,3 +287,79 @@ def test_tall_sprinklered_asset_avoids_pnr(config, prog):
     for _ in range(config.run.max_steps):
         track = advance_intensity(track, profile, prog)
     assert not track.point_of_no_return
+
+
+# ===========================================================================
+# Construction type — structural-frame combustibility
+# ===========================================================================
+
+
+def test_combustibility_maps_construction_type(prog):
+    # Non-combustible frames sit near 0; timber at 1; the gap is monotone.
+    c_concrete = combustibility(_weak(construction_type="Reinforced concrete"), prog)
+    c_steel = combustibility(_weak(construction_type="Steel frame"), prog)
+    c_timber = combustibility(_weak(construction_type="Timber frame"), prog)
+    assert c_concrete == pytest.approx(0.0)
+    assert c_concrete < c_steel < c_timber
+    assert c_timber == pytest.approx(1.0)
+
+
+def test_combustibility_unknown_uses_default(prog):
+    # A missing / unrecognised construction type falls back to the configured
+    # default (kept on the combustible side so an unassessed building is cautious).
+    default = prog.construction["default_combustibility"]
+    assert combustibility(_weak(construction_type=None), prog) == pytest.approx(default)
+    assert combustibility(
+        _weak(construction_type="Adobe"), prog) == pytest.approx(default)
+
+
+def test_intensity_ceiling_noncombustible_below_worst_i_crit(prog):
+    # Every non-combustible frame shares the low plateau, which must sit below
+    # even the worst i_crit so the intensity race can never cross it.
+    worst_i_crit = min(prog.i_crit_by_level.values())
+    plateau = prog.construction["intensity_ceiling"][0]
+    for ctype in ("Reinforced concrete", "Steel frame", "Brick and block"):
+        c = combustibility(_weak(construction_type=ctype), prog)
+        assert intensity_ceiling(c, prog) == pytest.approx(plateau)
+    assert plateau < worst_i_crit
+
+
+def test_intensity_ceiling_grades_above_threshold(prog):
+    # Above the combustible threshold the ceiling grades up to the configured top.
+    lo, hi = prog.construction["intensity_ceiling"]
+    mixed = intensity_ceiling(
+        combustibility(_weak(construction_type="Mixed construction"), prog), prog)
+    timber = intensity_ceiling(
+        combustibility(_weak(construction_type="Timber frame"), prog), prog)
+    assert lo < mixed < timber
+    assert timber == pytest.approx(hi)
+
+
+def test_combustibility_scales_growth_rate(prog):
+    # The timing leg: a combustible frame catches and grows faster than a
+    # non-combustible one (same compartmentation), giving suppression less time.
+    concrete = derive_response_profile(
+        _weak(construction_type="Reinforced concrete"), prog)
+    timber = derive_response_profile(_weak(construction_type="Timber frame"), prog)
+    assert timber.growth_per_step > concrete.growth_per_step
+
+
+def test_unknown_construction_growth_is_neutral(prog):
+    # An unknown construction type (default combustibility at the scale midpoint)
+    # leaves the growth rate at the un-scaled compartmentation value, preserving
+    # the pre-construction behaviour for records without a construction type.
+    weak = derive_response_profile(_weak(construction_type=None), prog)
+    poorly = prog.growth_per_step_intensity["poorly_compartmented"]
+    assert weak.growth_per_step == pytest.approx(poorly)
+
+
+def test_profile_carries_construction_fields(prog):
+    concrete = derive_response_profile(
+        _weak(construction_type="Reinforced concrete"), prog)
+    timber = derive_response_profile(_weak(construction_type="Timber frame"), prog)
+    # Non-combustible: low ceiling, not flagged combustible.
+    assert not concrete.structure_combustible
+    assert concrete.intensity_ceiling < timber.intensity_ceiling
+    # Combustible: flagged, high ceiling.
+    assert timber.structure_combustible
+    assert timber.combustibility > concrete.combustibility

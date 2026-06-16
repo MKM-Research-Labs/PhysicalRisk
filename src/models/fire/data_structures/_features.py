@@ -47,6 +47,11 @@ class AssetFireFeatures:
     Attributes:
         asset_id: stable identifier for the asset.
         commercial_type: CommercialType option (e.g. "Office", "Hotel").
+        construction_type: ConstructionType option (the structural frame, e.g.
+            "Reinforced concrete", "Steel frame", "Timber frame"). Drives the
+            combustibility of the structure — how readily it sustains a full
+            conflagration — and the structural-fire-resistance fallback. None
+            when unknown (treated as combustible by the model, cautiously).
         occupancy_status: OccupancyStatus option, or None if unknown.
         business_rates_category: BusinessRatesCategory option, or None.
         property_condition: PropertyCondition option, or None.
@@ -65,6 +70,7 @@ class AssetFireFeatures:
     """
     asset_id: str
     commercial_type: str
+    construction_type: Optional[str] = None
     occupancy_status: Optional[str] = None
     business_rates_category: Optional[str] = None
     property_condition: Optional[str] = None

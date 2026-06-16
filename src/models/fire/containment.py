@@ -78,21 +78,37 @@ def controllability_blend_weight(
     profile: ResponseProfile,
     cfg: ProgressionConfig,
 ) -> float:
-    """Map the controllability score to a pre-PNR matrix blend weight in [0, 1].
+    """Map controllability to a pre-PNR matrix blend weight in [0, 1].
 
-    w = clamp((controllability - blend_floor) / (blend_ceiling - blend_floor)).
-    w = 1 is pure AA_controllable; w = 0 is pure weak_controllable. The linear
-    remap positions and stretches the gradient over the score band the portfolio
-    actually spans, so the (well-graded) controllability score grades containment
-    rather than being collapsed by a hard threshold.
+    A fire is controllable if EITHER it can be actively suppressed OR it is
+    passively contained by a non-combustible structure, so the weight is the
+    larger of two contributions:
+
+    * Active: w_active = clamp((controllability - blend_floor) /
+      (blend_ceiling - blend_floor)) — the (well-graded) suppression/passive/
+      response score remapped over the band the portfolio actually spans.
+    * Structural: w_structural = clamp(structural_containment_weight *
+      (1 - combustibility)) — a non-combustible frame (combustibility ~0)
+      contains the fire floor-by-floor even when active suppression cannot reach
+      it (a tall, unsprinklered concrete building), so it earns a high blend
+      weight on its own; a combustible frame earns none.
+
+    w = 1 is pure AA_controllable; w = 0 is pure weak_controllable.
     """
     block = cfg.controllability
     floor = block["blend_floor"]
     ceiling = block["blend_ceiling"]
     if ceiling <= floor:
-        return 1.0 if profile.controllability >= ceiling else 0.0
-    w = (profile.controllability - floor) / (ceiling - floor)
-    return min(max(w, 0.0), 1.0)
+        w_active = 1.0 if profile.controllability >= ceiling else 0.0
+    else:
+        w_active = (profile.controllability - floor) / (ceiling - floor)
+        w_active = min(max(w_active, 0.0), 1.0)
+
+    structural_weight = cfg.construction.get("structural_containment_weight", 0.0)
+    w_structural = structural_weight * (1.0 - profile.combustibility)
+    w_structural = min(max(w_structural, 0.0), 1.0)
+
+    return max(w_active, w_structural)
 
 
 def select_transition_matrix(
@@ -158,13 +174,24 @@ def _jitter_profile_for_fire(
     jitter = prog.race_jitter
     timing_sigma = jitter.get("timing_sigma", 0.0)
     growth_sigma = jitter.get("growth_sigma", 0.0)
+    ceiling_sigma = jitter.get("ceiling_sigma", 0.0)
     bite = profile.suppression_bite_steps
     growth = profile.growth_per_step
+    ceiling = profile.intensity_ceiling
     if timing_sigma > 0.0:
         bite *= float(rng.lognormal(0.0, timing_sigma))
     if growth_sigma > 0.0:
         growth *= float(rng.lognormal(0.0, growth_sigma))
-    return replace(profile, suppression_bite_steps=bite, growth_per_step=growth)
+    # Jitter the fuel cap so a non-combustible structure with no suppression has
+    # a small residual chance an unlucky fire's ceiling exceeds i_crit (the
+    # "eventually it will catch" tail). Skips an infinite ceiling (combustible
+    # frames are uncapped, so jitter is a no-op there).
+    if ceiling_sigma > 0.0 and ceiling != float("inf"):
+        ceiling *= float(rng.lognormal(0.0, ceiling_sigma))
+    return replace(
+        profile, suppression_bite_steps=bite, growth_per_step=growth,
+        intensity_ceiling=ceiling,
+    )
 
 
 def simulate_fire_containment(

@@ -47,6 +47,8 @@ __all__ = [
     "passive_effectiveness",
     "response_effectiveness",
     "controllability_score",
+    "combustibility",
+    "intensity_ceiling",
     "derive_response_profile",
 ]
 
@@ -141,6 +143,42 @@ def response_effectiveness(features: AssetFireFeatures, cfg: ProgressionConfig) 
     )
 
 
+def combustibility(features: AssetFireFeatures, cfg: ProgressionConfig) -> float:
+    """Structural-frame combustibility in [0, 1] from ConstructionType.
+
+    0 = non-combustible (reinforced concrete); 1 = combustible (timber frame).
+    An unknown / missing construction type returns the configured default (kept
+    on the combustible side so an unassessed building is treated cautiously).
+    """
+    block = cfg.construction
+    table = block["combustibility_by_type"]
+    default = block["default_combustibility"]
+    ctype = features.construction_type
+    if ctype is None:
+        return default
+    return table.get(ctype, default)
+
+
+def intensity_ceiling(combustibility_fraction: float, cfg: ProgressionConfig) -> float:
+    """Cap on the latent intensity track implied by structural combustibility.
+
+    The band is anchored on the combustible threshold so that EVERY
+    non-combustible frame (combustibility at or below the threshold) shares the
+    low plateau ``intensity_ceiling[0]`` — which sits below even the worst i_crit,
+    so the intensity race can never cross the point of no return. Above the
+    threshold the ceiling grades linearly up to ``intensity_ceiling[1]`` (above
+    any i_crit) as the structure becomes fully combustible. This keeps the
+    plateau flat across concrete/steel/brick (they should not conflagrate at all)
+    while still grading modern-methods/mixed/timber by how much fuel they add.
+    """
+    low, high = cfg.construction["intensity_ceiling"]
+    threshold = cfg.construction["combustible_threshold"]
+    if combustibility_fraction <= threshold or threshold >= 1.0:
+        return low
+    frac = (combustibility_fraction - threshold) / (1.0 - threshold)
+    return _interpolate(low, high, frac)
+
+
 def controllability_score(
     passive: float,
     response: float,
@@ -207,8 +245,15 @@ def derive_response_profile(
     else:
         suppression_bite_steps = reach["no_reach_bite_steps"]
 
+    # Structural-frame combustibility drives the conflagration leg: it scales the
+    # growth rate (the timing leg — combustible catches faster, giving suppression
+    # less time to win the race), caps the intensity track (intensity_ceiling) and
+    # gates the unreachable-suppression auto-PNR latch.
+    combustibility_fraction = combustibility(features, cfg)
+
     # Intensity growth: compartmentation quality (mean of compartments +
-    # fire-stopping level indices) selects the well/poorly-compartmented rate.
+    # fire-stopping level indices) selects the well/poorly-compartmented rate,
+    # then combustibility scales it (a non-combustible frame grows slower).
     compartmentation_idx = 0.5 * (
         level_index(features.compartments_level)
         + level_index(features.fire_stopping_level)
@@ -218,7 +263,9 @@ def derive_response_profile(
         if compartmentation_idx >= dynamics["compartmentation_well_threshold"]
         else "poorly_compartmented"
     )
-    growth_per_step = cfg.growth_per_step_intensity[growth_key]
+    growth_scale_lo, growth_scale_hi = cfg.construction["growth_combustibility_scale"]
+    growth_scale = _interpolate(growth_scale_lo, growth_scale_hi, combustibility_fraction)
+    growth_per_step = cfg.growth_per_step_intensity[growth_key] * growth_scale
 
     # Suppression effectiveness: scales growth once suppression is active.
     suppression_growth_multiplier = cfg.suppression_growth_multiplier_by_level.get(
@@ -238,6 +285,13 @@ def derive_response_profile(
         passive, response, level_fraction(features.suppression_systems_level), cfg,
     )
 
+    # Intensity ceiling (fuel cap) + the unreachable-suppression auto-PNR gate,
+    # both from the same combustibility fraction computed above.
+    ceiling = intensity_ceiling(combustibility_fraction, cfg)
+    structure_combustible = (
+        combustibility_fraction >= cfg.construction["combustible_threshold"]
+    )
+
     return ResponseProfile(
         detection_steps=detection_steps,
         suppression_bite_steps=suppression_bite_steps,
@@ -249,4 +303,7 @@ def derive_response_profile(
         height_penalty=penalty,
         controllability=controllability,
         suppression_reachable=suppression_reachable,
+        combustibility=combustibility_fraction,
+        intensity_ceiling=ceiling,
+        structure_combustible=structure_combustible,
     )

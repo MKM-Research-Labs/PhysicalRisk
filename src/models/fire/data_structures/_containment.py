@@ -53,8 +53,21 @@ class ResponseProfile:
         controllability: aggregate score in [0,1] selecting the pre-PNR matrix.
         suppression_reachable: False when the building is above the fire-service
             reach height with no adequate internal sprinklers — suppression can
-            never engage, so the fire is uncontrollable from ignition (the PNR
-            gate latches immediately regardless of the intensity race).
+            never engage, so the fire is uncontrollable from ignition. The PNR
+            gate then latches immediately ONLY when the structure is combustible
+            (see structure_combustible); a non-combustible frame is contained by
+            its own structure even when suppression cannot reach.
+        combustibility: structural-frame combustibility in [0,1] derived from
+            ConstructionType (0 = non-combustible reinforced concrete; 1 =
+            timber frame).
+        intensity_ceiling: cap on the latent intensity track I_t implied by the
+            structure's combustibility. A non-combustible frame plateaus below
+            even the worst i_crit, so it cannot cross the point of no return via
+            the intensity race. Defaults to +inf (no cap) for profiles built
+            without a construction type, preserving the pre-construction race.
+        structure_combustible: whether combustibility clears the combustible
+            threshold; gates the unreachable-suppression auto-PNR latch. Defaults
+            True so a profile built without a construction type behaves as before.
     """
     detection_steps: float
     suppression_bite_steps: float
@@ -66,6 +79,9 @@ class ResponseProfile:
     height_penalty: float
     controllability: float
     suppression_reachable: bool = True
+    combustibility: float = 1.0
+    intensity_ceiling: float = float("inf")
+    structure_combustible: bool = True
 
     @property
     def suppression_active_step(self) -> float:

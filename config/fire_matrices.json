@@ -132,9 +132,10 @@
     },
 
     "race_jitter": {
-      "_doc": "Per-fire lognormal variability injected into the otherwise-deterministic intensity race so a given asset's fires do NOT all share one point-of-no-return verdict. Without this the PNR latch is a deterministic property of the asset, forcing fire-spread to be all-or-nothing (0 or the full ignition rate). timing_sigma jitters the suppression-bite step; growth_sigma jitters the per-step intensity growth. Larger sigma => more spread in race outcomes => a smoother graded conflagration probability. sigma=0 recovers the deterministic race.",
+      "_doc": "Per-fire lognormal variability injected into the otherwise-deterministic intensity race so a given asset's fires do NOT all share one point-of-no-return verdict. Without this the PNR latch is a deterministic property of the asset, forcing fire-spread to be all-or-nothing (0 or the full ignition rate). timing_sigma jitters the suppression-bite step; growth_sigma jitters the per-step intensity growth; ceiling_sigma jitters the combustibility intensity ceiling so a non-combustible structure with no effective suppression has a SMALL residual chance that an unlucky (high-fuel-load / breached-compartment) fire's ceiling exceeds the critical threshold and runs to the point of no return — the 'eventually it will catch' tail — rather than the structure being absolutely immortal. The residual is largest for the worst-suppressed non-combustible buildings (lowest i_crit) and negligible once suppression is even partially present. Larger sigma => more spread in race outcomes => a smoother graded conflagration probability. sigma=0 recovers the deterministic race / hard cap.",
       "timing_sigma": 0.50,
-      "growth_sigma": 0.40
+      "growth_sigma": 0.40,
+      "ceiling_sigma": 0.10
     },
 
     "passive_effectiveness_ranges": {
@@ -175,6 +176,26 @@
       "_doc": "Knobs governing the latent intensity track I_t. passive_damp_weight scales how much aggregate passive effectiveness slows per-step growth (effective_growth = growth_per_step * (1 - passive_damp_weight * passive_effectiveness)). compartmentation_well_threshold = mean level index (0-4) of CompartmentsProvided+FireStoppingAtPenetrations at/above which growth uses the well_compartmented rate.",
       "passive_damp_weight": 0.6,
       "compartmentation_well_threshold": 2.0
+    },
+
+    "construction": {
+      "_doc": "Building-material (structural frame) sensitivity for the conflagration / point-of-no-return leg. combustibility_by_type maps the CDM ConstructionType vocabulary (Construction.ConstructionType; the union of the commercial menu Steel/Concrete frame/Reinforced concrete + the residential Brick/Timber/Stone) to a combustibility fraction c in [0,1] (0 = non-combustible reinforced concrete; 1 = timber frame). c drives two derived quantities consumed by Model B/C/D: (1) an intensity CEILING that caps the latent intensity track I_t — the band is ANCHORED on combustible_threshold so EVERY non-combustible frame (c <= combustible_threshold) shares the low plateau intensity_ceiling[0], which sits below even the worst i_crit (Not assessed = 6.0) so it can never cross the point-of-no-return via the intensity race; above the threshold the ceiling grades linearly to intensity_ceiling[1] (above any i_crit) as ceiling = intensity_ceiling[0] + ((c-threshold)/(1-threshold))*(intensity_ceiling[1]-intensity_ceiling[0]); (2) the fire-service-reach auto-PNR latch (a tall building whose suppression never engages, suppression_reachable=False) only FORCES the point of no return when the structure is combustible (c >= combustible_threshold). A non-combustible frame above the fire-truck reach is contained floor-by-floor by its own structure rather than running to a whole-building conflagration — which is the building-material sensitivity the model previously lacked (height + suppression alone forced the conflagration regardless of material). default_combustibility applies when ConstructionType is missing/unknown — kept on the combustible side so an unassessed building is treated cautiously (and the legacy unreachable=>PNR behaviour is preserved for records that carry no construction type). intensity_ceiling[0] MUST stay below the worst i_crit_by_level. structural_containment_weight scales how much a non-combustible frame credits the CONTAINMENT leg (Model D): the pre-PNR transition-matrix blend weight is floored at structural_containment_weight*(1-c), so a non-combustible building is contained floor-by-floor by its own structure even when active suppression cannot reach it (a tall, unsprinklered concrete tower). Without this credit the containment chain marches a non-combustible building pessimistically (controllability is set by suppression/passive/response only), so it would avoid the conflagration yet still drift to partial loss — physically wrong. Modern methods is seeded BELOW the combustible threshold (less combustible than Mixed construction, which stays above it) but with a non-zero c so its containment credit is slightly below a true non-combustible frame ('not completely non-combustible'). growth_combustibility_scale maps c to a multiplier on the per-step intensity growth (interpolated c=0 -> scale[0], c=1 -> scale[1]; neutral at the midpoint so an unknown/default-c asset is unchanged): a combustible frame catches and grows FASTER, a non-combustible frame SLOWER. This is the timing leg — slower growth gives detection + suppression more time to win the controllability race before intensity reaches i_crit, so for a reachable/sprinklered building material buys time rather than acting as a hard cap. The hard cap (intensity_ceiling) still governs the unreachable/unsprinklered case where no suppression ever arrives to win the race. All values are engineering-judgement seeds.",
+      "combustibility_by_type": {
+        "Reinforced concrete": 0.00,
+        "Concrete frame": 0.05,
+        "Steel frame": 0.10,
+        "Brick and block": 0.10,
+        "Masonry": 0.12,
+        "Stone": 0.12,
+        "Modern methods": 0.25,
+        "Mixed construction": 0.50,
+        "Timber frame": 1.00
+      },
+      "default_combustibility": 0.50,
+      "combustible_threshold": 0.30,
+      "intensity_ceiling": [5.0, 120.0],
+      "structural_containment_weight": 1.0,
+      "growth_combustibility_scale": [0.5, 1.5]
     },
 
     "controllability": {

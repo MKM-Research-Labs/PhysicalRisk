@@ -246,6 +246,46 @@ def test_asset_result_to_dict_round_trips(config):
 # ===========================================================================
 
 
+def test_noncombustible_structure_credits_containment(config, prog):
+    # A tall, unsprinklered building (active suppression cannot reach it) is
+    # contained far more often when its frame is non-combustible: the structure
+    # passively contains the fire, so the blend weight is floored high.
+    concrete = derive_response_profile(
+        _weak(construction_type="Reinforced concrete"), prog)
+    combustible = derive_response_profile(
+        _weak(construction_type="Timber frame"), prog)
+    assert (controllability_blend_weight(concrete, prog)
+            > controllability_blend_weight(combustible, prog))
+
+    big = _big(config, 8000)
+    concrete_res = simulate_asset_fire(
+        _weak(construction_type="Reinforced concrete"), big, _rng(5))
+    combustible_res = simulate_asset_fire(
+        _weak(construction_type="Timber frame"), big, _rng(5))
+    assert concrete_res.containment_rate > 0.7
+    assert concrete_res.containment_rate > combustible_res.containment_rate
+
+
+def test_noncombustible_frame_collapses_conflagration_leg(config):
+    # End-to-end: a tall, unsprinklered building that runs to the point of no
+    # return on essentially every fire when its frame is unknown/combustible is
+    # brought to a SMALL residual conflagration once the frame is reinforced
+    # concrete -- the fuel cap holds, but a per-fire ceiling jitter leaves the
+    # "eventually it will catch" tail (here the worst case: no suppression).
+    big = _big(config, 8000)
+    combustible = simulate_asset_fire(
+        _weak(construction_type=None), big, _rng(5))
+    concrete = simulate_asset_fire(
+        _weak(construction_type="Reinforced concrete"), big, _rng(5))
+    assert combustible.n_point_of_no_return > 0
+    concrete_rate = concrete.n_point_of_no_return / concrete.n_fires
+    combustible_rate = combustible.n_point_of_no_return / combustible.n_fires
+    # Small but non-zero residual, an order of magnitude below the combustible frame.
+    assert 0.0 < concrete_rate < 0.05
+    assert concrete_rate < 0.2 * combustible_rate
+    assert concrete.total_loss_frequency < combustible.total_loss_frequency
+
+
 def test_portfolio_runs_every_asset_reproducibly(config):
     portfolio = [_strong(), _weak()]
     a = simulate_portfolio_fire(portfolio, config, _rng(99))

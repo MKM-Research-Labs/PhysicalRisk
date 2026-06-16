@@ -86,20 +86,27 @@ def advance_intensity(
 ) -> IntensityTrack:
     """Advance the intensity track by one 15-minute step.
 
-    Determines whether suppression has bitten by this step, grows the intensity,
-    and latches the point of no return when suppression has not yet bitten and
-    either intensity crosses i_crit or suppression is structurally unreachable
-    (a tall building with no internal sprinklers — uncontrollable from ignition).
+    Determines whether suppression has bitten by this step, grows the intensity
+    (capped at the structure's combustibility-implied ceiling), and latches the
+    point of no return when suppression has not yet bitten and either intensity
+    crosses i_crit, or suppression is structurally unreachable AND the structure
+    is combustible (a tall combustible building with no internal sprinklers —
+    uncontrollable from ignition). A non-combustible frame above the fire-service
+    reach is contained by its own structure: its intensity ceiling sits below
+    i_crit, so the race never crosses and the unreachable latch does not fire.
     """
     next_step = track.step + 1
     suppression_active = next_step >= profile.suppression_active_step
 
     growth = effective_growth(profile, cfg, suppression_active)
-    intensity = track.intensity + growth
+    intensity = min(track.intensity + growth, profile.intensity_ceiling)
 
     point_of_no_return = track.point_of_no_return
     pnr_step = track.point_of_no_return_step
-    crossed = intensity > profile.i_crit or not profile.suppression_reachable
+    unreachable_latch = (
+        not profile.suppression_reachable and profile.structure_combustible
+    )
+    crossed = intensity > profile.i_crit or unreachable_latch
     if not point_of_no_return and crossed and not suppression_active:
         point_of_no_return = True
         pnr_step = next_step

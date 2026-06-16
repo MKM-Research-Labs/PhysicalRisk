@@ -219,3 +219,57 @@ def test_strong_asset_never_reaches_pnr_under_seed_config(prog):
     for _ in range(200):
         track = advance_intensity(track, profile, prog)
     assert not track.point_of_no_return
+
+
+# ===========================================================================
+# Construction material — the building-material conflagration sensitivity
+# ===========================================================================
+
+
+def _tall_unsprinklered(construction_type):
+    # Above the fire-service reach with no internal sprinklers: suppression can
+    # never engage, so material is the only thing that can prevent a whole-
+    # building conflagration.
+    return AssetFireFeatures(
+        asset_id="C", commercial_type="Office", number_of_storeys=20,
+        construction_type=construction_type,
+    )
+
+
+def test_noncombustible_frame_avoids_pnr_when_suppression_unreachable(prog):
+    # A reinforced-concrete tall, unsprinklered building is contained by its own
+    # structure: the intensity ceiling sits below i_crit and the unreachable
+    # auto-latch does not fire, so it never reaches the point of no return.
+    profile = derive_response_profile(
+        _tall_unsprinklered("Reinforced concrete"), prog)
+    assert not profile.suppression_reachable
+    assert not profile.structure_combustible
+    track = initial_intensity_track()
+    for _ in range(200):
+        track = advance_intensity(track, profile, prog)
+    assert not track.point_of_no_return
+    # And the intensity is held at the non-combustible plateau.
+    assert track.intensity == pytest.approx(profile.intensity_ceiling)
+
+
+def test_combustible_frame_reaches_pnr_when_suppression_unreachable(prog):
+    # The same tall, unsprinklered building in timber runs to the point of no
+    # return — material, not height, now decides the conflagration outcome.
+    profile = derive_response_profile(_tall_unsprinklered("Timber frame"), prog)
+    assert not profile.suppression_reachable
+    assert profile.structure_combustible
+    track = initial_intensity_track()
+    for _ in range(200):
+        track = advance_intensity(track, profile, prog)
+        if track.point_of_no_return:
+            break
+    assert track.point_of_no_return
+
+
+def test_intensity_capped_at_ceiling(prog):
+    # The latent intensity never exceeds the structure's combustibility ceiling.
+    profile = derive_response_profile(_tall_unsprinklered("Steel frame"), prog)
+    track = initial_intensity_track()
+    for _ in range(200):
+        track = advance_intensity(track, profile, prog)
+        assert track.intensity <= profile.intensity_ceiling + 1e-9
