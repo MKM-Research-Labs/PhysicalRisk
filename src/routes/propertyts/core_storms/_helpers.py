@@ -25,6 +25,13 @@ from typing import Dict
 
 from config import config
 
+# Catchment-level storm enrichment is asset-agnostic and shared with the
+# commercial storms route; the implementations live in routes._storm_enrich.
+from routes._storm_enrich import (  # noqa: F401  (re-exported for _routes.py)
+    build_storm_lookups as _build_storm_lookups,
+    enrich_nearest_gauges as _enrich_nearest_gauges,
+)
+
 
 def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
     """Walk typhoon/damage/EVT-*.json files and index this property's
@@ -59,68 +66,6 @@ def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
                 }
                 break
     return result
-
-
-def _build_storm_lookups():
-    """Build the storm metadata lookups used to tag a property's flood events.
-
-    Returns ``(seq_lookup, storm_meta, storm_severe, seq_to_event)``.
-    """
-    # Build sequence_id → sequence_type lookup
-    seq_lookup = {}
-    try:
-        seq_path = config.get_input_path('storm_sequences.json')
-        with open(seq_path, 'r') as f:
-            sdata = json.load(f)
-        for seq in sdata.get('sequences', []):
-            seq_lookup[seq['sequence_id']] = seq.get('sequence_type', 'isolated')
-    except Exception:
-        pass
-
-    # Build storm metadata lookup (name, category, precipitation, severity)
-    _storm_meta = {}
-    for meta_file in ('storm_sequences.json', 'storms.json'):
-        meta_path = config.get_input_path(meta_file)
-        if not meta_path.exists():
-            continue
-        try:
-            with open(meta_path, 'r') as f:
-                mdata = json.load(f)
-            if 'sequences' in mdata:
-                for seq in mdata['sequences']:
-                    _storm_meta[seq.get('sequence_id', '')] = seq
-            elif 'storms' in mdata:
-                for s in mdata['storms']:
-                    _storm_meta[s.get('storm_id', '')] = s
-        except Exception:
-            pass
-
-    # Build storm_id → gauges_severe from stress_storms
-    _storm_severe = {}
-    ss_index = config.get_input_path('stress_storms') / '_index.json'
-    ss_legacy = config.get_input_path('stress_storms.json')
-    ss_path = ss_index if ss_index.exists() else (ss_legacy if ss_legacy.exists() else None)
-    if ss_path and ss_path.exists():
-        try:
-            with open(ss_path, 'r') as f:
-                ss_data = json.load(f)
-            for s in ss_data.get('storms', []):
-                sid = s.get('storm_id', '')
-                if sid:
-                    ts = s.get('trigger_summary', {})
-                    _storm_severe[sid] = ts.get('gauges_severe', 0)
-        except Exception:
-            pass
-
-    # Typhoon "additional circumstance" lookup. The 1:1 coupling means each
-    # storm sequence carries the event_id of its paired typhoon, so the join is
-    # a direct sequence_id → event_id map straight off the storm metadata.
-    seq_to_event = {
-        sid: meta.get('event_id')
-        for sid, meta in _storm_meta.items()
-        if meta.get('event_id')
-    }
-    return seq_lookup, _storm_meta, _storm_severe, seq_to_event
 
 
 def _tag_flood_events(pdata, prop_id, seq_lookup, storm_meta, storm_severe, seq_to_event):
@@ -198,64 +143,6 @@ def _tag_flood_events(pdata, prop_id, seq_lookup, storm_meta, storm_severe, seq_
                     'wind_damage_ratio': wind.get('damage_ratio'),
                 },
             })
-
-
-def _enrich_nearest_gauges(pdata):
-    """Attach flood stages and GEV severe counts to nearest gauges; mutates
-    ``pdata`` and returns the controlling gauge's severe count."""
-    # Enrich nearest gauge info with flood stages
-    gauge_path = config.get_input_path('gauge.json')
-    gauge_stages = {}
-    try:
-        with open(gauge_path, 'r') as f:
-            gdata = json.load(f)
-        for g in gdata.get('flood_gauges', []):
-            fg = g.get('FloodGauge', {})
-            gid = fg.get('Header', {}).get('GaugeID', '')
-            stages = fg.get('FloodStage', {}).get('UK', {})
-            gauge_stages[gid] = {
-                'alert': stages.get('FloodAlert', 0),
-                'warning': stages.get('FloodWarning', 0),
-                'severe': stages.get('SevereFloodWarning', 0),
-            }
-    except Exception:
-        pass
-
-    nearest = pdata.get('nearest_gauges', [])
-    for ng in nearest:
-        gid = ng.get('gauge_id', '')
-        stages = gauge_stages.get(gid, {})
-        ng['flood_stages'] = stages
-
-    # Gauge severe counts from GEV annual_flood_prob_severe in gaugehc.
-    # Compute per-gauge and use synthetic as the controlling total.
-    severe_at_gauge = 0
-    try:
-        hc_path = config.get_input_dir() / 'gaugehc.json'
-        seq_path = config.get_input_path('storm_sequences.json')
-        with open(hc_path, 'r') as f:
-            hc_data = json.load(f)
-        with open(seq_path, 'r') as f:
-            seq_data = json.load(f)
-        num_sequences = seq_data.get('num_sequences', len(seq_data.get('sequences', [])))
-
-        synth = next((ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
-        controlling = synth or (nearest[0] if nearest else None)
-
-        for ng in nearest:
-            gid = ng.get('gauge_id', '')
-            gauge_hc = hc_data.get('hazard_curves', {}).get(gid, {})
-            prob = gauge_hc.get('annual_flood_prob_severe', 0)
-            ng['severe_count'] = round(prob * num_sequences)
-            ng['severe_spread_bps'] = round(prob * 10000, 1)
-            ng['gauge_name'] = gauge_hc.get('gauge_name', gid)
-
-        if controlling:
-            severe_at_gauge = controlling.get('severe_count', 0)
-    except Exception:
-        pass
-
-    return severe_at_gauge
 
 
 def _lookup_property_address(prop_id: str) -> str:

@@ -234,7 +234,7 @@ def test_enrich_flood_events_swallows_malformed_stress_storms(cfg_tmp):
 
 def test_enrich_nearest_gauges_swallows_malformed_gauge_json(cfg_tmp):
     """storms.py _enrich_nearest_gauges: corrupt gauge.json → empty stages."""
-    from routes.commercial.storms import _enrich_nearest_gauges
+    from routes._storm_enrich import enrich_nearest_gauges as _enrich_nearest_gauges
     (cfg_tmp / "gauge.json").write_text("{bad json")
     pdata = {"nearest_gauges": [{"gauge_id": "G1"}]}
     severe = _enrich_nearest_gauges(pdata)
@@ -244,7 +244,7 @@ def test_enrich_nearest_gauges_swallows_malformed_gauge_json(cfg_tmp):
 
 def test_enrich_nearest_gauges_swallows_malformed_hc_json(cfg_tmp):
     """storms.py _enrich_nearest_gauges: corrupt gaugehc.json is tolerated."""
-    from routes.commercial.storms import _enrich_nearest_gauges
+    from routes._storm_enrich import enrich_nearest_gauges as _enrich_nearest_gauges
     (cfg_tmp / "gaugehc.json").write_text("{bad json")
     (cfg_tmp / "storm_sequences.json").write_text(json.dumps({"num_sequences": 100}))
     pdata = {"nearest_gauges": [{"gauge_id": "G1"}]}
