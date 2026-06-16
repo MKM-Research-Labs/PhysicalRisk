@@ -238,12 +238,11 @@ class TestSyntheticGaugeConsistency:
                 continue
             offset = pc["elevation_m"] - synth["gauge_elevation_m"]
             lo, hi = EA_FLOOD_ZONE_ELEVATION_BOUNDS.get(zone, (0, None))
-            if hi is None:
-                assert offset >= lo, (
-                    f"{prop_id} zone={zone} but offset={offset:.2f}m (expected >= {lo})"
-                )
-            else:
-                assert lo <= offset < hi, (
-                    f"{prop_id} zone={zone} but offset={offset:.2f}m "
-                    f"(expected [{lo}, {hi}))"
-                )
+            # Bounds are half-open [lo, hi); either end may be None (unbounded).
+            # Zone 3b (functional floodplain) is unbounded below (lo is None).
+            lo_ok = lo is None or offset >= lo
+            hi_ok = hi is None or offset < hi
+            assert lo_ok and hi_ok, (
+                f"{prop_id} zone={zone} but offset={offset:.2f}m "
+                f"(expected [{lo}, {hi}))"
+            )

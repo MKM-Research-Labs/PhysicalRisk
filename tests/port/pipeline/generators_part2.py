@@ -67,7 +67,7 @@ class TestNostressFlag:
             typhoon_seed=42, typhoon_no_plausibility=False,
             train_classifiers=False, nostress=False,
             gauge_id=None, strict=False, pdf=False,
-            num_properties=2, num_gauges=2, num_storms=10,
+            num_properties=2, num_gauges=2, num_commercial=2, num_storms=10,
             simulation_hours=12, history_years=1,
             tail_weight=2.0, distribution='gev', verbose=False,
             catchment_id="thames",
@@ -108,6 +108,8 @@ class TestNostressFlag:
              mock.patch('port.src.property.propertyhc.PropertyHazardCurveGenerator') as mphc, \
              mock.patch('port.src.counterparty.CounterpartyPortfolioGenerator') as mctpy, \
              mock.patch('port.src.gauge.synthetic.SyntheticGaugeGenerator') as msg, \
+             mock.patch('port.src.commercial.CommercialPortfolioGenerator') as mcom, \
+             mock.patch('port.src.commercial_loan.CommercialLoanPortfolioGenerator') as mcoml, \
              mock.patch('port.src.book.generate_thames_central_book',
                         return_value=[]), \
              mock.patch('port.src.book.generate_property_book',
@@ -139,6 +141,13 @@ class TestNostressFlag:
                 'avg_basis_bps': 30.0, 'avg_transmission_rate': 0.5}
             mctpy.return_value.generate.return_value = {'metadata': {}, 'data': []}
             msg.return_value.generate.return_value = {'count': 0, 'gauge_ids': []}
+            # Commercial portfolio now runs under --all (asymmetry removed); mock
+            # it so commercial.json is not written and the downstream commercial
+            # stages (gated on commercial_exists) stay skipped.
+            mcom.return_value.generate.return_value = {
+                'data': {'commercial_assets': []}, 'processing_stats': {}}
+            mcoml.return_value.generate.return_value = {
+                'data': {'commercial_loans': []}}
             cmd_port(args)
 
         mock_stressm.assert_not_called()
@@ -175,6 +184,8 @@ class TestNostressFlag:
              mock.patch('port.src.property.propertyhc.PropertyHazardCurveGenerator') as mphc, \
              mock.patch('port.src.counterparty.CounterpartyPortfolioGenerator') as mctpy, \
              mock.patch('port.src.gauge.synthetic.SyntheticGaugeGenerator') as msg, \
+             mock.patch('port.src.commercial.CommercialPortfolioGenerator') as mcom, \
+             mock.patch('port.src.commercial_loan.CommercialLoanPortfolioGenerator') as mcoml, \
              mock.patch('port.src.book.generate_thames_central_book',
                         return_value=[]), \
              mock.patch('port.src.book.generate_property_book',
@@ -206,6 +217,13 @@ class TestNostressFlag:
                 'avg_basis_bps': 30.0, 'avg_transmission_rate': 0.5}
             mctpy.return_value.generate.return_value = {'metadata': {}, 'data': []}
             msg.return_value.generate.return_value = {'count': 0, 'gauge_ids': []}
+            # Commercial portfolio now runs under --all (asymmetry removed); mock
+            # it so commercial.json is not written and the downstream commercial
+            # stages (gated on commercial_exists) stay skipped.
+            mcom.return_value.generate.return_value = {
+                'data': {'commercial_assets': []}, 'processing_stats': {}}
+            mcoml.return_value.generate.return_value = {
+                'data': {'commercial_loans': []}}
             cmd_port(args)
 
         mock_stressm.assert_called_once()

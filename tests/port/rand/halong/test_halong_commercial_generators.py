@@ -14,6 +14,13 @@ import pytest
 from port.rand.halong.commercial.commercial_random import generators as g
 
 
+@pytest.fixture(autouse=True)
+def _halong(monkeypatch):
+    """Activate the halong profile (BRI enabled) for the shared generators."""
+    from config import config
+    monkeypatch.setattr(config, "_catchment_id", "halong")
+
+
 def test_bri_builds_prototype_when_absent():
     # bri_prototype missing → _bri calls for_commercial (line 29).
     proto = g._bri({"commercial_type": "Office"})
