@@ -3,29 +3,34 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Halong (coastal Vietnam) rand-generation profile — catchment-specific data.
+"""Mekong (Cambodia / lower Mekong) rand-generation profile — catchment data.
 
 The shared property/commercial generators read these via
 ``port.rand.profiles.active_profile()``. Generation LOGIC is shared; only the
 values that genuinely differ by catchment live here.
+
+Seed values are defensible placeholders for a Phnom Penh / lower-Mekong
+floodplain model; refine against real calibration data when available.
 """
 
-# Seismic — Halong sits on the Red River Fault Zone, rated High by the
-# MKM-SEIS-001 hazard table: higher PGA, Medium/High-weighted hazard class.
-SEISMIC_PGA_RANGE = (0.12, 0.50)
-SEISMIC_HAZARD_CLASS_WEIGHTS = [0.05, 0.15, 0.35, 0.30, 0.15]
+# Seismic — Cambodia is low-hazard intraplate (no major active faults near the
+# lower Mekong): low PGA, None/Low-weighted hazard class.
+SEISMIC_PGA_RANGE = (0.02, 0.10)
+SEISMIC_HAZARD_CLASS_WEIGHTS = [0.55, 0.35, 0.08, 0.02, 0.00]
 
-# BRI regime: Halong publishes certified BRI letter ratings + numeric scores.
+# BRI regime: the lower Mekong is strongly fluvial-flood / monsoon exposed
+# (annual flood pulse, Tonle Sap reversal), so resilience scoring is published
+# and the numeric BRI scores are computed.
 PUBLISH_BRI_LETTER_RATINGS = True
 BRI_SCORES_ENABLED = True
 
 
 # ---------------------------------------------------------------------------
 # Commercial archetype tables (read by the shared commercial generators).
-# Halong = SE-Asia (Hanoi-style) market values; USD; full commercial BRI coding.
+# Mekong = SE-Asia (Phnom Penh-style) market; USD-denominated stock; the SE-Asia
+# commercial BRI flood/flash coding applies.
 # ---------------------------------------------------------------------------
 
-# Halong commercial assets carry the BRI Water/Flash/Wind/Fire/Seismic coding.
 COMMERCIAL_BRI_ENABLED = True
 
 COMMERCIAL_TYPE_ALLOCATION = [
@@ -36,22 +41,23 @@ COMMERCIAL_TYPE_ALLOCATION = [
     "MixedUse",
 ]
 
-# (min_sqm, max_sqm) — gross internal area
+# (min_sqm, max_sqm) — gross internal area. Phnom Penh stock is generally
+# smaller-footprint than Hanoi.
 COMMERCIAL_TYPE_AREA_RANGE = {
-    "Office": (8000, 35000),
-    "MultiFamily": (18000, 42000),
-    "Hotel": (12000, 45000),
-    "Retail": (300, 6000),
-    "MixedUse": (15000, 50000),
+    "Office": (5000, 28000),
+    "MultiFamily": (12000, 38000),
+    "Hotel": (8000, 40000),
+    "Retail": (300, 5000),
+    "MixedUse": (10000, 42000),
 }
 
-# USD/sqm capital value — broad, synthetic ranges for a Hanoi-style model.
+# USD/sqm capital value — broad, synthetic ranges for a Phnom Penh-style model.
 COMMERCIAL_TYPE_VALUE_PER_SQM = {
-    "Office": (700, 1600),
-    "MultiFamily": (650, 1400),
-    "Hotel": (800, 1800),
-    "Retail": (900, 2200),
-    "MixedUse": (750, 1700),
+    "Office": (600, 1400),
+    "MultiFamily": (550, 1250),
+    "Hotel": (700, 1600),
+    "Retail": (800, 2000),
+    "MixedUse": (650, 1500),
 }
 
 COMMERCIAL_TYPE_USE_CLASS = {
@@ -71,27 +77,27 @@ COMMERCIAL_TYPE_BUSINESS_RATES = {
 }
 
 COMMERCIAL_TYPE_STOREYS = {
-    "Office": (6, 24),
-    "MultiFamily": (12, 32),
-    "Hotel": (6, 24),
+    "Office": (5, 22),
+    "MultiFamily": (8, 30),
+    "Hotel": (5, 22),
     "Retail": (1, 5),
-    "MixedUse": (5, 28),
+    "MixedUse": (5, 26),
 }
 
 COMMERCIAL_TYPE_TOTAL_UNITS = {
     "Office": (1, 8),
-    "MultiFamily": (40, 300),
-    "Hotel": (40, 320),
-    "Retail": (1, 20),
-    "MixedUse": (5, 180),
+    "MultiFamily": (30, 260),
+    "Hotel": (40, 300),
+    "Retail": (1, 18),
+    "MixedUse": (5, 160),
 }
 
 COMMERCIAL_TYPE_PARKING_SPACES = {
-    "Office": (20, 180),
-    "MultiFamily": (10, 120),
-    "Hotel": (10, 140),
-    "Retail": (5, 120),
-    "MixedUse": (10, 160),
+    "Office": (15, 160),
+    "MultiFamily": (10, 110),
+    "Hotel": (10, 130),
+    "Retail": (5, 110),
+    "MixedUse": (10, 150),
 }
 
 COMMERCIAL_TYPE_LOADING_BAYS = {
@@ -149,25 +155,22 @@ COMMERCIAL_ANCHOR_TENANT_POOL = {
 }
 
 # (cutoff_year_exclusive, label); final entry has cutoff None (open-ended).
+# Cambodia's commercial stock is overwhelmingly post-1990 (post-conflict).
 COMMERCIAL_PERIOD_BUCKETS = [
-    (1980, "Pre-1980"),
-    (1995, "1980-1994"),
-    (2005, "1995-2004"),
-    (2015, "2005-2014"),
-    (None, "2015-Present"),
+    (1990, "Pre-1990"),
+    (2000, "1990-1999"),
+    (2010, "2000-2009"),
+    (2018, "2010-2017"),
+    (None, "2018-Present"),
 ]
 
-# Construction-year strategy. Hanoi's commercial stock is overwhelmingly
-# post-Doi-Moi, so years are drawn from weighted per-type bands. Each band is
-# ((start, end), weight); end None -> current year - 1 (open-ended). Types not
-# listed fall back to a uniform draw over COMMERCIAL_CONSTRUCTION_YEAR_RANGE.
+# Per-type weighted construction-year bands (end None -> current year - 1).
 COMMERCIAL_CONSTRUCTION_YEAR_BANDS = {
-    "Office":      [((1995, 2004), 0.15), ((2005, 2014), 0.45), ((2015, None), 0.40)],
-    "MultiFamily": [((1995, 2004), 0.10), ((2005, 2014), 0.40), ((2015, None), 0.50)],
-    "Hotel":       [((1995, 2004), 0.10), ((2005, 2014), 0.35), ((2015, None), 0.55)],
-    "Retail":      [((1985, 1994), 0.15), ((1995, 2004), 0.25),
-                    ((2005, 2014), 0.35), ((2015, None), 0.25)],
-    "MixedUse":    [((2000, 2009), 0.20), ((2010, 2017), 0.45), ((2018, None), 0.35)],
+    "Office":      [((2000, 2009), 0.20), ((2010, 2017), 0.45), ((2018, None), 0.35)],
+    "MultiFamily": [((2000, 2009), 0.15), ((2010, 2017), 0.40), ((2018, None), 0.45)],
+    "Hotel":       [((2000, 2009), 0.15), ((2010, 2017), 0.40), ((2018, None), 0.45)],
+    "Retail":      [((1995, 2009), 0.25), ((2010, 2017), 0.40), ((2018, None), 0.35)],
+    "MixedUse":    [((2005, 2012), 0.25), ((2013, 2019), 0.45), ((2020, None), 0.30)],
 }
 # (min_year, max_year) fallback for unlisted types; max None -> current year - 1.
-COMMERCIAL_CONSTRUCTION_YEAR_RANGE = (2005, None)
+COMMERCIAL_CONSTRUCTION_YEAR_RANGE = (2000, None)
