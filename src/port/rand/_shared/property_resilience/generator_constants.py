@@ -6,6 +6,12 @@ synthesise plausible checklists, plus section-field membership."""
 
 from typing import Dict, List
 
+# Single authoritative definitions live in config (parameter governance).
+from config.damage import (
+    RESILIENCE_DEFAULT_PERIOD_PROB as _DEFAULT_PERIOD_PROB,
+    RESILIENCE_DEFAULT_CONDITION_MULT as _DEFAULT_CONDITION_MULT,
+)
+
 
 # "Baseline probability that any one resilience boolean is True" for each
 # construction period. Captures the qualitative consensus that 1890s
@@ -18,7 +24,6 @@ _PERIOD_BASE_PROB: Dict[str, float] = {
     "2000-2008":    0.55,
     "2009-Present": 0.70,
 }
-_DEFAULT_PERIOD_PROB = 0.40
 
 _CONDITION_MULTIPLIER: Dict[str, float] = {
     "Excellent": 1.35,
@@ -27,7 +32,6 @@ _CONDITION_MULTIPLIER: Dict[str, float] = {
     "Poor":      0.70,
     "Very poor": 0.40,
 }
-_DEFAULT_CONDITION_MULT = 1.0
 
 # Fields that didn't exist as concepts in older buildings — heavily damped
 # for pre-1976 stock regardless of condition.

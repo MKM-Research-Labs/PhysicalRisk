@@ -16,6 +16,7 @@ import json
 from flask import jsonify, request
 
 from config import config
+from config.fire import FIRE_LOSS_GIVEN_EVENT as _FIRE_LOSS_GIVEN_EVENT
 
 
 def _load_commercial_hazard(filename: str):
@@ -42,11 +43,10 @@ def _hazard_or_404(filename: str, label: str):
 
 # Full-conflagration fire is priced as a credit event: the fair PRS spread for a
 # total-loss-on-event swap is approximately the annual event probability times
-# the loss given event. We seed LGE at 100% (a full conflagration destroys the
-# building), so fire_spread_bps = pnr_frequency * 10_000. "Full conflagration"
-# is defined as a fire that crossed the point of no return (n_point_of_no_return)
-# — the uncontrollable fires that run to partial OR total loss.
-_FIRE_LOSS_GIVEN_EVENT = 1.0  # seed; tunable when fire config gains an LGE knob
+# the loss given event (config.fire.FIRE_LOSS_GIVEN_EVENT, imported above).
+# "Full conflagration" is a fire that crossed the point of no return
+# (n_point_of_no_return) — the uncontrollable fires that run to partial OR total
+# loss; fire_spread_bps = pnr_frequency * FIRE_LOSS_GIVEN_EVENT * 10_000.
 
 
 def _attach_fire(asset_data: dict, prop_id: str) -> None:

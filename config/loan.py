@@ -175,3 +175,16 @@ def wind_hazard_spread(category: str) -> float:
     """Wind hazard spread (decimal) for a risk category (static placeholder)."""
     return WIND_HAZARD_SPREADS.get(_norm(category),
                                    WIND_HAZARD_SPREADS[_norm(DEFAULT_RISK_CATEGORY)])
+
+
+# Defaults for any pricing input a CDM loan record doesn't supply, so a sparse
+# loan still prices instead of raising on a missing kwarg. Mirrors the fallbacks
+# in LoanPricer.batch_price_loans.
+LOAN_PRICING_INPUT_DEFAULTS: Dict[str, float] = {
+    "gross_annual_income": 50000,
+    "interest_rate": 0.035,
+    "insurance_rate": 0.002,
+    "original_maturity": 30,
+    "current_term": 30,
+    "recovery_haircut": 0.2,
+}
