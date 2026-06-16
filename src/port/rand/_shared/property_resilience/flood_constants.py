@@ -7,7 +7,7 @@
 from typing import Dict, List, Tuple
 
 # Single authoritative definition lives in config (parameter governance).
-from config.damage import DEFAULT_MISSING_COMPLIANCE
+from config.bri import DEFAULT_MISSING_COMPLIANCE
 
 
 # Spec base weights — 13 measures, sum to 100.

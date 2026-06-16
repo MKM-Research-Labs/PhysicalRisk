@@ -7,7 +7,7 @@ synthesise plausible checklists, plus section-field membership."""
 from typing import Dict, List
 
 # Single authoritative definitions live in config (parameter governance).
-from config.damage import (
+from config.bri import (
     RESILIENCE_DEFAULT_PERIOD_PROB as _DEFAULT_PERIOD_PROB,
     RESILIENCE_DEFAULT_CONDITION_MULT as _DEFAULT_CONDITION_MULT,
 )
