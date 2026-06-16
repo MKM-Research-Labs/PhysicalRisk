@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-"""Schema-driven field value generation for thames property randomisation."""
+"""Schema-driven field value generation for property randomisation."""
 
 import random
 from datetime import datetime, timedelta
