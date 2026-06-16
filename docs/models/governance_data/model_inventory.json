@@ -5127,6 +5127,20 @@
           "impact": "Medium",
           "monitoring_trigger": "Any attempt to price the fire leg",
           "compensating_control": "Pricing integration deferred to a later stage"
+        },
+        {
+          "id": "FIRE-L4",
+          "description": "Fast chain absorption (~3 steps) mutes the time-dependent dynamics. Confirmed by the sensitivity tables: the conflagration / point-of-no-return leg is insensitive to the active suppression level (it responds chiefly to compartmentation and the fire-service-reach cliff); the automatic-detection sensitivity is near-flat (<1 percentage point of containment across all five levels); and the non-combustible ceiling-jitter residual realises as effectively zero (sub-bp), because the chain absorbs before the capped intensity can creep across i_crit. This is the doc's FIRE-L3 (numbering differs between the inventory and the LaTeX model document).",
+          "impact": "Medium",
+          "monitoring_trigger": "Any use of the fire-spread leg's response to suppression or detection",
+          "compensating_control": "Documented and made explicit in the model doc; retune of the intensity-race timescale tracked as remediation FIRE-R5"
+        },
+        {
+          "id": "FIRE-L5",
+          "description": "The conflagration leg prices every point-of-no-return event at a 100% loss-given-event, including the fires the absorbing matrix sends to partial (S6) rather than total (S7) loss. n_point_of_no_return counts partial- and total-loss fires alike but is priced at full total-loss severity, so the fire-spread bps overstates a severity-weighted leg (a conservative bias). This is the doc's FIRE-L6.",
+          "impact": "Medium",
+          "monitoring_trigger": "Any pricing use of the fire-spread leg",
+          "compensating_control": "Conservative (overstates rather than understates risk); a modelled partial/total severity split is tracked as remediation FIRE-R6"
         }
       ],
       "known_failure_modes": [
@@ -5220,6 +5234,22 @@
           "priority": "Medium",
           "due_date": null,
           "status": "Open"
+        },
+        {
+          "id": "FIRE-R5",
+          "description": "Retune the intensity-race timescale (e.g. a lower i_crit so the race competes with the ~3-step chain absorption) so that the conflagration leg, the automatic-detection sensitivity and the non-combustible residual all become live rather than muted (closes FIRE-L4).",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
+        },
+        {
+          "id": "FIRE-R6",
+          "description": "Replace the fixed 100% loss-given-event with a modelled partial/total severity split, so the fire-spread leg is severity-weighted rather than counting every point-of-no-return fire as a total loss (closes FIRE-L5).",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
         }
       ],
       "version_history": [
@@ -5234,6 +5264,18 @@
           "date": "2026-06-05",
           "status": "Development",
           "description": "Stage 2 - intensity track, response effectiveness, containment."
+        },
+        {
+          "version": "0.3.0",
+          "date": "2026-06-08",
+          "status": "Development",
+          "description": "Recalibrated the resilience response: continuous controllability matrix blend, graded i_crit, per-level suppression-bite multiplier and per-fire race jitter; documented the muted-conflagration and single-reach-threshold weaknesses."
+        },
+        {
+          "version": "0.4.0",
+          "date": "2026-06-16",
+          "status": "Development",
+          "description": "Wired ConstructionType / structural-frame combustibility into the model (growth-rate scale, fuel ceiling, structural-containment credit, combustibility-gated PNR latch), fixing commercial conflagration being ~10x too high and material-insensitive. Expanded the sensitivity analysis to thirteen tables and made the unflattering findings explicit with remediation: fast chain absorption mutes the conflagration leg / detection / residual (FIRE-L4 -> FIRE-R5), and the fixed 100% loss-given-event overstates the leg (FIRE-L5 -> FIRE-R6)."
         }
       ],
       "validation_questions": [],
