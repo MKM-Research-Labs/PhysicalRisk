@@ -129,3 +129,10 @@ COMMERCIAL_PERIOD_BUCKETS = [
     (2009, "2000-2008"),
     (None, "2009-Present"),
 ]
+
+# Construction-year strategy. The UK stock spans Victorian through present,
+# so thames draws a single uniform year band with no per-type weighting.
+# BANDS = None means "uniform over COMMERCIAL_CONSTRUCTION_YEAR_RANGE".
+COMMERCIAL_CONSTRUCTION_YEAR_BANDS = None
+# (min_year, max_year); max None -> current year - 1.
+COMMERCIAL_CONSTRUCTION_YEAR_RANGE = (1880, None)

@@ -15,6 +15,8 @@ halong commercial generators:
 - Thames commercial leaves every new field null / empty
 """
 
+import pytest
+
 from port.rand.halong.commercial import bri_codes
 from port.rand.halong.commercial.commercial_random import (
     generate_commercial_metadata as halong_metadata,
@@ -24,6 +26,15 @@ from port.rand.thames.commercial.commercial_random import (
     generate_commercial_metadata as thames_metadata,
     generate_field_value as thames_field,
 )
+
+
+@pytest.fixture
+def _halong(monkeypatch):
+    """Activate the halong catchment so the shared commercial generators read
+    the halong profile (BRI enabled). The ``port.rand.halong`` import path is a
+    thin alias of the shared engine, which follows the *active* catchment."""
+    from config import config
+    monkeypatch.setattr(config, "_catchment_id", "halong")
 
 
 _LOCATION = {
@@ -40,6 +51,7 @@ def _gen_halong(index: int) -> tuple[dict, callable]:
     return md, (lambda f: halong_field(f, {}, index, md))
 
 
+@pytest.mark.usefixtures("_halong")
 class TestHalongHotel:
     """Hotel (index 6) maps to the Bldg-3 prototype: Grade A everywhere."""
 
@@ -69,6 +81,7 @@ class TestHalongHotel:
         assert get("BRIFlashRating") == "A"
 
 
+@pytest.mark.usefixtures("_halong")
 class TestHalongMultiFamily:
     """MultiFamily (index 3) maps to the Bldg-2 apartment prototype."""
 
@@ -94,6 +107,7 @@ class TestHalongMultiFamily:
         assert set(get("FlashCodes")) >= set(bri_codes.FLASH_A_CODES)
 
 
+@pytest.mark.usefixtures("_halong")
 class TestHalongOffice:
     """Office (index 0) falls back to the Bldg-1 mixed-use prototype."""
 
@@ -109,6 +123,7 @@ class TestHalongOffice:
         assert codes == {"WT16", "WD03"}
 
 
+@pytest.mark.usefixtures("_halong")
 class TestHalongThresholdConstants:
 
     def test_wind_thresholds_in_mps(self):

@@ -168,7 +168,7 @@ class TestGenerateFieldValue:
 
     def test_wault_in_expected_range(self, metadata):
         v = generate_field_value("WAULT", {}, 0, metadata)
-        assert 2.0 <= v <= 12.0
+        assert 1.5 <= v <= 8.0
 
     def test_anchor_tenant_office_pool(self):
         md = generate_commercial_metadata(0, {"name": "x", "elevation": 5,

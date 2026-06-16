@@ -20,6 +20,18 @@ def _seeded():
     random.seed(20260527)
 
 
+@pytest.fixture(autouse=True)
+def _halong(monkeypatch):
+    """Drive the halong profile through the shared commercial generators.
+
+    Post-dedup the ``port.rand.halong.commercial`` tree is an alias of the
+    shared engine, which reads the *active* catchment profile. These tests
+    assert halong-specific behaviour, so activate the halong catchment.
+    """
+    from config import config
+    monkeypatch.setattr(config, "_catchment_id", "halong")
+
+
 # ---------------------------------------------------------------------------
 # Module-load smoke
 # ---------------------------------------------------------------------------
@@ -31,9 +43,9 @@ def test_import_commercial_subpackage():
 
 def test_import_all_modules():
     from port.rand.halong.commercial.commercial_random import (
-        constants, generators, metadata,
+        COMMERCIAL_TYPE_ALLOCATION, generators, metadata,
     )
-    assert constants.COMMERCIAL_TYPE_ALLOCATION
+    assert COMMERCIAL_TYPE_ALLOCATION
     assert hasattr(generators, "generate_field_value")
     assert hasattr(metadata, "generate_commercial_metadata")
 
@@ -45,13 +57,13 @@ def test_import_all_modules():
 class TestGetCommercialType:
     def test_index_within_allocation(self):
         from port.rand.halong.commercial.commercial_random.metadata import get_commercial_type
-        from port.rand.halong.commercial.commercial_random.constants import COMMERCIAL_TYPE_ALLOCATION
+        from port.rand.halong.commercial.commercial_random import COMMERCIAL_TYPE_ALLOCATION
         for i, expected in enumerate(COMMERCIAL_TYPE_ALLOCATION):
             assert get_commercial_type(i) == expected
 
     def test_index_past_allocation_cycles(self):
         from port.rand.halong.commercial.commercial_random.metadata import get_commercial_type
-        from port.rand.halong.commercial.commercial_random.constants import COMMERCIAL_TYPE_ALLOCATION
+        from port.rand.halong.commercial.commercial_random import COMMERCIAL_TYPE_ALLOCATION
         n = len(COMMERCIAL_TYPE_ALLOCATION)
         assert get_commercial_type(n) == COMMERCIAL_TYPE_ALLOCATION[0]
         assert get_commercial_type(n + 3) == COMMERCIAL_TYPE_ALLOCATION[3]
