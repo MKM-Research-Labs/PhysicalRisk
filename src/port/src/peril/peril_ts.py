@@ -206,6 +206,13 @@ class PerilTimeseriesGenerator:
             base_files = sorted(base_dir.glob(cfg.id_glob))
             out_dir = self.output_dir / cfg.ts_dirs[mode]
             out_dir.mkdir(parents=True, exist_ok=True)
+
+            # Remove stale per-asset files from a previous (possibly larger)
+            # run so a smaller portfolio doesn't leave leftovers that the
+            # hazard-curve stage would glob (it globs this dir directly).
+            for stale in out_dir.glob(cfg.id_glob):
+                stale.unlink()
+
             triggers = 0
             assets_with_trigger = 0
 
