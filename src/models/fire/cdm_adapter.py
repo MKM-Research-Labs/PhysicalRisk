@@ -48,6 +48,16 @@ Resilience inputs are resolved in two tiers:
    This Grade-B -> "Partial" choice is a deliberate modelling decision (the
    fire-truck-reach incident the BRI source described): it makes building height
    the live driver for the high-rise commercial portfolio.
+
+Independently of the BRI grade, the asset's structural frame material
+(``Construction.ConstructionType``) is read into ``construction_type``. It is
+the physical signal the fire model uses for (a) the structural-fire-resistance
+fallback (``CONSTRUCTION_TO_STRUCTURAL_LEVEL``, used when the granular checklist
+is silent and taking priority over the grade fallback for that one field) and
+(b) the structure's combustibility, resolved downstream in the fire model. A
+non-combustible frame (reinforced concrete, steel) resists a full conflagration
+even above the fire-service reach, so building material — not height alone —
+governs the high-rise conflagration leg.
 """
 
 from typing import List, Optional
@@ -56,6 +66,7 @@ from models.fire.data_structures import AssetFireFeatures
 
 __all__ = [
     "GRADE_TO_LEVEL",
+    "CONSTRUCTION_TO_STRUCTURAL_LEVEL",
     "FIRE_GRADE_A_CODE",
     "commercial_fire_grade",
     "commercial_features_from_record",
@@ -66,6 +77,28 @@ __all__ = [
 # Grade -> resilience level applied across the fire-relevant fields when the
 # granular CDM checklist is absent. See the module docstring for the rationale.
 GRADE_TO_LEVEL = {"A": "Enhanced", "B": "Partial"}
+
+# ConstructionType -> StructuralFireResistanceAdequate fallback level. The CDM
+# checklist field is "Primary structural frame has fire-resistance ratings
+# appropriate to building type and code", so the structural frame material is
+# the physical signal for it. Used only when the granular checklist does not
+# carry an explicit StructuralFireResistanceAdequate value; takes priority over
+# the BRI-grade fallback (grade A/B is an active-protection signal, not a
+# structural one). An unknown / missing construction type returns None so the
+# adapter defers to the grade fallback. The combustibility of the frame (which
+# drives the conflagration leg) is resolved separately in the fire model from
+# config.fire construction.combustibility_by_type.
+CONSTRUCTION_TO_STRUCTURAL_LEVEL = {
+    "Reinforced concrete": "Verified",
+    "Concrete frame": "Verified",
+    "Steel frame": "Enhanced",
+    "Brick and block": "Enhanced",
+    "Masonry": "Enhanced",
+    "Stone": "Enhanced",
+    "Modern methods": "Meets minimum",
+    "Mixed construction": "Partial",
+    "Timber frame": "Partial",
+}
 
 # The hotel-only BRI fire measure that elevates the fire grade to A
 # (port.rand.halong.commercial.bri_codes.HOTEL_FIRE_EXTRA).
@@ -143,6 +176,7 @@ def commercial_features_from_record(record: dict) -> Optional[AssetFireFeatures]
     body = _commercial_body(record)
     header = _as_dict(body.get("Header"))
     attrs = _as_dict(body.get("CommercialAttributes"))
+    construction = _as_dict(body.get("Construction"))
 
     asset_id = header.get("PropertyID") or header.get("UPRN")
     commercial_type = attrs.get("CommercialType")
@@ -151,6 +185,12 @@ def commercial_features_from_record(record: dict) -> Optional[AssetFireFeatures]
 
     grade = commercial_fire_grade(record)
     grade_level = GRADE_TO_LEVEL.get(grade)
+
+    # The structural frame material is the physical signal for structural
+    # fire resistance; it takes priority over the grade fallback for that one
+    # field. ConstructionType lives in the shared asset Construction sub-section.
+    construction_type = construction.get("ConstructionType")
+    structural_level = CONSTRUCTION_TO_STRUCTURAL_LEVEL.get(construction_type)
 
     rm = _resilience_measures(record)
     fire_protection = _as_dict(rm.get("FireProtection"))
@@ -166,6 +206,7 @@ def commercial_features_from_record(record: dict) -> Optional[AssetFireFeatures]
     return AssetFireFeatures(
         asset_id=asset_id,
         commercial_type=commercial_type,
+        construction_type=construction_type,
         occupancy_status=attrs.get("OccupancyStatus"),
         business_rates_category=attrs.get("BusinessRatesCategory"),
         property_condition=attrs.get("PropertyCondition"),
@@ -176,7 +217,8 @@ def commercial_features_from_record(record: dict) -> Optional[AssetFireFeatures]
         emergency_procedures_level=_level(
             continuity, "EmergencyProceduresTested", grade_level),
         structural_fire_resistance_level=_level(
-            building, "StructuralFireResistanceAdequate", grade_level),
+            building, "StructuralFireResistanceAdequate",
+            structural_level or grade_level),
         compartments_level=_level(
             building, "CompartmentsProvided", grade_level),
         fire_stopping_level=_level(

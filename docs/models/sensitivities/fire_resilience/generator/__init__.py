@@ -19,7 +19,7 @@ Reported metrics (the resilience-credit currency the PRS pricer consumes):
     ``(n_point_of_no_return / n_sim) * 10000`` (frequency x 100% loss-given-
     event), i.e. the exact quantity rendered in the Commercial PRS Pricer.
 
-Six sensitivities are produced:
+Seven sensitivities are produced:
 
   1. Suppression-systems resilience level (Not assessed .. Verified)
   2. Building height / NumberOfStoreys (crossing the 4-storey fire-service reach)
@@ -28,6 +28,10 @@ Six sensitivities are produced:
   5. Commercial type (drives the base ignition rate and class prior)
   6. Two-way interaction: storeys x suppression level (the headline
      fire-truck-reach behaviour, reported as fire spread in bps)
+  7. Construction type / structural-frame combustibility — the building-material
+     conflagration sensitivity (a tall, sub-threshold-suppressed building: a
+     non-combustible frame is contained by its own structure, a combustible one
+     runs to the point of no return)
 
 All values are produced from engineering-judgement seed parameters in
 ``config/fire_matrices.json`` and are therefore directional, not calibrated.
@@ -183,6 +187,25 @@ def generate():
         label="fire_height_suppression_grid",
         headers=grid_headers, rows=grid_rows,
         col_fmt="l" + "r" * len(sup_levels)))
+
+    # 7. Construction type / structural-frame combustibility. Held at a tall
+    # height (above the fire-service reach) with sub-threshold ('Partial')
+    # internal suppression so suppression cannot engage — the case where, before
+    # this leg existed, every building ran to the conflagration regardless of
+    # material. A non-combustible frame (reinforced concrete / steel / brick) is
+    # now contained by its own structure (zero spread); a combustible frame
+    # (modern methods / mixed / timber) still runs to the point of no return.
+    rows = _sweep("construction_type",
+                  ["Reinforced concrete", "Concrete frame", "Steel frame",
+                   "Brick and block", "Modern methods", "Mixed construction",
+                   "Timber frame"],
+                  number_of_storeys=12, suppression_systems_level="Partial")
+    sections.append(latex_table(
+        caption="Fire-resilience credit by construction type / structural-frame "
+                "combustibility (12-storey, sub-threshold 'Partial' suppression "
+                "--- above the fire-service reach, so material governs)",
+        label="fire_construction_sensitivity",
+        headers=_HEADERS, rows=rows, col_fmt="lrrr"))
 
     content = (
         "% Baseline: fully-occupied 3-storey Office, Fair condition, all "

@@ -178,6 +178,11 @@ class ProgressionConfig:
             "no_reach_bite_steps":float} — the fire-truck reach cut-off.
         timing: base steps for detection and suppression-bite.
         intensity_dynamics: passive_damp_weight + level-index thresholds.
+        construction: building-material (frame) combustibility seeds — maps
+            ConstructionType to a combustibility fraction that caps the
+            intensity track (intensity_ceiling) and gates the unreachable
+            auto-PNR latch (combustible_threshold), so a non-combustible frame
+            resists full conflagration regardless of height/suppression.
         controllability: matrix-selection weights + switch_threshold.
         transition_matrices: named 8x8 row-stochastic matrices.
     """
@@ -193,6 +198,7 @@ class ProgressionConfig:
     fire_service_reach: Dict[str, float] = field(default_factory=dict)
     timing: Dict[str, float] = field(default_factory=dict)
     intensity_dynamics: Dict[str, float] = field(default_factory=dict)
+    construction: Dict[str, object] = field(default_factory=dict)
     controllability: Dict[str, object] = field(default_factory=dict)
     transition_matrices: Dict[str, List[List[float]]] = field(default_factory=dict)
 
@@ -276,6 +282,7 @@ def load_fire_config(
         fire_service_reach=prog_raw["fire_service_reach"],
         timing=prog_raw["timing"],
         intensity_dynamics=prog_raw["intensity_dynamics"],
+        construction=prog_raw["construction"],
         controllability=prog_raw["controllability"],
         transition_matrices=prog_raw["transition_matrices"],
     )
