@@ -52,6 +52,7 @@ from typing import Dict, Optional, Union
 from models.floodrisk.depth_damage import is_prs_flood
 from models.winddamage.threshold import is_prs_wind
 
+from port.src._typhoon_join import load_seq_to_event_map, load_wind_damage_index
 from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 
 logger = logging.getLogger(__name__)
@@ -104,53 +105,18 @@ class PerilTimeseriesGenerator:
 
         Walks ``typhoon/damage/EVT-*.json`` once (keyed on the filename stem —
         the canonical event id) and caches the result. Empty when the typhoon
-        stage hasn't run for this catchment.
+        stage hasn't run for this catchment. Loading lives in
+        ``port.src._typhoon_join``; this wrapper just caches per instance.
         """
-        if self._wind_damage_cache is not None:
-            return self._wind_damage_cache
-        out: Dict[str, Dict[str, Dict]] = {}
-        damage_dir = self.output_dir / 'typhoon' / 'damage'
-        if damage_dir.exists():
-            for fp in sorted(damage_dir.glob('EVT-*.json')):
-                try:
-                    with open(fp, 'r') as f:
-                        data = json.load(f)
-                except (OSError, json.JSONDecodeError):
-                    continue
-                eid = fp.stem
-                pmap: Dict[str, Dict] = {}
-                for d in data.get('damages', []):
-                    pid = d.get('property_id')
-                    if pid:
-                        pmap[pid] = {
-                            'peak_sustained_ms': d.get('peak_sustained_ms'),
-                            'threshold_ms': d.get('threshold_ms'),
-                            'v_50_eff_ms': d.get('v_50_eff_ms'),
-                        }
-                if pmap:
-                    out[eid] = pmap
-        self._wind_damage_cache = out
-        return out
+        if self._wind_damage_cache is None:
+            self._wind_damage_cache = load_wind_damage_index(self.output_dir)
+        return self._wind_damage_cache
 
     def _seq_to_event_map(self) -> Dict[str, str]:
         """``sequence_id → event_id`` from ``storm_sequences.json`` (cached)."""
-        if self._seq_to_event_cache is not None:
-            return self._seq_to_event_cache
-        out: Dict[str, str] = {}
-        seq_path = self.output_dir / 'storm_sequences.json'
-        if seq_path.exists():
-            try:
-                with open(seq_path, 'r') as f:
-                    data = json.load(f)
-                for seq in data.get('sequences', []):
-                    sid = seq.get('sequence_id')
-                    eid = seq.get('event_id')
-                    if sid and eid:
-                        out[sid] = eid
-            except (OSError, json.JSONDecodeError):
-                pass
-        self._seq_to_event_cache = out
-        return out
+        if self._seq_to_event_cache is None:
+            self._seq_to_event_cache = load_seq_to_event_map(self.output_dir)
+        return self._seq_to_event_cache
 
     # ------------------------------------------------------------------
     # Derivation

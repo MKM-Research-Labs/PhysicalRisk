@@ -5,11 +5,11 @@
 
 """Stage-6 peril outcomes: flood union/intersection wind over paired events."""
 
-import json
 from typing import Dict, List, Optional
 
 from models.floodrisk.depth_damage import is_prs_flood
 from models.winddamage.threshold import is_prs_wind
+from port.src._typhoon_join import load_seq_to_event_map, load_wind_damage_index
 
 
 class _WindMixin:
@@ -80,23 +80,10 @@ class _WindMixin:
         absent or pre-coupling (no ``event_id`` field).
         """
         cached = getattr(self, '_seq_to_event_cache', None)
-        if cached is not None:
-            return cached
-        out: Dict[str, str] = {}
-        seq_path = self.output_dir / 'storm_sequences.json'
-        if seq_path.exists():
-            try:
-                with open(seq_path, 'r') as f:
-                    data = json.load(f)
-                for seq in data.get('sequences', []):
-                    sid = seq.get('sequence_id')
-                    eid = seq.get('event_id')
-                    if sid and eid:
-                        out[sid] = eid
-            except (OSError, json.JSONDecodeError):
-                pass
-        self._seq_to_event_cache = out
-        return out
+        if cached is None:
+            cached = load_seq_to_event_map(self.output_dir)
+            self._seq_to_event_cache = cached
+        return cached
 
     def _wind_damage_index(self) -> Dict[str, Dict[str, Dict]]:
         """``event_id → {property_id → {peak_sustained_ms, threshold_ms, v_50_eff_ms}}``.
@@ -104,34 +91,10 @@ class _WindMixin:
         Walks ``typhoon/damage/EVT-*.json`` once and caches the result. Empty
         when the typhoon stage hasn't run for this catchment. Built once for
         the whole portfolio (not per-property) so pricing stays O(events) not
-        O(events × properties).
+        O(events × properties). Loading lives in ``port.src._typhoon_join``.
         """
         cached = getattr(self, '_wind_damage_cache', None)
-        if cached is not None:
-            return cached
-        out: Dict[str, Dict[str, Dict]] = {}
-        damage_dir = self.output_dir / 'typhoon' / 'damage'
-        if damage_dir.exists():
-            for fp in sorted(damage_dir.glob('EVT-*.json')):
-                try:
-                    with open(fp, 'r') as f:
-                        data = json.load(f)
-                except (OSError, json.JSONDecodeError):
-                    continue
-                # Key on the filename stem (canonical 5-digit event id that
-                # matches storm_sequences). The internal event_id field can be
-                # mis-stamped by genesis, so do not trust it for the join.
-                eid = fp.stem
-                pmap: Dict[str, Dict] = {}
-                for d in data.get('damages', []):
-                    pid = d.get('property_id')
-                    if pid:
-                        pmap[pid] = {
-                            'peak_sustained_ms': d.get('peak_sustained_ms'),
-                            'threshold_ms': d.get('threshold_ms'),
-                            'v_50_eff_ms': d.get('v_50_eff_ms'),
-                        }
-                if pmap:
-                    out[eid] = pmap
-        self._wind_damage_cache = out
-        return out
+        if cached is None:
+            cached = load_wind_damage_index(self.output_dir)
+            self._wind_damage_cache = cached
+        return cached
