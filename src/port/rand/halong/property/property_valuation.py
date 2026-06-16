@@ -6,9 +6,14 @@
 """Catchment shim — canonical implementation in
 ``port.rand.shared.property.property_valuation``.
 
-Phase 1 de-duplication: thames and halong share one implementation. Do not add
-catchment-specific logic here; per-catchment data belongs in the catchment
-profile, not a forked copy.
+Phase 1 de-duplication: thames and halong share ONE implementation. This module
+is an alias of the shared canonical module, so every symbol (public and
+private) resolves through it. Do not add catchment-specific logic here;
+per-catchment data belongs in the catchment profile, not a forked copy.
 """
 
-from port.rand.shared.property.property_valuation import *  # noqa: F401,F403
+import sys
+
+from port.rand.shared.property import property_valuation as _canonical
+
+sys.modules[__name__] = _canonical
