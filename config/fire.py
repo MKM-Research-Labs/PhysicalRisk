@@ -285,3 +285,10 @@ def load_fire_config(
         initiation=initiation,
         progression=progression,
     )
+
+
+# Loss-given-event for the fire credit leg. A full conflagration (a fire past
+# the point of no return) is priced as a total-loss credit event, so
+# fire_spread_bps = pnr_frequency * FIRE_LOSS_GIVEN_EVENT * 10_000. Seeded at
+# 1.0 (total loss); tunable when the fire model gains an explicit LGE knob.
+FIRE_LOSS_GIVEN_EVENT: float = 1.0

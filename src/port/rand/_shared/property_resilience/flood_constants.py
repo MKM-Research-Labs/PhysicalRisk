@@ -6,6 +6,9 @@
 
 from typing import Dict, List, Tuple
 
+# Single authoritative definition lives in config (parameter governance).
+from config.damage import DEFAULT_MISSING_COMPLIANCE
+
 
 # Spec base weights — 13 measures, sum to 100.
 FLOOD_SPEC_BASE_WEIGHTS: Dict[str, int] = {
@@ -130,5 +133,4 @@ REGIME_FROM_FLOOD_RISK_TYPE: Dict[str, str] = {
 # Default regime when FloodRiskType is missing.
 DEFAULT_REGIME = "fluvial"
 
-# Default compliance for missing values (spec recommends 0.25 + confidence penalty).
-DEFAULT_MISSING_COMPLIANCE = 0.25
+# DEFAULT_MISSING_COMPLIANCE now imported from config.damage (see top of file).

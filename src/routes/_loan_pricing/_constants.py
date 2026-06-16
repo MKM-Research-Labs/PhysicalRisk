@@ -20,7 +20,11 @@
 
 """Constant tables for the loan-pricer bridge (override keys, defaults)."""
 
-from config.loan import DEFAULT_CREDIT_RATING, DEFAULT_RISK_CATEGORY
+from config.loan import (
+    DEFAULT_CREDIT_RATING,
+    DEFAULT_RISK_CATEGORY,
+    LOAN_PRICING_INPUT_DEFAULTS as _INPUT_DEFAULTS,
+)
 
 
 # Keys the panel is allowed to override. Anything else in the request body is
@@ -90,17 +94,8 @@ _STRING_OVERRIDE_KEYS = frozenset({
     "prs_scenario",
 })
 
-# Defaults for any pricing input the CDM record doesn't supply. Mirrors the
-# fallbacks in LoanPricer.batch_price_loans so a sparse loan still
-# prices instead of raising a TypeError on a missing kwarg.
-_INPUT_DEFAULTS = {
-    "gross_annual_income": 50000,
-    "interest_rate": 0.035,
-    "insurance_rate": 0.002,
-    "original_maturity": 30,
-    "current_term": 30,
-    "recovery_haircut": 0.2,
-}
+# _INPUT_DEFAULTS now imported from config.loan (see top of file) — the
+# single authoritative pricing-input fallback set.
 
 # Scalar pricing outputs returned to the client. The rest of price_loan's
 # result is numpy time-series (outstanding_balance, hazard_rates, …) which is

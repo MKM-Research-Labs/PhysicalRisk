@@ -47,10 +47,8 @@ from config.damage import (
     DAMAGE_POINTS,
     DD_POLY_COEFFS,
     DEPTH_POINTS,
+    LN_FLOOR,
 )
-
-# Small floor to prevent ln(0); scores below this are treated as effectively zero.
-_LN_FLOOR = 1e-6
 
 
 def is_prs_flood(event: dict) -> bool:
@@ -102,10 +100,10 @@ def bri_stilt(bri_flood_score: float, bri_composite_score: float) -> float:
         Signed stilt in metres.
     """
     flood_term = BRI_FLOOD_ALPHA_M * math.log(
-        max(bri_flood_score, _LN_FLOOR) / BRI_FLOOD_REFERENCE
+        max(bri_flood_score, LN_FLOOR) / BRI_FLOOD_REFERENCE
     )
     composite_term = BRI_COMPOSITE_BETA_M * math.log(
-        max(bri_composite_score, _LN_FLOOR) / BRI_COMPOSITE_REFERENCE
+        max(bri_composite_score, LN_FLOOR) / BRI_COMPOSITE_REFERENCE
     )
     raw = flood_term + composite_term
     return max(-BRI_STILT_MAX_M, min(BRI_STILT_MAX_M, raw))

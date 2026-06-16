@@ -39,16 +39,12 @@ from config.damage import (
     BRI_COMPOSITE_REFERENCE,
     BRI_WIND_ALPHA_MS,
     BRI_WIND_REFERENCE,
+    LN_FLOOR,
     WIND_V50_SHIFT_MAX_MS,
 )
 
 
 __all__ = ["bri_v50_shift"]
-
-
-# Small floor to prevent ln(0); scores below this are treated as
-# effectively zero. Mirrors the _LN_FLOOR convention in floodrisk.
-_LN_FLOOR: float = 1e-6
 
 
 def bri_v50_shift(bri_wind_score: float, bri_composite_score: float) -> float:
@@ -62,10 +58,10 @@ def bri_v50_shift(bri_wind_score: float, bri_composite_score: float) -> float:
         Signed shift in m/s, capped to ±WIND_V50_SHIFT_MAX_MS.
     """
     wind_term = BRI_WIND_ALPHA_MS * math.log(
-        max(bri_wind_score, _LN_FLOOR) / BRI_WIND_REFERENCE
+        max(bri_wind_score, LN_FLOOR) / BRI_WIND_REFERENCE
     )
     composite_term = BRI_COMPOSITE_BETA_MS * math.log(
-        max(bri_composite_score, _LN_FLOOR) / BRI_COMPOSITE_REFERENCE
+        max(bri_composite_score, LN_FLOOR) / BRI_COMPOSITE_REFERENCE
     )
     raw = wind_term + composite_term
     return max(-WIND_V50_SHIFT_MAX_MS, min(WIND_V50_SHIFT_MAX_MS, raw))
