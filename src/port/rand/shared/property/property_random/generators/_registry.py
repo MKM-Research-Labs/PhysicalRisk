@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-"""Merged field generator registry for halong property randomisation."""
+"""Merged field generator registry for property randomisation."""
 
 from typing import Callable, Dict
 

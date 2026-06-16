@@ -19,17 +19,9 @@
 # SOFTWARE.
 
 
-"""Merged field generator registry for thames property randomisation."""
+"""Field generator registry and value generation."""
 
-from typing import Callable, Dict
+from ._registry import get_field_generators
+from ._value import generate_field_value
 
-from ._registry_a import field_generators_part_a
-from ._registry_b import field_generators_part_b
-
-
-def get_field_generators() -> Dict[str, Callable]:
-    """Return dictionary of field name to generator function mappings.
-
-    Each generator takes a location_info dict and returns the field value.
-    """
-    return {**field_generators_part_a(), **field_generators_part_b()}
+__all__ = ["generate_field_value", "get_field_generators"]

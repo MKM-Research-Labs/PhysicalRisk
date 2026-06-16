@@ -19,11 +19,13 @@
 # SOFTWARE.
 
 
-"""Field generator registry (part A) for halong property randomisation."""
+"""Field generator registry (part A) for property randomisation."""
 
 import random
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict
+
+from port.rand.profiles import active_profile as _profile
 
 from ..helpers import (
     _deterministic_prop_id,
@@ -180,24 +182,20 @@ def field_generators_part_a():
         "BRIWindScore":      lambda _: None,
         "BRIFireScore":      lambda _: None,
         "BRISeismicScore":   lambda _: None,
-        # Water / Flash split-rating fields. The spreadsheet's prototypes are
-        # commercial-only; for residential we leave them null and let the
-        # BRI helper fall back to the legacy flat "Flood" rating.
+        # Water / Flash split-rating fields — populated by halong commercial
+        # only. Thames leaves them blank.
         "BRIWaterRating":    lambda _: None,
         "BRIWaterScore":     lambda _: None,
         "BRIFlashRating":    lambda _: None,
         "BRIFlashScore":     lambda _: None,
-        # HazardProfile split thresholds — populated by halong commercial
-        # generators only. Residential keeps the legacy WindThresholdKph
-        # path (when present) and leaves the new fields blank.
+        # HazardProfile split thresholds — populated by halong commercial only.
         "WindThresholdMajorMps": lambda _: None,
         "WindThresholdMinorMps": lambda _: None,
         "WaterThresholdMajorM":  lambda _: None,
         "WaterThresholdMinorM":  lambda _: None,
         "FlashThresholdMajorM":  lambda _: None,
         "FlashThresholdMinorM":  lambda _: None,
-        # IndustryGroups BRI measure codes — populated for halong commercial
-        # from the SE-Asia prototype catalogue. Empty list everywhere else.
+        # IndustryGroups — empty everywhere except halong commercial.
         "WindCodes":    lambda _: [],
         "WaterCodes":   lambda _: [],
         "FlashCodes":   lambda _: [],
@@ -222,18 +220,14 @@ def field_generators_part_a():
             weights=[0.05, 0.40, 0.35, 0.15, 0.05],
         )[0] + random.uniform(-5, 5), 0),
         "DesignFloodReturnYr": lambda _: random.choice([50, 100, 200, 500, 1000]),
-        "DesignSeismicPGA":    lambda _: round(random.uniform(0.12, 0.50), 3),
+        "DesignSeismicPGA":    lambda _: round(random.uniform(*_profile().SEISMIC_PGA_RANGE), 3),
         "WindHazardClass":    lambda _: random.choices(
             ["None", "Low", "Medium", "High", "Extreme"],
             weights=[0.05, 0.55, 0.30, 0.09, 0.01],
         )[0],
-        # Halong sits on the Red River Fault Zone (coastal Vietnam), which the
-        # MKM-SEIS-001 hazard table rates as High seismic — so this distribution
-        # deliberately skews Medium/High, UNLIKE the Thames (UK) copy which keeps
-        # the None/Low intraplate weighting. Do NOT mirror this line to thames/.
         "SeismicHazardClass": lambda _: random.choices(
             ["None", "Low", "Medium", "High", "Extreme"],
-            weights=[0.05, 0.15, 0.35, 0.30, 0.15],
+            weights=_profile().SEISMIC_HAZARD_CLASS_WEIGHTS,
         )[0],
         "FireHazardClass":    lambda _: random.choices(
             ["None", "Low", "Medium", "High", "Extreme"],

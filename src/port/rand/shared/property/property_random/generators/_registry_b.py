@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-"""Field generator registry (part B) for halong property randomisation."""
+"""Field generator registry (part B) for property randomisation."""
 
 import random
 from datetime import datetime, timedelta
