@@ -3,27 +3,17 @@
 # This software is licensed by MKM Research Labs for non-commercial
 # research and educational use only.
 
-"""Thames mortgage constants — UK market specific."""
+"""Catchment shim — canonical implementation in
+``port.rand.shared.mortgage.constants``.
 
-from config.port import MORTGAGE_TYPE_WEIGHTS, RATE_TYPE_WEIGHTS  # noqa: F401
+Phase 1 de-duplication: thames and halong share ONE implementation. This module
+is an alias of the shared canonical module, so every symbol (public and
+private) resolves through it. Do not add catchment-specific logic here;
+per-catchment data belongs in the catchment profile, not a forked copy.
+"""
 
-UK_LENDERS = [
-    "HSBC", "Barclays", "NatWest", "Lloyds", "Santander",
-    "Nationwide", "Halifax", "Royal Bank of Scotland",
-    "Yorkshire Building Society", "Coventry Building Society"
-]
+import sys
 
-MORTGAGE_TYPES = [
-    "Residential", "Buy-to-Let", "Second Home",
-    "Holiday Home", "Shared Ownership"
-]
-# MORTGAGE_TYPE_WEIGHTS imported from config/port.py
+from port.rand.shared.mortgage import constants as _canonical
 
-RATE_TYPES = [
-    "Fixed", "Variable", "Tracker", "Discount",
-    "Capped", "Standard Variable Rate"
-]
-# RATE_TYPE_WEIGHTS imported from config/port.py
-
-REPAYMENT_TYPES = ["Repayment", "Interest only", "Part and part"]
-EMPLOYMENT_TYPES = ["Employed", "Self-employed", "Retired", "Unemployed", "Director", "Contractor"]
+sys.modules[__name__] = _canonical
