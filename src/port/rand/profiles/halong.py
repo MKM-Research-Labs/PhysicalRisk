@@ -156,3 +156,18 @@ COMMERCIAL_PERIOD_BUCKETS = [
     (2015, "2005-2014"),
     (None, "2015-Present"),
 ]
+
+# Construction-year strategy. Hanoi's commercial stock is overwhelmingly
+# post-Doi-Moi, so years are drawn from weighted per-type bands. Each band is
+# ((start, end), weight); end None -> current year - 1 (open-ended). Types not
+# listed fall back to a uniform draw over COMMERCIAL_CONSTRUCTION_YEAR_RANGE.
+COMMERCIAL_CONSTRUCTION_YEAR_BANDS = {
+    "Office":      [((1995, 2004), 0.15), ((2005, 2014), 0.45), ((2015, None), 0.40)],
+    "MultiFamily": [((1995, 2004), 0.10), ((2005, 2014), 0.40), ((2015, None), 0.50)],
+    "Hotel":       [((1995, 2004), 0.10), ((2005, 2014), 0.35), ((2015, None), 0.55)],
+    "Retail":      [((1985, 1994), 0.15), ((1995, 2004), 0.25),
+                    ((2005, 2014), 0.35), ((2015, None), 0.25)],
+    "MixedUse":    [((2000, 2009), 0.20), ((2010, 2017), 0.45), ((2018, None), 0.35)],
+}
+# (min_year, max_year) fallback for unlisted types; max None -> current year - 1.
+COMMERCIAL_CONSTRUCTION_YEAR_RANGE = (2005, None)
