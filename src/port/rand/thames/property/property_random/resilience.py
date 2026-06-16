@@ -5,7 +5,7 @@
 Thames property resilience — thin shim over the catchment-shared module.
 
 All resilience logic and calibration lives in
-``port.rand._shared.property_resilience``. This module re-exports every public
+``port.rand.shared.property_resilience``. This module re-exports every public
 and private symbol from there (so existing imports keep working unchanged) and
 sets the two Thames-specific toggles:
 
@@ -22,7 +22,7 @@ module's flag changes the behaviour.
 
 from typing import Any, Dict
 
-from port.rand._shared import property_resilience as _shared
+from port.rand.shared import property_resilience as _shared
 
 # Re-export every symbol from the shared module (including underscore-prefixed
 # privates that tests import directly). Dunder names are skipped.
