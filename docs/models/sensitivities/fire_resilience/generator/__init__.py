@@ -19,7 +19,9 @@ Reported metrics (the resilience-credit currency the PRS pricer consumes):
     ``(n_point_of_no_return / n_sim) * 10000`` (frequency x 100% loss-given-
     event), i.e. the exact quantity rendered in the Commercial PRS Pricer.
 
-Seven sensitivities are produced:
+Thirteen tables are produced --- the first set are Monte Carlo sensitivities
+(one input varied at a time), the last is a deterministic config-explainer that
+maps each construction type to the model levers it sets:
 
   1. Suppression-systems resilience level (Not assessed .. Verified)
   2. Building height / NumberOfStoreys (crossing the 4-storey fire-service reach)
@@ -28,10 +30,19 @@ Seven sensitivities are produced:
   5. Commercial type (drives the base ignition rate and class prior)
   6. Two-way interaction: storeys x suppression level (the headline
      fire-truck-reach behaviour, reported as fire spread in bps)
-  7. Construction type / structural-frame combustibility — the building-material
-     conflagration sensitivity (a tall, sub-threshold-suppressed building: a
-     non-combustible frame is contained by its own structure, a combustible one
-     runs to the point of no return)
+  7. Construction type / structural-frame combustibility (the building-material
+     conflagration sensitivity)
+  8. Automatic-detection resilience level (the remaining resilience field)
+  9. Occupancy status (a Model A initiation-frequency driver)
+ 10. Two-way: construction x height (fire spread bps) --- material removes the
+     reach cliff for non-combustible frames
+ 11. Two-way: construction x suppression (containment %) --- passive material
+     vs active protection
+ 12. Residual conflagration: construction sweep at *no* effective suppression
+     (the small "eventually it catches" tail for non-combustible frames)
+ 13. Config explainer: construction type -> model levers (combustibility,
+     growth scale, fuel ceiling, structural-containment weight, structural
+     fire-resistance fallback) --- deterministic, computed from the config
 
 All values are produced from engineering-judgement seed parameters in
 ``config/fire_matrices.json`` and are therefore directional, not calibrated.
@@ -43,8 +54,17 @@ import numpy as np
 
 from config.fire import FireRunConfig, load_fire_config
 from docs.models.sensitivities import latex_table, write_tables
+from models.fire.cdm_adapter import CONSTRUCTION_TO_STRUCTURAL_LEVEL
 from models.fire.containment import simulate_asset_fire
 from models.fire.data_structures import AssetFireFeatures
+from models.fire.response_effectiveness import combustibility, intensity_ceiling
+
+# Construction types in non-combustible -> combustible order, reused across the
+# construction sweeps and the config-explainer table.
+_CONSTRUCTION_TYPES = [
+    "Reinforced concrete", "Concrete frame", "Steel frame", "Brick and block",
+    "Modern methods", "Mixed construction", "Timber frame",
+]
 
 # A large draw count keeps the conditional containment rate stable (the
 # baseline ignites only ~2-4% of draws, so we need many draws to accumulate
@@ -111,9 +131,45 @@ def _sweep(field: str, values, label_fmt=str, **base_overrides):
 
 _HEADERS = ["", "Containment (\\%)", "Loss freq (\\%)", "Fire spread (bps)"]
 
+# Metric index into _metrics()'s (containment %, loss %, spread bps) tuple.
+_CONTAINMENT, _LOSS, _SPREAD = 0, 1, 2
+
+
+def _grid(row_field, row_values, col_field, col_values, metric, row_label,
+          **base_overrides):
+    """Two-way grid: vary row_field x col_field, one metric per cell."""
+    base = replace(_baseline(), **base_overrides) if base_overrides else _baseline()
+    grid_rows = []
+    for rv in row_values:
+        cells = [row_label(rv)]
+        for cv in col_values:
+            feat = replace(base, **{row_field: rv, col_field: cv})
+            cells.append(_metrics(feat)[metric])
+        grid_rows.append(tuple(cells))
+    return grid_rows
+
+
+def _construction_levers_rows():
+    """Deterministic config-explainer: ConstructionType -> the model levers it
+    sets. Computed from the live config + model helpers (no Monte Carlo), so the
+    table can never drift from the running model."""
+    prog = load_fire_config().progression
+    scale_lo, scale_hi = prog.construction["growth_combustibility_scale"]
+    kappa = prog.construction["structural_containment_weight"]
+    rows = []
+    for ct in _CONSTRUCTION_TYPES:
+        feat = replace(_baseline(), construction_type=ct)
+        gamma = combustibility(feat, prog)
+        growth_scale = scale_lo + gamma * (scale_hi - scale_lo)
+        i_max = intensity_ceiling(gamma, prog)
+        w_struct = min(max(kappa * (1.0 - gamma), 0.0), 1.0)
+        fallback = CONSTRUCTION_TO_STRUCTURAL_LEVEL.get(ct, "(BRI grade)")
+        rows.append((ct, gamma, growth_scale, i_max, w_struct, fallback))
+    return rows
+
 
 def generate():
-    """Build the six sensitivity tables for MKM-FIRE-001."""
+    """Build the thirteen sensitivity / config-explainer tables for MKM-FIRE-001."""
     sections = []
 
     # 1. Suppression systems level.
@@ -195,10 +251,7 @@ def generate():
     # material. A non-combustible frame (reinforced concrete / steel / brick) is
     # now contained by its own structure (zero spread); a combustible frame
     # (modern methods / mixed / timber) still runs to the point of no return.
-    rows = _sweep("construction_type",
-                  ["Reinforced concrete", "Concrete frame", "Steel frame",
-                   "Brick and block", "Modern methods", "Mixed construction",
-                   "Timber frame"],
+    rows = _sweep("construction_type", _CONSTRUCTION_TYPES,
                   number_of_storeys=12, suppression_systems_level="Partial")
     sections.append(latex_table(
         caption="Fire-resilience credit by construction type / structural-frame "
@@ -206,6 +259,87 @@ def generate():
                 "--- above the fire-service reach, so material governs)",
         label="fire_construction_sensitivity",
         headers=_HEADERS, rows=rows, col_fmt="lrrr"))
+
+    # 8. Automatic-detection level (the remaining resilience field; drives
+    # detection time, hence how early suppression can bite in the race).
+    rows = _sweep("automatic_detection_level", _LEVELS)
+    rows = [(("Detection: " + r[0]),) + r[1:] for r in rows]
+    sections.append(latex_table(
+        caption="Fire-resilience credit by automatic-detection level",
+        label="fire_detection_sensitivity",
+        headers=_HEADERS, rows=rows, col_fmt="lrrr"))
+
+    # 9. Occupancy status (a Model A ignition-frequency driver).
+    rows = _sweep("occupancy_status",
+                  ["Fully occupied", "Partially vacant", "Vacant"])
+    sections.append(latex_table(
+        caption="Fire-resilience credit by occupancy status "
+                "(a Model~A initiation-frequency driver)",
+        label="fire_occupancy_sensitivity",
+        headers=_HEADERS, rows=rows, col_fmt="lrrr"))
+
+    # 10. Two-way: construction x height (fire spread bps). The headline of the
+    # building-material change: a non-combustible frame stays near zero at every
+    # height, while only combustible frames hit the 4-storey reach cliff.
+    storeys = [3, 5, 8, 20]
+    ctypes = ["Reinforced concrete", "Steel frame", "Modern methods",
+              "Mixed construction", "Timber frame"]
+    grid_rows = _grid("construction_type", ctypes, "number_of_storeys", storeys,
+                      _SPREAD, lambda c: c, suppression_systems_level="Partial")
+    sections.append(latex_table(
+        caption="Fire spread (bps) by construction $\\times$ height "
+                "(sub-threshold 'Partial' suppression) --- material, not height "
+                "alone, gates the conflagration: non-combustible frames stay near "
+                "zero at every height; combustible frames hit the reach cliff",
+        label="fire_construction_height_grid",
+        headers=[""] + [f"{n} st" for n in storeys], rows=grid_rows,
+        col_fmt="l" + "r" * len(storeys)))
+
+    # 11. Two-way: construction x suppression (containment %). Passive material
+    # and active suppression are complementary credits.
+    sup_levels = ["Partial", "Meets minimum", "Enhanced", "Verified"]
+    grid_rows = _grid("construction_type", ctypes, "suppression_systems_level",
+                      sup_levels, _CONTAINMENT, lambda c: c, number_of_storeys=12)
+    sections.append(latex_table(
+        caption="Containment (\\%) by construction $\\times$ suppression level "
+                "(12-storey, above the reach) --- a non-combustible frame is "
+                "contained by its structure even when suppression is weak; the "
+                "two credits are complementary",
+        label="fire_construction_suppression_grid",
+        headers=[""] + sup_levels, rows=grid_rows,
+        col_fmt="l" + "r" * len(sup_levels)))
+
+    # 12. Residual conflagration: construction sweep at NO effective suppression
+    # (worst case). Shows the small jittered "eventually it catches" residual for
+    # non-combustible frames --- non-zero, but far below the combustible cliff.
+    rows = _sweep("construction_type", _CONSTRUCTION_TYPES,
+                  number_of_storeys=12, suppression_systems_level="Not assessed")
+    sections.append(latex_table(
+        caption="Construction sweep at \\emph{no} effective suppression "
+                "(12-storey, 'Not assessed') --- the robustness check. Even with "
+                "suppression absent, a non-combustible frame realises "
+                "effectively zero conflagration: the fuel cap holds because the "
+                "chain absorbs before the capped intensity can creep across "
+                "$I_{\\text{crit}}$ (FIRE-L3). The ceiling jitter leaves only a "
+                "negligible tail (sub-bp at this baseline; single-digit bps in "
+                "very tall non-combustible assets). Combustible frames suffer the "
+                "full cliff.",
+        label="fire_construction_residual",
+        headers=_HEADERS, rows=rows, col_fmt="lrrr"))
+
+    # 13. Config explainer (deterministic): ConstructionType -> model levers.
+    rows = _construction_levers_rows()
+    sections.append(latex_table(
+        caption="Config explainer: each \\texttt{ConstructionType} maps to the "
+                "model levers it sets --- frame combustibility $\\gamma$, the "
+                "growth-rate scale, the fuel ceiling $I_{\\max}$, the "
+                "structural-containment blend floor $w_{\\text{struct}}$, and the "
+                "structural-fire-resistance fallback level. Deterministic "
+                "(computed from \\texttt{config/fire\\_matrices.json}).",
+        label="fire_construction_levers",
+        headers=["Construction", "$\\gamma$", "Growth scale", "$I_{\\max}$",
+                 "$w_{\\text{struct}}$", "Struct.\\ FR fallback"],
+        rows=rows, col_fmt="lrrrrl"))
 
     content = (
         "% Baseline: fully-occupied 3-storey Office, Fair condition, all "

@@ -128,3 +128,107 @@
         \bottomrule
     \end{tabular}
 \end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Fire-resilience credit by automatic-detection level}
+    \label{tab:fire_detection_sensitivity}
+    \begin{tabular}{lrrr}
+        \toprule
+        \textbf{} & \textbf{Containment (\%)} & \textbf{Loss freq (\%)} & \textbf{Fire spread (bps)} \\
+        \midrule
+        Detection: Not assessed & 66.9 & 0.7150 & 0.0000 \\
+        Detection: Partial & 66.7 & 0.6750 & 0.0000 \\
+        Detection: Meets minimum & 66.7 & 0.6750 & 0.0000 \\
+        Detection: Enhanced & 66.7 & 0.6750 & 0.0000 \\
+        Detection: Verified & 67.3 & 0.6450 & 0.0000 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Fire-resilience credit by occupancy status (a Model~A initiation-frequency driver)}
+    \label{tab:fire_occupancy_sensitivity}
+    \begin{tabular}{lrrr}
+        \toprule
+        \textbf{} & \textbf{Containment (\%)} & \textbf{Loss freq (\%)} & \textbf{Fire spread (bps)} \\
+        \midrule
+        Fully occupied & 66.7 & 0.6750 & 0.0000 \\
+        Partially vacant & 67.3 & 0.6150 & 0.0000 \\
+        Vacant & 67.4 & 0.5750 & 0.0000 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Fire spread (bps) by construction $\times$ height (sub-threshold 'Partial' suppression) --- material, not height alone, gates the conflagration: non-combustible frames stay near zero at every height; combustible frames hit the reach cliff}
+    \label{tab:fire_construction_height_grid}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{} & \textbf{3 st} & \textbf{5 st} & \textbf{8 st} & \textbf{20 st} \\
+        \midrule
+        Reinforced concrete & 0.0000 & 0.0000 & 0.0000 & 0.0000 \\
+        Steel frame & 0.0000 & 0.0000 & 0.0000 & 0.0000 \\
+        Modern methods & 0.0000 & 0.0000 & 0.0000 & 0.0000 \\
+        Mixed construction & 0.0000 & 203.0 & 203.0 & 203.0 \\
+        Timber frame & 3.50 & 203.0 & 203.0 & 203.0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Containment (\%) by construction $\times$ suppression level (12-storey, above the reach) --- a non-combustible frame is contained by its structure even when suppression is weak; the two credits are complementary}
+    \label{tab:fire_construction_suppression_grid}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{} & \textbf{Partial} & \textbf{Meets minimum} & \textbf{Enhanced} & \textbf{Verified} \\
+        \midrule
+        Reinforced concrete & 87.7 & 87.7 & 87.7 & 87.1 \\
+        Steel frame & 78.8 & 78.8 & 78.8 & 86.8 \\
+        Modern methods & 63.8 & 66.7 & 78.1 & 86.8 \\
+        Mixed construction & 0.0000 & 66.7 & 78.1 & 86.8 \\
+        Timber frame & 0.0000 & 66.5 & 78.1 & 86.8 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Construction sweep at \emph{no} effective suppression (12-storey, 'Not assessed') --- the robustness check. Even with suppression absent, a non-combustible frame realises effectively zero conflagration: the fuel cap holds because the chain absorbs before the capped intensity can creep across $I_{\text{crit}}$ (FIRE-L3). The ceiling jitter leaves only a negligible tail (sub-bp at this baseline; single-digit bps in very tall non-combustible assets). Combustible frames suffer the full cliff.}
+    \label{tab:fire_construction_residual}
+    \begin{tabular}{lrrr}
+        \toprule
+        \textbf{} & \textbf{Containment (\%)} & \textbf{Loss freq (\%)} & \textbf{Fire spread (bps)} \\
+        \midrule
+        Reinforced concrete & 87.5 & 0.2700 & 0.0000 \\
+        Concrete frame & 83.3 & 0.3600 & 0.0000 \\
+        Steel frame & 78.7 & 0.4600 & 0.0000 \\
+        Brick and block & 78.7 & 0.4600 & 0.0000 \\
+        Modern methods & 63.9 & 0.7800 & 0.0000 \\
+        Mixed construction & 0.0000 & 2.16 & 216.0 \\
+        Timber frame & 0.0000 & 2.16 & 216.0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Config explainer: each \texttt{ConstructionType} maps to the model levers it sets --- frame combustibility $\gamma$, the growth-rate scale, the fuel ceiling $I_{\max}$, the structural-containment blend floor $w_{\text{struct}}$, and the structural-fire-resistance fallback level. Deterministic (computed from \texttt{config/fire\_matrices.json}).}
+    \label{tab:fire_construction_levers}
+    \begin{tabular}{lrrrrl}
+        \toprule
+        \textbf{Construction} & \textbf{$\gamma$} & \textbf{Growth scale} & \textbf{$I_{\max}$} & \textbf{$w_{\text{struct}}$} & \textbf{Struct.\ FR fallback} \\
+        \midrule
+        Reinforced concrete & 0.0000 & 0.5000 & 5.00 & 1.00 & Verified \\
+        Concrete frame & 0.0500 & 0.5500 & 5.00 & 0.9500 & Verified \\
+        Steel frame & 0.1000 & 0.6000 & 5.00 & 0.9000 & Enhanced \\
+        Brick and block & 0.1000 & 0.6000 & 5.00 & 0.9000 & Enhanced \\
+        Modern methods & 0.2500 & 0.7500 & 5.00 & 0.7500 & Meets minimum \\
+        Mixed construction & 0.5000 & 1.00 & 37.9 & 0.5000 & Partial \\
+        Timber frame & 1.00 & 1.50 & 120.0 & 0.0000 & Partial \\
+        \bottomrule
+    \end{tabular}
+\end{table}

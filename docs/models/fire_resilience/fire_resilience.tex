@@ -59,7 +59,8 @@ Building \emph{material} is a first-class driver: the structural frame's
 combustibility scales how fast the fire grows (a non-combustible frame buys
 suppression time), caps the latent intensity below the critical threshold (so a
 non-combustible frame cannot run to a whole-building conflagration even above the
-fire-service reach --- only a small jittered residual remains), and credits the
+fire-service reach --- only a negligible residual remains, effectively zero in
+practice), and credits the
 containment chain (a non-combustible structure contains the fire floor-by-floor
 even when active suppression cannot reach it). This is what stops building height
 alone from forcing a conflagration in a reinforced-concrete or steel tower.
@@ -73,7 +74,8 @@ engineering-judgement seed (\texttt{config/fire\_matrices.json},
 
 \textbf{Key risk:} The model uses placeholder calibration throughout. It is not
 approved for production until historical calibration completes and the Model
-Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R7).
+Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R8, listed in
+full in Section~8).
 
 % ===================================================================
 % 2. MODEL PURPOSE AND SCOPE
@@ -251,10 +253,14 @@ jitter is applied once to the growth rate
 ($\tau_{\text{supp}}\!\cdot\!e^{\sigma_\tau Z}$) and the fuel ceiling
 ($I_{\max}\!\cdot\!e^{\sigma_c Z}$) before the march. Without the timing/growth
 jitter the PNR verdict would be a deterministic property of the asset, forcing
-the conflagration leg to be all-or-nothing; the ceiling jitter leaves a non-combustible
-frame with no effective suppression a \emph{small residual} chance that an
-unlucky (high-fuel-load) fire's ceiling exceeds $I_{\text{crit}}$ --- the
-``eventually it catches'' tail --- rather than being absolutely immune. Setting
+the conflagration leg to be all-or-nothing. The ceiling jitter is a structural
+safeguard against literal immunity: it gives a non-combustible frame with no
+effective suppression a non-zero chance that an unlucky (high-fuel-load) fire's
+ceiling exceeds $I_{\text{crit}}$ --- the ``eventually it catches'' tail. In
+practice this residual realises as \emph{effectively zero} (see
+Table~\ref{tab:fire_construction_residual}), because the chain absorbs before the
+slowly-creeping capped intensity can cross the threshold (the FIRE-L3 effect);
+it registers only as a sub-bp tail in very tall non-combustible assets. Setting
 $\sigma_g=\sigma_\tau=\sigma_c=0$ recovers the deterministic track and hard cap.
 
 \subsection{Point of No Return}
@@ -450,6 +456,32 @@ containment with near-zero spread, \emph{steel} / \emph{brick} $\approx 79\%$,
 $0\%$/$\approx 203$~bps conflagration. The reach cliff above therefore fires only
 for combustible frames; material, not height alone, decides the high-rise tail.
 
+\medskip\noindent\emph{Supporting tables.} Six further tables isolate the new
+mechanisms and the config. The \textbf{construction~$\times$~height} grid
+(Table~\ref{tab:fire_construction_height_grid}) confirms the reach cliff fires
+\emph{only} for combustible frames: a reinforced-concrete or steel frame holds
+zero spread at 3, 5, 8 and 20 storeys, while mixed and timber jump to
+$\approx 203$~bps above the reach. The \textbf{construction~$\times$~suppression}
+grid (Table~\ref{tab:fire_construction_suppression_grid}) shows the passive and
+active credits are complementary: a non-combustible frame holds $\approx 88\%$
+containment at \emph{every} suppression level, whereas a combustible frame climbs
+from $0\%$ (sub-threshold, unreachable) to $\approx 87\%$ once internal
+suppression clears the sprinkler threshold. The \textbf{detection} sweep
+(Table~\ref{tab:fire_detection_sensitivity}) is deliberately near-flat ---
+detection only shifts the bite timing, and the chain absorbs before it matters
+(the same FIRE-L3 effect that mutes the conflagration leg); the
+\textbf{occupancy} sweep (Table~\ref{tab:fire_occupancy_sensitivity}) moves loss
+frequency the expected small amount (a vacant building ignites less). The
+\textbf{no-suppression robustness check}
+(Table~\ref{tab:fire_construction_residual}) confirms that even with suppression
+absent a non-combustible frame realises effectively zero conflagration --- the
+fuel cap is robust. Finally the deterministic \textbf{config explainer}
+(Table~\ref{tab:fire_construction_levers}) maps each \texttt{ConstructionType} to
+the five model levers it sets ($\gamma$, growth scale, $I_{\max}$,
+$w_{\text{struct}}$, and the structural-fire-resistance fallback), computed
+directly from \texttt{config/fire\_matrices.json} so the table cannot drift from
+the running model.
+
 \input{sensitivity_tables}
 
 \subsection{Interpretation and known model weaknesses}
@@ -509,15 +541,35 @@ it gates growth, the fuel cap and passive containment.
         \texttt{NumberOfStoreys}; the commercial schema carries no explicit
         floor-level or floor-area metric, and the fire-service reach is a single
         global threshold rather than a brigade-specific capability.
-  \item \textbf{Muted conflagration leg for reachable buildings (FIRE-L3).} The
-        chain march absorbs faster ($\approx 3$ steps) than the latent intensity
-        race reaches $I_{\text{crit}}$, so the point-of-no-return / fire-spread
-        leg responds chiefly to compartmentation and the reach cliff rather than
-        to the active suppression level (see Section~7, ``Interpretation and
-        known model weaknesses''). Suppression instead expresses itself through
-        containment rate and loss frequency. Retuning the intensity-race
-        timescale to make spread suppression-sensitive is an open enhancement
-        (FIRE-R5).
+  \item \textbf{Fast chain absorption mutes the time-dependent dynamics
+        (FIRE-L3).} The chain march absorbs in $\approx 3$ steps --- faster than
+        the latent intensity race reaches $I_{\text{crit}}$ --- and this single
+        structural feature mutes three sensitivities that one would expect to be
+        live, each visible in the Section~7 tables and stated here without
+        flattery:
+        \begin{itemize}
+          \item \emph{The conflagration leg is insensitive to active
+                suppression.} Fire-spread (bps) responds chiefly to
+                compartmentation and the reach cliff, not the suppression level;
+                suppression instead expresses itself through containment rate and
+                loss frequency.
+          \item \emph{Automatic detection is near-flat}
+                (Table~\ref{tab:fire_detection_sensitivity}): containment moves
+                $<1$ percentage point across all five detection levels, because
+                detection only shifts the bite timing and the chain has usually
+                absorbed before that matters. The detection credit is therefore
+                currently immaterial.
+          \item \emph{The non-combustible residual realises as effectively zero}
+                (Table~\ref{tab:fire_construction_residual}): even with the
+                ceiling jitter and no suppression, the capped intensity cannot
+                creep across $I_{\text{crit}}$ before the chain absorbs, so the
+                ``eventually it catches'' tail is sub-bp rather than a graded
+                residual.
+        \end{itemize}
+        Retuning the intensity-race timescale (e.g.\ a lower $I_{\text{crit}}$
+        of order 2--4 so the race competes with the three-step march) so that
+        suppression, detection and the residual all become live is an open
+        remediation item (FIRE-R5).
   \item \textbf{Single global reach threshold (FIRE-L4).} The fire-service reach
         is one global 4-storey cut-off and internal-suppression adequacy flips at
         a hard index, so the height cliff only appears at sub-threshold internal
@@ -526,9 +578,15 @@ it gates growth, the fuel cap and passive containment.
   \item \textbf{Initiation class is cosmetic.} The initiation-class draw seeds an
         entry-point label but does not yet change the chain start state or
         dynamics.
-  \item \textbf{Fixed loss-given-event.} The conflagration leg assumes a 100\%
-        loss given a point-of-no-return event; partial-loss quantum is not
-        modelled.
+  \item \textbf{Fixed loss-given-event; no partial-loss quantum (FIRE-L6).} The
+        conflagration leg prices \emph{every} point-of-no-return event at a
+        100\% loss-given-event --- including the fires the absorbing matrix sends
+        to \emph{partial} loss ($S_6$), not total loss ($S_7$). Because
+        $n_{\text{PNR}}$ counts partial- and total-loss fires alike but is priced
+        at full total-loss severity, the fire-spread bps \emph{overstates} a
+        true severity-weighted leg. Replacing the fixed LGE with a modelled
+        partial/total severity split is an open remediation item (FIRE-R8); it is
+        the most material conservative bias in the leg after calibration.
   \item \textbf{Construction combustibility is a single seeded fraction
         (FIRE-L5).} Frame combustibility is one number per
         \texttt{ConstructionType}; the threshold separating non-combustible from
@@ -543,6 +601,42 @@ it gates growth, the fuel cap and passive containment.
   \item \textbf{Independence assumption.} The root-sum-of-squares all-in coupon
         treats fire, flood and wind as independent perils.
 \end{itemize}
+
+\subsection{Outstanding remediation}
+
+The model is gated to Development status; MRC sign-off is contingent on closing
+the items below. They are listed in full --- including the ones that expose the
+model's current weaknesses --- so the outstanding work is transparent. Items
+FIRE-R5--R8 each map to a documented limitation above.
+
+\begin{tabular}{l l p{0.60\textwidth}}
+\toprule
+ID & Priority & Item \\
+\midrule
+FIRE-R1 & High & Replace the placeholder seed calibration in
+\texttt{fire\_matrices.json} with values derived from commercial fire-incident /
+loss data (closes FIRE-L1). \\
+FIRE-R2 & High & Independent benchmarking of the credit against an external
+fire-loss reference. \\
+FIRE-R3 & Medium & Define the production monitoring plan (drift in input
+distributions; backtest of realised vs.\ predicted fire frequency). \\
+FIRE-R4 & High & Independent model validation and MRC review / sign-off. \\
+FIRE-R5 & Medium & Retune the intensity-race timescale (lower $I_{\text{crit}}$
+so the race competes with the $\approx 3$-step chain absorption) so that the
+conflagration leg, the automatic-detection sensitivity and the non-combustible
+residual all become live rather than muted (closes FIRE-L3). \\
+FIRE-R6 & Low & Replace the single global 4-storey fire-service reach with a
+brigade-specific, height-graded capability and a graded internal-suppression
+adequacy (closes FIRE-L4). \\
+FIRE-R7 & Medium & Recalibrate the construction combustibility seeds
+(\texttt{combustibility\_by\_type}, \texttt{combustible\_threshold},
+\texttt{growth\_combustibility\_scale}, $\sigma_c$) against loss experience and
+add a combustible-cladding-over-frame input (closes FIRE-L5). \\
+FIRE-R8 & Medium & Replace the fixed 100\% loss-given-event with a modelled
+partial/total severity split, so the fire-spread leg is severity-weighted rather
+than counting every point-of-no-return fire as a total loss (closes FIRE-L6). \\
+\bottomrule
+\end{tabular}
 
 % ===================================================================
 % 9. GOVERNANCE VALIDATION QUESTIONS
@@ -594,11 +688,15 @@ formal stability bands are an open item.
 
 \mkmvqitem{7}{Limitations and weaknesses}{Are the model's limitations understood
 and documented?}
-Yes --- see Section~8 (FIRE-L1--L4 plus three further documented assumptions) and
-the ``Interpretation and known model weaknesses'' discussion in Section~7. The
-placeholder calibration and the height proxy are the most material; the muted
-conflagration leg (FIRE-L3) and single global reach threshold (FIRE-L4) are
-documented enhancements.
+Yes --- see Section~8 (FIRE-L1--L6 plus two further documented assumptions), the
+consolidated remediation table (FIRE-R1--R8), and the ``Interpretation and known
+model weaknesses'' discussion in Section~7. The findings that do \emph{not}
+flatter the model are stated explicitly and tied to remediation: the fast chain
+absorption that mutes the conflagration leg, the automatic-detection sensitivity
+and the non-combustible residual (FIRE-L3 $\rightarrow$ FIRE-R5), and the fixed
+100\% loss-given-event that overstates the leg by counting partial losses as
+total (FIRE-L6 $\rightarrow$ FIRE-R8). The placeholder calibration (FIRE-L1) and
+the height proxy (FIRE-L2) remain the most material.
 
 \mkmvqitem{8}{Ongoing monitoring}{How will the model be monitored in production?}
 Not yet in production. A monitoring plan (drift in input distributions,
@@ -608,7 +706,7 @@ FIRE-R3 before sign-off.
 \mkmvqitem{9}{Governance and approval}{What is the approval status and who owns
 the model?}
 Owner: David K Kelly. Status: Development, Tier~2, RAG Amber. Not approved for
-production; MRC sign-off is contingent on closing FIRE-R1--R7.
+production; MRC sign-off is contingent on closing FIRE-R1--R8 (Section~8).
 
 % ===================================================================
 % 10. CHANGE HISTORY
@@ -622,7 +720,7 @@ Version & Date & Description \\
 0.01 & 05-June-2026 & Skeleton document. Stage 1 (Model A) and Stage 2 (Models B/C/D + orchestrator) delivered with unit tests; placeholder calibration. \\
 0.20 & 06-June-2026 & Completed all narrative sections; added the full mathematical framework (Models A--D, PNR, credit currency), governance validation questions, the matrices appendix, and the end-to-end sensitivity analysis. \\
 0.30 & 08-June-2026 & Recalibrated the resilience response: replaced the saturated hard controllability switch with a continuous matrix blend ($M=wM_{\text{AA}}+(1-w)M_{\text{weak}}$); graded $I_{\text{crit}}$ across all five suppression levels; added a per-level suppression-bite multiplier and per-fire race jitter ($\sigma_\tau,\sigma_g$) so the conflagration probability is no longer all-or-nothing. Containment now grades $47\%\!\to\!88\%$ across suppression levels (previously flat $\approx 88.7\%$). Reworked the height sweep to expose the 4-storey reach cliff and documented the muted-conflagration and single-reach-threshold weaknesses (FIRE-L3/L4, FIRE-R5/R6). \\
-0.40 & 16-June-2026 & Wired the structural-frame \texttt{ConstructionType} into the model as building-material sensitivity: a combustibility fraction $\gamma$ now (i) scales the per-step growth (timing leg), (ii) caps the latent intensity at a threshold-anchored fuel ceiling $I_{\max}$ with a per-fire ceiling jitter $\sigma_c$ leaving a small ``eventually it catches'' residual, and (iii) floors the pre-PNR blend weight at $\kappa(1-\gamma)$ (passive structural containment). The unreachable-suppression auto-PNR latch is now gated by combustibility, and \texttt{ConstructionType} supplies the structural-fire-resistance fallback. Fixes commercial conflagration being $\sim$10$\times$ too high and material-insensitive (a non-combustible high-rise no longer runs to total loss on every fire); added the construction sensitivity table and limitation FIRE-L5 / remediation FIRE-R7. Also unified the port Monte Carlo draw count into a single \texttt{-{}-num-sims} flag (default 10{,}000) across storm/fire/seismic. \\
+0.40 & 16-June-2026 & Wired the structural-frame \texttt{ConstructionType} into the model as building-material sensitivity: a combustibility fraction $\gamma$ now (i) scales the per-step growth (timing leg), (ii) caps the latent intensity at a threshold-anchored fuel ceiling $I_{\max}$ with a per-fire ceiling jitter $\sigma_c$ as a structural residual safeguard (realising $\approx0$ in practice), and (iii) floors the pre-PNR blend weight at $\kappa(1-\gamma)$ (passive structural containment). The unreachable-suppression auto-PNR latch is now gated by combustibility, and \texttt{ConstructionType} supplies the structural-fire-resistance fallback. Fixes commercial conflagration being $\sim$10$\times$ too high and material-insensitive (a non-combustible high-rise no longer runs to total loss on every fire); added the construction sensitivity table and limitation FIRE-L5 / remediation FIRE-R7. Expanded the sensitivity analysis to thirteen tables (construction$\times$height and construction$\times$suppression grids, detection, occupancy, a no-suppression robustness check and a deterministic config explainer). Made the unflattering findings explicit and tied them to remediation: fast chain absorption mutes the conflagration leg, the detection sensitivity and the non-combustible residual (FIRE-L3$\rightarrow$R5), and the fixed 100\% loss-given-event overstates the leg by pricing partial losses as total (FIRE-L6$\rightarrow$R8); added a consolidated FIRE-R1--R8 remediation table. Also unified the port Monte Carlo draw count into a single \texttt{-{}-num-sims} flag (default 10{,}000) across storm/fire/seismic. \\
 \bottomrule
 \end{tabular}
 
