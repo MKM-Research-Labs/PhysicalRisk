@@ -88,7 +88,7 @@ def run_seismic(ctx: StageContext):
         print(f"   (no fault_trace.json for '{ctx.catchment}' — occurrence only, "
               f"R_JB = 0; distance sensitivity disabled)")
 
-    n_sim = args.num_seismic_sims
+    n_sim = args.num_sims
     config = load_seismic_config(run=SeismicRunConfig(n_sim=n_sim))
     rng = np.random.default_rng(args.seismic_seed)
 

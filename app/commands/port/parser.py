@@ -121,7 +121,9 @@ def register_parser(subparsers):
     sp.add_argument("--num-commercial", "-nc", type=int, default=10,
                     help="Number of commercial assets to generate (--commercial)")
     sp.add_argument("--num-gauges", "-ng", type=int, default=52)
-    sp.add_argument("--num-storms", "-ns", type=int, default=20000)
+    sp.add_argument("--num-sims", "-ns", type=int, default=10000,
+                    help="Monte Carlo draws shared by the storm, fire and "
+                         "seismic models (default 10000)")
     sp.add_argument("--simulation-hours", type=int, default=168)
     sp.add_argument("--history-years", "-hy", type=int, default=50)
     sp.add_argument("--tail-weight", "-tw", type=float, default=2.0)
@@ -142,14 +144,12 @@ def register_parser(subparsers):
                          "None = config.port.COUPLING_BETA. Only used in coupled mode.")
 
     # Fire model (--fire) --------------------------------------------------
-    sp.add_argument("--num-fire-sims", "-nf", type=int, default=1000,
-                    help="Monte Carlo draws per commercial asset in the fire model (default 1000)")
+    # Draw count is the shared --num-sims; only the seed is fire-specific.
     sp.add_argument("--fire-seed", type=int, default=None,
                     help="RNG seed for the fire model; None = nondeterministic")
 
     # Seismic model (--seismic) --------------------------------------------
-    sp.add_argument("--num-seismic-sims", "-nse", type=int, default=10000,
-                    help="Monte Carlo draws per commercial asset in the seismic model (default 10000)")
+    # Draw count is the shared --num-sims; only the seed is seismic-specific.
     sp.add_argument("--seismic-seed", type=int, default=None,
                     help="RNG seed for the seismic model; None = nondeterministic")
 

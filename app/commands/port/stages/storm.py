@@ -50,7 +50,7 @@ def run_stressm(ctx: StageContext):
     summary = generate_stressm(
         input_dir=ctx.output_dir,
         output_dir=config.get_output_dir(),
-        count=args.num_storms,
+        count=args.num_sims,
         catchment_id=ctx.catchment,
         seed=42,
         verbose=args.verbose,
@@ -92,7 +92,7 @@ def run_stressm(ctx: StageContext):
             "storm_sequences.json": ctx.input_dir / "storm_sequences.json",
             "sequence_gauge/": ctx.input_dir / "sequence_gauge",
         },
-        parameters={"num_storms": args.num_storms},
+        parameters={"num_storms": args.num_sims},
         elapsed_seconds=elapsed,
         input_hashes=pre,
         stale_name="stressm",

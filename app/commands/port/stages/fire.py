@@ -78,7 +78,7 @@ def run_fire(ctx: StageContext):
         print()
         return
 
-    n_sim = args.num_fire_sims
+    n_sim = args.num_sims
     config = load_fire_config(run=FireRunConfig(n_sim=n_sim))
     rng = np.random.default_rng(args.fire_seed)
 

@@ -145,7 +145,7 @@ Additional property time series variants:
 python3 app.py port --all \
   --num-properties 200 \
   --num-gauges 52 \
-  --num-storms 20000 \
+  --num-sims 10000 \
   --simulation-hours 168 \
   --history-years 50 \
   --tail-weight 2.0
