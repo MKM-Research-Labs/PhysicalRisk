@@ -133,4 +133,4 @@ REGIME_FROM_FLOOD_RISK_TYPE: Dict[str, str] = {
 # Default regime when FloodRiskType is missing.
 DEFAULT_REGIME = "fluvial"
 
-# DEFAULT_MISSING_COMPLIANCE now imported from config.damage (see top of file).
+# DEFAULT_MISSING_COMPLIANCE now imported from config.bri (see top of file).

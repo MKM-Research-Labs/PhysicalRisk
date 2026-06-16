@@ -39,7 +39,7 @@ class TestBriStilt:
         assert bri_stilt(0.05, 0.05) < 0
 
     def test_clamped_to_max(self):
-        from config.damage import BRI_STILT_MAX_M
+        from config.bri import BRI_STILT_MAX_M
         # Extreme high scores still clamp at +max.
         s = bri_stilt(1.0, 1.0)
         assert s <= BRI_STILT_MAX_M

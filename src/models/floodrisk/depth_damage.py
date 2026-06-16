@@ -34,7 +34,7 @@ Public interface:
 import math
 from typing import Optional
 
-from config.damage import (
+from config.bri import (
     BRI_COMPOSITE_BETA_M,
     BRI_COMPOSITE_REFERENCE,
     BRI_FLOOD_ALPHA_M,
@@ -44,10 +44,12 @@ from config.damage import (
     BRI_FLOOR_UPLIFT_SCORE_HI,
     BRI_FLOOR_UPLIFT_SCORE_LO,
     BRI_STILT_MAX_M,
+    LN_FLOOR,
+)
+from config.damage import (
     DAMAGE_POINTS,
     DD_POLY_COEFFS,
     DEPTH_POINTS,
-    LN_FLOOR,
 )
 
 
