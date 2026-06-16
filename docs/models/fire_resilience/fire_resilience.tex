@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \newcommand{\doctitle}{Building Fire-Resilience Credit Model}
 \newcommand{\docsubtitle}{Poisson Initiation with an 8-State Bayesian Containment Chain}
-\newcommand{\docversion}{0.30}
-\newcommand{\docdate}{08-June-2026}
+\newcommand{\docversion}{0.40}
+\newcommand{\docdate}{16-June-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \begin{document}
@@ -29,13 +29,17 @@ governance-separated component models:
         $\lambda_i$ per asset, composed from a base annual rate by commercial
         type and multiplicative modifiers for occupancy, process load,
         condition, protection and fire history.
-  \item \textbf{Model B --- Intensity Track.} A deterministic 15-minute latent
-        intensity $I_t$ whose growth is damped by passive (structural) defence
-        and cut once active suppression bites.
+  \item \textbf{Model B --- Intensity Track.} A 15-minute latent intensity
+        $I_t$ whose growth is damped by passive (structural) defence, scaled by
+        the structural frame's combustibility, cut once active suppression bites,
+        and capped at a combustibility-implied fuel ceiling.
   \item \textbf{Model C --- Response Effectiveness.} A deterministic mapping
-        from the asset's CDM resilience levels to the dynamic quantities Models
-        B and D consume (detection time, suppression-bite time, growth rate,
-        critical threshold, controllability, and the fire-service-reach gate).
+        from the asset's CDM resilience levels --- and its structural-frame
+        \texttt{ConstructionType} --- to the dynamic quantities Models B and D
+        consume (detection time, suppression-bite time, growth rate, critical
+        threshold, controllability, the fire-service-reach gate, and the
+        combustibility that drives the growth rate, the fuel ceiling and the
+        passive-containment credit).
   \item \textbf{Model D --- Containment, Loss \& Resilience Credit.} An 8-state
         discrete-time Bayesian chain marched in 15-minute steps to an absorbing
         terminal state, aggregated into the credit currency.
@@ -44,12 +48,21 @@ governance-separated component models:
 The central concept is the \emph{point of no return} (PNR): the first step at
 which latent intensity $I_t$ exceeds the critical threshold $I_{\text{crit}}$
 \emph{before} suppression has bitten --- or, equivalently, the first step of any
-fire in a building where suppression is structurally unreachable. Once PNR
-latches, the containment chain switches to an absorbing matrix whose
-Contained column is zero: the fire can no longer be contained and absorbs into
-\{partial loss, total loss\}. The PNR frequency, $n_{\text{PNR}}/n_{\text{sim}}$,
-multiplied by a 100\% loss-given-event, is the bps the PRS pricer charges for
-the fire leg.
+fire in a building where suppression is structurally unreachable \emph{and} the
+structural frame is combustible. Once PNR latches, the containment chain switches
+to an absorbing matrix whose Contained column is zero: the fire can no longer be
+contained and absorbs into \{partial loss, total loss\}. The PNR frequency,
+$n_{\text{PNR}}/n_{\text{sim}}$, multiplied by a 100\% loss-given-event, is the
+bps the PRS pricer charges for the fire leg.
+
+Building \emph{material} is a first-class driver: the structural frame's
+combustibility scales how fast the fire grows (a non-combustible frame buys
+suppression time), caps the latent intensity below the critical threshold (so a
+non-combustible frame cannot run to a whole-building conflagration even above the
+fire-service reach --- only a small jittered residual remains), and credits the
+containment chain (a non-combustible structure contains the fire floor-by-floor
+even when active suppression cannot reach it). This is what stops building height
+alone from forcing a conflagration in a reinforced-concrete or steel tower.
 
 \textbf{Status:} Development (Tier 2, RAG Amber). All four component models and
 the end-to-end orchestrator are delivered with unit tests, including the
@@ -60,7 +73,7 @@ engineering-judgement seed (\texttt{config/fire\_matrices.json},
 
 \textbf{Key risk:} The model uses placeholder calibration throughout. It is not
 approved for production until historical calibration completes and the Model
-Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R6).
+Risk Committee (MRC) issues sign-off (remediation items FIRE-R1--R7).
 
 % ===================================================================
 % 2. MODEL PURPOSE AND SCOPE
@@ -88,7 +101,8 @@ in-scope drivers are: commercial type, occupancy status, business-rates
 category, property condition, the nine resilience-level fields (automatic
 detection, suppression systems, emergency procedures, structural fire
 resistance, compartments, fire stopping, external materials, access route,
-business continuity), fire-damage history, and number of storeys. The model
+business continuity), the structural-frame \texttt{ConstructionType},
+fire-damage history, and number of storeys. The model
 produces a per-asset resilience credit and a portfolio roll-up; both are
 reproducible from a single random seed.
 
@@ -180,15 +194,36 @@ Finally the controllability score is the weighted blend
 C = w_p\,e_{\text{passive}} + w_r\,e_{\text{response}}
     + w_s\,f_{\text{supp}},
 \]
-(renormalised by $w_p+w_r+w_s$), which is remapped to a matrix-blend weight
+(renormalised by $w_p+w_r+w_s$), which is remapped to an active matrix-blend
+weight $w_{\text{active}} = \operatorname{clamp}\big((C - C_{\text{floor}})/
+(C_{\text{ceil}} - C_{\text{floor}}),0,1\big)$. The blend weight that actually
+mixes the pre-PNR matrices (Model~D) takes the larger of the active weight and a
+\emph{structural-containment} weight $w_{\text{struct}} = \operatorname{clamp}
+(\kappa\,(1-\gamma),0,1)$ driven by the frame combustibility $\gamma$ (below):
 \[
-w \;=\; \operatorname{clamp}\!\Big(\frac{C - C_{\text{floor}}}
-        {C_{\text{ceil}} - C_{\text{floor}}},\,0,\,1\Big) \in [0,1]
+w \;=\; \max\!\big(w_{\text{active}},\, w_{\text{struct}}\big) \in [0,1].
 \]
-that mixes the pre-PNR transition matrices (Model~D). A continuous blend, rather
-than a hard threshold, is what lets the well-graded score $C$ actually grade
-containment: a hard switch saturates because passive and response defences alone
-already clear it, leaving suppression unable to move the matrix.
+A fire is controllable if it can be \emph{either} actively suppressed
+\emph{or} passively contained by a non-combustible structure, so a
+reinforced-concrete frame ($\gamma\!\to\!0$) blends near the controllable matrix
+even when suppression cannot reach it. A continuous blend, rather than a hard
+threshold, is what lets the well-graded score $C$ actually grade containment: a
+hard switch saturates because passive and response defences alone already clear
+it, leaving suppression unable to move the matrix.
+
+\paragraph{Structural-frame combustibility.} The CDM
+\texttt{Construction.ConstructionType} maps to a combustibility fraction
+$\gamma\in[0,1]$ (0 = non-combustible reinforced concrete; 1 = timber frame;
+unknown $\to$ a cautious default at the scale midpoint), via
+\texttt{construction.combustibility\_by\_type}. It drives three quantities the
+conflagration leg consumes: (i) a \emph{growth scale} interpolated over
+$[\,g^{-},g^{+}]$ that multiplies the per-step intensity growth, so a
+non-combustible frame catches and grows slower (the \emph{timing} leg, giving
+suppression more of the race); (ii) the \emph{intensity ceiling} $I_{\max}$
+(Model~B); and (iii) the structural-containment weight $w_{\text{struct}}$ above.
+The frame also supplies the structural-fire-resistance fallback level when the
+granular checklist is silent (a non-combustible frame is the physical evidence
+for that field), taking priority over the BRI-grade fallback for that one field.
 
 \subsection{Intensity Track (Model B)}
 
@@ -198,30 +233,48 @@ g_t = g_{\text{base}}\,(1 - w_{\text{damp}}\, e_{\text{passive}}), \qquad
 g_t \leftarrow g_t \cdot \mu_{\text{supp}} \;\text{ once suppression is active},
 \]
 \[
-I_{t+1} = I_t + g_t, \qquad g_t \ge 0,
+I_{t+1} = \min\!\big(I_t + g_t,\; I_{\max}\big), \qquad g_t \ge 0,
 \]
-where $g_{\text{base}}$ is the compartmentation-selected growth rate and
-suppression becomes active at the step $\lceil \tau_{\text{supp}} \rceil$. The
-\emph{mean} profile fixes $g_{\text{base}}$ and $\tau_{\text{supp}}$, but each
-fire draws its own race realisation: per-fire lognormal jitter is applied once to
-the growth rate ($g_{\text{base}}\!\cdot\!e^{\sigma_g Z}$) and to the bite time
-($\tau_{\text{supp}}\!\cdot\!e^{\sigma_\tau Z}$) before the march. Without this
-the PNR verdict would be a deterministic property of the asset, forcing the
-conflagration leg to be all-or-nothing (0 or the full ignition rate); the jitter
-makes it a per-fire Bernoulli outcome so the conflagration probability grades
-smoothly. Setting $\sigma_g=\sigma_\tau=0$ recovers the deterministic track.
+where $g_{\text{base}}$ is the compartmentation-selected growth rate (already
+scaled by the combustibility growth factor of Model~C) and suppression becomes
+active at the step $\lceil \tau_{\text{supp}} \rceil$. The \emph{fuel ceiling}
+$I_{\max}$ is threshold-anchored on combustibility: every non-combustible frame
+($\gamma$ at or below the combustible threshold) shares one low plateau that sits
+\emph{below} even the worst $I_{\text{crit}}$, so its intensity can never cross
+the critical threshold via the race; above the threshold the ceiling grades up to
+a value exceeding any $I_{\text{crit}}$ as the frame becomes fully combustible.
+
+The \emph{mean} profile fixes $g_{\text{base}}$, $\tau_{\text{supp}}$ and
+$I_{\max}$, but each fire draws its own race realisation: per-fire lognormal
+jitter is applied once to the growth rate
+($g_{\text{base}}\!\cdot\!e^{\sigma_g Z}$), the bite time
+($\tau_{\text{supp}}\!\cdot\!e^{\sigma_\tau Z}$) and the fuel ceiling
+($I_{\max}\!\cdot\!e^{\sigma_c Z}$) before the march. Without the timing/growth
+jitter the PNR verdict would be a deterministic property of the asset, forcing
+the conflagration leg to be all-or-nothing; the ceiling jitter leaves a non-combustible
+frame with no effective suppression a \emph{small residual} chance that an
+unlucky (high-fuel-load) fire's ceiling exceeds $I_{\text{crit}}$ --- the
+``eventually it catches'' tail --- rather than being absolutely immune. Setting
+$\sigma_g=\sigma_\tau=\sigma_c=0$ recovers the deterministic track and hard cap.
 
 \subsection{Point of No Return}
 
 PNR latches at the first step $t$ for which suppression is not yet active and
 \[
-I_t > I_{\text{crit}} \quad\lor\quad \neg\,\text{reachable},
+I_t > I_{\text{crit}} \quad\lor\quad
+\big(\neg\,\text{reachable} \;\land\; \text{combustible}\big),
 \]
-and the latch is sticky (once set, it stays set). The second disjunct is the
-operational heart of the model: a building taller than the fire-service reach
-with no adequate internal suppression is uncontrollable \emph{from ignition},
-so PNR latches at step~1. This is what turns building height into a live driver
-of total loss.
+where \emph{combustible} means the frame combustibility $\gamma$ clears the
+combustible threshold; the latch is sticky (once set, it stays set). The second
+disjunct is the operational heart of the model: a building taller than the
+fire-service reach with no adequate internal suppression \emph{and a combustible
+frame} is uncontrollable \emph{from ignition}, so PNR latches at step~1. A
+\emph{non-combustible} tall, unsprinklered building does \emph{not} auto-latch:
+its fuel ceiling $I_{\max}$ sits below $I_{\text{crit}}$, so the first disjunct
+also cannot fire, and the structure contains the fire (only the jittered residual
+remains). This is what turns building \emph{material} --- not height alone ---
+into the live driver of total loss: height forces a conflagration only when the
+frame is combustible.
 
 \subsection{Containment Chain (Model D)}
 
@@ -358,13 +411,13 @@ The tables below are generated by
 \emph{Meets minimum}), varying one input at a time over
 20{,}000 Monte Carlo draws per cell.
 
-The results show a clear \textbf{division of labour} across the three levers,
+The results show a clear \textbf{division of labour} across the four levers,
 which is how the credit is designed to respond.
 
 \emph{Suppression drives containment and loss frequency.} On the suppression
 sweep the containment rate climbs monotonically from $\approx 47\%$ at
-\emph{Not assessed} to $\approx 88\%$ at \emph{Verified}, and the annual loss
-frequency falls roughly five-fold ($1.14\% \to 0.24\%$). This is the continuous
+\emph{Not assessed} to $\approx 87\%$ at \emph{Verified}, and the annual loss
+frequency falls roughly four-fold ($1.15\% \to 0.26\%$). This is the continuous
 matrix blend at work: a better-suppressed asset has a higher controllability
 score $C$, a blend weight $w$ nearer the controllable matrix, and so a higher
 chance of reaching $S_5$ (Contained). This is the economically meaningful credit
@@ -373,19 +426,29 @@ the suppression system buys.
 \emph{Compartmentation drives conflagration.} Passive compartmentation selects
 the growth rate, so a poorly-compartmented asset grows fast enough to cross
 $I_{\text{crit}}$ before the chain absorbs and shows a small but non-zero
-fire-spread ($\approx 9$~bps), whereas a well-compartmented one stays at zero.
+fire-spread ($\approx 5$~bps), whereas a well-compartmented one stays at zero.
 Commercial type and condition move loss frequency in the expected order (hotels,
 mixed-use and poor condition worst).
 
 \emph{The fire-service reach drives the catastrophic tail.} The height sweep
-(held at sub-threshold \emph{Partial} internal suppression) is the headline
-non-linearity: at or below the 4-storey reach the credit is ordinary
-($\approx 56\%$ containment, zero spread), but at \emph{five storeys and above}
-suppression can no longer engage and the asset collapses to $0\%$ containment and
-$\approx 203$~bps of fire spread --- a \textbf{cliff, not a gradient}. The
-height~$\times$~suppression grid confirms the cliff appears precisely when
-internal suppression is below the sprinkler threshold; \emph{Meets minimum} or
-better keeps the asset reachable at any height.
+(held at sub-threshold \emph{Partial} internal suppression \emph{and} the default
+combustibility) is the headline non-linearity: at or below the 4-storey reach the
+credit is ordinary ($\approx 63\%$ containment, zero spread), but at \emph{five
+storeys and above} suppression can no longer engage and a combustible-frame asset
+collapses to $0\%$ containment and $\approx 203$~bps of fire spread --- a
+\textbf{cliff, not a gradient}. The height~$\times$~suppression grid confirms the
+cliff appears precisely when internal suppression is below the sprinkler
+threshold; \emph{Meets minimum} or better keeps the asset reachable at any height.
+
+\emph{Building material gates the high-rise tail.} The construction sweep (a
+12-storey, sub-threshold-suppressed asset --- above the reach, so material is the
+only thing left to govern the outcome) is the new lever. A non-combustible frame
+is contained by its own structure: \emph{reinforced concrete} $\approx 88\%$
+containment with near-zero spread, \emph{steel} / \emph{brick} $\approx 79\%$,
+\emph{modern methods} $\approx 64\%$ (seeded less combustible than mixed), while
+\emph{mixed construction} and \emph{timber} stay combustible and suffer the full
+$0\%$/$\approx 203$~bps conflagration. The reach cliff above therefore fires only
+for combustible frames; material, not height alone, decides the high-rise tail.
 
 \input{sensitivity_tables}
 
@@ -424,9 +487,14 @@ features of the seed model deserve to be read alongside it:
 The exposed calibration knobs make the surface tunable without code changes:
 $C_{\text{floor}}$/$C_{\text{ceil}}$ position and stretch the containment band;
 \texttt{suppression\_bite\_multiplier\_by\_level} and \texttt{i\_crit\_by\_level}
-set the gradient steepness; and the \texttt{race\_jitter} sigmas
-($\sigma_\tau,\sigma_g$) control how smoothly the conflagration probability
-grades.
+set the gradient steepness; the \texttt{race\_jitter} sigmas
+($\sigma_\tau,\sigma_g,\sigma_c$) control how smoothly the conflagration
+probability grades and how large the non-combustible residual tail is; and the
+\texttt{construction} block (\texttt{combustibility\_by\_type},
+\texttt{combustible\_threshold}, \texttt{intensity\_ceiling},
+\texttt{growth\_combustibility\_scale}, \texttt{structural\_containment\_weight})
+sets where each frame material sits on the combustibility axis and how strongly
+it gates growth, the fuel cap and passive containment.
 
 % ===================================================================
 % 8. LIMITATIONS AND ASSUMPTIONS
@@ -461,6 +529,17 @@ grades.
   \item \textbf{Fixed loss-given-event.} The conflagration leg assumes a 100\%
         loss given a point-of-no-return event; partial-loss quantum is not
         modelled.
+  \item \textbf{Construction combustibility is a single seeded fraction
+        (FIRE-L5).} Frame combustibility is one number per
+        \texttt{ConstructionType}; the threshold separating non-combustible from
+        combustible frames, the placement of the ambiguous categories
+        (\emph{Modern methods} seeded below the threshold and less combustible
+        than \emph{Mixed construction}), the growth-scale band and the
+        ceiling-jitter sigma are engineering-judgement seeds, not calibrated.
+        Combustibility is a property of the structural frame only --- combustible
+        cladding over a non-combustible frame (the Grenfell case) is not yet
+        modelled. Recalibration against loss experience is an open item
+        (FIRE-R7).
   \item \textbf{Independence assumption.} The root-sum-of-squares all-in coupon
         treats fire, flood and wind as independent perils.
 \end{itemize}
@@ -529,7 +608,7 @@ FIRE-R3 before sign-off.
 \mkmvqitem{9}{Governance and approval}{What is the approval status and who owns
 the model?}
 Owner: David K Kelly. Status: Development, Tier~2, RAG Amber. Not approved for
-production; MRC sign-off is contingent on closing FIRE-R1--R6.
+production; MRC sign-off is contingent on closing FIRE-R1--R7.
 
 % ===================================================================
 % 10. CHANGE HISTORY
@@ -543,6 +622,7 @@ Version & Date & Description \\
 0.01 & 05-June-2026 & Skeleton document. Stage 1 (Model A) and Stage 2 (Models B/C/D + orchestrator) delivered with unit tests; placeholder calibration. \\
 0.20 & 06-June-2026 & Completed all narrative sections; added the full mathematical framework (Models A--D, PNR, credit currency), governance validation questions, the matrices appendix, and the end-to-end sensitivity analysis. \\
 0.30 & 08-June-2026 & Recalibrated the resilience response: replaced the saturated hard controllability switch with a continuous matrix blend ($M=wM_{\text{AA}}+(1-w)M_{\text{weak}}$); graded $I_{\text{crit}}$ across all five suppression levels; added a per-level suppression-bite multiplier and per-fire race jitter ($\sigma_\tau,\sigma_g$) so the conflagration probability is no longer all-or-nothing. Containment now grades $47\%\!\to\!88\%$ across suppression levels (previously flat $\approx 88.7\%$). Reworked the height sweep to expose the 4-storey reach cliff and documented the muted-conflagration and single-reach-threshold weaknesses (FIRE-L3/L4, FIRE-R5/R6). \\
+0.40 & 16-June-2026 & Wired the structural-frame \texttt{ConstructionType} into the model as building-material sensitivity: a combustibility fraction $\gamma$ now (i) scales the per-step growth (timing leg), (ii) caps the latent intensity at a threshold-anchored fuel ceiling $I_{\max}$ with a per-fire ceiling jitter $\sigma_c$ leaving a small ``eventually it catches'' residual, and (iii) floors the pre-PNR blend weight at $\kappa(1-\gamma)$ (passive structural containment). The unreachable-suppression auto-PNR latch is now gated by combustibility, and \texttt{ConstructionType} supplies the structural-fire-resistance fallback. Fixes commercial conflagration being $\sim$10$\times$ too high and material-insensitive (a non-combustible high-rise no longer runs to total loss on every fire); added the construction sensitivity table and limitation FIRE-L5 / remediation FIRE-R7. Also unified the port Monte Carlo draw count into a single \texttt{-{}-num-sims} flag (default 10{,}000) across storm/fire/seismic. \\
 \bottomrule
 \end{tabular}
 
@@ -727,6 +807,7 @@ Intensity dynamics & passive\_damp\_weight $w_{\text{damp}}$ & 0.60 \\
 \midrule
 Race jitter & timing\_sigma $\sigma_\tau$ & 0.50 \\
             & growth\_sigma $\sigma_g$ & 0.40 \\
+            & ceiling\_sigma $\sigma_c$ & 0.10 \\
 \midrule
 Controllability & weight (passive) $w_p$ & 0.35 \\
                 & weight (response) $w_r$ & 0.35 \\
@@ -736,6 +817,56 @@ Controllability & weight (passive) $w_p$ & 0.35 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\section{Structural-Frame Combustibility (Construction)}
+\label{app:construction}
+
+\begin{table}[H]
+\centering
+\caption{Combustibility fraction $\gamma$ by \texttt{ConstructionType}
+(0 = non-combustible, 1 = fully combustible). Frames at or below the combustible
+threshold ($\gamma \le 0.30$) cannot conflagrate via the intensity race (their
+fuel ceiling sits below the worst $I_{\text{crit}}$); only the jittered residual
+remains. An unknown type uses the default $0.50$.}
+\begin{tabular}{lr}
+\toprule
+ConstructionType & $\gamma$ \\
+\midrule
+Reinforced concrete & 0.00 \\
+Concrete frame      & 0.05 \\
+Steel frame         & 0.10 \\
+Brick and block     & 0.10 \\
+Masonry / Stone     & 0.12 \\
+Modern methods      & 0.25 \\
+Mixed construction  & 0.50 \\
+Timber frame        & 1.00 \\
+\midrule
+default (unknown)   & 0.50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Combustibility-driven dynamics in the \texttt{construction} block.}
+\begin{tabular}{llr}
+\toprule
+Block & Key & Value \\
+\midrule
+Threshold      & combustible\_threshold & 0.30 \\
+Fuel ceiling   & intensity\_ceiling $[\,\text{plateau},\,\max]$ & $[5.0,\,120.0]$ \\
+Growth scale   & growth\_combustibility\_scale $[g^-,g^+]$ & $[0.5,\,1.5]$ \\
+Containment    & structural\_containment\_weight $\kappa$ & 1.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The fuel ceiling is threshold-anchored: every frame with
+$\gamma\le0.30$ shares the plateau $5.0$ (below the worst $I_{\text{crit}}=6$),
+and above the threshold the ceiling grades linearly to $120$ at $\gamma=1$. The
+growth scale is interpolated by $\gamma$ and is neutral ($1.0$) at the midpoint,
+so a record with no construction type is unchanged. The structural-containment
+weight floors the pre-PNR blend weight at $\kappa(1-\gamma)$.
 
 \section{Containment Transition Matrices (Model D)}
 \label{app:transitions}

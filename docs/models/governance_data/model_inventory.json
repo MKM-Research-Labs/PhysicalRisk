@@ -5065,7 +5065,7 @@
       "tier_rationale": "Materiality TBD: the fire-resilience credit is intended to feed PRS-style pricing pari-passu with the flood and wind legs, but is not yet wired into the pricing chain, so its priced impact is not yet realised. High complexity: a four-stage pipeline combining Poisson initiation, a deterministic intensity track, a controllability-driven matrix selection, and an 8-state Bayesian chain with a latching point-of-no-return gate.",
       "status": "Development",
       "lifecycle_stage": "Stage 2 complete - Models A-D and the end-to-end orchestrator built with unit tests; Stage 3 governance integration in progress",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "owner": "David K Kelly",
       "model_owner_role": "Chief Science Officer",
       "peer_reviewer": "TBD",
