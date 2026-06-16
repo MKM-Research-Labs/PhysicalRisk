@@ -1,0 +1,45 @@
+{
+  "gauge.gauge_random.generate_gauge_metadata": {
+    "catchment_name": "River",
+    "flood_alert": 4.55,
+    "flood_warning": 6.07,
+    "gauge_id": "<ID>",
+    "historical_high_date": "<TS>",
+    "historical_high_level": 7.59,
+    "index": 0,
+    "install_date": "<TS>",
+    "location": {
+      "elevation": 12.0,
+      "lat": 51.5,
+      "lon": -0.12,
+      "name": "Test Reach"
+    },
+    "severe_flood_warning": 7.21
+  },
+  "mortgage.financials.generate_financial_data": {
+    "annual_payment": 18816.49,
+    "borrower_income": 49979.8,
+    "current_ltv": 0.5366,
+    "flood_risk": "Low",
+    "interest_rate": 0.0506,
+    "is_defaulted": false,
+    "is_in_arrears": false,
+    "loan_amount": 249502.87,
+    "ltv_ratio": 0.72,
+    "monthly_payment": 1568.04,
+    "months_elapsed": 44,
+    "mortgage_id": "<ID>",
+    "mortgage_type": "Buy-to-Let",
+    "occupancy_type": "Investment",
+    "outstanding_balance": 205146.81,
+    "property_id": "PROP-0",
+    "property_value": 346516.89,
+    "term_months": 264
+  },
+  "property.property_energy.calculate_solar_generation": 3429.0,
+  "property.property_utils.generate_construction_year": 1954,
+  "property.property_utils.generate_owner_name": "Sarah Mattimore",
+  "property.property_utils.generate_postcode": "ID84 1BN",
+  "property.property_valuation.calculate_monthly_rent": 4005.04,
+  "property.property_valuation.calculate_property_value": 1139393.46
+}
