@@ -77,12 +77,14 @@ from config.visual import (
     PROPERTY_FLOOD_MEDIUM,
 )
 
-from config.damage import (
+from config.bri import (
     BRI_COMPOSITE_BETA_M,
     BRI_COMPOSITE_REFERENCE,
     BRI_FLOOD_ALPHA_M,
     BRI_FLOOD_REFERENCE,
     BRI_STILT_MAX_M,
+)
+from config.damage import (
     DAMAGE_POINTS,
     DD_POLY_COEFFS,
     DEFAULT_ELEVATION_M,

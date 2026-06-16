@@ -34,7 +34,7 @@ more vulnerable than baseline).
 
 import math
 
-from config.damage import (
+from config.bri import (
     BRI_COMPOSITE_BETA_MS,
     BRI_COMPOSITE_REFERENCE,
     BRI_WIND_ALPHA_MS,

@@ -4316,7 +4316,7 @@
           "description": "The maximum floor uplift of 3.00 m awarded at the AA anchor is a reasonable upper bound for the flood-threshold benefit of best-in-class resilience measures",
           "impact": "High",
           "monitoring": "Recalibrate MAX_M against post-event resilience performance once loss data is available",
-          "mitigation": "MAX_M is a single config constant (config/damage.py:BRI_FLOOR_UPLIFT_MAX_M); sensitivity-test +/- 1 m"
+          "mitigation": "MAX_M is a single config constant (config/bri.py:BRI_FLOOR_UPLIFT_MAX_M); sensitivity-test +/- 1 m"
         },
         {
           "id": "BRF-A2",
@@ -4962,9 +4962,9 @@
         "WIND_SIGMOID_A_PER_MS (config/damage.py)",
         "WIND_V50_BASE_MS (config/damage.py)",
         "DEFAULT_WIND_THRESHOLD_KPH (config/damage.py)",
-        "BRI_WIND_ALPHA_MS, BRI_COMPOSITE_BETA_MS (config/damage.py)",
-        "BRI_WIND_REFERENCE, BRI_COMPOSITE_REFERENCE (config/damage.py)",
-        "WIND_V50_SHIFT_MAX_MS (config/damage.py)"
+        "BRI_WIND_ALPHA_MS, BRI_COMPOSITE_BETA_MS (config/bri.py)",
+        "BRI_WIND_REFERENCE, BRI_COMPOSITE_REFERENCE (config/bri.py)",
+        "WIND_V50_SHIFT_MAX_MS (config/bri.py)"
       ],
       "input_data": "Per-event wind timeseries (windts/EVT-NNNN.json from MKM-TC-001) + property portfolio (property.json / commercial.json) with optional WindThresholdKph and BRI scores in the resilience CDM.",
       "output_data": "Per-event damage JSON at data/<catch>/typhoon/damage/EVT-NNNN.json \u2014 per-property damage_ratio in [0,1] plus peak / threshold / v_50_eff for traceability.",

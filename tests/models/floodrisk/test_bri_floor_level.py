@@ -28,7 +28,7 @@ suppressing PRS flood counts; a poor (NR) building gets no credit.
 
 import pytest
 
-from config.damage import (
+from config.bri import (
     BRI_FLOOR_UPLIFT_MAX_M,
     BRI_FLOOR_UPLIFT_SCORE_HI,
     BRI_FLOOR_UPLIFT_SCORE_LO,
