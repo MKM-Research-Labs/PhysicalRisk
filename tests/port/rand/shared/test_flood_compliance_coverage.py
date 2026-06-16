@@ -9,7 +9,7 @@ top elevation band, the None ordinal, and the missing basement strategy.
 (The post-loop `return 1.0` at line 27 is unreachable — the band table ends in
 `(float("inf"), 1.00)`, so every finite elevation matches the inf band first.)"""
 
-from port.rand._shared.property_resilience import flood_compliance as fc
+from port.rand.shared.property_resilience import flood_compliance as fc
 
 
 class TestFloodComplianceBranches:
