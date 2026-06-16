@@ -195,15 +195,15 @@ class TestMortgageDateGenerator:
 
 
 class TestMortgageTextGenerator:
-    """Includes the halong-specific currency=USD and CatchmentID=halong."""
+    """CatchmentID and currency now come from config.CATCHMENT / config.CURRENCY
+    (the active catchment) rather than a per-catchment hard-coded literal —
+    the generator is shared across catchments."""
 
-    @pytest.mark.parametrize("field,expected", [
-        ("CatchmentID", "halong"),
-        ("currency", "USD"),
-    ])
-    def test_halong_specific_constants(self, field, expected, financial_data):
+    def test_catchment_id_and_currency_delegate_to_config(self, financial_data):
+        from config import config as cfg
         from port.rand.halong.mortgage.generators import generate_text_value
-        assert generate_text_value(field, 0, financial_data) == expected
+        assert generate_text_value("CatchmentID", 0, financial_data) == cfg.CATCHMENT
+        assert generate_text_value("currency", 0, financial_data) == cfg.CURRENCY
 
     @pytest.mark.parametrize("field", [
         "MortgageID", "MortgageProvider", "MemberID", "UPRN", "PropertyID",
