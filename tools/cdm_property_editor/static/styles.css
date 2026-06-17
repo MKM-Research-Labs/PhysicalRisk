@@ -337,6 +337,44 @@ html, body {
 .au-new { color: #2c7a2c; font-weight: 600; }
 .au-arrow { color: #aab2bf; text-align: center; }
 
+/* PRS spread waterfall tab */
+.detail-tab.waterfall-tab { font-weight: 600; }
+.wf-msg { font-size: 13px; color: var(--muted); padding: 16px 2px; }
+.wf-wrap { max-width: 720px; }
+.wf-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.wf-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.wf-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.wf-pricer {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--blue);
+  border-radius: 5px;
+  background: var(--blue-bg);
+  color: var(--blue);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wf-pricer:hover { background: var(--blue); color: #fff; }
+.wf-chart { display: flex; flex-direction: column; gap: 8px; }
+.wf-row { display: grid; grid-template-columns: 120px 1fr 96px; align-items: center; gap: 10px; }
+.wf-label { font-size: 12px; color: #455; text-align: right; }
+.wf-track {
+  position: relative;
+  background: #eef2f7;
+  border-radius: 4px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+}
+.wf-bar { height: 100%; border-radius: 4px; min-width: 2px; }  /* colour set inline from the utility */
+.wf-val { position: absolute; right: 8px; font-size: 11px; font-weight: 600; color: #2b3b4d; }
+.wf-effcol { text-align: right; }
+.wf-eff { font-size: 11px; color: var(--muted); }
+.wf-eff.down { color: var(--green); }
+.wf-eff.up { color: var(--red); }
+.wf-final { margin-top: 14px; font-size: 13px; color: var(--ink); }
+
 /* detail header: prop identity (left) + map & perils aside (right, ≤1/3) */
 .detail-card { border-bottom: 1px solid #ddd; flex-shrink: 0; }
 .dc-identity {
