@@ -479,7 +479,156 @@ html, body {
   gap: 1px;
   background: #eef1f5;
 }
-.field { background: #fff; padding: 9px 12px; min-width: 0; }
+.field { background: #fff; padding: 9px 12px; min-width: 0; position: relative; }
+
+/* usage-tier outline on each field box (RED feeds PRS, AMBER contract, GREEN report) */
+.field.tier-red { box-shadow: inset 0 0 0 1.5px #d32f2f; }
+.field.tier-amber { box-shadow: inset 0 0 0 1.5px #f57c00; }
+.field.tier-green { box-shadow: inset 0 0 0 1px #cfe6d0; }
+
+/* 3-dots field menu trigger */
+.field-kebab {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #b3bcc8;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.field:hover .field-kebab { opacity: 1; }
+.field-kebab:hover { color: var(--blue); }
+.field-kebab svg { fill: currentColor; display: block; }
+
+.field-menu {
+  position: fixed;
+  z-index: 4000;
+  min-width: 150px;
+  background: #fff;
+  border: 1px solid #d6dbe4;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  padding: 4px;
+}
+.field-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.field-menu-item:hover { background: var(--blue-bg); color: var(--blue); }
+.field-menu-more {
+  padding: 5px 10px 3px;
+  font-size: 10px;
+  color: #aab2bf;
+  font-style: italic;
+}
+
+/* lineage legend (modal footer) */
+.lin-legend { display: inline-flex; gap: 12px; margin-left: auto; }
+.lin-leg { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #6b7686; }
+.lin-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.tier-dot-red { background: #d32f2f; }
+.tier-dot-amber { background: #f57c00; }
+.tier-dot-green { background: #cfe6d0; border: 1px solid #9cc79e; }
+
+/* lineage popup */
+.lin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 4100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lin-popup {
+  width: 460px;
+  max-width: calc(100vw - 40px);
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lin-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.lin-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.lin-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+  word-break: break-all;
+}
+.lin-body { padding: 14px; overflow-y: auto; }
+.lin-tier {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #fff;
+  padding: 2px 9px;
+  border-radius: 10px;
+}
+.tier-pill-red { background: #d32f2f; }
+.tier-pill-amber { background: #f57c00; }
+.tier-pill-green { background: #388e3c; }
+.lin-summary { font-size: 12px; color: #444; margin: 8px 0 4px; line-height: 1.5; }
+.lin-section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7686;
+  margin: 14px 0 6px;
+  font-weight: 700;
+}
+.lin-chain { display: flex; flex-direction: column; align-items: stretch; }
+.lin-node {
+  border: 1px solid #e0e5ec;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--ink);
+  background: #fafbfd;
+}
+.lin-node.lin-field { border-color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+.lin-node.lin-output { border-color: #d9b3b3; background: #fdf3f3; }
+.lin-ref {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+  word-break: break-all;
+}
+.lin-arrow { text-align: center; color: #aab2bf; font-size: 12px; line-height: 1.4; }
+.lin-consumers { display: flex; flex-wrap: wrap; gap: 6px; }
+.lin-consumer {
+  font-size: 11px;
+  background: #eef2f7;
+  color: #45506a;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
 .field-label {
   font-size: 10px;
   color: var(--muted);
