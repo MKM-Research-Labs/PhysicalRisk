@@ -18,6 +18,7 @@ let CURRENT_ID = null;
 let ACTIVE_SECTION = null;
 let ACTIVE_PERIL = "flood";
 let CURRENT_PERILS = null; // {flood, wind, fire, seismic} for open record (null = loading)
+let LINEAGE = null;        // {tiers, exact, amberPrefixes} from /api/lineage
 
 const PERILS = [
   { key: "flood", label: "Flood" },
@@ -25,6 +26,29 @@ const PERILS = [
   { key: "fire", label: "Fire" },
   { key: "seismic", label: "Seismic" },
 ];
+
+// ---- field-usage lineage (mirrors lineage.field_usage.resolve) -------------
+
+function lineageFor(path) {
+  if (!LINEAGE) return null;
+  if (LINEAGE.exact[path]) return LINEAGE.exact[path];
+  for (const ap of LINEAGE.amberPrefixes) {
+    if (path === ap.prefix || path.startsWith(ap.prefix + ".")) return ap.entry;
+  }
+  return {
+    tier: "GREEN",
+    summary: "Descriptive field — surfaced in the asset report only; not used by a "
+             + "model or the PRS.",
+    consumers: ["Asset report"],
+    chain: [{ node: (path.split(".").pop() || path) + " (CDM)", kind: "field" },
+            { node: "Asset report", kind: "output" }],
+  };
+}
+
+function tierOf(path) {
+  const e = lineageFor(path);
+  return e ? e.tier : "GREEN";
+}
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -382,14 +406,33 @@ function orderedEntries(schema, data) {
   return out;
 }
 
-function renderField(key, descriptor, value) {
+const KEBAB_SVG =
+  '<svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="5" r="1.6"/>' +
+  '<circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
+
+function renderField(key, descriptor, value, path) {
+  const fieldPath = path ? path + "." + key : key;
+  const tier = tierOf(fieldPath);
+
   const cell = document.createElement("div");
-  cell.className = "field";
+  cell.className = "field tier-" + tier.toLowerCase();
+  cell.dataset.path = fieldPath;
 
   const label = document.createElement("div");
   label.className = "field-label";
   label.textContent = prettyLabel(key);
   if (descriptor && descriptor.description) label.title = descriptor.description;
+
+  // 3-dots field menu (extensible — lineage is the first item).
+  const kebab = document.createElement("button");
+  kebab.className = "field-kebab";
+  kebab.title = "Field actions";
+  kebab.innerHTML = KEBAB_SVG;
+  kebab.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openFieldMenu(kebab, fieldPath, prettyLabel(key));
+  });
+  label.appendChild(kebab);
 
   const val = document.createElement("div");
   val.className = "field-value";
@@ -405,7 +448,7 @@ function renderField(key, descriptor, value) {
   return cell;
 }
 
-function renderGroup(schemaNode, dataNode, depth) {
+function renderGroup(schemaNode, dataNode, depth, path) {
   const frag = document.createDocumentFragment();
   const data = dataNode && typeof dataNode === "object" ? dataNode : {};
   const schema = schemaNode && typeof schemaNode === "object" ? schemaNode : {};
@@ -416,7 +459,7 @@ function renderGroup(schemaNode, dataNode, depth) {
   for (const [key, node, value, kind] of orderedEntries(schema, data)) {
     if (kind === "field") {
       if (!grid) { grid = document.createElement("div"); grid.className = "field-grid"; }
-      grid.appendChild(renderField(key, node, value));
+      grid.appendChild(renderField(key, node, value, path));
     } else {
       flush();
       const block = document.createElement("section");
@@ -425,7 +468,7 @@ function renderGroup(schemaNode, dataNode, depth) {
       h.className = "subsection-title";
       h.textContent = prettyLabel(key);
       block.appendChild(h);
-      block.appendChild(renderGroup(node, value, depth + 1));
+      block.appendChild(renderGroup(node, value, depth + 1, path ? path + "." + key : key));
       frag.appendChild(block);
     }
   }
@@ -438,19 +481,96 @@ function renderDetailBody() {
   body.innerHTML = "";
   const schemaNode = SCHEMA.schema[ACTIVE_SECTION] || {};
   const dataNode = CURRENT[ACTIVE_SECTION] || {};
-  // A leaf-only section (rare) still renders by wrapping the value.
+  // A leaf-only section (rare) still renders by wrapping the value. The dotted
+  // path is rooted at the section so it matches the lineage registry keys.
   if (dataNode && typeof dataNode === "object") {
-    body.appendChild(renderGroup(schemaNode, dataNode, 0));
+    body.appendChild(renderGroup(schemaNode, dataNode, 0, ACTIVE_SECTION));
   } else {
     const grid = document.createElement("div");
     grid.className = "field-grid";
-    grid.appendChild(renderField(ACTIVE_SECTION, isField(schemaNode) ? schemaNode : null, dataNode));
+    grid.appendChild(renderField(ACTIVE_SECTION, isField(schemaNode) ? schemaNode : null, dataNode, ""));
     body.appendChild(grid);
   }
   const count = body.querySelectorAll(".field").length;
   $("#modal-foot").innerHTML =
     `<span>Section: <b>${prettyLabel(ACTIVE_SECTION)}</b></span>` +
-    `<span>${count} fields</span>`;
+    `<span>${count} fields</span>` +
+    lineageLegendHtml();
+}
+
+// ---- lineage: legend, 3-dots field menu, lineage popup --------------------
+
+function lineageLegendHtml() {
+  if (!LINEAGE) return "";
+  const t = LINEAGE.tiers;
+  const dot = (k) =>
+    `<span class="lin-leg"><span class="lin-dot tier-dot-${k.toLowerCase()}"></span>${t[k].label}</span>`;
+  return `<span class="lin-legend">${dot("RED")}${dot("AMBER")}${dot("GREEN")}</span>`;
+}
+
+function closeFieldMenu() {
+  const m = document.getElementById("field-menu");
+  if (m) m.remove();
+}
+
+function openFieldMenu(anchor, fieldPath, fieldLabel) {
+  closeFieldMenu();
+  const menu = document.createElement("div");
+  menu.className = "field-menu";
+  menu.id = "field-menu";
+  const lineageBtn = document.createElement("button");
+  lineageBtn.className = "field-menu-item";
+  lineageBtn.textContent = "Data lineage";
+  lineageBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeFieldMenu();
+    openLineagePopup(fieldPath, fieldLabel);
+  });
+  menu.appendChild(lineageBtn);
+  const more = document.createElement("div");
+  more.className = "field-menu-more";
+  more.textContent = "more to come…";
+  menu.appendChild(more);
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  menu.style.top = (r.bottom + 4) + "px";
+  menu.style.left = Math.min(r.left, window.innerWidth - 170) + "px";
+  setTimeout(() => document.addEventListener("click", closeFieldMenu, { once: true }), 0);
+}
+
+function openLineagePopup(fieldPath, fieldLabel) {
+  const e = lineageFor(fieldPath) || {};
+  const tier = e.tier || "GREEN";
+  const meta = (LINEAGE && LINEAGE.tiers[tier]) || {};
+  const chain = (e.chain || []).map((n) =>
+    `<div class="lin-node lin-${n.kind}">${n.node}` +
+    (n.ref ? `<div class="lin-ref">${n.ref}</div>` : "") + `</div>`
+  ).join('<div class="lin-arrow">↓</div>');
+  const consumers = (e.consumers || [])
+    .map((c) => `<span class="lin-consumer">${c}</span>`).join("");
+
+  const overlay = document.createElement("div");
+  overlay.className = "lin-overlay";
+  overlay.id = "lin-overlay";
+  overlay.innerHTML =
+    `<div class="lin-popup">` +
+      `<div class="lin-head"><div class="lin-head-main">` +
+        `<div class="lin-title">${fieldLabel}</div>` +
+        `<div class="lin-path">${fieldPath}</div></div>` +
+        `<button class="icon-btn close" id="lin-close">&times;</button></div>` +
+      `<div class="lin-body">` +
+        `<span class="lin-tier tier-pill-${tier.toLowerCase()}">${meta.label || tier}</span>` +
+        `<div class="lin-summary">${e.summary || ""}</div>` +
+        `<div class="lin-section-title">Downstream lineage</div>` +
+        `<div class="lin-chain">${chain}</div>` +
+        (consumers
+          ? `<div class="lin-section-title">Consumers</div><div class="lin-consumers">${consumers}</div>`
+          : "") +
+      `</div>` +
+    `</div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (ev) => { if (ev.target.id === "lin-overlay") overlay.remove(); });
+  document.getElementById("lin-close").addEventListener("click", () => overlay.remove());
 }
 
 async function openDetail(rid) {
@@ -527,6 +647,7 @@ async function boot() {
   setStatus("Loading…");
   try {
     ASSETS = await (await fetch("/api/assets")).json();
+    try { LINEAGE = await (await fetch("/api/lineage")).json(); } catch (_) { LINEAGE = null; }
     $("#search").addEventListener("input", (e) => renderList(e.target.value));
     $("#modal-close").addEventListener("click", closeModal);
     $("#modal-expand").addEventListener("click", toggleExpand);

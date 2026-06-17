@@ -46,7 +46,9 @@ for _p in (str(SRC_DIR), str(REPO_ROOT)):
 from port.cdm.asset.commercial.schema import COMMERCIAL_SCHEMA  # noqa: E402
 from port.cdm.asset.loan.schema import MORTGAGE_SCHEMA  # noqa: E402
 from port.cdm.asset.residential.schema import PROPERTY_SCHEMA  # noqa: E402
+from port.cdm.ctpy._schema import COUNTERPARTY_SCHEMA  # noqa: E402
 from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
+from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
 
 CATCHMENT = "thames"
 INPUT_DIR = REPO_ROOT / "data" / "input" / CATCHMENT
@@ -126,6 +128,14 @@ def _sum_commercial_loan(r: dict) -> dict:
     return s
 
 
+def _sum_counterparty(r: dict) -> dict:
+    party = r.get("CounterpartySet", {}).get("Party", {})
+    contact = party.get("ContactInformation", {})
+    loc = " ".join(b for b in [contact.get("City"), contact.get("Country")] if b)
+    return {"id": party.get("PartyID"), "sub": party.get("PartyName") or "—",
+            "tag": loc or "counterparty", "tagClass": "badge-na", "value": None}
+
+
 # --- Asset registry: drives the top tabs and every endpoint ------------------
 # Order here is the top-tab order in the UI.
 ASSETS: dict[str, dict] = {
@@ -153,6 +163,11 @@ ASSETS: dict[str, dict] = {
         "schema": {"Mortgage": MORTGAGE_SCHEMA["RLoan"]},
         "file": "commercial_loan.json", "container": "commercial_loans",
         "summary": _sum_commercial_loan,
+    },
+    "counterparty": {
+        "label": "Counterparty", "schema": COUNTERPARTY_SCHEMA,
+        "file": "counterparty.json", "container": "counterparties",
+        "summary": _sum_counterparty,
     },
 }
 
@@ -276,6 +291,21 @@ def index():
 def api_assets():
     """Top-tab list: key + label, in display order."""
     return jsonify([{"key": k, "label": v["label"]} for k, v in ASSETS.items()])
+
+
+@app.route("/api/lineage")
+def api_lineage():
+    """Field-usage lineage: RED/AMBER/GREEN tiers + downstream chains.
+
+    Served whole (small) so the front end can colour every field box and open
+    the per-field lineage popup without a round-trip per field. Matching mirrors
+    lineage.field_usage.resolve: exact path, then AMBER prefix, else GREEN.
+    """
+    return jsonify({
+        "tiers": TIER_META,
+        "exact": EXACT_FIELDS,
+        "amberPrefixes": [{"prefix": p, "entry": e} for p, e in AMBER_PREFIXES],
+    })
 
 
 @app.route("/api/<asset>/schema")
