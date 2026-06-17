@@ -35,7 +35,7 @@ smoke-tests the full-audit subsection builder.
 
 from pathlib import Path
 
-from docs.models.copyright_headers import scanners
+from docs.models.full_audit.sections_tests import copyright_headers as scanners
 
 # tests/commands/test_copyright_headers_report.py -> repo root
 ROOT = Path(__file__).resolve().parents[2]
