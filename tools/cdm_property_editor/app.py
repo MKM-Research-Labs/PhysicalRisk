@@ -2,20 +2,20 @@
 # (see package __init__.py for full license text)
 
 """
-Standalone CDM Property Editor — side tool.
+Standalone CDM Asset Review — side tool.
 
-A self-contained Flask app for browsing the residential property CDM as a
-set of tabs (one per top-level CDM section) with a menu of all properties.
-It is schema-driven: the form structure is generated from
-``port.cdm.asset.residential.schema.PROPERTY_SCHEMA`` so every field's label,
-widget and menu options come straight from the canonical CDM definition.
+A self-contained Flask app for browsing the asset CDMs as a governance-style
+workspace: a top tab bar (Gauges · Properties · Commercials · Mortgage ·
+Commercial Loan), a left-hand list of every record in the active tab, and a
+per-row review icon that opens the full CDM record in a centered modal with
+section tabs. It is schema-driven: each tab's form structure comes straight
+from the canonical CDM schema for that asset class.
 
-This is a sandbox tool, kept deliberately isolated from the production scene:
-  * It reads/writes ONLY a sandbox copy of the data under
-    ``tools/cdm_property_editor/data/property_sandbox.json``.
-  * On first run the sandbox is seeded from the golden test fixture
-    ``tests/port/cdm/golden/property.json``. The real ``data/`` tree and the
-    test fixture itself are never modified.
+This is a sandbox tool, deliberately isolated from the production scene:
+  * It reads/writes ONLY sandbox copies under
+    ``tools/cdm_property_editor/data/<asset>_sandbox.json``.
+  * Each sandbox is seeded once from the existing simulated thames portfolio
+    under ``data/input/thames/``. The real ``data/`` tree is never modified.
 
 Run:
     source .venv/bin/activate
@@ -30,46 +30,170 @@ import shutil
 import sys
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template
 
-# --- Locate the repo and make the CDM schema importable ---------------------
+# --- Locate the repo and make the CDM schemas importable --------------------
 TOOL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOL_DIR.parent.parent
 SRC_DIR = REPO_ROOT / "src"
-# The CDM schema lives under src/, but importing it pulls in the wider `port`
-# package whose __init__ chain reaches the top-level `config` package at the
-# repo root — so both must be importable.
+# Importing the CDM schemas pulls in the wider `port` package whose __init__
+# chain reaches the top-level `config` package at the repo root — so both
+# must be importable.
 for _p in (str(SRC_DIR), str(REPO_ROOT)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+from port.cdm.asset.commercial.schema import COMMERCIAL_SCHEMA  # noqa: E402
+from port.cdm.asset.loan.schema import MORTGAGE_SCHEMA  # noqa: E402
 from port.cdm.asset.residential.schema import PROPERTY_SCHEMA  # noqa: E402
+from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
 
-# --- Sandbox data -----------------------------------------------------------
-# Seed source: prefer the existing simulated thames portfolio; fall back to the
-# golden test fixture if the SSD-mounted data tree is unavailable. The sandbox
-# is always a *copy* — edits never write back to data/ or the fixture.
 CATCHMENT = "thames"
-SEED_CANDIDATES = [
-    REPO_ROOT / "data" / "input" / CATCHMENT / "property.json",
-    REPO_ROOT / "tests" / "port" / "cdm" / "golden" / "property.json",
-]
+INPUT_DIR = REPO_ROOT / "data" / "input" / CATCHMENT
+GOLDEN_PROPERTY = REPO_ROOT / "tests" / "port" / "cdm" / "golden" / "property.json"
 SANDBOX_DIR = TOOL_DIR / "data"
-SANDBOX_FILE = SANDBOX_DIR / "property_sandbox.json"
 
 
-def _seed_source() -> Path:
-    for cand in SEED_CANDIDATES:
-        if cand.exists():
-            return cand
-    raise FileNotFoundError(
-        "No seed source found. Tried: "
-        + ", ".join(str(c) for c in SEED_CANDIDATES)
-        + " (is the data SSD mounted?)"
-    )
+# --- Per-asset summary builders (the left-list row + modal header card) ------
+def _addr(loc: dict) -> str:
+    bits = [loc.get("BuildingNumber"), loc.get("StreetName"),
+            loc.get("TownCity"), loc.get("Postcode")]
+    return " ".join(str(b) for b in bits if b)
 
-# The top-level CDM sections, in display order — each becomes a tab.
-SECTION_ORDER = list(PROPERTY_SCHEMA.keys())
+
+def _type_class(t: str | None) -> str:
+    return {"residential": "badge-residential", "commercial": "badge-commercial",
+            "industrial": "badge-industrial"}.get(t or "", "badge-na")
+
+
+def _coords(lat, lon) -> dict:
+    """Normalise a lat/lon pair to floats, or None when absent/invalid."""
+    try:
+        return {"lat": float(lat), "lon": float(lon)}
+    except (TypeError, ValueError):
+        return {"lat": None, "lon": None}
+
+
+def _sum_gauge(r: dict) -> dict:
+    g = r.get("FloodGauge", {})
+    h = g.get("Header", {})
+    loc = g.get("Location", {})
+    return {"id": h.get("GaugeID"), "sub": h.get("GaugeName") or "—",
+            "tag": h.get("CatchmentID") or "gauge", "tagClass": "badge-industrial",
+            "value": None,
+            **_coords(loc.get("GaugeLatitude"), loc.get("GaugeLongitude"))}
+
+
+def _sum_property(r: dict) -> dict:
+    h = r.get("PropertyHeader", {})
+    hd = h.get("Header", {})
+    loc = h.get("Location", {})
+    return {"id": hd.get("PropertyID") or hd.get("UPRN"), "sub": _addr(loc),
+            "tag": hd.get("propertyType"), "tagClass": _type_class(hd.get("propertyType")),
+            "value": h.get("Valuation", {}).get("PropertyValue"),
+            **_coords(loc.get("LatitudeDegrees"), loc.get("LongitudeDegrees"))}
+
+
+def _sum_commercial(r: dict) -> dict:
+    a = r.get("CommercialAsset", {})
+    hd = a.get("Header", {})
+    loc = a.get("Location", {})
+    ct = a.get("CommercialAttributes", {}).get("CommercialType")
+    return {"id": hd.get("PropertyID") or hd.get("UPRN"), "sub": _addr(loc),
+            "tag": ct or "commercial", "tagClass": "badge-commercial",
+            "value": a.get("Valuation", {}).get("PropertyValue"),
+            **_coords(loc.get("LatitudeDegrees"), loc.get("LongitudeDegrees"))}
+
+
+def _sum_loan(r: dict, root: str = "RLoan") -> dict:
+    ln = r.get(root, {})
+    h = ln.get("Header", {})
+    cur = ln.get("CurrentStatus", {})
+    fin = ln.get("FinancialTerms", {})
+    sub = ("Property " + h.get("PropertyID")) if h.get("PropertyID") else "—"
+    return {"id": h.get("RLoanID") or h.get("MortgageID"), "sub": sub,
+            "tag": cur.get("AccountStatus") or "loan", "tagClass": "badge-status",
+            "value": cur.get("OutstandingBalance") or fin.get("OriginalLoan")}
+
+
+def _sum_commercial_loan(r: dict) -> dict:
+    s = _sum_loan(r, root="Mortgage")
+    meta = r.get("_commercial_meta", {})
+    bits = [meta.get("commercial_type"), meta.get("borrower_type")]
+    extra = " · ".join(b for b in bits if b)
+    if extra:
+        s["sub"] = extra
+    return s
+
+
+# --- Asset registry: drives the top tabs and every endpoint ------------------
+# Order here is the top-tab order in the UI.
+ASSETS: dict[str, dict] = {
+    "gauge": {
+        "label": "Gauges", "schema": GAUGE_SCHEMA, "file": "gauge.json",
+        "container": "flood_gauges", "summary": _sum_gauge,
+    },
+    "property": {
+        "label": "Properties", "schema": PROPERTY_SCHEMA, "file": "property.json",
+        "container": "properties", "summary": _sum_property,
+        "golden": GOLDEN_PROPERTY,
+    },
+    "commercial": {
+        "label": "Commercials", "schema": COMMERCIAL_SCHEMA, "file": "commercial.json",
+        "container": "commercial_assets", "summary": _sum_commercial,
+    },
+    "mortgage": {
+        "label": "Mortgage", "schema": MORTGAGE_SCHEMA, "file": "loan.json",
+        "container": "loans", "summary": _sum_loan,
+    },
+    "commercial_loan": {
+        "label": "Commercial Loan",
+        # commercial_loan records wrap the loan under a legacy "Mortgage" key
+        # whose inner sections are identical to the RLoan schema.
+        "schema": {"Mortgage": MORTGAGE_SCHEMA["RLoan"]},
+        "file": "commercial_loan.json", "container": "commercial_loans",
+        "summary": _sum_commercial_loan,
+    },
+}
+
+# Per-asset hazard-curve files carrying the per-storm damage detail. Keyed by
+# the same record id used in the item lists. Only flood-bearing assets appear.
+HC_CONFIG: dict[str, dict] = {
+    "property": {"file": "propertyhc.json", "container": "property_hazard_curves"},
+    "commercial": {"file": "commercialhc.json", "container": "property_hazard_curves"},
+}
+
+# Lazy caches (read-only reference data; never written back).
+_CACHE: dict = {}
+
+
+def _storm_type_index() -> dict:
+    """sequence_id -> {type (cluster), intensity}; built once from storm_sequences."""
+    if "storm_types" not in _CACHE:
+        idx = {}
+        p = INPUT_DIR / "storm_sequences.json"
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as fh:
+                for s in json.load(fh).get("sequences", []):
+                    idx[s.get("sequence_id")] = {
+                        "type": s.get("sequence_type"),
+                        "intensity": s.get("intensity_category"),
+                    }
+        _CACHE["storm_types"] = idx
+    return _CACHE["storm_types"]
+
+
+def _hc_record(asset: str, rid: str) -> dict | None:
+    cfg = HC_CONFIG.get(asset)
+    if not cfg:
+        return None
+    key = f"hc_{asset}"
+    if key not in _CACHE:
+        p = INPUT_DIR / cfg["file"]
+        with open(p, "r", encoding="utf-8") as fh:
+            _CACHE[key] = json.load(fh).get(cfg["container"], {}) if p.exists() else {}
+    return _CACHE[key].get(rid)
+
 
 app = Flask(__name__)
 # Preserve the curated CDM key order (schema + records) instead of
@@ -77,51 +201,47 @@ app = Flask(__name__)
 app.json.sort_keys = False
 
 
-def _ensure_sandbox() -> None:
-    """Seed the sandbox from the simulated portfolio on first run (never overwrite)."""
-    SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
-    if not SANDBOX_FILE.exists():
-        shutil.copyfile(_seed_source(), SANDBOX_FILE)
+# --- Sandbox plumbing -------------------------------------------------------
+def _sandbox_file(asset: str) -> Path:
+    return SANDBOX_DIR / f"{asset}_sandbox.json"
 
 
-def _load() -> dict:
-    _ensure_sandbox()
-    with open(SANDBOX_FILE, "r", encoding="utf-8") as fh:
-        return json.load(fh)
-
-
-def _properties(doc: dict) -> list:
-    """Property records live under 'properties' (fall back to 'portfolio')."""
-    return doc.get("properties") or doc.get("portfolio") or []
-
-
-def _prop_id(prop: dict) -> str:
-    return (
-        prop.get("PropertyHeader", {}).get("Header", {}).get("PropertyID")
-        or prop.get("PropertyHeader", {}).get("Header", {}).get("UPRN")
-        or ""
+def _seed_source(asset: str) -> Path:
+    """Prefer the simulated thames file; fall back to a golden fixture if set."""
+    cfg = ASSETS[asset]
+    primary = INPUT_DIR / cfg["file"]
+    if primary.exists():
+        return primary
+    golden = cfg.get("golden")
+    if golden and Path(golden).exists():
+        return Path(golden)
+    raise FileNotFoundError(
+        f"No seed source for '{asset}'. Tried {primary}"
+        + (f" and {golden}" if golden else "")
+        + " (is the data SSD mounted?)"
     )
 
 
-def _summary(prop: dict) -> dict:
-    """A compact descriptor used to render the property menu entries."""
-    header = prop.get("PropertyHeader", {})
-    loc = header.get("Location", {})
-    val = header.get("Valuation", {})
-    address_bits = [
-        loc.get("BuildingNumber"),
-        loc.get("StreetName"),
-        loc.get("TownCity"),
-        loc.get("Postcode"),
-    ]
-    address = " ".join(str(b) for b in address_bits if b)
-    return {
-        "id": _prop_id(prop),
-        "type": header.get("Header", {}).get("propertyType"),
-        "status": header.get("Header", {}).get("propertyStatus"),
-        "address": address or "(no address)",
-        "value": val.get("PropertyValue"),
-    }
+def _ensure_sandbox(asset: str) -> Path:
+    """Seed the asset sandbox from the simulated portfolio on first use."""
+    SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
+    sb = _sandbox_file(asset)
+    if not sb.exists():
+        shutil.copyfile(_seed_source(asset), sb)
+    return sb
+
+
+def _records(asset: str) -> list:
+    cfg = ASSETS[asset]
+    with open(_ensure_sandbox(asset), "r", encoding="utf-8") as fh:
+        doc = json.load(fh)
+    if isinstance(doc, list):
+        return doc
+    return doc.get(cfg["container"]) or []
+
+
+def _record_id(asset: str, rec: dict) -> str:
+    return ASSETS[asset]["summary"](rec).get("id") or ""
 
 
 # --- Routes -----------------------------------------------------------------
@@ -130,31 +250,79 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/api/schema")
-def api_schema():
-    """The canonical CDM schema plus the tab/section order."""
-    return jsonify({"sections": SECTION_ORDER, "schema": PROPERTY_SCHEMA})
+@app.route("/api/assets")
+def api_assets():
+    """Top-tab list: key + label, in display order."""
+    return jsonify([{"key": k, "label": v["label"]} for k, v in ASSETS.items()])
 
 
-@app.route("/api/properties")
-def api_properties():
-    """Menu data: a lightweight summary of every property in the sandbox."""
-    doc = _load()
-    return jsonify([_summary(p) for p in _properties(doc)])
+@app.route("/api/<asset>/schema")
+def api_schema(asset: str):
+    cfg = ASSETS.get(asset)
+    if not cfg:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    return jsonify({"sections": list(cfg["schema"].keys()), "schema": cfg["schema"]})
 
 
-@app.route("/api/properties/<pid>")
-def api_property(pid: str):
-    """Full CDM record for a single property."""
-    doc = _load()
-    for prop in _properties(doc):
-        if _prop_id(prop) == pid:
-            return jsonify(prop)
-    return jsonify({"error": f"Property '{pid}' not found"}), 404
+@app.route("/api/<asset>/items")
+def api_items(asset: str):
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    cfg = ASSETS[asset]
+    return jsonify([cfg["summary"](r) for r in _records(asset)])
+
+
+@app.route("/api/<asset>/items/<rid>")
+def api_item(asset: str, rid: str):
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    for rec in _records(asset):
+        if _record_id(asset, rec) == rid:
+            return jsonify(rec)
+    return jsonify({"error": f"{asset} '{rid}' not found"}), 404
+
+
+@app.route("/api/<asset>/items/<rid>/floods")
+def api_floods(asset: str, rid: str):
+    """Severe flood events for one asset: storm, cluster type, damage %.
+
+    Sourced from the asset's hazard-curve storm_details, joined to the storm
+    sequence catalogue for the cluster type. Only property/commercial carry
+    per-asset damage; other assets return supported=False.
+    """
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    if asset not in HC_CONFIG:
+        return jsonify({"supported": False, "count": 0, "events": []})
+    rec = _hc_record(asset, rid)
+    if rec is None:
+        return jsonify({"supported": True, "count": 0, "events": []})
+    idx = _storm_type_index()
+    events = []
+    for d in rec.get("storm_details", []):
+        if not (d.get("flooded") or d.get("exceeded_severe") or d.get("damage_ratio", 0) > 0):
+            continue
+        t = idx.get(d.get("storm_id"), {})
+        events.append({
+            "storm": d.get("storm_id"),
+            "type": t.get("type") or "—",
+            "intensity": t.get("intensity"),
+            "damage_pct": round(d.get("damage_ratio", 0) * 100, 2),
+            "depth_m": round(d.get("flood_depth_m", 0) or 0, 2),
+            "peak_m": round(d.get("gauge_peak_m", 0) or 0, 2),
+            "severe": bool(d.get("exceeded_severe")),
+        })
+    events.sort(key=lambda e: (-e["damage_pct"], 0 if e["severe"] else 1))
+    return jsonify({
+        "supported": True,
+        "count": len(events),
+        "flood_zone": rec.get("flood_zone"),
+        "events": events[:12],
+    })
 
 
 if __name__ == "__main__":
-    _ensure_sandbox()
-    print(f"CDM Property Editor — sandbox: {SANDBOX_FILE}")
+    print(f"CDM Asset Review — sandbox dir: {SANDBOX_DIR}")
+    print(f"Assets: {', '.join(ASSETS)}  (catchment: {CATCHMENT})")
     print("Open http://127.0.0.1:5057")
     app.run(host="127.0.0.1", port=5057, debug=True)
