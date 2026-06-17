@@ -53,7 +53,9 @@ function tierOf(path) {
 
 const $ = (sel) => document.querySelector(sel);
 
-const AUDIT_KEY = "__audit__";  // special top tab (not an asset)
+const AUDIT_KEY = "__audit__";        // special top tab (not an asset)
+const WATERFALL_KEY = "__waterfall__"; // synthetic detail tab (not a CDM section)
+const WATERFALL_ASSETS = ["property", "commercial"];
 
 const EYE_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -381,10 +383,14 @@ function recordSections() {
 function renderDetailTabs() {
   const tabs = $("#detail-tabs");
   tabs.innerHTML = "";
-  for (const section of recordSections()) {
+  const sections = recordSections().slice();
+  // Synthetic PRS Waterfall tab, right of the CDM sections (property/commercial).
+  if (WATERFALL_ASSETS.includes(ASSET)) sections.push(WATERFALL_KEY);
+  for (const section of sections) {
     const btn = document.createElement("button");
     btn.className = "detail-tab" + (section === ACTIVE_SECTION ? " active" : "");
-    btn.textContent = prettyLabel(section);
+    if (section === WATERFALL_KEY) btn.classList.add("waterfall-tab");
+    btn.textContent = section === WATERFALL_KEY ? "PRS Waterfall" : prettyLabel(section);
     btn.addEventListener("click", () => {
       ACTIVE_SECTION = section;
       renderDetailTabs();
@@ -517,6 +523,7 @@ function renderGroup(schemaNode, dataNode, depth, path) {
 function renderDetailBody() {
   const body = $("#detail-body");
   body.innerHTML = "";
+  if (ACTIVE_SECTION === WATERFALL_KEY) { renderWaterfall(body); return; }
   const schemaNode = SCHEMA.schema[ACTIVE_SECTION] || {};
   const dataNode = CURRENT[ACTIVE_SECTION] || {};
   // A leaf-only section (rare) still renders by wrapping the value. The dotted
@@ -534,6 +541,65 @@ function renderDetailBody() {
     `<span>Section: <b>${prettyLabel(ACTIVE_SECTION)}</b></span>` +
     `<span>${count} fields</span>` +
     lineageLegendHtml();
+}
+
+// ---- PRS spread waterfall (synthetic tab) ---------------------------------
+
+async function renderWaterfall(body) {
+  $("#modal-foot").innerHTML = "<span>PRS spread waterfall</span>";
+  body.innerHTML = `<div class="wf-msg">Loading waterfall…</div>`;
+  let data;
+  try {
+    data = await (await fetch(
+      `/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/waterfall`)).json();
+  } catch (e) { body.innerHTML = `<div class="wf-msg">Failed to load waterfall.</div>`; return; }
+  if (!data.supported) {
+    body.innerHTML = `<div class="wf-msg">${data.reason || "Not available."}</div>`;
+    return;
+  }
+  const stages = data.stages || [];
+  if (!stages.length) {
+    body.innerHTML = `<div class="wf-msg">${data.note || "No waterfall for this asset."}</div>`;
+    return;
+  }
+  const max = Math.max(1, ...stages.map((s) => Math.abs(s.bps)));
+  const bars = stages.map((s) => {
+    const w = Math.max(1.5, Math.abs(s.bps) / max * 100);
+    const eff = (s.effect === null || s.effect === undefined) ? ""
+      : `<span class="wf-eff ${s.effect < 0 ? "down" : (s.effect > 0 ? "up" : "")}">` +
+        `${s.effect > 0 ? "+" : ""}${s.effect.toFixed(1)} bps</span>`;
+    return `<div class="wf-row">` +
+      `<div class="wf-label">${s.label}</div>` +
+      `<div class="wf-track"><div class="wf-bar" style="width:${w}%;background:${s.colour}"></div>` +
+        `<span class="wf-val">${s.bps.toFixed(1)} bps</span></div>` +
+      `<div class="wf-effcol">${eff}</div>` +
+    `</div>`;
+  }).join("");
+  const zone = data.flood_zone ? ` &middot; ${data.flood_zone}` : "";
+  body.innerHTML =
+    `<div class="wf-wrap">` +
+      `<div class="wf-head"><div>` +
+        `<div class="wf-title">PRS spread waterfall</div>` +
+        `<div class="wf-sub">Gauge spread decomposed to the property spread (bps)${zone}</div>` +
+      `</div><button class="wf-pricer" id="wf-pricer">Open PRS Pricer ↗</button></div>` +
+      `<div class="wf-chart">${bars}</div>` +
+      `<div class="wf-final">Property spread: ` +
+        `<b>${(data.property_spread_bps || 0).toFixed(1)} bps</b></div>` +
+    `</div>`;
+  $("#wf-pricer").addEventListener("click", openPrsPricer);
+}
+
+// Open the actual PRS pricer — the same action as the property-level map menu
+// ("Physical Risk Swap"). When the tool runs embedded in the main app (the
+// house-icon iframe), the parent window exposes that function.
+function openPrsPricer() {
+  const fn = ASSET === "commercial" ? "viewCommercialHazard" : "viewPropertyHazard";
+  const host = (window.parent && window.parent !== window) ? window.parent : window;
+  if (typeof host[fn] === "function") {
+    host[fn](CURRENT_ID);
+  } else {
+    alert("Open this asset in the main app to use the PRS Pricer (" + fn + ").");
+  }
 }
 
 // ---- lineage: legend, 3-dots field menu, lineage popup --------------------

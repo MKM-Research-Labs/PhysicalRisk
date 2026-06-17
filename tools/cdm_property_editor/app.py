@@ -51,6 +51,7 @@ from port.cdm.ctpy._schema import COUNTERPARTY_SCHEMA  # noqa: E402
 from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
 from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
 from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
+from models.prs.waterfall import waterfall_stages  # noqa: E402
 
 CATCHMENT = "thames"
 INPUT_DIR = REPO_ROOT / "data" / "input" / CATCHMENT
@@ -568,6 +569,33 @@ def api_perils(asset: str, rid: str):
         "wind": _wind_payload(asset, rid),
         "fire": _fire_payload(asset, rid),
         "seismic": _seismic_payload(asset, rid),
+    })
+
+
+@app.route("/api/<asset>/items/<rid>/waterfall")
+def api_waterfall(asset: str, rid: str):
+    """PRS spread waterfall for one asset, from its hazard-curve decomposition.
+
+    Mirrors the main app's basis waterfall (Gauge -> SHE elevation -> SHD
+    distance -> Property -> BRI resilient), each bar the spread under that
+    stage's adjustment plus its effect vs the gauge spread. Property/commercial
+    only; other assets return supported=False.
+    """
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    if asset not in HC_CONFIG:
+        return jsonify({"supported": False,
+                        "reason": "No PRS waterfall for this asset class."})
+    rec = _hc_record(asset, rid)
+    if rec is None:
+        return jsonify({"supported": True, "stages": [],
+                        "note": "No hazard curve for this asset."})
+    sd = rec.get("spread_decomposition", {}) or {}
+    return jsonify({
+        "supported": True,
+        "flood_zone": rec.get("flood_zone"),
+        "property_spread_bps": sd.get("property_spread_bps") or 0.0,
+        "stages": waterfall_stages(sd),
     })
 
 
