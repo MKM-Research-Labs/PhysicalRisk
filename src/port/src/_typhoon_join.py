@@ -48,6 +48,10 @@ def load_wind_damage_index(output_dir: Union[str, Path]) -> Dict[str, Dict[str, 
                     'peak_sustained_ms': d.get('peak_sustained_ms'),
                     'threshold_ms': d.get('threshold_ms'),
                     'v_50_eff_ms': d.get('v_50_eff_ms'),
+                    # Persistence (duration-of-load) — None on legacy peak-only
+                    # rows; carried for the insurance-loss / traceability view.
+                    'duration_above_hours': d.get('duration_above_hours'),
+                    'persistence_factor': d.get('persistence_factor'),
                 }
         if pmap:
             out[eid] = pmap

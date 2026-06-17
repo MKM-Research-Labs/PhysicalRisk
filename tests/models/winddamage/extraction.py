@@ -9,7 +9,11 @@ import json
 
 import pytest
 
-from models.winddamage.extraction import EventWindts, load_event_peaks
+from models.winddamage.extraction import (
+    EventWindts,
+    duration_above_threshold,
+    load_event_peaks,
+)
 
 
 def _windts_payload(**overrides):
@@ -84,3 +88,48 @@ class TestLoadEventPeaks:
         path.write_text(json.dumps(payload))
         result = load_event_peaks(path)
         assert result.event_id == "EVT-FALLBACK"
+
+    def test_loads_per_property_series_when_present(self, tmp_path):
+        payload = _windts_payload(property_windts=[
+            {"point_id": "PROP-a", "peak_sustained_ms": 40.0,
+             "time_hours": [0.0, 1.0, 2.0], "sustained_ms": [10.0, 40.0, 20.0]},
+            {"point_id": "PROP-b", "peak_sustained_ms": 18.0},   # peak-only
+        ])
+        path = tmp_path / "EVT.json"
+        path.write_text(json.dumps(payload))
+        result = load_event_peaks(path)
+        assert result.series_by_property["PROP-a"] == ([0.0, 1.0, 2.0], [10.0, 40.0, 20.0])
+        assert "PROP-b" not in result.series_by_property   # no series stored
+
+    def test_series_skipped_when_lengths_mismatch(self, tmp_path):
+        payload = _windts_payload(property_windts=[
+            {"point_id": "PROP-a", "peak_sustained_ms": 40.0,
+             "time_hours": [0.0, 1.0], "sustained_ms": [10.0]},   # mismatch
+        ])
+        path = tmp_path / "EVT.json"
+        path.write_text(json.dumps(payload))
+        result = load_event_peaks(path)
+        assert result.peaks_by_property == {"PROP-a": 40.0}
+        assert result.series_by_property == {}
+
+    def test_series_defaults_empty_for_legacy(self, tmp_path):
+        path = tmp_path / "EVT.json"
+        path.write_text(json.dumps(_windts_payload()))   # no series fields
+        result = load_event_peaks(path)
+        assert result.series_by_property == {}
+
+
+class TestDurationAboveThreshold:
+
+    def test_counts_intervals_where_value_exceeds_threshold(self):
+        # values 10,40,40,20 at t=0,1,2,3 -> above 30 at i=1,2 -> 2 h.
+        t = [0.0, 1.0, 2.0, 3.0]
+        v = [10.0, 40.0, 40.0, 20.0]
+        assert duration_above_threshold(t, v, 30.0) == pytest.approx(2.0)
+
+    def test_zero_when_never_exceeds(self):
+        assert duration_above_threshold([0.0, 1.0, 2.0], [5.0, 6.0, 7.0], 30.0) == 0.0
+
+    def test_empty_or_single_sample_is_zero(self):
+        assert duration_above_threshold([], [], 1.0) == 0.0
+        assert duration_above_threshold([0.0], [99.0], 1.0) == 0.0
