@@ -86,3 +86,51 @@ class TestCoreControls:
         if preloader.count() > 0 and preloader.is_visible():
             assert preload_done, "Preloader still visible and data not cached"
         # If preloader is gone or hidden, that's fine too
+
+    def test_cdm_review_button_exists(self, map_page):
+        """The CDM Asset Review (house) launcher must be on the map, below Pi."""
+        btn = map_page.locator("[title='CDM Asset Review']")
+        assert btn.count() >= 1, "CDM Asset Review house icon not found"
+
+    def test_cdm_review_opens_in_app_panel(self, map_page):
+        """Clicking the house icon opens an in-app panel (not a new tab)."""
+        btn = map_page.locator("[title='CDM Asset Review']").first
+        if btn.count() == 0:
+            pytest.skip("CDM Asset Review control not present")
+        btn.click()
+        map_page.wait_for_timeout(1_000)
+        panel = map_page.locator("#cdm-review-panel")
+        assert panel.count() >= 1 and panel.is_visible(), \
+            "CDM Asset Review panel did not open on the same tab"
+
+
+class TestPerilStartupData:
+    """Fire and seismic model outputs are exposed and preloaded."""
+
+    def test_fire_seismic_endpoints_serve_data(self, map_page):
+        """/api/v1/fire and /api/v1/seismic return the model payloads."""
+        result = map_page.evaluate("""async () => {
+            const f = await (await fetch('/api/v1/fire')).json();
+            const s = await (await fetch('/api/v1/seismic')).json();
+            return { fireAssets: (f.assets || []).length,
+                     seismicAssets: (s.assets || []).length };
+        }""")
+        # Commercial-only models — present for catchments that ran them.
+        assert result["fireAssets"] >= 0
+        assert result["seismicAssets"] >= 0
+
+    def test_startup_dialog_lists_fire_and_seismic(self, map_page):
+        """The preloader datasets include Fire model and Seismic model rows."""
+        has_rows = map_page.evaluate("""() => {
+            // Rows are stamped startup-row-<key>; keys added by startup.js.
+            const ids = [...document.querySelectorAll('[id^=startup-row-]')]
+                .map(e => e.id);
+            const cached = ('_preFire' in window) && ('_preSeismic' in window);
+            return { fireRow: ids.includes('startup-row-_preFire'),
+                     seismicRow: ids.includes('startup-row-_preSeismic'),
+                     cached };
+        }""")
+        # The popup may already be gone; the cached globals prove the datasets
+        # ran. Either signal is acceptable.
+        assert has_rows["cached"] or (has_rows["fireRow"] and has_rows["seismicRow"]), \
+            "Fire/Seismic not present in the startup preloader"

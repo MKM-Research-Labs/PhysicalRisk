@@ -179,57 +179,13 @@ class TestContextMenuNavigation:
 
 
 class TestNavMenuDropdowns:
-    """Top-left gauge/property navigation select menus."""
+    """The top-left gauge/property navigation dropdowns were removed — gauge /
+    property browsing now lives in the CDM Asset Review workstream. They must
+    no longer render. The right-click context menus (above) are unaffected."""
 
-    def test_nav_container_exists(self, map_page):
-        """Nav menu container should be rendered on the page."""
+    def test_nav_dropdowns_removed(self, map_page):
         map_page.wait_for_timeout(5_000)
-        container = map_page.locator("#nav-menu-container")
-        assert container.count() > 0, "No #nav-menu-container found"
-
-    def test_gauge_select_exists(self, map_page):
-        """Gauge select dropdown should exist."""
-        map_page.wait_for_timeout(5_000)
-        sel = map_page.locator("#nav-gauge-select")
-        assert sel.count() > 0, "No #nav-gauge-select found"
-
-    def test_property_select_exists(self, map_page):
-        """Property select dropdown should exist."""
-        map_page.wait_for_timeout(5_000)
-        sel = map_page.locator("#nav-prop-select")
-        assert sel.count() > 0, "No #nav-prop-select found"
-
-    def test_gauge_select_has_options(self, map_page):
-        """Gauge select should have options after data loads."""
-        map_page.wait_for_timeout(10_000)
-        sel = map_page.locator("#nav-gauge-select")
-        if sel.count() == 0:
-            pytest.skip("No gauge select")
-        options = sel.locator("option")
-        assert options.count() > 1, "Gauge select has no gauge options (only placeholder)"
-
-    def test_property_select_has_options(self, map_page):
-        """Property select should have options after data loads."""
-        map_page.wait_for_timeout(10_000)
-        sel = map_page.locator("#nav-prop-select")
-        if sel.count() == 0:
-            pytest.skip("No property select")
-        options = sel.locator("option")
-        assert options.count() > 1, "Property select has no property options (only placeholder)"
-
-    def test_selecting_gauge_shows_action_buttons(self, map_page):
-        """Selecting a gauge should show action buttons."""
-        map_page.wait_for_timeout(10_000)
-        sel = map_page.locator("#nav-gauge-select")
-        if sel.count() == 0:
-            pytest.skip("No gauge select")
-        options = sel.locator("option")
-        if options.count() < 2:
-            pytest.skip("No gauge options loaded")
-        # Select second option (first is placeholder)
-        sel.select_option(index=1)
-        map_page.wait_for_timeout(500)
-
-        action_bar = map_page.locator("#nav-action-bar")
-        buttons = action_bar.locator("button")
-        assert buttons.count() >= 2, f"Expected action buttons, found {buttons.count()}"
+        assert map_page.locator("#nav-menu-container").count() == 0, \
+            "nav dropdown container should have been removed"
+        assert map_page.locator("#nav-gauge-select").count() == 0
+        assert map_page.locator("#nav-prop-select").count() == 0
