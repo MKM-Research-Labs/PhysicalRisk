@@ -1,5 +1,22 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
-# (see auth.py for full license text)
+
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 """cmd_port — top-level orchestrator for the port pipeline.
 
@@ -201,19 +218,28 @@ def cmd_port(args):
     print(f"Catchment: {catchment}")
     print(f"Output: {output_dir}\n")
 
-    # --- Pipeline stages --------------------------------------------------
+    # --- Pipeline stages (grouped by layer) -------------------------------
+    # Layer 1 — foundational entities (gauges, properties, commercial, loans…)
     portfolios.run_all(ctx)
+
+    # Layer 2 — hazards: the flood storms plus the wind (typhoon), fire and
+    # seismic hazard generators. These produce the hazard events/outcomes and
+    # are independent of the flood spine, so they sit with the storms — not at
+    # the end, after the trades.
     storm.run_all(ctx)
+    typhoon.run_all(ctx)
+    fire.run_all(ctx)      # fire-resilience credit over commercial (reads commercial.json)
+    seismic.run_all(ctx)
+
+    # Layer 3 — hazard curves: price the hazards into spreads.
     timeseries.run_all(ctx)
     hazardcurves.run_all(ctx)
-    trading.run_all(ctx)
-    typhoon.run_all(ctx)
-    # Wind-coupled hazard curves (win/faw/fow) must run AFTER typhoon: they
-    # derive their ts inputs from the flood spine joined against typhoon/damage.
+    # Wind-coupled hazard curves (win/faw/fow) derive their ts inputs from the
+    # flood spine joined against typhoon/damage — so after timeseries + typhoon.
     windhazard.run_all(ctx)
-    # Fire-resilience credit over the commercial portfolio (reads commercial.json).
-    fire.run_all(ctx)
-    seismic.run_all(ctx)
+
+    # Layer 4 — trades (consume the hazard curves).
+    trading.run_all(ctx)
 
     # --- Post-run reporting ----------------------------------------------
     if ctx.run_all:
