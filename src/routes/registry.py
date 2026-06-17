@@ -32,6 +32,7 @@ def register_blueprints(app: Flask) -> None:
     from .gauges import gauges_bp
     from .governance import governance_bp
     from .health import health_bp
+    from .perils import perils_bp
     from .properties import properties_bp
     from .propertyhc import propertyhc_bp
     from .propertyts import propertyts_bp
@@ -52,3 +53,4 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(prs_bp, url_prefix="/api/v1")
     app.register_blueprint(trading_bp, url_prefix="/api/v1")
     app.register_blueprint(governance_bp, url_prefix="/api/v1")
+    app.register_blueprint(perils_bp, url_prefix="/api/v1")
