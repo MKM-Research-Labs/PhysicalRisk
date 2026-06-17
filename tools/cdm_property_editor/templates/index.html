@@ -1,0 +1,64 @@
+<!--
+  Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+  (see package __init__.py for full license text)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Property CDM Review</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Property CDM Review <span class="tag">sandbox</span></div>
+    <span id="status" class="status"></span>
+  </header>
+
+  <div class="layout">
+    <!-- Left-hand list of all properties -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Properties</div>
+        <input id="search" type="search" placeholder="Filter properties…" />
+        <div id="count" class="count"></div>
+      </div>
+      <ul id="property-list" class="property-list"></ul>
+    </aside>
+
+    <!-- Main summary dashboard -->
+    <main class="content">
+      <div class="content-head">
+        <h1>Property Portfolio</h1>
+        <p>Common Domain Model — sandbox copy. Select a property's review icon to inspect its full CDM record.</p>
+      </div>
+      <div id="cards" class="cards"></div>
+      <div class="hint">
+        <!-- eye icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Click the review icon on any property to open its detailed CDM data.
+      </div>
+    </main>
+  </div>
+
+  <!-- Detail modal (governance style) — populated by JS -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal" class="modal">
+      <div class="modal-head">
+        <span class="modal-title">Property Detail</span>
+        <div class="modal-head-actions">
+          <button id="modal-expand" class="icon-btn expand" title="Expand">&#x26F6;</button>
+          <button id="modal-close" class="icon-btn close" title="Close">&times;</button>
+        </div>
+      </div>
+      <div id="detail-card" class="detail-card"></div>
+      <nav id="detail-tabs" class="detail-tabs"></nav>
+      <div id="detail-body" class="detail-body"></div>
+      <div id="modal-foot" class="modal-foot"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
