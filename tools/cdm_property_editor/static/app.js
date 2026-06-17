@@ -17,7 +17,7 @@ let CURRENT = null;       // full record open in the modal
 let CURRENT_ID = null;
 let ACTIVE_SECTION = null;
 let ACTIVE_PERIL = "flood";
-let CURRENT_FLOODS = null; // floods payload for the open record (null = loading)
+let CURRENT_PERILS = null; // {flood, wind, fire, seismic} for open record (null = loading)
 
 const PERILS = [
   { key: "flood", label: "Flood" },
@@ -230,7 +230,6 @@ function renderPerilTabs() {
     const btn = document.createElement("button");
     btn.className = "peril-tab" + (p.key === ACTIVE_PERIL ? " active" : "");
     btn.textContent = p.label;
-    if (p.key !== "flood") btn.classList.add("placeholder");
     btn.addEventListener("click", () => {
       ACTIVE_PERIL = p.key;
       renderPerilTabs();
@@ -246,62 +245,100 @@ function clusterBadge(type) {
   return `<span class="cl-badge ${cls}">${type || "—"}</span>`;
 }
 
-function floodTableHtml() {
-  if (CURRENT_FLOODS === null) return `<div class="peril-msg">Loading flood events…</div>`;
-  if (!CURRENT_FLOODS.supported)
-    return `<div class="peril-msg">Per-asset flood damage is not modelled for ${assetLabel(ASSET).toLowerCase()}.</div>`;
-  const evs = CURRENT_FLOODS.events || [];
-  if (!evs.length)
-    return `<div class="peril-msg">No severe flood events on record` +
-           (CURRENT_FLOODS.flood_zone ? ` &middot; ${CURRENT_FLOODS.flood_zone}` : "") + `.</div>`;
+function msgHtml(text) { return `<div class="peril-msg">${text}</div>`; }
 
+function fmtStat(s) {
+  if (s.value === null || s.value === undefined) return "—";
+  if (s.pct) return (s.value * 100).toFixed(2) + "%";
+  const v = Number(s.value);
+  if (Number.isNaN(v)) return String(s.value);
+  if (v !== 0 && Math.abs(v) < 0.001) return v.toExponential(2);
+  return v.toPrecision(3).replace(/\.?0+$/, "");
+}
+
+function segBarHtml(items) {
+  const total = items.reduce((a, b) => a + (b.count || 0), 0) || 1;
+  const seg = items.filter((it) => it.count > 0).map((it) =>
+    `<span class="seg seg-${it.cls}" style="width:${(it.count / total * 100).toFixed(1)}%" ` +
+    `title="${it.label}: ${it.count}"></span>`).join("");
+  const legend = items.map((it) =>
+    `<span class="lg"><span class="dot dot-${it.cls}"></span>${it.label}: ` +
+    `<b>${(it.count || 0).toLocaleString()}</b></span>`).join("");
+  return `<div class="seg-bar">${seg}</div><div class="seg-legend">${legend}</div>`;
+}
+
+function statRowsHtml(items) {
+  return `<table class="stat-table"><tbody>` + items.map((s) =>
+    `<tr><td>${s.label}</td><td class="sv">${fmtStat(s)}</td></tr>`).join("") +
+    `</tbody></table>`;
+}
+
+// Flood / wind — a list of discrete events.
+function eventTableHtml(data, peril) {
+  if (!data || !data.supported) return msgHtml(data && data.reason || "Not modelled.");
+  const evs = data.events || [];
+  if (!evs.length)
+    return msgHtml(data.note ||
+      (`No ${peril} events on record` + (data.flood_zone ? ` · ${data.flood_zone}` : "") + "."));
   let rows = "";
   for (const e of evs) {
-    const tip = `peak ${e.peak_m} m · depth ${e.depth_m} m` +
-                (e.intensity ? ` · ${e.intensity}` : "");
-    rows +=
-      `<tr title="${tip}">` +
-        `<td class="pt-storm">${e.storm}</td>` +
-        `<td>${clusterBadge(e.type)}</td>` +
-        `<td class="pt-dmg">${e.damage_pct ? e.damage_pct.toFixed(1) + "%" : "—"}</td>` +
-      `</tr>`;
+    const tip = `peak ${e.peak_m} m · depth ${e.depth_m} m` + (e.intensity ? ` · ${e.intensity}` : "");
+    rows += `<tr title="${tip}"><td class="pt-storm">${e.storm}</td>` +
+      `<td>${clusterBadge(e.type)}</td>` +
+      `<td class="pt-dmg">${e.damage_pct ? e.damage_pct.toFixed(1) + "%" : "—"}</td></tr>`;
   }
-  const cap = `Top ${evs.length} of ${CURRENT_FLOODS.count} events` +
-              (CURRENT_FLOODS.flood_zone ? ` &middot; ${CURRENT_FLOODS.flood_zone}` : "");
+  const cap = `Top ${evs.length} of ${data.count} events` +
+              (data.flood_zone ? ` &middot; ${data.flood_zone}` : "");
   return `<div class="peril-cap">${cap}</div>` +
     `<div class="peril-scroll"><table class="peril-table"><thead><tr>` +
-      `<th>Storm</th><th>Type</th><th>Damage</th>` +
-    `</tr></thead><tbody>${rows}</tbody></table></div>`;
+      `<th>Storm</th><th>Type</th><th>Damage</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// Fire — outcome distribution over simulated fires (commercial only).
+function fireHtml(data) {
+  if (!data || !data.supported) return msgHtml(data && data.reason || "Not modelled.");
+  const cap = `${data.model} &middot; λ ${Number(data.lambda_annual).toFixed(3)}/yr &middot; ` +
+              `${(data.n_fires || 0).toLocaleString()} fires / ${(data.n_sim || 0).toLocaleString()} sims`;
+  return `<div class="peril-cap">${cap}</div>` +
+    `<div class="peril-scroll">${segBarHtml(data.outcomes)}` +
+    statRowsHtml(data.stats) + `</div>`;
+}
+
+// Seismic — site profile + damage-state distribution (commercial only).
+function seismicHtml(data) {
+  if (!data || !data.supported) return msgHtml(data && data.reason || "Not modelled.");
+  const cap = `${data.model} &middot; ${data.n_events} events / ${(data.n_sim || 0).toLocaleString()} sims`;
+  return `<div class="peril-cap">${cap}</div>` +
+    `<div class="peril-scroll">${statRowsHtml(data.site)}` +
+    `<div class="ds-title">Damage states</div>${segBarHtml(data.damage_states)}` +
+    statRowsHtml(data.stats) + `</div>`;
 }
 
 function renderPerilContent() {
   const el = $("#peril-content");
   if (!el) return;
-  if (ACTIVE_PERIL === "flood") { el.innerHTML = floodTableHtml(); return; }
-  const label = (PERILS.find((p) => p.key === ACTIVE_PERIL) || {}).label || "";
-  el.innerHTML =
-    `<div class="peril-ph">` +
-      `<div class="peril-ph-title">${label} perils</div>` +
-      `<div class="peril-ph-sub">Coming soon — ${label.toLowerCase()} damage events ` +
-        `will appear here.</div>` +
-    `</div>`;
+  if (CURRENT_PERILS === null) { el.innerHTML = msgHtml("Loading…"); return; }
+  const data = CURRENT_PERILS[ACTIVE_PERIL];
+  if (ACTIVE_PERIL === "fire") el.innerHTML = fireHtml(data);
+  else if (ACTIVE_PERIL === "seismic") el.innerHTML = seismicHtml(data);
+  else el.innerHTML = eventTableHtml(data, ACTIVE_PERIL);
 }
 
-async function loadFloods() {
+async function loadPerils() {
   if (!(ASSET && CURRENT_ID)) return;
   const reqId = CURRENT_ID;
-  CURRENT_FLOODS = null;
-  if (ACTIVE_PERIL === "flood") renderPerilContent();
+  CURRENT_PERILS = null;
+  renderPerilContent();
   try {
-    const res = await fetch(`/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/floods`);
+    const res = await fetch(`/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/perils`);
     const data = await res.json();
     if (reqId !== CURRENT_ID) return; // a different record was opened meanwhile
-    CURRENT_FLOODS = data;
+    CURRENT_PERILS = data;
   } catch (err) {
     if (reqId !== CURRENT_ID) return;
-    CURRENT_FLOODS = { supported: false, events: [] };
+    CURRENT_PERILS = {};
   }
-  if (ACTIVE_PERIL === "flood") renderPerilContent();
+  renderPerilContent();
 }
 
 // Section tabs come from the record's own top-level keys, ordered schema-first
@@ -425,7 +462,7 @@ async function openDetail(rid) {
     CURRENT_ID = rid;
     ACTIVE_SECTION = recordSections()[0];
     ACTIVE_PERIL = "flood";
-    CURRENT_FLOODS = null;
+    CURRENT_PERILS = null;
     const singular = { Properties: "Property", Commercials: "Commercial",
                        Gauges: "Gauge" }[assetLabel(ASSET)] || assetLabel(ASSET);
     $("#modal-title").textContent = singular + " Detail";
@@ -435,7 +472,7 @@ async function openDetail(rid) {
     renderDetailBody();
     $("#modal-overlay").classList.remove("hidden");
     setStatus("");
-    loadFloods();
+    loadPerils();
   } catch (err) {
     setStatus("Error: " + err.message, true);
   }
