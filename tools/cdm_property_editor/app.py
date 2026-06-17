@@ -163,8 +163,30 @@ HC_CONFIG: dict[str, dict] = {
     "commercial": {"file": "commercialhc.json", "container": "property_hazard_curves"},
 }
 
+# Fire / seismic model outputs. Both are commercial-only (keyed by CPROP id) and
+# carry per-asset outcome distributions rather than per-event lists.
+FIRE_FILE = INPUT_DIR / "fire" / "fire.json"
+SEISMIC_FILE = INPUT_DIR / "seismic" / "seismic.json"
+# Seismic damage states DS0..DS3; DS3 is the collapse state (no_collapse counts
+# DS0+DS1+DS2). See src/models/seismic/damage.py.
+SEISMIC_DS_LABELS = ["None", "Slight", "Moderate", "Collapse"]
+
 # Lazy caches (read-only reference data; never written back).
 _CACHE: dict = {}
+
+
+def _model_assets(cache_key: str, path: Path) -> tuple:
+    """(model_id, {asset_id: record}) for a fire/seismic model output file."""
+    if cache_key not in _CACHE:
+        model, amap = None, {}
+        if path.exists():
+            with open(path, "r", encoding="utf-8") as fh:
+                doc = json.load(fh)
+            model = doc.get("metadata", {}).get("model")
+            for a in doc.get("assets", []):
+                amap[a.get("asset_id")] = a
+        _CACHE[cache_key] = (model, amap)
+    return _CACHE[cache_key]
 
 
 def _storm_type_index() -> dict:
@@ -282,21 +304,13 @@ def api_item(asset: str, rid: str):
     return jsonify({"error": f"{asset} '{rid}' not found"}), 404
 
 
-@app.route("/api/<asset>/items/<rid>/floods")
-def api_floods(asset: str, rid: str):
-    """Severe flood events for one asset: storm, cluster type, damage %.
-
-    Sourced from the asset's hazard-curve storm_details, joined to the storm
-    sequence catalogue for the cluster type. Only property/commercial carry
-    per-asset damage; other assets return supported=False.
-    """
-    if asset not in ASSETS:
-        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+def _flood_payload(asset: str, rid: str) -> dict:
+    """Severe flood events: storm, cluster type, damage %. Property/commercial."""
     if asset not in HC_CONFIG:
-        return jsonify({"supported": False, "count": 0, "events": []})
+        return {"supported": False, "reason": "No flood model for this asset."}
     rec = _hc_record(asset, rid)
     if rec is None:
-        return jsonify({"supported": True, "count": 0, "events": []})
+        return {"supported": True, "count": 0, "events": []}
     idx = _storm_type_index()
     events = []
     for d in rec.get("storm_details", []):
@@ -313,11 +327,87 @@ def api_floods(asset: str, rid: str):
             "severe": bool(d.get("exceeded_severe")),
         })
     events.sort(key=lambda e: (-e["damage_pct"], 0 if e["severe"] else 1))
+    return {"supported": True, "count": len(events),
+            "flood_zone": rec.get("flood_zone"), "events": events[:12]}
+
+
+def _wind_payload(asset: str, rid: str) -> dict:
+    """Wind/typhoon events. The thames win files are zero-event placeholders
+    (the typhoon ensemble was not run), so there is nothing real to show yet."""
+    if asset not in HC_CONFIG:
+        return {"supported": False, "reason": "No wind model for this asset."}
+    return {"supported": True, "count": 0, "events": [],
+            "note": "Typhoon/wind ensemble not run for this catchment — "
+                    "zero-event placeholder. Run `port --typhoon` to populate."}
+
+
+def _fire_payload(asset: str, rid: str) -> dict:
+    """Fire model outcome distribution (commercial assets only)."""
+    model, amap = _model_assets("fire", FIRE_FILE)
+    a = amap.get(rid)
+    if not a:
+        return {"supported": False,
+                "reason": "Fire model (MKM-FIRE-001) covers commercial assets only."}
+    return {
+        "supported": True, "model": model, "n_sim": a.get("n_sim"),
+        "lambda_annual": a.get("lambda_annual"),
+        "n_fires": a.get("n_fires"),
+        "outcomes": [
+            {"label": "Contained", "count": a.get("n_contained", 0), "cls": "ok"},
+            {"label": "Partial loss", "count": a.get("n_partial", 0), "cls": "warn"},
+            {"label": "Total loss", "count": a.get("n_total", 0), "cls": "bad"},
+            {"label": "Point of no return", "count": a.get("n_point_of_no_return", 0), "cls": "bad"},
+        ],
+        "stats": [
+            {"label": "Loss frequency (annual)", "value": a.get("loss_frequency")},
+            {"label": "Partial-loss freq", "value": a.get("partial_loss_frequency")},
+            {"label": "Total-loss freq", "value": a.get("total_loss_frequency")},
+            {"label": "Containment rate", "value": a.get("containment_rate"), "pct": True},
+        ],
+    }
+
+
+def _seismic_payload(asset: str, rid: str) -> dict:
+    """Seismic model damage-state distribution (commercial assets only)."""
+    model, amap = _model_assets("seismic", SEISMIC_FILE)
+    a = amap.get(rid)
+    if not a:
+        return {"supported": False,
+                "reason": "Seismic model covers commercial assets only."}
+    ds = a.get("damage_state_counts", {}) or {}
+    classes = ["ok", "warn", "warn", "bad"]
+    return {
+        "supported": True, "model": model, "n_sim": a.get("n_sim"),
+        "n_events": a.get("n_events"),
+        "site": [
+            {"label": "Hazard zone", "value": a.get("zone")},
+            {"label": "Site class", "value": a.get("site_class")},
+            {"label": "Construction", "value": a.get("construction_type")},
+            {"label": "BRI rating", "value": a.get("rating")},
+        ],
+        "damage_states": [
+            {"label": SEISMIC_DS_LABELS[i], "count": ds.get(str(i), 0), "cls": classes[i]}
+            for i in range(4)
+        ],
+        "stats": [
+            {"label": "No-collapse rate", "value": a.get("no_collapse_rate"), "pct": True},
+            {"label": "Loss frequency (annual)", "value": a.get("loss_frequency")},
+            {"label": "PML 1-in-475", "value": a.get("pml_475"), "pct": True},
+            {"label": "PML 1-in-2475", "value": a.get("pml_2475"), "pct": True},
+        ],
+    }
+
+
+@app.route("/api/<asset>/items/<rid>/perils")
+def api_perils(asset: str, rid: str):
+    """All four perils for one asset, each with a `supported` flag."""
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
     return jsonify({
-        "supported": True,
-        "count": len(events),
-        "flood_zone": rec.get("flood_zone"),
-        "events": events[:12],
+        "flood": _flood_payload(asset, rid),
+        "wind": _wind_payload(asset, rid),
+        "fire": _fire_payload(asset, rid),
+        "seismic": _seismic_payload(asset, rid),
     })
 
 
