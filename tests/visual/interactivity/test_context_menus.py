@@ -132,12 +132,18 @@ class TestNavMenusJS:
         js = handler._build_nav_menus_js()
         assert 'nav-action-bar' in js
 
-    def test_nav_menus_included_in_get_js(self):
+    def test_nav_menus_not_rendered_in_get_js(self):
+        # The top-left gauge/property dropdowns are no longer rendered
+        # (browsing moved to the CDM Asset Review workstream). The builder is
+        # retained but not wired into get_js.
         from visual.interactivity.context_menus import ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler.get_js()
-        assert 'nav-menu-container' in js
+        assert 'nav-menu-container' not in js
+        assert '__NAV_MENU_CONFIG' not in js
+        # The right-click context menus are unaffected.
+        assert '__MENU_CONFIG' in js
 
 
 class TestGetStatistics:

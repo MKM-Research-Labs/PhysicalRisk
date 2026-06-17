@@ -99,7 +99,13 @@ class ContextMenuHandler:
         self.commercial_menu = commercial_menu or DEFAULT_COMMERCIAL_MENU.copy()
 
     def get_js(self) -> str:
-        """Generate CSS and JavaScript for context menu functionality."""
+        """Generate CSS and JavaScript for context menu functionality.
+
+        The top-left gauge/property navigation dropdowns are intentionally not
+        rendered (gauge/property browsing now lives in the CDM Asset Review
+        workstream). ``_build_nav_menus_js`` is retained so the dropdowns can be
+        restored by re-appending its output here.
+        """
         css_code = css_static('context-menus.css')
         js_code = js_static('context-menus.js')
         menu_config = json.dumps({
@@ -107,17 +113,16 @@ class ContextMenuHandler:
             'gauge': self.gauge_menu,
             'commercial': self.commercial_menu,
         })
-        nav_js = self._build_nav_menus_js()
         return (
             f"<style>{css_code}</style>\n"
             f"<script>window.__MENU_CONFIG = {menu_config};\n{js_code}</script>\n"
-            f"{nav_js}"
         )
 
     def _build_nav_menus_js(self) -> str:
         """Generate JS for top-left gauge/property navigation dropdowns.
 
-        Reuses the same menu-item definitions (self.gauge_menu, self.property_menu)
+        Retained but no longer wired into ``get_js`` — see that method. Reuses
+        the same menu-item definitions (self.gauge_menu, self.property_menu)
         that the right-click context menus use.  Data comes from the startup
         preloader globals (_tdPreGauges, _prePropertyTS).
         """
