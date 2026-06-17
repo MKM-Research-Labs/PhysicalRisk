@@ -45,6 +45,7 @@ from .property.propertysa import PropertyStormAnalysis
 from .governance.modelgovernance import ModelGovernancePanel
 from .trading.tradingdesk import TradingDeskPanel
 from .trading.td_main_map import MainMapFS01
+from .cdm_review import CdmReviewControl
 
 
 class InteractivityManager:
@@ -78,6 +79,7 @@ class InteractivityManager:
         self.storm_portfolio = StormPortfolioPanel()
         self.model_governance = ModelGovernancePanel()
         self.trading_desk = TradingDeskPanel()
+        self.cdm_review = CdmReviewControl()
         self.main_map_fs01 = MainMapFS01()
 
     def setup_map_interactivity(self, folium_map) -> 'InteractivityManager':
@@ -98,6 +100,9 @@ class InteractivityManager:
         self.storm_portfolio.add_to_map(folium_map)
         self.model_governance.add_to_map(folium_map)
         self.trading_desk.add_to_map(folium_map)
+        # Added right after the Pi (Trader's Workstation) so the house icon
+        # stacks directly below it in the top-right control column.
+        self.cdm_review.add_to_map(folium_map)
         self.main_map_fs01.add_to_map(folium_map)
         self.context_menus.add_to_map(folium_map)
 

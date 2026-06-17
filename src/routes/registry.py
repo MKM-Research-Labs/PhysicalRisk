@@ -26,6 +26,7 @@ from flask import Flask
 def register_blueprints(app: Flask) -> None:
     """Register all route blueprints with the Flask application."""
     from .catchment import catchment_bp
+    from .cdm_review import cdm_review_bp
     from .commercial import commercial_bp
     from .counterparty import counterparty_bp
     from .gauges import gauges_bp
@@ -40,6 +41,7 @@ def register_blueprints(app: Flask) -> None:
 
     app.register_blueprint(health_bp)
     app.register_blueprint(catchment_bp)
+    app.register_blueprint(cdm_review_bp)
     app.register_blueprint(visualization_bp)
     app.register_blueprint(properties_bp, url_prefix="/api/v1")
     app.register_blueprint(commercial_bp, url_prefix="/api/v1")
