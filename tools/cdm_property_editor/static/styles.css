@@ -258,6 +258,85 @@ html, body {
 .icon-btn.close { font-size: 24px; }
 .icon-btn:hover { color: var(--ink); }
 
+/* edit / save / cancel controls + status */
+.edit-status { font-size: 11px; margin-right: 6px; color: var(--muted); }
+.edit-status.ok { color: var(--green); font-weight: 600; }
+.edit-status.err { color: var(--red); font-weight: 600; }
+.edit-btn, .save-btn, .cancel-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #d6dbe4;
+  background: #fff;
+  color: var(--ink);
+}
+.edit-btn:hover, .cancel-btn:hover { border-color: var(--blue); color: var(--blue); }
+.save-btn {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  font-weight: 600;
+}
+.save-btn:hover { background: #1565c0; }
+
+/* in-cell field editor widgets */
+.field-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 6px;
+  border: 1px solid #c3ccd8;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+}
+.field-input:focus { outline: none; border-color: var(--blue); }
+.field-input.field-input[type="checkbox"], .field-input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+.field-input.input-error { border-color: var(--red); background: #fdf3f3; }
+
+/* amend popup (3-dots menu → Amend) */
+.amend-popup { width: 380px; }
+.amend-old { font-size: 12px; color: #555; margin-bottom: 10px; }
+.amend-popup .field-input { width: 100%; font-size: 14px; padding: 6px 8px; }
+.amend-err { color: var(--red); font-size: 11px; min-height: 14px; margin-top: 6px; }
+.amend-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+/* audit trail view — light blue panel instead of white */
+.content.audit-view { background: #e8f1fc; }
+.audit-msg { font-size: 13px; color: var(--muted); padding: 16px 2px; }
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #fff;
+  border: 1px solid #cdddef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.audit-table th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #5b6b80;
+  background: #d9e8fa;
+  padding: 7px 10px;
+  border-bottom: 1px solid #c2d6ee;
+}
+.audit-table td { padding: 6px 10px; border-bottom: 1px solid #eef3f9; color: var(--ink); }
+.audit-table tr:hover td { background: #f3f8fe; }
+.au-when { white-space: nowrap; color: #6b7686; font-size: 11px; }
+.au-rec { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--blue); }
+.au-field { font-weight: 600; }
+.au-old { color: #b03030; }
+.au-new { color: #2c7a2c; font-weight: 600; }
+.au-arrow { color: #aab2bf; text-align: center; }
+
 /* detail header: prop identity (left) + map & perils aside (right, ≤1/3) */
 .detail-card { border-bottom: 1px solid #ddd; flex-shrink: 0; }
 .dc-identity {
