@@ -91,6 +91,8 @@
                 ['_prePropertyNames',  'Property names',       '/api/v1/properties'],
                 ['_preCommercial',     'Commercial assets',    '/api/v1/commercial'],
                 ['_preCommercialLoans', 'Commercial loans',    '/api/v1/commercial-loans'],
+                ['_preFire',           'Fire model',           '/api/v1/fire'],
+                ['_preSeismic',        'Seismic model',        '/api/v1/seismic'],
             ];
 
             function _startupDetail(key, data) {
@@ -113,6 +115,8 @@
                 if (key === '_prePropertyNames'   && data.properties)   return data.properties.length + ' properties';
                 if (key === '_preCommercial'      && data.commercial_assets) return data.commercial_assets.length + ' assets';
                 if (key === '_preCommercialLoans' && data.commercial_loans)  return data.commercial_loans.length + ' loans';
+                if (key === '_preFire'            && data.assets)            return data.assets.length + ' assets';
+                if (key === '_preSeismic'         && data.assets)            return data.assets.length + ' assets';
                 return null;
             }
 
