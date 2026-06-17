@@ -22,8 +22,6 @@
 
 from flask import jsonify, request
 
-from models.prs.waterfall import waterfall_stages
-
 from . import propertyhc_bp, _get_hazard_data, _load_or_404
 
 
@@ -95,10 +93,6 @@ def property_hazard(prop_id: str):
         meta_out['num_storms'] = metadata['num_storms']
     if meta_out:
         prop_data['_metadata'] = meta_out
-
-    # Pre-build the spread waterfall stages (single source: models.prs.waterfall)
-    # so the basis panel renders them directly instead of rebuilding in JS.
-    prop_data['waterfall_stages'] = waterfall_stages(prop_data.get('spread_decomposition'))
 
     return jsonify({
         'status': 'success',

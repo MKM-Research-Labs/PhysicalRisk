@@ -34,6 +34,30 @@ def _floor_entry(label):
     }
 
 
+def _gauge_stage_entry(label):
+    """Gauge flood-stage threshold (alert / warning / severe) — RED.
+
+    These thresholds grade each storm peak into a flood event and set its
+    severity at the gauge, driving the gauge flood spread the property PRS
+    basis is decomposed from. Source: ``src/port/cdm/gauge/mapping.py``.
+    """
+    return {
+        "tier": RED,
+        "summary": f"{label} (gauge flood-stage threshold) grades each storm peak into a "
+                   "flood event and sets its severity at the gauge, driving the gauge "
+                   "flood spread the property PRS basis is decomposed from.",
+        "consumers": ["Gauge flood-event grading", _PRS],
+        "chain": [
+            {"node": f"{label} (CDM)", "kind": "field"},
+            {"node": "gauge flood-stage mapping", "kind": "function",
+             "ref": "src/port/cdm/gauge/mapping.py"},
+            {"node": "gauge flood-event grading", "kind": "output"},
+            {"node": "gauge flood spread (bps)", "kind": "output"},
+            {"node": "PRS property spread (bps)", "kind": "output"},
+        ],
+    }
+
+
 FLOOD_FIELDS = {
     # Composite BRI — shared by flood, wind, fire and seismic damage curves.
     "ProtectionMeasures.RiskAssessment.GoverningBodyRatings.BRIScore": {
@@ -70,4 +94,9 @@ FLOOD_FIELDS = {
     "CommercialAsset.Construction.StiltsHeight": _floor_entry("Stilt height"),
     "PropertyHeader.RiskAssessment.GroundLevelMeters": _floor_entry("Ground elevation"),
     "CommercialAsset.RiskAssessment.GroundLevelMeters": _floor_entry("Ground elevation"),
+    # Gauge flood-stage thresholds — set flood-event triggers / severity at the gauge.
+    "FloodGauge.FloodStage.UK.FloodAlert": _gauge_stage_entry("Flood alert level"),
+    "FloodGauge.FloodStage.UK.FloodWarning": _gauge_stage_entry("Flood warning level"),
+    "FloodGauge.FloodStage.UK.SevereFloodWarning":
+        _gauge_stage_entry("Severe flood warning level"),
 }

@@ -57,6 +57,18 @@ const AUDIT_KEY = "__audit__";        // special top tab (not an asset)
 const WATERFALL_KEY = "__waterfall__"; // synthetic detail tab (not a CDM section)
 const WATERFALL_ASSETS = ["property", "commercial"];
 
+// Synthetic "Report" detail tab — links to the main app's detailed PDF report
+// for the asset. The value is the parent-window generator the report tab calls
+// (the same functions the main-app context menus invoke via backend-handler.js).
+const REPORT_KEY = "__report__";
+const REPORT_FNS = {
+  property: "generateReport",
+  gauge: "generateGaugeReport",
+  commercial: "generateCommercialReport",
+  mortgage: "generateRLoanReport",
+  commercial_loan: "generateCLoanReport",
+};
+
 const EYE_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
   'stroke-linecap="round" stroke-linejoin="round">' +
@@ -186,7 +198,7 @@ function renderSummary() {
 // Mini location map: a self-rendered slippy map — OSM raster tiles placed as
 // <img> elements with a centre marker. No library or API key; renders directly
 // in our DOM (a cross-origin OSM iframe does not paint reliably here).
-const MAP_W = 280, MAP_H = 110, MAP_Z = 15, TILE = 256;
+const MAP_W = 310, MAP_H = 122, MAP_Z = 15, TILE = 256;
 
 function miniMapHtml(lat, lon) {
   if (typeof lat !== "number" || typeof lon !== "number") return "";
@@ -314,13 +326,15 @@ function eventTableHtml(data, peril) {
     const tip = `peak ${e.peak_m} m · depth ${e.depth_m} m` + (e.intensity ? ` · ${e.intensity}` : "");
     rows += `<tr title="${tip}"><td class="pt-storm">${e.storm}</td>` +
       `<td>${clusterBadge(e.type)}</td>` +
+      `<td class="pt-num">${e.depth_m ? e.depth_m.toFixed(2) + " m" : "—"}</td>` +
       `<td class="pt-dmg">${e.damage_pct ? e.damage_pct.toFixed(1) + "%" : "—"}</td></tr>`;
   }
   const cap = `Top ${evs.length} of ${data.count} events` +
               (data.flood_zone ? ` &middot; ${data.flood_zone}` : "");
   return `<div class="peril-cap">${cap}</div>` +
     `<div class="peril-scroll"><table class="peril-table"><thead><tr>` +
-      `<th>Storm</th><th>Type</th><th>Damage</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      `<th>Storm</th><th>Type</th><th>Depth</th><th>Damage</th>` +
+    `</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // Fire — outcome distribution over simulated fires (commercial only).
@@ -386,11 +400,15 @@ function renderDetailTabs() {
   const sections = recordSections().slice();
   // Synthetic PRS Waterfall tab, right of the CDM sections (property/commercial).
   if (WATERFALL_ASSETS.includes(ASSET)) sections.push(WATERFALL_KEY);
+  // Synthetic Report tab — links to the asset's detailed PDF report.
+  if (REPORT_FNS[ASSET]) sections.push(REPORT_KEY);
   for (const section of sections) {
     const btn = document.createElement("button");
     btn.className = "detail-tab" + (section === ACTIVE_SECTION ? " active" : "");
     if (section === WATERFALL_KEY) btn.classList.add("waterfall-tab");
-    btn.textContent = section === WATERFALL_KEY ? "PRS Waterfall" : prettyLabel(section);
+    if (section === REPORT_KEY) btn.classList.add("report-tab");
+    btn.textContent = section === WATERFALL_KEY ? "PRS Waterfall"
+      : (section === REPORT_KEY ? "Report" : prettyLabel(section));
     btn.addEventListener("click", () => {
       ACTIVE_SECTION = section;
       renderDetailTabs();
@@ -524,6 +542,7 @@ function renderDetailBody() {
   const body = $("#detail-body");
   body.innerHTML = "";
   if (ACTIVE_SECTION === WATERFALL_KEY) { renderWaterfall(body); return; }
+  if (ACTIVE_SECTION === REPORT_KEY) { renderReport(body); return; }
   const schemaNode = SCHEMA.schema[ACTIVE_SECTION] || {};
   const dataNode = CURRENT[ACTIVE_SECTION] || {};
   // A leaf-only section (rare) still renders by wrapping the value. The dotted
@@ -557,24 +576,14 @@ async function renderWaterfall(body) {
     body.innerHTML = `<div class="wf-msg">${data.reason || "Not available."}</div>`;
     return;
   }
-  const stages = data.stages || [];
-  if (!stages.length) {
+  const sd = data.spread_decomposition;
+  if (!sd || !Object.keys(sd).length) {
     body.innerHTML = `<div class="wf-msg">${data.note || "No waterfall for this asset."}</div>`;
     return;
   }
-  const max = Math.max(1, ...stages.map((s) => Math.abs(s.bps)));
-  const bars = stages.map((s) => {
-    const w = Math.max(1.5, Math.abs(s.bps) / max * 100);
-    const eff = (s.effect === null || s.effect === undefined) ? ""
-      : `<span class="wf-eff ${s.effect < 0 ? "down" : (s.effect > 0 ? "up" : "")}">` +
-        `${s.effect > 0 ? "+" : ""}${s.effect.toFixed(1)} bps</span>`;
-    return `<div class="wf-row">` +
-      `<div class="wf-label">${s.label}</div>` +
-      `<div class="wf-track"><div class="wf-bar" style="width:${w}%;background:${s.colour}"></div>` +
-        `<span class="wf-val">${s.bps.toFixed(1)} bps</span></div>` +
-      `<div class="wf-effcol">${eff}</div>` +
-    `</div>`;
-  }).join("");
+  // Reuse the main app's spread-waterfall renderer verbatim (the perfect basis
+  // right panel) — fed via its `phcData.spread_decomposition` global and drawn
+  // into a canvas, instead of duplicating the bar layout here.
   const zone = data.flood_zone ? ` &middot; ${data.flood_zone}` : "";
   body.innerHTML =
     `<div class="wf-wrap">` +
@@ -582,10 +591,19 @@ async function renderWaterfall(body) {
         `<div class="wf-title">PRS spread waterfall</div>` +
         `<div class="wf-sub">Gauge spread decomposed to the property spread (bps)${zone}</div>` +
       `</div><button class="wf-pricer" id="wf-pricer">Open PRS Pricer ↗</button></div>` +
-      `<div class="wf-chart">${bars}</div>` +
+      `<div class="wf-canvas-wrap"><canvas id="wf-canvas"></canvas></div>` +
       `<div class="wf-final">Property spread: ` +
         `<b>${(data.property_spread_bps || 0).toFixed(1)} bps</b></div>` +
     `</div>`;
+  window.phcData = { spread_decomposition: sd };
+  if (typeof _renderSpreadWaterfall === "function") {
+    // Highlight the Property step (or BRI, when present) — the total spread.
+    const active = (sd.bri_spread_bps !== undefined && sd.bri_spread_bps !== null) ? 4 : 3;
+    _renderSpreadWaterfall("wf-canvas", active);
+  } else {
+    document.querySelector(".wf-canvas-wrap").innerHTML =
+      `<div class="wf-msg">Waterfall renderer unavailable.</div>`;
+  }
   $("#wf-pricer").addEventListener("click", openPrsPricer);
 }
 
@@ -599,6 +617,38 @@ function openPrsPricer() {
     host[fn](CURRENT_ID);
   } else {
     alert("Open this asset in the main app to use the PRS Pricer (" + fn + ").");
+  }
+}
+
+// ---- Report tab — link to the asset's detailed PDF report -----------------
+
+function renderReport(body) {
+  $("#modal-foot").innerHTML = "<span>Detailed report</span>";
+  const label = { Properties: "property", Commercials: "commercial",
+                  Gauges: "gauge" }[assetLabel(ASSET)] || assetLabel(ASSET).toLowerCase();
+  body.innerHTML =
+    `<div class="rep-wrap">` +
+      `<div class="rep-title">Detailed ${label} report</div>` +
+      `<div class="rep-sub">Generates the full PDF report for <b>${CURRENT_ID}</b> ` +
+        `— the same report as the main-app context menu.</div>` +
+      `<button class="rep-open" id="rep-open">Generate &amp; open report ↗</button>` +
+      `<div class="rep-note">Opens in the main app. Reports are produced there ` +
+        `(this sandbox tool links to them rather than regenerating).</div>` +
+    `</div>`;
+  $("#rep-open").addEventListener("click", openReport);
+}
+
+// Trigger the main app's report generator for this asset. Embedded in the main
+// app (house-icon iframe) the parent window exposes generateReport /
+// generateGaugeReport / generateCommercialReport / generateRLoanReport /
+// generateCLoanReport (see static/js/backend-handler.js).
+function openReport() {
+  const fn = REPORT_FNS[ASSET];
+  const host = (window.parent && window.parent !== window) ? window.parent : window;
+  if (fn && typeof host[fn] === "function") {
+    host[fn](CURRENT_ID);
+  } else {
+    alert("Open this asset in the main app to generate its report (" + fn + ").");
   }
 }
 
@@ -867,19 +917,25 @@ async function renderAudit() {
   const rows = entries.map((e) =>
     `<tr>` +
       `<td class="au-when">${(e.timestamp || "").replace("T", " ")}</td>` +
-      `<td>${e.asset_label || e.asset}</td>` +
+      `<td><span class="au-badge">${e.asset_label || e.asset}</span></td>` +
       `<td class="au-rec">${e.record_id}</td>` +
       `<td class="au-field" title="${e.field}">${prettyLabel(e.field_label || "")}</td>` +
-      `<td class="au-old">${formatValue(e.old)}</td>` +
-      `<td class="au-arrow">→</td>` +
-      `<td class="au-new">${formatValue(e.new)}</td>` +
+      `<td class="au-change"><span class="au-old">${formatValue(e.old)}</span>` +
+        `<span class="au-arrow">→</span>` +
+        `<span class="au-new">${formatValue(e.new)}</span></td>` +
       `<td>${e.user || ""}</td>` +
     `</tr>`).join("");
+  // Same layout as the regulatory-workflow audit trail: a "Showing X of Y" bar
+  // above a flat table (Timestamp · Asset · Record · Field · Change · User).
   cards.innerHTML =
-    `<table class="audit-table"><thead><tr>` +
-      `<th>When</th><th>Asset</th><th>Record</th><th>Field</th>` +
-      `<th>From</th><th></th><th>To</th><th>User</th>` +
-    `</tr></thead><tbody>${rows}</tbody></table>`;
+    `<div class="audit-pane">` +
+      `<div class="audit-showing">Showing <b>${entries.length}</b> of ` +
+        `<b>${entries.length}</b> entries</div>` +
+      `<table class="audit-table"><thead><tr>` +
+        `<th>Timestamp</th><th>Asset</th><th>Record</th><th>Field</th>` +
+        `<th>Change</th><th>User</th>` +
+      `</tr></thead><tbody>${rows}</tbody></table>` +
+    `</div>`;
 }
 
 // ---- boot ------------------------------------------------------------------
