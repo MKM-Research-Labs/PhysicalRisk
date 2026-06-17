@@ -123,3 +123,32 @@ WIND_V50_BASE_MS: float = 27.8
 # Property-side fallback in km/h. Used by threshold resolution code so
 # the unit conversion stays in one place.
 DEFAULT_WIND_THRESHOLD_KPH: float = 100.0
+
+# ===========================================================================
+# Wind persistence  (duration-of-load factor)
+# ===========================================================================
+#
+# The sigmoid above maps the *peak* sustained wind to a damage ratio, but a
+# single momentary gust is far less destructive than the same peak sustained
+# for hours: prolonged loading fatigues connections, works fasteners loose and
+# extends debris impact — a classic duration-of-load effect. We therefore
+# scale the peak-curve damage by a saturating persistence factor driven by how
+# long the sustained wind stayed above the property's damage-onset threshold:
+#
+#   Phi(t) = phi_gust + (1 - phi_gust) * (1 - exp(-t / tau))
+#   damage  = peak_curve_damage(v_peak) * Phi(t_above)
+#
+# Limits:
+#   t = 0   (instantaneous peak gust)  -> Phi = phi_gust  (the gust floor)
+#   t ->inf (sustained blow)           -> Phi -> 1         (full peak curve)
+#
+# so the existing peak-only curve is exactly the persistence-saturated bound.
+
+# Fraction of the sustained-equivalent damage realised by a single momentary
+# peak gust (t -> 0). 0.45 => a brief peak does ~45% of what the same peak
+# sustained for many hours would. Seed value pending calibration.
+WIND_PERSISTENCE_GUST_FLOOR: float = 0.45
+
+# Persistence time-constant in hours. At tau = 4 h the factor reaches ~63% of
+# the way from the gust floor to 1 after 4 h above threshold, ~86% after 8 h.
+WIND_PERSISTENCE_TAU_H: float = 4.0

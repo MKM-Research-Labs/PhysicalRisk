@@ -2,7 +2,7 @@
   "metadata": {
     "framework": "MKM Research Labs Model Risk Governance",
     "version": "1.0.0",
-    "last_updated": "2026-03-11",
+    "last_updated": "2026-06-17",
     "handbook_reference": "Handbook of Model Risk Management for Vendors (Kelly, Mattimore 2025)",
     "tiering_methodology": "Materiality x Complexity matrix (Chapter 8: Proportionality)"
   },
@@ -4894,33 +4894,33 @@
       "model_id": "MKM-WD-001",
       "name": "Wind Damage",
       "short_name": "Wind Damage",
-      "description": "Per-property damage ratio from peak sustained wind during a typhoon event. Mirrors the flood-damage architecture: a pure piecewise saturated sigmoid plus a BRI-aware wrapper that shifts the curve's v_50 by a log-aggregated function of BRIWindScore and the composite BRIScore. Consumes the per-event wind timeseries produced by MKM-TC-001 + MKM-WS-001.",
+      "description": "Per-property damage ratio from peak sustained wind during a typhoon event. Mirrors the flood-damage architecture: a pure piecewise saturated sigmoid plus a BRI-aware wrapper that shifts the curve's v_50 by a log-aggregated function of BRIWindScore and the composite BRIScore. Consumes the per-event wind timeseries produced by MKM-TC-001 + MKM-WS-001. A persistence (duration-of-load) factor now scales the peak-curve damage by how long the sustained wind stayed above the property\u2019s v_50_eff, so a single gust is less damaging than the same peak sustained for hours.",
       "category": "Hazard",
       "tier": 2,
       "materiality": "Medium",
       "complexity": "Low",
       "tier_rationale": "Low complexity: closed-form sigmoid + log-aggregated shift. Medium materiality: feeds property / commercial damage estimates directly, parallel to MKM-DD-001 for flood.",
       "status": "Development",
-      "lifecycle_stage": "Initial release \u2014 Phase 2.1 through 2.5 delivered",
-      "version": "0.1.0",
+      "lifecycle_stage": "Phase 2.6 \u2014 persistence (duration-of-load) factor + pipeline wiring",
+      "version": "0.2.0",
       "owner": "David K Kelly",
       "model_owner_role": "Chief Science Officer",
       "peer_reviewer": "TBD",
       "source_module": "src/models/winddamage/",
-      "methodology": "DR(v) = 1 / (1 + exp(-a * (v - v_50))). v_50 from CDM WindThresholdKph (default 100 kph) shifted by alpha*ln(bri_wind/ref) + beta*ln(bri_composite/ref) in m/s, capped.",
+      "methodology": "DR(v) = 1 / (1 + exp(-a * (v - v_50))). v_50 from CDM WindThresholdKph (default 100 kph) shifted by alpha*ln(bri_wind/ref) + beta*ln(bri_composite/ref) in m/s, capped. Persistence: DR = peak_curve(v) x Phi(t), with Phi(t) = phi_gust + (1 - phi_gust)*(1 - exp(-t/tau)) and t = hours sustained wind exceeded v_50_eff. The peak-only curve is the t->inf saturated bound.",
       "alternatives_considered": [
         "Power-law: DR = k*(v-v0)^p (rejected: harder to bound to [0,1] without ad-hoc clipping)",
         "Empirical lookup table (deferred: needs calibration data)",
-        "Duration-aware integrated dose (deferred: Phase 3+)"
+        "Duration-aware integrated dose (alternative to the adopted saturating duration-of-load factor; revisit at calibration)"
       ],
-      "methodology_rationale": "Sigmoid is bounded to [0,1] by construction, monotonic, symmetric about v_50, and well-understood. Per-property v_50 from the CDM lets calibration analysts tune the threshold without touching the model. BRI integration mirrors flood's stilt for architectural consistency.",
+      "methodology_rationale": "Sigmoid is bounded to [0,1] by construction, monotonic, symmetric about v_50, and well-understood. Per-property v_50 from the CDM lets calibration analysts tune the threshold without touching the model. BRI integration mirrors flood's stilt for architectural consistency. The saturating persistence factor captures the duration-of-load effect (fatigue / prolonged debris loading) while staying bounded and reducing to the peak-only curve when sustained, so the two families remain consistent.",
       "assumptions": [
         {
           "id": "WD-A1",
-          "description": "Peak sustained wind is sufficient damage driver; duration above threshold not yet modelled",
+          "description": "Persistence is a saturating duration-of-load factor Phi(t)=phi_gust+(1-phi_gust)(1-exp(-t/tau)); duration t is measured above the per-property v_50_eff",
           "impact": "Medium",
-          "monitoring": "Compare against duration-integrated reference once calibration data available",
-          "mitigation": "Phase 3 can add integrated-dose mode without API change"
+          "monitoring": "Compare the saturating form against an integrated-dose reference once duration-resolved loss data is available",
+          "mitigation": "phi_gust and tau are exposed in config/damage.py; an integrated-dose mode remains a drop-in alternative"
         },
         {
           "id": "WD-A2",
@@ -4935,6 +4935,13 @@
           "impact": "Medium",
           "monitoring": "Check residuals by archetype if loss data emerges",
           "mitigation": "Phase 3 can add archetype-specific steepness a"
+        },
+        {
+          "id": "WD-A4",
+          "description": "Persistence duration is measured above v_50_eff (the 50%-damage level) rather than a lower damage-onset level, so moderate-but-long events may under-accrue persistence",
+          "impact": "Medium",
+          "monitoring": "Sensitivity of damage to the reference-threshold choice (v_50_eff vs WindThresholdMinorMps)",
+          "mitigation": "Reference threshold is a one-line change in winddamage/event.py; revisit at calibration"
         }
       ],
       "limitations": [
@@ -4951,6 +4958,13 @@
           "impact": "Medium",
           "monitoring_trigger": "Commercial portfolio outputs",
           "compensating_control": "Set WindThresholdKph on commercial properties explicitly"
+        },
+        {
+          "id": "WD-L3",
+          "description": "Persistence parameters phi_gust=0.45 and tau=4h are seed values pending duration-resolved loss calibration",
+          "impact": "Medium",
+          "monitoring_trigger": "Any production use of wind loss amounts",
+          "compensating_control": "Development status; parameters centralised in config/damage.py"
         }
       ],
       "known_failure_modes": [
@@ -4964,10 +4978,12 @@
         "DEFAULT_WIND_THRESHOLD_KPH (config/damage.py)",
         "BRI_WIND_ALPHA_MS, BRI_COMPOSITE_BETA_MS (config/bri.py)",
         "BRI_WIND_REFERENCE, BRI_COMPOSITE_REFERENCE (config/bri.py)",
-        "WIND_V50_SHIFT_MAX_MS (config/bri.py)"
+        "WIND_V50_SHIFT_MAX_MS (config/bri.py)",
+        "WIND_PERSISTENCE_GUST_FLOOR (config/damage.py)",
+        "WIND_PERSISTENCE_TAU_H (config/damage.py)"
       ],
-      "input_data": "Per-event wind timeseries (windts/EVT-NNNN.json from MKM-TC-001) + property portfolio (property.json / commercial.json) with optional WindThresholdKph and BRI scores in the resilience CDM.",
-      "output_data": "Per-event damage JSON at data/<catch>/typhoon/damage/EVT-NNNN.json \u2014 per-property damage_ratio in [0,1] plus peak / threshold / v_50_eff for traceability.",
+      "input_data": "Per-event wind timeseries (windts/EVT-NNNN.json from MKM-TC-001) + property portfolio (property.json / commercial.json) with optional WindThresholdKph and BRI scores in the resilience CDM. The per-property sustained-wind series (time_hours + sustained_ms) in the windts file supplies the persistence (hours above v_50_eff).",
+      "output_data": "Per-event damage JSON at data/<catch>/typhoon/damage/EVT-NNNN.json \u2014 per-property damage_ratio in [0,1] plus peak / threshold / v_50_eff for traceability, plus duration_above_hours and persistence_factor for the duration-of-load view.",
       "downstream_models": [],
       "upstream_models": [
         "MKM-TC-001",
@@ -4988,6 +5004,15 @@
           "version": "0.1.0",
           "change": "Initial release. Six-submodule package: vulnerability (scalar + BRI-aware sigmoid), bri_shift (log-aggregated v_50 shift), cdm (property navigation), threshold (CDM -> m/s), extraction (windts JSON -> peaks), event (composer + per-event JSON writer). Wired into the typhoon port stage so --typhoon emits events/, windts/, and damage/ atomically. CDM extended with WindThresholdKph in HAZARD_PROFILE_SCHEMA.",
           "author": "David K Kelly"
+        },
+        {
+          "date": "2026-06-17",
+          "version": "0.2.0",
+          "change": "Non-material enhancement. Elevated from a peak-only damage function to a duration-of-load model. Added the saturating persistence factor Phi(t)=phi_gust+(1-phi_gust)(1-exp(-t/tau)) (config: WIND_PERSISTENCE_GUST_FLOOR=0.45, WIND_PERSISTENCE_TAU_H=4h) plus scalar_wind_damage / bri_wind_damage in vulnerability.py. Wired duration through extraction (sustained_ms series -> EventWindts.series_by_property + duration_above_threshold helper) and the event composer (duration measured above v_50_eff; damage_ratio now persistence-aware; duration_above_hours + persistence_factor added to typhoon/damage/EVT-*.json and the wind-damage index). Resolves assumption WD-A1; legacy peak-only windts fall back to the saturated bound. New unit tests across tests/models/winddamage/{vulnerability,event,extraction}.",
+          "author": "David K Kelly",
+          "type": "Enhancement",
+          "material": false,
+          "materiality_rationale": "Non-material change: additive, backward-compatible enhancement (new persistence factor + pipeline wiring). Existing peak-only behaviour is preserved as the saturated bound and no method, input or output contract is broken, so no revalidation is triggered \u2014 a minor version step (0.1.0 -> 0.2.0)."
         }
       ],
       "test_coverage": {
@@ -4995,7 +5020,7 @@
         "integration_tests": false,
         "benchmark_tests": false,
         "test_file": "tests/models/winddamage/",
-        "notes": "Initial release: tests under tests/models/winddamage/ \u2014 vulnerability (sigmoid invariants + BRI composition), bri_shift (cap / sign / monotonicity), cdm (record navigation), threshold (CDM -> v_50 fallback), extraction (windts loader), event (composer + disk round-trip)."
+        "notes": "Initial release: tests under tests/models/winddamage/ \u2014 vulnerability (sigmoid invariants + BRI composition), bri_shift (cap / sign / monotonicity), cdm (record navigation), threshold (CDM -> v_50 fallback), extraction (windts loader), event (composer + disk round-trip). v0.2.0 adds persistence_factor / scalar_wind_damage / bri_wind_damage invariants, the duration_above_threshold helper, and composer wiring (series -> duration -> persistence-aware damage, with peak-only fallback)."
       },
       "last_review_date": null,
       "rag_rating": "Amber",
@@ -5024,6 +5049,14 @@
           "priority": "Medium",
           "due_date": null,
           "status": "Open"
+        },
+        {
+          "id": "WD-R4",
+          "description": "Calibrate persistence parameters (phi_gust, tau) and confirm the persistence reference threshold (v_50_eff vs damage-onset) against historical wind-loss duration data",
+          "owner": "David K Kelly",
+          "priority": "Medium",
+          "due_date": null,
+          "status": "Open"
         }
       ],
       "version_history": [
@@ -5032,6 +5065,13 @@
           "date": "2026-05-27",
           "status": "Development",
           "description": "Initial release of the wind damage model \u2014 peak sigmoid + BRI v_50 shift."
+        },
+        {
+          "version": "0.2.0",
+          "date": "2026-06-17",
+          "status": "Development",
+          "description": "Persistence / duration-of-load factor \u2014 damage is now a function of both peak-wind exceedance and duration above v_50_eff.",
+          "material": false
         }
       ],
       "validation_questions": [],
@@ -5070,7 +5110,7 @@
       "model_owner_role": "Chief Science Officer",
       "peer_reviewer": "TBD",
       "source_module": "src/models/fire/",
-      "methodology": "Initiation (Model A): lambda_i = lambda_0,c * m_occ * m_proc * m_cond * m_protection * m_history; a fire instantiates for an asset-draw when the Poisson count N_i >= 1. Intensity track (Model B): I_{t+1} = I_t + g_t where g_t = growth_per_step * (1 - passive_damp_weight * passive_effectiveness), scaled by the suppression multiplier once suppression is active. Response effectiveness (Model C): maps CDM resilience levels to detection time, suppression-bite time (with a storey-based height penalty), growth rate, critical threshold and an aggregate controllability score, and maps the structural-frame ConstructionType to a combustibility fraction. Combustibility drives the conflagration leg three ways: (1) it scales the per-step intensity growth (the timing leg — a combustible frame catches faster, leaving suppression less time to win the race); (2) it sets a fuel cap (intensity ceiling) on the latent intensity, with a small per-fire jitter so a non-combustible frame with no effective suppression keeps a small residual 'eventually it catches' conflagration chance rather than being absolutely immune; (3) it gates the unreachable-suppression auto-PNR latch and floors the containment-matrix blend weight (a non-combustible structure contains the fire passively even when active suppression cannot reach it). Containment (Model D): each 15-minute step selects a row-stochastic 8x8 transition matrix from the controllability score and the structural-containment floor (pre-PNR) or the absorbing point-of-no-return matrix (post-PNR), and samples the state until an absorbing terminal state {Contained, PartialLoss, TotalLoss} is reached or the step budget runs out. The point of no return latches when latent intensity (capped at the combustibility ceiling) exceeds the critical threshold before suppression bites, or when suppression is structurally unreachable AND the frame is combustible; a non-combustible frame (e.g. reinforced concrete, steel) plateaus below the threshold and so resists a full conflagration regardless of height or suppression. Aggregated into loss_frequency = (n_partial + n_total) / n_sim and containment_rate = n_contained / n_fires.",
+      "methodology": "Initiation (Model A): lambda_i = lambda_0,c * m_occ * m_proc * m_cond * m_protection * m_history; a fire instantiates for an asset-draw when the Poisson count N_i >= 1. Intensity track (Model B): I_{t+1} = I_t + g_t where g_t = growth_per_step * (1 - passive_damp_weight * passive_effectiveness), scaled by the suppression multiplier once suppression is active. Response effectiveness (Model C): maps CDM resilience levels to detection time, suppression-bite time (with a storey-based height penalty), growth rate, critical threshold and an aggregate controllability score, and maps the structural-frame ConstructionType to a combustibility fraction. Combustibility drives the conflagration leg three ways: (1) it scales the per-step intensity growth (the timing leg \u2014 a combustible frame catches faster, leaving suppression less time to win the race); (2) it sets a fuel cap (intensity ceiling) on the latent intensity, with a small per-fire jitter so a non-combustible frame with no effective suppression keeps a small residual 'eventually it catches' conflagration chance rather than being absolutely immune; (3) it gates the unreachable-suppression auto-PNR latch and floors the containment-matrix blend weight (a non-combustible structure contains the fire passively even when active suppression cannot reach it). Containment (Model D): each 15-minute step selects a row-stochastic 8x8 transition matrix from the controllability score and the structural-containment floor (pre-PNR) or the absorbing point-of-no-return matrix (post-PNR), and samples the state until an absorbing terminal state {Contained, PartialLoss, TotalLoss} is reached or the step budget runs out. The point of no return latches when latent intensity (capped at the combustibility ceiling) exceeds the critical threshold before suppression bites, or when suppression is structurally unreachable AND the frame is combustible; a non-combustible frame (e.g. reinforced concrete, steel) plateaus below the threshold and so resists a full conflagration regardless of height or suppression. Aggregated into loss_frequency = (n_partial + n_total) / n_sim and containment_rate = n_contained / n_fires.",
       "alternatives_considered": [
         "Continuous coupled-ODE intensity/suppression formulation (rejected for the first build: harder to calibrate and govern than the discrete 8-state chain; the discrete chain was chosen to show one formulation working end-to-end).",
         "Flat resilience-level list on AssetFireFeatures (rejected: Model C needs to read detection, suppression and the passive/response fields separately, so the features were refactored to named fields with a protection_levels convenience property)."

@@ -35,9 +35,17 @@ from typing import Any, Dict, List, Union
 
 from models.winddamage.bri_shift import bri_v50_shift
 from models.winddamage.cdm import extract_bri_scores, extract_property_id
-from models.winddamage.extraction import EventWindts, load_event_peaks
+from models.winddamage.extraction import (
+    EventWindts,
+    duration_above_threshold,
+    load_event_peaks,
+)
 from models.winddamage.threshold import resolve_threshold_ms
-from models.winddamage.vulnerability import bri_peak_damage
+from models.winddamage.vulnerability import (
+    bri_peak_damage,
+    bri_wind_damage,
+    persistence_factor,
+)
 
 
 __all__ = ["build_event_damage", "run_event", "run_event_directory"]
@@ -50,8 +58,11 @@ def build_event_damage(
     """Compose the event damage payload in memory.
 
     For each property whose id appears in `windts.peaks_by_property`,
-    compute the BRI-aware damage ratio. Properties not hit by the
-    event are simply omitted from the output.
+    compute the persistence-aware BRI damage ratio: the peak severity sigmoid
+    scaled by the duration-of-load factor, where persistence is measured as the
+    hours the property's sustained wind stayed above its BRI-adjusted v_50_eff.
+    Properties whose windts file carried no series fall back to the single-gust
+    floor. Properties not hit by the event are omitted from the output.
     """
     damages: List[Dict[str, Any]] = []
     for record in properties:
@@ -65,20 +76,43 @@ def build_event_damage(
         threshold_ms = resolve_threshold_ms(record)
         bri_wind, bri_composite = extract_bri_scores(record)
 
-        damage = bri_peak_damage(
-            peak_sustained_ms=peak,
-            threshold_ms=threshold_ms,
-            bri_wind_score=bri_wind,
-            bri_composite_score=bri_composite,
-        )
-
-        # v_50_eff is informative for inspection / regulatory traceability.
+        # v_50_eff — the BRI-adjusted damage threshold. Drives both the
+        # severity sigmoid and the persistence reference level, and is recorded
+        # for inspection / regulatory traceability.
         if bri_wind is not None or bri_composite is not None:
             wind = bri_wind if bri_wind is not None else 0.50
             comp = bri_composite if bri_composite is not None else 0.50
             v_50_eff = threshold_ms + bri_v50_shift(wind, comp)
         else:
             v_50_eff = threshold_ms
+
+        # Persistence: hours the sustained wind exceeded v_50_eff. With a
+        # series we measure it and apply the duration-of-load factor. Without a
+        # series (legacy peak-only windts) duration is unknown, so we fall back
+        # to the peak-only saturated bound rather than asserting an unjustified
+        # single-gust reduction.
+        series = windts.series_by_property.get(prop_id)
+        if series is not None:
+            times, sustained = series
+            duration_above_hours = duration_above_threshold(times, sustained, v_50_eff)
+            phi = persistence_factor(duration_above_hours)
+            damage = bri_wind_damage(
+                peak_sustained_ms=peak,
+                duration_above_hours=duration_above_hours,
+                threshold_ms=threshold_ms,
+                bri_wind_score=bri_wind,
+                bri_composite_score=bri_composite,
+            )
+            duration_field: float | None = float(duration_above_hours)
+        else:
+            phi = 1.0
+            damage = bri_peak_damage(
+                peak_sustained_ms=peak,
+                threshold_ms=threshold_ms,
+                bri_wind_score=bri_wind,
+                bri_composite_score=bri_composite,
+            )
+            duration_field = None  # not measured
 
         damages.append({
             "property_id": prop_id,
@@ -87,6 +121,8 @@ def build_event_damage(
             "bri_wind_score": bri_wind,
             "bri_composite_score": bri_composite,
             "v_50_eff_ms": float(v_50_eff),
+            "duration_above_hours": duration_field,
+            "persistence_factor": float(phi),
             "damage_ratio": float(damage),
         })
 
