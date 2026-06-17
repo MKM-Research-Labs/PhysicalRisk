@@ -28,9 +28,10 @@ from __future__ import annotations
 import json
 import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 # --- Locate the repo and make the CDM schemas importable --------------------
 TOOL_DIR = Path(__file__).resolve().parent
@@ -49,11 +50,16 @@ from port.cdm.asset.residential.schema import PROPERTY_SCHEMA  # noqa: E402
 from port.cdm.ctpy._schema import COUNTERPARTY_SCHEMA  # noqa: E402
 from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
 from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
+from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
 
 CATCHMENT = "thames"
 INPUT_DIR = REPO_ROOT / "data" / "input" / CATCHMENT
 GOLDEN_PROPERTY = REPO_ROOT / "tests" / "port" / "cdm" / "golden" / "property.json"
 SANDBOX_DIR = TOOL_DIR / "data"
+AUDIT_FILE = SANDBOX_DIR / "audit_log.json"
+# No authentication yet — every amendment is attributed to a placeholder user
+# until real users / sign-in arrive.
+AUDIT_USER = "Placeholder User"
 
 
 # --- Per-asset summary builders (the left-list row + modal header card) ------
@@ -268,13 +274,64 @@ def _ensure_sandbox(asset: str) -> Path:
     return sb
 
 
-def _records(asset: str) -> list:
-    cfg = ASSETS[asset]
+def _load_doc(asset: str):
+    """The full sandbox document (so edits can be written back intact)."""
     with open(_ensure_sandbox(asset), "r", encoding="utf-8") as fh:
-        doc = json.load(fh)
+        return json.load(fh)
+
+
+def _save_doc(asset: str, doc) -> None:
+    """Write the document back to the sandbox (never to data/)."""
+    with open(_sandbox_file(asset), "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=2)
+
+
+def _records_of(doc, asset: str) -> list:
     if isinstance(doc, list):
         return doc
-    return doc.get(cfg["container"]) or []
+    return doc.get(ASSETS[asset]["container"]) or []
+
+
+def _records(asset: str) -> list:
+    return _records_of(_load_doc(asset), asset)
+
+
+def _set_nested(rec: dict, path: str, value) -> None:
+    """Set ``rec`` at a dotted ``path`` (the record root is the section key)."""
+    node = rec
+    segs = path.split(".")
+    for seg in segs[:-1]:
+        node = node.setdefault(seg, {})
+    node[segs[-1]] = value
+
+
+def _get_nested(rec: dict, path: str):
+    node = rec
+    for seg in path.split("."):
+        if not isinstance(node, dict) or seg not in node:
+            return None
+        node = node[seg]
+    return node
+
+
+def _load_audit() -> list:
+    if not AUDIT_FILE.exists():
+        return []
+    try:
+        with open(AUDIT_FILE, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
+def _append_audit(entries: list) -> None:
+    if not entries:
+        return
+    SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
+    log = _load_audit()
+    log.extend(entries)
+    with open(AUDIT_FILE, "w", encoding="utf-8") as fh:
+        json.dump(log, fh, indent=2)
 
 
 def _record_id(asset: str, rec: dict) -> str:
@@ -316,6 +373,19 @@ def api_schema(asset: str):
     return jsonify({"sections": list(cfg["schema"].keys()), "schema": cfg["schema"]})
 
 
+@app.route("/api/<asset>/edit-spec")
+def api_edit_spec(asset: str):
+    """Per-field editor specs (input widget, menu options, numeric bounds).
+
+    Keyed by dotted path from the record root, so the editor builds the right
+    widget for each field and the same bounds the server enforces on commit.
+    """
+    cfg = ASSETS.get(asset)
+    if not cfg:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    return jsonify(schema_specs(cfg["schema"]))
+
+
 @app.route("/api/<asset>/items")
 def api_items(asset: str):
     if asset not in ASSETS:
@@ -332,6 +402,66 @@ def api_item(asset: str, rid: str):
         if _record_id(asset, rec) == rid:
             return jsonify(rec)
     return jsonify({"error": f"{asset} '{rid}' not found"}), 404
+
+
+@app.route("/api/<asset>/items/<rid>", methods=["PUT"])
+def api_update(asset: str, rid: str):
+    """Commit edited field values to the SANDBOX copy (never to data/).
+
+    Body: ``{"changes": {dotted_path: new_value, ...}}``. Each change is
+    validated/coerced against its schema descriptor (menu membership, numeric
+    bounds, type). On any error nothing is written and the per-field errors are
+    returned with 400.
+    """
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    schema = ASSETS[asset]["schema"]
+    changes = (request.get_json(silent=True) or {}).get("changes", {})
+    if not isinstance(changes, dict):
+        return jsonify({"error": "changes must be an object"}), 400
+
+    coerced, errors = {}, {}
+    for path, raw in changes.items():
+        descriptor = descriptor_at(schema, path)
+        if descriptor is None:
+            errors[path] = "not an editable schema field"
+            continue
+        ok, value, err = validate_value(path, descriptor, raw)
+        if ok:
+            coerced[path] = value
+        else:
+            errors[path] = err
+    if errors:
+        return jsonify({"status": "error", "errors": errors}), 400
+
+    doc = _load_doc(asset)
+    target = next((r for r in _records_of(doc, asset) if _record_id(asset, r) == rid), None)
+    if target is None:
+        return jsonify({"error": f"{asset} '{rid}' not found"}), 404
+
+    ts = datetime.now().isoformat(timespec="seconds")
+    audit = []
+    for path, value in coerced.items():
+        old = _get_nested(target, path)
+        if old == value:
+            continue  # no-op change — not audited
+        _set_nested(target, path, value)
+        audit.append({
+            "timestamp": ts, "user": AUDIT_USER,
+            "asset": asset, "asset_label": ASSETS[asset]["label"],
+            "record_id": rid, "field": path,
+            "field_label": path.rsplit(".", 1)[-1],
+            "old": old, "new": value,
+        })
+    _save_doc(asset, doc)
+    _append_audit(audit)
+    return jsonify({"status": "success", "updated": len(audit), "record": target})
+
+
+@app.route("/api/audit")
+def api_audit():
+    """The amendment audit trail (newest first)."""
+    return jsonify(list(reversed(_load_audit())))
 
 
 def _flood_payload(asset: str, rid: str) -> dict:

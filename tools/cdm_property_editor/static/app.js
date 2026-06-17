@@ -19,6 +19,7 @@ let ACTIVE_SECTION = null;
 let ACTIVE_PERIL = "flood";
 let CURRENT_PERILS = null; // {flood, wind, fire, seismic} for open record (null = loading)
 let LINEAGE = null;        // {tiers, exact, amberPrefixes} from /api/lineage
+let EDIT_SPECS = {};       // asset -> {path: spec} from /api/<asset>/edit-spec
 
 const PERILS = [
   { key: "flood", label: "Flood" },
@@ -51,6 +52,8 @@ function tierOf(path) {
 }
 
 const $ = (sel) => document.querySelector(sel);
+
+const AUDIT_KEY = "__audit__";  // special top tab (not an asset)
 
 const EYE_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -430,7 +433,7 @@ function renderField(key, descriptor, value, path) {
   kebab.innerHTML = KEBAB_SVG;
   kebab.addEventListener("click", (e) => {
     e.stopPropagation();
-    openFieldMenu(kebab, fieldPath, prettyLabel(key));
+    openFieldMenu(kebab, fieldPath, prettyLabel(key), value);
   });
   label.appendChild(kebab);
 
@@ -446,6 +449,41 @@ function renderField(key, descriptor, value, path) {
   cell.appendChild(val);
   cell.appendChild(typ);
   return cell;
+}
+
+// Build an editor widget for a field from its spec (menu→select, number with
+// min/max/step, date, checkbox, text), pre-filled with the current value. The
+// caller reads the value on commit; for a checkbox use `.checked`.
+function makeFieldInput(value, spec) {
+  const cur = value;
+  let el;
+  if (spec.input === "select") {
+    el = document.createElement("select");
+    const blank = document.createElement("option");
+    blank.value = ""; blank.textContent = "—";
+    el.appendChild(blank);
+    for (const opt of spec.options || []) {
+      const o = document.createElement("option");
+      o.value = opt; o.textContent = opt;
+      if (String(cur) === String(opt)) o.selected = true;
+      el.appendChild(o);
+    }
+  } else if (spec.input === "checkbox") {
+    el = document.createElement("input");
+    el.type = "checkbox";
+    el.checked = cur === true || ["yes", "true", "1"].includes(String(cur).toLowerCase());
+  } else {
+    el = document.createElement("input");
+    el.type = spec.input === "number" ? "number" : (spec.input === "date" ? "date" : "text");
+    if (spec.input === "number") {
+      if (spec.min !== null && spec.min !== undefined) el.min = spec.min;
+      if (spec.max !== null && spec.max !== undefined) el.max = spec.max;
+      if (spec.step !== null && spec.step !== undefined) el.step = spec.step;
+    }
+    el.value = (cur === null || cur === undefined) ? "" : cur;
+  }
+  el.className = "field-input";
+  return el;
 }
 
 function renderGroup(schemaNode, dataNode, depth, path) {
@@ -513,11 +551,25 @@ function closeFieldMenu() {
   if (m) m.remove();
 }
 
-function openFieldMenu(anchor, fieldPath, fieldLabel) {
+function openFieldMenu(anchor, fieldPath, fieldLabel, value) {
   closeFieldMenu();
   const menu = document.createElement("div");
   menu.className = "field-menu";
   menu.id = "field-menu";
+
+  const spec = EDIT_SPECS[ASSET] && EDIT_SPECS[ASSET][fieldPath];
+  if (spec) {
+    const amendBtn = document.createElement("button");
+    amendBtn.className = "field-menu-item";
+    amendBtn.textContent = "Amend";
+    amendBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeFieldMenu();
+      openAmendPopup(fieldPath, fieldLabel, value, spec);
+    });
+    menu.appendChild(amendBtn);
+  }
+
   const lineageBtn = document.createElement("button");
   lineageBtn.className = "field-menu-item";
   lineageBtn.textContent = "Data lineage";
@@ -573,6 +625,85 @@ function openLineagePopup(fieldPath, fieldLabel) {
   document.getElementById("lin-close").addEventListener("click", () => overlay.remove());
 }
 
+// ---- amend a field via the 3-dots menu (commit to sandbox + audit) --------
+
+async function ensureEditSpec(asset) {
+  if (EDIT_SPECS[asset]) return;
+  try { EDIT_SPECS[asset] = await (await fetch(`/api/${asset}/edit-spec`)).json(); }
+  catch (_) { EDIT_SPECS[asset] = {}; }
+}
+
+async function reloadItems() {
+  try {
+    ITEMS = await (await fetch(`/api/${ASSET}/items`)).json();
+    renderList($("#search").value);
+    renderSummary();
+  } catch (_) { /* leave the list as-is */ }
+}
+
+function openAmendPopup(fieldPath, fieldLabel, value, spec) {
+  const overlay = document.createElement("div");
+  overlay.className = "lin-overlay";
+  overlay.id = "amend-overlay";
+  overlay.innerHTML =
+    `<div class="lin-popup amend-popup">` +
+      `<div class="lin-head"><div class="lin-head-main">` +
+        `<div class="lin-title">Amend ${fieldLabel}</div>` +
+        `<div class="lin-path">${fieldPath}</div></div>` +
+        `<button class="icon-btn close" id="amend-close">&times;</button></div>` +
+      `<div class="lin-body">` +
+        `<div class="amend-old">Current: <b>${formatValue(value)}</b></div>` +
+        `<div id="amend-input-wrap"></div>` +
+        `<div class="amend-err" id="amend-err"></div>` +
+        `<div class="amend-actions">` +
+          `<button class="cancel-btn" id="amend-cancel">Cancel</button>` +
+          `<button class="save-btn" id="amend-save">Commit change</button>` +
+        `</div>` +
+      `</div>` +
+    `</div>`;
+  document.body.appendChild(overlay);
+
+  const input = makeFieldInput(value, spec);
+  document.getElementById("amend-input-wrap").appendChild(input);
+  input.focus();
+
+  const close = () => overlay.remove();
+  overlay.addEventListener("click", (ev) => { if (ev.target.id === "amend-overlay") close(); });
+  document.getElementById("amend-close").addEventListener("click", close);
+  document.getElementById("amend-cancel").addEventListener("click", close);
+  document.getElementById("amend-save").addEventListener("click", () =>
+    commitAmend(fieldPath, spec, input, close));
+}
+
+async function commitAmend(fieldPath, spec, input, close) {
+  const newVal = spec.input === "checkbox" ? input.checked : input.value;
+  const errEl = document.getElementById("amend-err");
+  errEl.textContent = "";
+  input.classList.remove("input-error");
+  try {
+    const res = await fetch(`/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ changes: { [fieldPath]: newVal } }),
+    });
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+      CURRENT = data.record;
+      close();
+      await reloadItems();
+      renderDetailCard();
+      renderDetailTabs();
+      renderDetailBody();
+    } else {
+      const msg = (data.errors && data.errors[fieldPath]) || data.error || "Invalid value";
+      errEl.textContent = msg;
+      input.classList.add("input-error");
+    }
+  } catch (err) {
+    errEl.textContent = "Save failed: " + err.message;
+  }
+}
+
 async function openDetail(rid) {
   setStatus("Loading " + rid + "…");
   try {
@@ -583,6 +714,7 @@ async function openDetail(rid) {
     ACTIVE_SECTION = recordSections()[0];
     ACTIVE_PERIL = "flood";
     CURRENT_PERILS = null;
+    await ensureEditSpec(ASSET);  // so the field menu can offer "Amend"
     const singular = { Properties: "Property", Commercials: "Commercial",
                        Gauges: "Gauge" }[assetLabel(ASSET)] || assetLabel(ASSET);
     $("#modal-title").textContent = singular + " Detail";
@@ -621,9 +753,16 @@ async function selectAsset(key) {
   CURRENT_ID = null;
   closeModal();
   renderAssetTabs();
+  const isAudit = key === AUDIT_KEY;
+  $(".content").classList.toggle("audit-view", isAudit);   // light-blue panel
+  $(".hint").classList.toggle("hidden", isAudit);
+  if (isAudit) { await renderAudit(); return; }
+
   const label = assetLabel(key);
   $("#sidebar-title").textContent = label;
   $("#content-title").textContent = label + " Portfolio";
+  $("#content-sub").textContent =
+    "Common Domain Model — sandbox copy. Select a record's review icon to inspect its full CDM record.";
   $("#search").value = "";
   setStatus("Loading " + label + "…");
   try {
@@ -641,12 +780,49 @@ async function selectAsset(key) {
   }
 }
 
+// ---- audit trail view ------------------------------------------------------
+
+async function renderAudit() {
+  $("#sidebar-title").textContent = "Audit";
+  $("#item-list").innerHTML = "";
+  $("#content-title").textContent = "Audit Trail";
+  $("#content-sub").textContent =
+    "Field amendments committed to the sandbox (newest first).";
+  const cards = $("#cards");
+  cards.innerHTML = '<div class="audit-msg">Loading…</div>';
+  let entries = [];
+  try { entries = await (await fetch("/api/audit")).json(); } catch (_) { entries = []; }
+  $("#count").textContent = `${entries.length} amendment${entries.length === 1 ? "" : "s"}`;
+  if (!entries.length) {
+    cards.innerHTML = '<div class="audit-msg">No amendments yet. Use a field’s '
+      + '⋮ menu → Amend to make one.</div>';
+    return;
+  }
+  const rows = entries.map((e) =>
+    `<tr>` +
+      `<td class="au-when">${(e.timestamp || "").replace("T", " ")}</td>` +
+      `<td>${e.asset_label || e.asset}</td>` +
+      `<td class="au-rec">${e.record_id}</td>` +
+      `<td class="au-field" title="${e.field}">${prettyLabel(e.field_label || "")}</td>` +
+      `<td class="au-old">${formatValue(e.old)}</td>` +
+      `<td class="au-arrow">→</td>` +
+      `<td class="au-new">${formatValue(e.new)}</td>` +
+      `<td>${e.user || ""}</td>` +
+    `</tr>`).join("");
+  cards.innerHTML =
+    `<table class="audit-table"><thead><tr>` +
+      `<th>When</th><th>Asset</th><th>Record</th><th>Field</th>` +
+      `<th>From</th><th></th><th>To</th><th>User</th>` +
+    `</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 // ---- boot ------------------------------------------------------------------
 
 async function boot() {
   setStatus("Loading…");
   try {
     ASSETS = await (await fetch("/api/assets")).json();
+    ASSETS.push({ key: AUDIT_KEY, label: "Audit" });  // special non-asset tab
     try { LINEAGE = await (await fetch("/api/lineage")).json(); } catch (_) { LINEAGE = null; }
     $("#search").addEventListener("input", (e) => renderList(e.target.value));
     $("#modal-close").addEventListener("click", closeModal);
