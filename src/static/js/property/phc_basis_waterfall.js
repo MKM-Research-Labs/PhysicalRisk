@@ -7,36 +7,60 @@
             function _renderSpreadWaterfall(canvasId, activeStep) {
                 if (_basisWaterfallChart) { _basisWaterfallChart.destroy(); _basisWaterfallChart = null; }
 
-                // Stages are pre-built server-side (models.prs.waterfall) — the
-                // single source shared with the CDM Asset Review tool — so the
-                // labels, spreads, colours and the BRI 5th stage are not rebuilt
-                // here. The property_hazard route always attaches them.
-                var stages = phcData.waterfall_stages || [];
-                if (!stages.length) return;
+                var sd = phcData.spread_decomposition || {};
+                var gaugeSpread = sd.gauge_spread_bps || 0;
+                var sheSpread = sd.she_spread_bps || 0;
+                var shdSpread = sd.shd_spread_bps || 0;
+                var propSpread = sd.property_spread_bps || 0;
 
-                var labels = stages.map(function(s) { return s.label; });
-                var values = stages.map(function(s) { return s.bps; });
-                var baseColors = stages.map(function(s) { return s.colour; });
-                var mutedColors = stages.map(function(s) { return s.muted; });
+                var labels = ['Gauge', 'SHE (elevation)', 'SHD (distance)', 'Property'];
+                var values = [gaugeSpread, sheSpread, shdSpread, propSpread];
+                var baseColors = ['#EF5350', '#FF9800', '#66BB6A', '#42A5F5'];
+                var mutedColors = ['#FFCDD2', '#FFE0B2', '#C8E6C9', '#BBDEFB'];
+
+                // 5th stage — BRI-adjusted (resilient) spread. Only present once
+                // the propertybri stage has run; raising the effective flood
+                // floor removes severe floods so the resilient spread <= pure.
+                var hasBri = (sd.bri_spread_bps !== undefined && sd.bri_spread_bps !== null);
+                if (hasBri) {
+                    labels.push('BRI (resilient)');
+                    values.push(sd.bri_spread_bps || 0);
+                    baseColors.push('#7E57C2');
+                    mutedColors.push('#D1C4E9');
+                }
 
                 // Colours: muted for inactive, bold for active step
                 var bgColors = values.map(function(_, i) {
                     return i === activeStep ? baseColors[i] : mutedColors[i];
                 });
-                var borderColors = baseColors.slice();
+                var borderColors = values.map(function(_, i) {
+                    return baseColors[i];
+                });
                 var borderWidths = values.map(function(_, i) {
                     return i === activeStep ? 3 : 1;
                 });
 
-                // Effect annotations — only meaningful once the gauge spread > 0.
-                var suffix = { she: ' (elevation)', shd: ' (distance)',
-                               property: ' (total)', bri: ' (resilience)' };
-                var gaugePositive = stages.length && stages[0].bps > 0;
-                var effects = stages.map(function(s) {
-                    if (!gaugePositive || s.effect === null || s.effect === undefined) return '';
-                    return (s.effect >= 0 ? '+' : '') + s.effect.toFixed(1)
-                        + ' bps' + (suffix[s.key] || '');
-                });
+                // Effect annotations between bars
+                var effects = [];
+                if (gaugeSpread > 0) {
+                    var sheEffect = sheSpread - gaugeSpread;
+                    var shdEffect = shdSpread - gaugeSpread;
+                    var propEffect = propSpread - gaugeSpread;
+                    effects = [
+                        '',
+                        (sheEffect >= 0 ? '+' : '') + sheEffect.toFixed(1) + ' bps (elevation)',
+                        (shdEffect >= 0 ? '+' : '') + shdEffect.toFixed(1) + ' bps (distance)',
+                        (propEffect >= 0 ? '+' : '') + propEffect.toFixed(1) + ' bps (total)',
+                    ];
+                    if (hasBri) {
+                        // Resilience credit: pure spread - resilient spread >= 0,
+                        // shown as a negative delta off the property bar.
+                        var resilienceEffect = (sd.bri_spread_bps || 0) - propSpread;
+                        effects.push(
+                            (resilienceEffect >= 0 ? '+' : '') +
+                            resilienceEffect.toFixed(1) + ' bps (resilience)');
+                    }
+                }
 
                 var ctx = document.getElementById(canvasId).getContext('2d');
 

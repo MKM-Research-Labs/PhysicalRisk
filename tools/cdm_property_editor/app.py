@@ -51,7 +51,12 @@ from port.cdm.ctpy._schema import COUNTERPARTY_SCHEMA  # noqa: E402
 from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
 from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
 from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
-from models.prs.waterfall import waterfall_stages  # noqa: E402
+
+# The PRS waterfall is rendered by the main app's own renderer
+# (src/static/js/property/phc_basis_waterfall.js) — reused here as a shared
+# utility rather than duplicated, so the tool's PRS Waterfall tab is the exact
+# same chart as the production basis-explorer right panel.
+SHARED_WATERFALL_JS = SRC_DIR / "static" / "js" / "property" / "phc_basis_waterfall.js"
 
 CATCHMENT = "thames"
 INPUT_DIR = REPO_ROOT / "data" / "input" / CATCHMENT
@@ -588,15 +593,25 @@ def api_waterfall(asset: str, rid: str):
                         "reason": "No PRS waterfall for this asset class."})
     rec = _hc_record(asset, rid)
     if rec is None:
-        return jsonify({"supported": True, "stages": [],
+        return jsonify({"supported": True, "spread_decomposition": None,
                         "note": "No hazard curve for this asset."})
     sd = rec.get("spread_decomposition", {}) or {}
+    # Return the raw decomposition; the shared phc_basis_waterfall.js renderer
+    # builds the bars (Gauge -> SHE -> SHD -> Property -> BRI) from it, exactly
+    # as the main-app basis panel does.
     return jsonify({
         "supported": True,
         "flood_zone": rec.get("flood_zone"),
         "property_spread_bps": sd.get("property_spread_bps") or 0.0,
-        "stages": waterfall_stages(sd),
+        "spread_decomposition": sd,
     })
+
+
+@app.route("/shared/phc_basis_waterfall.js")
+def shared_waterfall_js():
+    """Serve the main app's spread-waterfall renderer verbatim (shared utility)."""
+    return SHARED_WATERFALL_JS.read_text(encoding="utf-8"), 200, \
+        {"Content-Type": "application/javascript"}
 
 
 if __name__ == "__main__":
