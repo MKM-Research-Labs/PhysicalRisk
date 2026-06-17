@@ -84,6 +84,10 @@ def _build_modularisation(styles) -> list:
     # 4.1 — __init__.py substantive-code audit
     elems.extend(_build_init_audit(styles))
 
+    # 4.2 — copyright/license-header audit
+    from .copyright_headers import _build_copyright_headers
+    elems.extend(_build_copyright_headers(styles))
+
     return elems
 
 

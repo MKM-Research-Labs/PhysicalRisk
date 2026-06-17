@@ -26,7 +26,7 @@ from .helpers import (
 from .sections_overview import _build_cover, _build_exec_summary
 from .sections_tests import (
     _build_test_detail, _build_coverage, _build_modularisation,
-    _build_init_audit,
+    _build_init_audit, _build_copyright_headers,
 )
 from .sections_hardcoding import _build_hardcoding
 from .sections_embedded_js import _build_embedded_js
@@ -44,7 +44,8 @@ __all__ = [
     '_status_colour', '_map_sev', '_header_footer',
     '_build_cover', '_build_exec_summary',
     '_build_test_detail', '_build_coverage', '_build_modularisation',
-    '_build_init_audit', '_build_hardcoding', '_build_embedded_js',
+    '_build_init_audit', '_build_copyright_headers',
+    '_build_hardcoding', '_build_embedded_js',
     '_build_data_lineage', '_build_e2e', '_build_roadmap',
     'create_pdf_report', 'main',
 ]
