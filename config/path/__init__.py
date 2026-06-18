@@ -28,5 +28,12 @@ Two mixin classes:
 
 from ._config_paths import ConfigPaths
 from ._portfolio_paths import PortfolioPaths
+from .registry import PROJECT_ROOT_DIRS, DATA_SUBDIRS, SANCTIONED_PACKAGE
 
-__all__ = ["ConfigPaths", "PortfolioPaths"]
+__all__ = [
+    "ConfigPaths",
+    "PortfolioPaths",
+    "PROJECT_ROOT_DIRS",
+    "DATA_SUBDIRS",
+    "SANCTIONED_PACKAGE",
+]

@@ -103,6 +103,10 @@ def _build_modularisation(styles) -> list:
     from .copyright_headers import _build_copyright_headers
     elems.extend(_build_copyright_headers(styles))
 
+    # 4.3 — path-definition audit (paths housed in config)
+    from .path_definitions import _build_path_definitions
+    elems.extend(_build_path_definitions(styles))
+
     return elems
 
 
