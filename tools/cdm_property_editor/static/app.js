@@ -590,7 +590,18 @@ async function renderWaterfall(body) {
   }
   const sd = data.spread_decomposition;
   if (!sd || !Object.keys(sd).length) {
-    body.innerHTML = `<div class="wf-msg">${data.note || "No waterfall for this asset."}</div>`;
+    if (data.can_price) {
+      body.innerHTML =
+        `<div class="wf-price-wrap">` +
+          `<div class="wf-msg">${data.note || "This asset has not been priced yet."}</div>` +
+          `<button class="save-btn" id="wf-price-btn">Price this asset</button>` +
+          `<div class="wf-price-note">Runs the hazard model for this one asset against the ` +
+            `existing gauges &amp; storms (~30–60s). Nothing else in the portfolio changes.</div>` +
+        `</div>`;
+      document.getElementById("wf-price-btn").addEventListener("click", priceAsset);
+    } else {
+      body.innerHTML = `<div class="wf-msg">${data.note || "No waterfall for this asset."}</div>`;
+    }
     return;
   }
   // Reuse the main app's spread-waterfall renderer verbatim (the perfect basis
@@ -639,6 +650,28 @@ async function renderWaterfall(body) {
       `<div class="wf-msg">Waterfall renderer unavailable.</div>`;
   }
   $("#wf-pricer").addEventListener("click", openPrsPricer);
+}
+
+// Price a newly-added asset on demand (B4) — runs the hazard model for this one
+// asset in the background, then re-renders the waterfall with the result.
+async function priceAsset() {
+  const btn = document.getElementById("wf-price-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Pricing… (this can take ~30–60s)"; }
+  try {
+    const res = await fetch(
+      `/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/price`, { method: "POST" });
+    const data = await res.json();
+    if (data.ok) {
+      renderDetailBody();   // the priced curve is now in the sandbox → waterfall renders
+    } else if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Price this asset";
+      const note = document.querySelector(".wf-price-note");
+      if (note) note.textContent = data.error || "Pricing failed.";
+    }
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = "Price this asset"; }
+  }
 }
 
 // Open the actual PRS pricer — the same action as the property-level map menu
@@ -795,8 +828,8 @@ const CREATE_FIELDS = {
     ["PropertyHeader.Location.Postcode", "Postcode"],
     ["PropertyHeader.Header.propertyType", "Property type"],
     ["PropertyHeader.Valuation.PropertyValue", "Value (£)"],
-    ["PropertyHeader.Location.LatitudeDegrees", "Latitude"],
-    ["PropertyHeader.Location.LongitudeDegrees", "Longitude"],
+    ["PropertyHeader.Location.LatitudeDegrees", "Latitude (°)"],
+    ["PropertyHeader.Location.LongitudeDegrees", "Longitude (°)"],
     ["PropertyHeader.Construction.FloorLevelMeters", "Floor level (m)"],
     ["PropertyHeader.RiskAssessment.GroundLevelMeters", "Ground level (m)"],
   ],
@@ -807,8 +840,8 @@ const CREATE_FIELDS = {
     ["CommercialAsset.Location.Postcode", "Postcode"],
     ["CommercialAsset.CommercialAttributes.CommercialType", "Commercial type"],
     ["CommercialAsset.Valuation.PropertyValue", "Value (£)"],
-    ["CommercialAsset.Location.LatitudeDegrees", "Latitude"],
-    ["CommercialAsset.Location.LongitudeDegrees", "Longitude"],
+    ["CommercialAsset.Location.LatitudeDegrees", "Latitude (°)"],
+    ["CommercialAsset.Location.LongitudeDegrees", "Longitude (°)"],
     ["CommercialAsset.Construction.FloorLevelMeters", "Floor level (m)"],
     ["CommercialAsset.RiskAssessment.GroundLevelMeters", "Ground level (m)"],
   ],
@@ -830,6 +863,7 @@ async function openCreateForm() {
         `<button class="icon-btn close" id="create-close">&times;</button></div>` +
       `<div class="lin-body">` +
         `<div id="create-grid" class="create-grid"></div>` +
+        `<div class="create-hint">Latitude &amp; longitude in decimal degrees (WGS84) — the placeholder shows the catchment centre.</div>` +
         `<div class="amend-err" id="create-err"></div>` +
         `<div class="amend-actions">` +
           `<button class="cancel-btn" id="create-cancel">Cancel</button>` +
@@ -855,11 +889,72 @@ async function openCreateForm() {
     inputs[path] = { input, spec };
   }
 
+  // Show the catchment centre as the lat/lon ballpark so a transposed pair stands out.
+  try {
+    const info = await (await fetch("/api/catchment-info")).json();
+    const setPh = (suffix, val) => {
+      const hit = Object.entries(inputs).find(([p]) => p.endsWith(suffix));
+      if (hit && val !== null && val !== undefined) {
+        hit[1].input.placeholder = `≈ ${(+val).toFixed(2)} (catchment centre)`;
+      }
+    };
+    setPh("LatitudeDegrees", info.lat);
+    setPh("LongitudeDegrees", info.lon);
+  } catch (_) { /* placeholder is a nicety; ignore */ }
+
   const close = () => overlay.remove();
   overlay.addEventListener("click", (ev) => { if (ev.target.id === "create-overlay") close(); });
   document.getElementById("create-close").addEventListener("click", close);
   document.getElementById("create-cancel").addEventListener("click", close);
   document.getElementById("create-save").addEventListener("click", () => submitCreate(inputs, close));
+}
+
+async function uploadRecords(file) {
+  if (!file) return;
+  setStatus(`Uploading ${file.name}…`);
+  const fd = new FormData();
+  fd.append("file", file);
+  let data;
+  try {
+    const res = await fetch(`/api/${ASSET}/upload`, { method: "POST", body: fd });
+    data = await res.json();
+    if (!res.ok) { setStatus(data.error || "Upload failed", true); return; }
+  } catch (err) { setStatus("Upload failed: " + err.message, true); return; }
+  setStatus("");
+  await reloadItems();
+  showUploadResult(data);
+}
+
+function showUploadResult(data) {
+  const rejected = data.rejected || [];
+  const rows = rejected.slice(0, 50).map((r) => {
+    const errs = Object.entries(r.errors).map(([f, e]) =>
+      `<div class="up-err-line"><span class="up-err-field">${prettyLabel(f.split(".").pop())}</span>: ${e}</div>`).join("");
+    return `<tr><td class="up-row">Row ${r.row}</td><td>${errs}</td></tr>`;
+  }).join("");
+  const overlay = document.createElement("div");
+  overlay.className = "lin-overlay";
+  overlay.id = "upload-overlay";
+  overlay.innerHTML =
+    `<div class="lin-popup upload-popup">` +
+      `<div class="lin-head"><div class="lin-head-main">` +
+        `<div class="lin-title">Upload complete</div>` +
+        `<div class="lin-path">${data.sheet ? "Sheet: " + data.sheet : ""}</div></div>` +
+        `<button class="icon-btn close" id="upload-close">&times;</button></div>` +
+      `<div class="lin-body">` +
+        `<div class="up-summary"><b>${data.created}</b> added` +
+          (rejected.length ? ` · <span class="up-rej">${rejected.length} rejected</span>` : "") +
+          (data.note ? ` · ${data.note}` : "") + `</div>` +
+        (rejected.length
+          ? `<table class="up-table"><thead><tr><th>Row</th><th>Problem</th></tr></thead><tbody>${rows}</tbody></table>`
+          : `<div class="wf-msg">All rows imported cleanly.</div>`) +
+        `<div class="amend-actions"><button class="save-btn" id="upload-ok">Done</button></div>` +
+      `</div></div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.addEventListener("click", (ev) => { if (ev.target.id === "upload-overlay") close(); });
+  document.getElementById("upload-close").addEventListener("click", close);
+  document.getElementById("upload-ok").addEventListener("click", close);
 }
 
 async function submitCreate(inputs, close) {
@@ -1023,9 +1118,11 @@ async function selectAsset(key) {
   const isAudit = key === AUDIT_KEY;
   $(".content").classList.toggle("audit-view", isAudit);   // light-blue panel
   $(".hint").classList.toggle("hidden", isAudit);
-  // The "+ Add" control is only shown for creatable assets (property/commercial).
-  $("#add-record").classList.toggle("hidden", isAudit || !CREATE_FIELDS[key]);
-  if (!isAudit && CREATE_FIELDS[key]) ensureEditSpec(key);
+  // The "+ Add" / "Upload" controls are only shown for creatable assets.
+  const creatable = !isAudit && !!CREATE_FIELDS[key];
+  $("#add-record").classList.toggle("hidden", !creatable);
+  $("#upload-record").classList.toggle("hidden", !creatable);
+  if (creatable) ensureEditSpec(key);
   if (isAudit) { await renderAudit(); return; }
 
   const label = assetLabel(key);
@@ -1102,6 +1199,12 @@ async function boot() {
     try { LINEAGE = await (await fetch("/api/lineage")).json(); } catch (_) { LINEAGE = null; }
     $("#search").addEventListener("input", (e) => renderList(e.target.value));
     $("#add-record").addEventListener("click", openCreateForm);
+    $("#upload-record").addEventListener("click", () => $("#upload-file").click());
+    $("#upload-file").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";   // allow re-uploading the same file
+      uploadRecords(f);
+    });
     $("#modal-close").addEventListener("click", closeModal);
     $("#modal-expand").addEventListener("click", toggleExpand);
     $("#modal-overlay").addEventListener("click", (e) => {

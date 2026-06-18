@@ -403,13 +403,28 @@ html, body {
   cursor: pointer;
 }
 .add-btn:hover { filter: brightness(1.06); }
+.sidebar-actions { display: flex; align-items: center; gap: 6px; }
+.add-btn.ghost { background: #fff; color: var(--blue); }
+.upload-popup { width: 520px; max-width: 94vw; }
+.up-summary { font-size: 13px; margin-bottom: 10px; }
+.up-rej { color: var(--red); font-weight: 600; }
+.up-table { width: 100%; border-collapse: collapse; font-size: 12px; max-height: 50vh; }
+.up-table th { text-align: left; background: #fafafa; color: #555; font-size: 10px;
+  text-transform: uppercase; padding: 6px 8px; border-bottom: 2px solid #ddd; }
+.up-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+.up-row { white-space: nowrap; color: #6b7686; }
+.up-err-field { font-weight: 600; }
 .create-popup { width: 460px; max-width: 92vw; }
 .create-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 56vh; overflow-y: auto; }
 .create-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 10px; font-size: 12px; color: #455; }
 .create-lab { text-align: right; }
+.create-hint { font-size: 11px; color: var(--muted); margin: 8px 0 2px; }
 .wf-delta .wf-up { color: var(--red); font-weight: 700; }
 .wf-delta .wf-down { color: var(--green); font-weight: 700; }
 .wf-delta-note { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.wf-price-wrap { padding: 28px 16px; text-align: center; }
+.wf-price-wrap .save-btn { margin: 6px auto; }
+.wf-price-note { font-size: 12px; color: var(--muted); max-width: 420px; margin: 8px auto 0; }
 
 /* Report tab — links to the asset's detailed PDF report. */
 .detail-tab.report-tab { font-weight: 600; }

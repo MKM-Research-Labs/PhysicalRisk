@@ -24,8 +24,12 @@
       <div class="sidebar-head">
         <div class="sidebar-title-row">
           <div id="sidebar-title" class="sidebar-title">Records</div>
-          <button id="add-record" class="add-btn hidden" title="Add a new record to the sandbox">+ Add</button>
+          <div class="sidebar-actions">
+            <button id="upload-record" class="add-btn ghost hidden" title="Upload records from the CDM .xlsx workbook">Upload</button>
+            <button id="add-record" class="add-btn hidden" title="Add a new record to the sandbox">+ Add</button>
+          </div>
         </div>
+        <input id="upload-file" type="file" accept=".xlsx" class="hidden" />
         <input id="search" type="search" placeholder="Filter…" />
         <div id="count" class="count"></div>
       </div>

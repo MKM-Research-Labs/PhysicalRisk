@@ -72,6 +72,7 @@ from lineage.field_usage.resolve import classify  # noqa: E402
 from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
 
 from recompute import MODE_DIRS_BY_ASSET, recompute_decomposition  # noqa: E402
+import price_new  # noqa: E402
 
 # The PRS waterfall is rendered by the main app's own renderer
 # (src/static/js/property/phc_basis_waterfall.js) — reused here as a shared
@@ -253,7 +254,33 @@ def _storm_type_index() -> dict:
     return _CACHE["storm_types"]
 
 
+def _priced_file(asset: str) -> Path:
+    """Sandbox store of on-demand-priced new assets (never data/)."""
+    return SANDBOX_DIR / f"priced_{asset}.json"
+
+
+def _load_priced(asset: str) -> dict:
+    p = _priced_file(asset)
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError):
+            return {}
+    return {}
+
+
+def _save_priced(asset: str, rid: str, curve: dict) -> None:
+    SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
+    store = _load_priced(asset)
+    store[rid] = curve
+    _priced_file(asset).write_text(json.dumps(store, indent=2))
+
+
 def _hc_record(asset: str, rid: str) -> dict | None:
+    # A newly-added asset priced on demand lives in the sandbox store; prefer it.
+    priced = _load_priced(asset)
+    if rid in priced:
+        return priced[rid]
     cfg = HC_CONFIG.get(asset)
     if not cfg:
         return None
@@ -378,6 +405,19 @@ def index():
 def api_assets():
     """Top-tab list: key + label, in display order."""
     return jsonify([{"key": k, "label": v["label"]} for k, v in ASSETS.items()])
+
+
+@app.route("/api/catchment-info")
+def api_catchment_info():
+    """Active catchment + its map centre — used as the lat/lon ballpark on the
+    add form so a transposed pair is obvious (no hardcoded coordinates)."""
+    lat = lon = None
+    try:
+        from config.visual import get_map_center
+        lat, lon = get_map_center()
+    except Exception:
+        pass
+    return jsonify({"catchment": CATCHMENT, "lat": lat, "lon": lon})
 
 
 @app.route("/api/lineage")
@@ -548,6 +588,116 @@ def api_create(asset: str):
         "field": "(record)", "field_label": "Created record", "old": None, "new": new_id,
     }])
     return jsonify({"status": "success", "id": new_id, "record": rec})
+
+
+# The workbook Template sheet that maps to each creatable asset (header row =
+# CDM dotted paths). Matches tools/cdm_property_editor/cdm_workbook.py.
+ASSET_TEMPLATE_SHEET = {
+    "property": "Portfolio (Template)",
+    "commercial": "Commercial (Template)",
+}
+
+
+@app.route("/api/<asset>/upload", methods=["POST"])
+def api_upload(asset: str):
+    """Bulk-add records from an uploaded .xlsx (the CDM upload workbook).
+
+    Reads the asset's Template sheet — header row = CDM dotted paths — validates
+    every cell against the schema, mints id + catchment, appends the valid rows to
+    the sandbox and reports the rejected rows with per-cell reasons.
+    """
+    cfg = NEW_ASSET.get(asset)
+    if cfg is None:
+        return jsonify({"error": f"Uploading '{asset}' is not supported."}), 400
+    f = request.files.get("file")
+    if f is None:
+        return jsonify({"error": "No file uploaded (form field 'file')."}), 400
+
+    import io
+    import openpyxl
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(f.read()), data_only=True, read_only=True)
+    except Exception as exc:
+        return jsonify({"error": f"Could not read workbook: {exc}"}), 400
+    want = ASSET_TEMPLATE_SHEET.get(asset)
+    sheet = wb[want] if want in wb.sheetnames else wb[wb.sheetnames[0]]
+
+    rows = list(sheet.iter_rows(values_only=True))
+    if len(rows) < 2:
+        return jsonify({"created": 0, "ids": [], "rejected": [],
+                        "note": f"No data rows in sheet '{sheet.title}'."})
+    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
+
+    schema = ASSETS[asset]["schema"]
+    doc = _load_doc(asset)
+    container = ASSETS[asset]["container"]
+    ts = datetime.now().isoformat(timespec="seconds")
+    created, rejected, audit = [], [], []
+    for ri, row in enumerate(rows[1:], start=2):
+        if all(c is None or str(c).strip() == "" for c in row):
+            continue  # blank row
+        coerced, errors = {}, {}
+        for header, raw in zip(headers, row):
+            if not header or raw is None or str(raw).strip() == "":
+                continue
+            descriptor = descriptor_at(schema, header)
+            if descriptor is None:
+                errors[header] = "unknown field"
+                continue
+            ok, value, err = validate_value(header, descriptor, raw)
+            if ok:
+                coerced[header] = value
+            else:
+                errors[header] = err
+        if errors:
+            rejected.append({"row": ri, "errors": errors})
+            continue
+        new_id = coerced.get(cfg["id_path"]) or (cfg["prefix"] + uuid.uuid4().hex[:8])
+        rec: dict = {}
+        _set_nested(rec, cfg["id_path"], new_id)
+        _set_nested(rec, cfg["catchment_path"], CATCHMENT)
+        for path, value in coerced.items():
+            _set_nested(rec, path, value)
+        doc.setdefault(container, []).append(rec)
+        created.append(new_id)
+        audit.append({"timestamp": ts, "user": AUDIT_USER, "asset": asset,
+                      "asset_label": ASSETS[asset]["label"], "record_id": new_id,
+                      "field": "(record)", "field_label": "Uploaded record",
+                      "old": None, "new": new_id})
+    if created:
+        _save_doc(asset, doc)
+        _append_audit(audit)
+    return jsonify({"created": len(created), "ids": created,
+                    "rejected": rejected, "sheet": sheet.title})
+
+
+@app.route("/api/<asset>/items/<rid>/price", methods=["POST"])
+def api_price(asset: str, rid: str):
+    """Price a newly-added asset that has no timeseries yet (Workstream B / B4).
+
+    Runs the real batch generators over a scoped 1-asset workspace (subprocess,
+    never touches data/), stores the resulting hazard-curve in the sandbox so the
+    PRS Waterfall renders it. Slow (~tens of seconds) — the UI calls it async.
+    """
+    if asset not in price_new._ASSET:
+        return jsonify({"ok": False, "error": f"Pricing '{asset}' is not supported."}), 400
+    doc = _load_doc(asset)
+    rec = next((r for r in _records_of(doc, asset) if _record_id(asset, r) == rid), None)
+    if rec is None:
+        return jsonify({"ok": False, "error": f"{asset} '{rid}' not found"}), 404
+    res = price_new.price_asset(asset, rid, rec, input_dir=INPUT_DIR,
+                                src_dir=SRC_DIR, repo_root=REPO_ROOT)
+    if not res["ok"]:
+        return jsonify({"ok": False, "error": res["error"]}), 200
+    _save_priced(asset, rid, res["curve"])
+    sd = res["curve"].get("spread_decomposition", {}) or {}
+    return jsonify({
+        "ok": True,
+        "spread_decomposition": sd,
+        "property_spread_bps": sd.get("property_spread_bps") or 0.0,
+        "flood_count": res["curve"].get("flood_count"),
+        "flood_zone": res["curve"].get("flood_zone"),
+    })
 
 
 @app.route("/api/<asset>/items/<rid>", methods=["PUT"])
@@ -736,7 +886,8 @@ def api_waterfall(asset: str, rid: str):
     rec = _hc_record(asset, rid)
     if rec is None:
         return jsonify({"supported": True, "spread_decomposition": None,
-                        "note": "No hazard curve for this asset."})
+                        "can_price": asset in price_new._ASSET,
+                        "note": "Not priced yet — this asset has no hazard curve."})
     sd = rec.get("spread_decomposition", {}) or {}
     # Return the raw decomposition; the shared phc_basis_waterfall.js renderer
     # builds the bars (Gauge -> SHE -> SHD -> Property -> BRI) from it, exactly
