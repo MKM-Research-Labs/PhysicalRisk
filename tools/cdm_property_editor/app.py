@@ -45,6 +45,7 @@ from __future__ import annotations
 import json
 import shutil
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -484,6 +485,69 @@ def _maybe_recompute(asset: str, rid: str, target: dict, changed: dict) -> dict 
         return {"supported": True, "tier": "RED", "field": path,
                 "before": before, "after": after}
     return None
+
+
+# Assets the tool can CREATE (zero-portfolio / add). Maps the minted id + the
+# catchment tag onto the right CDM paths so the record joins the thames pool.
+NEW_ASSET: dict[str, dict] = {
+    "property": {"id_path": "PropertyHeader.Header.PropertyID", "prefix": "PROP-",
+                 "catchment_path": "PropertyHeader.Header.CatchmentID"},
+    "commercial": {"id_path": "CommercialAsset.Header.PropertyID", "prefix": "CPROP-",
+                   "catchment_path": "CommercialAsset.Header.CatchmentID"},
+}
+
+
+@app.route("/api/<asset>/items", methods=["POST"])
+def api_create(asset: str):
+    """Create a new asset record in the SANDBOX (never data/) — the add path.
+
+    Body: ``{"changes": {dotted_path: value, ...}}`` (same shape as the editor).
+    Mints the id, tags the catchment, validates every field, appends and audits
+    the creation. Returns the new id so the UI can open it.
+    """
+    if asset not in ASSETS:
+        return jsonify({"error": f"Unknown asset '{asset}'"}), 404
+    cfg = NEW_ASSET.get(asset)
+    if cfg is None:
+        return jsonify({"error": f"Creating '{asset}' records is not supported yet."}), 400
+
+    schema = ASSETS[asset]["schema"]
+    changes = (request.get_json(silent=True) or {}).get("changes", {})
+    coerced, errors = {}, {}
+    for path, raw in changes.items():
+        if raw in (None, ""):
+            continue  # skip blanks — a new record need not fill every field
+        descriptor = descriptor_at(schema, path)
+        if descriptor is None:
+            errors[path] = "not an editable schema field"
+            continue
+        ok, value, err = validate_value(path, descriptor, raw)
+        if ok:
+            coerced[path] = value
+        else:
+            errors[path] = err
+    if errors:
+        return jsonify({"status": "error", "errors": errors}), 400
+
+    new_id = cfg["prefix"] + uuid.uuid4().hex[:8]
+    rec: dict = {}
+    _set_nested(rec, cfg["id_path"], new_id)
+    _set_nested(rec, cfg["catchment_path"], CATCHMENT)
+    for path, value in coerced.items():
+        _set_nested(rec, path, value)
+
+    doc = _load_doc(asset)
+    if isinstance(doc, list):
+        doc.append(rec)
+    else:
+        doc.setdefault(ASSETS[asset]["container"], []).append(rec)
+    _save_doc(asset, doc)
+    _append_audit([{
+        "timestamp": datetime.now().isoformat(timespec="seconds"), "user": AUDIT_USER,
+        "asset": asset, "asset_label": ASSETS[asset]["label"], "record_id": new_id,
+        "field": "(record)", "field_label": "Created record", "old": None, "new": new_id,
+    }])
+    return jsonify({"status": "success", "id": new_id, "record": rec})
 
 
 @app.route("/api/<asset>/items/<rid>", methods=["PUT"])

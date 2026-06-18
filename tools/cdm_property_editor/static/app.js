@@ -783,6 +783,113 @@ async function ensureEditSpec(asset) {
   catch (_) { EDIT_SPECS[asset] = {}; }
 }
 
+// ---- add a new record (zero-portfolio / add) ------------------------------
+// Curated core fields shown on the add form, per creatable asset. The rest of
+// the CDM is filled later via the normal field editor. Paths must exist in the
+// schema (validated); the id + catchment are minted server-side.
+const CREATE_FIELDS = {
+  property: [
+    ["PropertyHeader.Location.BuildingNumber", "Building number"],
+    ["PropertyHeader.Location.StreetName", "Street"],
+    ["PropertyHeader.Location.TownCity", "Town / city"],
+    ["PropertyHeader.Location.Postcode", "Postcode"],
+    ["PropertyHeader.Header.propertyType", "Property type"],
+    ["PropertyHeader.Valuation.PropertyValue", "Value (£)"],
+    ["PropertyHeader.Location.LatitudeDegrees", "Latitude"],
+    ["PropertyHeader.Location.LongitudeDegrees", "Longitude"],
+    ["PropertyHeader.Construction.FloorLevelMeters", "Floor level (m)"],
+    ["PropertyHeader.RiskAssessment.GroundLevelMeters", "Ground level (m)"],
+  ],
+  commercial: [
+    ["CommercialAsset.Location.BuildingNumber", "Building number"],
+    ["CommercialAsset.Location.StreetName", "Street"],
+    ["CommercialAsset.Location.TownCity", "Town / city"],
+    ["CommercialAsset.Location.Postcode", "Postcode"],
+    ["CommercialAsset.CommercialAttributes.CommercialType", "Commercial type"],
+    ["CommercialAsset.Valuation.PropertyValue", "Value (£)"],
+    ["CommercialAsset.Location.LatitudeDegrees", "Latitude"],
+    ["CommercialAsset.Location.LongitudeDegrees", "Longitude"],
+    ["CommercialAsset.Construction.FloorLevelMeters", "Floor level (m)"],
+    ["CommercialAsset.RiskAssessment.GroundLevelMeters", "Ground level (m)"],
+  ],
+};
+
+async function openCreateForm() {
+  const fields = CREATE_FIELDS[ASSET];
+  if (!fields) return;
+  await ensureEditSpec(ASSET);
+  const noun = ASSET === "commercial" ? "commercial asset" : "property";
+  const overlay = document.createElement("div");
+  overlay.className = "lin-overlay";
+  overlay.id = "create-overlay";
+  overlay.innerHTML =
+    `<div class="lin-popup create-popup">` +
+      `<div class="lin-head"><div class="lin-head-main">` +
+        `<div class="lin-title">Add ${noun}</div>` +
+        `<div class="lin-path">New record → sandbox · id &amp; catchment minted on save</div></div>` +
+        `<button class="icon-btn close" id="create-close">&times;</button></div>` +
+      `<div class="lin-body">` +
+        `<div id="create-grid" class="create-grid"></div>` +
+        `<div class="amend-err" id="create-err"></div>` +
+        `<div class="amend-actions">` +
+          `<button class="cancel-btn" id="create-cancel">Cancel</button>` +
+          `<button class="save-btn" id="create-save">Create record</button>` +
+        `</div>` +
+      `</div>` +
+    `</div>`;
+  document.body.appendChild(overlay);
+
+  const grid = document.getElementById("create-grid");
+  const inputs = {};
+  for (const [path, label] of fields) {
+    const spec = (EDIT_SPECS[ASSET] && EDIT_SPECS[ASSET][path]) || { input: "text" };
+    const row = document.createElement("label");
+    row.className = "create-row";
+    const lab = document.createElement("span");
+    lab.className = "create-lab";
+    lab.textContent = label;
+    const input = makeFieldInput("", spec);
+    row.appendChild(lab);
+    row.appendChild(input);
+    grid.appendChild(row);
+    inputs[path] = { input, spec };
+  }
+
+  const close = () => overlay.remove();
+  overlay.addEventListener("click", (ev) => { if (ev.target.id === "create-overlay") close(); });
+  document.getElementById("create-close").addEventListener("click", close);
+  document.getElementById("create-cancel").addEventListener("click", close);
+  document.getElementById("create-save").addEventListener("click", () => submitCreate(inputs, close));
+}
+
+async function submitCreate(inputs, close) {
+  const errEl = document.getElementById("create-err");
+  errEl.textContent = "";
+  const changes = {};
+  for (const [path, { input, spec }] of Object.entries(inputs)) {
+    const v = spec.input === "checkbox" ? input.checked : input.value;
+    if (v !== "" && v !== null && v !== undefined) changes[path] = v;
+  }
+  try {
+    const res = await fetch(`/api/${ASSET}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ changes }),
+    });
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+      close();
+      await reloadItems();
+      openDetail(data.id);
+    } else {
+      errEl.textContent = data.error ||
+        (data.errors && Object.values(data.errors)[0]) || "Create failed";
+    }
+  } catch (err) {
+    errEl.textContent = "Create failed: " + err.message;
+  }
+}
+
 async function reloadItems() {
   try {
     ITEMS = await (await fetch(`/api/${ASSET}/items`)).json();
@@ -916,6 +1023,9 @@ async function selectAsset(key) {
   const isAudit = key === AUDIT_KEY;
   $(".content").classList.toggle("audit-view", isAudit);   // light-blue panel
   $(".hint").classList.toggle("hidden", isAudit);
+  // The "+ Add" control is only shown for creatable assets (property/commercial).
+  $("#add-record").classList.toggle("hidden", isAudit || !CREATE_FIELDS[key]);
+  if (!isAudit && CREATE_FIELDS[key]) ensureEditSpec(key);
   if (isAudit) { await renderAudit(); return; }
 
   const label = assetLabel(key);
@@ -991,6 +1101,7 @@ async function boot() {
     ASSETS.push({ key: AUDIT_KEY, label: "Audit" });  // special non-asset tab
     try { LINEAGE = await (await fetch("/api/lineage")).json(); } catch (_) { LINEAGE = null; }
     $("#search").addEventListener("input", (e) => renderList(e.target.value));
+    $("#add-record").addEventListener("click", openCreateForm);
     $("#modal-close").addEventListener("click", closeModal);
     $("#modal-expand").addEventListener("click", toggleExpand);
     $("#modal-overlay").addEventListener("click", (e) => {
