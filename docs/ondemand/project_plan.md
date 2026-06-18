@@ -159,16 +159,62 @@ and are willing to refactor the generators behind a shared subset entry.
 
 ---
 
-## Spikes (do FIRST — ~1 day, decide go/no-go)
-1. **Attenuated-depth recoverability** (above) — instant vs re-propagation for
-   Tier B. Highest value.
-2. **Subset entry point** — how invasive is guarding stale-delete + portfolio
-   summary in `ts/generator.py` and `hc/generator/_generator.py` for `subset`?
-3. **Workspace seeding & cost** — copy which artifacts into `data/work/`
-   (gaugehc.json, storm_sequences.json, sequence_gauge/, propertyts/<id>.json,
-   propertyhc + shd/she/bri). Measure one-property regen wall-time (Opt 1 vs 2).
-4. **Decomposition modes** — full waterfall before/after needs the property's ts
-   in normal+shd+she+bri (4×). Confirm cost; decide v1 = normal(+bri) only.
+## Spikes
+### Spike 1 — RESULT: GREEN (done 2026-06-18). Tier B is INSTANT, not re-propagation.
+Traced the propagation math and validated on real thames data (100 properties,
+76,453 events):
+- **Stored `flood_depth_m` = max(0, `attenuated_wse_m` − `elevation_m` −
+  `floor_level_m`) EXACTLY** — validated: `attenuated_wse_m − flood_depth_m`
+  equals `elevation_m + floor_level_m` with spread 0.0000 across every flooded
+  event. `attenuated_wse_m` (the property peak water-surface elevation) is the
+  propagated water level and is **independent of floor/ground/BRI**; it is stored
+  on EVERY event (flooded or not), in all four modes (normal/bri/shd/she).
+- **0 compound events** in thames (`build_compound_property_hydrograph` path).
+  So a floor / ground-level / BRI edit re-prices with **pure arithmetic** over
+  stored `attenuated_wse_m` — no re-propagation, no subprocess:
+  `new_depth_i = max(0, attenuated_wse_m_i − new_ground − new_eff_floor)`;
+  `new_damage_i = scalar_depth_damage(new_depth_i)`; severe count =
+  Σ(new_depth_i>0 AND `exceeded_severe_i`) [exceeded_severe stored, floor-indep].
+  Full Gauge→SHE→SHD→Property→BRI waterfall recomputes instantly (all 4 variant
+  files carry the field).
+- **Caveat — compound path.** For compound (pulse) events, a currently
+  NON-flooded event stores `wse_m = base_level` (true peak lost), so a
+  *worsening* edit (lower floor) couldn't be detected. thames = 0% compound, but
+  other catchments (typhoon-coupled / pulse storms) may differ. Mitigation:
+  detect the `compound` flag per event → fall back to the subprocess re-propagation
+  (Opt 2) for those events/catchments. Keep Opt 2 as the correctness oracle.
+
+### Spike 1b — the robust recompute algorithm (validated)
+No-op recompute reproduces the batch's stored `flood_count` and property spread
+**exactly across all 100 properties** (0 mismatches), via
+`flooded_i = round(max(0, attenuated_wse_m_i − elevation_m − floor_level_m),4) > 0`.
+Same for SHE and BRI variants. **SHD mismatched (61/100)** because SHD substitutes
+the *gauge* elevation for the property's, so the file's `elevation_m` metadata is
+NOT SHD's effective threshold. ⇒ **Do not reconstruct thresholds from metadata.**
+
+Robust algorithm — work in DEPTH space, not threshold space:
+- **Floor raise (Δfloor>0 — the resilience lever): `new_depth_i =
+  max(0, stored_flood_depth_m_i − Δfloor)`.** Uses each mode's stored depth
+  (already correct from the batch), so exact for ALL modes incl. SHD, no threshold
+  reconstruction. Algebraically identical to the generator (depth = max(0,
+  attenuated_wse − (T+Δfloor))), not an approximation.
+- **Floor lower (Δfloor<0):** needs the absolute margin for currently-non-flooded
+  events → `attenuated_wse_m − T_mode`. T is elevation+floor for property/SHE/BRI;
+  SHD needs the gauge elevation (in the file's `nearest_gauges`). Implement, but
+  the raise case is the primary one.
+- **BRI improve:** maps to an effective-floor uplift via `bri_floor_uplift`
+  (pure fn) → same depth-delta on the BRI variant.
+- Spread/count = Σ(new_flooded_i AND `exceeded_severe_i`)/num_storms×10000, then
+  reuse `_process_property`/decomposition for the full waterfall (single-source).
+
+### Spikes 2–4 — status after Spike 1
+- 4 (decomposition modes): ANSWERED — all 4 variant files carry
+  `attenuated_wse_m`, so full 4-mode before/after is instant; no 4× propagation.
+- 3 (workspace seeding/cost): the instant path needs only the property's variant
+  ts files + gaugehc.json (read + arithmetic = ms). Subprocess fallback seeding
+  unchanged.
+- 2 (subset entry point): only needed for the subprocess fallback/oracle — the
+  instant path sidesteps the generator refactor entirely.
 
 ---
 
@@ -202,12 +248,39 @@ and are willing to refactor the generators behind a shared subset entry.
 3. Workstream A v1 (Tier A + B, before/after waterfall, audit Δ).
 4. Workstream B (empty portfolio → add → upload), pricing via the foundation.
 
-## Decisions (locked 2026-06-17)
-- **Architecture = Opt 2, scoped subprocess.** Stage a 1-property sandbox
-  workspace, run the real CLI (`app.py port --propertyts --propertyhc …`) in a
-  fresh process. Zero divergence from batch, no generator refactor. Recompute is
-  **async** (seconds; show a spinner). Opt 3 (instant pure re-price) only added
-  later IF Spike 1 shows the attenuated depth is recoverable.
+## Decisions
+### UPGRADE after Spike 1 (2026-06-18) — recommend instant hybrid, pending user OK
+Spike 1 passed, which the locked decision said unlocks Opt 3. Proposed primary
+path is a **hybrid that keeps pricing single-source**:
+1. **Re-depth shortcut** (replaces only the propagation step): recompute each
+   event's `flood_depth_m` / `damage_ratio` / `flooded` from stored
+   `attenuated_wse_m` + the new effective floor/ground (pure, ms), write the
+   property's ts files into `data/work/`.
+2. **Reuse the batch pricing**: run the existing `propertyhc` `_process_property`
+   (in-process, stateless, cheap) over the rewritten ts → spread + decomposition.
+   No new spread/count code → no second source of truth.
+Result: **instant** before/after (no async spinner) for floor/ground/BRI edits,
+full 4-mode waterfall. Subprocess (below) stays as the fallback for compound
+events/catchments and as the correctness oracle to validate the shortcut.
+
+### BUILT & VALIDATED 2026-06-18
+- `tools/cdm_property_editor/recompute.py` — the instant shortcut:
+  `severe_count(ts, Δfloor)`, `mode_deltas(field, old, new)` (FloorLevelMeters →
+  all modes; BRIFloodScore → bri via `bri_floor_uplift`; ground/other → None
+  fallback), `recompute_decomposition(...)` → full before/after waterfall.
+  Counting via shared `is_prs_flood` (single-source); compound events → None.
+- `tools/cdm_property_editor/_recompute_oracle.py` — validates the shortcut vs a
+  REAL `PropertyTimeSeriesGenerator` re-run (temp workspace via
+  `MKM_CATCHMENT_INPUT_OVERRIDE`, never touches data/). **Result: EXACT match**
+  on a 155-flood property across Δ = +0/+0.5/+1/+2/−0.5 m (155/99/68/23/193 both
+  sides). Lowering matches too (stored `attenuated_wse_m` covers non-flooded
+  events in the simple path). Next: wire into the tool (workspace + commit flow).
+
+### Locked 2026-06-17 (still valid as the fallback/oracle)
+- **Opt 2, scoped subprocess.** Stage a 1-property sandbox workspace, run the
+  real CLI (`app.py port --propertyts --propertyhc …`) in a fresh process. Zero
+  divergence from batch. Now the FALLBACK (compound events) + oracle, not the
+  primary path.
 - **Gauge-threshold (Tier C) edits = deferred for v1.** Allow + audit the edit,
   but show "requires a full portfolio re-run" instead of live before/after.
   v1 live recompute = single-asset only (property geometry/BRI = Tier B,
@@ -216,4 +289,10 @@ and are willing to refactor the generators behind a shared subset entry.
 ## Still open
 - **Live latency** accepted as async spinner for v1 (follows Opt 2). Revisit
   instant path only after Spike 1.
-- **Upload format:** CSV column contract vs CDM-JSON — need a sample from user.
+
+## Resolved since
+- **Upload format = .xlsx aligned to the CDM** (not CSV/JSON). Generator
+  `tools/cdm_property_editor/cdm_workbook.py` builds `docs/cdm/cdm_upload_workbook.xlsx`
+  from the CDM schemas via `cdm_edit.schema_specs`. Template header row = CDM
+  dotted path = the upload key. Workstream B's importer reads that header, maps
+  each column → CDM, validates with `cdm_edit.validate_value`, writes the sandbox.

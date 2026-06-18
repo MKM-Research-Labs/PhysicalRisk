@@ -67,7 +67,10 @@ from port.cdm.asset.residential.schema import PROPERTY_SCHEMA  # noqa: E402
 from port.cdm.ctpy._schema import COUNTERPARTY_SCHEMA  # noqa: E402
 from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
 from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
+from lineage.field_usage.resolve import classify  # noqa: E402
 from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
+
+from recompute import recompute_decomposition  # noqa: E402
 
 # The PRS waterfall is rendered by the main app's own renderer
 # (src/static/js/property/phc_basis_waterfall.js) — reused here as a shared
@@ -430,6 +433,56 @@ def api_item(asset: str, rid: str):
     return jsonify({"error": f"{asset} '{rid}' not found"}), 404
 
 
+def _baseline_value(asset: str, rid: str, path: str):
+    """The field value in the read-only data/ baseline (pre-sandbox edits).
+
+    The recompute applies the change relative to the baseline (which the stored
+    timeseries reflects), so before/after is always original-vs-current.
+    """
+    src = _seed_source(asset)
+    if not src.exists():
+        return None
+    doc = json.loads(src.read_text())
+    rec = next((r for r in _records_of(doc, asset) if _record_id(asset, r) == rid), None)
+    return _get_nested(rec, path) if rec else None
+
+
+def _num_storms() -> int | None:
+    p = INPUT_DIR / HC_CONFIG["property"]["file"]
+    if p.exists():
+        return json.loads(p.read_text()).get("metadata", {}).get("num_storms")
+    return None
+
+
+def _maybe_recompute(asset: str, rid: str, target: dict, changed: dict) -> dict | None:
+    """RED-gated before/after PRS recompute for a committed edit.
+
+    Returns ``None`` when no RED field changed. For a RED change, returns the
+    instant before/after spread decomposition (shortcut), or a not-supported
+    note (gauge-threshold / ground edits → "needs a full re-run", deferred).
+    """
+    if asset != "property":
+        return None
+    for path in changed:
+        if classify(path) != "RED":
+            continue
+        before = (_hc_record(asset, rid) or {}).get("spread_decomposition")
+        num = _num_storms()
+        if not before or not num:
+            return {"supported": False, "tier": "RED", "field": path,
+                    "reason": "No hazard curve for this property yet."}
+        after = recompute_decomposition(
+            rid, path, _baseline_value(asset, rid, path), _get_nested(target, path),
+            ts_root=INPUT_DIR, before_decomp=before, num_storms=num)
+        if after is None:
+            return {"supported": False, "tier": classify(path), "field": path,
+                    "reason": "This edit needs a full portfolio re-run, "
+                              "not an instant recompute."}
+        return {"supported": True, "tier": "RED", "field": path,
+                "before": before, "after": after}
+    return None
+
+
 @app.route("/api/<asset>/items/<rid>", methods=["PUT"])
 def api_update(asset: str, rid: str):
     """Commit edited field values to the SANDBOX copy (never to data/).
@@ -481,7 +534,9 @@ def api_update(asset: str, rid: str):
         })
     _save_doc(asset, doc)
     _append_audit(audit)
-    return jsonify({"status": "success", "updated": len(audit), "record": target})
+    recompute = _maybe_recompute(asset, rid, target, coerced)
+    return jsonify({"status": "success", "updated": len(audit),
+                    "record": target, "recompute": recompute})
 
 
 @app.route("/api/audit")
