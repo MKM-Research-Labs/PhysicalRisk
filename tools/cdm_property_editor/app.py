@@ -256,8 +256,11 @@ def _hc_record(asset: str, rid: str) -> dict | None:
     key = f"hc_{asset}"
     if key not in _CACHE:
         p = INPUT_DIR / cfg["file"]
-        with open(p, "r", encoding="utf-8") as fh:
-            _CACHE[key] = json.load(fh).get(cfg["container"], {}) if p.exists() else {}
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as fh:
+                _CACHE[key] = json.load(fh).get(cfg["container"], {})
+        else:
+            _CACHE[key] = {}  # no hazard-curve file (e.g. catchment ran no commercial)
     return _CACHE[key].get(rid)
 
 

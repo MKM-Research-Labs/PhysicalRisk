@@ -34,7 +34,7 @@ python_functions = ["test_*"]
 # points (83.9% observed vs the true 99.3%) even though every test passes and
 # each module is fully covered when run in isolation. ctrace is immune.
 core = "ctrace"
-source = ["src"]
+source = ["src", "tools/cdm_property_editor"]
 omit = [
     "tests/*",
     "*/static/*",

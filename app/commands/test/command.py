@@ -174,6 +174,7 @@ def cmd_test(args):
             f'--ignore={e2e_dir}',
             f'--junitxml={junit_xml}',
             '--cov=src',
+            '--cov=tools/cdm_property_editor',
             f'--cov-report=html:{cov_html}',
             f'--cov-report=xml:{cov_xml}',
             '--cov-report=term-missing:skip-covered',
