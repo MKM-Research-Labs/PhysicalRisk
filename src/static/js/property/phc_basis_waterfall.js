@@ -81,28 +81,54 @@
                     }
                 }
 
+                // Optional "before" overlay — set by the CDM Asset Review tool to
+                // show a before/after recompute. Absent in the main app (single
+                // series, unchanged). Ghost bars behind the current ("after") ones.
+                var hasBefore = !!(phcData && phcData.before_decomposition);
+                var beforeValues = [];
+                if (hasBefore) {
+                    var bd = phcData.before_decomposition;
+                    beforeValues = [bd.gauge_spread_bps || 0, bd.she_spread_bps || 0,
+                                    bd.shd_spread_bps || 0, bd.property_spread_bps || 0];
+                    if (hasBri) beforeValues.push(bd.bri_spread_bps || 0);
+                }
+
+                var datasets = [{
+                    label: hasBefore ? 'After' : 'Spread (bps)',
+                    data: values,
+                    backgroundColor: bgColors,
+                    borderColor: borderColors,
+                    borderWidth: borderWidths,
+                    barPercentage: 0.7,
+                    categoryPercentage: 0.8,
+                }];
+                if (hasBefore) {
+                    datasets.push({
+                        label: 'Before',
+                        data: beforeValues,
+                        backgroundColor: 'rgba(120,120,120,0.16)',
+                        borderColor: 'rgba(120,120,120,0.55)',
+                        borderWidth: 1,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8,
+                    });
+                }
+
                 var ctx = document.getElementById(canvasId).getContext('2d');
 
                 _basisWaterfallChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: 'Spread (bps)',
-                            data: values,
-                            backgroundColor: bgColors,
-                            borderColor: borderColors,
-                            borderWidth: borderWidths,
-                            barPercentage: 0.7,
-                            categoryPercentage: 0.8,
-                        }]
+                        datasets: datasets
                     },
                     options: {
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false },
+                            legend: { display: hasBefore, position: 'bottom',
+                                      labels: { boxWidth: 12, font: { size: 10 } } },
                             tooltip: {
                                 callbacks: {
                                     label: function(ctx) {
@@ -120,7 +146,7 @@
                         scales: {
                             x: {
                                 beginAtZero: true,
-                                suggestedMax: Math.max.apply(null, values) * 1.15,
+                                suggestedMax: Math.max.apply(null, values.concat(beforeValues)) * 1.15,
                                 title: { display: true, text: 'Spread (bps)', font: { size: 11 } },
                                 grid: { color: '#f0f0f0' },
                             },

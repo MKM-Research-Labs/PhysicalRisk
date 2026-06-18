@@ -381,6 +381,18 @@ html, body {
 .wf-canvas-wrap { position: relative; height: 260px; margin-top: 4px; }
 .wf-canvas-wrap canvas { width: 100% !important; height: 100% !important; }
 .wf-final { margin-top: 14px; font-size: 13px; color: var(--ink); }
+.wf-delta {
+  margin: 8px 0 2px;
+  padding: 9px 12px;
+  background: #eef6ff;
+  border: 1px solid #cfe2fb;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.wf-delta .wf-up { color: var(--red); font-weight: 700; }
+.wf-delta .wf-down { color: var(--green); font-weight: 700; }
+.wf-delta-note { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
 
 /* Report tab — links to the asset's detailed PDF report. */
 .detail-tab.report-tab { font-weight: 600; }

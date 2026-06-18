@@ -26,6 +26,9 @@ let CURRENT = null;       // full record open in the modal
 let CURRENT_ID = null;
 let ACTIVE_SECTION = null;
 let ACTIVE_PERIL = "flood";
+// Set after a RED commit returns an instant before/after recompute; consumed by
+// the PRS Waterfall tab to overlay the baseline ("before") against the edit.
+let PENDING_RECOMPUTE = null;
 let CURRENT_PERILS = null; // {flood, wind, fire, seismic} for open record (null = loading)
 let LINEAGE = null;        // {tiers, exact, amberPrefixes} from /api/lineage
 let EDIT_SPECS = {};       // asset -> {path: spec} from /api/<asset>/edit-spec
@@ -593,21 +596,43 @@ async function renderWaterfall(body) {
   // Reuse the main app's spread-waterfall renderer verbatim (the perfect basis
   // right panel) — fed via its `phcData.spread_decomposition` global and drawn
   // into a canvas, instead of duplicating the bar layout here.
+  // Pending before/after recompute for THIS property (set by a RED commit).
+  const rc = (PENDING_RECOMPUTE && PENDING_RECOMPUTE.id === CURRENT_ID
+              && PENDING_RECOMPUTE.supported) ? PENDING_RECOMPUTE : null;
+  const afterSd = rc ? rc.after : sd;
   const zone = data.flood_zone ? ` &middot; ${data.flood_zone}` : "";
+
+  let deltaHtml = "";
+  if (rc) {
+    const b = rc.before.property_spread_bps || 0, a = rc.after.property_spread_bps || 0;
+    const d = a - b, sign = d > 0 ? "+" : "";
+    const cls = d < 0 ? "wf-down" : (d > 0 ? "wf-up" : "");
+    deltaHtml =
+      `<div class="wf-delta">After editing <b>${prettyLabel(rc.field.split(".").pop())}</b> — ` +
+      `property spread <b>${b.toFixed(1)}</b> → <b>${a.toFixed(1)}</b> bps ` +
+      `<span class="${cls}">(${sign}${d.toFixed(1)} bps)</span>` +
+      `<span class="wf-delta-note">instant recompute · storms & portfolio unchanged</span></div>`;
+  }
+
+  const sub = rc ? "Baseline (ghost) vs your edit — Gauge → Property (bps)"
+                 : `Gauge spread decomposed to the property spread (bps)${zone}`;
   body.innerHTML =
     `<div class="wf-wrap">` +
       `<div class="wf-head"><div>` +
         `<div class="wf-title">PRS spread waterfall</div>` +
-        `<div class="wf-sub">Gauge spread decomposed to the property spread (bps)${zone}</div>` +
+        `<div class="wf-sub">${sub}</div>` +
       `</div><button class="wf-pricer" id="wf-pricer">Open PRS Pricer ↗</button></div>` +
+      deltaHtml +
       `<div class="wf-canvas-wrap"><canvas id="wf-canvas"></canvas></div>` +
       `<div class="wf-final">Property spread: ` +
-        `<b>${(data.property_spread_bps || 0).toFixed(1)} bps</b></div>` +
+        `<b>${(afterSd.property_spread_bps || 0).toFixed(1)} bps</b></div>` +
     `</div>`;
-  window.phcData = { spread_decomposition: sd };
+  window.phcData = rc
+    ? { spread_decomposition: rc.after, before_decomposition: rc.before }
+    : { spread_decomposition: sd };
   if (typeof _renderSpreadWaterfall === "function") {
     // Highlight the Property step (or BRI, when present) — the total spread.
-    const active = (sd.bri_spread_bps !== undefined && sd.bri_spread_bps !== null) ? 4 : 3;
+    const active = (afterSd.bri_spread_bps !== undefined && afterSd.bri_spread_bps !== null) ? 4 : 3;
     _renderSpreadWaterfall("wf-canvas", active);
   } else {
     document.querySelector(".wf-canvas-wrap").innerHTML =
@@ -816,6 +841,15 @@ async function commitAmend(fieldPath, spec, input, close) {
       CURRENT = data.record;
       close();
       await reloadItems();
+      // RED edit → instant before/after on the PRS Waterfall. Unsupported RED
+      // edits (gauge thresholds / ground level) report a "needs full re-run" note.
+      if (data.recompute && data.recompute.supported) {
+        PENDING_RECOMPUTE = Object.assign({ id: CURRENT_ID }, data.recompute);
+        ACTIVE_SECTION = WATERFALL_KEY;
+      } else if (data.recompute) {
+        PENDING_RECOMPUTE = null;
+        setStatus(data.recompute.reason || "Recompute not available for this edit.");
+      }
       renderDetailCard();
       renderDetailTabs();
       renderDetailBody();
@@ -836,6 +870,7 @@ async function openDetail(rid) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     CURRENT = await res.json();
     CURRENT_ID = rid;
+    PENDING_RECOMPUTE = null;  // don't leak a recompute across properties
     ACTIVE_SECTION = recordSections()[0];
     ACTIVE_PERIL = "flood";
     CURRENT_PERILS = null;
