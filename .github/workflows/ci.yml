@@ -39,6 +39,7 @@ jobs:
         run: |
           python -m pytest tests/ -q \
             --cov=src \
+            --cov=tools/cdm_property_editor \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml
 
