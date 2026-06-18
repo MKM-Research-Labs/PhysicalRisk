@@ -820,6 +820,9 @@ async function ensureEditSpec(asset) {
 // Curated core fields shown on the add form, per creatable asset. The rest of
 // the CDM is filled later via the normal field editor. Paths must exist in the
 // schema (validated); the id + catchment are minted server-side.
+// Assets the bulk .xlsx upload accepts (matches NEW_ASSET server-side). Broader
+// than CREATE_FIELDS (the manual add form) — loans upload but have no add form.
+const UPLOAD_ASSETS = ["property", "commercial", "mortgage", "commercial_loan"];
 const CREATE_FIELDS = {
   property: [
     ["PropertyHeader.Location.BuildingNumber", "Building number"],
@@ -1118,11 +1121,12 @@ async function selectAsset(key) {
   const isAudit = key === AUDIT_KEY;
   $(".content").classList.toggle("audit-view", isAudit);   // light-blue panel
   $(".hint").classList.toggle("hidden", isAudit);
-  // The "+ Add" / "Upload" controls are only shown for creatable assets.
-  const creatable = !isAudit && !!CREATE_FIELDS[key];
-  $("#add-record").classList.toggle("hidden", !creatable);
-  $("#upload-record").classList.toggle("hidden", !creatable);
-  if (creatable) ensureEditSpec(key);
+  // "+ Add" shows for assets with a form; "Upload" for any uploadable asset.
+  const canAdd = !isAudit && !!CREATE_FIELDS[key];
+  const canUpload = !isAudit && UPLOAD_ASSETS.includes(key);
+  $("#add-record").classList.toggle("hidden", !canAdd);
+  $("#upload-record").classList.toggle("hidden", !canUpload);
+  if (canAdd) ensureEditSpec(key);
   if (isAudit) { await renderAudit(); return; }
 
   const label = assetLabel(key);

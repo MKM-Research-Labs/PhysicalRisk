@@ -534,6 +534,10 @@ NEW_ASSET: dict[str, dict] = {
                  "catchment_path": "PropertyHeader.Header.CatchmentID"},
     "commercial": {"id_path": "CommercialAsset.Header.PropertyID", "prefix": "CPROP-",
                    "catchment_path": "CommercialAsset.Header.CatchmentID"},
+    "mortgage": {"id_path": "RLoan.Header.RLoanID", "prefix": "RLOAN-",
+                 "catchment_path": "RLoan.Header.CatchmentID"},
+    "commercial_loan": {"id_path": "Mortgage.Header.RLoanID", "prefix": "CLOAN-",
+                        "catchment_path": "Mortgage.Header.CatchmentID"},
 }
 
 
@@ -595,6 +599,8 @@ def api_create(asset: str):
 ASSET_TEMPLATE_SHEET = {
     "property": "Portfolio (Template)",
     "commercial": "Commercial (Template)",
+    "mortgage": "Mortgage (Template)",
+    "commercial_loan": "Commercial Loan (Template)",
 }
 
 

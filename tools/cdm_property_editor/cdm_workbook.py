@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Generate the CDM upload workbook (docs/bulkupload/cdm_upload_workbook.xlsx).
+"""Generate the blank CDM upload template (docs/bulkupload/cdm_template.xlsx).
 
 One workbook, four asset classes (Portfolio / Mortgage / Commercial /
 Commercial Loan), each with two sheets:
@@ -71,7 +71,7 @@ ASSETS = [
     ("Commercial Loan", {"Mortgage": MORTGAGE_SCHEMA["RLoan"]}),
 ]
 
-OUT_PATH = REPO_ROOT / "docs" / "bulkupload" / "cdm_upload_workbook.xlsx"
+OUT_PATH = REPO_ROOT / "docs" / "bulkupload" / "cdm_template.xlsx"
 
 # styling
 HEADER_FILL = PatternFill("solid", fgColor="1F4E78")
