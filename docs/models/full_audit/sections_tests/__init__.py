@@ -30,9 +30,10 @@ from .detail import (
 from .coverage import _build_coverage
 from .modularisation import _build_modularisation, _build_init_audit
 from .copyright_headers import _build_copyright_headers
+from .path_definitions import _build_path_definitions
 
 __all__ = [
     '_build_test_detail', '_build_unit_failures', '_build_skipped_tests',
     '_short_msg', '_build_coverage', '_build_modularisation', '_build_init_audit',
-    '_build_copyright_headers',
+    '_build_copyright_headers', '_build_path_definitions',
 ]
