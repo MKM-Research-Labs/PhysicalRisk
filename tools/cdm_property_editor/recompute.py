@@ -31,13 +31,18 @@ from pathlib import Path
 
 from models.floodrisk.depth_damage import bri_floor_uplift, is_prs_flood
 
-# CDM mode -> per-property timeseries directory.
-MODE_DIRS = {
-    "property": "propertyts",   # normal
-    "she": "propertytse",       # synthetic elevation (real elevation, zero distance)
-    "shd": "propertytsd",       # synthetic distance (gauge elevation)
-    "bri": "propertytsb",       # BRI-adjusted floor
+# The four decomposition modes (normal / synthetic-elevation / synthetic-distance
+# / BRI-adjusted-floor) and the per-asset timeseries directory each lives in.
+MODES = ("property", "she", "shd", "bri")
+PROPERTY_MODE_DIRS = {
+    "property": "propertyts", "she": "propertytse",
+    "shd": "propertytsd", "bri": "propertytsb",
 }
+COMMERCIAL_MODE_DIRS = {
+    "property": "commercialts", "she": "commercialtse",
+    "shd": "commercialtsd", "bri": "commercialtsb",
+}
+MODE_DIRS_BY_ASSET = {"property": PROPERTY_MODE_DIRS, "commercial": COMMERCIAL_MODE_DIRS}
 # mode -> spread_decomposition key.
 DECOMP_KEY = {
     "property": "property_spread_bps",
@@ -89,7 +94,7 @@ def mode_deltas(field: str, old, new):
         return None
     if field.endswith("FloorLevelMeters") and "BRIAdjusted" not in field:
         d = float(new) - float(old)          # floor enters every mode identically
-        return {m: d for m in MODE_DIRS}
+        return {m: d for m in MODES}
     if field.endswith("BRIFloodScore"):
         d = bri_floor_uplift(float(new)) - bri_floor_uplift(float(old))
         return {"bri": d}                    # only the BRI-adjusted floor moves
@@ -97,19 +102,21 @@ def mode_deltas(field: str, old, new):
 
 
 def recompute_decomposition(prop_id: str, field: str, old, new, *,
-                            ts_root, before_decomp: dict, num_storms: int):
+                            ts_root, before_decomp: dict, num_storms: int,
+                            mode_dirs: dict = PROPERTY_MODE_DIRS):
     """Recomputed ``spread_decomposition`` after the edit, or ``None`` to fall back.
 
-    ``ts_root`` is the directory holding ``propertyts/``, ``propertytse/`` … (the
-    sandbox workspace). ``before_decomp`` seeds the gauge spread (unchanged) and
-    any stages the edit does not touch.
+    ``ts_root`` is the directory holding the asset's timeseries dirs (the read-only
+    baseline or a sandbox workspace); ``mode_dirs`` maps each mode to its dir
+    (property vs commercial). ``before_decomp`` seeds the gauge spread (unchanged)
+    and any stages the edit does not touch.
     """
     deltas = mode_deltas(field, old, new)
     if deltas is None or not num_storms:
         return None
     after = dict(before_decomp or {})
     for mode, delta in deltas.items():
-        path = Path(ts_root) / MODE_DIRS[mode] / f"{prop_id}.json"
+        path = Path(ts_root) / mode_dirs[mode] / f"{prop_id}.json"
         if not path.exists():
             continue
         ts = json.loads(path.read_text())
