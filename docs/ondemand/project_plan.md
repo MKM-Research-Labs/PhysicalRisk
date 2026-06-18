@@ -292,7 +292,7 @@ events/catchments and as the correctness oracle to validate the shortcut.
 
 ## Resolved since
 - **Upload format = .xlsx aligned to the CDM** (not CSV/JSON). Generator
-  `tools/cdm_property_editor/cdm_workbook.py` builds `docs/cdm/cdm_upload_workbook.xlsx`
+  `tools/cdm_property_editor/cdm_workbook.py` builds `docs/bulkupload/cdm_upload_workbook.xlsx`
   from the CDM schemas via `cdm_edit.schema_specs`. Template header row = CDM
   dotted path = the upload key. Workstream B's importer reads that header, maps
   each column → CDM, validates with `cdm_edit.validate_value`, writes the sandbox.
