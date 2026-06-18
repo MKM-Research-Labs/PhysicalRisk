@@ -28,6 +28,12 @@ python_functions = ["test_*"]
 
 
 [tool.coverage.run]
+# Force the C tracer. On Python 3.13.x, coverage 7.x defaults to the
+# sys.monitoring core, whose tool registration is silently evicted by some
+# C-extension imports mid-suite. That deflates whole-suite coverage by ~15
+# points (83.9% observed vs the true 99.3%) even though every test passes and
+# each module is fully covered when run in isolation. ctrace is immune.
+core = "ctrace"
 source = ["src"]
 omit = [
     "tests/*",

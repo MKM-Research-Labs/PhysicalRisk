@@ -184,6 +184,8 @@ def cmd_test(args):
         if model_filter:
             pytest_cmd.extend(['--model'] + model_filter)
 
+        # Coverage core is pinned to ctrace in pyproject.toml [tool.coverage.run]
+        # to avoid the sys.monitoring under-count on Python 3.13.x.
         pytest_result = sp.run(pytest_cmd, cwd=str(project_root))
         pytest_ok = pytest_result.returncode == 0
         print()
