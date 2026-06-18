@@ -70,6 +70,13 @@ def _get_preloader_js() -> str:
 
 
 def get_js() -> str:
-    """Return JS fragment for the global startup preloader."""
+    """Return JS fragment for the global startup preloader.
+
+    Includes the licence-acceptance gate (``license_gate.js``) in the same IIFE
+    so ``startup.js`` can show it before any data is fetched: Accept runs the
+    preloader (download), Cancel aborts onboarding.
+    """
     cache_init_and_main = js_static('startup.js')
-    return cache_init_and_main + _startup_popup.get_js()
+    return (cache_init_and_main
+            + js_static('license_gate.js')
+            + _startup_popup.get_js())

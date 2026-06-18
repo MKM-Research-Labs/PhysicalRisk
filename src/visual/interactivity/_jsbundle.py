@@ -35,14 +35,38 @@ from pathlib import Path
 _STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 
 
+def _strip_inlined_header(text: str) -> str:
+    """Drop the leading ``//`` license/comment block from JS that is inlined
+    into the page.
+
+    Every source ``.js`` carries the canonical copyright header as a block of
+    ``//`` lines (enforced by the copyright-header audit). That is harmless
+    inside a real ``<script>``, but several fragments are injected as raw HTML
+    whose own ``<script>`` lives lower in the file — there a leading ``//``
+    block is not a comment, it renders as visible text at the top of the page.
+    Stripping it at inline time keeps the on-disk header (still audited) while
+    keeping the rendered page clean. Only the leading run of blank / ``//``
+    lines is removed; the first line of real content (code or a ``<script>``
+    tag) is preserved verbatim, indentation included.
+    """
+    lines = text.splitlines(keepends=True)
+    i = 0
+    while i < len(lines) and (not lines[i].strip()
+                              or lines[i].lstrip().startswith("//")):
+        i += 1
+    return "".join(lines[i:])
+
+
 @lru_cache(maxsize=None)
 def js_sibling(module_file: str) -> str:
     """Read the ``.js`` file sitting next to *module_file*.
 
     Pass ``__file__`` from the calling module; the companion file shares the
     module's stem with a ``.js`` suffix (``phc_hazard.py`` → ``phc_hazard.js``).
+    The leading license header is stripped (see :func:`_strip_inlined_header`).
     """
-    return Path(module_file).with_suffix(".js").read_text(encoding="utf-8")
+    return _strip_inlined_header(
+        Path(module_file).with_suffix(".js").read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=None)
@@ -51,9 +75,11 @@ def js_static(name: str) -> str:
 
     *name* is the bare filename (e.g. ``"phc-hazard.js"``). The path is
     resolved relative to this module, so it is independent of the calling
-    module's location in the package tree.
+    module's location in the package tree. The leading license header is
+    stripped (see :func:`_strip_inlined_header`).
     """
-    return (_STATIC_DIR / "js" / name).read_text(encoding="utf-8")
+    return _strip_inlined_header(
+        (_STATIC_DIR / "js" / name).read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=None)

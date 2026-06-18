@@ -237,10 +237,18 @@
                 });
             }
 
-            // Fire on DOMContentLoaded
+            // Fire on DOMContentLoaded — the data download is gated behind
+            // licence acceptance: Accept starts the preloader, Cancel aborts.
+            function _startupEntry() {
+                if (typeof _showLicenseGate === 'function') {
+                    _showLicenseGate(_runStartupPreload, _onLicenseDeclined);
+                } else {
+                    _runStartupPreload();  // gate unavailable — fail open
+                }
+            }
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', _runStartupPreload);
+                document.addEventListener('DOMContentLoaded', _startupEntry);
             } else {
                 // Already loaded (script injected late)
-                _runStartupPreload();
+                _startupEntry();
             }
