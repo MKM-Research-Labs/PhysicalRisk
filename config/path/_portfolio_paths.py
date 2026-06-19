@@ -99,6 +99,10 @@ class PortfolioPaths:
         """Get input directory."""
         return self.input_dir
 
+    def get_input_root(self) -> Path:
+        """Root directory holding every catchment's input (``data/input``)."""
+        return self.project_root / 'data' / 'input'
+
     def get_gaugehd_dir(self) -> Path:
         """Get gauge historical daily data directory."""
         gaugehd_dir = self.input_dir / 'gaugehd'

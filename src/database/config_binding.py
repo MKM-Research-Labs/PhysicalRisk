@@ -38,7 +38,7 @@ from .file_repo import FileRepository
 
 def _input_root() -> Path:
     """The ``data/input`` directory that contains every catchment."""
-    return config.get_project_root() / "data" / "input"
+    return config.get_input_root()
 
 
 def _resolve_catchment_dir(catchment: str) -> Path:

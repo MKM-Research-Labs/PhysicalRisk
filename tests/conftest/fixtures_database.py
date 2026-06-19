@@ -18,28 +18,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Fire and seismic peril-model outputs for the active catchment.
+"""Autouse fixture binding the file-backed data backend for every test.
 
-Serves the per-asset fire (MKM-FIRE-001) and seismic model outputs. Read-only;
-returns an empty payload when the catchment has not been run through those models.
-Data access goes through the ``database`` package (coding rule R6).
+As callers migrate onto the ``database`` package (coding rule R6), they need a
+backend configured. This binds the config-wired file backend before each test
+(the same one ``create_app`` uses), so both full-app and minimal-app tests work.
+Tests that need a different backend (e.g. the database suite) override it and may
+reset to ``None``; this fixture re-binds for the next test.
 """
 
-from flask import Blueprint, jsonify
-
-from config import config
-from database import get_fire_results, get_seismic_results
-
-perils_bp = Blueprint('perils', __name__)
+import pytest
 
 
-@perils_bp.route('/fire', methods=['GET'])
-def fire():
-    """Per-asset fire-model outcomes (commercial portfolio)."""
-    return jsonify(get_fire_results(config.catchment_id) or {})
-
-
-@perils_bp.route('/seismic', methods=['GET'])
-def seismic():
-    """Per-asset seismic-model outcomes (commercial portfolio)."""
-    return jsonify(get_seismic_results(config.catchment_id) or {})
+@pytest.fixture(autouse=True)
+def _database_file_backend():
+    from database.config_binding import use_file_backend
+    use_file_backend()
+    yield
