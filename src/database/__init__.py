@@ -37,9 +37,9 @@ from .memory_repo import InMemoryRepository
 
 from .meta import catchments, ping
 from .portfolio import (
-    list_gauges, get_gauge, save_gauges,
-    list_properties, get_property, save_properties,
-    list_loans, get_loan, save_loans,
+    list_gauges, get_gauge, save_gauges, get_gauge_portfolio,
+    list_properties, get_property, save_properties, get_property_portfolio,
+    list_loans, get_loan, save_loans, get_loan_portfolio,
     list_commercial, get_commercial, save_commercial, get_commercial_portfolio,
     list_commercial_loans, get_commercial_loan, save_commercial_loans,
     list_counterparties, get_counterparty, save_counterparties,
@@ -51,7 +51,7 @@ from .hazard import (
 )
 from .timeseries import (
     get_property_timeseries, iter_property_timeseries_ids, save_property_timeseries,
-    get_portfolio_flood_summary,
+    property_timeseries_exists, get_portfolio_flood_summary,
     get_commercial_timeseries, iter_commercial_timeseries_ids, save_commercial_timeseries,
     commercial_timeseries_exists,
     get_gauge_timeseries, iter_gauge_timeseries_ids, save_gauge_timeseries,
@@ -79,9 +79,9 @@ __all__ = [
     "Repository", "FileRepository", "InMemoryRepository", "configure_backend",
     "catchments", "ping",
     # portfolio
-    "list_gauges", "get_gauge", "save_gauges",
-    "list_properties", "get_property", "save_properties",
-    "list_loans", "get_loan", "save_loans",
+    "list_gauges", "get_gauge", "save_gauges", "get_gauge_portfolio",
+    "list_properties", "get_property", "save_properties", "get_property_portfolio",
+    "list_loans", "get_loan", "save_loans", "get_loan_portfolio",
     "list_commercial", "get_commercial", "save_commercial", "get_commercial_portfolio",
     "list_commercial_loans", "get_commercial_loan", "save_commercial_loans",
     "list_counterparties", "get_counterparty", "save_counterparties",
@@ -91,7 +91,7 @@ __all__ = [
     "get_commercial_hazard_curves", "save_commercial_hazard_curves",
     # timeseries
     "get_property_timeseries", "iter_property_timeseries_ids", "save_property_timeseries",
-    "get_portfolio_flood_summary",
+    "property_timeseries_exists", "get_portfolio_flood_summary",
     "get_commercial_timeseries", "iter_commercial_timeseries_ids", "save_commercial_timeseries",
     "commercial_timeseries_exists",
     "get_gauge_timeseries", "iter_gauge_timeseries_ids", "save_gauge_timeseries",

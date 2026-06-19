@@ -68,6 +68,10 @@ def test_portfolio_entities(repo):
     assert database.get_commercial_loan(CATCH, "CLOAN-1")
     assert database.get_commercial_portfolio(CATCH) is not None  # raw doc present
     assert database.get_commercial_portfolio("nocatch") is None   # absent -> None
+    assert database.get_gauge_portfolio(CATCH) is not None
+    assert database.get_property_portfolio(CATCH) is not None
+    assert database.get_loan_portfolio(CATCH) is not None
+    assert database.get_property_portfolio("nocatch") is None
     assert database.get_counterparty(CATCH, "CTPY-1")
     assert database.list_loans(CATCH) and database.list_commercial(CATCH)
     assert database.list_commercial_loans(CATCH) and database.list_counterparties(CATCH)
@@ -109,6 +113,8 @@ def test_timeseries(repo):
     assert database.get_property_timeseries(CATCH, "PROP-1")["mode"] == "flood"
     assert database.get_property_timeseries(CATCH, "PROP-1", mode="she")["mode"] == "she"
     assert "PROP-1" in list(database.iter_property_timeseries_ids(CATCH))
+    assert database.property_timeseries_exists(CATCH) is True
+    assert database.property_timeseries_exists("nocatch") is False
     assert database.get_commercial_timeseries(CATCH, "CPROP-1") == {"x": 1}
     assert list(database.iter_commercial_timeseries_ids(CATCH)) == ["CPROP-1"]
     assert database.commercial_timeseries_exists(CATCH) is True

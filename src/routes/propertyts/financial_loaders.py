@@ -26,44 +26,47 @@ details — used by the financial endpoints (blotter, portfolio-impact,
 sequence-impact, basis).
 """
 
-import json
 import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 from models.floodrisk import relative_elevation
-
-from ._helpers import _get_propertyts_dir
 
 logger = logging.getLogger(__name__)
 
 
-def _check_options_and_dir():
-    """Handle OPTIONS preflight and verify propertyts directory exists.
+def property_ts_ids():
+    """Sorted PROP-* property-timeseries ids for the active catchment."""
+    return [i for i in database.iter_property_timeseries_ids(config.catchment_id)
+            if i.startswith('PROP-')]
 
-    Returns ``(None, pts_dir)`` on success, or ``(response, None)``
-    when an early return (OPTIONS / 404) should be sent.
+
+def _check_options_and_dir():
+    """Handle OPTIONS preflight and verify the propertyts collection exists.
+
+    Returns ``(None, prop_ids)`` on success, or ``(response, None)`` when an early
+    return (OPTIONS / 404) should be sent. ``prop_ids`` is the list of PROP-* ids
+    (replacing the previous directory handle, which callers used to glob).
     """
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), None
 
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
+    if not database.property_timeseries_exists(config.catchment_id):
         return (jsonify({
             'status': 'error',
             'message': 'Property flood timeseries not yet generated'
         }), 404), None
 
-    return None, pts_dir
+    return None, property_ts_ids()
 
 
 def _load_prop_values():
     """Load property_id → value from property.json."""
     prop_values = {}
     try:
-        with open(config.get_input_path('property.json'), 'r') as f:
-            pdata = json.load(f)
+        pdata = database.get_property_portfolio(config.catchment_id) or {}
         for p in pdata.get('properties', []):
             ph = p.get('PropertyHeader', {})
             pid = ph.get('Header', {}).get('PropertyID', '')
@@ -78,8 +81,7 @@ def _load_rloan_lookup():
     """Load property_id → mortgage info from loan.json."""
     rloan_lookup = {}
     try:
-        with open(config.get_input_path('loan.json'), 'r') as f:
-            mdata = json.load(f)
+        mdata = database.get_loan_portfolio(config.catchment_id) or {}
         for m in mdata.get('loans', []):
             mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
@@ -164,8 +166,7 @@ def _load_gauge_elevations():
     """Build {gauge_id: elevation_m} from gauge.json and gaugehc.json."""
     elevations: dict = {}
     try:
-        with open(config.get_input_path('gauge.json'), 'r') as f:
-            gdata = json.load(f)
+        gdata = database.get_gauge_portfolio(config.catchment_id) or {}
         for fg in gdata.get('flood_gauges', []):
             g = fg.get('FloodGauge', {})
             gid = g.get('Header', {}).get('GaugeID', '')
@@ -175,8 +176,7 @@ def _load_gauge_elevations():
     except Exception as e:
         logger.warning('Could not load gauge.json elevations: %s', e)
     try:
-        with open(config.get_input_path('gaugehc.json'), 'r') as f:
-            hc = json.load(f)
+        hc = database.get_gauge_hazard_curves(config.catchment_id) or {}
         for gid, curve in hc.get('hazard_curves', {}).items():
             if gid not in elevations:
                 elevations[gid] = curve.get('elevation_m', 0)
@@ -198,8 +198,7 @@ def _load_property_details():
     gauge_elevations = _load_gauge_elevations()
     details = {}
     try:
-        with open(config.get_input_path('property.json'), 'r') as f:
-            pdata = json.load(f)
+        pdata = database.get_property_portfolio(config.catchment_id) or {}
         for p in pdata.get('properties', []):
             ph = p.get('PropertyHeader', {})
             hdr = ph.get('Header', {})

@@ -29,14 +29,17 @@ from ._helpers import find_record, list_records, load_or
 def list_gauges(catchment): return list_records("gauge", catchment)
 def get_gauge(catchment, gauge_id): return find_record("gauge", catchment, gauge_id)
 def save_gauges(catchment, gauges): active_backend().save("gauge", catchment, gauges)
+def get_gauge_portfolio(catchment): return load_or("gauge", catchment)
 
 def list_properties(catchment): return list_records("property", catchment)
 def get_property(catchment, property_id): return find_record("property", catchment, property_id)
 def save_properties(catchment, properties): active_backend().save("property", catchment, properties)
+def get_property_portfolio(catchment): return load_or("property", catchment)
 
 def list_loans(catchment): return list_records("loan", catchment)
 def get_loan(catchment, loan_id): return find_record("loan", catchment, loan_id)
 def save_loans(catchment, loans): active_backend().save("loan", catchment, loans)
+def get_loan_portfolio(catchment): return load_or("loan", catchment)
 
 def list_commercial(catchment): return list_records("commercial", catchment)
 def get_commercial(catchment, asset_id): return find_record("commercial", catchment, asset_id)
