@@ -65,6 +65,13 @@ class TestActiveGauges:
         assert self.CHELSEA_ID in active
         assert self.LAMBETH_ID in active
 
+    def test_non_prs_named_file_skipped(self, trading_client, trading_env):
+        """A non-``PRS-`` document in the prs collection is skipped by the filter."""
+        (trading_env['prs_dir'] / 'notes.json').write_text(json.dumps({'x': 1}))
+        resp = trading_client.get('/api/v1/trading/blotter/active-gauges')
+        assert resp.status_code == 200
+        assert json.loads(resp.data)['status'] == 'success'
+
     def test_gauge_without_trade_is_not_returned(
             self, trading_client, trading_env):
         """A gauge that has no PRS trades must not appear in active-gauges,

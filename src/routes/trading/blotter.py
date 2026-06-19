@@ -26,13 +26,12 @@
 """Trading blotter and close-out endpoints."""
 
 import base64
-import json
 import logging
 from datetime import date, datetime, timedelta
-from pathlib import Path
 
 from flask import jsonify, request
 
+import database
 from config import config
 from . import trading_bp
 from ._admin_auth import require_admin_password
@@ -127,21 +126,19 @@ def get_active_gauges():
     Scans PRS files and trade marks directly — no engine instantiation needed.
     """
     try:
-        prs_dir = config.get_reports_dir("prs")
-        trading_dir = config.get_trading_dir()
+        catchment = config.catchment_id
 
         # Load trade marks to check closed status
-        marks = {}
-        marks_path = trading_dir / "trade_marks.json"
-        if marks_path.exists():
-            with open(marks_path) as f:
-                marks = json.load(f)
+        marks = database.get_trade_marks(catchment) or {}
 
         active = set()
-        for trade_file in sorted(prs_dir.glob("PRS-*.json")):
+        for prs_id in database.iter_prs_trade_ids(catchment):
+            if not prs_id.startswith('PRS-'):
+                continue
             try:
-                with open(trade_file) as f:
-                    trade = json.load(f)
+                trade = database.get_prs_trade(catchment, prs_id)
+                if trade is None:
+                    continue
                 swap_id = trade.get('PhysicalSwap', {}).get('Header', {}).get('SwapID', '')
                 mark = marks.get(swap_id, {})
                 status = mark.get('trade_status', 'Open')
@@ -228,12 +225,9 @@ def close_trade(swap_id: str):
 
         # Update original trade JSON with close-out metadata
         prs_dir = config.get_reports_dir("prs")
-        trade_path = prs_dir / f"{swap_id}.json"
+        cdm_record = database.get_prs_trade(config.catchment_id, swap_id)
         pdf_b64 = None
-        if trade_path.exists():
-            with open(trade_path) as f:
-                cdm_record = json.load(f)
-
+        if cdm_record is not None:
             ps_header = cdm_record.get('PhysicalSwap', {}).get('Header', {})
             ps_header['CloseOutDate'] = today.isoformat()
             ps_header['CloseOutSpread'] = round(close_spread, 2)
@@ -242,8 +236,7 @@ def close_trade(swap_id: str):
                 'Receivable' if final_pnl >= 0 else 'Payable')
             ps_header['SettlementDate'] = settlement_date
 
-            with open(trade_path, 'w') as f:
-                json.dump(cdm_record, f, indent=2)
+            database.save_prs_trade(config.catchment_id, swap_id, cdm_record)
 
             # Regenerate trade PDF with close-out section
             try:

@@ -67,7 +67,7 @@ from .storms import (
     get_fire_results, save_fire_results, get_seismic_results, save_seismic_results,
 )
 from .trading import (
-    list_prs_trades, iter_prs_trade_ids, get_prs_trade, commit_prs_trade,
+    list_prs_trades, iter_prs_trade_ids, get_prs_trade, commit_prs_trade, save_prs_trade,
     get_trade_marks, save_trade_marks, set_trade_status,
     get_market_state, save_market_state,
     list_eod_snapshots, get_eod_snapshot, save_eod_snapshot,
@@ -110,6 +110,7 @@ __all__ = [
     "get_fire_results", "save_fire_results", "get_seismic_results", "save_seismic_results",
     # trading
     "list_prs_trades", "iter_prs_trade_ids", "get_prs_trade", "commit_prs_trade",
+    "save_prs_trade",
     "get_trade_marks", "save_trade_marks", "set_trade_status",
     "get_market_state", "save_market_state",
     "list_eod_snapshots", "get_eod_snapshot", "save_eod_snapshot",
