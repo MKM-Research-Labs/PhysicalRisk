@@ -25,7 +25,36 @@ Catchment-agnostic: every file is synthesised inside tmp_path and
 config paths are monkeypatched, so no real data/ is touched.
 """
 
+import json
+
 from routes.propertyts import financial_basis as fb
+
+
+class TestAccumulateSynthData:
+
+    def test_groups_by_synth_gauge_and_skips_non_prop(self, tmp_path, monkeypatch):
+        """Properties are grouped by their controlling synthetic gauge; stray
+        non-``PROP-`` documents in the collection are skipped (line 145)."""
+        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
+        pts = tmp_path / "propertyts"
+        pts.mkdir()
+        (pts / "PROP-001.json").write_text(json.dumps({
+            "property_id": "PROP-001",
+            "nearest_gauges": [{"gauge_id": "SYNTH-1"}, {"gauge_id": "GAUGE-1"}],
+            "flood_events": [{"storm_id": "STORM-1", "flooded": True,
+                              "damage_ratio": 0.2, "flood_depth_m": 0.4,
+                              "exceeded_severe": True}],
+        }))
+        # Stray non-PROP document (e.g. the portfolio summary) → skipped.
+        (pts / "portfolio_flood_summary.json").write_text(json.dumps({"x": 1}))
+
+        out = fb._accumulate_synth_data("STORM-1", {})
+        assert set(out) == {"SYNTH-1"}
+        acc = out["SYNTH-1"]
+        assert acc["gauge_type"] == "Synthetic"
+        assert acc["properties_linked"] == 1
+        assert acc["properties_flooded"] == 1
+        assert acc["real_gauge_id"] == "GAUGE-1"
 
 
 class TestLoadGaugeThresholds:
@@ -53,13 +82,11 @@ class TestLoadGaugeThresholds:
 class TestLoadStormGaugePeaks:
 
     def test_missing_file_returns_empty(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(fb.config, "get_input_path",
-                            lambda name: tmp_path / name)
+        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
         assert fb._load_storm_gauge_peaks("STORM-X") == {}
 
     def test_valid_file_parsed(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(fb.config, "get_input_path",
-                            lambda name: tmp_path / name)
+        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
         sdir = tmp_path / "stress_storms"
         sdir.mkdir()
         (sdir / "STORM-1.json").write_text(
@@ -71,8 +98,7 @@ class TestLoadStormGaugePeaks:
 
     def test_malformed_file_swallowed(self, tmp_path, monkeypatch):
         """Lines 140-141: corrupt storm file → warning + empty dict."""
-        monkeypatch.setattr(fb.config, "get_input_path",
-                            lambda name: tmp_path / name)
+        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
         sdir = tmp_path / "stress_storms"
         sdir.mkdir()
         (sdir / "STORM-1.json").write_text("{bad json")
