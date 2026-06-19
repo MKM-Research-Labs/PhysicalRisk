@@ -26,21 +26,24 @@ fire and seismic read-time joins. Kept out of the package ``__init__``, which is
 purely for package assembly.
 """
 
-import json
-
 from flask import jsonify, request
 
+import database
 from config import config
+from config.data_layout import COMMERCIAL_HAZARD_FILES
 from config.fire import FIRE_LOSS_GIVEN_EVENT as _FIRE_LOSS_GIVEN_EVENT
+
+# filename -> scenario mode (inverse of the config data-layout map)
+_FILE_TO_MODE = {fname: mode for mode, fname in COMMERCIAL_HAZARD_FILES.items()}
 
 
 def _load_commercial_hazard(filename: str):
-    """Load a commercial hazard file (None if missing on disk)."""
-    path = config.get_input_dir() / filename
-    if not path.exists():
+    """Load commercial hazard curves for the scenario mapped to *filename* via the
+    database package (R6). None if the filename is unknown / not yet generated."""
+    mode = _FILE_TO_MODE.get(filename)
+    if mode is None:
         return None
-    with open(path, 'r') as f:
-        return json.load(f)
+    return database.get_commercial_hazard_curves(config.catchment_id, mode)
 
 
 def _hazard_or_404(filename: str, label: str):
@@ -74,13 +77,11 @@ def _attach_fire(asset_data: dict, prop_id: str) -> None:
     fire.json is absent or the asset has no fire result, so pre-fire portfolios
     render exactly as before.
     """
-    fire_path = config.get_input_dir() / 'fire' / 'fire.json'
-    if not fire_path.exists():
-        return
     try:
-        with open(fire_path, 'r') as f:
-            fire = json.load(f)
+        fire = database.get_fire_results(config.catchment_id)
     except (OSError, ValueError):
+        return
+    if not fire:
         return
 
     record = None
@@ -126,13 +127,11 @@ def _attach_seismic(asset_data: dict, prop_id: str) -> None:
     absent or the asset has no seismic result, so pre-seismic portfolios render
     exactly as before.
     """
-    seismic_path = config.get_input_dir() / 'seismic' / 'seismic.json'
-    if not seismic_path.exists():
-        return
     try:
-        with open(seismic_path, 'r') as f:
-            seismic = json.load(f)
+        seismic = database.get_seismic_results(config.catchment_id)
     except (OSError, ValueError):
+        return
+    if not seismic:
         return
 
     record = None

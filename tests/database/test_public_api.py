@@ -66,6 +66,8 @@ def test_portfolio_entities(repo):
     assert database.get_loan(CATCH, "RLOAN-1")
     assert database.get_commercial(CATCH, "CPROP-1")
     assert database.get_commercial_loan(CATCH, "CLOAN-1")
+    assert database.get_commercial_portfolio(CATCH) is not None  # raw doc present
+    assert database.get_commercial_portfolio("nocatch") is None   # absent -> None
     assert database.get_counterparty(CATCH, "CTPY-1")
     assert database.list_loans(CATCH) and database.list_commercial(CATCH)
     assert database.list_commercial_loans(CATCH) and database.list_counterparties(CATCH)

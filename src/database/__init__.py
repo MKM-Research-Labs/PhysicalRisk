@@ -40,7 +40,7 @@ from .portfolio import (
     list_gauges, get_gauge, save_gauges,
     list_properties, get_property, save_properties,
     list_loans, get_loan, save_loans,
-    list_commercial, get_commercial, save_commercial,
+    list_commercial, get_commercial, save_commercial, get_commercial_portfolio,
     list_commercial_loans, get_commercial_loan, save_commercial_loans,
     list_counterparties, get_counterparty, save_counterparties,
 )
@@ -81,7 +81,7 @@ __all__ = [
     "list_gauges", "get_gauge", "save_gauges",
     "list_properties", "get_property", "save_properties",
     "list_loans", "get_loan", "save_loans",
-    "list_commercial", "get_commercial", "save_commercial",
+    "list_commercial", "get_commercial", "save_commercial", "get_commercial_portfolio",
     "list_commercial_loans", "get_commercial_loan", "save_commercial_loans",
     "list_counterparties", "get_counterparty", "save_counterparties",
     # hazard
