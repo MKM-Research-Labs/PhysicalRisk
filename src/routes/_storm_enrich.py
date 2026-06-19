@@ -28,8 +28,7 @@ gauge / storm and identical for both asset types, so the lookups and the
 nearest-gauge enrichment live here once rather than being copied per asset class.
 """
 
-import json
-
+import database
 from config import config
 
 
@@ -48,23 +47,21 @@ def build_storm_lookups():
     # Build sequence_id → sequence_type lookup
     seq_lookup = {}
     try:
-        seq_path = config.get_input_path('storm_sequences.json')
-        with open(seq_path, 'r') as f:
-            sdata = json.load(f)
-        for seq in sdata.get('sequences', []):
-            seq_lookup[seq['sequence_id']] = seq.get('sequence_type', 'isolated')
+        sdata = database.get_storm_sequences(config.catchment_id)
+        if sdata:
+            for seq in sdata.get('sequences', []):
+                seq_lookup[seq['sequence_id']] = seq.get('sequence_type', 'isolated')
     except Exception:
         pass
 
-    # Build storm metadata lookup (name, category, precipitation, severity)
+    # Build storm metadata lookup (name, category, precipitation, severity).
+    # Modern storm_sequences.json plus the legacy storms.json, merged legacy-last.
     storm_meta = {}
-    for meta_file in ('storm_sequences.json', 'storms.json'):
-        meta_path = config.get_input_path(meta_file)
-        if not meta_path.exists():
-            continue
+    for _getter in (database.get_storm_sequences, database.get_legacy_storm_sequences):
         try:
-            with open(meta_path, 'r') as f:
-                mdata = json.load(f)
+            mdata = _getter(config.catchment_id)
+            if not mdata:
+                continue
             if 'sequences' in mdata:
                 for seq in mdata['sequences']:
                     storm_meta[seq.get('sequence_id', '')] = seq
@@ -74,22 +71,21 @@ def build_storm_lookups():
         except Exception:
             pass
 
-    # Build storm_id → gauges_severe from stress_storms
+    # Build storm_id → gauges_severe from stress_storms (sharded index, with the
+    # legacy single-file stress_storms.json as fallback).
     storm_severe = {}
-    ss_index = config.get_input_path('stress_storms') / '_index.json'
-    ss_legacy = config.get_input_path('stress_storms.json')
-    ss_path = ss_index if ss_index.exists() else (ss_legacy if ss_legacy.exists() else None)
-    if ss_path and ss_path.exists():
-        try:
-            with open(ss_path, 'r') as f:
-                ss_data = json.load(f)
+    try:
+        ss_data = database.get_stress_storm_index(config.catchment_id)
+        if ss_data is None:
+            ss_data = database.get_legacy_stress_storms(config.catchment_id)
+        if ss_data:
             for s in ss_data.get('storms', []):
                 sid = s.get('storm_id', '')
                 if sid:
                     ts = s.get('trigger_summary', {})
                     storm_severe[sid] = ts.get('gauges_severe', 0)
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     # Typhoon "additional circumstance" lookup. The 1:1 coupling means each
     # storm sequence carries the event_id of its paired typhoon, so the join is
@@ -108,20 +104,19 @@ def enrich_nearest_gauges(pdata):
     Mutates ``pdata`` in place and returns the controlling gauge's severe count
     (the synthetic gauge when present, else the first nearest gauge).
     """
-    gauge_path = config.get_input_path('gauge.json')
     gauge_stages = {}
     try:
-        with open(gauge_path, 'r') as f:
-            gdata = json.load(f)
-        for g in gdata.get('flood_gauges', []):
-            fg = g.get('FloodGauge', {})
-            gid = fg.get('Header', {}).get('GaugeID', '')
-            stages = fg.get('FloodStage', {}).get('UK', {})
-            gauge_stages[gid] = {
-                'alert': stages.get('FloodAlert', 0),
-                'warning': stages.get('FloodWarning', 0),
-                'severe': stages.get('SevereFloodWarning', 0),
-            }
+        gdata = database.get_gauge_portfolio(config.catchment_id)
+        if gdata:
+            for g in gdata.get('flood_gauges', []):
+                fg = g.get('FloodGauge', {})
+                gid = fg.get('Header', {}).get('GaugeID', '')
+                stages = fg.get('FloodStage', {}).get('UK', {})
+                gauge_stages[gid] = {
+                    'alert': stages.get('FloodAlert', 0),
+                    'warning': stages.get('FloodWarning', 0),
+                    'severe': stages.get('SevereFloodWarning', 0),
+                }
     except Exception:
         pass
 
@@ -133,27 +128,26 @@ def enrich_nearest_gauges(pdata):
     # Compute per-gauge and use the synthetic gauge as the controlling total.
     severe_at_gauge = 0
     try:
-        hc_path = config.get_input_dir() / 'gaugehc.json'
-        seq_path = config.get_input_path('storm_sequences.json')
-        with open(hc_path, 'r') as f:
-            hc_data = json.load(f)
-        with open(seq_path, 'r') as f:
-            seq_data = json.load(f)
-        num_sequences = seq_data.get('num_sequences', len(seq_data.get('sequences', [])))
+        hc_data = database.get_gauge_hazard_curves(config.catchment_id)
+        seq_data = database.get_storm_sequences(config.catchment_id)
+        if hc_data and seq_data:
+            num_sequences = seq_data.get(
+                'num_sequences', len(seq_data.get('sequences', [])))
 
-        synth = next((ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
-        controlling = synth or (nearest[0] if nearest else None)
+            synth = next(
+                (ng for ng in nearest if ng.get('gauge_id', '').startswith('SYNTH')), None)
+            controlling = synth or (nearest[0] if nearest else None)
 
-        for ng in nearest:
-            gid = ng.get('gauge_id', '')
-            gauge_hc = hc_data.get('hazard_curves', {}).get(gid, {})
-            prob = gauge_hc.get('annual_flood_prob_severe', 0)
-            ng['severe_count'] = round(prob * num_sequences)
-            ng['severe_spread_bps'] = round(prob * 10000, 1)
-            ng['gauge_name'] = gauge_hc.get('gauge_name', gid)
+            for ng in nearest:
+                gid = ng.get('gauge_id', '')
+                gauge_hc = hc_data.get('hazard_curves', {}).get(gid, {})
+                prob = gauge_hc.get('annual_flood_prob_severe', 0)
+                ng['severe_count'] = round(prob * num_sequences)
+                ng['severe_spread_bps'] = round(prob * 10000, 1)
+                ng['gauge_name'] = gauge_hc.get('gauge_name', gid)
 
-        if controlling:
-            severe_at_gauge = controlling.get('severe_count', 0)
+            if controlling:
+                severe_at_gauge = controlling.get('severe_count', 0)
     except Exception:
         pass
     return severe_at_gauge
