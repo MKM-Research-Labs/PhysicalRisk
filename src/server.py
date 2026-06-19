@@ -39,6 +39,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from config import config
+from database.config_binding import use_file_backend
 from routes import register_blueprints
 
 # Configure logging
@@ -51,6 +52,9 @@ logger = logging.getLogger(__name__)
 
 def create_app() -> Flask:
     """Application factory."""
+
+    # Bind the data-access backend (coding rule R6: all data via the database pkg)
+    use_file_backend()
 
     # Create app
     app = Flask(__name__)

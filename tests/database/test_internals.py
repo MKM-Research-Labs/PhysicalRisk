@@ -35,6 +35,18 @@ def test_memory_exists():
     assert repo.exists("gauge", "thames")
 
 
+def test_load_or_tolerates_corrupt_json(tmp_path):
+    import database
+    p = tmp_path / "thames" / "fire" / "fire.json"
+    p.parent.mkdir(parents=True)
+    p.write_text("{not valid json")
+    database.configure_backend(FileRepository(tmp_path))
+    try:
+        assert database.get_fire_results("thames") is None
+    finally:
+        database.configure_backend(None)
+
+
 def test_artifacts_names_includes_core_set():
     names = artifacts.names()
     for expected in ("gauge", "property", "prs_trade", "classifier", "gauge_history"):

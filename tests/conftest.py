@@ -92,6 +92,8 @@ from fixtures_admin import (  # noqa: F401, E402
     _test_admin_credential,
 )
 
+from fixtures_database import _database_file_backend  # noqa: F401, E402
+
 from helpers import (  # noqa: F401, E402
     create_test_file,
     assert_valid_property,
