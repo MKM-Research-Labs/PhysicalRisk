@@ -180,6 +180,112 @@ class TestPropertyStormsMissingFiles:
         # Without storm_sequences.json, sequence_type defaults to 'isolated'
         assert data["flood_events"][0]["sequence_type"] == "isolated"
 
+    def test_legacy_single_file_storm_artifacts(self, tmp_path, monkeypatch):
+        """Legacy fallback: a portfolio with the pre-shard ``stress_storms.json``
+        and ``storms.json`` single files (no _index.json / storm_sequences.json)
+        still lists storms, enriched from the legacy metadata file."""
+        from config import config
+
+        pts_dir = tmp_path / "propertyts"
+        pts_dir.mkdir()
+        gaugets_dir = tmp_path / "gaugets"
+        gaugets_dir.mkdir()
+
+        # Legacy single-file stress storms (no stress_storms/_index.json present).
+        stress_storms = {"storms": [{
+            "storm_id": "OLD-1", "name": "", "intensity_category": "",
+            "effective_precipitation_mm": 0,
+            "trigger_summary": {"gauges_severe": 2},
+        }]}
+        (tmp_path / "stress_storms.json").write_text(json.dumps(stress_storms))
+
+        # Legacy single-file storm metadata (no storm_sequences.json present).
+        legacy_storms = {"storms": [{
+            "storm_id": "OLD-1", "name": "LegacyName",
+            "intensity_category": "extreme", "effective_precipitation_mm": 99,
+        }]}
+        (tmp_path / "storms.json").write_text(json.dumps(legacy_storms))
+
+        prop_data = {
+            "property_id": "PROP-001",
+            "flood_events": [{"storm_id": "OLD-1", "flood_depth_m": 0.5,
+                              "damage_ratio": 0.1}],
+        }
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
+        prop_val = {"properties": [{"PropertyHeader": {
+            "Header": {"PropertyID": "PROP-001"},
+            "Valuation": {"PropertyValue": 400000},
+        }}]}
+        (tmp_path / "property.json").write_text(json.dumps(prop_val))
+
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+        monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
+        monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
+
+        from server import create_app
+        app = create_app()
+        app.config["TESTING"] = True
+        client = app.test_client()
+
+        r = client.get("/api/v1/propertyts/storms")
+        data = r.get_json()
+        assert data["status"] == "success"
+        assert len(data["storms"]) == 1
+        storm = data["storms"][0]
+        assert storm["storm_id"] == "OLD-1"
+        # Metadata merged in from the legacy storms.json
+        assert storm["intensity_category"] == "extreme"
+        assert storm["name"] == "LegacyName"
+        assert storm["effective_precipitation_mm"] == 99
+        assert storm["properties_flooded"] == 1
+        assert storm["estimated_damage"] == 40000
+
+    def test_gaugets_fallback_skips_non_gauge_files(self, tmp_path, monkeypatch):
+        """Line 86: a stray non-``GAUGE-`` file in the gaugets collection is
+        skipped during the gaugets fallback."""
+        from config import config
+
+        pts_dir = tmp_path / "propertyts"
+        pts_dir.mkdir()
+        gaugets_dir = tmp_path / "gaugets"
+        gaugets_dir.mkdir()
+
+        # No stress storms at all → forces the gaugets fallback.
+        gauge_ts = {
+            "gauge_id": "GAUGE-001",
+            "storm_responses": {"responses": [{
+                "storm_id": "STORM-FALLBACK", "exceeded_severe": True,
+            }]},
+        }
+        (gaugets_dir / "GAUGE-001.json").write_text(json.dumps(gauge_ts))
+        # Stray non-GAUGE file that iter_keys yields but the route must skip.
+        (gaugets_dir / "metadata.json").write_text(json.dumps({"junk": True}))
+
+        prop_data = {
+            "property_id": "PROP-001",
+            "flood_events": [{"storm_id": "STORM-FALLBACK", "flood_depth_m": 0.3,
+                              "damage_ratio": 0.05}],
+        }
+        (pts_dir / "PROP-001.json").write_text(json.dumps(prop_data))
+        prop_val = {"properties": [{"PropertyHeader": {
+            "Header": {"PropertyID": "PROP-001"}}}]}
+        (tmp_path / "property.json").write_text(json.dumps(prop_val))
+
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+        monkeypatch.setattr(config, "get_gaugets_dir", lambda: gaugets_dir)
+        monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / f)
+
+        from server import create_app
+        app = create_app()
+        app.config["TESTING"] = True
+        client = app.test_client()
+
+        r = client.get("/api/v1/propertyts/storms")
+        data = r.get_json()
+        assert data["status"] == "success"
+        storm_ids = [s["storm_id"] for s in data["storms"]]
+        assert "STORM-FALLBACK" in storm_ids
+
     def test_storms_without_gauge_json(self, tmp_path, monkeypatch):
         """Lines 157-158: gauge.json missing triggers except pass."""
         from config import config

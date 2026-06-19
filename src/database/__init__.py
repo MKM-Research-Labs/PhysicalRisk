@@ -54,12 +54,14 @@ from .timeseries import (
     property_timeseries_exists, get_portfolio_flood_summary,
     get_commercial_timeseries, iter_commercial_timeseries_ids, save_commercial_timeseries,
     commercial_timeseries_exists,
-    get_gauge_timeseries, iter_gauge_timeseries_ids, save_gauge_timeseries,
+    get_gauge_timeseries, gauge_timeseries_exists, iter_gauge_timeseries_ids,
+    save_gauge_timeseries,
     get_gauge_history, iter_gauge_history_ids, save_gauge_history,
 )
 from .storms import (
-    get_storm_sequences, save_storm_sequences,
+    get_storm_sequences, save_storm_sequences, get_legacy_storm_sequences,
     list_stress_storms, get_stress_storm, save_stress_storm,
+    get_stress_storm_index, get_legacy_stress_storms,
     list_sequence_gauges, get_sequence_gauge, save_sequence_gauge,
     get_fire_results, save_fire_results, get_seismic_results, save_seismic_results,
 )
@@ -94,11 +96,13 @@ __all__ = [
     "property_timeseries_exists", "get_portfolio_flood_summary",
     "get_commercial_timeseries", "iter_commercial_timeseries_ids", "save_commercial_timeseries",
     "commercial_timeseries_exists",
-    "get_gauge_timeseries", "iter_gauge_timeseries_ids", "save_gauge_timeseries",
+    "get_gauge_timeseries", "gauge_timeseries_exists", "iter_gauge_timeseries_ids",
+    "save_gauge_timeseries",
     "get_gauge_history", "iter_gauge_history_ids", "save_gauge_history",
     # storms / perils
-    "get_storm_sequences", "save_storm_sequences",
+    "get_storm_sequences", "save_storm_sequences", "get_legacy_storm_sequences",
     "list_stress_storms", "get_stress_storm", "save_stress_storm",
+    "get_stress_storm_index", "get_legacy_stress_storms",
     "list_sequence_gauges", "get_sequence_gauge", "save_sequence_gauge",
     "get_fire_results", "save_fire_results", "get_seismic_results", "save_seismic_results",
     # trading
