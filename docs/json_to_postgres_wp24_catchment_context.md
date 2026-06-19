@@ -170,41 +170,67 @@ they are not port-input JSON artifacts. Don't convert them.
 
 ---
 
-## 4. Sequenced plan (per-file commits, R6 disciplines)
+## 4. Locked decisions (user, 2026-06-19)
+
+### 4a. Retire the `config.catchment_id` **setter**
+`active_catchment()` becomes the single source of truth for "which catchment is this
+run". The mutable setter (`config/catch.py`) is the race source and is **removed**.
+Blast radius is small (verified):
+- **Live app does NOT use it.** `src/routes/catchment.py` only *validates* the requested
+  catchment and redirects; it never assigns `config.catchment_id`. The active catchment
+  is fixed at process start via `MKM_CATCHMENT`. No change needed there.
+- **One real production setter site:** `src/port/src/gauge/gaugehd/runner.py:125`
+  (`config.catchment_id = args.catchment`, a CLI entry) → becomes
+  `with database.catchment_context(args.catchment): …`.
+- **Tests:** a few setter uses in `tests/reports/commercial/*` + the setter's own test in
+  `tests/catch/*` → migrate to `catchment_context` / delete the setter test.
+
+The **getter** `config.catchment_id` stays (read-only) as the no-context fallback inside
+`active_catchment()`. Sequence: add the context primitive (step 1) and migrate all
+setter call sites first, then delete the setter in the **orchestrator step (step 6)** so
+nothing is left calling it. Drop the `@catchment_id.setter` and the `config/server.py:46`
+warning comment that only exists because of it.
+
+### 4b. Scope = port generators **and** trading engines in the same pass
+Both share the directory-injection pattern (`output_dir` / `trading_dir`), so they're
+converted together to avoid a second sweep. The trading engines
+(`models/trading/trade_marks.py`, `market_state/_persistence.py`, `pnl_engine/_pnl.py` —
+constructed as `__init__(self, trading_dir)`) get the same treatment: drop the dir
+parameter, take `catchment`, read/write via `database`, and run inside
+`catchment_context`. They fold into **step 5** below alongside the book-pricing → `prs`
+writers.
+
+---
+
+## 5. Sequenced plan (updated for the §4 decisions)
 
 Each step: behaviour-preserving · per-file commit · ≥99% coverage for touched files ·
 `database` package stays 100% · **0 new path-audit findings**.
 
 1. **Context primitive** — `src/database/context.py` (`active_catchment`,
-   `catchment_context`), re-export from `__init__.py` (pure re-export, rule 4). Unit
-   tests: default-falls-to-config, nesting, reset-on-exit, concurrent isolation. *No
-   caller changes yet — lands independently, like the serialization prep did.*
-2. **Test helper** — `tmp_catchment` (+ `InMemoryRepository` variant for pure-unit
-   writers). Self-tested.
-3. **Portfolio entities** (WP0.5 Batch 1: gauge, property, loan, commercial,
+   `catchment_context`), re-exported from `__init__.py` (pure re-export, rule 4). Unit
+   tests: default-falls-to-config, nesting, reset-on-exit, concurrent isolation. *Lands
+   standalone, no caller changes — like the serialization prep did.*
+2. **Test helper** — `tmp_catchment(tmp_path)` (+ `InMemoryRepository` variant for
+   pure-unit writers). Self-tested.
+3. **Migrate setter call sites onto `catchment_context`** — gaugehd CLI runner + the
+   `tests/reports/commercial` + `tests/catch` setter uses. (Setter still *exists* after
+   this step; it's just unused — deleted in step 6.)
+4. **Portfolio entities** (WP0.5 Batch 1: gauge, property, loan, commercial,
    commercial_loan, counterparty) — convert constructor + internal reads + writes;
-   repoint their tests via `tmp_catchment`. Lowest risk, all map to existing savers.
-4. **Hazard / timeseries / storms / trading / gaugehd+typhoon** — WP0.5 Batches 2–6,
-   each folded with its directory→context conversion. Resolve the WP0.5 open decisions
-   (legacy seq_gauge/storm writers, `training_summary` dir reconcile, storm-multi
-   port-vs-model, typhoon granularity) as each batch is reached.
-5. **Orchestrator** — wrap the port run(s) in `catchment_context(catchment)`; delete the
-   now-dead `output_dir` threading and `mkdir` calls.
-6. **Task 0.8 audits** — sanction `src/database` in the path-audit; build the
-   "no SQL/file-I/O outside `database`" gate. With writers migrated, the gate can finally
-   go green-by-construction.
+   repoint tests via `tmp_catchment`. Lowest risk, all map to existing savers.
+5. **Hazard / timeseries / storms / book-pricing / gaugehd+typhoon / trading engines** —
+   WP0.5 Batches 2–6 **plus the trading engines (§5b)**, each folded with its
+   directory→context conversion. Resolve the WP0.5 open decisions (legacy
+   seq_gauge/storm writers, `training_summary` dir reconcile, storm-multi port-vs-model,
+   typhoon granularity) as each batch is reached.
+6. **Orchestrator + setter removal** — wrap the port run(s) and trading run(s) in
+   `catchment_context(catchment)`; delete dead `output_dir`/`trading_dir` threading and
+   `mkdir` calls; **delete the `config.catchment_id` setter** and its `server.py:46`
+   warning comment now that nothing assigns it.
+7. **Task 0.8 audits** — sanction `src/database` in the path-audit; build the
+   "no SQL/file-I/O outside `database`" gate. With writers migrated, it goes
+   green-by-construction.
 
 After WP2.4 + the folded WP0.5, **all** port-artifact file I/O (read and write) is behind
-`database`, clearing the way for the `PostgresRepository` swap (WP1.6) against the
-unchanged `Repository` interface.
-
----
-
-## 5. Open questions for the user
-- **`config.catchment_id` deprecation.** Once `active_catchment()` is the source of
-  truth, should the mutable `config.catchment_id` setter be retired (it's the race
-  source), or kept as the no-context fallback only? Recommend: keep as read-only
-  fallback, deprecate the setter in WP5 hardening.
-- **Scope of step 5.** Wrap only the port generator orchestrator, or also the trading
-  EOD/market-state engines in the same pass? They share the directory-injection pattern;
-  doing them together avoids a second sweep.
+`database`, clearing the way for the `PostgresRepository` swap (WP1.6).
