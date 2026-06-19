@@ -11,6 +11,56 @@ stage, database package stays 100%, **0 new path-audit findings**, and the recur
 the production `input/<catchment>/…` location the artifacts resolve to; tests that
 assert "file exists on disk" should read back through the database instead).
 
+## ⚠️ BLOCKER discovered during Batch-1 spike (resolve before implementing)
+
+**Every writer is directory-injected, not catchment-keyed.** Both the port generators
+and the trading engines are constructed with an explicit output directory and write
+to it:
+
+```python
+# generators (gauge/property/loan/commercial/commercial_loan/counterparty, …)
+self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
+# engines
+def __init__(self, trading_dir): self.marks_file = trading_dir / 'trade_marks.json'
+```
+
+The database write API is **catchment-keyed** — `save_gauges(catchment, payload)`
+resolves to *that catchment's* dir. It has no "write to directory X" primitive, and
+correctly so: a directory is meaningless for the Postgres backend. So the readers
+migrated cleanly (routes always read the active catchment via `config` accessors) but
+the writers do **not** — `output_dir` is a first-class parameter threaded from the port
+orchestrator and passed by **~74 test files**.
+
+In production `output_dir` is effectively always the catchment being generated (the port
+pipeline runs one catchment per invocation), so it *equals* `config.get_input_dir()`.
+But the abstraction mismatch is real and can't be papered over.
+
+**Options:**
+1. **Catchment-context refactor (preferred; = WP2.4).** Replace `output_dir` threading
+   with a run-scoped *catchment* context; generators/engines call `save_*(catchment, …)`.
+   This is the right end-state and the memory already earmarks WP2.4 for the
+   global-catchment-context fix. Cost: orchestrator + engine constructors + ~74 test
+   files repointed (mechanical: pass/monkeypatch catchment instead of `output_dir`).
+   **Recommendation: fold WP0.5 into WP2.4 and do them together**, rather than migrate
+   writers twice.
+2. Add a per-operation "bind FileRepository to this dir" escape hatch to the database —
+   rejected: leaky abstraction, no Postgres analogue, defeats the seam.
+3. Reverse-map `output_dir` → catchment at each writer boundary — rejected: fragile.
+
+**Serialization sub-requirement (needed by whichever option):** generator payloads carry
+`datetime` + numpy (`np.integer/np.floating/np.ndarray`) values; today they serialize via
+`port.utils.encoders.DateTimeEncoder` / `port.src.property.hc.encoder.json_default`
+(both → `isoformat()` / `int`/`float`/`tolist`). The database's `file_repo.save` uses a
+plain `json.dumps(payload, indent=2)` with **no encoder**, so it will `TypeError` on these
+payloads. Before any writer migration, give the database a canonical JSON default that
+mirrors `DateTimeEncoder` (datetime→isoformat, numpy→native) so callers stop passing
+encoders. This is a clean, self-contained prep step that can land independently.
+
+**Net:** the per-file writer→`save_*` mapping below is still correct, but Batch 1 cannot
+proceed as a standalone step — it needs (a) the database serialization default, then
+(b) the catchment-context decision. Treat the table below as the work-list *once that
+decision is made*.
+
 ## In-scope writers → target `save_*`
 
 ### Port generators (`src/port/`) — the bulk
