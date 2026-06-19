@@ -213,12 +213,39 @@ Each step: behaviour-preserving · per-file commit · ≥99% coverage for touche
    standalone, no caller changes — like the serialization prep did.*
 2. **Test helper** — `tmp_catchment(tmp_path)` (+ `InMemoryRepository` variant for
    pure-unit writers). Self-tested.
-3. **Migrate setter call sites onto `catchment_context`** — gaugehd CLI runner + the
-   `tests/reports/commercial` + `tests/catch` setter uses. (Setter still *exists* after
-   this step; it's just unused — deleted in step 6.)
+3. **~~Migrate setter call sites~~ — DEFERRED into step 6** (correction, 2026-06-19).
+   The original plan was to swap `config.catchment_id = x` sites to `catchment_context`
+   here. Investigation showed this is **unsafe and unnecessary before the writers
+   migrate**:
+   - **Unsafe:** the `config.catchment_id` setter calls `_init_paths(x)`, which re-caches
+     `self.input_dir = data/input/<x>` and every derived dir (gaugehd, gaugets, blotter,
+     classifiers, prs, stressm). `catchment_context` does **not** repoint any config path.
+     The port orchestrator (`app/commands/port/orchestrator.py:199`) does
+     `config.catchment_id = c; output_dir = config.get_input_dir()` and threads that into
+     the still-unmigrated generators; the gaugehd runner reads `config.get_gaugehd_dir()`.
+     The commercial-report tests set the catchment so the (out-of-DB-scope) report code
+     resolves the right paths. Swapping any of these to `catchment_context` alone breaks
+     path resolution.
+   - **Unnecessary:** a writer migrated to `save_*(active_catchment(), …)` already works
+     in production **with the setter in place** — `active_catchment()` falls back to
+     `config.catchment_id` (which the orchestrator still sets), and `save_*` resolves
+     through `config.get_input_dir()` (the repointed path; honours
+     `MKM_CATCHMENT_INPUT_OVERRIDE` too). So writers don't need the setter gone.
+
+   → Setter retirement therefore belongs in **step 6**, together with the orchestrator
+   wrap and the config-path/context unification (the orchestrator's
+   `with catchment_context(c):` must *also* repoint config paths so the out-of-scope
+   report/PDF consumers keep following the active catchment). Full production setter
+   sites to handle in step 6: `app/commands/{server,book,port/orchestrator}.py`,
+   `app/commands/test/command.py`, `src/port/src/gauge/gaugehd/runner.py`; plus tests
+   `tests/catch/test_catchment_isolation.py` (tests the setter itself — rewrite/retire),
+   `tests/reports/commercial/test_commercial_report_part{1,2,3}.py`,
+   `tests/port/cdm/cdm_all.py`, `tests/port/gauge/test_gaugehd_runner_part2.py`.
 4. **Portfolio entities** (WP0.5 Batch 1: gauge, property, loan, commercial,
-   commercial_loan, counterparty) — convert constructor + internal reads + writes;
-   repoint tests via `tmp_catchment`. Lowest risk, all map to existing savers.
+   commercial_loan, counterparty) — **← NEXT.** Convert constructor + internal reads +
+   writes; repoint tests via `tmp_catchment`. Lowest risk, all map to existing savers.
+   In production the setter (still present) keeps `active_catchment()`'s fallback correct,
+   so no orchestrator change is needed yet.
 5. **Hazard / timeseries / storms / book-pricing / gaugehd+typhoon / trading engines** —
    WP0.5 Batches 2–6 **plus the trading engines (§5b)**, each folded with its
    directory→context conversion. Resolve the WP0.5 open decisions (legacy
