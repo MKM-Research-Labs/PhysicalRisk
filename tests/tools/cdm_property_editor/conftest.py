@@ -45,7 +45,18 @@ def _load(modname, filename):
     spec = importlib.util.spec_from_file_location(modname, TOOL_DIR / filename)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[modname] = mod  # set before exec so Flask(__name__) finds __file__
-    spec.loader.exec_module(mod)
+    # app.py imports its siblings by bare name (``import recompute`` /
+    # ``import price_new``); put the tool dir on the path only for the exec, then
+    # restore it so the tool's ``app.py`` never shadows the repo's ``app`` package
+    # for the rest of the suite. The siblings stay cached in sys.modules.
+    added = str(TOOL_DIR) not in sys.path
+    if added:
+        sys.path.insert(0, str(TOOL_DIR))
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        if added:
+            sys.path.remove(str(TOOL_DIR))
     return mod
 
 
@@ -57,6 +68,27 @@ def app_mod():
 @pytest.fixture(scope="session")
 def workbook_mod():
     return _load("cdm_tool_workbook", "cdm_workbook.py")
+
+
+@pytest.fixture(scope="session")
+def recompute_mod():
+    return _load("recompute", "recompute.py")
+
+
+@pytest.fixture(scope="session")
+def price_new_mod():
+    return _load("price_new", "price_new.py")
+
+
+@pytest.fixture(scope="session")
+def demo_mod():
+    return _load("cdm_tool_demo", "cdm_demo.py")
+
+
+@pytest.fixture(scope="session")
+def oracle_mod(recompute_mod):
+    # _recompute_oracle imports its sibling ``recompute`` by bare name.
+    return _load("cdm_tool_oracle", "_recompute_oracle.py")
 
 
 @pytest.fixture

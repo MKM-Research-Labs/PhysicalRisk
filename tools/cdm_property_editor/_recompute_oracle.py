@@ -1,5 +1,22 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
-# (see package __init__.py for full license text)
+
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 """Oracle check for recompute.py — validate the instant shortcut against the
 REAL generator for an actual floor edit.
@@ -28,7 +45,7 @@ REPO_ROOT = TOOL_DIR.parent.parent
 SRC_DIR = REPO_ROOT / "src"
 for _p in (str(SRC_DIR), str(REPO_ROOT)):
     if _p not in sys.path:
-        sys.path.insert(0, _p)
+        sys.path.insert(0, _p)  # pragma: no cover (entrypoint path bootstrap)
 
 from models.floodrisk.depth_damage import is_prs_flood  # noqa: E402
 
