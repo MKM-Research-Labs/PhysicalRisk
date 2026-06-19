@@ -27,6 +27,7 @@ import math
 import logging
 from pathlib import Path
 
+import database
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -99,11 +100,9 @@ def _load_stress_storm(storm_id: str) -> dict | None:
     Reads from ``stress_storms/{storm_id}.json``.  Falls back to searching
     the legacy single-file format if the directory layout isn't present.
     """
-    ss_dir = _get_stress_storms_dir()
-    storm_file = ss_dir / f'{storm_id}.json'
-    if storm_file.exists():
-        with open(storm_file) as f:
-            return json.load(f)
+    storm = database.get_stress_storm(config.catchment_id, storm_id)
+    if storm is not None:
+        return storm
 
     # Legacy fallback: search inside the monolithic file
     data = _load_stress_storms()
@@ -121,12 +120,10 @@ def build_scaled_hydrograph(gauge_id: str, gauge_resp: dict,
     Returns a list of *num_hours* water level values, or ``None`` if the
     gaugets file is missing or unreadable.
     """
-    gaugets_file = config.get_gaugets_dir() / f'{gauge_id}.json'
-    if not gaugets_file.exists():
-        return None
     try:
-        with open(gaugets_file) as gf:
-            gts_data = json.load(gf)
+        gts_data = database.get_gauge_timeseries(config.catchment_id, gauge_id)
+        if gts_data is None:
+            return None
         readings = gts_data.get('flood_simulation', {}).get('readings', [])
         if not readings:
             return None
