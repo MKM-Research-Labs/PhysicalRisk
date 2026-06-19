@@ -22,6 +22,8 @@
 
 from __future__ import annotations
 
+from typing import Iterator
+
 from .backend import active_backend
 from ._helpers import load_or, records
 
@@ -73,6 +75,21 @@ def get_sequence_gauge(catchment, gauge_id):
 
 def save_sequence_gauge(catchment, gauge_id, payload):
     active_backend().save("sequence_gauge", catchment, payload, gauge_id)
+
+
+# ── Typhoon damage events (keyed per event) ──────────────────────────────────
+def typhoon_events_exist(catchment) -> bool:
+    """True if the typhoon damage collection (``typhoon/damage``) has been generated."""
+    return active_backend().has_collection("typhoon_event", catchment)
+
+def get_typhoon_event(catchment, event_id):
+    return load_or("typhoon_event", catchment, event_id)
+
+def iter_typhoon_event_ids(catchment) -> Iterator[str]:
+    return active_backend().iter_keys("typhoon_event", catchment)
+
+def save_typhoon_event(catchment, event_id, payload):
+    active_backend().save("typhoon_event", catchment, payload, event_id)
 
 
 # ── Perils (fire / seismic) ──────────────────────────────────────────────────

@@ -96,6 +96,18 @@ def test_damage_loader_event_id_from_stem(cfg_tmp):
     assert "EVT-0002" in out
 
 
+def test_damage_loader_skips_non_evt_files(cfg_tmp):
+    """A stray non-``EVT-`` file in the damage collection is skipped."""
+    d = cfg_tmp / "typhoon" / "damage"
+    d.mkdir(parents=True)
+    (d / "metadata.json").write_text(json.dumps({"junk": True}))
+    (d / "EVT-0003.json").write_text(json.dumps({
+        "event_id": "EVT-0003",
+        "damages": [{"property_id": PROP_ID, "damage_ratio": 0.4}]}))
+    out = cs._load_typhoon_damage_for_property(PROP_ID)
+    assert set(out) == {"EVT-0003"}
+
+
 # ---------------------------------------------------------------------------
 # Route: typhoon block + wind-only synthetic event
 # ---------------------------------------------------------------------------

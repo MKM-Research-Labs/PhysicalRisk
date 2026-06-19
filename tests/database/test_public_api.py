@@ -146,6 +146,16 @@ def test_storms_and_perils(repo):
     assert database.get_seismic_results(CATCH) == {"assets": []}
 
 
+def test_typhoon_events(repo):
+    assert database.typhoon_events_exist(CATCH) is False
+    assert database.get_typhoon_event(CATCH, "EVT-1") is None
+
+    database.save_typhoon_event(CATCH, "EVT-1", {"event_id": "EVT-1", "damages": []})
+    assert database.typhoon_events_exist(CATCH) is True
+    assert database.get_typhoon_event(CATCH, "EVT-1")["event_id"] == "EVT-1"
+    assert list(database.iter_typhoon_event_ids(CATCH)) == ["EVT-1"]
+
+
 def test_legacy_storm_fallbacks(repo):
     """The pre-shard single-file artifacts resolve via their own getters and
     return None when absent (so a route can fall through to the modern layout)."""

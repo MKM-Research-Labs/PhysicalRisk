@@ -23,6 +23,7 @@
 import json
 from typing import Dict
 
+import database
 from config import config
 
 # Catchment-level storm enrichment is asset-agnostic and shared with the
@@ -43,17 +44,20 @@ def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
     roll — surfaced here so the storm endpoint can build the typhoon block
     without a second pass over the linkage.
     """
-    damage_dir = config.get_input_dir() / 'typhoon' / 'damage'
-    if not damage_dir.exists():
+    catchment = config.catchment_id
+    if not database.typhoon_events_exist(catchment):
         return {}
     result: Dict[str, Dict] = {}
-    for fp in damage_dir.glob('EVT-*.json'):
+    for eid in database.iter_typhoon_event_ids(catchment):
+        if not eid.startswith('EVT-'):
+            continue
         try:
-            with open(fp, 'r') as f:
-                data = json.load(f)
+            data = database.get_typhoon_event(catchment, eid)
         except (OSError, json.JSONDecodeError):
             continue
-        evt_id = data.get('event_id') or fp.stem
+        if data is None:
+            continue
+        evt_id = data.get('event_id') or eid
         scenario_family = data.get('scenario_family')
         for entry in data.get('damages', []):
             if entry.get('property_id') == prop_id:
@@ -149,9 +153,7 @@ def _lookup_property_address(prop_id: str) -> str:
     """Look up a property's display address from property.json."""
     prop_address = ''
     try:
-        prop_path = config.get_input_path('property.json')
-        with open(prop_path, 'r') as f:
-            pjdata = json.load(f)
+        pjdata = database.get_property_portfolio(config.catchment_id) or {}
         for p in pjdata.get('properties', []):
             ph = p.get('PropertyHeader', {})
             if ph.get('Header', {}).get('PropertyID') == prop_id:
