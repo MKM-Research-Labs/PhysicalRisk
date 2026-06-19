@@ -1,5 +1,68 @@
 # WP2.4 — Catchment context (the writer-migration gate)
 
+> ## ▶ RESUME HERE (session pickup, 2026-06-19)
+>
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 25 commits ahead of origin, **unpushed**
+> (user pushes). Working tree clean. The migration work is NOT on `main` /
+> `claude/elastic-wozniak-*`; the worktree at `.claude/worktrees/elastic-wozniak-24f4aa`
+> has been switched onto `quirky-chaplygin`.
+>
+> **Environment:** worktrees have no `.venv` — use the main repo's interpreter and
+> always activate it first: `source /Users/newdavid/Documents/PhysicalRisk/.venv/bin/activate`
+> (a fresh shell otherwise defaults to system Python 3.9 and conftest import errors).
+> Run database coverage as `pytest tests/database/ --cov=database` (NOT
+> `--cov=database.context` — trips a `tests/helpers` vs `src/visual/layer/helpers.py`
+> sys.path collision). **No port runs / mutating audits in a worktree** — code + tests
+> here, real regeneration in the main checkout.
+>
+> **Done this session (steps of the §5 plan):**
+> - §4 decisions locked: retire `config.catchment_id` *setter*; convert port generators
+>   **and** trading engines in one pass. [`c0939c69`]
+> - Design + plan correction (step 3 deferred into step 6). [`93d5f21a`, `d694d27f`]
+> - **Step 1** — `src/database/context.py`: `active_catchment()` + `catchment_context()`
+>   (ContextVar; falls back to `config.catchment_id`). db pkg 100%. [`36d84617`]
+> - **Step 2** — `tests/conftest/db_helpers.py`: `tmp_catchment(tmp_path)` /
+>   `memory_catchment()`. [`8a82730c`]
+> - **Step 4 PREP** — write-guard: autouse test backend refuses `save`/`delete` that
+>   resolve under the real `data/input` tree (data-safety net before any writer
+>   migration). Verified zero new test failures. [`7df143de`]
+>
+> **NEXT — step 4, the gauge writer (first portfolio generator):**
+> 1. `src/port/src/gauge/gauge.py` — constructor `output_dir` → `catchment` (default
+>    `database.active_catchment()`); drop `self.output_dir`/`mkdir`. Keep the
+>    `DateTimeEncoder` re-export at line 73 (tests import it). Convenience
+>    `generate_gauges(count, output_dir=…)` → `catchment=…`; fix the `__main__` log.
+> 2. `src/port/src/gauge/_gauge_generate.py` — replace the `open(output_path)` +
+>    `json.dump(..., cls=DateTimeEncoder)` with `database.save_gauges(self.catchment,
+>    output_data)`; drop `file_path` from the return (replace with `catchment`); remove
+>    now-unused `json`/`DateTimeEncoder` imports; add `import database`. Payload is the
+>    whole `output_data` dict (save_gauges stores it as-is → byte-identical).
+> 3. Production caller `app/commands/port/stages/portfolios.py:37` — drop the positional
+>    `ctx.output_dir` from the gauge constructor (active_catchment() fallback →
+>    `config.catchment_id`, set by the still-present setter, resolves identically).
+> 4. Tests — every `.generate()` site must run inside `tmp_catchment` or the guard
+>    raises. Wrap shared fixtures once: `tests/port/conftest.py` (`small_gauge_portfolio`)
+>    and `tests/port/pipeline/conftest.py` (`_run_pipeline`, `_available_gauge_points`)
+>    in `with tmp_catchment(output_dir):`, dropping `output_dir` from the **gauge** ctor
+>    only (other generators stay on `output_dir` until their slices — they write to the
+>    same dir the tmp_catchment FileRepository is rooted at, so the mix works). Repoint
+>    `tests/port/gauge/gauge_generator.py` (autouse `tmp_catchment` fixture; the 3
+>    `file_path`/`open()` tests → read back via `database.get_gauge_portfolio(catchment)`;
+>    `"file_path" in result` → `"catchment" in result`).
+> 5. Then repeat for property, loan/mortgage, commercial, commercial_loan, counterparty
+>    (rest of step 4). Then step 5 (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading
+>    engines), step 6 (orchestrator wrap + setter removal + config/context unification),
+>    step 7 (audits).
+>
+> **Pre-existing reds (NOT ours; baseline==guard verified):** 11 `tests/routes/storm_stress`,
+> 1 path-definition gate (~67-site backlog), 5 `tests/routes/lineage` prs-commit
+> (`test_pprs_to_client` ×4 + `test_trade_to_blotter::test_commit_writes_to_temp_dir`) —
+> a genuine latent bug: PRS commit writes via `database.save_prs_trade`→`get_input_dir()/prs`
+> but those tests only monkeypatch `get_reports_dir`, so the file lands off where they
+> assert (and toward real data when un-monkeypatched). Candidate to spin off separately.
+>
+> Full plan below; §5 is the step list.
+
 This is the design that unblocks **WP0.5 writer migration**. The WP0.6 read path
 migrated cleanly because routes always read the *active* catchment via `config`
 accessors. Writers did **not**, because they are **directory-injected**, not
