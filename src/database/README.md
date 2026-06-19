@@ -65,12 +65,19 @@ src/database/
 
 ```python
 configure_backend(repo)                  # called ONCE at startup — THE migration switch
+active_catchment() -> str                # the run/request-scoped catchment (falls back to config)
+catchment_context(catchment)             # `with` block binding the active catchment for writers
 catchments() -> list[str]                # ["thames", "halong", "mekong"]
 ping() -> bool                           # backend health check
 new_port_run(catchment, meta) -> str     # start a versioned generation run, returns run_id
 get_active_port_run(catchment) -> dict | None
 list_port_runs(catchment) -> list[dict]
 ```
+
+`active_catchment` / `catchment_context` (see `context.py`) replace the old
+`output_dir` injection: a writer takes a `catchment` (defaulting to `active_catchment()`)
+instead of a directory, and the orchestrator wraps a run in `with catchment_context(c):`.
+Backed by a `ContextVar`, so concurrent runs/requests don't clobber each other.
 
 ## 2. Portfolio entities
 
