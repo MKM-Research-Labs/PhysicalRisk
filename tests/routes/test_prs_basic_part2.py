@@ -40,10 +40,10 @@ def prs_env(tmp_path, monkeypatch):
     """Isolated PRS environment with a writable output directory."""
     from config import config
 
-    prs_dir = tmp_path / "reports" / "prs"
+    prs_dir = tmp_path / "prs"
     prs_dir.mkdir(parents=True)
 
-    monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+    monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
     monkeypatch.setattr(config, "catchment_id", "thames")
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
@@ -79,7 +79,7 @@ class TestCommitTradeBasic:
     def test_minimal_valid_commit(self, prs_env, tmp_path, monkeypatch):
         """Commit with enough fields to pass CDM validation."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         payload = {
@@ -107,7 +107,7 @@ class TestCommitTradeBasic:
     def test_commit_with_cashflows(self, prs_env, tmp_path, monkeypatch):
         """Commit with cashflows — exercises PDF cashflow schedule section."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         payload = {
@@ -138,7 +138,7 @@ class TestCommitTradeBasic:
     def test_commit_with_explicit_maturity(self, prs_env, tmp_path, monkeypatch):
         """Commit with maturity_date provided explicitly."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         payload = {
@@ -157,7 +157,7 @@ class TestCommitTradeBasic:
     def test_commit_with_terrain_fields(self, prs_env, tmp_path, monkeypatch):
         """Commit with EA flood zone terrain fields."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         payload = {
@@ -186,7 +186,7 @@ class TestCommitTradeBasic:
     def test_commit_without_terrain_fields_backward_compat(self, prs_env, tmp_path, monkeypatch):
         """Commit without terrain fields should still work (backward compatibility)."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         payload = {
