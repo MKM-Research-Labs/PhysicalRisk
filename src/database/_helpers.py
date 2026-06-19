@@ -22,7 +22,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from config.data_layout import DEFAULT_MODE, ID_FIELDS
@@ -31,12 +30,14 @@ from .backend import active_backend
 
 
 def load_or(artifact, catchment, key=None, *, mode=DEFAULT_MODE, default=None):
-    """Load one record, translating 'absent' (or unreadable/corrupt) into
-    ``default`` rather than raising — the file era tolerated missing/corrupt
-    artifacts, and a structured DB simply won't hit the corrupt case."""
+    """Load one record, translating *absent* into ``default`` rather than raising.
+
+    Only absence (FileNotFoundError/KeyError) is swallowed; a corrupt record
+    propagates so each caller chooses its own tolerance (some routes return an
+    empty payload on corruption, others surface a 500)."""
     try:
         return active_backend().load(artifact, catchment, key, mode=mode)
-    except (FileNotFoundError, KeyError, json.JSONDecodeError):
+    except (FileNotFoundError, KeyError):
         return default
 
 

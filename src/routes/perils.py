@@ -25,6 +25,8 @@ returns an empty payload when the catchment has not been run through those model
 Data access goes through the ``database`` package (coding rule R6).
 """
 
+from json import JSONDecodeError
+
 from flask import Blueprint, jsonify
 
 from config import config
@@ -35,11 +37,19 @@ perils_bp = Blueprint('perils', __name__)
 
 @perils_bp.route('/fire', methods=['GET'])
 def fire():
-    """Per-asset fire-model outcomes (commercial portfolio)."""
-    return jsonify(get_fire_results(config.catchment_id) or {})
+    """Per-asset fire-model outcomes (commercial portfolio). A corrupt or
+    absent model file yields an empty payload."""
+    try:
+        return jsonify(get_fire_results(config.catchment_id) or {})
+    except (OSError, JSONDecodeError):
+        return jsonify({})
 
 
 @perils_bp.route('/seismic', methods=['GET'])
 def seismic():
-    """Per-asset seismic-model outcomes (commercial portfolio)."""
-    return jsonify(get_seismic_results(config.catchment_id) or {})
+    """Per-asset seismic-model outcomes (commercial portfolio). A corrupt or
+    absent model file yields an empty payload."""
+    try:
+        return jsonify(get_seismic_results(config.catchment_id) or {})
+    except (OSError, JSONDecodeError):
+        return jsonify({})
