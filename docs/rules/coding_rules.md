@@ -129,6 +129,41 @@ the text so it can be updated in one place.
 
 ---
 
+## R6 — Never access the data store directly; only call `database` functions
+
+**Rule.** All catchment-data access goes through the `database` package. No module outside
+`src/database/` may contain SQL, a DB connection/session/cursor, or a `json.load` /
+`json.dump` / `glob` of `data/input`. Callers only call `database`'s intent-named
+functions (`get_property(...)`, `commit_prs_trade(...)`, …). There is no escape hatch
+(no `execute_sql` / `raw_query`); if a query isn't exposed, add a named function to the
+package.
+
+**Why.** A single point of contact means the storage backend (JSON files today,
+PostgreSQL tomorrow) can be migrated without touching any caller, and it is the one place
+to enforce security, permissions, caching, and audit. This is the cornerstone of the
+JSON→PostgreSQL migration (`docs/json_to_postgres_migration.md` §2.0).
+
+**How to comply.**
+- Read/write data only via `from database import <function>`.
+- Need data not yet exposed? Add a function in the right `database` submodule (and a test),
+  never reach around the package.
+- Configure the backend once at startup (`database.use_file_backend()`); callers never
+  construct a repository.
+
+```python
+# ✗ bad — direct file access in a route/report/model
+data = json.load(open(config.get_input_path("property.json")))
+# ✓ good
+from database import list_properties
+data = list_properties(catchment)
+```
+
+**Verified by.** The zero-tolerance data-access audit (migration task 0.8): CI fails if any
+`SELECT/INSERT/UPDATE/DELETE`, `.execute(`, `sqlalchemy`/`psycopg` import, connection
+handle, or `json.load`/`open` of `data/input` appears outside `src/database/`.
+
+---
+
 ## Adding a new rule (template)
 
 ```
@@ -152,3 +187,4 @@ every source file.
 - 2026-06-19 — Created with R1–R4. First applied to the `database` package (WP0 of the
   JSON→PostgreSQL migration): all four satisfied, 100% coverage.
 - 2026-06-19 — Added R5 (canonical copyright header) and applied it to all WP0 files.
+- 2026-06-19 — Added R6 (only access data via the `database` package; no direct data access).
