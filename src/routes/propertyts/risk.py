@@ -25,14 +25,14 @@ Computes loss distributions across all 10,000 storm scenarios,
 VaR and Expected Shortfall at 95%/99.9%, histograms, and tail storms.
 """
 
-import json
 import logging
 
 import numpy as np
 from flask import jsonify, request
 
+import database
 from config import config
-from . import propertyts_bp, _get_propertyts_dir
+from . import propertyts_bp
 
 logger = logging.getLogger(__name__)
 
@@ -49,33 +49,30 @@ def portfolio_var():
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
+    if not database.property_timeseries_exists(config.catchment_id):
         return jsonify({
             'status': 'error',
             'message': 'Property flood timeseries not yet generated'
         }), 404
 
     # Load all storm IDs from storm_sequences.json (storm_multi)
-    storms_path = config.get_input_path('storm_sequences.json')
     try:
-        with open(storms_path, 'r') as f:
-            sdata = json.load(f)
-        all_storm_ids = [
-            seq['sequence_id']
-            for seq in sdata.get('sequences', [])
-            if seq.get('sequence_id')
-        ]
+        sdata = database.get_storm_sequences(config.catchment_id)
     except Exception as e:
         logger.warning(f'Could not load storm_sequences.json: {e}')
         return jsonify({'status': 'error', 'message': 'storm_sequences.json not found'}), 404
+    if sdata is None:
+        return jsonify({'status': 'error', 'message': 'storm_sequences.json not found'}), 404
+    all_storm_ids = [
+        seq['sequence_id']
+        for seq in sdata.get('sequences', [])
+        if seq.get('sequence_id')
+    ]
 
     # Load property valuations
-    prop_path = config.get_input_path('property.json')
     prop_values = {}
     try:
-        with open(prop_path, 'r') as f:
-            pdata = json.load(f)
+        pdata = database.get_property_portfolio(config.catchment_id) or {}
         for p in pdata.get('properties', []):
             ph = p.get('PropertyHeader', {})
             pid = ph.get('Header', {}).get('PropertyID', '')
@@ -85,11 +82,9 @@ def portfolio_var():
         logger.warning(f'Could not load property.json: {e}')
 
     # Load mortgage data
-    mortgage_path = config.get_input_path('loan.json')
     rloan_lookup = {}
     try:
-        with open(mortgage_path, 'r') as f:
-            mdata = json.load(f)
+        mdata = database.get_loan_portfolio(config.catchment_id) or {}
         for m in mdata.get('loans', []):
             mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
@@ -103,11 +98,14 @@ def portfolio_var():
 
     # Accumulate per-storm losses: {storm_id -> {prop_damage, mort_impairment, n_affected}}
     storm_data = {}
-    for pf in pts_dir.glob('PROP-*.json'):
-        with open(pf, 'r') as f:
-            pfdata = json.load(f)
+    for pid in database.iter_property_timeseries_ids(config.catchment_id):
+        if not pid.startswith('PROP-'):
+            continue
+        pfdata = database.get_property_timeseries(config.catchment_id, pid)
+        if pfdata is None:
+            continue
 
-        prop_id = pfdata.get('property_id', pf.stem)
+        prop_id = pfdata.get('property_id', pid)
         if prop_id not in prop_values:
             continue
 
