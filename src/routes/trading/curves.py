@@ -20,11 +20,12 @@
 
 """P&L series and curve history endpoints."""
 
-import json
 import logging
 
 from flask import jsonify, request
 
+import database
+from config import config
 from . import trading_bp
 from ._helpers import _get_engines
 
@@ -71,13 +72,8 @@ def get_curve_history():
         return jsonify({"status": "error", "message": "gauge_id required"}), 400
 
     try:
-        _, _, pnl_eng = _get_engines()
-        eod_files = sorted(pnl_eng.eod_dir.glob('EOD-*.json'))
-
         history = []
-        for f in eod_files:
-            with open(f) as fh:
-                snapshot = json.load(fh)
+        for snapshot in database.iter_eod_snapshots(config.catchment_id):
             ms = snapshot.get('market_state_snapshot', {})
             ts = ms.get('hazard_term_structure', {}).get(gauge_id, {}).get(trigger, {})
             if ts:

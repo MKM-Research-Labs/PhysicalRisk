@@ -125,8 +125,8 @@ class TestCurvesErrorHandlers:
             assert resp.status_code == 500
 
     def test_curve_history_error_returns_500(self, trading_client, trading_env):
-        """curve-history returns 500 on engine error (lines 82-84)."""
-        with patch('routes.trading.curves._get_engines',
+        """curve-history returns 500 when the EOD data access fails."""
+        with patch('routes.trading.curves.database.iter_eod_snapshots',
                    side_effect=RuntimeError('fail')):
             resp = trading_client.get(
                 '/api/v1/trading/curve-history?gauge_id=GAUGE-001')
