@@ -110,6 +110,9 @@ class FileRepository(Repository):
     def exists(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE) -> bool:
         return self._file(artifact, catchment, key, mode).exists()
 
+    def has_collection(self, artifact, catchment, *, mode=DEFAULT_MODE) -> bool:
+        return self._dir(artifact, catchment, mode).exists()
+
     def catchments(self) -> list[str]:
         if self.root is None or not self.root.exists():
             return []

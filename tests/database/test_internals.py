@@ -35,6 +35,13 @@ def test_memory_exists():
     assert repo.exists("gauge", "thames")
 
 
+def test_has_collection_file_and_memory(tmp_path):
+    for repo in (FileRepository(tmp_path), InMemoryRepository()):
+        assert not repo.has_collection("commercial_timeseries", "thames")
+        repo.save("commercial_timeseries", "thames", {"x": 1}, "CPROP-1")
+        assert repo.has_collection("commercial_timeseries", "thames")
+
+
 def test_load_or_propagates_corrupt_json(tmp_path):
     # absence -> default; corruption is NOT swallowed (callers decide tolerance)
     import json

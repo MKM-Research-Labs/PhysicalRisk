@@ -74,6 +74,12 @@ class Repository(ABC):
         """True if the record is present."""
 
     @abstractmethod
+    def has_collection(self, artifact: str, catchment: str,
+                       *, mode: str = DEFAULT_MODE) -> bool:
+        """True if a keyed-artifact collection exists, even when empty (distinguishes
+        a not-yet-generated collection from a generated-but-empty one)."""
+
+    @abstractmethod
     def catchments(self) -> list[str]:
         """List catchments that hold any data."""
 

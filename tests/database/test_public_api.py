@@ -111,6 +111,8 @@ def test_timeseries(repo):
     assert "PROP-1" in list(database.iter_property_timeseries_ids(CATCH))
     assert database.get_commercial_timeseries(CATCH, "CPROP-1") == {"x": 1}
     assert list(database.iter_commercial_timeseries_ids(CATCH)) == ["CPROP-1"]
+    assert database.commercial_timeseries_exists(CATCH) is True
+    assert database.commercial_timeseries_exists("nocatch") is False
     assert database.get_gauge_timeseries(CATCH, "GAUGE-1") == {"y": 2}
     assert list(database.iter_gauge_timeseries_ids(CATCH)) == ["GAUGE-1"]
     assert database.get_gauge_history(CATCH, "GAUGE-1") == {"z": 3}

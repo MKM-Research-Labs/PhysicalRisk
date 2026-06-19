@@ -25,11 +25,11 @@
       /api/v1/properties/<id>/loan-pricer.
 """
 
-import json
 import traceback
 
 from flask import jsonify, request
 
+import database
 from config import config
 
 from .blueprint import commercial_bp, logger
@@ -42,12 +42,7 @@ def _find_commercial_loan(prop_id: str):
     ``{"Mortgage": {...}}`` records — the same CDM shape as the
     residential mortgage.json — keyed by ``Mortgage.Header.PropertyID``.
     """
-    try:
-        with open(config.get_input_path('commercial_loan.json'), 'r') as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return None
-    for loan in data.get('commercial_loans', []):
+    for loan in database.list_commercial_loans(config.catchment_id):
         mg = loan.get('Mortgage', loan)
         if mg.get('Header', {}).get('PropertyID') == prop_id:
             return loan

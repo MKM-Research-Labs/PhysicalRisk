@@ -32,10 +32,9 @@ metadata enrichment (storm_sequences.json, stress_storms, gaugehc.json,
 gauge.json) applies to both asset types identically.
 """
 
-import json
-
 from flask import jsonify, request
 
+import database
 from config import config
 from routes._storm_enrich import build_storm_lookups, enrich_nearest_gauges
 
@@ -47,24 +46,19 @@ def _load_commercial_storms_or_404(prop_id: str):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), None
 
-    cts_file = config.get_input_dir() / 'commercialts' / f'{prop_id}.json'
-    if not cts_file.exists():
+    data = database.get_commercial_timeseries(config.catchment_id, prop_id)
+    if data is None:
         return (jsonify({
             'status': 'error',
             'message': f'Commercial asset {prop_id} not found in flood timeseries',
         }), 404), None
-
-    with open(cts_file, 'r') as f:
-        return None, json.load(f)
+    return None, data
 
 
 def _lookup_commercial_address(prop_id: str) -> str:
     """Resolve a commercial asset's display address from commercial.json."""
     try:
-        commercial_path = config.get_input_path('commercial.json')
-        with open(commercial_path, 'r') as f:
-            data = json.load(f)
-        for record in data.get('commercial_assets', []):
+        for record in database.list_commercial(config.catchment_id):
             ca = record.get('CommercialAsset', {})
             if ca.get('Header', {}).get('PropertyID') == prop_id:
                 loc = ca.get('Location', {})
