@@ -20,10 +20,10 @@
 
 """Storm-animation endpoints, registered on ``propertyts_bp``."""
 
-import json
-
 from flask import jsonify, request
 
+import database
+from config import config
 from .. import propertyts_bp
 from ._helpers import STORM_HOURS, _build_animation_frames, _load_animation_context
 
@@ -42,13 +42,14 @@ def animate_storm(storm_id: str):
     ctx = _load_animation_context()
     if len(ctx) == 2:
         return ctx  # error response
-    pts_dir, gauge_lookup, gauge_readings = ctx
+    property_ids, gauge_lookup, gauge_readings = ctx
 
     # Collect all properties affected by this storm
     property_events = []
-    for pf in pts_dir.glob('PROP-*.json'):
-        with open(pf, 'r') as f:
-            pdata = json.load(f)
+    for pid in property_ids:
+        pdata = database.get_property_timeseries(config.catchment_id, pid)
+        if pdata is None:
+            continue
 
         for event in pdata.get('flood_events', []):
             if event.get('storm_id') == storm_id:
@@ -123,13 +124,14 @@ def animate_composite():
     ctx = _load_animation_context()
     if len(ctx) == 2:
         return ctx  # error response
-    pts_dir, gauge_lookup, gauge_readings = ctx
+    property_ids, gauge_lookup, gauge_readings = ctx
 
     # For each property, find worst storm event
     property_events = []
-    for pf in pts_dir.glob('PROP-*.json'):
-        with open(pf, 'r') as f:
-            pdata = json.load(f)
+    for pid in property_ids:
+        pdata = database.get_property_timeseries(config.catchment_id, pid)
+        if pdata is None:
+            continue
         events = pdata.get('flood_events', [])
         if not events:
             continue
