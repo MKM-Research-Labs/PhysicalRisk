@@ -72,14 +72,14 @@ class TestTrainAllStartError:
     """Lines 307-309: except Exception in train_all_classifiers."""
 
     def test_train_all_returns_500_on_setup_error(self, trading_client, monkeypatch):
-        """POST train-all returns 500 when config.get_classifiers_dir raises."""
+        """POST train-all returns 500 when the classifier data access raises."""
         import routes.trading.classifiers.batch_training as cl_mod
         cl_mod._batch_job = None  # ensure not "already running"
 
-        from config import config
+        import database
         monkeypatch.setattr(
-            config, "get_classifiers_dir",
-            lambda: (_ for _ in ()).throw(RuntimeError("disk error")),
+            database, "list_classifier_ids",
+            lambda c: (_ for _ in ()).throw(RuntimeError("disk error")),
         )
 
         resp = trading_client.post("/api/v1/trading/classifiers/train-all")

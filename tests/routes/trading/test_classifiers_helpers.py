@@ -35,33 +35,44 @@ from ._data import (
 class TestTimingsHelpers:
     """Unit tests for _load_timings, _save_timings, _avg_per_gauge_seconds."""
 
-    def test_load_timings_missing_file(self, tmp_path):
-        from routes.trading.classifiers import _load_timings
-        result = _load_timings(tmp_path)
-        assert result == {"runs": []}
+    def _bind(self, tmp_path, monkeypatch):
+        """Point the database file backend at tmp_path and return (catchment, cdir)."""
+        from config import config
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+        cdir = tmp_path / "classifiers"
+        cdir.mkdir(exist_ok=True)
+        return config.catchment_id, cdir
 
-    def test_load_timings_valid(self, tmp_path):
+    def test_load_timings_missing_file(self, tmp_path, monkeypatch):
         from routes.trading.classifiers import _load_timings
+        catchment, _ = self._bind(tmp_path, monkeypatch)
+        assert _load_timings(catchment) == {"runs": []}
+
+    def test_load_timings_valid(self, tmp_path, monkeypatch):
+        from routes.trading.classifiers import _load_timings
+        catchment, cdir = self._bind(tmp_path, monkeypatch)
         data = {"runs": [{"num_gauges": 5, "elapsed_seconds": 100}]}
-        (tmp_path / "classifier_timings.json").write_text(json.dumps(data))
+        (cdir / "classifier_timings.json").write_text(json.dumps(data))
 
-        result = _load_timings(tmp_path)
+        result = _load_timings(catchment)
         assert len(result["runs"]) == 1
         assert result["runs"][0]["num_gauges"] == 5
 
-    def test_load_timings_corrupt_json(self, tmp_path):
+    def test_load_timings_corrupt_json(self, tmp_path, monkeypatch):
         from routes.trading.classifiers import _load_timings
-        (tmp_path / "classifier_timings.json").write_text("not json{{{")
+        catchment, cdir = self._bind(tmp_path, monkeypatch)
+        (cdir / "classifier_timings.json").write_text("not json{{{")
 
-        result = _load_timings(tmp_path)
+        result = _load_timings(catchment)
         assert result == {"runs": []}
 
-    def test_save_timings_truncates_to_20(self, tmp_path):
+    def test_save_timings_truncates_to_20(self, tmp_path, monkeypatch):
         from routes.trading.classifiers import _save_timings
+        catchment, cdir = self._bind(tmp_path, monkeypatch)
         timings = {"runs": [{"i": i} for i in range(30)]}
-        _save_timings(tmp_path, timings)
+        _save_timings(catchment, timings)
 
-        with open(tmp_path / "classifier_timings.json") as f:
+        with open(cdir / "classifier_timings.json") as f:
             saved = json.load(f)
         assert len(saved["runs"]) == 20
         # Keeps the last 20 (indices 10-29)
@@ -112,9 +123,9 @@ class TestSummaryEdgeCases:
 
     def test_summary_error(self, trading_client, monkeypatch):
         """Internal error → 500."""
-        from config import config
-        monkeypatch.setattr(config, "get_classifiers_dir",
-                            lambda: (_ for _ in ()).throw(RuntimeError("oops")))
+        import database
+        monkeypatch.setattr(database, "get_classifier_training_summary",
+                            lambda c: (_ for _ in ()).throw(RuntimeError("oops")))
 
         resp = trading_client.get("/api/v1/trading/classifiers/summary")
         assert resp.status_code == 500

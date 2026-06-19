@@ -198,5 +198,21 @@ def test_classifiers(repo):
     database.save_classifier(CATCH, "GAUGE-1", b"\x00MODEL\x01")
     assert database.get_classifier(CATCH, "GAUGE-1") == b"\x00MODEL\x01"
     assert database.list_classifier_ids(CATCH) == ["GAUGE-1"]
+
+
+def test_classifier_training_metadata(repo):
+    # training summary document
+    assert database.get_classifier_training_summary(CATCH) is None
+    database.save_classifier_training_summary(CATCH, {"gauges": [{"gauge_id": "GAUGE-1"}]})
+    assert database.get_classifier_training_summary(CATCH)["gauges"][0]["gauge_id"] == "GAUGE-1"
+    database.delete_classifier_training_summary(CATCH)
+    assert database.get_classifier_training_summary(CATCH) is None
+
+    # timings document
+    assert database.get_classifier_timings(CATCH) is None
+    database.save_classifier_timings(CATCH, {"runs": [{"num_gauges": 3}]})
+    assert database.get_classifier_timings(CATCH) == {"runs": [{"num_gauges": 3}]}
+    database.delete_classifier_timings(CATCH)
+    assert database.get_classifier_timings(CATCH) is None
     database.delete_classifier(CATCH, "GAUGE-1")
     assert database.get_classifier(CATCH, "GAUGE-1") is None
