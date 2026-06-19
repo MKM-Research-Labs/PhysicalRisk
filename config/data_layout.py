@@ -99,6 +99,8 @@ PRS_DIR = "prs"
 # ── Classifiers (binary) ─────────────────────────────────────────────────────
 CLASSIFIERS_DIR = "classifiers"
 CLASSIFIER_FILENAME = "{key}.joblib"
+CLASSIFIER_TRAINING_SUMMARY_FILE = "classifiers/training_summary.json"
+CLASSIFIER_TIMINGS_FILE = "classifiers/classifier_timings.json"
 
 # ── Generic keyed-file naming ────────────────────────────────────────────────
 KEYED_FILENAME = "{key}.json"

@@ -42,3 +42,29 @@ def save_classifier(catchment, gauge_id, blob: bytes):   # -> @require("Func004"
 
 def delete_classifier(catchment, gauge_id):              # -> @require("Func004", "delete")
     active_backend().delete("classifier", catchment, gauge_id)
+
+
+# ── Classifier training metadata (summary + timings documents) ────────────────
+def get_classifier_training_summary(catchment):
+    try:
+        return active_backend().load("classifier_training_summary", catchment)
+    except (FileNotFoundError, KeyError):
+        return None
+
+def save_classifier_training_summary(catchment, payload):
+    active_backend().save("classifier_training_summary", catchment, payload)
+
+def delete_classifier_training_summary(catchment):
+    active_backend().delete("classifier_training_summary", catchment)
+
+def get_classifier_timings(catchment):
+    try:
+        return active_backend().load("classifier_timings", catchment)
+    except (FileNotFoundError, KeyError):
+        return None
+
+def save_classifier_timings(catchment, payload):
+    active_backend().save("classifier_timings", catchment, payload)
+
+def delete_classifier_timings(catchment):
+    active_backend().delete("classifier_timings", catchment)

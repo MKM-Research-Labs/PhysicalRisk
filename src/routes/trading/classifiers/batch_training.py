@@ -20,14 +20,13 @@
 
 """Batch classifier training routes and background worker."""
 
-import json
 import logging
 import threading
 import time
-from pathlib import Path
 
 from flask import jsonify
 
+import database
 from config import config
 from routes.trading import trading_bp
 from routes.trading._admin_auth import require_admin_password
@@ -39,27 +38,19 @@ logger = logging.getLogger(__name__)
 _batch_job = None      # dict or None
 _batch_lock = threading.Lock()
 
-_TIMINGS_FILENAME = "classifier_timings.json"
 
-
-def _load_timings(stressm_dir: Path) -> dict:
+def _load_timings(catchment) -> dict:
     """Load historical classifier training timings."""
-    path = stressm_dir / _TIMINGS_FILENAME
-    if path.exists():
-        try:
-            with open(path) as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {"runs": []}
+    try:
+        return database.get_classifier_timings(catchment) or {"runs": []}
+    except Exception:
+        return {"runs": []}
 
 
-def _save_timings(stressm_dir: Path, timings: dict) -> None:
+def _save_timings(catchment, timings: dict) -> None:
     """Save classifier training timings (keep last 20 runs)."""
     timings["runs"] = timings["runs"][-20:]
-    path = stressm_dir / _TIMINGS_FILENAME
-    with open(path, "w") as f:
-        json.dump(timings, f, indent=2)
+    database.save_classifier_timings(catchment, timings)
 
 
 def _avg_per_gauge_seconds(timings: dict) -> float:
@@ -88,15 +79,16 @@ def train_all_classifiers():
             })
 
     try:
-        stressm_dir = config.get_classifiers_dir()
+        catchment = config.catchment_id
         gauge_locations = _load_gauge_locations()
+        trained_ids = set(database.list_classifier_ids(catchment))
 
         # Find untrained gauges (skip synthetic — background-only for PRS)
         untrained = []
         for gid in gauge_locations:
             if gid.startswith('SYNTH-'):
                 continue
-            if not (stressm_dir / f"{gid}.joblib").exists():
+            if gid not in trained_ids:
                 untrained.append(gid)
 
         if not untrained:
@@ -108,7 +100,7 @@ def train_all_classifiers():
             })
 
         # Load historical timings for ETA
-        timings = _load_timings(stressm_dir)
+        timings = _load_timings(catchment)
         avg_per_gauge = _avg_per_gauge_seconds(timings)
 
         with _batch_lock:
@@ -151,7 +143,7 @@ def _run_batch_training(gauge_ids: list):
 
     from routes.trading.stress.training import _train_single_gauge
 
-    stressm_dir = config.get_classifiers_dir()
+    catchment = config.catchment_id
     t_start = time.time()
 
     for i, gid in enumerate(gauge_ids):
@@ -166,13 +158,11 @@ def _run_batch_training(gauge_ids: list):
             _train_single_gauge(gid)
             gauge_elapsed = time.time() - t_gauge
 
-            # Read back metrics from training_summary.json
+            # Read back metrics from the training summary
             gauge_metrics = {}
             try:
-                summary_path = stressm_dir / "training_summary.json"
-                if summary_path.exists():
-                    with open(summary_path) as _f:
-                        _summary = json.load(_f)
+                _summary = database.get_classifier_training_summary(catchment)
+                if _summary:
                     for _g in _summary.get("gauges", []):
                         if _g.get("gauge_id") == gid:
                             gauge_metrics = _g.get("metrics", {})
@@ -214,7 +204,7 @@ def _run_batch_training(gauge_ids: list):
         results = list(_batch_job.get("results", []))
 
     # Save timing for future ETA estimates
-    timings = _load_timings(stressm_dir)
+    timings = _load_timings(catchment)
     num_trained = sum(1 for r in results if r["status"] == "trained")
     timings["runs"].append({
         "num_gauges": len(gauge_ids),
@@ -222,7 +212,7 @@ def _run_batch_training(gauge_ids: list):
         "elapsed_seconds": round(elapsed, 2),
         "avg_per_gauge_seconds": round(elapsed / max(len(gauge_ids), 1), 2),
     })
-    _save_timings(stressm_dir, timings)
+    _save_timings(catchment, timings)
 
     with _batch_lock:
         if _batch_job is not None:

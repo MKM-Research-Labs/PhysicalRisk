@@ -231,9 +231,9 @@ class TestClassifiersReadiness:
 
     def test_readiness_error(self, trading_client, monkeypatch):
         """Internal error → 500 with error status."""
-        from config import config
-        monkeypatch.setattr(config, "get_classifiers_dir",
-                            lambda: (_ for _ in ()).throw(RuntimeError("boom")))
+        import database
+        monkeypatch.setattr(database, "list_classifier_ids",
+                            lambda c: (_ for _ in ()).throw(RuntimeError("boom")))
 
         resp = trading_client.get("/api/v1/trading/classifiers/readiness")
         assert resp.status_code == 500
@@ -273,9 +273,9 @@ class TestClearAllClassifiers:
 
     def test_clear_error(self, trading_client, monkeypatch):
         """Internal error → 500."""
-        from config import config
-        monkeypatch.setattr(config, "get_classifiers_dir",
-                            lambda: (_ for _ in ()).throw(RuntimeError("disk")))
+        import database
+        monkeypatch.setattr(database, "list_classifier_ids",
+                            lambda c: (_ for _ in ()).throw(RuntimeError("disk")))
 
         resp = trading_client.post("/api/v1/trading/classifiers/clear-all")
         assert resp.status_code == 500

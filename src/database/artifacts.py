@@ -88,6 +88,10 @@ _REGISTRY: dict[str, Spec] = {
     # Binary model artifacts (blob, keyed)
     "classifier": Spec(BLOB, _const(dl.CLASSIFIERS_DIR),
                        name_pattern=dl.CLASSIFIER_FILENAME),
+
+    # Classifier training metadata (documents alongside the model blobs)
+    "classifier_training_summary": Spec(DOCUMENT, _const(dl.CLASSIFIER_TRAINING_SUMMARY_FILE)),
+    "classifier_timings": Spec(DOCUMENT, _const(dl.CLASSIFIER_TIMINGS_FILE)),
 }
 
 
