@@ -20,10 +20,11 @@
 
 """Per-gauge file loading and cache management for TimeseriesLoader."""
 
-import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from database import read_json_document, iter_document_names
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,11 @@ class _LoadingMixin:
         if gauge_id in self._cache:
             return self._cache[gauge_id]
 
-        gauge_file = self._get_gaugets_dir() / f"{gauge_id}.json"
-        if not gauge_file.exists():
-            logger.warning(f"Gauge file not found: {gauge_file}")
+        data = read_json_document(self._get_gaugets_dir(), f"{gauge_id}.json")
+        if data is None:
+            logger.warning(
+                f"Gauge file not found: {self._get_gaugets_dir() / f'{gauge_id}.json'}")
             return None
-
-        with open(gauge_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
 
         self._cache[gauge_id] = data
         return data
@@ -61,11 +60,10 @@ class _LoadingMixin:
             logger.warning(f"Gaugets directory not found: {gaugets_dir}")
             return {}
 
-        for gauge_file in sorted(gaugets_dir.glob("*.json")):
-            gauge_id = gauge_file.stem
+        for name in iter_document_names(gaugets_dir):
+            gauge_id = Path(name).stem
             if gauge_id not in self._cache:
-                with open(gauge_file, 'r', encoding='utf-8') as f:
-                    self._cache[gauge_id] = json.load(f)
+                self._cache[gauge_id] = read_json_document(gaugets_dir, name)
 
         self._cache_valid = True
         logger.info(f"Loaded {len(self._cache)} gauge files from {gaugets_dir}")
