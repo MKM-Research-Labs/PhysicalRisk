@@ -20,20 +20,24 @@
 
 """Shared data-loading helpers for the property hazard-curve routes."""
 
-import json
-
 from flask import jsonify, request
 
 from config import config
+from config.data_layout import PROPERTY_HAZARD_FILES
+
+import database
+
+# filename -> scenario mode (inverse of the config data-layout map)
+_FILE_TO_MODE = {fname: mode for mode, fname in PROPERTY_HAZARD_FILES.items()}
 
 
 def _get_hazard_data(filename: str = 'propertyhc.json') -> dict:
-    """Load property hazard curves data."""
-    path = config.get_input_dir() / filename
-    if not path.exists():
+    """Load property hazard curves for the scenario mapped to *filename*, via the
+    database package (coding rule R6). Unknown filename -> None."""
+    mode = _FILE_TO_MODE.get(filename)
+    if mode is None:
         return None
-    with open(path, 'r') as f:
-        return json.load(f)
+    return database.get_property_hazard_curves(config.catchment_id, mode)
 
 
 def _load_or_404(filename: str = 'propertyhc.json', label: str = 'Property hazard curves'):
