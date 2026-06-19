@@ -39,6 +39,10 @@ def iter_property_timeseries_ids(catchment, mode=DEFAULT_MODE) -> Iterator[str]:
 def save_property_timeseries(catchment, property_id, payload, mode=DEFAULT_MODE):
     active_backend().save("property_timeseries", catchment, payload, property_id, mode=mode)
 
+def property_timeseries_exists(catchment, mode=DEFAULT_MODE) -> bool:
+    """True if the property-timeseries collection has been generated (even if empty)."""
+    return active_backend().has_collection("property_timeseries", catchment, mode=mode)
+
 def get_portfolio_flood_summary(catchment, mode=DEFAULT_MODE):
     return load_or("portfolio_flood_summary", catchment, mode=mode)
 

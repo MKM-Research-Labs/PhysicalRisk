@@ -30,10 +30,10 @@ GET /propertyts/sequence/<sequence_id>/portfolio-impact
     elevated between storms in a 168h window, so damage = max depth reached).
 """
 
-import json
-
 from flask import jsonify
 
+import database
+from config import config
 from models.floodrisk.depth_damage import is_prs_flood
 
 from .blueprint import propertyts_bp
@@ -56,7 +56,7 @@ def portfolio_impact(storm_id: str):
     Joins property flood data with property valuations, mortgage data,
     and PRS derivative payouts for a complete REIT risk view.
     """
-    early, pts_dir = _check_options_and_dir()
+    early, prop_ids = _check_options_and_dir()
     if early is not None:
         return early
 
@@ -66,11 +66,12 @@ def portfolio_impact(storm_id: str):
 
     # Scan all property flood files for this storm
     properties = []
-    for pf in pts_dir.glob('PROP-*.json'):
-        with open(pf, 'r') as f:
-            pfdata = json.load(f)
+    for pid in prop_ids:
+        pfdata = database.get_property_timeseries(config.catchment_id, pid)
+        if pfdata is None:
+            continue
 
-        prop_id = pfdata.get('property_id', pf.stem)
+        prop_id = pfdata.get('property_id', pid)
         for event in pfdata.get('flood_events', []):
             if event.get('storm_id') != storm_id:
                 continue
@@ -119,7 +120,7 @@ def sequence_portfolio_impact(sequence_id: str):
     reached (0.7m). This endpoint selects the worst flood event per property
     across all storms in the sequence.
     """
-    early, pts_dir = _check_options_and_dir()
+    early, prop_ids = _check_options_and_dir()
     if early is not None:
         return early
 
@@ -131,11 +132,12 @@ def sequence_portfolio_impact(sequence_id: str):
     properties = []
     storms_in_sequence = set()
 
-    for pf in pts_dir.glob('PROP-*.json'):
-        with open(pf, 'r') as f:
-            pfdata = json.load(f)
+    for pid in prop_ids:
+        pfdata = database.get_property_timeseries(config.catchment_id, pid)
+        if pfdata is None:
+            continue
 
-        prop_id = pfdata.get('property_id', pf.stem)
+        prop_id = pfdata.get('property_id', pid)
         if prop_id not in prop_values:
             continue
 
