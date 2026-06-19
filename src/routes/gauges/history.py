@@ -21,9 +21,11 @@
 """Gauge history, timeseries, and statistics endpoints."""
 
 import logging
+from json import JSONDecodeError
 
 from flask import jsonify, request
 
+import database
 from config import config
 from . import gauges_bp
 from ._helpers import _get_registry
@@ -34,13 +36,12 @@ logger = logging.getLogger(__name__)
 @gauges_bp.route('/gauges/history/summary', methods=['GET'])
 def get_gauge_history_summary():
     """Return count of gauges with pre-generated historical daily data."""
-    import pathlib
-    gaugehd_dir = pathlib.Path(config.get_gaugehd_dir())
-    files = list(gaugehd_dir.glob('gauge_GAUGE-*.json')) if gaugehd_dir.exists() else []
+    ids = [g for g in database.iter_gauge_history_ids(config.catchment_id)
+           if g.startswith('GAUGE-')]
     return jsonify({
         'status': 'success',
-        'count': len(files),
-        'gauges': len(files),
+        'count': len(ids),
+        'gauges': len(ids),
     })
 
 
@@ -55,20 +56,14 @@ def get_gauge_history(gauge_id: str):
     Returns gauge metadata, statistics, flood stages, and daily observations
     from the pre-generated gaugehd JSON files.
     """
-    import json as json_mod
-
-    gaugehd_dir = config.get_gaugehd_dir()
-    history_file = gaugehd_dir / f"gauge_{gauge_id}_hd.json"
-
-    if not history_file.exists():
-        return jsonify({
-            'status': 'error',
-            'message': f'No historical data for gauge {gauge_id}'
-        }), 404
-
     try:
-        with open(history_file, 'r') as f:
-            data = json_mod.load(f)
+        data = database.get_gauge_history(config.catchment_id, gauge_id)
+
+        if data is None:
+            return jsonify({
+                'status': 'error',
+                'message': f'No historical data for gauge {gauge_id}'
+            }), 404
 
         # Filter daily observations by days param
         days = request.args.get('days', type=int)
@@ -87,7 +82,7 @@ def get_gauge_history(gauge_id: str):
             'daily_observations': observations
         })
 
-    except (FileNotFoundError, json_mod.JSONDecodeError) as e:
+    except (FileNotFoundError, JSONDecodeError) as e:
         logger.error("Error reading gauge history for %s: %s", gauge_id, e)
         return jsonify({'status': 'error', 'message': 'Failed to read gauge history'}), 500
     except Exception:

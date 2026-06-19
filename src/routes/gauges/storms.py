@@ -20,11 +20,11 @@
 
 """Gauge storm scenario endpoint."""
 
-import json as json_mod
 import logging
 
 from flask import jsonify
 
+import database
 from config import config
 from . import gauges_bp
 from ._helpers import _get_registry
@@ -59,14 +59,12 @@ def get_gauge_storms(gauge_id: str):
         # Build storm→sequence mapping and aggregate to sequence-level peaks.
         # PRS pricing uses sequences (not individual storms) as the risk unit,
         # so the distribution panel must show one peak per sequence.
-        sequences_path = config.get_input_path('storm_sequences.json')
         num_sequences = len(storm_responses)  # fallback
         sequence_responses = storm_responses  # fallback
 
-        if sequences_path.exists():
-            try:
-                with open(sequences_path, 'r') as f:
-                    sdata = json_mod.load(f)
+        try:
+            sdata = database.get_storm_sequences(config.catchment_id)
+            if sdata:
                 num_sequences = sdata.get('num_sequences',
                                           len(sdata.get('sequences', [])))
 
@@ -102,20 +100,16 @@ def get_gauge_storms(gauge_id: str):
                             'total_precipitation_mm', 0)
                     if not resp.get('name'):
                         resp['name'] = meta.get('name', '')
-            except Exception:
-                pass
+        except Exception:
+            pass
 
         # Load stress storm names (Delta-181, Nu-56, etc.)
         storm_names = {}
         try:
-            ss_index = config.get_input_dir() / 'stress_storms' / '_index.json'
-            if ss_index.exists():
-                with open(ss_index, 'r') as f:
-                    ss_data = json_mod.load(f)
-                for s in ss_data.get('storms', []):
-                    sid = s.get('storm_id', '')
-                    if sid and s.get('name'):
-                        storm_names[sid] = s['name']
+            for s in database.list_stress_storms(config.catchment_id):
+                sid = s.get('storm_id', '')
+                if sid and s.get('name'):
+                    storm_names[sid] = s['name']
         except Exception:
             pass
 
@@ -128,24 +122,24 @@ def get_gauge_storms(gauge_id: str):
             resp.setdefault('effective_precipitation_mm', 0)
             resp.setdefault('gauges_severe', 0)
 
-        # Compute gauges_severe from per-gauge responses
-        gaugets_dir = config.get_gaugets_dir()
-        if gaugets_dir.exists():
-            severe_counts = {}
-            for gf in gaugets_dir.glob('GAUGE-*.json'):
-                try:
-                    with open(gf, 'r') as f:
-                        gdata = json_mod.load(f)
-                    for gr in gdata.get('storm_responses', {}).get('responses', []):
-                        if gr.get('exceeded_severe'):
-                            sid = gr.get('storm_id', '')
-                            severe_counts[sid] = severe_counts.get(sid, 0) + 1
-                except Exception:
-                    continue
-            for resp in sequence_responses:
-                sid = resp.get('storm_id', '')
-                if resp.get('gauges_severe', 0) == 0 and sid in severe_counts:
-                    resp['gauges_severe'] = severe_counts[sid]
+        # Compute gauges_severe from per-gauge responses (real GAUGE-* only,
+        # excluding synthetic gauges, matching the previous glob behaviour)
+        severe_counts = {}
+        for gid in database.iter_gauge_timeseries_ids(config.catchment_id):
+            if not gid.startswith('GAUGE-'):
+                continue
+            try:
+                gdata = database.get_gauge_timeseries(config.catchment_id, gid)
+                for gr in (gdata or {}).get('storm_responses', {}).get('responses', []):
+                    if gr.get('exceeded_severe'):
+                        sid = gr.get('storm_id', '')
+                        severe_counts[sid] = severe_counts.get(sid, 0) + 1
+            except Exception:
+                continue
+        for resp in sequence_responses:
+            sid = resp.get('storm_id', '')
+            if resp.get('gauges_severe', 0) == 0 and sid in severe_counts:
+                resp['gauges_severe'] = severe_counts[sid]
 
         return jsonify({
             'status': 'success',

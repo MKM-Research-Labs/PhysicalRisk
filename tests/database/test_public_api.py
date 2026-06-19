@@ -112,6 +112,7 @@ def test_timeseries(repo):
     assert database.get_gauge_timeseries(CATCH, "GAUGE-1") == {"y": 2}
     assert list(database.iter_gauge_timeseries_ids(CATCH)) == ["GAUGE-1"]
     assert database.get_gauge_history(CATCH, "GAUGE-1") == {"z": 3}
+    assert list(database.iter_gauge_history_ids(CATCH)) == ["GAUGE-1"]
     assert database.get_portfolio_flood_summary(CATCH) is None
 
 
