@@ -25,9 +25,9 @@ Used by the per-storm and per-sequence portfolio-impact endpoints to
 attach PRS derivative payouts to flooded properties.
 """
 
-import json
 import logging
 
+import database
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -39,15 +39,15 @@ def _load_all_prs_trades():
     Returns a list of flat dicts with swap_id, gauge_id, property_id,
     notional, is_payer, trigger, spread_bps, counterparty, trade_type.
     """
-    prs_dir = config.get_reports_dir('prs')
-    if not prs_dir.exists():
-        return []
-
     trades = []
-    for f in sorted(prs_dir.glob('*PRS-*.json')):
+    catchment = config.catchment_id
+    for swap_id in database.iter_prs_trade_ids(catchment):
+        if 'PRS-' not in swap_id:
+            continue
         try:
-            with open(f) as fh:
-                raw = json.load(fh)
+            raw = database.get_prs_trade(catchment, swap_id)
+            if raw is None:
+                continue
             ps = raw.get('PhysicalSwap', {})
             header = ps.get('Header', {})
             leg = ps.get('LegData', {})
@@ -70,7 +70,7 @@ def _load_all_prs_trades():
                 'property_id': prop_set.get('PropertyID', ''),
             })
         except Exception as e:
-            logger.warning('Skipping PRS file %s: %s', f.name, e)
+            logger.warning('Skipping PRS file %s: %s', f'{swap_id}.json', e)
     return trades
 
 
