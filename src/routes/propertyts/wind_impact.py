@@ -37,6 +37,7 @@ from typing import Dict, List, Optional
 
 from flask import jsonify
 
+import database
 from config import config
 from port.storm_typhoon_pairing import typhoon_for_storm
 
@@ -54,14 +55,12 @@ def _typhoon_damage_path(event_id: str) -> Path:
 def _load_commercial_lookup() -> Dict[str, Dict]:
     """Return commercial_id → {value, address, commercial_type} from commercial.json."""
     out: Dict[str, Dict] = {}
-    cpath = config.get_input_path('commercial.json')
-    if not cpath.exists():
-        return out
     try:
-        with open(cpath, 'r') as f:
-            cdata = json.load(f)
+        cdata = database.get_commercial_portfolio(config.catchment_id)
     except (OSError, json.JSONDecodeError) as exc:
         logger.warning('wind_impact: cannot load commercial.json (%s)', exc)
+        return out
+    if cdata is None:
         return out
     for c in cdata.get('commercials', []) or cdata.get('properties', []):
         ca = c.get('CommercialAsset') or c
@@ -86,10 +85,11 @@ def _load_property_address_lookup() -> Dict[str, Dict]:
     values come from :func:`_load_prop_values` separately."""
     out: Dict[str, Dict] = {}
     try:
-        with open(config.get_input_path('property.json'), 'r') as f:
-            pdata = json.load(f)
+        pdata = database.get_property_portfolio(config.catchment_id)
     except (OSError, json.JSONDecodeError) as exc:
         logger.warning('wind_impact: cannot load property.json (%s)', exc)
+        return out
+    if pdata is None:
         return out
     for p in pdata.get('properties', []):
         ph = p.get('PropertyHeader', {})
@@ -175,20 +175,18 @@ def wind_impact(storm_id: str):
         })
 
     event_id = link['event_id']
-    damage_path = _typhoon_damage_path(event_id)
-    if not damage_path.exists():
-        return jsonify({
-            'status': 'error',
-            'message': f'Typhoon damage file missing for {event_id}',
-        }), 404
     try:
-        with open(damage_path, 'r') as f:
-            damage_data = json.load(f)
+        damage_data = database.get_typhoon_event(config.catchment_id, event_id)
     except (OSError, json.JSONDecodeError) as exc:
         return jsonify({
             'status': 'error',
             'message': f'Could not read damage file: {exc}',
         }), 500
+    if damage_data is None:
+        return jsonify({
+            'status': 'error',
+            'message': f'Typhoon damage file missing for {event_id}',
+        }), 404
 
     prop_values = _load_prop_values()
     prop_meta = _load_property_address_lookup()
