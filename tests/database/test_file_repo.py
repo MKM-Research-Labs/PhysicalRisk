@@ -38,6 +38,33 @@ def test_document_round_trip_and_layout(tmp_path):
     assert repo.load("gauge", "thames") == [{"id": "GAUGE-1"}, {"id": "GAUGE-2"}]
 
 
+def test_save_serializes_datetime_and_numpy(tmp_path):
+    """Document writes accept datetime + numpy values (mirrors DateTimeEncoder),
+    so generator payloads no longer need to pass their own encoder."""
+    import numpy as np
+    from datetime import datetime
+
+    repo = FileRepository(tmp_path)
+    repo.save("gauge", "thames", {
+        "ts": datetime(2026, 6, 19, 12, 30, 0),
+        "count": np.int64(7),
+        "level": np.float64(3.5),
+        "series": np.array([1, 2, 3]),
+    })
+    out = repo.load("gauge", "thames")
+    assert out["ts"] == "2026-06-19T12:30:00"
+    assert out["count"] == 7 and isinstance(out["count"], int)
+    assert out["level"] == 3.5 and isinstance(out["level"], float)
+    assert out["series"] == [1, 2, 3]
+
+
+def test_save_rejects_unserializable(tmp_path):
+    """A genuinely unserializable value still raises TypeError, as plain json would."""
+    repo = FileRepository(tmp_path)
+    with pytest.raises(TypeError):
+        repo.save("gauge", "thames", {"bad": object()})
+
+
 def test_nested_document_path(tmp_path):
     repo = FileRepository(tmp_path)
     repo.save("market_state", "thames", {"bid": 1})

@@ -39,6 +39,7 @@ from typing import Any, Callable, Iterator
 from config.data_layout import DEFAULT_MODE
 
 from . import artifacts
+from ._serialize import dumps
 from .base import Repository
 
 
@@ -92,7 +93,7 @@ class FileRepository(Repository):
         if sp.kind == artifacts.BLOB:
             p.write_bytes(payload)
         else:
-            p.write_text(json.dumps(payload, indent=2))
+            p.write_text(dumps(payload))
 
     def delete(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE) -> None:
         self._file(artifact, catchment, key, mode).unlink(missing_ok=True)
