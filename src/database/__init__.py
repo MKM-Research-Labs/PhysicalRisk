@@ -71,6 +71,7 @@ from .trading import (
 from .classifiers import (
     list_classifier_ids, get_classifier, save_classifier, delete_classifier,
 )
+from .documents import read_json_document, iter_document_names
 
 __all__ = [
     # backends & lifecycle
@@ -105,4 +106,6 @@ __all__ = [
     "list_eod_snapshots", "get_eod_snapshot", "save_eod_snapshot",
     # classifiers
     "list_classifier_ids", "get_classifier", "save_classifier", "delete_classifier",
+    # low-level document I/O (legacy loader layer)
+    "read_json_document", "iter_document_names",
 ]
