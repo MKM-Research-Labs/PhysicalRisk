@@ -84,7 +84,7 @@ def pts_env_with_prs(tmp_path, monkeypatch):
     gaugets_dir.mkdir()
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
-    prs_dir = output_dir / 'prs'
+    prs_dir = tmp_path / 'prs'  # database resolves prs_trade under input_dir/prs
     prs_dir.mkdir()
 
     # Property flood file — synthetic gauge first, then real gauge

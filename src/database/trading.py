@@ -37,6 +37,11 @@ def list_prs_trades(catchment) -> list:
     repo = active_backend()
     return [repo.load("prs_trade", catchment, k) for k in repo.iter_keys("prs_trade", catchment)]
 
+def iter_prs_trade_ids(catchment):
+    """Swap ids of every PRS trade. Lets callers load each defensively (skip a
+    corrupt record) rather than eagerly as :func:`list_prs_trades` does."""
+    return active_backend().iter_keys("prs_trade", catchment)
+
 def get_prs_trade(catchment, swap_id):
     return load_or("prs_trade", catchment, swap_id)
 
