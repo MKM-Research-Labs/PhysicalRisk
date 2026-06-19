@@ -70,7 +70,7 @@ from .trading import (
     list_prs_trades, iter_prs_trade_ids, get_prs_trade, commit_prs_trade, save_prs_trade,
     get_trade_marks, save_trade_marks, set_trade_status,
     get_market_state, save_market_state,
-    list_eod_snapshots, get_eod_snapshot, save_eod_snapshot,
+    list_eod_snapshots, iter_eod_snapshots, get_eod_snapshot, save_eod_snapshot,
 )
 from .classifiers import (
     list_classifier_ids, get_classifier, save_classifier, delete_classifier,
@@ -113,7 +113,7 @@ __all__ = [
     "save_prs_trade",
     "get_trade_marks", "save_trade_marks", "set_trade_status",
     "get_market_state", "save_market_state",
-    "list_eod_snapshots", "get_eod_snapshot", "save_eod_snapshot",
+    "list_eod_snapshots", "iter_eod_snapshots", "get_eod_snapshot", "save_eod_snapshot",
     # classifiers
     "list_classifier_ids", "get_classifier", "save_classifier", "delete_classifier",
     # low-level document I/O (legacy loader layer)

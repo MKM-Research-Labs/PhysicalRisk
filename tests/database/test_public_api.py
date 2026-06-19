@@ -189,6 +189,7 @@ def test_trading_lifecycle(repo):
     database.save_eod_snapshot(CATCH, "2026-01-15", {"pnl": 42})
     assert database.get_eod_snapshot(CATCH, "2026-01-15")["pnl"] == 42
     assert list(database.list_eod_snapshots(CATCH)) == ["EOD-20260115"]
+    assert database.iter_eod_snapshots(CATCH) == [{"pnl": 42}]
 
 
 def test_classifiers(repo):

@@ -79,6 +79,12 @@ def save_market_state(catchment, state):
 def list_eod_snapshots(catchment) -> list[str]:
     return list(active_backend().iter_keys("eod_snapshot", catchment))
 
+def iter_eod_snapshots(catchment) -> list:
+    """All EOD snapshot documents, in chronological (sorted-key) order."""
+    repo = active_backend()
+    return [repo.load("eod_snapshot", catchment, k)
+            for k in repo.iter_keys("eod_snapshot", catchment)]
+
 def get_eod_snapshot(catchment, eod_date):
     return load_or("eod_snapshot", catchment, _eod_key(eod_date))
 
