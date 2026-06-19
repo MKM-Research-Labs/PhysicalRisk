@@ -18,13 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Autouse fixture binding the file-backed data backend for every test.
+"""Autouse fixture binding the data backend for every test.
 
 As callers migrate onto the ``database`` package (coding rule R6), they need a
 backend configured. This binds the config-wired file backend before each test
-(the same one ``create_app`` uses), so both full-app and minimal-app tests work.
-Tests that need a different backend (e.g. the database suite) override it and may
-reset to ``None``; this fixture re-binds for the next test.
+(resolving the same real paths ``create_app`` uses, so read-path tests work) —
+but **with writes to the real ``data/`` tree refused** (``_WriteGuardedFileRepository``).
+A test that needs to write must bind a scratch backend (``tmp_catchment`` /
+``memory_catchment``) or monkeypatch ``config`` paths to a tmp dir first; otherwise
+the guard raises rather than letting a migrated writer silently clobber real
+portfolio data on the shared SSD. Tests that need a different backend (e.g. the
+database suite) override this and may reset to ``None``; the fixture re-binds for
+the next test.
 """
 
 import pytest
@@ -32,6 +37,6 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _database_file_backend():
-    from database.config_binding import use_file_backend
-    use_file_backend()
+    from db_helpers import use_guarded_file_backend
+    use_guarded_file_backend()
     yield
