@@ -22,7 +22,10 @@
 
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from database import iter_document_names
 
 logger = logging.getLogger(__name__)
 
@@ -159,9 +162,7 @@ class _QueriesMixin:
     def get_available_gauge_ids(self) -> List[str]:
         """Get list of all gauge IDs from filenames in gaugets/ directory."""
         gaugets_dir = self._get_gaugets_dir()
-        if not gaugets_dir.exists():
-            return []
-        return sorted([f.stem for f in gaugets_dir.glob("*.json")])
+        return [Path(name).stem for name in iter_document_names(gaugets_dir)]
 
     def get_storm_responses(self, gauge_id: str) -> List[Dict[str, Any]]:
         """Get storm response data for a specific gauge."""
@@ -209,7 +210,7 @@ class _QueriesMixin:
         """Get status information about the loader."""
         gaugets_dir = self._get_gaugets_dir()
         exists = gaugets_dir.exists()
-        gauge_files = list(gaugets_dir.glob("*.json")) if exists else []
+        gauge_files = list(iter_document_names(gaugets_dir))
         return {
             'entity_name': self.ENTITY_NAME,
             'path': str(gaugets_dir),
