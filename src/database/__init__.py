@@ -63,6 +63,7 @@ from .storms import (
     list_stress_storms, get_stress_storm, save_stress_storm,
     get_stress_storm_index, get_legacy_stress_storms,
     list_sequence_gauges, get_sequence_gauge, save_sequence_gauge,
+    typhoon_events_exist, get_typhoon_event, iter_typhoon_event_ids, save_typhoon_event,
     get_fire_results, save_fire_results, get_seismic_results, save_seismic_results,
 )
 from .trading import (
@@ -104,6 +105,8 @@ __all__ = [
     "list_stress_storms", "get_stress_storm", "save_stress_storm",
     "get_stress_storm_index", "get_legacy_stress_storms",
     "list_sequence_gauges", "get_sequence_gauge", "save_sequence_gauge",
+    "typhoon_events_exist", "get_typhoon_event", "iter_typhoon_event_ids",
+    "save_typhoon_event",
     "get_fire_results", "save_fire_results", "get_seismic_results", "save_seismic_results",
     # trading
     "list_prs_trades", "get_prs_trade", "commit_prs_trade",
