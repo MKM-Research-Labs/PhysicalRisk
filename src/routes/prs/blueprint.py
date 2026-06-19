@@ -20,7 +20,6 @@
 
 """PRS Blueprint and route handlers."""
 
-import json
 import logging
 import uuid
 from datetime import datetime, timedelta
@@ -30,6 +29,7 @@ from flask import Blueprint, jsonify, request, send_file
 
 logger = logging.getLogger(__name__)
 
+import database
 from config import config
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
@@ -163,10 +163,8 @@ def commit_prs_trade():
             }
             # Look up property details from property.json
             try:
-                prop_path = config.get_input_dir() / "property.json"
-                if prop_path.exists():
-                    with open(prop_path) as pf:
-                        prop_data = json.load(pf)
+                prop_data = database.get_property_portfolio(config.catchment_id)
+                if prop_data:
                     for p in prop_data.get("properties", []):
                         hdr = p.get("PropertyHeader", {}).get("Header", {})
                         if hdr.get("PropertyID") == property_id:
@@ -198,8 +196,7 @@ def commit_prs_trade():
         # Save trade JSON
         prs_dir = _get_prs_output_dir()
         json_path = prs_dir / f"{swap_id}.json"
-        with open(json_path, 'w') as f:
-            json.dump(cdm_record, f, indent=2)
+        database.save_prs_trade(config.catchment_id, swap_id, cdm_record)
 
         # Handle close-out: mark original trade as closed
         close_out_of = data.get("close_out_of")
@@ -210,8 +207,7 @@ def commit_prs_trade():
             pnl_eng.close_trade(close_out_of, spread_bps)
             cdm_record["PhysicalSwap"]["Header"]["CloseOutOf"] = close_out_of
             # Re-save with close-out reference
-            with open(json_path, 'w') as f:
-                json.dump(cdm_record, f, indent=2)
+            database.save_prs_trade(config.catchment_id, swap_id, cdm_record)
 
         # Generate PDF confirmation
         pdf_path = _generate_trade_pdf(cdm_record, data.get("cashflows", []), prs_dir)
@@ -241,11 +237,13 @@ def commit_prs_trade():
 def list_prs_trades():
     """List all committed PRS trades."""
     try:
-        prs_dir = _get_prs_output_dir()
         trades = []
-        for f in sorted(prs_dir.glob("PRS-*.json")):
-            with open(f) as fh:
-                trade = json.load(fh)
+        for swap_id in database.iter_prs_trade_ids(config.catchment_id):
+            if not swap_id.startswith("PRS-"):
+                continue
+            trade = database.get_prs_trade(config.catchment_id, swap_id)
+            if trade is None:
+                continue
             header = trade.get("PhysicalSwap", {}).get("Header", {})
             pricing = trade.get("PhysicalSwap", {}).get("Pricing", {})
             leg = trade.get("PhysicalSwap", {}).get("LegData", {})

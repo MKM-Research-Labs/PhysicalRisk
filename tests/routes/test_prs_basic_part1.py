@@ -40,10 +40,10 @@ def prs_env(tmp_path, monkeypatch):
     """Isolated PRS environment with a writable output directory."""
     from config import config
 
-    prs_dir = tmp_path / "reports" / "prs"
+    prs_dir = tmp_path / "prs"
     prs_dir.mkdir(parents=True)
 
-    monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+    monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
     monkeypatch.setattr(config, "catchment_id", "thames")
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
@@ -90,12 +90,12 @@ class TestGetTradePDF:
         """If the PDF exists, it should be served with 200."""
         from config import config
 
-        prs_dir = tmp_path / "reports" / "prs"
+        prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
         pdf_file = prs_dir / "PRS-TESTFILE.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
 
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         from server import create_app
@@ -117,13 +117,14 @@ class TestListTradesError:
     def test_list_trades_handles_corrupt_json(self, tmp_path, monkeypatch):
         """list_prs_trades catches exceptions from corrupt JSON files."""
         from config import config
-        prs_dir = tmp_path / "reports" / "prs"
+        prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
 
         # Write a corrupt JSON file
         (prs_dir / "PRS-BAD00001.json").write_text("{corrupt")
 
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         from server import create_app
@@ -141,7 +142,7 @@ class TestListTradesWithFiles:
     def test_list_returns_trades_from_json_files(self, tmp_path, monkeypatch):
         """list_prs_trades reads PRS-*.json files and returns them."""
         from config import config
-        prs_dir = tmp_path / "reports" / "prs"
+        prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
 
         trade = {
@@ -160,8 +161,11 @@ class TestListTradesWithFiles:
         }
         import json as _json
         (prs_dir / "PRS-ABCD1234.json").write_text(_json.dumps(trade))
+        # Stray non-PRS document in the collection — must be skipped by the filter.
+        (prs_dir / "notes.json").write_text(_json.dumps({"not": "a trade"}))
 
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         from server import create_app

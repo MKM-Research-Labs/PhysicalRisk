@@ -40,10 +40,10 @@ def prs_env(tmp_path, monkeypatch):
     """Isolated PRS environment with a writable output directory."""
     from config import config
 
-    prs_dir = tmp_path / "reports" / "prs"
+    prs_dir = tmp_path / "prs"
     prs_dir.mkdir(parents=True)
 
-    monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+    monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
     monkeypatch.setattr(config, "catchment_id", "thames")
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
@@ -66,7 +66,7 @@ class TestCommitTradeProperty:
     def test_commit_with_property_id_and_property_json(self, prs_env, tmp_path, monkeypatch):
         """Commit with property_id triggers PropertySet lookup from property.json."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
@@ -122,7 +122,7 @@ class TestCommitTradeProperty:
     def test_commit_property_id_no_property_json(self, prs_env, tmp_path, monkeypatch):
         """Commit with property_id but no property.json still succeeds (graceful fallback)."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
@@ -143,7 +143,7 @@ class TestCommitTradeProperty:
     def test_commit_property_id_corrupt_property_json(self, prs_env, tmp_path, monkeypatch):
         """Commit with property_id and corrupt property.json logs warning, still proceeds."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
@@ -168,7 +168,7 @@ class TestCommitTradeProperty:
         """CDM validation errors return 400 with error details."""
         from config import config
         from port.cdm.prs import PhysicalRiskSwapCDM
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         # Force validation to return errors
@@ -196,7 +196,7 @@ class TestCommitTradeProperty:
     def test_commit_with_close_out(self, prs_env, tmp_path, monkeypatch):
         """Commit with close_out_of triggers PnLEngine.close_trade."""
         from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "catchment_id", "thames")
 
         trading_dir = tmp_path / "trading"
