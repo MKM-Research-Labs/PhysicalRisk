@@ -1,0 +1,210 @@
+# WP2.4 — Catchment context (the writer-migration gate)
+
+This is the design that unblocks **WP0.5 writer migration**. The WP0.6 read path
+migrated cleanly because routes always read the *active* catchment via `config`
+accessors. Writers did **not**, because they are **directory-injected**, not
+catchment-keyed — and the `database` save API has no "write to directory X" primitive
+(none is possible for Postgres). WP2.4 closes that gap by giving the codebase a
+**run-scoped catchment identity** that generators pass to `database.save_*` /
+`database.get_*`, while storage resolution (file root, or Postgres) stays inside the
+`database` package.
+
+Resolving this also fixes the **global-catchment race** the migration gotchas flag:
+catchment identity today is the mutable env-global `config.catchment_id`
+(`config/catch.py:40`, settable property), which is unsafe under concurrent
+requests/runs.
+
+---
+
+## 1. The problem, precisely
+
+### 1a. Two things are tangled into one parameter
+`output_dir` currently carries **two** unrelated concerns:
+
+| Concern | Today | Where it belongs |
+|---|---|---|
+| **Which catchment** am I generating? | `output_dir` path (or `config.get_input_dir()`) | the *caller* (run identity) |
+| **Where/how** is it stored? | `output_dir` filesystem path | inside `database` (file root vs Postgres) |
+
+In production these collapse: the port pipeline runs **one catchment per invocation**,
+so `output_dir` is always `config.get_input_dir()` for that catchment. The abstraction
+mismatch only surfaces in tests, where **111 test files** inject a tmp `output_dir` to
+isolate — i.e. they're really overriding *storage location*, not catchment identity.
+
+### 1b. Writers read AND write through `output_dir`
+A generator's `output_dir` is a **shared run directory**, not just a sink. Example —
+`src/port/src/property/main/generator.py`:
+- reads `self.output_dir / 'gauge.json'` (`:135`) — a sibling artifact from earlier in the run
+- writes `self.output_dir / 'property.json'` (`:185`)
+
+So WP2.4 must convert the **generator-internal reads** too, not just the writes in the
+WP0.5 table. (These reads were *not* covered by WP0.6, which only touched route/loader
+reads.) Both sides become `database.get_*(catchment)` / `database.save_*(catchment, …)`
+against the same catchment.
+
+### 1c. Construction pattern to replace
+Every generator/engine looks like:
+```python
+self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
+self.output_dir.mkdir(parents=True, exist_ok=True)
+```
+and convenience wrappers thread `output_dir=` down (`generate_gauges(count, output_dir)`,
+`PropertyPortfolioGenerator(output_dir=…)`, engines `__init__(self, trading_dir)`).
+
+---
+
+## 2. Design
+
+### 2.1 Catchment identity lives in a `ContextVar` (run/request-scoped)
+Add to the `database` package a context primitive backed by `contextvars.ContextVar`
+(NOT a module global, NOT the mutable `config.catchment_id`):
+
+```python
+# src/database/context.py  (re-exported from database/__init__.py)
+_active: ContextVar[str | None] = ContextVar("active_catchment", default=None)
+
+def active_catchment() -> str:
+    """The catchment for the current run/request. Falls back to config's
+    active catchment when no context is bound (preserves today's behaviour)."""
+    cur = _active.get()
+    return cur if cur is not None else config.catchment_id
+
+@contextmanager
+def catchment_context(catchment: str):
+    token = _active.set(catchment)
+    try:
+        yield catchment
+    finally:
+        _active.reset(token)
+```
+
+Why `ContextVar`:
+- **Race fix.** Concurrent Flask requests / parallel port runs each get their own
+  catchment without clobbering a shared global — this is the WP2.4 race fix the gotchas
+  earmark.
+- **Backward compatible.** With no context bound, `active_catchment()` returns
+  `config.catchment_id`, so existing single-catchment runs behave identically.
+- **Lives in `database`** because it's the value threaded into `save_*`/`get_*`; keeping
+  it there avoids a `config` ⇄ `database` import cycle (database already imports config).
+
+### 2.2 Generators take a `catchment`, drop `output_dir`
+```python
+# before
+def __init__(self, output_dir=None, …):
+    self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
+
+# after
+def __init__(self, catchment: str | None = None, …):
+    self.catchment = catchment or database.active_catchment()
+```
+- Read:  `database.get_gauges(self.catchment)`        (was `self.output_dir / 'gauge.json'`)
+- Write: `database.save_gauges(self.catchment, data)` (was write to `self.output_dir`)
+- `mkdir(parents=True, exist_ok=True)` is **deleted** — directory creation is the
+  `FileRepository`'s job (it already mkdirs on `save`), and is meaningless for Postgres.
+
+Convenience wrappers (`generate_gauges`, module-level `generate(...)`) swap their
+`output_dir=` parameter for `catchment=` with the same default-to-active behaviour.
+
+### 2.3 The orchestrator binds the context once
+The port entry point that runs a catchment wraps the run:
+```python
+with database.catchment_context(catchment):
+    generate_gauges(...)        # all generators below see the same catchment
+    generate_properties(...)
+    ...
+```
+In production the bound catchment equals `config.catchment_id`, so paths resolve exactly
+as today (`config_binding._resolve_catchment_dir` → `config.get_input_dir()`).
+
+### 2.4 Tests isolate by binding storage, not by passing a directory
+This is the crux of the 111-file migration and it's **already supported** — no new
+primitive needed. `FileRepository` accepts a `dir_resolver` (`src/database/file_repo.py:55`):
+
+```python
+# test helper (add to tests/conftest or a database test-utils module)
+@contextmanager
+def tmp_catchment(tmp_path, catchment="thames"):
+    repo = FileRepository(dir_resolver=lambda c: tmp_path)
+    configure_backend(repo)
+    with catchment_context(catchment):
+        yield
+    use_file_backend()   # restore prod binding (the autouse fixture also re-binds)
+```
+
+Migration per test:
+```python
+# before
+gen = PropertyPortfolioGenerator(output_dir=str(tmp_path))
+gen.generate()
+assert (tmp_path / "property.json").exists()
+
+# after
+with tmp_catchment(tmp_path):
+    PropertyPortfolioGenerator().generate()
+assert database.get_properties("thames")          # read back through the seam
+```
+The autouse `_database_file_backend` fixture (`tests/conftest/fixtures_database.py`)
+already re-binds the production file backend before each test, so a test that overrides
+the backend doesn't leak into the next test.
+
+> **Fixture gotcha (recurring, expect it again):** tests that staged data under
+> `output/` had to be repointed to the production `input/<catchment>/…` location during
+> WP0.6. With `tmp_catchment` the *resolver* points at `tmp_path`, so this disappears —
+> but watch for tests that mix a tmp generator output with a real `config.get_input_dir()`
+> read; those must bind **both** sides to the same resolver.
+
+### 2.5 What stays on `output_dir` (genuinely out of scope)
+The typhoon ensemble (`events_output_dir`, `windts_output_dir`) and any writer in the
+WP0.5 doc's "out of scope" list (PDFs, report `.txt`, lineage manifest, audit log,
+intensity stdout, visual JS config, `_admin_auth`) keep their directory parameters —
+they are not port-input JSON artifacts. Don't convert them.
+
+---
+
+## 3. Why the rejected options stay rejected
+- **"Bind FileRepository to this dir" escape hatch on the public save API** — leaks a
+  file-only concept through the seam; no Postgres analogue; defeats the whole point.
+  (We *do* use `dir_resolver`, but only in **test setup**, never in production call sites.)
+- **Reverse-map `output_dir` → catchment at each writer** — fragile string parsing of a
+  path back into an identity we already have at the caller.
+
+---
+
+## 4. Sequenced plan (per-file commits, R6 disciplines)
+
+Each step: behaviour-preserving · per-file commit · ≥99% coverage for touched files ·
+`database` package stays 100% · **0 new path-audit findings**.
+
+1. **Context primitive** — `src/database/context.py` (`active_catchment`,
+   `catchment_context`), re-export from `__init__.py` (pure re-export, rule 4). Unit
+   tests: default-falls-to-config, nesting, reset-on-exit, concurrent isolation. *No
+   caller changes yet — lands independently, like the serialization prep did.*
+2. **Test helper** — `tmp_catchment` (+ `InMemoryRepository` variant for pure-unit
+   writers). Self-tested.
+3. **Portfolio entities** (WP0.5 Batch 1: gauge, property, loan, commercial,
+   commercial_loan, counterparty) — convert constructor + internal reads + writes;
+   repoint their tests via `tmp_catchment`. Lowest risk, all map to existing savers.
+4. **Hazard / timeseries / storms / trading / gaugehd+typhoon** — WP0.5 Batches 2–6,
+   each folded with its directory→context conversion. Resolve the WP0.5 open decisions
+   (legacy seq_gauge/storm writers, `training_summary` dir reconcile, storm-multi
+   port-vs-model, typhoon granularity) as each batch is reached.
+5. **Orchestrator** — wrap the port run(s) in `catchment_context(catchment)`; delete the
+   now-dead `output_dir` threading and `mkdir` calls.
+6. **Task 0.8 audits** — sanction `src/database` in the path-audit; build the
+   "no SQL/file-I/O outside `database`" gate. With writers migrated, the gate can finally
+   go green-by-construction.
+
+After WP2.4 + the folded WP0.5, **all** port-artifact file I/O (read and write) is behind
+`database`, clearing the way for the `PostgresRepository` swap (WP1.6) against the
+unchanged `Repository` interface.
+
+---
+
+## 5. Open questions for the user
+- **`config.catchment_id` deprecation.** Once `active_catchment()` is the source of
+  truth, should the mutable `config.catchment_id` setter be retired (it's the race
+  source), or kept as the no-context fallback only? Recommend: keep as read-only
+  fallback, deprecate the setter in WP5 hardening.
+- **Scope of step 5.** Wrap only the port generator orchestrator, or also the trading
+  EOD/market-state engines in the same pass? They share the directory-injection pattern;
+  doing them together avoids a second sweep.
