@@ -32,6 +32,10 @@ from ._helpers import load_or, records
 def get_storm_sequences(catchment):
     return load_or("storm_sequences", catchment)
 
+def storm_sequences_exists(catchment) -> bool:
+    """True if storm_sequences.json is present (no parse — corruption-agnostic)."""
+    return active_backend().exists("storm_sequences", catchment)
+
 def save_storm_sequences(catchment, payload):
     active_backend().save("storm_sequences", catchment, payload)
 
