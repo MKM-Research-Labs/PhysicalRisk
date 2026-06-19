@@ -25,6 +25,7 @@ import traceback
 
 from flask import jsonify, request
 
+import database
 from config import config
 from . import gauges_bp
 from ._helpers import _get_registry
@@ -75,12 +76,8 @@ def generate_report():
 
         # Load historical daily data for flood history graph
         try:
-            gaugehd_dir = config.get_gaugehd_dir()
-            hd_file = gaugehd_dir / f"gauge_{gauge_id}_hd.json"
-            if hd_file.exists():
-                import json as json_mod_hd
-                with open(hd_file, 'r') as f:
-                    hd_data = json_mod_hd.load(f)
+            hd_data = database.get_gauge_history(config.catchment_id, gauge_id)
+            if hd_data:
                 if timeseries_data is None:
                     timeseries_data = {}
                 timeseries_data['historical_daily'] = hd_data
@@ -89,11 +86,8 @@ def generate_report():
 
         # Load hazard curve data for hazard_curves and prs_pricing pages
         try:
-            import json as json_mod
-            hazard_file = config.get_input_dir() / 'gaugehc.json'
-            if hazard_file.exists():
-                with open(hazard_file, 'r') as f:
-                    all_hazard = json_mod.load(f)
+            all_hazard = database.get_gauge_hazard_curves(config.catchment_id)
+            if all_hazard:
                 gauge_hazard = all_hazard.get('hazard_curves', {}).get(gauge_id, {})
                 if gauge_hazard:
                     gauge_data['hazard_curve'] = gauge_hazard

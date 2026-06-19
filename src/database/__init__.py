@@ -54,7 +54,7 @@ from .timeseries import (
     get_portfolio_flood_summary,
     get_commercial_timeseries, iter_commercial_timeseries_ids, save_commercial_timeseries,
     get_gauge_timeseries, iter_gauge_timeseries_ids, save_gauge_timeseries,
-    get_gauge_history, save_gauge_history,
+    get_gauge_history, iter_gauge_history_ids, save_gauge_history,
 )
 from .storms import (
     get_storm_sequences, save_storm_sequences,
@@ -93,7 +93,7 @@ __all__ = [
     "get_portfolio_flood_summary",
     "get_commercial_timeseries", "iter_commercial_timeseries_ids", "save_commercial_timeseries",
     "get_gauge_timeseries", "iter_gauge_timeseries_ids", "save_gauge_timeseries",
-    "get_gauge_history", "save_gauge_history",
+    "get_gauge_history", "iter_gauge_history_ids", "save_gauge_history",
     # storms / perils
     "get_storm_sequences", "save_storm_sequences",
     "list_stress_storms", "get_stress_storm", "save_stress_storm",

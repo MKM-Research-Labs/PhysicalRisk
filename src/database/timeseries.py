@@ -63,5 +63,8 @@ def save_gauge_timeseries(catchment, gauge_id, payload):
 def get_gauge_history(catchment, gauge_id):
     return load_or("gauge_history", catchment, gauge_id)
 
+def iter_gauge_history_ids(catchment) -> Iterator[str]:
+    return active_backend().iter_keys("gauge_history", catchment)
+
 def save_gauge_history(catchment, gauge_id, payload):
     active_backend().save("gauge_history", catchment, payload, gauge_id)
