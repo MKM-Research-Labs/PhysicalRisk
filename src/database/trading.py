@@ -48,6 +48,11 @@ def get_prs_trade(catchment, swap_id):
 def commit_prs_trade(catchment, trade):       # -> @require("Func003", "create")
     active_backend().save("prs_trade", catchment, trade, trade["swap_id"])
 
+def save_prs_trade(catchment, swap_id, trade):
+    """Persist an updated PRS trade record under an explicit swap id (e.g. a
+    close-out rewrite), where the id is not the record's own ``swap_id`` field."""
+    active_backend().save("prs_trade", catchment, trade, swap_id)
+
 
 # ── Trade marks / status ─────────────────────────────────────────────────────
 def get_trade_marks(catchment) -> dict:

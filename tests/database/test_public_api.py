@@ -176,6 +176,10 @@ def test_trading_lifecycle(repo):
     assert sorted(t["swap_id"] for t in database.list_prs_trades(CATCH)) == ["PRS-1", "PRS-2"]
     assert sorted(database.iter_prs_trade_ids(CATCH)) == ["PRS-1", "PRS-2"]
 
+    # save_prs_trade rewrites under an explicit key (record need not carry swap_id)
+    database.save_prs_trade(CATCH, "PRS-1", {"swap_id": "PRS-1", "closed": True})
+    assert database.get_prs_trade(CATCH, "PRS-1")["closed"] is True
+
     database.set_trade_status(CATCH, "PRS-1", "Closed")
     assert database.get_trade_marks(CATCH)["PRS-1"] == {"trade_status": "Closed"}
 
