@@ -58,5 +58,9 @@ class InMemoryRepository(Repository):
     def exists(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE) -> bool:
         return (artifact, mode, catchment, key) in self._store
 
+    def has_collection(self, artifact, catchment, *, mode=DEFAULT_MODE) -> bool:
+        return any(a == artifact and m == mode and c == catchment and k is not None
+                   for (a, m, c, k) in self._store)
+
     def catchments(self) -> list[str]:
         return sorted({c for (_a, _m, c, _k) in self._store})

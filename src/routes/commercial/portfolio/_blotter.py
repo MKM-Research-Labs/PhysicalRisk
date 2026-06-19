@@ -20,10 +20,9 @@
 
 """Commercial asset portfolio blotter endpoint."""
 
-import json
-
 from flask import jsonify, request
 
+import database
 from config import config
 from models.floodrisk import relative_elevation
 
@@ -43,10 +42,8 @@ def commercial_blotter():
         return jsonify({'status': 'ok'})
 
     # Asset records --------------------------------------------------
-    try:
-        with open(config.get_input_path('commercial.json'), 'r') as f:
-            adata = json.load(f)
-    except FileNotFoundError:
+    adata = database.get_commercial_portfolio(config.catchment_id)
+    if adata is None:
         return jsonify({
             'status': 'success', 'assets': [],
             'summary': {'num_assets': 0, 'total_property_value': 0,
@@ -56,9 +53,7 @@ def commercial_blotter():
     # Loan lookup ----------------------------------------------------
     loan_lookup = {}
     try:
-        with open(config.get_input_path('commercial_loan.json'), 'r') as f:
-            ldata = json.load(f)
-        for l in ldata.get('commercial_loans', []):
+        for l in database.list_commercial_loans(config.catchment_id):
             mg = l.get('Mortgage', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             status = mg.get('CurrentStatus', {})
@@ -78,8 +73,6 @@ def commercial_blotter():
 
     # Per-asset nearest-gauge elevation (from commercialts/<id>.json) -
     # used to compute relative elevation in the same way as residential.
-    cts_dir = config.get_input_dir() / 'commercialts'
-
     assets = []
     for record in adata.get('commercial_assets', []):
         ca = record.get('CommercialAsset', {})
@@ -110,16 +103,13 @@ def commercial_blotter():
         # recorded in commercialts/<id>.json.  Fall back to absolute
         # ground level if no timeseries file exists.
         gauge_elev = 0.0
-        cts_path = cts_dir / f'{pid}.json'
-        if cts_path.exists():
-            try:
-                with open(cts_path, 'r') as f:
-                    cts = json.load(f)
-                ng = cts.get('nearest_gauges') or []
-                if ng:
-                    gauge_elev = ng[0].get('gauge_elevation_m', 0) or 0
-            except Exception:
-                pass
+        try:
+            cts = database.get_commercial_timeseries(config.catchment_id, pid)
+            ng = (cts or {}).get('nearest_gauges') or []
+            if ng:
+                gauge_elev = ng[0].get('gauge_elevation_m', 0) or 0
+        except Exception:
+            pass
 
         loan = loan_lookup.get(pid, {})
         entry = {

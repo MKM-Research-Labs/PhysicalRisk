@@ -48,6 +48,10 @@ def get_commercial_timeseries(catchment, asset_id, mode=DEFAULT_MODE):
 def iter_commercial_timeseries_ids(catchment, mode=DEFAULT_MODE) -> Iterator[str]:
     return active_backend().iter_keys("commercial_timeseries", catchment, mode=mode)
 
+def commercial_timeseries_exists(catchment, mode=DEFAULT_MODE) -> bool:
+    """True if the commercial-timeseries collection has been generated (even if empty)."""
+    return active_backend().has_collection("commercial_timeseries", catchment, mode=mode)
+
 def save_commercial_timeseries(catchment, asset_id, payload, mode=DEFAULT_MODE):
     active_backend().save("commercial_timeseries", catchment, payload, asset_id, mode=mode)
 

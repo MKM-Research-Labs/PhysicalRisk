@@ -20,10 +20,9 @@
 
 """Per-storm commercial-asset portfolio-impact endpoint."""
 
-import json
-
 from flask import jsonify, request
 
+import database
 from config import config
 from models.floodrisk.depth_damage import is_prs_flood
 
@@ -42,19 +41,18 @@ def commercial_portfolio_impact(storm_id: str):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    cts_dir = config.get_input_dir() / 'commercialts'
-    if not cts_dir.exists():
+    if not database.commercial_timeseries_exists(config.catchment_id):
         return jsonify({
             'status': 'error',
             'message': 'Commercial flood timeseries not yet generated',
         }), 404
+    cts_ids = [i for i in database.iter_commercial_timeseries_ids(config.catchment_id)
+               if i.startswith('CPROP-')]
 
     # Asset value + address + type lookup --------------------------
     asset_lookup = {}
     try:
-        with open(config.get_input_path('commercial.json'), 'r') as f:
-            adata = json.load(f)
-        for record in adata.get('commercial_assets', []):
+        for record in database.list_commercial(config.catchment_id):
             ca = record.get('CommercialAsset', {})
             pid = ca.get('Header', {}).get('PropertyID', '')
             if not pid:
@@ -77,9 +75,7 @@ def commercial_portfolio_impact(storm_id: str):
     # Loan join (for negative-equity flag in summary) --------------
     loan_lookup = {}
     try:
-        with open(config.get_input_path('commercial_loan.json'), 'r') as f:
-            ldata = json.load(f)
-        for l in ldata.get('commercial_loans', []):
+        for l in database.list_commercial_loans(config.catchment_id):
             mg = l.get('Mortgage', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
             status = mg.get('CurrentStatus', {})
@@ -95,10 +91,11 @@ def commercial_portfolio_impact(storm_id: str):
         pass
 
     assets = []
-    for cf in cts_dir.glob('CPROP-*.json'):
-        with open(cf, 'r') as f:
-            cdata = json.load(f)
-        pid = cdata.get('property_id', cf.stem)
+    for cid in cts_ids:
+        cdata = database.get_commercial_timeseries(config.catchment_id, cid)
+        if cdata is None:
+            continue
+        pid = cdata.get('property_id', cid)
         if pid not in asset_lookup:
             continue
         for event in cdata.get('flood_events', []):
