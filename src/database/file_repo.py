@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from config.data_layout import DEFAULT_MODE
 
@@ -43,15 +43,30 @@ from .base import Repository
 
 
 class FileRepository(Repository):
-    """Catchment data stored as JSON files under ``input_root/<catchment>/``."""
+    """Catchment data stored as JSON files under a per-catchment directory.
 
-    def __init__(self, input_root: str | Path):
-        self.root = Path(input_root)
+    Pass ``input_root`` for the simple ``input_root/<catchment>/`` layout, or a
+    ``dir_resolver`` callable ``catchment -> Path`` to map each catchment to its
+    directory (used by the config binding so the active catchment honours the e2e
+    ``MKM_CATCHMENT_INPUT_OVERRIDE``). ``input_root`` also drives :meth:`catchments`.
+    """
+
+    def __init__(self, input_root: str | Path | None = None, *,
+                 dir_resolver: Callable[[str], Path] | None = None):
+        self.root = Path(input_root) if input_root is not None else None
+        if dir_resolver is None:
+            if self.root is None:
+                raise ValueError("FileRepository needs input_root or dir_resolver")
+            dir_resolver = lambda catchment: self.root / catchment
+        self._dir_resolver = dir_resolver
 
     # -- internal path resolution (private to this module) ---------------------
+    def _catchment_dir(self, catchment: str) -> Path:
+        return self._dir_resolver(catchment)
+
     def _file(self, artifact: str, catchment: str, key: str | None, mode: str) -> Path:
         sp = artifacts.spec(artifact)
-        base = self.root / catchment
+        base = self._catchment_dir(catchment)
         if sp.kind == artifacts.DOCUMENT:
             return base / sp.location(mode)
         if key is None:
@@ -60,7 +75,7 @@ class FileRepository(Repository):
 
     def _dir(self, artifact: str, catchment: str, mode: str) -> Path:
         sp = artifacts.spec(artifact)
-        return self.root / catchment / sp.location(mode)
+        return self._catchment_dir(catchment) / sp.location(mode)
 
     # -- Repository interface --------------------------------------------------
     def load(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE) -> Any:
@@ -96,6 +111,6 @@ class FileRepository(Repository):
         return self._file(artifact, catchment, key, mode).exists()
 
     def catchments(self) -> list[str]:
-        if not self.root.exists():
+        if self.root is None or not self.root.exists():
             return []
         return sorted(p.name for p in self.root.iterdir() if p.is_dir())
