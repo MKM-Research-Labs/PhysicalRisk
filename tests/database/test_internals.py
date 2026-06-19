@@ -35,14 +35,17 @@ def test_memory_exists():
     assert repo.exists("gauge", "thames")
 
 
-def test_load_or_tolerates_corrupt_json(tmp_path):
+def test_load_or_propagates_corrupt_json(tmp_path):
+    # absence -> default; corruption is NOT swallowed (callers decide tolerance)
+    import json
     import database
     p = tmp_path / "thames" / "fire" / "fire.json"
     p.parent.mkdir(parents=True)
     p.write_text("{not valid json")
     database.configure_backend(FileRepository(tmp_path))
     try:
-        assert database.get_fire_results("thames") is None
+        with pytest.raises(json.JSONDecodeError):
+            database.get_fire_results("thames")
     finally:
         database.configure_backend(None)
 

@@ -24,31 +24,24 @@ Counterparty API routes.
 Provides endpoints for counterparty data used in PRS trading.
 """
 
-import json
-
 from flask import Blueprint, jsonify
 
 from config import config
-from jsonfiles import JSONFileConfig
+import database
 
 counterparty_bp = Blueprint("counterparty", __name__)
 
 
-def _load_counterparty_data() -> dict:
-    """Load counterparty data from JSON file."""
-    ctpy_path = config.get_input_dir() / JSONFileConfig.COUNTERPARTY_PORTFOLIO
-    if not ctpy_path.exists():
-        return {"counterparties": []}
-    with open(ctpy_path, 'r') as f:
-        return json.load(f)
+def _counterparties() -> list:
+    """All counterparty records for the active catchment (via the database pkg)."""
+    return database.list_counterparties(config.catchment_id)
 
 
 @counterparty_bp.route("/counterparties", methods=["GET"])
 def list_counterparties():
     """List all counterparties (summary for dropdowns)."""
     try:
-        data = _load_counterparty_data()
-        counterparties = data.get("counterparties", [])
+        counterparties = _counterparties()
 
         summary = []
         for ctpy in counterparties:
@@ -81,8 +74,7 @@ def list_counterparties():
 def get_counterparty(ctpy_id: str):
     """Get full counterparty details."""
     try:
-        data = _load_counterparty_data()
-        for ctpy in data.get("counterparties", []):
+        for ctpy in _counterparties():
             party = ctpy.get("CounterpartySet", {}).get("Party", {})
             if party.get("PartyID") == ctpy_id:
                 return jsonify({"status": "success", "counterparty": ctpy})
