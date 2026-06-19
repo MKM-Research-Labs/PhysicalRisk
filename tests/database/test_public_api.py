@@ -121,6 +121,8 @@ def test_timeseries(repo):
     assert database.commercial_timeseries_exists("nocatch") is False
     assert database.get_gauge_timeseries(CATCH, "GAUGE-1") == {"y": 2}
     assert list(database.iter_gauge_timeseries_ids(CATCH)) == ["GAUGE-1"]
+    assert database.gauge_timeseries_exists(CATCH) is True
+    assert database.gauge_timeseries_exists("nocatch") is False
     assert database.get_gauge_history(CATCH, "GAUGE-1") == {"z": 3}
     assert list(database.iter_gauge_history_ids(CATCH)) == ["GAUGE-1"]
     assert database.get_portfolio_flood_summary(CATCH) is None
@@ -137,10 +139,24 @@ def test_storms_and_perils(repo):
     assert database.get_storm_sequences(CATCH) == {"sequences": []}
     assert database.get_stress_storm(CATCH, "STORM-A")["severity"] == "severe"
     assert database.list_stress_storms(CATCH) == [{"id": "STORM-A"}]
+    assert database.get_stress_storm_index(CATCH) == {"storms": [{"id": "STORM-A"}]}
     assert database.list_sequence_gauges(CATCH) == ["GAUGE-1"]
     assert database.get_sequence_gauge(CATCH, "GAUGE-1") == {"count": 5}
     assert database.get_fire_results(CATCH) == {"assets": []}
     assert database.get_seismic_results(CATCH) == {"assets": []}
+
+
+def test_legacy_storm_fallbacks(repo):
+    """The pre-shard single-file artifacts resolve via their own getters and
+    return None when absent (so a route can fall through to the modern layout)."""
+    assert database.get_legacy_stress_storms(CATCH) is None
+    assert database.get_legacy_storm_sequences(CATCH) is None
+
+    repo.save("stress_storms_legacy", CATCH, {"storms": [{"storm_id": "OLD-1"}]})
+    repo.save("storm_sequences_legacy", CATCH, {"storms": [{"storm_id": "OLD-1"}]})
+
+    assert database.get_legacy_stress_storms(CATCH) == {"storms": [{"storm_id": "OLD-1"}]}
+    assert database.get_legacy_storm_sequences(CATCH) == {"storms": [{"storm_id": "OLD-1"}]}
 
 
 def test_trading_lifecycle(repo):

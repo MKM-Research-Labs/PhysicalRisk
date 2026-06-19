@@ -26,15 +26,15 @@ Endpoints
 GET /propertyts/storms
 """
 
-import json
 import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 from port.storm_typhoon_pairing import get_pairing
 
-from . import _get_propertyts_dir, propertyts_bp
+from . import propertyts_bp
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +50,13 @@ def list_flood_storms():
     # sequence are implementation detail.
     storm_set = {}
 
-    ss_index = config.get_input_path('stress_storms') / '_index.json'
-    ss_legacy = config.get_input_path('stress_storms.json')
-    ss_path = ss_index if ss_index.exists() else (ss_legacy if ss_legacy.exists() else None)
-
-    if ss_path and ss_path.exists():
-        try:
-            with open(ss_path, 'r') as f:
-                ss_data = json.load(f)
+    # Primary: sharded stress_storms/_index.json; fall back to the legacy
+    # single-file stress_storms.json on portfolios from before the shard split.
+    try:
+        ss_data = database.get_stress_storm_index(config.catchment_id)
+        if ss_data is None:
+            ss_data = database.get_legacy_stress_storms(config.catchment_id)
+        if ss_data:
             for s in ss_data.get('storms', []):
                 sid = s.get('storm_id', '')
                 if not sid:
@@ -74,19 +73,21 @@ def list_flood_storms():
                     'max_damage_ratio': 0,
                     'estimated_damage': 0,
                 }
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     # If no stress_storms, fall back to gaugets individual storms
     if not storm_set:
-        gaugets_dir = config.get_gaugets_dir()
-        if not gaugets_dir.exists():
+        if not database.gauge_timeseries_exists(config.catchment_id):
             return jsonify({'status': 'error',
                             'message': 'gaugets directory not found'}), 404
-        for gf in gaugets_dir.glob('GAUGE-*.json'):
+        for gid in database.iter_gauge_timeseries_ids(config.catchment_id):
+            if not gid.startswith('GAUGE-'):
+                continue
             try:
-                with open(gf, 'r') as f:
-                    gdata = json.load(f)
+                gdata = database.get_gauge_timeseries(config.catchment_id, gid)
+                if gdata is None:
+                    continue
                 for resp in gdata.get('storm_responses', {}).get('responses', []):
                     sid = resp.get('storm_id', '')
                     if not sid:
@@ -109,15 +110,14 @@ def list_flood_storms():
                 continue
 
     # Enrich with metadata from storm_sequences.json (sequence-level)
-    # or legacy storms.json
+    # or legacy storms.json. Both are read and merged, legacy last.
     _storm_meta = {}
-    for meta_file in ('storm_sequences.json', 'storms.json'):
-        meta_path = config.get_input_path(meta_file)
-        if not meta_path.exists():
-            continue
+    for _meta_getter in (database.get_storm_sequences,
+                         database.get_legacy_storm_sequences):
         try:
-            with open(meta_path, 'r') as f:
-                mdata = json.load(f)
+            mdata = _meta_getter(config.catchment_id)
+            if not mdata:
+                continue
             if 'sequences' in mdata:
                 for seq in mdata['sequences']:
                     _storm_meta[seq.get('sequence_id', '')] = seq
@@ -158,14 +158,11 @@ def list_flood_storms():
             entry['name'] = cat.capitalize()
 
     # Enrich with property flooding data
-    pts_dir = _get_propertyts_dir()
-    if pts_dir.exists():
-        prop_path = config.get_input_path('property.json')
+    if database.property_timeseries_exists(config.catchment_id):
         valued_ids = set()
         prop_values = {}  # property_id → estimated market value
         try:
-            with open(prop_path, 'r') as f:
-                pdata = json.load(f)
+            pdata = database.get_property_portfolio(config.catchment_id) or {}
             for p in pdata.get('properties', []):
                 hdr = p.get('PropertyHeader', {})
                 pid = hdr.get('Header', {}).get('PropertyID', '')
@@ -176,10 +173,13 @@ def list_flood_storms():
         except Exception:
             pass
 
-        for pf in pts_dir.glob('PROP-*.json'):
-            with open(pf, 'r') as f:
-                pdata = json.load(f)
-            prop_id = pdata.get('property_id', pf.stem)
+        for pid in database.iter_property_timeseries_ids(config.catchment_id):
+            if not pid.startswith('PROP-'):
+                continue
+            pdata = database.get_property_timeseries(config.catchment_id, pid)
+            if pdata is None:
+                continue
+            prop_id = pdata.get('property_id', pid)
             if valued_ids and prop_id not in valued_ids:
                 continue
             pval = prop_values.get(prop_id, 0)

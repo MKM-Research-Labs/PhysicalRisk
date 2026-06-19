@@ -62,6 +62,10 @@ def save_commercial_timeseries(catchment, asset_id, payload, mode=DEFAULT_MODE):
 def get_gauge_timeseries(catchment, gauge_id):
     return load_or("gauge_timeseries", catchment, gauge_id)
 
+def gauge_timeseries_exists(catchment) -> bool:
+    """True if the gauge-timeseries collection (``gaugets``) has been generated."""
+    return active_backend().has_collection("gauge_timeseries", catchment)
+
 def iter_gauge_timeseries_ids(catchment) -> Iterator[str]:
     return active_backend().iter_keys("gauge_timeseries", catchment)
 

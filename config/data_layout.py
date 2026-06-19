@@ -79,6 +79,11 @@ STRESS_STORMS_DIR = "stress_storms"
 STRESS_STORM_INDEX_FILE = "stress_storms/_index.json"
 SEQUENCE_GAUGE_DIR = "sequence_gauge"
 
+# Legacy single-file variants (pre-_index.json layout). Read-only fallbacks kept
+# so portfolios generated before the sharded layout still resolve.
+LEGACY_STRESS_STORMS_FILE = "stress_storms.json"
+LEGACY_STORM_SEQUENCES_FILE = "storms.json"
+
 # ── Perils ───────────────────────────────────────────────────────────────────
 FIRE_RESULTS_FILE = "fire/fire.json"
 SEISMIC_RESULTS_FILE = "seismic/seismic.json"

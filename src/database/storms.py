@@ -33,10 +33,29 @@ def get_storm_sequences(catchment):
 def save_storm_sequences(catchment, payload):
     active_backend().save("storm_sequences", catchment, payload)
 
+def get_legacy_storm_sequences(catchment):
+    """Pre-sharded single-file storm metadata (``storms.json``); None if absent.
+
+    Read-only fallback for ``storm_sequences.json`` on legacy portfolios."""
+    return load_or("storm_sequences_legacy", catchment)
+
 
 # ── Stress storms (index + per storm) ────────────────────────────────────────
 def list_stress_storms(catchment):
     return records(load_or("stress_storm_index", catchment, default=[]))
+
+def get_stress_storm_index(catchment):
+    """Raw stress-storm index document (``stress_storms/_index.json``); None if absent.
+
+    Unlike :func:`list_stress_storms`, this preserves exact key access (e.g.
+    ``.get('storms', [])``) for callers that need the whole document."""
+    return load_or("stress_storm_index", catchment)
+
+def get_legacy_stress_storms(catchment):
+    """Pre-sharded single-file stress storms (``stress_storms.json``); None if absent.
+
+    Read-only fallback for the ``stress_storms/_index.json`` document."""
+    return load_or("stress_storms_legacy", catchment)
 
 def get_stress_storm(catchment, storm_id):
     return load_or("stress_storm", catchment, storm_id)
