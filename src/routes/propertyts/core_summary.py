@@ -27,14 +27,14 @@ GET /propertyts/summary
 GET /properties/<prop_id>/floods
 """
 
-import json
 import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 
-from . import _get_propertyts_dir, propertyts_bp
+from . import propertyts_bp
 
 logger = logging.getLogger(__name__)
 
@@ -48,17 +48,12 @@ def _load_property_or_404(prop_id):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), None
 
-    pts_dir = _get_propertyts_dir()
-    prop_file = pts_dir / f'{prop_id}.json'
-
-    if not prop_file.exists():
+    data = database.get_property_timeseries(config.catchment_id, prop_id)
+    if data is None:
         return (jsonify({
             'status': 'error',
             'message': f'Property {prop_id} not found in flood timeseries'
         }), 404), None
-
-    with open(prop_file, 'r') as f:
-        data = json.load(f)
     return None, data
 
 
@@ -68,15 +63,12 @@ def propertyts_summary():
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    summary_path = _get_propertyts_dir() / 'portfolio_flood_summary.json'
-    if not summary_path.exists():
+    data = database.get_portfolio_flood_summary(config.catchment_id)
+    if data is None:
         return jsonify({
             'status': 'error',
             'message': 'Property flood timeseries not yet generated. Run: python app.py port --propertyts'
         }), 404
-
-    with open(summary_path, 'r') as f:
-        data = json.load(f)
 
     return jsonify({
         'status': 'success',
