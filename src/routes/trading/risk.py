@@ -25,11 +25,11 @@
 
 """Portfolio risk grid and trade map endpoints."""
 
-import json
 import logging
 
 from flask import jsonify
 
+import database
 from config import config
 from . import trading_bp
 from ._helpers import _get_engines, _load_open_trades, _load_gauge_locations
@@ -92,10 +92,8 @@ def get_trade_map():
         gauge_locations = _load_gauge_locations()
 
         # Load gauge locations from gauge.json if not in gaugehc
-        gauge_path = config.get_input_dir() / 'gauge.json'
-        if gauge_path.exists():
-            with open(gauge_path) as f:
-                gauge_data = json.load(f)
+        gauge_data = database.get_gauge_portfolio(config.catchment_id)
+        if gauge_data:
             for g in gauge_data.get('flood_gauges', gauge_data if isinstance(gauge_data, list) else []):
                 fg = g.get('FloodGauge', {})
                 gid = fg.get('GaugeID', '')
@@ -108,11 +106,9 @@ def get_trade_map():
                             'name': fg.get('GaugeName', '')}
 
         # Load property locations
-        prop_path = config.get_input_dir() / 'property.json'
+        prop_data = database.get_property_portfolio(config.catchment_id)
         prop_locations = {}
-        if prop_path.exists():
-            with open(prop_path) as f:
-                prop_data = json.load(f)
+        if prop_data:
             for p in prop_data.get('properties', prop_data if isinstance(prop_data, list) else []):
                 ph = p.get('PropertyHeader', {})
                 pid = ph.get('PropertyID', '')

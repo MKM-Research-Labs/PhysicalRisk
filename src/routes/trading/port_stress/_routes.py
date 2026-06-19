@@ -20,11 +20,11 @@
 
 """Portfolio stress endpoints — cross-portfolio storm impact assessment."""
 
-import json
 import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 from config.port import SEVERITY_ORDER as _SEVERITY_ORDER
 
@@ -129,11 +129,9 @@ def run_portfolio_stress():
                             "message": f"Storm {storm_id} not found"}), 404
 
         # 2. Load flood thresholds from gaugehc.json
-        gaugehc_path = config.get_input_dir() / 'gaugehc.json'
         gauge_thresholds = {}
-        if gaugehc_path.exists():
-            with open(gaugehc_path) as f:
-                ghc = json.load(f)
+        ghc = database.get_gauge_hazard_curves(config.catchment_id)
+        if ghc:
             for gid, gc in ghc.get('hazard_curves', {}).items():
                 gauge_thresholds[gid] = {
                     'alert': gc.get('flood_alert_m', 0),
