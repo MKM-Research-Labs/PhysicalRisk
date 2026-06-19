@@ -47,7 +47,11 @@ But the abstraction mismatch is real and can't be papered over.
    rejected: leaky abstraction, no Postgres analogue, defeats the seam.
 3. Reverse-map `output_dir` → catchment at each writer boundary — rejected: fragile.
 
-**Serialization sub-requirement (needed by whichever option):** generator payloads carry
+**Serialization sub-requirement — ✅ DONE [f068068d]:** landed `src/database/_serialize.py`
+(`json_default` + `dumps`) and wired it into `file_repo.save`, so `save_*` now accepts
+datetime/numpy payloads. The note below records what it mirrors.
+
+generator payloads carry
 `datetime` + numpy (`np.integer/np.floating/np.ndarray`) values; today they serialize via
 `port.utils.encoders.DateTimeEncoder` / `port.src.property.hc.encoder.json_default`
 (both → `isoformat()` / `int`/`float`/`tolist`). The database's `file_repo.save` uses a
