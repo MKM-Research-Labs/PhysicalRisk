@@ -124,6 +124,20 @@ class TestAnimateStormSuccess:
         data = anim_client.get(f"/api/v1/propertyts/animate/{STORM_ID}").get_json()
         assert data["n_properties_affected"] == 1
 
+    def test_stray_non_gauge_file_is_skipped(self, tmp_path, monkeypatch):
+        """A non-``GAUGE-`` document in the gaugets collection is ignored when
+        building the gauge readings (the storm still animates)."""
+        client = make_anim_client(
+            tmp_path, monkeypatch,
+            gauge_json=make_gauge_json(),
+            gaugets={"GAUGE-001.json": make_gaugets_json(),
+                     "metadata.json": {"not": "a gauge"}},
+            prop_files={"PROP-001.json": make_prop_file("PROP-001", STORM_ID)},
+        )
+        r = client.get(f"/api/v1/propertyts/animate/{STORM_ID}")
+        assert r.status_code == 200
+        assert r.get_json()["status"] == "success"
+
 
 # ===========================================================================
 # animate_storm: frame structure
