@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -48,6 +48,64 @@ from typing import Iterator, Optional, Union
 import database
 from database import FileRepository, InMemoryRepository
 from database.backend import active_backend, configure_backend
+from database import config_binding
+from config import config
+from config.data_layout import DEFAULT_MODE
+
+# The real, on-disk ``data/input`` tree, captured at import time (before any
+# per-test monkeypatch of ``config.get_input_dir``). Used by the write-guard to
+# tell a genuine real-data write apart from a tmp/monkeypatched one.
+_REAL_INPUT_ROOT = (config.get_project_root() / "data" / "input").resolve()
+
+
+def _is_under_real_data(path: Path) -> bool:
+    """True if ``path`` resolves inside the real ``data/input`` tree."""
+    try:
+        path.resolve().relative_to(_REAL_INPUT_ROOT)
+        return True
+    except (ValueError, OSError):
+        return False
+
+
+class _WriteGuardedFileRepository(FileRepository):
+    """The production-pathed file backend with **writes to real data refused**.
+
+    Reads of the real ``data/input`` tree still work (so read-path tests keep
+    passing), but any ``save``/``delete`` whose catchment dir resolves inside the
+    real tree raises. A test that needs to write must bind a scratch backend
+    (``tmp_catchment`` / ``memory_catchment``) or monkeypatch ``config`` paths to a
+    tmp dir first — so a migrated writer can never silently clobber real portfolio
+    data on the shared SSD. Writes that resolve to a tmp/monkeypatched dir pass
+    straight through.
+    """
+
+    def _guard(self, catchment: str, op: str) -> None:
+        target = self._catchment_dir(catchment)
+        if _is_under_real_data(target):
+            raise RuntimeError(
+                f"database.{op} refused: it would write real data under "
+                f"{target} during a test. Wrap the write in tmp_catchment(tmp_path) "
+                f"or memory_catchment(), or monkeypatch config.get_input_dir to a "
+                f"tmp dir. (This guard protects the shared data/ SSD.)"
+            )
+
+    def save(self, artifact, catchment, payload, key=None, *, mode=DEFAULT_MODE):
+        self._guard(catchment, "save")
+        return super().save(artifact, catchment, payload, key, mode=mode)
+
+    def delete(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE):
+        self._guard(catchment, "delete")
+        return super().delete(artifact, catchment, key, mode=mode)
+
+
+def use_guarded_file_backend() -> _WriteGuardedFileRepository:
+    """Bind the write-guarded production file backend (used by the autouse fixture)."""
+    repo = _WriteGuardedFileRepository(
+        input_root=config_binding._input_root(),
+        dir_resolver=config_binding._resolve_catchment_dir,
+    )
+    configure_backend(repo)
+    return repo
 
 
 def _current_backend() -> Optional[database.Repository]:

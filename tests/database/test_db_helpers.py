@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -20,9 +20,12 @@
 
 """WP2.4 step 2 — self-test for the ``tmp_catchment`` / ``memory_catchment`` helpers."""
 
+import pytest
+
 import database
 from database import FileRepository, InMemoryRepository
 from database.backend import active_backend
+from config import config
 
 from db_helpers import tmp_catchment, memory_catchment
 
@@ -59,6 +62,26 @@ def test_memory_catchment_keeps_data_in_process(tmp_path):
         assert database.get_property_portfolio("mekong") == [{"id": "P1"}]
     # nothing written to disk
     assert not any(tmp_path.iterdir())
+
+
+def test_write_guard_refuses_real_data_writes():
+    """The autouse backend refuses a save that resolves under the real data tree."""
+    with pytest.raises(RuntimeError, match="refused"):
+        database.save_gauges("thames", [])
+
+
+def test_write_guard_allows_monkeypatched_tmp_writes(tmp_path, monkeypatch):
+    """A save passes through once config paths point at a tmp dir (no tmp_catchment)."""
+    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+    database.save_gauges(config.catchment_id, [{"gauge_id": "GAUGE-1"}])
+    assert (tmp_path / "gauge.json").exists()
+
+
+def test_write_guard_allows_tmp_catchment_writes(tmp_path):
+    """tmp_catchment binds a scratch backend, so writes are allowed and isolated."""
+    with tmp_catchment(tmp_path):
+        database.save_gauges("thames", [{"gauge_id": "GAUGE-2"}])
+    assert (tmp_path / "gauge.json").exists()
 
 
 def test_helpers_nest_and_unwind_to_outer(tmp_path):
