@@ -24,6 +24,7 @@ import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 from . import gauges_bp
 from ._helpers import _get_registry
@@ -39,8 +40,6 @@ def get_gauge_hazard(gauge_id: str):
     Returns GEV parameters, curve points, return period levels,
     flood stage thresholds, annual flood probabilities, and term structures.
     """
-    import json as json_mod
-
     registry = _get_registry()
     gauge_loader = registry.get_gauge_loader()
 
@@ -51,16 +50,13 @@ def get_gauge_hazard(gauge_id: str):
             'message': f'Gauge {gauge_id} not found'
         }), 404
 
-    hazard_file = config.get_input_dir() / 'gaugehc.json'
-    if not hazard_file.exists():
-        return jsonify({
-            'status': 'error',
-            'message': 'Hazard curves data not available'
-        }), 404
-
     try:
-        with open(hazard_file, 'r') as f:
-            hazard_data = json_mod.load(f)
+        hazard_data = database.get_gauge_hazard_curves(config.catchment_id)
+        if not hazard_data:
+            return jsonify({
+                'status': 'error',
+                'message': 'Hazard curves data not available'
+            }), 404
 
         gauge_hazard = hazard_data.get('hazard_curves', {}).get(gauge_id)
         if not gauge_hazard:
@@ -131,16 +127,11 @@ def price_prs_endpoint():
         return jsonify({'status': 'error', 'message': 'trigger_level must be alert, warning, or severe'}), 400
 
     try:
-        import json as json_mod
-
         from models.prs.prshc import price_prs
 
-        hazard_file = config.get_input_dir() / 'gaugehc.json'
-        if not hazard_file.exists():
+        hazard_data = database.get_gauge_hazard_curves(config.catchment_id)
+        if not hazard_data:
             return jsonify({'status': 'error', 'message': 'Hazard curves data not available'}), 404
-
-        with open(hazard_file, 'r') as f:
-            hazard_data = json_mod.load(f)
 
         gauge_hazard = hazard_data.get('hazard_curves', {}).get(gauge_id)
         if not gauge_hazard:
