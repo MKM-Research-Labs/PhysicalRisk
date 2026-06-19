@@ -22,11 +22,12 @@
 Base loader class providing common functionality for all entity loaders.
 """
 
-import json
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, TypeVar
+
+from database import read_json_document
 
 logger = logging.getLogger(__name__)
 T = TypeVar('T', bound=Dict[str, Any])
@@ -78,12 +79,14 @@ class BaseLoader(ABC, Generic[T]):
         pass
 
     def _load_json(self, filepath: Path) -> Optional[Dict]:
-        """Load JSON file with error handling."""
-        if not filepath.exists():
+        """Load a JSON document via the database package (coding rule R6).
+
+        Returns ``None`` when the file is absent; a corrupt file raises (kept for
+        compatibility with the previous direct-``json.load`` behaviour)."""
+        data = read_json_document(filepath.parent, filepath.name)
+        if data is None:
             logger.warning(f"File not found: {filepath}")
-            return None
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        return data
 
     def _normalize_to_list(self, data: Any) -> List[T]:
         """Normalize various JSON structures to a list."""
