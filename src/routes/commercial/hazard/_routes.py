@@ -25,10 +25,9 @@ Split out of ``routes/commercial/hazard.py`` so each file stays under the
 ``_attach_seismic``) live in ``_helpers.py`` and are imported here.
 """
 
-import json
-
 from flask import jsonify, request
 
+import database
 from config import config
 
 from ..blueprint import commercial_bp
@@ -235,10 +234,8 @@ def commercial_record(prop_id: str):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    try:
-        with open(config.get_input_path('commercial.json'), 'r') as f:
-            data = json.load(f)
-    except FileNotFoundError:
+    data = database.get_commercial_portfolio(config.catchment_id)
+    if data is None:
         return jsonify({
             'status': 'error',
             'message': 'commercial.json not found for the active catchment',

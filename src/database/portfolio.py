@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from .backend import active_backend
-from ._helpers import find_record, list_records
+from ._helpers import find_record, list_records, load_or
 
 
 def list_gauges(catchment): return list_records("gauge", catchment)
@@ -41,6 +41,7 @@ def save_loans(catchment, loans): active_backend().save("loan", catchment, loans
 def list_commercial(catchment): return list_records("commercial", catchment)
 def get_commercial(catchment, asset_id): return find_record("commercial", catchment, asset_id)
 def save_commercial(catchment, assets): active_backend().save("commercial", catchment, assets)
+def get_commercial_portfolio(catchment): return load_or("commercial", catchment)
 
 def list_commercial_loans(catchment): return list_records("commercial_loan", catchment)
 def get_commercial_loan(catchment, loan_id): return find_record("commercial_loan", catchment, loan_id)
