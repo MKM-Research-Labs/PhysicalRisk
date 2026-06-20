@@ -20,11 +20,11 @@
 
 """Tests for the commercial loan generator."""
 
-import json
 import re
 
 import pytest
 
+import database
 from config import config
 from port.cdm import LoanCDM
 from port.src.commercial import CommercialPortfolioGenerator
@@ -33,6 +33,18 @@ from port.src.commercial_loan import (
     _build_commercial_loan,
     generate_commercial_loans,
 )
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames") for every test in this module.
+
+    Both the migrated commercial and commercial-loan writers persist through
+    ``database``; rooting the backend at ``tmp_path`` keeps the commercial read, the
+    loan write, and read-backs isolated and off the real SSD data."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ---------------------------------------------------------------------------
@@ -158,36 +170,47 @@ class TestBuildCommercialLoan:
 
 @pytest.fixture
 def commercial_portfolio_in_tmp(tmp_path):
-    """Persist a real commercial portfolio under tmp_path.
+    """Persist a real commercial portfolio for the active (tmp) catchment.
 
-    The WP2.4 commercial writer persists through ``database``; ``tmp_catchment`` roots the
-    backend at ``tmp_path`` so ``commercial.json`` lands there physically, where the
-    still-directory-injected commercial-loan generator reads it by path."""
-    from db_helpers import tmp_catchment
-    with tmp_catchment(tmp_path):
-        CommercialPortfolioGenerator(verbose=False).generate(count=10)
+    The autouse ``_iso_catchment`` fixture has already bound a tmp-rooted backend, so this
+    write and the commercial-loan generator's read both resolve through ``database``."""
+    CommercialPortfolioGenerator(verbose=False).generate(count=10)
     return tmp_path
 
 
 @pytest.mark.generator
 class TestCommercialLoanPortfolioGenerator:
 
-    def test_writes_commercial_loan_json(self, commercial_portfolio_in_tmp):
-        tmp_dir = commercial_portfolio_in_tmp
-        gen = CommercialLoanPortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate()
-        assert (tmp_dir / "commercial_loan.json").exists()
-        assert result["file_path"] == tmp_dir / "commercial_loan.json"
+    def test_persists_commercial_loans(self, commercial_portfolio_in_tmp):
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
+        assert database.get_commercial_loan_portfolio(result["catchment"]) is not None
 
     def test_one_loan_per_asset(self, commercial_portfolio_in_tmp):
-        tmp_dir = commercial_portfolio_in_tmp
-        result = CommercialLoanPortfolioGenerator(output_dir=tmp_dir, verbose=False).generate()
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
         assert len(result["data"]["commercial_loans"]) == 10
 
+    def test_failed_loan_is_counted_and_skipped(self, commercial_portfolio_in_tmp,
+                                                 monkeypatch):
+        """A build error on one asset is logged and the loop continues."""
+        import port.src.commercial_loan as mod
+        original = mod._build_commercial_loan
+        calls = {"n": 0}
+
+        def flaky(asset):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("synthetic build failure")
+            return original(asset)
+
+        monkeypatch.setattr(mod, "_build_commercial_loan", flaky)
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
+        assert len(result["data"]["commercial_loans"]) == 9
+        assert result["processing_stats"]["successful"] == 9
+        assert result["processing_stats"]["total"] == 10
+
     def test_1_to_1_linkage_with_assets(self, commercial_portfolio_in_tmp):
-        tmp_dir = commercial_portfolio_in_tmp
-        result = CommercialLoanPortfolioGenerator(output_dir=tmp_dir, verbose=False).generate()
-        commercial = json.loads((tmp_dir / "commercial.json").read_text())
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
+        commercial = database.get_commercial_portfolio(result["catchment"])
         asset_ids = {a["CommercialAsset"]["Header"]["PropertyID"]
                      for a in commercial["commercial_assets"]}
         loan_pids = {l["Mortgage"]["Header"]["PropertyID"]
@@ -195,22 +218,19 @@ class TestCommercialLoanPortfolioGenerator:
         assert asset_ids == loan_pids
 
     def test_loan_ids_unique(self, commercial_portfolio_in_tmp):
-        tmp_dir = commercial_portfolio_in_tmp
-        result = CommercialLoanPortfolioGenerator(output_dir=tmp_dir, verbose=False).generate()
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
         ids = [l["Mortgage"]["Header"]["MortgageID"]
                for l in result["data"]["commercial_loans"]]
         assert len(ids) == len(set(ids))
 
     def test_processing_stats(self, commercial_portfolio_in_tmp):
-        tmp_dir = commercial_portfolio_in_tmp
-        result = CommercialLoanPortfolioGenerator(output_dir=tmp_dir, verbose=False).generate()
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
         assert result["processing_stats"]["successful"] == 10
         assert result["processing_stats"]["total"] == 10
 
     def test_metadata_written(self, commercial_portfolio_in_tmp):
-        tmp_dir = commercial_portfolio_in_tmp
-        CommercialLoanPortfolioGenerator(output_dir=tmp_dir, verbose=False).generate()
-        d = json.loads((tmp_dir / "commercial_loan.json").read_text())
+        result = CommercialLoanPortfolioGenerator(verbose=False).generate()
+        d = database.get_commercial_loan_portfolio(result["catchment"])
         meta = d["generation_metadata"]
         assert meta["total_loans_generated"] == 10
         assert meta["linked_commercial_assets"] == 10
@@ -219,9 +239,9 @@ class TestCommercialLoanPortfolioGenerator:
     def test_missing_commercial_raises(self, tmp_path):
         # Don't generate a commercial portfolio — loan generator must refuse.
         with pytest.raises(FileNotFoundError):
-            CommercialLoanPortfolioGenerator(output_dir=tmp_path, verbose=False).generate()
+            CommercialLoanPortfolioGenerator(verbose=False).generate()
 
     def test_convenience_function(self, commercial_portfolio_in_tmp):
         tmp_dir = commercial_portfolio_in_tmp
-        result = generate_commercial_loans(output_dir=tmp_dir)
+        result = generate_commercial_loans()
         assert len(result["data"]["commercial_loans"]) == 10

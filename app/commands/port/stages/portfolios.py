@@ -166,7 +166,7 @@ def run_commercial_portfolio(ctx: StageContext):
     print(f"   Type mix: {mix}")
 
     print("3b. Generating Commercial Loans...")
-    rl = ctx.commercial_loan_gen_cls(ctx.output_dir, verbose=False).generate()
+    rl = ctx.commercial_loan_gen_cls(verbose=False).generate()
     elapsed = time.time() - t_start
     nl = len(rl['data']['commercial_loans'])
     print(f"   {nl} commercial loans generated  →  commercial_loan.json")
