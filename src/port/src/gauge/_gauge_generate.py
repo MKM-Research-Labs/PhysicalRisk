@@ -33,13 +33,12 @@
 
 """Gauge generation methods for GaugePortfolioGenerator (mixin)."""
 
-import json
 import logging
 from datetime import datetime
 from typing import Dict
 
+import database
 from config import config
-from port.utils.encoders import DateTimeEncoder
 from port.utils.schema import build_section
 
 logger = logging.getLogger(__name__)
@@ -66,7 +65,7 @@ class _GaugeGenerateMixin:
         self.log("=" * 60, "INFO")
         self.log(f"Catchment: {config.CATCHMENT}", "INFO")
         self.log(f"Target gauge count: {count}", "INFO")
-        self.log(f"Output directory: {self.output_dir}", "INFO")
+        self.log(f"Catchment (storage): {self.catchment}", "INFO")
 
         # Get gauge points from catchment params
         gauge_points = self.params.GAUGE_POINTS
@@ -138,9 +137,8 @@ class _GaugeGenerateMixin:
                 self.processing_stats['failed_gauges'] += 1
                 continue
 
-        # Save to JSON file
-        self.log("Saving gauge data to JSON file...", "INFO")
-        output_path = self.output_dir / "gauge.json"
+        # Persist through the database seam (catchment-keyed, storage-agnostic).
+        self.log("Saving gauge data...", "INFO")
 
         try:
             serializable_stats = self.processing_stats.copy()
@@ -161,10 +159,9 @@ class _GaugeGenerateMixin:
                 }
             }
 
-            with open(output_path, 'w') as f:
-                json.dump(output_data, f, indent=2, cls=DateTimeEncoder)
+            database.save_gauges(self.catchment, output_data)
 
-            self.log(f"Gauge data saved successfully to: {output_path}", "SUCCESS")
+            self.log(f"Gauge data saved successfully for catchment: {self.catchment}", "SUCCESS")
 
         except Exception as e:
             self.log(f"Error saving gauge data: {str(e)}", "ERROR")
@@ -181,7 +178,7 @@ class _GaugeGenerateMixin:
         self.log(f"Successfully generated: {self.processing_stats['successful_gauges']}/{self.processing_stats['total_gauges']} gauges", "SUCCESS")
         self.log(f"Failed generations: {self.processing_stats['failed_gauges']}", "INFO" if self.processing_stats['failed_gauges'] == 0 else "WARNING")
         self.log(f"Processing time: {processing_time:.2f} seconds", "INFO")
-        self.log(f"Output file: {output_path}", "INFO")
+        self.log(f"Saved to catchment: {self.catchment}", "INFO")
 
         return {
             "data": {
@@ -189,7 +186,7 @@ class _GaugeGenerateMixin:
                 "gauge_ids": gauge_ids,
                 "locations": selected_locations
             },
-            "file_path": output_path,
+            "catchment": self.catchment,
             "processing_stats": self.processing_stats
         }
 

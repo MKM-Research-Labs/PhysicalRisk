@@ -34,7 +34,7 @@ def run_gauges(ctx: StageContext):
         raise SystemExit
     print("1. Generating Gauges...")
     t_step = time.time()
-    r = ctx.gauge.GaugePortfolioGenerator(ctx.output_dir, verbose=args.verbose).generate(args.num_gauges)
+    r = ctx.gauge.GaugePortfolioGenerator(verbose=args.verbose).generate(args.num_gauges)
     elapsed = time.time() - t_step
     n = len(r['data']['flood_gauges'])
     stats = r.get('processing_stats', {})
