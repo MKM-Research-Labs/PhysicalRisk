@@ -73,6 +73,8 @@ def test_portfolio_entities(repo):
     assert database.get_loan_portfolio(CATCH) is not None
     assert database.get_commercial_loan_portfolio(CATCH) is not None
     assert database.get_commercial_loan_portfolio("nocatch") is None
+    assert database.get_counterparty_portfolio(CATCH) is not None
+    assert database.get_counterparty_portfolio("nocatch") is None
     assert database.get_property_portfolio("nocatch") is None
     assert database.get_counterparty(CATCH, "CTPY-1")
     assert database.list_loans(CATCH) and database.list_commercial(CATCH)

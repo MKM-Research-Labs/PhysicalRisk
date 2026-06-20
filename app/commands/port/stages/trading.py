@@ -36,7 +36,7 @@ def run_counterparties(ctx: StageContext):
         raise SystemExit
     print("9. Generating Counterparties...")
     t_step = time.time()
-    r = ctx.counterparty.CounterpartyPortfolioGenerator(ctx.output_dir, verbose=args.verbose).generate()
+    r = ctx.counterparty.CounterpartyPortfolioGenerator(verbose=args.verbose).generate()
     elapsed = time.time() - t_step
     n = r.get('metadata', {}).get('total_generated', len(r.get('data', [])))
     print(f"   {n} counterparties generated  →  counterparty.json")

@@ -30,13 +30,21 @@ import logging
 import pytest
 
 from port.src.counterparty import CounterpartyPortfolioGenerator
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend for every test (the writer now persists via database)."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 class TestVerboseLogging:
 
     def test_verbose_true_logs_per_counterparty(self, tmp_path, caplog):
         """Lines 169-170: when verbose=True, each counterparty is logged."""
-        gen = CounterpartyPortfolioGenerator(output_dir=tmp_path, verbose=True)
+        gen = CounterpartyPortfolioGenerator(verbose=True)
         with caplog.at_level(logging.INFO):
             result = gen.generate(count=3)
 
@@ -50,7 +58,7 @@ class TestVerboseLogging:
 
     def test_verbose_true_logs_summary(self, tmp_path, caplog):
         """Line 187: verbose=True logs final summary with count and path."""
-        gen = CounterpartyPortfolioGenerator(output_dir=tmp_path, verbose=True)
+        gen = CounterpartyPortfolioGenerator(verbose=True)
         with caplog.at_level(logging.INFO):
             gen.generate(count=2)
 
@@ -59,7 +67,7 @@ class TestVerboseLogging:
 
     def test_verbose_false_no_per_counterparty_log(self, tmp_path, caplog):
         """When verbose=False, the per-counterparty log lines are absent."""
-        gen = CounterpartyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CounterpartyPortfolioGenerator(verbose=False)
         with caplog.at_level(logging.INFO):
             gen.generate(count=2)
 
