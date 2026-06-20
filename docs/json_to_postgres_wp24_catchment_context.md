@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 33 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 39 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -27,64 +27,48 @@
 >   `tmp_catchment(tmp_path)` / `memory_catchment()`. [`8a82730c`]
 > - **Step 4 PREP** — write-guard: autouse test backend refuses `save`/`delete` that
 >   resolve under the real `data/input` tree. [`7df143de`]
-> - **Step 4 — gauge writer (1st of 6 portfolio generators) DONE.** [`8c254871`]
->   `GaugePortfolioGenerator(catchment=…)` defaulting to `active_catchment()`;
->   `_gauge_generate` writes via `database.save_gauges(self.catchment, output_data)`
->   (byte-identical — `database._serialize.dumps` == `indent=2` + datetime/numpy default);
->   result returns `"catchment"` not `"file_path"`; caller `portfolios.py:37` drops the
->   positional `ctx.output_dir`. Tests wrapped in `tmp_catchment`. Full port suite
->   2800✓/2skip, db 71✓, both changed modules 100%.
-> - **Step 4 — property writer (2nd generator) DONE.** [`e5284e1c`] The §1b
->   read-AND-write case: both internal gauge reads converted — `generator.py`'s
->   ReferenceGauges read AND `locations.py:_load_synthetic_gauges` →
->   `database.get_gauge_portfolio(self.catchment)` (best-effort); write →
->   `database.save_properties`. Tests use **per-module** autouse `tmp_catchment` (NOT a
->   package-wide conftest fixture — propertyts/propertyhc tests share that conftest and
->   use a different, unmigrated generator). Full port suite 2871✓/2skip; generator.py
->   100%, locations.py 99% (lone miss = pre-existing unreachable `_zone_from_offset`
->   fallback). **R2 nit:** `locations.py` is 304 lines (was 309; net −5) — pre-existing
->   >300 backlog item, [[refactor_300_line_initiative]]; split `_zone_*` helpers into a
->   `_zones.py` when convenient (spawned as a separate task).
-> - **Step 4 — loan/mortgage writer (3rd generator) DONE.** [`cc0ca95e`] Another
->   read-AND-write: `MortgagePortfolioGenerator(catchment=…)`; the property read →
->   `database.get_property_portfolio(self.catchment)` (absence→same "generate properties
->   first" `FileNotFoundError`); write → `database.save_loans`. **DECISION: dropped the
->   `property_portfolio_path=` arg entirely** (no override) — `generate()` now takes no
->   args; caller `run_mortgages` + all 4 mortgage test modules updated (per-module autouse
->   `tmp_catchment`; property prereq written under the same backend; save-error test patches
->   `database.save_loans`). Added a >5-property test (covers the per-mortgage DEBUG log).
->   Full port suite 2871✓/2skip; both changed modules 100%. (loan artifact key is `"loan"`,
->   [[mortgage_loan_rename_stage5]].)
+> - **Step 4 — ALL 6 portfolio writers DONE.** gauge [`8c254871`], property [`e5284e1c`],
+>   loan/mortgage [`cc0ca95e`], commercial [`ae4834a4`], commercial_loan [`e5ae89c1`],
+>   counterparty [`e82fbb55`]. Every writer now `…(catchment=…)` defaulting to
+>   `active_catchment()`; internal sibling reads → `database.get_*(self.catchment)`; writes
+>   → `database.save_*`; result returns `"catchment"` not `"file_path"`; the `portfolios.py`
+>   /`trading.py` callers drop the positional `ctx.output_dir`. Tests use **per-module**
+>   autouse `tmp_catchment` (NOT package-wide where a conftest is shared with unmigrated
+>   ts/hc generators); read-backs via `database.get_*_portfolio`; save-error tests patch
+>   `database.save_*`. Added getters `get_commercial_loan_portfolio` + `get_counterparty_portfolio`.
+>   **Established pattern** (apply to every remaining generator/engine): ctor
+>   `output_dir`→`catchment`; reads→`database.get_*`; write→`database.save_*`; drop the
+>   directory arg AND any `property_portfolio_path`/`commercial_path` override; return
+>   `"catchment"`. Full port suite **2873✓/2skip**; db pkg + every changed module **100%**.
+>   Two pre-existing R2 nits flagged (locations.py 304 lines — spawned task).
 >
-> - **Step 4 — commercial writer (4th generator) DONE.** [`ae4834a4`] Same shape as
->   property (it extends `LocationsMixin`): the ReferenceGauges gauge read AND the
->   inherited `_load_synthetic_gauges` resolve via `database.get_gauge_portfolio`; write →
->   `database.save_commercial`. `CommercialPortfolioGenerator(catchment=…)`; caller
->   `run_commercial_portfolio` drops `ctx.output_dir`; `test_commercial_generator` gets the
->   autouse `tmp_catchment` + reads back via `database.get_commercial_portfolio`; the
->   commercial-loan prereq fixture writes the portfolio under `tmp_catchment` so the
->   (unmigrated, file-based) loan generator reads physical `commercial.json`. Changed module
->   100%; full port suite 2872✓/2skip.
+> **NEXT — step 5 (the remaining generators + engines).** Apply the SAME pattern. Scoped
+> inventory + where each actually persists:
+> - **hazard** — `src/port/src/hazard.py` is a thin re-export; the real code + `save_hazard_curves`
+>   live in **`src/models/hazard/`** (build_hazard_curves + property/commercial HC). Artifacts
+>   `gauge_hazard_curve` / `property_hazard_curve` / `commercial_hazard_curve` + savers already
+>   exist (WP0.6). Check whether they already `database.save_*` or still take `output_dir`.
+> - **timeseries** — `gaugets`, `property/propertyts.py`, `commercial/ts` (artifacts
+>   `gauge_timeseries`/`property_timeseries`/`commercial_timeseries`, KEYED).
+> - **gaugehd** — `src/port/src/gauge/gaugehd/{runner,generator,synthetic,nrfa}.py`
+>   (artifact `gauge_history`, KEYED). `runner.py:125` sets `config.catchment_id` — a step-6 site.
+> - **storms** — `src/port/src/storm_multi/utils/serialization.py` (`save_sequences`/`save_summary`),
+>   spatial (`_spatial_math.py`); stress storms. **Open decisions** (legacy seq_gauge/storm
+>   writers keep-or-drop; storm-multi summary+spatial port-vs-model) — resolve per batch.
+> - **typhoon** (artifact `typhoon_event`, blob+metadata; granularity decision).
+> - **book-pricing → prs** (`prs_trade`, `eod_snapshot` artifacts).
+> - **trading engines (§5b)** — `src/models/trading/{trade_marks.py, market_state/_persistence.py,
+>   pnl_engine/_pnl.py}` (artifacts `market_state`/`trade_marks`). Constructed `__init__(self, trading_dir)`.
+> Grep each for `output_dir`/`trading_dir` + `json.dump`/`open(`; many savers already exist
+> (WP0.5 prep) so several may be write-wiring only.
 >
-> **NEXT — step 4 continued, the commercial_loan writer (5th generator).**
-> `src/port/src/commercial_loan.py` (single file, NOT a package) — mirrors the
-> loan/mortgage slice: `CommercialLoanPortfolioGenerator(output_dir=…)` with
-> `generate(commercial_path=…)` that reads `commercial.json` (`:204,:210-211`) and writes
-> `commercial_loan.json` (`:228-230`, returns `file_path :244`). Convert: ctor
-> `output_dir`→`catchment`; **drop the `commercial_path=` arg** (like mortgage's
-> `property_portfolio_path`) → read via `database.get_commercial_portfolio(self.catchment)`,
-> absence→`FileNotFoundError`; write → `database.save_commercial_loans(self.catchment, …)`
-> (NOTE: the API is `save_commercial_loans` — there is no `get_commercial_loan_portfolio`
-> getter yet, so tests read back via `database.list_commercial_loans` or add a getter);
-> return `catchment`; drop `portfolios.py:run_commercial` step-3b positional `ctx.output_dir`
-> (line ~169). Tests: `tests/port/commercial/test_commercial_loan.py` — note its
-> `commercial_portfolio_in_tmp` fixture ALREADY writes commercial under `tmp_catchment`
-> (this slice), so the loan tests just need the autouse fixture kept bound during the loan
-> generate() + `file_path`/`commercial_loan.json` read-backs converted.
->
-> Then counterparty (`src/port/src/counterparty/`, 6th & last). Then step 5
-> (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading engines), step 6 (orchestrator
-> wrap + setter removal + config/context unification), step 7 (audits).
+> **Then step 6 — orchestrator wrap + setter removal (HIGH-RISK CAPSTONE, confirm first).**
+> Wrap port/trading runs in `catchment_context(c)` that ALSO repoints config paths; delete
+> the `config.catchment_id` setter + `server.py:46` comment. Setter sites: `app/commands/
+> {server,book,port/orchestrator}.py`, `app/commands/test/command.py`, `gaugehd/runner.py:125`;
+> tests `tests/catch/test_catchment_isolation.py` (rewrite/retire), commercial-report tests,
+> `cdm_all.py`, `test_gaugehd_runner_part2.py`. **Then step 7** — 0.8 data-access audit
+> (sanction `src/database`; no-SQL/file-I/O-outside-database gate; green-by-construction).
 >
 > **Pre-existing reds (NOT ours; baseline==guard verified):** 11 `tests/routes/storm_stress`,
 > 1 path-definition gate (~67-site backlog), 5 `tests/routes/lineage` prs-commit
