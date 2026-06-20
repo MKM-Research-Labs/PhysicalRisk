@@ -2,14 +2,14 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 29 commits ahead of origin, **unpushed**
-> (user pushes). Working tree clean. The migration work is NOT on `main`; this branch is
-> currently checked out in the worktree at `.claude/worktrees/heuristic-margulis-61da49`
-> (the older `elastic-wozniak-*` worktree is gone — switch whichever worktree you land in
-> onto `quirky-chaplygin`).
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 31 commits ahead of origin, **unpushed**
+> (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
+> been ephemeral this project — the branch is currently checked out directly in the main
+> repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
+> worktree, `git checkout claude/quirky-chaplygin-a2a625` first.
 >
-> **Environment:** worktrees have no `.venv` — use the main repo's interpreter and
-> always activate it first: `source /Users/newdavid/Documents/PhysicalRisk/.venv/bin/activate`
+> **Environment:** always activate the venv first:
+> `source /Users/newdavid/Documents/PhysicalRisk/.venv/bin/activate`
 > (a fresh shell otherwise defaults to system Python 3.9 and conftest import errors).
 > Coverage on a port submodule trips the same `tests/helpers` vs `src/visual/layer/helpers.py`
 > sys.path collision that `--cov=database.context` does — drive it with `coverage run -m
@@ -44,22 +44,29 @@
 >   100%, locations.py 99% (lone miss = pre-existing unreachable `_zone_from_offset`
 >   fallback). **R2 nit:** `locations.py` is 304 lines (was 309; net −5) — pre-existing
 >   >300 backlog item, [[refactor_300_line_initiative]]; split `_zone_*` helpers into a
->   `_zones.py` when convenient.
+>   `_zones.py` when convenient (spawned as a separate task).
+> - **Step 4 — loan/mortgage writer (3rd generator) DONE.** [`cc0ca95e`] Another
+>   read-AND-write: `MortgagePortfolioGenerator(catchment=…)`; the property read →
+>   `database.get_property_portfolio(self.catchment)` (absence→same "generate properties
+>   first" `FileNotFoundError`); write → `database.save_loans`. **DECISION: dropped the
+>   `property_portfolio_path=` arg entirely** (no override) — `generate()` now takes no
+>   args; caller `run_mortgages` + all 4 mortgage test modules updated (per-module autouse
+>   `tmp_catchment`; property prereq written under the same backend; save-error test patches
+>   `database.save_loans`). Added a >5-property test (covers the per-mortgage DEBUG log).
+>   Full port suite 2871✓/2skip; both changed modules 100%. (loan artifact key is `"loan"`,
+>   [[mortgage_loan_rename_stage5]].)
 >
-> **NEXT — step 4 continued, the loan/mortgage writer (3rd generator).**
-> `src/port/src/mortgage/` — `MortgagePortfolioGenerator(output_dir=…, …)` takes
-> `property_portfolio_path=` and reads `property.json` to size the book, then writes
-> `loan.json`. Convert: ctor `output_dir`→`catchment`; the property read →
-> `database.get_property_portfolio(self.catchment)` (drop the `property_portfolio_path`
-> arg, or keep it as an override — check call sites incl. `portfolios.py:run_mortgages`
-> and `tests/port/mortgage/mortgage_generator.py`'s `property_portfolio_in_tmp`, which
-> already writes property via `tmp_catchment` and hands over a path); write →
-> `database.save_loans(self.catchment, …)`; return `catchment`. Mirror the gauge/property
-> test pattern (per-module autouse `tmp_catchment`, read back via
-> `database.get_loan_portfolio`). NOTE the loan artifact key is `"loan"` / `loan.json`
-> (the mortgage→loan rename, [[mortgage_loan_rename_stage5]]).
+> **NEXT — step 4 continued, the commercial writer (4th generator).**
+> `src/port/src/commercial/` (a package) — same shape as property: a `CommercialPortfolio
+> Generator(output_dir=…)` that likely reads a sibling artifact (check for internal
+> `gauge.json`/`commercial`-input reads) and writes `commercial.json`. Convert: ctor
+> `output_dir`→`catchment` (default `active_catchment()`); any internal read →
+> `database.get_*`; write → `database.save_commercial(self.catchment, …)`; return
+> `catchment`; drop `portfolios.py:run_commercial_portfolio`'s positional `ctx.output_dir`.
+> Mirror the established test pattern (per-module autouse `tmp_catchment`, read back via
+> `database.get_commercial_portfolio`). Grep first: `grep -rn "CommercialPortfolioGenerator(\|output_dir" src/port/src/commercial tests/port/commercial`.
 >
-> Then commercial, commercial_loan, counterparty (rest of step 4). Then step 5
+> Then commercial_loan, counterparty (rest of step 4). Then step 5
 > (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading engines), step 6 (orchestrator
 > wrap + setter removal + config/context unification), step 7 (audits).
 >
