@@ -53,7 +53,7 @@ def populate_gaugets(
     print("\n  Generating gaugets (base simulation + storm responses)...", flush=True)
 
     # Step 1: Generate base 168h flood simulation files
-    gen = GaugeTimeSeriesGenerator(input_dir, verbose=verbose)
+    gen = GaugeTimeSeriesGenerator(verbose=verbose)
     result = gen.generate(simulation_hours=168)
     n_gauges = result['data']['num_gauges']
     print(f"    Base simulation: {n_gauges} gauge files  →  gaugets/", flush=True)

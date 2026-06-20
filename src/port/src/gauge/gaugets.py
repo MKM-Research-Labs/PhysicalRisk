@@ -52,14 +52,11 @@ Usage:
     result = generator.generate(simulation_hours=72)
 """
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
-import numpy as np
-
+import database
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -90,13 +87,13 @@ class GaugeTimeSeriesGenerator:
 
     def __init__(
         self,
-        output_dir: Optional[Union[str, Path]] = None,
+        catchment: Optional[str] = None,
         random_module: Optional[Any] = None,
         catchment_params: Optional[Any] = None,
         verbose: bool = True
     ):
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Run-scoped catchment identity; storage location lives in ``database``.
+        self.catchment = catchment or database.active_catchment()
         self.verbose = verbose
         if not verbose:
             logging.getLogger(__name__).setLevel(logging.WARNING)
@@ -134,36 +131,25 @@ class GaugeTimeSeriesGenerator:
         self.log(f"Catchment: {config.CATCHMENT}", "INFO")
         self.log(f"Simulation hours: {self.sim_params['simulation_hours']}", "INFO")
 
-        # Load gauge portfolio
-        gauge_portfolio_path = config.get_input_path("gauge.json")
-        self.log(f"Loading gauges from: {gauge_portfolio_path}", "INFO")
-
-        try:
-            with open(gauge_portfolio_path, 'r') as f:
-                gauge_data = json.load(f)
-            gauges = gauge_data.get('flood_gauges', [])
-            self.log(f"Loaded {len(gauges)} gauges", "SUCCESS")
-        except FileNotFoundError:
-            self.log(f"Gauge portfolio not found: {gauge_portfolio_path}", "ERROR")
+        # Load gauge portfolio through the database seam.
+        gauge_portfolio = database.get_gauge_portfolio(self.catchment)
+        if gauge_portfolio is None:
+            self.log(f"Gauge portfolio not found for catchment: {self.catchment}", "ERROR")
             raise FileNotFoundError(
-                f"Gauge portfolio not found at {gauge_portfolio_path}. "
+                f"Gauge portfolio not found for catchment {self.catchment}. "
                 "Generate gauges first using GaugePortfolioGenerator."
             )
+        gauges = gauge_portfolio.get('flood_gauges', [])
+        self.log(f"Loaded {len(gauges)} gauges", "SUCCESS")
 
         # Generate time series using random module
         self.log("Generating time series data...", "INFO")
         time_series_data = self.random.generate_flood_simulation(gauges, self.sim_params)
         self.log(f"Generated {len(time_series_data)} timesteps", "SUCCESS")
 
-        # Reorganize into per-gauge data and write per-gauge files
-        gaugets_dir = self.output_dir / "gaugets"
-        gaugets_dir.mkdir(parents=True, exist_ok=True)
-
-        # Remove stale gauge files from previous runs (GAUGE-* and SYNTH-*)
-        for stale in gaugets_dir.glob('GAUGE-*.json'):
-            stale.unlink()
-        for stale in gaugets_dir.glob('SYNTH-*.json'):
-            stale.unlink()
+        # Remove stale per-gauge timeseries from previous runs, then write fresh.
+        for stale_id in list(database.iter_gauge_timeseries_ids(self.catchment)):
+            database.delete_gauge_timeseries(self.catchment, stale_id)
 
         # Build per-gauge readings from the interleaved timestep data
         gauge_readings = {}  # gauge_id -> list of readings
@@ -175,9 +161,8 @@ class GaugeTimeSeriesGenerator:
                         gauge_readings[gauge_id] = []
                     gauge_readings[gauge_id].append(reading)
 
-        # Write per-gauge files
+        # Write per-gauge timeseries through the database seam.
         for gauge_id, readings in gauge_readings.items():
-            gauge_file = gaugets_dir / f"{gauge_id}.json"
             gauge_data = {
                 "gauge_id": gauge_id,
                 "metadata": {
@@ -191,11 +176,9 @@ class GaugeTimeSeriesGenerator:
                     "readings": readings,
                 },
             }
+            database.save_gauge_timeseries(self.catchment, gauge_id, gauge_data)
 
-            with open(gauge_file, 'w') as f:
-                json.dump(gauge_data, f, indent=2, cls=DateTimeEncoder)
-
-        self.log(f"Saved {len(gauge_readings)} per-gauge files to: {gaugets_dir}", "SUCCESS")
+        self.log(f"Saved {len(gauge_readings)} per-gauge timeseries for catchment: {self.catchment}", "SUCCESS")
 
         return {
             "data": {
@@ -203,7 +186,7 @@ class GaugeTimeSeriesGenerator:
                 "num_gauges": len(gauges),
                 "num_timesteps": len(time_series_data)
             },
-            "file_path": gaugets_dir,
+            "catchment": self.catchment,
             "simulation_parameters": self.sim_params
         }
 
@@ -232,4 +215,4 @@ if __name__ == "__main__":
     logger.info(f"Generating gauge time series for catchment: {config.CATCHMENT}")
     result = generate_gaugets(168)
     logger.info(f"Generated {result['data']['num_timesteps']} timesteps for {result['data']['num_gauges']} gauges.")
-    logger.info(f"Output saved to: {result['file_path']}")
+    logger.info(f"Saved to catchment: {result['catchment']}")

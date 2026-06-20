@@ -47,14 +47,11 @@ class TestGaugeTimeSeries:
 
     def test_requires_gauge_portfolio(self, tmp_path):
         from port.src.gauge.gaugets import GaugeTimeSeriesGenerator
-        original = config.input_dir
-        config.input_dir = tmp_path
-        try:
-            gen = GaugeTimeSeriesGenerator(tmp_path, verbose=False)
+        from db_helpers import tmp_catchment
+        # Empty backend (no gauge portfolio) → the generator must refuse.
+        with tmp_catchment(tmp_path):
             with pytest.raises(FileNotFoundError):
-                gen.generate(simulation_hours=12)
-        finally:
-            config.input_dir = original
+                GaugeTimeSeriesGenerator(verbose=False).generate(simulation_hours=12)
 
 
 class TestGaugeHistoricalDaily:

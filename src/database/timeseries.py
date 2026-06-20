@@ -72,6 +72,9 @@ def iter_gauge_timeseries_ids(catchment) -> Iterator[str]:
 def save_gauge_timeseries(catchment, gauge_id, payload):
     active_backend().save("gauge_timeseries", catchment, payload, gauge_id)
 
+def delete_gauge_timeseries(catchment, gauge_id):
+    active_backend().delete("gauge_timeseries", catchment, gauge_id)
+
 def get_gauge_history(catchment, gauge_id):
     return load_or("gauge_history", catchment, gauge_id)
 
