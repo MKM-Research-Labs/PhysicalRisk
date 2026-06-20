@@ -43,6 +43,7 @@ from .portfolio import (
     list_loans, get_loan, save_loans, get_loan_portfolio,
     list_commercial, get_commercial, save_commercial, get_commercial_portfolio,
     list_commercial_loans, get_commercial_loan, save_commercial_loans,
+    get_commercial_loan_portfolio,
     list_counterparties, get_counterparty, save_counterparties,
 )
 from .hazard import (
@@ -93,6 +94,7 @@ __all__ = [
     "list_loans", "get_loan", "save_loans", "get_loan_portfolio",
     "list_commercial", "get_commercial", "save_commercial", "get_commercial_portfolio",
     "list_commercial_loans", "get_commercial_loan", "save_commercial_loans",
+    "get_commercial_loan_portfolio",
     "list_counterparties", "get_counterparty", "save_counterparties",
     # hazard
     "get_gauge_hazard_curves", "save_gauge_hazard_curves",
