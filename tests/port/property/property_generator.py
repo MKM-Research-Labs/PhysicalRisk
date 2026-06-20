@@ -27,32 +27,46 @@ import re
 
 import pytest
 
+import database
 from port.src.property import PropertyPortfolioGenerator
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Route the migrated property writer's reads/writes to a scratch dir.
+
+    The WP2.4 property generator no longer takes ``output_dir``; it reads the gauge
+    portfolio and persists properties through ``database`` against ``active_catchment()``.
+    Binding a tmp-rooted backend isolates every test and lets assertions read back via
+    ``database.get_property_portfolio`` (or inspect ``tmp_path / 'property.json'``)."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 @pytest.mark.generator
 class TestPropertyGeneratorOutput:
 
     def test_generate_returns_expected_keys(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=5)
         assert "data" in result
-        assert "file_path" in result
+        assert "catchment" in result
         assert "processing_stats" in result
 
     def test_generate_correct_count(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=5)
         assert len(result["data"]["properties"]) == 5
 
     def test_property_ids_unique(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=10)
         ids = result["data"]["property_ids"]
         assert len(ids) == len(set(ids))
 
     def test_property_id_format(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=5)
         for pid in result["data"]["property_ids"]:
             assert re.match(r"^PROP-[a-f0-9]{8}$", pid)
@@ -61,16 +75,15 @@ class TestPropertyGeneratorOutput:
 @pytest.mark.generator
 class TestPropertyGeneratorFile:
 
-    def test_output_file_exists(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+    def test_output_persisted(self, tmp_path):
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=5)
-        assert result["file_path"].exists()
+        assert database.get_property_portfolio(result["catchment"]) is not None
 
-    def test_output_file_is_valid_json(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+    def test_output_is_valid_portfolio(self, tmp_path):
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=5)
-        with open(result["file_path"]) as f:
-            data = json.load(f)
+        data = database.get_property_portfolio(result["catchment"])
         assert isinstance(data, dict)
 
 
@@ -78,14 +91,14 @@ class TestPropertyGeneratorFile:
 class TestPropertyGeneratorDataQuality:
 
     def test_coordinates_in_thames_range(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=10)
         for loc in result["data"]["locations"]:
             assert 51.0 <= loc["lat"] <= 52.0
             assert -1.0 <= loc["lon"] <= 1.0
 
     def test_processing_stats(self, tmp_path):
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=5)
         stats = result["processing_stats"]
         assert stats["successful_properties"] == 5
@@ -205,7 +218,7 @@ class TestGenerateLocationsFallback:
         """Lines 499-518: fallback generates right number of locations."""
         from port.src.property.main import PropertyPortfolioGenerator
         params = self._make_minimal_params(tmp_path)
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         locs = gen._generate_locations_fallback(5, params.AREAS,
                                                  params.AREA_VALUE_FACTORS, {})
@@ -215,7 +228,7 @@ class TestGenerateLocationsFallback:
         """Lines 510-517: each fallback location has lat/lon/name/elevation."""
         from port.src.property.main import PropertyPortfolioGenerator
         params = self._make_minimal_params(tmp_path)
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         locs = gen._generate_locations_fallback(3, params.AREAS,
                                                  params.AREA_VALUE_FACTORS, {})
@@ -238,7 +251,7 @@ class TestGenerateLocationsFallback:
         params.GAUGE_POINTS = None
         params.GAUGEPOINTS = None
         params.get_elevation = MagicMock(return_value=10.0)
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         locs = gen._generate_locations_fallback(2, params.AREAS, {}, {})
         assert all(loc["elevation"] == 10.0 for loc in locs)
@@ -253,16 +266,16 @@ class TestGeneratePropertiesFunction:
     def test_generate_properties_basic(self, tmp_path):
         """Lines 608-612: generate_properties returns result dict."""
         from port.src.property.main import generate_properties
-        result = generate_properties(count=3, output_dir=tmp_path)
+        result = generate_properties(count=3)
         assert isinstance(result, dict)
         assert "data" in result
         assert len(result["data"]["properties"]) == 3
 
-    def test_generate_properties_output_file_created(self, tmp_path):
-        """Lines 610-612: generate_properties creates output file."""
+    def test_generate_properties_output_persisted(self, tmp_path):
+        """generate_properties persists the portfolio through the database seam."""
         from port.src.property.main import generate_properties
-        result = generate_properties(count=2, output_dir=tmp_path)
-        assert result["file_path"].exists()
+        result = generate_properties(count=2)
+        assert database.get_property_portfolio(result["catchment"]) is not None
 
 
 # ===========================================================================
@@ -274,14 +287,14 @@ class TestBuildSection:
     def test_non_dict_schema_returns_empty(self, tmp_path):
         """Line 541: non-dict schema → returns {}."""
         from port.src.property.main import PropertyPortfolioGenerator
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         result = gen._build_section("not_a_dict", 0, {})
         assert result == {}
 
     def test_skips_type_field(self, tmp_path):
         """Line 544-545: 'type'/'options'/'description' fields are skipped."""
         from port.src.property.main import PropertyPortfolioGenerator
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = PropertyPortfolioGenerator(verbose=False)
         schema = {"type": "string", "options": ["a", "b"]}
         result = gen._build_section(schema, 0, {})
         assert "type" not in result

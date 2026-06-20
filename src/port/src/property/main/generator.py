@@ -44,16 +44,14 @@ Usage:
     result = generator.generate(count=200)
 """
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
+import database
 from config import config
 from port.cdm import ResidentialAssetCDM
 
-from .encoder import DateTimeEncoder
 from .locations import LocationsMixin
 from .builder import BuilderMixin
 
@@ -70,7 +68,7 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
 
     def __init__(
         self,
-        output_dir: Optional[Union[str, Path]] = None,
+        catchment: Optional[str] = None,
         random_module: Optional[Any] = None,
         catchment_params: Optional[Any] = None,
         verbose: bool = True
@@ -79,15 +77,16 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
         Initialize the Property Portfolio Generator.
 
         Args:
-            output_dir: Directory to save generated files (defaults to config.get_input_dir())
+            catchment: Catchment to generate for; storage is resolved inside the
+                       ``database`` package (defaults to ``database.active_catchment()``)
             random_module: Catchment-specific random value generator module
                           (defaults to port.random.{CATCHMENT}.property_random)
             catchment_params: Catchment parameters instance
                              (defaults to catchments.{CATCHMENT}.{Catchment}Catchment())
             verbose: Enable detailed processing information
         """
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Run-scoped catchment identity; storage location lives in ``database``.
+        self.catchment = catchment or database.active_catchment()
 
         self.property_cdm = ResidentialAssetCDM()
         self.verbose = verbose
@@ -128,22 +127,20 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
         self.log("=" * 60, "INFO")
         self.log(f"Catchment: {config.CATCHMENT}", "INFO")
         self.log(f"Target property count: {count}", "INFO")
-        self.log(f"Output directory: {self.output_dir}", "INFO")
+        self.log(f"Catchment (storage): {self.catchment}", "INFO")
 
-        # Load actual gauge IDs from gauge.json for ReferenceGauges mapping
+        # Load actual gauge IDs from the gauge portfolio for ReferenceGauges mapping.
+        # Best-effort: a missing/corrupt portfolio just yields an empty map.
         self._gauge_id_map = {}  # index -> actual UUID
-        gauge_file = self.output_dir / 'gauge.json'
-        if gauge_file.exists():
-            try:
-                with open(gauge_file) as f:
-                    gauge_portfolio = json.load(f)
-                for idx, g in enumerate(gauge_portfolio.get('flood_gauges', gauge_portfolio.get('gauges', []))):
-                    gid = g.get('FloodGauge', {}).get('Header', {}).get('GaugeID', '')
-                    if gid:
-                        self._gauge_id_map[idx] = gid
-                self.log(f"Loaded {len(self._gauge_id_map)} gauge IDs for reference mapping", "DEBUG")
-            except Exception as e:
-                self.log(f"Could not load gauge IDs: {e}", "DEBUG")
+        try:
+            gauge_portfolio = database.get_gauge_portfolio(self.catchment) or {}
+            for idx, g in enumerate(gauge_portfolio.get('flood_gauges', gauge_portfolio.get('gauges', []))):
+                gid = g.get('FloodGauge', {}).get('Header', {}).get('GaugeID', '')
+                if gid:
+                    self._gauge_id_map[idx] = gid
+            self.log(f"Loaded {len(self._gauge_id_map)} gauge IDs for reference mapping", "DEBUG")
+        except Exception as e:
+            self.log(f"Could not load gauge IDs: {e}", "DEBUG")
 
         # Generate locations using catchment params
         self.log("Generating property locations...", "INFO")
@@ -180,9 +177,8 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
                 self.processing_stats['failed_properties'] += 1
                 continue
 
-        # Save to JSON file
-        self.log("Saving property data to JSON file...", "INFO")
-        output_path = self.output_dir / "property.json"
+        # Persist through the database seam (catchment-keyed, storage-agnostic).
+        self.log("Saving property data...", "INFO")
 
         try:
             output_data = {
@@ -196,10 +192,9 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
                 }
             }
 
-            with open(output_path, 'w') as f:
-                json.dump(output_data, f, indent=2, cls=DateTimeEncoder)
+            database.save_properties(self.catchment, output_data)
 
-            self.log(f"Property data saved successfully to: {output_path}", "INFO")
+            self.log(f"Property data saved successfully for catchment: {self.catchment}", "INFO")
 
         except Exception as e:
             self.log(f"Error saving property data: {str(e)}", "ERROR")
@@ -216,7 +211,7 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
         self.log(f"Successfully generated: {self.processing_stats['successful_properties']}/{self.processing_stats['total_properties']} properties", "INFO")
         self.log(f"Failed generations: {self.processing_stats['failed_properties']}", "INFO" if self.processing_stats['failed_properties'] == 0 else "WARNING")
         self.log(f"Processing time: {processing_time:.2f} seconds", "INFO")
-        self.log(f"Output file: {output_path}", "INFO")
+        self.log(f"Saved to catchment: {self.catchment}", "INFO")
 
         return {
             "data": {
@@ -224,19 +219,20 @@ class PropertyPortfolioGenerator(LocationsMixin, BuilderMixin):
                 "property_ids": property_ids,
                 "locations": locations
             },
-            "file_path": output_path,
+            "catchment": self.catchment,
             "processing_stats": self.processing_stats
         }
 
 
 def generate_properties(
     count: int = 200,
-    output_dir: Optional[Path] = None,
+    catchment: Optional[str] = None,
 ) -> Dict:
     """Convenience function to generate property portfolio.
 
-    The active catchment is taken from ``config.catchment_id`` (set by
-    the CLI / server entry point). This function no longer mutates it.
+    The active catchment defaults to ``database.active_catchment()`` (set by the
+    CLI / server entry point via ``config.catchment_id``). This function no longer
+    mutates global catchment state.
     """
-    generator = PropertyPortfolioGenerator(output_dir=output_dir)
+    generator = PropertyPortfolioGenerator(catchment=catchment)
     return generator.generate(count=count)

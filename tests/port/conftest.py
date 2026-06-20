@@ -150,10 +150,16 @@ def small_gauge_portfolio(tmp_path):
 
 @pytest.fixture
 def small_property_portfolio(tmp_path):
-    """Generate a small property portfolio (5 properties) in tmp_path, return result dict."""
+    """Generate a small property portfolio (5 properties) in tmp_path, return result dict.
+
+    The WP2.4 property writer persists through ``database``; ``tmp_catchment`` roots a
+    scratch backend at ``tmp_path`` so the write is isolated and the backend stays bound
+    for the consuming test (read back via ``database.get_property_portfolio``)."""
     from port.src.property import PropertyPortfolioGenerator
-    gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
-    return gen.generate(count=5)
+    from db_helpers import tmp_catchment
+    with tmp_catchment(tmp_path):
+        gen = PropertyPortfolioGenerator(verbose=False)
+        yield gen.generate(count=5)
 
 
 @pytest.fixture

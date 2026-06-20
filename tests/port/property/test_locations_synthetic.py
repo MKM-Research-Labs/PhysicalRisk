@@ -39,8 +39,20 @@ import json
 import pytest
 
 from port.src.property.main.locations import _zone_from_offset
+from db_helpers import tmp_catchment
 
 from .conftest import GAUGE_POINTS, make_portfolio_gen
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames") for every test in this module.
+
+    ``_load_synthetic_gauges`` reads the gauge portfolio via ``database``; rooting the
+    backend at ``tmp_path`` means the ``tmp_path / 'gauge.json'`` these tests write is
+    what the helper reads back (and keeps it off the real SSD data)."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ---------------------------------------------------------------------------
@@ -80,15 +92,14 @@ class TestZoneFromOffset:
 class TestLoadSyntheticGauges:
     """Direct unit coverage for ``_load_synthetic_gauges``."""
 
-    def test_no_output_dir_returns_empty(self, tmp_path):
-        """When ``output_dir`` is missing/None the helper short-circuits to []."""
+    def test_no_gauge_portfolio_returns_empty(self, tmp_path):
+        """When no gauge portfolio is persisted for the catchment, returns []."""
         gen = make_portfolio_gen(tmp_path)
-        # Force ``output_dir`` attribute to None to trigger the line-154 guard
-        gen.output_dir = None
+        # The autouse tmp_catchment backend is empty (no gauge.json written).
         assert gen._load_synthetic_gauges() == []
 
     def test_missing_gauge_file_returns_empty(self, tmp_path):
-        """No gauge.json under output_dir → []."""
+        """No gauge portfolio under the tmp backend → []."""
         gen = make_portfolio_gen(tmp_path)
         # tmp_path has no gauge.json yet
         assert gen._load_synthetic_gauges() == []

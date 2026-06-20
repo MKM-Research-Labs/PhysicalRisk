@@ -36,10 +36,16 @@ from port.src.property import PropertyPortfolioGenerator
 
 @pytest.fixture
 def property_portfolio_in_tmp(tmp_path):
-    """Generate a small property portfolio and return (tmp_path, property_file_path)."""
-    gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
-    result = gen.generate(count=5)
-    return tmp_path, result["file_path"]
+    """Generate a small property portfolio and return (tmp_path, property_file_path).
+
+    The WP2.4 property writer persists through ``database``; ``tmp_catchment`` roots the
+    backend at ``tmp_path`` so ``property.json`` lands there physically, where the
+    still-directory-injected mortgage generator reads it by path."""
+    from db_helpers import tmp_catchment
+    with tmp_catchment(tmp_path):
+        gen = PropertyPortfolioGenerator(verbose=False)
+        gen.generate(count=5)
+    return tmp_path, tmp_path / "property.json"
 
 
 @pytest.mark.generator
