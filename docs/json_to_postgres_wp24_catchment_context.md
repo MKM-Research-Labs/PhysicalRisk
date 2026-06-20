@@ -1,58 +1,61 @@
 # WP2.4 — Catchment context (the writer-migration gate)
 
-> ## ▶ RESUME HERE (session pickup, 2026-06-19)
+> ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 25 commits ahead of origin, **unpushed**
-> (user pushes). Working tree clean. The migration work is NOT on `main` /
-> `claude/elastic-wozniak-*`; the worktree at `.claude/worktrees/elastic-wozniak-24f4aa`
-> has been switched onto `quirky-chaplygin`.
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 27 commits ahead of origin, **unpushed**
+> (user pushes). Working tree clean. The migration work is NOT on `main`; this branch is
+> currently checked out in the worktree at `.claude/worktrees/heuristic-margulis-61da49`
+> (the older `elastic-wozniak-*` worktree is gone — switch whichever worktree you land in
+> onto `quirky-chaplygin`).
 >
 > **Environment:** worktrees have no `.venv` — use the main repo's interpreter and
 > always activate it first: `source /Users/newdavid/Documents/PhysicalRisk/.venv/bin/activate`
 > (a fresh shell otherwise defaults to system Python 3.9 and conftest import errors).
-> Run database coverage as `pytest tests/database/ --cov=database` (NOT
-> `--cov=database.context` — trips a `tests/helpers` vs `src/visual/layer/helpers.py`
-> sys.path collision). **No port runs / mutating audits in a worktree** — code + tests
-> here, real regeneration in the main checkout.
+> Coverage on a port submodule trips the same `tests/helpers` vs `src/visual/layer/helpers.py`
+> sys.path collision that `--cov=database.context` does — drive it with `coverage run -m
+> pytest … && coverage report --include="…"` (uses pyproject's `source`, no pytest-cov early
+> import) rather than `pytest --cov=<submodule>`. **No port runs / mutating audits in a
+> worktree** — code + tests here, real regeneration in the main checkout.
 >
-> **Done this session (steps of the §5 plan):**
+> **Done (steps of the §5 plan):**
 > - §4 decisions locked: retire `config.catchment_id` *setter*; convert port generators
 >   **and** trading engines in one pass. [`c0939c69`]
 > - Design + plan correction (step 3 deferred into step 6). [`93d5f21a`, `d694d27f`]
 > - **Step 1** — `src/database/context.py`: `active_catchment()` + `catchment_context()`
 >   (ContextVar; falls back to `config.catchment_id`). db pkg 100%. [`36d84617`]
-> - **Step 2** — `tests/conftest/db_helpers.py`: `tmp_catchment(tmp_path)` /
->   `memory_catchment()`. [`8a82730c`]
+> - **Step 2** — `tests/conftest/db_helpers.py` (import as `from db_helpers import …`):
+>   `tmp_catchment(tmp_path)` / `memory_catchment()`. [`8a82730c`]
 > - **Step 4 PREP** — write-guard: autouse test backend refuses `save`/`delete` that
->   resolve under the real `data/input` tree (data-safety net before any writer
->   migration). Verified zero new test failures. [`7df143de`]
+>   resolve under the real `data/input` tree. [`7df143de`]
+> - **Step 4 — gauge writer (1st of 6 portfolio generators) DONE.** [`8c254871`]
+>   `GaugePortfolioGenerator(catchment=…)` defaulting to `active_catchment()`;
+>   `_gauge_generate` writes via `database.save_gauges(self.catchment, output_data)`
+>   (byte-identical — `database._serialize.dumps` == `indent=2` + datetime/numpy default);
+>   result returns `"catchment"` not `"file_path"`; caller `portfolios.py:37` drops the
+>   positional `ctx.output_dir`. Tests wrapped in `tmp_catchment` (autouse fixture in
+>   `gauge_generator.py`; `small_gauge_portfolio`, `_run_pipeline`, `_available_gauge_points`).
+>   Full port suite 2800✓/2skip, db 71✓, both changed modules 100%.
 >
-> **NEXT — step 4, the gauge writer (first portfolio generator):**
-> 1. `src/port/src/gauge/gauge.py` — constructor `output_dir` → `catchment` (default
->    `database.active_catchment()`); drop `self.output_dir`/`mkdir`. Keep the
->    `DateTimeEncoder` re-export at line 73 (tests import it). Convenience
->    `generate_gauges(count, output_dir=…)` → `catchment=…`; fix the `__main__` log.
-> 2. `src/port/src/gauge/_gauge_generate.py` — replace the `open(output_path)` +
->    `json.dump(..., cls=DateTimeEncoder)` with `database.save_gauges(self.catchment,
->    output_data)`; drop `file_path` from the return (replace with `catchment`); remove
->    now-unused `json`/`DateTimeEncoder` imports; add `import database`. Payload is the
->    whole `output_data` dict (save_gauges stores it as-is → byte-identical).
-> 3. Production caller `app/commands/port/stages/portfolios.py:37` — drop the positional
->    `ctx.output_dir` from the gauge constructor (active_catchment() fallback →
->    `config.catchment_id`, set by the still-present setter, resolves identically).
-> 4. Tests — every `.generate()` site must run inside `tmp_catchment` or the guard
->    raises. Wrap shared fixtures once: `tests/port/conftest.py` (`small_gauge_portfolio`)
->    and `tests/port/pipeline/conftest.py` (`_run_pipeline`, `_available_gauge_points`)
->    in `with tmp_catchment(output_dir):`, dropping `output_dir` from the **gauge** ctor
->    only (other generators stay on `output_dir` until their slices — they write to the
->    same dir the tmp_catchment FileRepository is rooted at, so the mix works). Repoint
->    `tests/port/gauge/gauge_generator.py` (autouse `tmp_catchment` fixture; the 3
->    `file_path`/`open()` tests → read back via `database.get_gauge_portfolio(catchment)`;
->    `"file_path" in result` → `"catchment" in result`).
-> 5. Then repeat for property, loan/mortgage, commercial, commercial_loan, counterparty
->    (rest of step 4). Then step 5 (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading
->    engines), step 6 (orchestrator wrap + setter removal + config/context unification),
->    step 7 (audits).
+> **NEXT — step 4 continued, the property writer (2nd generator).** This one is the §1b
+> read-AND-write case, so it exercises the *generator-internal read* conversion too:
+> 1. `src/port/src/property/main/generator.py` — ctor `output_dir`→`catchment`
+>    (default `active_catchment()`); drop `self.output_dir`/`mkdir` (`:71,:89-90`).
+>    The internal read `self.output_dir / 'gauge.json'` (`:135`, `open()` at `:138`) →
+>    `database.get_gauge_portfolio(self.catchment)`. The write `self.output_dir /
+>    'property.json'` + `json.dump(cls=DateTimeEncoder)` (`:185,:199-200`) →
+>    `database.save_properties(self.catchment, output_data)`. Return `catchment` not
+>    `file_path`; fix the `Output directory:` log (`:131`) and the convenience wrapper
+>    `generate_*(output_dir=…)` (`:234,:241`). Trim now-unused `json`/`Path`/`DateTimeEncoder`.
+> 2. Production caller for properties in `app/commands/port/stages/portfolios.py` — drop
+>    its positional `ctx.output_dir` the same way.
+> 3. Tests: repoint `tests/port/property/**` like the gauge slice (autouse `tmp_catchment`,
+>    read back via `database.get_property_portfolio`); flip `small_property_portfolio` in
+>    `tests/port/conftest.py` (currently still `output_dir=tmp_path` — fine until now) and
+>    drop `output_dir` from the **property** ctor in `pipeline/conftest.py:_run_pipeline`
+>    (already inside the `tmp_catchment(output_dir)` block, so gauge.json is readable there).
+> 4. Then loan/mortgage, commercial, commercial_loan, counterparty (rest of step 4). Then
+>    step 5 (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading engines), step 6
+>    (orchestrator wrap + setter removal + config/context unification), step 7 (audits).
 >
 > **Pre-existing reds (NOT ours; baseline==guard verified):** 11 `tests/routes/storm_stress`,
 > 1 path-definition gate (~67-site backlog), 5 `tests/routes/lineage` prs-commit
