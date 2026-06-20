@@ -139,7 +139,7 @@ def _run_pipeline(output_dir):
         )
         PropertyTimeSeriesGenerator(output_dir, verbose=False).generate()
         PropertyHazardCurveGenerator(output_dir, verbose=False).generate()
-        CounterpartyPortfolioGenerator(output_dir, verbose=False).generate()
+        CounterpartyPortfolioGenerator(verbose=False).generate()
 
 
 @pytest.fixture(scope="module")

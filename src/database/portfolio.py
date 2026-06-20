@@ -54,3 +54,4 @@ def get_commercial_loan_portfolio(catchment): return load_or("commercial_loan", 
 def list_counterparties(catchment): return list_records("counterparty", catchment)
 def get_counterparty(catchment, counterparty_id): return find_record("counterparty", catchment, counterparty_id)
 def save_counterparties(catchment, cps): active_backend().save("counterparty", catchment, cps)
+def get_counterparty_portfolio(catchment): return load_or("counterparty", catchment)
