@@ -28,8 +28,20 @@ from unittest.mock import MagicMock
 import pytest
 
 from port.src.property.main import PropertyPortfolioGenerator
+from db_helpers import tmp_catchment
 
 from .conftest import GAUGE_POINTS, make_portfolio_gen, make_portfolio_params
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames") for every test in this module.
+
+    ``_generate_locations`` reads synthetic gauges via ``database.get_gauge_portfolio``;
+    rooting the backend at ``tmp_path`` keeps those reads off real data and lets a test
+    pre-write ``tmp_path / 'gauge.json'`` when it needs synthetic gauges."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -83,7 +95,7 @@ class TestGenerateLocations:
     def test_fallback_used_when_fewer_than_3_gauge_points(self, tmp_path):
         """With < 3 gauge points, fallback generator is called."""
         params = make_portfolio_params(gauge_points=[(51.5, -0.1, 5.0)])
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         locs = gen._generate_locations(3)
         assert len(locs) == 3
@@ -91,7 +103,7 @@ class TestGenerateLocations:
     def test_fallback_used_when_no_gauge_points(self, tmp_path):
         params = make_portfolio_params(gauge_points=None)
         params.GAUGE_POINTS = None
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         locs = gen._generate_locations(3)
         assert len(locs) == 3
@@ -116,7 +128,7 @@ class TestGenerateLocationsFallbackNoElevation:
         params.GAUGEPOINTS = None
         # Remove get_elevation to trigger the else-branch
         del params.get_elevation
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         locs = gen._generate_locations_fallback(5, ["A", "B"], {}, {})
         assert len(locs) == 5

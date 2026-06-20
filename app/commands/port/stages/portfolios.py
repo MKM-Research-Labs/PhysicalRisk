@@ -88,7 +88,7 @@ def run_properties(ctx: StageContext):
     inputs = {"gauge.json": ctx.input_dir / "gauge.json"}
     pre = ctx.hash_inputs(inputs)
     t_step = time.time()
-    r = ctx.prop_gen.PropertyPortfolioGenerator(ctx.output_dir).generate(args.num_properties)
+    r = ctx.prop_gen.PropertyPortfolioGenerator().generate(args.num_properties)
     elapsed = time.time() - t_step
     n = len(r['data']['properties'])
     stats = r.get('processing_stats', {})

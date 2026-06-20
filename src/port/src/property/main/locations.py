@@ -25,10 +25,10 @@ Each property is assigned to a synthetic gauge and pushed perpendicular
 to the river direction at that point, at a random distance (100-2000m).
 """
 
-import json
 import random
 from typing import Dict, List
 
+import database
 from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
 from models.floodrisk.spatial import (
     haversine_distance as _haversine_shared,
@@ -195,18 +195,13 @@ class LocationsMixin(GeometryMixin):
         return locations
 
     def _load_synthetic_gauges(self) -> List[Dict]:
-        """Load synthetic gauges from gauge.json."""
-        gauge_file = getattr(self, 'output_dir', None)
-        if gauge_file is None:
-            return []
-        gauge_path = gauge_file / 'gauge.json'
-        if not gauge_path.exists():
-            return []
+        """Load synthetic gauges from the gauge portfolio (best-effort).
 
+        Reads through the ``database`` seam against the active catchment; a missing
+        or corrupt portfolio yields no synthetic gauges."""
         try:
-            with open(gauge_path) as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, ValueError):
+            data = database.get_gauge_portfolio(self.catchment) or {}
+        except Exception:
             return []
 
         synthetics = []
