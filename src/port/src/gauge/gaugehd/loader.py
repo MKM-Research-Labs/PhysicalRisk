@@ -20,20 +20,16 @@
 
 """Gauge portfolio loader."""
 
-import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from config import config
+import database
 
 
-def load_gauge_portfolio() -> List[Dict[str, Any]]:
-    """Load the gauge portfolio from the catchment input directory."""
-    portfolio_path = config.get_input_path("gauge.json")
-
-    if not portfolio_path.exists():
-        raise FileNotFoundError(f"Gauge portfolio not found: {portfolio_path}")
-
-    with open(portfolio_path, 'r') as f:
-        data = json.load(f)
+def load_gauge_portfolio(catchment: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Load the gauge portfolio for the active catchment through the database seam."""
+    catchment = catchment or database.active_catchment()
+    data = database.get_gauge_portfolio(catchment)
+    if data is None:
+        raise FileNotFoundError(f"Gauge portfolio not found for catchment {catchment}")
 
     return data.get("flood_gauges", [])

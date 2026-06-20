@@ -28,12 +28,11 @@ Creates realistic daily water level timeseries that respect:
 - Appropriate flood frequency based on historical records
 """
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, Optional
 
+import database
 from config import config
 from models.statistics.synthetic import generate_synthetic_timeseries  # noqa: F401
 from models.statistics.timeseries import calculate_level_statistics
@@ -43,15 +42,15 @@ logger = logging.getLogger(__name__)
 
 def generate_from_gauge_portfolio(
     gauge_data: Dict[str, Any],
-    output_dir: Optional[Path] = None,
+    catchment: Optional[str] = None,
     years: int = 50
 ) -> Dict[str, Any]:
     """
     Generate historical daily JSON from gauge portfolio data.
 
     Args:
-        gauge_data: Single gauge entry from gauge.json
-        output_dir: Directory for output (defaults to config.get_gaugehd_dir())
+        gauge_data: Single gauge entry from the gauge portfolio
+        catchment: Catchment to store under (defaults to ``database.active_catchment()``)
         years: Years of history to generate
 
     Returns:
@@ -109,18 +108,12 @@ def generate_from_gauge_portfolio(
         "daily_observations": daily_observations,
     }
 
-    # Write to file
-    if output_dir is None:
-        output_dir = config.get_gaugehd_dir()
+    # Persist through the database seam (keyed gauge_history artifact).
+    if catchment is None:
+        catchment = database.active_catchment()
+    database.save_gauge_history(catchment, gauge_id, output_data)
 
-    output_path = output_dir / f"gauge_{gauge_id}_hd.json"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_path, 'w') as f:
-        json.dump(output_data, f, indent=2)
-
-    logger.info("Generated: %s", output_path.name)
-    logger.info("Gauge: %s (%s)", gauge_name, gauge_id)
+    logger.info("Generated gauge history for %s (%s)", gauge_name, gauge_id)
     logger.info("Records: %d days (%s years)", len(daily_observations), stats.get('total_years', 0))
     logger.info("Period: %s to %s", stats.get('record_start', 'N/A'), stats.get('record_end', 'N/A'))
     logger.info("Mean Level: %s m", stats.get('mean_level', 'N/A'))

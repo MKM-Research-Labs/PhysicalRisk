@@ -22,8 +22,9 @@
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
+import database
 from config import config
 
 from .loader import load_gauge_portfolio
@@ -41,39 +42,32 @@ def generate_all_gauge_histories(years: int = 50) -> List[str]:
         years: Number of years of history to generate
 
     Returns:
-        List of generated file paths
+        List of generated gauge IDs
     """
-    generated_files = []
+    generated_ids = []
 
-    gauges = load_gauge_portfolio()
+    catchment = database.active_catchment()
+    gauges = load_gauge_portfolio(catchment)
     logger.info("Found %d gauges in portfolio", len(gauges))
 
-    # Remove stale gauge history files from previous runs (GAUGE-* and SYNTH-*)
-    gaugehd_dir = config.get_gaugehd_dir()
-    for stale in gaugehd_dir.glob('gauge_GAUGE-*_hd.json'):
-        stale.unlink()
-    for stale in gaugehd_dir.glob('gauge_SYNTH-*_hd.json'):
-        stale.unlink()
-
-    logger.info("Output directory: %s", gaugehd_dir)
+    # Remove stale per-gauge histories from previous runs, then write fresh.
+    for stale_id in list(database.iter_gauge_history_ids(catchment)):
+        database.delete_gauge_history(catchment, stale_id)
 
     for gauge_entry in gauges:
         try:
-            result = generate_from_gauge_portfolio(gauge_entry, years=years)
-            gauge_id = result["gauge_metadata"]["gauge_id"]
-            output_path = config.get_gaugehd_dir() / f"gauge_{gauge_id}_hd.json"
-            generated_files.append(str(output_path))
+            result = generate_from_gauge_portfolio(gauge_entry, catchment=catchment, years=years)
+            generated_ids.append(result["gauge_metadata"]["gauge_id"])
         except Exception as e:
             gauge_id = gauge_entry.get("FloodGauge", {}).get("Header", {}).get("GaugeID", "UNKNOWN")
             logger.error("Error processing %s: %s", gauge_id, e)
 
-    logger.info("Generated %d gauge history files", len(generated_files))
-    return generated_files
+    logger.info("Generated %d gauge history records for catchment %s", len(generated_ids), catchment)
+    return generated_ids
 
 
 def process_nrfa_directory(
     input_dir: Path,
-    output_dir: Optional[Path] = None,
     years: int = 50,
     pattern: str = "*_gdf.csv"
 ) -> List[str]:
@@ -81,31 +75,26 @@ def process_nrfa_directory(
     Process all NRFA gauge files in a directory.
 
     Args:
-        input_dir: Directory containing NRFA CSV files
-        output_dir: Directory for output JSON files (defaults to gaugehd dir)
+        input_dir: Directory containing NRFA CSV files (external source data)
         years: Number of years of history to include
         pattern: Glob pattern for input files
 
     Returns:
-        List of generated file paths
+        List of generated gauge IDs
     """
-    generated_files = []
-
-    if output_dir is None:
-        output_dir = config.get_gaugehd_dir()
+    generated_ids = []
+    catchment = database.active_catchment()
 
     for csv_file in input_dir.glob(pattern):
         station_id = csv_file.stem.replace('_gdf', '')
-        output_file = output_dir / f"gauge_{station_id}_hd.json"
-
         try:
-            generate_from_nrfa(csv_file, output_file, years)
-            generated_files.append(str(output_file))
+            generate_from_nrfa(csv_file, catchment=catchment, years=years)
+            generated_ids.append(station_id)
         except Exception as e:
             logger.error("Error processing %s: %s", csv_file, e)
 
-    logger.info("Processed %d NRFA gauge files", len(generated_files))
-    return generated_files
+    logger.info("Processed %d NRFA gauge files for catchment %s", len(generated_ids), catchment)
+    return generated_ids
 
 
 def main():

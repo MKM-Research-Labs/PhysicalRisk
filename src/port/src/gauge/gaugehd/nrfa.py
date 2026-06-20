@@ -26,13 +26,12 @@ converts to the standard GaugeHistoricalDaily JSON format.
 """
 
 import csv
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from config import config
+import database
 from .statistics import calculate_flow_statistics
 
 logger = logging.getLogger(__name__)
@@ -121,16 +120,16 @@ def filter_by_years(
 
 def generate_from_nrfa(
     input_path: Path,
-    output_path: Optional[Path] = None,
+    catchment: Optional[str] = None,
     years: Optional[int] = None,
     gauge_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Generate JSON file from NRFA CSV.
+    Generate a gauge-history record from an NRFA CSV.
 
     Args:
-        input_path: Path to NRFA CSV file
-        output_path: Path for output JSON (auto-generated if None)
+        input_path: Path to NRFA CSV file (external source data)
+        catchment: Catchment to store under (defaults to ``database.active_catchment()``)
         years: Number of years to include (None = 50)
         gauge_id: Override gauge ID (extracted from metadata if None)
 
@@ -161,17 +160,12 @@ def generate_from_nrfa(
         'daily_flows': filtered_flows,
     }
 
-    if output_path is None:
-        output_dir = config.get_gaugehd_dir()
-        output_path = output_dir / f"gauge_{station_id}_hd.json"
+    # Persist through the database seam (keyed gauge_history artifact).
+    if catchment is None:
+        catchment = database.active_catchment()
+    database.save_gauge_history(catchment, station_id, output_data)
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_path, 'w') as f:
-        json.dump(output_data, f, indent=2)
-
-    logger.info("Generated: %s", output_path.name)
-    logger.info("Station: %s (%s)", station_metadata['station_name'], station_id)
+    logger.info("Generated gauge history for %s (%s)", station_metadata['station_name'], station_id)
     logger.info("Records: %d days (%s years)", len(filtered_flows), stats.get('total_years', 0))
     logger.info("Period: %s to %s", stats.get('record_start', 'N/A'), stats.get('record_end', 'N/A'))
     logger.info("Mean Flow: %s m3/s", stats.get('mean_flow', 'N/A'))

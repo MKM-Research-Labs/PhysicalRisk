@@ -60,6 +60,7 @@ from .timeseries import (
     get_gauge_timeseries, gauge_timeseries_exists, iter_gauge_timeseries_ids,
     save_gauge_timeseries, delete_gauge_timeseries,
     get_gauge_history, iter_gauge_history_ids, save_gauge_history,
+    delete_gauge_history,
 )
 from .storms import (
     get_storm_sequences, storm_sequences_exists, save_storm_sequences,
@@ -110,6 +111,7 @@ __all__ = [
     "get_gauge_timeseries", "gauge_timeseries_exists", "iter_gauge_timeseries_ids",
     "save_gauge_timeseries", "delete_gauge_timeseries",
     "get_gauge_history", "iter_gauge_history_ids", "save_gauge_history",
+    "delete_gauge_history",
     # storms / perils
     "get_storm_sequences", "storm_sequences_exists", "save_storm_sequences",
     "get_legacy_storm_sequences",
