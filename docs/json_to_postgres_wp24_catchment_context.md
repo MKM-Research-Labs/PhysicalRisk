@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 31 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 33 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -56,17 +56,33 @@
 >   Full port suite 2871✓/2skip; both changed modules 100%. (loan artifact key is `"loan"`,
 >   [[mortgage_loan_rename_stage5]].)
 >
-> **NEXT — step 4 continued, the commercial writer (4th generator).**
-> `src/port/src/commercial/` (a package) — same shape as property: a `CommercialPortfolio
-> Generator(output_dir=…)` that likely reads a sibling artifact (check for internal
-> `gauge.json`/`commercial`-input reads) and writes `commercial.json`. Convert: ctor
-> `output_dir`→`catchment` (default `active_catchment()`); any internal read →
-> `database.get_*`; write → `database.save_commercial(self.catchment, …)`; return
-> `catchment`; drop `portfolios.py:run_commercial_portfolio`'s positional `ctx.output_dir`.
-> Mirror the established test pattern (per-module autouse `tmp_catchment`, read back via
-> `database.get_commercial_portfolio`). Grep first: `grep -rn "CommercialPortfolioGenerator(\|output_dir" src/port/src/commercial tests/port/commercial`.
+> - **Step 4 — commercial writer (4th generator) DONE.** [`ae4834a4`] Same shape as
+>   property (it extends `LocationsMixin`): the ReferenceGauges gauge read AND the
+>   inherited `_load_synthetic_gauges` resolve via `database.get_gauge_portfolio`; write →
+>   `database.save_commercial`. `CommercialPortfolioGenerator(catchment=…)`; caller
+>   `run_commercial_portfolio` drops `ctx.output_dir`; `test_commercial_generator` gets the
+>   autouse `tmp_catchment` + reads back via `database.get_commercial_portfolio`; the
+>   commercial-loan prereq fixture writes the portfolio under `tmp_catchment` so the
+>   (unmigrated, file-based) loan generator reads physical `commercial.json`. Changed module
+>   100%; full port suite 2872✓/2skip.
 >
-> Then commercial_loan, counterparty (rest of step 4). Then step 5
+> **NEXT — step 4 continued, the commercial_loan writer (5th generator).**
+> `src/port/src/commercial_loan.py` (single file, NOT a package) — mirrors the
+> loan/mortgage slice: `CommercialLoanPortfolioGenerator(output_dir=…)` with
+> `generate(commercial_path=…)` that reads `commercial.json` (`:204,:210-211`) and writes
+> `commercial_loan.json` (`:228-230`, returns `file_path :244`). Convert: ctor
+> `output_dir`→`catchment`; **drop the `commercial_path=` arg** (like mortgage's
+> `property_portfolio_path`) → read via `database.get_commercial_portfolio(self.catchment)`,
+> absence→`FileNotFoundError`; write → `database.save_commercial_loans(self.catchment, …)`
+> (NOTE: the API is `save_commercial_loans` — there is no `get_commercial_loan_portfolio`
+> getter yet, so tests read back via `database.list_commercial_loans` or add a getter);
+> return `catchment`; drop `portfolios.py:run_commercial` step-3b positional `ctx.output_dir`
+> (line ~169). Tests: `tests/port/commercial/test_commercial_loan.py` — note its
+> `commercial_portfolio_in_tmp` fixture ALREADY writes commercial under `tmp_catchment`
+> (this slice), so the loan tests just need the autouse fixture kept bound during the loan
+> generate() + `file_path`/`commercial_loan.json` read-backs converted.
+>
+> Then counterparty (`src/port/src/counterparty/`, 6th & last). Then step 5
 > (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading engines), step 6 (orchestrator
 > wrap + setter removal + config/context unification), step 7 (audits).
 >
