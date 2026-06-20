@@ -29,45 +29,17 @@ import random
 from typing import Dict, List
 
 import database
-from config.port import EA_FLOOD_ZONE_ELEVATION_BOUNDS
 from models.floodrisk.spatial import (
     haversine_distance as _haversine_shared,
     nearest_point_on_polyline as _nearest_on_polyline_shared,
 )
 
 from ._geometry import GeometryMixin
+# Re-exported for backwards compatibility: these flood-zone helpers live in
+# ``_zones`` but are imported directly from this module by callers and tests.
+from ._zones import _zone_from_offset, _zone_seed_offsets
 
-
-def _zone_from_offset(offset: float) -> str:
-    """Derive EA flood zone from vertical offset above river (metres)."""
-    for zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
-        # A None bound is unbounded on that side: Zone 3b (functional
-        # floodplain) extends to/below river level (lo=None); Zone 1
-        # extends arbitrarily high (hi=None).
-        if (lo is None or offset >= lo) and (hi is None or offset < hi):
-            return zone
-    return 'Zone 1'
-
-
-def _zone_seed_offsets() -> List[float]:
-    """One representative in-band vertical offset (m) per EA flood zone.
-
-    Used to guarantee every zone is represented in a generated portfolio.
-    The distance x gradient placement model cannot reach the functional
-    floodplain on its own — MIN_RIVER_DISTANCE_M (400 m) times the minimum
-    gradient (2 m/km) already exceeds Zone 3b's 0.5 m ceiling — so a property
-    would never naturally land in Zone 3b. Offsets are derived from
-    EA_FLOOD_ZONE_ELEVATION_BOUNDS (not hard-coded) so they track the config.
-    """
-    seeds = []
-    for _zone, (lo, hi) in EA_FLOOD_ZONE_ELEVATION_BOUNDS.items():
-        if lo is None:        # unbounded below (Zone 3b): mid of [0, hi)
-            seeds.append(hi / 2.0)
-        elif hi is None:      # unbounded above (Zone 1): a bit into the band
-            seeds.append(lo + 1.0)
-        else:
-            seeds.append((lo + hi) / 2.0)
-    return seeds
+__all__ = ['LocationsMixin', '_zone_from_offset', '_zone_seed_offsets']
 
 
 class LocationsMixin(GeometryMixin):
