@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 27 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 29 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`; this branch is
 > currently checked out in the worktree at `.claude/worktrees/heuristic-margulis-61da49`
 > (the older `elastic-wozniak-*` worktree is gone — switch whichever worktree you land in
@@ -32,30 +32,36 @@
 >   `_gauge_generate` writes via `database.save_gauges(self.catchment, output_data)`
 >   (byte-identical — `database._serialize.dumps` == `indent=2` + datetime/numpy default);
 >   result returns `"catchment"` not `"file_path"`; caller `portfolios.py:37` drops the
->   positional `ctx.output_dir`. Tests wrapped in `tmp_catchment` (autouse fixture in
->   `gauge_generator.py`; `small_gauge_portfolio`, `_run_pipeline`, `_available_gauge_points`).
->   Full port suite 2800✓/2skip, db 71✓, both changed modules 100%.
+>   positional `ctx.output_dir`. Tests wrapped in `tmp_catchment`. Full port suite
+>   2800✓/2skip, db 71✓, both changed modules 100%.
+> - **Step 4 — property writer (2nd generator) DONE.** [`e5284e1c`] The §1b
+>   read-AND-write case: both internal gauge reads converted — `generator.py`'s
+>   ReferenceGauges read AND `locations.py:_load_synthetic_gauges` →
+>   `database.get_gauge_portfolio(self.catchment)` (best-effort); write →
+>   `database.save_properties`. Tests use **per-module** autouse `tmp_catchment` (NOT a
+>   package-wide conftest fixture — propertyts/propertyhc tests share that conftest and
+>   use a different, unmigrated generator). Full port suite 2871✓/2skip; generator.py
+>   100%, locations.py 99% (lone miss = pre-existing unreachable `_zone_from_offset`
+>   fallback). **R2 nit:** `locations.py` is 304 lines (was 309; net −5) — pre-existing
+>   >300 backlog item, [[refactor_300_line_initiative]]; split `_zone_*` helpers into a
+>   `_zones.py` when convenient.
 >
-> **NEXT — step 4 continued, the property writer (2nd generator).** This one is the §1b
-> read-AND-write case, so it exercises the *generator-internal read* conversion too:
-> 1. `src/port/src/property/main/generator.py` — ctor `output_dir`→`catchment`
->    (default `active_catchment()`); drop `self.output_dir`/`mkdir` (`:71,:89-90`).
->    The internal read `self.output_dir / 'gauge.json'` (`:135`, `open()` at `:138`) →
->    `database.get_gauge_portfolio(self.catchment)`. The write `self.output_dir /
->    'property.json'` + `json.dump(cls=DateTimeEncoder)` (`:185,:199-200`) →
->    `database.save_properties(self.catchment, output_data)`. Return `catchment` not
->    `file_path`; fix the `Output directory:` log (`:131`) and the convenience wrapper
->    `generate_*(output_dir=…)` (`:234,:241`). Trim now-unused `json`/`Path`/`DateTimeEncoder`.
-> 2. Production caller for properties in `app/commands/port/stages/portfolios.py` — drop
->    its positional `ctx.output_dir` the same way.
-> 3. Tests: repoint `tests/port/property/**` like the gauge slice (autouse `tmp_catchment`,
->    read back via `database.get_property_portfolio`); flip `small_property_portfolio` in
->    `tests/port/conftest.py` (currently still `output_dir=tmp_path` — fine until now) and
->    drop `output_dir` from the **property** ctor in `pipeline/conftest.py:_run_pipeline`
->    (already inside the `tmp_catchment(output_dir)` block, so gauge.json is readable there).
-> 4. Then loan/mortgage, commercial, commercial_loan, counterparty (rest of step 4). Then
->    step 5 (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading engines), step 6
->    (orchestrator wrap + setter removal + config/context unification), step 7 (audits).
+> **NEXT — step 4 continued, the loan/mortgage writer (3rd generator).**
+> `src/port/src/mortgage/` — `MortgagePortfolioGenerator(output_dir=…, …)` takes
+> `property_portfolio_path=` and reads `property.json` to size the book, then writes
+> `loan.json`. Convert: ctor `output_dir`→`catchment`; the property read →
+> `database.get_property_portfolio(self.catchment)` (drop the `property_portfolio_path`
+> arg, or keep it as an override — check call sites incl. `portfolios.py:run_mortgages`
+> and `tests/port/mortgage/mortgage_generator.py`'s `property_portfolio_in_tmp`, which
+> already writes property via `tmp_catchment` and hands over a path); write →
+> `database.save_loans(self.catchment, …)`; return `catchment`. Mirror the gauge/property
+> test pattern (per-module autouse `tmp_catchment`, read back via
+> `database.get_loan_portfolio`). NOTE the loan artifact key is `"loan"` / `loan.json`
+> (the mortgage→loan rename, [[mortgage_loan_rename_stage5]]).
+>
+> Then commercial, commercial_loan, counterparty (rest of step 4). Then step 5
+> (hazard/ts/storms/book-pricing/gaugehd/typhoon/trading engines), step 6 (orchestrator
+> wrap + setter removal + config/context unification), step 7 (audits).
 >
 > **Pre-existing reds (NOT ours; baseline==guard verified):** 11 `tests/routes/storm_stress`,
 > 1 path-definition gate (~67-site backlog), 5 `tests/routes/lineage` prs-commit
