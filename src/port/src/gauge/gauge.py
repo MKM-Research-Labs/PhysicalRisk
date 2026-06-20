@@ -56,17 +56,12 @@ Usage:
     result = generator.generate(count=40)
 """
 
-import json
 import logging
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
-import numpy as np
-
+import database
 from config import config
 from port.cdm import FloodGaugeCDM
-from port.utils.schema import build_section
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +80,7 @@ class GaugePortfolioGenerator(_GaugeGenerateMixin):
 
     def __init__(
         self,
-        output_dir: Optional[Union[str, Path]] = None,
+        catchment: Optional[str] = None,
         random_module: Optional[Any] = None,
         catchment_params: Optional[Any] = None,
         verbose: bool = True
@@ -94,16 +89,16 @@ class GaugePortfolioGenerator(_GaugeGenerateMixin):
         Initialize the Flood Gauge Portfolio Generator.
 
         Args:
-            output_dir: Directory to save generated files (defaults to config.get_input_dir())
+            catchment: Catchment to generate for; storage is resolved inside the
+                       ``database`` package (defaults to ``database.active_catchment()``)
             random_module: Catchment-specific random value generator module
                           (defaults to port.random.{CATCHMENT}.gauge_random)
             catchment_params: Catchment parameters module
                              (defaults to port.random.{CATCHMENT}.params)
             verbose: Enable detailed processing information
         """
-        # Use config defaults if not provided
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Run-scoped catchment identity; storage location lives in ``database``.
+        self.catchment = catchment or database.active_catchment()
 
         self.flood_gauge_cdm = FloodGaugeCDM()
         self.verbose = verbose
@@ -140,7 +135,7 @@ class GaugePortfolioGenerator(_GaugeGenerateMixin):
 # CONVENIENCE FUNCTION
 # =============================================================================
 
-def generate_gauges(count: int = 40, output_dir: Optional[Path] = None) -> Dict:
+def generate_gauges(count: int = 40, catchment: Optional[str] = None) -> Dict:
     """
     Convenience function to generate flood gauge portfolio for current catchment.
 
@@ -148,12 +143,12 @@ def generate_gauges(count: int = 40, output_dir: Optional[Path] = None) -> Dict:
 
     Args:
         count: Number of gauges to generate
-        output_dir: Output directory (defaults to config.get_input_dir())
+        catchment: Catchment to generate for (defaults to ``database.active_catchment()``)
 
     Returns:
         Generation result dictionary
     """
-    generator = GaugePortfolioGenerator(output_dir=output_dir)
+    generator = GaugePortfolioGenerator(catchment=catchment)
     return generator.generate(count=count)
 
 
@@ -161,4 +156,4 @@ if __name__ == "__main__":
     logger.info(f"Generating gauges for catchment: {config.CATCHMENT}")
     result = generate_gauges(count=40)
     logger.info(f"Generated {len(result['data']['flood_gauges'])} gauges.")
-    logger.info(f"Output saved to: {result['file_path']}")
+    logger.info(f"Saved to catchment: {result['catchment']}")

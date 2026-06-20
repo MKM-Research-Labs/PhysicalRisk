@@ -84,12 +84,12 @@ def _available_gauge_points() -> int:
     """
     try:
         from port.src.gauge import GaugePortfolioGenerator
-        import tempfile
-        with tempfile.TemporaryDirectory() as td:
-            gen = GaugePortfolioGenerator(td, verbose=False)
-            n = len(gen.params.GAUGE_POINTS)
-            if n:
-                return n
+        # Reads params only (no generate/write), so no scratch backend is needed;
+        # the WP2.4 ctor takes a catchment, not a directory.
+        gen = GaugePortfolioGenerator(verbose=False)
+        n = len(gen.params.GAUGE_POINTS)
+        if n:
+            return n
     except Exception:
         pass
     return 5
@@ -116,23 +116,28 @@ def _run_pipeline(output_dir):
     from port.src.property.propertyts import PropertyTimeSeriesGenerator
     from port.src.property.propertyhc import PropertyHazardCurveGenerator
     from port.src.counterparty import CounterpartyPortfolioGenerator
+    from db_helpers import tmp_catchment
 
-    GaugePortfolioGenerator(output_dir, verbose=False).generate(count=N_GAUGES)
-    PropertyPortfolioGenerator(output_dir, verbose=False).generate(count=N_PROPERTIES)
-    MortgagePortfolioGenerator(output_dir, verbose=False).generate()
-    GaugeTimeSeriesGenerator(output_dir, verbose=False).generate(simulation_hours=SIMULATION_HOURS)
-    # Generate storm sequences (replaces old generate_storms)
-    sequences = generate_event_set(count=N_STORMS, catchment_id='thames', seed=42)
-    save_sequences(sequences, output_dir / 'storm_sequences.json')
-    save_summary(sequences, output_dir / 'sequences_summary.json')
-    generate_all_gauge_histories(years=HISTORY_YEARS)
-    build_hazard_curves(
-        output_dir=output_dir, catchment_id='thames',
-        distribution='gev', verbose=False,
-    )
-    PropertyTimeSeriesGenerator(output_dir, verbose=False).generate()
-    PropertyHazardCurveGenerator(output_dir, verbose=False).generate()
-    CounterpartyPortfolioGenerator(output_dir, verbose=False).generate()
+    # The migrated gauge writer persists through ``database``; root a scratch backend
+    # at ``output_dir`` (catchment "thames") so ``save_gauges`` lands ``gauge.json``
+    # in the same dir the other, still directory-injected generators read/write.
+    with tmp_catchment(output_dir):
+        GaugePortfolioGenerator(verbose=False).generate(count=N_GAUGES)
+        PropertyPortfolioGenerator(output_dir, verbose=False).generate(count=N_PROPERTIES)
+        MortgagePortfolioGenerator(output_dir, verbose=False).generate()
+        GaugeTimeSeriesGenerator(output_dir, verbose=False).generate(simulation_hours=SIMULATION_HOURS)
+        # Generate storm sequences (replaces old generate_storms)
+        sequences = generate_event_set(count=N_STORMS, catchment_id='thames', seed=42)
+        save_sequences(sequences, output_dir / 'storm_sequences.json')
+        save_summary(sequences, output_dir / 'sequences_summary.json')
+        generate_all_gauge_histories(years=HISTORY_YEARS)
+        build_hazard_curves(
+            output_dir=output_dir, catchment_id='thames',
+            distribution='gev', verbose=False,
+        )
+        PropertyTimeSeriesGenerator(output_dir, verbose=False).generate()
+        PropertyHazardCurveGenerator(output_dir, verbose=False).generate()
+        CounterpartyPortfolioGenerator(output_dir, verbose=False).generate()
 
 
 @pytest.fixture(scope="module")

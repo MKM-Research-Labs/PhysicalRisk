@@ -136,10 +136,16 @@ def sample_property_location():
 
 @pytest.fixture
 def small_gauge_portfolio(tmp_path):
-    """Generate a small gauge portfolio (5 gauges) in tmp_path, return result dict."""
+    """Generate a small gauge portfolio (5 gauges) in tmp_path, return result dict.
+
+    The WP2.4 gauge writer persists through ``database``; ``tmp_catchment`` roots a
+    scratch backend at ``tmp_path`` so the write is isolated and the backend stays
+    bound for the consuming test (read back via ``database.get_gauge_portfolio``)."""
     from port.src.gauge import GaugePortfolioGenerator
-    gen = GaugePortfolioGenerator(output_dir=tmp_path, verbose=False)
-    return gen.generate(count=5)
+    from db_helpers import tmp_catchment
+    with tmp_catchment(tmp_path):
+        gen = GaugePortfolioGenerator(verbose=False)
+        yield gen.generate(count=5)
 
 
 @pytest.fixture
