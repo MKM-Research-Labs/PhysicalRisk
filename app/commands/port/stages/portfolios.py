@@ -118,7 +118,7 @@ def run_mortgages(ctx: StageContext):
     inputs = {"property.json": ctx.input_dir / "property.json"}
     pre = ctx.hash_inputs(inputs)
     t_step = time.time()
-    r = ctx.mortgage.MortgagePortfolioGenerator(ctx.output_dir).generate()
+    r = ctx.mortgage.MortgagePortfolioGenerator().generate()
     elapsed = time.time() - t_step
     n = len(r['data']['mortgages'])
     stats = r.get('processing_stats', {})

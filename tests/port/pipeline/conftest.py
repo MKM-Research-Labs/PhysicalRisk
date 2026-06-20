@@ -118,14 +118,15 @@ def _run_pipeline(output_dir):
     from port.src.counterparty import CounterpartyPortfolioGenerator
     from db_helpers import tmp_catchment
 
-    # The migrated gauge + property writers persist through ``database``; root a scratch
-    # backend at ``output_dir`` (catchment "thames") so their saves land ``gauge.json`` /
-    # ``property.json`` in the same dir the other, still directory-injected generators
-    # read/write (and so the property generator's gauge read resolves there too).
+    # The migrated gauge + property + loan writers persist through ``database``; root a
+    # scratch backend at ``output_dir`` (catchment "thames") so their saves land
+    # ``gauge.json`` / ``property.json`` / ``loan.json`` in the same dir the other, still
+    # directory-injected generators read/write (and so the property generator's gauge read
+    # and the loan generator's property read resolve there too).
     with tmp_catchment(output_dir):
         GaugePortfolioGenerator(verbose=False).generate(count=N_GAUGES)
         PropertyPortfolioGenerator(verbose=False).generate(count=N_PROPERTIES)
-        MortgagePortfolioGenerator(output_dir, verbose=False).generate()
+        MortgagePortfolioGenerator(verbose=False).generate()
         GaugeTimeSeriesGenerator(output_dir, verbose=False).generate(simulation_hours=SIMULATION_HOURS)
         # Generate storm sequences (replaces old generate_storms)
         sequences = generate_event_set(count=N_STORMS, catchment_id='thames', seed=42)
