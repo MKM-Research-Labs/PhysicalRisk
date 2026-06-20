@@ -57,17 +57,12 @@ Usage:
     result = generator.generate()
 """
 
-import json
 import logging
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
-import numpy as np
-
+import database
 from config import config
 from port.cdm import LoanCDM
-from port.utils.schema import build_section
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +83,7 @@ class MortgagePortfolioGenerator(_MortgageGenerateMixin):
 
     def __init__(
         self,
-        output_dir: Optional[Union[str, Path]] = None,
+        catchment: Optional[str] = None,
         random_module: Optional[Any] = None,
         catchment_params: Optional[Any] = None,
         verbose: bool = True
@@ -97,16 +92,16 @@ class MortgagePortfolioGenerator(_MortgageGenerateMixin):
         Initialize the Mortgage Portfolio Generator.
 
         Args:
-            output_dir: Directory to save generated files (defaults to config.get_input_dir())
+            catchment: Catchment to generate for; storage is resolved inside the
+                       ``database`` package (defaults to ``database.active_catchment()``)
             random_module: Catchment-specific random value generator module
                           (defaults to port.random.{CATCHMENT}.mortgage_random)
             catchment_params: Catchment parameters module
                              (defaults to port.params.{CATCHMENT})
             verbose: Enable detailed processing information
         """
-        # Use config defaults if not provided
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Run-scoped catchment identity; storage location lives in ``database``.
+        self.catchment = catchment or database.active_catchment()
 
         self.mortgage_cdm = LoanCDM()
         self.verbose = verbose
@@ -136,20 +131,20 @@ class MortgagePortfolioGenerator(_MortgageGenerateMixin):
 # CONVENIENCE FUNCTION
 # =============================================================================
 
-def generate_mortgages(output_dir: Optional[Path] = None) -> Dict:
+def generate_mortgages(catchment: Optional[str] = None) -> Dict:
     """
     Convenience function to generate mortgage portfolio for current catchment.
 
     Uses config.CATCHMENT to determine which random module and params to use.
+    The property portfolio is read from the ``database`` for the active catchment.
 
     Args:
-        output_dir: Output directory (defaults to config.get_input_dir())
-                   Must contain property.json
+        catchment: Catchment to generate for (defaults to ``database.active_catchment()``)
 
     Returns:
         Generation result dictionary
     """
-    generator = MortgagePortfolioGenerator(output_dir=output_dir)
+    generator = MortgagePortfolioGenerator(catchment=catchment)
     return generator.generate()
 
 
@@ -157,4 +152,4 @@ if __name__ == "__main__":
     logger.info(f"Generating mortgages for catchment: {config.CATCHMENT}")
     result = generate_mortgages()
     logger.info(f"Generated {len(result['data']['mortgages'])} mortgages.")
-    logger.info(f"Output saved to: {result['file_path']}")
+    logger.info(f"Saved to catchment: {result['catchment']}")

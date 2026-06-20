@@ -33,14 +33,12 @@
 
 """Mortgage generation methods for MortgagePortfolioGenerator (mixin)."""
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
+import database
 from config import config
-from port.utils.encoders import DateTimeEncoder
 from port.utils.schema import build_section
 
 logger = logging.getLogger(__name__)
@@ -49,16 +47,15 @@ logger = logging.getLogger(__name__)
 class _MortgageGenerateMixin:
     """Core mortgage generation, single-mortgage build, and value-setting methods."""
 
-    def generate(self, property_portfolio_path: Optional[Path] = None) -> Dict:
+    def generate(self) -> Dict:
         """
         Generate synthetic mortgage data linked to properties.
 
-        Args:
-            property_portfolio_path: Path to property portfolio JSON
-                                    (defaults to config.get_input_path('property.json'))
+        Reads the property portfolio for the active catchment through the
+        ``database`` seam and persists the generated loans the same way.
 
         Returns:
-            Dictionary containing generated data, file path, and processing information
+            Dictionary containing generated data, catchment, and processing information
         """
         self.processing_stats['start_time'] = datetime.now()
 
@@ -66,25 +63,18 @@ class _MortgageGenerateMixin:
         self.log("MORTGAGE PORTFOLIO GENERATOR", "INFO")
         self.log("=" * 60, "INFO")
         self.log(f"Catchment: {config.CATCHMENT}", "INFO")
-        self.log(f"Output directory: {self.output_dir}", "INFO")
+        self.log(f"Catchment (storage): {self.catchment}", "INFO")
 
-        # Load property portfolio using config path helper
-        if property_portfolio_path is None:
-            property_portfolio_path = config.get_input_path("property.json")
-
-        self.log(f"Loading properties from: {property_portfolio_path}", "INFO")
-
-        try:
-            with open(property_portfolio_path, 'r') as f:
-                property_data = json.load(f)
-            properties = property_data.get('properties', [])
-            self.log(f"Loaded {len(properties)} properties", "SUCCESS")
-        except FileNotFoundError:
-            self.log(f"Property portfolio not found: {property_portfolio_path}", "ERROR")
+        # Load the property portfolio through the database seam.
+        property_data = database.get_property_portfolio(self.catchment)
+        if property_data is None:
+            self.log(f"Property portfolio not found for catchment: {self.catchment}", "ERROR")
             raise FileNotFoundError(
-                f"Property portfolio not found at {property_portfolio_path}. "
+                f"Property portfolio not found for catchment {self.catchment}. "
                 "Generate properties first using PropertyPortfolioGenerator."
             )
+        properties = property_data.get('properties', [])
+        self.log(f"Loaded {len(properties)} properties", "SUCCESS")
 
         self.processing_stats['total_mortgages'] = len(properties)
 
@@ -114,9 +104,8 @@ class _MortgageGenerateMixin:
                 self.processing_stats['failed_mortgages'] += 1
                 continue
 
-        # Save to JSON file
-        self.log("Saving mortgage data to JSON file...", "INFO")
-        output_path = self.output_dir / "loan.json"
+        # Persist through the database seam (catchment-keyed, storage-agnostic).
+        self.log("Saving mortgage data...", "INFO")
 
         try:
             output_data = {
@@ -130,10 +119,9 @@ class _MortgageGenerateMixin:
                 }
             }
 
-            with open(output_path, 'w') as f:
-                json.dump(output_data, f, indent=2, cls=DateTimeEncoder)
+            database.save_loans(self.catchment, output_data)
 
-            self.log(f"Mortgage data saved successfully to: {output_path}", "SUCCESS")
+            self.log(f"Mortgage data saved successfully for catchment: {self.catchment}", "SUCCESS")
 
         except Exception as e:
             self.log(f"Error saving mortgage data: {str(e)}", "ERROR")
@@ -150,14 +138,14 @@ class _MortgageGenerateMixin:
         self.log(f"Successfully generated: {self.processing_stats['successful_mortgages']}/{self.processing_stats['total_mortgages']} mortgages", "SUCCESS")
         self.log(f"Failed generations: {self.processing_stats['failed_mortgages']}", "INFO" if self.processing_stats['failed_mortgages'] == 0 else "WARNING")
         self.log(f"Processing time: {processing_time:.2f} seconds", "INFO")
-        self.log(f"Output file: {output_path}", "INFO")
+        self.log(f"Saved to catchment: {self.catchment}", "INFO")
 
         return {
             "data": {
                 "mortgages": mortgages,
                 "mortgage_ids": mortgage_ids
             },
-            "file_path": output_path,
+            "catchment": self.catchment,
             "processing_stats": self.processing_stats
         }
 
