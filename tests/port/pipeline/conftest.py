@@ -127,7 +127,7 @@ def _run_pipeline(output_dir):
         GaugePortfolioGenerator(verbose=False).generate(count=N_GAUGES)
         PropertyPortfolioGenerator(verbose=False).generate(count=N_PROPERTIES)
         MortgagePortfolioGenerator(verbose=False).generate()
-        GaugeTimeSeriesGenerator(output_dir, verbose=False).generate(simulation_hours=SIMULATION_HOURS)
+        GaugeTimeSeriesGenerator(verbose=False).generate(simulation_hours=SIMULATION_HOURS)
         # Generate storm sequences (replaces old generate_storms)
         sequences = generate_event_set(count=N_STORMS, catchment_id='thames', seed=42)
         save_sequences(sequences, output_dir / 'storm_sequences.json')
