@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 37 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 40 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -42,25 +42,35 @@
 >   `"catchment"`. Full port suite **2873✓/2skip**; db pkg + every changed module **100%**.
 >   Two pre-existing R2 nits flagged (locations.py 304 lines — spawned task).
 >
-> **NEXT — step 5 (the remaining generators + engines).** Apply the SAME pattern. Scoped
-> inventory + where each actually persists:
-> - **hazard** — `src/port/src/hazard.py` is a thin re-export; the real code + `save_hazard_curves`
->   live in **`src/models/hazard/`** (build_hazard_curves + property/commercial HC). Artifacts
->   `gauge_hazard_curve` / `property_hazard_curve` / `commercial_hazard_curve` + savers already
->   exist (WP0.6). Check whether they already `database.save_*` or still take `output_dir`.
-> - **timeseries** — `gaugets`, `property/propertyts.py`, `commercial/ts` (artifacts
->   `gauge_timeseries`/`property_timeseries`/`commercial_timeseries`, KEYED).
-> - **gaugehd** — `src/port/src/gauge/gaugehd/{runner,generator,synthetic,nrfa}.py`
->   (artifact `gauge_history`, KEYED). `runner.py:125` sets `config.catchment_id` — a step-6 site.
-> - **storms** — `src/port/src/storm_multi/utils/serialization.py` (`save_sequences`/`save_summary`),
->   spatial (`_spatial_math.py`); stress storms. **Open decisions** (legacy seq_gauge/storm
->   writers keep-or-drop; storm-multi summary+spatial port-vs-model) — resolve per batch.
-> - **typhoon** (artifact `typhoon_event`, blob+metadata; granularity decision).
-> - **book-pricing → prs** (`prs_trade`, `eod_snapshot` artifacts).
+> **Step 5 PROGRESS — gauge timeseries DONE** [`dd52b553`]. `GaugeTimeSeriesGenerator(catchment=…)`;
+> gauge read → `get_gauge_portfolio`; per-gauge write → `save_gauge_timeseries`; stale-cleanup →
+> `iter_gauge_timeseries_ids` + NEW `delete_gauge_timeseries`. **KEY TEST PATTERN for ts/hd:**
+> keyed writes still land physically at `tmp_path/<dir>/<key>.json` under `tmp_catchment`, so
+> existing glob read-backs keep working; the generator now NEEDS a gauge portfolio, so the autouse
+> fixture both binds `tmp_catchment(tmp_path)` AND seeds one via `GaugePortfolioGenerator(verbose=
+> False).generate(count=5)`. Both changed modules 100%.
+>
+> **NEXT — step 5 remaining slices.** Pattern + scoped inventory (only files with direct data
+> writes still left — `propertyts`/`propertyhc`/`commercial-ts`/`commercial-hc` already persist
+> via `database`):
+> - **gaugehd** (gauge history, artifact `gauge_history` KEYED, savers exist:
+>   `save_gauge_history`/`get_gauge_history`/`iter_gauge_history_ids`). Writers are **module-level
+>   functions** (not a class): `gaugehd/synthetic.py:generate_from_gauge_portfolio(gauge_data,
+>   output_dir=…)` (`:113-120`), `gaugehd/nrfa.py:generate_from_nrfa(…, output_dir=…)` (`:165-171`),
+>   orchestrated by `gaugehd/runner.py:generate_all_gauge_histories(years)` (uses
+>   `config.get_gaugehd_dir()`). Each needs a `catchment` param + `save_gauge_history`. `runner.py:125`
+>   `config.catchment_id = args.catchment` is a STEP-6 site (leave). Filename pattern is
+>   `gauge_{key}_hd.json`. Tests under `tests/port/gauge/test_gaugehd_*`.
+> - **hazard** — `src/models/hazard/io/_build.py:build_hazard_curves(output_dir, catchment_id)` +
+>   `io/_save.py` (`save_hazard_curves` takes explicit `output_path`; `save_gauge_storm_responses`
+>   does a **read-modify-write merge** into keyed `gauge_timeseries`). Reads storm_sequences + gauge
+>   (both via `database.get_*` now possible). Savers exist (`save_gauge_hazard_curves`,
+>   `save_gauge_timeseries`). Most entangled — do after gaugehd.
+> - **storms** — `storm_multi/utils/serialization.py` (`save_sequences`→`save_storm_sequences`
+>   exists; `save_summary`→**no artifact, decision**: add `sequence_summary` DOCUMENT or out-of-scope),
+>   `storm_multi/models/_spatial_math.py:save_spatial_correlation_config` (**no artifact, decision**).
 > - **trading engines (§5b)** — `src/models/trading/{trade_marks.py, market_state/_persistence.py,
->   pnl_engine/_pnl.py}` (artifacts `market_state`/`trade_marks`). Constructed `__init__(self, trading_dir)`.
-> Grep each for `output_dir`/`trading_dir` + `json.dump`/`open(`; many savers already exist
-> (WP0.5 prep) so several may be write-wiring only.
+>   pnl_engine/_pnl.py}` (artifacts `market_state`/`trade_marks` exist). `__init__(self, trading_dir)`.
 >
 > **Then step 6 — orchestrator wrap + setter removal (HIGH-RISK CAPSTONE, confirm first).**
 > Wrap port/trading runs in `catchment_context(c)` that ALSO repoints config paths; delete
