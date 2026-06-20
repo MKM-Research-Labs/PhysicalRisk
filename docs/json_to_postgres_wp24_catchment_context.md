@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 39 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 37 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
