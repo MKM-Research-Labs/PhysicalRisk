@@ -20,11 +20,24 @@
 
 """Tests for module-level functions: load_gauge_portfolio, generate_all, process_nrfa_directory."""
 
-import json
-
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from tests.port.gauge.conftest import write_nrfa_csv, SAMPLE_GAUGE_ENTRY
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend so the migrated gaugehd module functions read the
+    gauge portfolio and write per-gauge history through database."""
+    with tmp_catchment(tmp_path):
+        yield
+
+
+def _seed_gauges(entries):
+    """Persist a gauge portfolio for the active (tmp) catchment."""
+    database.save_gauges(database.active_catchment(), {"flood_gauges": entries})
 
 
 # ===========================================================================
@@ -33,23 +46,18 @@ from tests.port.gauge.conftest import write_nrfa_csv, SAMPLE_GAUGE_ENTRY
 
 class TestLoadGaugePortfolio:
 
-    def test_load_gauge_portfolio_success(self, tmp_path, monkeypatch):
-        """Lines 72-80: load_gauge_portfolio reads gauge.json."""
-        from config import config
-        gauge_data = {"flood_gauges": [{"FloodGauge": {"Header": {"GaugeID": "GAUGE-001"}}}]}
-        gauge_file = tmp_path / "gauge.json"
-        gauge_file.write_text(json.dumps(gauge_data))
-        monkeypatch.setattr(config, "get_input_path", lambda f: gauge_file)
+    def test_load_gauge_portfolio_success(self, tmp_path):
+        """load_gauge_portfolio reads the gauge portfolio via database."""
+        _seed_gauges([{"FloodGauge": {"Header": {"GaugeID": "GAUGE-001"}}}])
         from port.src.gauge.gaugehd import load_gauge_portfolio
         result = load_gauge_portfolio()
         assert isinstance(result, list)
         assert len(result) == 1
 
-    def test_load_gauge_portfolio_file_not_found(self, tmp_path, monkeypatch):
-        """Lines 74-75: missing file raises FileNotFoundError."""
-        from config import config
-        monkeypatch.setattr(config, "get_input_path", lambda f: tmp_path / "nonexistent.json")
+    def test_load_gauge_portfolio_file_not_found(self, tmp_path):
+        """Missing gauge portfolio raises FileNotFoundError."""
         from port.src.gauge.gaugehd import load_gauge_portfolio
+        # No gauge portfolio seeded in the empty tmp backend.
         with pytest.raises(FileNotFoundError):
             load_gauge_portfolio()
 
@@ -60,34 +68,20 @@ class TestLoadGaugePortfolio:
 
 class TestGenerateAllGaugeHistories:
 
-    def test_generate_all_gauge_histories(self, tmp_path, monkeypatch):
-        """Lines 83-110: generate_all_gauge_histories processes all gauges."""
-        from config import config
-        gauge_data = {"flood_gauges": [SAMPLE_GAUGE_ENTRY]}
-        gauge_file = tmp_path / "gauge.json"
-        gauge_file.write_text(json.dumps(gauge_data))
-        gaugehd_dir = tmp_path / "gaugehd"
-        gaugehd_dir.mkdir()
-        monkeypatch.setattr(config, "get_input_path", lambda f: gauge_file)
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: gaugehd_dir)
+    def test_generate_all_gauge_histories(self, tmp_path):
+        """generate_all_gauge_histories processes all gauges in the portfolio."""
+        _seed_gauges([SAMPLE_GAUGE_ENTRY])
         from port.src.gauge.gaugehd import generate_all_gauge_histories
         result = generate_all_gauge_histories(years=5)
         assert isinstance(result, list)
         assert len(result) == 1
 
-    def test_generate_all_gauge_histories_error_continues(self, tmp_path, monkeypatch):
-        """Lines 105-107: error on one gauge -> logged, continues."""
-        from config import config
-        gauge_data = {"flood_gauges": [
+    def test_generate_all_gauge_histories_error_continues(self, tmp_path):
+        """Error on one gauge -> logged, continues."""
+        _seed_gauges([
             SAMPLE_GAUGE_ENTRY,
             {"FloodGauge": {"Header": {}}},  # bad entry
-        ]}
-        gauge_file = tmp_path / "gauge.json"
-        gauge_file.write_text(json.dumps(gauge_data))
-        gaugehd_dir = tmp_path / "gaugehd"
-        gaugehd_dir.mkdir()
-        monkeypatch.setattr(config, "get_input_path", lambda f: gauge_file)
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: gaugehd_dir)
+        ])
         from port.src.gauge.gaugehd import generate_all_gauge_histories
         result = generate_all_gauge_histories(years=5)
         assert isinstance(result, list)
@@ -105,27 +99,24 @@ class TestProcessNrfaDirectory:
         write_nrfa_csv(tmp_path, station_id="39001", n_rows=10)
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        result = process_nrfa_directory(tmp_path, output_dir=output_dir, years=5)
+        result = process_nrfa_directory(tmp_path, years=5)
         assert isinstance(result, list)
         assert len(result) == 1
 
-    def test_process_nrfa_directory_default_output(self, tmp_path, monkeypatch):
-        """Line 134: output_dir=None uses config.get_gaugehd_dir()."""
-        from config import config
-        output_dir = tmp_path / "gaugehd"
-        output_dir.mkdir()
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: output_dir)
+    def test_process_nrfa_directory_persists_history(self, tmp_path):
+        """Generated histories persist through database under the active catchment."""
         write_nrfa_csv(tmp_path, station_id="39002", n_rows=10)
         from port.src.gauge.gaugehd import process_nrfa_directory
-        result = process_nrfa_directory(tmp_path, output_dir=None, years=5)
+        result = process_nrfa_directory(tmp_path, years=5)
         assert isinstance(result, list)
+        assert list(database.iter_gauge_history_ids(database.active_catchment()))
 
     def test_process_nrfa_directory_empty_dir(self, tmp_path):
         """Lines 131-147: no matching files -> empty list."""
         from port.src.gauge.gaugehd import process_nrfa_directory
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        result = process_nrfa_directory(tmp_path, output_dir=output_dir, years=5)
+        result = process_nrfa_directory(tmp_path, years=5)
         assert result == []
 
     def test_process_nrfa_directory_bad_csv_continues(self, tmp_path):
@@ -135,5 +126,5 @@ class TestProcessNrfaDirectory:
         bad.write_text("this is not a valid csv for generate_from_nrfa")
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        result = process_nrfa_directory(tmp_path, output_dir=output_dir, years=5)
+        result = process_nrfa_directory(tmp_path, years=5)
         assert isinstance(result, list)

@@ -22,7 +22,17 @@
 
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from tests.port.gauge.conftest import write_nrfa_csv
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend so the migrated NRFA importer persists gauge history
+    through database (physically under tmp_path/gaugehd)."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -124,25 +134,25 @@ class TestFilterByYears:
 
 class TestGenerateFromNrfa:
 
-    def test_creates_json_file(self, tmp_path):
+    def test_persists_history(self, tmp_path):
         from port.src.gauge.gaugehd.nrfa import generate_from_nrfa
         csv_file = write_nrfa_csv(tmp_path, n_rows=30)
-        output = tmp_path / "output.json"
-        result = generate_from_nrfa(csv_file, output, years=50)
-        assert output.exists()
+        generate_from_nrfa(csv_file, years=50)
+        # Persisted as a keyed gauge_history record through database.
+        assert list(database.iter_gauge_history_ids(database.active_catchment()))
 
     def test_returns_dict(self, tmp_path):
         from port.src.gauge.gaugehd.nrfa import generate_from_nrfa
         csv_file = write_nrfa_csv(tmp_path, n_rows=30)
         output = tmp_path / "output.json"
-        result = generate_from_nrfa(csv_file, output, years=50)
+        result = generate_from_nrfa(csv_file, years=50)
         assert isinstance(result, dict)
 
     def test_schema_version_in_output(self, tmp_path):
         from port.src.gauge.gaugehd.nrfa import generate_from_nrfa
         csv_file = write_nrfa_csv(tmp_path, n_rows=30)
         output = tmp_path / "output.json"
-        result = generate_from_nrfa(csv_file, output, years=50)
+        result = generate_from_nrfa(csv_file, years=50)
         assert result["schema_version"] == "1.0"
         assert result["data_type"] == "GaugeHistoricalDaily"
 
@@ -151,14 +161,14 @@ class TestGenerateFromNrfa:
         csv_file = write_nrfa_csv(tmp_path, station_id="39001",
                                    station_name="Thames at Kingston")
         output = tmp_path / "output.json"
-        result = generate_from_nrfa(csv_file, output)
+        result = generate_from_nrfa(csv_file)
         assert result["station_metadata"]["station_name"] == "Thames at Kingston"
 
     def test_gauge_id_override(self, tmp_path):
         from port.src.gauge.gaugehd.nrfa import generate_from_nrfa
         csv_file = write_nrfa_csv(tmp_path)
         output = tmp_path / "output.json"
-        result = generate_from_nrfa(csv_file, output, gauge_id="GAUGE-CUSTOM")
+        result = generate_from_nrfa(csv_file, gauge_id="GAUGE-CUSTOM")
         assert result["station_metadata"]["station_id"] == "GAUGE-CUSTOM"
 
     def test_auto_output_path(self, tmp_path, monkeypatch):
@@ -168,6 +178,6 @@ class TestGenerateFromNrfa:
         monkeypatch.setattr(config, "get_gaugehd_dir", lambda: tmp_path / "gaugehd")
         (tmp_path / "gaugehd").mkdir()
         csv_file = write_nrfa_csv(tmp_path, station_id="AUTO-01")
-        result = generate_from_nrfa(csv_file, None, years=10)
+        result = generate_from_nrfa(csv_file, years=10)
         assert isinstance(result, dict)
         assert (tmp_path / "gaugehd" / "gauge_AUTO-01_hd.json").exists()

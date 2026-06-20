@@ -22,7 +22,17 @@
 
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from tests.port.gauge.conftest import write_nrfa_csv, SAMPLE_GAUGE_ENTRY
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend so the migrated gaugehd writers persist per-gauge
+    history through database (physically under tmp_path/gaugehd)."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -33,38 +43,38 @@ class TestGenerateFromGaugePortfolio:
 
     def test_returns_dict(self, tmp_path):
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
-        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path, years=5)
+        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
         assert isinstance(result, dict)
 
     def test_schema_version(self, tmp_path):
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
-        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path, years=5)
+        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
         assert result["schema_version"] == "1.0"
 
     def test_gauge_metadata_extracted(self, tmp_path):
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
-        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path, years=5)
+        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
         assert result["gauge_metadata"]["gauge_id"] == "GAUGE-TEST01"
 
     def test_daily_observations_generated(self, tmp_path):
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
-        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path, years=5)
+        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
         assert len(result["daily_observations"]) > 0
 
-    def test_output_file_created(self, tmp_path):
+    def test_history_persisted(self, tmp_path):
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
-        generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path, years=5)
-        assert (tmp_path / "gauge_GAUGE-TEST01_hd.json").exists()
+        generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
+        # Persisted as a keyed gauge_history record (physically gaugehd/gauge_*_hd.json).
+        assert (tmp_path / "gaugehd" / "gauge_GAUGE-TEST01_hd.json").exists()
+        assert database.get_gauge_history(database.active_catchment(), "GAUGE-TEST01")
 
-    def test_auto_output_dir(self, tmp_path, monkeypatch):
-        """When output_dir=None, uses config.get_gaugehd_dir()."""
+    def test_default_catchment_persists(self, tmp_path):
+        """With no explicit catchment, history persists under the active catchment."""
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
-        from config import config
-        gaugehd_dir = tmp_path / "gaugehd"
-        gaugehd_dir.mkdir()
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: gaugehd_dir)
-        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=None, years=5)
+        result = generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
         assert isinstance(result, dict)
+        assert "GAUGE-TEST01" in list(
+            database.iter_gauge_history_ids(database.active_catchment()))
 
     def test_non_nested_gauge_data(self, tmp_path):
         """Gauge data without FloodGauge wrapper."""
@@ -75,7 +85,7 @@ class TestGenerateFromGaugePortfolio:
             "Location": {},
             "SensorStats": {},
         }
-        result = generate_from_gauge_portfolio(data, output_dir=tmp_path, years=5)
+        result = generate_from_gauge_portfolio(data, years=5)
         assert result["gauge_metadata"]["gauge_id"] == "GAUGE-FLAT"
 
 
@@ -130,25 +140,24 @@ class TestGaugeHistoricalDaily:
         from port.src.gauge.gaugehd import GaugeHistoricalDaily
         ghd = GaugeHistoricalDaily(years_of_history=5)
         csv_file = write_nrfa_csv(tmp_path, n_rows=20)
-        output = tmp_path / "result.json"
-        result = ghd.generate_from_nrfa(csv_file, output)
-        assert output.exists()
+        result = ghd.generate_from_nrfa(csv_file)
         assert isinstance(result, dict)
+        # The history was persisted through database (keyed gauge_history).
+        assert list(database.iter_gauge_history_ids(database.active_catchment()))
 
     def test_generate_from_nrfa_uses_default_years(self, tmp_path):
         """When years=None, uses years_of_history."""
         from port.src.gauge.gaugehd import GaugeHistoricalDaily
         ghd = GaugeHistoricalDaily(years_of_history=10)
         csv_file = write_nrfa_csv(tmp_path, n_rows=20)
-        output = tmp_path / "result2.json"
-        result = ghd.generate_from_nrfa(csv_file, output, years=None)
+        result = ghd.generate_from_nrfa(csv_file, years=None)
         assert result["years_included"] == 10
 
     def test_generate_from_gauge_portfolio_via_class(self, tmp_path):
         """generate_from_gauge_portfolio via class method."""
         from port.src.gauge.gaugehd import GaugeHistoricalDaily
         ghd = GaugeHistoricalDaily(years_of_history=5)
-        result = ghd.generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path)
+        result = ghd.generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY)
         assert isinstance(result, dict)
         assert result["years_included"] == 5
 
@@ -156,7 +165,7 @@ class TestGaugeHistoricalDaily:
         """generate_from_gauge_portfolio with explicit years overrides default."""
         from port.src.gauge.gaugehd import GaugeHistoricalDaily
         ghd = GaugeHistoricalDaily(years_of_history=50)
-        result = ghd.generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, output_dir=tmp_path, years=3)
+        result = ghd.generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=3)
         assert result["years_included"] == 3
 
     def test_calculate_statistics_from_levels(self):

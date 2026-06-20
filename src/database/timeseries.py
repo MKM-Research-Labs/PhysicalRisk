@@ -83,3 +83,6 @@ def iter_gauge_history_ids(catchment) -> Iterator[str]:
 
 def save_gauge_history(catchment, gauge_id, payload):
     active_backend().save("gauge_history", catchment, payload, gauge_id)
+
+def delete_gauge_history(catchment, gauge_id):
+    active_backend().delete("gauge_history", catchment, gauge_id)
