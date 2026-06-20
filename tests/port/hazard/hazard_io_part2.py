@@ -26,8 +26,18 @@ import json
 
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from models.hazard.data_structures import GaugeResponse
 from tests.port.hazard.conftest import _make_hazard_curve
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend so the migrated hazard savers persist the hazard
+    curve + per-gauge storm-response merge through database (catchment "thames")."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
 
 
 # ===========================================================================
@@ -36,49 +46,36 @@ from tests.port.hazard.conftest import _make_hazard_curve
 
 class TestSaveHazardCurves:
 
-    def test_creates_file(self, tmp_path):
+    def test_persists(self, tmp_path):
         from models.hazard.io import save_hazard_curves
         curve = _make_hazard_curve()
-        output_path = tmp_path / "gaugehc.json"
-        result = save_hazard_curves(
-            {"GAUGE-001": curve}, output_path, "thames"
-        )
-        assert output_path.exists()
-        assert result == output_path
+        result = save_hazard_curves({"GAUGE-001": curve}, "thames")
+        assert result == "thames"
+        assert database.get_gauge_hazard_curves("thames") is not None
 
-    def test_file_has_metadata(self, tmp_path):
+    def test_has_metadata(self, tmp_path):
         from models.hazard.io import save_hazard_curves
         curve = _make_hazard_curve()
-        output_path = tmp_path / "gaugehc.json"
-        save_hazard_curves({"GAUGE-001": curve}, output_path, "thames")
-        data = json.loads(output_path.read_text())
+        save_hazard_curves({"GAUGE-001": curve}, "thames")
+        data = database.get_gauge_hazard_curves("thames")
         assert "metadata" in data
         assert data["metadata"]["catchment_id"] == "thames"
 
-    def test_file_has_hazard_curves(self, tmp_path):
+    def test_has_hazard_curves(self, tmp_path):
         from models.hazard.io import save_hazard_curves
         curve = _make_hazard_curve()
-        output_path = tmp_path / "gaugehc.json"
-        save_hazard_curves({"GAUGE-001": curve}, output_path, "thames")
-        data = json.loads(output_path.read_text())
+        save_hazard_curves({"GAUGE-001": curve}, "thames")
+        data = database.get_gauge_hazard_curves("thames")
         assert "GAUGE-001" in data["hazard_curves"]
-
-    def test_creates_parent_dirs(self, tmp_path):
-        from models.hazard.io import save_hazard_curves
-        curve = _make_hazard_curve()
-        output_path = tmp_path / "subdir" / "nested" / "gaugehc.json"
-        save_hazard_curves({"GAUGE-001": curve}, output_path, "thames")
-        assert output_path.exists()
 
     def test_metadata_merged(self, tmp_path):
         from models.hazard.io import save_hazard_curves
         curve = _make_hazard_curve()
-        output_path = tmp_path / "gaugehc.json"
         save_hazard_curves(
-            {"GAUGE-001": curve}, output_path, "thames",
+            {"GAUGE-001": curve}, "thames",
             metadata={"num_storms": 100, "distribution": "gev"}
         )
-        data = json.loads(output_path.read_text())
+        data = database.get_gauge_hazard_curves("thames")
         assert data["metadata"]["num_storms"] == 100
 
 
@@ -103,34 +100,30 @@ class TestSaveGaugeStormResponses:
             for i in range(n)
         ]
 
-    def test_creates_gauge_file(self, tmp_path):
+    def test_persists_gauge_responses(self, tmp_path):
         from models.hazard.io import save_gauge_storm_responses
         responses = {"GAUGE-001": self._make_responses()}
-        result = save_gauge_storm_responses(responses, tmp_path / "gaugets", "thames")
-        assert (tmp_path / "gaugets" / "GAUGE-001.json").exists()
+        save_gauge_storm_responses(responses, "thames")
+        assert database.get_gauge_timeseries("thames", "GAUGE-001") is not None
 
-    def test_saved_file_has_responses(self, tmp_path):
+    def test_saved_record_has_responses(self, tmp_path):
         from models.hazard.io import save_gauge_storm_responses
         responses = {"GAUGE-001": self._make_responses(n=3)}
-        gaugets_dir = tmp_path / "gaugets"
-        save_gauge_storm_responses(responses, gaugets_dir, "thames")
-        data = json.loads((gaugets_dir / "GAUGE-001.json").read_text())
+        save_gauge_storm_responses(responses, "thames")
+        data = database.get_gauge_timeseries("thames", "GAUGE-001")
         assert "storm_responses" in data
         assert len(data["storm_responses"]["responses"]) == 3
 
-    def test_merges_with_existing_file(self, tmp_path):
-        """If gauge file already exists, merge storm_responses into it."""
+    def test_merges_with_existing_record(self, tmp_path):
+        """If a gauge timeseries record already exists, merge storm_responses into it."""
         from models.hazard.io import save_gauge_storm_responses
-        gaugets_dir = tmp_path / "gaugets"
-        gaugets_dir.mkdir()
-        existing = {
+        database.save_gauge_timeseries("thames", "GAUGE-001", {
             "gauge_id": "GAUGE-001",
             "flood_simulation": {"readings": []},
-        }
-        (gaugets_dir / "GAUGE-001.json").write_text(json.dumps(existing))
+        })
         responses = {"GAUGE-001": self._make_responses(n=1)}
-        save_gauge_storm_responses(responses, gaugets_dir, "thames")
-        data = json.loads((gaugets_dir / "GAUGE-001.json").read_text())
+        save_gauge_storm_responses(responses, "thames")
+        data = database.get_gauge_timeseries("thames", "GAUGE-001")
         assert "flood_simulation" in data
         assert "storm_responses" in data
 
@@ -140,7 +133,6 @@ class TestSaveGaugeStormResponses:
             "GAUGE-001": self._make_responses("GAUGE-001", 2),
             "GAUGE-002": self._make_responses("GAUGE-002", 2),
         }
-        gaugets_dir = tmp_path / "gaugets"
-        save_gauge_storm_responses(responses, gaugets_dir, "thames")
-        assert (gaugets_dir / "GAUGE-001.json").exists()
-        assert (gaugets_dir / "GAUGE-002.json").exists()
+        save_gauge_storm_responses(responses, "thames")
+        assert database.get_gauge_timeseries("thames", "GAUGE-001") is not None
+        assert database.get_gauge_timeseries("thames", "GAUGE-002") is not None

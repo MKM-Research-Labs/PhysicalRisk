@@ -134,7 +134,7 @@ def _run_pipeline(output_dir):
         save_summary(sequences, output_dir / 'sequences_summary.json')
         generate_all_gauge_histories(years=HISTORY_YEARS)
         build_hazard_curves(
-            output_dir=output_dir, catchment_id='thames',
+            catchment_id='thames',
             distribution='gev', verbose=False,
         )
         PropertyTimeSeriesGenerator(output_dir, verbose=False).generate()
