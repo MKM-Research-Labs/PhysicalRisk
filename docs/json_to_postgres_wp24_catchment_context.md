@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 40 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 43 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -50,17 +50,17 @@
 > fixture both binds `tmp_catchment(tmp_path)` AND seeds one via `GaugePortfolioGenerator(verbose=
 > False).generate(count=5)`. Both changed modules 100%.
 >
+> **Step 5 PROGRESS — gauge timeseries [`dd52b553`] + gaugehd [`502b3349`] DONE.** gaugehd:
+> added `delete_gauge_history`; `loader.load_gauge_portfolio`/`synthetic.generate_from_gauge_
+> portfolio`/`nrfa.generate_from_nrfa`/`runner.generate_all_gauge_histories`+`process_nrfa_
+> directory`/`generator.py` wrapper all on the seam; NRFA csv read stays (external source);
+> `runner.py:125` setter left for step 6. The shared `setup_gauge_env` test helper now seeds
+> via `database.save_gauges` (callers dropped `monkeypatch`). Every changed module 100%. Also
+> resolved the R2 locations.py nit [`181452ad`] — split `_zones.py` out, locations.py now 276 lines.
+>
 > **NEXT — step 5 remaining slices.** Pattern + scoped inventory (only files with direct data
 > writes still left — `propertyts`/`propertyhc`/`commercial-ts`/`commercial-hc` already persist
 > via `database`):
-> - **gaugehd** (gauge history, artifact `gauge_history` KEYED, savers exist:
->   `save_gauge_history`/`get_gauge_history`/`iter_gauge_history_ids`). Writers are **module-level
->   functions** (not a class): `gaugehd/synthetic.py:generate_from_gauge_portfolio(gauge_data,
->   output_dir=…)` (`:113-120`), `gaugehd/nrfa.py:generate_from_nrfa(…, output_dir=…)` (`:165-171`),
->   orchestrated by `gaugehd/runner.py:generate_all_gauge_histories(years)` (uses
->   `config.get_gaugehd_dir()`). Each needs a `catchment` param + `save_gauge_history`. `runner.py:125`
->   `config.catchment_id = args.catchment` is a STEP-6 site (leave). Filename pattern is
->   `gauge_{key}_hd.json`. Tests under `tests/port/gauge/test_gaugehd_*`.
 > - **hazard** — `src/models/hazard/io/_build.py:build_hazard_curves(output_dir, catchment_id)` +
 >   `io/_save.py` (`save_hazard_curves` takes explicit `output_path`; `save_gauge_storm_responses`
 >   does a **read-modify-write merge** into keyed `gauge_timeseries`). Reads storm_sequences + gauge
