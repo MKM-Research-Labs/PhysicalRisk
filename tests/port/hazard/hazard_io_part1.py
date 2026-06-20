@@ -64,30 +64,19 @@ class TestLoadGauges:
 
     def test_loads_gauges(self, tmp_path):
         from models.hazard.io import load_gauges
-        p = tmp_path / "gauge.json"
-        p.write_text(json.dumps(_make_gauge_json()))
-        result = load_gauges(p)
+        result = load_gauges(_make_gauge_json())
         assert isinstance(result, list)
         assert len(result) == 1
 
     def test_gauge_has_id(self, tmp_path):
         from models.hazard.io import load_gauges
-        p = tmp_path / "gauge.json"
-        p.write_text(json.dumps(_make_gauge_json("GAUGE-999")))
-        result = load_gauges(p)
+        result = load_gauges(_make_gauge_json("GAUGE-999"))
         assert result[0]["gauge_id"] == "GAUGE-999"
 
     def test_empty_gauge_list_raises(self, tmp_path):
         from models.hazard.io import load_gauges
-        p = tmp_path / "gauge.json"
-        p.write_text(json.dumps({"flood_gauges": []}))
         with pytest.raises(ValueError, match="No gauges found"):
-            load_gauges(p)
-
-    def test_file_not_found_raises(self, tmp_path):
-        from models.hazard.io import load_gauges
-        with pytest.raises((FileNotFoundError, OSError)):
-            load_gauges(tmp_path / "missing.json")
+            load_gauges({"flood_gauges": []})
 
     def test_gauge_without_gauge_id_raises(self, tmp_path):
         """Gauge that maps to no gauge_id raises ValueError."""
@@ -107,7 +96,5 @@ class TestLoadGauges:
                 }
             ]
         }
-        p = tmp_path / "gauge.json"
-        p.write_text(json.dumps(bad_gauge))
         with pytest.raises(ValueError, match="gauge_id"):
-            load_gauges(p)
+            load_gauges(bad_gauge)

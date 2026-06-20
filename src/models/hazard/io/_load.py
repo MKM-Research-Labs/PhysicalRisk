@@ -33,8 +33,8 @@ def load_storms(input_path: Path) -> list:
     return data['storms']
 
 
-def load_storms_from_sequences(sequences_path: Path) -> list:
-    """Flatten storm sequences into individual storm dicts for the hazard model.
+def load_storms_from_sequences(sequences_data: dict) -> list:
+    """Flatten a storm-sequences document into individual storm dicts for the hazard model.
 
     Each SequenceStorm is extracted from its parent sequence and mapped to the
     legacy storm dict schema expected by GaugeResponseModel:
@@ -44,12 +44,12 @@ def load_storms_from_sequences(sequences_path: Path) -> list:
       - intensity_factor
       - intensity_category
       - peak_position
-    """
-    with open(sequences_path) as f:
-        data = json.load(f)
 
+    Args:
+        sequences_data: the parsed ``storm_sequences`` document (``{"sequences": [...]}``).
+    """
     storms = []
-    for seq in data.get("sequences", []):
+    for seq in sequences_data.get("sequences", []):
         for storm in seq.get("storms", []):
             storms.append({
                 "storm_id": storm["storm_id"],
@@ -62,11 +62,11 @@ def load_storms_from_sequences(sequences_path: Path) -> list:
     return storms
 
 
-def load_gauges(input_path: Path) -> list:
+def load_gauges(gauge_portfolio: dict) -> list:
     """
-    Load gauges from portfolio JSON file using CDM for proper mapping.
+    Map a gauge-portfolio document to flat gauge dicts using the CDM.
 
-    The gauge portfolio JSON structure (from gauge.py):
+    The gauge portfolio structure (from the gauge generator):
     {
         "flood_gauges": [{FloodGauge: {...}}, ...],
         "generation_metadata": {...}
@@ -75,15 +75,12 @@ def load_gauges(input_path: Path) -> list:
     Uses FloodGaugeCDM.create_mapping() to flatten the nested CDM structure
     into a consistent flat dictionary format.
     """
-    with open(input_path) as f:
-        data = json.load(f)
-
-    raw_gauges = data.get('flood_gauges', [])
+    raw_gauges = gauge_portfolio.get('flood_gauges', [])
 
     if not raw_gauges:
         raise ValueError(
-            f"No gauges found in {input_path}. "
-            f"Expected 'flood_gauges' key. Found keys: {list(data.keys())}"
+            "No gauges found in the portfolio. "
+            f"Expected 'flood_gauges' key. Found keys: {list(gauge_portfolio.keys())}"
         )
 
     cdm = FloodGaugeCDM()

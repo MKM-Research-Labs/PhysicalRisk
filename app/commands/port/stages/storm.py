@@ -129,7 +129,7 @@ def run_hazard(ctx: StageContext):
     pre = ctx.hash_inputs(inputs)
     t_step = time.time()
     r = ctx.hazard.build_hazard_curves(
-        output_dir=ctx.output_dir, catchment_id=ctx.catchment,
+        catchment_id=ctx.catchment,
         distribution=args.distribution, verbose=args.verbose,
     )
     elapsed = time.time() - t_step
