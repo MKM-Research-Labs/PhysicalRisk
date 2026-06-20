@@ -158,9 +158,14 @@ class TestBuildCommercialLoan:
 
 @pytest.fixture
 def commercial_portfolio_in_tmp(tmp_path):
-    """Generate a real commercial.json under tmp_path."""
-    gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
-    gen.generate(count=10)
+    """Persist a real commercial portfolio under tmp_path.
+
+    The WP2.4 commercial writer persists through ``database``; ``tmp_catchment`` roots the
+    backend at ``tmp_path`` so ``commercial.json`` lands there physically, where the
+    still-directory-injected commercial-loan generator reads it by path."""
+    from db_helpers import tmp_catchment
+    with tmp_catchment(tmp_path):
+        CommercialPortfolioGenerator(verbose=False).generate(count=10)
     return tmp_path
 
 

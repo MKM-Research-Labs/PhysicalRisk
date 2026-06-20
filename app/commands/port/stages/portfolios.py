@@ -152,7 +152,7 @@ def run_commercial_portfolio(ctx: StageContext):
     print("3a. Generating Commercial Portfolio...")
     t_start = time.time()
     r = ctx.commercial_gen.CommercialPortfolioGenerator(
-        ctx.output_dir, verbose=False).generate(args.num_commercial)
+        verbose=False).generate(args.num_commercial)
     n = len(r['data']['commercial_assets'])
     stats = r.get('processing_stats', {})
     ok = stats.get('successful_assets', n)
