@@ -58,14 +58,16 @@
 > via `database.save_gauges` (callers dropped `monkeypatch`). Every changed module 100%. Also
 > resolved the R2 locations.py nit [`181452ad`] — split `_zones.py` out, locations.py now 276 lines.
 >
-> **NEXT — step 5 remaining slices.** Pattern + scoped inventory (only files with direct data
-> writes still left — `propertyts`/`propertyhc`/`commercial-ts`/`commercial-hc` already persist
-> via `database`):
-> - **hazard** — `src/models/hazard/io/_build.py:build_hazard_curves(output_dir, catchment_id)` +
->   `io/_save.py` (`save_hazard_curves` takes explicit `output_path`; `save_gauge_storm_responses`
->   does a **read-modify-write merge** into keyed `gauge_timeseries`). Reads storm_sequences + gauge
->   (both via `database.get_*` now possible). Savers exist (`save_gauge_hazard_curves`,
->   `save_gauge_timeseries`). Most entangled — do after gaugehd.
+> **Step 5 PROGRESS — hazard DONE** [`bfcb3165`]. `build_hazard_curves(catchment_id)`; reads
+> storm_sequences + gauge via `database.get_*`; `save_hazard_curves`→`save_gauge_hazard_curves`;
+> `save_gauge_storm_responses` does the keyed `gauge_timeseries` read-modify-write merge
+> (`get_gauge_timeseries`→add storm_responses→`save_gauge_timeseries`); `_load.py` loaders now take
+> the parsed dict. **Legacy `load_storms` left path-based** (reads legacy storms.json, no production
+> caller — deferred legacy-reader decision). All 3 modules 100%. **TEST TRICK confirmed:** under
+> `tmp_catchment` the dir-resolver maps EVERY catchment to `tmp_path`, so a test can seed via
+> `database.save_*("any", …)` and physical-path assertions (`tmp_path/gaugehc.json`) still hold.
+>
+> **NEXT — step 5 remaining slices** (2 left):
 > - **storms** — `storm_multi/utils/serialization.py` (`save_sequences`→`save_storm_sequences`
 >   exists; `save_summary`→**no artifact, decision**: add `sequence_summary` DOCUMENT or out-of-scope),
 >   `storm_multi/models/_spatial_math.py:save_spatial_correlation_config` (**no artifact, decision**).
