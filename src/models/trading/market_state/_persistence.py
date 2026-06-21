@@ -20,11 +20,11 @@
 
 """Persistence mixin: loading, initializing, and saving market state."""
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Dict
+
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -46,21 +46,16 @@ def _build_default_hazard_ts(base: Dict) -> Dict:
 
 
 class _PersistenceMixin:
-    """Handles market state persistence to/from disk."""
+    """Handles market state persistence through the database seam."""
 
-    trading_dir: Path
-    input_dir: Path
-    state_file: Path
+    catchment: str
 
     def _load_base_curves(self) -> Dict:
-        """Load base hazard curves from gaugehc.json."""
-        gaugehc_path = self.input_dir / 'gaugehc.json'
-        if not gaugehc_path.exists():
-            logger.warning("gaugehc.json not found at %s", gaugehc_path)
+        """Load base hazard curves from the gauge hazard-curve document."""
+        data = database.get_gauge_hazard_curves(self.catchment)
+        if data is None:
+            logger.warning("gauge hazard curves not found for catchment %s", self.catchment)
             return {}
-
-        with open(gaugehc_path) as f:
-            data = json.load(f)
 
         # Handle list format, dict-of-dicts (hazard_curves key), or gauges key
         if isinstance(data, list):
@@ -101,13 +96,11 @@ class _PersistenceMixin:
         Returns:
             Market state dictionary with gauge_adjustments, base_rates, metadata.
         """
-        if not self.state_file.exists():
+        state = database.get_market_state(self.catchment)
+        if state is None:
             return self._initialize()
 
-        with open(self.state_file) as f:
-            state = json.load(f)
-
-        # Reconcile: add any gauges present in gaugehc.json but missing
+        # Reconcile: add any gauges present in the hazard curves but missing
         # from the persisted state (happens when classifiers add new gauges).
         current_base = self._load_base_curves()
         existing_base = state.get('base_rates', {})
@@ -151,7 +144,6 @@ class _PersistenceMixin:
         return state
 
     def _save(self, state: Dict) -> None:
-        """Persist market state to disk."""
+        """Persist market state through the database seam."""
         state['last_updated'] = datetime.now().isoformat()
-        with open(self.state_file, 'w') as f:
-            json.dump(state, f, indent=2)
+        database.save_market_state(self.catchment, state)

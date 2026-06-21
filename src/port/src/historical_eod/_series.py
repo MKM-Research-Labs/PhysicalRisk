@@ -20,10 +20,8 @@
 
 """Historical EOD series generator (curve random walk + revaluation)."""
 
-import json
 import logging
 from datetime import date
-from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -41,9 +39,7 @@ from ._history import (
 
 def generate_historical_eod_series(
     trades: List[Dict],
-    trading_dir,
-    input_dir,
-    prs_dir,
+    catchment: Optional[str] = None,
     seed: Optional[int] = 42,
 ) -> int:
     """
@@ -51,28 +47,25 @@ def generate_historical_eod_series(
 
     Args:
         trades: List of trade dicts (from book generator)
-        trading_dir: Path to data/input/<catchment>/blotter/
-        input_dir: Path to data/input/<catchment>/
-        prs_dir: Path to data/input/<catchment>/prs/ (PRS trade files)
+        catchment: Catchment to operate on (defaults to ``database.active_catchment()``).
         seed: Random seed for reproducibility
 
     Returns:
         Number of EOD snapshots generated
     """
+    import database
     from models.trading.market_state import MarketStateManager
-    from models.trading.delta_engine import DeltaEngine, compute_prs_spread, compute_risky_annuity
+    from models.trading.delta_engine import DeltaEngine
     from models.trading.pnl_engine import PnLEngine
 
-    trading_dir = Path(trading_dir)
-    input_dir = Path(input_dir)
-    prs_dir = Path(prs_dir)
+    catchment = catchment or database.active_catchment()
 
     rng = np.random.RandomState(seed)
 
-    # Initialize engines
-    market_mgr = MarketStateManager(trading_dir, input_dir)
+    # Initialize engines (all persist through the database seam)
+    market_mgr = MarketStateManager(catchment)
     delta_eng = DeltaEngine(market_mgr)
-    pnl_eng = PnLEngine(trading_dir, prs_dir)
+    pnl_eng = PnLEngine(catchment)
 
     # Load fresh market state (base curves)
     state = market_mgr.load()
@@ -89,9 +82,7 @@ def generate_historical_eod_series(
     sim_days = _business_days(today, NUM_BUSINESS_DAYS)
 
     # Clean existing EOD snapshots
-    eod_dir = pnl_eng.eod_dir
-    for f in eod_dir.glob('EOD-*.json'):
-        f.unlink()
+    database.clear_eod_snapshots(catchment)
 
     # Sort trades by swap_id for deterministic ordering
     sorted_trades = sorted(trades, key=lambda t: t.get('PhysicalSwap', {}).get('Header', {}).get('SwapID', ''))
@@ -135,9 +126,8 @@ def generate_historical_eod_series(
         state['hazard_term_structure'] = ts
         state['last_updated'] = f"{date_str}T17:00:00"
 
-        # Save market state for this day
-        with open(market_mgr.state_file, 'w') as f:
-            json.dump(state, f, indent=2)
+        # Save market state for this day (preserving the back-dated last_updated)
+        database.save_market_state(catchment, state)
 
         # --- 3. Revalue all open trades ---
         enriched = []
@@ -145,7 +135,6 @@ def generate_historical_eod_series(
             try:
                 e = delta_eng.enrich_trade(t, state)
                 # Override trade_date to sim_date for new-trade P&L detection
-                swap_id = t.get('PhysicalSwap', {}).get('Header', {}).get('SwapID', '')
                 if day_idx < len(sorted_trades) and t is sorted_trades[day_idx]:
                     e['trade_date'] = date_str
                 else:
@@ -167,12 +156,8 @@ def generate_historical_eod_series(
             logger.info("EOD %s: %d trades, daily P&L: %.0f",
                         date_str, n_trades, pnl)
 
-    # Write hazard curve history from all EOD snapshots
-    history_path = trading_dir / 'hazard_curve_history.json'
-    generate_hazard_curve_history_file(eod_dir, history_path)
-
-    # Write per-trade P&L history from all EOD snapshots
-    trade_history_path = trading_dir / 'trade_pnl_history.json'
-    generate_trade_pnl_history_file(eod_dir, trade_history_path)
+    # Write hazard curve history + per-trade P&L history from all EOD snapshots
+    generate_hazard_curve_history_file(catchment)
+    generate_trade_pnl_history_file(catchment)
 
     return num_snapshots

@@ -21,23 +21,30 @@
 """Tests for DeltaEngine class and hazard curve revaluation end-to-end."""
 
 import copy
-import json
 
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from models.trading.delta_engine.engine import DeltaEngine
 
 
-def _make_gaugehc(input_dir):
-    gaugehc = [{
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"); MarketStateManager + PnLEngine
+    persist through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
+
+
+def _make_gaugehc():
+    database.save_gauge_hazard_curves(database.active_catchment(), [{
         'gauge_id': 'GAUGE-TEST-001',
         'gauge_name': 'Test Gauge',
         'annual_hazard_rate_alert': 0.04,
         'annual_hazard_rate_warning': 0.025,
         'annual_hazard_rate_severe': 0.01,
-    }]
-    with open(input_dir / 'gaugehc.json', 'w') as f:
-        json.dump(gaugehc, f)
+    }])
 
 
 def _base_trade(swap_id='PRS-TEST001', is_payer=True):
@@ -59,13 +66,9 @@ class TestDeltaEngine:
         """Test trade enrichment with sample data."""
         from models.trading.market_state import MarketStateManager
 
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        _make_gaugehc(input_dir)
+        _make_gaugehc()
 
-        market_mgr = MarketStateManager(trading_dir, input_dir)
+        market_mgr = MarketStateManager()
         engine = DeltaEngine(market_mgr)
 
         enriched = engine.enrich_trade(_base_trade())
@@ -81,13 +84,9 @@ class TestDeltaEngine:
         """Receiver trade should have negative gauge DV01."""
         from models.trading.market_state import MarketStateManager
 
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        _make_gaugehc(input_dir)
+        _make_gaugehc()
 
-        market_mgr = MarketStateManager(trading_dir, input_dir)
+        market_mgr = MarketStateManager()
         engine = DeltaEngine(market_mgr)
 
         enriched = engine.enrich_trade(_base_trade('PRS-RCV001', is_payer=False))
@@ -99,13 +98,9 @@ class TestDeltaEngine:
         """Payer and receiver DV01 should be equal magnitude, opposite sign."""
         from models.trading.market_state import MarketStateManager
 
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        _make_gaugehc(input_dir)
+        _make_gaugehc()
 
-        market_mgr = MarketStateManager(trading_dir, input_dir)
+        market_mgr = MarketStateManager()
         engine = DeltaEngine(market_mgr)
 
         payer_enriched = engine.enrich_trade(_base_trade(is_payer=True))
@@ -148,26 +143,17 @@ class TestHazardCurveRevaluation:
         from models.trading.market_state import MarketStateManager
         from models.trading.pnl_engine import PnLEngine
 
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        prs_dir = tmp_path / 'prs'
-        prs_dir.mkdir()
-
-        gaugehc = [{
+        database.save_gauge_hazard_curves(database.active_catchment(), [{
             'gauge_id': 'GAUGE-WM-001',
             'gauge_name': 'Thames Westminster',
             'annual_hazard_rate_alert': 0.04,
             'annual_hazard_rate_warning': 0.025,
             'annual_hazard_rate_severe': 0.01,
-        }]
-        with open(input_dir / 'gaugehc.json', 'w') as f:
-            json.dump(gaugehc, f)
+        }])
 
-        market_mgr = MarketStateManager(trading_dir, input_dir)
+        market_mgr = MarketStateManager()
         delta_eng = DeltaEngine(market_mgr)
-        pnl_eng = PnLEngine(trading_dir, prs_dir)
+        pnl_eng = PnLEngine()
 
         trade = {
             'PhysicalSwap': {

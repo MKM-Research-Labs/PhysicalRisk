@@ -20,22 +20,20 @@
 
 """Coverage expansion tests for pnl_engine.py — lines 93-94, 267, 350."""
 
-import json
 from datetime import date
 
 import pytest
 
 from models.trading.pnl_engine import PnLEngine
+from db_helpers import tmp_catchment
 
 
 @pytest.fixture
 def pnl_eng(tmp_path):
-    """Create a PnLEngine for testing."""
-    trading_dir = tmp_path / 'trading'
-    trading_dir.mkdir()
-    prs_dir = tmp_path / 'prs'
-    prs_dir.mkdir()
-    return PnLEngine(trading_dir, prs_dir)
+    """A PnLEngine bound to a tmp-rooted backend (catchment "thames"); trade marks +
+    keyed EOD snapshots persist through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield PnLEngine()
 
 
 class TestGetTradeMark:

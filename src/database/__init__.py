@@ -77,6 +77,9 @@ from .trading import (
     get_trade_marks, save_trade_marks, set_trade_status,
     get_market_state, save_market_state,
     list_eod_snapshots, iter_eod_snapshots, get_eod_snapshot, save_eod_snapshot,
+    delete_eod_snapshot, clear_eod_snapshots,
+    get_hazard_curve_history, save_hazard_curve_history,
+    get_trade_pnl_history, save_trade_pnl_history,
 )
 from .classifiers import (
     list_classifier_ids, get_classifier, save_classifier, delete_classifier,
@@ -129,6 +132,9 @@ __all__ = [
     "get_trade_marks", "save_trade_marks", "set_trade_status",
     "get_market_state", "save_market_state",
     "list_eod_snapshots", "iter_eod_snapshots", "get_eod_snapshot", "save_eod_snapshot",
+    "delete_eod_snapshot", "clear_eod_snapshots",
+    "get_hazard_curve_history", "save_hazard_curve_history",
+    "get_trade_pnl_history", "save_trade_pnl_history",
     # classifiers
     "list_classifier_ids", "get_classifier", "save_classifier", "delete_classifier",
     "get_classifier_training_summary", "save_classifier_training_summary",

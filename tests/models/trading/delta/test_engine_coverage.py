@@ -21,23 +21,29 @@
 """Coverage expansion tests for delta_engine/engine.py — lines 94-95, 150,
 230, 237-238."""
 
-import json
-
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from models.trading.delta_engine.engine import DeltaEngine
 
 
-def _make_gaugehc(input_dir):
-    gaugehc = [{
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"); MarketStateManager persists
+    through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
+
+
+def _make_gaugehc():
+    database.save_gauge_hazard_curves(database.active_catchment(), [{
         'gauge_id': 'GAUGE-TEST-001',
         'gauge_name': 'Test Gauge',
         'annual_hazard_rate_alert': 0.04,
         'annual_hazard_rate_warning': 0.025,
         'annual_hazard_rate_severe': 0.01,
-    }]
-    with open(input_dir / 'gaugehc.json', 'w') as f:
-        json.dump(gaugehc, f)
+    }])
 
 
 def _base_trade(swap_id='PRS-TEST001', is_payer=True, property_id=None,
@@ -70,13 +76,9 @@ class TestPropertyBasisDelta:
         """Trade with property_id computes basis_delta_bps and basis_dv01."""
         from models.trading.market_state import MarketStateManager
 
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        _make_gaugehc(input_dir)
+        _make_gaugehc()
 
-        market_mgr = MarketStateManager(trading_dir, input_dir)
+        market_mgr = MarketStateManager()
         engine = DeltaEngine(market_mgr)
 
         trade = _base_trade(property_id='PROP-001', basis_bps=15)
@@ -96,13 +98,9 @@ class TestRevalueAllDefaultMarketState:
         """revalue_all(trades, None) loads market state internally."""
         from models.trading.market_state import MarketStateManager
 
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        _make_gaugehc(input_dir)
+        _make_gaugehc()
 
-        market_mgr = MarketStateManager(trading_dir, input_dir)
+        market_mgr = MarketStateManager()
         engine = DeltaEngine(market_mgr)
 
         trades = [_base_trade()]

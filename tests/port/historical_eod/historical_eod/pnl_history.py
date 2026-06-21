@@ -20,73 +20,66 @@
 
 """Tests for generate_trade_pnl_history_file()."""
 
-import json
 import pytest
+
+import database
+from db_helpers import tmp_catchment
 from .conftest import generate_trade_pnl_history_file, _write_eod_with_positions
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"); the history generator reads EOD
+    snapshots and persists the trade-P&L history document through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
 
 
 class TestGenerateTradePnlHistory:
     """Tests for generate_trade_pnl_history_file()."""
 
     def test_creates_output_file(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        assert output.exists()
+        assert database.get_trade_pnl_history(database.active_catchment()) is not None
 
     def test_output_has_metadata(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         assert 'metadata' in data
         assert 'num_trades' in data['metadata']
 
     def test_output_has_trades(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         assert 'trades' in data
         assert 'PRS-001' in data['trades']
 
     def test_trade_has_history(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         trade = data['trades']['PRS-001']
         assert 'history' in trade
         assert len(trade['history']) == 1
 
     def test_no_eod_files_returns_early(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        output = tmp_path / 'trade_pnl_history.json'
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        assert not output.exists()
+        assert database.get_trade_pnl_history(database.active_catchment()) is None
 
     def test_position_without_swap_id_skipped(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
 
         snapshot = {
             'eod_id': 'EOD-2026-01-01',
@@ -108,38 +101,31 @@ class TestGenerateTradePnlHistory:
             ],
             'portfolio_summary': {},
         }
-        (eod_dir / 'EOD-2026-01-01.json').write_text(json.dumps(snapshot))
-        output = tmp_path / 'trade_pnl_history.json'
+        database.save_eod_snapshot(database.active_catchment(), '2026-01-01', snapshot)
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         assert data['trades'] == {}
         assert data['metadata']['num_trades'] == 0
 
     def test_multiple_eods_accumulate(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-02', '2026-01-02')
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-03', '2026-01-03')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
+        _write_eod_with_positions('2026-01-02')
+        _write_eod_with_positions('2026-01-03')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         trade = data['trades']['PRS-001']
         assert len(trade['history']) == 3
 
     def test_history_entry_has_required_keys(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         entry = data['trades']['PRS-001']['history'][0]
         assert 'date' in entry
         assert 'mark' in entry
@@ -147,14 +133,11 @@ class TestGenerateTradePnlHistory:
         assert 'running_pnl' in entry
 
     def test_trade_metadata_preserved(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01', swap_id='PRS-999')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01', swap_id='PRS-999')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         trade = data['trades']['PRS-999']
         assert trade['gauge_id'] == 'GAUGE-001'
         assert trade['trigger'] == 'severe'
@@ -163,8 +146,6 @@ class TestGenerateTradePnlHistory:
         assert trade['trade_spread_bps'] == 200.0
 
     def test_multiple_trades_in_same_eod(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
 
         snapshot = {
             'eod_id': 'EOD-2026-01-01',
@@ -198,24 +179,20 @@ class TestGenerateTradePnlHistory:
             ],
             'portfolio_summary': {},
         }
-        (eod_dir / 'EOD-2026-01-01.json').write_text(json.dumps(snapshot))
-        output = tmp_path / 'trade_pnl_history.json'
+        database.save_eod_snapshot(database.active_catchment(), '2026-01-01', snapshot)
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         assert 'PRS-A' in data['trades']
         assert 'PRS-B' in data['trades']
         assert data['metadata']['num_trades'] == 2
 
     def test_num_snapshots_in_metadata(self, tmp_path):
-        eod_dir = tmp_path / 'eod'
-        eod_dir.mkdir()
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-01', '2026-01-01')
-        _write_eod_with_positions(eod_dir, 'EOD-2026-01-02', '2026-01-02')
-        output = tmp_path / 'trade_pnl_history.json'
+        _write_eod_with_positions('2026-01-01')
+        _write_eod_with_positions('2026-01-02')
 
-        generate_trade_pnl_history_file(eod_dir, output)
+        generate_trade_pnl_history_file(database.active_catchment())
 
-        data = json.loads(output.read_text())
+        data = database.get_trade_pnl_history(database.active_catchment())
         assert data['metadata']['num_snapshots'] == 2

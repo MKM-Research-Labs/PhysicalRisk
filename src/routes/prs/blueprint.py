@@ -202,8 +202,7 @@ def commit_prs_trade():
         close_out_of = data.get("close_out_of")
         if close_out_of:
             from models.trading.pnl_engine import PnLEngine
-            trading_dir = config.get_trading_dir()
-            pnl_eng = PnLEngine(trading_dir, prs_dir)
+            pnl_eng = PnLEngine()
             pnl_eng.close_trade(close_out_of, spread_bps)
             cdm_record["PhysicalSwap"]["Header"]["CloseOutOf"] = close_out_of
             # Re-save with close-out reference

@@ -95,6 +95,8 @@ MARKET_STATE_FILE = "blotter/market_state.json"
 TRADE_MARKS_FILE = "blotter/trade_marks.json"
 EOD_DIR = "blotter/eod"
 EOD_KEY_PREFIX = "EOD-"
+HAZARD_CURVE_HISTORY_FILE = "blotter/hazard_curve_history.json"
+TRADE_PNL_HISTORY_FILE = "blotter/trade_pnl_history.json"
 PRS_DIR = "prs"
 
 # ── Classifiers (binary) ─────────────────────────────────────────────────────

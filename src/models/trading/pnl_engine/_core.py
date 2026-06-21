@@ -29,9 +29,10 @@ Computes daily and running P&L and EOD snapshots. Daily P&L decomposition:
 - Running P&L = sum of all daily P&L since inception
 """
 
-import json
-from pathlib import Path
 from typing import Dict, List, Optional
+
+import database
+from config import config
 
 from ..trade_marks import TradeMarks
 from ._pnl import _PnLComputeMixin
@@ -40,28 +41,25 @@ from ._pnl import _PnLComputeMixin
 class PnLEngine(_PnLComputeMixin, TradeMarks):
     """Computes and manages P&L for the trading desk."""
 
-    def __init__(self, trading_dir: Path, prs_dir: Path):
+    def __init__(self, catchment: Optional[str] = None):
         """
         Args:
-            trading_dir: Path to data/input/<catchment>/blotter/
-            prs_dir: Path to data/input/<catchment>/prs/ (existing PRS trades)
+            catchment: Catchment to operate on (defaults to ``database.active_catchment()``).
         """
-        super().__init__(trading_dir)
-        self.prs_dir = Path(prs_dir)
-        self.eod_dir = self.trading_dir / 'eod'
-        self.eod_dir.mkdir(parents=True, exist_ok=True)
+        super().__init__(catchment)
 
     def get_eod_history(self) -> List[Dict]:
-        """Get list of all EOD snapshots (summaries only)."""
+        """Get list of all EOD snapshots (summaries only), newest first."""
+        # EOD report PDFs stay file-based (out of scope); resolve their dir from config.
+        eod_dir = config.get_eod_dir()
         history = []
-        for f in sorted(self.eod_dir.glob('EOD-*.json'), reverse=True):
-            with open(f) as fh:
-                snapshot = json.load(fh)
+        for snapshot in sorted(database.iter_eod_snapshots(self.catchment),
+                               key=lambda s: s.get('date', ''), reverse=True):
             summary = snapshot.get('portfolio_summary', {})
             eod_date = snapshot.get('date', '')
-            # Check if PDF exists for this EOD
+            # Check if a PDF report exists for this EOD
             pdf_name = f"EOD-{eod_date.replace('-', '')}.pdf"
-            has_pdf = (self.eod_dir / pdf_name).exists()
+            has_pdf = (eod_dir / pdf_name).exists()
             history.append({
                 'eod_id': snapshot.get('eod_id', ''),
                 'date': eod_date,
@@ -74,14 +72,8 @@ class PnLEngine(_PnLComputeMixin, TradeMarks):
         return history
 
     def get_eod_snapshot(self, eod_date: str) -> Optional[Dict]:
-        """Load a specific EOD snapshot by date."""
-        snapshot_path = (
-            self.eod_dir / f"EOD-{eod_date.replace('-', '')}.json"
-        )
-        if snapshot_path.exists():
-            with open(snapshot_path) as f:
-                return json.load(f)
-        return None
+        """Load a specific EOD snapshot by date through the database seam."""
+        return database.get_eod_snapshot(self.catchment, eod_date)
 
     def get_pnl_series(self) -> List[Dict]:
         """
@@ -91,9 +83,8 @@ class PnLEngine(_PnLComputeMixin, TradeMarks):
             List of {date, daily_pnl, running_pnl} dicts, chronological.
         """
         series = []
-        for f in sorted(self.eod_dir.glob('EOD-*.json')):
-            with open(f) as fh:
-                snapshot = json.load(fh)
+        for snapshot in sorted(database.iter_eod_snapshots(self.catchment),
+                               key=lambda s: s.get('date', '')):
             summary = snapshot.get('portfolio_summary', {})
             series.append({
                 'date': snapshot.get('date', ''),

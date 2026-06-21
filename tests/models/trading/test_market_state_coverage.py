@@ -20,21 +20,24 @@
 
 """Coverage expansion tests for market_state.py — lines 280, 290, 296, 313, 336."""
 
-import json
-
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
-@pytest.fixture
-def mgr_with_gaugehc(tmp_path):
-    """MarketStateManager with a simple gaugehc.json."""
-    input_dir = tmp_path / 'input'
-    input_dir.mkdir()
-    trading_dir = tmp_path / 'trading'
-    trading_dir.mkdir()
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"); MarketStateManager persists
+    through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
 
+
+@pytest.fixture
+def mgr_with_gaugehc():
+    """MarketStateManager with a simple gauge hazard curve seeded via the seam."""
     gaugehc = [{
         'gauge_id': 'GAUGE-001',
         'gauge_name': 'Test Gauge',
@@ -44,8 +47,8 @@ def mgr_with_gaugehc(tmp_path):
         'curve_points': [],
         'gev_location': 3.0, 'gev_scale': 0.5, 'gev_shape': 0.0,
     }]
-    (input_dir / 'gaugehc.json').write_text(json.dumps(gaugehc))
-    return MarketStateManager(trading_dir, input_dir)
+    database.save_gauge_hazard_curves(database.active_catchment(), gaugehc)
+    return MarketStateManager()
 
 
 class TestGetYieldRateEmptyCurve:
@@ -90,13 +93,9 @@ class TestUpdateYieldCurveNoExisting:
 
     def test_update_creates_yield_curve_if_missing(self, tmp_path):
         """update_yield_curve creates yield_curve from default when missing."""
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        (input_dir / 'gaugehc.json').write_text(json.dumps([]))
+        database.save_gauge_hazard_curves(database.active_catchment(), [])
 
-        mgr = MarketStateManager(trading_dir, input_dir)
+        mgr = MarketStateManager()
         # Initialize state, then remove yield_curve to simulate missing key
         state = mgr.load()
         del state['yield_curve']
@@ -113,13 +112,9 @@ class TestCommitYieldCurveNoExisting:
 
     def test_commit_creates_yield_curve_if_missing(self, tmp_path):
         """commit_yield_curve creates yield_curve from default when missing."""
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir()
-        trading_dir = tmp_path / 'trading'
-        trading_dir.mkdir()
-        (input_dir / 'gaugehc.json').write_text(json.dumps([]))
+        database.save_gauge_hazard_curves(database.active_catchment(), [])
 
-        mgr = MarketStateManager(trading_dir, input_dir)
+        mgr = MarketStateManager()
         state = mgr.load()
         del state['yield_curve']
         mgr._save(state)
