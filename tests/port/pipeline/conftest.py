@@ -130,8 +130,8 @@ def _run_pipeline(output_dir):
         GaugeTimeSeriesGenerator(verbose=False).generate(simulation_hours=SIMULATION_HOURS)
         # Generate storm sequences (replaces old generate_storms)
         sequences = generate_event_set(count=N_STORMS, catchment_id='thames', seed=42)
-        save_sequences(sequences, output_dir / 'storm_sequences.json')
-        save_summary(sequences, output_dir / 'sequences_summary.json')
+        save_sequences(sequences)
+        save_summary(sequences)
         generate_all_gauge_histories(years=HISTORY_YEARS)
         build_hazard_curves(
             catchment_id='thames',

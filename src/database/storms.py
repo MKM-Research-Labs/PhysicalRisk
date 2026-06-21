@@ -39,6 +39,12 @@ def storm_sequences_exists(catchment) -> bool:
 def save_storm_sequences(catchment, payload):
     active_backend().save("storm_sequences", catchment, payload)
 
+def get_sequence_summary(catchment):
+    return load_or("sequence_summary", catchment)
+
+def save_sequence_summary(catchment, payload):
+    active_backend().save("sequence_summary", catchment, payload)
+
 def get_legacy_storm_sequences(catchment):
     """Pre-sharded single-file storm metadata (``storms.json``); None if absent.
 

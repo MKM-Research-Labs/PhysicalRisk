@@ -31,6 +31,18 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"). batch_train_classifiers now checks
+    database.storm_sequences_exists() and reads sequences via the seam; _setup_dirs seeds
+    them through database so the existence check passes."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -134,7 +146,9 @@ class TestBatchTrainClassifiers:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         (input_dir / "gauge.json").write_text(json.dumps(_make_gauge_json(3)))
-        (input_dir / "storm_sequences.json").write_text(json.dumps([]))
+        # Seed storm_sequences through the database seam so storm_sequences_exists() passes
+        # (load_sequences is mocked in these tests, so the payload is just a presence marker).
+        database.save_storm_sequences(database.active_catchment(), {"sequences": []})
         return input_dir, output_dir
 
     def test_missing_gauge_json(self, tmp_path):
@@ -170,8 +184,8 @@ class TestBatchTrainClassifiers:
         input_dir = tmp_path / "input"
         input_dir.mkdir()
         (input_dir / "gauge.json").write_text(json.dumps(_make_gauge_json(2)))
-        # No storm_sequences.json
-        with pytest.raises(FileNotFoundError, match="storm_sequences.json"):
+        # No storm_sequences seeded in the backend
+        with pytest.raises(FileNotFoundError, match="storm_sequences"):
             batch_train_classifiers(input_dir, tmp_path / "out")
 
     @patch("port.src.stressm.classifier._print_classifier_result")

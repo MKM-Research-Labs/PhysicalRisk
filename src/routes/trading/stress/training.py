@@ -32,7 +32,6 @@ polls the status endpoint every few seconds until the classifier is ready.
 import logging
 import threading
 import time
-from pathlib import Path
 
 from flask import jsonify
 
@@ -197,9 +196,8 @@ def _train_single_gauge(gauge_id: str):
 
         target_idx = all_gauge_ids.index(gauge_id)
 
-        # Load sequences
-        seq_path = input_dir / "storm_sequences.json"
-        sequences = load_sequences(seq_path)
+        # Load sequences for the active catchment
+        sequences = load_sequences()
 
         # Train — write classifier to classifiers/ dir (not output/stressm/)
         result = train_gauge_stressm_classifier(

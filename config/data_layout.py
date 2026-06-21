@@ -75,6 +75,7 @@ PORTFOLIO_FLOOD_SUMMARY_FILE = "portfolio_flood_summary.json"
 
 # ── Storms / sequences ───────────────────────────────────────────────────────
 STORM_SEQUENCES_FILE = "storm_sequences.json"
+SEQUENCES_SUMMARY_FILE = "sequences_summary.json"
 STRESS_STORMS_DIR = "stress_storms"
 STRESS_STORM_INDEX_FILE = "stress_storms/_index.json"
 SEQUENCE_GAUGE_DIR = "sequence_gauge"
