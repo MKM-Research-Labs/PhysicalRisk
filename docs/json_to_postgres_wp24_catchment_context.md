@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 43 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 48 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -67,12 +67,24 @@
 > `tmp_catchment` the dir-resolver maps EVERY catchment to `tmp_path`, so a test can seed via
 > `database.save_*("any", …)` and physical-path assertions (`tmp_path/gaugehc.json`) still hold.
 >
-> **NEXT — step 5 remaining slices** (2 left):
-> - **storms** — `storm_multi/utils/serialization.py` (`save_sequences`→`save_storm_sequences`
->   exists; `save_summary`→**no artifact, decision**: add `sequence_summary` DOCUMENT or out-of-scope),
->   `storm_multi/models/_spatial_math.py:save_spatial_correlation_config` (**no artifact, decision**).
-> - **trading engines (§5b)** — `src/models/trading/{trade_marks.py, market_state/_persistence.py,
->   pnl_engine/_pnl.py}` (artifacts `market_state`/`trade_marks` exist). `__init__(self, trading_dir)`.
+> **Step 5 PROGRESS — storm_multi sequences DONE** [`753ee1f2`]. `save_sequences`/`load_sequences`/
+> `save_summary` now `(catchment=None→active_catchment())` via `database.save_storm_sequences`/
+> `get_storm_sequences`/`save_sequence_summary`. **DECISION resolved:** added `sequence_summary`
+> DOCUMENT artifact (`SEQUENCES_SUMMARY_FILE`) + saver/getter. Callers: stressm `_core.py`,
+> training route, `batch_train` (pre-checks `storm_sequences_exists`). **`save_spatial_correlation_config`
+> left deferred** (no production caller). serialization.py + storms.py 100%. Broad checkpoint
+> (port+routes/trading+db+hazard) **3282✓/2skip**. Also fixed a gaugets-slice regression in the
+> stressm integration tests (conftest binds `tmp_catchment` for `generate_stressm`) [earlier commits].
+>
+> **NEXT — step 5, the LAST slice: trading engines (§5b).**
+> `src/models/trading/{trade_marks.py, market_state/_persistence.py, pnl_engine/_pnl.py}`, all
+> constructed `__init__(self, trading_dir)` (= `data/input/<catchment>/blotter/`). Artifacts
+> `trade_marks` / `market_state` / `eod_snapshot` (KEYED) exist + savers/getters (incl.
+> `iter_eod_snapshots`). Most complex: `trade_marks` reads/writes `trade_marks.json`;
+> `market_state` reads `gaugehc.json` (cross-artifact `get_gauge_hazard_curves`) + reads/writes
+> `market_state.json`; `pnl` writes keyed `EOD-<date>.json` + globs `EOD-*.json` for the previous
+> snapshot (`iter_eod_snapshots`). trading-desk-wide blast radius — checkpoint `tests/routes/trading`
+> after. Then step 6.
 >
 > **Then step 6 — orchestrator wrap + setter removal (HIGH-RISK CAPSTONE, confirm first).**
 > Wrap port/trading runs in `catchment_context(c)` that ALSO repoints config paths; delete
