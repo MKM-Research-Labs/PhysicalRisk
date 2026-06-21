@@ -138,6 +138,7 @@ def test_timeseries(repo):
 
 def test_storms_and_perils(repo):
     database.save_storm_sequences(CATCH, {"sequences": []})
+    database.save_sequence_summary(CATCH, {"num_sequences": 0})
     database.save_stress_storm(CATCH, "STORM-A", {"severity": "severe"})
     repo.save("stress_storm_index", CATCH, {"storms": [{"id": "STORM-A"}]})
     database.save_sequence_gauge(CATCH, "GAUGE-1", {"count": 5})
@@ -147,6 +148,8 @@ def test_storms_and_perils(repo):
     assert database.get_storm_sequences(CATCH) == {"sequences": []}
     assert database.storm_sequences_exists(CATCH) is True
     assert database.storm_sequences_exists("nocatch") is False
+    assert database.get_sequence_summary(CATCH) == {"num_sequences": 0}
+    assert database.get_sequence_summary("nocatch") is None
     assert database.get_stress_storm(CATCH, "STORM-A")["severity"] == "severe"
     assert database.list_stress_storms(CATCH) == [{"id": "STORM-A"}]
     assert database.get_stress_storm_index(CATCH) == {"storms": [{"id": "STORM-A"}]}

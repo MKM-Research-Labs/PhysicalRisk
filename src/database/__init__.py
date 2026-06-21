@@ -64,6 +64,7 @@ from .timeseries import (
 )
 from .storms import (
     get_storm_sequences, storm_sequences_exists, save_storm_sequences,
+    get_sequence_summary, save_sequence_summary,
     get_legacy_storm_sequences,
     list_stress_storms, get_stress_storm, save_stress_storm,
     get_stress_storm_index, get_legacy_stress_storms,
@@ -114,6 +115,7 @@ __all__ = [
     "delete_gauge_history",
     # storms / perils
     "get_storm_sequences", "storm_sequences_exists", "save_storm_sequences",
+    "get_sequence_summary", "save_sequence_summary",
     "get_legacy_storm_sequences",
     "list_stress_storms", "get_stress_storm", "save_stress_storm",
     "get_stress_storm_index", "get_legacy_stress_storms",

@@ -57,6 +57,7 @@ _REGISTRY: dict[str, Spec] = {
 
     # Storms / sequences / summaries (documents)
     "storm_sequences": Spec(DOCUMENT, _const(dl.STORM_SEQUENCES_FILE)),
+    "sequence_summary": Spec(DOCUMENT, _const(dl.SEQUENCES_SUMMARY_FILE)),
     "storm_sequences_legacy": Spec(DOCUMENT, _const(dl.LEGACY_STORM_SEQUENCES_FILE)),
     "stress_storm_index": Spec(DOCUMENT, _const(dl.STRESS_STORM_INDEX_FILE)),
     "stress_storms_legacy": Spec(DOCUMENT, _const(dl.LEGACY_STRESS_STORMS_FILE)),
