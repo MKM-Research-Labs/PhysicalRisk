@@ -21,21 +21,24 @@
 """Coverage expansion tests for market_state.py — reconciliation of new
 gauges in load() (lines 136-153) and get_yield_rate final fallback (line 323)."""
 
-import json
-
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
-@pytest.fixture
-def two_gauge_env(tmp_path):
-    """Environment with one gauge initially, second gauge added later."""
-    input_dir = tmp_path / "input"
-    input_dir.mkdir()
-    trading_dir = tmp_path / "trading"
-    trading_dir.mkdir()
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"); MarketStateManager reads gauge
+    hazard curves and reads/writes market state through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
 
+
+@pytest.fixture
+def two_gauge_env():
+    """Environment with one gauge initially seeded; a second gauge is added later."""
     gauge_a = {
         "gauge_id": "GAUGE-A",
         "gauge_name": "Gauge A",
@@ -47,13 +50,9 @@ def two_gauge_env(tmp_path):
         "gev_scale": 0.5,
         "gev_shape": 0.0,
     }
-    (input_dir / "gaugehc.json").write_text(json.dumps([gauge_a]))
+    database.save_gauge_hazard_curves(database.active_catchment(), [gauge_a])
 
-    return {
-        "input_dir": input_dir,
-        "trading_dir": trading_dir,
-        "gauge_a": gauge_a,
-    }
+    return {"gauge_a": gauge_a}
 
 
 class TestLoadReconciliation:
@@ -62,7 +61,7 @@ class TestLoadReconciliation:
     def test_new_gauge_reconciled_on_load(self, two_gauge_env):
         """Adding a gauge to gaugehc.json causes reconciliation on next load."""
         env = two_gauge_env
-        mgr = MarketStateManager(env["trading_dir"], env["input_dir"])
+        mgr = MarketStateManager()
 
         # First load — only gauge A
         state = mgr.load()
@@ -81,8 +80,8 @@ class TestLoadReconciliation:
             "gev_scale": 0.6,
             "gev_shape": 0.1,
         }
-        (env["input_dir"] / "gaugehc.json").write_text(
-            json.dumps([env["gauge_a"], gauge_b])
+        database.save_gauge_hazard_curves(
+            database.active_catchment(), [env["gauge_a"], gauge_b]
         )
 
         # Second load — should reconcile
@@ -93,7 +92,7 @@ class TestLoadReconciliation:
     def test_reconciled_gauge_has_term_structure(self, two_gauge_env):
         """Reconciled gauge has all triggers with 5 tenors each."""
         env = two_gauge_env
-        mgr = MarketStateManager(env["trading_dir"], env["input_dir"])
+        mgr = MarketStateManager()
         mgr.load()  # initialize with gauge A
 
         gauge_b = {
@@ -107,8 +106,8 @@ class TestLoadReconciliation:
             "gev_scale": 0.6,
             "gev_shape": 0.1,
         }
-        (env["input_dir"] / "gaugehc.json").write_text(
-            json.dumps([env["gauge_a"], gauge_b])
+        database.save_gauge_hazard_curves(
+            database.active_catchment(), [env["gauge_a"], gauge_b]
         )
 
         state = mgr.load()
@@ -127,7 +126,7 @@ class TestLoadReconciliation:
     def test_reconciliation_persisted_to_disk(self, two_gauge_env):
         """Reconciled state is persisted so second load doesn't re-reconcile."""
         env = two_gauge_env
-        mgr = MarketStateManager(env["trading_dir"], env["input_dir"])
+        mgr = MarketStateManager()
         mgr.load()
 
         gauge_b = {
@@ -141,30 +140,29 @@ class TestLoadReconciliation:
             "gev_scale": 0.6,
             "gev_shape": 0.1,
         }
-        (env["input_dir"] / "gaugehc.json").write_text(
-            json.dumps([env["gauge_a"], gauge_b])
+        database.save_gauge_hazard_curves(
+            database.active_catchment(), [env["gauge_a"], gauge_b]
         )
 
         mgr.load()  # reconciles and saves
 
-        # Re-read from disk directly
-        with open(mgr.state_file) as f:
-            disk_state = json.load(f)
+        # Re-read persisted state through the database seam
+        disk_state = database.get_market_state(mgr.catchment)
         assert "GAUGE-B" in disk_state["base_rates"]
         assert "GAUGE-B" in disk_state["hazard_term_structure"]
 
-    def test_no_reconciliation_when_no_new_gauges(self, two_gauge_env):
-        """Loading with same gauges doesn't trigger reconciliation."""
-        env = two_gauge_env
-        mgr = MarketStateManager(env["trading_dir"], env["input_dir"])
-        state1 = mgr.load()
-        mtime1 = mgr.state_file.stat().st_mtime
+    def test_no_reconciliation_when_no_new_gauges(self, two_gauge_env, monkeypatch):
+        """Loading with same gauges doesn't re-persist the market state."""
+        mgr = MarketStateManager()
+        mgr.load()  # initialize + first save
 
-        import time
-        time.sleep(0.05)
+        # Spy on the save: a second load with no new gauges must not re-persist.
+        saves = []
+        real_save = database.save_market_state
+        monkeypatch.setattr(
+            database, "save_market_state",
+            lambda c, s: saves.append(c) or real_save(c, s),
+        )
 
-        state2 = mgr.load()
-        mtime2 = mgr.state_file.stat().st_mtime
-
-        # File should not have been re-written
-        assert mtime1 == mtime2
+        mgr.load()
+        assert saves == []

@@ -90,3 +90,26 @@ def get_eod_snapshot(catchment, eod_date):
 
 def save_eod_snapshot(catchment, eod_date, payload):
     active_backend().save("eod_snapshot", catchment, payload, _eod_key(eod_date))
+
+def delete_eod_snapshot(catchment, eod_date):
+    active_backend().delete("eod_snapshot", catchment, _eod_key(eod_date))
+
+def clear_eod_snapshots(catchment):
+    """Delete every EOD snapshot for the catchment (e.g. before a fresh series run)."""
+    repo = active_backend()
+    for key in list(repo.iter_keys("eod_snapshot", catchment)):
+        repo.delete("eod_snapshot", catchment, key)
+
+
+# ── EOD history documents (derived from the snapshot series) ──────────────────
+def get_hazard_curve_history(catchment):
+    return load_or("hazard_curve_history", catchment)
+
+def save_hazard_curve_history(catchment, payload):
+    active_backend().save("hazard_curve_history", catchment, payload)
+
+def get_trade_pnl_history(catchment):
+    return load_or("trade_pnl_history", catchment)
+
+def save_trade_pnl_history(catchment, payload):
+    active_backend().save("trade_pnl_history", catchment, payload)

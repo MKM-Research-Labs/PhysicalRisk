@@ -40,3 +40,10 @@ class TestTradeMarks:
         assert mark["trade_status"] == "Closed"
         assert mark["close_spread_bps"] == 260.0
         assert "close_date" in mark
+
+    def test_close_unmarked_trade(self, pnl_engine):
+        """Closing a trade with no prior mark creates the entry first."""
+        mark = pnl_engine.close_trade("PRS-NEW", 175.0, final_pnl=1234.5)
+        assert mark["trade_status"] == "Closed"
+        assert mark["close_spread_bps"] == 175.0
+        assert mark["final_pnl"] == 1234.5

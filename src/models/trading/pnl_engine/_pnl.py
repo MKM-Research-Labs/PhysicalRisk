@@ -20,10 +20,11 @@
 
 """Daily P&L computation and EOD-snapshot generation mixin."""
 
-import json
 import logging
 from datetime import date, datetime
 from typing import Dict, List, Optional
+
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -192,22 +193,16 @@ class _PnLComputeMixin:
             'positions': pnl_summary['positions'],
         }
 
-        # Save snapshot
-        snapshot_path = self.eod_dir / f"EOD-{eod_date.replace('-', '')}.json"
-        with open(snapshot_path, 'w') as f:
-            json.dump(snapshot, f, indent=2)
+        # Persist the snapshot through the database seam (keyed by EOD date).
+        database.save_eod_snapshot(self.catchment, eod_date, snapshot)
 
-        logger.info("EOD snapshot saved: %s", snapshot_path)
+        logger.info("EOD snapshot saved for catchment %s: %s", self.catchment, eod_date)
         return snapshot
 
     def _get_previous_eod(self, current_date: str) -> Optional[Dict]:
-        """Find the most recent EOD snapshot before the given date."""
-        eod_files = sorted(self.eod_dir.glob('EOD-*.json'), reverse=True)
-        current_id = f"EOD-{current_date.replace('-', '')}"
-
-        for f in eod_files:
-            if f.stem <= current_id:
-                with open(f) as fh:
-                    return json.load(fh)
-
+        """Find the most recent EOD snapshot on or before the given date."""
+        for snapshot in sorted(database.iter_eod_snapshots(self.catchment),
+                               key=lambda s: s.get('date', ''), reverse=True):
+            if snapshot.get('date', '') <= current_date:
+                return snapshot
         return None

@@ -204,6 +204,25 @@ def test_trading_lifecycle(repo):
     assert list(database.list_eod_snapshots(CATCH)) == ["EOD-20260115"]
     assert database.iter_eod_snapshots(CATCH) == [{"pnl": 42}]
 
+    # delete one, then clear all
+    database.save_eod_snapshot(CATCH, "2026-01-16", {"pnl": 7})
+    database.delete_eod_snapshot(CATCH, "2026-01-15")
+    assert database.get_eod_snapshot(CATCH, "2026-01-15") is None
+    assert list(database.list_eod_snapshots(CATCH)) == ["EOD-20260116"]
+    database.clear_eod_snapshots(CATCH)
+    assert list(database.list_eod_snapshots(CATCH)) == []
+
+
+def test_eod_history_documents(repo):
+    assert database.get_hazard_curve_history(CATCH) is None
+    assert database.get_trade_pnl_history(CATCH) is None
+
+    database.save_hazard_curve_history(CATCH, {"history": {"GAUGE-1": {}}})
+    assert database.get_hazard_curve_history(CATCH)["history"] == {"GAUGE-1": {}}
+
+    database.save_trade_pnl_history(CATCH, {"trades": {"PRS-1": {}}})
+    assert database.get_trade_pnl_history(CATCH)["trades"] == {"PRS-1": {}}
+
 
 def test_classifiers(repo):
     database.save_classifier(CATCH, "GAUGE-1", b"\x00MODEL\x01")

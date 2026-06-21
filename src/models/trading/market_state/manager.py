@@ -26,8 +26,9 @@ To add a new curve type (e.g. credit spreads, vol surfaces):
 2. Add it to the MarketStateManager bases below
 """
 
-from pathlib import Path
+from typing import Optional
 
+import database
 from config.port import DEFAULT_YIELD_CURVE as _DEFAULT_YIELD_CURVE
 
 from ._persistence import _PersistenceMixin
@@ -47,15 +48,11 @@ class MarketStateManager(
     # Default yield curve — centralised in config.port
     DEFAULT_YIELD_CURVE = _DEFAULT_YIELD_CURVE
 
-    def __init__(self, trading_dir: Path, input_dir: Path):
+    def __init__(self, catchment: Optional[str] = None):
         """
         Initialize market state manager.
 
         Args:
-            trading_dir: Path to data/input/<catchment>/blotter/
-            input_dir: Path to data/input/<catchment>/
+            catchment: Catchment to operate on (defaults to ``database.active_catchment()``).
         """
-        self.trading_dir = Path(trading_dir)
-        self.input_dir = Path(input_dir)
-        self.state_file = self.trading_dir / 'market_state.json'
-        self.trading_dir.mkdir(parents=True, exist_ok=True)
+        self.catchment = catchment or database.active_catchment()

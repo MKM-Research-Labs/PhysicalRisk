@@ -46,14 +46,12 @@ def _get_engines():
     from models.trading.delta_engine import DeltaEngine
     from models.trading.pnl_engine import PnLEngine
 
-    trading_dir = config.get_trading_dir()
-    input_dir = config.get_input_dir()
-    prs_dir = config.get_reports_dir("prs")
-    prs_dir.mkdir(parents=True, exist_ok=True)
+    # Ensure the PRS reports dir exists (PRS trades still land there as files).
+    config.get_reports_dir("prs").mkdir(parents=True, exist_ok=True)
 
-    market_mgr = MarketStateManager(trading_dir, input_dir)
+    market_mgr = MarketStateManager()
     delta_eng = DeltaEngine(market_mgr)
-    pnl_eng = PnLEngine(trading_dir, prs_dir)
+    pnl_eng = PnLEngine()
 
     return market_mgr, delta_eng, pnl_eng
 
@@ -63,11 +61,9 @@ def _load_open_trades():
     from models.trading.pnl_engine import PnLEngine
 
     catchment = config.catchment_id
-    prs_dir = config.get_reports_dir("prs")
-    prs_dir.mkdir(parents=True, exist_ok=True)
-    trading_dir = config.get_trading_dir()
+    config.get_reports_dir("prs").mkdir(parents=True, exist_ok=True)
 
-    pnl_eng = PnLEngine(trading_dir, prs_dir)
+    pnl_eng = PnLEngine()
     marks = pnl_eng.load_trade_marks()
 
     trades = []

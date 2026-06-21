@@ -20,16 +20,16 @@
 
 """EOD history file writers: hazard-curve history and per-trade P&L history."""
 
-import json
 import logging
-from pathlib import Path
 from typing import Dict, List
+
+import database
 
 logger = logging.getLogger(__name__)
 
 
-def generate_hazard_curve_history_file(eod_dir: Path, output_path: Path) -> None:
-    """Build and write hazard_curve_history.json from all EOD snapshots.
+def generate_hazard_curve_history_file(catchment: str) -> None:
+    """Build and persist hazard-curve history from all EOD snapshots.
 
     Output structure:
         {
@@ -46,8 +46,9 @@ def generate_hazard_curve_history_file(eod_dir: Path, output_path: Path) -> None
     """
     from datetime import datetime as _dt
 
-    eod_files = sorted(Path(eod_dir).glob('EOD-*.json'))
-    if not eod_files:
+    snapshots = sorted(database.iter_eod_snapshots(catchment),
+                       key=lambda s: s.get('date', ''))
+    if not snapshots:
         return
 
     # gauge_id -> trigger -> [{"date": ..., "1": ..., ...}]
@@ -55,9 +56,7 @@ def generate_hazard_curve_history_file(eod_dir: Path, output_path: Path) -> None
     all_gauges: set = set()
     all_triggers: set = set()
 
-    for f in eod_files:
-        with open(f) as fh:
-            snapshot = json.load(fh)
+    for snapshot in snapshots:
         date_str = snapshot.get('date', '')
         ts = snapshot.get('market_state_snapshot', {}).get('hazard_term_structure', {})
 
@@ -76,7 +75,7 @@ def generate_hazard_curve_history_file(eod_dir: Path, output_path: Path) -> None
     output = {
         'metadata': {
             'generated_at': _dt.now().isoformat(),
-            'num_snapshots': len(eod_files),
+            'num_snapshots': len(snapshots),
             'gauges': sorted(all_gauges),
             'triggers': sorted(all_triggers),
             'description': (
@@ -88,15 +87,14 @@ def generate_hazard_curve_history_file(eod_dir: Path, output_path: Path) -> None
         'history': history,
     }
 
-    with open(output_path, 'w') as f:
-        json.dump(output, f, indent=2)
+    database.save_hazard_curve_history(catchment, output)
 
-    logger.info("Hazard curve history written: %s (%d gauges, %d snapshots)",
-                output_path.name, len(all_gauges), len(eod_files))
+    logger.info("Hazard curve history written for %s (%d gauges, %d snapshots)",
+                catchment, len(all_gauges), len(snapshots))
 
 
-def generate_trade_pnl_history_file(eod_dir: Path, output_path: Path) -> None:
-    """Build and write trade_pnl_history.json from all EOD snapshots.
+def generate_trade_pnl_history_file(catchment: str) -> None:
+    """Build and persist per-trade P&L history from all EOD snapshots.
 
     For each trade, records a vector of daily EOD marks, market P&L and
     running P&L — one entry per EOD day the trade was open.  The first
@@ -125,16 +123,15 @@ def generate_trade_pnl_history_file(eod_dir: Path, output_path: Path) -> None:
     """
     from datetime import datetime as _dt
 
-    eod_files = sorted(Path(eod_dir).glob('EOD-*.json'))
-    if not eod_files:
+    snapshots = sorted(database.iter_eod_snapshots(catchment),
+                       key=lambda s: s.get('date', ''))
+    if not snapshots:
         return
 
     # trade_id -> {meta, history list}
     trades: Dict[str, dict] = {}
 
-    for f in eod_files:
-        with open(f) as fh:
-            snapshot = json.load(fh)
+    for snapshot in snapshots:
         date_str = snapshot.get('date', '')
         positions = snapshot.get('positions', [])
 
@@ -164,7 +161,7 @@ def generate_trade_pnl_history_file(eod_dir: Path, output_path: Path) -> None:
     output = {
         'metadata': {
             'generated_at': _dt.now().isoformat(),
-            'num_snapshots': len(eod_files),
+            'num_snapshots': len(snapshots),
             'num_trades': len(trades),
             'description': (
                 'Per-trade EOD mark, market P&L and running P&L vectors. '
@@ -176,13 +173,12 @@ def generate_trade_pnl_history_file(eod_dir: Path, output_path: Path) -> None:
         'trades': trades,
     }
 
-    with open(output_path, 'w') as f:
-        json.dump(output, f, indent=2)
+    database.save_trade_pnl_history(catchment, output)
 
     history_lengths = [len(t['history']) for t in trades.values()]
     logger.info(
-        "Trade P&L history written: %s (%d trades, history lengths %d-%d)",
-        output_path.name, len(trades),
+        "Trade P&L history written for %s (%d trades, history lengths %d-%d)",
+        catchment, len(trades),
         min(history_lengths) if history_lengths else 0,
         max(history_lengths) if history_lengths else 0,
     )

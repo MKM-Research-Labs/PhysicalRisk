@@ -71,6 +71,8 @@ _REGISTRY: dict[str, Spec] = {
     # Trading (documents)
     "market_state": Spec(DOCUMENT, _const(dl.MARKET_STATE_FILE)),
     "trade_marks": Spec(DOCUMENT, _const(dl.TRADE_MARKS_FILE)),
+    "hazard_curve_history": Spec(DOCUMENT, _const(dl.HAZARD_CURVE_HISTORY_FILE)),
+    "trade_pnl_history": Spec(DOCUMENT, _const(dl.TRADE_PNL_HISTORY_FILE)),
 
     # Timeseries (keyed; vary by mode)
     "property_timeseries": Spec(KEYED, lambda mode: dl.PROPERTY_TS_DIRS[mode]),

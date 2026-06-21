@@ -25,11 +25,11 @@ Handles loading, saving, and updating supplementary mark data
 (close-out, settlement) on top of PRS trade files.
 """
 
-import json
 import logging
 from datetime import date
-from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
+
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -37,25 +37,20 @@ logger = logging.getLogger(__name__)
 class TradeMarks:
     """Manages trade marks (supplementary data on top of PRS trade files)."""
 
-    def __init__(self, trading_dir: Path):
+    def __init__(self, catchment: Optional[str] = None):
         """
         Args:
-            trading_dir: Path to data/input/<catchment>/blotter/
+            catchment: Catchment to operate on (defaults to ``database.active_catchment()``).
         """
-        self.trading_dir = Path(trading_dir)
-        self.marks_file = self.trading_dir / 'trade_marks.json'
+        self.catchment = catchment or database.active_catchment()
 
     def load_trade_marks(self) -> Dict:
-        """Load trade marks file."""
-        if self.marks_file.exists():
-            with open(self.marks_file) as f:
-                return json.load(f)
-        return {}
+        """Load trade marks through the database seam (missing → {})."""
+        return database.get_trade_marks(self.catchment)
 
     def save_trade_marks(self, marks: Dict) -> None:
-        """Save trade marks file."""
-        with open(self.marks_file, 'w') as f:
-            json.dump(marks, f, indent=2)
+        """Persist trade marks through the database seam."""
+        database.save_trade_marks(self.catchment, marks)
 
     def get_trade_mark(self, swap_id: str) -> Dict:
         """Get mark data for a specific trade."""
