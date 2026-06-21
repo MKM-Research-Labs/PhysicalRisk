@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 48 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 50 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -76,15 +76,16 @@
 > (port+routes/trading+db+hazard) **3282✓/2skip**. Also fixed a gaugets-slice regression in the
 > stressm integration tests (conftest binds `tmp_catchment` for `generate_stressm`) [earlier commits].
 >
-> **NEXT — step 5, the LAST slice: trading engines (§5b).**
-> `src/models/trading/{trade_marks.py, market_state/_persistence.py, pnl_engine/_pnl.py}`, all
-> constructed `__init__(self, trading_dir)` (= `data/input/<catchment>/blotter/`). Artifacts
-> `trade_marks` / `market_state` / `eod_snapshot` (KEYED) exist + savers/getters (incl.
-> `iter_eod_snapshots`). Most complex: `trade_marks` reads/writes `trade_marks.json`;
-> `market_state` reads `gaugehc.json` (cross-artifact `get_gauge_hazard_curves`) + reads/writes
-> `market_state.json`; `pnl` writes keyed `EOD-<date>.json` + globs `EOD-*.json` for the previous
-> snapshot (`iter_eod_snapshots`). trading-desk-wide blast radius — checkpoint `tests/routes/trading`
-> after. Then step 6.
+> **Step 5 PROGRESS — trading engines DONE → STEP 5 COMPLETE.**
+> `TradeMarks`/`PnLEngine`/`MarketStateManager` all `ctor(catchment)`; trade marks + market state +
+> keyed EOD snapshots via `database`; dropped the dead `prs_dir` arg; EOD-report PDF checks use
+> `config.get_eod_dir()` (PDFs stay file-based). **`MarketStateManager._load_base_curves` now also
+> handles the `{hazard_curves: {...}}` production format** (the hazard slice's output). Also migrated
+> the **historical_eod** consumer (`_series`/`_history`, test-only/dormant): EOD cleanup via new
+> `clear_eod_snapshots`; per-day state via `save_market_state`; the two history reports became
+> `hazard_curve_history` / `trade_pnl_history` **DOCUMENT artifacts** (new `get/save_*` +
+> `delete_eod_snapshot`). Routes (`_helpers`, `prs/blueprint`) drop directory args. db pkg + every
+> changed module **100%**; port+routes/trading+models+db **3330✓/2skip**.
 >
 > **Then step 6 — orchestrator wrap + setter removal (HIGH-RISK CAPSTONE, confirm first).**
 > Wrap port/trading runs in `catchment_context(c)` that ALSO repoints config paths; delete
