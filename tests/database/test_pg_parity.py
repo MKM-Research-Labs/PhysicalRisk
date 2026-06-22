@@ -1,0 +1,307 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Dual-read parity harness (JSON→Postgres WP1.7).
+
+The pure-logic tests run everywhere (no DB): they drive the harness with two
+``InMemoryRepository`` backends, one holding a collection in *source-file* order
+and the other in *id* order, proving the by-id normalisation makes them compare
+equal — the exact real-data trap a positional ``==`` would fall into.
+
+The live test at the bottom imports an out-of-order file catchment into a real
+Postgres and asserts every parity check passes end-to-end; it SKIPS when no
+Postgres is reachable, so the normal suite stays green.
+"""
+
+import pytest
+
+from database import FileRepository, InMemoryRepository
+from database._pg import parity
+from database._pg.parity import (
+    ParityResult,
+    _diff_detail,
+    all_ok,
+    check_catchment,
+    check_collection,
+    check_keyed,
+    format_report,
+    normalize_collection,
+)
+
+CAT = "__paritytest__"
+
+
+def _gauge(gid, **extra):
+    header = {"GaugeID": gid, **extra}
+    return {"FloodGauge": {"Header": header}}
+
+
+def _gauge_doc(order, **per_id_extra):
+    """A gauge collection whose records appear in ``order`` (a list of ids)."""
+    return {
+        "flood_gauges": [_gauge(gid, **per_id_extra.get(gid, {})) for gid in order],
+        "generation_metadata": {"count": len(order)},
+    }
+
+
+def _ghc_doc():
+    return {
+        "metadata": {"distribution": "gev"},
+        "hazard_curves": {
+            "GAUGE-002": {"gauge_id": "GAUGE-002", "scale": 0.6},
+            "GAUGE-001": {"gauge_id": "GAUGE-001", "scale": 0.5},
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# normalize_collection — the by-id ordering that makes parity hold
+# ---------------------------------------------------------------------------
+
+def test_normalize_sorts_list_by_id_without_mutating_input():
+    doc = _gauge_doc(["GAUGE-003", "GAUGE-001", "GAUGE-002"])
+    out = normalize_collection("gauge", doc)
+    assert [g["FloodGauge"]["Header"]["GaugeID"] for g in out["flood_gauges"]] == \
+        ["GAUGE-001", "GAUGE-002", "GAUGE-003"]
+    # original untouched (we copied, not sorted in place)
+    assert doc["flood_gauges"][0]["FloodGauge"]["Header"]["GaugeID"] == "GAUGE-003"
+
+
+def test_normalize_dict_collection_returned_unchanged():
+    doc = _ghc_doc()
+    assert normalize_collection("gauge_hazard_curve", doc) is doc
+
+
+def test_normalize_missing_container_returned_unchanged():
+    doc = {"generation_metadata": {}}
+    assert normalize_collection("gauge", doc) is doc
+
+
+def test_normalize_tolerates_record_missing_its_id():
+    """A malformed record (no GaugeID) sorts to the front instead of raising."""
+    doc = {"flood_gauges": [_gauge("GAUGE-001"), {"FloodGauge": {}}],
+           "generation_metadata": {}}
+    out = normalize_collection("gauge", doc)
+    assert out["flood_gauges"][0] == {"FloodGauge": {}}  # "" id sorts first
+
+
+# ---------------------------------------------------------------------------
+# check_collection
+# ---------------------------------------------------------------------------
+
+def test_collection_equal_despite_record_order():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("gauge", CAT, _gauge_doc(["GAUGE-003", "GAUGE-001", "GAUGE-002"]))
+    pg.save("gauge", CAT, _gauge_doc(["GAUGE-001", "GAUGE-002", "GAUGE-003"]))
+    result = check_collection("gauge", CAT, file_repo, pg)
+    assert result == ParityResult("gauge", "collection", True, 3, 3, "")
+
+
+def test_collection_mismatch_on_record_value():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("gauge", CAT, _gauge_doc(["GAUGE-001"]))
+    pg.save("gauge", CAT, _gauge_doc(["GAUGE-001"], **{"GAUGE-001": {"GaugeName": "X"}}))
+    result = check_collection("gauge", CAT, file_repo, pg)
+    assert result.equal is False
+    assert result.detail == "value for 'flood_gauges' differs"
+
+
+def test_collection_mismatch_on_envelope_keys():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("gauge", CAT, _gauge_doc(["GAUGE-001"]))
+    pg_doc = _gauge_doc(["GAUGE-001"])
+    pg_doc["seed"] = 7  # extra top-level (envelope) key
+    pg.save("gauge", CAT, pg_doc)
+    result = check_collection("gauge", CAT, file_repo, pg)
+    assert result.equal is False
+    assert "only-pg={'seed'}" in result.detail
+
+
+def test_collection_present_only_one_side():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("gauge", CAT, _gauge_doc(["GAUGE-001"]))
+    result = check_collection("gauge", CAT, file_repo, pg)
+    assert result == ParityResult("gauge", "collection", False, 1, 0,
+                                  "present only in file backend")
+
+
+def test_collection_absent_both_sides_skipped():
+    assert check_collection("gauge", CAT, InMemoryRepository(), InMemoryRepository()) is None
+
+
+# ---------------------------------------------------------------------------
+# check_keyed
+# ---------------------------------------------------------------------------
+
+def _trade(sid, **header):
+    return {"PhysicalSwap": {"Header": {"SwapID": sid, **header}}}
+
+
+def test_keyed_equal():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    for repo in (file_repo, pg):
+        repo.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
+    result = check_keyed("prs_trade", CAT, file_repo, pg)
+    assert result == ParityResult("prs_trade", "keyed", True, 1, 1, "")
+
+
+def test_keyed_both_empty_is_parity():
+    result = check_keyed("prs_trade", CAT, InMemoryRepository(), InMemoryRepository())
+    assert result == ParityResult("prs_trade", "keyed", True, 0, 0, "")
+
+
+def test_keyed_key_sets_differ():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
+    pg.save("prs_trade", CAT, _trade("PRS-2"), key="PRS-2")
+    result = check_keyed("prs_trade", CAT, file_repo, pg)
+    assert result.equal is False
+    assert "only-file={'PRS-1'}" in result.detail and "only-pg={'PRS-2'}" in result.detail
+
+
+def test_keyed_record_value_differs():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("prs_trade", CAT, _trade("PRS-1", TradeStatus="Open"), key="PRS-1")
+    pg.save("prs_trade", CAT, _trade("PRS-1", TradeStatus="Closed"), key="PRS-1")
+    result = check_keyed("prs_trade", CAT, file_repo, pg)
+    assert result.equal is False
+    assert result.detail.startswith("record 'PRS-1' differs")
+
+
+# ---------------------------------------------------------------------------
+# check_catchment + reporting
+# ---------------------------------------------------------------------------
+
+def _seed_parity_pair():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("gauge", CAT, _gauge_doc(["GAUGE-002", "GAUGE-001"]))
+    pg.save("gauge", CAT, _gauge_doc(["GAUGE-001", "GAUGE-002"]))
+    for repo in (file_repo, pg):
+        repo.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
+    return file_repo, pg
+
+
+def test_check_catchment_aggregates_and_passes():
+    file_repo, pg = _seed_parity_pair()
+    results = check_catchment(CAT, file_repo=file_repo, pg=pg)
+    by_artifact = {r.artifact: r for r in results}
+    # gauge present + compared; the other collections absent both sides -> skipped
+    assert by_artifact["gauge"].equal is True
+    assert "property" not in by_artifact
+    # both keyed artifacts always reported (eod_snapshot empty on both -> parity)
+    assert by_artifact["prs_trade"].equal is True
+    assert by_artifact["eod_snapshot"] == ParityResult("eod_snapshot", "keyed", True, 0, 0, "")
+    assert all_ok(results) is True
+
+
+def test_check_catchment_uses_default_backends(monkeypatch):
+    file_repo, pg = _seed_parity_pair()
+    monkeypatch.setattr(parity, "from_config", lambda: file_repo)
+    monkeypatch.setattr(parity, "PostgresRepository", lambda: pg)
+    results = check_catchment(CAT)
+    assert all_ok(results) is True
+
+
+def test_all_ok_false_when_any_mismatch():
+    results = [ParityResult("gauge", "collection", True, 1, 1),
+               ParityResult("prs_trade", "keyed", False, 1, 0, "key sets differ")]
+    assert all_ok(results) is False
+
+
+def test_format_report_pass_and_fail():
+    ok = [ParityResult("gauge", "collection", True, 152, 152)]
+    report = format_report("thames", ok)
+    assert "catchment 'thames'" in report
+    assert "[OK  ] gauge" in report
+    assert report.endswith("ALL PARITY CHECKS PASSED")
+
+    bad = [ParityResult("gauge", "collection", False, 152, 151, "value for 'flood_gauges' differs")]
+    report = format_report("thames", bad)
+    assert "[FAIL] gauge" in report
+    assert "(value for 'flood_gauges' differs)" in report
+    assert report.endswith("PARITY MISMATCHES FOUND")
+
+
+def test_diff_detail_on_non_dict_payloads():
+    assert _diff_detail("a", "b") == "values differ"
+
+
+# ---------------------------------------------------------------------------
+# Live Postgres: import out-of-order file data, parity must hold end-to-end
+# ---------------------------------------------------------------------------
+
+def _postgres_available() -> bool:
+    try:
+        from sqlalchemy import text
+
+        from database._pg import get_engine, reset_engine
+        reset_engine()
+        with get_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False
+    finally:
+        from database._pg import reset_engine
+        reset_engine()
+
+
+@pytest.mark.skipif(
+    not _postgres_available(),
+    reason="no live Postgres (run: docker compose -f docker/docker-compose.yml up -d postgres)",
+)
+def test_live_parity_holds_despite_file_order(tmp_path):
+    """The convincing end-to-end proof: file records deliberately stored out of
+    id order still pass parity once Postgres reassembles them in id order."""
+    from database._pg import (
+        Catchment,
+        EodSnapshot,
+        Gauge,
+        GaugeHazardCurve,
+        PortRun,
+        PrsTrade,
+        get_session,
+        reset_engine,
+    )
+    from database._pg.etl import import_catchment
+    from database._pg.pg_repo import PostgresRepository
+
+    reset_engine()
+    files = FileRepository(dir_resolver=lambda _catchment: tmp_path)
+    files.save("gauge", CAT, _gauge_doc(["GAUGE-003", "GAUGE-001", "GAUGE-002"]))
+    files.save("gauge_hazard_curve", CAT, _ghc_doc())
+    files.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
+
+    pg = PostgresRepository()
+    try:
+        import_catchment(CAT, file_repo=files, pg=pg)
+        results = check_catchment(CAT, file_repo=files, pg=pg)
+        assert all_ok(results), format_report(CAT, results)
+        # the gauge collection genuinely round-tripped all three records
+        assert next(r for r in results if r.artifact == "gauge").pg_count == 3
+    finally:
+        with get_session() as session:
+            for model in (Gauge, GaugeHazardCurve, PrsTrade, EodSnapshot, PortRun):
+                session.query(model).filter_by(catchment_id=CAT).delete()
+            anchor = session.get(Catchment, CAT)
+            if anchor is not None:
+                session.delete(anchor)
+            session.commit()
+        reset_engine()
