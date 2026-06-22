@@ -39,6 +39,8 @@ omit = [
     "tests/*",
     "*/static/*",
     "src/models/intensity/__main__.py",
+    # Alembic migration infra — exercised by `alembic upgrade`/`--sql`, not pytest.
+    "src/database/_pg/migrations/*",
 ]
 
 [tool.coverage.report]

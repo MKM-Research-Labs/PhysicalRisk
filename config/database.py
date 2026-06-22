@@ -1,0 +1,53 @@
+# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
+# internal business operations intended for commercial advantage, or
+# research and development conducted for a commercial entity, is expressly
+# prohibited unless separately authorized in writing by MKM Research Labs.
+
+# Use, reproduction, distribution, or modification of this code is subject to the
+# terms and conditions of the license agreement provided with this software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""PostgreSQL connection settings for the JSON→Postgres backend (WP1).
+
+This module holds the connection *values* only (rule R1 — every parameter lives
+in the ``config`` package). It deliberately imports no SQL driver: the engine,
+sessions, and all ORM/SQL live in ``src/database`` (rule R6, kept green by the
+data-access audit). The defaults match ``docker/docker-compose.yml`` so a local
+``docker compose up`` + the app point at the same database out of the box.
+"""
+
+import os
+
+# Per-part defaults (overridden individually, or wholesale via MKM_DATABASE_URL).
+DB_HOST = os.getenv("MKM_DB_HOST", "127.0.0.1")
+DB_PORT = os.getenv("MKM_DB_PORT", "5432")
+DB_NAME = os.getenv("MKM_DB_NAME", "physicalrisk")
+DB_USER = os.getenv("MKM_DB_USER", "mkm")
+DB_PASSWORD = os.getenv("MKM_DB_PASSWORD", "mkm")
+
+# SQLAlchemy dialect+driver. psycopg2 is the installed driver (requirements.txt).
+DB_DRIVER = "postgresql+psycopg2"
+
+
+def get_database_url() -> str:
+    """The SQLAlchemy URL for the Postgres backend.
+
+    Honours a full ``MKM_DATABASE_URL`` override; otherwise composes one from the
+    per-part settings above. Used by ``src/database`` to build the engine and by
+    Alembic to run migrations against the same target.
+    """
+    override = os.getenv("MKM_DATABASE_URL")
+    if override:
+        return override
+    return f"{DB_DRIVER}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
