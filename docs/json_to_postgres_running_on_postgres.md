@@ -29,16 +29,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 alembic upgrade head            # alembic check should then say "no new operations"
 
-# 3. Import a catchment from files into Postgres + MinIO (idempotent).
-python - <<'PY'
-import sys; sys.path.insert(0, 'src')
-from database._pg.etl import import_catchment
-print(import_catchment("thames"))   # -> {'gauge': 152, 'property': 100, ...}
-PY
+# 3. Import a catchment into Postgres + MinIO, then dual-read-verify it (one step).
+#    Exits non-zero on any file-vs-pg mismatch — the WP2 cutover gate.
+PYTHONPATH=src python -m database._pg.cutover thames --import
+#    (re-verify later without re-importing: drop --import)
 
 # 4. Run the app reading from Postgres (no caller changes).
 MKM_REPO_BACKEND=pg python app.py server --thames
 ```
+
+**Cutover status:** `mekong` is imported and **dual-read parity-green** (53/53
+checks across every artifact and scenario mode — WP2.2). `halong` and `thames`
+are next (WP2.3): same one-liner, `--import` then verify.
 
 ## Configuration (all in `config/database.py`, rule R1)
 - `MKM_REPO_BACKEND` — `file` (default) or `pg`. Selects the backend at startup.
