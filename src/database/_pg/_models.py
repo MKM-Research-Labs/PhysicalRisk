@@ -199,3 +199,71 @@ class Counterparty(Base):
     party_id_scheme: Mapped[str | None] = mapped_column(default=None)
 
     cdm: Mapped[dict] = mapped_column(JSONB)                   # full CounterpartySet document
+
+
+class GaugeHazardCurve(Base):
+    """One gauge's hazard curve (``gaugehc.json`` → ``hazard_curves[gauge_id]``).
+
+    The pricing-relevant scalars (GEV params + annual hazard rates) are promoted;
+    the full curve (incl. ``curve_points`` / ``return_period_levels``) stays in ``cdm``."""
+
+    __tablename__ = "gauge_hazard_curve"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    gauge_id: Mapped[str] = mapped_column(primary_key=True)
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    gauge_name: Mapped[str | None] = mapped_column(default=None)
+    latitude: Mapped[float | None] = mapped_column(default=None)
+    longitude: Mapped[float | None] = mapped_column(default=None)
+    gev_location: Mapped[float | None] = mapped_column(default=None)
+    gev_scale: Mapped[float | None] = mapped_column(default=None)
+    gev_shape: Mapped[float | None] = mapped_column(default=None)
+    annual_hazard_rate_alert: Mapped[float | None] = mapped_column(default=None)
+    annual_hazard_rate_warning: Mapped[float | None] = mapped_column(default=None)
+    annual_hazard_rate_severe: Mapped[float | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full hazard curve
+
+
+class PrsTrade(Base):
+    """One PRS swap (the keyed ``prs_trade`` artifact → ``PhysicalSwap``).
+
+    Traded, not generated — ``port_run_id`` is nullable. Pricing/status fields are
+    promoted for the blotter + risk queries; the full swap stays in ``cdm``."""
+
+    __tablename__ = "prs_trade"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    swap_id: Mapped[str] = mapped_column(primary_key=True)     # PhysicalSwap.Header.SwapID
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    trade_type: Mapped[str | None] = mapped_column(default=None)
+    counterparty: Mapped[str | None] = mapped_column(index=True, default=None)
+    party_id: Mapped[str | None] = mapped_column(index=True, default=None)
+    trade_status: Mapped[str | None] = mapped_column(index=True, default=None)
+    valuation_date: Mapped[str | None] = mapped_column(default=None)
+    notional: Mapped[float | None] = mapped_column(default=None)
+    currency: Mapped[str | None] = mapped_column(default=None)
+    spread_bps: Mapped[float | None] = mapped_column(default=None)
+    npv: Mapped[float | None] = mapped_column(default=None)
+    trigger_level: Mapped[str | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full PhysicalSwap document
+
+
+class EodSnapshot(Base):
+    """One end-of-day snapshot (the keyed ``eod_snapshot`` artifact, one per date)."""
+
+    __tablename__ = "eod_snapshot"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    eod_date: Mapped[str] = mapped_column(primary_key=True)    # 'YYYY-MM-DD'
+    eod_id: Mapped[str | None] = mapped_column(default=None)
+    generated_at: Mapped[str | None] = mapped_column(default=None)
+    num_open_trades: Mapped[int | None] = mapped_column(default=None)
+    total_notional: Mapped[float | None] = mapped_column(default=None)
+    total_daily_pnl: Mapped[float | None] = mapped_column(default=None)
+    total_running_pnl: Mapped[float | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full EOD snapshot
