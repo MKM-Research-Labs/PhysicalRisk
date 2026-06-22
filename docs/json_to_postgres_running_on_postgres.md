@@ -38,9 +38,11 @@ PYTHONPATH=src python -m database._pg.cutover thames --import
 MKM_REPO_BACKEND=pg python app.py server --thames
 ```
 
-**Cutover status:** `mekong` is imported and **dual-read parity-green** (53/53
-checks across every artifact and scenario mode — WP2.2). `halong` and `thames`
-are next (WP2.3): same one-liner, `--import` then verify.
+**Cutover status:** **all three catchments imported and dual-read parity-green**
+(WP2.2 + WP2.3) — `mekong` 53/53, `halong` 64/64 (incl. 2,100 typhoon events),
+`thames` 54/54, across every artifact and scenario mode. Reads can be served from
+Postgres for any of them via `MKM_REPO_BACKEND=pg`. Next: WP2.5 — cut **writes**
+(the port generator targets Postgres).
 
 ## Configuration (all in `config/database.py`, rule R1)
 - `MKM_REPO_BACKEND` — `file` (default) or `pg`. Selects the backend at startup.
