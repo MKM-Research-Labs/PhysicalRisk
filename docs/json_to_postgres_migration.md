@@ -1,9 +1,30 @@
 # Migration Plan: Port JSON Artifacts → PostgreSQL
 
-**Status:** Draft for review — 2026-06-18
+**Status:** Plan approved; WP0–WP1 delivered — last updated 2026-06-22.
+
+> ### Progress (2026-06-22)
+> **WP0** repository seam, **WP2.4** catchment-context migration, and **WP2.1**
+> the `MKM_REPO_BACKEND=file|pg` switch are done. **WP1 artifact coverage is
+> COMPLETE** — every artifact in the registry is mapped behind the seam, across
+> all five storage shapes:
+> - relational entity/keyed tables (gauge, property, loan, commercial,
+>   commercial_loan, counterparty, gauge_hazard_curve, prs_trade, eod_snapshot);
+> - `port_document` — 16 whole-document artifacts (one row per catchment/artifact/mode);
+> - `port_record` — 7 keyed-record artifacts (timeseries, stress storms, …);
+> - `port_blob` + MinIO object store — the binary blob tier (classifiers).
+>
+> 14 tables; `PostgresRepository` implements the full interface; the **WP1.7
+> dual-read parity harness** (`src/database/_pg/parity.py`) compares file vs pg
+> for every mapped artifact. Stand-up + scope: `docs/json_to_postgres_running_on_postgres.md`.
+>
+> **Next:** WP2 full cutover (per-catchment parity → flip read source → verify
+> the app end-to-end on `pg`), then WP4 (E2E per-test schema) and WP5
+> (RBAC + pooling + file decommission).
+
 **Companion docs:** `docs/json_artifact_catalogue.md` (producer→file→consumer matrix,
 deliverable 0.1) · `docs/json_to_postgres_file_plan.md` (file-by-file change list, 88 src
 + 149 test files) · `docs/db_users_and_permissions.md` (Admin-managed RBAC, feeds WP5.1)
+· `docs/json_to_postgres_running_on_postgres.md` (stand-up guide + current scope)
 **Goal:** Replace the per-catchment JSON file tree with a single PostgreSQL database
 holding all catchments, giving production-grade security (roles, auth, RLS, audit,
 backups) and a look-and-feel closer to a real risk system.
@@ -13,7 +34,7 @@ backups) and a look-and-feel closer to a real risk system.
 | Decision | Choice |
 |---|---|
 | Engine | **PostgreSQL** (single instance, `catchment_id` as a column — not schema-per-catchment) |
-| Large blobs (typhoon particles ~69 MB each) | **Hybrid** — metadata + URI in Postgres, blob in object store (S3 / MinIO) |
+| Large blobs (typhoon particles ~69 MB each) | **Hybrid** — `port_blob` metadata row in Postgres, bytes in an object store. **Target = local MinIO** (chosen 2026-06-22; same S3 API swaps to cloud for production). |
 | Scope | **Port artifacts only** — governance files (`model_inventory.json`, `data_lineage.json`, audit log) stay version-controlled |
 | **Data access (NON-NEGOTIABLE)** | **ALL database access goes through ONE utility package. ZERO direct SQL, ORM sessions, or connection objects anywhere else in the codebase.** Enforced by a zero-tolerance CI audit. See §2.0. |
 
