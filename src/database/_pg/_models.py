@@ -124,3 +124,78 @@ class Property(Base):
     overall_flood_risk: Mapped[str | None] = mapped_column(default=None)
 
     cdm: Mapped[dict] = mapped_column(JSONB)                   # full property document
+
+
+class Loan(Base):
+    """One residential loan (``loan.json`` → ``loans[]`` → ``RLoan``)."""
+
+    __tablename__ = "loan"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    rloan_id: Mapped[str] = mapped_column(primary_key=True)     # e.g. 'RLOAN-001'
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    property_id: Mapped[str | None] = mapped_column(index=True, default=None)
+    uprn: Mapped[str | None] = mapped_column(default=None)
+    currency: Mapped[str | None] = mapped_column(default=None)
+    original_loan: Mapped[float | None] = mapped_column(default=None)
+    original_ltv: Mapped[float | None] = mapped_column(default=None)
+    outstanding_balance: Mapped[float | None] = mapped_column(default=None)
+    current_ltv: Mapped[float | None] = mapped_column(default=None)
+    account_status: Mapped[str | None] = mapped_column(index=True, default=None)
+    default_flag: Mapped[bool | None] = mapped_column(default=None)
+    arrears_months: Mapped[int | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full RLoan document
+
+
+class Commercial(Base):
+    """One commercial asset (``commercial.json`` → ``commercial_assets[]`` → ``CommercialAsset``)."""
+
+    __tablename__ = "commercial"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    commercial_id: Mapped[str] = mapped_column(primary_key=True)  # CommercialAsset PropertyID
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    uprn: Mapped[str | None] = mapped_column(default=None)
+    property_type: Mapped[str | None] = mapped_column(index=True, default=None)
+    status: Mapped[str | None] = mapped_column(default=None)
+    property_value: Mapped[float | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full CommercialAsset document
+
+
+class CommercialLoan(Base):
+    """One commercial loan (``commercial_loan.json`` → ``commercial_loans[]`` → ``Mortgage``)."""
+
+    __tablename__ = "commercial_loan"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    mortgage_id: Mapped[str] = mapped_column(primary_key=True)  # e.g. 'CLOAN-001'
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    property_id: Mapped[str | None] = mapped_column(index=True, default=None)
+    uprn: Mapped[str | None] = mapped_column(default=None)
+    borrower_type: Mapped[str | None] = mapped_column(default=None)
+    commercial_type: Mapped[str | None] = mapped_column(index=True, default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full Mortgage document
+
+
+class Counterparty(Base):
+    """One counterparty set (``counterparty.json`` → ``counterparties[]`` → ``CounterpartySet``).
+
+    ``catchment_id`` is the partition key from the save context — the record itself
+    carries no catchment (counterparties are scoped by the file they live in)."""
+
+    __tablename__ = "counterparty"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    party_id: Mapped[str] = mapped_column(primary_key=True)     # e.g. 'CTPY-BANK-001'
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    party_name: Mapped[str | None] = mapped_column(index=True, default=None)
+    party_id_scheme: Mapped[str | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full CounterpartySet document
