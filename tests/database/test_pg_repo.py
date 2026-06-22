@@ -29,8 +29,20 @@ import pytest
 
 from database import FileRepository
 from database._pg import (
-    Catchment, Commercial, CommercialLoan, Counterparty, EodSnapshot, Gauge,
-    GaugeHazardCurve, Loan, PortRun, PrsTrade, Property, get_engine, get_session,
+    Catchment,
+    Commercial,
+    CommercialLoan,
+    Counterparty,
+    EodSnapshot,
+    Gauge,
+    GaugeHazardCurve,
+    Loan,
+    PortDocument,
+    PortRun,
+    Property,
+    PrsTrade,
+    get_engine,
+    get_session,
     reset_engine,
 )
 from database._pg.etl import import_catchment
@@ -38,7 +50,7 @@ from database._pg.pg_repo import PostgresRepository
 
 TEST_CATCHMENT = "__pgtest__"
 _ALL_MODELS = (Gauge, Property, Loan, Commercial, CommercialLoan, Counterparty,
-               GaugeHazardCurve, PrsTrade, EodSnapshot, PortRun)
+               GaugeHazardCurve, PrsTrade, EodSnapshot, PortDocument, PortRun)
 
 
 def _postgres_available() -> bool:
@@ -238,17 +250,75 @@ def test_catchments_includes_written(repo):
 
 
 def test_unmapped_artifact_raises_everywhere(repo):
-    """Every method rejects an artifact with no table yet (not a KeyError)."""
+    """Every method rejects an artifact with no table yet (not a KeyError).
+
+    ``property_timeseries`` is a KEYED-kind artifact still on the file backend —
+    not yet mapped to a relational table (a later JSONB-tier WP)."""
+    unmapped = "property_timeseries"
     with pytest.raises(NotImplementedError):
-        repo.save("market_state", TEST_CATCHMENT, {"x": 1})
+        repo.save(unmapped, TEST_CATCHMENT, {"x": 1}, key="PROP-1")
     with pytest.raises(NotImplementedError):
+        repo.load(unmapped, TEST_CATCHMENT, "PROP-1")
+    with pytest.raises(NotImplementedError):
+        repo.delete(unmapped, TEST_CATCHMENT, "PROP-1")
+    with pytest.raises(NotImplementedError):
+        list(repo.iter_keys(unmapped, TEST_CATCHMENT))
+    with pytest.raises(NotImplementedError):
+        repo.exists(unmapped, TEST_CATCHMENT, "PROP-1")
+    with pytest.raises(NotImplementedError):
+        repo.has_collection(unmapped, TEST_CATCHMENT)
+
+
+# ---------------------------------------------------------------------------
+# Document tier — whole-document artifacts (PortDocument), one row per
+# (catchment, artifact, mode)
+# ---------------------------------------------------------------------------
+
+def test_document_roundtrip_mode_invariant(repo):
+    doc = {"market": {"rates": {"GBP": 0.05}}, "as_of": "2026-06-22"}
+    repo.save("market_state", TEST_CATCHMENT, doc)
+    assert repo.load("market_state", TEST_CATCHMENT) == doc
+    with get_session() as session:
+        row = session.get(PortDocument, (TEST_CATCHMENT, "market_state", "flood"))
+        assert row.cdm == doc
+
+
+def test_document_roundtrip_per_mode_isolated(repo):
+    """A mode-varying document keeps a separate row per scenario mode."""
+    she = {"hazard_curves": {"PROP-1": {"rp": [1, 2, 3]}}}
+    flood = {"hazard_curves": {"PROP-1": {"rp": [9]}}}
+    repo.save("property_hazard_curve", TEST_CATCHMENT, she, mode="she")
+    repo.save("property_hazard_curve", TEST_CATCHMENT, flood, mode="flood")
+    assert repo.load("property_hazard_curve", TEST_CATCHMENT, mode="she") == she
+    assert repo.load("property_hazard_curve", TEST_CATCHMENT, mode="flood") == flood
+    assert repo.exists("property_hazard_curve", TEST_CATCHMENT, mode="bri") is False
+
+
+def test_document_replace_overwrites(repo):
+    repo.save("trade_marks", TEST_CATCHMENT, {"v": 1})
+    repo.save("trade_marks", TEST_CATCHMENT, {"v": 2})
+    assert repo.load("trade_marks", TEST_CATCHMENT) == {"v": 2}
+
+
+def test_document_load_missing_raises(repo):
+    with pytest.raises(FileNotFoundError):
         repo.load("market_state", TEST_CATCHMENT)
-    with pytest.raises(NotImplementedError):
-        repo.delete("market_state", TEST_CATCHMENT)
-    with pytest.raises(NotImplementedError):
-        list(repo.iter_keys("market_state", TEST_CATCHMENT))
-    with pytest.raises(NotImplementedError):
-        repo.has_collection("market_state", TEST_CATCHMENT)
+
+
+def test_document_exists_has_collection_iter_keys(repo):
+    assert repo.exists("seismic_results", TEST_CATCHMENT) is False
+    assert repo.has_collection("seismic_results", TEST_CATCHMENT) is False
+    repo.save("seismic_results", TEST_CATCHMENT, {"events": []})
+    assert repo.exists("seismic_results", TEST_CATCHMENT) is True
+    assert repo.has_collection("seismic_results", TEST_CATCHMENT) is True
+    assert list(repo.iter_keys("seismic_results", TEST_CATCHMENT)) == []  # not keyed
+
+
+def test_document_delete(repo):
+    repo.save("fire_results", TEST_CATCHMENT, {"events": [1]})
+    repo.delete("fire_results", TEST_CATCHMENT)
+    assert repo.exists("fire_results", TEST_CATCHMENT) is False
+    repo.delete("fire_results", TEST_CATCHMENT)  # no-op, no raise
 
 
 def test_ping(repo):
@@ -267,6 +337,11 @@ def test_import_catchment_dual_read_parity(repo, tmp_path):
     files.save("gauge_hazard_curve", TEST_CATCHMENT, _ghc_doc())
     files.save("prs_trade", TEST_CATCHMENT,
                {"PhysicalSwap": {"Header": {"SwapID": "PRS-1"}}}, key="PRS-1")
+    files.save("market_state", TEST_CATCHMENT, {"rates": {"GBP": 0.05}})        # document
+    files.save("property_hazard_curve", TEST_CATCHMENT,                          # document, 2 modes
+               {"hazard_curves": {"PROP-1": {"rp": [1]}}}, mode="flood")
+    files.save("property_hazard_curve", TEST_CATCHMENT,
+               {"hazard_curves": {"PROP-1": {"rp": [2]}}}, mode="she")
 
     counts = import_catchment(TEST_CATCHMENT, file_repo=files, pg=repo)
 
@@ -274,11 +349,17 @@ def test_import_catchment_dual_read_parity(repo, tmp_path):
     assert counts["gauge_hazard_curve"] == 2
     assert counts["prs_trade"] == 1
     assert counts["eod_snapshot"] == 0  # nothing written; keyed loop yields nothing
+    assert counts["market_state"] == 1                  # one mode imported
+    assert counts["property_hazard_curve"] == 2         # flood + she modes imported
+    assert counts["fire_results"] == 0                  # document absent on file side
 
     # Dual-read parity: every PG read deep-equals the file read.
     assert repo.load("gauge", TEST_CATCHMENT) == files.load("gauge", TEST_CATCHMENT)
     assert repo.load("gauge_hazard_curve", TEST_CATCHMENT) == files.load("gauge_hazard_curve", TEST_CATCHMENT)
     assert repo.load("prs_trade", TEST_CATCHMENT, "PRS-1") == files.load("prs_trade", TEST_CATCHMENT, "PRS-1")
+    assert repo.load("market_state", TEST_CATCHMENT) == files.load("market_state", TEST_CATCHMENT)
+    assert repo.load("property_hazard_curve", TEST_CATCHMENT, mode="she") == \
+        files.load("property_hazard_curve", TEST_CATCHMENT, mode="she")
 
 
 def test_ping_false_when_unreachable(repo, monkeypatch):

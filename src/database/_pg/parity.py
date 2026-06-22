@@ -39,8 +39,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from config.data_layout import DEFAULT_MODE
+
 from ..config_binding import from_config
-from .pg_repo import _COLLECTIONS, _KEYED, PostgresRepository, _nested_get
+from .pg_repo import (
+    _COLLECTIONS,
+    _DOCUMENTS,
+    _KEYED,
+    PostgresRepository,
+    _nested_get,
+    modes_for,
+)
 
 
 @dataclass
@@ -133,12 +142,34 @@ def check_keyed(artifact, catchment, file_repo, pg) -> ParityResult:
     return ParityResult(artifact, "keyed", True, len(file_keys), len(pg_keys))
 
 
+def check_document(artifact, catchment, file_repo, pg, mode) -> ParityResult | None:
+    """Compare one whole-document artifact (for one mode); ``None`` when absent
+    from both backends. Documents store verbatim, so a direct ``==`` is exact —
+    no by-id normalisation needed (unlike collections)."""
+    file_present = file_repo.exists(artifact, catchment, mode=mode)
+    pg_present = pg.exists(artifact, catchment, mode=mode)
+    if not file_present and not pg_present:
+        return None
+    label = artifact if mode == DEFAULT_MODE else f"{artifact}:{mode}"
+    if file_present != pg_present:
+        only = "file" if file_present else "pg"
+        return ParityResult(label, "document", False,
+                            int(file_present), int(pg_present),
+                            f"present only in {only} backend")
+    file_doc = file_repo.load(artifact, catchment, mode=mode)
+    pg_doc = pg.load(artifact, catchment, mode=mode)
+    equal = file_doc == pg_doc
+    return ParityResult(label, "document", equal, 1, 1,
+                        "" if equal else _diff_detail(file_doc, pg_doc))
+
+
 def check_catchment(catchment, *, file_repo=None, pg=None) -> list[ParityResult]:
     """Run every tier-1 parity check for ``catchment``.
 
     Defaults read via the config-bound file backend and a fresh
-    ``PostgresRepository``; both are injectable for tests. Collection artifacts
-    absent from both backends are skipped (omitted from the report)."""
+    ``PostgresRepository``; both are injectable for tests. Collection / document
+    artifacts absent from both backends are skipped (omitted from the report);
+    document artifacts are checked once per scenario mode they vary across."""
     file_repo = file_repo if file_repo is not None else from_config()
     pg = pg if pg is not None else PostgresRepository()
     results: list[ParityResult] = []
@@ -148,6 +179,11 @@ def check_catchment(catchment, *, file_repo=None, pg=None) -> list[ParityResult]
             results.append(result)
     for artifact in _KEYED:
         results.append(check_keyed(artifact, catchment, file_repo, pg))
+    for artifact in sorted(_DOCUMENTS):
+        for mode in modes_for(artifact):
+            result = check_document(artifact, catchment, file_repo, pg, mode)
+            if result is not None:
+                results.append(result)
     return results
 
 

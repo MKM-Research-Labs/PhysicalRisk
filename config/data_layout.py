@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -29,6 +29,11 @@ codes a literal of its own. Paths are relative to ``data/input/<catchment>/``.
 
 #: Default scenario variant ("normal" flood scenario).
 DEFAULT_MODE = "flood"
+
+#: Every scenario-mode variant, in canonical order (``flood`` is the default; the
+#: rest are peril / combined-peril scenarios). The single source for the mode
+#: vocabulary — hazard-curve and timeseries file maps are keyed by these.
+SCENARIO_MODES = ("flood", "shd", "she", "bri", "win", "faw", "fow", "bow", "baw")
 
 #: Candidate id fields used to match a record within a portfolio document.
 ID_FIELDS = ("id", "property_id", "gauge_id", "asset_id", "commercial_id",

@@ -267,3 +267,25 @@ class EodSnapshot(Base):
     total_running_pnl: Mapped[float | None] = mapped_column(default=None)
 
     cdm: Mapped[dict] = mapped_column(JSONB)                   # full EOD snapshot
+
+
+class PortDocument(Base):
+    """One whole-document artifact, stored verbatim — the generic DOCUMENT tier.
+
+    Many artifacts are single JSON documents with no per-entity shredding or
+    relational-query need: storm sequences/summaries, perils results (fire,
+    seismic), trading state (``market_state`` / ``trade_marks`` / history),
+    property & commercial hazard curves, classifier training metadata. Rather
+    than a bespoke table each, they share this one — keyed by
+    ``(catchment, artifact, mode)`` with the verbatim document in ``cdm`` (JSONB)
+    so ``load`` round-trips byte-identically. ``mode`` separates the scenario
+    variants (e.g. a property hazard curve per flood/shd/she/…); mode-invariant
+    documents simply use the default mode."""
+
+    __tablename__ = "port_document"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    artifact: Mapped[str] = mapped_column(primary_key=True)    # e.g. 'market_state'
+    mode: Mapped[str] = mapped_column(primary_key=True)        # scenario mode, e.g. 'flood'
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # the verbatim document

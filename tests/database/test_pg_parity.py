@@ -40,6 +40,7 @@ from database._pg.parity import (
     all_ok,
     check_catchment,
     check_collection,
+    check_document,
     check_keyed,
     format_report,
     normalize_collection,
@@ -186,6 +187,73 @@ def test_keyed_record_value_differs():
 
 
 # ---------------------------------------------------------------------------
+# check_document — whole-document artifacts (no by-id normalisation)
+# ---------------------------------------------------------------------------
+
+def test_document_equal_default_mode():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    for repo in (file_repo, pg):
+        repo.save("market_state", CAT, {"rates": {"GBP": 0.05}})
+    result = check_document("market_state", CAT, file_repo, pg, "flood")
+    assert result == ParityResult("market_state", "document", True, 1, 1, "")
+
+
+def test_document_label_carries_non_default_mode():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    for repo in (file_repo, pg):
+        repo.save("property_hazard_curve", CAT, {"hc": [1]}, mode="she")
+    result = check_document("property_hazard_curve", CAT, file_repo, pg, "she")
+    assert result.artifact == "property_hazard_curve:she"
+    assert result.equal is True
+
+
+def test_document_value_mismatch():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("trade_marks", CAT, {"v": 1})
+    pg.save("trade_marks", CAT, {"v": 2})
+    result = check_document("trade_marks", CAT, file_repo, pg, "flood")
+    assert result.equal is False
+    assert result.detail == "value for 'v' differs"
+
+
+def test_document_present_one_side():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    pg.save("fire_results", CAT, {"events": []})
+    result = check_document("fire_results", CAT, file_repo, pg, "flood")
+    assert result == ParityResult("fire_results", "document", False, 0, 1,
+                                  "present only in pg backend")
+
+
+def test_document_absent_both_skipped():
+    assert check_document("fire_results", CAT, InMemoryRepository(),
+                          InMemoryRepository(), "flood") is None
+
+
+# ---------------------------------------------------------------------------
+# modes_for — which scenario modes a document artifact spans (pure, no DB)
+# ---------------------------------------------------------------------------
+
+def test_modes_for_real_artifacts():
+    from database._pg.pg_repo import modes_for
+    assert modes_for("market_state") == ["flood"]               # mode-invariant
+    assert modes_for("property_hazard_curve") == list(
+        ("flood", "shd", "she", "bri", "win", "faw", "fow", "bow", "baw"))
+
+
+def test_modes_for_skips_modes_without_a_location(monkeypatch):
+    """A document whose location map lacks some modes yields only the ones it has
+    — the defensive KeyError guard that decouples SCENARIO_MODES from each map."""
+    from database._pg import pg_repo
+    from database.artifacts import DOCUMENT, Spec
+
+    def loc(mode):
+        return {"flood": "a.json", "she": "b.json"}[mode]  # KeyError for other modes
+
+    monkeypatch.setattr(pg_repo.artifacts, "spec", lambda _a: Spec(DOCUMENT, loc))
+    assert pg_repo.modes_for("anything") == ["flood", "she"]
+
+
+# ---------------------------------------------------------------------------
 # check_catchment + reporting
 # ---------------------------------------------------------------------------
 
@@ -195,6 +263,7 @@ def _seed_parity_pair():
     pg.save("gauge", CAT, _gauge_doc(["GAUGE-001", "GAUGE-002"]))
     for repo in (file_repo, pg):
         repo.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
+        repo.save("market_state", CAT, {"rates": {"GBP": 0.05}})  # a document artifact
     return file_repo, pg
 
 
@@ -208,6 +277,9 @@ def test_check_catchment_aggregates_and_passes():
     # both keyed artifacts always reported (eod_snapshot empty on both -> parity)
     assert by_artifact["prs_trade"].equal is True
     assert by_artifact["eod_snapshot"] == ParityResult("eod_snapshot", "keyed", True, 0, 0, "")
+    # the seeded document is checked; documents absent both sides are skipped
+    assert by_artifact["market_state"] == ParityResult("market_state", "document", True, 1, 1, "")
+    assert "fire_results" not in by_artifact
     assert all_ok(results) is True
 
 
@@ -275,6 +347,7 @@ def test_live_parity_holds_despite_file_order(tmp_path):
         EodSnapshot,
         Gauge,
         GaugeHazardCurve,
+        PortDocument,
         PortRun,
         PrsTrade,
         get_session,
@@ -288,6 +361,8 @@ def test_live_parity_holds_despite_file_order(tmp_path):
     files.save("gauge", CAT, _gauge_doc(["GAUGE-003", "GAUGE-001", "GAUGE-002"]))
     files.save("gauge_hazard_curve", CAT, _ghc_doc())
     files.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
+    files.save("market_state", CAT, {"rates": {"GBP": 0.05}})          # document
+    files.save("property_hazard_curve", CAT, {"hc": [1]}, mode="she")  # mode-varying document
 
     pg = PostgresRepository()
     try:
@@ -296,9 +371,14 @@ def test_live_parity_holds_despite_file_order(tmp_path):
         assert all_ok(results), format_report(CAT, results)
         # the gauge collection genuinely round-tripped all three records
         assert next(r for r in results if r.artifact == "gauge").pg_count == 3
+        # the document tier was exercised too (incl. a non-default mode)
+        labels = {r.artifact for r in results}
+        assert "market_state" in labels
+        assert "property_hazard_curve:she" in labels
     finally:
         with get_session() as session:
-            for model in (Gauge, GaugeHazardCurve, PrsTrade, EodSnapshot, PortRun):
+            for model in (Gauge, GaugeHazardCurve, PrsTrade, EodSnapshot,
+                          PortDocument, PortRun):
                 session.query(model).filter_by(catchment_id=CAT).delete()
             anchor = session.get(Catchment, CAT)
             if anchor is not None:

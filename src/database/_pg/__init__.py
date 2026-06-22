@@ -25,13 +25,24 @@ allowed (rule R6, enforced green by the data-access audit). Re-exports only — 
 logic here (rule R4)."""
 
 from ._models import (
-    Base, Catchment, Commercial, CommercialLoan, Counterparty, EodSnapshot,
-    Gauge, GaugeHazardCurve, Loan, PortRun, PrsTrade, Property,
+    Base,
+    Catchment,
+    Commercial,
+    CommercialLoan,
+    Counterparty,
+    EodSnapshot,
+    Gauge,
+    GaugeHazardCurve,
+    Loan,
+    PortDocument,
+    PortRun,
+    Property,
+    PrsTrade,
 )
 from .engine import get_engine, get_session, reset_engine
 
 __all__ = [
-    "Base", "Catchment", "PortRun",
+    "Base", "Catchment", "PortRun", "PortDocument",
     "Gauge", "Property", "Loan", "Commercial", "CommercialLoan", "Counterparty",
     "GaugeHazardCurve", "PrsTrade", "EodSnapshot",
     "get_engine", "get_session", "reset_engine",

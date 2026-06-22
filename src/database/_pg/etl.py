@@ -29,7 +29,7 @@ files.
 """
 
 from ..config_binding import from_config
-from .pg_repo import _COLLECTIONS, _KEYED, PostgresRepository
+from .pg_repo import _COLLECTIONS, _DOCUMENTS, _KEYED, PostgresRepository, modes_for
 
 
 def import_catchment(catchment, *, file_repo=None, pg=None) -> dict:
@@ -37,6 +37,7 @@ def import_catchment(catchment, *, file_repo=None, pg=None) -> dict:
 
     ``file_repo`` / ``pg`` are injectable for tests; by default reads via the
     config-bound file backend and writes via a fresh ``PostgresRepository``.
+    Document counts are the number of scenario-mode variants imported.
     """
     file_repo = file_repo if file_repo is not None else from_config()
     pg = pg if pg is not None else PostgresRepository()
@@ -53,6 +54,15 @@ def import_catchment(catchment, *, file_repo=None, pg=None) -> dict:
         n = 0
         for key in file_repo.iter_keys(artifact, catchment):
             pg.save(artifact, catchment, file_repo.load(artifact, catchment, key), key=key)
+            n += 1
+        counts[artifact] = n
+
+    for artifact in sorted(_DOCUMENTS):
+        n = 0
+        for mode in modes_for(artifact):
+            if not file_repo.exists(artifact, catchment, mode=mode):
+                continue
+            pg.save(artifact, catchment, file_repo.load(artifact, catchment, mode=mode), mode=mode)
             n += 1
         counts[artifact] = n
 
