@@ -107,6 +107,10 @@ def _build_modularisation(styles) -> list:
     from .path_definitions import _build_path_definitions
     elems.extend(_build_path_definitions(styles))
 
+    # 4.4 — data-access audit (DB access housed in src/database)
+    from .data_access import _build_data_access
+    elems.extend(_build_data_access(styles))
+
     return elems
 
 
