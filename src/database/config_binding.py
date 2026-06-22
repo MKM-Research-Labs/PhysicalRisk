@@ -59,3 +59,20 @@ def use_file_backend() -> FileRepository:
     repo = from_config()
     configure_backend(repo)
     return repo
+
+
+def use_configured_backend():
+    """Bind the backend selected by ``config.database.get_repo_backend()`` —
+    the WP2.1 read-source switch. ``'file'`` (default) keeps today's behaviour;
+    ``'pg'`` binds the PostgreSQL backend. The pg import is lazy so the file path
+    never pulls SQLAlchemy in.
+    """
+    from config.database import get_repo_backend
+
+    if get_repo_backend() == "pg":
+        from ._pg.pg_repo import PostgresRepository
+
+        repo = PostgresRepository()
+        configure_backend(repo)
+        return repo
+    return use_file_backend()
