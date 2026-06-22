@@ -51,3 +51,19 @@ def get_database_url() -> str:
     if override:
         return override
     return f"{DB_DRIVER}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+
+# Backend selection (WP2.1 cutover switch). 'file' = the JSON tree (default,
+# unchanged behaviour); 'pg' = the PostgreSQL backend.
+REPO_BACKENDS = ("file", "pg")
+
+
+def get_repo_backend() -> str:
+    """Which repository backend to bind at startup, from ``MKM_REPO_BACKEND``
+    ('file' by default, or 'pg'). Raises ``ValueError`` for anything else."""
+    backend = os.getenv("MKM_REPO_BACKEND", "file").strip().lower()
+    if backend not in REPO_BACKENDS:
+        raise ValueError(
+            f"MKM_REPO_BACKEND must be one of {REPO_BACKENDS}, got '{backend}'"
+        )
+    return backend

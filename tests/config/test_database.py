@@ -22,6 +22,8 @@
 
 import importlib
 
+import pytest
+
 import config.database as dbcfg
 
 
@@ -50,3 +52,19 @@ def test_per_part_env_overrides(monkeypatch):
         assert mod.get_database_url() == "postgresql+psycopg2://svc:secret@pg.internal:6000/mkmdb"
     finally:
         importlib.reload(importlib.import_module("config.database"))  # restore defaults
+
+
+def test_repo_backend_default_is_file(monkeypatch):
+    monkeypatch.delenv("MKM_REPO_BACKEND", raising=False)
+    assert dbcfg.get_repo_backend() == "file"
+
+
+def test_repo_backend_pg_case_insensitive(monkeypatch):
+    monkeypatch.setenv("MKM_REPO_BACKEND", "PG")
+    assert dbcfg.get_repo_backend() == "pg"
+
+
+def test_repo_backend_invalid_raises(monkeypatch):
+    monkeypatch.setenv("MKM_REPO_BACKEND", "mysql")
+    with pytest.raises(ValueError, match="MKM_REPO_BACKEND"):
+        dbcfg.get_repo_backend()
