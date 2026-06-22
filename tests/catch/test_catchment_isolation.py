@@ -22,10 +22,10 @@
 
 Locks down the wiring that lets the platform switch between thames and
 halong (and any future catchment) cleanly: each catchment exposes the
-same symbol surface, the global ``config.catchment_id`` setter refreshes
-data paths, and downstream generators (SequenceGenerator etc.) read
-calibration from the correct catchment's storm.py — not from a global
-default and not from each other.
+same symbol surface, the scoped ``config.use_catchment`` context manager
+refreshes data paths (and restores them on exit), and downstream
+generators (SequenceGenerator etc.) read calibration from the correct
+catchment's storm.py — not from a global default and not from each other.
 
 Catches "we accidentally hardcoded thames again" regressions.
 """
@@ -42,14 +42,17 @@ CATCHMENTS_WITH_STORM = ["thames", "halong"]
 
 @pytest.fixture(autouse=True)
 def restore_catchment():
-    """Snapshot catchment_id before each test and restore after.
+    """Snapshot catchment_id before each test and restore after — a safety net.
 
-    Tests in this module mutate `config.catchment_id`; without this
-    fixture, ordering would leak state into siblings.
+    Tests in this module switch catchment via ``config.use_catchment`` (which
+    self-restores); this fixture guards against a test that leaves the global
+    changed regardless, so ordering can't leak state into siblings.
     """
     original = config.catchment_id
-    yield
-    config.catchment_id = original
+    try:
+        yield
+    finally:
+        config._set_catchment(original)
 
 
 # ---------------------------------------------------------------------------
@@ -111,25 +114,25 @@ def test_unknown_catchment_falls_back_to_thames_baseline():
 
 @pytest.mark.parametrize("catchment_id", CATCHMENTS_WITH_STORM)
 def test_catchment_switch_refreshes_input_dir(catchment_id):
-    config.catchment_id = catchment_id
-    assert config.input_dir.name == catchment_id
-    assert config.CATCHMENT == catchment_id
+    with config.use_catchment(catchment_id):
+        assert config.input_dir.name == catchment_id
+        assert config.CATCHMENT == catchment_id
 
-    # Derived dirs follow input_dir
-    assert catchment_id in str(config.get_gaugets_dir())
-    assert catchment_id in str(config.get_classifiers_dir())
-    assert catchment_id in str(config.get_trading_dir())
+        # Derived dirs follow input_dir
+        assert catchment_id in str(config.get_gaugets_dir())
+        assert catchment_id in str(config.get_classifiers_dir())
+        assert catchment_id in str(config.get_trading_dir())
 
 
 def test_catchment_switch_does_not_leak_paths():
-    """Switching thames→halong→thames should land us back exactly where
-    we started — no halong directories left in the input_dir path."""
-    config.catchment_id = "thames"
-    thames_input = config.input_dir
-    config.catchment_id = "halong"
-    assert config.input_dir != thames_input
-    config.catchment_id = "thames"
-    assert config.input_dir == thames_input
+    """Nesting thames→halong should refresh paths inside, and exiting the inner
+    ``use_catchment`` must restore thames exactly — no halong dirs left behind."""
+    with config.use_catchment("thames"):
+        thames_input = config.input_dir
+        with config.use_catchment("halong"):
+            assert config.input_dir != thames_input
+        # Exiting the halong context restores thames paths.
+        assert config.input_dir == thames_input
 
 
 # ---------------------------------------------------------------------------

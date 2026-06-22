@@ -145,17 +145,27 @@ class TestMain:
         main()
 
     def test_main_with_catchment(self, tmp_path, monkeypatch):
-        """Lines 107-108: --catchment pins config.catchment_id."""
+        """Lines 113-115: --catchment activates that catchment for the run (scoped).
+
+        ``main`` now switches catchment via ``config.use_catchment`` — active *during*
+        the run and restored on exit — rather than permanently mutating the global."""
         from config import config
-        from port.src.gauge.gaugehd.runner import main
+        from port.src.gauge.gaugehd import runner
         setup_gauge_env(tmp_path)
         original = config.catchment_id
+        seen = {}
+
+        def _spy(years=50):
+            seen["catchment"] = config.CATCHMENT
+            return []
+
+        monkeypatch.setattr(runner, "generate_all_gauge_histories", _spy)
         monkeypatch.setattr("sys.argv", ["gaugehd", "--catchment", "rhine"])
-        try:
-            main()
-            assert config.CATCHMENT == "rhine"
-        finally:
-            config.catchment_id = original
+
+        runner.main()
+
+        assert seen["catchment"] == "rhine"       # active during the run
+        assert config.catchment_id == original    # restored after (scoped, not pinned)
 
     def test_main_with_nrfa_dir(self, tmp_path, monkeypatch):
         """Lines 117-119: --nrfa-dir calls process_nrfa_directory."""
@@ -182,16 +192,11 @@ class TestMain:
         main()
 
     def test_main_short_catchment_flag(self, tmp_path, monkeypatch):
-        """Line 102: -c short flag for catchment."""
-        from config import config
+        """Line 108: -c short flag for catchment (scoped + self-restoring)."""
         from port.src.gauge.gaugehd.runner import main
         setup_gauge_env(tmp_path)
-        original = config.catchment_id
         monkeypatch.setattr("sys.argv", ["gaugehd", "-c", "thames"])
-        try:
-            main()
-        finally:
-            config.catchment_id = original
+        main()  # use_catchment("thames") activates + restores on its own
 
     def test_main_no_catchment_leaves_config_unchanged(self, tmp_path, monkeypatch):
         """Lines 107-108: without --catchment, config.catchment_id is untouched."""

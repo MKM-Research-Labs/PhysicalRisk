@@ -110,19 +110,19 @@ def main():
 
     args = parser.parse_args()
 
-    if args.catchment:
-        config.catchment_id = args.catchment
+    # Scope the run to the chosen catchment (or the current default), restored on
+    # exit — replaces the permanent ``config.catchment_id =`` mutation.
+    with config.use_catchment(args.catchment or config.catchment_id):
+        logger.info("=" * 70)
+        logger.info("Gauge Historical Daily (gaugehd) Generator")
+        logger.info("=" * 70)
+        logger.info(f"Catchment: {config.CATCHMENT}")
+        logger.info(f"Years of history: {args.years}")
+        logger.info(f"Output directory: {config.get_gaugehd_dir()}")
 
-    logger.info("=" * 70)
-    logger.info("Gauge Historical Daily (gaugehd) Generator")
-    logger.info("=" * 70)
-    logger.info(f"Catchment: {config.CATCHMENT}")
-    logger.info(f"Years of history: {args.years}")
-    logger.info(f"Output directory: {config.get_gaugehd_dir()}")
-
-    if args.nrfa_dir:
-        logger.info(f"Processing NRFA files from: {args.nrfa_dir}")
-        process_nrfa_directory(args.nrfa_dir, years=args.years)
-    else:
-        logger.info("Generating synthetic histories from gauge portfolio...")
-        generate_all_gauge_histories(years=args.years)
+        if args.nrfa_dir:
+            logger.info(f"Processing NRFA files from: {args.nrfa_dir}")
+            process_nrfa_directory(args.nrfa_dir, years=args.years)
+        else:
+            logger.info("Generating synthetic histories from gauge portfolio...")
+            generate_all_gauge_histories(years=args.years)

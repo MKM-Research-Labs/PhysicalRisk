@@ -71,10 +71,11 @@ def run_all_tests(verbose: bool = True, catchment: Optional[str] = None) -> List
     """
     results = []
 
-    # Set catchment if provided
+    # Set catchment if provided (internal scoped setter; still validates + raises
+    # ValueError for an unknown catchment — the public setter was removed in WP2.4).
     if catchment:
         try:
-            config.catchment_id = catchment
+            config._set_catchment(catchment)
         except ValueError as e:
             print(f"❌ Error setting catchment: {e}")
             return results

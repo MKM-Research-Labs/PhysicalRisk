@@ -44,7 +44,7 @@ def prs_env(tmp_path, monkeypatch):
     prs_dir.mkdir(parents=True)
 
     monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-    monkeypatch.setattr(config, "catchment_id", "thames")
+    monkeypatch.setattr(config, "_catchment_id", "thames")
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
 
@@ -80,7 +80,7 @@ class TestCommitTradeBasic:
         """Commit with enough fields to pass CDM validation."""
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         payload = {
             "gauge_id": "GAUGE-001",
@@ -108,7 +108,7 @@ class TestCommitTradeBasic:
         """Commit with cashflows — exercises PDF cashflow schedule section."""
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         payload = {
             "gauge_id": "GAUGE-001",
@@ -139,7 +139,7 @@ class TestCommitTradeBasic:
         """Commit with maturity_date provided explicitly."""
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         payload = {
             "gauge_id": "GAUGE-002",
@@ -158,7 +158,7 @@ class TestCommitTradeBasic:
         """Commit with EA flood zone terrain fields."""
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         payload = {
             "gauge_id": "GAUGE-001",
@@ -187,7 +187,7 @@ class TestCommitTradeBasic:
         """Commit without terrain fields should still work (backward compatibility)."""
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         payload = {
             "gauge_id": "GAUGE-001",
