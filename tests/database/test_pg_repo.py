@@ -138,6 +138,63 @@ def test_collection_replace_clears_prior_rows(repo):
 
 
 # ---------------------------------------------------------------------------
+# Promoted columns populate (the relational payoff) — cdm stays exact
+# ---------------------------------------------------------------------------
+
+def test_promoted_columns_populated_collection(repo):
+    doc = {"flood_gauges": [{"FloodGauge": {
+        "Header": {"GaugeID": "GAUGE-001", "GaugeName": "Westminster"},
+        "Location": {"GaugeLatitude": 51.5, "GaugeLongitude": -0.1, "GaugeElevation": 5.0},
+        "FloodStages": {"FloodAlert": 3.5, "FloodWarning": 4.6, "SevereFloodWarning": 5.5},
+        "NRFAMetadata": {"NRFAStationID": "39001"},
+    }}], "generation_metadata": {}}
+    repo.save("gauge", TEST_CATCHMENT, doc)
+    with get_session() as session:
+        row = session.get(Gauge, (TEST_CATCHMENT, "GAUGE-001"))
+        assert row.gauge_name == "Westminster"
+        assert row.latitude == 51.5
+        assert row.flood_warning == 4.6
+        assert row.nrfa_station_id == "39001"
+    assert repo.load("gauge", TEST_CATCHMENT) == doc  # round-trip still exact
+
+
+def test_promoted_columns_populated_keyed(repo):
+    trade = {"PhysicalSwap": {
+        "Header": {"SwapID": "PRS-001", "CounterParty": "BANK-A", "TradeStatus": "Open"},
+        "LegData": {"Notional": 10_000_000, "Currency": "GBP"},
+        "Pricing": {"SpreadBps": 250.0, "NPV": 1234.5, "TriggerLevel": "warning"},
+    }}
+    repo.save("prs_trade", TEST_CATCHMENT, trade, key="PRS-001")
+    with get_session() as session:
+        row = session.get(PrsTrade, (TEST_CATCHMENT, "PRS-001"))
+        assert row.counterparty == "BANK-A"
+        assert row.notional == 10_000_000
+        assert row.spread_bps == 250.0
+        assert row.trigger_level == "warning"
+    assert repo.load("prs_trade", TEST_CATCHMENT, "PRS-001") == trade
+
+
+def test_keyed_update_refreshes_promoted_columns(repo):
+    repo.save("prs_trade", TEST_CATCHMENT,
+              {"PhysicalSwap": {"Header": {"TradeStatus": "Open"}}}, key="PRS-9")
+    repo.save("prs_trade", TEST_CATCHMENT,
+              {"PhysicalSwap": {"Header": {"TradeStatus": "Closed"}}}, key="PRS-9")
+    with get_session() as session:
+        assert session.get(PrsTrade, (TEST_CATCHMENT, "PRS-9")).trade_status == "Closed"
+
+
+def test_missing_promoted_fields_are_none(repo):
+    doc = {"flood_gauges": [{"FloodGauge": {"Header": {"GaugeID": "GAUGE-X"}}}],
+           "generation_metadata": {}}
+    repo.save("gauge", TEST_CATCHMENT, doc)
+    with get_session() as session:
+        row = session.get(Gauge, (TEST_CATCHMENT, "GAUGE-X"))
+        assert row.latitude is None
+        assert row.gauge_name is None
+    assert repo.load("gauge", TEST_CATCHMENT) == doc
+
+
+# ---------------------------------------------------------------------------
 # Interface semantics
 # ---------------------------------------------------------------------------
 

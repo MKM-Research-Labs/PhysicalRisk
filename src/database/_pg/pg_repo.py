@@ -41,6 +41,7 @@ from sqlalchemy import select
 from config.data_layout import DEFAULT_MODE
 
 from ..base import Repository
+from ._columns import promoted_columns
 from ._models import (
     Catchment, Commercial, CommercialLoan, Counterparty, EodSnapshot,
     Gauge, GaugeHazardCurve, Loan, PortRun, PrsTrade, Property,
@@ -120,18 +121,22 @@ class PostgresRepository(Repository):
             session.flush()
             for rec_id, rec in self._iter_records(doc.get(ckey), ctype, id_path):
                 session.add(model(catchment_id=catchment, port_run_id=run.id,
-                                  cdm=rec, **{id_col: rec_id}))
+                                  cdm=rec, **{id_col: rec_id},
+                                  **promoted_columns(artifact, rec)))
             session.commit()
 
     def _save_keyed(self, artifact, catchment, payload, key) -> None:
         model, id_col = _KEYED[artifact]
         with get_session() as session:
             self._ensure_catchment(session, catchment)
+            cols = promoted_columns(artifact, payload)
             existing = session.get(model, (catchment, key))
             if existing is not None:
                 existing.cdm = payload
+                for col, val in cols.items():
+                    setattr(existing, col, val)
             else:
-                session.add(model(catchment_id=catchment, cdm=payload, **{id_col: key}))
+                session.add(model(catchment_id=catchment, cdm=payload, **{id_col: key}, **cols))
             session.commit()
 
     @staticmethod
