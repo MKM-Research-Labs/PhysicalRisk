@@ -95,3 +95,32 @@ class Gauge(Base):
     nrfa_station_id: Mapped[str | None] = mapped_column(index=True, default=None)
 
     cdm: Mapped[dict] = mapped_column(JSONB)                   # full FloodGauge document
+
+
+class Property(Base):
+    """One residential property (a record from ``property.json`` → ``properties[]``).
+
+    The CDM document is deep (~7 sections, 100+ leaves); the identifying/queryable
+    fields are promoted, the verbatim document lives in ``cdm``."""
+
+    __tablename__ = "property"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    property_id: Mapped[str] = mapped_column(primary_key=True)  # e.g. 'PROP-001'
+    port_run_id: Mapped[int | None] = mapped_column(ForeignKey("port_run.id"), index=True)
+
+    uprn: Mapped[str | None] = mapped_column(index=True, default=None)
+    property_type: Mapped[str | None] = mapped_column(index=True, default=None)
+    status: Mapped[str | None] = mapped_column(default=None)
+    property_value: Mapped[float | None] = mapped_column(default=None)
+    latitude: Mapped[float | None] = mapped_column(default=None)
+    longitude: Mapped[float | None] = mapped_column(default=None)
+    postcode: Mapped[str | None] = mapped_column(index=True, default=None)
+    town_city: Mapped[str | None] = mapped_column(default=None)
+    local_authority: Mapped[str | None] = mapped_column(default=None)
+    area_sqm: Mapped[float | None] = mapped_column(default=None)
+    construction_year: Mapped[int | None] = mapped_column(default=None)
+    ea_flood_zone: Mapped[str | None] = mapped_column(index=True, default=None)
+    overall_flood_risk: Mapped[str | None] = mapped_column(default=None)
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # full property document
