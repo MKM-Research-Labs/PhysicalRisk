@@ -186,6 +186,27 @@ def test_keyed_record_value_differs():
     assert result.detail.startswith("record 'PRS-1' differs")
 
 
+def test_keyed_mode_aware_label_and_compare():
+    """A mode-varying keyed-record artifact (timeseries) is compared per mode and
+    labelled with its mode when non-default."""
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    for repo in (file_repo, pg):
+        repo.save("property_timeseries", CAT, {"ts": [1, 2]}, key="PROP-1", mode="she")
+    result = check_keyed("property_timeseries", CAT, file_repo, pg, "she")
+    assert result == ParityResult("property_timeseries:she", "keyed", True, 1, 1, "")
+
+
+def test_keyed_mode_isolates_keys():
+    """Keys under one mode don't leak into another mode's comparison."""
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("property_timeseries", CAT, {"ts": [1]}, key="PROP-1", mode="flood")
+    pg.save("property_timeseries", CAT, {"ts": [1]}, key="PROP-1", mode="she")
+    # comparing the 'flood' mode: file has PROP-1, pg has none
+    result = check_keyed("property_timeseries", CAT, file_repo, pg, "flood")
+    assert result.equal is False
+    assert "only-file={'PROP-1'}" in result.detail
+
+
 # ---------------------------------------------------------------------------
 # check_document — whole-document artifacts (no by-id normalisation)
 # ---------------------------------------------------------------------------
@@ -263,7 +284,8 @@ def _seed_parity_pair():
     pg.save("gauge", CAT, _gauge_doc(["GAUGE-001", "GAUGE-002"]))
     for repo in (file_repo, pg):
         repo.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
-        repo.save("market_state", CAT, {"rates": {"GBP": 0.05}})  # a document artifact
+        repo.save("market_state", CAT, {"rates": {"GBP": 0.05}})            # document
+        repo.save("gauge_timeseries", CAT, {"series": [1]}, key="GAUGE-1")  # keyed record
     return file_repo, pg
 
 
@@ -280,6 +302,9 @@ def test_check_catchment_aggregates_and_passes():
     # the seeded document is checked; documents absent both sides are skipped
     assert by_artifact["market_state"] == ParityResult("market_state", "document", True, 1, 1, "")
     assert "fire_results" not in by_artifact
+    # the seeded keyed record is checked; keyed-records absent both sides are skipped
+    assert by_artifact["gauge_timeseries"] == ParityResult("gauge_timeseries", "keyed", True, 1, 1, "")
+    assert "stress_storm" not in by_artifact
     assert all_ok(results) is True
 
 
@@ -348,6 +373,7 @@ def test_live_parity_holds_despite_file_order(tmp_path):
         Gauge,
         GaugeHazardCurve,
         PortDocument,
+        PortRecord,
         PortRun,
         PrsTrade,
         get_session,
@@ -363,6 +389,8 @@ def test_live_parity_holds_despite_file_order(tmp_path):
     files.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
     files.save("market_state", CAT, {"rates": {"GBP": 0.05}})          # document
     files.save("property_hazard_curve", CAT, {"hc": [1]}, mode="she")  # mode-varying document
+    files.save("gauge_timeseries", CAT, {"series": [1]}, key="GAUGE-1")          # keyed record
+    files.save("property_timeseries", CAT, {"ts": [2]}, key="PROP-1", mode="she")  # mode-varying
 
     pg = PostgresRepository()
     try:
@@ -371,14 +399,14 @@ def test_live_parity_holds_despite_file_order(tmp_path):
         assert all_ok(results), format_report(CAT, results)
         # the gauge collection genuinely round-tripped all three records
         assert next(r for r in results if r.artifact == "gauge").pg_count == 3
-        # the document tier was exercised too (incl. a non-default mode)
+        # the document + keyed-record tiers were exercised too (incl. non-default modes)
         labels = {r.artifact for r in results}
-        assert "market_state" in labels
-        assert "property_hazard_curve:she" in labels
+        assert {"market_state", "property_hazard_curve:she",
+                "gauge_timeseries", "property_timeseries:she"} <= labels
     finally:
         with get_session() as session:
             for model in (Gauge, GaugeHazardCurve, PrsTrade, EodSnapshot,
-                          PortDocument, PortRun):
+                          PortDocument, PortRecord, PortRun):
                 session.query(model).filter_by(catchment_id=CAT).delete()
             anchor = session.get(Catchment, CAT)
             if anchor is not None:

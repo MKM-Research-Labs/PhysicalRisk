@@ -46,6 +46,7 @@ from .pg_repo import (
     _COLLECTIONS,
     _DOCUMENTS,
     _KEYED,
+    _KEYED_DOCS,
     PostgresRepository,
     _nested_get,
     modes_for,
@@ -125,21 +126,24 @@ def check_collection(artifact, catchment, file_repo, pg) -> ParityResult | None:
                         "" if equal else _diff_detail(file_doc, pg_doc))
 
 
-def check_keyed(artifact, catchment, file_repo, pg) -> ParityResult:
-    """Compare one keyed artifact: the key sets must match, then each record."""
-    file_keys = sorted(file_repo.iter_keys(artifact, catchment))
-    pg_keys = sorted(pg.iter_keys(artifact, catchment))
+def check_keyed(artifact, catchment, file_repo, pg, mode=DEFAULT_MODE) -> ParityResult:
+    """Compare one keyed artifact (for one mode): the key sets must match, then
+    each record. ``mode`` is threaded through for the mode-varying keyed-record
+    artifacts (timeseries); the bespoke keyed tables ignore it."""
+    label = artifact if mode == DEFAULT_MODE else f"{artifact}:{mode}"
+    file_keys = sorted(file_repo.iter_keys(artifact, catchment, mode=mode))
+    pg_keys = sorted(pg.iter_keys(artifact, catchment, mode=mode))
     if file_keys != pg_keys:
         fk, pk = set(file_keys), set(pg_keys)
-        return ParityResult(artifact, "keyed", False, len(file_keys), len(pg_keys),
+        return ParityResult(label, "keyed", False, len(file_keys), len(pg_keys),
                             f"key sets differ: only-file={fk - pk}, only-pg={pk - fk}")
     for key in file_keys:
-        file_rec = file_repo.load(artifact, catchment, key)
-        pg_rec = pg.load(artifact, catchment, key)
+        file_rec = file_repo.load(artifact, catchment, key, mode=mode)
+        pg_rec = pg.load(artifact, catchment, key, mode=mode)
         if file_rec != pg_rec:
-            return ParityResult(artifact, "keyed", False, len(file_keys), len(pg_keys),
+            return ParityResult(label, "keyed", False, len(file_keys), len(pg_keys),
                                 f"record '{key}' differs: {_diff_detail(file_rec, pg_rec)}")
-    return ParityResult(artifact, "keyed", True, len(file_keys), len(pg_keys))
+    return ParityResult(label, "keyed", True, len(file_keys), len(pg_keys))
 
 
 def check_document(artifact, catchment, file_repo, pg, mode) -> ParityResult | None:
@@ -184,6 +188,12 @@ def check_catchment(catchment, *, file_repo=None, pg=None) -> list[ParityResult]
             result = check_document(artifact, catchment, file_repo, pg, mode)
             if result is not None:
                 results.append(result)
+    for artifact in sorted(_KEYED_DOCS):
+        for mode in modes_for(artifact):
+            if not file_repo.has_collection(artifact, catchment, mode=mode) and \
+               not pg.has_collection(artifact, catchment, mode=mode):
+                continue   # nothing generated for this artifact/mode — skip
+            results.append(check_keyed(artifact, catchment, file_repo, pg, mode))
     return results
 
 

@@ -49,7 +49,7 @@ _GENERATED = [e for e in _ENTITIES if e[0] is not EodSnapshot]
 
 def test_expected_tables_registered():
     assert set(Base.metadata.tables) == {
-        "catchment", "port_run", "port_document",
+        "catchment", "port_run", "port_document", "port_record",
         "gauge", "property", "loan", "commercial", "commercial_loan", "counterparty",
         "gauge_hazard_curve", "prs_trade", "eod_snapshot",
     }

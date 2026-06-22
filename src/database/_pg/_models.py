@@ -289,3 +289,24 @@ class PortDocument(Base):
     mode: Mapped[str] = mapped_column(primary_key=True)        # scenario mode, e.g. 'flood'
 
     cdm: Mapped[dict] = mapped_column(JSONB)                   # the verbatim document
+
+
+class PortRecord(Base):
+    """One keyed JSON record, stored verbatim — the generic keyed-record tier.
+
+    The per-entity sharded artifacts: property / commercial / gauge timeseries,
+    gauge history, stress storms, sequence-gauge sets, typhoon-damage events.
+    Each is a directory of one JSON file per key on the file backend; here they
+    share one table — keyed by ``(catchment, artifact, mode, key)`` with the
+    verbatim record in ``cdm`` (JSONB). Like ``PortDocument`` but with a per-record
+    ``key`` (e.g. a property id, a storm id); ``mode`` carries the timeseries
+    scenario variant (mode-invariant artifacts use the default mode)."""
+
+    __tablename__ = "port_record"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    artifact: Mapped[str] = mapped_column(primary_key=True)    # e.g. 'property_timeseries'
+    mode: Mapped[str] = mapped_column(primary_key=True)        # scenario mode, e.g. 'flood'
+    key: Mapped[str] = mapped_column(primary_key=True)         # record id, e.g. 'PROP-001'
+
+    cdm: Mapped[dict] = mapped_column(JSONB)                   # the verbatim record

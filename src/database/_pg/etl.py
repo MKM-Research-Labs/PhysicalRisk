@@ -29,7 +29,14 @@ files.
 """
 
 from ..config_binding import from_config
-from .pg_repo import _COLLECTIONS, _DOCUMENTS, _KEYED, PostgresRepository, modes_for
+from .pg_repo import (
+    _COLLECTIONS,
+    _DOCUMENTS,
+    _KEYED,
+    _KEYED_DOCS,
+    PostgresRepository,
+    modes_for,
+)
 
 
 def import_catchment(catchment, *, file_repo=None, pg=None) -> dict:
@@ -64,6 +71,15 @@ def import_catchment(catchment, *, file_repo=None, pg=None) -> dict:
                 continue
             pg.save(artifact, catchment, file_repo.load(artifact, catchment, mode=mode), mode=mode)
             n += 1
+        counts[artifact] = n
+
+    for artifact in sorted(_KEYED_DOCS):
+        n = 0
+        for mode in modes_for(artifact):
+            for key in file_repo.iter_keys(artifact, catchment, mode=mode):
+                record = file_repo.load(artifact, catchment, key, mode=mode)
+                pg.save(artifact, catchment, record, key=key, mode=mode)
+                n += 1
         counts[artifact] = n
 
     return counts

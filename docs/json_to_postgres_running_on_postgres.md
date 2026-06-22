@@ -40,28 +40,29 @@ MKM_REPO_BACKEND=pg python app.py server --thames
   `MKM_DB_HOST/PORT/NAME/USER/PASSWORD` (defaults match docker-compose).
 
 ## Scope — important
-Mapped to tables today: the **9 tier-1 entity/keyed artifacts** (shredded into
-relational rows) **plus the 16 whole-document artifacts** of the generic
-*document tier* — storm sequences/summaries, perils (fire, seismic), trading
-state (`market_state` / `trade_marks` / history), property & commercial hazard
-curves (all modes), the flood summary, and classifier training metadata. These
-are stored verbatim in `port_document`, one row per `(catchment, artifact, mode)`.
+Mapped to tables today — **everything except the binary blob tier**:
 
-With `MKM_REPO_BACKEND=pg`, a path that reads a still-**unmapped** artifact (the
-per-entity JSONB tier — timeseries, stress-storm/sequence-gauge sets — and the
-blob tier — typhoon damage, classifiers) raises `NotImplementedError`. So the pg
-backend covers tier-1 + the document tier; the remaining migration work:
+- the **9 tier-1 entity/keyed artifacts** shredded into relational rows;
+- the **16 whole-document artifacts** (`port_document`, one row per
+  `(catchment, artifact, mode)`) — storm sequences/summaries, perils, trading
+  state (`market_state` / `trade_marks` / history), property & commercial hazard
+  curves (all modes), the flood summary, classifier training metadata;
+- the **7 keyed-record artifacts** (`port_record`, one row per
+  `(catchment, artifact, mode, key)`) — property/commercial/gauge timeseries,
+  gauge history, stress storms, sequence gauges, typhoon-damage events.
 
-1. The JSONB keyed tier (property/commercial/gauge timeseries, gauge history,
-   stress_storm, sequence_gauge, typhoon_event), then the blob tier
-   (classifiers, typhoon particle files → MinIO).
+With `MKM_REPO_BACKEND=pg`, the only still-**unmapped** artifact is the **blob
+tier** — classifiers (`.joblib`) and typhoon particle files — which raises
+`NotImplementedError`. Remaining migration work:
+
+1. The blob tier → object store (MinIO vs cloud — decision still open).
 2. WP2 full cutover (per-catchment, all artifacts), WP4 E2E rework, WP5
    RBAC/pooling/decommission.
 
 The **WP1.7 dual-read parity harness** (`src/database/_pg/parity.py`) is the
 regression net for the cutover: `check_catchment(catchment)` compares a file
 read against a pg read for every mapped artifact (collections normalised by id,
-documents per mode) and returns a pass/fail report.
+documents and keyed records per mode) and returns a pass/fail report.
 
 All SQL/ORM/Alembic lives under `src/database/_pg`, kept green by the data-access
 audit. The itemised plan + design notes are in the `json_to_postgres_migration`

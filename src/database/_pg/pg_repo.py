@@ -21,14 +21,16 @@
 """PostgreSQL implementation of the ``Repository`` interface (JSON→Postgres WP1.6).
 
 Backs the document-oriented seam with the relational tables defined under
-``src/database/_pg`` in three shapes: a *collection* artifact (e.g. ``gauge`` →
+``src/database/_pg`` in four shapes: a *collection* artifact (e.g. ``gauge`` →
 ``flood_gauges[]``) is shredded into one entity row per record on save and
 reassembled on load; a *keyed* artifact (``prs_trade`` / ``eod_snapshot``) is one
-row per key; a *document* artifact (storm summaries, perils, trading state,
-hazard curves, …) is stored whole in one ``PortDocument`` row per
-``(catchment, artifact, mode)``. Each row keeps the verbatim record in ``cdm``
-(JSONB), so a ``save`` then ``load`` returns an equal document — proven by the
-parity tests.
+bespoke row per key; a *document* artifact (storm summaries, perils, trading
+state, hazard curves, …) is stored whole in one ``PortDocument`` row per
+``(catchment, artifact, mode)``; a *keyed-record* artifact (timeseries, stress
+storms, sequence gauges, typhoon events) is one ``PortRecord`` row per
+``(catchment, artifact, mode, key)``. Each row keeps the verbatim record in
+``cdm`` (JSONB), so a ``save`` then ``load`` returns an equal document — proven by
+the parity tests.
 
 v1 scope: round-trip fidelity (id + cdm + the document envelope in ``port_run``)
 for the 9 tier-1 artifacts. Records reassemble in id order (deterministic, not
@@ -56,6 +58,7 @@ from ._models import (
     GaugeHazardCurve,
     Loan,
     PortDocument,
+    PortRecord,
     PortRun,
     Property,
     PrsTrade,
@@ -88,6 +91,14 @@ _KEYED: dict[str, tuple] = {
 _DOCUMENTS: frozenset = frozenset(
     name for name in artifacts.names() if artifacts.spec(name).kind == artifacts.DOCUMENT
 ) - frozenset(_COLLECTIONS)
+
+# Keyed-record artifacts: a directory of one JSON file per key (timeseries,
+# stress storms, sequence gauges, typhoon events), stored one PortRecord row per
+# (catchment, artifact, mode, key) — every KEYED-kind artifact NOT given a
+# bespoke table above.
+_KEYED_DOCS: frozenset = frozenset(
+    name for name in artifacts.names() if artifacts.spec(name).kind == artifacts.KEYED
+) - frozenset(_KEYED)
 
 
 def modes_for(artifact: str) -> list[str]:
@@ -146,6 +157,8 @@ class PostgresRepository(Repository):
             self._save_keyed(artifact, catchment, payload, key)
         elif artifact in _DOCUMENTS:
             self._save_document(artifact, catchment, payload, mode)
+        elif artifact in _KEYED_DOCS:
+            self._save_record(artifact, catchment, payload, key, mode)
         else:
             self._unmapped(artifact)
 
@@ -158,6 +171,17 @@ class PostgresRepository(Repository):
             else:
                 session.add(PortDocument(catchment_id=catchment, artifact=artifact,
                                          mode=mode, cdm=payload))
+            session.commit()
+
+    def _save_record(self, artifact, catchment, payload, key, mode) -> None:
+        with get_session() as session:
+            self._ensure_catchment(session, catchment)
+            existing = session.get(PortRecord, (catchment, artifact, mode, key))
+            if existing is not None:
+                existing.cdm = payload
+            else:
+                session.add(PortRecord(catchment_id=catchment, artifact=artifact,
+                                       mode=mode, key=key, cdm=payload))
             session.commit()
 
     def _save_collection(self, artifact, catchment, doc, mode) -> None:
@@ -209,6 +233,8 @@ class PostgresRepository(Repository):
             return self._load_keyed(artifact, catchment, key)
         if artifact in _DOCUMENTS:
             return self._load_document(artifact, catchment, mode)
+        if artifact in _KEYED_DOCS:
+            return self._load_record(artifact, catchment, key, mode)
         self._unmapped(artifact)
 
     def _load_document(self, artifact, catchment, mode) -> Any:
@@ -217,6 +243,14 @@ class PostgresRepository(Repository):
             if row is None:
                 raise FileNotFoundError(
                     f"{artifact} not found for catchment '{catchment}' (mode '{mode}')")
+            return row.cdm
+
+    def _load_record(self, artifact, catchment, key, mode) -> Any:
+        with get_session() as session:
+            row = session.get(PortRecord, (catchment, artifact, mode, key))
+            if row is None:
+                raise FileNotFoundError(
+                    f"{artifact}[{key}] not found for catchment '{catchment}' (mode '{mode}')")
             return row.cdm
 
     def _load_collection(self, artifact, catchment) -> Any:
@@ -265,12 +299,26 @@ class PostgresRepository(Repository):
                 if row is not None:
                     session.delete(row)
                 session.commit()
+        elif artifact in _KEYED_DOCS:
+            with get_session() as session:
+                row = session.get(PortRecord, (catchment, artifact, mode, key))
+                if row is not None:
+                    session.delete(row)
+                session.commit()
         else:
             self._unmapped(artifact)
 
     def iter_keys(self, artifact, catchment, *, mode=DEFAULT_MODE) -> Iterator[str]:
         if artifact in _DOCUMENTS:
             return iter(())                      # documents are whole-doc, not keyed
+        if artifact in _KEYED_DOCS:
+            with get_session() as session:
+                keys = session.scalars(
+                    select(PortRecord.key)
+                    .filter_by(catchment_id=catchment, artifact=artifact, mode=mode)
+                    .order_by(PortRecord.key)
+                ).all()
+            return iter(keys)
         model, id_col = self._model_for(artifact)
         with get_session() as session:
             ids = session.scalars(
@@ -287,6 +335,9 @@ class PostgresRepository(Repository):
         if artifact in _DOCUMENTS:
             with get_session() as session:
                 return session.get(PortDocument, (catchment, artifact, mode)) is not None
+        if artifact in _KEYED_DOCS:
+            with get_session() as session:
+                return session.get(PortRecord, (catchment, artifact, mode, key)) is not None
         if artifact in _KEYED:
             model, _ = _KEYED[artifact]
             with get_session() as session:
@@ -296,6 +347,10 @@ class PostgresRepository(Repository):
     def has_collection(self, artifact, catchment, *, mode=DEFAULT_MODE) -> bool:
         if artifact in _DOCUMENTS:                # mirrors file backend: doc present
             return self.exists(artifact, catchment, mode=mode)
+        if artifact in _KEYED_DOCS:
+            with get_session() as session:
+                return session.query(PortRecord).filter_by(
+                    catchment_id=catchment, artifact=artifact, mode=mode).first() is not None
         model, id_col = self._model_for(artifact)
         with get_session() as session:
             return session.query(model).filter_by(catchment_id=catchment).first() is not None
