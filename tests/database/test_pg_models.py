@@ -24,11 +24,41 @@ Pin the promoted-columns + JSONB-tail design so a model change is a deliberate,
 visible edit. Pure metadata assertions — no live database. Model↔migration drift
 is caught at docker time by ``alembic check`` (autogenerate shows no diff)."""
 
-from database._pg import Base, Catchment, Gauge, PortRun, Property
+import pytest
+
+from database._pg import (
+    Base, Catchment, Commercial, CommercialLoan, Counterparty, Gauge, Loan,
+    PortRun, Property,
+)
+
+# Each portfolio entity → (model, composite-PK id column, table name).
+_PORTFOLIO_ENTITIES = [
+    (Gauge, "gauge_id", "gauge"),
+    (Property, "property_id", "property"),
+    (Loan, "rloan_id", "loan"),
+    (Commercial, "commercial_id", "commercial"),
+    (CommercialLoan, "mortgage_id", "commercial_loan"),
+    (Counterparty, "party_id", "counterparty"),
+]
 
 
 def test_expected_tables_registered():
-    assert set(Base.metadata.tables) == {"catchment", "port_run", "gauge", "property"}
+    assert set(Base.metadata.tables) == {
+        "catchment", "port_run",
+        "gauge", "property", "loan", "commercial", "commercial_loan", "counterparty",
+    }
+
+
+@pytest.mark.parametrize("model,id_col,table", _PORTFOLIO_ENTITIES)
+def test_portfolio_entity_shape(model, id_col, table):
+    """Every portfolio entity follows the pattern: composite PK
+    (catchment_id, <id>), a non-null cdm JSONB tail, and FKs to catchment +
+    port_run."""
+    assert model.__tablename__ == table
+    assert {c.name for c in model.__table__.primary_key.columns} == {"catchment_id", id_col}
+    assert model.__table__.c.cdm.nullable is False
+    fk_targets = {fk.column.table.name for fk in model.__table__.foreign_keys}
+    assert {"catchment", "port_run"} <= fk_targets
 
 
 def test_gauge_promoted_columns_and_cdm():
