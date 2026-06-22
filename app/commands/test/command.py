@@ -62,195 +62,198 @@ def cmd_test(args):
             print(f"  Available: {', '.join(available)}")
             return 1
         os.environ['MKM_CATCHMENT'] = chosen_catchment
-        config.catchment_id = chosen_catchment
     print(f" Catchment: {os.environ.get('MKM_CATCHMENT', 'thames')}")
 
-    # ---- Handle --check-deps early exit ----
-    if getattr(args, 'check_deps', False):
-        return _check_deps()
+    # Run the rest of the command under the chosen catchment (scoped, restored
+    # on exit) — replaces the permanent ``config.catchment_id =`` pin.
+    with config.use_catchment(chosen_catchment or config.catchment_id):
 
-    # ---- Handle --params early exit ----
-    if getattr(args, 'params', False):
-        print('Generating parameter inventory...')
-        cmd = [sys.executable, '-m', 'docs.models.parameter_inventory.generator']
-        if getattr(args, 'pdf', False):
-            cmd.append('--pdf')
+        # ---- Handle --check-deps early exit ----
+        if getattr(args, 'check_deps', False):
+            return _check_deps()
+
+        # ---- Handle --params early exit ----
+        if getattr(args, 'params', False):
+            print('Generating parameter inventory...')
+            cmd = [sys.executable, '-m', 'docs.models.parameter_inventory.generator']
+            if getattr(args, 'pdf', False):
+                cmd.append('--pdf')
+            project_root = config.get_project_root()
+            result = sp.run(cmd, cwd=str(project_root))
+            return result.returncode
+
         project_root = config.get_project_root()
-        result = sp.run(cmd, cwd=str(project_root))
-        return result.returncode
 
-    project_root = config.get_project_root()
-
-    # Clean stale worktree data copies before tests start to free disk space
-    print('--- Worktree data cleanup (pre-run) ---')
-    _cleanup_worktree_data(str(project_root))
-    print()
-
-    # All artefacts land in data/output/audit/
-    audit_dir = str(config.get_reports_dir('audit'))
-    os.makedirs(audit_dir, exist_ok=True)
-
-    junit_xml = os.path.join(audit_dir, 'junit.xml')
-    cov_html  = os.path.join(audit_dir, 'coverage')
-    cov_xml   = os.path.join(audit_dir, 'coverage.xml')
-
-    # ---- Resolve which suites and outputs to run ----
-    has_suite = (getattr(args, 'unit', False) or getattr(args, 'e2e', False)
-                 or getattr(args, 'lineage', False) or getattr(args, 'run_all', False))
-    has_output = getattr(args, 'audit', False)
-
-    if not has_suite and not has_output:
-        # No flags at all → default to everything
-        args.run_all = True
-        args.audit = True
-
-    do_unit    = getattr(args, 'run_all', False) or getattr(args, 'unit', False)
-    do_e2e     = getattr(args, 'run_all', False) or getattr(args, 'e2e', False)
-    do_lineage = getattr(args, 'run_all', False) or getattr(args, 'lineage', False)
-    do_audit   = getattr(args, 'audit', False)
-    do_pdf     = getattr(args, 'pdf', False)
-
-    # ---- Capture git commit SHA ----
-    git_sha = None
-    try:
-        result = sp.run(
-            ['git', 'rev-parse', 'HEAD'],
-            capture_output=True, text=True, cwd=str(project_root),
-        )
-        if result.returncode == 0:
-            git_sha = result.stdout.strip()
-    except FileNotFoundError:
-        pass
-
-    # ---- Banner ----
-    print('=' * 60)
-    print('MKM Research Labs — Test & Audit')
-    print('=' * 60)
-    if git_sha:
-        print(f' Git SHA : {git_sha[:12]}')
-    print(f' Output  : {audit_dir}')
-    phases = []
-    if do_lineage:
-        phases.append('lineage')
-    if do_unit:
-        phases.append('unit')
-    if do_e2e:
-        phases.append('e2e')
-    if do_audit:
-        phases.append('audit reports')
-    print(f' Phases  : {", ".join(phases)}')
-    print()
-
-    _python_exe = _resolve_python(project_root)
-    pytest_ok = True
-    coverage_pct = None
-    data_lineage_results = None
-    e2e_results = None
-
-    # ------------------------------------------------------------------
-    # 1. Data lineage consistency checks (BCBS 239 P3)
-    # ------------------------------------------------------------------
-    if do_lineage:
-        print('Running data lineage consistency checks...')
-        data_lineage_results = _run_data_lineage_tests(project_root, audit_dir)
-        if data_lineage_results and data_lineage_results.get('failed', 0) > 0:
-            print()
-            print('  WARNING: Data lineage checks FAILED.')
-            print('  Pipeline data is inconsistent — audit results may be unreliable.')
-            print('  Regenerate data in order: port --gauge → port --stressm → port --hazard → port --blotter')
-            print()
-
-    # ------------------------------------------------------------------
-    # 2. Unit / model tests with coverage
-    # ------------------------------------------------------------------
-    if do_unit:
-        print('Running unit/model tests with coverage...')
-
-        tests_dir = os.path.join(str(project_root), 'tests')
-        e2e_dir = os.path.join(tests_dir, 'e2e')
-        pytest_cmd = [
-            _python_exe, '-m', 'pytest',
-            tests_dir,
-            f'--ignore={e2e_dir}',
-            f'--junitxml={junit_xml}',
-            '--cov=src',
-            '--cov=tools/cdm_property_editor',
-            f'--cov-report=html:{cov_html}',
-            f'--cov-report=xml:{cov_xml}',
-            '--cov-report=term-missing:skip-covered',
-            '-q', '--tb=short',
-        ]
-
-        model_filter = getattr(args, 'model', None)
-        if model_filter:
-            pytest_cmd.extend(['--model'] + model_filter)
-
-        # Coverage core is pinned to ctrace in pyproject.toml [tool.coverage.run]
-        # to avoid the sys.monitoring under-count on Python 3.13.x.
-        pytest_result = sp.run(pytest_cmd, cwd=str(project_root))
-        pytest_ok = pytest_result.returncode == 0
+        # Clean stale worktree data copies before tests start to free disk space
+        print('--- Worktree data cleanup (pre-run) ---')
+        _cleanup_worktree_data(str(project_root))
         print()
 
-        # Parse coverage percentage
-        coverage_pct = _parse_coverage_pct(cov_xml)
-        if coverage_pct is not None:
-            print(f' Coverage: {coverage_pct:.1f}%')
+        # All artefacts land in data/output/audit/
+        audit_dir = str(config.get_reports_dir('audit'))
+        os.makedirs(audit_dir, exist_ok=True)
 
-        # Write test failures report
-        _write_failures_report(junit_xml, audit_dir)
+        junit_xml = os.path.join(audit_dir, 'junit.xml')
+        cov_html  = os.path.join(audit_dir, 'coverage')
+        cov_xml   = os.path.join(audit_dir, 'coverage.xml')
 
-    # ------------------------------------------------------------------
-    # 3. E2E browser tests (Playwright)
-    # ------------------------------------------------------------------
-    if do_e2e:
-        print('\nRunning E2E browser tests (Playwright)...')
-        e2e_results = _run_e2e_tests(project_root, audit_dir, _python_exe)
+        # ---- Resolve which suites and outputs to run ----
+        has_suite = (getattr(args, 'unit', False) or getattr(args, 'e2e', False)
+                     or getattr(args, 'lineage', False) or getattr(args, 'run_all', False))
+        has_output = getattr(args, 'audit', False)
 
-    # ------------------------------------------------------------------
-    # 4. Audit reports (doc generators)
-    # ------------------------------------------------------------------
-    if do_audit:
-        _run_audit_reports(project_root, audit_dir, _python_exe,
-                           coverage_pct, git_sha, do_pdf)
+        if not has_suite and not has_output:
+            # No flags at all → default to everything
+            args.run_all = True
+            args.audit = True
 
-    # ------------------------------------------------------------------
-    # 5. Summary
-    # ------------------------------------------------------------------
-    print('\n' + '=' * 60)
-    print('Audit Package Contents')
-    print('=' * 60)
-    artefacts = [
-        ('JUnit XML',              junit_xml),
-        ('Coverage XML',           cov_xml),
-        ('Coverage HTML',          cov_html),
-        ('Data Lineage Results',   os.path.join(audit_dir, 'data_lineage_results.json')),
-        ('Data Lineage JUnit',     os.path.join(audit_dir, 'data_lineage_junit.xml')),
-        ('E2E Results',            os.path.join(audit_dir, 'e2e', 'e2e_results.json')),
-        ('E2E JUnit',              os.path.join(audit_dir, 'e2e', 'e2e_junit.xml')),
-        ('Test Report PDF',        os.path.join(audit_dir, 'test_report.pdf')),
-        ('Large File Report PDF',  os.path.join(audit_dir, 'large_file_report.pdf')),
-        ('Large Test Report TXT',  os.path.join(audit_dir, 'large_test_report.txt')),
-        ('Init Audit Report PDF',  os.path.join(audit_dir, 'init_audit_report.pdf')),
-        ('Init Audit Results JSON', os.path.join(audit_dir, 'init_audit_results.json')),
-        ('Code Duplication PDF',   os.path.join(audit_dir, 'code_duplication_report.pdf')),
-        ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
-        ('Embedded JS/CSS PDF',    os.path.join(audit_dir, 'embedded_js_report.pdf')),
-        ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
-        ('Model Risk Report PDF',  os.path.join(audit_dir, 'model_risk_report.pdf')),
-        ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
-    ]
-    for label, path in artefacts:
-        exists = os.path.exists(path)
-        size = ''
-        if exists and os.path.isfile(path):
-            size = f' ({os.path.getsize(path) / 1024:.1f} KB)'
-        status = 'OK' if exists else 'MISSING'
-        print(f' [{status}] {label}: {path}{size}')
-    print()
-    if do_unit:
-        print('Status:', 'ALL PASS' if pytest_ok else 'TEST FAILURES — see junit.xml')
+        do_unit    = getattr(args, 'run_all', False) or getattr(args, 'unit', False)
+        do_e2e     = getattr(args, 'run_all', False) or getattr(args, 'e2e', False)
+        do_lineage = getattr(args, 'run_all', False) or getattr(args, 'lineage', False)
+        do_audit   = getattr(args, 'audit', False)
+        do_pdf     = getattr(args, 'pdf', False)
 
-    # Clean up any worktree data copies created by E2E tests during this run
-    print()
-    print('--- Worktree data cleanup (post-run) ---')
-    _cleanup_worktree_data(str(project_root))
+        # ---- Capture git commit SHA ----
+        git_sha = None
+        try:
+            result = sp.run(
+                ['git', 'rev-parse', 'HEAD'],
+                capture_output=True, text=True, cwd=str(project_root),
+            )
+            if result.returncode == 0:
+                git_sha = result.stdout.strip()
+        except FileNotFoundError:
+            pass
+
+        # ---- Banner ----
+        print('=' * 60)
+        print('MKM Research Labs — Test & Audit')
+        print('=' * 60)
+        if git_sha:
+            print(f' Git SHA : {git_sha[:12]}')
+        print(f' Output  : {audit_dir}')
+        phases = []
+        if do_lineage:
+            phases.append('lineage')
+        if do_unit:
+            phases.append('unit')
+        if do_e2e:
+            phases.append('e2e')
+        if do_audit:
+            phases.append('audit reports')
+        print(f' Phases  : {", ".join(phases)}')
+        print()
+
+        _python_exe = _resolve_python(project_root)
+        pytest_ok = True
+        coverage_pct = None
+        data_lineage_results = None
+        e2e_results = None
+
+        # ------------------------------------------------------------------
+        # 1. Data lineage consistency checks (BCBS 239 P3)
+        # ------------------------------------------------------------------
+        if do_lineage:
+            print('Running data lineage consistency checks...')
+            data_lineage_results = _run_data_lineage_tests(project_root, audit_dir)
+            if data_lineage_results and data_lineage_results.get('failed', 0) > 0:
+                print()
+                print('  WARNING: Data lineage checks FAILED.')
+                print('  Pipeline data is inconsistent — audit results may be unreliable.')
+                print('  Regenerate data in order: port --gauge → port --stressm → port --hazard → port --blotter')
+                print()
+
+        # ------------------------------------------------------------------
+        # 2. Unit / model tests with coverage
+        # ------------------------------------------------------------------
+        if do_unit:
+            print('Running unit/model tests with coverage...')
+
+            tests_dir = os.path.join(str(project_root), 'tests')
+            e2e_dir = os.path.join(tests_dir, 'e2e')
+            pytest_cmd = [
+                _python_exe, '-m', 'pytest',
+                tests_dir,
+                f'--ignore={e2e_dir}',
+                f'--junitxml={junit_xml}',
+                '--cov=src',
+                '--cov=tools/cdm_property_editor',
+                f'--cov-report=html:{cov_html}',
+                f'--cov-report=xml:{cov_xml}',
+                '--cov-report=term-missing:skip-covered',
+                '-q', '--tb=short',
+            ]
+
+            model_filter = getattr(args, 'model', None)
+            if model_filter:
+                pytest_cmd.extend(['--model'] + model_filter)
+
+            # Coverage core is pinned to ctrace in pyproject.toml [tool.coverage.run]
+            # to avoid the sys.monitoring under-count on Python 3.13.x.
+            pytest_result = sp.run(pytest_cmd, cwd=str(project_root))
+            pytest_ok = pytest_result.returncode == 0
+            print()
+
+            # Parse coverage percentage
+            coverage_pct = _parse_coverage_pct(cov_xml)
+            if coverage_pct is not None:
+                print(f' Coverage: {coverage_pct:.1f}%')
+
+            # Write test failures report
+            _write_failures_report(junit_xml, audit_dir)
+
+        # ------------------------------------------------------------------
+        # 3. E2E browser tests (Playwright)
+        # ------------------------------------------------------------------
+        if do_e2e:
+            print('\nRunning E2E browser tests (Playwright)...')
+            e2e_results = _run_e2e_tests(project_root, audit_dir, _python_exe)
+
+        # ------------------------------------------------------------------
+        # 4. Audit reports (doc generators)
+        # ------------------------------------------------------------------
+        if do_audit:
+            _run_audit_reports(project_root, audit_dir, _python_exe,
+                               coverage_pct, git_sha, do_pdf)
+
+        # ------------------------------------------------------------------
+        # 5. Summary
+        # ------------------------------------------------------------------
+        print('\n' + '=' * 60)
+        print('Audit Package Contents')
+        print('=' * 60)
+        artefacts = [
+            ('JUnit XML',              junit_xml),
+            ('Coverage XML',           cov_xml),
+            ('Coverage HTML',          cov_html),
+            ('Data Lineage Results',   os.path.join(audit_dir, 'data_lineage_results.json')),
+            ('Data Lineage JUnit',     os.path.join(audit_dir, 'data_lineage_junit.xml')),
+            ('E2E Results',            os.path.join(audit_dir, 'e2e', 'e2e_results.json')),
+            ('E2E JUnit',              os.path.join(audit_dir, 'e2e', 'e2e_junit.xml')),
+            ('Test Report PDF',        os.path.join(audit_dir, 'test_report.pdf')),
+            ('Large File Report PDF',  os.path.join(audit_dir, 'large_file_report.pdf')),
+            ('Large Test Report TXT',  os.path.join(audit_dir, 'large_test_report.txt')),
+            ('Init Audit Report PDF',  os.path.join(audit_dir, 'init_audit_report.pdf')),
+            ('Init Audit Results JSON', os.path.join(audit_dir, 'init_audit_results.json')),
+            ('Code Duplication PDF',   os.path.join(audit_dir, 'code_duplication_report.pdf')),
+            ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
+            ('Embedded JS/CSS PDF',    os.path.join(audit_dir, 'embedded_js_report.pdf')),
+            ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
+            ('Model Risk Report PDF',  os.path.join(audit_dir, 'model_risk_report.pdf')),
+            ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
+        ]
+        for label, path in artefacts:
+            exists = os.path.exists(path)
+            size = ''
+            if exists and os.path.isfile(path):
+                size = f' ({os.path.getsize(path) / 1024:.1f} KB)'
+            status = 'OK' if exists else 'MISSING'
+            print(f' [{status}] {label}: {path}{size}')
+        print()
+        if do_unit:
+            print('Status:', 'ALL PASS' if pytest_ok else 'TEST FAILURES — see junit.xml')
+
+        # Clean up any worktree data copies created by E2E tests during this run
+        print()
+        print('--- Worktree data cleanup (post-run) ---')
+        _cleanup_worktree_data(str(project_root))

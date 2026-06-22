@@ -40,7 +40,7 @@ class TestCommitValidationErrors:
         prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
 
@@ -83,7 +83,7 @@ class TestCommitCloseOut:
         trading_dir.mkdir(parents=True)
 
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_trading_dir", lambda: trading_dir)
 
@@ -133,7 +133,7 @@ class TestListTradesException:
 
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         from server import create_app
         from fixtures_admin import AuthenticatedTestClient

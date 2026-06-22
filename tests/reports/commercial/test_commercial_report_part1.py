@@ -41,10 +41,8 @@ from config import config
 @pytest.fixture
 def halong_active():
     """Switch to halong for these tests; restore at teardown."""
-    original = config.catchment_id
-    config.catchment_id = "halong"
-    yield
-    config.catchment_id = original
+    with config.use_catchment("halong"):
+        yield
 
 
 @pytest.fixture

@@ -44,7 +44,7 @@ def prs_env(tmp_path, monkeypatch):
     prs_dir.mkdir(parents=True)
 
     monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-    monkeypatch.setattr(config, "catchment_id", "thames")
+    monkeypatch.setattr(config, "_catchment_id", "thames")
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
 
@@ -96,7 +96,7 @@ class TestGetTradePDF:
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
 
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         from server import create_app
         app = create_app()
@@ -125,7 +125,7 @@ class TestListTradesError:
 
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         from server import create_app
         app = create_app()
@@ -166,7 +166,7 @@ class TestListTradesWithFiles:
 
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         from server import create_app
         app = create_app()

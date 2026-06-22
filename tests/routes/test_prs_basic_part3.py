@@ -44,7 +44,7 @@ def prs_env(tmp_path, monkeypatch):
     prs_dir.mkdir(parents=True)
 
     monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-    monkeypatch.setattr(config, "catchment_id", "thames")
+    monkeypatch.setattr(config, "_catchment_id", "thames")
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
 
@@ -68,7 +68,7 @@ class TestCommitTradeProperty:
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         # Write a property.json with a matching property
         prop_data = {
@@ -124,7 +124,7 @@ class TestCommitTradeProperty:
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         # No property.json on disk
         payload = {
@@ -145,7 +145,7 @@ class TestCommitTradeProperty:
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         # Write invalid JSON
         (tmp_path / "property.json").write_text("{bad json")
@@ -169,7 +169,7 @@ class TestCommitTradeProperty:
         from config import config
         from port.cdm.prs import PhysicalRiskSwapCDM
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         # Force validation to return errors
         monkeypatch.setattr(
@@ -197,7 +197,7 @@ class TestCommitTradeProperty:
         """Commit with close_out_of triggers PnLEngine.close_trade."""
         from config import config
         monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         trading_dir = tmp_path / "trading"
         trading_dir.mkdir(parents=True)

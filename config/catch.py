@@ -26,6 +26,7 @@ logic that was previously inline in PortfolioConfig.
 """
 
 import os
+from contextlib import contextmanager
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -49,10 +50,17 @@ class CatchmentMixin:
         """Get the current catchment identifier."""
         return self._catchment_id
 
-    @catchment_id.setter
-    def catchment_id(self, value: str) -> None:
-        """
-        Set the current catchment identifier.
+    # NOTE: ``catchment_id`` is intentionally read-only. The active catchment is a
+    # process-wide global that drives config paths + params; permanently mutating it
+    # (the old ``config.catchment_id = value`` setter) made sequential/nested
+    # multi-catchment runs race on a shared global and leak one run's catchment into
+    # the next. Switch catchments through the scoped :meth:`use_catchment` context
+    # manager instead — it restores the previous catchment on exit. Run-scoped *data*
+    # identity is carried separately by ``database.catchment_context`` (a ContextVar).
+
+    def _set_catchment(self, value: str) -> None:
+        """Switch the active catchment and repoint paths. Internal — callers use the
+        scoped :meth:`use_catchment` so every change is restored.
 
         Accepts either catch/<value>.py or catch/<value>/ as valid.
         """
@@ -77,6 +85,22 @@ class CatchmentMixin:
             # active at PortfolioConfig() instantiation time.
             if hasattr(self, '_init_paths'):
                 self._init_paths(value)
+
+    @contextmanager
+    def use_catchment(self, value: str):
+        """Activate ``value`` as the catchment for the duration of the block, then
+        restore the previously active catchment (including on exception).
+
+        The supported replacement for the old ``config.catchment_id = value``: switches
+        are scoped, so a nested or sequential run cannot leak its catchment into the
+        enclosing one. Validates ``value`` eagerly (raises ``ValueError`` if unknown).
+        """
+        previous = self._catchment_id
+        self._set_catchment(value)
+        try:
+            yield value
+        finally:
+            self._set_catchment(previous)
 
     @property
     def CATCHMENT(self) -> str:
