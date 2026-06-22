@@ -31,9 +31,10 @@ from .coverage import _build_coverage
 from .modularisation import _build_modularisation, _build_init_audit
 from .copyright_headers import _build_copyright_headers
 from .path_definitions import _build_path_definitions
+from .data_access import _build_data_access
 
 __all__ = [
     '_build_test_detail', '_build_unit_failures', '_build_skipped_tests',
     '_short_msg', '_build_coverage', '_build_modularisation', '_build_init_audit',
-    '_build_copyright_headers', '_build_path_definitions',
+    '_build_copyright_headers', '_build_path_definitions', '_build_data_access',
 ]

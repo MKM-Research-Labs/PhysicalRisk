@@ -2,7 +2,7 @@
 
 > ## ▶ RESUME HERE (session pickup, 2026-06-20)
 >
-> **Branch:** `claude/quirky-chaplygin-a2a625` — 50 commits ahead of origin, **unpushed**
+> **Branch:** `claude/quirky-chaplygin-a2a625` — 53 commits ahead of origin, **unpushed**
 > (user pushes). Working tree clean. The migration work is NOT on `main`. Worktrees have
 > been ephemeral this project — the branch is currently checked out directly in the main
 > repo (`/Users/newdavid/Documents/PhysicalRisk`); if you land on `main` or in a fresh
@@ -87,13 +87,37 @@
 > `delete_eod_snapshot`). Routes (`_helpers`, `prs/blueprint`) drop directory args. db pkg + every
 > changed module **100%**; port+routes/trading+models+db **3330✓/2skip**.
 >
-> **Then step 6 — orchestrator wrap + setter removal (HIGH-RISK CAPSTONE, confirm first).**
-> Wrap port/trading runs in `catchment_context(c)` that ALSO repoints config paths; delete
-> the `config.catchment_id` setter + `server.py:46` comment. Setter sites: `app/commands/
-> {server,book,port/orchestrator}.py`, `app/commands/test/command.py`, `gaugehd/runner.py:125`;
-> tests `tests/catch/test_catchment_isolation.py` (rewrite/retire), commercial-report tests,
-> `cdm_all.py`, `test_gaugehd_runner_part2.py`. **Then step 7** — 0.8 data-access audit
-> (sanction `src/database`; no-SQL/file-I/O-outside-database gate; green-by-construction).
+> **Step 6 — setter removal DONE.** The public `config.catchment_id` **setter is deleted**
+> (assignment now raises `AttributeError`); replaced by the scoped **`config.use_catchment(c)`**
+> context manager (sets `_catchment_id` + `_init_paths`, **restores on exit**) backed by the
+> internal `_set_catchment`. **Design note (safer than the original plan):** `database.catchment_context`
+> was left UNTOUCHED — enhancing it would have repointed config paths inside every `tmp_catchment`
+> test (it composes `catchment_context`), destabilising the whole step-4/5 suite. Instead: the file
+> backend already resolves any catchment to `input_root/<catchment>` purely (config_binding.py:44),
+> and production data I/O uses the `active_catchment()→config.catchment_id` fallback — so a scoped
+> `use_catchment` is sufficient (it also keeps params/currency/non-migrated readers consistent).
+> 5 production sites wrap their run in `with config.use_catchment(c):` (server, book, port
+> orchestrator, gaugehd runner) — `cmd_test` uses it too (env var still propagates to subprocesses);
+> `server.py:46` comment updated. Tests: `test_catchment_isolation.py` rewritten for scoped/nested
+> `use_catchment`; commercial-report fixtures → `use_catchment`; `cdm_all.py` → `_set_catchment`
+> (keeps ValueError); `test_gaugehd_runner_part2.py` rewritten for the now-scoped main() (spy proves
+> catchment active *during* the run, restored after). catch.py changed lines 100%. **Regression caught
+> + fixed:** ~52 errors from `monkeypatch.setattr(config, "catchment_id", …)` sites (a syntax the
+> `\.catchment_id =` grep missed — monkeypatch's set + teardown both hit the deleted setter); all
+> repointed to `"_catchment_id"` (the private attr, thames==default). Final broad checkpoint (catch+
+> config+commands+port+routes+models+reports+db) **8387✓**, only the 17 documented pre-existing reds.
+>
+> **Step 7 — data-access audit DONE → WP2.4 §5 PLAN COMPLETE.** New
+> `docs/models/full_audit/sections_tests/data_access.py` (sibling to path_definitions, §4.4) +
+> `tests/commands/test_data_access_report.py` (24 tests, 100% cov). **Per user decision:** the
+> **DB-access ban is the zero-tolerance gate** (raw SQL / `.execute(` / sqlalchemy·psycopg·asyncpg
+> imports / `create_engine`·`sessionmaker`·`.cursor(` outside `src/database`) — **green by
+> construction** (0 findings; no Postgres yet) and stays green as WP1.6 lands the backend in its
+> private modules. The **direct-file-I/O-against-data backlog is a tracked REPORT, not a gate**
+> (~60 files outside `src/database` still read/write the tree directly — the un-migrated generators;
+> shrinks as later WPs migrate them). Wired into `full_audit` §4.4 + `sections_tests/__init__` +
+> `full_audit/__init__`; renders in the consolidated report. Commands/audit suite green (only the
+> pre-existing path-defs gate red).
 >
 > **Pre-existing reds (NOT ours; baseline==guard verified):** 11 `tests/routes/storm_stress`,
 > 1 path-definition gate (~67-site backlog), 5 `tests/routes/lineage` prs-commit
