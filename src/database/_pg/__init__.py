@@ -24,10 +24,10 @@ Private subpackage of ``src/database``: the one place SQLAlchemy/Alembic/SQL is
 allowed (rule R6, enforced green by the data-access audit). Re-exports only — no
 logic here (rule R4)."""
 
-from ._models import Base, Catchment, Gauge, PortRun
+from ._models import Base, Catchment, Gauge, PortRun, Property
 from .engine import get_engine, get_session, reset_engine
 
 __all__ = [
-    "Base", "Catchment", "PortRun", "Gauge",
+    "Base", "Catchment", "PortRun", "Gauge", "Property",
     "get_engine", "get_session", "reset_engine",
 ]

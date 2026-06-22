@@ -24,11 +24,11 @@ Pin the promoted-columns + JSONB-tail design so a model change is a deliberate,
 visible edit. Pure metadata assertions — no live database. Model↔migration drift
 is caught at docker time by ``alembic check`` (autogenerate shows no diff)."""
 
-from database._pg import Base, Catchment, Gauge, PortRun
+from database._pg import Base, Catchment, Gauge, PortRun, Property
 
 
 def test_expected_tables_registered():
-    assert set(Base.metadata.tables) == {"catchment", "port_run", "gauge"}
+    assert set(Base.metadata.tables) == {"catchment", "port_run", "gauge", "property"}
 
 
 def test_gauge_promoted_columns_and_cdm():
@@ -55,6 +55,20 @@ def test_gauge_foreign_keys():
     }
     assert ("catchment_id", "catchment") in fks
     assert ("port_run_id", "port_run") in fks
+
+
+def test_property_promoted_columns_and_cdm():
+    cols = {c.name for c in Property.__table__.columns}
+    assert cols == {
+        "catchment_id", "property_id", "port_run_id", "uprn", "property_type",
+        "status", "property_value", "latitude", "longitude", "postcode",
+        "town_city", "local_authority", "area_sqm", "construction_year",
+        "ea_flood_zone", "overall_flood_risk", "cdm",
+    }
+    assert Property.__table__.c.cdm.nullable is False
+    assert {c.name for c in Property.__table__.primary_key.columns} == {
+        "catchment_id", "property_id",
+    }
 
 
 def test_port_run_provenance_columns():
