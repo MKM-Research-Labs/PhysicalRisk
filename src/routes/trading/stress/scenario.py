@@ -20,12 +20,12 @@
 
 """Stress scenario endpoint — hourly revaluation for a storm at a gauge."""
 
-import json
 import math
 import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 from .. import trading_bp
 from .._helpers import _get_engines, _load_open_trades
@@ -109,21 +109,18 @@ def run_stress_scenario():
             }), 404
 
         # 4. Get flood trigger levels from gauge data
-        gaugehc_path = config.get_input_dir() / 'gaugehc.json'
+        ghc = database.get_gauge_hazard_curves(config.catchment_id)
         alert_level = 0
         warning_level = 0
         severe_level = 0
-        if gaugehc_path.exists():
-            with open(gaugehc_path) as f:
-                ghc = json.load(f)
+        if ghc:
             gc = ghc.get('hazard_curves', {}).get(gauge_id, {})
             alert_level = gc.get('flood_alert_m', 0)
             warning_level = gc.get('flood_warning_m', 0)
             severe_level = gc.get('severe_flood_warning_m', 0)
 
         # 4b. Classifier availability check
-        _classifier_path = config.get_classifiers_dir() / f"{gauge_id}.joblib"
-        _classifier_ready = _classifier_path.exists()
+        _classifier_ready = gauge_id in database.list_classifier_ids(config.catchment_id)
 
         # 5. Build trade summary and map trigger to level
         trigger_levels = {

@@ -27,13 +27,13 @@ GET /api/v1/properties/<prop_id>/claim-report
     damage assessment (max-depth model) and mortgage impact.
 """
 
-import json
 import logging
 
 from flask import Response, jsonify
 
+import database
 from config import config
-from . import propertyts_bp, _get_propertyts_dir
+from . import propertyts_bp
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,7 @@ def _load_sequence_lookup():
     """Build sequence_id → {sequence_type, num_storms} lookup."""
     lookup = {}
     try:
-        seq_path = config.get_input_path(_SEQUENCES_FILE)
-        with open(seq_path, 'r') as f:
-            data = json.load(f)
+        data = database.get_storm_sequences(config.catchment_id) or {}
         for seq in data.get('sequences', []):
             lookup[seq['sequence_id']] = {
                 'sequence_type': seq.get('sequence_type', 'isolated'),
@@ -61,8 +59,7 @@ def _load_sequence_lookup():
 def _load_prop_record(prop_id):
     """Find and return the CDM record for this property from property.json."""
     try:
-        with open(config.get_input_path('property.json'), 'r') as f:
-            pdata = json.load(f)
+        pdata = database.get_property_portfolio(config.catchment_id) or {}
         for p in pdata.get('properties', []):
             ph = p.get('PropertyHeader', {})
             pid = ph.get('Header', {}).get('PropertyID', '')
@@ -76,8 +73,7 @@ def _load_prop_record(prop_id):
 def _load_rloan_record(prop_id):
     """Find and return mortgage data for this property from loan.json."""
     try:
-        with open(config.get_input_path('loan.json'), 'r') as f:
-            mdata = json.load(f)
+        mdata = database.get_loan_portfolio(config.catchment_id) or {}
         for m in mdata.get('loans', []):
             mg = m.get('RLoan', {})
             pid = mg.get('Header', {}).get('PropertyID', '')
@@ -103,18 +99,13 @@ def property_claim_report(prop_id: str):
     - Mortgage LTV impact and negative equity analysis
     - Claim determination summary
     """
-    pts_dir = _get_propertyts_dir()
-    prop_file = pts_dir / f'{prop_id}.json'
-
-    if not prop_file.exists():
+    prop_data = database.get_property_timeseries(config.catchment_id, prop_id)
+    if prop_data is None:
         return jsonify({
             'status': 'error',
             'message': f'Property {prop_id} not found in flood timeseries. '
                        'Run: python app.py port --propertyts'
         }), 404
-
-    with open(prop_file, 'r') as f:
-        prop_data = json.load(f)
 
     if not prop_data.get('flood_events'):
         return jsonify({

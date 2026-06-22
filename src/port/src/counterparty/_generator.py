@@ -21,12 +21,11 @@
 
 """Counterparty portfolio generator (orchestration)."""
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
+import database
 from config import config
 from port.cdm.ctpy import CounterpartyCDM
 
@@ -39,9 +38,9 @@ logger = logging.getLogger(__name__)
 class CounterpartyPortfolioGenerator(_RecordBuilderMixin):
     """Generates a portfolio of synthetic counterparties for PRS trading."""
 
-    def __init__(self, output_dir: Optional[Union[str, Path]] = None, verbose: bool = True):
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+    def __init__(self, catchment: Optional[str] = None, verbose: bool = True):
+        # Run-scoped catchment identity; storage location lives in ``database``.
+        self.catchment = catchment or database.active_catchment()
         self.cdm = CounterpartyCDM()
         self.verbose = verbose
 
@@ -53,7 +52,7 @@ class CounterpartyPortfolioGenerator(_RecordBuilderMixin):
             count: Number of counterparties (defaults to all predefined names)
 
         Returns:
-            Dict with 'data', 'file_path', and 'metadata'
+            Dict with 'data', 'catchment', and 'metadata'
         """
         if count is None:
             names = _ALL_COUNTERPARTIES
@@ -78,7 +77,6 @@ class CounterpartyPortfolioGenerator(_RecordBuilderMixin):
                 party_id = ctpy["CounterpartySet"]["Party"]["PartyID"]
                 logger.info("[%d/%d] %s (%s)", i+1, len(names), short_name, party_id)
 
-        output_path = self.output_dir / "counterparty.json"
         output_data = {
             "counterparties": counterparties,
             "generation_metadata": {
@@ -89,20 +87,21 @@ class CounterpartyPortfolioGenerator(_RecordBuilderMixin):
             }
         }
 
-        with open(output_path, 'w') as f:
-            json.dump(output_data, f, indent=2)
+        # Persist through the database seam (catchment-keyed, storage-agnostic).
+        database.save_counterparties(self.catchment, output_data)
 
         if self.verbose:
-            logger.info("Wrote %d counterparties to %s", len(counterparties), output_path)
+            logger.info("Wrote %d counterparties for catchment %s",
+                        len(counterparties), self.catchment)
 
         return {
             "data": counterparties,
-            "file_path": output_path,
+            "catchment": self.catchment,
             "metadata": output_data["generation_metadata"],
         }
 
 
-def generate_counterparties(output_dir=None, count=None, verbose=True):
+def generate_counterparties(catchment=None, count=None, verbose=True):
     """Convenience function."""
-    gen = CounterpartyPortfolioGenerator(output_dir=output_dir, verbose=verbose)
+    gen = CounterpartyPortfolioGenerator(catchment=catchment, verbose=verbose)
     return gen.generate(count)

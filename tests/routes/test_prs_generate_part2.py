@@ -37,10 +37,10 @@ class TestCommitValidationErrors:
 
     def test_validation_fails_returns_400(self, tmp_path, monkeypatch):
         from config import config
-        prs_dir = tmp_path / "reports" / "prs"
+        prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "_catchment_id", "thames")
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_trading_dir", lambda: tmp_path / "trading")
 
@@ -77,13 +77,13 @@ class TestCommitCloseOut:
         from config import config
         from unittest.mock import MagicMock, patch
 
-        prs_dir = tmp_path / "reports" / "prs"
+        prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
         trading_dir = tmp_path / "trading"
         trading_dir.mkdir(parents=True)
 
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "_catchment_id", "thames")
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "get_trading_dir", lambda: trading_dir)
 
@@ -126,13 +126,14 @@ class TestListTradesException:
 
     def test_corrupt_trade_file_returns_500(self, tmp_path, monkeypatch):
         from config import config
-        prs_dir = tmp_path / "reports" / "prs"
+        prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
         # Write a corrupt JSON file matching PRS-*.json pattern
         (prs_dir / "PRS-CORRUPT1.json").write_text("NOT VALID JSON {{{")
 
-        monkeypatch.setattr(config, "get_reports_dir", lambda name: tmp_path / "reports" / name)
-        monkeypatch.setattr(config, "catchment_id", "thames")
+        monkeypatch.setattr(config, "get_reports_dir", lambda name: (tmp_path / "prs") if name == "prs" else tmp_path / "reports" / name)
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+        monkeypatch.setattr(config, "_catchment_id", "thames")
 
         from server import create_app
         from fixtures_admin import AuthenticatedTestClient

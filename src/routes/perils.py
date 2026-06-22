@@ -20,39 +20,36 @@
 
 """Fire and seismic peril-model outputs for the active catchment.
 
-Serves the per-asset fire (MKM-FIRE-001) and seismic model outputs that the
-port stage writes to ``<input>/fire/fire.json`` and ``<input>/seismic/
-seismic.json``. Read-only; returns an empty payload when the catchment has not
-been run through those models.
+Serves the per-asset fire (MKM-FIRE-001) and seismic model outputs. Read-only;
+returns an empty payload when the catchment has not been run through those models.
+Data access goes through the ``database`` package (coding rule R6).
 """
 
-import json
+from json import JSONDecodeError
 
 from flask import Blueprint, jsonify
 
 from config import config
+from database import get_fire_results, get_seismic_results
 
 perils_bp = Blueprint('perils', __name__)
 
 
-def _load_peril(subdir: str, filename: str) -> dict:
-    path = config.get_input_dir() / subdir / filename
-    if not path.exists():
-        return {}
-    try:
-        with open(path, 'r', encoding='utf-8') as fh:
-            return json.load(fh)
-    except (OSError, json.JSONDecodeError):
-        return {}
-
-
 @perils_bp.route('/fire', methods=['GET'])
 def fire():
-    """Per-asset fire-model outcomes (commercial portfolio)."""
-    return jsonify(_load_peril('fire', 'fire.json'))
+    """Per-asset fire-model outcomes (commercial portfolio). A corrupt or
+    absent model file yields an empty payload."""
+    try:
+        return jsonify(get_fire_results(config.catchment_id) or {})
+    except (OSError, JSONDecodeError):
+        return jsonify({})
 
 
 @perils_bp.route('/seismic', methods=['GET'])
 def seismic():
-    """Per-asset seismic-model outcomes (commercial portfolio)."""
-    return jsonify(_load_peril('seismic', 'seismic.json'))
+    """Per-asset seismic-model outcomes (commercial portfolio). A corrupt or
+    absent model file yields an empty payload."""
+    try:
+        return jsonify(get_seismic_results(config.catchment_id) or {})
+    except (OSError, JSONDecodeError):
+        return jsonify({})

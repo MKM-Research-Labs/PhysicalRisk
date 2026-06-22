@@ -20,15 +20,14 @@
 
 """Shared frame-building helpers for the storm-animation endpoints."""
 
-import json
 import logging
 
 from config.port import EVENT_WINDOW_HOURS as STORM_HOURS  # 7-day storm window
 
 from flask import jsonify
 
+import database
 from config import config
-from .. import _get_propertyts_dir
 
 logger = logging.getLogger(__name__)
 
@@ -55,13 +54,16 @@ def _build_gauge_lookup(gauge_data):
     return gauge_lookup
 
 
-def _load_gauge_readings(gaugets_dir):
-    """Load gauge timeseries readings from GAUGE-*.json files."""
+def _load_gauge_readings():
+    """Load gauge timeseries readings from the gauge-timeseries collection."""
     gauge_readings = {}
-    for gf in gaugets_dir.glob('GAUGE-*.json'):
-        with open(gf, 'r') as f:
-            gdata = json.load(f)
-        gid = gdata.get('gauge_id', gf.stem)
+    for key in database.iter_gauge_timeseries_ids(config.catchment_id):
+        if not key.startswith('GAUGE-'):
+            continue
+        gdata = database.get_gauge_timeseries(config.catchment_id, key)
+        if gdata is None:
+            continue
+        gid = gdata.get('gauge_id', key)
         readings = gdata.get('flood_simulation', {}).get('readings', [])
         gauge_readings[gid] = readings
     return gauge_readings
@@ -132,22 +134,23 @@ def _build_animation_frames(gauge_lookup, gauge_readings, property_events,
 
 
 def _load_animation_context():
-    """Load pts_dir, gauge_lookup, and gauge_readings.
+    """Load property ids, gauge_lookup, and gauge_readings.
 
-    Returns (pts_dir, gauge_lookup, gauge_readings) on success, or
+    Returns (property_ids, gauge_lookup, gauge_readings) on success, or
     a (response, status_code) tuple on failure.
     """
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir.exists():
+    if not database.property_timeseries_exists(config.catchment_id):
         return jsonify({
             'status': 'error',
             'message': 'Property flood timeseries not yet generated'
         }), 404
 
-    gauge_path = config.get_input_path('gauge.json')
-    with open(gauge_path, 'r') as f:
-        gauge_data = json.load(f)
+    gauge_data = database.get_gauge_portfolio(config.catchment_id)
 
     gauge_lookup = _build_gauge_lookup(gauge_data)
-    gauge_readings = _load_gauge_readings(config.get_gaugets_dir())
-    return pts_dir, gauge_lookup, gauge_readings
+    gauge_readings = _load_gauge_readings()
+    property_ids = [
+        pid for pid in database.iter_property_timeseries_ids(config.catchment_id)
+        if pid.startswith('PROP-')
+    ]
+    return property_ids, gauge_lookup, gauge_readings

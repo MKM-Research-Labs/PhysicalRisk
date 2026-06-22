@@ -30,12 +30,27 @@ from collections import Counter
 
 import pytest
 
+import database
 from config import config
 from port.cdm import CommercialAssetCDM
 from port.src.commercial import (
     CommercialPortfolioGenerator,
     generate_commercials,
 )
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Route the migrated commercial writer's reads/writes to a scratch dir.
+
+    The WP2.4 commercial generator reads the gauge portfolio (ReferenceGauges +
+    inherited synthetic-gauge placement) and persists commercial assets through
+    ``database`` against ``active_catchment()``. Binding a tmp-rooted backend isolates
+    every test, lets a test pre-write ``tmp_path / 'gauge.json'``, and lets assertions
+    read back via ``database.get_commercial_portfolio``."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 def _catchment_latlon_bounds(margin: float = 0.5):
@@ -61,7 +76,7 @@ def _catchment_latlon_bounds(margin: float = 0.5):
 @pytest.fixture
 def gen(tmp_path):
     """A CommercialPortfolioGenerator with tmp-path output, suppressed logging."""
-    return CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+    return CommercialPortfolioGenerator(verbose=False)
 
 
 @pytest.mark.generator
@@ -69,7 +84,7 @@ class TestGeneratorReturn:
 
     def test_generate_returns_expected_keys(self, gen):
         result = gen.generate(count=10)
-        assert set(result) == {"data", "file_path", "processing_stats"}
+        assert set(result) == {"data", "catchment", "processing_stats"}
         assert set(result["data"]) == {"commercial_assets", "asset_ids", "locations"}
 
     def test_processing_stats_complete(self, gen):
@@ -166,25 +181,25 @@ class TestRecordStructure:
 @pytest.mark.generator
 class TestOutputFile:
 
-    def test_output_path_is_commercial_json(self, gen, tmp_path):
+    def test_result_reports_catchment(self, gen):
         result = gen.generate(count=10)
-        assert result["file_path"] == tmp_path / "commercial.json"
+        assert result["catchment"] == database.active_catchment()
 
-    def test_output_file_exists(self, gen, tmp_path):
-        gen.generate(count=10)
-        assert (tmp_path / "commercial.json").exists()
+    def test_output_persisted(self, gen):
+        result = gen.generate(count=10)
+        assert database.get_commercial_portfolio(result["catchment"]) is not None
 
-    def test_output_file_is_valid_json(self, gen, tmp_path):
-        gen.generate(count=10)
-        d = json.loads((tmp_path / "commercial.json").read_text())
+    def test_output_is_valid_portfolio(self, gen):
+        result = gen.generate(count=10)
+        d = database.get_commercial_portfolio(result["catchment"])
         assert "commercial_assets" in d
         assert "generation_metadata" in d
         assert d["generation_metadata"]["total_assets_generated"] == 10
         assert d["generation_metadata"]["catchment"] == config.CATCHMENT
 
-    def test_type_mix_in_metadata(self, gen, tmp_path):
-        gen.generate(count=10)
-        d = json.loads((tmp_path / "commercial.json").read_text())
+    def test_type_mix_in_metadata(self, gen):
+        result = gen.generate(count=10)
+        d = database.get_commercial_portfolio(result["catchment"])
         mix = d["generation_metadata"]["type_mix"]
         assert mix == {"Office": 3, "MultiFamily": 3, "Hotel": 1,
                        "Retail": 2, "MixedUse": 1}
@@ -194,9 +209,9 @@ class TestOutputFile:
 class TestConvenienceFunction:
 
     def test_generate_commercials_calls_class(self, tmp_path):
-        result = generate_commercials(count=5, output_dir=tmp_path)
+        result = generate_commercials(count=5)
         assert len(result["data"]["commercial_assets"]) == 5
-        assert (tmp_path / "commercial.json").exists()
+        assert database.get_commercial_portfolio(result["catchment"]) is not None
 
 
 @pytest.mark.generator
@@ -204,7 +219,7 @@ class TestVariableCount:
 
     @pytest.mark.parametrize("count", [1, 5, 12, 20])
     def test_arbitrary_count_produces_n_records(self, tmp_path, count):
-        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CommercialPortfolioGenerator(verbose=False)
         result = gen.generate(count=count)
         assert len(result["data"]["commercial_assets"]) == count
 
@@ -219,7 +234,7 @@ class TestGaugeIdMap:
             {"FloodGauge": {"Header": {"GaugeID": "GAUGE-002"}}},
         ]}
         (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
-        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CommercialPortfolioGenerator(verbose=False)
         gen.generate(count=3)
         assert gen._gauge_id_map == {0: "GAUGE-001", 1: "GAUGE-002"}
 
@@ -229,7 +244,7 @@ class TestGaugeIdMap:
             {"FloodGauge": {"Header": {"GaugeID": "G-9"}}},
         ]}
         (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
-        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CommercialPortfolioGenerator(verbose=False)
         gen.generate(count=2)
         assert gen._gauge_id_map == {0: "G-9"}
 
@@ -240,20 +255,20 @@ class TestGaugeIdMap:
             {"FloodGauge": {"Header": {"GaugeID": "GAUGE-003"}}},
         ]}
         (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
-        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CommercialPortfolioGenerator(verbose=False)
         gen.generate(count=2)
         assert gen._gauge_id_map == {0: "GAUGE-001", 2: "GAUGE-003"}
 
     def test_malformed_gauge_json_is_tolerated(self, tmp_path):
         """A corrupt gauge.json must not abort generation (exception branch)."""
         (tmp_path / "gauge.json").write_text("{ this is not valid json")
-        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CommercialPortfolioGenerator(verbose=False)
         result = gen.generate(count=3)
         assert gen._gauge_id_map == {}
         assert len(result["data"]["commercial_assets"]) == 3
 
     def test_no_gauge_file_leaves_map_empty(self, tmp_path):
-        gen = CommercialPortfolioGenerator(output_dir=tmp_path, verbose=False)
+        gen = CommercialPortfolioGenerator(verbose=False)
         gen.generate(count=2)
         assert gen._gauge_id_map == {}
 
@@ -292,5 +307,5 @@ class TestAssetFailureHandling:
         assert stats["failed_assets"] == 4
         assert stats["successful_assets"] == 0
         assert result["data"]["commercial_assets"] == []
-        # Output file is still written, just empty.
-        assert (gen.output_dir / "commercial.json").exists()
+        # Portfolio is still persisted, just empty.
+        assert database.get_commercial_portfolio(result["catchment"]) is not None

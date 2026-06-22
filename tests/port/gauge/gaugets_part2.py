@@ -28,6 +28,8 @@ import json
 
 import pytest
 
+import database
+
 
 # ===========================================================================
 # Convenience function  (lines 236-237)
@@ -43,7 +45,7 @@ class TestGenerateGaugetsConvenience:
         mock_gen = MagicMock()
         mock_gen.generate.return_value = {
             'data': {'time_series': [], 'num_gauges': 5, 'num_timesteps': 168},
-            'file_path': tmp_path / 'gaugets',
+            'catchment': 'thames',
             'simulation_parameters': {},
         }
         with patch('port.src.gauge.gaugets.GaugeTimeSeriesGenerator', return_value=mock_gen):
@@ -100,19 +102,15 @@ class TestGaugetsDateTimeEncoder:
 class TestGaugetsMain:
 
     def test_main_block(self, tmp_path):
-        """Lines 241-244: __main__ block runs generate_gaugets(168) and logs results.
+        """The __main__ block runs generate_gaugets(168) and writes per-gauge timeseries.
 
-        GaugeTimeSeriesGenerator is redefined in runpy's fresh namespace, so it cannot
-        be patched via sys.modules.  Instead patch the config singleton methods that the
-        generator uses: get_input_dir (for output) and get_input_path (for reading
-        gauge.json).  A minimal gauge.json is written to tmp_path first.
+        The tmp_catchment backend (rooted at tmp_path) supplies the gauge read and
+        receives the per-gauge timeseries writes through ``database``.
         """
         import runpy
-        from unittest.mock import patch
-        from config import config as cfg
+        from db_helpers import tmp_catchment
 
-        gauge_json = tmp_path / 'gauge.json'
-        gauge_json.write_text(json.dumps({
+        gauge_portfolio = {
             'flood_gauges': [{
                 'FloodGauge': {
                     'Header': {'GaugeID': 'GAUGE-test0001', 'GaugeName': 'Test'},
@@ -122,13 +120,14 @@ class TestGaugetsMain:
                     'FloodStage': {'UK': {'FloodAlert': 4.5}},
                 }
             }]
-        }))
+        }
 
-        with patch.object(cfg, 'get_input_dir', return_value=tmp_path), \
-             patch.object(cfg, 'get_input_path', return_value=gauge_json):
+        with tmp_catchment(tmp_path):
+            database.save_gauges(database.active_catchment(), gauge_portfolio)
             try:
                 runpy.run_module('port.src.gauge.gaugets', run_name='__main__')
             except SystemExit:
                 pass
-        # Per-gauge files were written -> __main__ block executed
+            # Per-gauge timeseries were written -> __main__ block executed
+            assert list(database.iter_gauge_timeseries_ids(database.active_catchment()))
         assert (tmp_path / 'gaugets').exists()

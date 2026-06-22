@@ -36,10 +36,23 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import database
 from port.src.property.main import PropertyPortfolioGenerator
 from port.src.property.main.locations import _zone_from_offset
+from db_helpers import tmp_catchment
 
 from .conftest import GAUGE_POINTS, make_portfolio_gen, make_portfolio_params
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames") for every test in this module.
+
+    The migrated property generator/locations mixin read the gauge portfolio and write
+    properties through ``database``; rooting the backend at ``tmp_path`` isolates those
+    and lets a test pre-write ``tmp_path / 'gauge.json'`` for the synthetic-gauge path."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -78,7 +91,7 @@ class TestNoAreaValueFactors:
         params.get_elevation = MagicMock(return_value=8.0)
 
         gen = PropertyPortfolioGenerator(
-            output_dir=tmp_path, verbose=False, catchment_params=params)
+            verbose=False, catchment_params=params)
         locs = gen._generate_locations(3)
         assert len(locs) == 3
         # value_factor should default to 1.0 when area not in empty dict
@@ -106,7 +119,7 @@ class TestSegFallbackNoGaugePoints:
         params.get_elevation = MagicMock(return_value=8.0)
 
         gen = PropertyPortfolioGenerator(
-            output_dir=tmp_path, verbose=False, catchment_params=params)
+            verbose=False, catchment_params=params)
 
         # Write a gauge.json with synthetic gauges so the synthetics branch runs
         gauge_data = {
@@ -141,7 +154,7 @@ class TestSegFallbackNoGaugePoints:
         params.get_elevation = MagicMock(return_value=8.0)
 
         gen = PropertyPortfolioGenerator(
-            output_dir=tmp_path, verbose=False, catchment_params=params)
+            verbose=False, catchment_params=params)
 
         gauge_data = {
             "flood_gauges": [
@@ -164,16 +177,15 @@ class TestSegFallbackNoGaugePoints:
 
 
 # ===========================================================================
-# locations.py line 154 -- _load_synthetic_gauges returns [] when no output_dir
+# locations.py -- _load_synthetic_gauges returns [] when no gauge portfolio
 # ===========================================================================
 
-class TestLoadSyntheticGaugesNoOutputDir:
+class TestLoadSyntheticGaugesNoPortfolio:
 
-    def test_returns_empty_when_output_dir_is_none(self, tmp_path):
-        """When output_dir is None, _load_synthetic_gauges returns []."""
+    def test_returns_empty_when_no_gauge_portfolio(self, tmp_path):
+        """With no gauge portfolio persisted for the catchment, returns []."""
         gen = make_portfolio_gen(tmp_path)
-        # Force output_dir to None after construction (constructor defaults it)
-        gen.output_dir = None
+        # The autouse tmp_catchment backend is empty (no gauge.json written).
         result = gen._load_synthetic_gauges()
         assert result == []
 
@@ -199,29 +211,15 @@ class TestEnsureOffRiverZeroLengthSegment:
 
 
 # ===========================================================================
-# generator.py lines 189-191 -- exception during JSON save
+# generator.py -- exception during the database save is logged and re-raised
 # ===========================================================================
 
-class TestGeneratorJsonSaveError:
+class TestGeneratorSaveError:
 
-    def test_json_save_exception_is_logged_and_reraised(self, tmp_path):
-        """Force an exception during json.dump and verify it's re-raised."""
+    def test_save_exception_is_logged_and_reraised(self, tmp_path):
+        """A failure in database.save_properties propagates out of generate()."""
         gen = make_portfolio_gen(tmp_path)
-
-        # Make the output directory read-only so the file write fails
-        output_dir = tmp_path / "readonly_out"
-        output_dir.mkdir()
-        gen.output_dir = output_dir
-
-        # Patch open to raise an OSError when writing
-        original_open = open
-
-        def failing_open(path, mode='r', *args, **kwargs):
-            if 'w' in str(mode) and 'property.json' in str(path):
-                raise OSError("Simulated write failure")
-            return original_open(path, mode, *args, **kwargs)
-
-        with patch('builtins.open', side_effect=failing_open):
+        with patch('database.save_properties', side_effect=OSError("Simulated write failure")):
             with pytest.raises(OSError, match="Simulated write failure"):
                 gen.generate(count=2)
 

@@ -53,14 +53,20 @@ def _make_nested_gauge(gauge_id, lat, lon, alert, warning, severe):
 
 @pytest.fixture
 def pipeline_env(tmp_path):
-    """Minimal environment for pipeline tests."""
+    """Minimal environment for pipeline tests.
+
+    Roots a tmp database backend here so the migrated gauge-timeseries generator
+    (run inside ``generate_stressm`` via ``populate_gaugets``) reads ``gauge.json``
+    from this dir and writes the keyed timeseries to ``<dir>/gaugets/``."""
+    from db_helpers import tmp_catchment
     gauges = [
         _make_nested_gauge("GAUGE-p001", 51.46, -0.30, 3.5, 4.6, 5.5),
         _make_nested_gauge("GAUGE-p002", 51.47, -0.20, 4.0, 5.2, 6.1),
     ]
     gauge_json = {"flood_gauges": gauges, "generation_metadata": {"num_gauges": 2}}
     (tmp_path / "gauge.json").write_text(json.dumps(gauge_json))
-    return tmp_path
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield tmp_path
 
 
 # ---------------------------------------------------------------------------

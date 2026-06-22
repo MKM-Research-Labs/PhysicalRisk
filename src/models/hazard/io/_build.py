@@ -21,11 +21,11 @@
 """``build_hazard_curves`` — the main hazard-curve build entry point."""
 
 import logging
-from pathlib import Path
 from typing import Dict
 
 import numpy as np
 
+import database
 from ..builder import HazardCurveBuilder
 from ._load import load_gauges, load_storms_from_sequences
 from ._save import save_gauge_storm_responses, save_hazard_curves
@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 def build_hazard_curves(
-    output_dir: Path,
     catchment_id: str,
     distribution: str = 'gev',
     verbose: bool = True
@@ -42,12 +41,11 @@ def build_hazard_curves(
     """
     Build hazard curves from storm sequences and gauge data.
 
-    Expects:
-        - output_dir/storm_sequences.json (from storm_multi via --stressm)
-        - output_dir/gauge.json (from gauge.py)
+    Reads the ``storm_sequences`` and gauge portfolio for ``catchment_id`` through
+    the database seam, and persists the hazard curves + per-gauge storm responses
+    the same way.
 
     Args:
-        output_dir: Input/output directory
         catchment_id: Catchment identifier
         distribution: 'gev' or 'gumbel'
         verbose: Print progress
@@ -55,28 +53,27 @@ def build_hazard_curves(
     Returns:
         Dictionary with results
     """
-    sequences_path = output_dir / "storm_sequences.json"
-    if not sequences_path.exists():
+    sequences_data = database.get_storm_sequences(catchment_id)
+    if sequences_data is None:
         raise FileNotFoundError(
-            f"storm_sequences.json not found in {output_dir}. "
+            f"Storm sequences not found for catchment {catchment_id}. "
             "Run 'python app.py port --stressm' first."
         )
 
-    storms = load_storms_from_sequences(sequences_path)
+    storms = load_storms_from_sequences(sequences_data)
     if verbose:
-        logger.info("Loaded %d individual storms from sequences at %s",
-                    len(storms), sequences_path)
+        logger.info("Loaded %d individual storms from sequences", len(storms))
 
-    gauges_path = output_dir / "gauge.json"
-    if not gauges_path.exists():
+    gauge_portfolio = database.get_gauge_portfolio(catchment_id)
+    if gauge_portfolio is None:
         raise FileNotFoundError(
-            f"gauge.json not found in {output_dir}. "
+            f"Gauge portfolio not found for catchment {catchment_id}. "
             "Run 'python port.py --gauges' first."
         )
 
-    gauges = load_gauges(gauges_path)
+    gauges = load_gauges(gauge_portfolio)
     if verbose:
-        logger.info("Loaded %d gauges from %s", len(gauges), gauges_path)
+        logger.info("Loaded %d gauges", len(gauges))
 
     builder = HazardCurveBuilder(
         gauges=gauges,
@@ -87,23 +84,21 @@ def build_hazard_curves(
 
     hazard_curves, responses = builder.build()
 
-    output_path = output_dir / "gaugehc.json"
     metadata = {
         'num_storms': len(storms),
         'distribution': distribution
     }
-    save_hazard_curves(hazard_curves, output_path, catchment_id, metadata)
+    save_hazard_curves(hazard_curves, catchment_id, metadata)
 
     if verbose:
-        logger.info("Saved hazard curves to: %s", output_path)
+        logger.info("Saved hazard curves for catchment %s", catchment_id)
 
-    # Save gauge storm responses into per-gauge files
-    gaugets_dir = output_dir / "gaugets"
-    save_gauge_storm_responses(responses, gaugets_dir, catchment_id)
+    # Merge gauge storm responses into the per-gauge timeseries records.
+    save_gauge_storm_responses(responses, catchment_id)
 
     if verbose:
         total_responses = sum(len(r) for r in responses.values())
-        logger.info("Saved %d gauge storm responses to: %s", total_responses, gaugets_dir)
+        logger.info("Saved %d gauge storm responses", total_responses)
 
     avg_alert = np.mean([c.annual_flood_prob_alert for c in hazard_curves.values()])
     avg_warning = np.mean([c.annual_flood_prob_warning for c in hazard_curves.values()])
@@ -115,7 +110,6 @@ def build_hazard_curves(
 
     return {
         'hazard_curves': hazard_curves,
-        'output_path': output_path,
         'summary': {
             'num_gauges': len(hazard_curves),
             'num_storms': len(storms),

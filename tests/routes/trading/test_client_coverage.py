@@ -43,6 +43,13 @@ class TestCorruptTradeFileSkipped:
         # Valid trades from trading_env should still load
         assert data["summary"]["num_trades"] >= 0
 
+    def test_non_prs_named_file_skipped(self, trading_env, trading_client):
+        """A non-``PRS-`` document in the prs collection is skipped by the filter."""
+        (trading_env["prs_dir"] / "notes.json").write_text(json.dumps({"x": 1}))
+        resp = trading_client.get("/api/v1/trading/client")
+        assert resp.status_code == 200
+        assert resp.get_json()["status"] == "success"
+
     def test_trade_file_with_missing_keys_skipped(self, trading_env, trading_client):
         """A trade file that raises an exception during processing is skipped."""
         prs_dir = trading_env["prs_dir"]
@@ -69,12 +76,12 @@ class TestCorruptTradeFileSkipped:
 class TestClientBlotter500:
     """Cover lines 109-111: exception handler returns 500."""
 
-    def test_get_reports_dir_raises_returns_500(self, trading_client, monkeypatch):
-        """When config.get_reports_dir raises, the endpoint returns 500."""
-        from config import config
+    def test_prs_read_raises_returns_500(self, trading_client, monkeypatch):
+        """When the PRS data access raises, the endpoint returns 500."""
+        import database
         monkeypatch.setattr(
-            config, "get_reports_dir",
-            lambda subdir=None: (_ for _ in ()).throw(RuntimeError("disk error")),
+            database, "iter_prs_trade_ids",
+            lambda catchment: (_ for _ in ()).throw(RuntimeError("disk error")),
         )
 
         resp = trading_client.get("/api/v1/trading/client")

@@ -64,17 +64,6 @@ class TestTrainSingleGauge:
             "metrics": {"auc_roc": 0.94, "accuracy": 0.91},
         }
 
-        with patch(
-            "routes.trading.stress.training.json"
-        ) as mock_json, patch(
-            "routes.trading.stress.training._update_training_summary"
-        ) as mock_summary, patch(
-            "routes.trading.stress.training._train_single_gauge"
-        ) as mock_impl:
-            # Instead of mocking the function itself, call it and simulate
-            # the success path by directly manipulating the job dict
-            pass
-
         # Test the actual logic by mocking the heavy imports
         mock_imports = {
             "numpy": __import__("unittest.mock", fromlist=["MagicMock"]).MagicMock(),

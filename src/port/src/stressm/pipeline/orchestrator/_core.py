@@ -76,8 +76,7 @@ def generate_stressm(
     """
     from port.src.storm_multi.generators.batch_generator import generate_event_set
     from port.src.storm_multi.utils.serialization import (
-        save_sequences, save_summary,
-        SEQUENCES_FILENAME, SUMMARY_FILENAME,
+        save_sequences, save_summary, SEQUENCES_FILENAME,
     )
     from port.src.storm_multi.models.sequence_response import (
         SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
@@ -94,10 +93,8 @@ def generate_stressm(
     print(f"  Generating {count:,} storm sequences...", flush=True)
     sequences = generate_event_set(count=count, catchment_id=catchment_id, seed=seed)
 
-    seq_path = input_dir / SEQUENCES_FILENAME
-    sum_path = input_dir / SUMMARY_FILENAME
-    save_sequences(sequences, seq_path)
-    save_summary(sequences, sum_path)
+    save_sequences(sequences, catchment_id)
+    save_summary(sequences, catchment_id)
 
     type_counts: dict = {}
     for s in sequences:

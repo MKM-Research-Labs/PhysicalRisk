@@ -28,6 +28,24 @@ import pytest
 from .conftest import make_trade
 
 
+class TestLoadOpenTradesFilters:
+    """_load_open_trades skips non-PRS documents and property PRS trades."""
+
+    def test_skips_non_prs_and_property_trades(self, trading_env):
+        from routes.trading._helpers import _load_open_trades
+        prs_dir = trading_env["prs_dir"]
+        # Stray non-PRS document — skipped by the key filter.
+        (prs_dir / "notes.json").write_text(json.dumps({"x": 1}))
+        # A property PRS (has PropertySet) — served by /trading/client, skipped here.
+        (prs_dir / "PRS-PROP-X.json").write_text(json.dumps({
+            "PhysicalSwap": {"Header": {"SwapID": "PRS-PROP-X"},
+                             "PropertySet": {"PropertyID": "P1"}}}))
+
+        trades = _load_open_trades()
+        ids = [t.get("PhysicalSwap", {}).get("Header", {}).get("SwapID") for t in trades]
+        assert "PRS-PROP-X" not in ids
+
+
 class TestActiveGauges:
     """GET /trading/blotter/active-gauges -- context menu blotter availability.
 
@@ -64,6 +82,13 @@ class TestActiveGauges:
         assert self.WESTMINSTER_ID in active
         assert self.CHELSEA_ID in active
         assert self.LAMBETH_ID in active
+
+    def test_non_prs_named_file_skipped(self, trading_client, trading_env):
+        """A non-``PRS-`` document in the prs collection is skipped by the filter."""
+        (trading_env['prs_dir'] / 'notes.json').write_text(json.dumps({'x': 1}))
+        resp = trading_client.get('/api/v1/trading/blotter/active-gauges')
+        assert resp.status_code == 200
+        assert json.loads(resp.data)['status'] == 'success'
 
     def test_gauge_without_trade_is_not_returned(
             self, trading_client, trading_env):

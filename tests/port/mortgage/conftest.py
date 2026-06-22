@@ -52,6 +52,11 @@ def write_property_portfolio(path: Path, count: int = 3) -> Path:
 
 
 def make_generator(tmp_path: Path):
-    """Return a MortgagePortfolioGenerator with default config modules loaded."""
+    """Return a MortgagePortfolioGenerator with default config modules loaded.
+
+    The WP2.4 generator no longer takes ``output_dir``; it reads the property portfolio
+    and writes loans through ``database`` against the active catchment. Tests calling
+    ``.generate()`` must run inside ``tmp_catchment(tmp_path)`` (their module fixture);
+    ``tmp_path`` is kept in the signature for call-site compatibility."""
     from port.src.mortgage import MortgagePortfolioGenerator
-    return MortgagePortfolioGenerator(output_dir=tmp_path, verbose=False)
+    return MortgagePortfolioGenerator(verbose=False)

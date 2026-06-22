@@ -32,9 +32,9 @@ def no_cache(response):
     response.headers['Pragma'] = 'no-cache'
     return response
 
-import json
 import logging
 
+import database
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -46,14 +46,12 @@ def _get_engines():
     from models.trading.delta_engine import DeltaEngine
     from models.trading.pnl_engine import PnLEngine
 
-    trading_dir = config.get_trading_dir()
-    input_dir = config.get_input_dir()
-    prs_dir = config.get_reports_dir("prs")
-    prs_dir.mkdir(parents=True, exist_ok=True)
+    # Ensure the PRS reports dir exists (PRS trades still land there as files).
+    config.get_reports_dir("prs").mkdir(parents=True, exist_ok=True)
 
-    market_mgr = MarketStateManager(trading_dir, input_dir)
+    market_mgr = MarketStateManager()
     delta_eng = DeltaEngine(market_mgr)
-    pnl_eng = PnLEngine(trading_dir, prs_dir)
+    pnl_eng = PnLEngine()
 
     return market_mgr, delta_eng, pnl_eng
 
@@ -62,17 +60,19 @@ def _load_open_trades():
     """Load all PRS trades, merge with trade marks for status."""
     from models.trading.pnl_engine import PnLEngine
 
-    prs_dir = config.get_reports_dir("prs")
-    prs_dir.mkdir(parents=True, exist_ok=True)
-    trading_dir = config.get_trading_dir()
+    catchment = config.catchment_id
+    config.get_reports_dir("prs").mkdir(parents=True, exist_ok=True)
 
-    pnl_eng = PnLEngine(trading_dir, prs_dir)
+    pnl_eng = PnLEngine()
     marks = pnl_eng.load_trade_marks()
 
     trades = []
-    for f in sorted(prs_dir.glob("PRS-*.json")):
-        with open(f) as fh:
-            trade = json.load(fh)
+    for prs_id in database.iter_prs_trade_ids(catchment):
+        if not prs_id.startswith('PRS-'):
+            continue
+        trade = database.get_prs_trade(catchment, prs_id)
+        if trade is None:
+            continue
 
         # Skip property PRS trades (served by /trading/client instead)
         if 'PropertySet' in trade.get('PhysicalSwap', {}):
@@ -97,11 +97,9 @@ def _load_open_trades():
 
 def _load_gauge_locations() -> dict:
     """Load gauge locations from gaugehc.json (hazard_curves dict format)."""
-    gaugehc_path = config.get_input_dir() / 'gaugehc.json'
     gauge_locations = {}
-    if gaugehc_path.exists():
-        with open(gaugehc_path) as f:
-            gaugehc = json.load(f)
+    gaugehc = database.get_gauge_hazard_curves(config.catchment_id)
+    if gaugehc:
         curves = gaugehc.get('hazard_curves', {})
         for gid, gdata in curves.items():
             gauge_locations[gid] = {

@@ -25,9 +25,21 @@ Covers: generate (default count, custom count), _generate_one (structure,
 rating pools per type, CSA logic), convenience function generate_counterparties.
 """
 
-import json
-
 import pytest
+
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames") for every test in this module.
+
+    The migrated counterparty writer persists through ``database``; rooting the backend at
+    ``tmp_path`` isolates the write and lets assertions read back via
+    ``database.get_counterparty_portfolio`` / ``list_counterparties``."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -37,7 +49,7 @@ import pytest
 @pytest.fixture
 def gen(tmp_path):
     from port.src.counterparty import CounterpartyPortfolioGenerator
-    return CounterpartyPortfolioGenerator(output_dir=tmp_path, verbose=False)
+    return CounterpartyPortfolioGenerator(verbose=False)
 
 
 # ===========================================================================
@@ -49,7 +61,7 @@ class TestCounterpartyGenerate:
     def test_returns_dict_with_required_keys(self, gen):
         result = gen.generate(count=2)
         assert "data" in result
-        assert "file_path" in result
+        assert "catchment" in result
         assert "metadata" in result
 
     def test_data_is_list(self, gen):
@@ -65,14 +77,13 @@ class TestCounterpartyGenerate:
         # +1 for the fixed REIT counterparty
         assert len(result["data"]) == len(_ALL_COUNTERPARTIES) + 1
 
-    def test_creates_output_file(self, gen, tmp_path):
-        gen.generate(count=2)
-        output_file = tmp_path / "counterparty.json"
-        assert output_file.exists()
+    def test_persists_portfolio(self, gen):
+        result = gen.generate(count=2)
+        assert database.get_counterparty_portfolio(result["catchment"]) is not None
 
-    def test_output_file_is_valid_json(self, gen, tmp_path):
-        gen.generate(count=2)
-        data = json.loads((tmp_path / "counterparty.json").read_text())
+    def test_persisted_portfolio_is_valid(self, gen):
+        result = gen.generate(count=2)
+        data = database.get_counterparty_portfolio(result["catchment"])
         assert "counterparties" in data
         assert "generation_metadata" in data
 
@@ -81,10 +92,9 @@ class TestCounterpartyGenerate:
         result = gen.generate(count=4)
         assert result["metadata"]["total_generated"] == 5
 
-    def test_file_path_is_pathlib_path(self, gen):
-        from pathlib import Path
+    def test_result_reports_catchment(self, gen):
         result = gen.generate(count=1)
-        assert isinstance(result["file_path"], Path)
+        assert result["catchment"] == database.active_catchment()
 
     def test_zero_count_returns_reit_only(self, gen):
         """count=0 still emits the fixed REIT entry."""
@@ -180,12 +190,12 @@ class TestGenerateCounterpartiesFunction:
 
     def test_returns_dict(self, tmp_path):
         from port.src.counterparty import generate_counterparties
-        result = generate_counterparties(output_dir=tmp_path, count=2, verbose=False)
+        result = generate_counterparties(count=2, verbose=False)
         assert isinstance(result, dict)
         assert "data" in result
 
     def test_count_respected(self, tmp_path):
         from port.src.counterparty import generate_counterparties
         # +1 REIT prepended to the external pool of size ``count``
-        result = generate_counterparties(output_dir=tmp_path, count=3, verbose=False)
+        result = generate_counterparties(count=3, verbose=False)
         assert len(result["data"]) == 4

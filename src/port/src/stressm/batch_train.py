@@ -34,7 +34,6 @@ Usage (Python):
 """
 
 import gc
-import json
 import logging
 import time
 from pathlib import Path
@@ -102,15 +101,15 @@ def batch_train_classifiers(
     # ------------------------------------------------------------------
     # 3. Load shared data: sequences + spatial model
     # ------------------------------------------------------------------
-    seq_path = input_dir / "storm_sequences.json"
-    if not seq_path.exists():
+    import database
+    if not database.storm_sequences_exists(database.active_catchment()):
         raise FileNotFoundError(
-            f"storm_sequences.json not found at {seq_path}. "
-            f"Run 'python app.py port --stressm' first."
+            "storm_sequences not found. "
+            "Run 'python app.py port --stressm' first."
         )
 
     print("  Loading storm sequences...", flush=True)
-    sequences = load_sequences(seq_path)
+    sequences = load_sequences()
     print(f"  Loaded {len(sequences):,} sequences", flush=True)
 
     # ------------------------------------------------------------------

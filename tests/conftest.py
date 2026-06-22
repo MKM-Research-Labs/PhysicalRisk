@@ -92,9 +92,19 @@ from fixtures_admin import (  # noqa: F401, E402
     _test_admin_credential,
 )
 
+from fixtures_database import _database_file_backend  # noqa: F401, E402
+
 from helpers import (  # noqa: F401, E402
     create_test_file,
     assert_valid_property,
     assert_valid_gauge,
     assert_valid_mortgage,
+)
+
+# Imported AFTER `helpers` above: db_helpers pulls in `database` (and transitively
+# `config`), which triggers a bare `import helpers` resolving to src/visual/layer/.
+# Loading tests' own `helpers` first caches the right module in sys.modules.
+from db_helpers import (  # noqa: F401, E402
+    tmp_catchment,
+    memory_catchment,
 )

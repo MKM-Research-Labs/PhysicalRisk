@@ -66,11 +66,13 @@ def trading_env(tmp_path, monkeypatch):
     input_dir.mkdir()
     output_dir = tmp_path / 'output'
     output_dir.mkdir(parents=True)
-    trading_dir = output_dir / 'trading'
+    # Production layout: trading desk + PRS live under data/input/<catchment>/
+    # (blotter/ and prs/), which is where the database artifacts resolve.
+    trading_dir = input_dir / 'blotter'
     trading_dir.mkdir(parents=True)
     eod_dir = trading_dir / 'eod'
     eod_dir.mkdir()
-    prs_dir = output_dir / 'prs'
+    prs_dir = input_dir / 'prs'
     prs_dir.mkdir(parents=True)
     gaugets_dir = input_dir / 'gaugets'
     gaugets_dir.mkdir()
@@ -107,8 +109,8 @@ def trading_env(tmp_path, monkeypatch):
     monkeypatch.setattr(config, 'get_trading_dir', lambda: trading_dir)
     monkeypatch.setattr(config, 'get_eod_dir', lambda: eod_dir)
     monkeypatch.setattr(config, 'get_reports_dir',
-                        lambda subdir=None: (output_dir / subdir)
-                        if subdir else output_dir)
+                        lambda subdir=None: (input_dir / 'prs') if subdir == 'prs'
+                        else ((output_dir / subdir) if subdir else output_dir))
     monkeypatch.setattr(config, 'get_gaugets_dir', lambda: gaugets_dir)
     monkeypatch.setattr(config, 'get_gaugehd_dir',
                         lambda: input_dir / 'gaugehd')
@@ -157,11 +159,11 @@ def empty_trading_env(tmp_path, monkeypatch):
     input_dir.mkdir()
     output_dir = tmp_path / 'output'
     output_dir.mkdir(parents=True)
-    trading_dir = output_dir / 'trading'
+    trading_dir = input_dir / 'blotter'
     trading_dir.mkdir(parents=True)
     eod_dir = trading_dir / 'eod'
     eod_dir.mkdir()
-    prs_dir = output_dir / 'prs'
+    prs_dir = input_dir / 'prs'
     prs_dir.mkdir(parents=True)
 
     with open(input_dir / 'gaugehc.json', 'w') as f:
@@ -178,8 +180,8 @@ def empty_trading_env(tmp_path, monkeypatch):
     monkeypatch.setattr(config, 'get_trading_dir', lambda: trading_dir)
     monkeypatch.setattr(config, 'get_eod_dir', lambda: eod_dir)
     monkeypatch.setattr(config, 'get_reports_dir',
-                        lambda subdir=None: (output_dir / subdir)
-                        if subdir else output_dir)
+                        lambda subdir=None: (input_dir / 'prs') if subdir == 'prs'
+                        else ((output_dir / subdir) if subdir else output_dir))
     monkeypatch.setattr(config, 'get_gaugets_dir',
                         lambda: input_dir / 'gaugets')
     monkeypatch.setattr(config, 'get_gaugehd_dir',

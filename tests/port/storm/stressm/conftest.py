@@ -58,10 +58,34 @@ _SYNTHETIC_GAUGE_JSON = {
 
 @pytest.fixture(scope="module")
 def gauge_dir(tmp_path_factory):
-    """Temp directory with a 3-gauge gauge.json."""
+    """Temp directory with a 3-gauge gauge.json, with a tmp-rooted database backend.
+
+    ``generate_stressm`` runs the migrated gauge-timeseries generator (via
+    ``populate_gaugets``), which reads the gauge portfolio and writes per-gauge
+    timeseries through ``database``. Rooting a tmp backend at this directory means the
+    gauge read resolves to ``gauge.json`` here and the keyed timeseries land at
+    ``<dir>/gaugets/`` — exactly where ``populate_gaugets`` then reads them back to merge
+    storm responses. The module-scoped ``full_run``/``single_run`` fixtures execute under
+    this binding."""
+    from db_helpers import tmp_catchment
     d = tmp_path_factory.mktemp("stressm_input")
     (d / "gauge.json").write_text(json.dumps(_SYNTHETIC_GAUGE_JSON))
-    return d
+    with tmp_catchment(d, catchment="thames"):
+        yield d
+
+
+@pytest.fixture(autouse=True)
+def _bind_stressm_backend(gauge_dir):
+    """Re-bind the tmp backend (rooted at gauge_dir) for each test *body*.
+
+    gauge_dir's module-scoped binding covers the module-scoped full_run/single_run
+    fixtures; but the function-scoped autouse ``_database_file_backend`` (root conftest)
+    rebinds the guarded backend per test, so this re-establishes the tmp backend for
+    tests that call ``generate_stressm`` in their own body. A test that binds its own
+    ``tmp_catchment`` (e.g. ``pipeline_env``) still wins, as it is set up after this."""
+    from db_helpers import tmp_catchment
+    with tmp_catchment(gauge_dir, catchment="thames"):
+        yield
 
 
 @pytest.fixture(scope="module")

@@ -34,7 +34,7 @@ def run_gauges(ctx: StageContext):
         raise SystemExit
     print("1. Generating Gauges...")
     t_step = time.time()
-    r = ctx.gauge.GaugePortfolioGenerator(ctx.output_dir, verbose=args.verbose).generate(args.num_gauges)
+    r = ctx.gauge.GaugePortfolioGenerator(verbose=args.verbose).generate(args.num_gauges)
     elapsed = time.time() - t_step
     n = len(r['data']['flood_gauges'])
     stats = r.get('processing_stats', {})
@@ -88,7 +88,7 @@ def run_properties(ctx: StageContext):
     inputs = {"gauge.json": ctx.input_dir / "gauge.json"}
     pre = ctx.hash_inputs(inputs)
     t_step = time.time()
-    r = ctx.prop_gen.PropertyPortfolioGenerator(ctx.output_dir).generate(args.num_properties)
+    r = ctx.prop_gen.PropertyPortfolioGenerator().generate(args.num_properties)
     elapsed = time.time() - t_step
     n = len(r['data']['properties'])
     stats = r.get('processing_stats', {})
@@ -118,7 +118,7 @@ def run_mortgages(ctx: StageContext):
     inputs = {"property.json": ctx.input_dir / "property.json"}
     pre = ctx.hash_inputs(inputs)
     t_step = time.time()
-    r = ctx.mortgage.MortgagePortfolioGenerator(ctx.output_dir).generate()
+    r = ctx.mortgage.MortgagePortfolioGenerator().generate()
     elapsed = time.time() - t_step
     n = len(r['data']['mortgages'])
     stats = r.get('processing_stats', {})
@@ -152,7 +152,7 @@ def run_commercial_portfolio(ctx: StageContext):
     print("3a. Generating Commercial Portfolio...")
     t_start = time.time()
     r = ctx.commercial_gen.CommercialPortfolioGenerator(
-        ctx.output_dir, verbose=False).generate(args.num_commercial)
+        verbose=False).generate(args.num_commercial)
     n = len(r['data']['commercial_assets'])
     stats = r.get('processing_stats', {})
     ok = stats.get('successful_assets', n)
@@ -166,7 +166,7 @@ def run_commercial_portfolio(ctx: StageContext):
     print(f"   Type mix: {mix}")
 
     print("3b. Generating Commercial Loans...")
-    rl = ctx.commercial_loan_gen_cls(ctx.output_dir, verbose=False).generate()
+    rl = ctx.commercial_loan_gen_cls(verbose=False).generate()
     elapsed = time.time() - t_start
     nl = len(rl['data']['commercial_loans'])
     print(f"   {nl} commercial loans generated  →  commercial_loan.json")

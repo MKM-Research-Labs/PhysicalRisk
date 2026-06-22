@@ -26,7 +26,16 @@ from pathlib import Path
 
 import pytest
 
+from db_helpers import tmp_catchment
 from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, setup_gauge_env, write_nrfa_csv
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend so the migrated gaugehd writers/readers (and the NRFA
+    importer) persist per-gauge history through database under tmp_path/gaugehd."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -51,7 +60,7 @@ class TestProcessNrfaDirectoryRunner:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         result = process_nrfa_directory(
-            tmp_path, output_dir=output_dir, years=5, pattern="*_daily.csv"
+            tmp_path, years=5, pattern="*_daily.csv"
         )
         assert len(result) == 1
 
@@ -62,7 +71,7 @@ class TestProcessNrfaDirectoryRunner:
         write_nrfa_csv(tmp_path, station_id="39002", n_rows=10)
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        result = process_nrfa_directory(tmp_path, output_dir=output_dir, years=5)
+        result = process_nrfa_directory(tmp_path, years=5)
         assert len(result) == 2
 
     def test_station_id_from_filename(self, tmp_path):
@@ -71,7 +80,7 @@ class TestProcessNrfaDirectoryRunner:
         write_nrfa_csv(tmp_path, station_id="99999", n_rows=5)
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        result = process_nrfa_directory(tmp_path, output_dir=output_dir, years=5)
+        result = process_nrfa_directory(tmp_path, years=5)
         assert len(result) == 1
         assert "99999" in result[0]
 
@@ -85,7 +94,7 @@ class TestProcessNrfaDirectoryRunner:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         with caplog.at_level(logging.ERROR):
-            result = process_nrfa_directory(tmp_path, output_dir=output_dir, years=5)
+            result = process_nrfa_directory(tmp_path, years=5)
         # Good file should succeed
         assert len(result) >= 1
 
@@ -107,7 +116,7 @@ class TestProcessNrfaDirectoryRunner:
         )
         with caplog.at_level(_logging.ERROR):
             result = runner.process_nrfa_directory(
-                tmp_path, output_dir=output_dir, years=5
+                tmp_path, years=5
             )
 
         assert result == []
@@ -124,29 +133,39 @@ class TestMain:
     def test_main_default_synthetic(self, tmp_path, monkeypatch):
         """Lines 120-122: default (no --nrfa-dir) calls generate_all_gauge_histories."""
         from port.src.gauge.gaugehd.runner import main
-        setup_gauge_env(tmp_path, monkeypatch)
+        setup_gauge_env(tmp_path)
         monkeypatch.setattr("sys.argv", ["gaugehd"])
         main()
 
     def test_main_with_years(self, tmp_path, monkeypatch):
         """Line 101: --years flag is passed through."""
         from port.src.gauge.gaugehd.runner import main
-        setup_gauge_env(tmp_path, monkeypatch)
+        setup_gauge_env(tmp_path)
         monkeypatch.setattr("sys.argv", ["gaugehd", "--years", "10"])
         main()
 
     def test_main_with_catchment(self, tmp_path, monkeypatch):
-        """Lines 107-108: --catchment pins config.catchment_id."""
+        """Lines 113-115: --catchment activates that catchment for the run (scoped).
+
+        ``main`` now switches catchment via ``config.use_catchment`` — active *during*
+        the run and restored on exit — rather than permanently mutating the global."""
         from config import config
-        from port.src.gauge.gaugehd.runner import main
-        setup_gauge_env(tmp_path, monkeypatch)
+        from port.src.gauge.gaugehd import runner
+        setup_gauge_env(tmp_path)
         original = config.catchment_id
+        seen = {}
+
+        def _spy(years=50):
+            seen["catchment"] = config.CATCHMENT
+            return []
+
+        monkeypatch.setattr(runner, "generate_all_gauge_histories", _spy)
         monkeypatch.setattr("sys.argv", ["gaugehd", "--catchment", "rhine"])
-        try:
-            main()
-            assert config.CATCHMENT == "rhine"
-        finally:
-            config.catchment_id = original
+
+        runner.main()
+
+        assert seen["catchment"] == "rhine"       # active during the run
+        assert config.catchment_id == original    # restored after (scoped, not pinned)
 
     def test_main_with_nrfa_dir(self, tmp_path, monkeypatch):
         """Lines 117-119: --nrfa-dir calls process_nrfa_directory."""
@@ -168,27 +187,22 @@ class TestMain:
     def test_main_short_years_flag(self, tmp_path, monkeypatch):
         """Line 101: -y short flag for years."""
         from port.src.gauge.gaugehd.runner import main
-        setup_gauge_env(tmp_path, monkeypatch)
+        setup_gauge_env(tmp_path)
         monkeypatch.setattr("sys.argv", ["gaugehd", "-y", "3"])
         main()
 
     def test_main_short_catchment_flag(self, tmp_path, monkeypatch):
-        """Line 102: -c short flag for catchment."""
-        from config import config
+        """Line 108: -c short flag for catchment (scoped + self-restoring)."""
         from port.src.gauge.gaugehd.runner import main
-        setup_gauge_env(tmp_path, monkeypatch)
-        original = config.catchment_id
+        setup_gauge_env(tmp_path)
         monkeypatch.setattr("sys.argv", ["gaugehd", "-c", "thames"])
-        try:
-            main()
-        finally:
-            config.catchment_id = original
+        main()  # use_catchment("thames") activates + restores on its own
 
     def test_main_no_catchment_leaves_config_unchanged(self, tmp_path, monkeypatch):
         """Lines 107-108: without --catchment, config.catchment_id is untouched."""
         from config import config
         from port.src.gauge.gaugehd.runner import main
-        setup_gauge_env(tmp_path, monkeypatch)
+        setup_gauge_env(tmp_path)
         original = config.catchment_id
         monkeypatch.setattr("sys.argv", ["gaugehd"])
         main()

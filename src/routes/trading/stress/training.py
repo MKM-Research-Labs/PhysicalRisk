@@ -29,14 +29,13 @@ the POST endpoint.  Training runs in a background daemon thread; the frontend
 polls the status endpoint every few seconds until the classifier is ready.
 """
 
-import json
 import logging
 import threading
 import time
-from pathlib import Path
 
 from flask import jsonify
 
+import database
 from config import config
 from .. import trading_bp
 from .._admin_auth import require_admin_password
@@ -111,16 +110,13 @@ def train_classifier(gauge_id):
             })
 
     # Validate gauge exists in gauge.json
-    gauge_path = config.get_input_dir() / "gauge.json"
-    if not gauge_path.exists():
-        return jsonify({
-            "status": "error",
-            "message": "gauge.json not found",
-        }), 404
-
     try:
-        with open(gauge_path) as f:
-            gauge_json = json.load(f)
+        gauge_json = database.get_gauge_portfolio(config.catchment_id)
+        if gauge_json is None:
+            return jsonify({
+                "status": "error",
+                "message": "gauge.json not found",
+            }), 404
         raw_gauges = gauge_json.get("flood_gauges", [])
         if isinstance(raw_gauges, dict):
             raw_gauges = list(raw_gauges.values())
@@ -142,8 +138,7 @@ def train_classifier(gauge_id):
         }), 500
 
     # Check storm_sequences.json exists (required for training)
-    seq_path = config.get_input_dir() / "storm_sequences.json"
-    if not seq_path.exists():
+    if not database.storm_sequences_exists(config.catchment_id):
         return jsonify({
             "status": "error",
             "message": "storm_sequences.json not found. Run 'app.py port --stressm' first.",
@@ -201,9 +196,8 @@ def _train_single_gauge(gauge_id: str):
 
         target_idx = all_gauge_ids.index(gauge_id)
 
-        # Load sequences
-        seq_path = input_dir / "storm_sequences.json"
-        sequences = load_sequences(seq_path)
+        # Load sequences for the active catchment
+        sequences = load_sequences()
 
         # Train — write classifier to classifiers/ dir (not output/stressm/)
         result = train_gauge_stressm_classifier(

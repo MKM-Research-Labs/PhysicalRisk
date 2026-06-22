@@ -20,10 +20,9 @@
 
 """Commercial asset / loan list endpoints (startup-preloader counts)."""
 
-import json
-
 from flask import jsonify
 
+import database
 from config import config
 
 from ..blueprint import commercial_bp
@@ -41,13 +40,7 @@ def list_commercial():
 
         {"status": "success", "count": N, "commercial_assets": [...]}
     """
-    try:
-        with open(config.get_input_path('commercial.json'), 'r') as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return jsonify({'status': 'success', 'count': 0,
-                        'commercial_assets': []})
-    assets = data.get('commercial_assets', [])
+    assets = database.list_commercial(config.catchment_id)
     return jsonify({
         'status': 'success',
         'count': len(assets),
@@ -66,13 +59,7 @@ def list_commercial_loans():
 
         {"status": "success", "count": N, "commercial_loans": [...]}
     """
-    try:
-        with open(config.get_input_path('commercial_loan.json'), 'r') as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return jsonify({'status': 'success', 'count': 0,
-                        'commercial_loans': []})
-    loans = data.get('commercial_loans', [])
+    loans = database.list_commercial_loans(config.catchment_id)
     return jsonify({
         'status': 'success',
         'count': len(loans),

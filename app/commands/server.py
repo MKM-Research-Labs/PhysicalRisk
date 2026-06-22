@@ -55,27 +55,30 @@ def cmd_server(args):
     catchment = resolve_catchment(args)
     if catchment is None:
         return
-    config.catchment_id = catchment
 
-    from server import create_app
+    # Pin the catchment for the lifetime of the server process (the ``with`` block
+    # spans ``app.run``); restored on shutdown. Replaces the old permanent
+    # ``config.catchment_id = catchment`` mutation.
+    with config.use_catchment(catchment):
+        from server import create_app
 
-    host = args.host or config.SERVER_HOST
-    port = args.port or config.SERVER_PORT
-    debug = args.debug or config.DEBUG
+        host = args.host or config.SERVER_HOST
+        port = args.port or config.SERVER_PORT
+        debug = args.debug or config.DEBUG
 
-    # Warn if no PRS trade files exist — blotter will be empty until generated.
-    prs_dir = config.get_reports_dir('prs')
-    prs_trades = list(prs_dir.glob('PRS-*.json')) if prs_dir.exists() else []
-    if not prs_trades:
-        print()
-        print("  ⚠  No PRS trade files found in:")
-        print(f"       {prs_dir}")
-        print("     The Trading Desk blotter will be empty.")
-        print(f"     Run:  python app.py port --{config.CATCHMENT} --blotter")
-        print(f"     to generate the {config.CATCHMENT} trading book.")
-        print()
+        # Warn if no PRS trade files exist — blotter will be empty until generated.
+        prs_dir = config.get_reports_dir('prs')
+        prs_trades = list(prs_dir.glob('PRS-*.json')) if prs_dir.exists() else []
+        if not prs_trades:
+            print()
+            print("  ⚠  No PRS trade files found in:")
+            print(f"       {prs_dir}")
+            print("     The Trading Desk blotter will be empty.")
+            print(f"     Run:  python app.py port --{config.CATCHMENT} --blotter")
+            print(f"     to generate the {config.CATCHMENT} trading book.")
+            print()
 
-    app = create_app()
+        app = create_app()
 
-    print(f"Starting {config.CATCHMENT} server on http://{host}:{port}")
-    app.run(host=host, port=port, debug=debug)
+        print(f"Starting {config.CATCHMENT} server on http://{host}:{port}")
+        app.run(host=host, port=port, debug=debug)

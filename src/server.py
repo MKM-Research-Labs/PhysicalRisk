@@ -39,6 +39,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from config import config
+from database.config_binding import use_configured_backend
 from routes import register_blueprints
 
 # Configure logging
@@ -51,6 +52,10 @@ logger = logging.getLogger(__name__)
 
 def create_app() -> Flask:
     """Application factory."""
+
+    # Bind the data-access backend selected by MKM_REPO_BACKEND (file | pg).
+    # Default 'file' = today's JSON tree; 'pg' reads from PostgreSQL (WP2.1).
+    use_configured_backend()
 
     # Create app
     app = Flask(__name__)

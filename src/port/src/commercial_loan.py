@@ -37,14 +37,13 @@ shape) but populates it with commercial-flavoured values:
     SPVs / corporates, not individuals)
 """
 
-import json
 import logging
 import random
 import uuid
-from datetime import date, datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
+import database
 from config import config
 from port.cdm import LoanCDM
 
@@ -186,29 +185,26 @@ def _build_commercial_loan(asset: Dict[str, Any]) -> Dict[str, Any]:
 class CommercialLoanPortfolioGenerator:
     """Generates commercial loans 1:1 with commercial assets."""
 
-    def __init__(self, output_dir: Optional[Union[str, Path]] = None, verbose: bool = True):
-        self.output_dir = Path(output_dir) if output_dir else config.get_input_dir()
+    def __init__(self, catchment: Optional[str] = None, verbose: bool = True):
+        # Run-scoped catchment identity; storage location lives in ``database``.
+        self.catchment = catchment or database.active_catchment()
         self.loan_cdm = LoanCDM()
         self.verbose = verbose
 
     def log(self, message: str, level: str = "INFO"):
         getattr(logger, level.lower(), logger.info)(message)
 
-    def generate(self, commercial_path: Optional[Path] = None) -> Dict:
+    def generate(self) -> Dict:
         start = datetime.now()
         self.log("=" * 60, "INFO")
         self.log("COMMERCIAL LOAN PORTFOLIO GENERATOR", "INFO")
         self.log("=" * 60, "INFO")
 
-        if commercial_path is None:
-            commercial_path = self.output_dir / "commercial.json"
-        if not commercial_path.exists():
+        commercial_data = database.get_commercial_portfolio(self.catchment)
+        if commercial_data is None:
             raise FileNotFoundError(
-                f"Commercial portfolio not found at {commercial_path}. "
+                f"Commercial portfolio not found for catchment {self.catchment}. "
                 "Generate it first with --commercial.")
-
-        with open(commercial_path) as f:
-            commercial_data = json.load(f)
         assets = commercial_data.get('commercial_assets', [])
         self.log(f"Loaded {len(assets)} commercial assets", "INFO")
 
@@ -225,25 +221,25 @@ class CommercialLoanPortfolioGenerator:
             except Exception as e:
                 self.log(f"Failed to build loan for asset {i+1}: {e}", "ERROR")
 
-        output_path = self.output_dir / "commercial_loan.json"
-        with open(output_path, 'w') as f:
-            json.dump({
-                "commercial_loans": loans,
-                "generation_metadata": {
-                    "generated_at": datetime.now().isoformat(),
-                    "generator_version": "CommercialLoan v0.1 (first slice)",
-                    "catchment": config.CATCHMENT,
-                    "total_loans_generated": len(loans),
-                    "linked_commercial_assets": len(assets),
-                }
-            }, f, indent=2, default=str)
+        output_data = {
+            "commercial_loans": loans,
+            "generation_metadata": {
+                "generated_at": datetime.now().isoformat(),
+                "generator_version": "CommercialLoan v0.1 (first slice)",
+                "catchment": config.CATCHMENT,
+                "total_loans_generated": len(loans),
+                "linked_commercial_assets": len(assets),
+            }
+        }
+        # Persist through the database seam (catchment-keyed, storage-agnostic).
+        database.save_commercial_loans(self.catchment, output_data)
 
         elapsed = (datetime.now() - start).total_seconds()
-        self.log(f"Wrote {len(loans)} commercial loans to {output_path} in {elapsed:.1f}s", "INFO")
+        self.log(f"Wrote {len(loans)} commercial loans for catchment {self.catchment} in {elapsed:.1f}s", "INFO")
         return {"data": {"commercial_loans": loans},
-                "file_path": output_path,
+                "catchment": self.catchment,
                 "processing_stats": {"successful": len(loans), "total": len(assets)}}
 
 
-def generate_commercial_loans(output_dir: Optional[Path] = None) -> Dict:
-    return CommercialLoanPortfolioGenerator(output_dir=output_dir).generate()
+def generate_commercial_loans(catchment: Optional[str] = None) -> Dict:
+    return CommercialLoanPortfolioGenerator(catchment=catchment).generate()

@@ -20,9 +20,10 @@
 
 """Shared loader, module-level symbols, and helper functions for historical_eod tests."""
 
-import json
 from pathlib import Path
 import importlib.util
+
+import database
 
 
 def _load_heod():
@@ -53,10 +54,10 @@ generate_trade_pnl_history_file = _heod.generate_trade_pnl_history_file
 generate_historical_eod_series = _heod.generate_historical_eod_series
 
 
-def _write_eod(eod_dir, eod_id, date_str, gauge_id='GAUGE-001'):
-    """Write a minimal EOD snapshot with hazard term structure."""
+def _write_eod(date_str, gauge_id='GAUGE-001', catchment=None):
+    """Seed a minimal EOD snapshot (with hazard term structure) via the database."""
     snapshot = {
-        'eod_id': eod_id,
+        'eod_id': f"EOD-{date_str.replace('-', '')}",
         'date': date_str,
         'market_state_snapshot': {
             'hazard_term_structure': {
@@ -69,15 +70,14 @@ def _write_eod(eod_dir, eod_id, date_str, gauge_id='GAUGE-001'):
         'positions': [],
         'portfolio_summary': {},
     }
-    path = eod_dir / f'{eod_id}.json'
-    path.write_text(json.dumps(snapshot))
-    return path
+    database.save_eod_snapshot(catchment or database.active_catchment(), date_str, snapshot)
+    return snapshot
 
 
-def _write_eod_with_positions(eod_dir, eod_id, date_str, swap_id='PRS-001'):
-    """Write a minimal EOD snapshot that contains a position."""
+def _write_eod_with_positions(date_str, swap_id='PRS-001', catchment=None):
+    """Seed a minimal EOD snapshot that contains a position via the database."""
     snapshot = {
-        'eod_id': eod_id,
+        'eod_id': f"EOD-{date_str.replace('-', '')}",
         'date': date_str,
         'market_state_snapshot': {'hazard_term_structure': {}},
         'positions': [
@@ -96,11 +96,11 @@ def _write_eod_with_positions(eod_dir, eod_id, date_str, swap_id='PRS-001'):
         ],
         'portfolio_summary': {},
     }
-    (eod_dir / f'{eod_id}.json').write_text(json.dumps(snapshot))
+    database.save_eod_snapshot(catchment or database.active_catchment(), date_str, snapshot)
 
 
-def _make_gaugehc(input_dir, gauge_id='GAUGE-001'):
-    """Write a minimal gaugehc.json understood by MarketStateManager."""
+def _make_gaugehc(gauge_id='GAUGE-001', catchment=None):
+    """Seed minimal gauge hazard curves understood by MarketStateManager."""
     data = {
         'hazard_curves': {
             gauge_id: {
@@ -121,7 +121,7 @@ def _make_gaugehc(input_dir, gauge_id='GAUGE-001'):
             }
         }
     }
-    (input_dir / 'gaugehc.json').write_text(json.dumps(data))
+    database.save_gauge_hazard_curves(catchment or database.active_catchment(), data)
 
 
 def _make_trade(swap_id='PRS-TEST-001', gauge_id='GAUGE-001'):

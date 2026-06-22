@@ -11,3 +11,28 @@ services:
       - FLASK_ENV=production
       - CATCHMENT_ID=thames
     restart: unless-stopped
+
+  # Local PostgreSQL for the JSON→Postgres migration (WP1). Development only —
+  # production provisioning (pooling, backups) is WP5. Defaults match
+  # config/database.py so `docker compose up postgres` and the app agree.
+  #   docker compose -f docker/docker-compose.yml up -d postgres
+  #   alembic upgrade head            # apply the schema (alembic.ini at repo root)
+  postgres:
+    image: postgres:16
+    container_name: mkm-physicalrisk-pg
+    environment:
+      POSTGRES_DB: physicalrisk
+      POSTGRES_USER: mkm
+      POSTGRES_PASSWORD: mkm
+    ports:
+      - "5432:5432"
+    volumes:
+      - mkm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mkm -d physicalrisk"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  mkm_pgdata:

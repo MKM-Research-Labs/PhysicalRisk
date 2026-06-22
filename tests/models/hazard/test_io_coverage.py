@@ -25,10 +25,21 @@ Targets uncovered lines: 235, 242, 247, 254, 273, 280-281, 288.
 All in build_hazard_curves(): missing files, verbose logging branches.
 """
 
-import json
 import logging
 
 import pytest
+
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend; under it every catchment resolves to tmp_path, so
+    build_hazard_curves reads its seeded storm_sequences + gauge portfolio and writes
+    the hazard curve / per-gauge merge through database (physically under tmp_path)."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -38,15 +49,15 @@ import pytest
 class TestBuildHazardCurvesMissingFiles:
 
     def test_missing_storm_sequences_raises(self, tmp_path):
-        """Line 235: FileNotFoundError when storm_sequences.json missing."""
+        """FileNotFoundError when the storm-sequences document is absent."""
         from models.hazard.io import build_hazard_curves
-        with pytest.raises(FileNotFoundError, match="storm_sequences.json"):
-            build_hazard_curves(tmp_path, "test_catchment")
+        with pytest.raises(FileNotFoundError, match="Storm sequences"):
+            build_hazard_curves("test_catchment")
 
-    def test_missing_gauge_json_raises(self, tmp_path):
-        """Line 247: FileNotFoundError when gauge.json missing."""
+    def test_missing_gauge_portfolio_raises(self, tmp_path):
+        """FileNotFoundError when the gauge portfolio is absent."""
         from models.hazard.io import build_hazard_curves
-        # Create storm_sequences.json but not gauge.json
+        # Seed storm_sequences but not the gauge portfolio.
         seq_data = {
             "sequences": [
                 {
@@ -62,9 +73,9 @@ class TestBuildHazardCurvesMissingFiles:
                 }
             ]
         }
-        (tmp_path / "storm_sequences.json").write_text(json.dumps(seq_data))
-        with pytest.raises(FileNotFoundError, match="gauge.json"):
-            build_hazard_curves(tmp_path, "test_catchment")
+        database.save_storm_sequences("test_catchment", seq_data)
+        with pytest.raises(FileNotFoundError, match="Gauge portfolio"):
+            build_hazard_curves("test_catchment")
 
 
 # ===========================================================================
@@ -93,7 +104,7 @@ class TestBuildHazardCurvesVerbose:
                 for i in range(20)
             ]
         }
-        (tmp_path / "storm_sequences.json").write_text(json.dumps(seq_data))
+        database.save_storm_sequences("test", seq_data)
 
         # Gauge data — one gauge in CDM format
         gauge_data = {
@@ -129,14 +140,14 @@ class TestBuildHazardCurvesVerbose:
                 }
             ]
         }
-        (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
+        database.save_gauges("test", gauge_data)
         return tmp_path
 
     def test_verbose_true_logs_messages(self, hazard_dir, caplog):
         """Lines 242, 254, 273, 280-281, 288: verbose logging."""
         from models.hazard.io import build_hazard_curves
         with caplog.at_level(logging.INFO, logger="models.hazard.io"):
-            result = build_hazard_curves(hazard_dir, "test", verbose=True)
+            result = build_hazard_curves("test", verbose=True)
 
         assert result['summary']['num_gauges'] == 1
         assert result['summary']['num_storms'] == 20
@@ -151,7 +162,7 @@ class TestBuildHazardCurvesVerbose:
         """Verbose=False should skip log messages."""
         from models.hazard.io import build_hazard_curves
         with caplog.at_level(logging.INFO, logger="models.hazard.io"):
-            result = build_hazard_curves(hazard_dir, "test", verbose=False)
+            result = build_hazard_curves("test", verbose=False)
 
         assert result['summary']['num_gauges'] == 1
         # With verbose=False, no info messages from the builder or io

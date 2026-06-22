@@ -20,18 +20,25 @@
 
 """Tests for the trading desk market state manager."""
 
-import json
 import pytest
 
+import database
+from db_helpers import tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
-@pytest.fixture
-def sample_gaugehc(tmp_path):
-    """Create a sample gaugehc.json for testing."""
-    input_dir = tmp_path / 'input'
-    input_dir.mkdir()
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames"); the migrated MarketStateManager
+    reads gauge hazard curves and reads/writes market state through ``database``."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield
 
+
+@pytest.fixture
+def sample_gaugehc():
+    """Seed sample gauge hazard curves through the database seam (list form,
+    which ``_load_base_curves`` handles) and return them for inspection."""
     gaugehc = [
         {
             'gauge_id': 'GAUGE-001',
@@ -53,19 +60,14 @@ def sample_gaugehc(tmp_path):
             'curve_points': [],
         },
     ]
-
-    with open(input_dir / 'gaugehc.json', 'w') as f:
-        json.dump(gaugehc, f)
-
-    return input_dir
+    database.save_gauge_hazard_curves(database.active_catchment(), gaugehc)
+    return gaugehc
 
 
 @pytest.fixture
-def market_mgr(tmp_path, sample_gaugehc):
-    """Create a MarketStateManager for testing."""
-    trading_dir = tmp_path / 'trading'
-    trading_dir.mkdir()
-    return MarketStateManager(trading_dir, sample_gaugehc)
+def market_mgr(sample_gaugehc):
+    """Create a MarketStateManager bound to the tmp backend (gaugehc pre-seeded)."""
+    return MarketStateManager()
 
 
 class TestMarketStateLoad:
@@ -181,14 +183,11 @@ class TestMissingCoverage:
     """Tests targeting previously uncovered branches."""
 
     def _make_mgr(self, tmp_path, gaugehc_data=None):
-        """Helper to create a MarketStateManager with optional gaugehc.json."""
+        """Helper to create a MarketStateManager with optionally-seeded gauge curves."""
         from models.trading.market_state import MarketStateManager
-        trading_dir = tmp_path / 'trading'
-        input_dir = tmp_path / 'input'
-        input_dir.mkdir(exist_ok=True)
         if gaugehc_data is not None:
-            (input_dir / 'gaugehc.json').write_text(json.dumps(gaugehc_data))
-        return MarketStateManager(trading_dir, input_dir)
+            database.save_gauge_hazard_curves(database.active_catchment(), gaugehc_data)
+        return MarketStateManager()
 
     def test_load_base_curves_no_file(self, tmp_path):
         """When gaugehc.json is missing, base curves returns empty dict."""
@@ -209,6 +208,25 @@ class TestMissingCoverage:
         mgr = self._make_mgr(tmp_path, gaugehc)
         state = mgr.load()
         assert 'GAUGE-A' in state.get('base_rates', {})
+
+    def test_load_base_curves_hazard_curves_key(self, tmp_path):
+        """The production format — {'hazard_curves': {gauge_id: curve}} — is handled."""
+        gaugehc = {
+            'metadata': {'distribution': 'gev'},
+            'hazard_curves': {
+                'GAUGE-HC': {
+                    'gauge_id': 'GAUGE-HC', 'gauge_name': 'HC',
+                    'annual_hazard_rate_alert': 0.05,
+                    'annual_hazard_rate_warning': 0.03,
+                    'annual_hazard_rate_severe': 0.01,
+                    'curve_points': [], 'gev_location': 0,
+                    'gev_scale': 0, 'gev_shape': 0,
+                },
+            },
+        }
+        mgr = self._make_mgr(tmp_path, gaugehc)
+        state = mgr.load()
+        assert 'GAUGE-HC' in state.get('base_rates', {})
 
     def test_load_base_curves_unknown_format(self, tmp_path):
         """gaugehc.json with unknown format returns empty base_rates."""

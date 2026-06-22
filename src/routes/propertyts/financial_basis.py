@@ -27,14 +27,13 @@ gauge actually flooded vs didn't.  Helps the REIT understand
 where the gauge-to-property attenuation kills the flood signal.
 """
 
-import json
 import logging
 
 from flask import jsonify, request
 
+import database
 from config import config
 
-from ._helpers import _get_propertyts_dir
 from .blueprint import propertyts_bp
 
 logger = logging.getLogger(__name__)
@@ -52,8 +51,7 @@ def storm_basis(storm_id: str):
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
 
-    pts_dir = _get_propertyts_dir()
-    if not pts_dir or not pts_dir.exists():
+    if not database.property_timeseries_exists(config.catchment_id):
         return jsonify({
             'status': 'error',
             'message': 'Property flood timeseries not yet generated',
@@ -61,7 +59,7 @@ def storm_basis(storm_id: str):
 
     gauge_thresholds = _load_gauge_thresholds()
     storm_gauge_peaks = _load_storm_gauge_peaks(storm_id)
-    synth_data = _accumulate_synth_data(pts_dir, storm_id, gauge_thresholds)
+    synth_data = _accumulate_synth_data(storm_id, gauge_thresholds)
     gauges = _build_gauge_response(synth_data, storm_gauge_peaks)
 
     # Sort: severe first, then gauges with flooding before those without,
@@ -102,11 +100,9 @@ def storm_basis(storm_id: str):
 def _load_gauge_thresholds():
     """Load gauge threshold metadata from gaugehc.json."""
     gauge_thresholds = {}
-    gaugehc_path = config.get_input_dir() / 'gaugehc.json'
-    if gaugehc_path.exists():
-        try:
-            with open(gaugehc_path) as f:
-                ghc = json.load(f)
+    try:
+        ghc = database.get_gauge_hazard_curves(config.catchment_id)
+        if ghc:
             for gid, gc in ghc.get('hazard_curves', {}).items():
                 gauge_thresholds[gid] = {
                     'gauge_name': gc.get('gauge_name', gid),
@@ -117,8 +113,8 @@ def _load_gauge_thresholds():
                     'latitude': gc.get('latitude', 0),
                     'longitude': gc.get('longitude', 0),
                 }
-        except Exception as e:
-            logger.warning('Could not load gaugehc.json: %s', e)
+    except Exception as e:
+        logger.warning('Could not load gaugehc.json: %s', e)
     return gauge_thresholds
 
 
@@ -126,10 +122,8 @@ def _load_storm_gauge_peaks(storm_id):
     """Load real-gauge peak levels for a storm from stress_storms/<storm_id>.json."""
     storm_gauge_peaks = {}
     try:
-        storm_path = config.get_input_path('stress_storms') / f'{storm_id}.json'
-        if storm_path.exists():
-            with open(storm_path) as f:
-                storm_data = json.load(f)
+        storm_data = database.get_stress_storm(config.catchment_id, storm_id)
+        if storm_data:
             for gr in storm_data.get('gauge_responses', []):
                 storm_gauge_peaks[gr['gauge_id']] = {
                     'peak_level_m': gr.get('peak_level_m', 0),
@@ -142,15 +136,18 @@ def _load_storm_gauge_peaks(storm_id):
     return storm_gauge_peaks
 
 
-def _accumulate_synth_data(pts_dir, storm_id, gauge_thresholds):
+def _accumulate_synth_data(storm_id, gauge_thresholds):
     """Group property flood records by their controlling synthetic gauge."""
     synth_data = {}  # gauge_id -> accumulator
 
-    for pf in pts_dir.glob('PROP-*.json'):
+    for pid in database.iter_property_timeseries_ids(config.catchment_id):
+        if not pid.startswith('PROP-'):
+            continue
         try:
-            with open(pf, 'r') as f:
-                pfdata = json.load(f)
+            pfdata = database.get_property_timeseries(config.catchment_id, pid)
         except Exception:
+            continue
+        if pfdata is None:
             continue
 
         nearest = pfdata.get('nearest_gauges', [])

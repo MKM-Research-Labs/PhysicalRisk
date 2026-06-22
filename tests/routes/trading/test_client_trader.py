@@ -83,7 +83,7 @@ def client_env(tmp_path, monkeypatch):
     input_dir.mkdir()
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
-    prs_dir = output_dir / 'prs'
+    prs_dir = input_dir / 'prs'  # database resolves prs_trade under input_dir/prs
     prs_dir.mkdir()
 
     from config import config
@@ -91,7 +91,8 @@ def client_env(tmp_path, monkeypatch):
     monkeypatch.setattr(config, 'get_input_path',
                         lambda f: input_dir / f)
     monkeypatch.setattr(config, 'get_reports_dir',
-                        lambda subdir=None: (output_dir / subdir) if subdir else output_dir)
+                        lambda subdir=None: (input_dir / 'prs') if subdir == 'prs'
+                        else ((output_dir / subdir) if subdir else output_dir))
 
     trades = [
         _make_property_prs('PRS-PROP-001', 'G-001', 'PROP-001',

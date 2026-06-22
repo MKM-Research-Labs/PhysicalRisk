@@ -20,12 +20,12 @@
 
 """Client (property PRS) blotter endpoint."""
 
-import json
 import logging
 from typing import List
 
 from flask import jsonify
 
+import database
 from config import config
 from . import trading_bp
 
@@ -37,14 +37,15 @@ def _load_property_trades() -> List[dict]:
 
     Returns flat dicts suitable for both the client blotter and aggregate map.
     """
-    prs_dir = config.get_reports_dir("prs")
-    prs_dir.mkdir(parents=True, exist_ok=True)
-
     trades = []
-    for f in sorted(prs_dir.glob("*PRS-*.json")):
+    catchment = config.catchment_id
+    for swap_id in database.iter_prs_trade_ids(catchment):
+        if 'PRS-' not in swap_id:
+            continue
         try:
-            with open(f) as fh:
-                trade = json.load(fh)
+            trade = database.get_prs_trade(catchment, swap_id)
+            if trade is None:
+                continue
 
             ps = trade.get('PhysicalSwap', {})
             if 'PropertySet' not in ps:
@@ -107,7 +108,7 @@ def _load_property_trades() -> List[dict]:
                 'hedge_ratio': hedge_ratio,
             })
         except Exception as e:
-            logger.warning("Skipping trade file %s: %s", f.name, e)
+            logger.warning("Skipping trade file %s: %s", f'{swap_id}.json', e)
             continue
 
     return trades

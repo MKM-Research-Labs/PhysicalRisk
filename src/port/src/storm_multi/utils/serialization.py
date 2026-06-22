@@ -29,12 +29,11 @@ Output files:
   sequences_summary.json  — metadata only (~200 KB for 10K sequences)
 """
 
-import json
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import List
+from typing import List, Optional
 
+import database
 from ..core.data_structures import StormSequence
 
 logger = logging.getLogger(__name__)
@@ -44,16 +43,14 @@ SEQUENCES_FILENAME = "storm_sequences.json"
 SUMMARY_FILENAME = "sequences_summary.json"
 
 
-def save_sequences(sequences: List[StormSequence], path: Path) -> None:
-    """Serialise a list of StormSequence objects to JSON.
+def save_sequences(sequences: List[StormSequence], catchment: Optional[str] = None) -> None:
+    """Persist a list of StormSequence objects through the database seam.
 
     Args:
         sequences: List of StormSequence objects to save.
-        path: Output file path (e.g. .../storm_sequences.json).
+        catchment: Catchment to store under (defaults to ``database.active_catchment()``).
     """
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-
+    catchment = catchment or database.active_catchment()
     payload = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -61,31 +58,27 @@ def save_sequences(sequences: List[StormSequence], path: Path) -> None:
         "sequences": [s.to_dict() for s in sequences],
     }
 
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-
-    logger.info("Saved %d sequences to %s", len(sequences), path)
+    database.save_storm_sequences(catchment, payload)
+    logger.info("Saved %d sequences for catchment %s", len(sequences), catchment)
 
 
-def load_sequences(path: Path) -> List[StormSequence]:
-    """Load a list of StormSequence objects from JSON.
+def load_sequences(catchment: Optional[str] = None) -> List[StormSequence]:
+    """Load a list of StormSequence objects through the database seam.
 
     Args:
-        path: Path to a file produced by save_sequences().
+        catchment: Catchment to read from (defaults to ``database.active_catchment()``).
 
     Returns:
         List of reconstructed StormSequence objects.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If no storm-sequences document exists.
         ValueError: If the schema_version is unrecognised.
     """
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"Sequences file not found: {path}")
-
-    with open(path, "r", encoding="utf-8") as f:
-        payload = json.load(f)
+    catchment = catchment or database.active_catchment()
+    payload = database.get_storm_sequences(catchment)
+    if payload is None:
+        raise FileNotFoundError(f"Storm sequences not found for catchment {catchment}")
 
     version = payload.get("schema_version", "")
     if version != SCHEMA_VERSION:
@@ -95,22 +88,21 @@ def load_sequences(path: Path) -> List[StormSequence]:
         )
 
     sequences = [StormSequence.from_dict(d) for d in payload.get("sequences", [])]
-    logger.info("Loaded %d sequences from %s", len(sequences), path)
+    logger.info("Loaded %d sequences for catchment %s", len(sequences), catchment)
     return sequences
 
 
-def save_summary(sequences: List[StormSequence], path: Path) -> None:
-    """Save a lightweight summary JSON (metadata only, no per-storm detail).
+def save_summary(sequences: List[StormSequence], catchment: Optional[str] = None) -> None:
+    """Persist a lightweight summary (metadata only, no per-storm detail).
 
     Contains counts and aggregate statistics per sequence type and intensity
-    category. Suitable for quick inspection without loading the full file.
+    category. Suitable for quick inspection without loading the full sequence set.
 
     Args:
         sequences: List of StormSequence objects.
-        path: Output file path (e.g. .../sequences_summary.json).
+        catchment: Catchment to store under (defaults to ``database.active_catchment()``).
     """
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    catchment = catchment or database.active_catchment()
 
     # Aggregate by sequence type
     type_counts: dict = {}
@@ -153,7 +145,5 @@ def save_summary(sequences: List[StormSequence], path: Path) -> None:
         },
     }
 
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
-
-    logger.info("Saved summary for %d sequences to %s", total, path)
+    database.save_sequence_summary(catchment, summary)
+    logger.info("Saved summary for %d sequences for catchment %s", total, catchment)

@@ -196,56 +196,58 @@ def cmd_port(args):
     catchment = resolve_catchment(args)
     if catchment is None:
         return  # user aborted the prompt
-    config.catchment_id = catchment
-    output_dir = config.get_input_dir()
+    # Scope the catchment for the whole run (replaces permanent
+    # ``config.catchment_id = catchment`` mutation); restored on exit.
+    with config.use_catchment(catchment):
+        output_dir = config.get_input_dir()
 
-    # --- Admin gate (skipped for read-only repair-manifest) ---------------
-    if not getattr(args, 'repair_manifest', False):
-        _authenticate()
+        # --- Admin gate (skipped for read-only repair-manifest) ---------------
+        if not getattr(args, 'repair_manifest', False):
+            _authenticate()
 
-    # --- Optional backup --------------------------------------------------
-    if getattr(args, 'backup', False) and output_dir.exists():
-        _backup_existing(output_dir)
+        # --- Optional backup --------------------------------------------------
+        if getattr(args, 'backup', False) and output_dir.exists():
+            _backup_existing(output_dir)
 
-    # --- Repair manifest (standalone, no heavy imports) ------------------
-    if getattr(args, 'repair_manifest', False):
-        _repair_manifest(output_dir, catchment)
-        return
+        # --- Repair manifest (standalone, no heavy imports) ------------------
+        if getattr(args, 'repair_manifest', False):
+            _repair_manifest(output_dir, catchment)
+            return
 
-    ctx = _build_context(args)
+        ctx = _build_context(args)
 
-    print(f"\nMKM Portfolio Generator")
-    print(f"Catchment: {catchment}")
-    print(f"Output: {output_dir}\n")
+        print(f"\nMKM Portfolio Generator")
+        print(f"Catchment: {catchment}")
+        print(f"Output: {output_dir}\n")
 
-    # --- Pipeline stages (grouped by layer) -------------------------------
-    # Layer 1 — foundational entities (gauges, properties, commercial, loans…)
-    portfolios.run_all(ctx)
+        # --- Pipeline stages (grouped by layer) -------------------------------
+        # Layer 1 — foundational entities (gauges, properties, commercial, loans…)
+        portfolios.run_all(ctx)
 
-    # Layer 2 — hazards: the flood storms plus the wind (typhoon), fire and
-    # seismic hazard generators. These produce the hazard events/outcomes and
-    # are independent of the flood spine, so they sit with the storms — not at
-    # the end, after the trades.
-    storm.run_all(ctx)
-    typhoon.run_all(ctx)
-    fire.run_all(ctx)      # fire-resilience credit over commercial (reads commercial.json)
-    seismic.run_all(ctx)
+        # Layer 2 — hazards: the flood storms plus the wind (typhoon), fire and
+        # seismic hazard generators. These produce the hazard events/outcomes and
+        # are independent of the flood spine, so they sit with the storms — not at
+        # the end, after the trades.
+        storm.run_all(ctx)
+        typhoon.run_all(ctx)
+        fire.run_all(ctx)      # fire-resilience credit over commercial (reads commercial.json)
+        seismic.run_all(ctx)
 
-    # Layer 3 — hazard curves: price the hazards into spreads.
-    timeseries.run_all(ctx)
-    hazardcurves.run_all(ctx)
-    # Wind-coupled hazard curves (win/faw/fow) derive their ts inputs from the
-    # flood spine joined against typhoon/damage — so after timeseries + typhoon.
-    windhazard.run_all(ctx)
+        # Layer 3 — hazard curves: price the hazards into spreads.
+        timeseries.run_all(ctx)
+        hazardcurves.run_all(ctx)
+        # Wind-coupled hazard curves (win/faw/fow) derive their ts inputs from the
+        # flood spine joined against typhoon/damage — so after timeseries + typhoon.
+        windhazard.run_all(ctx)
 
-    # Layer 4 — trades (consume the hazard curves).
-    trading.run_all(ctx)
+        # Layer 4 — trades (consume the hazard curves).
+        trading.run_all(ctx)
 
-    # --- Post-run reporting ----------------------------------------------
-    if ctx.run_all:
-        _print_port_summary(output_dir)
+        # --- Post-run reporting ----------------------------------------------
+        if ctx.run_all:
+            _print_port_summary(output_dir)
 
-    run_pdf_reports(args, output_dir, ctx.run_all)
-    run_lineage_chain_validation()
+        run_pdf_reports(args, output_dir, ctx.run_all)
+        run_lineage_chain_validation()
 
-    print(f"Complete! Files in: {output_dir}")
+        print(f"Complete! Files in: {output_dir}")

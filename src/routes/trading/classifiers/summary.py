@@ -23,10 +23,10 @@
 import hashlib
 import json
 import logging
-from pathlib import Path
 
 from flask import jsonify
 
+import database
 from config import config
 from routes.trading import trading_bp
 from routes.trading._admin_auth import require_admin_password
@@ -35,12 +35,14 @@ from routes.trading._helpers import _load_gauge_locations
 logger = logging.getLogger(__name__)
 
 
-def _compute_data_version(stressm_dir: Path) -> str:
-    """Compute a short hash reflecting current classifier state on disk."""
-    parts = sorted(p.name for p in stressm_dir.glob("GAUGE-*.joblib"))
-    summary_path = stressm_dir / "training_summary.json"
-    mtime = str(summary_path.stat().st_mtime) if summary_path.exists() else "0"
-    raw = "|".join(parts) + "|" + mtime
+def _compute_data_version(catchment) -> str:
+    """Short hash reflecting current classifier state — changes whenever a model
+    or the training summary changes (backend-agnostic: content, not file mtime)."""
+    parts = sorted(
+        gid for gid in database.list_classifier_ids(catchment)
+        if gid.startswith("GAUGE-"))
+    summary = database.get_classifier_training_summary(catchment) or {}
+    raw = "|".join(parts) + "|" + json.dumps(summary, sort_keys=True)
     return hashlib.sha256(raw.encode()).hexdigest()[:12]
 
 
@@ -48,17 +50,17 @@ def _compute_data_version(stressm_dir: Path) -> str:
 def classifiers_summary():
     """Return all gauges with classifier status, metrics, sorted west->east."""
     try:
-        stressm_dir = config.get_classifiers_dir()
+        catchment = config.catchment_id
         gauge_locations = _load_gauge_locations()
 
         # Load training summary
-        summary_path = stressm_dir / "training_summary.json"
+        summary = database.get_classifier_training_summary(catchment)
         trained_map = {}
-        if summary_path.exists():
-            with open(summary_path) as f:
-                summary = json.load(f)
+        if summary:
             for g in summary.get("gauges", []):
                 trained_map[g["gauge_id"]] = g
+
+        trained_ids = set(database.list_classifier_ids(catchment))
 
         # Build response for all gauges (from gauge_locations)
         # Skip synthetic gauges — background-only for PRS pricing
@@ -66,7 +68,7 @@ def classifiers_summary():
         for gid, loc in gauge_locations.items():
             if gid.startswith('SYNTH-'):
                 continue
-            has_model = (stressm_dir / f"{gid}.joblib").exists()
+            has_model = gid in trained_ids
             info = trained_map.get(gid, {})
             metrics = info.get("metrics", {})
 
@@ -125,7 +127,7 @@ def classifiers_summary():
             "num_total": len(gauges),
             "num_trained": len(trained),
             "avg_auc_roc": round(avg_auc, 4) if trained else None,
-            "data_version": _compute_data_version(stressm_dir),
+            "data_version": _compute_data_version(catchment),
         })
 
     except Exception as e:
@@ -137,7 +139,7 @@ def classifiers_summary():
 def classifiers_readiness():
     """Check whether all gauges have trained classifiers."""
     try:
-        stressm_dir = config.get_classifiers_dir()
+        catchment = config.catchment_id
         gauge_locations = _load_gauge_locations()
 
         # Exclude synthetic gauges from readiness check
@@ -146,15 +148,10 @@ def classifiers_readiness():
             if not gid.startswith('SYNTH-')
         }
 
+        trained_ids = set(database.list_classifier_ids(catchment))
         total = len(real_gauges)
-        trained = sum(
-            1 for gid in real_gauges
-            if (stressm_dir / f"{gid}.joblib").exists()
-        )
-        missing = [
-            gid for gid in real_gauges
-            if not (stressm_dir / f"{gid}.joblib").exists()
-        ]
+        trained = sum(1 for gid in real_gauges if gid in trained_ids)
+        missing = [gid for gid in real_gauges if gid not in trained_ids]
 
         return jsonify({
             "status": "success",
@@ -174,26 +171,19 @@ def classifiers_readiness():
 def clear_all_classifiers():
     """Delete all trained classifier models and training summary."""
     try:
-        stressm_dir = config.get_classifiers_dir()
+        catchment = config.catchment_id
         removed = 0
 
-        # Remove all .joblib model files
-        for p in stressm_dir.glob("*.joblib"):
-            p.unlink()
+        # Remove all model blobs
+        for gid in list(database.list_classifier_ids(catchment)):
+            database.delete_classifier(catchment, gid)
             removed += 1
 
-        # Remove training summary
-        summary_path = stressm_dir / "training_summary.json"
-        if summary_path.exists():
-            summary_path.unlink()
+        # Remove training summary and timings
+        database.delete_classifier_training_summary(catchment)
+        database.delete_classifier_timings(catchment)
 
-        # Remove timings
-        from .batch_training import _TIMINGS_FILENAME
-        timings_path = stressm_dir / _TIMINGS_FILENAME
-        if timings_path.exists():
-            timings_path.unlink()
-
-        logger.info("Cleared %d classifier models from %s", removed, stressm_dir)
+        logger.info("Cleared %d classifier models for %s", removed, catchment)
         return jsonify({
             "status": "success",
             "removed": removed,

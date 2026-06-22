@@ -24,11 +24,11 @@ Unit tests for MortgagePortfolioGenerator.
 Mortgage generation depends on an existing property portfolio file.
 """
 
-import json
 import re
 
 import pytest
 
+import database
 from port.cdm import LoanCDM
 from port.src.mortgage import MortgagePortfolioGenerator
 from port.src.property import PropertyPortfolioGenerator
@@ -36,40 +36,41 @@ from port.src.property import PropertyPortfolioGenerator
 
 @pytest.fixture
 def property_portfolio_in_tmp(tmp_path):
-    """Generate a small property portfolio and return (tmp_path, property_file_path)."""
-    gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False)
-    result = gen.generate(count=5)
-    return tmp_path, result["file_path"]
+    """Persist a small (5-property) portfolio under a tmp-rooted backend and keep it bound.
+
+    Both writers now persist through ``database``; ``tmp_catchment`` roots the backend at
+    ``tmp_path`` for the whole test, so the property write, the mortgage generator's
+    property read, and the loan write all resolve there. Yields ``tmp_path``."""
+    from db_helpers import tmp_catchment
+    with tmp_catchment(tmp_path):
+        PropertyPortfolioGenerator(verbose=False).generate(count=5)
+        yield tmp_path
 
 
 @pytest.mark.generator
 class TestMortgageGeneratorOutput:
 
     def test_generate_returns_expected_keys(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
         assert "data" in result
-        assert "file_path" in result
+        assert "catchment" in result
         assert "processing_stats" in result
 
     def test_mortgage_count_matches_properties(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
         assert len(result["data"]["mortgages"]) == 5
 
     def test_mortgage_ids_unique(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
         ids = result["data"]["mortgage_ids"]
         assert len(ids) == len(set(ids))
 
     def test_mortgage_id_format(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
         for mid in result["data"]["mortgage_ids"]:
             assert re.match(r"^MORT-[a-f0-9]{8}$", mid)
 
@@ -77,18 +78,15 @@ class TestMortgageGeneratorOutput:
 @pytest.mark.generator
 class TestMortgageGeneratorFile:
 
-    def test_output_file_exists(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
-        assert result["file_path"].exists()
+    def test_output_persisted(self, property_portfolio_in_tmp):
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
+        assert database.get_loan_portfolio(result["catchment"]) is not None
 
-    def test_output_file_is_valid_json(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
-        with open(result["file_path"]) as f:
-            data = json.load(f)
+    def test_output_is_valid_portfolio(self, property_portfolio_in_tmp):
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
+        data = database.get_loan_portfolio(result["catchment"])
         assert isinstance(data, dict)
 
 
@@ -96,18 +94,16 @@ class TestMortgageGeneratorFile:
 class TestMortgageGeneratorDataQuality:
 
     def test_each_mortgage_has_property_id(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
         cdm = LoanCDM()
         for mortgage in result["data"]["mortgages"]:
             mapping = cdm.create_mapping(mortgage)
             assert mapping.get("property_id") is not None
 
     def test_processing_stats(self, property_portfolio_in_tmp):
-        tmp_dir, prop_path = property_portfolio_in_tmp
-        gen = MortgagePortfolioGenerator(output_dir=tmp_dir, verbose=False)
-        result = gen.generate(property_portfolio_path=prop_path)
+        gen = MortgagePortfolioGenerator(verbose=False)
+        result = gen.generate()
         stats = result["processing_stats"]
         assert stats["successful_mortgages"] == 5
         assert stats["failed_mortgages"] == 0

@@ -27,9 +27,23 @@ import json
 
 import pytest
 
+import database
 from port.src.property.main import PropertyPortfolioGenerator
+from db_helpers import tmp_catchment
 
 from .conftest import make_portfolio_gen, make_portfolio_params
+
+
+@pytest.fixture(autouse=True)
+def _iso_catchment(tmp_path):
+    """Bind a tmp-rooted backend (catchment "thames") for every test in this module.
+
+    The migrated property generator reads the gauge portfolio and writes properties
+    through ``database``; rooting the backend at ``tmp_path`` means a test that
+    pre-writes ``tmp_path / 'gauge.json'`` is read back by ``get_gauge_portfolio``,
+    and property writes are isolated and readable via ``get_property_portfolio``."""
+    with tmp_catchment(tmp_path):
+        yield
 
 
 # ===========================================================================
@@ -140,7 +154,7 @@ class TestGaugeJsonLoading:
         }
         (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
         params = make_portfolio_params()
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         result = gen.generate(count=2)
         assert 0 in gen._gauge_id_map
@@ -160,7 +174,7 @@ class TestGaugeJsonLoading:
         }
         (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
         params = make_portfolio_params()
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         gen.generate(count=2)
         assert gen._gauge_id_map.get(0) == "G-AAA"
@@ -168,7 +182,7 @@ class TestGaugeJsonLoading:
     def test_corrupted_gauge_json_does_not_crash(self, tmp_path):
         (tmp_path / "gauge.json").write_text("not valid json {{")
         params = make_portfolio_params()
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         result = gen.generate(count=2)
         assert result["processing_stats"]["successful_properties"] == 2
@@ -211,7 +225,7 @@ class TestProcessingStatsFailureTracking:
         """If a single property raises during generation, failed_properties
         increments."""
         params = make_portfolio_params()
-        gen = PropertyPortfolioGenerator(output_dir=tmp_path, verbose=False,
+        gen = PropertyPortfolioGenerator(verbose=False,
                                           catchment_params=params)
         original_fn = gen._generate_single_property
         call_count = [0]
@@ -235,18 +249,16 @@ class TestProcessingStatsFailureTracking:
 @pytest.mark.generator
 class TestPropertyOutputFileStructure:
 
-    def test_output_json_contains_properties_key(self, tmp_path):
+    def test_output_contains_properties_key(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)
         result = gen.generate(count=3)
-        with open(result["file_path"]) as f:
-            data = json.load(f)
+        data = database.get_property_portfolio(result["catchment"])
         assert "properties" in data
 
-    def test_output_json_contains_generation_metadata(self, tmp_path):
+    def test_output_contains_generation_metadata(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)
         result = gen.generate(count=2)
-        with open(result["file_path"]) as f:
-            data = json.load(f)
+        data = database.get_property_portfolio(result["catchment"])
         meta = data["generation_metadata"]
         assert "generated_at" in meta
         assert "catchment" in meta

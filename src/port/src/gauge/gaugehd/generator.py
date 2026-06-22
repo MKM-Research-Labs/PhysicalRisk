@@ -44,9 +44,9 @@ class GaugeHistoricalDaily:
     def calculate_statistics_from_levels(self, daily_observations, flood_stages):
         return calculate_level_statistics(daily_observations, flood_stages)
 
-    def generate_from_gauge_portfolio(self, gauge_data, output_dir=None, years=None):
+    def generate_from_gauge_portfolio(self, gauge_data, catchment=None, years=None):
         years_to_use = years if years is not None else self.years_of_history
-        return generate_from_gauge_portfolio(gauge_data, output_dir, years_to_use)
+        return generate_from_gauge_portfolio(gauge_data, catchment, years_to_use)
 
     def parse_nrfa_csv(self, filepath):
         return parse_nrfa_csv(filepath)
@@ -57,6 +57,6 @@ class GaugeHistoricalDaily:
     def filter_by_years(self, daily_flows, years=None):
         return filter_by_years(daily_flows, years)
 
-    def generate_from_nrfa(self, input_path, output_path=None, years=None, gauge_id=None):
+    def generate_from_nrfa(self, input_path, catchment=None, years=None, gauge_id=None):
         years_to_use = years if years is not None else self.years_of_history
-        return generate_from_nrfa(input_path, output_path, years_to_use, gauge_id)
+        return generate_from_nrfa(input_path, catchment, years_to_use, gauge_id)

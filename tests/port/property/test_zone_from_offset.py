@@ -89,3 +89,12 @@ def test_below_river_is_3b_not_zone1():
     """Regression: a below-river property must not be classed lowest-risk."""
     assert zone_locations(-2.0) == "Zone 3b"
     assert FloodMixin._zone_from_offset(-2.0) == "Zone 3b"
+
+
+def test_zone_from_offset_fallback_when_no_bands_match(monkeypatch):
+    """Defensive fallback: if no configured band matches an offset (e.g. an
+    empty bounds dict), ``_zone_from_offset`` returns 'Zone 1'."""
+    from port.src.property.main import _zones
+
+    monkeypatch.setattr(_zones, "EA_FLOOD_ZONE_ELEVATION_BOUNDS", {})
+    assert _zones._zone_from_offset(0.0) == "Zone 1"

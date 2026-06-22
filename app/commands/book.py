@@ -60,62 +60,62 @@ def cmd_book(args):
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
     
     catchment = 'thames'
-    config.catchment_id = catchment
-    
-    gaugehc_path = config.get_input_dir() / 'gaugehc.json'
-    counterparty_path = config.get_input_dir() / 'counterparty.json'
-    output_dir = config.get_reports_dir('prs')
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Clean existing trades if requested
-    if args.clean:
-        existing = list(output_dir.glob('PRS-*'))
-        if existing:
-            for f in existing:
-                f.unlink()
-            print(f"Cleaned {len(existing)} existing trade files")
-        
-        marks_path = config.get_trading_dir() / 'trade_marks.json'
-        if marks_path.exists():
-            marks_path.unlink()
-            print("Cleared trade marks")
-        
-        eod_dir = config.get_eod_dir()
-        if eod_dir.exists():
-            eod_files = list(eod_dir.glob('EOD-*'))
-            if eod_files:
-                for f in eod_files:
+    # Scope the catchment for the run (replaces permanent ``config.catchment_id =``).
+    with config.use_catchment(catchment):
+        gaugehc_path = config.get_input_dir() / 'gaugehc.json'
+        counterparty_path = config.get_input_dir() / 'counterparty.json'
+        output_dir = config.get_reports_dir('prs')
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Clean existing trades if requested
+        if args.clean:
+            existing = list(output_dir.glob('PRS-*'))
+            if existing:
+                for f in existing:
                     f.unlink()
-                print(f"Cleared {len(eod_files)} EOD snapshots")
-        
-        market_path = config.get_trading_dir() / 'market_state.json'
-        if market_path.exists():
-            market_path.unlink()
-            print("Cleared market state")
-    
-    print(f"\nGenerating {args.style} book")
-    print(f"Output: {output_dir}\n")
-    
-    if args.style == 'thames-central':
-        trades = generate_thames_central_book(
-            gaugehc_path=gaugehc_path,
-            counterparty_path=counterparty_path,
-            output_dir=output_dir,
-            catchment_id=catchment,
-            seed=args.seed,
-        )
-    else:
-        trades = generate_market_making_book(
-            gaugehc_path=gaugehc_path,
-            counterparty_path=counterparty_path,
-            output_dir=output_dir,
-            num_gauges=args.num_gauges,
-            catchment_id=catchment,
-            seed=args.seed,
-        )
-    
-    print("Generating trade confirmation PDFs...")
-    pdfs = generate_trade_pdfs(trades, output_dir)
-    print(f"  Generated {len(pdfs)} PDFs")
-    
-    print_book_summary(trades)
+                print(f"Cleaned {len(existing)} existing trade files")
+
+            marks_path = config.get_trading_dir() / 'trade_marks.json'
+            if marks_path.exists():
+                marks_path.unlink()
+                print("Cleared trade marks")
+
+            eod_dir = config.get_eod_dir()
+            if eod_dir.exists():
+                eod_files = list(eod_dir.glob('EOD-*'))
+                if eod_files:
+                    for f in eod_files:
+                        f.unlink()
+                    print(f"Cleared {len(eod_files)} EOD snapshots")
+
+            market_path = config.get_trading_dir() / 'market_state.json'
+            if market_path.exists():
+                market_path.unlink()
+                print("Cleared market state")
+
+        print(f"\nGenerating {args.style} book")
+        print(f"Output: {output_dir}\n")
+
+        if args.style == 'thames-central':
+            trades = generate_thames_central_book(
+                gaugehc_path=gaugehc_path,
+                counterparty_path=counterparty_path,
+                output_dir=output_dir,
+                catchment_id=catchment,
+                seed=args.seed,
+            )
+        else:
+            trades = generate_market_making_book(
+                gaugehc_path=gaugehc_path,
+                counterparty_path=counterparty_path,
+                output_dir=output_dir,
+                num_gauges=args.num_gauges,
+                catchment_id=catchment,
+                seed=args.seed,
+            )
+
+        print("Generating trade confirmation PDFs...")
+        pdfs = generate_trade_pdfs(trades, output_dir)
+        print(f"  Generated {len(pdfs)} PDFs")
+
+        print_book_summary(trades)

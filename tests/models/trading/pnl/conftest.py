@@ -23,15 +23,17 @@
 import pytest
 
 from models.trading.pnl_engine import PnLEngine
+from db_helpers import tmp_catchment
 
 
 @pytest.fixture
 def pnl_engine(tmp_path):
-    trading_dir = tmp_path / "trading"
-    trading_dir.mkdir()
-    prs_dir = tmp_path / "prs"
-    prs_dir.mkdir()
-    return PnLEngine(trading_dir, prs_dir)
+    """A PnLEngine bound to a tmp-rooted database backend (catchment "thames").
+
+    The migrated engine reads/writes trade marks + keyed EOD snapshots through
+    ``database``; rooting the backend at ``tmp_path`` isolates them."""
+    with tmp_catchment(tmp_path, catchment="thames"):
+        yield PnLEngine()
 
 
 @pytest.fixture

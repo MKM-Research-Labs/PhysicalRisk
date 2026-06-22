@@ -24,6 +24,8 @@ import json
 
 import pytest
 
+import database
+
 from port.src.stressm import (
     GAUGE_SUMMARY_DIR,
     SCHEMA_VERSION_SPATIAL,
@@ -139,7 +141,7 @@ class TestMissingGaugeJson:
             catchment_id="thames",
             seed=0,
         )
-        assert (tmp_path / SEQUENCES_FILENAME).exists()
+        assert database.get_storm_sequences(database.active_catchment()) is not None
 
     def test_num_gauges_zero_without_gauge_json(self, tmp_path):
         result = generate_stressm(
@@ -184,7 +186,7 @@ class TestNoValidGauges:
         ]}
         (tmp_path / "gauge.json").write_text(json.dumps(bad_gauge_json))
         generate_stressm(input_dir=tmp_path, output_dir=tmp_path, count=5, seed=0)
-        assert (tmp_path / SEQUENCES_FILENAME).exists()
+        assert database.get_storm_sequences(database.active_catchment()) is not None
 
 
 # ---------------------------------------------------------------------------

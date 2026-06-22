@@ -82,19 +82,20 @@ def write_nrfa_csv(path: Path, station_id: str = "39001",
 import pytest
 
 
-def setup_gauge_env(tmp_path, monkeypatch, gauge_entries=None):
-    """Set up gauge.json and gaugehd dir, returns (gauge_file, gaugehd_dir)."""
-    from config import config
+def setup_gauge_env(tmp_path, gauge_entries=None):
+    """Seed a gauge portfolio for the active catchment; return the gaugehd dir.
+
+    The migrated gaugehd generators read the gauge portfolio and write per-gauge history
+    through ``database``. The caller must already have bound a tmp-rooted backend
+    (``tmp_catchment(tmp_path)``); under it the history files land physically at
+    ``tmp_path/gaugehd/gauge_*_hd.json``, so existing glob read-backs keep working."""
+    import database
     if gauge_entries is None:
         gauge_entries = [SAMPLE_GAUGE_ENTRY]
-    gauge_data = {"flood_gauges": gauge_entries}
-    gauge_file = tmp_path / "gauge.json"
-    gauge_file.write_text(json.dumps(gauge_data))
+    database.save_gauges(database.active_catchment(), {"flood_gauges": gauge_entries})
     gaugehd_dir = tmp_path / "gaugehd"
-    gaugehd_dir.mkdir()
-    monkeypatch.setattr(config, "get_input_path", lambda f: gauge_file)
-    monkeypatch.setattr(config, "get_gaugehd_dir", lambda: gaugehd_dir)
-    return gauge_file, gaugehd_dir
+    gaugehd_dir.mkdir(exist_ok=True)
+    return gaugehd_dir
 
 
 SAMPLE_GAUGE_ENTRY = {

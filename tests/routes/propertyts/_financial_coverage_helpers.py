@@ -139,7 +139,7 @@ def _build_client(tmp_path, monkeypatch, *,
     gaugets_dir.mkdir()
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
-    prs_dir = output_dir / 'prs'
+    prs_dir = tmp_path / 'prs'  # database resolves prs_trade under input_dir/prs
     if include_prs_dir:
         prs_dir.mkdir()
 

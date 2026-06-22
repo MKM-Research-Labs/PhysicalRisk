@@ -131,7 +131,7 @@ class TestLoadAllPrsTrades:
         gaugets_dir.mkdir()
         output_dir = tmp_path / 'output'
         output_dir.mkdir()
-        prs_dir = output_dir / 'prs'
+        prs_dir = tmp_path / 'prs'  # database resolves prs_trade under input_dir/prs
         prs_dir.mkdir()
 
         (pts_dir / f'{PROP_ID}.json').write_text(json.dumps(_make_prop_flood()))
@@ -139,10 +139,11 @@ class TestLoadAllPrsTrades:
             json.dumps(_make_prop_details()))
         (tmp_path / 'loan.json').write_text(json.dumps(_make_mortgage()))
 
-        # One valid trade, one corrupt
+        # One valid trade, one corrupt, plus a stray non-PRS file (skipped).
         good = _make_prs_trade('PRS-GOOD', 'GAUGE-001', PROP_ID, 200_000)
         (prs_dir / 'PRS-GOOD.json').write_text(json.dumps(good))
         (prs_dir / 'PRS-BROKEN.json').write_text('{not valid json')
+        (prs_dir / 'notes.json').write_text(json.dumps({'not': 'a trade'}))
 
         monkeypatch.setattr(config, 'get_input_dir', lambda: tmp_path)
         monkeypatch.setattr(config, 'get_gaugets_dir', lambda: gaugets_dir)

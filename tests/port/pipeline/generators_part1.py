@@ -47,14 +47,11 @@ class TestGaugeTimeSeries:
 
     def test_requires_gauge_portfolio(self, tmp_path):
         from port.src.gauge.gaugets import GaugeTimeSeriesGenerator
-        original = config.input_dir
-        config.input_dir = tmp_path
-        try:
-            gen = GaugeTimeSeriesGenerator(tmp_path, verbose=False)
+        from db_helpers import tmp_catchment
+        # Empty backend (no gauge portfolio) → the generator must refuse.
+        with tmp_catchment(tmp_path):
             with pytest.raises(FileNotFoundError):
-                gen.generate(simulation_hours=12)
-        finally:
-            config.input_dir = original
+                GaugeTimeSeriesGenerator(verbose=False).generate(simulation_hours=12)
 
 
 class TestGaugeHistoricalDaily:
@@ -133,7 +130,10 @@ class TestCounterparty:
 
     def test_custom_count(self, tmp_path):
         from port.src.counterparty import CounterpartyPortfolioGenerator
-        gen = CounterpartyPortfolioGenerator(output_dir=tmp_path, verbose=False)
-        # +1 REIT prepended to the external pool of size ``count``
-        result = gen.generate(count=3)
+        from db_helpers import tmp_catchment
+        # The migrated writer persists through database; isolate it in a tmp backend.
+        with tmp_catchment(tmp_path):
+            gen = CounterpartyPortfolioGenerator(verbose=False)
+            # +1 REIT prepended to the external pool of size ``count``
+            result = gen.generate(count=3)
         assert len(result["data"]) == 4

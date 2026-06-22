@@ -248,10 +248,15 @@ def make_portfolio_params(gauge_points=None, areas=None):
 
 
 def make_portfolio_gen(tmp_path, gauge_points=None, areas=None):
-    """Create a PropertyPortfolioGenerator with minimal mock params."""
+    """Create a PropertyPortfolioGenerator with minimal mock params.
+
+    The WP2.4 generator no longer takes ``output_dir``; storage is resolved through
+    the ``database`` package against the active catchment. Tests that call
+    ``.generate()`` must run inside ``tmp_catchment(tmp_path)`` (their module's autouse
+    fixture); construction alone needs no backend. ``tmp_path`` is kept in the signature
+    for call-site compatibility."""
     params = make_portfolio_params(gauge_points=gauge_points, areas=areas)
     return PropertyPortfolioGenerator(
-        output_dir=tmp_path,
         verbose=False,
         catchment_params=params,
     )
