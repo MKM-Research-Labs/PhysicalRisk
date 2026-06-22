@@ -27,11 +27,13 @@ exactly as found.
 
 import pytest
 
+from database import FileRepository
 from database._pg import (
     Catchment, Commercial, CommercialLoan, Counterparty, EodSnapshot, Gauge,
     GaugeHazardCurve, Loan, PortRun, PrsTrade, Property, get_engine, get_session,
     reset_engine,
 )
+from database._pg.etl import import_catchment
 from database._pg.pg_repo import PostgresRepository
 
 TEST_CATCHMENT = "__pgtest__"
@@ -251,6 +253,32 @@ def test_unmapped_artifact_raises_everywhere(repo):
 
 def test_ping(repo):
     assert repo.ping() is True
+
+
+# ---------------------------------------------------------------------------
+# ETL: file → Postgres, with dual-read parity (WP1.5)
+# ---------------------------------------------------------------------------
+
+def test_import_catchment_dual_read_parity(repo, tmp_path):
+    """Load file-backed artifacts into Postgres, then PG-load must deep-equal
+    file-load — the convincing end-to-end proof."""
+    files = FileRepository(dir_resolver=lambda _catchment: tmp_path)
+    files.save("gauge", TEST_CATCHMENT, _gauge_doc())
+    files.save("gauge_hazard_curve", TEST_CATCHMENT, _ghc_doc())
+    files.save("prs_trade", TEST_CATCHMENT,
+               {"PhysicalSwap": {"Header": {"SwapID": "PRS-1"}}}, key="PRS-1")
+
+    counts = import_catchment(TEST_CATCHMENT, file_repo=files, pg=repo)
+
+    assert counts["gauge"] == 2
+    assert counts["gauge_hazard_curve"] == 2
+    assert counts["prs_trade"] == 1
+    assert counts["eod_snapshot"] == 0  # nothing written; keyed loop yields nothing
+
+    # Dual-read parity: every PG read deep-equals the file read.
+    assert repo.load("gauge", TEST_CATCHMENT) == files.load("gauge", TEST_CATCHMENT)
+    assert repo.load("gauge_hazard_curve", TEST_CATCHMENT) == files.load("gauge_hazard_curve", TEST_CATCHMENT)
+    assert repo.load("prs_trade", TEST_CATCHMENT, "PRS-1") == files.load("prs_trade", TEST_CATCHMENT, "PRS-1")
 
 
 def test_ping_false_when_unreachable(repo, monkeypatch):
