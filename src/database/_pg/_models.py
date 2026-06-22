@@ -310,3 +310,24 @@ class PortRecord(Base):
     key: Mapped[str] = mapped_column(primary_key=True)         # record id, e.g. 'PROP-001'
 
     cdm: Mapped[dict] = mapped_column(JSONB)                   # the verbatim record
+
+
+class PortBlob(Base):
+    """Metadata row for one binary artifact — the relational half of the hybrid
+    blob tier. The bytes live in the object store (MinIO/S3); this row records
+    that the blob exists and where, so existence / listing stay SQL.
+
+    The binary artifacts that don't belong in a JSON column: classifiers
+    (``.joblib`` models) and, later, typhoon particle files. Keyed by
+    ``(catchment, artifact, mode, key)`` like ``PortRecord``; ``object_key`` is
+    the deterministic path in the bucket, ``size_bytes`` the stored length."""
+
+    __tablename__ = "port_blob"
+
+    catchment_id: Mapped[str] = mapped_column(ForeignKey("catchment.id"), primary_key=True)
+    artifact: Mapped[str] = mapped_column(primary_key=True)    # e.g. 'classifier'
+    mode: Mapped[str] = mapped_column(primary_key=True)        # scenario mode, e.g. 'flood'
+    key: Mapped[str] = mapped_column(primary_key=True)         # record id, e.g. 'GAUGE-001'
+
+    object_key: Mapped[str]                                    # path in the bucket
+    size_bytes: Mapped[int]                                    # stored byte length

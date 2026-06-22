@@ -5,25 +5,31 @@ tier-1 artifacts**, switchable by an env var. This note is the practical guide t
 standing it up. It is **not yet a full cutover** — see *Scope* below.
 
 ## What works today
-- 11-table relational schema (catchment, port_run + 6 portfolio entities +
-  gauge_hazard_curve, prs_trade, eod_snapshot), live, zero model↔migration drift.
-- `PostgresRepository` — the full `Repository` interface, with `save→load` parity
-  proven on the real `thames` catchment (797 records).
+- 14-table relational schema (catchment, port_run + 6 portfolio entities +
+  gauge_hazard_curve, prs_trade, eod_snapshot + the generic `port_document` /
+  `port_record` / `port_blob` tables), live, zero model↔migration drift.
+- `PostgresRepository` — the full `Repository` interface across **all artifact
+  shapes**: collections (shredded), bespoke keyed tables, whole documents,
+  keyed records, and binary blobs (object store). `save→load` parity proven on
+  real `thames` data.
 - Each entity promotes its identifying/queryable fields to typed, indexed columns
-  and keeps the verbatim CDM document in a `cdm` JSONB column (lossless).
+  and keeps the verbatim CDM document in a `cdm` JSONB column (lossless); blobs
+  keep their bytes in MinIO with a `port_blob` metadata row.
 - One-line switch: `MKM_REPO_BACKEND=pg`.
 
 ## Stand it up
 
 ```bash
-# 1. Start Postgres (dev; postgres:16). Defaults match config/database.py.
-docker compose -f docker/docker-compose.yml up -d postgres
+# 1. Start Postgres (postgres:16) and MinIO (object store for the blob tier).
+#    Defaults match config/database.py.
+docker compose -f docker/docker-compose.yml up -d postgres minio
 
-# 2. Apply the schema.
+# 2. Install deps (adds SQLAlchemy/psycopg2/alembic/minio) + apply the schema.
 source .venv/bin/activate
+pip install -r requirements.txt
 alembic upgrade head            # alembic check should then say "no new operations"
 
-# 3. Import a catchment from files into Postgres (idempotent).
+# 3. Import a catchment from files into Postgres + MinIO (idempotent).
 python - <<'PY'
 import sys; sys.path.insert(0, 'src')
 from database._pg.etl import import_catchment
@@ -38,31 +44,34 @@ MKM_REPO_BACKEND=pg python app.py server --thames
 - `MKM_REPO_BACKEND` — `file` (default) or `pg`. Selects the backend at startup.
 - `MKM_DATABASE_URL` — full SQLAlchemy URL override; else composed from
   `MKM_DB_HOST/PORT/NAME/USER/PASSWORD` (defaults match docker-compose).
+- `MKM_OBJECT_STORE_ENDPOINT/ACCESS_KEY/SECRET_KEY/BUCKET/SECURE` — the MinIO/S3
+  object store for the blob tier (defaults match docker-compose's minio; the
+  same S3 API points at cloud storage in production).
 
 ## Scope — important
-Mapped to tables today — **everything except the binary blob tier**:
+**Every artifact in the registry is now mapped** — all five shapes:
 
 - the **9 tier-1 entity/keyed artifacts** shredded into relational rows;
-- the **16 whole-document artifacts** (`port_document`, one row per
-  `(catchment, artifact, mode)`) — storm sequences/summaries, perils, trading
-  state (`market_state` / `trade_marks` / history), property & commercial hazard
-  curves (all modes), the flood summary, classifier training metadata;
-- the **7 keyed-record artifacts** (`port_record`, one row per
-  `(catchment, artifact, mode, key)`) — property/commercial/gauge timeseries,
-  gauge history, stress storms, sequence gauges, typhoon-damage events.
+- **16 whole-document artifacts** (`port_document`) — storm sequences/summaries,
+  perils, trading state, property & commercial hazard curves (all modes), the
+  flood summary, classifier training metadata;
+- **7 keyed-record artifacts** (`port_record`) — property/commercial/gauge
+  timeseries, gauge history, stress storms, sequence gauges, typhoon events;
+- the **blob tier** (`classifier` → `port_blob` row + MinIO object); typhoon
+  particle files reuse the same path when registered.
 
-With `MKM_REPO_BACKEND=pg`, the only still-**unmapped** artifact is the **blob
-tier** — classifiers (`.joblib`) and typhoon particle files — which raises
-`NotImplementedError`. Remaining migration work:
+So `MKM_REPO_BACKEND=pg` can serve the whole artifact surface (given Postgres +
+MinIO up and a catchment imported). Remaining migration work is no longer about
+artifact coverage:
 
-1. The blob tier → object store (MinIO vs cloud — decision still open).
-2. WP2 full cutover (per-catchment, all artifacts), WP4 E2E rework, WP5
-   RBAC/pooling/decommission.
+1. WP2 full cutover — run the parity harness per catchment, then flip each one's
+   read source; verify the app end-to-end on `pg`.
+2. WP4 E2E rework (per-test schema), WP5 RBAC + pooling + file decommission.
 
 The **WP1.7 dual-read parity harness** (`src/database/_pg/parity.py`) is the
 regression net for the cutover: `check_catchment(catchment)` compares a file
-read against a pg read for every mapped artifact (collections normalised by id,
-documents and keyed records per mode) and returns a pass/fail report.
+read against a pg read for every mapped artifact (collections normalised by id;
+documents, keyed records and blobs per mode) and returns a pass/fail report.
 
 All SQL/ORM/Alembic lives under `src/database/_pg`, kept green by the data-access
 audit. The itemised plan + design notes are in the `json_to_postgres_migration`

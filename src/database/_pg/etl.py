@@ -30,6 +30,7 @@ files.
 
 from ..config_binding import from_config
 from .pg_repo import (
+    _BLOBS,
     _COLLECTIONS,
     _DOCUMENTS,
     _KEYED,
@@ -79,6 +80,15 @@ def import_catchment(catchment, *, file_repo=None, pg=None) -> dict:
             for key in file_repo.iter_keys(artifact, catchment, mode=mode):
                 record = file_repo.load(artifact, catchment, key, mode=mode)
                 pg.save(artifact, catchment, record, key=key, mode=mode)
+                n += 1
+        counts[artifact] = n
+
+    for artifact in sorted(_BLOBS):
+        n = 0
+        for mode in modes_for(artifact):
+            for key in file_repo.iter_keys(artifact, catchment, mode=mode):
+                blob = file_repo.load(artifact, catchment, key, mode=mode)  # bytes
+                pg.save(artifact, catchment, blob, key=key, mode=mode)
                 n += 1
         counts[artifact] = n
 

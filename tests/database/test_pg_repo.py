@@ -37,11 +37,13 @@ from database._pg import (
     Gauge,
     GaugeHazardCurve,
     Loan,
+    PortBlob,
     PortDocument,
     PortRecord,
     PortRun,
     Property,
     PrsTrade,
+    _objectstore,
     get_engine,
     get_session,
     reset_engine,
@@ -52,7 +54,7 @@ from database._pg.pg_repo import PostgresRepository
 TEST_CATCHMENT = "__pgtest__"
 _ALL_MODELS = (Gauge, Property, Loan, Commercial, CommercialLoan, Counterparty,
                GaugeHazardCurve, PrsTrade, EodSnapshot, PortDocument, PortRecord,
-               PortRun)
+               PortBlob, PortRun)
 
 
 def _postgres_available() -> bool:
@@ -66,6 +68,17 @@ def _postgres_available() -> bool:
         return False
     finally:
         reset_engine()
+
+
+def _minio_available() -> bool:
+    _objectstore.reset_client()
+    return _objectstore.reachable()
+
+
+requires_minio = pytest.mark.skipif(
+    not _minio_available(),
+    reason="no live MinIO (run: docker compose -f docker/docker-compose.yml up -d minio)",
+)
 
 
 pytestmark = pytest.mark.skipif(
@@ -87,6 +100,11 @@ def repo():
         if anchor is not None:
             session.delete(anchor)
         session.commit()
+    # Best-effort: drop any blob objects this test left in the object store.
+    if _minio_available():
+        client, bucket = _objectstore.get_client()
+        for obj in client.list_objects(bucket, prefix=f"{TEST_CATCHMENT}/", recursive=True):
+            client.remove_object(bucket, obj.object_name)
     reset_engine()
 
 
@@ -251,24 +269,90 @@ def test_catchments_includes_written(repo):
     assert TEST_CATCHMENT in repo.catchments()
 
 
-def test_unmapped_artifact_raises_everywhere(repo):
-    """Every method rejects an artifact with no table yet (not a KeyError).
+def test_unknown_artifact_raises_everywhere(repo):
+    """Every method rejects an artifact with no table mapping (NotImplementedError,
+    not a KeyError). Every *registered* artifact is now mapped, so this uses an
+    unknown name to exercise the fall-through guard."""
+    unknown = "not_a_real_artifact"
+    with pytest.raises(NotImplementedError):
+        repo.save(unknown, TEST_CATCHMENT, {"x": 1}, key="k1")
+    with pytest.raises(NotImplementedError):
+        repo.load(unknown, TEST_CATCHMENT, "k1")
+    with pytest.raises(NotImplementedError):
+        repo.delete(unknown, TEST_CATCHMENT, "k1")
+    with pytest.raises(NotImplementedError):
+        list(repo.iter_keys(unknown, TEST_CATCHMENT))
+    with pytest.raises(NotImplementedError):
+        repo.exists(unknown, TEST_CATCHMENT, "k1")
+    with pytest.raises(NotImplementedError):
+        repo.has_collection(unknown, TEST_CATCHMENT)
 
-    ``classifier`` is a BLOB-kind artifact (binary ``.joblib``) still on the file
-    backend — the object-store tier, not yet mapped."""
-    unmapped = "classifier"
-    with pytest.raises(NotImplementedError):
-        repo.save(unmapped, TEST_CATCHMENT, b"\x00", key="clf-1")
-    with pytest.raises(NotImplementedError):
-        repo.load(unmapped, TEST_CATCHMENT, "clf-1")
-    with pytest.raises(NotImplementedError):
-        repo.delete(unmapped, TEST_CATCHMENT, "clf-1")
-    with pytest.raises(NotImplementedError):
-        list(repo.iter_keys(unmapped, TEST_CATCHMENT))
-    with pytest.raises(NotImplementedError):
-        repo.exists(unmapped, TEST_CATCHMENT, "clf-1")
-    with pytest.raises(NotImplementedError):
-        repo.has_collection(unmapped, TEST_CATCHMENT)
+
+# ---------------------------------------------------------------------------
+# Blob tier — binary artifacts (PortBlob metadata row + object-store bytes)
+# ---------------------------------------------------------------------------
+
+@requires_minio
+def test_blob_roundtrip(repo):
+    blob = b"\x80\x03}q\x00.PK\x05\x06"  # arbitrary binary
+    repo.save("classifier", TEST_CATCHMENT, blob, key="GAUGE-1")
+    assert repo.load("classifier", TEST_CATCHMENT, "GAUGE-1") == blob
+    with get_session() as session:
+        row = session.get(PortBlob, (TEST_CATCHMENT, "classifier", "flood", "GAUGE-1"))
+        assert row.object_key == f"{TEST_CATCHMENT}/classifier/flood/GAUGE-1"
+        assert row.size_bytes == len(blob)
+
+
+@requires_minio
+def test_blob_replace_overwrites(repo):
+    repo.save("classifier", TEST_CATCHMENT, b"old", key="GAUGE-1")
+    repo.save("classifier", TEST_CATCHMENT, b"newer-bytes", key="GAUGE-1")
+    assert repo.load("classifier", TEST_CATCHMENT, "GAUGE-1") == b"newer-bytes"
+    with get_session() as session:
+        assert session.get(PortBlob, (TEST_CATCHMENT, "classifier", "flood", "GAUGE-1")).size_bytes == 11
+
+
+@requires_minio
+def test_blob_iter_keys_exists_has_collection(repo):
+    assert repo.exists("classifier", TEST_CATCHMENT, "GAUGE-1") is False
+    assert repo.has_collection("classifier", TEST_CATCHMENT) is False
+    repo.save("classifier", TEST_CATCHMENT, b"a", key="GAUGE-2")
+    repo.save("classifier", TEST_CATCHMENT, b"b", key="GAUGE-1")
+    assert repo.exists("classifier", TEST_CATCHMENT, "GAUGE-1") is True
+    assert repo.has_collection("classifier", TEST_CATCHMENT) is True
+    assert list(repo.iter_keys("classifier", TEST_CATCHMENT)) == ["GAUGE-1", "GAUGE-2"]
+
+
+@requires_minio
+def test_blob_delete_removes_row_and_object(repo):
+    repo.save("classifier", TEST_CATCHMENT, b"x", key="GAUGE-1")
+    repo.delete("classifier", TEST_CATCHMENT, "GAUGE-1")
+    assert repo.exists("classifier", TEST_CATCHMENT, "GAUGE-1") is False
+    with pytest.raises(FileNotFoundError):
+        repo.load("classifier", TEST_CATCHMENT, "GAUGE-1")
+    repo.delete("classifier", TEST_CATCHMENT, "GONE")  # no-op, no raise
+
+
+@requires_minio
+def test_blob_load_missing_raises(repo):
+    with pytest.raises(FileNotFoundError):
+        repo.load("classifier", TEST_CATCHMENT, "NOPE")
+
+
+@requires_minio
+def test_import_catchment_imports_blobs(repo, tmp_path):
+    """ETL reads classifier blobs from the file backend and writes them to the
+    object store; PG-load then deep-equals the file bytes."""
+    files = FileRepository(dir_resolver=lambda _catchment: tmp_path)
+    files.save("classifier", TEST_CATCHMENT, b"model-bytes-1", key="GAUGE-1")
+    files.save("classifier", TEST_CATCHMENT, b"model-bytes-2", key="GAUGE-2")
+
+    counts = import_catchment(TEST_CATCHMENT, file_repo=files, pg=repo)
+
+    assert counts["classifier"] == 2
+    assert list(repo.iter_keys("classifier", TEST_CATCHMENT)) == ["GAUGE-1", "GAUGE-2"]
+    assert repo.load("classifier", TEST_CATCHMENT, "GAUGE-1") == \
+        files.load("classifier", TEST_CATCHMENT, "GAUGE-1")
 
 
 # ---------------------------------------------------------------------------

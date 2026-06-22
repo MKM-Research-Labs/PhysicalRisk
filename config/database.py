@@ -53,6 +53,31 @@ def get_database_url() -> str:
     return f"{DB_DRIVER}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 
+# ── Object store (blob tier) ────────────────────────────────────────────────
+# Connection values for the MinIO/S3 object store that holds binary artifacts
+# (classifiers, typhoon particle files). Values only — the client lives in
+# ``src/database`` (rule R6). Defaults match docker/docker-compose.yml's minio.
+OBJECT_STORE_ENDPOINT = os.getenv("MKM_OBJECT_STORE_ENDPOINT", "127.0.0.1:9000")
+OBJECT_STORE_ACCESS_KEY = os.getenv("MKM_OBJECT_STORE_ACCESS_KEY", "minioadmin")
+OBJECT_STORE_SECRET_KEY = os.getenv("MKM_OBJECT_STORE_SECRET_KEY", "minioadmin")
+OBJECT_STORE_BUCKET = os.getenv("MKM_OBJECT_STORE_BUCKET", "mkm-physicalrisk")
+# TLS off for local MinIO; set MKM_OBJECT_STORE_SECURE=1 for an https endpoint.
+OBJECT_STORE_SECURE = os.getenv("MKM_OBJECT_STORE_SECURE", "0").strip().lower() in ("1", "true", "yes")
+
+
+def get_object_store_config() -> dict:
+    """Connection settings for the blob-tier object store, as a plain dict
+    (``endpoint`` / ``access_key`` / ``secret_key`` / ``bucket`` / ``secure``).
+    Consumed by ``src/database`` to build the MinIO client."""
+    return {
+        "endpoint": OBJECT_STORE_ENDPOINT,
+        "access_key": OBJECT_STORE_ACCESS_KEY,
+        "secret_key": OBJECT_STORE_SECRET_KEY,
+        "bucket": OBJECT_STORE_BUCKET,
+        "secure": OBJECT_STORE_SECURE,
+    }
+
+
 # Backend selection (WP2.1 cutover switch). 'file' = the JSON tree (default,
 # unchanged behaviour); 'pg' = the PostgreSQL backend.
 REPO_BACKENDS = ("file", "pg")

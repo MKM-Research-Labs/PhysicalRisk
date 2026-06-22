@@ -207,6 +207,24 @@ def test_keyed_mode_isolates_keys():
     assert "only-file={'PROP-1'}" in result.detail
 
 
+def test_blob_kind_compares_bytes_equal():
+    """The blob tier reuses check_keyed with kind='blob'; records are bytes."""
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    for repo in (file_repo, pg):
+        repo.save("classifier", CAT, b"\x80\x03model", key="GAUGE-1")
+    result = check_keyed("classifier", CAT, file_repo, pg, kind="blob")
+    assert result == ParityResult("classifier", "blob", True, 1, 1, "")
+
+
+def test_blob_kind_byte_mismatch():
+    file_repo, pg = InMemoryRepository(), InMemoryRepository()
+    file_repo.save("classifier", CAT, b"aaa", key="GAUGE-1")
+    pg.save("classifier", CAT, b"bbb", key="GAUGE-1")
+    result = check_keyed("classifier", CAT, file_repo, pg, kind="blob")
+    assert result.equal is False
+    assert result.detail == "record 'GAUGE-1' differs: values differ"
+
+
 # ---------------------------------------------------------------------------
 # check_document — whole-document artifacts (no by-id normalisation)
 # ---------------------------------------------------------------------------
@@ -286,6 +304,7 @@ def _seed_parity_pair():
         repo.save("prs_trade", CAT, _trade("PRS-1"), key="PRS-1")
         repo.save("market_state", CAT, {"rates": {"GBP": 0.05}})            # document
         repo.save("gauge_timeseries", CAT, {"series": [1]}, key="GAUGE-1")  # keyed record
+        repo.save("classifier", CAT, b"model-bytes", key="GAUGE-1")         # blob
     return file_repo, pg
 
 
@@ -305,6 +324,8 @@ def test_check_catchment_aggregates_and_passes():
     # the seeded keyed record is checked; keyed-records absent both sides are skipped
     assert by_artifact["gauge_timeseries"] == ParityResult("gauge_timeseries", "keyed", True, 1, 1, "")
     assert "stress_storm" not in by_artifact
+    # the seeded blob is checked (kind 'blob')
+    assert by_artifact["classifier"] == ParityResult("classifier", "blob", True, 1, 1, "")
     assert all_ok(results) is True
 
 

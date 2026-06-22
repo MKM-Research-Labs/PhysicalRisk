@@ -28,9 +28,11 @@ bespoke row per key; a *document* artifact (storm summaries, perils, trading
 state, hazard curves, …) is stored whole in one ``PortDocument`` row per
 ``(catchment, artifact, mode)``; a *keyed-record* artifact (timeseries, stress
 storms, sequence gauges, typhoon events) is one ``PortRecord`` row per
-``(catchment, artifact, mode, key)``. Each row keeps the verbatim record in
-``cdm`` (JSONB), so a ``save`` then ``load`` returns an equal document — proven by
-the parity tests.
+``(catchment, artifact, mode, key)``. The JSON shapes keep the verbatim record in
+``cdm`` (JSONB), so ``save`` then ``load`` returns an equal document. Finally a
+*blob* artifact (classifiers, typhoon particle files) stores its bytes in the
+object store with one ``PortBlob`` metadata row per key — proven by the parity
+tests.
 
 v1 scope: round-trip fidelity (id + cdm + the document envelope in ``port_run``)
 for the 9 tier-1 artifacts. Records reassemble in id order (deterministic, not
@@ -47,6 +49,7 @@ from config.data_layout import DEFAULT_MODE, SCENARIO_MODES
 
 from .. import artifacts
 from ..base import Repository
+from . import _objectstore
 from ._columns import promoted_columns
 from ._models import (
     Catchment,
@@ -57,6 +60,7 @@ from ._models import (
     Gauge,
     GaugeHazardCurve,
     Loan,
+    PortBlob,
     PortDocument,
     PortRecord,
     PortRun,
@@ -99,6 +103,18 @@ _DOCUMENTS: frozenset = frozenset(
 _KEYED_DOCS: frozenset = frozenset(
     name for name in artifacts.names() if artifacts.spec(name).kind == artifacts.KEYED
 ) - frozenset(_KEYED)
+
+# Blob artifacts: binary payloads (classifiers, typhoon particle files) too large
+# / opaque for a JSON column. Bytes live in the object store; one PortBlob row per
+# (catchment, artifact, mode, key) records that it exists and where.
+_BLOBS: frozenset = frozenset(
+    name for name in artifacts.names() if artifacts.spec(name).kind == artifacts.BLOB
+)
+
+
+def _object_key(catchment: str, artifact: str, mode: str, key: str) -> str:
+    """Deterministic object-store path for one blob."""
+    return f"{catchment}/{artifact}/{mode}/{key}"
 
 
 def modes_for(artifact: str) -> list[str]:
@@ -159,8 +175,24 @@ class PostgresRepository(Repository):
             self._save_document(artifact, catchment, payload, mode)
         elif artifact in _KEYED_DOCS:
             self._save_record(artifact, catchment, payload, key, mode)
+        elif artifact in _BLOBS:
+            self._save_blob(artifact, catchment, payload, key, mode)
         else:
             self._unmapped(artifact)
+
+    def _save_blob(self, artifact, catchment, payload, key, mode) -> None:
+        object_key = _object_key(catchment, artifact, mode, key)
+        _objectstore.put_bytes(object_key, payload)
+        with get_session() as session:
+            self._ensure_catchment(session, catchment)
+            existing = session.get(PortBlob, (catchment, artifact, mode, key))
+            if existing is not None:
+                existing.object_key = object_key
+                existing.size_bytes = len(payload)
+            else:
+                session.add(PortBlob(catchment_id=catchment, artifact=artifact, mode=mode,
+                                     key=key, object_key=object_key, size_bytes=len(payload)))
+            session.commit()
 
     def _save_document(self, artifact, catchment, payload, mode) -> None:
         with get_session() as session:
@@ -235,7 +267,18 @@ class PostgresRepository(Repository):
             return self._load_document(artifact, catchment, mode)
         if artifact in _KEYED_DOCS:
             return self._load_record(artifact, catchment, key, mode)
+        if artifact in _BLOBS:
+            return self._load_blob(artifact, catchment, key, mode)
         self._unmapped(artifact)
+
+    def _load_blob(self, artifact, catchment, key, mode) -> bytes:
+        with get_session() as session:
+            row = session.get(PortBlob, (catchment, artifact, mode, key))
+            if row is None:
+                raise FileNotFoundError(
+                    f"{artifact}[{key}] not found for catchment '{catchment}' (mode '{mode}')")
+            object_key = row.object_key
+        return _objectstore.get_bytes(object_key)
 
     def _load_document(self, artifact, catchment, mode) -> Any:
         with get_session() as session:
@@ -305,6 +348,15 @@ class PostgresRepository(Repository):
                 if row is not None:
                     session.delete(row)
                 session.commit()
+        elif artifact in _BLOBS:
+            with get_session() as session:
+                row = session.get(PortBlob, (catchment, artifact, mode, key))
+                object_key = row.object_key if row is not None else None
+                if row is not None:
+                    session.delete(row)
+                session.commit()
+            if object_key is not None:
+                _objectstore.delete_object(object_key)
         else:
             self._unmapped(artifact)
 
@@ -317,6 +369,14 @@ class PostgresRepository(Repository):
                     select(PortRecord.key)
                     .filter_by(catchment_id=catchment, artifact=artifact, mode=mode)
                     .order_by(PortRecord.key)
+                ).all()
+            return iter(keys)
+        if artifact in _BLOBS:
+            with get_session() as session:
+                keys = session.scalars(
+                    select(PortBlob.key)
+                    .filter_by(catchment_id=catchment, artifact=artifact, mode=mode)
+                    .order_by(PortBlob.key)
                 ).all()
             return iter(keys)
         model, id_col = self._model_for(artifact)
@@ -338,6 +398,9 @@ class PostgresRepository(Repository):
         if artifact in _KEYED_DOCS:
             with get_session() as session:
                 return session.get(PortRecord, (catchment, artifact, mode, key)) is not None
+        if artifact in _BLOBS:
+            with get_session() as session:
+                return session.get(PortBlob, (catchment, artifact, mode, key)) is not None
         if artifact in _KEYED:
             model, _ = _KEYED[artifact]
             with get_session() as session:
@@ -350,6 +413,10 @@ class PostgresRepository(Repository):
         if artifact in _KEYED_DOCS:
             with get_session() as session:
                 return session.query(PortRecord).filter_by(
+                    catchment_id=catchment, artifact=artifact, mode=mode).first() is not None
+        if artifact in _BLOBS:
+            with get_session() as session:
+                return session.query(PortBlob).filter_by(
                     catchment_id=catchment, artifact=artifact, mode=mode).first() is not None
         model, id_col = self._model_for(artifact)
         with get_session() as session:

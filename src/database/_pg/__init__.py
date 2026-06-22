@@ -34,6 +34,7 @@ from ._models import (
     Gauge,
     GaugeHazardCurve,
     Loan,
+    PortBlob,
     PortDocument,
     PortRecord,
     PortRun,
@@ -43,7 +44,7 @@ from ._models import (
 from .engine import get_engine, get_session, reset_engine
 
 __all__ = [
-    "Base", "Catchment", "PortRun", "PortDocument", "PortRecord",
+    "Base", "Catchment", "PortRun", "PortDocument", "PortRecord", "PortBlob",
     "Gauge", "Property", "Loan", "Commercial", "CommercialLoan", "Counterparty",
     "GaugeHazardCurve", "PrsTrade", "EodSnapshot",
     "get_engine", "get_session", "reset_engine",

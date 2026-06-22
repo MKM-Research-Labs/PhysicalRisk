@@ -27,8 +27,18 @@ is caught at docker time by ``alembic check`` (autogenerate shows no diff)."""
 import pytest
 
 from database._pg import (
-    Base, Catchment, Commercial, CommercialLoan, Counterparty, EodSnapshot,
-    Gauge, GaugeHazardCurve, Loan, PortRun, PrsTrade, Property,
+    Base,
+    Catchment,
+    Commercial,
+    CommercialLoan,
+    Counterparty,
+    EodSnapshot,
+    Gauge,
+    GaugeHazardCurve,
+    Loan,
+    PortRun,
+    Property,
+    PrsTrade,
 )
 
 # Every keyed entity → (model, composite-PK id column, table name).
@@ -49,7 +59,7 @@ _GENERATED = [e for e in _ENTITIES if e[0] is not EodSnapshot]
 
 def test_expected_tables_registered():
     assert set(Base.metadata.tables) == {
-        "catchment", "port_run", "port_document", "port_record",
+        "catchment", "port_run", "port_document", "port_record", "port_blob",
         "gauge", "property", "loan", "commercial", "commercial_loan", "counterparty",
         "gauge_hazard_curve", "prs_trade", "eod_snapshot",
     }
