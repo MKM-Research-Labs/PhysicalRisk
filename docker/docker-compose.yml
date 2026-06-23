@@ -1,3 +1,8 @@
+# Explicit Compose project name so this stack groups under "physicalrisk" rather
+# than the default "docker" (the parent directory name), keeping it distinct from
+# other Compose projects on the machine. Project names must be lowercase.
+name: physicalrisk
+
 services:
   web:
     build:

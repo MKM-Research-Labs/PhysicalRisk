@@ -275,11 +275,11 @@
       ],
       "overall_risk_rating": {
         "calculated_rating": "Unacceptable",
-        "calculated_score": 0.32,
+        "calculated_score": 0.22,
         "component_scores": {
           "validation_coverage": 0.0,
           "remediation_health": 0.2,
-          "review_currency": 0.5,
+          "review_currency": 0.0,
           "assumption_risk": 0.6,
           "limitation_risk": 0.8
         },
@@ -288,7 +288,7 @@
         "mrc_override_reason": null,
         "mrc_override_date": null,
         "mrc_override_by": null,
-        "last_calculated": "2026-06-12T12:09:17.953317"
+        "last_calculated": "2026-06-22T16:37:25.121587"
       }
     },
     {
