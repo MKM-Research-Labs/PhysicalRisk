@@ -38,11 +38,14 @@ PYTHONPATH=src python -m database._pg.cutover thames --import
 MKM_REPO_BACKEND=pg python app.py server --thames
 ```
 
-**Cutover status:** **all three catchments imported and dual-read parity-green**
-(WP2.2 + WP2.3) — `mekong` 53/53, `halong` 64/64 (incl. 2,100 typhoon events),
-`thames` 54/54, across every artifact and scenario mode. Reads can be served from
-Postgres for any of them via `MKM_REPO_BACKEND=pg`. Next: WP2.5 — cut **writes**
-(the port generator targets Postgres).
+**Cutover status:** **reads and writes both cut** (WP2.2 + WP2.3 + WP2.5). All
+three catchments are imported and dual-read parity-green — `mekong` 53/53,
+`halong` 64/64 (incl. 2,100 typhoon events), `thames` 54/54. Reads serve from
+Postgres via `MKM_REPO_BACKEND=pg`; and `app.py port` now binds the same switch,
+so port **generation** writes to Postgres + MinIO under `pg` (verified: the gauge
+generator wrote to PG with the SSD files untouched). File backend stays the
+default. Next: WP3 (tools onto the repo), WP4 (E2E + suites on `pg`), WP5
+(RBAC + pooling + decommission).
 
 ## Configuration (all in `config/database.py`, rule R1)
 - `MKM_REPO_BACKEND` — `file` (default) or `pg`. Selects the backend at startup.

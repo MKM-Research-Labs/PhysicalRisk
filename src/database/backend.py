@@ -43,3 +43,9 @@ def active_backend() -> Repository:
             "database backend not configured — call configure_backend(...) at startup"
         )
     return _active
+
+
+def backend_configured() -> bool:
+    """True if a backend is already bound. Lets an entry point bind a default only
+    when a caller (a test fixture, the web app) hasn't already chosen one."""
+    return _active is not None

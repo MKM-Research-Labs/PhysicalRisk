@@ -31,7 +31,7 @@ Implementations live in the domain submodules; see ``src/database/README.md``.
 from __future__ import annotations
 
 from .base import Repository
-from .backend import configure_backend
+from .backend import backend_configured, configure_backend
 from .context import active_catchment, catchment_context
 from .file_repo import FileRepository
 from .memory_repo import InMemoryRepository
@@ -92,6 +92,7 @@ from .documents import read_json_document, iter_document_names
 __all__ = [
     # backends & lifecycle
     "Repository", "FileRepository", "InMemoryRepository", "configure_backend",
+    "backend_configured",
     "active_catchment", "catchment_context",
     "catchments", "ping",
     # portfolio

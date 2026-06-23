@@ -26,6 +26,8 @@ each stage in order, then runs the summary + PDFs + lineage check.
 """
 
 from config import config
+from database import backend_configured
+from database.config_binding import use_configured_backend
 
 from .._catchment import resolve_catchment
 from .auth import _authenticate
@@ -36,6 +38,15 @@ from .stages import (
     windhazard,
 )
 from .summary import _print_port_summary
+
+
+def _ensure_backend():
+    """Bind the storage backend the run writes through, honouring the WP2.1
+    ``MKM_REPO_BACKEND`` switch (``file`` by default, ``pg`` for Postgres). Skips
+    when a caller already bound one — a test fixture, or the web app — so this
+    only fills in the gap for a bare ``app.py port`` invocation."""
+    if not backend_configured():
+        use_configured_backend()
 
 
 def _build_context(args) -> StageContext:
@@ -199,6 +210,11 @@ def cmd_port(args):
     # Scope the catchment for the whole run (replaces permanent
     # ``config.catchment_id = catchment`` mutation); restored on exit.
     with config.use_catchment(catchment):
+        # Bind the backend this run writes through (file by default, pg when
+        # MKM_REPO_BACKEND=pg) — inside use_catchment so the file resolver
+        # targets this catchment. No-op when a fixture/web app already bound one.
+        _ensure_backend()
+
         output_dir = config.get_input_dir()
 
         # --- Admin gate (skipped for read-only repair-manifest) ---------------

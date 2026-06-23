@@ -17,14 +17,14 @@
 > dual-read parity harness** (`src/database/_pg/parity.py`) compares file vs pg
 > for every mapped artifact. Stand-up + scope: `docs/json_to_postgres_running_on_postgres.md`.
 >
-> **WP2 read-cutover done (WP2.2 + 2.3):** all three catchments — mekong, halong,
-> thames — imported and **dual-read parity-green** via the cutover CLI
-> (`python -m database._pg.cutover <catchment> --import`). Reads serve from
-> Postgres under `MKM_REPO_BACKEND=pg`.
+> **WP2 cutover done (WP2.2 + 2.3 reads, WP2.5 writes):** all three catchments —
+> mekong, halong, thames — imported and **dual-read parity-green** via the cutover
+> CLI (`python -m database._pg.cutover <catchment> --import`); reads serve from
+> Postgres under `MKM_REPO_BACKEND=pg`. `app.py port` now binds the same switch, so
+> port **generation** writes to Postgres + MinIO under `pg` (file backend default).
 >
-> **Next:** WP2.5 — cut **writes** (the port generator targets Postgres); then
-> WP3 (tools onto the repo), WP4 (E2E per-test schema + suites on `pg`), WP5
-> (RBAC + pooling + file decommission).
+> **Next:** WP3 (tools onto the repo), WP4 (E2E per-test schema + suites on `pg`),
+> WP5 (RBAC + pooling + file decommission).
 
 **Companion docs:** `docs/json_artifact_catalogue.md` (producer→file→consumer matrix,
 deliverable 0.1) · `docs/json_to_postgres_file_plan.md` (file-by-file change list, 88 src

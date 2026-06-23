@@ -56,3 +56,30 @@ def test_invalid_flag_raises(monkeypatch):
     monkeypatch.setenv("MKM_REPO_BACKEND", "redis")
     with pytest.raises(ValueError):
         use_configured_backend()
+
+
+def test_backend_configured_reflects_binding():
+    from database import InMemoryRepository, backend_configured, configure_backend
+    configure_backend(None)
+    assert backend_configured() is False
+    configure_backend(InMemoryRepository())
+    assert backend_configured() is True
+
+
+def test_port_ensure_backend_only_binds_when_unbound(monkeypatch):
+    """WP2.5: the port run binds the configured backend itself, but never clobbers
+    a backend a caller (test fixture / web app) already chose."""
+    from app.commands.port.orchestrator import _ensure_backend
+    from database import InMemoryRepository, backend_configured, configure_backend
+
+    # Already bound → no-op, the caller's backend stays.
+    mem = InMemoryRepository()
+    configure_backend(mem)
+    _ensure_backend()
+    assert active_backend() is mem
+
+    # Unbound + default flag → binds the configured (file) backend.
+    configure_backend(None)
+    monkeypatch.delenv("MKM_REPO_BACKEND", raising=False)
+    _ensure_backend()
+    assert isinstance(active_backend(), FileRepository)
