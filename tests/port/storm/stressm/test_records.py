@@ -22,6 +22,7 @@
 
 import pytest
 
+from db_helpers import pg_function_scope
 from port.src.stressm import GAUGE_SUMMARY_DIR
 from pathlib import Path
 from port.src.storm_multi.core.data_structures import StormSequence
@@ -37,13 +38,13 @@ import json
 
 class TestSequenceRecordStructure:
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope=pg_function_scope("class"))
     def records(self, gauge_dir, full_run):  # full_run ensures gauge_dir is populated
         with open(gauge_dir / GAUGE_SUMMARY_DIR / "_index.json") as f:
             d = json.load(f)
         return d["sequences"]
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope=pg_function_scope("class"))
     def gauge_records(self, gauge_dir, full_run):
         """Load per-gauge sequence files from the split directory."""
         sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
@@ -145,6 +146,7 @@ class TestIntensityCategoryRoundTrip:
         assert reconstructed.intensity_category == ""
 
     def test_serialized_sequences_have_category(self, gauge_dir, full_run):
-        seqs = load_sequences(gauge_dir / SEQUENCES_FILENAME)
+        import database
+        seqs = load_sequences(database.active_catchment())
         valid = {"moderate", "severe", "extreme", "catastrophic"}
         assert all(s.intensity_category in valid for s in seqs)

@@ -92,10 +92,40 @@ def load_storm_metadata(storms_json_path) -> Dict[str, Dict]:
     return storm_meta
 
 
+def _iter_gauge_records_from_files(gauge_files: List[Path]):
+    """Yield ``(gauge_id, gaugets_doc)`` from on-disk gaugets/GAUGE-*.json files,
+    skipping any that fail to parse (the file backend stores gaugets as files)."""
+    for gf in gauge_files:
+        try:
+            data = json.loads(gf.read_text())
+        except Exception as exc:
+            logger.warning("Skipping %s: %s", gf.name, exc)
+            continue
+        # gauge_id is the file's top-level field; individual responses don't repeat it
+        yield data.get("gauge_id", gf.stem), data
+
+
+def _iter_gauge_records_from_seam():
+    """Yield ``(gauge_id, gaugets_doc)`` from the database seam for the active
+    catchment (the Postgres backend stores gaugets as rows, so no files exist)."""
+    import database
+    catchment = database.active_catchment()
+    for gid in database.iter_gauge_timeseries_ids(catchment):
+        if not gid.startswith("GAUGE-"):
+            continue
+        data = database.get_gauge_timeseries(catchment, gid)
+        yield data.get("gauge_id", gid), data
+
+
 def scan_gauge_responses(
     gaugets_dir: Path,
 ) -> tuple[Dict[str, List[Dict]], Set[str]]:
-    """Scan gaugets/ files and build storm_id → list of responses.
+    """Scan the per-gauge timeseries and build storm_id → list of responses.
+
+    Reads from ``gaugets_dir`` when GAUGE-*.json files are present (the file backend
+    writes them there); otherwise falls back to the database seam for the active
+    catchment (the Postgres backend stores gaugets as rows, so the directory is
+    empty). Raises if neither source yields a gauge.
 
     Returns:
         (all_responses, alert_storm_ids):
@@ -103,21 +133,22 @@ def scan_gauge_responses(
             - alert_storm_ids = set of storm IDs where any gauge exceeded alert
     """
     gauge_files = sorted(gaugets_dir.glob("GAUGE-*.json"))
-    if not gauge_files:
-        raise FileNotFoundError(f"No GAUGE-*.json files found in {gaugets_dir}")
+    if gauge_files:
+        # Files present (file backend): all-corrupt is tolerated -> empty result.
+        records = _iter_gauge_records_from_files(gauge_files)
+        raise_if_none = False
+    else:
+        # No files (Postgres backend, or genuinely empty): read the seam, and treat
+        # an empty seam as the legacy "nothing to scan" error.
+        records = _iter_gauge_records_from_seam()
+        raise_if_none = True
 
     all_responses: Dict[str, List[Dict]] = {}
     alert_storm_ids: Set[str] = set()
+    n_scanned = 0
 
-    for gf in gauge_files:
-        try:
-            data = json.loads(gf.read_text())
-        except Exception as exc:
-            logger.warning("Skipping %s: %s", gf.name, exc)
-            continue
-
-        # gauge_id is the file's top-level field; individual responses don't repeat it
-        gauge_id = data.get("gauge_id", gf.stem)
+    for gauge_id, data in records:
+        n_scanned += 1
         responses = data.get("storm_responses", {}).get("responses", [])
         for resp in responses:
             sid = resp.get("storm_id", "")
@@ -130,9 +161,14 @@ def scan_gauge_responses(
             if resp.get("exceeded_alert", False):
                 alert_storm_ids.add(sid)
 
+    if raise_if_none and n_scanned == 0:
+        raise FileNotFoundError(
+            f"No GAUGE-*.json files in {gaugets_dir} and no gauge timeseries in the "
+            f"database seam")
+
     logger.info(
-        "Scanned %d gauge files: %d total storm IDs, %d breached alert",
-        len(gauge_files), len(all_responses), len(alert_storm_ids),
+        "Scanned %d gauges: %d total storm IDs, %d breached alert",
+        n_scanned, len(all_responses), len(alert_storm_ids),
     )
     return all_responses, alert_storm_ids
 

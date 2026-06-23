@@ -133,6 +133,55 @@ class TestCorruptGaugeFile:
 
 
 # ---------------------------------------------------------------------------
+# Seam fallback: no gaugets files -> read per-gauge timeseries from the database
+# (the Postgres backend stores gaugets as rows, not files)
+# ---------------------------------------------------------------------------
+
+class TestSeamFallback:
+
+    def test_reads_gaugets_from_seam_when_no_files(self, tmp_path):
+        """With no GAUGE-*.json files, scan reads the seam for the active catchment.
+
+        Seeds a gauge timeseries through the seam, then runs generate_stress_storms
+        against an empty directory so the file glob misses and the seam fallback
+        supplies the gauge — exercised here on the file backend (and the same path
+        is what makes the pipeline work on Postgres)."""
+        import database
+        from db_helpers import tmp_catchment
+        from port.src.gauge.stress_storms import generate_stress_storms
+        sid = "STORM-deadbeef"
+        with tmp_catchment(tmp_path / "catchment"):
+            database.save_gauge_timeseries(
+                database.active_catchment(), "GAUGE-00000001",
+                make_gauge_file("GAUGE-00000001",
+                                [make_response(sid, alert=True, peak=2.0)]),
+            )
+            empty = tmp_path / "no_files"
+            empty.mkdir()
+            out = tmp_path / "stress_storms"
+            result = generate_stress_storms(empty, out)
+        assert result["total_storms"] == 1
+        assert (out / f"{sid}.json").exists()
+
+    def test_non_gauge_keys_skipped_in_seam(self, tmp_path):
+        """Seam fallback only scans GAUGE-* timeseries (e.g. SYNTH-* are ignored)."""
+        import database
+        from db_helpers import tmp_catchment
+        from port.src.gauge.stress_storms import generate_stress_storms
+        with tmp_catchment(tmp_path / "catchment"):
+            database.save_gauge_timeseries(
+                database.active_catchment(), "SYNTH-00000001",
+                make_gauge_file("SYNTH-00000001",
+                                [make_response("STORM-aaaa0001", alert=True)]),
+            )
+            empty = tmp_path / "no_files"
+            empty.mkdir()
+            out = tmp_path / "stress_storms"
+            with pytest.raises(FileNotFoundError):
+                generate_stress_storms(empty, out)
+
+
+# ---------------------------------------------------------------------------
 # Empty storm_id skip (line 161)
 # ---------------------------------------------------------------------------
 

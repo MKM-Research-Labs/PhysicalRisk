@@ -59,6 +59,23 @@ def test_backend() -> str:
     Set ``MKM_TEST_BACKEND=pg`` to exercise the whole suite on Postgres."""
     return os.getenv("MKM_TEST_BACKEND", "file").strip().lower()
 
+
+def pg_function_scope(file_scope: str):
+    """A pytest fixture-scope callable: ``file_scope`` normally, ``"function"`` under
+    ``MKM_TEST_BACKEND=pg``.
+
+    Use it for an expensive module-/class-scoped fixture that performs database
+    writes (e.g. runs a generator). On the file backend the wider scope is kept so
+    the work runs once and is shared (fast). Under Postgres the fixture must be
+    function-scoped: per-test transaction rollback isolation only binds the pg
+    backend inside the function-scoped autouse fixture, so a wider-scoped binding
+    would find no backend, escape the per-test rollback, and contend for locks on
+    the shared catchment. Every fixture in a dependency chain that reaches such a
+    fixture must use this same callable, or pytest raises ``ScopeMismatch``."""
+    def _scope(fixture_name, config):
+        return "function" if test_backend() == "pg" else file_scope
+    return _scope
+
 # The real, on-disk ``data/input`` tree, captured at import time (before any
 # per-test monkeypatch of ``config.get_input_dir``). Used by the write-guard to
 # tell a genuine real-data write apart from a tmp/monkeypatched one.

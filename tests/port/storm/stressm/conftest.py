@@ -56,7 +56,17 @@ _SYNTHETIC_GAUGE_JSON = {
 }
 
 
-@pytest.fixture(scope="module")
+from db_helpers import pg_function_scope
+
+# Module-scoped on the file backend (generate_stressm runs once, shared by many
+# tests — fast); function-scoped under MKM_TEST_BACKEND=pg so each run rides the
+# function-scoped per-test transaction-rollback isolation. Every fixture in the
+# chain (gauge_dir -> full_run/single_run, and the class-scoped fixtures in
+# test_records) uses this same callable to avoid ScopeMismatch.
+_run_scope = pg_function_scope("module")
+
+
+@pytest.fixture(scope=_run_scope)
 def gauge_dir(tmp_path_factory):
     """Temp directory with a 3-gauge gauge.json, with a tmp-rooted database backend.
 
@@ -64,21 +74,9 @@ def gauge_dir(tmp_path_factory):
     ``populate_gaugets``), which reads the gauge portfolio and writes per-gauge
     timeseries through ``database``. Rooting a tmp backend at this directory means the
     gauge read resolves to ``gauge.json`` here and the keyed timeseries land at
-    ``<dir>/gaugets/`` — exactly where ``populate_gaugets`` then reads them back to merge
-    storm responses. The module-scoped ``full_run``/``single_run`` fixtures execute under
-    this binding."""
-    from db_helpers import tmp_catchment, test_backend
-    if test_backend() == "pg":
-        pytest.skip(
-            "generate_stressm runs a filesystem-based pipeline: gaugets_writer / "
-            "gauge_parser / pipeline.stages / summary / orchestrator and "
-            "gauge._stress_storms_stages.scan_gauge_responses read and write "
-            "input_dir/output_dir files directly (e.g. glob gaugets/GAUGE-*.json), "
-            "while the migrated gaugets generator writes through the seam — so the "
-            "pipeline only completes against a file backend. This package is deferred "
-            "on pg until the stressm pipeline migrates to the database seam (a "
-            "generator-migration WP); every test here reaches this fixture via the "
-            "autouse _bind_stressm_backend, so the whole package skips under pg.")
+    ``<dir>/gaugets/`` on the file backend (Postgres stores them as rows); the
+    pipeline reads them back through the seam either way."""
+    from db_helpers import tmp_catchment
     d = tmp_path_factory.mktemp("stressm_input")
     (d / "gauge.json").write_text(json.dumps(_SYNTHETIC_GAUGE_JSON))
     with tmp_catchment(d, catchment="thames"):
@@ -87,19 +85,25 @@ def gauge_dir(tmp_path_factory):
 
 @pytest.fixture(autouse=True)
 def _bind_stressm_backend(gauge_dir):
-    """Re-bind the tmp backend (rooted at gauge_dir) for each test *body*.
+    """Re-bind the tmp backend (rooted at gauge_dir) for each test *body* and seed
+    the gauge portfolio through the seam.
 
-    gauge_dir's module-scoped binding covers the module-scoped full_run/single_run
-    fixtures; but the function-scoped autouse ``_database_file_backend`` (root conftest)
-    rebinds the guarded backend per test, so this re-establishes the tmp backend for
-    tests that call ``generate_stressm`` in their own body. A test that binds its own
-    ``tmp_catchment`` (e.g. ``pipeline_env``) still wins, as it is set up after this."""
+    gauge_dir's binding covers the wider-scoped full_run/single_run fixtures, but the
+    function-scoped autouse ``_database_file_backend`` (root conftest) rebinds the
+    guarded backend per test, so this re-establishes the tmp backend for tests that
+    call ``generate_stressm`` in their own body. The seam-seed is what lets the
+    migrated gauge-timeseries generator find the portfolio: on the file backend it
+    resolves to ``gauge_dir/gauge.json`` (idempotent re-write), and under pg the
+    autouse purge emptied the catchment, so the seed (rolled back with the test) is
+    the portfolio the pipeline reads."""
+    import database
     from db_helpers import tmp_catchment
     with tmp_catchment(gauge_dir, catchment="thames"):
+        database.save_gauges("thames", _SYNTHETIC_GAUGE_JSON)
         yield
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope=_run_scope)
 def full_run(gauge_dir, tmp_path_factory):
     """Full generate_stressm run with 40 sequences and 3 synthetic gauges."""
     out_dir = tmp_path_factory.mktemp("stressm_output")
@@ -112,7 +116,7 @@ def full_run(gauge_dir, tmp_path_factory):
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope=_run_scope)
 def single_run(gauge_dir, tmp_path_factory):
     """Single-gauge generate_stressm run."""
     out_dir = tmp_path_factory.mktemp("stressm_single_output")

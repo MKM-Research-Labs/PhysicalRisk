@@ -39,13 +39,19 @@ from tests.port.gauge.conftest import make_gauge_file, make_response
 class TestGenerateStressStorms:
 
     def test_file_not_found_when_gaugets_empty(self, tmp_path):
-        """Empty gaugets directory must raise FileNotFoundError."""
+        """No gaugets files AND no gauge timeseries in the seam must raise.
+
+        With no GAUGE-*.json files present, scan falls back to the database seam;
+        binding an empty tmp catchment makes that fallback empty too, so the legacy
+        "nothing to scan" FileNotFoundError still fires."""
+        from db_helpers import tmp_catchment
         from port.src.gauge.stress_storms import generate_stress_storms
         empty = tmp_path / "gaugets"
         empty.mkdir()
         out_dir = tmp_path / "stress_storms"
-        with pytest.raises(FileNotFoundError):
-            generate_stress_storms(empty, out_dir)
+        with tmp_catchment(tmp_path / "catchment"):
+            with pytest.raises(FileNotFoundError):
+                generate_stress_storms(empty, out_dir)
 
     def test_writes_index_and_storm_files(self, tmp_path):
         """Output directory must contain _index.json and per-storm files."""

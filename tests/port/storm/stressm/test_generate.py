@@ -77,17 +77,19 @@ class TestGenerateStressmSummary:
 class TestGenerateStressmFiles:
 
     def test_sequences_json_written(self, gauge_dir, full_run):
-        assert (gauge_dir / SEQUENCES_FILENAME).exists()
+        # save_sequences persists through the seam (a file on the file backend, a
+        # row on pg) — assert via the seam so it holds on both.
+        assert database.storm_sequences_exists(database.active_catchment())
 
     def test_summary_json_written(self, gauge_dir, full_run):
-        assert (gauge_dir / SUMMARY_FILENAME).exists()
+        assert database.get_sequence_summary(database.active_catchment()) is not None
 
     def test_gauge_summary_dir_written(self, gauge_dir, full_run):
         sg_dir = gauge_dir / GAUGE_SUMMARY_DIR
         assert sg_dir.is_dir(), f"Expected directory {sg_dir}"
 
     def test_sequences_file_loadable(self, gauge_dir, full_run):
-        seqs = load_sequences(gauge_dir / SEQUENCES_FILENAME)
+        seqs = load_sequences(database.active_catchment())
         assert len(seqs) == 40
 
     def test_gauge_summary_schema_version(self, gauge_dir, full_run):

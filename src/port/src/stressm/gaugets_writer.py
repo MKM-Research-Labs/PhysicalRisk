@@ -94,16 +94,21 @@ def populate_gaugets(
                 resp["pulse_peaks"] = pulse_peaks_all[idx]
             gauge_responses[gid].append(resp)
 
-    # Step 3: Merge storm_responses into each gaugets file
+    # Step 3: Merge storm_responses into each gauge's timeseries through the seam.
+    # The base-simulation gaugets were written via database in step 1, so read each
+    # back, attach storm_responses, and save — works whether the backend stores them
+    # as files (gaugets/GAUGE-*.json) or Postgres rows.
+    import database
     gaugets_dir = input_dir / "gaugets"
+    catchment = database.active_catchment()
+    existing = set(database.iter_gauge_timeseries_ids(catchment))
     n_updated = 0
     for gid, responses in gauge_responses.items():
-        gf = gaugets_dir / f"{gid}.json"
-        if not gf.exists():
+        if gid not in existing:
             continue
-        data = json.loads(gf.read_text())
+        data = database.get_gauge_timeseries(catchment, gid)
         data["storm_responses"] = {"responses": responses}
-        gf.write_text(json.dumps(data, indent=2, separators=(",", ": ")))
+        database.save_gauge_timeseries(catchment, gid, data)
         n_updated += 1
 
     n_alert = sum(1 for r in gauge_responses[gauge_ids[0]]
