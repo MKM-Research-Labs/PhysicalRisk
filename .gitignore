@@ -27,3 +27,6 @@ docs/models/governance_data/.mrc_meetings.json.bak
 # The model audit log is a capped (last 10000) append-only runtime log,
 # regenerated on every pipeline run. Tracking it caused constant merge churn.
 docs/models/governance_data/model_audit_log.json
+
+# Machine-specific docker compose env (DB data dir paths, etc.)
+docker/.env

@@ -32,7 +32,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - mkm_pgdata:/var/lib/postgresql/data
+      # Defaults to the named volume mkm_pgdata (portable: works on CI / any
+      # machine). Set MKM_PG_DATA_DIR (see .env) to an absolute host path to keep
+      # the database files on a specific disk, e.g. an external SSD.
+      - "${MKM_PG_DATA_DIR:-mkm_pgdata}:/var/lib/postgresql/data"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mkm -d physicalrisk"]
       interval: 5s
@@ -57,7 +60,9 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - mkm_miniodata:/data
+      # Defaults to the named volume mkm_miniodata; set MKM_MINIO_DATA_DIR (see
+      # .env) to an absolute host path to keep the object store on a specific disk.
+      - "${MKM_MINIO_DATA_DIR:-mkm_miniodata}:/data"
     healthcheck:
       test: ["CMD-SHELL", "mc ready local || exit 1"]
       interval: 5s
