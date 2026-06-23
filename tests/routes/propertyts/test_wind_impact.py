@@ -29,6 +29,7 @@ import json
 
 import pytest
 
+from db_helpers import test_backend
 from routes.propertyts import wind_impact as wi
 
 
@@ -39,9 +40,14 @@ from routes.propertyts import wind_impact as wi
 @pytest.fixture
 def cfg_tmp(tmp_path, monkeypatch):
     from config import config
+    from db_helpers import tmp_catchment
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda fname: tmp_path / fname)
-    return tmp_path
+    # Bind a tmp-rooted backend so the lookups (which read commercial/property via
+    # the seam) resolve here on the file backend, and seeding via database.save_*
+    # works on both backends (pg stores rows, not files).
+    with tmp_catchment(tmp_path, catchment=config.catchment_id):
+        yield tmp_path
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +81,8 @@ def test_load_commercial_lookup_parses_entries(cfg_tmp):
             "Valuation": {"PropertyValue": 1_000_000},
         }
     }]}
-    (cfg_tmp / "commercial.json").write_text(json.dumps(data))
+    import database
+    database.save_commercial(database.active_catchment(), data)
     out = wi._load_commercial_lookup()
     assert out["CPROP-001"]["value"] == 1_000_000
     assert out["CPROP-001"]["address"] == "10 High St"
@@ -96,7 +103,8 @@ def test_load_commercial_lookup_properties_key_and_flat(cfg_tmp):
         "CommercialAttributes": {},
         "Valuation": {"PropertyValue": 500},
     }]}
-    (cfg_tmp / "commercial.json").write_text(json.dumps(data))
+    import database
+    database.save_commercial(database.active_catchment(), data)
     out = wi._load_commercial_lookup()
     assert out["CPROP-002"]["value"] == 500
     assert out["CPROP-002"]["address"] == "Main"
@@ -116,6 +124,11 @@ def test_load_property_address_lookup_bad_json(cfg_tmp):
     assert wi._load_property_address_lookup() == {}
 
 
+@pytest.mark.skipif(
+    test_backend() == "pg",
+    reason="seeds a property record with no PropertyID to exercise the skip-missing-id "
+           "branch; pg keys properties on PropertyID so save_properties shreds and "
+           "raises — file-only (the file backend stores the whole doc).")
 def test_load_property_address_lookup_parses(cfg_tmp):
     data = {"properties": [
         {"PropertyHeader": {
@@ -125,7 +138,8 @@ def test_load_property_address_lookup_parses(cfg_tmp):
         }},
         {"PropertyHeader": {"Header": {}}},  # skipped (no id)
     ]}
-    (cfg_tmp / "property.json").write_text(json.dumps(data))
+    import database
+    database.save_properties(database.active_catchment(), data)
     out = wi._load_property_address_lookup()
     assert list(out) == ["PROP-001"]
     assert out["PROP-001"]["address"] == "5 Oak Rd"

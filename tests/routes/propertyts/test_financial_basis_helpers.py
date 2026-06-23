@@ -32,23 +32,24 @@ from routes.propertyts import financial_basis as fb
 
 class TestAccumulateSynthData:
 
-    def test_groups_by_synth_gauge_and_skips_non_prop(self, tmp_path, monkeypatch):
+    def test_groups_by_synth_gauge_and_skips_non_prop(self, tmp_path):
         """Properties are grouped by their controlling synthetic gauge; stray
-        non-``PROP-`` documents in the collection are skipped (line 145)."""
-        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
-        pts = tmp_path / "propertyts"
-        pts.mkdir()
-        (pts / "PROP-001.json").write_text(json.dumps({
-            "property_id": "PROP-001",
-            "nearest_gauges": [{"gauge_id": "SYNTH-1"}, {"gauge_id": "GAUGE-1"}],
-            "flood_events": [{"storm_id": "STORM-1", "flooded": True,
-                              "damage_ratio": 0.2, "flood_depth_m": 0.4,
-                              "exceeded_severe": True}],
-        }))
-        # Stray non-PROP document (e.g. the portfolio summary) → skipped.
-        (pts / "portfolio_flood_summary.json").write_text(json.dumps({"x": 1}))
-
-        out = fb._accumulate_synth_data("STORM-1", {})
+        non-``PROP-`` records in the collection are skipped (line 144)."""
+        import database
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
+            catchment = database.active_catchment()
+            database.save_property_timeseries(catchment, "PROP-001", {
+                "property_id": "PROP-001",
+                "nearest_gauges": [{"gauge_id": "SYNTH-1"}, {"gauge_id": "GAUGE-1"}],
+                "flood_events": [{"storm_id": "STORM-1", "flooded": True,
+                                  "damage_ratio": 0.2, "flood_depth_m": 0.4,
+                                  "exceeded_severe": True}],
+            })
+            # Stray non-PROP keyed record (e.g. the portfolio summary) → skipped.
+            database.save_property_timeseries(catchment, "portfolio_flood_summary",
+                                              {"x": 1})
+            out = fb._accumulate_synth_data("STORM-1", {})
         assert set(out) == {"SYNTH-1"}
         acc = out["SYNTH-1"]
         assert acc["gauge_type"] == "Synthetic"
@@ -63,12 +64,14 @@ class TestLoadGaugeThresholds:
         monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
         assert fb._load_gauge_thresholds() == {}
 
-    def test_valid_file_parsed(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
-        (tmp_path / "gaugehc.json").write_text(
-            '{"hazard_curves": {"G1": {"gauge_name": "One", '
-            '"flood_alert_m": 1.0, "elevation_m": 5}}}')
-        out = fb._load_gauge_thresholds()
+    def test_valid_file_parsed(self, tmp_path):
+        import database
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
+            database.save_gauge_hazard_curves(database.active_catchment(), {
+                "hazard_curves": {"G1": {"gauge_name": "One",
+                                         "flood_alert_m": 1.0, "elevation_m": 5}}})
+            out = fb._load_gauge_thresholds()
         assert out["G1"]["gauge_name"] == "One"
         assert out["G1"]["alert_m"] == 1.0
 
@@ -85,14 +88,14 @@ class TestLoadStormGaugePeaks:
         monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
         assert fb._load_storm_gauge_peaks("STORM-X") == {}
 
-    def test_valid_file_parsed(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
-        sdir = tmp_path / "stress_storms"
-        sdir.mkdir()
-        (sdir / "STORM-1.json").write_text(
-            '{"gauge_responses": [{"gauge_id": "G1", "peak_level_m": 2.5, '
-            '"exceeded_severe": true}]}')
-        out = fb._load_storm_gauge_peaks("STORM-1")
+    def test_valid_file_parsed(self, tmp_path):
+        import database
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
+            database.save_stress_storm(database.active_catchment(), "STORM-1", {
+                "gauge_responses": [{"gauge_id": "G1", "peak_level_m": 2.5,
+                                     "exceeded_severe": True}]})
+            out = fb._load_storm_gauge_peaks("STORM-1")
         assert out["G1"]["peak_level_m"] == 2.5
         assert out["G1"]["exceeded_severe"] is True
 

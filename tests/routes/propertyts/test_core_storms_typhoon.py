@@ -69,18 +69,20 @@ def test_damage_loader_bad_json_skipped(cfg_tmp):
 
 
 def test_damage_loader_indexes_property(cfg_tmp):
-    d = cfg_tmp / "typhoon" / "damage"
-    d.mkdir(parents=True)
-    (d / "EVT-0001.json").write_text(json.dumps({
-        "event_id": "EVT-0001",
-        "scenario_family": "extreme",
-        "damages": [
-            {"property_id": "PROP-OTHER", "damage_ratio": 0.1},
-            {"property_id": PROP_ID, "peak_sustained_ms": 55,
-             "threshold_ms": 30, "v_50_eff_ms": 60, "damage_ratio": 0.3},
-        ],
-    }))
-    out = cs._load_typhoon_damage_for_property(PROP_ID)
+    import database
+    from db_helpers import tmp_catchment
+    from config import config
+    with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
+        database.save_typhoon_event(database.active_catchment(), "EVT-0001", {
+            "event_id": "EVT-0001",
+            "scenario_family": "extreme",
+            "damages": [
+                {"property_id": "PROP-OTHER", "damage_ratio": 0.1},
+                {"property_id": PROP_ID, "peak_sustained_ms": 55,
+                 "threshold_ms": 30, "v_50_eff_ms": 60, "damage_ratio": 0.3},
+            ],
+        })
+        out = cs._load_typhoon_damage_for_property(PROP_ID)
     assert out["EVT-0001"]["peak_sustained_ms"] == 55
     assert out["EVT-0001"]["damage_ratio"] == 0.3
     # scenario_family is surfaced from the event-level field.
@@ -88,23 +90,28 @@ def test_damage_loader_indexes_property(cfg_tmp):
 
 
 def test_damage_loader_event_id_from_stem(cfg_tmp):
-    d = cfg_tmp / "typhoon" / "damage"
-    d.mkdir(parents=True)
-    (d / "EVT-0002.json").write_text(json.dumps({
-        "damages": [{"property_id": PROP_ID, "damage_ratio": 0.2}]}))
-    out = cs._load_typhoon_damage_for_property(PROP_ID)
+    import database
+    from db_helpers import tmp_catchment
+    from config import config
+    with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
+        database.save_typhoon_event(database.active_catchment(), "EVT-0002", {
+            "damages": [{"property_id": PROP_ID, "damage_ratio": 0.2}]})
+        out = cs._load_typhoon_damage_for_property(PROP_ID)
     assert "EVT-0002" in out
 
 
 def test_damage_loader_skips_non_evt_files(cfg_tmp):
-    """A stray non-``EVT-`` file in the damage collection is skipped."""
-    d = cfg_tmp / "typhoon" / "damage"
-    d.mkdir(parents=True)
-    (d / "metadata.json").write_text(json.dumps({"junk": True}))
-    (d / "EVT-0003.json").write_text(json.dumps({
-        "event_id": "EVT-0003",
-        "damages": [{"property_id": PROP_ID, "damage_ratio": 0.4}]}))
-    out = cs._load_typhoon_damage_for_property(PROP_ID)
+    """A stray non-``EVT-`` keyed record in the damage collection is skipped."""
+    import database
+    from db_helpers import tmp_catchment
+    from config import config
+    with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
+        catchment = database.active_catchment()
+        database.save_typhoon_event(catchment, "metadata", {"junk": True})
+        database.save_typhoon_event(catchment, "EVT-0003", {
+            "event_id": "EVT-0003",
+            "damages": [{"property_id": PROP_ID, "damage_ratio": 0.4}]})
+        out = cs._load_typhoon_damage_for_property(PROP_ID)
     assert set(out) == {"EVT-0003"}
 
 
