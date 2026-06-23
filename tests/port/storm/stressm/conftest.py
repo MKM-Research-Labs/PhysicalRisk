@@ -67,7 +67,18 @@ def gauge_dir(tmp_path_factory):
     ``<dir>/gaugets/`` — exactly where ``populate_gaugets`` then reads them back to merge
     storm responses. The module-scoped ``full_run``/``single_run`` fixtures execute under
     this binding."""
-    from db_helpers import tmp_catchment
+    from db_helpers import tmp_catchment, test_backend
+    if test_backend() == "pg":
+        pytest.skip(
+            "generate_stressm runs a filesystem-based pipeline: gaugets_writer / "
+            "gauge_parser / pipeline.stages / summary / orchestrator and "
+            "gauge._stress_storms_stages.scan_gauge_responses read and write "
+            "input_dir/output_dir files directly (e.g. glob gaugets/GAUGE-*.json), "
+            "while the migrated gaugets generator writes through the seam — so the "
+            "pipeline only completes against a file backend. This package is deferred "
+            "on pg until the stressm pipeline migrates to the database seam (a "
+            "generator-migration WP); every test here reaches this fixture via the "
+            "autouse _bind_stressm_backend, so the whole package skips under pg.")
     d = tmp_path_factory.mktemp("stressm_input")
     (d / "gauge.json").write_text(json.dumps(_SYNTHETIC_GAUGE_JSON))
     with tmp_catchment(d, catchment="thames"):
