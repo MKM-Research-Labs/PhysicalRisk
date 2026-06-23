@@ -23,7 +23,7 @@
 import pytest
 
 import database
-from db_helpers import tmp_catchment
+from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
@@ -47,7 +47,7 @@ def mgr_with_gaugehc():
         'curve_points': [],
         'gev_location': 3.0, 'gev_scale': 0.5, 'gev_shape': 0.0,
     }]
-    database.save_gauge_hazard_curves(database.active_catchment(), gaugehc)
+    seed_gauge_hazard_curves(database.active_catchment(), gaugehc)
     return MarketStateManager()
 
 
@@ -93,7 +93,7 @@ class TestUpdateYieldCurveNoExisting:
 
     def test_update_creates_yield_curve_if_missing(self, tmp_path):
         """update_yield_curve creates yield_curve from default when missing."""
-        database.save_gauge_hazard_curves(database.active_catchment(), [])
+        seed_gauge_hazard_curves(database.active_catchment(), [])
 
         mgr = MarketStateManager()
         # Initialize state, then remove yield_curve to simulate missing key
@@ -112,7 +112,7 @@ class TestCommitYieldCurveNoExisting:
 
     def test_commit_creates_yield_curve_if_missing(self, tmp_path):
         """commit_yield_curve creates yield_curve from default when missing."""
-        database.save_gauge_hazard_curves(database.active_catchment(), [])
+        seed_gauge_hazard_curves(database.active_catchment(), [])
 
         mgr = MarketStateManager()
         state = mgr.load()

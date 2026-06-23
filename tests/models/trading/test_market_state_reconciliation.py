@@ -24,7 +24,7 @@ gauges in load() (lines 136-153) and get_yield_rate final fallback (line 323).""
 import pytest
 
 import database
-from db_helpers import tmp_catchment
+from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
@@ -50,7 +50,7 @@ def two_gauge_env():
         "gev_scale": 0.5,
         "gev_shape": 0.0,
     }
-    database.save_gauge_hazard_curves(database.active_catchment(), [gauge_a])
+    seed_gauge_hazard_curves(database.active_catchment(), [gauge_a])
 
     return {"gauge_a": gauge_a}
 
@@ -80,7 +80,7 @@ class TestLoadReconciliation:
             "gev_scale": 0.6,
             "gev_shape": 0.1,
         }
-        database.save_gauge_hazard_curves(
+        seed_gauge_hazard_curves(
             database.active_catchment(), [env["gauge_a"], gauge_b]
         )
 
@@ -106,7 +106,7 @@ class TestLoadReconciliation:
             "gev_scale": 0.6,
             "gev_shape": 0.1,
         }
-        database.save_gauge_hazard_curves(
+        seed_gauge_hazard_curves(
             database.active_catchment(), [env["gauge_a"], gauge_b]
         )
 
@@ -140,7 +140,7 @@ class TestLoadReconciliation:
             "gev_scale": 0.6,
             "gev_shape": 0.1,
         }
-        database.save_gauge_hazard_curves(
+        seed_gauge_hazard_curves(
             database.active_catchment(), [env["gauge_a"], gauge_b]
         )
 

@@ -60,6 +60,19 @@ def test_backend() -> str:
     return os.getenv("MKM_TEST_BACKEND", "file").strip().lower()
 
 
+def seed_gauge_hazard_curves(catchment, records):
+    """Seed gauge hazard curves from a list of per-gauge records.
+
+    Wraps them in the canonical ``{"hazard_curves": {gauge_id: record}}`` document
+    shape. The file backend tolerates a bare list, but the Postgres backend shreds
+    the gauge_hazard_curve collection by the ``hazard_curves`` container keyed on
+    gauge_id, so a bare list raises. MarketStateManager reads either shape
+    identically, so this keeps the tests backend-agnostic."""
+    import database
+    curves = {r.get("gauge_id", str(i)): r for i, r in enumerate(records)}
+    database.save_gauge_hazard_curves(catchment, {"hazard_curves": curves})
+
+
 def pg_function_scope(file_scope: str):
     """A pytest fixture-scope callable: ``file_scope`` normally, ``"function"`` under
     ``MKM_TEST_BACKEND=pg``.

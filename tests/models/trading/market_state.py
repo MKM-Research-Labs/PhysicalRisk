@@ -23,7 +23,7 @@
 import pytest
 
 import database
-from db_helpers import tmp_catchment
+from db_helpers import seed_gauge_hazard_curves, test_backend, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
@@ -60,7 +60,7 @@ def sample_gaugehc():
             'curve_points': [],
         },
     ]
-    database.save_gauge_hazard_curves(database.active_catchment(), gaugehc)
+    seed_gauge_hazard_curves(database.active_catchment(), gaugehc)
     return gaugehc
 
 
@@ -186,7 +186,13 @@ class TestMissingCoverage:
         """Helper to create a MarketStateManager with optionally-seeded gauge curves."""
         from models.trading.market_state import MarketStateManager
         if gaugehc_data is not None:
-            database.save_gauge_hazard_curves(database.active_catchment(), gaugehc_data)
+            if isinstance(gaugehc_data, list):
+                # Canonicalise a bare list so it round-trips on the pg backend too.
+                seed_gauge_hazard_curves(database.active_catchment(), gaugehc_data)
+            else:
+                # Pre-shaped dict ({hazard_curves}/{gauges}/unknown) — seed as-is to
+                # exercise MarketStateManager's shape handling.
+                database.save_gauge_hazard_curves(database.active_catchment(), gaugehc_data)
         return MarketStateManager()
 
     def test_load_base_curves_no_file(self, tmp_path):
@@ -195,6 +201,12 @@ class TestMissingCoverage:
         state = mgr.load()
         assert isinstance(state, dict)
 
+    @pytest.mark.skipif(
+        test_backend() == "pg",
+        reason="seeds the raw {'gauges': [...]} file shape, a MarketStateManager "
+               "tolerance; pg stores gauge hazard curves as shredded rows under the "
+               "canonical 'hazard_curves' container, so the gauges-key shape can't "
+               "round-trip — file-only.")
     def test_load_base_curves_gauges_key(self, tmp_path):
         """gaugehc.json with 'gauges' key is handled."""
         gaugehc = {

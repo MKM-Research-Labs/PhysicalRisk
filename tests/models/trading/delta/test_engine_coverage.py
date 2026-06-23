@@ -24,7 +24,7 @@
 import pytest
 
 import database
-from db_helpers import tmp_catchment
+from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 from models.trading.delta_engine.engine import DeltaEngine
 
 
@@ -37,7 +37,7 @@ def _iso_catchment(tmp_path):
 
 
 def _make_gaugehc():
-    database.save_gauge_hazard_curves(database.active_catchment(), [{
+    seed_gauge_hazard_curves(database.active_catchment(), [{
         'gauge_id': 'GAUGE-TEST-001',
         'gauge_name': 'Test Gauge',
         'annual_hazard_rate_alert': 0.04,
