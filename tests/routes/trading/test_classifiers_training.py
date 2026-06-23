@@ -62,11 +62,10 @@ class TestRunBatchTraining:
         assert len(cl_mod._batch_job["results"]) == 2
         assert all(r["status"] == "trained" for r in cl_mod._batch_job["results"])
 
-        # Check timings were saved
-        timings_path = classifiers_dir / "classifier_timings.json"
-        assert timings_path.exists()
-        with open(timings_path) as f:
-            timings = json.load(f)
+        # Check timings were saved (through the seam)
+        import database
+        from config import config
+        timings = database.get_classifier_timings(config.catchment_id)
         assert len(timings["runs"]) == 1
         assert timings["runs"][0]["num_gauges"] == 2
 

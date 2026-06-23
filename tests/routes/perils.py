@@ -48,12 +48,15 @@ def _write(input_dir, subdir, filename, payload):
 class TestFire:
 
     def test_returns_fire_json(self, tmp_path, monkeypatch):
-        _write(tmp_path, "fire", "fire.json",
-               {"metadata": {"model": "MKM-FIRE-001"},
-                "assets": [{"asset_id": "CPROP-1"}, {"asset_id": "CPROP-2"}]})
-        r = _client(tmp_path, monkeypatch).get("/api/v1/fire")
-        assert r.status_code == 200
-        d = r.get_json()
+        import database
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path):
+            database.save_fire_results(database.active_catchment(),
+                {"metadata": {"model": "MKM-FIRE-001"},
+                 "assets": [{"asset_id": "CPROP-1"}, {"asset_id": "CPROP-2"}]})
+            r = _client(tmp_path, monkeypatch).get("/api/v1/fire")
+            assert r.status_code == 200
+            d = r.get_json()
         assert d["metadata"]["model"] == "MKM-FIRE-001"
         assert len(d["assets"]) == 2
 
@@ -71,11 +74,16 @@ class TestFire:
 class TestSeismic:
 
     def test_returns_seismic_json(self, tmp_path, monkeypatch):
-        _write(tmp_path, "seismic", "seismic.json",
-               {"metadata": {"model": "MKM-SEIS-001"}, "assets": [{"asset_id": "CPROP-1"}]})
-        r = _client(tmp_path, monkeypatch).get("/api/v1/seismic")
-        assert r.status_code == 200
-        assert r.get_json()["metadata"]["model"] == "MKM-SEIS-001"
+        import database
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path):
+            database.save_seismic_results(database.active_catchment(),
+                {"metadata": {"model": "MKM-SEIS-001"},
+                 "assets": [{"asset_id": "CPROP-1"}]})
+            r = _client(tmp_path, monkeypatch).get("/api/v1/seismic")
+            assert r.status_code == 200
+            d = r.get_json()
+        assert d["metadata"]["model"] == "MKM-SEIS-001"
 
     def test_missing_file_returns_empty(self, tmp_path, monkeypatch):
         assert _client(tmp_path, monkeypatch).get("/api/v1/seismic").get_json() == {}

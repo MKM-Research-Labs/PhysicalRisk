@@ -222,16 +222,20 @@ def test_enrich_flood_events_swallows_malformed_sequences(cfg_tmp):
 
 
 def test_enrich_flood_events_reads_storms_metadata(cfg_tmp):
-    """storms.py _enrich_flood_events: storms.json (the 'storms' key branch)
-    supplies per-storm name/category metadata."""
+    """storms.py _enrich_flood_events: a storm_sequences doc with the 'storms' key
+    supplies per-storm name/category metadata (build_storm_lookups line 68 branch)."""
+    import database
+    from db_helpers import tmp_catchment
+    from config import config
     from routes.commercial.storms import _enrich_flood_events
-    (cfg_tmp / "storms.json").write_text(json.dumps({
-        "storms": [{"storm_id": "S1", "name": "Bertha",
-                    "intensity_category": "severe",
-                    "effective_precipitation_mm": 42}]
-    }))
-    pdata = {"flood_events": [{"storm_id": "S1"}]}
-    _enrich_flood_events(pdata)
+    with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
+        database.save_storm_sequences(database.active_catchment(), {
+            "storms": [{"storm_id": "S1", "name": "Bertha",
+                        "intensity_category": "severe",
+                        "effective_precipitation_mm": 42}]
+        })
+        pdata = {"flood_events": [{"storm_id": "S1"}]}
+        _enrich_flood_events(pdata)
     ev = pdata["flood_events"][0]
     assert ev["name"] == "Bertha"
     assert ev["intensity_category"] == "severe"

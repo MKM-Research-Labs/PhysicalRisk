@@ -149,14 +149,15 @@ class TestBatchReadsMetrics:
             }
 
         def mock_train(gid):
-            # Write training_summary.json with metrics
+            # Persist a training summary with metrics through the seam.
+            import database
+            from config import config
             summary = {"gauges": [{
                 "gauge_id": gid,
                 "status": "trained",
                 "metrics": {"auc_roc": 0.95, "accuracy": 0.97},
             }]}
-            with open(classifiers_dir / "training_summary.json", "w") as f:
-                json.dump(summary, f)
+            database.save_classifier_training_summary(config.catchment_id, summary)
 
         with patch("routes.trading.stress.training._train_single_gauge",
                    side_effect=mock_train):

@@ -48,13 +48,15 @@ class TestTimingsHelpers:
         catchment, _ = self._bind(tmp_path, monkeypatch)
         assert _load_timings(catchment) == {"runs": []}
 
-    def test_load_timings_valid(self, tmp_path, monkeypatch):
+    def test_load_timings_valid(self, tmp_path):
+        import database
+        from db_helpers import tmp_catchment
+        from config import config
         from routes.trading.classifiers import _load_timings
-        catchment, cdir = self._bind(tmp_path, monkeypatch)
         data = {"runs": [{"num_gauges": 5, "elapsed_seconds": 100}]}
-        (cdir / "classifier_timings.json").write_text(json.dumps(data))
-
-        result = _load_timings(catchment)
+        with tmp_catchment(tmp_path, catchment=config.catchment_id):
+            database.save_classifier_timings(config.catchment_id, data)
+            result = _load_timings(config.catchment_id)
         assert len(result["runs"]) == 1
         assert result["runs"][0]["num_gauges"] == 5
 
@@ -66,14 +68,15 @@ class TestTimingsHelpers:
         result = _load_timings(catchment)
         assert result == {"runs": []}
 
-    def test_save_timings_truncates_to_20(self, tmp_path, monkeypatch):
+    def test_save_timings_truncates_to_20(self, tmp_path):
+        import database
+        from db_helpers import tmp_catchment
+        from config import config
         from routes.trading.classifiers import _save_timings
-        catchment, cdir = self._bind(tmp_path, monkeypatch)
         timings = {"runs": [{"i": i} for i in range(30)]}
-        _save_timings(catchment, timings)
-
-        with open(cdir / "classifier_timings.json") as f:
-            saved = json.load(f)
+        with tmp_catchment(tmp_path, catchment=config.catchment_id):
+            _save_timings(config.catchment_id, timings)
+            saved = database.get_classifier_timings(config.catchment_id)
         assert len(saved["runs"]) == 20
         # Keeps the last 20 (indices 10-29)
         assert saved["runs"][0]["i"] == 10
