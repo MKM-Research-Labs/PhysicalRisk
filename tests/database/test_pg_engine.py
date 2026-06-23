@@ -31,6 +31,7 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
 from database._pg import Base, Catchment, get_engine, get_session, reset_engine
+from db_helpers import test_backend
 
 
 @pytest.fixture(autouse=True)
@@ -61,6 +62,11 @@ def test_reset_engine_is_safe_when_none():
     assert isinstance(get_engine(), Engine)
 
 
+@pytest.mark.skipif(
+    test_backend() == "pg",
+    reason="validates get_session's engine-bound default; under MKM_TEST_BACKEND=pg the "
+           "autouse pg-isolation binds a test connection, so get_session binds to that "
+           "connection (savepoint) instead of the engine.")
 def test_get_session_returns_session():
     session = get_session()
     try:

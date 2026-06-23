@@ -51,7 +51,14 @@ def test_per_part_env_overrides(monkeypatch):
     try:
         assert mod.get_database_url() == "postgresql+psycopg2://svc:secret@pg.internal:6000/mkmdb"
     finally:
-        importlib.reload(importlib.import_module("config.database"))  # restore defaults
+        # DB_HOST etc. are bound at import time, so the override leaks into the
+        # module unless we clear the env BEFORE reloading. monkeypatch only restores
+        # env at teardown — after this finally — so clear it here, else every later
+        # pg test builds an engine pointing at pg.internal.
+        for _var in ("MKM_DB_HOST", "MKM_DB_PORT", "MKM_DB_NAME",
+                     "MKM_DB_USER", "MKM_DB_PASSWORD"):
+            monkeypatch.delenv(_var, raising=False)
+        importlib.reload(dbcfg)  # restore module-level defaults with the env cleared
 
 
 def test_repo_backend_default_is_file(monkeypatch):
