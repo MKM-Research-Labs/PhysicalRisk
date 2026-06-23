@@ -289,5 +289,6 @@ class TestGaugeGeneratorMain:
             runpy.run_module('port.src.gauge.gauge', run_name='__main__')
         except SystemExit:
             pass
-        # gauge.json written to tmp_path via database.save_gauges (backend rooted here)
-        assert (tmp_path / 'gauge.json').exists()
+        # The gauge portfolio was persisted through database.save_gauges -> read it
+        # back via the seam so the assertion holds on both file and pg backends.
+        assert database.get_gauge_portfolio(database.active_catchment()) is not None
