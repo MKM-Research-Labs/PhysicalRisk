@@ -78,8 +78,7 @@ class TestGenerateErrorPaths:
             gen.generate()
 
     def test_empty_property_list_returns_zero_mortgages(self, tmp_path):
-        prop_path = tmp_path / "property.json"
-        prop_path.write_text(json.dumps({"properties": []}))
+        write_property_portfolio(tmp_path, count=0)   # an empty portfolio (via the seam)
         result = make_generator(tmp_path).generate()
         assert result["data"]["mortgages"] == []
         assert result["processing_stats"]["total_mortgages"] == 0

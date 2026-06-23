@@ -25,7 +25,15 @@ from pathlib import Path
 
 
 def write_property_portfolio(path: Path, count: int = 3) -> Path:
-    """Write a minimal property.json with `count` synthetic property records."""
+    """Seed a minimal property portfolio of `count` records for the active catchment.
+
+    Persists through the ``database`` seam (so it lands in whatever backend the test
+    bound — a tmp file under ``file``, Postgres under ``MKM_TEST_BACKEND=pg``); the
+    raw ``property.json`` is also written for any file-coupled reader. Must be called
+    inside the test's ``tmp_catchment`` so the active catchment + backend are bound.
+    """
+    import database
+
     properties = []
     for i in range(count):
         properties.append({
@@ -46,6 +54,7 @@ def write_property_portfolio(path: Path, count: int = 3) -> Path:
             }
         })
     data = {"properties": properties}
+    database.save_properties(database.active_catchment(), data)   # seam (both backends)
     prop_path = path / "property.json"
     prop_path.write_text(json.dumps(data))
     return prop_path
