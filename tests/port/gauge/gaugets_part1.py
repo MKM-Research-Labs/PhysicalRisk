@@ -30,7 +30,7 @@ import json
 import pytest
 
 import database
-from db_helpers import tmp_catchment
+from db_helpers import test_backend, tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -203,6 +203,10 @@ class TestGaugeTimeSeriesGenerate:
             with pytest.raises(FileNotFoundError):
                 GaugeTimeSeriesGenerator(verbose=False).generate(simulation_hours=10)
 
+    @pytest.mark.skipif(
+        test_backend() == "pg",
+        reason="asserts stale gaugets/GAUGE-*.json FILES are deleted; on Postgres "
+               "timeseries are rows, not files — no stale files to clean.")
     def test_stale_gauge_files_removed(self, tmp_path):
         """Line 175: stale GAUGE-*.json files in gaugets/ are deleted before writing."""
         from port.src.gauge.gaugets import GaugeTimeSeriesGenerator

@@ -38,6 +38,7 @@ import json
 
 import pytest
 
+import database
 from port.src.property.main.locations import _zone_from_offset
 from db_helpers import tmp_catchment
 
@@ -112,7 +113,7 @@ class TestLoadSyntheticGauges:
 
     def test_synth_entries_loaded_via_location(self, tmp_path):
         """Location.GaugeLatitude/Longitude/Elevation populate the result."""
-        (tmp_path / "gauge.json").write_text(json.dumps({
+        database.save_gauges(database.active_catchment(), {
             "flood_gauges": [
                 {"FloodGauge": {
                     "Header": {"GaugeID": "GAUGE-001"},  # not SYNTH — skipped
@@ -125,7 +126,7 @@ class TestLoadSyntheticGauges:
                                   "GaugeElevation": 4.5},
                 }},
             ]
-        }))
+        })
         gen = make_portfolio_gen(tmp_path)
         synths = gen._load_synthetic_gauges()
         assert len(synths) == 1
@@ -137,7 +138,7 @@ class TestLoadSyntheticGauges:
 
     def test_synth_falls_back_to_sensor_details(self, tmp_path):
         """When Location omits coords, SensorDetails.GaugeInformation supplies them."""
-        (tmp_path / "gauge.json").write_text(json.dumps({
+        database.save_gauges(database.active_catchment(), {
             "flood_gauges": [{
                 "FloodGauge": {
                     "Header": {"GaugeID": "SYNTH-bbb"},
@@ -149,7 +150,7 @@ class TestLoadSyntheticGauges:
                     }},
                 }
             }]
-        }))
+        })
         gen = make_portfolio_gen(tmp_path)
         synths = gen._load_synthetic_gauges()
         assert len(synths) == 1
@@ -180,7 +181,7 @@ def _write_synth_gauge_json(tmp_path, n=3):
                 },
             }
         })
-    (tmp_path / "gauge.json").write_text(json.dumps({"flood_gauges": gauges}))
+    database.save_gauges(database.active_catchment(), {"flood_gauges": gauges})  # seam
 
 
 class TestGenerateLocationsSyntheticPath:

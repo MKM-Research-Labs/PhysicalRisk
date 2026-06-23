@@ -27,7 +27,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from db_helpers import tmp_catchment
+from db_helpers import test_backend, tmp_catchment
 from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, setup_gauge_env, write_nrfa_csv
 
 
@@ -43,6 +43,10 @@ def _iso_catchment(tmp_path):
 # generate_all_gauge_histories — stale file cleanup
 # ===========================================================================
 
+@pytest.mark.skipif(
+    test_backend() == "pg",
+    reason="asserts stale per-gauge history FILES are deleted; on Postgres history is "
+           "rows, not files, so there are no stale files to clean — file-only behaviour.")
 class TestStaleFileCleanup:
 
     def test_removes_stale_gauge_files(self, tmp_path, monkeypatch):

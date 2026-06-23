@@ -148,7 +148,16 @@ def pipeline_dir(tmp_path_factory):
 
     Module scope prevents config.input_dir mutations in generators.py
     from racing with the fixture setup for integration.py.
+
+    File-backend only: the end-to-end pipeline still includes directory-injected
+    generators (PropertyTimeSeries / PropertyHazardCurve read property.json from
+    disk) and every test asserts by reading the output files, so it can't run on
+    Postgres until those generators move onto the seam.
     """
+    from db_helpers import test_backend
+    if test_backend() == "pg":
+        pytest.skip("end-to-end file pipeline + output-file assertions — file backend "
+                    "only until the remaining directory-injected generators are migrated")
     d = tmp_path_factory.mktemp("pipeline")
     original_input_dir = config.input_dir
     config.input_dir = d
