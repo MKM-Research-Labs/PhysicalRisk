@@ -41,6 +41,7 @@ bound backend on exit, so they nest and never leak into the next test (the autou
 ``_database_file_backend`` fixture also re-binds before the next test).
 """
 
+import os
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator, Optional, Union
@@ -51,6 +52,12 @@ from database.backend import active_backend, configure_backend
 from database import config_binding
 from config import config
 from config.data_layout import DEFAULT_MODE
+
+
+def test_backend() -> str:
+    """The backend the suite runs against — ``file`` (default) or ``pg`` (WP4.2).
+    Set ``MKM_TEST_BACKEND=pg`` to exercise the whole suite on Postgres."""
+    return os.getenv("MKM_TEST_BACKEND", "file").strip().lower()
 
 # The real, on-disk ``data/input`` tree, captured at import time (before any
 # per-test monkeypatch of ``config.get_input_dir``). Used by the write-guard to
@@ -108,6 +115,52 @@ def use_guarded_file_backend() -> _WriteGuardedFileRepository:
     return repo
 
 
+# ── Postgres test mode (WP4.2) ───────────────────────────────────────────────
+# Under MKM_TEST_BACKEND=pg the autouse fixture binds PostgresRepository inside a
+# single transaction and rolls it back on teardown (see engine.bind_test_connection),
+# so every test is isolated with zero per-table cleanup. Read-path tests see the
+# imported catchments (committed before the run); write-path tests get a clean
+# slate via _purge_catchment, which is itself rolled back so the import survives.
+
+@contextmanager
+def pg_test_isolation() -> Iterator[None]:
+    """Bind PostgresRepository wrapped in a rolled-back transaction for one test."""
+    from database._pg.engine import bind_test_connection, get_engine, reset_engine
+    from database._pg.pg_repo import PostgresRepository
+
+    reset_engine()
+    connection = get_engine().connect()
+    transaction = connection.begin()
+    bind_test_connection(connection)
+    configure_backend(PostgresRepository())
+    try:
+        yield
+    finally:
+        bind_test_connection(None)
+        transaction.rollback()
+        connection.close()
+        reset_engine()
+
+
+def _purge_catchment(catchment: str) -> None:
+    """Delete every artifact row for ``catchment`` (within the test transaction, so
+    it is rolled back) — gives a write-path test the clean slate ``tmp_path`` used
+    to provide, without disturbing the imported data once the test rolls back."""
+    from database._pg import get_session
+    from database._pg._models import (
+        Commercial, CommercialLoan, Counterparty, EodSnapshot, Gauge,
+        GaugeHazardCurve, Loan, PortBlob, PortDocument, PortRecord, PortRun,
+        Property, PrsTrade,
+    )
+    models = (Gauge, Property, Loan, Commercial, CommercialLoan, Counterparty,
+              GaugeHazardCurve, PrsTrade, EodSnapshot, PortDocument, PortRecord,
+              PortBlob, PortRun)
+    with get_session() as session:
+        for model in models:
+            session.query(model).filter_by(catchment_id=catchment).delete()
+        session.commit()
+
+
 def _current_backend() -> Optional[database.Repository]:
     """The bound backend, or ``None`` if startup never configured one."""
     try:
@@ -136,7 +189,17 @@ def tmp_catchment(
 
     Every catchment resolves to ``tmp_path`` (a single scratch dir per test), so a
     writer's reads and writes land there and can be read back through ``database``.
+
+    Under ``MKM_TEST_BACKEND=pg`` there is no scratch dir: the autouse fixture has
+    already bound Postgres in a rolled-back transaction, so this just clears the
+    catchment to a clean slate and makes it active — writes land in Postgres and
+    are rolled back with the rest of the test.
     """
+    if test_backend() == "pg":
+        _purge_catchment(catchment)
+        with database.catchment_context(catchment):
+            yield active_backend()
+        return
     root = Path(tmp_path)
     repo = FileRepository(dir_resolver=lambda _catchment: root)
     with _bound(repo, catchment) as bound:
