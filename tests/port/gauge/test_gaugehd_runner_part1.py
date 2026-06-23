@@ -117,6 +117,11 @@ class TestGenerateAllErrorPaths:
         assert len(result) == 0
         assert "GAUGE-BADONE" in caplog.text
 
+    @pytest.mark.skipif(
+        test_backend() == "pg",
+        reason="seeds a completely empty gauge entry (no GaugeID) to exercise the "
+               "UNKNOWN-id error path; Postgres keys gauges on GaugeID so such a record "
+               "cannot be stored (setup_gauge_env raises) — file-only behaviour.")
     def test_error_with_no_header_uses_unknown(self, tmp_path, monkeypatch, caplog):
         """Line 50: completely empty entry uses UNKNOWN as gauge_id."""
         from port.src.gauge.gaugehd.runner import generate_all_gauge_histories
@@ -128,6 +133,12 @@ class TestGenerateAllErrorPaths:
         assert len(result) == 0
         assert "UNKNOWN" in caplog.text
 
+    @pytest.mark.skipif(
+        test_backend() == "pg",
+        reason="seeds two gauge entries that share GaugeID GAUGE-TEST01 to fail the first "
+               "and pass the second; Postgres keys gauges on GaugeID so the duplicates "
+               "collapse to a single row and the two-gauge scenario cannot exist — "
+               "file-only behaviour.")
     def test_mixed_good_and_bad_gauges(self, tmp_path, monkeypatch):
         """Good gauges succeed even when bad ones fail."""
         from port.src.gauge.gaugehd.runner import generate_all_gauge_histories
