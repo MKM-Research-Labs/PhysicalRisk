@@ -26,13 +26,17 @@ Private to ``src/database``. The connection *values* come from
 tests that point at a different database call :func:`reset_engine` to drop it.
 """
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Connection, Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from config.database import get_database_url
 
 _engine: Engine | None = None
 _Session: sessionmaker | None = None
+# When set (by a test), every session binds to this external connection instead
+# of the engine — so a test can wrap all its writes in one outer transaction and
+# roll it back for per-test isolation (WP4.1). None in normal operation.
+_test_connection: Connection | None = None
 
 
 def get_engine() -> Engine:
@@ -48,16 +52,29 @@ def get_engine() -> Engine:
 
 
 def get_session() -> Session:
-    """A new ORM session bound to :func:`get_engine`.
+    """A new ORM session.
 
+    Normally bound to :func:`get_engine`. Under a bound test connection (see
+    :func:`bind_test_connection`) it instead joins that connection's transaction
+    via a SAVEPOINT, so the repository's explicit ``commit`` releases the savepoint
+    but the outer transaction (rolled back on teardown) still owns every write.
     ``expire_on_commit=False`` lets callers read attributes off returned objects
-    after commit without a re-fetch — the repository hands back plain dict/JSON
-    payloads, not live ORM rows.
+    after commit — the repository hands back plain dict/JSON payloads.
     """
+    if _test_connection is not None:
+        return Session(bind=_test_connection, future=True, expire_on_commit=False,
+                       join_transaction_mode="create_savepoint")
     global _Session
     if _Session is None:
         _Session = sessionmaker(bind=get_engine(), future=True, expire_on_commit=False)
     return _Session()
+
+
+def bind_test_connection(connection: Connection | None) -> None:
+    """Route every session through ``connection`` (a test's transaction) for
+    rollback-based isolation, or pass ``None`` to restore engine-bound sessions."""
+    global _test_connection
+    _test_connection = connection
 
 
 def reset_engine() -> None:

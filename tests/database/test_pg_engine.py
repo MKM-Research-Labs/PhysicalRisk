@@ -78,3 +78,48 @@ def test_catchment_model_columns():
 
 def test_catchment_registered_in_metadata():
     assert "catchment" in Base.metadata.tables
+
+
+# ---------------------------------------------------------------------------
+# Test-connection rollback isolation (WP4.1) — live Postgres required
+# ---------------------------------------------------------------------------
+
+def _pg_available() -> bool:
+    try:
+        reset_engine()
+        from sqlalchemy import text
+        with get_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False
+    finally:
+        reset_engine()
+
+
+@pytest.mark.skipif(not _pg_available(), reason="no live Postgres")
+def test_bound_test_connection_rolls_back_repo_writes():
+    """A repo write made while a test connection is bound is visible during the
+    transaction but vanishes on rollback — the per-test isolation primitive."""
+    from database._pg.engine import bind_test_connection
+    from database._pg.pg_repo import PostgresRepository
+
+    reset_engine()
+    repo = PostgresRepository()
+    catchment = "__enginerbtest__"
+    doc = {"flood_gauges": [{"FloodGauge": {"Header": {"GaugeID": "G-RB"}}}],
+           "generation_metadata": {}}
+
+    conn = get_engine().connect()
+    trans = conn.begin()
+    bind_test_connection(conn)
+    try:
+        repo.save("gauge", catchment, doc)        # repo commits → SAVEPOINT release
+        assert repo.exists("gauge", catchment) is True   # visible within the txn
+    finally:
+        bind_test_connection(None)
+        trans.rollback()
+        conn.close()
+
+    reset_engine()
+    assert PostgresRepository().exists("gauge", catchment) is False  # rolled back, gone
