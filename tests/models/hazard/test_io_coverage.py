@@ -151,8 +151,10 @@ class TestBuildHazardCurvesVerbose:
 
         assert result['summary']['num_gauges'] == 1
         assert result['summary']['num_storms'] == 20
-        assert (hazard_dir / "gaugehc.json").exists()
-        assert (hazard_dir / "gaugets").is_dir()
+        # build_hazard_curves persists through the seam (files on the file backend,
+        # rows on pg) — assert via database so it holds on both.
+        assert database.get_gauge_hazard_curves("test") is not None
+        assert list(database.iter_gauge_timeseries_ids("test"))
 
         # Check log messages were emitted
         log_text = caplog.text
