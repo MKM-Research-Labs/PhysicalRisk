@@ -25,8 +25,6 @@ Covers default parameter values, gaugets_random defaults, and
 generate() output structure.
 """
 
-import json
-
 import pytest
 
 import database
@@ -122,20 +120,23 @@ class TestGaugeTimeSeriesGenerate:
         gen = GaugeTimeSeriesGenerator(verbose=False)
         result = gen.generate(simulation_hours=168)
 
-        gaugets_dir = tmp_path / "gaugets"
-        files = list(gaugets_dir.glob("GAUGE-*.json"))
-        assert len(files) > 0, "No gaugets files generated"
+        # Read the per-gauge timeseries back through the seam so the assertion holds on
+        # both file (gaugets/GAUGE-*.json) and pg (keyed records) backends.
+        catchment = database.active_catchment()
+        ids = [g for g in database.iter_gauge_timeseries_ids(catchment)
+               if g.startswith("GAUGE-")]
+        assert len(ids) > 0, "No gaugets timeseries generated"
 
-        for f in files:
-            data = json.loads(f.read_text())
+        for gid in ids:
+            data = database.get_gauge_timeseries(catchment, gid)
             sim = data.get("flood_simulation", {})
             assert sim.get("simulation_hours") == 168, (
-                f"{f.name}: simulation_hours is {sim.get('simulation_hours')}, expected 168"
+                f"{gid}: simulation_hours is {sim.get('simulation_hours')}, expected 168"
             )
             readings = sim.get("readings", [])
             # Should have approximately 168 readings (one per hour)
             assert len(readings) >= 160, (
-                f"{f.name}: only {len(readings)} readings for 168h simulation"
+                f"{gid}: only {len(readings)} readings for 168h simulation"
             )
 
     def test_explicit_60_hours_stores_60_in_metadata(self, tmp_path):
@@ -144,9 +145,13 @@ class TestGaugeTimeSeriesGenerate:
         gen = GaugeTimeSeriesGenerator(verbose=False)
         gen.generate(simulation_hours=60)
 
-        gaugets_dir = tmp_path / "gaugets"
-        for f in gaugets_dir.glob("GAUGE-*.json"):
-            data = json.loads(f.read_text())
+        # Read back through the seam (file glob is empty on pg -> would assert nothing).
+        catchment = database.active_catchment()
+        ids = [g for g in database.iter_gauge_timeseries_ids(catchment)
+               if g.startswith("GAUGE-")]
+        assert ids, "No gaugets timeseries generated"
+        for gid in ids:
+            data = database.get_gauge_timeseries(catchment, gid)
             sim = data.get("flood_simulation", {})
             assert sim.get("simulation_hours") == 60
 
@@ -177,8 +182,13 @@ class TestGaugeTimeSeriesGenerate:
         gen = GaugeTimeSeriesGenerator(verbose=False)
         gen.generate(simulation_hours=168)
 
-        for f in (tmp_path / "gaugets").glob("GAUGE-*.json"):
-            data = json.loads(f.read_text())
+        # Read back through the seam (file glob is empty on pg -> would assert nothing).
+        catchment = database.active_catchment()
+        ids = [g for g in database.iter_gauge_timeseries_ids(catchment)
+               if g.startswith("GAUGE-")]
+        assert ids, "No gaugets timeseries generated"
+        for gid in ids:
+            data = database.get_gauge_timeseries(catchment, gid)
             assert "simulation_hours" in data["flood_simulation"]
 
     def test_configure_known_param(self, tmp_path):

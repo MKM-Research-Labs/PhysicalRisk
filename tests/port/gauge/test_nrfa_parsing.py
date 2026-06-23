@@ -171,13 +171,12 @@ class TestGenerateFromNrfa:
         result = generate_from_nrfa(csv_file, gauge_id="GAUGE-CUSTOM")
         assert result["station_metadata"]["station_id"] == "GAUGE-CUSTOM"
 
-    def test_auto_output_path(self, tmp_path, monkeypatch):
-        """When output_path=None, uses config.get_gaugehd_dir()."""
+    def test_persists_history_through_database(self, tmp_path):
+        """generate_from_nrfa persists the gauge history through database, keyed by
+        station id, so it is retrievable via the seam on both backends."""
         from port.src.gauge.gaugehd.nrfa import generate_from_nrfa
-        from config import config
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: tmp_path / "gaugehd")
-        (tmp_path / "gaugehd").mkdir()
         csv_file = write_nrfa_csv(tmp_path, station_id="AUTO-01")
         result = generate_from_nrfa(csv_file, years=10)
         assert isinstance(result, dict)
-        assert (tmp_path / "gaugehd" / "gauge_AUTO-01_hd.json").exists()
+        assert "AUTO-01" in list(
+            database.iter_gauge_history_ids(database.active_catchment()))

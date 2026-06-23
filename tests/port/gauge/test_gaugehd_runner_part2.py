@@ -26,6 +26,7 @@ from pathlib import Path
 
 import pytest
 
+import database
 from db_helpers import tmp_catchment
 from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, setup_gauge_env, write_nrfa_csv
 
@@ -173,16 +174,14 @@ class TestMain:
         nrfa_dir = tmp_path / "nrfa"
         nrfa_dir.mkdir()
         write_nrfa_csv(nrfa_dir, station_id="39001", n_rows=10)
-        gaugehd_dir = tmp_path / "gaugehd"
-        gaugehd_dir.mkdir()
-        from config import config
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: gaugehd_dir)
         monkeypatch.setattr("sys.argv", [
             "gaugehd", "--nrfa-dir", str(nrfa_dir), "--years", "5"
         ])
         main()
-        # Should have created output file
-        assert list(gaugehd_dir.glob("gauge_*_hd.json"))
+        # The NRFA importer persisted the gauge history through the seam (keyed by
+        # station id); read it back so the assertion holds on both backends.
+        assert "39001" in list(
+            database.iter_gauge_history_ids(database.active_catchment()))
 
     def test_main_short_years_flag(self, tmp_path, monkeypatch):
         """Line 101: -y short flag for years."""

@@ -64,8 +64,8 @@ class TestGenerateFromGaugePortfolio:
     def test_history_persisted(self, tmp_path):
         from port.src.gauge.gaugehd.synthetic import generate_from_gauge_portfolio
         generate_from_gauge_portfolio(SAMPLE_GAUGE_ENTRY, years=5)
-        # Persisted as a keyed gauge_history record (physically gaugehd/gauge_*_hd.json).
-        assert (tmp_path / "gaugehd" / "gauge_GAUGE-TEST01_hd.json").exists()
+        # Persisted as a keyed gauge_history record; read it back via the seam so the
+        # assertion holds on both file and pg backends.
         assert database.get_gauge_history(database.active_catchment(), "GAUGE-TEST01")
 
     def test_default_catchment_persists(self, tmp_path):
