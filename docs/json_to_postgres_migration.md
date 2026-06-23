@@ -23,7 +23,16 @@
 > Postgres under `MKM_REPO_BACKEND=pg`. `app.py port` now binds the same switch, so
 > port **generation** writes to Postgres + MinIO under `pg` (file backend default).
 >
-> **Next:** WP3 (tools onto the repo), WP4 (E2E per-test schema + suites on `pg`),
+> **WP4.1 + WP4.2 in progress (test suite on Postgres):** rollback-based per-test
+> isolation is built (`engine.bind_test_connection`) and a `MKM_TEST_BACKEND=pg`
+> flag (default `file`) flips the shared fixtures so the *same* test bodies run on
+> Postgres. `MKM_TEST_BACKEND=pg pytest <dir>` is the triage harness. `tests/port`:
+> mortgage / property / pipeline / stale-file clusters green-or-skipped; remaining =
+> gauge output-file-assertion rewrites + storm/stressm (the hard bucket). See the
+> `json_to_postgres_migration` memory for the exact per-cluster state.
+>
+> **Next:** finish `tests/port` triage, then `tests/routes|reports|trading|lineage`,
+> then a CI lane under `MKM_TEST_BACKEND=pg`; plus WP3 (tools onto the repo) and
 > WP5 (RBAC + pooling + file decommission).
 
 **Companion docs:** `docs/json_artifact_catalogue.md` (producer→file→consumer matrix,

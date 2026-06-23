@@ -71,9 +71,29 @@ So `MKM_REPO_BACKEND=pg` can serve the whole artifact surface (given Postgres +
 MinIO up and a catchment imported). Remaining migration work is no longer about
 artifact coverage:
 
-1. WP2 full cutover — run the parity harness per catchment, then flip each one's
-   read source; verify the app end-to-end on `pg`.
-2. WP4 E2E rework (per-test schema), WP5 RBAC + pooling + file decommission.
+1. WP2 full cutover — **done**: all three catchments imported + parity-green; reads
+   and writes (`app.py port`) both honour `MKM_REPO_BACKEND=pg`.
+2. WP4 test/E2E rework (**in progress**, see below), WP5 RBAC + pooling + decommission.
+
+## Running the test suite on Postgres (WP4.2)
+
+The suite can run against Postgres with the same test bodies — set
+`MKM_TEST_BACKEND=pg` (default `file`, so normal CI is untouched):
+
+```bash
+docker compose -f docker/docker-compose.yml up -d postgres minio   # both must be up
+PYTHONPATH=src python -m database._pg.cutover thames --import        # seed the read-path catchments
+MKM_TEST_BACKEND=pg python -m pytest tests/port                      # run a dir on Postgres
+```
+
+Each test runs inside a single transaction that is rolled back on teardown
+(`engine.bind_test_connection`), so there's zero per-table cleanup and no leak.
+Read-path tests see the imported catchments; write-path tests (`tmp_catchment`)
+get a clean slate that is also rolled back. The triage is dir-by-dir: run, bucket
+failures (seed-via-seam / skip-under-pg / output-file rewrite / MinIO-blob), fix,
+re-verify both modes. Current state is tracked in the `json_to_postgres_migration`
+memory. Note: pg mode is ~4× slower (per-test connect/rollback), and a classifier
+write under pg hits real MinIO (not transactional) — purge or skip those.
 
 The **WP1.7 dual-read parity harness** (`src/database/_pg/parity.py`) is the
 regression net for the cutover: `check_catchment(catchment)` compares a file
