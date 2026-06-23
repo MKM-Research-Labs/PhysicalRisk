@@ -37,7 +37,7 @@ from port.src.commercial import (
     CommercialPortfolioGenerator,
     generate_commercials,
 )
-from db_helpers import tmp_catchment
+from db_helpers import test_backend, tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -233,11 +233,16 @@ class TestGaugeIdMap:
             {"FloodGauge": {"Header": {"GaugeID": "GAUGE-001"}}},
             {"FloodGauge": {"Header": {"GaugeID": "GAUGE-002"}}},
         ]}
-        (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
+        database.save_gauges("thames", gauge_data)   # seed via the seam (both backends)
         gen = CommercialPortfolioGenerator(verbose=False)
         gen.generate(count=3)
         assert gen._gauge_id_map == {0: "GAUGE-001", 1: "GAUGE-002"}
 
+    @pytest.mark.skipif(
+        test_backend() == "pg",
+        reason="exercises the legacy 'gauges'-only doc shape; Postgres normalises a "
+               "gauge collection to 'flood_gauges', so the fallback can't be reproduced "
+               "(no generator ever saves the legacy shape — file-only round-trip edge).")
     def test_gauge_map_falls_back_to_gauges_key(self, tmp_path):
         """Legacy 'gauges' key is used when 'flood_gauges' is absent."""
         gauge_data = {"gauges": [
@@ -248,6 +253,10 @@ class TestGaugeIdMap:
         gen.generate(count=2)
         assert gen._gauge_id_map == {0: "G-9"}
 
+    @pytest.mark.skipif(
+        test_backend() == "pg",
+        reason="seeds a gauge record with no GaugeID; the Postgres gauge table keys "
+               "on GaugeID so it can't store a malformed record — a file-only edge case.")
     def test_entries_without_gauge_id_are_skipped(self, tmp_path):
         gauge_data = {"flood_gauges": [
             {"FloodGauge": {"Header": {"GaugeID": "GAUGE-001"}}},
