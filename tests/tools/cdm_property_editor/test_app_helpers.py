@@ -214,37 +214,30 @@ def test_append_audit_accumulates(app_mod, sandbox):
 
 
 # --- model output loaders ---------------------------------------------------
-def test_model_assets_missing_file(app_mod, tmp_path):
-    app_mod._CACHE.clear()
-    model, amap = app_mod._model_assets("fire", tmp_path / "nope.json")
+def test_model_assets_missing(app_mod, seam):
+    model, amap = app_mod._model_assets("fire")
     assert model is None and amap == {}
 
 
-def test_model_assets_parses_and_caches(app_mod, tmp_path):
-    app_mod._CACHE.clear()
-    p = tmp_path / "fire.json"
-    p.write_text(json.dumps({"metadata": {"model": "MKM-FIRE-001"},
-                             "assets": [{"asset_id": "C1", "n_fires": 3}]}),
-                 encoding="utf-8")
-    model, amap = app_mod._model_assets("fire", p)
+def test_model_assets_parses_and_caches(app_mod, seam):
+    seam.save_fire_results(app_mod.CATCHMENT, {"metadata": {"model": "MKM-FIRE-001"},
+                                               "assets": [{"asset_id": "C1", "n_fires": 3}]})
+    model, amap = app_mod._model_assets("fire")
     assert model == "MKM-FIRE-001" and amap["C1"]["n_fires"] == 3
-    # second call (different path) returns the cached first result
-    again = app_mod._model_assets("fire", tmp_path / "other.json")
+    # second call returns the cached first result even if the seam changes
+    seam.save_fire_results(app_mod.CATCHMENT, {"assets": []})
+    again = app_mod._model_assets("fire")
     assert again[1]["C1"]["n_fires"] == 3
 
 
-def test_storm_type_index_missing(app_mod, monkeypatch, tmp_path):
-    app_mod._CACHE.clear()
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path)
+def test_storm_type_index_missing(app_mod, seam):
     assert app_mod._storm_type_index() == {}
 
 
-def test_storm_type_index_parses(app_mod, monkeypatch, tmp_path):
-    app_mod._CACHE.clear()
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path)
-    (tmp_path / "storm_sequences.json").write_text(json.dumps({"sequences": [
+def test_storm_type_index_parses(app_mod, seam):
+    seam.save_storm_sequences(app_mod.CATCHMENT, {"sequences": [
         {"sequence_id": "S1", "sequence_type": "cluster",
-         "intensity_category": "severe"}]}), encoding="utf-8")
+         "intensity_category": "severe"}]})
     idx = app_mod._storm_type_index()
     assert idx["S1"] == {"type": "cluster", "intensity": "severe"}
 
@@ -254,11 +247,9 @@ def test_hc_record_unsupported_asset(app_mod):
     assert app_mod._hc_record("gauge", "G1") is None
 
 
-def test_hc_record_reads_and_caches(app_mod, monkeypatch, tmp_path):
-    app_mod._CACHE.clear()
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path)
-    (tmp_path / "propertyhc.json").write_text(json.dumps({
-        "property_hazard_curves": {"P1": {"flood_zone": "3"}}}), encoding="utf-8")
+def test_hc_record_reads_and_caches(app_mod, seam, sandbox):
+    seam.save_property_hazard_curves(app_mod.CATCHMENT, {
+        "property_hazard_curves": {"P1": {"flood_zone": "3"}}}, mode="flood")
     assert app_mod._hc_record("property", "P1") == {"flood_zone": "3"}
     assert app_mod._hc_record("property", "ZZZ") is None  # cache hit, missing id
 
@@ -270,9 +261,9 @@ def test_hc_record_missing_file_empty(app_mod, monkeypatch, tmp_path):
 
 
 # --- seed-source golden fallback -------------------------------------------
-def test_seed_source_golden_fallback(app_mod, monkeypatch, tmp_path):
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path / "empty")  # no primary
+def test_seed_doc_golden_fallback(app_mod, seam, monkeypatch, tmp_path):
+    # Empty seam for this catchment -> fall back to the golden fixture document.
     golden = tmp_path / "golden.json"
-    golden.write_text("{}", encoding="utf-8")
+    golden.write_text(json.dumps({"properties": [{"x": 1}]}), encoding="utf-8")
     monkeypatch.setitem(app_mod.ASSETS["property"], "golden", golden)
-    assert app_mod._seed_source("property") == golden
+    assert app_mod._seed_doc("property") == {"properties": [{"x": 1}]}

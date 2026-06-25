@@ -80,7 +80,7 @@ def test_wind_zero_event_placeholder(app_mod):
 
 # --- fire -------------------------------------------------------------------
 def test_fire_supported(app_mod, monkeypatch):
-    monkeypatch.setattr(app_mod, "_model_assets", lambda k, p: ("MKM-FIRE-001", {
+    monkeypatch.setattr(app_mod, "_model_assets", lambda k: ("MKM-FIRE-001", {
         "C1": {"n_sim": 100, "lambda_annual": 0.1, "n_fires": 5,
                "n_contained": 3, "n_partial": 1, "n_total": 1,
                "n_point_of_no_return": 0, "loss_frequency": 0.02,
@@ -94,13 +94,13 @@ def test_fire_supported(app_mod, monkeypatch):
 
 
 def test_fire_unsupported_when_asset_absent(app_mod, monkeypatch):
-    monkeypatch.setattr(app_mod, "_model_assets", lambda k, p: ("m", {}))
+    monkeypatch.setattr(app_mod, "_model_assets", lambda k: ("m", {}))
     assert app_mod._fire_payload("commercial", "ZZZ")["supported"] is False
 
 
 # --- seismic ----------------------------------------------------------------
 def test_seismic_supported_has_four_damage_states(app_mod, monkeypatch):
-    monkeypatch.setattr(app_mod, "_model_assets", lambda k, p: ("SEIS", {
+    monkeypatch.setattr(app_mod, "_model_assets", lambda k: ("SEIS", {
         "C1": {"n_sim": 100, "n_events": 7, "zone": "Z2", "site_class": "C",
                "construction_type": "RC", "rating": "B",
                "damage_state_counts": {"0": 50, "1": 30, "2": 15, "3": 5},
@@ -114,14 +114,14 @@ def test_seismic_supported_has_four_damage_states(app_mod, monkeypatch):
 
 
 def test_seismic_unsupported_when_asset_absent(app_mod, monkeypatch):
-    monkeypatch.setattr(app_mod, "_model_assets", lambda k, p: ("m", {}))
+    monkeypatch.setattr(app_mod, "_model_assets", lambda k: ("m", {}))
     assert app_mod._seismic_payload("commercial", "ZZZ")["supported"] is False
 
 
 # --- /perils endpoint -------------------------------------------------------
 def test_perils_endpoint_returns_all_four(client, app_mod, monkeypatch):
     monkeypatch.setattr(app_mod, "_hc_record", lambda a, r: None)
-    monkeypatch.setattr(app_mod, "_model_assets", lambda k, p: (None, {}))
+    monkeypatch.setattr(app_mod, "_model_assets", lambda k: (None, {}))
     out = client.get("/api/property/items/P1/perils").get_json()
     assert set(out) == {"flood", "wind", "fire", "seismic"}
 

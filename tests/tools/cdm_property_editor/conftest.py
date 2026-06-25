@@ -110,6 +110,20 @@ def seed(sandbox):
 
 
 @pytest.fixture
+def seam(app_mod):
+    """Bind an in-memory database backend for the tool's seam reads (WP3.1), seeded
+    under the tool's catchment. Yields the ``database`` module so tests can call
+    ``save_*(app_mod.CATCHMENT, doc)``; restores the configured backend afterwards."""
+    import database
+    from database.config_binding import use_configured_backend
+    database.configure_backend(database.InMemoryRepository())
+    app_mod._CACHE.clear()
+    yield database
+    use_configured_backend()
+    app_mod._CACHE.clear()
+
+
+@pytest.fixture
 def client(app_mod, sandbox):
     app_mod.app.config["TESTING"] = True
     return app_mod.app.test_client()

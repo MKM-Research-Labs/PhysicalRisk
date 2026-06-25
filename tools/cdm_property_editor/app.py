@@ -29,10 +29,11 @@ section tabs. It is schema-driven: each tab's form structure comes straight
 from the canonical CDM schema for that asset class.
 
 This is a sandbox tool, deliberately isolated from the production scene:
-  * It reads/writes ONLY sandbox copies under
+  * It writes ONLY sandbox copies under
     ``tools/cdm_property_editor/data/<asset>_sandbox.json``.
-  * Each sandbox is seeded once from the existing simulated thames portfolio
-    under ``data/input/thames/``. The real ``data/`` tree is never modified.
+  * Each sandbox is seeded once from the active catchment's portfolio, read
+    through the ``database`` seam (file|pg per MKM_REPO_BACKEND) — not by reading
+    ``data/input/<catchment>/`` directly. The real ``data/`` tree is never modified.
 
 Run:
     source .venv/bin/activate
@@ -43,7 +44,6 @@ Run:
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 import uuid
 from datetime import datetime
@@ -62,17 +62,22 @@ for _p in (str(SRC_DIR), str(REPO_ROOT)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+import price_new  # noqa: E402
+from recompute import MODE_DIRS_BY_ASSET, recompute_decomposition  # noqa: E402
+
+# Catchment data is read through the database seam (file|pg per MKM_REPO_BACKEND),
+# not by reading data/input/<catchment> directly. WP3.1.
+import database  # noqa: E402
+from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
+from config import config  # noqa: E402
+from database.config_binding import use_configured_backend  # noqa: E402
+from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
+from lineage.field_usage.resolve import classify  # noqa: E402
 from port.cdm.asset.commercial.schema import COMMERCIAL_SCHEMA  # noqa: E402
 from port.cdm.asset.loan.schema import MORTGAGE_SCHEMA  # noqa: E402
 from port.cdm.asset.residential.schema import PROPERTY_SCHEMA  # noqa: E402
 from port.cdm.ctpy._schema import COUNTERPARTY_SCHEMA  # noqa: E402
 from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
-from lineage.field_usage import AMBER_PREFIXES, EXACT_FIELDS, TIER_META  # noqa: E402
-from lineage.field_usage.resolve import classify  # noqa: E402
-from cdm_edit import descriptor_at, schema_specs, validate_value  # noqa: E402
-
-from recompute import MODE_DIRS_BY_ASSET, recompute_decomposition  # noqa: E402
-import price_new  # noqa: E402
 
 # The PRS waterfall is rendered by the main app's own renderer
 # (src/static/js/property/phc_basis_waterfall.js) — reused here as a shared
@@ -80,8 +85,13 @@ import price_new  # noqa: E402
 # same chart as the production basis-explorer right panel.
 SHARED_WATERFALL_JS = SRC_DIR / "static" / "js" / "property" / "phc_basis_waterfall.js"
 
-CATCHMENT = "thames"
-INPUT_DIR = REPO_ROOT / "data" / "input" / CATCHMENT
+# Bind the data-access backend selected by MKM_REPO_BACKEND (default 'file').
+use_configured_backend()
+# Active catchment from config (honours MKM_CATCHMENT) — was hardcoded "thames".
+CATCHMENT = config.catchment_id
+# Still used by the file-based recompute / price_new subprocess path (WP3.2);
+# catchment-aware via config rather than a hardcoded thames path.
+INPUT_DIR = config.get_input_dir()
 GOLDEN_PROPERTY = REPO_ROOT / "tests" / "port" / "cdm" / "golden" / "property.json"
 SANDBOX_DIR = TOOL_DIR / "data"
 AUDIT_FILE = SANDBOX_DIR / "audit_log.json"
@@ -213,9 +223,25 @@ HC_CONFIG: dict[str, dict] = {
 }
 
 # Fire / seismic model outputs. Both are commercial-only (keyed by CPROP id) and
-# carry per-asset outcome distributions rather than per-event lists.
-FIRE_FILE = INPUT_DIR / "fire" / "fire.json"
-SEISMIC_FILE = INPUT_DIR / "seismic" / "seismic.json"
+# carry per-asset outcome distributions rather than per-event lists. Read via the seam.
+_MODEL_GETTERS = {
+    "fire": database.get_fire_results,
+    "seismic": database.get_seismic_results,
+}
+# Per-asset portfolio + hazard-curve getters (the seam returns the same document
+# shape as the old data/input/<catchment>/<file>.json).
+_PORTFOLIO_GETTERS = {
+    "gauge": database.get_gauge_portfolio,
+    "property": database.get_property_portfolio,
+    "commercial": database.get_commercial_portfolio,
+    "mortgage": database.get_loan_portfolio,
+    "commercial_loan": database.get_commercial_loan_portfolio,
+    "counterparty": database.get_counterparty_portfolio,
+}
+_HC_GETTERS = {
+    "property": database.get_property_hazard_curves,
+    "commercial": database.get_commercial_hazard_curves,
+}
 # Seismic damage states DS0..DS3; DS3 is the collapse state (no_collapse counts
 # DS0+DS1+DS2). See src/models/seismic/damage.py.
 SEISMIC_DS_LABELS = ["None", "Slight", "Moderate", "Collapse"]
@@ -224,16 +250,12 @@ SEISMIC_DS_LABELS = ["None", "Slight", "Moderate", "Collapse"]
 _CACHE: dict = {}
 
 
-def _model_assets(cache_key: str, path: Path) -> tuple:
-    """(model_id, {asset_id: record}) for a fire/seismic model output file."""
+def _model_assets(cache_key: str) -> tuple:
+    """(model_id, {asset_id: record}) for a fire/seismic model output, via the seam."""
     if cache_key not in _CACHE:
-        model, amap = None, {}
-        if path.exists():
-            with open(path, "r", encoding="utf-8") as fh:
-                doc = json.load(fh)
-            model = doc.get("metadata", {}).get("model")
-            for a in doc.get("assets", []):
-                amap[a.get("asset_id")] = a
+        doc = _MODEL_GETTERS[cache_key](CATCHMENT) or {}
+        model = doc.get("metadata", {}).get("model")
+        amap = {a.get("asset_id"): a for a in doc.get("assets", [])}
         _CACHE[cache_key] = (model, amap)
     return _CACHE[cache_key]
 
@@ -242,14 +264,12 @@ def _storm_type_index() -> dict:
     """sequence_id -> {type (cluster), intensity}; built once from storm_sequences."""
     if "storm_types" not in _CACHE:
         idx = {}
-        p = INPUT_DIR / "storm_sequences.json"
-        if p.exists():
-            with open(p, "r", encoding="utf-8") as fh:
-                for s in json.load(fh).get("sequences", []):
-                    idx[s.get("sequence_id")] = {
-                        "type": s.get("sequence_type"),
-                        "intensity": s.get("intensity_category"),
-                    }
+        doc = database.get_storm_sequences(CATCHMENT) or {}
+        for s in doc.get("sequences", []):
+            idx[s.get("sequence_id")] = {
+                "type": s.get("sequence_type"),
+                "intensity": s.get("intensity_category"),
+            }
         _CACHE["storm_types"] = idx
     return _CACHE["storm_types"]
 
@@ -286,12 +306,8 @@ def _hc_record(asset: str, rid: str) -> dict | None:
         return None
     key = f"hc_{asset}"
     if key not in _CACHE:
-        p = INPUT_DIR / cfg["file"]
-        if p.exists():
-            with open(p, "r", encoding="utf-8") as fh:
-                _CACHE[key] = json.load(fh).get(cfg["container"], {})
-        else:
-            _CACHE[key] = {}  # no hazard-curve file (e.g. catchment ran no commercial)
+        doc = _HC_GETTERS[asset](CATCHMENT) or {}
+        _CACHE[key] = doc.get(cfg["container"], {})
     return _CACHE[key].get(rid)
 
 
@@ -306,28 +322,27 @@ def _sandbox_file(asset: str) -> Path:
     return SANDBOX_DIR / f"{asset}_sandbox.json"
 
 
-def _seed_source(asset: str) -> Path:
-    """Prefer the simulated thames file; fall back to a golden fixture if set."""
-    cfg = ASSETS[asset]
-    primary = INPUT_DIR / cfg["file"]
-    if primary.exists():
-        return primary
-    golden = cfg.get("golden")
+def _seed_doc(asset: str) -> dict:
+    """The baseline portfolio document used to seed a fresh sandbox, read via the
+    seam. Falls back to a golden fixture if the seam has no records for this asset."""
+    doc = _PORTFOLIO_GETTERS[asset](CATCHMENT) or {}
+    if _records_of(doc, asset):
+        return doc
+    golden = ASSETS[asset].get("golden")
     if golden and Path(golden).exists():
-        return Path(golden)
+        return json.loads(Path(golden).read_text())
     raise FileNotFoundError(
-        f"No seed source for '{asset}'. Tried {primary}"
-        + (f" and {golden}" if golden else "")
-        + " (is the data SSD mounted?)"
+        f"No seed data for '{asset}' in catchment '{CATCHMENT}' "
+        "(empty portfolio and no golden fixture)."
     )
 
 
 def _ensure_sandbox(asset: str) -> Path:
-    """Seed the asset sandbox from the simulated portfolio on first use."""
+    """Seed the asset sandbox from the catchment portfolio (via the seam) on first use."""
     SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
     sb = _sandbox_file(asset)
     if not sb.exists():
-        shutil.copyfile(_seed_source(asset), sb)
+        sb.write_text(json.dumps(_seed_doc(asset), indent=2))
     return sb
 
 
@@ -480,20 +495,19 @@ def _baseline_value(asset: str, rid: str, path: str):
     The recompute applies the change relative to the baseline (which the stored
     timeseries reflects), so before/after is always original-vs-current.
     """
-    src = _seed_source(asset)
-    if not src.exists():
+    try:
+        doc = _seed_doc(asset)
+    except FileNotFoundError:
         return None
-    doc = json.loads(src.read_text())
     rec = next((r for r in _records_of(doc, asset) if _record_id(asset, r) == rid), None)
     return _get_nested(rec, path) if rec else None
 
 
 def _num_storms(asset: str) -> int | None:
-    cfg = HC_CONFIG.get(asset)
-    p = INPUT_DIR / cfg["file"] if cfg else None
-    if p and p.exists():
-        return json.loads(p.read_text()).get("metadata", {}).get("num_storms")
-    return None
+    if asset not in _HC_GETTERS:
+        return None
+    doc = _HC_GETTERS[asset](CATCHMENT) or {}
+    return doc.get("metadata", {}).get("num_storms")
 
 
 def _maybe_recompute(asset: str, rid: str, target: dict, changed: dict) -> dict | None:
@@ -620,6 +634,7 @@ def api_upload(asset: str):
         return jsonify({"error": "No file uploaded (form field 'file')."}), 400
 
     import io
+
     import openpyxl
     try:
         wb = openpyxl.load_workbook(io.BytesIO(f.read()), data_only=True, read_only=True)
@@ -807,7 +822,7 @@ def _wind_payload(asset: str, rid: str) -> dict:
 
 def _fire_payload(asset: str, rid: str) -> dict:
     """Fire model outcome distribution (commercial assets only)."""
-    model, amap = _model_assets("fire", FIRE_FILE)
+    model, amap = _model_assets("fire")
     a = amap.get(rid)
     if not a:
         return {"supported": False,
@@ -833,7 +848,7 @@ def _fire_payload(asset: str, rid: str) -> dict:
 
 def _seismic_payload(asset: str, rid: str) -> dict:
     """Seismic model damage-state distribution (commercial assets only)."""
-    model, amap = _model_assets("seismic", SEISMIC_FILE)
+    model, amap = _model_assets("seismic")
     a = amap.get(rid)
     if not a:
         return {"supported": False,

@@ -163,24 +163,20 @@ def test_update_record_not_found_404(client, seed):
 
 
 # --- sandbox seeding from a (fake) input dir -------------------------------
-def test_records_seed_from_input_dir_when_no_sandbox(client, app_mod, monkeypatch, tmp_path):
-    """First access copies the simulated portfolio into the sandbox."""
-    src = tmp_path / "input"
-    src.mkdir()
-    (src / "property.json").write_text(json.dumps({"properties": [PROP]}),
-                                       encoding="utf-8")
-    monkeypatch.setattr(app_mod, "INPUT_DIR", src)
+def test_records_seed_from_seam_when_no_sandbox(client, app_mod, seam):
+    """First access copies the catchment portfolio (via the seam) into the sandbox."""
+    seam.save_properties(app_mod.CATCHMENT, {"properties": [PROP]})
     # sandbox dir (app_mod.SANDBOX_DIR) is empty -> _ensure_sandbox seeds it
     items = client.get("/api/property/items").get_json()
     assert items[0]["id"] == "P1"
     assert (app_mod.SANDBOX_DIR / "property_sandbox.json").exists()
 
 
-def test_seed_source_missing_raises(app_mod, monkeypatch, tmp_path):
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path / "missing")
+def test_seed_doc_missing_raises(app_mod, seam):
     import pytest
+    # empty seam + gauge has no golden fixture -> _seed_doc raises
     with pytest.raises(FileNotFoundError):
-        app_mod._seed_source("gauge")
+        app_mod._seed_doc("gauge")
 
 
 # --- static helpers ---------------------------------------------------------

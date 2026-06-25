@@ -90,34 +90,28 @@ def test_update_endpoint_surfaces_recompute(client, seed, app_mod, monkeypatch):
 
 
 # --- _baseline_value --------------------------------------------------------
-def test_baseline_value_reads_seed_source(app_mod, monkeypatch, tmp_path):
-    src = tmp_path / "input"
-    src.mkdir()
-    (src / "property.json").write_text(json.dumps({"properties": [_target(3.0)]}))
-    monkeypatch.setattr(app_mod, "INPUT_DIR", src)
+def test_baseline_value_reads_seed_doc(app_mod, seam):
+    seam.save_properties(app_mod.CATCHMENT, {"properties": [_target(3.0)]})
     assert app_mod._baseline_value("property", "P1", FLOOR) == 3.0
     # an unknown record id -> None
     assert app_mod._baseline_value("property", "ZZZ", FLOOR) is None
 
 
-def test_baseline_value_seed_source_path_gone(app_mod, monkeypatch, tmp_path):
-    # if the seed path resolves but no longer exists on disk -> None
-    monkeypatch.setattr(app_mod, "_seed_source", lambda a: tmp_path / "vanished.json")
-    assert app_mod._baseline_value("property", "P1", FLOOR) is None
+def test_baseline_value_no_seed_data_returns_none(app_mod, seam):
+    # empty seam + no golden fixture for commercial -> _seed_doc raises -> None
+    assert app_mod._baseline_value("commercial", "C1", FLOOR) is None
 
 
 # --- _num_storms ------------------------------------------------------------
-def test_num_storms_reads_metadata(app_mod, monkeypatch, tmp_path):
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path)
-    (tmp_path / "propertyhc.json").write_text(json.dumps(
-        {"metadata": {"num_storms": 250}}))
+def test_num_storms_reads_metadata(app_mod, seam):
+    seam.save_property_hazard_curves(
+        app_mod.CATCHMENT, {"metadata": {"num_storms": 250}}, mode="flood")
     assert app_mod._num_storms("property") == 250
 
 
-def test_num_storms_no_file_or_unsupported(app_mod, monkeypatch, tmp_path):
-    monkeypatch.setattr(app_mod, "INPUT_DIR", tmp_path)  # no propertyhc.json
-    assert app_mod._num_storms("property") is None
-    assert app_mod._num_storms("mortgage") is None       # not in HC_CONFIG
+def test_num_storms_no_data_or_unsupported(app_mod, seam):
+    assert app_mod._num_storms("property") is None       # empty seam, no metadata
+    assert app_mod._num_storms("mortgage") is None        # not in _HC_GETTERS
 
 
 # --- api_catchment_info -----------------------------------------------------
