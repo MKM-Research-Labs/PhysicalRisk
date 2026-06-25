@@ -34,7 +34,7 @@ from flask import jsonify, request
 import database
 from config import config
 from . import trading_bp
-from ._admin_auth import require_admin_password
+from .._rbac import require
 from ._helpers import _get_engines, _load_open_trades, _load_gauge_locations
 
 logger = logging.getLogger(__name__)
@@ -162,7 +162,7 @@ def get_active_gauges():
 # ------------------------------------------------------------------
 
 @trading_bp.route("/trading/close/<swap_id>", methods=["POST"])
-@require_admin_password
+@require("Func003", "delete")
 def close_trade(swap_id: str):
     """Close out a trade at a user-negotiated closeout spread.
 

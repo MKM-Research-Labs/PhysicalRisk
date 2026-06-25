@@ -25,6 +25,25 @@ from unittest.mock import MagicMock
 
 import pytest
 
+# WP5 RBAC: the mutating trading/prs endpoints are now gated by
+# @require("Func003", ...), which checks the session user's capability via the
+# (pg-backed) database layer. Route tests exercise endpoint logic, not RBAC
+# enforcement — so treat every request as a signed-in, fully-capable admin. The
+# dedicated RBAC tests opt out (they assert the real gate) and keep real behaviour.
+_RBAC_SELFTEST_MODULES = {
+    "test_rbac_decorator", "test_admin_routes", "test_auth_routes",
+}
+
+
+@pytest.fixture(autouse=True)
+def _grant_test_rbac(request, monkeypatch):
+    if request.module.__name__.rsplit(".", 1)[-1] in _RBAC_SELFTEST_MODULES:
+        return
+    from routes import _rbac
+    monkeypatch.setattr(_rbac, "_resolver", lambda: "test-admin")
+    monkeypatch.setattr("database.check_permission", lambda u, f, a: True)
+    monkeypatch.setattr("database.is_admin", lambda u: True)
+
 
 @pytest.fixture
 def mock_registry(monkeypatch):

@@ -177,54 +177,42 @@ class TestResetControlParams:
 # Admin password gate
 # ---------------------------------------------------------------------------
 
-class TestAdminPasswordGate:
-    """Mutating endpoints must reject unauthenticated or wrong-password calls."""
+class TestRbacGate:
+    """Mutating endpoints are gated by @require('Func003', ...) (WP5): 401 if not
+    signed in, 403 without the Func003 capability. Replaces the retired admin-password
+    gate. The conftest autouse grants capability by default; these tests override it."""
 
-    def test_save_rejects_missing_header(self, control_client):
+    def test_save_401_when_unauthenticated(self, control_client, monkeypatch):
+        from routes import _rbac
+        monkeypatch.setattr(_rbac, "_resolver", lambda: None)
         r = control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(SAMPLE_CONTROL),
             content_type='application/json',
         )
         assert r.status_code == 401
-        assert 'password' in r.get_json()['message'].lower()
 
-    def test_save_rejects_wrong_password(self, control_client):
+    def test_save_403_without_capability(self, control_client, monkeypatch):
+        monkeypatch.setattr("database.check_permission", lambda u, f, a: False)
         r = control_client.post(
             '/api/v1/trading/control/params',
             data=json.dumps(SAMPLE_CONTROL),
-            headers=_auth_headers(password='wrong'),
+            content_type='application/json',
         )
-        assert r.status_code == 401
+        assert r.status_code == 403
 
-    def test_reset_rejects_missing_header(self, control_client):
-        r = control_client.post('/api/v1/trading/control/reset')
-        assert r.status_code == 401
+    def test_reset_401_when_unauthenticated(self, control_client, monkeypatch):
+        from routes import _rbac
+        monkeypatch.setattr(_rbac, "_resolver", lambda: None)
+        assert control_client.post('/api/v1/trading/control/reset').status_code == 401
 
-    def test_reset_rejects_wrong_password(self, control_client):
-        r = control_client.post(
-            '/api/v1/trading/control/reset',
-            headers={'X-Admin-Password': 'wrong'},
-        )
-        assert r.status_code == 401
+    def test_reset_403_without_capability(self, control_client, monkeypatch):
+        monkeypatch.setattr("database.check_permission", lambda u, f, a: False)
+        assert control_client.post('/api/v1/trading/control/reset').status_code == 403
 
-    def test_save_503_when_admin_not_initialised(self, no_admin_client):
-        r = no_admin_client.post(
-            '/api/v1/trading/control/params',
-            data=json.dumps(SAMPLE_CONTROL),
-            headers=_auth_headers(),
-        )
-        assert r.status_code == 503
-        assert 'python app.py port' in r.get_json()['message']
-
-    def test_reset_503_when_admin_not_initialised(self, no_admin_client):
-        r = no_admin_client.post(
-            '/api/v1/trading/control/reset',
-            headers={'X-Admin-Password': ADMIN_PW},
-        )
-        assert r.status_code == 503
-
-    def test_get_still_works_without_auth(self, control_client):
+    def test_get_still_works_without_auth(self, control_client, monkeypatch):
         """GET remains public — only mutating endpoints are gated."""
+        from routes import _rbac
+        monkeypatch.setattr(_rbac, "_resolver", lambda: None)
         r = control_client.get('/api/v1/trading/control/params')
         assert r.status_code == 200

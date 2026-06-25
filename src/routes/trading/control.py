@@ -34,7 +34,7 @@ from config.storm_control import (
     save_storm_control,
 )
 
-from ._admin_auth import require_admin_password
+from .._rbac import require
 from .blueprint import trading_bp
 
 
@@ -51,7 +51,7 @@ def get_control_params():
 
 
 @trading_bp.route("/trading/control/params", methods=["POST"])
-@require_admin_password
+@require("Func003", "write")
 def save_control_params():
     """Save updated storm control parameters and hot-reload.
 
@@ -73,7 +73,7 @@ def save_control_params():
 
 
 @trading_bp.route("/trading/control/reset", methods=["POST"])
-@require_admin_password
+@require("Func003", "write")
 def reset_control_params():
     """Reset storm control parameters to Python defaults.
 

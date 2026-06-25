@@ -29,7 +29,7 @@ from flask import jsonify
 import database
 from config import config
 from routes.trading import trading_bp
-from routes.trading._admin_auth import require_admin_password
+from routes._rbac import require
 from routes.trading._helpers import _load_gauge_locations
 
 logger = logging.getLogger(__name__)
@@ -167,7 +167,7 @@ def classifiers_readiness():
 
 
 @trading_bp.route("/trading/classifiers/clear-all", methods=["POST"])
-@require_admin_password
+@require("Func003", "write")
 def clear_all_classifiers():
     """Delete all trained classifier models and training summary."""
     try:

@@ -33,7 +33,7 @@ import database
 from config import config
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
-from .._admin_auth import require_admin_password
+from .._rbac import require
 from .pdf import _generate_trade_pdf
 
 prs_bp = Blueprint("prs", __name__)
@@ -47,7 +47,7 @@ def _get_prs_output_dir() -> Path:
 
 
 @prs_bp.route("/prs/commit", methods=["POST"])
-@require_admin_password
+@require("Func003", "create")
 def commit_prs_trade():
     """
     Commit a PRS trade.
