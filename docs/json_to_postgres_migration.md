@@ -1,6 +1,42 @@
 # Migration Plan: Port JSON Artifacts → PostgreSQL
 
-**Status:** Plan approved; WP0–WP1 delivered — last updated 2026-06-22.
+**Status:** WP0–WP2 + WP4 done; WP5.1 (RBAC) done; WP3 (tools) in progress — last updated 2026-06-25.
+
+> ### Progress (2026-06-25)
+> Since the 2026-06-22 snapshot below:
+>
+> **WP4.2 COMPLETE + CI lane.** The whole non-e2e suite runs green under
+> `MKM_TEST_BACKEND=pg`; only documented pre-existing reds remain (storm_stress,
+> lineage, path-defs gate — red on *both* backends). A second CI job **`test-pg`**
+> (`.github/workflows/ci.yml`) spins up postgres + minio, runs `alembic upgrade head`,
+> then runs the suite on pg to enforce backend parity on every push/PR.
+>
+> **Live app served from Postgres.** The loader layer (`src/loaders/`) was migrated onto
+> the seam (gauge / property / rloan / timeseries loaders), so under `MKM_REPO_BACKEND=pg`
+> the gauges + properties trees serve from pg end-to-end — not just the seam getters. The
+> dev DB is now **native** Homebrew pg16 + native MinIO with data dirs on the external SSD
+> (`scripts/pg-native.sh` / `minio-native.sh`); Docker is retired for the dev DB.
+>
+> **WP5.1 (RBAC) COMPLETE.** Four tables (`function` / `app_user` / `permission` /
+> `audit_log`, migration `6ea16ab34e91`); the capability engine + `@require(func, action)`
+> / `@require_admin` decorators now gate the 16 mutating trading/prs endpoints (Func003),
+> replacing and **retiring** the `require_admin_password` / `data/.port_admin` web gate;
+> local-password login (`/auth/*`) + an admin UI (`/admin`) + env-driven bootstrap admin;
+> function codes centralised as named constants in `config/auth.py`. See
+> `docs/db_users_and_permissions.md` and the `wp5_rbac` memory.
+>
+> **WP3 (tools) — in progress.** The standalone CDM Asset Review tool
+> (`tools/cdm_property_editor/`) now reads every catchment artifact through the seam
+> (configurable catchment via `config.catchment_id`, no hardcoded thames); `recompute.py`
+> reads timeseries via the seam; and **sandbox edits persist to a DB scratch run** — a
+> scratch catchment (`<catchment>__cdm_sandbox`) behind the seam, auto-provisioned under
+> pg — instead of loose `<asset>_sandbox.json`. 150 tool tests green on file + pg.
+>
+> **Next:** WP3.2 part 3 — `price_new.py` / `_recompute_oracle.py` subprocess pricing
+> (materialise seam data into the temp workspace, drop hardcoded thames). Then WP5.2
+> (pgbouncer pooling + backup/restore runbook) and WP5.3 (remove `FileRepository` from the
+> read path after a parity soak in real use). Separate next project: migrate governance
+> data (`model_inventory.json` etc.) into the DB.
 
 > ### Progress (2026-06-22)
 > **WP0** repository seam, **WP2.4** catchment-context migration, and **WP2.1**
