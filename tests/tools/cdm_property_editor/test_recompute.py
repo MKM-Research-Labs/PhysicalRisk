@@ -26,8 +26,6 @@ per-mode floor-shift mapping (floor vs BRI vs unsupported field), and the
 (unsupported field, zero storms, missing timeseries file, compound events).
 """
 
-import json
-
 
 def _ts(events, **extra):
     return {"flood_events": events, **extra}
@@ -97,69 +95,60 @@ def test_mode_deltas_unsupported_field_is_none(recompute_mod):
         "X.BRIAdjustedFloorLevelMeters", 0.0, 1.0) is None
 
 
-# --- recompute_decomposition -----------------------------------------------
-def _write_ts(root, mode_dir, prop_id, events, **extra):
-    d = root / mode_dir
-    d.mkdir(parents=True, exist_ok=True)
-    (d / f"{prop_id}.json").write_text(json.dumps(_ts(events, **extra)))
-
-
-def test_recompute_decomposition_unsupported_field_returns_none(recompute_mod, tmp_path):
+# --- recompute_decomposition (reads per-mode timeseries via the database seam) ---
+def test_recompute_decomposition_unsupported_field_returns_none(recompute_mod):
     out = recompute_mod.recompute_decomposition(
-        "P1", "X.GroundLevelMeters", 0.0, 1.0, ts_root=tmp_path,
-        before_decomp={}, num_storms=100)
+        "P1", "X.GroundLevelMeters", 0.0, 1.0,
+        asset="property", catchment="thames", before_decomp={}, num_storms=100)
     assert out is None
 
 
-def test_recompute_decomposition_zero_storms_returns_none(recompute_mod, tmp_path):
+def test_recompute_decomposition_zero_storms_returns_none(recompute_mod):
     out = recompute_mod.recompute_decomposition(
-        "P1", "X.FloorLevelMeters", 0.0, 1.0, ts_root=tmp_path,
-        before_decomp={}, num_storms=0)
+        "P1", "X.FloorLevelMeters", 0.0, 1.0,
+        asset="property", catchment="thames", before_decomp={}, num_storms=0)
     assert out is None
 
 
-def test_recompute_decomposition_compound_falls_back(recompute_mod, tmp_path):
-    _write_ts(tmp_path, "propertyts", "P1",
-              [{"attenuated_wse_m": 5.0, "flood_depth_m": 1.0,
-                "exceeded_severe": True, "compound": True}])
+def test_recompute_decomposition_compound_falls_back(recompute_mod, seam):
+    seam.save_property_timeseries("thames", "P1", _ts(
+        [{"attenuated_wse_m": 5.0, "flood_depth_m": 1.0,
+          "exceeded_severe": True, "compound": True}]), mode="flood")
     out = recompute_mod.recompute_decomposition(
-        "P1", "X.FloorLevelMeters", 0.0, 1.0, ts_root=tmp_path,
+        "P1", "X.FloorLevelMeters", 0.0, 1.0,
+        asset="property", catchment="thames",
         before_decomp={"gauge_spread_bps": 5.0}, num_storms=100)
     assert out is None
 
 
-def test_recompute_decomposition_missing_file_is_skipped(recompute_mod, tmp_path):
-    # No timeseries files at all -> every mode path missing -> seeds returned
-    # unchanged (no spread key written for the absent modes).
+def test_recompute_decomposition_missing_ts_is_skipped(recompute_mod, seam):
+    # No timeseries in the seam -> every mode skipped -> seeds returned unchanged.
     before = {"gauge_spread_bps": 7.0, "property_spread_bps": 50.0}
     out = recompute_mod.recompute_decomposition(
-        "P1", "X.FloorLevelMeters", 0.0, 1.0, ts_root=tmp_path,
-        before_decomp=before, num_storms=100)
+        "P1", "X.FloorLevelMeters", 0.0, 1.0,
+        asset="property", catchment="thames", before_decomp=before, num_storms=100)
     assert out == before and out is not before  # copied, not mutated
 
 
-def test_recompute_decomposition_recomputes_present_modes(recompute_mod, tmp_path):
-    # property mode has one severe-flooding event; raising the floor by 10 m
+def test_recompute_decomposition_recomputes_present_modes(recompute_mod, seam):
+    # property/flood mode has one severe-flooding event; raising the floor by 10 m
     # makes it dry -> 0 severe -> 0 bps.
-    events = [{"attenuated_wse_m": 5.0, "flood_depth_m": 1.0,
-               "exceeded_severe": True}]
-    _write_ts(tmp_path, "propertyts", "P1", events)
+    events = [{"attenuated_wse_m": 5.0, "flood_depth_m": 1.0, "exceeded_severe": True}]
+    seam.save_property_timeseries("thames", "P1", _ts(events), mode="flood")
     out = recompute_mod.recompute_decomposition(
-        "P1", "X.FloorLevelMeters", 0.0, 10.0, ts_root=tmp_path,
-        before_decomp={"gauge_spread_bps": 5.0,
-                       "property_spread_bps": 100.0}, num_storms=100,
-        mode_dirs=recompute_mod.PROPERTY_MODE_DIRS)
+        "P1", "X.FloorLevelMeters", 0.0, 10.0,
+        asset="property", catchment="thames",
+        before_decomp={"gauge_spread_bps": 5.0, "property_spread_bps": 100.0},
+        num_storms=100)
     assert out["property_spread_bps"] == 0.0
     assert out["gauge_spread_bps"] == 5.0  # untouched stage preserved
 
 
-def test_recompute_decomposition_commercial_mode_dirs(recompute_mod, tmp_path):
-    events = [{"attenuated_wse_m": 5.0, "flood_depth_m": 1.0,
-               "exceeded_severe": True}]
-    _write_ts(tmp_path, "commercialts", "C1", events)
+def test_recompute_decomposition_commercial(recompute_mod, seam):
+    events = [{"attenuated_wse_m": 5.0, "flood_depth_m": 1.0, "exceeded_severe": True}]
+    seam.save_commercial_timeseries("thames", "C1", _ts(events), mode="flood")
     out = recompute_mod.recompute_decomposition(
-        "C1", "X.FloorLevelMeters", 0.0, 0.0, ts_root=tmp_path,
-        before_decomp={}, num_storms=200,
-        mode_dirs=recompute_mod.COMMERCIAL_MODE_DIRS)
+        "C1", "X.FloorLevelMeters", 0.0, 0.0,
+        asset="commercial", catchment="thames", before_decomp={}, num_storms=200)
     # 1 severe / 200 storms * 10000 = 50.0 bps
     assert out["property_spread_bps"] == 50.0

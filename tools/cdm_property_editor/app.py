@@ -530,8 +530,7 @@ def _maybe_recompute(asset: str, rid: str, target: dict, changed: dict) -> dict 
                     "reason": "No hazard curve for this asset yet."}
         after = recompute_decomposition(
             rid, path, _baseline_value(asset, rid, path), _get_nested(target, path),
-            ts_root=INPUT_DIR, before_decomp=before, num_storms=num,
-            mode_dirs=MODE_DIRS_BY_ASSET[asset])
+            asset=asset, catchment=CATCHMENT, before_decomp=before, num_storms=num)
         if after is None:
             return {"supported": False, "tier": classify(path), "field": path,
                     "reason": "This edit needs a full portfolio re-run, "

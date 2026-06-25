@@ -43,9 +43,7 @@ geometry) and compound/pulse events (stored peak WSE is lossy when not flooded).
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
+import database
 from models.floodrisk.depth_damage import bri_floor_uplift, is_prs_flood
 
 # The four decomposition modes (normal / synthetic-elevation / synthetic-distance
@@ -66,6 +64,13 @@ DECOMP_KEY = {
     "she": "she_spread_bps",
     "shd": "shd_spread_bps",
     "bri": "bri_spread_bps",
+}
+# recompute's decomposition mode -> the seam's scenario-mode string (the "property"
+# mode is the default flood timeseries; the rest share the seam's names).
+_SEAM_MODE = {"property": "flood", "she": "she", "shd": "shd", "bri": "bri"}
+_TS_GETTERS = {
+    "property": database.get_property_timeseries,
+    "commercial": database.get_commercial_timeseries,
 }
 
 
@@ -119,24 +124,24 @@ def mode_deltas(field: str, old, new):
 
 
 def recompute_decomposition(prop_id: str, field: str, old, new, *,
-                            ts_root, before_decomp: dict, num_storms: int,
-                            mode_dirs: dict = PROPERTY_MODE_DIRS):
+                            asset: str, catchment: str,
+                            before_decomp: dict, num_storms: int):
     """Recomputed ``spread_decomposition`` after the edit, or ``None`` to fall back.
 
-    ``ts_root`` is the directory holding the asset's timeseries dirs (the read-only
-    baseline or a sandbox workspace); ``mode_dirs`` maps each mode to its dir
-    (property vs commercial). ``before_decomp`` seeds the gauge spread (unchanged)
-    and any stages the edit does not touch.
+    Reads the asset's per-mode baseline timeseries through the ``database`` seam:
+    ``asset`` selects property vs commercial, ``catchment`` the active catchment.
+    ``before_decomp`` seeds the gauge spread (unchanged) and any stage the edit does
+    not touch.
     """
     deltas = mode_deltas(field, old, new)
     if deltas is None or not num_storms:
         return None
+    ts_getter = _TS_GETTERS[asset]
     after = dict(before_decomp or {})
     for mode, delta in deltas.items():
-        path = Path(ts_root) / mode_dirs[mode] / f"{prop_id}.json"
-        if not path.exists():
+        ts = ts_getter(catchment, prop_id, mode=_SEAM_MODE[mode])
+        if not ts:
             continue
-        ts = json.loads(path.read_text())
         if _has_compound(ts):
             return None                      # lossy for compound events → oracle
         count = severe_count(ts, delta)
