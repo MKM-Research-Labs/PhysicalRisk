@@ -24,8 +24,10 @@ import logging
 
 from flask import jsonify, request
 
-from . import trading_bp
+from config.auth import FUNC_TRADE_PRS, WRITE
+
 from .._rbac import require
+from . import trading_bp
 from ._helpers import _get_engines, _load_open_trades
 
 logger = logging.getLogger(__name__)
@@ -54,7 +56,7 @@ def get_yield_curve():
 
 
 @trading_bp.route("/trading/yield-curve", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def update_yield_curve():
     """Update a yield curve point."""
     try:
@@ -85,7 +87,7 @@ def update_yield_curve():
 
 
 @trading_bp.route("/trading/yield-curve/commit", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def commit_yield_curve():
     """Commit the full yield curve and revalue all trades with P&L impact."""
     try:
@@ -145,7 +147,7 @@ def commit_yield_curve():
 
 
 @trading_bp.route("/trading/yield-curve/reset", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def reset_yield_curve():
     """Reset yield curve to default."""
     try:

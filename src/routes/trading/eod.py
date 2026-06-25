@@ -31,8 +31,10 @@ import logging
 from flask import jsonify, request
 
 from config import config
-from . import trading_bp
+from config.auth import FUNC_TRADE_PRS, WRITE
+
 from .._rbac import require
+from . import trading_bp
 from ._helpers import _get_engines, _load_open_trades
 
 logger = logging.getLogger(__name__)
@@ -43,7 +45,7 @@ logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------
 
 @trading_bp.route("/trading/eod", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def submit_eod():
     """Submit EOD snapshot and generate PDF report."""
     try:

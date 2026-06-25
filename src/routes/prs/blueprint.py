@@ -31,8 +31,10 @@ logger = logging.getLogger(__name__)
 
 import database
 from config import config
+from config.auth import CREATE, FUNC_TRADE_PRS
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
+
 from .._rbac import require
 from .pdf import _generate_trade_pdf
 
@@ -47,7 +49,7 @@ def _get_prs_output_dir() -> Path:
 
 
 @prs_bp.route("/prs/commit", methods=["POST"])
-@require("Func003", "create")
+@require(FUNC_TRADE_PRS, CREATE)
 def commit_prs_trade():
     """
     Commit a PRS trade.

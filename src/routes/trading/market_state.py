@@ -29,8 +29,10 @@ import logging
 
 from flask import jsonify, request
 
-from . import trading_bp
+from config.auth import FUNC_TRADE_PRS, WRITE
+
 from .._rbac import require
+from . import trading_bp
 from ._helpers import _get_engines, _load_open_trades
 
 logger = logging.getLogger(__name__)
@@ -67,7 +69,7 @@ def get_market_state():
 
 
 @trading_bp.route("/trading/market-state", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def update_market_state():
     """Update a gauge's hazard rate and revalue affected trades."""
     try:
@@ -122,7 +124,7 @@ def update_market_state():
 
 
 @trading_bp.route("/trading/market-state/reset", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def reset_market_state():
     """Reset market state to base curves."""
     try:

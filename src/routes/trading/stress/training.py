@@ -37,8 +37,10 @@ from flask import jsonify
 
 import database
 from config import config
-from .. import trading_bp
+from config.auth import FUNC_TRADE_PRS, WRITE
+
 from ..._rbac import require
+from .. import trading_bp
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +91,7 @@ def classifier_status(gauge_id):
 
 
 @trading_bp.route("/trading/stress/train/<gauge_id>", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def train_classifier(gauge_id):
     """Start background training for a single gauge classifier."""
     stressm_dir = config.get_classifiers_dir()
@@ -173,9 +175,10 @@ def _train_single_gauge(gauge_id: str):
     """Train a single gauge classifier in a background thread."""
     try:
         import numpy as np
+
+        from port.src.storm_multi.utils.serialization import load_sequences
         from port.src.stressm.classifier import train_gauge_stressm_classifier
         from port.src.stressm.summary import load_gauge_training_context
-        from port.src.storm_multi.utils.serialization import load_sequences
 
         input_dir = config.get_input_dir()
         output_dir = config.get_output_dir()

@@ -27,6 +27,7 @@ centralised storm stress workflow parameters.
 
 from flask import jsonify, request
 
+from config.auth import FUNC_TRADE_PRS, WRITE
 from config.storm_control import (
     apply_storm_control,
     get_defaults,
@@ -51,7 +52,7 @@ def get_control_params():
 
 
 @trading_bp.route("/trading/control/params", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def save_control_params():
     """Save updated storm control parameters and hot-reload.
 
@@ -73,7 +74,7 @@ def save_control_params():
 
 
 @trading_bp.route("/trading/control/reset", methods=["POST"])
-@require("Func003", "write")
+@require(FUNC_TRADE_PRS, WRITE)
 def reset_control_params():
     """Reset storm control parameters to Python defaults.
 

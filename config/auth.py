@@ -32,18 +32,28 @@ import os
 # ``MKM_SECRET_KEY`` in any real deployment — the default is for local dev only.
 SECRET_KEY = os.getenv("MKM_SECRET_KEY", "mkm-dev-insecure-secret-change-me")
 
+# Stable function codes — reference these symbols at gate sites
+# (``@require(FUNC_TRADE_PRS, WRITE)``) instead of the raw "FuncNNN" literal, so a
+# rename is one edit and "what gates X" is a symbol search, not a grep for strings.
+FUNC_ADMIN = "Func000"
+FUNC_CREATE_PORTFOLIO = "Func001"
+FUNC_UPLOAD_PORTFOLIO = "Func002"
+FUNC_TRADE_PRS = "Func003"
+
 # The Admin function — capability on it grants user/permission management.
-ADMIN_FUNCTION = "Func000"
+ADMIN_FUNCTION = FUNC_ADMIN
 
 # The only four capabilities. Any of write/create/delete implies read (enforced in
-# the permission check), so "you can't act on what you can't see".
+# the permission check), so "you can't act on what you can't see". The unpacked
+# names are for use at gate sites alongside the FUNC_* codes.
 CRUD_ACTIONS = ("read", "write", "create", "delete")
+READ, WRITE, CREATE, DELETE = CRUD_ACTIONS
 
 # (code, display name, sort_order). Only Func000–003 are live today; Func004+ are
 # reserved placeholders, filled in as each area rolls out.
 FUNCTIONS = (
-    (ADMIN_FUNCTION, "Admin — user & permission management", 0),
-    ("Func001", "Create synthetic portfolio", 1),
-    ("Func002", "Upload real portfolio", 2),
-    ("Func003", "Trade PRS", 3),
+    (FUNC_ADMIN, "Admin — user & permission management", 0),
+    (FUNC_CREATE_PORTFOLIO, "Create synthetic portfolio", 1),
+    (FUNC_UPLOAD_PORTFOLIO, "Upload real portfolio", 2),
+    (FUNC_TRADE_PRS, "Trade PRS", 3),
 )
