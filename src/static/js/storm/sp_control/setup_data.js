@@ -201,19 +201,15 @@
             function saveControlData() {
                 var data = _ctrlCollect();
                 if (!data) return;
-                var pw = prompt('Admin password required to save storm control parameters.\n\n' +
-                                'Changes affect every storm calculation across the platform.\n' +
-                                '(Same password as "python app.py port".)');
-                if (pw === null) return;  // user cancelled
-                if (!pw) { alert('Password required. Save cancelled.'); return; }
                 var cfg = window.__BACKEND_CONFIG || {};
                 var base = cfg.url || '';
                 var btn = document.getElementById('sp-ctrl-save-btn');
                 if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 
-                fetch(base + '/api/v1/trading/control/params', {
+                // Gated by @require("Func003", "write") — __mkmAdminFetch sends the
+                // session and prompts to sign in on 401 (WP5 RBAC).
+                window.__mkmAdminFetch(base + '/api/v1/trading/control/params', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'X-Admin-Password': pw},
                     body: JSON.stringify(data)
                 })
                 .then(function(r) { return r.json(); })
@@ -230,6 +226,7 @@
                 })
                 .catch(function(err) {
                     if (btn) { btn.textContent = 'Save & Apply'; btn.disabled = false; }
+                    if (err && err.message === 'cancelled') return;  // sign-in dismissed
                     alert('Save error: ' + err);
                 });
             }
@@ -237,13 +234,9 @@
             // ---- Reset ----
             function resetControlData() {
                 if (!confirm('Reset all parameters to Python defaults?')) return;
-                var pw = prompt('Admin password required to reset storm control parameters.\n\n' +
-                                '(Same password as "python app.py port".)');
-                if (pw === null) return;  // user cancelled
-                if (!pw) { alert('Password required. Reset cancelled.'); return; }
                 var cfg = window.__BACKEND_CONFIG || {};
                 var base = cfg.url || '';
-                fetch(base + '/api/v1/trading/control/reset', {method: 'POST', headers: {'X-Admin-Password': pw}})
+                window.__mkmAdminFetch(base + '/api/v1/trading/control/reset', {method: 'POST'})
                     .then(function(r) { return r.json(); })
                     .then(function(resp) {
                         if (resp.status === 'success') {

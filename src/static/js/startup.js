@@ -58,32 +58,45 @@
                 return gName ? gName + ' (' + gaugeId + ')' : gaugeId;
             };
 
-            // Global helper: wrap fetch() with the admin-password prompt.
-            // All port-process mutations (market state, yield/hazard curves, EOD,
-            // trade close, PRS commit, classifier train/clear) require
-            // X-Admin-Password per routes._admin_auth.require_admin_password.
-            // This helper standardises the prompt + header injection so callers
-            // do not reinvent it. Returns the same Promise shape as fetch(), or
-            // rejects with a 'cancelled' error if the user dismisses the prompt.
+            // Global helper: prompt for credentials and sign in via /auth/login (WP5).
+            // Returns a Promise<boolean> — true if the session is now authenticated.
+            window.__mkmLogin = function() {
+                var u = window.prompt('Sign in to modify port data — username:');
+                if (!u) return Promise.resolve(false);
+                var p = window.prompt('Password for ' + u + ':');
+                if (p === null) return Promise.resolve(false);
+                return fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({username: u, password: p})
+                }).then(function(r) { return r.ok; });
+            };
+
+            // Global helper: perform a port-mutating fetch as the signed-in user (WP5).
+            // The mutations (market state, yield/hazard curves, EOD, trade close, PRS
+            // commit, classifier train/clear) are gated by @require("Func003", ...),
+            // which checks the session user's capability — so this sends the session
+            // cookie and, on 401 (not signed in), prompts to log in and retries once.
+            // Same signature + Promise shape as before, so callers are unchanged;
+            // rejects with 'cancelled' if the user dismisses the sign-in prompt.
             //   usage: window.__mkmAdminFetch(url, {method: 'POST', body: ...})
-            // The optional second arg is a fetch init object; Content-Type
-            // 'application/json' is applied automatically when a body is present
-            // and Content-Type is not already set.
             window.__mkmAdminFetch = function(url, opts) {
                 opts = opts || {};
-                var pw = window.prompt(
-                    'Admin password required to modify port data.\n\n' +
-                    '(Same password as "python app.py port".)'
-                );
-                if (pw === null) return Promise.reject(new Error('cancelled'));
-                if (!pw) return Promise.reject(new Error('empty_password'));
                 var headers = Object.assign({}, opts.headers || {});
-                headers['X-Admin-Password'] = pw;
                 if (opts.body && !headers['Content-Type'] && !headers['content-type']) {
                     headers['Content-Type'] = 'application/json';
                 }
                 opts.headers = headers;
-                return fetch(url, opts);
+                opts.credentials = 'same-origin';
+                return fetch(url, opts).then(function(resp) {
+                    if (resp.status !== 401) return resp;
+                    // Not signed in — prompt to log in, then retry the request once.
+                    return window.__mkmLogin().then(function(ok) {
+                        if (!ok) return Promise.reject(new Error('cancelled'));
+                        return fetch(url, opts);
+                    });
+                });
             };
 
             // Flag read by trading/preloader.py — on window so it is accessible
