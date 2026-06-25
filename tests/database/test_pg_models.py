@@ -62,6 +62,8 @@ def test_expected_tables_registered():
         "catchment", "port_run", "port_document", "port_record", "port_blob",
         "gauge", "property", "loan", "commercial", "commercial_loan", "counterparty",
         "gauge_hazard_curve", "prs_trade", "eod_snapshot",
+        # WP5 RBAC tables (see test_pg_auth_models.py)
+        "function", "app_user", "permission", "audit_log",
     }
 
 

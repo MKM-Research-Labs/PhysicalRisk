@@ -41,11 +41,13 @@ from ._models import (
     Property,
     PrsTrade,
 )
+from ._auth_models import AppUser, AuditLog, Function, Permission
 from .engine import get_engine, get_session, reset_engine
 
 __all__ = [
     "Base", "Catchment", "PortRun", "PortDocument", "PortRecord", "PortBlob",
     "Gauge", "Property", "Loan", "Commercial", "CommercialLoan", "Counterparty",
     "GaugeHazardCurve", "PrsTrade", "EodSnapshot",
+    "Function", "AppUser", "Permission", "AuditLog",
     "get_engine", "get_session", "reset_engine",
 ]
