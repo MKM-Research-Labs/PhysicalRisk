@@ -49,3 +49,67 @@ jobs:
         with:
           name: coverage-report
           path: coverage.xml
+
+  # WP4.2: run the same suite against Postgres (MKM_TEST_BACKEND=pg) to enforce
+  # backend parity — every test green on the file backend must be green on pg.
+  # No coverage here (the file `test` job owns the coverage gate); some tests
+  # skipif(pg) for behaviour pg structurally can't reproduce.
+  test-pg:
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: mkm
+          POSTGRES_PASSWORD: mkm
+          POSTGRES_DB: physicalrisk
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mkm -d physicalrisk"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      minio:
+        # bitnami/minio runs `minio server` on start (the official image needs a
+        # command, which GH Actions service containers can't supply). Serves the
+        # blob tier; blob tests skipif MinIO is unreachable, so this is best-effort.
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+          MINIO_DEFAULT_BUCKETS: mkm-physicalrisk
+        ports:
+          - 9000:9000
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install GDAL system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin libgdal-dev
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create the Postgres schema
+        # env.py reads the URL from config.database (mkm/mkm@127.0.0.1:5432/physicalrisk
+        # defaults match the postgres service), so no extra config is needed.
+        run: alembic upgrade head
+
+      - name: Wait for MinIO
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:9000/minio/health/live && break || sleep 2
+          done
+
+      - name: Run the test suite on Postgres
+        env:
+          MKM_TEST_BACKEND: pg
+        run: python -m pytest tests/ -q -p no:cacheprovider
