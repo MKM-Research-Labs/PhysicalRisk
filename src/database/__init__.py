@@ -88,8 +88,17 @@ from .classifiers import (
     get_classifier_timings, save_classifier_timings, delete_classifier_timings,
 )
 from .documents import read_json_document, iter_document_names
+from .auth import (
+    seed_function_registry, seed_functions, list_functions, is_admin,
+    create_user, get_user, set_user_active,
+    set_permission, check_permission, get_user_permissions,
+)
 
 __all__ = [
+    # RBAC (WP5) — application-level permission checks + admin management (pg-only)
+    "seed_function_registry", "seed_functions", "list_functions", "is_admin",
+    "create_user", "get_user", "set_user_active",
+    "set_permission", "check_permission", "get_user_permissions",
     # backends & lifecycle
     "Repository", "FileRepository", "InMemoryRepository", "configure_backend",
     "backend_configured",
