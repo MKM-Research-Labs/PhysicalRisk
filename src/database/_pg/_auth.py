@@ -103,6 +103,29 @@ def set_user_active(username, is_active: bool, *, actor=None) -> None:
         session.commit()
 
 
+def set_password_hash(username, password_hash, *, actor=None) -> None:
+    """Store a user's (already-hashed) password. Hashing is the caller's job — the
+    data layer never sees the plaintext."""
+    with get_session() as session:
+        user = session.scalar(select(AppUser).where(AppUser.username == username))
+        if user is None:
+            raise ValueError(f"unknown user: {username}")
+        user.password_hash = password_hash
+        session.add(AuditLog(actor_user_id=actor, action="user.set_password",
+                             target=username, ts=_now()))
+        session.commit()
+
+
+def get_password_hash(username) -> str | None:
+    """The stored password hash for an *active* user, else None (so a disabled or
+    unknown user can never authenticate)."""
+    with get_session() as session:
+        user = session.scalar(
+            select(AppUser).where(AppUser.username == username,
+                                  AppUser.is_active.is_(True)))
+        return None if user is None else user.password_hash
+
+
 def set_permission(username, function_code, *, read=False, write=False,
                    create=False, delete=False, actor=None) -> None:
     """Set a user's four CRUD flags on a function (upsert) and audit the change."""

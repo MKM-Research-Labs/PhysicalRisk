@@ -18,33 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Public RBAC API (WP5) — application-level permission checks + admin management.
+"""Password hashing for local-account auth (WP5).
 
-Backed directly by Postgres: the RBAC tables are not catchment artifacts, so they
-do not go through the file/pg backend abstraction. Re-exported from ``database``.
-See docs/db_users_and_permissions.md.
-"""
+Thin wrappers over werkzeug. ``pbkdf2:sha256`` is pinned explicitly so hashing does
+not depend on ``hashlib.scrypt`` (absent on some interpreters)."""
 
-from config.auth import ADMIN_FUNCTION, FUNCTIONS
-from database._pg._auth import (  # noqa: F401  (re-exported)
-    check_permission,
-    create_user,
-    get_password_hash,
-    get_user,
-    get_user_permissions,
-    list_functions,
-    seed_functions,
-    set_password_hash,
-    set_permission,
-    set_user_active,
-)
+from werkzeug.security import check_password_hash, generate_password_hash
+
+_METHOD = "pbkdf2:sha256"
 
 
-def seed_function_registry() -> None:
-    """Idempotently load the canonical config.auth.FUNCTIONS into the function table."""
-    seed_functions(FUNCTIONS)
+def hash_password(plaintext: str) -> str:
+    """Salted one-way hash of a plaintext password."""
+    return generate_password_hash(plaintext, method=_METHOD)
 
 
-def is_admin(username) -> bool:
-    """True if the user holds any capability on the Admin function (Func000)."""
-    return check_permission(username, ADMIN_FUNCTION, "read")
+def password_matches(plaintext: str, password_hash: str | None) -> bool:
+    """True iff ``plaintext`` matches ``password_hash``. A missing/empty hash (user
+    has no password set) never matches."""
+    if not password_hash:
+        return False
+    return check_password_hash(password_hash, plaintext)

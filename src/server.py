@@ -83,6 +83,11 @@ def create_app() -> Flask:
     # Register blueprints
     register_blueprints(app)
 
+    # WP5: if MKM_BOOTSTRAP_ADMIN_USER/_PASSWORD are set, ensure that first Admin
+    # exists. No-op (and never fatal) otherwise.
+    from routes.auth import maybe_bootstrap_admin_from_env
+    maybe_bootstrap_admin_from_env()
+
     logger.info("Application created, routes registered")
 
     return app

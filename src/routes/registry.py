@@ -25,6 +25,7 @@ from flask import Flask
 
 def register_blueprints(app: Flask) -> None:
     """Register all route blueprints with the Flask application."""
+    from .auth import auth_bp
     from .catchment import catchment_bp
     from .cdm_review import cdm_review_bp
     from .commercial import commercial_bp
@@ -41,6 +42,7 @@ def register_blueprints(app: Flask) -> None:
     from .visualization import visualization_bp
 
     app.register_blueprint(health_bp)
+    app.register_blueprint(auth_bp)  # /auth/* — login/logout/me (top-level, no prefix)
     app.register_blueprint(catchment_bp)
     app.register_blueprint(cdm_review_bp)
     app.register_blueprint(visualization_bp)

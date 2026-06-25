@@ -92,6 +92,7 @@ from .auth import (
     seed_function_registry, seed_functions, list_functions, is_admin,
     create_user, get_user, set_user_active,
     set_permission, check_permission, get_user_permissions,
+    set_password_hash, get_password_hash,
 )
 
 __all__ = [
@@ -99,6 +100,7 @@ __all__ = [
     "seed_function_registry", "seed_functions", "list_functions", "is_admin",
     "create_user", "get_user", "set_user_active",
     "set_permission", "check_permission", "get_user_permissions",
+    "set_password_hash", "get_password_hash",
     # backends & lifecycle
     "Repository", "FileRepository", "InMemoryRepository", "configure_backend",
     "backend_configured",

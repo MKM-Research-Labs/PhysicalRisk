@@ -165,3 +165,36 @@ def test_list_functions_active_only_filter():
     active = database.list_functions(active_only=True)
     assert len(all_fns) >= len(active)
     assert all(f["is_active"] for f in active)
+
+
+def test_set_and_get_password_hash():
+    database.create_user("gita")
+    assert database.get_password_hash("gita") is None
+    database.set_password_hash("gita", "HASHED")
+    assert database.get_password_hash("gita") == "HASHED"
+
+
+def test_get_password_hash_inactive_and_unknown_return_none():
+    database.create_user("ivan")
+    database.set_password_hash("ivan", "HASHED")
+    database.set_user_active("ivan", False)
+    assert database.get_password_hash("ivan") is None      # inactive
+    assert database.get_password_hash("nobody") is None     # unknown
+
+
+def test_set_password_hash_unknown_user_raises():
+    with pytest.raises(ValueError):
+        database.set_password_hash("nobody", "HASHED")
+
+
+def test_bootstrap_admin_then_login_end_to_end():
+    """Real pg path: ensure_bootstrap_admin -> login_user verifies + is_admin."""
+    from routes import auth
+    created = auth.ensure_bootstrap_admin("root", "s3cret")
+    assert created is True
+    assert auth.login_user("root", "s3cret") is True
+    assert auth.login_user("root", "wrong") is False
+    assert database.is_admin("root") is True
+    # idempotent re-run keeps it working
+    assert auth.ensure_bootstrap_admin("root", "s3cret") is False
+    assert database.is_admin("root") is True
