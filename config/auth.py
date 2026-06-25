@@ -25,6 +25,13 @@ function later is one entry here + a seed into the ``function`` table — no sch
 change. See docs/db_users_and_permissions.md.
 """
 
+import os
+
+# Flask session-signing key. The login flow stores the acting username in the
+# signed session cookie, so a key is required. MUST be overridden via
+# ``MKM_SECRET_KEY`` in any real deployment — the default is for local dev only.
+SECRET_KEY = os.getenv("MKM_SECRET_KEY", "mkm-dev-insecure-secret-change-me")
+
 # The Admin function — capability on it grants user/permission management.
 ADMIN_FUNCTION = "Func000"
 

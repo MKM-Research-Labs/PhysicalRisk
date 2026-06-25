@@ -60,6 +60,10 @@ def create_app() -> Flask:
     # Create app
     app = Flask(__name__)
 
+    # Session-signing key for the WP5 login flow (set MKM_SECRET_KEY in production).
+    from config.auth import SECRET_KEY
+    app.secret_key = SECRET_KEY
+
     # Configure CORS
     CORS(app, **config.get_cors_config())
 
