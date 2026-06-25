@@ -19,22 +19,12 @@
 # SOFTWARE.
 
 """
-Top-level re-export of the admin-password decorator.
+Top-level re-export of the ``data/.port_admin`` path helper.
 
-The decorator itself lives at ``src/routes/trading/_admin_auth.py`` because
-it was introduced for the Trading Desk Control tab. As admin-gating spreads
-to other blueprints (PRS commit, governance if/when needed, etc.), this
-shim provides a blueprint-agnostic import path:
-
-    from routes._admin_auth import require_admin_password
-
-The existing trading-scoped import continues to work unchanged so the
-downstream test fixture in ``tests/routes/trading/test_control_routes.py``
-that monkeypatches ``routes.trading._admin_auth._admin_file_path`` is
-unaffected.
+The web admin-password decorator (``require_admin_password``) was retired in WP5 —
+mutating endpoints are gated by RBAC capability now (``routes._rbac``). Only the
+``_admin_file_path`` locator remains (``data/.port_admin`` is still owned by the CLI
+``python app.py port`` setup), re-exported here for the blueprint-agnostic import path.
 """
 
-from .trading._admin_auth import (  # noqa: F401
-    _admin_file_path,
-    require_admin_password,
-)
+from .trading._admin_auth import _admin_file_path  # noqa: F401

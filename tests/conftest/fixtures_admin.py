@@ -19,35 +19,25 @@
 # SOFTWARE.
 
 """
-Admin-password scaffolding for route unit tests.
+Admin-credential scaffolding for route unit tests (largely vestigial post-WP5).
 
-The ``@require_admin_password`` decorator now gates every port-process
-write (``/trading/market-state``, ``/trading/yield-curve/*``,
-``/trading/hazard-term-structure/*``, ``/trading/eod``,
-``/trading/close/<swap_id>``, ``/trading/stress/train/<gauge_id>``,
-``/trading/classifiers/{train-all,clear-all}``, ``/prs/commit``, plus the
-pre-existing ``/trading/control/*``).
+The web admin-password gate (``require_admin_password`` / ``X-Admin-Password``) was
+retired in WP5.1 — the 16 mutating trading/prs endpoints are now gated by RBAC
+capability (``@require("Func003", …)``). Route tests are granted that capability
+centrally by ``tests/routes/conftest.py::_grant_test_rbac``, so the scaffolding here
+no longer does the gating; it is kept (harmless) to avoid churning the many fixtures
+that still reference it:
 
-Route unit tests call those endpoints via Flask's ``test_client()``. Without
-intervention they would all regress with 503 ("Admin password not initialised")
-or 401 ("Admin password required"). This module provides:
-
-  1. ``_test_admin_credential`` — session autouse fixture that writes a
-     ``.port_admin`` file in a pytest tmp dir and monkeypatches
-     ``routes.trading._admin_auth._admin_file_path`` to point at it.
+  1. ``_test_admin_credential`` — session autouse fixture that writes a ``.port_admin``
+     file in a pytest tmp dir and points ``_admin_file_path`` at it. Nothing in the web
+     path reads it now; retained because trading control fixtures still monkeypatch the
+     same locator.
   2. ``AuthenticatedTestClient`` — a ``FlaskClient`` subclass that auto-attaches
-     ``X-Admin-Password: TEST_ADMIN_PW`` to every request. This lets the
-     existing 30+ route tests that POST to the newly-gated endpoints pass
-     unchanged; tests that specifically exercise the gate (missing or wrong
-     password) can still override the header.
-  3. ``TEST_ADMIN_PW`` — the canonical test password constant, re-exported
-     so individual test files can compute the expected hash if they need to
-     test misconfigured ``.port_admin`` scenarios.
+     ``X-Admin-Password: TEST_ADMIN_PW``. That header is now ignored by the server; the
+     class stays because many trading fixtures set ``app.test_client_class`` to it.
+  3. ``TEST_ADMIN_PW`` — the canonical test password constant.
 
-Tests that opt INTO a different credential path (e.g.
-``tests/routes/trading/test_control_routes.py::admin_file``) continue to work
-because the per-test fixture's ``monkeypatch.setattr`` takes precedence over
-the session-level one.
+(A future cleanup may delete 1–3 outright once the trading fixtures are simplified.)
 """
 
 import hashlib
@@ -56,7 +46,6 @@ import os
 
 import pytest
 from flask.testing import FlaskClient
-
 
 TEST_ADMIN_PW = "testpw123"
 

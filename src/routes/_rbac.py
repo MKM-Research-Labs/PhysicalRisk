@@ -22,13 +22,14 @@
 
 The enforcement half of WP5: given the acting user, check capability via the
 ``database`` RBAC API and return 401/403 otherwise. *Who* the acting user is comes
-from a pluggable resolver (``set_current_user_resolver``) so the identity decision
-(local password login vs SSO/OIDC) can be wired in later without touching these
-decorators. Until login is wired, the default resolver reads ``flask.g.current_user``
-/ ``session['username']`` — so these gates currently deny (401) unless a user is set.
+from a pluggable resolver (``set_current_user_resolver``) so the identity source
+(local password login vs SSO/OIDC) can change without touching these decorators; the
+default reads ``flask.g.current_user`` / ``session['username']``, which ``routes.auth``
+login populates.
 
-These do NOT yet replace ``require_admin_password`` / ``data/.port_admin`` — that
-swap happens once login lands. See docs/db_users_and_permissions.md.
+These gates have **replaced** the retired ``require_admin_password`` /
+``X-Admin-Password`` web gate on the 16 mutating trading/prs endpoints (WP5.1). See
+docs/db_users_and_permissions.md.
 """
 
 from functools import wraps
@@ -43,7 +44,7 @@ _resolver = None
 
 def set_current_user_resolver(fn):
     """Install how the acting username is resolved from the request — the identity
-    slice wires this to the chosen login mechanism. ``fn() -> username | None``.
+    slice wired this to local-password login (``routes.auth``); ``fn() -> username | None``.
     Pass ``None`` to restore the default (Flask ``g`` / session)."""
     global _resolver
     _resolver = fn

@@ -19,22 +19,18 @@
 # SOFTWARE.
 
 """
-Admin password gate for mutating Flask endpoints.
+Locator for the ``data/.port_admin`` credential file.
 
-Reuses the salted SHA-256 hash stored at ``data/.port_admin`` by the
-``python app.py port`` first-run setup flow, so Trading Desk Control tab
-writes use the same credential as portfolio regeneration.
-
-Password is provided by the client via the ``X-Admin-Password`` HTTP header.
+The **web** admin-password gate (``require_admin_password`` / ``X-Admin-Password``)
+was retired in WP5: mutating endpoints are now gated by RBAC capability
+(``@require("Func003", …)`` — see ``routes._rbac``). What remains here is only the
+path helper, kept because ``data/.port_admin`` is still owned by the CLI
+``python app.py port`` first-run setup (``app/commands/port/auth.py``) and the test
+suites redirect it via ``MKM_ADMIN_FILE_PATH``.
 """
 
-import hashlib
-import json
 import os
-from functools import wraps
 from pathlib import Path
-
-from flask import jsonify, request
 
 _ADMIN_FILE = Path("data/.port_admin")
 
@@ -50,56 +46,3 @@ def _admin_file_path() -> Path:
     if override:
         return Path(override)
     return _ADMIN_FILE
-
-
-def require_admin_password(view_func):
-    """Decorator: require ``X-Admin-Password`` header matching stored hash.
-
-    Returns:
-        401 if header missing or password wrong.
-        503 if no admin credential has been initialised yet (run
-            ``python app.py port`` once to set one).
-    """
-
-    @wraps(view_func)
-    def wrapper(*args, **kwargs):
-        admin_file = _admin_file_path()
-        if not admin_file.exists():
-            return (
-                jsonify(
-                    {
-                        "status": "error",
-                        "message": (
-                            "Admin password not initialised. "
-                            "Run 'python app.py port' once to set one."
-                        ),
-                    }
-                ),
-                503,
-            )
-
-        pw = request.headers.get("X-Admin-Password", "")
-        if not pw:
-            return (
-                jsonify(
-                    {
-                        "status": "error",
-                        "message": "Admin password required (X-Admin-Password header).",
-                    }
-                ),
-                401,
-            )
-
-        with open(admin_file) as f:
-            stored = json.load(f)
-
-        h = hashlib.sha256((stored["salt"] + pw).encode()).hexdigest()
-        if h != stored["hash"]:
-            return (
-                jsonify({"status": "error", "message": "Invalid admin password."}),
-                401,
-            )
-
-        return view_func(*args, **kwargs)
-
-    return wrapper
