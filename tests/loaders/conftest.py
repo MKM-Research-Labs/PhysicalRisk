@@ -44,6 +44,7 @@ def _loader_catchment(tmp_path):
 # file-only until their loader moves over.
 _ARTIFACT_SAVERS = {
     "gauge.json": "save_gauges",
+    "property.json": "save_properties",
 }
 
 

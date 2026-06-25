@@ -34,9 +34,11 @@ class TestPropertyLoaderBasic:
         from loaders.property_loader import PropertyLoader
         assert PropertyLoader(tmp_path).load_all() == []
 
-    def test_custom_filename(self, tmp_path):
+    def test_custom_filename_ignored_reads_via_seam(self, tmp_path):
+        # PropertyLoader reads the property portfolio through the seam now; the
+        # filename arg is retained for back-compat but no longer selects the source.
         from loaders.property_loader import PropertyLoader
-        write_json(tmp_path / "my_props.json", property_json(2))
+        write_json(tmp_path / "property.json", property_json(2))  # seeds the seam
         assert PropertyLoader(tmp_path, filename="my_props.json").count() == 2
 
 

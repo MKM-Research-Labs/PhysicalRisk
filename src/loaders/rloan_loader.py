@@ -53,6 +53,12 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
     DEFAULT_FILENAME = 'loan.json'
     CONTAINER_KEYS = ['loans', 'portfolio', 'mortgages']
 
+    # NOTE: not yet migrated to the seam. The real loan shape is nested
+    # ({RLoan:{Header:{RLoanID}}}, which is what the pg `loan` collection keys on),
+    # but this loader's get_entity_id/get_entity_summary read a FLAT RLoanID — a
+    # pre-existing inconsistency. Migrating to get_loan_portfolio needs that resolved
+    # (+ the conftest's flat mortgage_json), so it's a separate batch.
+
     def get_entity_id(self, entity: Dict[str, Any]) -> Optional[str]:
         """Extract RLoanID from entity."""
         return entity.get('RLoanID')

@@ -54,6 +54,11 @@ class PropertyLoader(BaseLoader[Dict[str, Any]]):
     DEFAULT_FILENAME = 'property.json'
     CONTAINER_KEYS = ['properties', 'portfolio']
 
+    def _load_document(self) -> Optional[Dict[str, Any]]:
+        """Read the property portfolio through the database seam (active catchment)."""
+        import database
+        return database.get_property_portfolio(database.active_catchment())
+
     def get_entity_id(self, entity: Dict[str, Any]) -> Optional[str]:
         """Extract PropertyID from nested structure."""
         return (
