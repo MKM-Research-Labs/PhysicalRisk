@@ -88,6 +88,15 @@ class BaseLoader(ABC, Generic[T]):
             logger.warning(f"File not found: {filepath}")
         return data
 
+    def _load_document(self) -> Optional[Dict]:
+        """Return the raw entity document.
+
+        The default reads the on-disk file at ``data_dir/filename``. Migrated
+        subclasses override this to read the active catchment through the database
+        seam instead, so the running app serves from whichever backend is bound
+        (file or Postgres under ``MKM_REPO_BACKEND=pg``)."""
+        return self._load_json(self._get_file_path())
+
     def _normalize_to_list(self, data: Any) -> List[T]:
         """Normalize various JSON structures to a list."""
         if data is None:
@@ -102,13 +111,12 @@ class BaseLoader(ABC, Generic[T]):
         return []
 
     def load_all(self, force_reload: bool = False) -> List[T]:
-        """Load and cache all entities."""
+        """Load and cache all entities (via ``_load_document`` — file or seam)."""
         if self._cache is None or not self._cache_valid or force_reload:
-            filepath = self._get_file_path()
-            data = self._load_json(filepath)
+            data = self._load_document()
             self._cache = self._normalize_to_list(data)
             self._cache_valid = True
-            logger.info(f"Loaded {len(self._cache)} {self.ENTITY_NAME}(s) from {filepath}")
+            logger.info(f"Loaded {len(self._cache)} {self.ENTITY_NAME}(s)")
         return self._cache or []
 
     def find_by_id(self, entity_id: str) -> Optional[T]:

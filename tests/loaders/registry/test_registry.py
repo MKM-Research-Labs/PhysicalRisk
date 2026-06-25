@@ -90,11 +90,13 @@ class TestLoaderRegistryDataFiles:
         assert LoaderRegistry(data_dir=tmp_path).get_data_dir() == tmp_path
 
     def test_file_overrides(self, tmp_path):
+        # The filename override applies to loaders that still read files; gauge now
+        # reads via the seam (ignores the filename), so exercise it with property.
         from loaders.loader_registry import LoaderRegistry
-        write_json(tmp_path / "custom_gauges.json", gauge_json(3))
+        write_json(tmp_path / "custom_props.json", property_json(3))
         registry = LoaderRegistry(data_dir=tmp_path,
-                                   file_overrides={"gauge": "custom_gauges.json"})
-        assert registry.get_gauge_loader().count() == 3
+                                   file_overrides={"property": "custom_props.json"})
+        assert registry.get_property_loader().count() == 3
 
 
 class TestLoaderRegistryCache:
@@ -131,7 +133,8 @@ class TestCreateRegistry:
         assert create_registry(str(tmp_path)) is not None
 
     def test_with_file_overrides(self, tmp_path):
+        # gauge is seam-read now; exercise the filename override via property (file-read).
         from loaders.loader_registry import create_registry
-        write_json(tmp_path / "my_gauge.json", gauge_json(2))
-        registry = create_registry(str(tmp_path), gauge="my_gauge.json")
-        assert registry.get_gauge_loader().count() == 2
+        write_json(tmp_path / "my_props.json", property_json(2))
+        registry = create_registry(str(tmp_path), property="my_props.json")
+        assert registry.get_property_loader().count() == 2

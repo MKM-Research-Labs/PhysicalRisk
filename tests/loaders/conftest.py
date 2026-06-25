@@ -25,6 +25,27 @@ from pathlib import Path
 
 import pytest
 
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _loader_catchment(tmp_path):
+    """Bind a tmp-rooted backend for every loader test so loaders that read through
+    the database seam resolve to this test's scratch dir (file backend) or Postgres
+    (under MKM_TEST_BACKEND=pg). Loaders not yet migrated keep reading the file
+    directly, so this is harmless for them."""
+    with tmp_catchment(tmp_path):
+        yield
+
+
+# Migrated loaders read their portfolio through the seam, so seed it as well as the
+# file. Only artifacts whose loader has been migrated are listed here — others stay
+# file-only until their loader moves over.
+_ARTIFACT_SAVERS = {
+    "gauge.json": "save_gauges",
+}
+
 
 # ---------------------------------------------------------------------------
 # Data builders
@@ -90,7 +111,14 @@ def mortgage_json(n=2):
 
 
 def write_json(path: Path, data) -> Path:
+    path = Path(path)
     path.write_text(json.dumps(data))
+    # If a migrated loader reads this artifact via the seam, seed it too so the test
+    # holds on both backends. (Malformed-shape docs that pg can't store raise here;
+    # those tests carry skipif(pg).)
+    saver = _ARTIFACT_SAVERS.get(path.name)
+    if saver is not None:
+        getattr(database, saver)(database.active_catchment(), data)
     return path
 
 

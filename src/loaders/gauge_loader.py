@@ -55,6 +55,12 @@ class GaugeLoader(BaseLoader[Dict[str, Any]]):
     DEFAULT_FILENAME = 'gauge.json'
     CONTAINER_KEYS = ['floodGauges', 'flood_gauges', 'gauges']
 
+    def _load_document(self) -> Optional[Dict[str, Any]]:
+        """Read the gauge portfolio through the database seam (active catchment),
+        so the route serves from the bound backend — files or Postgres."""
+        import database
+        return database.get_gauge_portfolio(database.active_catchment())
+
     def get_entity_id(self, entity: Dict[str, Any]) -> Optional[str]:
         """Extract GaugeID from nested structure."""
         return (
