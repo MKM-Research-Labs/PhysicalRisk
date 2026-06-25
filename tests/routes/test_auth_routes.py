@@ -27,7 +27,6 @@ from flask import Flask
 from routes import auth
 from routes._passwords import hash_password, password_matches
 
-
 # --- password hashing (pure) ------------------------------------------------
 
 def test_hash_and_match_roundtrip():
