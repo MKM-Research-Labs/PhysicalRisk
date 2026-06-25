@@ -149,10 +149,10 @@ def run_blotter(ctx: StageContext):
     print("  Generating 3 months of historical EOD data...")
     try:
         from port.src.historical_eod import generate_historical_eod_series
-        num_eods = generate_historical_eod_series(
-            trades, config.get_trading_dir(), config.get_input_dir(),
-            blotter_dir, seed=42,
-        )
+        # Migrated to the seam: signature is now (trades, catchment=None, seed); it
+        # reads/writes through database against the active catchment. (Was being
+        # called with the old dir-based signature, which collided on `seed`.)
+        num_eods = generate_historical_eod_series(trades, seed=42)
         print(f"  Generated {num_eods} historical EOD snapshots")
         if num_eods == 0:
             print("  ⚠️  WARNING: 0 EOD snapshots generated — "
