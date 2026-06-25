@@ -50,14 +50,12 @@ class TestRLoanLoaderLookup:
         assert RLoanLoader(tmp_path).find_by_id("RLOAN-999") is None
 
     def test_find_by_property_nested_structure(self, tmp_path):
-        """Mortgage without top-level PropertyID falls back to nested Mortgage.Header.PropertyID."""
+        """find_by_property_id matches the nested RLoan.Header.PropertyID."""
         from loaders.rloan_loader import RLoanLoader
         data = {
             "loans": [
-                {
-                    "RLoanID": "RLOAN-001",
-                    "RLoan": {"Header": {"PropertyID": "PROP-NESTED"}},
-                }
+                {"RLoan": {"Header": {"RLoanID": "RLOAN-001",
+                                      "PropertyID": "PROP-NESTED"}}}
             ]
         }
         write_json(tmp_path / "loan.json", data)

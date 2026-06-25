@@ -60,9 +60,12 @@ class TestAccumulateSynthData:
 
 class TestLoadGaugeThresholds:
 
-    def test_missing_file_returns_empty(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
-        assert fb._load_gauge_thresholds() == {}
+    def test_missing_file_returns_empty(self, tmp_path):
+        # Bind an isolated catchment so the seam is empty on both backends (pg's real
+        # thames now has curves — monkeypatching get_input_dir alone doesn't isolate it).
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
+            assert fb._load_gauge_thresholds() == {}
 
     def test_valid_file_parsed(self, tmp_path):
         import database
@@ -75,11 +78,12 @@ class TestLoadGaugeThresholds:
         assert out["G1"]["gauge_name"] == "One"
         assert out["G1"]["alert_m"] == 1.0
 
-    def test_malformed_file_swallowed(self, tmp_path, monkeypatch):
+    def test_malformed_file_swallowed(self, tmp_path):
         """Lines 120-121: corrupt gaugehc.json → warning + empty dict."""
-        monkeypatch.setattr(fb.config, "get_input_dir", lambda: tmp_path)
-        (tmp_path / "gaugehc.json").write_text("{not valid json")
-        assert fb._load_gauge_thresholds() == {}
+        from db_helpers import tmp_catchment
+        with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
+            (tmp_path / "gaugehc.json").write_text("{not valid json")
+            assert fb._load_gauge_thresholds() == {}
 
 
 class TestLoadStormGaugePeaks:

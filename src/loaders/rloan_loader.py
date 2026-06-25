@@ -53,26 +53,35 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
     DEFAULT_FILENAME = 'loan.json'
     CONTAINER_KEYS = ['loans', 'portfolio', 'mortgages']
 
-    # NOTE: not yet migrated to the seam. The real loan shape is nested
-    # ({RLoan:{Header:{RLoanID}}}, which is what the pg `loan` collection keys on),
-    # but this loader's get_entity_id/get_entity_summary read a FLAT RLoanID — a
-    # pre-existing inconsistency. Migrating to get_loan_portfolio needs that resolved
-    # (+ the conftest's flat mortgage_json), so it's a separate batch.
+    def _load_document(self) -> Optional[Dict[str, Any]]:
+        """Read the loan portfolio through the database seam (active catchment)."""
+        import database
+        return database.get_loan_portfolio(database.active_catchment())
+
+    @staticmethod
+    def _rl(entity: Dict[str, Any]) -> Dict[str, Any]:
+        """The nested RLoan body (Header/Application/FinancialTerms/...), falling back
+        to the entity itself for legacy flat records."""
+        return entity.get('RLoan', entity)
 
     def get_entity_id(self, entity: Dict[str, Any]) -> Optional[str]:
-        """Extract RLoanID from entity."""
-        return entity.get('RLoanID')
+        """Extract RLoanID (nested RLoan.Header.RLoanID, or legacy flat)."""
+        return self._rl(entity).get('Header', {}).get('RLoanID') or entity.get('RLoanID')
 
     def get_entity_summary(self, entity: Dict[str, Any]) -> Dict[str, Any]:
-        """Create mortgage summary for listing."""
+        """Create mortgage summary for listing (reads the nested RLoan structure)."""
+        rl = self._rl(entity)
+        hdr, fin, cur = (rl.get('Header', {}), rl.get('FinancialTerms', {}),
+                         rl.get('CurrentStatus', {}))
         return {
-            'mortgageId': entity.get('RLoanID'),
-            'propertyId': entity.get('PropertyID'),
-            'loanAmount': entity.get('LoanAmount'),
-            'interestRate': entity.get('InterestRate'),
-            'loanType': entity.get('LoanType'),
-            'lender': entity.get('Lender'),
-            'status': entity.get('Status'),
+            'mortgageId': hdr.get('RLoanID') or entity.get('RLoanID'),
+            'propertyId': hdr.get('PropertyID') or entity.get('PropertyID'),
+            'loanAmount': fin.get('OriginalLoan', entity.get('LoanAmount')),
+            'interestRate': fin.get('OriginalLendingRate', entity.get('InterestRate')),
+            'loanType': rl.get('Features', {}).get('MortgageType', entity.get('LoanType')),
+            'lender': rl.get('Application', {}).get('MortgageProvider',
+                                                    entity.get('Lender')),
+            'status': cur.get('AccountStatus', entity.get('Status')),
         }
 
     # =========================================================================
@@ -117,7 +126,8 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
         lender_lower = lender.lower()
         results = []
         for entity in self.load_all():
-            entity_lender = entity.get('Lender', '')
+            entity_lender = self._rl(entity).get('Application', {}).get(
+                'MortgageProvider', entity.get('Lender', '')) or ''
             if lender_lower in entity_lender.lower():
                 results.append(entity)
         return results
@@ -135,7 +145,8 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
         status_lower = status.lower()
         results = []
         for entity in self.load_all():
-            entity_status = entity.get('Status', '')
+            entity_status = self._rl(entity).get('CurrentStatus', {}).get(
+                'AccountStatus', entity.get('Status', '')) or ''
             if entity_status.lower() == status_lower:
                 results.append(entity)
         return results
@@ -149,7 +160,8 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
         """
         total = 0.0
         for entity in self.load_all():
-            amount = entity.get('LoanAmount', 0)
+            amount = self._rl(entity).get('FinancialTerms', {}).get(
+                'OriginalLoan', entity.get('LoanAmount', 0))
             if isinstance(amount, (int, float)):
                 total += amount
         return total
@@ -163,8 +175,11 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
         """
         exposure = {}
         for entity in self.load_all():
-            lender = entity.get('Lender', 'Unknown')
-            amount = entity.get('LoanAmount', 0)
+            rl = self._rl(entity)
+            lender = rl.get('Application', {}).get('MortgageProvider',
+                                                   entity.get('Lender', 'Unknown'))
+            amount = rl.get('FinancialTerms', {}).get('OriginalLoan',
+                                                      entity.get('LoanAmount', 0))
             if isinstance(amount, (int, float)):
                 exposure[lender] = exposure.get(lender, 0.0) + amount
         return exposure
@@ -187,7 +202,8 @@ class RLoanLoader(BaseLoader[Dict[str, Any]]):
         """
         property_ids = []
         for entity in self.load_all():
-            prop_id = entity.get('PropertyID')
+            prop_id = (self._rl(entity).get('Header', {}).get('PropertyID')
+                       or entity.get('PropertyID'))
             if prop_id and prop_id not in property_ids:
                 property_ids.append(prop_id)
         return property_ids

@@ -20,7 +20,7 @@
 
 """Tests for LoaderRegistry and create_registry."""
 
-from tests.loaders.conftest import gauge_json, mortgage_json, property_json, write_json
+from tests.loaders.conftest import gauge_json, property_json, write_json
 
 
 class TestLoaderRegistryLoaders:
@@ -90,14 +90,12 @@ class TestLoaderRegistryDataFiles:
         assert LoaderRegistry(data_dir=tmp_path).get_data_dir() == tmp_path
 
     def test_file_overrides(self, tmp_path):
-        # The filename override applies to loaders that still read files; gauge and
-        # property now read via the seam (ignore the filename), so exercise it with
-        # rloan (still file-read).
+        # All registry loaders read via the seam now, so the filename override no
+        # longer selects the source — assert it's still plumbed to the loader.
         from loaders.loader_registry import LoaderRegistry
-        write_json(tmp_path / "custom_loans.json", mortgage_json(3))
         registry = LoaderRegistry(data_dir=tmp_path,
-                                   file_overrides={"rloan": "custom_loans.json"})
-        assert registry.get_rloan_loader().count() == 3
+                                   file_overrides={"gauge": "custom_gauges.json"})
+        assert registry.get_gauge_loader().filename == "custom_gauges.json"
 
 
 class TestLoaderRegistryCache:
@@ -134,8 +132,7 @@ class TestCreateRegistry:
         assert create_registry(str(tmp_path)) is not None
 
     def test_with_file_overrides(self, tmp_path):
-        # gauge + property are seam-read now; exercise the override via rloan (file-read).
+        # Seam-read loaders ignore the filename; assert the override is still plumbed.
         from loaders.loader_registry import create_registry
-        write_json(tmp_path / "my_loans.json", mortgage_json(2))
-        registry = create_registry(str(tmp_path), rloan="my_loans.json")
-        assert registry.get_rloan_loader().count() == 2
+        registry = create_registry(str(tmp_path), gauge="my_gauge.json")
+        assert registry.get_gauge_loader().filename == "my_gauge.json"

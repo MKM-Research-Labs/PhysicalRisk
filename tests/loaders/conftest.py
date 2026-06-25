@@ -45,6 +45,7 @@ def _loader_catchment(tmp_path):
 _ARTIFACT_SAVERS = {
     "gauge.json": "save_gauges",
     "property.json": "save_properties",
+    "loan.json": "save_loans",
 }
 
 
@@ -96,15 +97,22 @@ def property_json(n=2):
 
 
 def mortgage_json(n=2):
+    # Real loan shape: nested under RLoan (what pg's `loan` collection keys on).
     return {
         "loans": [
             {
-                "RLoanID": f"RLOAN-{i:03d}",
-                "PropertyID": f"PROP-{i:03d}",
-                "LoanAmount": 300_000,
-                "InterestRate": 0.035,
-                "LoanType": "Fixed",
-                "Status": "Active",
+                "RLoan": {
+                    "Header": {"RLoanID": f"RLOAN-{i:03d}",
+                               "PropertyID": f"PROP-{i:03d}",
+                               "CatchmentID": "thames"},
+                    "Application": {"MortgageProvider": "Barclays"},
+                    "FinancialTerms": {"OriginalLoan": 300_000,
+                                       "OriginalLendingRate": 3.5},
+                    "Features": {"MortgageType": "Residential"},
+                    "CurrentStatus": {"OutstandingBalance": 250_000,
+                                      "AccountStatus": "Active",
+                                      "DefaultFlag": False},
+                }
             }
             for i in range(n)
         ]
