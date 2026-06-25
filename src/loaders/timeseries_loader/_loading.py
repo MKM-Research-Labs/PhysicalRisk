@@ -24,7 +24,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from database import read_json_document, iter_document_names
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -37,36 +37,30 @@ class _LoadingMixin:
         return self.data_dir / self.dirname
 
     def _load_gauge_file(self, gauge_id: str) -> Optional[Dict]:
-        """Load a single per-gauge JSON file."""
+        """Load a single gauge's timeseries through the database seam."""
         if gauge_id in self._cache:
             return self._cache[gauge_id]
 
-        data = read_json_document(self._get_gaugets_dir(), f"{gauge_id}.json")
+        data = database.get_gauge_timeseries(database.active_catchment(), gauge_id)
         if data is None:
-            logger.warning(
-                f"Gauge file not found: {self._get_gaugets_dir() / f'{gauge_id}.json'}")
+            logger.warning(f"Gauge timeseries not found: {gauge_id}")
             return None
 
         self._cache[gauge_id] = data
         return data
 
     def _load_all_gauge_files(self) -> Dict[str, Dict]:
-        """Load all per-gauge files from the directory."""
+        """Load every gauge's timeseries through the database seam."""
         if self._cache_valid and self._cache:
             return self._cache
 
-        gaugets_dir = self._get_gaugets_dir()
-        if not gaugets_dir.exists():
-            logger.warning(f"Gaugets directory not found: {gaugets_dir}")
-            return {}
-
-        for name in iter_document_names(gaugets_dir):
-            gauge_id = Path(name).stem
+        catchment = database.active_catchment()
+        for gauge_id in database.iter_gauge_timeseries_ids(catchment):
             if gauge_id not in self._cache:
-                self._cache[gauge_id] = read_json_document(gaugets_dir, name)
+                self._cache[gauge_id] = database.get_gauge_timeseries(catchment, gauge_id)
 
         self._cache_valid = True
-        logger.info(f"Loaded {len(self._cache)} gauge files from {gaugets_dir}")
+        logger.info(f"Loaded {len(self._cache)} gauge timeseries")
         return self._cache
 
     def load_all(self, force_reload: bool = False) -> List[Dict[str, Any]]:

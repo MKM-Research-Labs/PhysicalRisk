@@ -25,7 +25,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from database import iter_document_names
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -160,9 +160,8 @@ class _QueriesMixin:
         }
 
     def get_available_gauge_ids(self) -> List[str]:
-        """Get list of all gauge IDs from filenames in gaugets/ directory."""
-        gaugets_dir = self._get_gaugets_dir()
-        return [Path(name).stem for name in iter_document_names(gaugets_dir)]
+        """Get all gauge IDs with a timeseries (through the database seam)."""
+        return list(database.iter_gauge_timeseries_ids(database.active_catchment()))
 
     def get_storm_responses(self, gauge_id: str) -> List[Dict[str, Any]]:
         """Get storm response data for a specific gauge."""
@@ -207,15 +206,13 @@ class _QueriesMixin:
         return len(self.get_available_gauge_ids())
 
     def get_status(self) -> Dict[str, Any]:
-        """Get status information about the loader."""
-        gaugets_dir = self._get_gaugets_dir()
-        exists = gaugets_dir.exists()
-        gauge_files = list(iter_document_names(gaugets_dir))
+        """Get status information about the loader (gauge timeseries via the seam)."""
+        gauge_ids = list(database.iter_gauge_timeseries_ids(database.active_catchment()))
         return {
             'entity_name': self.ENTITY_NAME,
-            'path': str(gaugets_dir),
-            'exists': exists,
-            'num_gauge_files': len(gauge_files),
+            'path': str(self._get_gaugets_dir()),
+            'exists': len(gauge_ids) > 0,
+            'num_gauge_files': len(gauge_ids),
             'cached': self._cache_valid,
             'cached_count': len(self._cache)
         }

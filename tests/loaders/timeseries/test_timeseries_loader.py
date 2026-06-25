@@ -24,7 +24,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from tests.loaders.conftest import make_gauge_ts_file
+from tests.loaders.conftest import make_gauge_ts_file, seed_gauge_ts
 
 
 def _gaugets(tmp_path) -> Path:
@@ -123,14 +123,13 @@ class TestTimeseriesLoaderReadings:
 
     def test_get_storm_responses(self, tmp_path):
         from loaders.timeseries_loader import TimeseriesLoader
-        f = _gaugets(tmp_path) / "GAUGE-001.json"
-        f.write_text(json.dumps({
+        seed_gauge_ts(_gaugets(tmp_path), "GAUGE-001", {
             "gauge_id": "GAUGE-001",
             "flood_simulation": {"readings": []},
             "storm_responses": {"responses": [
                 {"storm_id": "STORM-0001", "peak_level_m": 5.2}
             ]}
-        }))
+        })
         responses = TimeseriesLoader(tmp_path).get_storm_responses("GAUGE-001")
         assert len(responses) == 1
         assert responses[0]["storm_id"] == "STORM-0001"
@@ -160,13 +159,13 @@ class TestTimeseriesLoaderRangeQueries:
     def test_bad_timestamp_skipped_gauge_path(self, tmp_path):
         """Readings with unparseable timestamps are skipped (gauge_id path)."""
         from loaders.timeseries_loader import TimeseriesLoader
-        (_gaugets(tmp_path) / "GAUGE-001.json").write_text(json.dumps({
+        seed_gauge_ts(_gaugets(tmp_path), "GAUGE-001", {
             "gauge_id": "GAUGE-001",
             "flood_simulation": {"readings": [
                 {"timestamp": "NOT-A-DATE", "waterLevel": 3.5},
                 {"timestamp": "2024-06-01T00:00:00", "waterLevel": 4.0},
             ]}
-        }))
+        })
         result = TimeseriesLoader(tmp_path).get_readings_in_range(
             datetime(2024, 1, 1), datetime(2025, 1, 1), gauge_id="GAUGE-001")
         assert len(result) == 1
@@ -174,13 +173,13 @@ class TestTimeseriesLoaderRangeQueries:
     def test_bad_timestamp_skipped_all_gauges_path(self, tmp_path):
         """Readings with unparseable timestamps are skipped (all-gauges path)."""
         from loaders.timeseries_loader import TimeseriesLoader
-        (_gaugets(tmp_path) / "GAUGE-001.json").write_text(json.dumps({
+        seed_gauge_ts(_gaugets(tmp_path), "GAUGE-001", {
             "gauge_id": "GAUGE-001",
             "flood_simulation": {"readings": [
                 {"timestamp": "INVALID", "waterLevel": 3.5},
                 {"timestamp": "2024-06-01T00:00:00", "waterLevel": 4.0},
             ]}
-        }))
+        })
         result = TimeseriesLoader(tmp_path).get_readings_in_range(
             datetime(2024, 1, 1), datetime(2025, 1, 1))
         assert len(result) == 1

@@ -124,7 +124,8 @@ def write_json(path: Path, data) -> Path:
 
 
 def make_gauge_ts_file(gaugets_dir: Path, gauge_id="GAUGE-001") -> Path:
-    """Create a gauge timeseries JSON inside a gaugets/ directory."""
+    """Create a gauge timeseries inside a gaugets/ directory AND seed it through the
+    seam (TimeseriesLoader reads via database.get_gauge_timeseries now)."""
     f = gaugets_dir / f"{gauge_id}.json"
     data = {
         "gauge_id": gauge_id,
@@ -142,7 +143,17 @@ def make_gauge_ts_file(gaugets_dir: Path, gauge_id="GAUGE-001") -> Path:
         },
     }
     f.write_text(json.dumps(data))
+    database.save_gauge_timeseries(database.active_catchment(), gauge_id, data)
     return f
+
+
+def seed_gauge_ts(gaugets_dir: Path, gauge_id: str, data: dict) -> dict:
+    """Write a CUSTOM gauge timeseries to gaugets/ AND seed it through the seam, so
+    TimeseriesLoader (which reads via database.get_gauge_timeseries) holds on both
+    backends."""
+    (Path(gaugets_dir) / f"{gauge_id}.json").write_text(json.dumps(data))
+    database.save_gauge_timeseries(database.active_catchment(), gauge_id, data)
+    return data
 
 
 # ---------------------------------------------------------------------------
