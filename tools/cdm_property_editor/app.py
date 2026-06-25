@@ -89,6 +89,9 @@ SHARED_WATERFALL_JS = SRC_DIR / "static" / "js" / "property" / "phc_basis_waterf
 use_configured_backend()
 # Active catchment from config (honours MKM_CATCHMENT) — was hardcoded "thames".
 CATCHMENT = config.catchment_id
+# Every edit persists through the seam under a scratch catchment (a sandbox port_run),
+# isolated from the real catchment and from production data/. WP3.2.
+SANDBOX_CATCHMENT = f"{CATCHMENT}__cdm_sandbox"
 # Still used by the file-based recompute / price_new subprocess path (WP3.2);
 # catchment-aware via config rather than a hardcoded thames path.
 INPUT_DIR = config.get_input_dir()
@@ -242,6 +245,19 @@ _HC_GETTERS = {
     "property": database.get_property_hazard_curves,
     "commercial": database.get_commercial_hazard_curves,
 }
+# Sandbox writes go back through the seam (to the scratch catchment), never to disk.
+_SAVE_FNS = {
+    "gauge": database.save_gauges,
+    "property": database.save_properties,
+    "commercial": database.save_commercial,
+    "mortgage": database.save_loans,
+    "commercial_loan": database.save_commercial_loans,
+    "counterparty": database.save_counterparties,
+}
+_HC_SAVE_FNS = {
+    "property": database.save_property_hazard_curves,
+    "commercial": database.save_commercial_hazard_curves,
+}
 # Seismic damage states DS0..DS3; DS3 is the collapse state (no_collapse counts
 # DS0+DS1+DS2). See src/models/seismic/damage.py.
 SEISMIC_DS_LABELS = ["None", "Slight", "Moderate", "Collapse"]
@@ -274,26 +290,19 @@ def _storm_type_index() -> dict:
     return _CACHE["storm_types"]
 
 
-def _priced_file(asset: str) -> Path:
-    """Sandbox store of on-demand-priced new assets (never data/)."""
-    return SANDBOX_DIR / f"priced_{asset}.json"
-
-
 def _load_priced(asset: str) -> dict:
-    p = _priced_file(asset)
-    if p.exists():
-        try:
-            return json.loads(p.read_text())
-        except (OSError, json.JSONDecodeError):
-            return {}
-    return {}
+    """On-demand-priced new-asset hazard curves, held in the sandbox scratch run
+    (``{rid: curve}``), never on disk."""
+    if asset not in _HC_GETTERS:
+        return {}
+    doc = _HC_GETTERS[asset](SANDBOX_CATCHMENT) or {}
+    return doc.get(HC_CONFIG[asset]["container"], {})
 
 
 def _save_priced(asset: str, rid: str, curve: dict) -> None:
-    SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
     store = _load_priced(asset)
     store[rid] = curve
-    _priced_file(asset).write_text(json.dumps(store, indent=2))
+    _HC_SAVE_FNS[asset](SANDBOX_CATCHMENT, {HC_CONFIG[asset]["container"]: store})
 
 
 def _hc_record(asset: str, rid: str) -> dict | None:
@@ -317,11 +326,7 @@ app = Flask(__name__)
 app.json.sort_keys = False
 
 
-# --- Sandbox plumbing -------------------------------------------------------
-def _sandbox_file(asset: str) -> Path:
-    return SANDBOX_DIR / f"{asset}_sandbox.json"
-
-
+# --- Sandbox plumbing (a scratch catchment behind the seam, never data/) -----
 def _seed_doc(asset: str) -> dict:
     """The baseline portfolio document used to seed a fresh sandbox, read via the
     seam. Falls back to a golden fixture if the seam has no records for this asset."""
@@ -337,25 +342,19 @@ def _seed_doc(asset: str) -> dict:
     )
 
 
-def _ensure_sandbox(asset: str) -> Path:
-    """Seed the asset sandbox from the catchment portfolio (via the seam) on first use."""
-    SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
-    sb = _sandbox_file(asset)
-    if not sb.exists():
-        sb.write_text(json.dumps(_seed_doc(asset), indent=2))
-    return sb
-
-
 def _load_doc(asset: str):
-    """The full sandbox document (so edits can be written back intact)."""
-    with open(_ensure_sandbox(asset), "r", encoding="utf-8") as fh:
-        return json.load(fh)
+    """The asset's sandbox portfolio document, read from the scratch catchment via the
+    seam. Seeded once from the real catchment's baseline on first use."""
+    doc = _PORTFOLIO_GETTERS[asset](SANDBOX_CATCHMENT)
+    if not doc:
+        doc = _seed_doc(asset)
+        _SAVE_FNS[asset](SANDBOX_CATCHMENT, doc)
+    return doc
 
 
 def _save_doc(asset: str, doc) -> None:
-    """Write the document back to the sandbox (never to data/)."""
-    with open(_sandbox_file(asset), "w", encoding="utf-8") as fh:
-        json.dump(doc, fh, indent=2)
+    """Persist the edited document to the sandbox scratch catchment (never data/)."""
+    _SAVE_FNS[asset](SANDBOX_CATCHMENT, doc)
 
 
 def _records_of(doc, asset: str) -> list:

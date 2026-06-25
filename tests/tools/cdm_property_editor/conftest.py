@@ -93,19 +93,28 @@ def oracle_mod(recompute_mod):
 
 @pytest.fixture
 def sandbox(app_mod, tmp_path, monkeypatch):
-    """Redirect the tool's sandbox + audit file under tmp_path; clear caches."""
+    """Isolate the tool's sandbox (WP3.2): an in-memory seam backs the scratch
+    catchment for portfolio/priced writes; the audit log stays JSON under a tmp dir.
+    Clears caches and restores the configured backend afterwards."""
+    import database
+    from database.config_binding import use_configured_backend
+    database.configure_backend(database.InMemoryRepository())
     monkeypatch.setattr(app_mod, "SANDBOX_DIR", tmp_path)
     monkeypatch.setattr(app_mod, "AUDIT_FILE", tmp_path / "audit_log.json")
     app_mod._CACHE.clear()
-    return tmp_path
+    yield tmp_path
+    use_configured_backend()
+    app_mod._CACHE.clear()
 
 
 @pytest.fixture
-def seed(sandbox):
-    """Return a helper that writes a sandbox JSON document for an asset."""
+def seed(sandbox, app_mod):
+    """Pre-populate an asset's sandbox via the seam (the scratch catchment). Deep-copies
+    so a route mutating the loaded record can't leak back into a shared test fixture."""
+    import copy
+
     def _seed(asset, doc):
-        (sandbox / f"{asset}_sandbox.json").write_text(
-            json.dumps(doc), encoding="utf-8")
+        app_mod._save_doc(asset, copy.deepcopy(doc))
     return _seed
 
 

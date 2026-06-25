@@ -107,8 +107,8 @@ def test_update_commits_and_audits(client, seed, app_mod):
     body = r.get_json()
     assert body["status"] == "success" and body["updated"] == 1
     assert body["record"]["PropertyHeader"]["Header"]["propertyType"] == "commercial"
-    # persisted to the sandbox
-    saved = json.loads((app_mod.SANDBOX_DIR / "property_sandbox.json").read_text())
+    # persisted to the sandbox (scratch catchment via the seam)
+    saved = app_mod._load_doc("property")
     assert saved["properties"][0]["PropertyHeader"]["Header"]["propertyType"] == "commercial"
     # audit trail records the change (newest first via /api/audit)
     audit = client.get("/api/audit").get_json()
@@ -163,13 +163,15 @@ def test_update_record_not_found_404(client, seed):
 
 
 # --- sandbox seeding from a (fake) input dir -------------------------------
-def test_records_seed_from_seam_when_no_sandbox(client, app_mod, seam):
-    """First access copies the catchment portfolio (via the seam) into the sandbox."""
-    seam.save_properties(app_mod.CATCHMENT, {"properties": [PROP]})
-    # sandbox dir (app_mod.SANDBOX_DIR) is empty -> _ensure_sandbox seeds it
+def test_records_seed_from_baseline_when_scratch_empty(client, app_mod):
+    """First access seeds the scratch catchment from the real catchment's baseline."""
+    import database
+    database.save_properties(app_mod.CATCHMENT, {"properties": [PROP]})  # baseline
+    # the scratch catchment is empty -> _load_doc seeds it from the baseline
     items = client.get("/api/property/items").get_json()
     assert items[0]["id"] == "P1"
-    assert (app_mod.SANDBOX_DIR / "property_sandbox.json").exists()
+    seeded = database.get_property_portfolio(app_mod.SANDBOX_CATCHMENT)
+    assert seeded["properties"][0]["PropertyHeader"]["Header"]["PropertyID"] == "P1"
 
 
 def test_seed_doc_missing_raises(app_mod, seam):

@@ -89,19 +89,21 @@ def test_create_mints_id_and_audits(client, seed, app_mod):
     assert rec["PropertyHeader"]["Valuation"]["PropertyValue"] == 300000
     assert "StreetName" not in rec["PropertyHeader"].get("Location", {})
     # persisted + audited as a record creation
-    saved = json.loads((app_mod.SANDBOX_DIR / "property_sandbox.json").read_text())
+    saved = app_mod._load_doc("property")
     assert saved["properties"][-1]["PropertyHeader"]["Header"]["PropertyID"] == body["id"]
     audit = client.get("/api/audit").get_json()
     assert audit[0]["field"] == "(record)" and audit[0]["new"] == body["id"]
 
 
 def test_create_appends_to_list_shaped_doc(client, seed, app_mod):
-    seed("property", [])  # bare-list sandbox document
+    # a list-shaped (rather than {container: [...]}) sandbox document, seeded
+    # non-empty so the scratch run isn't re-seeded from the baseline.
+    seed("property", [{"PropertyHeader": {"Header": {"PropertyID": "P0"}}}])
     r = client.post("/api/property/items", json={"changes": {
         "PropertyHeader.Header.propertyType": "residential"}})
     assert r.status_code == 200
-    saved = json.loads((app_mod.SANDBOX_DIR / "property_sandbox.json").read_text())
-    assert isinstance(saved, list) and len(saved) == 1
+    saved = app_mod._load_doc("property")
+    assert isinstance(saved, list) and len(saved) == 2
 
 
 # --- upload -----------------------------------------------------------------
@@ -153,7 +155,7 @@ def test_upload_creates_and_rejects_and_skips_blanks(client, seed, app_mod):
     assert body["sheet"] == "Portfolio (Template)"
     assert len(body["rejected"]) == 1 and body["rejected"][0]["row"] == 3
     # the created record is persisted with the catchment tag
-    saved = json.loads((app_mod.SANDBOX_DIR / "property_sandbox.json").read_text())
+    saved = app_mod._load_doc("property")
     assert saved["properties"][0]["PropertyHeader"]["Header"]["CatchmentID"] == \
         app_mod.CATCHMENT
 
@@ -183,7 +185,7 @@ def test_upload_skips_blank_cells_in_populated_row(client, seed, app_mod):
                     content_type="multipart/form-data")
     body = r.get_json()
     assert body["created"] == 1 and body["ids"] == ["MYPROP-3"]
-    saved = json.loads((app_mod.SANDBOX_DIR / "property_sandbox.json").read_text())
+    saved = app_mod._load_doc("property")
     hdr = saved["properties"][0]["PropertyHeader"]["Header"]
     assert "propertyType" not in hdr  # the blank cell was not written
 
@@ -240,10 +242,10 @@ def test_price_happy_path_saves_and_returns_decomposition(client, seed, app_mod,
 
 
 # --- priced-store helpers ---------------------------------------------------
-def test_load_priced_missing_and_corrupt(app_mod, sandbox):
+def test_load_priced_missing(app_mod, sandbox):
+    # empty scratch run -> no priced curves
     assert app_mod._load_priced("property") == {}
-    app_mod._priced_file("property").write_text("{ not json")
-    assert app_mod._load_priced("property") == {}
+    assert app_mod._load_priced("gauge") == {}  # asset with no hazard curves
 
 
 def test_save_then_load_priced_roundtrip(app_mod, sandbox):
