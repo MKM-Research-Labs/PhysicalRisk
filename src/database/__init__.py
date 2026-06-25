@@ -92,13 +92,13 @@ from .auth import (
     seed_function_registry, seed_functions, list_functions, is_admin,
     create_user, get_user, set_user_active,
     set_permission, check_permission, get_user_permissions,
-    set_password_hash, get_password_hash,
+    set_password_hash, get_password_hash, list_users,
 )
 
 __all__ = [
     # RBAC (WP5) — application-level permission checks + admin management (pg-only)
     "seed_function_registry", "seed_functions", "list_functions", "is_admin",
-    "create_user", "get_user", "set_user_active",
+    "create_user", "get_user", "set_user_active", "list_users",
     "set_permission", "check_permission", "get_user_permissions",
     "set_password_hash", "get_password_hash",
     # backends & lifecycle

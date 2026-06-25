@@ -103,6 +103,15 @@ def set_user_active(username, is_active: bool, *, actor=None) -> None:
         session.commit()
 
 
+def list_users() -> list:
+    """All app users (public fields), ordered by username — for the admin grid."""
+    with get_session() as session:
+        users = session.scalars(select(AppUser).order_by(AppUser.username)).all()
+        return [{"id": u.id, "username": u.username,
+                 "display_name": u.display_name, "is_active": u.is_active}
+                for u in users]
+
+
 def set_password_hash(username, password_hash, *, actor=None) -> None:
     """Store a user's (already-hashed) password. Hashing is the caller's job — the
     data layer never sees the plaintext."""

@@ -167,6 +167,14 @@ def test_list_functions_active_only_filter():
     assert all(f["is_active"] for f in active)
 
 
+def test_list_users():
+    database.create_user("amy")
+    database.create_user("zed")
+    names = [u["username"] for u in database.list_users()]
+    assert "amy" in names and "zed" in names
+    assert names == sorted(names)  # ordered by username
+
+
 def test_set_and_get_password_hash():
     database.create_user("gita")
     assert database.get_password_hash("gita") is None

@@ -33,6 +33,7 @@ from database._pg._auth import (  # noqa: F401  (re-exported)
     get_user,
     get_user_permissions,
     list_functions,
+    list_users,
     seed_functions,
     set_password_hash,
     set_permission,
