@@ -30,13 +30,42 @@ programme (see `docs/json_to_postgres_migration.md`).
 
   Scanner so far: **26 → 21 I/O files, 41 → 31 reads** (writes still 14).
 
-  **Next (rest of Phase 1b):** generator-side loaders `ts/loader.py`,
-  `hc/loader.py`, `hc/pricing/_process.py`; `_typhoon_join.py` (entangled with
-  the output_dir-based peril pipeline — needs catchment threading, do with that
-  pipeline); `_stress_storms_stages.py`; stressm readers (`orchestrator/_core.py`,
-  `summary.py`, `gauge_parser.py` — `gauge_*_hd.json` maps to the existing
-  `gauge_history` seam, de-scoping that Category-C item); `spatial_correlation
-  .py:278` (gauge portfolio).
+### Triage of the remaining Phase 1b readers (2026-06-26)
+
+The clean, standalone reads (config-keyed or singleton — the book area and the
+storm↔typhoon pairing) are **done**. The remaining ~9 reads are **not** simple
+swaps; they fall into three groups, each needing a deliberate approach rather
+than a one-line getter substitution:
+
+1. **`input_dir`-threaded generator internals** — `stressm/summary.py`
+   (`load_gauge_training_context(input_dir)`), `stressm/pipeline/orchestrator/
+   _core.py`, `stressm/gauge_parser.py` (`_load_gaugehd_baselines(gaugehd_dir)`),
+   `_typhoon_join.py` (`load_*(output_dir)`). These take a **directory parameter**
+   threaded from the orchestrator (`ctx.output_dir`), not a catchment. Migrating
+   means switching the read to `database.get_*(active_catchment())` and trusting
+   that `input_dir` always corresponds to the active catchment (incl. the e2e
+   `MKM_CATCHMENT_INPUT_OVERRIDE` path). Best done as **one coherent
+   catchment-threading change across the stressm + peril pipelines**, alongside
+   their write-side (Phase 2), not piecemeal. `gauge_*_hd.json` → `gauge_history`
+   seam; `gauge.json` → `get_gauge_portfolio`; `storm_sequences` → already have it.
+
+2. **Intentional dual-path (backend-aware)** — `_stress_storms_stages.py`
+   `scan_gauge_responses(gaugets_dir)` **already** falls back to the seam; the
+   `glob("GAUGE-*.json")` is a deliberate file-backend fast path with *different*
+   corrupt-tolerance + raise semantics than the seam path. Collapsing to
+   seam-only is desirable but is a **behaviour change** (corrupt files raise
+   instead of being skipped), so it needs its own decision + test review.
+
+3. **Dead / test-only classmethods** — `spatial_correlation.py`
+   `from_gauge_portfolio_file(path)` and `SpatialCorrelationParams.load(path)`
+   have **no production callers** (grep-confirmed). Low value; the `.load` one
+   reads the spatial-correlation **config** (Category C, deferred). Likely just
+   delete or leave until the Category-C spatial-config WP.
+
+**Recommendation:** treat group 1 as a dedicated sub-phase (**Phase 1c —
+pipeline catchment threading**) done with the Phase 2 writes for the same
+modules, so each pipeline flips read+write together and the e2e override path is
+verified once. Groups 2 and 3 are small, isolated decisions.
 
 > **Why `src/port` is the biggest line in the JSON-file audit (26 I/O files,
 > 41 reads, 14 writes) — but mostly low-risk.** The earlier migration prioritised
