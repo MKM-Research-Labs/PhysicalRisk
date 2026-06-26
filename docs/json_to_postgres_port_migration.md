@@ -21,12 +21,22 @@ programme (see `docs/json_to_postgres_migration.md`).
 
   Scanner so far: **26 → 22 I/O files, 41 → 34 reads** (writes still 14).
 
+- **2026-06-26 — Phase 1b (storm↔typhoon pairing).** `storm_typhoon_pairing.py`
+  reads typhoon damage events + storm sequences via the seam
+  (`iter_typhoon_event_ids`/`get_typhoon_event`, `get_storm_sequences`), keyed on
+  `database.active_catchment()`. Public API unchanged → route callers untouched.
+  Tests seed the seam; corrupt cases re-expressed via monkeypatching the getter.
+  16 tests green.
+
+  Scanner so far: **26 → 21 I/O files, 41 → 31 reads** (writes still 14).
+
   **Next (rest of Phase 1b):** generator-side loaders `ts/loader.py`,
-  `hc/loader.py`, `hc/pricing/_process.py`; storm-sequence / typhoon-event /
-  gauge-timeseries readers (`_typhoon_join.py`, `storm_typhoon_pairing.py`,
-  `_stress_storms_stages.py`); stressm readers (`orchestrator/_core.py`,
-  `summary.py`, `gauge_parser.py` — note `gauge_*_hd.json` likely maps to the
-  existing `gauge_history` seam, may de-scope a Category-C item).
+  `hc/loader.py`, `hc/pricing/_process.py`; `_typhoon_join.py` (entangled with
+  the output_dir-based peril pipeline — needs catchment threading, do with that
+  pipeline); `_stress_storms_stages.py`; stressm readers (`orchestrator/_core.py`,
+  `summary.py`, `gauge_parser.py` — `gauge_*_hd.json` maps to the existing
+  `gauge_history` seam, de-scoping that Category-C item); `spatial_correlation
+  .py:278` (gauge portfolio).
 
 > **Why `src/port` is the biggest line in the JSON-file audit (26 I/O files,
 > 41 reads, 14 writes) — but mostly low-risk.** The earlier migration prioritised
