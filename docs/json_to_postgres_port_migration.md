@@ -1,7 +1,17 @@
 # Migration Plan: `src/port` JSON Artifacts → PostgreSQL seam
 
-**Status:** Plan written 2026-06-26. Phase 1 starting. Part of the wider
-json→postgres programme (see `docs/json_to_postgres_migration.md`).
+**Status:** Plan written 2026-06-26. **Phase 1a (gauge book) DONE** — scanner
+`src/port` 26→23 I/O files, 41→37 reads. Part of the wider json→postgres
+programme (see `docs/json_to_postgres_migration.md`).
+
+### Progress log
+- **2026-06-26 — Phase 1a (gauge market-making + Thames-central book).** Both
+  gauge-book generators read gauge hazard curves + counterparties through the
+  seam; retired the `gaugehc_path`/`counterparty_path` params; deduped book.py's
+  inline counterparty loop into `_load_counterparties` (now catchment-keyed).
+  Callers + 6 test files migrated to seam-seeding via `tmp_catchment`. 106 tests
+  green on the file backend; ruff-neutral. **Next: Phase 1b property book**
+  (`book_property/_core.py` — propertyhc/propertybri/property reads).
 
 > **Why `src/port` is the biggest line in the JSON-file audit (26 I/O files,
 > 41 reads, 14 writes) — but mostly low-risk.** The earlier migration prioritised
