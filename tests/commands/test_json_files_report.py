@@ -193,6 +193,20 @@ class TestJsonFilesScanRepo:
         scan = scanner.scan_repo(tmp_path)
         assert scan['findings'] == []
 
+    def test_excludes_docs_models_generators(self, tmp_path):
+        """docs/models (model-doc/audit generators) is out of scope; a sibling
+        docs/ path and src/models stay in scope."""
+        dm = tmp_path / "docs" / "models" / "full_audit"
+        dm.mkdir(parents=True)
+        (dm / "report.py").write_text('json.load(open("model_inventory.json"))\n')
+        sm = tmp_path / "src" / "models"
+        sm.mkdir(parents=True)
+        (sm / "hazard.py").write_text('json.load(open("curve.json"))\n')
+        scan = scanner.scan_repo(tmp_path)
+        files = scan['files']
+        assert not any(f.startswith('docs/models/') for f in files)
+        assert any(f.startswith('src/models/') for f in files)
+
     def test_unreadable_file_is_skipped(self, tmp_path):
         (tmp_path / "binary.py").write_bytes(b'\xff\xfe not utf8 \x80\n')
         scan = scanner.scan_repo(tmp_path)  # must not raise
