@@ -67,6 +67,39 @@ pipeline catchment threading**) done with the Phase 2 writes for the same
 modules, so each pipeline flips read+write together and the e2e override path is
 verified once. Groups 2 and 3 are small, isolated decisions.
 
+### Phase 1c progress — stressm pipeline reads (2026-06-26)
+
+Verified the seam's file backend resolves `active_catchment()` →
+`config.get_input_dir()` (e2e override included) via
+`config_binding._resolve_catchment_dir`, so catchment-keyed reads hit the same
+dir as the old `input_dir`-based reads. Migrated the stressm **reads**:
+`gauge_parser._load_gaugehd_baselines` → `gauge_history` seam;
+`summary.load_gauge_training_context` + `orchestrator/_core.generate_stressm`
+gauge.json → `get_gauge_portfolio`, gaugehd → the seam. 131 stressm tests green.
+
+**Stressm writes — deferred, with reasons (these are real design decisions, not
+mechanical swaps):**
+
+- **`training_summary.json` is two distinct files.** `batch_train` writes
+  `<catchment>/stressm/training_summary.json` (via
+  `summary.update_training_summary(stressm_dir)`); `gaugets_writer` + the
+  `src/routes` trading-stress flow write `<catchment>/classifiers/training_summary
+  .json`. Only the **classifiers** one has a seam artifact
+  (`classifier_training_summary`). Migrating needs either a **new seam artifact**
+  for the stressm-dir file, or a decision to consolidate the two. Also note
+  `update_training_summary` is **shared with `src/routes`** — migrating it widens
+  scope into the routes layer.
+- **`sequence_gauge` writes are filesystem-coupled.** `stages.write_split_output`
+  does `rmtree` + `mkdir` + per-file `stat()` size reporting + `iterdir` +
+  legacy-file `unlink` — none of which the seam exposes, and there is **no
+  bulk-clear** for the `sequence_gauge` artifact. Needs a seam capability
+  (clear-collection) or a redesign of the size/cleanup reporting before the
+  `save_sequence_gauge` swap is safe.
+
+Remaining stressm read `summary.py:41` is the `training_summary` read **inside**
+`update_training_summary`, i.e. part of that deferred write-side — left until the
+training_summary decision above.
+
 > **Why `src/port` is the biggest line in the JSON-file audit (26 I/O files,
 > 41 reads, 14 writes) — but mostly low-risk.** The earlier migration prioritised
 > the **live-app read path** (`src/loaders/*`, now fully seam-backed). `src/port`
