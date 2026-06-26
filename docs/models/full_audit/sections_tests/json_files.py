@@ -37,7 +37,8 @@ A finding is a non-comment, non-docstring line — **anywhere in first-party cod
 including the ``src/database`` seam**; skipped are ``tests/``, the model-doc/audit
 generators under ``docs/models`` (reporting tooling), the model-governance
 subsystem under ``src/routes/governance`` (model_inventory.json et al. — a
-separate, later migration), and inert non-source dirs — that either calls
+separate, later migration), the analytical ``src/models`` package (allowed to
+keep its .json artifacts), and inert non-source dirs — that either calls
 ``json.load(`` / ``json.dump(`` (file (de)serialisation) or names a ``".json"``
 path literal. Each finding carries a ``kind``:
 
@@ -77,9 +78,11 @@ _SCANNER_MODULES = {'json_files.py', 'data_access.py'}
 #   * ``src/routes/governance`` — the model-governance subsystem (model_inventory
 #     .json, governance_documents.json, lineage traces). Migrating governance data
 #     into the DB is a separate, later project, so it is tracked there, not here.
-# Prefixes (not dir-name prunes) so the analytical ``src/models`` package and the
-# non-governance routes — both real migration targets — stay in scope.
-_EXCLUDED_PREFIXES = ('docs/models', 'src/routes/governance')
+#   * ``src/models`` — the analytical models are allowed to keep their .json
+#     artifacts; they are out of scope for the port-data migration.
+# Prefixes (not dir-name prunes) so the non-governance routes and other in-scope
+# packages — the real migration targets — keep being scanned.
+_EXCLUDED_PREFIXES = ('docs/models', 'src/routes/governance', 'src/models')
 
 # Flip to True once the backlog reaches zero to turn the tracker into a
 # zero-tolerance gate (the gate test honours this flag).

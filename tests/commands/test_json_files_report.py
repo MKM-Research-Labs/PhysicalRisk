@@ -193,19 +193,23 @@ class TestJsonFilesScanRepo:
         scan = scanner.scan_repo(tmp_path)
         assert scan['findings'] == []
 
-    def test_excludes_docs_models_generators(self, tmp_path):
-        """docs/models (model-doc/audit generators) is out of scope; a sibling
-        docs/ path and src/models stay in scope."""
+    def test_excludes_model_areas_keeps_pipeline(self, tmp_path):
+        """docs/models (audit generators) and src/models (analytical models,
+        allowed to keep .json) are out of scope; the data pipeline stays in."""
         dm = tmp_path / "docs" / "models" / "full_audit"
         dm.mkdir(parents=True)
         (dm / "report.py").write_text('json.load(open("model_inventory.json"))\n')
         sm = tmp_path / "src" / "models"
         sm.mkdir(parents=True)
         (sm / "hazard.py").write_text('json.load(open("curve.json"))\n')
+        port = tmp_path / "src" / "port"
+        port.mkdir(parents=True)
+        (port / "loader.py").write_text('json.load(open("gauge.json"))\n')
         scan = scanner.scan_repo(tmp_path)
         files = scan['files']
         assert not any(f.startswith('docs/models/') for f in files)
-        assert any(f.startswith('src/models/') for f in files)
+        assert not any(f.startswith('src/models/') for f in files)
+        assert any(f.startswith('src/port/') for f in files)
 
     def test_excludes_governance_subsystem(self, tmp_path):
         """src/routes/governance (model_inventory et al. — separate migration)
