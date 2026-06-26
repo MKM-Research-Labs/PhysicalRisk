@@ -34,11 +34,12 @@ to a hard gate is a single flag flip (``GATED = True``): the gate test already
 asserts the enforcement path so the zero-tolerance day is one line away.
 
 A finding is a non-comment, non-docstring line — **anywhere in first-party code,
-including the ``src/database`` seam**; only ``tests/``, the model-doc/audit
-generators under ``docs/models`` (reporting tooling, not the data pipeline), and
-inert non-source dirs are skipped — that either calls ``json.load(`` /
-``json.dump(`` (file (de)serialisation) or names a ``".json"`` path literal. Each
-finding carries a ``kind``:
+including the ``src/database`` seam**; skipped are ``tests/``, the model-doc/audit
+generators under ``docs/models`` (reporting tooling), the model-governance
+subsystem under ``src/routes/governance`` (model_inventory.json et al. — a
+separate, later migration), and inert non-source dirs — that either calls
+``json.load(`` / ``json.dump(`` (file (de)serialisation) or names a ``".json"``
+path literal. Each finding carries a ``kind``:
 
 * ``read``  — ``json.load(`` or a ``.json`` literal alongside ``open`` /
   ``read_text`` / ``read_bytes`` / ``glob`` / ``read_json``.
@@ -68,13 +69,17 @@ from .data_access import _PRUNE_DIRS, _rel
 # source literally contains the detection patterns (they would self-match).
 _SCANNER_MODULES = {'json_files.py', 'data_access.py'}
 
-# Repo-relative POSIX path prefixes excluded from the scan. The model-documentation
-# / audit generators under ``docs/models`` legitimately parse test results
-# (junit.xml, coverage.xml) and emit report JSON — they are reporting tooling, not
-# the data pipeline that migrates onto the database seam, so they are out of scope.
-# A prefix (not a dir-name prune) so the analytical ``src/models`` package — a real
-# migration target — stays in scope.
-_EXCLUDED_PREFIXES = ('docs/models',)
+# Repo-relative POSIX path prefixes excluded from the scan, each its own concern
+# rather than part of *this* port-data JSON->Postgres migration:
+#   * ``docs/models`` — the model-documentation / audit generators, which parse
+#     test results (junit.xml, coverage.xml) and emit report JSON: reporting
+#     tooling, not the data pipeline.
+#   * ``src/routes/governance`` — the model-governance subsystem (model_inventory
+#     .json, governance_documents.json, lineage traces). Migrating governance data
+#     into the DB is a separate, later project, so it is tracked there, not here.
+# Prefixes (not dir-name prunes) so the analytical ``src/models`` package and the
+# non-governance routes — both real migration targets — stay in scope.
+_EXCLUDED_PREFIXES = ('docs/models', 'src/routes/governance')
 
 # Flip to True once the backlog reaches zero to turn the tracker into a
 # zero-tolerance gate (the gate test honours this flag).
