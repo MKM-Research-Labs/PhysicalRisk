@@ -106,8 +106,7 @@ def main():
     """Scan src/**/__init__.py and write the standalone audit PDF + JSON."""
     from config import config
 
-    here = Path(__file__).resolve().parent          # docs/models/init_audit/
-    project_root = here.parent.parent.parent        # project root
+    project_root = config.get_project_root()
     src_root = project_root / 'src'
 
     audit_dir = config.get_reports_dir('audit')

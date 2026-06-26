@@ -35,7 +35,9 @@ import math
 import random
 import sys
 
+sys.path.insert(0, ".")
 sys.path.insert(0, "src")
+from config import config
 from models.floodrisk.spatial import haversine_distance
 
 
@@ -45,7 +47,7 @@ def load(path):
 
 
 def main():
-    base = "data/input/thames"
+    base = config.get_input_root() / "thames"
     gauge_data = load(f"{base}/gauge.json")
     prop_data = load(f"{base}/property.json")
     hc_data = load(f"{base}/propertyhc.json")

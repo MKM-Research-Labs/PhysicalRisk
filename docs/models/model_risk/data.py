@@ -28,7 +28,7 @@ from pathlib import Path
 
 from config import config
 
-_root = Path(__file__).resolve().parents[3]
+_root = config.get_project_root()
 
 # Governance metadata is version-controlled repo content under
 # docs/models/governance_data/, not shared data/.

@@ -82,7 +82,7 @@ def run_typhoon(ctx: StageContext):
     damage_dir = typhoon_dir / "damage"
     inputs = {
         f"catch/{ctx.catchment}/tc.py":
-            Path(__file__).resolve().parents[5] / "data" / "catch" / ctx.catchment / "tc.py",
+            config.get_catch_dir(ctx.catchment) / "tc.py",
     }
     pre = ctx.hash_inputs(inputs)
 

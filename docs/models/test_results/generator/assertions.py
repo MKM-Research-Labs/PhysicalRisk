@@ -23,8 +23,9 @@
 import ast
 import os
 
-_project_root = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+from config import config
+
+_project_root = config.get_project_root()
 
 
 def _extract_assertions(file_path, test_class, test_name):

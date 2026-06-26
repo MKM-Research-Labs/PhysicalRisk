@@ -34,7 +34,8 @@ from .latex import (
 )
 from .history import generate_history_table
 
-_script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+from config import config
+_script_dir = config.get_project_root() / 'docs' / 'models'
 
 
 def write_model_fragment(model_id, results, criteria_cache=None, history=None):

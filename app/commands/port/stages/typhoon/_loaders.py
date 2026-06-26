@@ -45,8 +45,8 @@ def _load_catchment_typhoon_config(catchment_id: str):
     builder = getattr(module, "build_typhoon_config", None)
     if builder is None:
         raise SystemExit(
-            f"data/catch/{catchment_id}/tc.py must expose build_typhoon_config(). "
-            f"See data/catch/halong/tc.py for the reference layout."
+            f"The catchment file data/catch/{catchment_id}/tc.py must expose "
+            f"build_typhoon_config(). See data/catch/halong/tc.py for the reference layout."
         )
     return builder(catchment_id=catchment_id)
 

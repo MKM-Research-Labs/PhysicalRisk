@@ -22,10 +22,11 @@
 
 import os
 
+from config import config
+
 from .models import TEST_MODEL_MAP
 
-_project_root = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+_project_root = str(config.get_project_root())
 
 
 class TestResultCollector:

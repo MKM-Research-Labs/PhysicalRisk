@@ -104,8 +104,8 @@ class NotificationSystem:
 
     def get_js(self) -> str:
         """Generate the notification system CSS and JavaScript."""
-        from pathlib import Path
-        static_dir = Path(__file__).parent.parent.parent / 'static'
+        from config import config
+        static_dir = config.get_static_dir()
         css_code = (static_dir / 'css' / 'notifications.css').read_text()
         js_code = (static_dir / 'js' / 'notifications.js').read_text()
         notif_config = json.dumps({

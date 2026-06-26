@@ -20,7 +20,6 @@
 
 # routes/health.py
 
-import os
 from flask import Blueprint, jsonify, send_from_directory
 
 from config import config
@@ -28,7 +27,7 @@ from loaders.loader_registry import LoaderRegistry
 
 health_bp = Blueprint("health", __name__)
 
-_STATIC_DIR = os.path.join(os.path.dirname(__file__), '..', 'static')
+_STATIC_DIR = config.get_static_dir()
 
 
 def _get_registry() -> LoaderRegistry:

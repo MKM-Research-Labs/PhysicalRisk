@@ -64,9 +64,7 @@ def generate_txt_report(scan_root: Path, output_path: Path,
 def main():
     """Run both large-file reports and write them to the audit reports directory."""
     from config import config
-    # Resolve project root: this file is at docs/models/project/report.py
-    here = Path(__file__).resolve().parent          # docs/models/project/
-    project_root = here.parent.parent.parent        # project root
+    project_root = config.get_project_root()
 
     audit_dir = config.get_reports_dir('audit')
     audit_dir.mkdir(parents=True, exist_ok=True)

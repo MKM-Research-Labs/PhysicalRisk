@@ -68,8 +68,8 @@ def _stream_proc(proc):
 def _run_and_save():
     """Run full audit evidence package and save structured results to audit dir."""
     global _running
-    project_root = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    from config import config
+    project_root = str(config.get_project_root())
     collector_script = os.path.join(project_root, '_run_test_report.py')
 
     script = r"""

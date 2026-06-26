@@ -53,7 +53,7 @@ HEADER_BG = colors.HexColor('#E8EAF6')
 from config import config
 AUDIT_DIR = config.get_reports_dir('audit')
 OUTPUT_PDF = AUDIT_DIR / 'data_lineage_report.pdf'
-LINEAGE_PATH = _root / 'data' / 'data_lineage.json'
+LINEAGE_PATH = config.get_data_dir() / 'data_lineage.json'
 
 # ---------------------------------------------------------------------------
 # Staleness threshold — aligned with governance route

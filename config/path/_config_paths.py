@@ -81,6 +81,24 @@ class ConfigPaths:
         """Get project root directory (public accessor)."""
         return self._get_project_root()
 
+    def get_catch_dir(self, catchment: str = None) -> Path:
+        """Catchment-definition directory (``data/catch`` or ``data/catch/<catchment>``).
+
+        Holds per-catchment definition modules (e.g. ``tc.py``) and snapped-river
+        geometry caches — distinct from the per-catchment *input* tree. Without
+        ``catchment`` returns the parent ``data/catch``.
+        """
+        base = self._get_project_root() / 'data' / 'catch'
+        return base / catchment if catchment else base
+
+    def get_static_dir(self) -> Path:
+        """Static web assets directory (``src/static``) — JS/CSS served by the app."""
+        return self._get_project_root() / 'src' / 'static'
+
+    def get_data_dir(self) -> Path:
+        """Top-level ``data`` directory (the shared data root containing input/output/catch)."""
+        return self._get_project_root() / 'data'
+
     def get_governance_data_dir(self) -> Path:
         """Version-controlled governance data directory.
 

@@ -27,10 +27,8 @@ from .pdf import create_pdf_report
 
 
 def main():
-    here = Path(__file__).resolve().parent           # docs/models/embedded_js/
-    root = here.parent.parent.parent                 # project root
-
     from config import config
+    root = config.get_project_root()
     audit_dir = config.get_reports_dir('audit')
     audit_dir.mkdir(parents=True, exist_ok=True)
     output_path = audit_dir / 'embedded_js_report.pdf'

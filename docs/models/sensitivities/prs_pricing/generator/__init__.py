@@ -266,8 +266,9 @@ def generate():
     # JSON terrain grid (for interactive UI repricing)
     # ----------------------------------------------------------------
     import json
+    from config import config
     from models.hazard.terrain_grid import compute_terrain_grid
     grid = compute_terrain_grid()
-    grid_path = Path(__file__).resolve().parents[3] / 'prs_pricing' / 'terrain_grid.json'
+    grid_path = config.get_project_root() / 'docs' / 'models' / 'prs_pricing' / 'terrain_grid.json'
     with open(grid_path, 'w') as f:
         json.dump(grid, f, indent=2)

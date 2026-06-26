@@ -32,10 +32,12 @@ from pathlib import Path
 # the modularisation report's scope so the two audits cover the same tree.
 from docs.models.project._constants import REPO_SCAN_DIRS
 
+from config import config
+
 # The audit tooling itself contains <script>…</script> as a *regex literal*
 # (this module's _SCRIPT_RE) and similar markup in its PDF builder, so it would
 # self-report a false positive. Exclude this package from its own scan.
-_SELF_PKG = Path(__file__).resolve().parent  # docs/models/embedded_js
+_SELF_PKG = config.get_project_root() / "docs" / "models" / "embedded_js"
 
 # A ``<script>`` body must contain at least this many JavaScript lines before
 # it is flagged.  This deliberately lets through the accepted thin wrapper

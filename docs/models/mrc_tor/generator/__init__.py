@@ -35,10 +35,12 @@ Usage:
 import argparse
 import os
 
+from config import config
+
 from .document import generate_document
 from .compiler import compile_pdf
 
-_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+_output_dir = str(config.get_project_root() / 'docs' / 'models' / 'mrc_tor')
 
 
 def main():

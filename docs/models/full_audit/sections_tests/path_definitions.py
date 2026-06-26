@@ -81,6 +81,57 @@ _ALLOWLIST = {
     # *before* it can import config, so it cannot use config to find itself.
     'docs/models/full_audit/_constants.py':
         'audit bootstrap — derives root to import config (chicken-and-egg)',
+    # Alembic runs env.py from the repo root before src/ (and therefore config)
+    # is importable, so it must derive the root to put both on sys.path first.
+    'src/database/_pg/migrations/env.py':
+        'alembic bootstrap — derives root to import config/database (chicken-and-egg)',
+
+    # ---- Standalone doc-generator bootstraps: each derives the repo root to put
+    # src/ on sys.path *before* importing config, so it cannot use config to find
+    # itself (same chicken-and-egg as the audit bootstrap above).
+    'docs/models/data_lineage/_constants.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/duplication/_paths.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/sensitivities/generate_all.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/sensitivities/generate_all_analysis.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+
+    # ---- Standalone CLI tools / analysis scripts run outside the app: they
+    # establish their own sys.path before the package (and config) is importable.
+    'tools/cdm_property_editor/cdm_demo.py':
+        'standalone tool entrypoint — derives root to import the port package (chicken-and-egg)',
+    'tools/cdm_property_editor/_recompute_oracle.py':
+        'standalone tool entrypoint — derives root to import the port package (chicken-and-egg)',
+    'tools/cdm_property_editor/app.py':
+        'standalone tool entrypoint — derives root to import the port package (chicken-and-egg)',
+    'tools/cdm_property_editor/cdm_workbook.py':
+        'standalone tool entrypoint — derives root to import the port package (chicken-and-egg)',
+    'tools/snap_gauges_to_river.py':
+        'standalone CLI tool — derives its own root; not part of the app runtime',
+    'scripts/beta_sweep_analyze.py':
+        'standalone analysis script — derives its own root; not part of the app runtime',
+
+    # ---- Genuinely not config-resolvable: scans *other* git worktrees' own
+    # data/ dirs (paths external to this checkout, found via `git worktree list`).
+    'app/commands/test/helpers.py':
+        'worktree cleanup — inspects sibling worktrees\' own data/ dirs, external to this checkout',
+
+    # ---- Report content: documents canonical storage paths in a rendered policy
+    # table; the data/ strings are documentation, not filesystem path construction.
+    'docs/models/data_lineage/sections_policy.py':
+        'report content — data/ strings document canonical storage paths in a PDF table',
+
+    # ---- config-unavailable fallbacks: these resolve the data dir from __file__
+    # only inside an ``except ImportError`` branch taken when config cannot be
+    # imported (a tested bootstrap/standalone path); the live branch uses config.
+    'src/lineage/manifest/_core.py':
+        'config-import fallback — derives data dir from __file__ only when config is unavailable',
+    'src/lineage/validation/_helpers.py':
+        'config-import fallback — derives data dir from __file__ only when config is unavailable',
+    'src/lineage/validation/completeness.py':
+        'config-import fallback — derives data dir from __file__ only when config is unavailable',
 }
 
 # ---------------------------------------------------------------------------
@@ -144,6 +195,21 @@ def _rel(path: Path, root: Path) -> str:
         return Path(path).as_posix()
 
 
+# A quoted literal that begins with a tracked ``data/`` sub-tree, captured up to
+# its closing quote so its interior can be inspected for placeholders.
+_DATA_LITERAL_FULL_RE = re.compile(
+    r"""(['"])(?:\.\.?)?/?data/(?:""" + _data_subdirs + r")[^'\"]*\1"
+)
+
+
+def _is_template_literal(line: str) -> bool:
+    """True if every ``data/`` literal on the line is a documentation template
+    (carries a ``<placeholder>``), i.e. describes a path shape rather than a
+    concrete path. ``<`` is never valid in a real filesystem path."""
+    full = [m.group() for m in _DATA_LITERAL_FULL_RE.finditer(line)]
+    return bool(full) and all('<' in lit for lit in full)
+
+
 def scan_text(text: str):
     """Return path-definition findings for one file's *text*.
 
@@ -172,6 +238,11 @@ def scan_text(text: str):
 
         for kind, rx in _RULES:
             if rx.search(line):
+                # A data literal carrying a ``<placeholder>`` is documentation
+                # describing a path *shape* (e.g. ``data/input/<catchment>/``),
+                # not a concrete path being constructed — skip it.
+                if kind == 'data_literal' and _is_template_literal(line):
+                    continue
                 findings.append({'line': i, 'kind': kind,
                                  'snippet': stripped[:90]})
                 break  # one finding per line (most specific rule wins)

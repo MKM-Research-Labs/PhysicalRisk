@@ -113,6 +113,7 @@ def _resolve_data_dir() -> Path:
         from config import PortfolioConfig
         return Path(PortfolioConfig().get_input_dir())
     except (ImportError, AttributeError):
+        # config unavailable (e.g. bootstrap/standalone): derive from this file.
         import os
         catchment = os.getenv("MKM_CATCHMENT", "thames")
         return Path(__file__).resolve().parents[3] / "data" / "input" / catchment

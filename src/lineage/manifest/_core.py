@@ -40,17 +40,9 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Project root resolution
 # ---------------------------------------------------------------------------
-try:
-    from config import config as _cfg
-    _project_root = (
-        Path(_cfg.get_project_root())
-        if hasattr(_cfg, "get_project_root")
-        else Path(_cfg.project_root)
-    )
-except (ImportError, AttributeError):
-    _project_root = Path(__file__).resolve().parents[2]
+from config import config as _cfg
 
-LINEAGE_PATH = _project_root / "data" / "data_lineage.json"
+LINEAGE_PATH = _cfg.get_data_dir() / "data_lineage.json"
 
 from lineage.manifest._topology import (
     DEPENDENCY_GRAPH,
@@ -225,6 +217,8 @@ def repair_manifest(data_dir: str | Path | None = None) -> dict:
             from config import PortfolioConfig
             data_dir = Path(PortfolioConfig().get_input_dir())
         except (ImportError, AttributeError):
+            # config unavailable (e.g. bootstrap/standalone): derive the default
+            # catchment input dir from this file's location.
             catchment = os.getenv("MKM_CATCHMENT", "thames")
             data_dir = Path(__file__).resolve().parents[2] / "data" / "input" / catchment
     else:

@@ -29,10 +29,11 @@ module that still keeps a companion ``foo.py`` → ``foo.js`` next to itself.
 from functools import lru_cache
 from pathlib import Path
 
-# ``_jsbundle.py`` lives at ``src/visual/interactivity/`` so the static tree is
-# three directories up. Resolve once, relative to this file, so callers at any
-# nesting depth load the same place without fragile ``parent.parent`` chains.
-_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
+from config import config
+
+# The static tree is owned by the config package (``src/static``); resolve it
+# through the accessor so callers at any nesting depth load the same place.
+_STATIC_DIR = config.get_static_dir()
 
 
 def _strip_inlined_header(text: str) -> str:

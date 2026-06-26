@@ -25,17 +25,15 @@ standalone report and the consolidated full-audit subsection report identical
 numbers."""
 
 from datetime import datetime
-from pathlib import Path
 
 from docs.models.full_audit.sections_tests.json_files import scan_repo
 from .pdf import create_pdf_report
 
 
 def main():
-    here = Path(__file__).resolve().parent      # docs/models/json_files/
-    root = here.parent.parent.parent            # project root
-
     from config import config
+    root = config.get_project_root()
+
     audit_dir = config.get_reports_dir('audit')
     audit_dir.mkdir(parents=True, exist_ok=True)
     output_path = audit_dir / 'json_files_report.pdf'

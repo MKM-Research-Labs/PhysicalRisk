@@ -23,7 +23,6 @@ Catchment selection routes for MKM Research Labs PRS Platform.
 """
 
 import logging
-from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_file
 
@@ -39,9 +38,9 @@ def serve_catchment_selector():
     This is the entry point for the application.
     """
     try:
-        # Get the HTML file from project root
-        src_root = Path(__file__).resolve().parent.parent
-        html_path = src_root / 'static' / 'select_catchment.html'
+        # Static page served from the config-owned static tree (src/static).
+        from config import config
+        html_path = config.get_static_dir() / 'select_catchment.html'
 
         if not html_path.exists():
             return jsonify({

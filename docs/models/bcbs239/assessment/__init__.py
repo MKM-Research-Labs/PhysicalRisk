@@ -34,11 +34,13 @@ Usage:
 import argparse
 import os
 
+from config import config
+
 from .data import load_assessment
 from .latex import generate_document
 from .compiler import compile_pdf
 
-_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+_output_dir = config.get_project_root() / 'docs' / 'models' / 'bcbs239'
 
 
 def main():

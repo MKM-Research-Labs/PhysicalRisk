@@ -33,7 +33,8 @@ def compile_model_pdf(model_id, run_timestamp, history=None):
     if not info or not info['dir']:
         return None
 
-    script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    from config import config
+    script_dir = config.get_project_root() / 'docs' / 'models'
     model_dir = os.path.join(script_dir, info['dir'])
     fragment_path = os.path.join(model_dir, 'test_results.tex')
     if not os.path.isfile(fragment_path):

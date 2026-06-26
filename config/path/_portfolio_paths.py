@@ -196,6 +196,23 @@ class PortfolioPaths:
         """Get project root directory."""
         return self.project_root
 
+    def get_catch_dir(self, catchment: str = None) -> Path:
+        """Catchment-definition directory (``data/catch`` or ``data/catch/<catchment>``).
+
+        Holds per-catchment definition modules (e.g. ``tc.py``) and snapped-river
+        geometry caches — distinct from the per-catchment *input* tree under
+        ``data/input``. Without ``catchment`` returns the parent ``data/catch``.
+        """
+        return self.catchments_dir / catchment if catchment else self.catchments_dir
+
+    def get_static_dir(self) -> Path:
+        """Static web assets directory (``src/static``) — JS/CSS served by the app."""
+        return self.project_root / 'src' / 'static'
+
+    def get_data_dir(self) -> Path:
+        """Top-level ``data`` directory (the shared data root containing input/output/catch)."""
+        return self.project_root / 'data'
+
     def get_governance_data_dir(self) -> Path:
         """Version-controlled governance data directory.
 

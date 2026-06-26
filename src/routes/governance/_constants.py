@@ -29,7 +29,7 @@ import os
 
 from config import config
 
-_data_dir = str(config.get_project_root() / "data")
+_data_dir = str(config.get_data_dir())
 _output_dir = str(config.get_output_dir())
 _docs_dir = str(config.get_project_root() / "docs" / "models")
 

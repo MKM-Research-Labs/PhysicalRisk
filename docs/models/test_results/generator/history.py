@@ -25,8 +25,8 @@ import os
 
 from .latex import tex_escape
 
-_history_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', 'test_history.json'))
+from config import config
+_history_path = config.get_project_root() / 'docs' / 'models' / 'test_results' / 'test_history.json'
 
 
 def _load_history():

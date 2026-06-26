@@ -51,6 +51,7 @@ def check_pipeline_complete(data_dir: Path | str | None = None) -> dict:
             from config import PortfolioConfig
             data_dir = Path(PortfolioConfig().get_input_dir())
         except (ImportError, AttributeError):
+            # config unavailable (e.g. bootstrap/standalone): derive from this file.
             import os
             catchment = os.getenv("MKM_CATCHMENT", "thames")
             data_dir = Path(__file__).resolve().parents[3] / "data" / "input" / catchment

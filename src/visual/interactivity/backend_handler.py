@@ -62,8 +62,7 @@ class BackendHandler:
 
     def get_js(self) -> str:
         """Generate JavaScript for backend communication."""
-        from pathlib import Path
-        js_path = Path(__file__).parent.parent.parent / 'static' / 'js' / 'backend-handler.js'
+        js_path = config.get_static_dir() / 'js' / 'backend-handler.js'
         js_code = js_path.read_text()
         # Use empty string for url so all API calls use relative paths.
         # The visualization HTML is always served by Flask, so

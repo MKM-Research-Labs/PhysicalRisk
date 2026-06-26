@@ -23,13 +23,12 @@
 import json
 import os
 
+from config import config
 
-_project_root = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 # Governance metadata is version-controlled repo content under
 # docs/models/governance_data/, not shared data/.
 _data_path = os.path.join(
-    _project_root, 'docs', 'models', 'governance_data', 'bcbs239_assessment.json')
+    str(config.get_governance_data_dir()), 'bcbs239_assessment.json')
 
 
 def load_assessment():

@@ -50,8 +50,8 @@ from .history import update_history
 from .report import write_model_fragment, generate_full_report
 from .compiler import compile_model_pdf
 
-_project_root = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+from config import config
+_project_root = str(config.get_project_root())
 
 
 def _parse_e2e_junit(junit_path):

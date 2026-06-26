@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial
-# research and educational use only. Any commercial use, including
-# but not limited to use in or for products or services offered for sale,
+# This software is licensed by MKM Research Labs for non-commercial 
+# research and educational use only. Any commercial use, including 
+# but not limited to use in or for products or services offered for sale, 
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -26,11 +26,11 @@ gated API, so a non-admin simply sees access-denied. See docs/db_users_and_permi
 """
 
 import logging
-from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_file
 
 import database
+from config import config
 
 from ._rbac import get_current_user, require_admin
 from .auth import set_password
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 admin_bp = Blueprint("admin", __name__)
 
-_ASSETS = Path(__file__).parent / "admin_assets"
+_ASSETS = config.get_static_dir() / "admin"
 
 
 def _actor_id():

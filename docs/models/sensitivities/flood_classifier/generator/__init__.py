@@ -34,8 +34,9 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 
 from docs.models.sensitivities import latex_table, write_tables
 
-_project_root = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '..'))
+from config import config
+
+_project_root = str(config.get_project_root())
 
 
 def _load_sample_gauge():
@@ -51,7 +52,7 @@ def _load_sample_gauge():
         TARGET_NON_ALERT,
     )
 
-    input_dir = os.path.join(_project_root, 'data', 'input', 'thames')
+    input_dir = os.path.join(str(config.get_input_root()), 'thames')
 
     # Pick first gauge from training summary
     summary_path = os.path.join(

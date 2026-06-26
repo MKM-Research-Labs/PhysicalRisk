@@ -25,15 +25,16 @@ Shared constants (SEED, FIGURES_DIR, MKM colours) and the two data
 helpers used by the sensitivity runner."""
 
 import logging
-from pathlib import Path
 
 import numpy as np
 from sklearn.datasets import make_classification
 
+from config import config
+
 logger = logging.getLogger(__name__)
 
 SEED = 42
-FIGURES_DIR = Path(__file__).parent / "figures"
+FIGURES_DIR = config.get_project_root() / "docs" / "models" / "Topology" / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
 
 MKM_BLUE = "#1565C0"

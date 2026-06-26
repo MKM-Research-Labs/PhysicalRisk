@@ -27,11 +27,10 @@ from .pdf import create_pdf_report
 
 
 def main():
-    here = Path(__file__).resolve().parent           # docs/models/hardcoding/
-    root = here.parent.parent.parent                 # project root
+    from config import config
+    root = config.get_project_root()
 
     src_dir   = root / 'src'
-    from config import config
     audit_dir = config.get_reports_dir('audit')
     audit_dir.mkdir(parents=True, exist_ok=True)
     output_path = audit_dir / 'hardcoding_report.pdf'

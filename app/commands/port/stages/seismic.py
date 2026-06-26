@@ -40,6 +40,8 @@ from pathlib import Path
 
 import numpy as np
 
+from config import config
+
 from ..context import StageContext
 
 
@@ -64,7 +66,7 @@ def _load_commercial_records(ctx: StageContext) -> list:
 
 def _catchment_dir(ctx: StageContext) -> Path:
     """The version-controlled catchment asset directory data/catch/<id>/."""
-    return Path(__file__).resolve().parents[4] / "data" / "catch" / ctx.catchment
+    return config.get_catch_dir(ctx.catchment)
 
 
 def run_seismic(ctx: StageContext):
