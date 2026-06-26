@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,23 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Coverage expansion tests for book/book.py — missing lines 116, 133, 231-237."""
+"""Coverage expansion tests for book/book.py — empty-curves raise, counterparty
+fallback, and PDF-failure handling.
 
-import json
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+Gauge hazard curves and counterparties are served through the ``database`` seam;
+the ``backend`` fixture binds a scratch catchment and the ``_seed_*`` helpers
+save into it, so the generator (defaulting to ``catchment_id='thames'``) reads
+them back."""
+
+from unittest.mock import patch
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.book.book import (
     generate_market_making_book,
     generate_trade_pdfs,
     print_book_summary,
 )
 
+_CATCHMENT = "thames"
 
-def _write_gaugehc(tmp_path, num_gauges=3):
-    """Write a minimal gaugehc.json with hazard curves."""
+
+@pytest.fixture
+def backend(tmp_path):
+    """Bind a scratch backend so the _seed_* helpers and generator share state."""
+    with tmp_catchment(tmp_path, _CATCHMENT) as repo:
+        yield repo
+
+
+def _seed_gaugehc(num_gauges=3):
+    """Seed a minimal gauge hazard-curve set through the seam."""
     curves = {}
     for i in range(num_gauges):
         gid = f"GAUGE-{i:04d}"
@@ -44,20 +59,16 @@ def _write_gaugehc(tmp_path, num_gauges=3):
             "annual_hazard_rate_warning": 0.02 + i * 0.005,
             "annual_hazard_rate_severe": 0.005 + i * 0.001,
         }
-    path = tmp_path / "gaugehc.json"
-    path.write_text(json.dumps({"hazard_curves": curves}))
-    return path
+    database.save_gauge_hazard_curves(_CATCHMENT, {"hazard_curves": curves})
 
 
-def _write_empty_gaugehc(tmp_path):
-    """Write gaugehc.json with no hazard curves."""
-    path = tmp_path / "gaugehc.json"
-    path.write_text(json.dumps({"hazard_curves": {}}))
-    return path
+def _seed_empty_gaugehc():
+    """Seed an empty hazard-curve set through the seam."""
+    database.save_gauge_hazard_curves(_CATCHMENT, {"hazard_curves": {}})
 
 
-def _write_counterparty(tmp_path, count=0):
-    """Write counterparty.json. If count=0, write empty list."""
+def _seed_counterparty(count=0):
+    """Seed a counterparty set through the seam (empty when count=0)."""
     parties = []
     for i in range(count):
         parties.append({
@@ -66,36 +77,28 @@ def _write_counterparty(tmp_path, count=0):
                 "_platform": {"ShortName": f"P{i}", "CreditRating": "AA"},
             }
         })
-    path = tmp_path / "counterparty.json"
-    path.write_text(json.dumps({"counterparties": parties}))
-    return path
+    database.save_counterparties(_CATCHMENT, {"counterparties": parties})
 
 
 class TestEmptyCurvesRaises:
-    """Line 116: empty hazard_curves dict raises ValueError."""
+    """Empty hazard_curves dict raises ValueError."""
 
-    def test_no_curves_raises_value_error(self, tmp_path):
-        ghc_path = _write_empty_gaugehc(tmp_path)
-        ctpy_path = _write_counterparty(tmp_path)
-        out_dir = tmp_path / "prs"
-        out_dir.mkdir()
+    def test_no_curves_raises_value_error(self, backend, tmp_path):
+        _seed_empty_gaugehc()
+        _seed_counterparty()
 
         with pytest.raises(ValueError, match="No hazard curves"):
-            generate_market_making_book(ghc_path, ctpy_path, out_dir)
+            generate_market_making_book(tmp_path / "prs")
 
 
 class TestFallbackCounterparties:
-    """Line 133: when counterparty file has no entries, fallback list is used."""
+    """When no counterparties exist, the fallback list is used."""
 
-    def test_empty_counterparty_file_uses_fallback(self, tmp_path):
-        ghc_path = _write_gaugehc(tmp_path, num_gauges=2)
-        ctpy_path = _write_counterparty(tmp_path, count=0)
-        out_dir = tmp_path / "prs"
-        out_dir.mkdir()
+    def test_empty_counterparty_file_uses_fallback(self, backend, tmp_path):
+        _seed_gaugehc(num_gauges=2)
+        _seed_counterparty(count=0)
 
-        trades = generate_market_making_book(
-            ghc_path, ctpy_path, out_dir, num_gauges=2, seed=1
-        )
+        trades = generate_market_making_book(tmp_path / "prs", num_gauges=2, seed=1)
         assert len(trades) > 0
         # Fallback counterparties are CTPY-001..CTPY-021
         ctpy_ids = {
@@ -103,20 +106,16 @@ class TestFallbackCounterparties:
         }
         assert all(cid.startswith("CTPY-") for cid in ctpy_ids)
 
-    def test_missing_counterparty_file_uses_fallback(self, tmp_path):
-        ghc_path = _write_gaugehc(tmp_path, num_gauges=2)
-        ctpy_path = tmp_path / "nonexistent.json"
-        out_dir = tmp_path / "prs"
-        out_dir.mkdir()
+    def test_missing_counterparty_file_uses_fallback(self, backend, tmp_path):
+        _seed_gaugehc(num_gauges=2)
+        # No counterparties seeded — the seam returns nothing, fallback applies.
 
-        trades = generate_market_making_book(
-            ghc_path, ctpy_path, out_dir, num_gauges=2, seed=1
-        )
+        trades = generate_market_making_book(tmp_path / "prs", num_gauges=2, seed=1)
         assert len(trades) > 0
 
 
 class TestGenerateTradePdfsFailure:
-    """Lines 231-237: PDF generation failure is logged, not raised."""
+    """PDF generation failure is logged, not raised."""
 
     def test_pdf_failure_returns_empty_list(self, tmp_path):
         # Build a minimal trade record

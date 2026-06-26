@@ -62,8 +62,6 @@ def cmd_book(args):
     catchment = 'thames'
     # Scope the catchment for the run (replaces permanent ``config.catchment_id =``).
     with config.use_catchment(catchment):
-        gaugehc_path = config.get_input_dir() / 'gaugehc.json'
-        counterparty_path = config.get_input_dir() / 'counterparty.json'
         output_dir = config.get_reports_dir('prs')
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -98,16 +96,12 @@ def cmd_book(args):
 
         if args.style == 'thames-central':
             trades = generate_thames_central_book(
-                gaugehc_path=gaugehc_path,
-                counterparty_path=counterparty_path,
                 output_dir=output_dir,
                 catchment_id=catchment,
                 seed=args.seed,
             )
         else:
             trades = generate_market_making_book(
-                gaugehc_path=gaugehc_path,
-                counterparty_path=counterparty_path,
                 output_dir=output_dir,
                 num_gauges=args.num_gauges,
                 catchment_id=catchment,

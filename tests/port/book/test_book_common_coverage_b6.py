@@ -25,15 +25,24 @@ Targets missing lines:
   - 208: Fallback counterparties when counterparty file exists but has empty list
 """
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.book.book_common import _build_cdm_record, _load_counterparties
+
+_CATCHMENT = "thames"
+
+
+@pytest.fixture
+def backend(tmp_path):
+    """Bind a scratch backend so counterparties seed/read through the seam."""
+    with tmp_catchment(tmp_path, _CATCHMENT) as repo:
+        yield repo
 
 
 # ---------------------------------------------------------------------------
@@ -80,34 +89,31 @@ class TestBuildCdmRecordValidationWarning:
 
 class TestLoadCounterpartiesFallback:
 
-    def test_empty_counterparty_list_uses_fallback(self, tmp_path):
-        """Line 208: file exists with empty counterparties → fallback list."""
-        path = tmp_path / "counterparty.json"
-        path.write_text(json.dumps({"counterparties": []}))
+    def test_empty_counterparty_list_uses_fallback(self, backend):
+        """Empty counterparties list → fallback list."""
+        database.save_counterparties(_CATCHMENT, {"counterparties": []})
 
-        result = _load_counterparties(path)
+        result = _load_counterparties(_CATCHMENT)
         assert len(result) == 21
         assert result[0]["id"] == "CTPY-001"
         assert result[-1]["id"] == "CTPY-021"
 
-    def test_nonexistent_file_uses_fallback(self, tmp_path):
-        """Line 207-209: file doesn't exist → fallback list."""
-        path = tmp_path / "nonexistent.json"
-        result = _load_counterparties(path)
+    def test_nonexistent_file_uses_fallback(self, backend):
+        """No counterparties seeded → seam returns nothing → fallback list."""
+        result = _load_counterparties(_CATCHMENT)
         assert len(result) == 21
 
-    def test_populated_file_returns_loaded_data(self, tmp_path):
-        """When file has entries, those are returned (not fallback)."""
+    def test_populated_file_returns_loaded_data(self, backend):
+        """When counterparties exist, those are returned (not fallback)."""
         parties = [{
             "CounterpartySet": {
                 "Party": {"PartyID": "CTPY-REAL", "PartyName": "Real Bank"},
                 "_platform": {"ShortName": "RealB", "CreditRating": "AA"},
             }
         }]
-        path = tmp_path / "counterparty.json"
-        path.write_text(json.dumps({"counterparties": parties}))
+        database.save_counterparties(_CATCHMENT, {"counterparties": parties})
 
-        result = _load_counterparties(path)
+        result = _load_counterparties(_CATCHMENT)
         assert len(result) == 1
         assert result[0]["id"] == "CTPY-REAL"
         assert "RealB" in result[0]["name"]

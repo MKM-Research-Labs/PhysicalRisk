@@ -72,7 +72,7 @@ def batch_train_classifiers(
     # ------------------------------------------------------------------
     # 1. Load gauge portfolio
     # ------------------------------------------------------------------
-    all_gauges, all_gauge_ids, spatial_model = load_gauge_training_context(input_dir)
+    all_gauges, all_gauge_ids, spatial_model = load_gauge_training_context()
 
     if not all_gauges:
         print("  No valid gauges found in gauge.json")

@@ -44,38 +44,31 @@ rebuilding manually.
 
 from __future__ import annotations
 
-import json
 import logging
 import threading
-from pathlib import Path
 from typing import Dict, List, Optional
 
-from config import config
+import database
 
 logger = logging.getLogger(__name__)
 
 
-def _typhoon_dir() -> Path:
-    """Active catchment's typhoon directory under data/input/<catch>/."""
-    return config.get_input_dir() / "typhoon"
-
-
 def _load_typhoon_index() -> List[Dict]:
-    """Walk damage/EVT-*.json once and build the typhoon severity index.
+    """Walk the typhoon damage events once and build the typhoon severity index.
 
     Returns a list of {event_id, scenario_family, peak_wind_ms,
-    mean_damage_ratio} dicts. Empty if the typhoon stage hasn't run.
+    mean_damage_ratio} dicts. Empty if the typhoon stage hasn't run. Events are
+    read for the active catchment through the ``database`` seam, keyed on the
+    event id (the same ``EVT-*`` key the storm stage writes); a corrupt event is
+    logged and skipped.
     """
-    damage_dir = _typhoon_dir() / "damage"
-    if not damage_dir.exists():
-        return []
+    catchment = database.active_catchment()
     index: List[Dict] = []
-    for fp in sorted(damage_dir.glob("EVT-*.json")):
+    for eid in sorted(database.iter_typhoon_event_ids(catchment)):
         try:
-            with open(fp, "r") as f:
-                data = json.load(f)
-        except (OSError, json.JSONDecodeError) as exc:
-            logger.warning("storm_typhoon_pairing: skipping %s (%s)", fp.name, exc)
+            data = database.get_typhoon_event(catchment, eid) or {}
+        except (OSError, ValueError) as exc:
+            logger.warning("storm_typhoon_pairing: skipping %s (%s)", eid, exc)
             continue
         damages = data.get("damages") or []
         if not damages:
@@ -83,7 +76,7 @@ def _load_typhoon_index() -> List[Dict]:
         peaks = [d.get("peak_sustained_ms", 0.0) for d in damages]
         ratios = [d.get("damage_ratio", 0.0) for d in damages]
         index.append({
-            "event_id": data.get("event_id") or fp.stem,
+            "event_id": data.get("event_id") or eid,
             "scenario_family": data.get("scenario_family", "unknown"),
             "peak_wind_ms": max(peaks) if peaks else 0.0,
             "mean_damage_ratio": sum(ratios) / len(ratios) if ratios else 0.0,
@@ -92,20 +85,18 @@ def _load_typhoon_index() -> List[Dict]:
 
 
 def _load_storm_event_map() -> List[Dict]:
-    """Read storm_sequences.json → [{sequence_id, event_id}, …] in file order.
+    """Read storm sequences → [{sequence_id, event_id}, …] in sequence order.
 
     Only sequences carrying both a ``sequence_id`` and a non-empty ``event_id``
     are returned — the ``event_id`` is the shared 1:1 key written by the storm
-    stage (Stage 2). Empty when the file is missing/unreadable or pre-coupling.
+    stage (Stage 2). Empty when the sequences are absent/unreadable or
+    pre-coupling. Read for the active catchment through the ``database`` seam.
     """
-    seq_path = config.get_input_path("storm_sequences.json")
-    if not seq_path.exists():
-        return []
+    catchment = database.active_catchment()
     try:
-        with open(seq_path, "r") as f:
-            data = json.load(f)
-    except (OSError, json.JSONDecodeError) as exc:
-        logger.warning("storm_typhoon_pairing: cannot read %s (%s)", seq_path, exc)
+        data = database.get_storm_sequences(catchment) or {}
+    except (OSError, ValueError) as exc:
+        logger.warning("storm_typhoon_pairing: cannot read storm sequences (%s)", exc)
         return []
     out: List[Dict] = []
     for seq in data.get("sequences", []):

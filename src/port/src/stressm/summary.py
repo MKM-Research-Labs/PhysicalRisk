@@ -62,29 +62,26 @@ def update_training_summary(result: dict, stressm_dir: Path):
         json.dump(summary, f, indent=2)
 
 
-def load_gauge_training_context(input_dir: Path):
+def load_gauge_training_context():
     """Load gauge portfolio, parse gauges, and build spatial model.
 
-    Parameters
-    ----------
-    input_dir : Path
-        data/input/<catchment>/ containing gauge.json and gaugehd/.
+    Reads the gauge portfolio and historical (``gaugehd``) baselines for the
+    active catchment through the ``database`` seam.
 
     Returns
     -------
     tuple of (all_gauges, all_gauge_ids, spatial_model)
     """
-    from .gauge_parser import _extract_gauges, _parse_gauge, _load_gaugehd_baselines
+    import database
     from port.src.storm_multi.models.spatial_correlation import SpatialCorrelationModel
 
-    gauge_path = input_dir / "gauge.json"
-    if not gauge_path.exists():
-        raise FileNotFoundError(f"gauge.json not found at {gauge_path}")
+    from .gauge_parser import _extract_gauges, _load_gaugehd_baselines, _parse_gauge
 
-    with open(gauge_path) as f:
-        gauge_json = json.load(f)
+    gauge_json = database.get_gauge_portfolio(database.active_catchment())
+    if not gauge_json:
+        raise FileNotFoundError("gauge portfolio not found for the active catchment")
 
-    baselines = _load_gaugehd_baselines(input_dir / "gaugehd")
+    baselines = _load_gaugehd_baselines()
     raw_gauges = _extract_gauges(gauge_json)
     all_gauges = [
         p for r in raw_gauges

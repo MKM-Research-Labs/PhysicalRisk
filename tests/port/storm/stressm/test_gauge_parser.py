@@ -25,10 +25,32 @@ Covers _load_gaugehd_baselines, _seasonal_base_level, and _parse_gauge
 with historical baselines (gaugehd) and monthly seasonality.
 """
 
-import json
-from pathlib import Path
-
 import pytest
+from db_helpers import tmp_catchment
+
+import database
+
+_CATCHMENT = "thames"
+
+
+@pytest.fixture
+def seam_tmp(tmp_path):
+    """Bind a scratch seam backend for gauge-history (gaugehd) reads."""
+    with tmp_catchment(tmp_path, _CATCHMENT):
+        yield
+
+
+def _seed_gaugehd(key, gauge_id, mean=None, monthly=None):
+    """Seed one gaugehd record into the seam (keyed on the gauge_{key}_hd id)."""
+    stats = {}
+    if mean is not None:
+        stats["mean_level"] = mean
+    if monthly is not None:
+        stats["monthly_means"] = monthly
+    database.save_gauge_history(_CATCHMENT, key, {
+        "gauge_metadata": {"gauge_id": gauge_id},
+        "statistics": stats,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -36,73 +58,48 @@ import pytest
 # ---------------------------------------------------------------------------
 
 class TestLoadGaugehdBaselines:
-    """Load historical water level baselines from gaugehd/ directory."""
+    """Load historical water level baselines through the gauge-history seam."""
 
-    def test_empty_directory(self, tmp_path):
+    def test_no_history(self, seam_tmp):
         from port.src.stressm.gauge_parser import _load_gaugehd_baselines
-        d = tmp_path / "gaugehd"
-        d.mkdir()
-        assert _load_gaugehd_baselines(d) == {}
+        assert _load_gaugehd_baselines() == {}
 
-    def test_missing_directory(self, tmp_path):
+    def test_valid_gaugehd(self, seam_tmp):
         from port.src.stressm.gauge_parser import _load_gaugehd_baselines
-        assert _load_gaugehd_baselines(tmp_path / "nonexistent") == {}
-
-    def test_valid_gaugehd_files(self, tmp_path):
-        from port.src.stressm.gauge_parser import _load_gaugehd_baselines
-        d = tmp_path / "gaugehd"
-        d.mkdir()
-        data = {
-            "gauge_metadata": {"gauge_id": "GAUGE-001"},
-            "statistics": {
-                "mean_level": 1.25,
-                "monthly_means": {"01": 1.4, "07": 0.9},
-            },
-        }
-        (d / "gauge_001_hd.json").write_text(json.dumps(data))
-        baselines = _load_gaugehd_baselines(d)
+        _seed_gaugehd("001", "GAUGE-001", mean=1.25,
+                      monthly={"01": 1.4, "07": 0.9})
+        baselines = _load_gaugehd_baselines()
         assert "GAUGE-001" in baselines
         assert baselines["GAUGE-001"]["mean_level"] == 1.25
         assert baselines["GAUGE-001"]["monthly_means"]["01"] == 1.4
 
-    def test_multiple_gauges(self, tmp_path):
+    def test_multiple_gauges(self, seam_tmp):
         from port.src.stressm.gauge_parser import _load_gaugehd_baselines
-        d = tmp_path / "gaugehd"
-        d.mkdir()
         for i in range(3):
-            data = {
-                "gauge_metadata": {"gauge_id": f"GAUGE-{i:03d}"},
-                "statistics": {"mean_level": 1.0 + i * 0.1},
-            }
-            (d / f"gauge_{i:03d}_hd.json").write_text(json.dumps(data))
-        baselines = _load_gaugehd_baselines(d)
+            _seed_gaugehd(f"{i:03d}", f"GAUGE-{i:03d}", mean=1.0 + i * 0.1)
+        baselines = _load_gaugehd_baselines()
         assert len(baselines) == 3
 
-    def test_corrupt_file_skipped(self, tmp_path):
+    def test_corrupt_record_skipped(self, seam_tmp, monkeypatch):
         from port.src.stressm.gauge_parser import _load_gaugehd_baselines
-        d = tmp_path / "gaugehd"
-        d.mkdir()
-        (d / "gauge_bad_hd.json").write_text("NOT JSON")
-        good = {
-            "gauge_metadata": {"gauge_id": "GAUGE-OK"},
-            "statistics": {"mean_level": 2.0},
-        }
-        (d / "gauge_ok_hd.json").write_text(json.dumps(good))
-        baselines = _load_gaugehd_baselines(d)
+        _seed_gaugehd("ok", "GAUGE-OK", mean=2.0)
+        _seed_gaugehd("bad", "GAUGE-BAD", mean=3.0)
+        real_get = database.get_gauge_history
+
+        def flaky(catchment, key):
+            if key == "bad":
+                raise ValueError("corrupt record")
+            return real_get(catchment, key)
+
+        monkeypatch.setattr(database, "get_gauge_history", flaky)
+        baselines = _load_gaugehd_baselines()
         assert len(baselines) == 1
         assert "GAUGE-OK" in baselines
 
-    def test_missing_mean_level_skipped(self, tmp_path):
+    def test_missing_mean_level_skipped(self, seam_tmp):
         from port.src.stressm.gauge_parser import _load_gaugehd_baselines
-        d = tmp_path / "gaugehd"
-        d.mkdir()
-        data = {
-            "gauge_metadata": {"gauge_id": "GAUGE-NOLEVEL"},
-            "statistics": {},
-        }
-        (d / "gauge_nolevel_hd.json").write_text(json.dumps(data))
-        baselines = _load_gaugehd_baselines(d)
-        assert len(baselines) == 0
+        _seed_gaugehd("nolevel", "GAUGE-NOLEVEL")  # no mean_level
+        assert _load_gaugehd_baselines() == {}
 
 
 # ---------------------------------------------------------------------------

@@ -21,17 +21,26 @@
 """Tests for property book generator — covers _select_properties,
 _lookup_property_metadata, and generate_property_book. (part 3)"""
 
-import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.book.book_property import (
-    _select_properties,
     _lookup_property_metadata,
+    _select_properties,
     generate_property_book,
 )
+
+_CATCHMENT = "thames"
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend so the property book reads seeded seam data."""
+    with tmp_catchment(tmp_path, _CATCHMENT):
+        yield
 
 
 # ---------------------------------------------------------------------------
@@ -94,41 +103,34 @@ def _make_counterparty_entry(name='Acme Re', lei='LEI123'):
 
 class _PropertyBookSetup:
 
-    def _write_json(self, path, data):
-        path.write_text(json.dumps(data))
-
     def _setup_files(self, tmp_path, phc_curves=None, properties=None,
                      counterparties=None, num_storms=20000, bri_curves=None):
-        phc_path = tmp_path / 'propertyhc.json'
-        prop_path = tmp_path / 'property.json'
-        ctpy_path = tmp_path / 'counterparty.json'
+        """Seed the property hazard curves + portfolio into the database seam.
+
+        Counterparties are not seeded — the property book uses a fixed REIT and
+        the tests mock ``_load_counterparties`` — so the ``counterparties`` arg
+        is accepted for back-compat but unused. Returns the output directory."""
         out_dir = tmp_path / 'output'
 
         if phc_curves is None:
             phc_curves = {}
-        phc_data = {
+        database.save_property_hazard_curves(_CATCHMENT, {
             'metadata': {'num_storms': num_storms},
             'property_hazard_curves': phc_curves,
-        }
-        self._write_json(phc_path, phc_data)
+        })
 
         if properties is None:
             properties = []
-        self._write_json(prop_path, {'properties': properties})
+        database.save_properties(_CATCHMENT, {'properties': properties})
 
-        if counterparties is None:
-            counterparties = [_make_counterparty_entry()]
-        self._write_json(ctpy_path, counterparties)
-
-        # Optional BRI-adjusted curve file (the resilient leg source).
+        # Optional BRI-adjusted curves (the resilient leg source, 'bri' mode).
         if bri_curves is not None:
-            bri_path = tmp_path / 'propertybri.json'
-            self._write_json(bri_path, {
+            database.save_property_hazard_curves(_CATCHMENT, {
                 'metadata': {'num_storms': num_storms},
                 'property_hazard_curves': bri_curves,
-            })
+            }, mode='bri')
 
-        return phc_path, prop_path, ctpy_path, out_dir
+        return out_dir
 
 
 # ---------------------------------------------------------------------------
@@ -148,12 +150,12 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
         curve['nearest_gauges'] = []   # empty
         curves = {'P1': curve}
         props = [_make_property_entry('P1')]
-        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+        out_dir = self._setup_files(
             tmp_path, phc_curves=curves, properties=props,
         )
 
         trades = generate_property_book(
-            phc_path, prop_path, ctpy_path, out_dir, seed=4,
+            out_dir, seed=4,
         )
 
         assert trades == []
@@ -169,12 +171,12 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
         curves = {f'P{i}': _make_phc_curve(flood_count=(i + 1) * 10)
                   for i in range(6)}
         props = [_make_property_entry(f'P{i}') for i in range(6)]
-        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+        out_dir = self._setup_files(
             tmp_path, phc_curves=curves, properties=props,
         )
 
         generate_property_book(
-            phc_path, prop_path, ctpy_path, out_dir, seed=42,
+            out_dir, seed=42,
         )
 
         for call in mock_price.call_args_list:
@@ -192,12 +194,12 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
         curves = {'P1': _make_phc_curve(flood_count=30, gauge_id='G999',
                                         gauge_name='River Test')}
         props = [_make_property_entry('P1')]
-        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+        out_dir = self._setup_files(
             tmp_path, phc_curves=curves, properties=props,
         )
 
         generate_property_book(
-            phc_path, prop_path, ctpy_path, out_dir, seed=5,
+            out_dir, seed=5,
         )
 
         pset = mock_price.call_args[1]['property_set']
@@ -216,18 +218,18 @@ class TestResilientFlavour(_PropertyBookSetup):
     @patch('port.src.book.book_property._core._load_counterparties')
     def test_no_resilient_when_bri_file_absent(self, mock_load_ctpy,
                                                mock_price, tmp_path):
-        """Without propertybri_path only the pure flavour is booked."""
+        """Without include_resilient only the pure flavour is booked."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
         mock_price.return_value = ({'trade_id': 'T1'}, 1)
 
         curves = {'P1': _make_phc_curve(flood_count=40)}
         props = [_make_property_entry('P1')]
-        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+        out_dir = self._setup_files(
             tmp_path, phc_curves=curves, properties=props,
         )
 
         trades = generate_property_book(
-            phc_path, prop_path, ctpy_path, out_dir, seed=11,
+            out_dir, seed=11,
         )
 
         assert len(trades) == 1
@@ -250,13 +252,13 @@ class TestResilientFlavour(_PropertyBookSetup):
         bri = {'P1': _make_phc_curve(
             flood_count=32, tenors=[1, 2, 3, 5], spreads=[40, 64, 96, 168])}
         props = [_make_property_entry('P1')]
-        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+        out_dir = self._setup_files(
             tmp_path, phc_curves=curves, properties=props, bri_curves=bri,
         )
 
         trades = generate_property_book(
-            phc_path, prop_path, ctpy_path, out_dir, seed=11,
-            propertybri_path=tmp_path / 'propertybri.json',
+            out_dir, seed=11,
+            include_resilient=True,
         )
 
         assert len(trades) == 2
@@ -280,13 +282,13 @@ class TestResilientFlavour(_PropertyBookSetup):
         curves = {'P1': _make_phc_curve(flood_count=40)}
         bri = {'P2': _make_phc_curve(flood_count=10)}  # different property
         props = [_make_property_entry('P1')]
-        phc_path, prop_path, ctpy_path, out_dir = self._setup_files(
+        out_dir = self._setup_files(
             tmp_path, phc_curves=curves, properties=props, bri_curves=bri,
         )
 
         trades = generate_property_book(
-            phc_path, prop_path, ctpy_path, out_dir, seed=11,
-            propertybri_path=tmp_path / 'propertybri.json',
+            out_dir, seed=11,
+            include_resilient=True,
         )
 
         assert len(trades) == 1

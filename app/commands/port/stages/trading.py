@@ -95,8 +95,6 @@ def run_blotter(ctx: StageContext):
         # Thames uses a curated 50-trade book hard-mapped to inner-London
         # gauges (Westminster, Lambeth, Southwark, etc.).
         trades = generate_thames_central_book(
-            gaugehc_path=config.get_input_dir() / 'gaugehc.json',
-            counterparty_path=config.get_input_dir() / 'counterparty.json',
             output_dir=blotter_dir,
             catchment_id=ctx.catchment,
             seed=42,
@@ -106,8 +104,6 @@ def run_blotter(ctx: StageContext):
         # Other catchments use the algorithmic market-making book, which
         # picks gauges from gaugehc.json without any hardcoded area names.
         trades = generate_market_making_book(
-            gaugehc_path=config.get_input_dir() / 'gaugehc.json',
-            counterparty_path=config.get_input_dir() / 'counterparty.json',
             output_dir=blotter_dir,
             num_gauges=12,
             catchment_id=ctx.catchment,
@@ -117,13 +113,10 @@ def run_blotter(ctx: StageContext):
 
     # Property PRS client trades
     prop_trades = generate_property_book(
-        propertyhc_path=config.get_input_dir() / 'propertyhc.json',
-        property_path=config.get_input_dir() / 'property.json',
-        counterparty_path=config.get_input_dir() / 'counterparty.json',
         output_dir=blotter_dir,
         catchment_id=ctx.catchment,
         seed=43,
-        propertybri_path=config.get_input_dir() / 'propertybri.json',
+        include_resilient=True,
     )
     trades.extend(prop_trades)
     if prop_trades:

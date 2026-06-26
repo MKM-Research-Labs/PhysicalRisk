@@ -20,17 +20,16 @@
 
 """PRS CDM record construction and counterparty loading."""
 
-import json
 import logging
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Dict, List, Optional
 
+import database
 from config import config
 from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
 
-from ._constants import DEFAULT_YIELD_CURVE, RECOVERY, _REIT_PARTY_ID
+from ._constants import _REIT_PARTY_ID, DEFAULT_YIELD_CURVE, RECOVERY
 
 logger = logging.getLogger(__name__)
 
@@ -142,17 +141,16 @@ def _build_cdm_record(
     return record
 
 
-def _load_counterparties(counterparty_path: Path) -> List[Dict]:
-    """Load counterparties from JSON file, excluding the REIT.
+def _load_counterparties(catchment_id: str) -> List[Dict]:
+    """Load counterparties for *catchment_id* via the database seam, excluding the REIT.
 
     Returns the random pool of external counterparties (banks, insurers,
     reinsurers, etc.) suitable for gauge-PRS assignment. The REIT is
     filtered because it is reserved for property-PRS trades only.
     """
     counterparties = []
-    if counterparty_path.exists():
-        with open(counterparty_path) as f:
-            ctpy_data = json.load(f)
+    ctpy_data = database.get_counterparty_portfolio(catchment_id)
+    if ctpy_data:
         for c in ctpy_data.get('counterparties', []):
             cs = c.get('CounterpartySet', {})
             party = cs.get('Party', {})

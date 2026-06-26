@@ -124,8 +124,14 @@ class TestGenerateStressmFiles:
 # ---------------------------------------------------------------------------
 
 class TestMissingGaugeJson:
+    """No gauge portfolio in the seam — graceful degradation.
+
+    The autouse conftest backend seeds a 3-gauge portfolio; these tests override
+    it with an empty portfolio to exercise the no-gauge path (the orchestrator
+    reads the portfolio through the database seam, not from input_dir)."""
 
     def test_no_crash_when_gauge_json_absent(self, tmp_path):
+        database.save_gauges(database.active_catchment(), {"flood_gauges": []})
         result = generate_stressm(
             input_dir=tmp_path,
             output_dir=tmp_path,
@@ -136,6 +142,7 @@ class TestMissingGaugeJson:
         assert isinstance(result, dict)
 
     def test_sequences_still_written_without_gauge_json(self, tmp_path):
+        database.save_gauges(database.active_catchment(), {"flood_gauges": []})
         generate_stressm(
             input_dir=tmp_path,
             output_dir=tmp_path,
@@ -146,6 +153,7 @@ class TestMissingGaugeJson:
         assert database.get_storm_sequences(database.active_catchment()) is not None
 
     def test_num_gauges_zero_without_gauge_json(self, tmp_path):
+        database.save_gauges(database.active_catchment(), {"flood_gauges": []})
         result = generate_stressm(
             input_dir=tmp_path,
             output_dir=tmp_path,
@@ -163,14 +171,14 @@ class TestMissingGaugeJson:
 class TestNoValidGauges:
 
     def test_returns_gracefully_when_all_gauges_invalid(self, tmp_path):
-        """gauge.json present but every record missing gauge_id → n_all == 0."""
+        """Portfolio present but every record missing gauge_id → n_all == 0."""
         bad_gauge_json = {
             "flood_gauges": [
                 {"FloodGauge": {"Header": {}, "Location": {}, "FloodStages": {}}},
                 {"FloodGauge": {"Header": {}, "Location": {}, "FloodStages": {}}},
             ]
         }
-        (tmp_path / "gauge.json").write_text(json.dumps(bad_gauge_json))
+        database.save_gauges(database.active_catchment(), bad_gauge_json)
         result = generate_stressm(
             input_dir=tmp_path,
             output_dir=tmp_path,
@@ -186,7 +194,7 @@ class TestNoValidGauges:
         bad_gauge_json = {"flood_gauges": [
             {"FloodGauge": {"Header": {}, "Location": {}, "FloodStages": {}}}
         ]}
-        (tmp_path / "gauge.json").write_text(json.dumps(bad_gauge_json))
+        database.save_gauges(database.active_catchment(), bad_gauge_json)
         generate_stressm(input_dir=tmp_path, output_dir=tmp_path, count=5, seed=0)
         assert database.get_storm_sequences(database.active_catchment()) is not None
 

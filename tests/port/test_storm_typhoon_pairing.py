@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -20,73 +20,67 @@
 
 """Unit tests for the true 1:1 storm ↔ typhoon pairing (shared event_id).
 
-Replaces the retired severity-bucket linkage tests. Catchment-agnostic:
-builds a synthetic typhoon/damage/ tree and a storm_sequences.json (carrying
-event_id per sequence) inside tmp_path. No on-disk catchment data assumed.
-"""
-
-import json
+Catchment-agnostic: seeds synthetic typhoon damage events and storm sequences
+(carrying event_id per sequence) into the ``database`` seam via a scratch
+``tmp_catchment`` backend. No on-disk catchment data assumed."""
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port import storm_typhoon_pairing as stp
+
+_CATCHMENT = "thames"
 
 
 @pytest.fixture
-def cfg_tmp(tmp_path, monkeypatch):
-    from config import config
-    monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
-    monkeypatch.setattr(config, "get_input_path", lambda fname: tmp_path / fname)
-    stp.invalidate_cache()
-    yield tmp_path
-    stp.invalidate_cache()
+def seam_tmp(tmp_path):
+    """Bind a scratch seam backend and reset the pairing cache around the test."""
+    with tmp_catchment(tmp_path, _CATCHMENT):
+        stp.invalidate_cache()
+        yield
+        stp.invalidate_cache()
 
 
-def _write_damage(tmp_path, event_id, family, damages):
-    dmg_dir = tmp_path / "typhoon" / "damage"
-    dmg_dir.mkdir(parents=True, exist_ok=True)
-    (dmg_dir / f"{event_id}.json").write_text(json.dumps({
-        "event_id": event_id,
-        "scenario_family": family,
-        "damages": damages,
-    }))
+def _write_damage(event_id, family, damages, *, with_event_id=True):
+    """Seed one typhoon damage event into the seam (keyed on event_id)."""
+    payload = {"scenario_family": family, "damages": damages}
+    if with_event_id:
+        payload["event_id"] = event_id
+    database.save_typhoon_event(_CATCHMENT, event_id, payload)
 
 
-def _write_sequences(tmp_path, sequences):
-    (tmp_path / "storm_sequences.json").write_text(
-        json.dumps({"sequences": sequences}))
+def _write_sequences(sequences):
+    """Seed the storm sequences document into the seam."""
+    database.save_storm_sequences(_CATCHMENT, {"sequences": sequences})
 
 
-# ---------------------------------------------------------------------------
-# _typhoon_dir
-# ---------------------------------------------------------------------------
-
-def test_typhoon_dir(cfg_tmp):
-    assert stp._typhoon_dir() == cfg_tmp / "typhoon"
+def _raise_value_error(*_a, **_k):
+    raise ValueError("corrupt record")
 
 
 # ---------------------------------------------------------------------------
 # _load_typhoon_index
 # ---------------------------------------------------------------------------
 
-def test_load_typhoon_index_missing_dir(cfg_tmp):
+def test_load_typhoon_index_no_events(seam_tmp):
     assert stp._load_typhoon_index() == []
 
 
-def test_load_typhoon_index_bad_json_skipped(cfg_tmp):
-    dmg_dir = cfg_tmp / "typhoon" / "damage"
-    dmg_dir.mkdir(parents=True)
-    (dmg_dir / "EVT-0001.json").write_text("{not json")
+def test_load_typhoon_index_corrupt_event_skipped(seam_tmp, monkeypatch):
+    _write_damage("EVT-0001", "extreme",
+                  [{"peak_sustained_ms": 10.0, "damage_ratio": 0.1}])
+    monkeypatch.setattr(database, "get_typhoon_event", _raise_value_error)
     assert stp._load_typhoon_index() == []
 
 
-def test_load_typhoon_index_empty_damages_skipped(cfg_tmp):
-    _write_damage(cfg_tmp, "EVT-0001", "extreme", [])
+def test_load_typhoon_index_empty_damages_skipped(seam_tmp):
+    _write_damage("EVT-0001", "extreme", [])
     assert stp._load_typhoon_index() == []
 
 
-def test_load_typhoon_index_parses(cfg_tmp):
-    _write_damage(cfg_tmp, "EVT-0001", "extreme", [
+def test_load_typhoon_index_parses(seam_tmp):
+    _write_damage("EVT-0001", "extreme", [
         {"peak_sustained_ms": 40.0, "damage_ratio": 0.2},
         {"peak_sustained_ms": 60.0, "damage_ratio": 0.4},
     ])
@@ -98,13 +92,10 @@ def test_load_typhoon_index_parses(cfg_tmp):
     assert idx[0]["mean_damage_ratio"] == pytest.approx(0.3)
 
 
-def test_load_typhoon_index_event_id_falls_back_to_stem(cfg_tmp):
-    dmg_dir = cfg_tmp / "typhoon" / "damage"
-    dmg_dir.mkdir(parents=True)
-    (dmg_dir / "EVT-0007.json").write_text(json.dumps({
-        "scenario_family": "severe",
-        "damages": [{"peak_sustained_ms": 10.0, "damage_ratio": 0.1}],
-    }))
+def test_load_typhoon_index_event_id_falls_back_to_key(seam_tmp):
+    _write_damage("EVT-0007", "severe",
+                  [{"peak_sustained_ms": 10.0, "damage_ratio": 0.1}],
+                  with_event_id=False)
     idx = stp._load_typhoon_index()
     assert idx[0]["event_id"] == "EVT-0007"
 
@@ -113,17 +104,17 @@ def test_load_typhoon_index_event_id_falls_back_to_stem(cfg_tmp):
 # _load_storm_event_map
 # ---------------------------------------------------------------------------
 
-def test_load_storm_event_map_missing_file(cfg_tmp):
+def test_load_storm_event_map_missing(seam_tmp):
     assert stp._load_storm_event_map() == []
 
 
-def test_load_storm_event_map_bad_json(cfg_tmp):
-    (cfg_tmp / "storm_sequences.json").write_text("{bad")
+def test_load_storm_event_map_corrupt(seam_tmp, monkeypatch):
+    monkeypatch.setattr(database, "get_storm_sequences", _raise_value_error)
     assert stp._load_storm_event_map() == []
 
 
-def test_load_storm_event_map_skips_idless_and_eventless(cfg_tmp):
-    _write_sequences(cfg_tmp, [
+def test_load_storm_event_map_skips_idless_and_eventless(seam_tmp):
+    _write_sequences([
         {"sequence_id": "SEQ-A", "event_id": "EVT-00000"},
         {"event_id": "EVT-00001"},                 # no sequence_id
         {"sequence_id": "SEQ-C"},                   # no event_id (pre-coupling)
@@ -140,8 +131,8 @@ def test_load_storm_event_map_skips_idless_and_eventless(cfg_tmp):
 # build_pairing — direct 1:1 join on event_id
 # ---------------------------------------------------------------------------
 
-def test_build_pairing_empty_when_no_typhoons(cfg_tmp):
-    _write_sequences(cfg_tmp, [{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
+def test_build_pairing_empty_when_no_typhoons(seam_tmp):
+    _write_sequences([{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
     result = stp.build_pairing()
     assert result["storm_to_typhoon"] == {}
     assert result["typhoon_to_storm"] == {}
@@ -149,23 +140,23 @@ def test_build_pairing_empty_when_no_typhoons(cfg_tmp):
     assert result["diagnostics"]["flood_only_storms"] == 1
 
 
-def test_build_pairing_empty_when_no_floods(cfg_tmp):
-    _write_damage(cfg_tmp, "EVT-00000", "extreme",
+def test_build_pairing_empty_when_no_floods(seam_tmp):
+    _write_damage("EVT-00000", "extreme",
                   [{"peak_sustained_ms": 50.0, "damage_ratio": 0.3}])
     result = stp.build_pairing()
     assert result["storm_to_typhoon"] == {}
     assert result["diagnostics"]["unmatched_typhoons"] == ["EVT-00000"]
 
 
-def test_build_pairing_joins_on_shared_event_id(cfg_tmp):
+def test_build_pairing_joins_on_shared_event_id(seam_tmp):
     # The pairing is purely the shared event_id — NOT precipitation/wind rank.
-    _write_sequences(cfg_tmp, [
+    _write_sequences([
         {"sequence_id": "SEQ-A", "event_id": "EVT-00000"},
         {"sequence_id": "SEQ-B", "event_id": "EVT-00001"},
     ])
-    _write_damage(cfg_tmp, "EVT-00000", "extreme",
+    _write_damage("EVT-00000", "extreme",
                   [{"peak_sustained_ms": 70.0, "damage_ratio": 0.5}])
-    _write_damage(cfg_tmp, "EVT-00001", "baseline",
+    _write_damage("EVT-00001", "baseline",
                   [{"peak_sustained_ms": 25.0, "damage_ratio": 0.05}])
     result = stp.build_pairing()
     s2t = result["storm_to_typhoon"]
@@ -178,13 +169,13 @@ def test_build_pairing_joins_on_shared_event_id(cfg_tmp):
     assert result["diagnostics"]["unmatched_typhoons"] == []
 
 
-def test_build_pairing_flood_only_when_event_has_no_damage(cfg_tmp):
+def test_build_pairing_flood_only_when_event_has_no_damage(seam_tmp):
     # SEQ-A's typhoon ran; SEQ-B's event_id has no damage roll (flood-only).
-    _write_sequences(cfg_tmp, [
+    _write_sequences([
         {"sequence_id": "SEQ-A", "event_id": "EVT-00000"},
         {"sequence_id": "SEQ-B", "event_id": "EVT-00001"},
     ])
-    _write_damage(cfg_tmp, "EVT-00000", "severe",
+    _write_damage("EVT-00000", "severe",
                   [{"peak_sustained_ms": 45.0, "damage_ratio": 0.2}])
     result = stp.build_pairing()
     assert set(result["storm_to_typhoon"]) == {"SEQ-A"}
@@ -195,34 +186,34 @@ def test_build_pairing_flood_only_when_event_has_no_damage(cfg_tmp):
 # Caching + public lookups
 # ---------------------------------------------------------------------------
 
-def test_get_pairing_caches(cfg_tmp):
-    _write_sequences(cfg_tmp, [{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
-    _write_damage(cfg_tmp, "EVT-00000", "extreme",
+def test_get_pairing_caches(seam_tmp):
+    _write_sequences([{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
+    _write_damage("EVT-00000", "extreme",
                   [{"peak_sustained_ms": 70.0, "damage_ratio": 0.5}])
     assert stp.get_pairing() is stp.get_pairing()
 
 
-def test_invalidate_cache_forces_rebuild(cfg_tmp):
-    _write_sequences(cfg_tmp, [{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
-    _write_damage(cfg_tmp, "EVT-00000", "extreme",
+def test_invalidate_cache_forces_rebuild(seam_tmp):
+    _write_sequences([{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
+    _write_damage("EVT-00000", "extreme",
                   [{"peak_sustained_ms": 70.0, "damage_ratio": 0.5}])
     first = stp.get_pairing()
     stp.invalidate_cache()
     assert stp.get_pairing() is not first
 
 
-def test_typhoon_for_storm(cfg_tmp):
-    _write_sequences(cfg_tmp, [{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
-    _write_damage(cfg_tmp, "EVT-00000", "extreme",
+def test_typhoon_for_storm(seam_tmp):
+    _write_sequences([{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
+    _write_damage("EVT-00000", "extreme",
                   [{"peak_sustained_ms": 70.0, "damage_ratio": 0.5}])
     assert stp.typhoon_for_storm("SEQ-A")["event_id"] == "EVT-00000"
     assert stp.typhoon_for_storm("SEQ-MISSING") is None
     assert stp.typhoon_for_storm("") is None
 
 
-def test_storm_for_typhoon(cfg_tmp):
-    _write_sequences(cfg_tmp, [{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
-    _write_damage(cfg_tmp, "EVT-00000", "extreme",
+def test_storm_for_typhoon(seam_tmp):
+    _write_sequences([{"sequence_id": "SEQ-A", "event_id": "EVT-00000"}])
+    _write_damage("EVT-00000", "extreme",
                   [{"peak_sustained_ms": 70.0, "damage_ratio": 0.5}])
     assert stp.storm_for_typhoon("EVT-00000") == "SEQ-A"
     assert stp.storm_for_typhoon("EVT-MISSING") is None
