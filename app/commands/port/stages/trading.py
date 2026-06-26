@@ -113,13 +113,10 @@ def run_blotter(ctx: StageContext):
 
     # Property PRS client trades
     prop_trades = generate_property_book(
-        propertyhc_path=config.get_input_dir() / 'propertyhc.json',
-        property_path=config.get_input_dir() / 'property.json',
-        counterparty_path=config.get_input_dir() / 'counterparty.json',
         output_dir=blotter_dir,
         catchment_id=ctx.catchment,
         seed=43,
-        propertybri_path=config.get_input_dir() / 'propertybri.json',
+        include_resilient=True,
     )
     trades.extend(prop_trades)
     if prop_trades:

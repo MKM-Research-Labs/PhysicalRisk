@@ -30,13 +30,13 @@ event-count fair spread from propertyhc.json term_structure rather than the
 gauge-level analytical pricer.
 """
 
-import json
 import logging
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import database
 from config.port import (
     PROPERTY_BOOK_NOTIONAL_MAX,
     PROPERTY_BOOK_NOTIONAL_MIN,
@@ -46,51 +46,48 @@ from config.port import (
     PROPERTY_BOOK_TENORS,
 )
 
-from ..book_common import _price_and_save_trade, _load_counterparties  # noqa: F401
+from ..book_common import _load_counterparties, _price_and_save_trade  # noqa: F401
 from ._select import (
-    _select_properties,
-    _match_tenor_idx,
     _lookup_property_metadata,
+    _match_tenor_idx,
+    _select_properties,
 )
 
 logger = logging.getLogger(__name__)
 
 
 def generate_property_book(
-    propertyhc_path: Path,
-    property_path: Path,
-    counterparty_path: Path,
     output_dir: Path,
     catchment_id: str = 'thames',
     seed: Optional[int] = 43,
-    propertybri_path: Optional[Path] = None,
+    include_resilient: bool = False,
 ) -> List[Dict]:
     """
     Generate a property PRS client book for the Trading Desk Client tab.
 
     Creates ~15 property-level trades across the flood-risk spectrum using
-    fair spreads from propertyhc.json and property metadata from property.json.
+    fair spreads from the property hazard curves and property metadata, both
+    read for *catchment_id* through the ``database`` seam.
 
-    Two PRS flavours are booked per eligible property when a BRI-adjusted
-    curve is available:
+    Two PRS flavours are booked per eligible property when ``include_resilient``
+    is set and a BRI-adjusted curve is available:
 
-    * ``pure`` — priced on the surveyed-floor spread (propertyhc.json); the
-      instrument ignores building resilience.
-    * ``resilient`` — priced on the BRI-adjusted floor spread
-      (propertybri.json); raising the effective flood floor removes some
-      severe floods, so the resilient spread is tighter. Each trade is tagged
-      with ``PropertySet.PRSVariant`` so the blotter can separate the lines.
+    * ``pure`` — priced on the surveyed-floor spread (default property hazard
+      curves); the instrument ignores building resilience.
+    * ``resilient`` — priced on the BRI-adjusted floor spread (the ``bri``
+      hazard-curve mode); raising the effective flood floor removes some severe
+      floods, so the resilient spread is tighter. Each trade is tagged with
+      ``PropertySet.PRSVariant`` so the blotter can separate the lines.
 
     Args:
-        propertyhc_path: Path to propertyhc.json (pure / surveyed-floor curve).
-        property_path:   Path to property.json.
-        counterparty_path: Path to counterparty.json.
         output_dir:      Directory to write PRS-P*.json trade files.
-        catchment_id:    Catchment identifier.
+        catchment_id:    Catchment identifier (hazard curves + property
+            portfolio are loaded for it through the ``database`` seam).
         seed:            Random seed (default 43, distinct from gauge book's 42).
-        propertybri_path: Optional path to propertybri.json (BRI-adjusted
-            curve). When present and a property has a BRI curve, a second
-            ``resilient`` trade is booked alongside the ``pure`` one.
+        include_resilient: When True, also read the BRI-adjusted (``bri`` mode)
+            hazard curves and book a ``resilient`` trade alongside the ``pure``
+            one for each property that has a BRI curve. When the BRI curves have
+            not been generated yet the resilient leg is simply omitted.
 
     Returns:
         List of generated CDM records.
@@ -98,10 +95,9 @@ def generate_property_book(
     if seed is not None:
         random.seed(seed)
 
-    # Load propertyhc curves
-    with open(propertyhc_path) as f:
-        phc_data = json.load(f)
-    phc_curves = phc_data.get('property_hazard_curves', {})
+    # Load property hazard curves (default / surveyed-floor mode) via the seam.
+    phc_data = database.get_property_hazard_curves(catchment_id)
+    phc_curves = (phc_data or {}).get('property_hazard_curves', {})
     if not phc_curves:
         logger.warning('No property hazard curves found — skipping property book')
         return []
@@ -109,14 +105,13 @@ def generate_property_book(
     # Load BRI-adjusted curves (optional). Absent until the propertybri stage
     # has run — the book then simply omits the resilient leg.
     bri_curves = {}
-    if propertybri_path is not None and Path(propertybri_path).exists():
-        with open(propertybri_path) as f:
-            bri_curves = json.load(f).get('property_hazard_curves', {})
+    if include_resilient:
+        bri_data = database.get_property_hazard_curves(catchment_id, mode='bri')
+        bri_curves = (bri_data or {}).get('property_hazard_curves', {})
 
-    # Load property metadata
-    with open(property_path) as f:
-        prop_data = json.load(f)
-    properties = prop_data.get('properties', [])
+    # Load property metadata via the seam.
+    prop_data = database.get_property_portfolio(catchment_id)
+    properties = (prop_data or {}).get('properties', [])
 
     # Property PRS: all trades are between the REIT (buyer) and the desk
     # (seller).  Use a fixed REIT counterparty rather than cycling dealers.
