@@ -23,8 +23,8 @@
 The artifact-based functions (``get_property`` etc.) are the preferred API. These
 directory/filename helpers exist only so the path-based loaders under ``src/loaders/``
 read through the ``database`` package rather than calling ``json``/``glob`` themselves
-(coding rule R6 — single point of file I/O). They retain the loaders' need for
-arbitrary filenames (``file_overrides``, custom-filename construction).
+(coding rule R6 — single point of file I/O). They support the loaders' need for
+custom-filename construction.
 """
 
 from __future__ import annotations

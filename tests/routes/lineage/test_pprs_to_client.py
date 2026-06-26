@@ -28,9 +28,6 @@ PropertySet fields intact.
 Uses monkeypatch + tmp_path to isolate from production data.
 """
 
-import json
-import shutil
-
 import pytest
 
 
@@ -101,35 +98,17 @@ SAMPLE_PPRS_TRADE = {
 
 
 @pytest.fixture
-def lineage_client(tmp_path, monkeypatch):
-    """Flask test client with a single PPRS trade file in an isolated prs/ dir."""
+def lineage_client(isolated_input_dir, lineage_app):
+    """Flask test client with a single PPRS trade seeded through the seam into an
+    isolated catchment input dir (see ``isolated_input_dir`` / ``lineage_app`` in
+    conftest), so the write never touches real data."""
+    import database
     from config import config
-    from server import create_app
 
-    prs_dir = tmp_path / "reports" / "prs"
-    prs_dir.mkdir(parents=True)
-    trading_dir = tmp_path / "trading"
-    trading_dir.mkdir(parents=True)
-
-    # Copy market state so dependent engines can load
-    prod_trading = config.get_trading_dir()
-    for fname in ("market_state.json", "trade_marks.json"):
-        src = prod_trading / fname
-        if src.exists():
-            shutil.copy(src, trading_dir / fname)
-
-    # Write the PPRS trade file
     swap_id = SAMPLE_PPRS_TRADE['PhysicalSwap']['Header']['SwapID']
-    with open(prs_dir / f"{swap_id}.json", "w") as f:
-        json.dump(SAMPLE_PPRS_TRADE, f)
+    database.save_prs_trade(config.catchment_id, swap_id, SAMPLE_PPRS_TRADE)
 
-    monkeypatch.setattr(config, "get_reports_dir",
-                        lambda name: tmp_path / "reports" / name)
-    monkeypatch.setattr(config, "get_trading_dir", lambda: trading_dir)
-
-    app = create_app()
-    app.config['TESTING'] = True
-    with app.test_client() as c:
+    with lineage_app.test_client() as c:
         yield c
 
 

@@ -148,34 +148,6 @@ class TestLoaderRegistryCaching:
         assert gauge_loader._cache is None
 
 
-class TestLoaderRegistryFileOverrides:
-    """Test custom filename configuration."""
-
-    def test_file_overrides(self, populated_data_dir):
-        """Test providing custom filenames."""
-        import json
-
-        from loaders.loader_registry import LoaderRegistry
-
-        # Create a custom filename
-        custom_file = populated_data_dir / "custom_properties.json"
-        with open(custom_file, 'w') as f:
-            json.dump({"properties": [
-                {"PropertyHeader": {"Header": {"PropertyID": "CUSTOM-001"}}}
-            ]}, f)
-
-        registry = LoaderRegistry(
-            data_dir=populated_data_dir,
-            file_overrides={'property': 'custom_properties.json'}
-        )
-
-        loader = registry.get_property_loader()
-        props = loader.load_all()
-
-        assert len(props) == 1
-        assert loader.get_entity_id(props[0]) == "CUSTOM-001"
-
-
 class TestLoaderRegistryStatus:
     """Test status and diagnostic methods."""
 
@@ -200,22 +172,3 @@ class TestCreateRegistryHelper:
 
         assert registry is not None
         assert registry.get_property_loader().count() == 3
-
-    def test_create_registry_with_overrides(self, populated_data_dir):
-        """Test create_registry with file overrides."""
-        import json
-
-        from loaders.loader_registry import create_registry
-
-        # Create custom file
-        custom_file = populated_data_dir / "my_gauges.json"
-        with open(custom_file, 'w') as f:
-            json.dump({"floodGauges": []}, f)
-
-        registry = create_registry(
-            str(populated_data_dir),
-            gauge='my_gauges.json'
-        )
-
-        loader = registry.get_gauge_loader()
-        assert loader.count() == 0  # Empty custom file

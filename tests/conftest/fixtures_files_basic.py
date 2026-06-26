@@ -128,5 +128,27 @@ def populated_data_dir(
     sample_timeseries_file,
     sample_storm_file
 ):
-    """Create a fully populated test data directory."""
-    return temp_data_dir
+    """Create a fully populated test data directory and mirror it into the seam.
+
+    Loaders migrated to the ``database`` seam (gauge/property/loan/timeseries) ignore
+    the ``data_dir`` they are constructed with and read the *active catchment* through
+    the backend. Bind a tmp catchment and seed it with the same sample portfolio the
+    files hold, so those loaders return this small fixture dataset instead of the real
+    thames portfolio. Un-migrated loaders keep reading the files under ``temp_data_dir``.
+    """
+    # Imported lazily (not at module top): db_helpers pulls in ``database``, whose
+    # transitive ``import helpers`` would otherwise shadow the tests' own helpers
+    # module if loaded before conftest caches it (see tests/conftest.py).
+    import database
+    from db_helpers import tmp_catchment
+
+    seam_root = temp_data_dir / "_seam"
+    with tmp_catchment(seam_root):
+        catchment = database.active_catchment()
+        database.save_gauges(catchment, json.loads(sample_gauge_file.read_text()))
+        database.save_properties(catchment, json.loads(sample_property_file.read_text()))
+        database.save_loans(catchment, json.loads(sample_mortgage_file.read_text()))
+        for ts_file in sorted(sample_timeseries_file.glob("*.json")):
+            payload = json.loads(ts_file.read_text())
+            database.save_gauge_timeseries(catchment, payload["gauge_id"], payload)
+        yield temp_data_dir

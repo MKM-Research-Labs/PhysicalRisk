@@ -92,7 +92,10 @@ def integration_env(tmp_path, monkeypatch):
     trading_dir.mkdir()
     eod_dir = trading_dir / 'eod'
     eod_dir.mkdir()
-    prs_dir = output_dir / 'prs'
+    # PRS trades are read back through the database seam, which resolves the active
+    # catchment to get_input_dir()/prs — so the trade must live there, not under
+    # output/. (Writing it elsewhere yields a 404 "No open trades at GAUGE-001".)
+    prs_dir = input_dir / 'prs'
     prs_dir.mkdir()
     gaugets_dir = input_dir / 'gaugets'
     gaugets_dir.mkdir()

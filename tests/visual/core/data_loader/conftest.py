@@ -23,6 +23,22 @@
 import json
 from pathlib import Path
 
+import pytest
+
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _data_loader_catchment(tmp_path):
+    """Bind an isolated catchment rooted at the test's ``tmp_path`` so loaders that
+    read through the database seam (gauge/property/loan/timeseries) resolve to this
+    test's scratch dir rather than the real thames portfolio. ``write_*`` helpers
+    seed both the file and the seam, so a test that writes nothing sees an empty
+    portfolio (file lane reads ``tmp_path``; pg lane starts from a clean catchment)."""
+    with tmp_catchment(tmp_path):
+        yield
+
 
 def write_gauge(path: Path, gauge_id: str = "GAUGE-001") -> None:
     data = {
@@ -38,6 +54,7 @@ def write_gauge(path: Path, gauge_id: str = "GAUGE-001") -> None:
         }]
     }
     (path / "gauge.json").write_text(json.dumps(data))
+    database.save_gauges(database.active_catchment(), data)
 
 
 def write_property(path: Path) -> None:
@@ -50,6 +67,7 @@ def write_property(path: Path) -> None:
         }
     }]}
     (path / "property.json").write_text(json.dumps(data))
+    database.save_properties(database.active_catchment(), data)
 
 
 def write_mortgage(path: Path) -> None:
@@ -61,6 +79,7 @@ def write_mortgage(path: Path) -> None:
         }
     }]}
     (path / "loan.json").write_text(json.dumps(data))
+    database.save_loans(database.active_catchment(), data)
 
 
 def write_hazard(path: Path) -> None:

@@ -23,10 +23,27 @@
 import json
 from pathlib import Path
 
+import pytest
+
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _visualizer_catchment(tmp_path):
+    """Bind an isolated, initially-empty catchment so the visualizer's gauge/property/
+    loan reads (now served through the database seam) resolve to this test's scratch
+    rather than the real thames portfolio. ``_write_minimal_inputs`` seeds the seam, so
+    a test that writes nothing sees an empty portfolio and ``create_event_map`` returns
+    ``None`` (the "no data" path)."""
+    with tmp_catchment(tmp_path / "_seam"):
+        yield
+
 
 def _write_minimal_inputs(path: Path):
-    """Write gauge + property + mortgage files for validate_input_files."""
-    (path / "gauge.json").write_text(json.dumps({
+    """Write gauge + property + mortgage files for validate_input_files, and mirror
+    them into the database seam (migrated loaders read the seam, not these files)."""
+    gauge = {
         "flood_gauges": [{
             "FloodGauge": {
                 "Header": {"GaugeID": "GAUGE-001", "GaugeName": "T"},
@@ -37,8 +54,8 @@ def _write_minimal_inputs(path: Path):
                 "SensorStats": {"HistoricalHighLevel": 6.5},
             }
         }]
-    }))
-    (path / "property.json").write_text(json.dumps({
+    }
+    prop = {
         "properties": [{
             "PropertyHeader": {
                 "Header": {"PropertyID": "PROP-001"},
@@ -47,8 +64,8 @@ def _write_minimal_inputs(path: Path):
                 "Valuation": {"PropertyValue": 300000},
             }
         }]
-    }))
-    (path / "loan.json").write_text(json.dumps({
+    }
+    loan = {
         "loans": [{
             "RLoan": {
                 "Header": {"RLoanID": "RLOAN-001", "PropertyID": "PROP-001"},
@@ -56,7 +73,14 @@ def _write_minimal_inputs(path: Path):
                 "CurrentStatus": {"OutstandingBalance": 180000},
             }
         }]
-    }))
+    }
+    (path / "gauge.json").write_text(json.dumps(gauge))
+    (path / "property.json").write_text(json.dumps(prop))
+    (path / "loan.json").write_text(json.dumps(loan))
+    catchment = database.active_catchment()
+    database.save_gauges(catchment, gauge)
+    database.save_properties(catchment, prop)
+    database.save_loans(catchment, loan)
 
 
 def _make_loaded_data(gauge=True, prop=True, mortgage=True):

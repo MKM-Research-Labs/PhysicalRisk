@@ -25,39 +25,17 @@ Uses monkeypatch + tmp_path to isolate from production data.
 Follows the same pattern as tests/routes/test_prs_basic.py.
 """
 
-import json
-import shutil
-
 import pytest
 
 
 @pytest.fixture
-def isolated_client(tmp_path, monkeypatch):
-    """Flask test client with all write paths redirected to tmp_path."""
-    from config import config
-    from server import create_app
-
-    prs_dir = tmp_path / "reports" / "prs"
-    prs_dir.mkdir(parents=True)
-    trading_dir = tmp_path / "trading"
-    trading_dir.mkdir(parents=True)
-
-    # Copy market state so blotter/delta engine can load
-    prod_trading = config.get_trading_dir()
-    if (prod_trading / "market_state.json").exists():
-        shutil.copy(prod_trading / "market_state.json", trading_dir / "market_state.json")
-    if (prod_trading / "trade_marks.json").exists():
-        shutil.copy(prod_trading / "trade_marks.json", trading_dir / "trade_marks.json")
-
-    monkeypatch.setattr(config, "get_reports_dir",
-                        lambda name: tmp_path / "reports" / name)
-    monkeypatch.setattr(config, "get_trading_dir", lambda: trading_dir)
-
+def isolated_client(lineage_app):
+    """Authenticated Flask test client whose PRS writes are isolated to a scratch
+    catchment input dir (see ``isolated_input_dir`` / ``lineage_app`` in conftest)."""
     from fixtures_admin import AuthenticatedTestClient
-    app = create_app()
-    app.config['TESTING'] = True
-    app.test_client_class = AuthenticatedTestClient
-    with app.test_client() as c:
+
+    lineage_app.test_client_class = AuthenticatedTestClient
+    with lineage_app.test_client() as c:
         yield c
 
 
@@ -77,8 +55,8 @@ def sample_trade_payload():
     }
 
 
-class TestTradeCommitCreatesFile:
-    """POST /prs/commit must create a trade file in the temp directory."""
+class TestTradeCommitPersists:
+    """POST /prs/commit must persist the trade through the database seam."""
 
     def test_commit_returns_swap_id(self, isolated_client, sample_trade_payload):
         resp = isolated_client.post('/api/v1/prs/commit',
@@ -88,15 +66,18 @@ class TestTradeCommitCreatesFile:
         assert data['status'] == 'success', f"Commit failed: {data}"
         assert data['swap_id'].startswith('PRS-')
 
-    def test_commit_writes_to_temp_dir(self, isolated_client, sample_trade_payload,
-                                        tmp_path):
+    def test_commit_persists_via_seam(self, isolated_client, sample_trade_payload):
+        import database
+        from config import config
+
         resp = isolated_client.post('/api/v1/prs/commit',
                                     json=sample_trade_payload,
                                     content_type='application/json')
         swap_id = resp.get_json()['swap_id']
 
-        trade_file = tmp_path / "reports" / "prs" / f"{swap_id}.json"
-        assert trade_file.exists(), f"Trade file not in temp dir: {trade_file}"
+        trade = database.get_prs_trade(config.catchment_id, swap_id)
+        assert trade is not None, f"Committed trade {swap_id} not retrievable via seam"
+        assert trade['PhysicalSwap']['Header']['SwapID'] == swap_id
 
 
 class TestBlotterShowsNewTrade:

@@ -21,3 +21,19 @@
 """Pytest configuration for services tests."""
 
 import pytest
+
+import database
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _services_catchment(temp_data_dir):
+    """Bind an isolated catchment rooted at the test's ``temp_data_dir``.
+
+    The entity loaders read their portfolio through the database seam (ignoring the
+    ``data_dir`` they are constructed with), so binding the seam to ``temp_data_dir``
+    makes them read exactly the JSON files these tests write there — restoring the
+    pre-migration behaviour where a test's own files drove the loader. Tests that seed
+    through ``populated_data_dir`` bind their own (nested) catchment on top of this."""
+    with tmp_catchment(temp_data_dir):
+        yield

@@ -79,26 +79,19 @@ class LoaderRegistry:
         'storm': StormLoader,
     }
 
-    def __init__(
-        self,
-        data_dir: Optional[Path] = None,
-        file_overrides: Optional[Dict[str, str]] = None
-    ):
+    def __init__(self, data_dir: Optional[Path] = None):
         """
         Initialize the registry.
 
         Args:
             data_dir: Directory containing data files.
                      Defaults to config.get_catchment_input_dir() (e.g., input/thames/)
-            file_overrides: Optional dict mapping loader names to custom filenames
         """
         # Use catchment-specific directory by default
         if data_dir is None:
             self.data_dir = config.get_catchment_input_dir()
         else:
             self.data_dir = Path(data_dir)
-
-        self.file_overrides = file_overrides or {}
 
         # Cache for instantiated loaders
         self._loaders: Dict[str, BaseLoader] = {}
@@ -122,11 +115,7 @@ class LoaderRegistry:
             Loader instance
         """
         if name not in self._loaders:
-            filename = self.file_overrides.get(name)
-            self._loaders[name] = loader_class(
-                data_dir=self.data_dir,
-                filename=filename
-            )
+            self._loaders[name] = loader_class(data_dir=self.data_dir)
             logger.debug(f"Created {name} loader")
 
         return self._loaders[name]
@@ -216,8 +205,7 @@ class LoaderRegistry:
         """
         results = {}
         for name, loader_class in self.LOADER_CLASSES.items():
-            filename = self.file_overrides.get(name, loader_class.DEFAULT_FILENAME)
-            filepath = self.data_dir / filename
+            filepath = self.data_dir / loader_class.DEFAULT_FILENAME
             results[name] = filepath.exists()
         return results
 
@@ -231,13 +219,12 @@ class LoaderRegistry:
 
 
 # Convenience function for quick setup
-def create_registry(data_dir: Optional[str] = None, **file_overrides) -> LoaderRegistry:
+def create_registry(data_dir: Optional[str] = None) -> LoaderRegistry:
     """
-    Create a loader registry with optional file overrides.
+    Create a loader registry.
 
     Args:
         data_dir: Path to data directory (defaults to catchment input dir)
-        **file_overrides: Keyword args mapping loader names to filenames
 
     Returns:
         Configured LoaderRegistry
@@ -248,14 +235,5 @@ def create_registry(data_dir: Optional[str] = None, **file_overrides) -> LoaderR
 
         # Use custom directory
         registry = create_registry('/path/to/input/thames')
-
-        # With file overrides
-        registry = create_registry(
-            property='custom_properties.json',
-            gauge='my_gauges.json'
-        )
     """
-    return LoaderRegistry(
-        data_dir=Path(data_dir) if data_dir else None,
-        file_overrides=file_overrides if file_overrides else None
-    )
+    return LoaderRegistry(data_dir=Path(data_dir) if data_dir else None)

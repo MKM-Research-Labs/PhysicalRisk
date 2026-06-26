@@ -89,14 +89,6 @@ class TestLoaderRegistryDataFiles:
         from loaders.loader_registry import LoaderRegistry
         assert LoaderRegistry(data_dir=tmp_path).get_data_dir() == tmp_path
 
-    def test_file_overrides(self, tmp_path):
-        # All registry loaders read via the seam now, so the filename override no
-        # longer selects the source — assert it's still plumbed to the loader.
-        from loaders.loader_registry import LoaderRegistry
-        registry = LoaderRegistry(data_dir=tmp_path,
-                                   file_overrides={"gauge": "custom_gauges.json"})
-        assert registry.get_gauge_loader().filename == "custom_gauges.json"
-
 
 class TestLoaderRegistryCache:
 
@@ -130,9 +122,3 @@ class TestCreateRegistry:
     def test_creates_registry(self, tmp_path):
         from loaders.loader_registry import create_registry
         assert create_registry(str(tmp_path)) is not None
-
-    def test_with_file_overrides(self, tmp_path):
-        # Seam-read loaders ignore the filename; assert the override is still plumbed.
-        from loaders.loader_registry import create_registry
-        registry = create_registry(str(tmp_path), gauge="my_gauge.json")
-        assert registry.get_gauge_loader().filename == "my_gauge.json"
