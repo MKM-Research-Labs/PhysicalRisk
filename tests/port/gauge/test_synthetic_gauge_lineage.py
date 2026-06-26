@@ -231,20 +231,12 @@ class TestStormEventFlow:
         assert properties_with_events > 0, \
             "No properties have any flood events — storm data not flowing through"
 
-    @pytest.mark.xfail(
-        reason="Known flood_idw signal dilution leaves properties unflooded; "
-               "tracked under the PRS/flood_idw model initiative, not a test fix.",
-        strict=False,
-    )
     def test_some_properties_actually_flood(self):
         """At least some properties should have flooded=True events.
 
-        Known limitation (tracked separately, not a test-fixture issue): IDW
-        interpolation across the nearest gauges dilutes the synthetic flood signal,
-        so the current port can leave every property unflooded. This is a
-        model/pricing matter under the PRS/flood_idw initiative; xfail keeps it
-        visible and will surface as XPASS once the dilution fix lands — at which
-        point remove this marker.
+        Guards against the flood_idw signal-dilution failure mode (IDW across the
+        nearest gauges washing out the synthetic flood signal so nothing floods).
+        A regeneration that leaves every property unflooded should fail here.
         """
         pts_dir = _input_dir() / "propertyts"
         flooded_count = 0

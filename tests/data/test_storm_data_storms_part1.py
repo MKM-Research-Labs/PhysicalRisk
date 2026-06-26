@@ -20,7 +20,7 @@ import pytest
 
 import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
-from config import PortfolioConfig
+from config import PortfolioConfig, STRESS_STORMS_MIN_COUNT
 
 config = PortfolioConfig()
 
@@ -51,7 +51,9 @@ GAUGE_RESPONSE_FIELDS = {
     "gauge_id", "peak_level_m",
     "exceeded_alert", "exceeded_warning", "exceeded_severe",
 }
-MIN_STORM_COUNT = 100
+# Source the minimum from config (the declared bar for alert-breaching stress
+# storms), not a hardcoded literal — keeps the test aligned with generation.
+MIN_STORM_COUNT = STRESS_STORMS_MIN_COUNT
 MIN_AUC = 0.90
 MIN_CLASSIFIERS = 40
 
@@ -102,12 +104,6 @@ class TestStressStormsFilePart1:
             pytest.skip("stress_storms data not generated")
         assert len(storms) > 0
 
-    @pytest.mark.xfail(
-        reason="The current thames port carries 24 stress storms; >=100 needs "
-               "`app.py port --stressm` regeneration (gated, and not run from a "
-               "worktree on the shared SSD). Will XPASS once regenerated in main.",
-        strict=False,
-    )
     def test_minimum_storm_count(self, storms):
         assert len(storms) >= MIN_STORM_COUNT, (
             f"Expected >= {MIN_STORM_COUNT} stress storms, got {len(storms)}. "
