@@ -111,6 +111,10 @@ def _build_modularisation(styles) -> list:
     from .data_access import _build_data_access
     elems.extend(_build_data_access(styles))
 
+    # 4.5 — json-file audit (no .json reads/writes outside the database seam)
+    from .json_files import _build_json_files
+    elems.extend(_build_json_files(styles))
+
     return elems
 
 
