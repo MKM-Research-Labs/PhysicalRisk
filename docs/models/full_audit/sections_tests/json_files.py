@@ -33,9 +33,11 @@ still bound to ``.json`` files, split into *load* (reads) and *create/update*
 to a hard gate is a single flag flip (``GATED = True``): the gate test already
 asserts the enforcement path so the zero-tolerance day is one line away.
 
-A finding is a non-comment, non-docstring line **outside ``src/database``** that
-either calls ``json.load(`` / ``json.dump(`` (file (de)serialisation) or names a
-``".json"`` path literal. Each finding carries a ``kind``:
+A finding is a non-comment, non-docstring line — **anywhere in first-party code,
+including the ``src/database`` seam** (only ``tests/`` and inert non-source dirs
+are skipped) — that either calls ``json.load(`` / ``json.dump(`` (file
+(de)serialisation) or names a ``".json"`` path literal. Each finding carries a
+``kind``:
 
 * ``read``  — ``json.load(`` or a ``.json`` literal alongside ``open`` /
   ``read_text`` / ``read_bytes`` / ``glob`` / ``read_json``.
@@ -44,10 +46,11 @@ either calls ``json.load(`` / ``json.dump(`` (file (de)serialisation) or names a
 * ``ref``   — a ``.json`` literal that is neither (e.g. building a path, passing a
   filename onward); still a binding to a JSON file, so still tracked.
 
-The walker, ``src/database`` exemption, and prune rules are reused from the
-data-access scanner (4.4) so the two audits stay in lock-step.
+The prune-dir set is shared with the data-access scanner (4.4); the walker here
+deliberately drops that audit's ``src/database`` exemption.
 """
 
+import os
 import re
 from pathlib import Path
 
@@ -55,7 +58,14 @@ from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer
 
 from .._constants import NAVY, _root
-from .data_access import SANCTIONED_PACKAGE, iter_source_files, _rel
+from .data_access import _PRUNE_DIRS, _rel
+
+# Unlike the data-access audit (4.4), this audit does NOT exempt ``src/database``:
+# the zero-tolerance goal is *no .json files anywhere*, so the seam's own file
+# backend is in scope and surfaced too. Only ``tests/`` (scratch I/O) and the
+# inert non-source prune dirs are skipped, plus the two scanner modules whose
+# source literally contains the detection patterns (they would self-match).
+_SCANNER_MODULES = {'json_files.py', 'data_access.py'}
 
 # Flip to True once the backlog reaches zero to turn the tracker into a
 # zero-tolerance gate (the gate test honours this flag).
@@ -126,8 +136,23 @@ def scan_text(text: str) -> list:
     return findings
 
 
+def iter_source_files(root: Path):
+    """Yield every in-scope first-party ``.py`` file under *root*.
+
+    Prunes the inert non-source dirs (incl. ``tests`` and the ``data`` symlink)
+    and skips the two scanner modules whose source contains the detection
+    patterns. Unlike the data-access walker, ``src/database`` is **not** skipped —
+    the seam's own ``.json`` file I/O is in scope for the zero-tolerance goal."""
+    root = Path(root)
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in _PRUNE_DIRS]
+        for name in filenames:
+            if name.endswith('.py') and name not in _SCANNER_MODULES:
+                yield Path(dirpath) / name
+
+
 def scan_repo(root: Path = None) -> dict:
-    """Scan the first-party tree for ``.json``-file access outside ``src/database``.
+    """Scan the first-party tree for ``.json``-file access (incl. ``src/database``).
 
     Returns ``{'scanned', 'findings', 'files', 'io_findings', 'io_files',
     'reads', 'writes', 'refs', 'allowlisted'}``. ``findings`` is every .json
@@ -135,12 +160,9 @@ def scan_repo(root: Path = None) -> dict:
     once ``GATED`` flips. The read/write/ref counts split loads from
     creates/updates from bare path references."""
     root = Path(root) if root is not None else _root
-    self_path = Path(__file__).resolve()
     findings, allowlisted = [], []
     scanned = 0
     for path in iter_source_files(root):
-        if path.resolve() == self_path:  # this scanner's own .json patterns
-            continue
         try:
             text = path.read_text(encoding='utf-8')
         except (OSError, UnicodeDecodeError):
@@ -196,13 +218,14 @@ def _build_json_files(styles) -> list:
 
     elems.append(Paragraph(
         f'Policy goal: <b>no module loads, creates, or updates a .json file on '
-        f'disk</b> — all such state lives in PostgreSQL behind src/database. '
+        f'disk</b> — all such state lives in PostgreSQL behind src/database '
+        f'(the seam itself is in scope; only tests/ are exempt). '
         f'Mode: <b>{status}</b>. Scanned <b>{scan["scanned"]}</b> files.',
         styles['body']))
     elems.append(Spacer(1, 2 * mm))
     elems.append(Paragraph(
-        f'JSON-file I/O backlog (the gated set): <b>{n_io}</b> file(s) outside '
-        f'src/database still load or create/update .json directly — '
+        f'JSON-file I/O backlog (the gated set): <b>{n_io}</b> file(s) '
+        f'still load or create/update .json directly — '
         f'<b>{scan["reads"]}</b> load, <b>{scan["writes"]}</b> create/update. '
         f'This shrinks to zero as each artifact moves onto the database seam, at '
         f'which point the audit flips to a zero-tolerance gate.', styles['body']))

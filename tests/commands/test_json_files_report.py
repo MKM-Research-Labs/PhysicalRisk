@@ -58,14 +58,15 @@ class TestJsonFilesReport:
         assert isinstance(scan['io_files'], list)
         assert scan['reads'] + scan['writes'] == len(scan['io_findings'])
         print(f"\n[json-files] .json I/O backlog: {len(scan['io_files'])} file(s) "
-              f"outside src/database ({scan['reads']} load, {scan['writes']} "
-              f"create/update); plus {scan['refs']} bare path reference(s).")
+              f"({scan['reads']} load, {scan['writes']} create/update); "
+              f"plus {scan['refs']} bare path reference(s).")
 
-    def test_backlog_excludes_sanctioned_and_tests(self):
+    def test_backlog_excludes_tests_but_includes_database(self):
+        """tests/ is exempt; src/database is NOT (zero-tolerance is repo-wide)."""
         scan = scanner.scan_repo(ROOT)
         for rel in scan['files']:
-            assert not rel.startswith('src/database/'), rel
             assert not rel.startswith('tests/'), rel
+            assert not rel.endswith('json_files.py'), rel  # scanner self-skip
 
     def test_allowlist_entries_are_minimal_and_present(self):
         """Every allowlisted file must still exist and still contain a .json
@@ -177,10 +178,18 @@ class TestJsonFilesScanRepo:
         assert scan['io_findings'] == []
         assert any(a['file'] == 'legacy.py' for a in scan['allowlisted'])
 
-    def test_skips_sanctioned_database_package(self, tmp_path):
+    def test_database_package_is_in_scope(self, tmp_path):
+        """Unlike the data-access audit, src/database is scanned, not exempt."""
         pkg = tmp_path / "src" / "database"
         pkg.mkdir(parents=True)
         (pkg / "file_repo.py").write_text('json.load(open(p / "x.json"))\n')
+        scan = scanner.scan_repo(tmp_path)
+        assert any(f['file'].endswith('file_repo.py') for f in scan['io_findings'])
+
+    def test_skips_tests_dir(self, tmp_path):
+        tdir = tmp_path / "tests"
+        tdir.mkdir()
+        (tdir / "scratch.py").write_text('json.load(open("fixture.json"))\n')
         scan = scanner.scan_repo(tmp_path)
         assert scan['findings'] == []
 
