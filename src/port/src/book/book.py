@@ -43,15 +43,17 @@ Sub-modules:
 - book_thames: Thames Central 50-trade portfolio specs and generator
 """
 
-import json
 import logging
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import database
+
 # Re-export shared constants and helpers for backward compatibility
 from .book_common import (  # noqa: F401
+    _REIT_PARTY_ID,
     DEFAULT_YIELD_CURVE,
     NOTIONALS,
     RECOVERY,
@@ -64,14 +66,13 @@ from .book_common import (  # noqa: F401
     _compute_leg_pvs,
     _load_counterparties,
     _price_and_save_trade,
-    _REIT_PARTY_ID,
 )
 
 # Re-export Thames Central book
 from .book_thames import (  # noqa: F401
-    THAMES_CENTRAL_AREAS,
     _AREA_TO_GAUGE_NAME,
     _THAMES_TRADE_SPECS,
+    THAMES_CENTRAL_AREAS,
     generate_thames_central_book,
 )
 
@@ -79,8 +80,6 @@ logger = logging.getLogger(__name__)
 
 
 def generate_market_making_book(
-    gaugehc_path: Path,
-    counterparty_path: Path,
     output_dir: Path,
     num_gauges: int = 12,
     catchment_id: str = 'thames',
@@ -93,11 +92,10 @@ def generate_market_making_book(
     with small MTM near fair value.
 
     Args:
-        gaugehc_path: Path to gaugehc.json
-        counterparty_path: Path to counterparty.json
         output_dir: Directory to write trade JSON files
         num_gauges: Number of gauges to include (trades = num_gauges * 2)
-        catchment_id: Catchment identifier
+        catchment_id: Catchment identifier (gauge hazard curves and
+            counterparties are loaded for it through the ``database`` seam)
         seed: Random seed for reproducibility (None for random)
 
     Returns:
@@ -106,41 +104,21 @@ def generate_market_making_book(
     if seed is not None:
         random.seed(seed)
 
-    # Load gauge hazard curves
-    with open(gaugehc_path) as f:
-        gaugehc_data = json.load(f)
-
-    curves = gaugehc_data.get('hazard_curves', {})
+    # Load gauge hazard curves through the database seam.
+    gaugehc_data = database.get_gauge_hazard_curves(catchment_id)
+    curves = (gaugehc_data or {}).get('hazard_curves', {})
     if not curves:
-        raise ValueError('No hazard curves found in gaugehc.json')
+        raise ValueError('No hazard curves found for catchment')
 
     # Synthetic gauges (SYNTH-*) are interpolation anchors, not real
     # market-quoted instruments — never trade against them.
     curves = {gid: c for gid, c in curves.items() if not gid.startswith('SYNTH-')}
     if not curves:
-        raise ValueError('No real (non-SYNTH) hazard curves found in gaugehc.json')
+        raise ValueError('No real (non-SYNTH) hazard curves found for catchment')
 
-    # Load counterparties — exclude the REIT (reserved for property PRS
-    # trades only; gauge PRS uses external counterparties).
-    counterparties = []
-    if counterparty_path.exists():
-        with open(counterparty_path) as f:
-            ctpy_data = json.load(f)
-        for c in ctpy_data.get('counterparties', []):
-            cs = c.get('CounterpartySet', {})
-            party = cs.get('Party', {})
-            party_id = party.get('PartyID', '')
-            if party_id == _REIT_PARTY_ID:
-                continue
-            platform = cs.get('_platform', {})
-            counterparties.append({
-                'id': party_id,
-                'name': f"{platform.get('ShortName', party.get('PartyName', ''))} ({platform.get('CreditRating', 'NR')})",
-            })
-
-    if not counterparties:
-        counterparties = [{'id': f'CTPY-{i:03d}', 'name': f'Counterparty {i}'}
-                          for i in range(1, 22)]
+    # Load counterparties — the shared helper excludes the REIT (reserved
+    # for property PRS) and falls back to a synthetic pool when none exist.
+    counterparties = _load_counterparties(catchment_id)
 
     # Select gauges: spread across risk spectrum
     gauge_list = sorted(

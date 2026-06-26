@@ -28,12 +28,13 @@ Book generator — Thames Central trading book.
 - Heavy sub-3Y tenor weighting (1Y, 2Y, 3Y, 5Y)
 """
 
-import json
 import logging
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
+
+import database
 
 from .book_common import (
     DEFAULT_YIELD_CURVE,
@@ -144,8 +145,6 @@ _THAMES_TRADE_SPECS = [
 
 
 def generate_thames_central_book(
-    gaugehc_path: Path,
-    counterparty_path: Path,
     output_dir: Path,
     catchment_id: str = 'thames',
     seed: Optional[int] = 42,
@@ -160,10 +159,9 @@ def generate_thames_central_book(
     - Heavy sub-3Y tenor weighting (1Y, 2Y, 3Y, 5Y)
 
     Args:
-        gaugehc_path: Path to gaugehc.json
-        counterparty_path: Path to counterparty.json
         output_dir: Directory to write trade JSON files
-        catchment_id: Catchment identifier
+        catchment_id: Catchment identifier (gauge hazard curves and
+            counterparties are loaded for it through the ``database`` seam)
         seed: Random seed for reproducibility
 
     Returns:
@@ -172,13 +170,11 @@ def generate_thames_central_book(
     if seed is not None:
         random.seed(seed)
 
-    # Load gauge hazard curves
-    with open(gaugehc_path) as f:
-        gaugehc_data = json.load(f)
-
-    curves = gaugehc_data.get('hazard_curves', {})
+    # Load gauge hazard curves through the database seam.
+    gaugehc_data = database.get_gauge_hazard_curves(catchment_id)
+    curves = (gaugehc_data or {}).get('hazard_curves', {})
     if not curves:
-        raise ValueError('No hazard curves found in gaugehc.json')
+        raise ValueError('No hazard curves found for catchment')
 
     # Build area name → (gauge_id, curve_data) lookup by matching gauge names
     gauge_lookup = {}
@@ -195,7 +191,7 @@ def generate_thames_central_book(
             logger.warning('Area %s not matched to any gauge in hazard curves', area)
 
     # Load counterparties
-    counterparties = _load_counterparties(counterparty_path)
+    counterparties = _load_counterparties(catchment_id)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     trades = []

@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
 
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
+# This software is licensed by MKM Research Labs for non-commercial
+# research and educational use only. Any commercial use, including
+# but not limited to use in or for products or services offered for sale,
 # internal business operations intended for commercial advantage, or
 # research and development conducted for a commercial entity, is expressly
 # prohibited unless separately authorized in writing by MKM Research Labs.
@@ -18,10 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for the Thames Central book generator."""
+"""Tests for the Thames Central book generator.
+
+Hazard curves and counterparties are served through the ``database`` seam; the
+``thames_central_gaugehc`` / ``sample_counterparties`` fixtures seed them for the
+active catchment (default ``thames``). Edge-case tests that need a bespoke curve
+set seed it directly via ``database.save_gauge_hazard_curves`` (the
+``sample_counterparties`` fixture has already bound the scratch backend)."""
 
 from datetime import datetime
 
+import database
 from port.src.book import THAMES_CENTRAL_AREAS, generate_thames_central_book
 
 
@@ -29,9 +36,7 @@ class TestThamesCentralBook:
     """Tests for the Thames Central book generator."""
 
     def test_uses_central_gauges(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        trades = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs", seed=42
-        )
+        trades = generate_thames_central_book(tmp_path / "prs", seed=42)
         gauge_ids = {
             t["PhysicalSwap"]["GaugeSet"]["GaugeBasket"][0]["GaugeID"] for t in trades
         }
@@ -39,15 +44,11 @@ class TestThamesCentralBook:
         assert gauge_ids.issubset(expected_ids)
 
     def test_trade_count(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        trades = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs", seed=42
-        )
+        trades = generate_thames_central_book(tmp_path / "prs", seed=42)
         assert len(trades) == 50
 
     def test_has_calendar_spreads(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        trades = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs", seed=42
-        )
+        trades = generate_thames_central_book(tmp_path / "prs", seed=42)
         by_gauge = {}
         for t in trades:
             ps = t["PhysicalSwap"]
@@ -66,9 +67,7 @@ class TestThamesCentralBook:
         assert calendar_spread_gauges >= 5
 
     def test_westminster_is_net_short(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        trades = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs", seed=42
-        )
+        trades = generate_thames_central_book(tmp_path / "prs", seed=42)
         westminster_notional = 0
         for t in trades:
             ps = t["PhysicalSwap"]
@@ -84,15 +83,11 @@ class TestThamesCentralBook:
 
     def test_files_saved(self, thames_central_gaugehc, sample_counterparties, tmp_path):
         output_dir = tmp_path / "prs"
-        generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, output_dir, seed=42
-        )
+        generate_thames_central_book(output_dir, seed=42)
         assert len(list(output_dir.glob("PRS-*.json"))) == 50
 
     def test_valid_cdm_structure(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        trades = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs", seed=42
-        )
+        trades = generate_thames_central_book(tmp_path / "prs", seed=42)
         for t in trades:
             ps = t["PhysicalSwap"]
             for key in ["Header", "LegData", "ScheduleData", "GaugeSet", "Pricing"]:
@@ -101,12 +96,8 @@ class TestThamesCentralBook:
             assert ps["Pricing"]["RiskyAnnuity"] > 0
 
     def test_reproducible_with_seed(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        trades1 = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs1", seed=99
-        )
-        trades2 = generate_thames_central_book(
-            thames_central_gaugehc, sample_counterparties, tmp_path / "prs2", seed=99
-        )
+        trades1 = generate_thames_central_book(tmp_path / "prs1", seed=99)
+        trades2 = generate_thames_central_book(tmp_path / "prs2", seed=99)
         for t1, t2 in zip(trades1, trades2):
             assert (
                 t1["PhysicalSwap"]["Pricing"]["SpreadBps"]
@@ -118,30 +109,25 @@ class TestThamesCentralBookEdgeCases:
     """Edge cases — empty hazard curves, missing gauge areas, no-seed mode."""
 
     def test_empty_hazard_curves_raises(self, sample_counterparties, tmp_path):
-        """Line 181: empty hazard_curves dict raises ValueError."""
-        import json
+        """Empty hazard_curves dict raises ValueError."""
         import pytest
 
-        gaugehc = {"metadata": {"catchment": "thames"}, "hazard_curves": {}}
-        gauge_path = tmp_path / "gaugehc.json"
-        gauge_path.write_text(json.dumps(gaugehc))
+        database.save_gauge_hazard_curves(
+            "thames", {"metadata": {"catchment": "thames"}, "hazard_curves": {}})
 
         with pytest.raises(ValueError, match="No hazard curves found"):
-            generate_thames_central_book(
-                gauge_path, sample_counterparties, tmp_path / "prs", seed=42
-            )
+            generate_thames_central_book(tmp_path / "prs", seed=42)
 
     def test_missing_areas_warning_and_skip(
         self, sample_counterparties, tmp_path, caplog
     ):
-        """Lines 195, 208-209: areas not matched → warning + skip trade specs."""
-        import json
+        """Areas not matched → warning + skip trade specs."""
         import logging
 
         # Build hazard curves with only ONE matching gauge (Westminster).
         # All other areas in THAMES_CENTRAL_AREAS are unmatched, so:
-        #  - line 195: 'Area %s not matched...' (per missing area)
-        #  - lines 208-209: per trade spec for missing areas, log + continue
+        #  - 'Area %s not matched...' (per missing area)
+        #  - per trade spec for missing areas, log + continue
         gaugehc = {
             "metadata": {"catchment": "thames"},
             "hazard_curves": {
@@ -154,13 +140,10 @@ class TestThamesCentralBookEdgeCases:
                 },
             },
         }
-        gauge_path = tmp_path / "gaugehc.json"
-        gauge_path.write_text(json.dumps(gaugehc))
+        database.save_gauge_hazard_curves("thames", gaugehc)
 
         with caplog.at_level(logging.WARNING, logger="port.src.book.book_thames"):
-            trades = generate_thames_central_book(
-                gauge_path, sample_counterparties, tmp_path / "prs", seed=42
-            )
+            trades = generate_thames_central_book(tmp_path / "prs", seed=42)
 
         # Only Westminster trades should be generated (some specs match)
         assert len(trades) > 0
@@ -175,11 +158,6 @@ class TestThamesCentralBookEdgeCases:
         assert any("Skipping trade spec" in m for m in messages)
 
     def test_seed_none_runs(self, thames_central_gaugehc, sample_counterparties, tmp_path):
-        """Line 173 branch (seed is None): random isn't reseeded."""
-        trades = generate_thames_central_book(
-            thames_central_gaugehc,
-            sample_counterparties,
-            tmp_path / "prs",
-            seed=None,
-        )
+        """seed is None branch: random isn't reseeded."""
+        trades = generate_thames_central_book(tmp_path / "prs", seed=None)
         assert len(trades) == 50

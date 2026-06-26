@@ -18,19 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Shared fixtures for book generator tests."""
+"""Shared fixtures for book generator tests.
 
-import json
+The gauge book generators read gauge hazard curves and counterparties through
+the ``database`` seam (no longer from loose ``gaugehc.json`` / ``counterparty
+.json`` files). These fixtures therefore seed the seam for the active catchment
+rather than writing JSON to ``tmp_path``. ``_book_backend`` binds a single
+scratch backend (file under the default test backend, Postgres under
+``MKM_TEST_BACKEND=pg``) that both the gaugehc and counterparty fixtures save
+into and that stays bound for the test body, so the generator — defaulting to
+``catchment_id='thames'`` — reads the seeded data back. The fixtures return the
+catchment id; tests request them for their seeding side-effect."""
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.book import THAMES_CENTRAL_AREAS
+
+_CATCHMENT = "thames"
 
 
 @pytest.fixture
-def sample_gaugehc(tmp_path):
-    """Create a minimal gaugehc.json for testing."""
-    gaugehc = {
+def _book_backend(tmp_path):
+    """Bind one scratch backend for the test so gaugehc + counterparty co-seed."""
+    with tmp_catchment(tmp_path, _CATCHMENT) as repo:
+        yield repo
+
+
+@pytest.fixture
+def sample_gaugehc(_book_backend):
+    """Seed a minimal gauge hazard-curve set through the seam; return the catchment."""
+    database.save_gauge_hazard_curves(_CATCHMENT, {
         "metadata": {"catchment": "test"},
         "hazard_curves": {
             "GAUGE-001": {
@@ -55,17 +74,14 @@ def sample_gaugehc(tmp_path):
                 "annual_hazard_rate_severe": 0.015,
             },
         },
-    }
-    path = tmp_path / "gaugehc.json"
-    with open(path, "w") as f:
-        json.dump(gaugehc, f)
-    return path
+    })
+    return _CATCHMENT
 
 
 @pytest.fixture
-def sample_counterparties(tmp_path):
-    """Create a minimal counterparty.json for testing."""
-    ctpy = {
+def sample_counterparties(_book_backend):
+    """Seed a minimal counterparty set through the seam; return the catchment."""
+    database.save_counterparties(_CATCHMENT, {
         "counterparties": [
             {
                 "CounterpartySet": {
@@ -80,16 +96,13 @@ def sample_counterparties(tmp_path):
                 }
             },
         ],
-    }
-    path = tmp_path / "counterparty.json"
-    with open(path, "w") as f:
-        json.dump(ctpy, f)
-    return path
+    })
+    return _CATCHMENT
 
 
 @pytest.fixture
-def thames_central_gaugehc(tmp_path):
-    """Create gaugehc.json with the Thames Central gauges."""
+def thames_central_gaugehc(_book_backend):
+    """Seed gauge hazard curves named for the Thames Central gauges via the seam."""
     from port.src.book import _AREA_TO_GAUGE_NAME
 
     gaugehc = {"metadata": {"catchment": "thames"}, "hazard_curves": {}}
@@ -105,7 +118,5 @@ def thames_central_gaugehc(tmp_path):
             "annual_hazard_rate_warning": 0.025,
             "annual_hazard_rate_alert": 0.04,
         }
-    path = tmp_path / "gaugehc.json"
-    with open(path, "w") as f:
-        json.dump(gaugehc, f)
-    return path
+    database.save_gauge_hazard_curves(_CATCHMENT, gaugehc)
+    return _CATCHMENT

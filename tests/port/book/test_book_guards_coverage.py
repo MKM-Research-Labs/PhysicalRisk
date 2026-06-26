@@ -22,27 +22,22 @@
 print_book_summary currency fallback. (The REIT-skip line needs full book
 generation and is left for a later tranche.)"""
 
-import json
-
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.book import book
 
-
-def _write(path, obj):
-    path.write_text(json.dumps(obj))
+_CATCHMENT = "thames"
 
 
 class TestBookGuards:
     def test_raises_when_only_synthetic_curves(self, tmp_path):
-        gaugehc = tmp_path / "gaugehc.json"
-        _write(gaugehc, {"hazard_curves": {"SYNTH-1": {}, "SYNTH-2": {}}})
-        with pytest.raises(ValueError, match="non-SYNTH"):
-            book.generate_market_making_book(
-                gaugehc_path=gaugehc,
-                counterparty_path=tmp_path / "counterparty.json",
-                output_dir=tmp_path,
-            )  # line 121
+        with tmp_catchment(tmp_path, _CATCHMENT):
+            database.save_gauge_hazard_curves(
+                _CATCHMENT, {"hazard_curves": {"SYNTH-1": {}, "SYNTH-2": {}}})
+            with pytest.raises(ValueError, match="non-SYNTH"):
+                book.generate_market_making_book(output_dir=tmp_path)
 
     def test_print_book_summary_currency_falls_back_to_gbp(self, monkeypatch):
         import config as config_pkg
