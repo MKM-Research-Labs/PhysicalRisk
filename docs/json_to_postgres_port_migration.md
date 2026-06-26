@@ -10,8 +10,23 @@ programme (see `docs/json_to_postgres_migration.md`).
   seam; retired the `gaugehc_path`/`counterparty_path` params; deduped book.py's
   inline counterparty loop into `_load_counterparties` (now catchment-keyed).
   Callers + 6 test files migrated to seam-seeding via `tmp_catchment`. 106 tests
-  green on the file backend; ruff-neutral. **Next: Phase 1b property book**
-  (`book_property/_core.py` — propertyhc/propertybri/property reads).
+  green on the file backend; ruff-neutral.
+- **2026-06-26 — Phase 1b (property book).** `book_property/_core.py` reads
+  property hazard curves (default + `bri` mode) and the property portfolio via
+  the seam; retired all four `*_path` params (counterparty_path was already
+  dead); replaced the `propertybri_path` opt-in with `include_resilient: bool`.
+  Caller + property coverage part2/part3 migrated (autouse `tmp_catchment`
+  backend, seed the `bri` mode for resilient tests). 106 tests green.
+  **The whole `src/book` area is now off loose JSON.**
+
+  Scanner so far: **26 → 22 I/O files, 41 → 34 reads** (writes still 14).
+
+  **Next (rest of Phase 1b):** generator-side loaders `ts/loader.py`,
+  `hc/loader.py`, `hc/pricing/_process.py`; storm-sequence / typhoon-event /
+  gauge-timeseries readers (`_typhoon_join.py`, `storm_typhoon_pairing.py`,
+  `_stress_storms_stages.py`); stressm readers (`orchestrator/_core.py`,
+  `summary.py`, `gauge_parser.py` — note `gauge_*_hd.json` likely maps to the
+  existing `gauge_history` seam, may de-scope a Category-C item).
 
 > **Why `src/port` is the biggest line in the JSON-file audit (26 I/O files,
 > 41 reads, 14 writes) — but mostly low-risk.** The earlier migration prioritised
