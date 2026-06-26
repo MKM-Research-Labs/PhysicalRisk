@@ -30,7 +30,6 @@ Pipeline stages
 5. Write output files + optional classifier training
 """
 
-import json
 import logging
 import time
 from pathlib import Path
@@ -38,8 +37,13 @@ from typing import Optional
 
 import numpy as np
 
+import database
+
 from ...gauge_parser import (
-    _extract_gauges, _parse_gauge, _load_gaugehd_baselines, _seasonal_base_level,
+    _extract_gauges,
+    _load_gaugehd_baselines,
+    _parse_gauge,
+    _seasonal_base_level,
 )
 from ...gaugets_writer import build_summary
 from .. import stages
@@ -75,13 +79,17 @@ def generate_stressm(
         Summary dict with generation and response statistics.
     """
     from port.src.storm_multi.generators.batch_generator import generate_event_set
-    from port.src.storm_multi.utils.serialization import (
-        save_sequences, save_summary, SEQUENCES_FILENAME,
-    )
     from port.src.storm_multi.models.sequence_response import (
-        SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
+        SequenceGaugeParams,
+        _make_precip_series,
+        compute_sequence_gauge_response,
     )
     from port.src.storm_multi.models.spatial_correlation import SpatialCorrelationModel
+    from port.src.storm_multi.utils.serialization import (
+        SEQUENCES_FILENAME,
+        save_sequences,
+        save_summary,
+    )
 
     input_dir = Path(input_dir)
     rng = np.random.RandomState(seed)
@@ -108,17 +116,14 @@ def generate_stressm(
     # ------------------------------------------------------------------
     # Stage 2: Load gauge portfolio
     # ------------------------------------------------------------------
-    gauge_path = input_dir / "gauge.json"
-    if not gauge_path.exists():
-        logger.warning("gauge.json not found at %s — skipping spatial responses", gauge_path)
+    gauge_json = database.get_gauge_portfolio(catchment_id)
+    if not gauge_json:
+        logger.warning("gauge portfolio not found for %s — skipping spatial responses",
+                       catchment_id)
         return build_summary(sequences, type_counts, gauge_params_list=[], t_start=t0)
 
-    with open(gauge_path) as f:
-        gauge_json = json.load(f)
-
-    # Load historical baselines from gaugehd/ (mean daily water level per gauge)
-    gaugehd_dir = input_dir / "gaugehd"
-    baselines = _load_gaugehd_baselines(gaugehd_dir)
+    # Load historical baselines from gaugehd (mean daily water level per gauge)
+    baselines = _load_gaugehd_baselines(catchment_id)
     if baselines:
         print(f"  Loaded {len(baselines)} gauge baselines from gaugehd/", flush=True)
     else:

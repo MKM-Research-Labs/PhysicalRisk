@@ -140,14 +140,14 @@ class TestBatchTrainClassifiers:
     """End-to-end tests with mocked classifier training."""
 
     def _setup_dirs(self, tmp_path):
-        """Create input/output dirs with gauge.json and storm_sequences.json."""
+        """Create output dir; seed gauge portfolio + storm sequences via the seam."""
         input_dir = tmp_path / "input"
         input_dir.mkdir()
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        (input_dir / "gauge.json").write_text(json.dumps(_make_gauge_json(3)))
-        # Seed storm_sequences through the database seam so storm_sequences_exists() passes
+        # gauge portfolio + storm sequences are read through the database seam now
         # (load_sequences is mocked in these tests, so the payload is just a presence marker).
+        database.save_gauges(database.active_catchment(), _make_gauge_json(3))
         database.save_storm_sequences(database.active_catchment(), {"sequences": []})
         return input_dir, output_dir
 
@@ -155,15 +155,15 @@ class TestBatchTrainClassifiers:
         from port.src.stressm.batch_train import batch_train_classifiers
         input_dir = tmp_path / "empty_input"
         input_dir.mkdir()
-        with pytest.raises(FileNotFoundError, match="gauge.json"):
+        with pytest.raises(FileNotFoundError, match="gauge portfolio"):
             batch_train_classifiers(input_dir, tmp_path / "out")
 
     def test_no_valid_gauges(self, tmp_path):
         from port.src.stressm.batch_train import batch_train_classifiers
         input_dir = tmp_path / "input"
         input_dir.mkdir()
-        # gauge.json with no valid gauges (missing required fields)
-        (input_dir / "gauge.json").write_text(json.dumps({"flood_gauges": [{"bad": True}]}))
+        # gauge portfolio with no valid gauges (missing required fields)
+        database.save_gauges(database.active_catchment(), {"flood_gauges": [{"bad": True}]})
         result = batch_train_classifiers(input_dir, tmp_path / "out")
         assert result["trained"] == 0
 
@@ -183,7 +183,7 @@ class TestBatchTrainClassifiers:
         from port.src.stressm.batch_train import batch_train_classifiers
         input_dir = tmp_path / "input"
         input_dir.mkdir()
-        (input_dir / "gauge.json").write_text(json.dumps(_make_gauge_json(2)))
+        database.save_gauges(database.active_catchment(), _make_gauge_json(2))
         # No storm_sequences seeded in the backend
         with pytest.raises(FileNotFoundError, match="storm_sequences"):
             batch_train_classifiers(input_dir, tmp_path / "out")

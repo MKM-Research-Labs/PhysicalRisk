@@ -20,10 +20,10 @@
 
 """Gauge JSON parsing utilities for the multi-storm stress pipeline."""
 
-import json
 import logging
-from pathlib import Path
 from typing import Dict, List, Optional
+
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -37,21 +37,22 @@ def _extract_gauges(gauge_json: dict) -> List[dict]:
     return list(raw.values())
 
 
-def _load_gaugehd_baselines(gaugehd_dir: Path) -> Dict[str, Dict]:
-    """Load historical baselines from each gaugehd file.
+def _load_gaugehd_baselines(catchment: Optional[str] = None) -> Dict[str, Dict]:
+    """Load historical gauge baselines through the database seam.
 
-    Returns:
+    Reads each gauge-history (``gaugehd``) record for *catchment* (defaulting to
+    the active catchment) via the seam and returns:
+
         Dict mapping gauge_id → {
             'mean_level': float,
             'monthly_means': {'01': float, ..., '12': float} or None,
         }
     """
+    catchment = catchment or database.active_catchment()
     baselines: Dict[str, Dict] = {}
-    if not gaugehd_dir.exists():
-        return baselines
-    for f in gaugehd_dir.glob("gauge_*_hd.json"):
+    for key in database.iter_gauge_history_ids(catchment):
         try:
-            data = json.loads(f.read_text())
+            data = database.get_gauge_history(catchment, key) or {}
             gid = data.get("gauge_metadata", {}).get("gauge_id")
             stats = data.get("statistics", {})
             mean = stats.get("mean_level")
@@ -63,7 +64,7 @@ def _load_gaugehd_baselines(gaugehd_dir: Path) -> Dict[str, Dict]:
         except Exception:
             continue
     if baselines:
-        logger.info("Loaded %d gauge baselines from gaugehd/", len(baselines))
+        logger.info("Loaded %d gauge baselines from gaugehd", len(baselines))
     return baselines
 
 
