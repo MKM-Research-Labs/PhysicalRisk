@@ -15,9 +15,14 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **12** |
-| **`src/port` reads** | 41 | **7** |
-| **`src/port` writes** | 14 | **9** |
+| **`src/port` files** | 26 | **10** |
+| **`src/port` reads** | 41 | **6** |
+| **`src/port` writes** | 14 | **7** |
+
+**2026-06-27 — clean Tier-1 singles:** synthetic gauge generator (gauge
+read-modify-write → `get_gauge_portfolio`/`save_gauges`); `portfolio_flood_summary`
+write → seam (added a `commercial_portfolio_flood_summary` artifact + cfg
+accessor; closed a latent split-brain — the route already read it via the seam).
 
 **2026-06-27 — Tier 1 (property/commercial hazard-curve I/O) DONE.** Migrated the
 HC generator write (`_generator.py`) + the spread-decomposition read/write
