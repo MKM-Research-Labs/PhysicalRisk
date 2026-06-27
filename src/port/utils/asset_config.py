@@ -101,6 +101,35 @@ class AssetTypeConfig:
     def hc_file(self, output_dir: Union[str, Path], mode: str) -> Path:
         return Path(output_dir) / self.hc_files[mode]
 
+    # ── database seam access (hazard curves) ─────────────────────────────────
+    # The generators' local mode vocabulary uses ``"normal"`` for the default
+    # flood scenario; the seam (config.data_layout.SCENARIO_MODES) calls it
+    # ``"flood"``. The remaining modes (shd/she/bri/win/faw/fow/bow/baw) match.
+    @property
+    def _is_commercial(self) -> bool:
+        return self.portfolio_key == "commercial_assets"
+
+    @staticmethod
+    def _seam_mode(mode: str) -> str:
+        return "flood" if mode == "normal" else mode
+
+    def get_hazard_curves(self, catchment: str, mode: str = "normal"):
+        """Load this asset type's hazard curves for *mode* via the database seam.
+
+        Returns the raw hazard-curve document (or ``None`` when absent), keyed on
+        *catchment* and dispatched to the property or commercial artifact."""
+        import database
+        fn = (database.get_commercial_hazard_curves if self._is_commercial
+              else database.get_property_hazard_curves)
+        return fn(catchment, mode=self._seam_mode(mode))
+
+    def save_hazard_curves(self, catchment: str, payload, mode: str = "normal") -> None:
+        """Save this asset type's hazard curves for *mode* via the database seam."""
+        import database
+        fn = (database.save_commercial_hazard_curves if self._is_commercial
+              else database.save_property_hazard_curves)
+        fn(catchment, payload, mode=self._seam_mode(mode))
+
 
 RESIDENTIAL_CONFIG = AssetTypeConfig(
     portfolio_filename="property.json",

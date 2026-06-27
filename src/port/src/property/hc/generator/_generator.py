@@ -20,7 +20,6 @@
 
 """PropertyHazardCurveGenerator — hazard curves, PRS pricing and basis."""
 
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +27,7 @@ from typing import Dict, Optional, Union
 
 import numpy as np
 
+import database
 from config import config
 from models.hazard.terrain_grid import compute_terrain_grid
 from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
@@ -138,7 +138,6 @@ class PropertyHazardCurveGenerator(
         stats['avg_transmission_rate'] = round(np.mean(transmission_rates), 4) if transmission_rates else 0.0
         stats['avg_spread_bps'] = round(np.mean(spread_values), 2) if spread_values else 0.0
 
-        output_path = cfg.hc_file(self.output_dir, self.mode)
         output_data = {
             'metadata': {
                 'catchment_id': config.CATCHMENT,
@@ -152,10 +151,9 @@ class PropertyHazardCurveGenerator(
             'property_hazard_curves': results,
         }
 
-        with open(output_path, 'w') as f:
-            json.dump(output_data, f, indent=2, default=json_default)
+        cfg.save_hazard_curves(database.active_catchment(), output_data, self.mode)
 
-        self.log(f"Output: {output_path.name}")
+        self.log(f"Output: {cfg.hc_files[self.mode]}")
         avg_spread = stats['avg_spread_bps']
         n_flooded = len([s for s in spread_values if s > 0])
         self.log(f"  {stats['properties_processed']} properties  |  "

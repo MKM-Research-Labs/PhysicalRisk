@@ -35,7 +35,9 @@ asserted exactly.
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.peril import (
     CommercialPerilTimeseriesGenerator,
     PerilTimeseriesGenerator,
@@ -201,18 +203,22 @@ class TestPerilSpreadDecomposition:
     /win|/faw|/fow routes agree by construction."""
 
     def _decompose(self, input_dir, prop_id):
-        """Build normal + win/faw/fow hc, re-attach decomposition, return it."""
-        PerilTimeseriesGenerator(input_dir, verbose=False).generate()
-        # Normal flood spine first (the decomposition writes onto this file).
-        PropertyHazardCurveGenerator(input_dir, verbose=False).generate()
-        for mode in ("win", "faw", "fow"):
-            PropertyHazardCurveGenerator(
-                input_dir, verbose=False, mode=mode).generate()
-        gen = PropertyHazardCurveGenerator(input_dir, verbose=False)
-        n = gen.attach_spread_decomposition()
-        assert n >= 1
-        with open(input_dir / "propertyhc.json") as f:
-            data = json.load(f)
+        """Build normal + win/faw/fow hc, re-attach decomposition, return it.
+
+        The generators read/write hazard curves through the database seam; bind a
+        scratch backend rooted at ``input_dir`` so they resolve there (the same
+        path the fixture stages the ts/gaugehc inputs under)."""
+        with tmp_catchment(input_dir, "thames"):
+            PerilTimeseriesGenerator(input_dir, verbose=False).generate()
+            # Normal flood spine first (the decomposition writes onto this curve).
+            PropertyHazardCurveGenerator(input_dir, verbose=False).generate()
+            for mode in ("win", "faw", "fow"):
+                PropertyHazardCurveGenerator(
+                    input_dir, verbose=False, mode=mode).generate()
+            gen = PropertyHazardCurveGenerator(input_dir, verbose=False)
+            n = gen.attach_spread_decomposition()
+            assert n >= 1
+            data = database.get_property_hazard_curves("thames")
         return data["property_hazard_curves"][prop_id]["spread_decomposition"]
 
     def test_peril_fan_sourced_from_scenario_files(self, property_dir):

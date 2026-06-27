@@ -27,10 +27,19 @@ Tests for synthetic hazard curve generation:
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
 from port.src.property.propertyhc import PropertyHazardCurveGenerator
 
 from .conftest import write_gauge_hc, write_property_ts
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend rooted at tmp_path so the generator's hazard-curve
+    writes (now on the database seam) resolve there."""
+    with tmp_catchment(tmp_path, "thames"):
+        yield
 
 
 @pytest.fixture

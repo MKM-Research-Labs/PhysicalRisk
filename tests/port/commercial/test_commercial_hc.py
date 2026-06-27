@@ -29,11 +29,21 @@ import json
 from pathlib import Path
 
 import pytest
+from db_helpers import tmp_catchment
 
 from config import config
 from port.src.commercial.hc import CommercialHazardCurveGenerator
 from port.src.property.hc import PropertyHazardCurveGenerator
 from port.utils.asset_config import COMMERCIAL_CONFIG
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend rooted at tmp_path so the generator's hazard-curve
+    reads/writes (now on the database seam) resolve there — the same path these
+    tests read the commercialhc/commercialshd/... files back from."""
+    with tmp_catchment(tmp_path, "thames"):
+        yield
 
 
 # ---------------------------------------------------------------------------

@@ -35,7 +35,9 @@ asserted exactly.
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.peril import (
     CommercialPerilTimeseriesGenerator,
     PerilTimeseriesGenerator,
@@ -232,15 +234,15 @@ class TestBriPerilSpreadDecomposition:
     peril_outcomes legs when the bow/baw scenario files exist."""
 
     def _decompose(self, input_dir, prop_id):
-        PerilTimeseriesGenerator(input_dir, verbose=False).generate()
-        PropertyHazardCurveGenerator(input_dir, verbose=False).generate()
-        for mode in ("win", "faw", "fow", "bow", "baw"):
-            PropertyHazardCurveGenerator(
-                input_dir, verbose=False, mode=mode).generate()
-        gen = PropertyHazardCurveGenerator(input_dir, verbose=False)
-        gen.attach_spread_decomposition()
-        with open(input_dir / "propertyhc.json") as f:
-            data = json.load(f)
+        with tmp_catchment(input_dir, "thames"):
+            PerilTimeseriesGenerator(input_dir, verbose=False).generate()
+            PropertyHazardCurveGenerator(input_dir, verbose=False).generate()
+            for mode in ("win", "faw", "fow", "bow", "baw"):
+                PropertyHazardCurveGenerator(
+                    input_dir, verbose=False, mode=mode).generate()
+            gen = PropertyHazardCurveGenerator(input_dir, verbose=False)
+            gen.attach_spread_decomposition()
+            data = database.get_property_hazard_curves("thames")
         return data["property_hazard_curves"][prop_id]["spread_decomposition"]
 
     def test_bow_baw_scalar_spreads(self, property_dir_bri):
@@ -259,14 +261,15 @@ class TestBriPerilSpreadDecomposition:
     def test_bow_baw_absent_without_scenario_files(self, property_dir_bri):
         # Build only the raw win/faw/fow scenarios (no bow/baw hc) → decomposition
         # keeps the four raw legs and omits the BRI-anchored ones.
-        PerilTimeseriesGenerator(property_dir_bri, verbose=False).generate()
-        PropertyHazardCurveGenerator(property_dir_bri, verbose=False).generate()
-        for mode in ("win", "faw", "fow"):
-            PropertyHazardCurveGenerator(
-                property_dir_bri, verbose=False, mode=mode).generate()
-        gen = PropertyHazardCurveGenerator(property_dir_bri, verbose=False)
-        gen.attach_spread_decomposition()
-        with open(property_dir_bri / "propertyhc.json") as f:
-            dec = json.load(f)["property_hazard_curves"]["PROP-001"]["spread_decomposition"]
+        with tmp_catchment(property_dir_bri, "thames"):
+            PerilTimeseriesGenerator(property_dir_bri, verbose=False).generate()
+            PropertyHazardCurveGenerator(property_dir_bri, verbose=False).generate()
+            for mode in ("win", "faw", "fow"):
+                PropertyHazardCurveGenerator(
+                    property_dir_bri, verbose=False, mode=mode).generate()
+            gen = PropertyHazardCurveGenerator(property_dir_bri, verbose=False)
+            gen.attach_spread_decomposition()
+            dec = database.get_property_hazard_curves(
+                "thames")["property_hazard_curves"]["PROP-001"]["spread_decomposition"]
         assert "bow_spread_bps" not in dec
         assert "bri_or_wind" not in dec["peril_outcomes"]

@@ -20,90 +20,61 @@
 
 """Spread decomposition post-processing for the hazard curve generator."""
 
-import json
 from typing import Dict
 
-from ..encoder import json_default
+import database
 
 
 class _DecompositionMixin:
     def attach_spread_decomposition(self) -> int:
         """
-        Post-processing: attach spread decompositions to the normal hc file.
+        Post-processing: attach spread decompositions to the normal hc curves.
 
-        Loads the configured asset-type's normal / shd / she hc files
-        (e.g. propertyhc.json / propertyshd.json / propertyshe.json for
-        residential; commercialhc.json / commercialshd.json /
-        commercialshe.json for commercial) and computes the data-driven
-        spread decomposition for each asset.
+        Loads the configured asset-type's normal / shd / she hazard curves
+        (propertyhc / propertyshd / propertyshe for residential; the commercial
+        equivalents for commercial) through the database seam and computes the
+        data-driven spread decomposition for each asset.
 
         Returns:
             Number of assets with decomposition attached.
         """
         cfg = self.ASSET_CONFIG
-        hc_path = cfg.hc_file(self.output_dir, "normal")
-        shd_path = cfg.hc_file(self.output_dir, "shd")
-        she_path = cfg.hc_file(self.output_dir, "she")
-        bri_path = cfg.hc_file(self.output_dir, "bri")
-        win_path = cfg.hc_file(self.output_dir, "win")
-        faw_path = cfg.hc_file(self.output_dir, "faw")
-        fow_path = cfg.hc_file(self.output_dir, "fow")
-        bow_path = cfg.hc_file(self.output_dir, "bow")
-        baw_path = cfg.hc_file(self.output_dir, "baw")
+        catchment = database.active_catchment()
 
-        if not hc_path.exists():
-            self.log(f"{hc_path.name} not found — skipping decomposition")
+        def _curves(mode):
+            """Hazard-curve dict for *mode* via the seam (empty if absent)."""
+            return (cfg.get_hazard_curves(catchment, mode) or {}).get(
+                'property_hazard_curves', {})
+
+        hc_data = cfg.get_hazard_curves(catchment, "normal")
+        if not hc_data:
+            self.log(f"{cfg.hc_files['normal']} not found — skipping decomposition")
             return 0
 
-        with open(hc_path, 'r') as f:
-            hc_data = json.load(f)
-
-        shd_curves = {}
-        if shd_path.exists():
-            with open(shd_path, 'r') as f:
-                shd_curves = json.load(f).get('property_hazard_curves', {})
-
-        she_curves = {}
-        if she_path.exists():
-            with open(she_path, 'r') as f:
-                she_curves = json.load(f).get('property_hazard_curves', {})
+        shd_curves = _curves("shd")
+        she_curves = _curves("she")
 
         # BRI-adjusted floor curves (the 5th basis step). Absent until the
         # propertybri/commercialbri stage has run — decomposition then simply
         # omits the resilience leg.
-        bri_curves = {}
-        if bri_path.exists():
-            with open(bri_path, 'r') as f:
-                bri_curves = json.load(f).get('property_hazard_curves', {})
+        bri_curves = _curves("bri")
 
-        # Wind-coupled peril scenario files (win/faw/fow). Each is a full hc
+        # Wind-coupled peril scenario curves (win/faw/fow). Each is a full hc
         # produced by the SAME pricer over a re-stamped peril timeseries, so a
         # curve's 'severe' 5yr spread (and its top-level flood_count) ARE the
         # peril spread/count. When present they are the CANONICAL source for the
         # peril-outcomes fan (Option A); absent until the windhazard stage runs
         # (flood-only catchments then fall back to the damage-join prs_perils).
-        win_curves, faw_curves, fow_curves = {}, {}, {}
-        if win_path.exists():
-            with open(win_path, 'r') as f:
-                win_curves = json.load(f).get('property_hazard_curves', {})
-        if faw_path.exists():
-            with open(faw_path, 'r') as f:
-                faw_curves = json.load(f).get('property_hazard_curves', {})
-        if fow_path.exists():
-            with open(fow_path, 'r') as f:
-                fow_curves = json.load(f).get('property_hazard_curves', {})
+        win_curves = _curves("win")
+        faw_curves = _curves("faw")
+        fow_curves = _curves("fow")
 
         # BRI-anchored peril scenarios (bow = BRI OR wind, baw = BRI AND wind).
         # Same Option-A protocol as win/faw/fow, but the flood leg is the
         # BRI-resilient flood (the level the book trades at) rather than the raw
         # asset flood. Absent until the bow/baw windhazard sub-stages run.
-        bow_curves, baw_curves = {}, {}
-        if bow_path.exists():
-            with open(bow_path, 'r') as f:
-                bow_curves = json.load(f).get('property_hazard_curves', {})
-        if baw_path.exists():
-            with open(baw_path, 'r') as f:
-                baw_curves = json.load(f).get('property_hazard_curves', {})
+        bow_curves = _curves("bow")
+        baw_curves = _curves("baw")
 
         curves = hc_data.get('property_hazard_curves', {})
         count = 0
@@ -224,8 +195,7 @@ class _DecompositionMixin:
             pc['spread_decomposition'] = decomposition
             count += 1
 
-        with open(hc_path, 'w') as f:
-            json.dump(hc_data, f, indent=2, default=json_default)
+        cfg.save_hazard_curves(catchment, hc_data, "normal")
 
         self.log(f"Spread decomposition attached to {count} properties")
         return count

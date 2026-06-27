@@ -21,7 +21,18 @@
 """Shared fixture for PropertyHazardCurve tests."""
 
 import json
+
 import pytest
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(output_dir):
+    """Bind a scratch backend rooted at the catchment dir so the generator's
+    hazard-curve writes/reads (now on the database seam) resolve to ``output_dir``
+    — the same path these tests read ``propertyhc.json`` back from."""
+    with tmp_catchment(output_dir, "thames"):
+        yield
 
 
 @pytest.fixture

@@ -25,17 +25,28 @@ Coverage-completion tests for property hazard curve modules (part 1):
   - pricing.py: synthetic gauge basis and spreads
 """
 
-import json
 from unittest.mock import patch
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.property.propertyhc import (
     TENORS,
     PropertyHazardCurveGenerator,
 )
 
 from .conftest import write_gauge_hc, write_property_ts
+
+_CATCHMENT = "thames"
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend rooted at tmp_path so the generator's hazard-curve
+    reads/writes (now on the database seam) resolve there."""
+    with tmp_catchment(tmp_path, _CATCHMENT):
+        yield
 
 
 # ===========================================================================
@@ -123,14 +134,13 @@ class TestDecompositionIdwFallback:
                 },
             },
         }
-        (tmp_path / 'propertyhc.json').write_text(json.dumps(hc_data))
+        database.save_property_hazard_curves(_CATCHMENT, hc_data)
 
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
         count = gen.attach_spread_decomposition()
 
         assert count == 1
-        with open(tmp_path / 'propertyhc.json') as f:
-            result = json.load(f)
+        result = database.get_property_hazard_curves(_CATCHMENT)
         decomp = result['property_hazard_curves']['PROP-001']['spread_decomposition']
         # gauge_spread should come from idw_gauge_spreads[4] = 50.0
         assert decomp['gauge_spread_bps'] == 50.0
@@ -158,14 +168,13 @@ class TestDecompositionIdwFallback:
                 },
             },
         }
-        (tmp_path / 'propertyhc.json').write_text(json.dumps(hc_data))
+        database.save_property_hazard_curves(_CATCHMENT, hc_data)
 
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
         count = gen.attach_spread_decomposition()
 
         assert count == 1
-        with open(tmp_path / 'propertyhc.json') as f:
-            result = json.load(f)
+        result = database.get_property_hazard_curves(_CATCHMENT)
         decomp = result['property_hazard_curves']['PROP-002']['spread_decomposition']
         # gauge_spread = prop_5yr[4] + synth_basis[4] = 50.0 + 10.0 = 60.0
         assert decomp['gauge_spread_bps'] == 60.0
@@ -191,7 +200,7 @@ class TestDecompositionBriLeg:
     def test_bri_leg_attached_when_curve_present(self, tmp_path):
         """propertyhc.json present → bri_spread_bps + resilience_effect_bps =
         no-BRI 5yr severe spread − BRI 5yr severe spread."""
-        (tmp_path / 'propertyhc.json').write_text(json.dumps(self._base_hc()))
+        database.save_property_hazard_curves(_CATCHMENT, self._base_hc())
         # BRI-adjusted floor raises the threshold → lower severe spread (168 vs 200).
         bri_data = {
             'property_hazard_curves': {
@@ -202,12 +211,12 @@ class TestDecompositionBriLeg:
                 },
             },
         }
-        (tmp_path / 'propertybri.json').write_text(json.dumps(bri_data))
+        database.save_property_hazard_curves(_CATCHMENT, bri_data, mode='bri')
 
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
         assert gen.attach_spread_decomposition() == 1
-        with open(tmp_path / 'propertyhc.json') as f:
-            decomp = json.load(f)['property_hazard_curves']['PROP-001']['spread_decomposition']
+        decomp = database.get_property_hazard_curves(
+            _CATCHMENT)['property_hazard_curves']['PROP-001']['spread_decomposition']
         assert decomp['bri_spread_bps'] == 168.0
         assert decomp['resilience_effect_bps'] == pytest.approx(32.0)  # 200 - 168
         assert decomp['resilience_effect_bps'] >= 0  # raising floor only reduces spread
@@ -215,11 +224,11 @@ class TestDecompositionBriLeg:
     def test_bri_leg_omitted_when_curve_absent(self, tmp_path):
         """No propertybri.json → decomposition omits the resilience leg
         (safe no-op for pipelines that never ran the bri stage)."""
-        (tmp_path / 'propertyhc.json').write_text(json.dumps(self._base_hc()))
+        database.save_property_hazard_curves(_CATCHMENT, self._base_hc())
 
         gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
         assert gen.attach_spread_decomposition() == 1
-        with open(tmp_path / 'propertyhc.json') as f:
-            decomp = json.load(f)['property_hazard_curves']['PROP-001']['spread_decomposition']
+        decomp = database.get_property_hazard_curves(
+            _CATCHMENT)['property_hazard_curves']['PROP-001']['spread_decomposition']
         assert 'bri_spread_bps' not in decomp
         assert 'resilience_effect_bps' not in decomp

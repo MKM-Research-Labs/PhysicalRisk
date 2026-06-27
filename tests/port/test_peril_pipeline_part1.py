@@ -35,6 +35,7 @@ asserted exactly.
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
 from port.src.peril import (
     CommercialPerilTimeseriesGenerator,
@@ -243,23 +244,25 @@ class TestPerilHazardCurves:
         return pc["term_structure"]["severe"]["prs_spread_bps"][0], pc
 
     def test_win_faw_fow_spreads(self, property_dir):
-        PerilTimeseriesGenerator(property_dir, verbose=False).generate()
-        for mode in ("win", "faw", "fow"):
-            PropertyHazardCurveGenerator(
-                property_dir, verbose=False, mode=mode).generate()
+        with tmp_catchment(property_dir, "thames"):
+            PerilTimeseriesGenerator(property_dir, verbose=False).generate()
+            for mode in ("win", "faw", "fow"):
+                PropertyHazardCurveGenerator(
+                    property_dir, verbose=False, mode=mode).generate()
 
-        win, _ = self._spread(property_dir, "propertywin.json", "PROP-001")
-        faw, _ = self._spread(property_dir, "propertyfaw.json", "PROP-001")
-        fow, _ = self._spread(property_dir, "propertyfow.json", "PROP-001")
+            win, _ = self._spread(property_dir, "propertywin.json", "PROP-001")
+            faw, _ = self._spread(property_dir, "propertyfaw.json", "PROP-001")
+            fow, _ = self._spread(property_dir, "propertyfow.json", "PROP-001")
 
         assert win == round(EXP_WIND / NUM_STORMS * 10000, 2)
         assert faw == round(EXP_FAW / NUM_STORMS * 10000, 2)
         assert fow == round(EXP_FOW / NUM_STORMS * 10000, 2)
 
     def test_wind_mode_has_no_prs_perils_block(self, property_dir):
-        PerilTimeseriesGenerator(property_dir, verbose=False).generate()
-        PropertyHazardCurveGenerator(
-            property_dir, verbose=False, mode="win").generate()
-        _, pc = self._spread(property_dir, "propertywin.json", "PROP-001")
+        with tmp_catchment(property_dir, "thames"):
+            PerilTimeseriesGenerator(property_dir, verbose=False).generate()
+            PropertyHazardCurveGenerator(
+                property_dir, verbose=False, mode="win").generate()
+            _, pc = self._spread(property_dir, "propertywin.json", "PROP-001")
         # _wind_union is gated off for wind modes — no double-counted block.
         assert "prs_perils" not in pc
