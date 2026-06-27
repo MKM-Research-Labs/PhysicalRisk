@@ -130,6 +130,13 @@ class AssetTypeConfig:
               else database.save_property_hazard_curves)
         fn(catchment, payload, mode=self._seam_mode(mode))
 
+    def get_portfolio(self, catchment: str) -> list:
+        """List this asset type's portfolio records (property / commercial) via
+        the database seam."""
+        import database
+        fn = database.list_commercial if self._is_commercial else database.list_properties
+        return fn(catchment)
+
 
 RESIDENTIAL_CONFIG = AssetTypeConfig(
     portfolio_filename="property.json",

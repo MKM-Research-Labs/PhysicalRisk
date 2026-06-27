@@ -31,12 +31,12 @@ import json
 from pathlib import Path
 
 import pytest
+from db_helpers import tmp_catchment
 
 from config import config
 from port.src.commercial.ts import CommercialTimeSeriesGenerator
 from port.src.property.ts import PropertyTimeSeriesGenerator
 from port.utils.asset_config import COMMERCIAL_CONFIG
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -107,16 +107,16 @@ def _write_gaugets(tmp_path: Path):
 
 
 @pytest.fixture
-def commercial_input(tmp_path, monkeypatch):
-    """tmp dir wired up with commercial.json + gauge.json + gaugets/."""
+def commercial_input(tmp_path):
+    """tmp dir wired up with commercial.json + gauge.json + gaugets/.
+
+    The ts loader reads its inputs through the ``database`` seam, so bind a
+    scratch backend rooted at the dir the inputs are written to."""
     _write_gauge_json(tmp_path)
     _write_commercial_json(tmp_path)
     _write_gaugets(tmp_path)
-    monkeypatch.setattr("config.config.get_gaugets_dir",
-                        lambda: tmp_path / "gaugets")
-    monkeypatch.setattr("config.config.get_input_path",
-                        lambda name: tmp_path / name)
-    return tmp_path
+    with tmp_catchment(tmp_path, "thames"):
+        yield tmp_path
 
 
 # ---------------------------------------------------------------------------

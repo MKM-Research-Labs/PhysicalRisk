@@ -29,6 +29,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+from db_helpers import tmp_catchment
 
 from tests.port.property.conftest import make_prop, make_readings
 
@@ -107,11 +108,7 @@ class TestGenerateWithMultiStormGaugets:
 
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False)
 
-        with patch("port.src.property.ts.loader.config") as mock_cfg:
-            mock_cfg.CATCHMENT = "thames"
-            mock_cfg.get_input_path = lambda name: input_dir / name
-            mock_cfg.get_gaugets_dir = lambda: gaugets_dir
-            mock_cfg.get_input_dir = lambda: tmp_path
+        with tmp_catchment(input_dir, "thames"):
             with patch("models.audit.log_model_usage"):
                 result = gen.generate()
 
@@ -140,11 +137,7 @@ class TestGenerateWithMultiStormGaugets:
 
         pts_dir = tmp_path / "propertyts"
 
-        with patch("port.src.property.ts.loader.config") as mock_cfg:
-            mock_cfg.CATCHMENT = "thames"
-            mock_cfg.get_input_path = lambda name: input_dir / name
-            mock_cfg.get_gaugets_dir = lambda: gaugets_dir
-            mock_cfg.get_input_dir = lambda: tmp_path
+        with tmp_catchment(input_dir, "thames"):
             with patch("models.audit.log_model_usage"):
                 gen.generate()
 
@@ -176,11 +169,7 @@ class TestGenerateWithMultiStormGaugets:
 
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False)
 
-        with patch("port.src.property.ts.loader.config") as mock_cfg:
-            mock_cfg.CATCHMENT = "thames"
-            mock_cfg.get_input_path = lambda name: input_dir / name
-            mock_cfg.get_gaugets_dir = lambda: gaugets_dir
-            mock_cfg.get_input_dir = lambda: tmp_path
+        with tmp_catchment(input_dir, "thames"):
             with patch("models.audit.log_model_usage"):
                 result = gen.generate()
 

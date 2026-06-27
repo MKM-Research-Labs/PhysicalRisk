@@ -25,56 +25,46 @@ same loader serves both residential (property.json) and commercial
 (commercial.json) generators.
 """
 
-import json
 from typing import Dict, List
 
-from config import config
-
-from .constants import SEQUENCES_FILENAME
+import database
 
 
 class LoaderMixin:
-    """Mixin providing all data-loading helpers."""
+    """Mixin providing all data-loading helpers (read through the database seam)."""
 
     def _load_storm_sequence_map(self) -> Dict[str, str]:
-        """Build storm_id → sequence_id lookup from the sequences file."""
+        """Build storm_id → sequence_id lookup from the storm sequences."""
         try:
-            seq_path = config.get_input_path(SEQUENCES_FILENAME)
-            with open(seq_path, 'r') as f:
-                data = json.load(f)
-            mapping = {}
-            for seq in data.get('sequences', []):
-                seq_id = seq.get('sequence_id', '')
-                for storm in seq.get('storms', []):
-                    sid = storm.get('storm_id', '')
-                    if sid:
-                        mapping[sid] = seq_id
-            return mapping
-        except (OSError, json.JSONDecodeError, KeyError):
+            data = database.get_storm_sequences(database.active_catchment()) or {}
+        except (OSError, ValueError, KeyError):
             return {}
+        mapping = {}
+        for seq in data.get('sequences', []):
+            seq_id = seq.get('sequence_id', '')
+            for storm in seq.get('storms', []):
+                sid = storm.get('storm_id', '')
+                if sid:
+                    mapping[sid] = seq_id
+        return mapping
 
     def _load_properties(self) -> List[Dict]:
         """Load the asset portfolio for the configured asset type."""
-        path = config.get_input_path(self.ASSET_CONFIG.portfolio_filename)
-        with open(path, 'r') as f:
-            data = json.load(f)
-        return data.get(self.ASSET_CONFIG.portfolio_key, [])
+        return self.ASSET_CONFIG.get_portfolio(database.active_catchment())
 
     def _load_gauges(self) -> List[Dict]:
         """Load gauge portfolio."""
-        path = config.get_input_path("gauge.json")
-        with open(path, 'r') as f:
-            data = json.load(f)
-        return data.get('flood_gauges', [])
+        data = database.get_gauge_portfolio(database.active_catchment())
+        return (data or {}).get('flood_gauges', [])
 
     def _load_gaugets(self) -> Dict[str, Dict]:
-        """Load all gaugets files into a dict keyed by gauge_id."""
-        gaugets_dir = config.get_gaugets_dir()
+        """Load all gauge timeseries into a dict keyed by gauge_id."""
+        catchment = database.active_catchment()
         gaugets = {}
-        if gaugets_dir.exists():
-            for f in gaugets_dir.glob('GAUGE-*.json'):
-                with open(f, 'r') as fh:
-                    data = json.load(fh)
-                gid = data.get('gauge_id', f.stem)
-                gaugets[gid] = data
+        for gid in database.iter_gauge_timeseries_ids(catchment):
+            if not gid.startswith('GAUGE-'):
+                continue
+            data = database.get_gauge_timeseries(catchment, gid)
+            if data:
+                gaugets[data.get('gauge_id', gid)] = data
         return gaugets

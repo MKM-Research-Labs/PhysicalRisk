@@ -23,10 +23,11 @@ Tests for PropertyTimeSeriesGenerator.generate() — ratio branch and logging.
 """
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from .conftest import make_prop, make_generator
+from db_helpers import tmp_catchment
 
+from .conftest import make_generator, make_prop
 
 # ===========================================================================
 # generate() — ratio branch (lines 170-176)
@@ -100,11 +101,7 @@ class TestGenerateRatioBranch:
         gaugets_dir = input_dir / "gaugets"
         self._make_gaugets_dir(gaugets_dir, with_alert_storms=True)
 
-        with patch("port.src.property.ts.loader.config") as mock_cfg:
-            mock_cfg.CATCHMENT = "thames"
-            mock_cfg.get_input_path = lambda name: input_dir / name
-            mock_cfg.get_gaugets_dir = lambda: gaugets_dir
-            mock_cfg.get_input_dir = lambda: tmp_path
+        with tmp_catchment(input_dir, "thames"):
             result = gen.generate()
 
         assert "gauge_to_property_ratio" in result
@@ -121,16 +118,9 @@ class TestGenerateRatioBranch:
         gaugets_dir = input_dir / "gaugets"
         self._make_gaugets_dir(gaugets_dir, with_alert_storms=False)
 
-        with patch("port.src.property.ts.loader.config") as mock_cfg:
-            mock_cfg.CATCHMENT = "thames"
-            mock_cfg.get_input_path = lambda name: input_dir / name
-            mock_cfg.get_gaugets_dir = lambda: gaugets_dir
-            mock_cfg.get_input_dir = lambda: tmp_path
-
-            mock_audit = MagicMock()
-            with patch("port.src.property.ts.loader.config", mock_cfg):
-                with patch("models.audit.log_model_usage"):
-                    result = gen.generate()
+        with tmp_catchment(input_dir, "thames"):
+            with patch("models.audit.log_model_usage"):
+                result = gen.generate()
 
         assert result["gauge_to_property_ratio"] == 0.0
 
@@ -154,11 +144,7 @@ class TestGenerateRatioBranch:
         original_log = gen.log
         gen.log = lambda msg: log_messages.append(msg)
 
-        with patch("port.src.property.ts.loader.config") as mock_cfg:
-            mock_cfg.CATCHMENT = "thames"
-            mock_cfg.get_input_path = lambda name: input_dir / name
-            mock_cfg.get_gaugets_dir = lambda: gaugets_dir
-            mock_cfg.get_input_dir = lambda: tmp_path
+        with tmp_catchment(input_dir, "thames"):
             with patch("models.audit.log_model_usage"):
                 gen.generate()
 
