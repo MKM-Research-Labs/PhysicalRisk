@@ -96,7 +96,7 @@ class _WindMixin:
         """
         cached = getattr(self, '_seq_to_event_cache', None)
         if cached is None:
-            cached = load_seq_to_event_map(self.output_dir)
+            cached = load_seq_to_event_map()
             self._seq_to_event_cache = cached
         return cached
 
@@ -110,6 +110,6 @@ class _WindMixin:
         """
         cached = getattr(self, '_wind_damage_cache', None)
         if cached is None:
-            cached = load_wind_damage_index(self.output_dir)
+            cached = load_wind_damage_index()
             self._wind_damage_cache = cached
         return cached

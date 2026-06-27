@@ -25,8 +25,17 @@ import json
 import logging
 
 import pytest
+from db_helpers import tmp_catchment
 
 from port.src.peril.peril_ts import PerilTimeseriesGenerator
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend rooted at tmp_path — the peril ts loader reads
+    typhoon events + storm sequences through the database seam."""
+    with tmp_catchment(tmp_path, "thames"):
+        yield
 
 
 def _write(path, obj):

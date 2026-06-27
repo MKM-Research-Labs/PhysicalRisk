@@ -31,30 +31,26 @@ The loading is identical for both; only the per-instance caching differs, so the
 file-reading lives here once and each caller keeps its own cache wrapper.
 """
 
-import json
-from pathlib import Path
-from typing import Dict, Union
+from typing import Dict
+
+import database
 
 
-def load_wind_damage_index(output_dir: Union[str, Path]) -> Dict[str, Dict[str, Dict]]:
+def load_wind_damage_index() -> Dict[str, Dict[str, Dict]]:
     """``event_id → {property_id → {peak_sustained_ms, threshold_ms, v_50_eff_ms}}``.
 
-    Walks ``typhoon/damage/EVT-*.json`` once, keyed on the filename stem (the
-    canonical event id that matches ``storm_sequences``; the internal
-    ``event_id`` field can be mis-stamped by genesis, so it is not trusted for
-    the join). Returns an empty dict when the typhoon stage hasn't run.
+    Reads each typhoon damage event for the active catchment through the database
+    seam, keyed on its event id (the same ``EVT-*`` key the storm stage writes;
+    the internal ``event_id`` field can be mis-stamped by genesis, so it is not
+    trusted for the join). Returns an empty dict when the typhoon stage hasn't run.
     """
+    catchment = database.active_catchment()
     out: Dict[str, Dict[str, Dict]] = {}
-    damage_dir = Path(output_dir) / 'typhoon' / 'damage'
-    if not damage_dir.exists():
-        return out
-    for fp in sorted(damage_dir.glob('EVT-*.json')):
+    for eid in database.iter_typhoon_event_ids(catchment):
         try:
-            with open(fp, 'r') as f:
-                data = json.load(f)
-        except (OSError, json.JSONDecodeError):
+            data = database.get_typhoon_event(catchment, eid) or {}
+        except (OSError, ValueError):
             continue
-        eid = fp.stem
         pmap: Dict[str, Dict] = {}
         for d in data.get('damages', []):
             pid = d.get('property_id')
@@ -73,21 +69,19 @@ def load_wind_damage_index(output_dir: Union[str, Path]) -> Dict[str, Dict[str, 
     return out
 
 
-def load_seq_to_event_map(output_dir: Union[str, Path]) -> Dict[str, str]:
-    """``sequence_id → event_id`` from ``storm_sequences.json`` (empty if absent
-    or pre-coupling, i.e. no ``event_id`` field on the sequences)."""
+def load_seq_to_event_map() -> Dict[str, str]:
+    """``sequence_id → event_id`` from the storm sequences (empty if absent or
+    pre-coupling, i.e. no ``event_id`` field on the sequences). Read for the
+    active catchment through the database seam."""
+    catchment = database.active_catchment()
     out: Dict[str, str] = {}
-    seq_path = Path(output_dir) / 'storm_sequences.json'
-    if not seq_path.exists():
-        return out
     try:
-        with open(seq_path, 'r') as f:
-            data = json.load(f)
-        for seq in data.get('sequences', []):
-            sid = seq.get('sequence_id')
-            eid = seq.get('event_id')
-            if sid and eid:
-                out[sid] = eid
-    except (OSError, json.JSONDecodeError):
-        pass
+        data = database.get_storm_sequences(catchment) or {}
+    except (OSError, ValueError):
+        return out
+    for seq in data.get('sequences', []):
+        sid = seq.get('sequence_id')
+        eid = seq.get('event_id')
+        if sid and eid:
+            out[sid] = eid
     return out

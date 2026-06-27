@@ -164,7 +164,8 @@ def property_dir(tmp_path):
     input_dir = tmp_path / "input" / "thames"
     input_dir.mkdir(parents=True)
     _write_portfolio(input_dir, "propertyts", "PROP-001")
-    return input_dir
+    with tmp_catchment(input_dir, "thames"):
+        yield input_dir
 
 
 @pytest.fixture
@@ -179,7 +180,8 @@ def commercial_dir(tmp_path):
     input_dir = tmp_path / "input" / "thames"
     input_dir.mkdir(parents=True)
     _write_portfolio(input_dir, "commercialts", "CPROP-001")
-    return input_dir
+    with tmp_catchment(input_dir, "thames"):
+        yield input_dir
 
 
 @pytest.fixture

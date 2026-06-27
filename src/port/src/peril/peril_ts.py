@@ -124,13 +124,13 @@ class PerilTimeseriesGenerator:
         ``port.src._typhoon_join``; this wrapper just caches per instance.
         """
         if self._wind_damage_cache is None:
-            self._wind_damage_cache = load_wind_damage_index(self.output_dir)
+            self._wind_damage_cache = load_wind_damage_index()
         return self._wind_damage_cache
 
     def _seq_to_event_map(self) -> Dict[str, str]:
-        """``sequence_id → event_id`` from ``storm_sequences.json`` (cached)."""
+        """``sequence_id → event_id`` from the storm sequences (cached)."""
         if self._seq_to_event_cache is None:
-            self._seq_to_event_cache = load_seq_to_event_map(self.output_dir)
+            self._seq_to_event_cache = load_seq_to_event_map()
         return self._seq_to_event_cache
 
     # ------------------------------------------------------------------
