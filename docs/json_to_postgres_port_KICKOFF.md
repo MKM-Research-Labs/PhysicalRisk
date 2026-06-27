@@ -15,8 +15,8 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **15** |
-| **`src/port` reads** | 41 | **11** |
+| **`src/port` files** | 26 | **14** |
+| **`src/port` reads** | 41 | **8** |
 | **`src/port` writes** | 14 | **12** |
 
 **2026-06-27 — Tier 1 (property/commercial hazard-curve I/O) DONE.** Migrated the
@@ -108,7 +108,7 @@ For a corrupt-record case, **monkeypatch the seam getter** to raise `ValueError`
 | File | r/w | Notes |
 |---|---|---|
 | ~~`property/ts/loader.py`~~ | ~~5r~~ | **DONE 2026-06-27** — was config-based, not input_dir-threaded; added `AssetTypeConfig.get_portfolio`. Tests that mocked `loader.config` now use `tmp_catchment(input_dir)`. |
-| `_typhoon_join.py` | 3r | `load_*(output_dir)` consumed by the **output_dir-based peril pipeline** (`peril_ts`, `_wind`); migrate with that pipeline, same recipe as stressm reads |
+| ~~`_typhoon_join.py`~~ | ~~3r~~ | **DONE 2026-06-27** — typhoon events + seq→event map via the seam; output_dir params dropped; peril_ts/_wind callers updated. **Tier 2 complete.** |
 
 ### Tier 3 — BLOCKED on a design decision (not mechanical; decide first)
 
