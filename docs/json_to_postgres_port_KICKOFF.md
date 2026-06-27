@@ -13,14 +13,20 @@ state lives in PostgreSQL behind the `src/database` seam. Tracked by the
 zero-tolerance audit (`docs.models.full_audit.sections_tests.json_files`,
 non-gating until the backlog hits zero).
 
-| Scope | Session start | **Now** |
+| Scope | Programme start | **Now** |
 |---|---|---|
-| whole-repo I/O files | 57 | **50** |
-| whole-repo reads | 98 | **85** |
-| whole-repo writes | 27 | **27** (untouched — all deferred) |
-| **`src/port` files** | 26 | **19** |
-| **`src/port` reads** | 41 | **28** |
-| **`src/port` writes** | 14 | **14** |
+| **`src/port` files** | 26 | **17** |
+| **`src/port` reads** | 41 | **19** |
+| **`src/port` writes** | 14 | **12** |
+
+**2026-06-27 — Tier 1 (property/commercial hazard-curve I/O) DONE.** Migrated the
+HC generator write (`_generator.py`) + the spread-decomposition read/write
+(`_decomposition.py`, 9 scenario-mode reads + 1 write) together (writer+reader of
+the same artifact → no pg split-brain). Added `AssetTypeConfig.get_hazard_curves`/
+`save_hazard_curves` seam accessors (property/commercial dispatch; local `normal`
+mode → seam `flood`). 794 tests green. Scanner 19→17 files, 28→19 reads, 14→12 writes.
+**⚠️ Gotcha:** broad test runs trigger the self-healing copyright audit which
+mutates ~62 unrelated files' headers — stage explicit paths, never `git add -A`.
 
 **Done (committed, green, ruff-clean):** the whole `src/book` area (gauge +
 property books), `storm_typhoon_pairing.py`, and the stressm pipeline **reads**.
@@ -87,9 +93,9 @@ For a corrupt-record case, **monkeypatch the seam getter** to raise `ValueError`
 
 | File | r/w | Seam fn | Notes |
 |---|---|---|---|
-| `property/hc/generator/_decomposition.py` | 9r 1w | `get/save_property_hazard_curves(mode=)` | **Biggest single win.** The 9 reads are the `shd/she/bri/win/faw/fow/bow/baw` modes; write is default mode. |
-| `property/hc/generator/_generator.py` | 1w | `save_property_hazard_curves` | |
-| `property/hc/loader.py` | 3r | `get_property_hazard_curves`, `get_storm_sequences`, `get_sequence_gauge` | generator-side loader |
+| ~~`property/hc/generator/_decomposition.py`~~ | ~~9r 1w~~ | — | **DONE 2026-06-27** (via `AssetTypeConfig.get/save_hazard_curves`). |
+| ~~`property/hc/generator/_generator.py`~~ | ~~1w~~ | — | **DONE 2026-06-27**. |
+| `property/hc/loader.py` | 3r | `cfg.get_hazard_curves`, `get_storm_sequences`, `get_sequence_gauge` | generator-side loader — **next**; reuse the new AssetTypeConfig accessor |
 | `property/hc/pricing/_process.py` | 1r | (confirm: property record vs timeseries) | check before swapping |
 | `gauge/synthetic/generator/_core.py` | 1r 1w | `get_gauge_portfolio` / `save_gauges` | read+write pair |
 | `cdm/gaugehd/generator.py` | 1w | `save_gauge_history` | gaugehd writer (key = station id) |
