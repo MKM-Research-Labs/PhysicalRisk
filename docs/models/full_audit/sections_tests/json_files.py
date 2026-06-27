@@ -103,6 +103,13 @@ _ALLOWLIST = {
     'src/port/src/storm_multi/models/spatial_correlation.py':
         'spatial-correlation config import (Params.load); intentional JSON file, '
         'canonical values in config.port',
+    # Optional high-res river polyline used to snap synthetic gauges. A static,
+    # externally-produced catchment-reference geometry (no in-repo writer; the
+    # read falls back to gauge points when absent) — a catchment input file, not
+    # generated DB state.
+    'src/port/src/gauge/synthetic/geometry.py':
+        'optional external river-polyline snap geometry; static catchment input, '
+        'no in-repo writer, falls back to gauge points',
 }
 
 # ---------------------------------------------------------------------------
