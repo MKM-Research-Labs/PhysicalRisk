@@ -24,8 +24,33 @@ import json
 from pathlib import Path
 
 
+def _merged_summary(summary: dict, result: dict) -> dict:
+    """Merge one gauge *result* into a training-summary doc, recomputing aggregates."""
+    gauges = [g for g in summary.get("gauges", [])
+              if g.get("gauge_id") != result.get("gauge_id")]
+    gauges.append(result)
+    trained = [g for g in gauges if g.get("status") == "trained"]
+    avg_auc = (
+        sum(g["metrics"]["auc_roc"] for g in trained) / len(trained)
+        if trained else 0.0
+    )
+    return {
+        "num_gauges": len(gauges),
+        "num_trained": len(trained),
+        "num_skipped": len(gauges) - len(trained),
+        "avg_auc_roc": round(avg_auc, 4),
+        "gauges": gauges,
+    }
+
+
 def update_training_summary(result: dict, stressm_dir: Path):
-    """Merge a single gauge result into training_summary.json (incremental save).
+    """Merge a single gauge result into ``stressm/training_summary.json`` (file).
+
+    Deliberately stays file-based: this summary lives in the classifier model dir
+    and is read by the ``src/models`` flood-classifier predictor, which the
+    database migration excludes (analytical models keep their .json). For the
+    seam-backed ``classifiers/`` summary used by the trading-stress UI flow, see
+    :func:`update_classifier_training_summary`.
 
     Parameters
     ----------
@@ -35,31 +60,22 @@ def update_training_summary(result: dict, stressm_dir: Path):
         Directory containing (or to contain) ``training_summary.json``.
     """
     summary_path = stressm_dir / "training_summary.json"
-
     if summary_path.exists():
         with open(summary_path) as f:
             summary = json.load(f)
     else:
-        summary = {"num_gauges": 0, "num_trained": 0,
-                   "num_skipped": 0, "avg_auc_roc": 0, "gauges": []}
-
-    gauges = [g for g in summary.get("gauges", [])
-              if g.get("gauge_id") != result.get("gauge_id")]
-    gauges.append(result)
-
-    trained = [g for g in gauges if g.get("status") == "trained"]
-    avg_auc = (
-        sum(g["metrics"]["auc_roc"] for g in trained) / len(trained)
-        if trained else 0.0
-    )
-    summary["num_gauges"] = len(gauges)
-    summary["num_trained"] = len(trained)
-    summary["num_skipped"] = len(gauges) - len(trained)
-    summary["avg_auc_roc"] = round(avg_auc, 4)
-    summary["gauges"] = gauges
-
+        summary = {}
     with open(summary_path, "w") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(_merged_summary(summary, result), f, indent=2)
+
+
+def update_classifier_training_summary(result: dict, catchment: str = None):
+    """Merge a single gauge result into the ``classifiers/`` training summary
+    through the database seam (the trading-stress per-gauge training UI flow)."""
+    import database
+    catchment = catchment or database.active_catchment()
+    summary = database.get_classifier_training_summary(catchment) or {}
+    database.save_classifier_training_summary(catchment, _merged_summary(summary, result))
 
 
 def load_gauge_training_context():

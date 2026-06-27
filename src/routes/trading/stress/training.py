@@ -46,9 +46,9 @@ logger = logging.getLogger(__name__)
 
 
 def _update_training_summary(result):
-    """Convenience wrapper used by tests — delegates to the canonical helper."""
-    from port.src.stressm.summary import update_training_summary
-    update_training_summary(result, config.get_classifiers_dir())
+    """Convenience wrapper used by tests — delegates to the seam helper."""
+    from port.src.stressm.summary import update_classifier_training_summary
+    update_classifier_training_summary(result)
 
 
 # Module-level dict to track training jobs.
@@ -180,11 +180,10 @@ def _train_single_gauge(gauge_id: str):
         from port.src.stressm.classifier import train_gauge_stressm_classifier
         from port.src.stressm.summary import load_gauge_training_context
 
-        input_dir = config.get_input_dir()
         output_dir = config.get_output_dir()
 
-        # Load gauge data and spatial model
-        all_gauges, all_gauge_ids, spatial_model = load_gauge_training_context(input_dir)
+        # Load gauge data and spatial model (read through the database seam).
+        all_gauges, all_gauge_ids, spatial_model = load_gauge_training_context()
 
         # Find target gauge
         target = [g for g in all_gauges if g["gauge_id"] == gauge_id]
@@ -213,9 +212,9 @@ def _train_single_gauge(gauge_id: str):
             classifiers_dir=config.get_classifiers_dir(),
         )
 
-        # Update training_summary.json (merge with existing)
-        from port.src.stressm.summary import update_training_summary
-        update_training_summary(result, config.get_classifiers_dir())
+        # Merge this gauge's result into the classifiers training summary (seam).
+        from port.src.stressm.summary import update_classifier_training_summary
+        update_classifier_training_summary(result)
 
         with _training_lock:
             _training_jobs[gauge_id] = {

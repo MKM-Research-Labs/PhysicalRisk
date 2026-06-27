@@ -24,7 +24,6 @@ Gaugets population, classifier summary, and pipeline summary helpers.
 Extracted from pipeline.py to keep each module under 300 lines.
 """
 
-import json
 import time
 from pathlib import Path
 
@@ -128,15 +127,14 @@ def populate_gaugets(
 
 
 def write_classifier_summary(results: list) -> None:
-    """Write training_summary.json to the stressm model dir.
+    """Persist the classifier training summary through the database seam.
 
-    The summary is in the same format as FloodClassifierTrainer.train_all()
-    so FloodPredictor._load_summary() / _get_severe_level() can read it.
-    Each result dict comes from train_gauge_stressm_classifier() which
-    returns a FloodClassifierTrainer.train_gauge() result dict, so the
-    'severe_level' and 'status' fields are present.
+    Saved under the ``classifier_training_summary`` artifact
+    (``classifiers/training_summary.json`` on the file backend); the trading-stress
+    routes read it back via ``database.get_classifier_training_summary``. Same
+    format the predictor expects ('severe_level' / 'status' per result dict).
     """
-    from config import config as _cfg
+    import database
 
     trained = [r for r in results if r.get('status') == 'trained']
     avg_auc = (
@@ -150,11 +148,9 @@ def write_classifier_summary(results: list) -> None:
         'avg_auc_roc': round(avg_auc, 4),
         'gauges': results,
     }
-    path = _cfg.get_classifiers_dir() / 'training_summary.json'
-    with open(path, 'w') as f:
-        json.dump(summary, f, indent=2)
+    database.save_classifier_training_summary(database.active_catchment(), summary)
     print(
-        f"  training_summary.json written  "
+        f"  training_summary written  "
         f"({len(trained)}/{len(results)} trained  avg AUC: {avg_auc:.4f})",
         flush=True,
     )
