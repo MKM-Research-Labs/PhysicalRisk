@@ -28,10 +28,10 @@ Targets uncovered lines: 78-80 (_derive_intensity_category warning>=3 path),
 """
 
 import json
+
 import pytest
 
 from tests.port.gauge.conftest import make_gauge_file, make_response
-
 
 # ---------------------------------------------------------------------------
 # _derive_intensity_category — warning>=3 branch (lines 78-80)
@@ -120,16 +120,20 @@ class TestCorruptGaugeFile:
         # The valid gauge file's storm should still appear
         assert result["total_storms"] == 1
 
-    def test_all_corrupt_gauge_files_no_storms(self, tmp_path):
-        """All gauge files corrupt → no storms (but file still written)."""
+    def test_all_corrupt_gauge_files_raise(self, tmp_path):
+        """All gauge timeseries unreadable → nothing to scan → raises.
+
+        Corrupt per-gauge records are skipped individually; when none remain the
+        scan raises rather than silently producing an empty stress set (the
+        seam-only path no longer tolerates an all-empty scan)."""
         from port.src.gauge.stress_storms import generate_stress_storms
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         (gaugets / "GAUGE-00000001.json").write_text("corrupt")
         (gaugets / "GAUGE-00000002.json").write_text("also corrupt")
         out = tmp_path / "stress_storms"
-        result = generate_stress_storms(gaugets, out)
-        assert result["total_storms"] == 0
+        with pytest.raises(FileNotFoundError, match="No gauge timeseries"):
+            generate_stress_storms(gaugets, out)
 
 
 # ---------------------------------------------------------------------------
@@ -146,8 +150,9 @@ class TestSeamFallback:
         against an empty directory so the file glob misses and the seam fallback
         supplies the gauge — exercised here on the file backend (and the same path
         is what makes the pipeline work on Postgres)."""
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         from port.src.gauge.stress_storms import generate_stress_storms
         sid = "STORM-deadbeef"
         with tmp_catchment(tmp_path / "catchment"):
@@ -165,8 +170,9 @@ class TestSeamFallback:
 
     def test_non_gauge_keys_skipped_in_seam(self, tmp_path):
         """Seam fallback only scans GAUGE-* timeseries (e.g. SYNTH-* are ignored)."""
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         from port.src.gauge.stress_storms import generate_stress_storms
         with tmp_catchment(tmp_path / "catchment"):
             database.save_gauge_timeseries(

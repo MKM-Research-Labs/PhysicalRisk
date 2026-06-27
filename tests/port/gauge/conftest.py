@@ -80,6 +80,17 @@ def write_nrfa_csv(path: Path, station_id: str = "39001",
 
 
 import pytest
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend rooted at tmp_path so gauge generators/readers
+    resolve their seam I/O (gauge timeseries, gaugehd) there — the same path the
+    test helpers write GAUGE-*.json / gauge_*_hd.json under. Satisfies the
+    ``setup_gauge_env`` requirement that a tmp-rooted backend is already bound."""
+    with tmp_catchment(tmp_path, "thames"):
+        yield
 
 
 def setup_gauge_env(tmp_path, gauge_entries=None):

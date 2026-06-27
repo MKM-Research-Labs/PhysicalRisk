@@ -92,29 +92,23 @@ def load_storm_metadata(storms_json_path) -> Dict[str, Dict]:
     return storm_meta
 
 
-def _iter_gauge_records_from_files(gauge_files: List[Path]):
-    """Yield ``(gauge_id, gaugets_doc)`` from on-disk gaugets/GAUGE-*.json files,
-    skipping any that fail to parse (the file backend stores gaugets as files)."""
-    for gf in gauge_files:
-        try:
-            data = json.loads(gf.read_text())
-        except Exception as exc:
-            logger.warning("Skipping %s: %s", gf.name, exc)
-            continue
-        # gauge_id is the file's top-level field; individual responses don't repeat it
-        yield data.get("gauge_id", gf.stem), data
-
-
 def _iter_gauge_records_from_seam():
     """Yield ``(gauge_id, gaugets_doc)`` from the database seam for the active
-    catchment (the Postgres backend stores gaugets as rows, so no files exist)."""
+    catchment (the file backend reads ``gaugets/GAUGE-*.json``; Postgres stores
+    them as rows). An unreadable/absent per-gauge record is logged and skipped,
+    preserving the file backend's old tolerance for a corrupt gaugets file."""
     import database
     catchment = database.active_catchment()
     for gid in database.iter_gauge_timeseries_ids(catchment):
         if not gid.startswith("GAUGE-"):
             continue
-        data = database.get_gauge_timeseries(catchment, gid)
-        yield data.get("gauge_id", gid), data
+        try:
+            data = database.get_gauge_timeseries(catchment, gid)
+        except (OSError, ValueError) as exc:
+            logger.warning("Skipping gauge timeseries %s: %s", gid, exc)
+            continue
+        if data:
+            yield data.get("gauge_id", gid), data
 
 
 def scan_gauge_responses(
@@ -122,32 +116,21 @@ def scan_gauge_responses(
 ) -> tuple[Dict[str, List[Dict]], Set[str]]:
     """Scan the per-gauge timeseries and build storm_id → list of responses.
 
-    Reads from ``gaugets_dir`` when GAUGE-*.json files are present (the file backend
-    writes them there); otherwise falls back to the database seam for the active
-    catchment (the Postgres backend stores gaugets as rows, so the directory is
-    empty). Raises if neither source yields a gauge.
+    Reads gauge timeseries for the active catchment through the database seam
+    (the file backend resolves to ``gaugets_dir``; Postgres stores them as rows).
+    Unreadable per-gauge records are skipped; raises if the catchment has no gauge
+    timeseries at all.
 
     Returns:
         (all_responses, alert_storm_ids):
             - all_responses[storm_id] = list of per-gauge response dicts
             - alert_storm_ids = set of storm IDs where any gauge exceeded alert
     """
-    gauge_files = sorted(gaugets_dir.glob("GAUGE-*.json"))
-    if gauge_files:
-        # Files present (file backend): all-corrupt is tolerated -> empty result.
-        records = _iter_gauge_records_from_files(gauge_files)
-        raise_if_none = False
-    else:
-        # No files (Postgres backend, or genuinely empty): read the seam, and treat
-        # an empty seam as the legacy "nothing to scan" error.
-        records = _iter_gauge_records_from_seam()
-        raise_if_none = True
-
     all_responses: Dict[str, List[Dict]] = {}
     alert_storm_ids: Set[str] = set()
     n_scanned = 0
 
-    for gauge_id, data in records:
+    for gauge_id, data in _iter_gauge_records_from_seam():
         n_scanned += 1
         responses = data.get("storm_responses", {}).get("responses", [])
         for resp in responses:
@@ -161,10 +144,9 @@ def scan_gauge_responses(
             if resp.get("exceeded_alert", False):
                 alert_storm_ids.add(sid)
 
-    if raise_if_none and n_scanned == 0:
+    if n_scanned == 0:
         raise FileNotFoundError(
-            f"No GAUGE-*.json files in {gaugets_dir} and no gauge timeseries in the "
-            f"database seam")
+            f"No gauge timeseries for the active catchment (gaugets dir: {gaugets_dir})")
 
     logger.info(
         "Scanned %d gauges: %d total storm IDs, %d breached alert",
