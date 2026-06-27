@@ -28,12 +28,12 @@ Synthetic gauges are appended to gauge.json so they flow through
 stressm, gaugehc, and propertyts as first-class entities.
 """
 
-import json
 import logging
 import random
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import database
 from config import config
 from models.floodrisk.spatial import haversine_distance
 
@@ -71,15 +71,12 @@ class SyntheticGaugeGenerator(_CreateMixin):
         Returns:
             Dict with 'count' and 'gauge_ids' of created synthetic gauges.
         """
-        gauge_path = self.output_dir / "gauge.json"
-
-        if not gauge_path.exists():
-            logger.warning("gauge.json not found — skipping synthetic gauges")
+        catchment = database.active_catchment()
+        gauge_data = database.get_gauge_portfolio(catchment)
+        if not gauge_data:
+            logger.warning("gauge portfolio not found — skipping synthetic gauges")
             return {"count": 0, "gauge_ids": []}
 
-        # Load existing gauges
-        with open(gauge_path) as f:
-            gauge_data = json.load(f)
         gauges = gauge_data.get("flood_gauges", [])
 
         # Remove any existing synthetic gauges (from previous runs)
@@ -161,11 +158,10 @@ class SyntheticGaugeGenerator(_CreateMixin):
             synth_gauges.append(synth_cdm)
             synth_ids.append(synth_id)
 
-        # Append to gauge.json
+        # Append the synthetic gauges to the portfolio.
         if synth_gauges:
             gauge_data["flood_gauges"].extend(synth_gauges)
-            with open(gauge_path, "w") as f:
-                json.dump(gauge_data, f, indent=2)
-            logger.info("Generated %d synthetic gauges → gauge.json", len(synth_gauges))
+            database.save_gauges(catchment, gauge_data)
+            logger.info("Generated %d synthetic gauges → gauge portfolio", len(synth_gauges))
 
         return {"count": len(synth_gauges), "gauge_ids": synth_ids}
