@@ -26,7 +26,6 @@ Targets missing lines:
   - 323-325: from_gauge_portfolio_file class method
 """
 
-import json
 from unittest.mock import patch
 
 import numpy as np
@@ -36,7 +35,6 @@ from port.src.storm_multi.models.spatial_correlation import (
     SpatialCorrelationModel,
     SpatialCorrelationParams,
 )
-
 
 SYNTHETIC_LOCATIONS = [
     (51.45, -0.30),
@@ -91,26 +89,3 @@ class TestSampleMultipliersNoRng:
         assert M.shape == (model.n_gauges,)
         assert M.mean() == pytest.approx(1.0, abs=1e-10)
         assert np.all(M > 0.0)
-
-
-# ---------------------------------------------------------------------------
-# Lines 323-325: from_gauge_portfolio_file
-# ---------------------------------------------------------------------------
-
-class TestFromGaugePortfolioFile:
-
-    def test_from_gauge_portfolio_file(self, tmp_path):
-        """Lines 323-325: construct model from a gauge.json file."""
-        portfolio = {
-            "flood_gauges": [
-                {"FloodGauge": {"Location": {"GaugeLatitude": 51.45, "GaugeLongitude": -0.30}}},
-                {"FloodGauge": {"Location": {"GaugeLatitude": 51.46, "GaugeLongitude": -0.20}}},
-                {"FloodGauge": {"Location": {"GaugeLatitude": 51.47, "GaugeLongitude": -0.10}}},
-            ]
-        }
-        path = tmp_path / "gauge.json"
-        path.write_text(json.dumps(portfolio))
-
-        model = SpatialCorrelationModel.from_gauge_portfolio_file(path)
-        assert model.n_gauges == 3
-        assert model.dist_matrix.shape == (3, 3)

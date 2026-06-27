@@ -267,17 +267,6 @@ class SpatialCorrelationModel:
             locations.append((lat, lon))
         return cls(gauge_locations=locations, params=params)
 
-    @classmethod
-    def from_gauge_portfolio_file(
-        cls,
-        path: Path,
-        params: Optional[SpatialCorrelationParams] = None,
-    ) -> "SpatialCorrelationModel":
-        """Construct from a gauge portfolio JSON file."""
-        with open(path) as f:
-            portfolio = json.load(f)
-        return cls.from_gauge_portfolio(portfolio, params=params)
-
 
 # Config file I/O lives in the sibling _spatial_math module; re-export so
 # existing callers of ``from .spatial_correlation import save_*`` still work.

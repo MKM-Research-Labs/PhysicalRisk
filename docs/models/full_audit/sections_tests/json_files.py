@@ -92,7 +92,17 @@ GATED = False
 # are intentionally NOT migrating to the database (kept minimal; reviewed by the
 # allowlist test, which removes stale entries automatically).
 _ALLOWLIST = {
-    # (none yet — every .json touch is tracked backlog)
+    # Spatial-correlation analytical model: config export/hand-off utilities whose
+    # whole purpose is a human-inspectable JSON file (save_spatial_correlation_config
+    # / SpatialCorrelationParams.load). The canonical parameter values live in
+    # config.port (SPATIAL_CORR_*); these are intentionally files, not DB state —
+    # mirroring the src/models analytical-model exemption.
+    'src/port/src/storm_multi/models/_spatial_math.py':
+        'spatial-correlation config export utility; intentional JSON file, '
+        'canonical values in config.port',
+    'src/port/src/storm_multi/models/spatial_correlation.py':
+        'spatial-correlation config import (Params.load); intentional JSON file, '
+        'canonical values in config.port',
 }
 
 # ---------------------------------------------------------------------------
