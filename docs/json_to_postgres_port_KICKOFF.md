@@ -15,9 +15,9 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **14** |
+| **`src/port` files** | 26 | **13** |
 | **`src/port` reads** | 41 | **8** |
-| **`src/port` writes** | 14 | **12** |
+| **`src/port` writes** | 14 | **9** |
 
 **2026-06-27 — Tier 1 (property/commercial hazard-curve I/O) DONE.** Migrated the
 HC generator write (`_generator.py`) + the spread-decomposition read/write
@@ -112,10 +112,13 @@ For a corrupt-record case, **monkeypatch the seam getter** to raise `ValueError`
 
 ### Tier 3 — BLOCKED on a design decision (not mechanical; decide first)
 
-- **`stressm/pipeline/stages.py` (3w) — `sequence_gauge` writes.** Uses
-  `rmtree`+`mkdir`+per-file `stat()` size reporting+`iterdir`+legacy `unlink`.
-  The seam has **no bulk-clear** for `sequence_gauge`. **Decision needed:** add a
-  `clear-collection` seam capability, or redesign the cleanup/size reporting.
+- ~~**`stressm/pipeline/stages.py` (3w) — `sequence_gauge` writes.**~~ **DONE
+  2026-06-27.** Added `Repository.clear` (default via iter_keys+delete) +
+  `clear_sequence_gauges`; `write_split_output`/`write_single_gauge_output` now
+  go through the seam; dropped the iterdir/stat size reporting. **Trade-off:**
+  seam serializes `indent=2` vs the old compact separators — file-backend
+  per-gauge records grow; moot under pg (JSONB). A compact-serialize seam option
+  is the follow-up if file-backend disk matters.
 - **`stressm/gaugets_writer.py` (1w) + `stressm/summary.py` (1r 1w) —
   `training_summary.json`.** There are **two distinct files**:
   `stressm/training_summary.json` (batch_train; **no seam artifact**) and
