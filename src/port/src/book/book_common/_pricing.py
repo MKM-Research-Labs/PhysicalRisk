@@ -20,13 +20,13 @@
 
 """Leg PV computation and single-trade pricing/saving."""
 
-import json
 import logging
 import math
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import database
 from models.hazard.prs_analytical import compute_prs_spread, interpolate_yield_rate
 
 from ._constants import (
@@ -154,9 +154,10 @@ def _price_and_save_trade(
         property_set=property_set,
     )
 
-    json_path = output_dir / f'{swap_id}.json'
-    with open(json_path, 'w') as f:
-        json.dump(record, f, indent=2)
+    # Persist through the prs_trade seam — the blotter/client/routes read these
+    # back via database.iter_prs_trade_ids / get_prs_trade (output_dir is kept
+    # for call-site compatibility).
+    database.save_prs_trade(catchment_id, swap_id, record)
 
     dir_label = 'PAY' if is_payer else 'RCV'
     logger.info(

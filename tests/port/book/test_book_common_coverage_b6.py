@@ -117,3 +117,32 @@ class TestLoadCounterpartiesFallback:
         assert len(result) == 1
         assert result[0]["id"] == "CTPY-REAL"
         assert "RealB" in result[0]["name"]
+
+
+class TestPriceAndSaveTradePersists:
+    """_price_and_save_trade persists the priced trade through the prs_trade seam
+    (the blotter/client/routes read it back via database.iter_prs_trade_ids)."""
+
+    def test_trade_saved_to_seam(self, tmp_path):
+        from port.src.book.book_common._pricing import _price_and_save_trade
+
+        with tmp_catchment(tmp_path, _CATCHMENT):
+            record, _ = _price_and_save_trade(
+                gauge_id="GAUGE-0001",
+                gauge_name="Test Gauge",
+                catchment_id=_CATCHMENT,
+                is_payer=True,
+                tenor=5,
+                notional=1_000_000,
+                trigger="alert",
+                hazard_rate=0.05,
+                counterparties=[{"id": "CTPY-001", "name": "Test Party"}],
+                ctpy_idx=0,
+                base_date=datetime(2026, 1, 15),
+                output_dir=tmp_path,
+                fair_spread_override=45.0,
+            )
+
+            trades = database.list_prs_trades(_CATCHMENT)
+            assert record is not None
+            assert len(trades) == 1
