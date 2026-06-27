@@ -26,8 +26,8 @@ from typing import Iterator
 
 from config.data_layout import DEFAULT_MODE
 
-from .backend import active_backend
 from ._helpers import load_or
+from .backend import active_backend
 
 
 def get_property_timeseries(catchment, property_id, mode=DEFAULT_MODE):
@@ -45,6 +45,15 @@ def property_timeseries_exists(catchment, mode=DEFAULT_MODE) -> bool:
 
 def get_portfolio_flood_summary(catchment, mode=DEFAULT_MODE):
     return load_or("portfolio_flood_summary", catchment, mode=mode)
+
+def save_portfolio_flood_summary(catchment, payload, mode=DEFAULT_MODE):
+    active_backend().save("portfolio_flood_summary", catchment, payload, mode=mode)
+
+def get_commercial_portfolio_flood_summary(catchment, mode=DEFAULT_MODE):
+    return load_or("commercial_portfolio_flood_summary", catchment, mode=mode)
+
+def save_commercial_portfolio_flood_summary(catchment, payload, mode=DEFAULT_MODE):
+    active_backend().save("commercial_portfolio_flood_summary", catchment, payload, mode=mode)
 
 def get_commercial_timeseries(catchment, asset_id, mode=DEFAULT_MODE):
     return load_or("commercial_timeseries", catchment, asset_id, mode=mode)

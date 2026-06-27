@@ -63,6 +63,8 @@ _REGISTRY: dict[str, Spec] = {
     "stress_storms_legacy": Spec(DOCUMENT, _const(dl.LEGACY_STRESS_STORMS_FILE)),
     "portfolio_flood_summary": Spec(
         DOCUMENT, lambda mode: f"{dl.PROPERTY_TS_DIRS[mode]}/{dl.PORTFOLIO_FLOOD_SUMMARY_FILE}"),
+    "commercial_portfolio_flood_summary": Spec(
+        DOCUMENT, lambda mode: f"{dl.COMMERCIAL_TS_DIRS[mode]}/{dl.PORTFOLIO_FLOOD_SUMMARY_FILE}"),
 
     # Perils (documents)
     "fire_results": Spec(DOCUMENT, _const(dl.FIRE_RESULTS_FILE)),

@@ -128,6 +128,7 @@ from .timeseries import (
     delete_gauge_history,
     delete_gauge_timeseries,
     gauge_timeseries_exists,
+    get_commercial_portfolio_flood_summary,
     get_commercial_timeseries,
     get_gauge_history,
     get_gauge_timeseries,
@@ -138,9 +139,11 @@ from .timeseries import (
     iter_gauge_timeseries_ids,
     iter_property_timeseries_ids,
     property_timeseries_exists,
+    save_commercial_portfolio_flood_summary,
     save_commercial_timeseries,
     save_gauge_history,
     save_gauge_timeseries,
+    save_portfolio_flood_summary,
     save_property_timeseries,
 )
 from .trading import (
@@ -193,6 +196,8 @@ __all__ = [
     # timeseries
     "get_property_timeseries", "iter_property_timeseries_ids", "save_property_timeseries",
     "property_timeseries_exists", "get_portfolio_flood_summary",
+    "save_portfolio_flood_summary",
+    "get_commercial_portfolio_flood_summary", "save_commercial_portfolio_flood_summary",
     "get_commercial_timeseries", "iter_commercial_timeseries_ids", "save_commercial_timeseries",
     "commercial_timeseries_exists",
     "get_gauge_timeseries", "gauge_timeseries_exists", "iter_gauge_timeseries_ids",

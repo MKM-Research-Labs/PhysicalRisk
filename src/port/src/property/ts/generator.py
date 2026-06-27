@@ -37,17 +37,16 @@ Usage:
     result = generator.generate()
 """
 
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Union
 
+import database
 from config import config
 from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 from port.utils.generator_base import GeneratorInitMixin
 
-from .encoder import DateTimeEncoder
 from .flood import FloodMixin
 from .loader import LoaderMixin
 
@@ -163,9 +162,9 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
         else:
             summary_stats['gauge_to_property_ratio'] = 0.0
 
-        summary_path = pts_dir / 'portfolio_flood_summary.json'
-        with open(summary_path, 'w') as f:
-            json.dump({
+        self.ASSET_CONFIG.save_portfolio_flood_summary(
+            database.active_catchment(),
+            {
                 'generated_at': datetime.now().isoformat(),
                 'catchment': config.CATCHMENT,
                 'summary': {
@@ -181,9 +180,11 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
                     'max_damage_ratio': round(summary_stats['max_damage_ratio'], 4),
                 },
                 'properties': summary_stats['property_summaries'],
-            }, f, indent=2, cls=DateTimeEncoder)
+            },
+            mode=self.mode,
+        )
 
-        self.log(f"Portfolio summary: {summary_path.name}")
+        self.log("Portfolio summary written")
         self.log(f"  Properties with floods: {summary_stats['properties_with_floods']}/{len(properties)}")
         self.log(f"  Gauge alert: {summary_stats['total_storms_at_gauge']}")
         self.log(f"  Gauge severe: {summary_stats['total_severe_at_gauge']}")

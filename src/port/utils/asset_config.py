@@ -137,6 +137,13 @@ class AssetTypeConfig:
         fn = database.list_commercial if self._is_commercial else database.list_properties
         return fn(catchment)
 
+    def save_portfolio_flood_summary(self, catchment: str, payload, mode: str = "normal") -> None:
+        """Save this asset type's portfolio flood summary for *mode* via the seam."""
+        import database
+        fn = (database.save_commercial_portfolio_flood_summary if self._is_commercial
+              else database.save_portfolio_flood_summary)
+        fn(catchment, payload, mode=self._seam_mode(mode))
+
 
 RESIDENTIAL_CONFIG = AssetTypeConfig(
     portfolio_filename="property.json",

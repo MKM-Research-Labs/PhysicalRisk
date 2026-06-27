@@ -134,6 +134,10 @@ def test_timeseries(repo):
     database.delete_gauge_history(CATCH, "GAUGE-1")
     assert list(database.iter_gauge_history_ids(CATCH)) == []
     assert database.get_portfolio_flood_summary(CATCH) is None
+    database.save_portfolio_flood_summary(CATCH, {"summary": {"total_properties": 2}})
+    assert database.get_portfolio_flood_summary(CATCH)["summary"]["total_properties"] == 2
+    database.save_commercial_portfolio_flood_summary(CATCH, {"summary": {"total_properties": 3}})
+    assert database.get_commercial_portfolio_flood_summary(CATCH)["summary"]["total_properties"] == 3
 
 
 def test_storms_and_perils(repo):
