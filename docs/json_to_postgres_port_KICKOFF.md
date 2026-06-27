@@ -15,9 +15,17 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **10** |
+| **`src/port` files** | 26 | **9** |
 | **`src/port` reads** | 41 | **6** |
-| **`src/port` writes** | 14 | **7** |
+| **`src/port` writes** | 14 | **6** |
+
+**2026-06-27 — Tier 3 #2 (training_summary):** migrated the
+`classifiers/training_summary.json` cluster to the seam (`gaugets_writer` +
+`update_classifier_training_summary` for the trading-stress routes). **Held**
+`stressm/training_summary.json` as a file (read by the excluded `src/models`
+flood-classifier predictor — stays a tracked finding: `summary.py:65,69`). Also
+fixed a latent bug from the Phase-1c merge: `routes/training.py` still called
+`load_gauge_training_context(input_dir)` after the param was dropped.
 
 **2026-06-27 — clean Tier-1 singles:** synthetic gauge generator (gauge
 read-modify-write → `get_gauge_portfolio`/`save_gauges`); `portfolio_flood_summary`
