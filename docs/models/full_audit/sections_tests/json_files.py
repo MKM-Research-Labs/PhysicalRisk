@@ -110,6 +110,14 @@ _ALLOWLIST = {
     'src/port/src/gauge/synthetic/geometry.py':
         'optional external river-polyline snap geometry; static catchment input, '
         'no in-repo writer, falls back to gauge points',
+    # Standalone CSV->JSON gauge-history conversion CLI (cdm/gaugehd/, own main());
+    # NOT in the live port pipeline (that synthesises gauge_history through the
+    # seam). Its gaugehd_{station}.json output is a data-prep file whose content
+    # no module reads (the visual loader only counts the files) — intentional
+    # file output of a conversion tool, not DB-managed state.
+    'src/port/cdm/gaugehd/generator.py':
+        'standalone CSV->JSON gauge-history conversion tool; intentional file '
+        'output, content read by no module (live pipeline uses gauge_history seam)',
 }
 
 # ---------------------------------------------------------------------------
