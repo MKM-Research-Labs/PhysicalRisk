@@ -15,8 +15,8 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **13** |
-| **`src/port` reads** | 41 | **8** |
+| **`src/port` files** | 26 | **12** |
+| **`src/port` reads** | 41 | **7** |
 | **`src/port` writes** | 14 | **9** |
 
 **2026-06-27 — Tier 1 (property/commercial hazard-curve I/O) DONE.** Migrated the
@@ -127,10 +127,12 @@ For a corrupt-record case, **monkeypatch the seam getter** to raise `ValueError`
   `update_training_summary` is **shared with `src/routes`**. **Decision needed:**
   new artifact for the stressm-dir file, or consolidate the two; expect to widen
   scope into `src/routes`.
-- **`_stress_storms_stages.py` (1r) — deliberate dual-path.** `scan_gauge_responses`
-  already falls back to the seam; the `glob("GAUGE-*.json")` is a file-backend
-  fast path with **different corrupt-tolerance + raise semantics**. Collapsing to
-  seam-only is a **behaviour change** — own decision + test review.
+- ~~**`_stress_storms_stages.py` (1r) — deliberate dual-path.**~~ **DONE
+  2026-06-27.** Collapsed `scan_gauge_responses` to seam-only; the seam iterator
+  skips unreadable per-gauge records (preserving per-file corrupt tolerance).
+  **Behaviour change (approved):** all-corrupt / all-empty now raises
+  `FileNotFoundError` instead of returning empty. Test + gauge-conftest autouse
+  backend updated.
 
 ### Tier 4 — Category C (new artifact) / dead code
 
