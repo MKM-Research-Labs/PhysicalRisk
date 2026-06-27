@@ -24,8 +24,8 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from .backend import active_backend
 from ._helpers import load_or, records
+from .backend import active_backend
 
 
 # ── Storm sequences ──────────────────────────────────────────────────────────
@@ -85,6 +85,11 @@ def get_sequence_gauge(catchment, gauge_id):
 
 def save_sequence_gauge(catchment, gauge_id, payload):
     active_backend().save("sequence_gauge", catchment, payload, gauge_id)
+
+def clear_sequence_gauges(catchment):
+    """Remove every per-gauge sequence summary (replaces an ``rmtree`` of the
+    ``sequence_gauge`` collection before a full rewrite)."""
+    active_backend().clear("sequence_gauge", catchment)
 
 
 # ── Typhoon damage events (keyed per event) ──────────────────────────────────

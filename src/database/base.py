@@ -63,6 +63,17 @@ class Repository(ABC):
                *, mode: str = DEFAULT_MODE) -> None:
         """Remove one record. No-op if it does not exist."""
 
+    def clear(self, artifact: str, catchment: str,
+              *, mode: str = DEFAULT_MODE) -> None:
+        """Remove every record of a keyed artifact's collection.
+
+        Default implementation deletes each enumerated key; since ``iter_keys``
+        skips ``_``-prefixed entries (e.g. ``_index``), those are left for the
+        caller to overwrite rather than cleared. Backends may override with a
+        single bulk delete."""
+        for key in list(self.iter_keys(artifact, catchment, mode=mode)):
+            self.delete(artifact, catchment, key, mode=mode)
+
     @abstractmethod
     def iter_keys(self, artifact: str, catchment: str,
                   *, mode: str = DEFAULT_MODE) -> Iterator[str]:

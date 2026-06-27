@@ -158,6 +158,13 @@ def test_storms_and_perils(repo):
     assert database.get_fire_results(CATCH) == {"assets": []}
     assert database.get_seismic_results(CATCH) == {"assets": []}
 
+    # clear_sequence_gauges removes the whole keyed collection.
+    database.save_sequence_gauge(CATCH, "GAUGE-2", {"count": 7})
+    assert sorted(database.list_sequence_gauges(CATCH)) == ["GAUGE-1", "GAUGE-2"]
+    database.clear_sequence_gauges(CATCH)
+    assert database.list_sequence_gauges(CATCH) == []
+    assert database.get_sequence_gauge(CATCH, "GAUGE-1") is None
+
 
 def test_typhoon_events(repo):
     assert database.typhoon_events_exist(CATCH) is False

@@ -20,16 +20,16 @@
 
 """Pipeline output stages: write results and train classifiers."""
 
-import json
 import logging
-from pathlib import Path
 
 import numpy as np
 
-from ._constants import GAUGE_SUMMARY_FILENAME, GAUGE_SUMMARY_DIR, SCHEMA_VERSION_SPATIAL
+import database
+
+from ..classifier import _print_classifier_result, train_gauge_stressm_classifier
 from ..gaugets_writer import populate_gaugets, write_classifier_summary
 from ..reporting import _print_gauge_progression
-from ..classifier import train_gauge_stressm_classifier, _print_classifier_result
+from ._constants import GAUGE_SUMMARY_DIR, GAUGE_SUMMARY_FILENAME, SCHEMA_VERSION_SPATIAL
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,12 @@ def write_gaugets(input_dir, gauge_params_list, gauge_ids,
 
 def write_single_gauge_output(input_dir, catchment_id, count, n_gauges,
                               gauge_ids, gauge_id, sequence_records):
-    """Write single-gauge output file (used by classifier training)."""
+    """Write single-gauge output (used by classifier training).
+
+    A debug/dev artifact for single-gauge (``--gauge``) mode, persisted through
+    the database seam under the gauge's ``sequence_gauge`` key. No downstream
+    reader consumes it, so the whole-portfolio ``sequence_records`` payload is
+    fine here (it differs from the split-mode per-gauge shape)."""
     summary_doc = {
         "schema_version": SCHEMA_VERSION_SPATIAL,
         "catchment_id": catchment_id,
@@ -54,24 +59,20 @@ def write_single_gauge_output(input_dir, catchment_id, count, n_gauges,
         "gauge_ids": gauge_ids,
         "sequences": sequence_records,
     }
-    out_path = input_dir / f"sequence_gauge_{gauge_id}.json"
-    with open(out_path, "w") as f:
-        json.dump(summary_doc, f, indent=2)
-    size_mb = out_path.stat().st_size / 1_048_576
-    print(f"  ->  {out_path.name}  ({size_mb:.1f} MB)", flush=True)
+    database.save_sequence_gauge(catchment_id, gauge_id, summary_doc)
+    print(f"  ->  sequence_gauge/{gauge_id}", flush=True)
 
 
 def write_split_output(input_dir, catchment_id, count, n_gauges,
                        gauge_ids, sequence_records):
-    """Write split-mode output: sequence_gauge/ directory with per-gauge files."""
-    import shutil
+    """Write split-mode output: the ``sequence_gauge`` collection (an ``_index``
+    metadata record plus one record per gauge), all through the database seam.
 
-    sg_dir = input_dir / GAUGE_SUMMARY_DIR
-    if sg_dir.exists():
-        shutil.rmtree(sg_dir)
-    sg_dir.mkdir(parents=True)
+    The collection is cleared first so a smaller portfolio doesn't leave stale
+    per-gauge records behind (replaces the old ``rmtree`` of the directory)."""
+    database.clear_sequence_gauges(catchment_id)
 
-    # Write _index.json (metadata only — no per-gauge arrays)
+    # _index record (metadata only — no per-gauge arrays)
     index_doc = {
         "schema_version": SCHEMA_VERSION_SPATIAL,
         "catchment_id": catchment_id,
@@ -89,11 +90,9 @@ def write_split_output(input_dir, catchment_id, count, n_gauges,
             for r in sequence_records
         ],
     }
-    index_path = sg_dir / "_index.json"
-    with open(index_path, "w") as f:
-        json.dump(index_doc, f, separators=(",", ":"))
+    database.save_sequence_gauge(catchment_id, "_index", index_doc)
 
-    # Write per-gauge files
+    # Per-gauge records
     for gi, gid in enumerate(gauge_ids):
         gauge_doc = {
             "gauge_id": gid,
@@ -113,20 +112,14 @@ def write_split_output(input_dir, catchment_id, count, n_gauges,
                 for r in sequence_records
             ],
         }
-        gauge_path = sg_dir / f"{gid}.json"
-        with open(gauge_path, "w") as f:
-            json.dump(gauge_doc, f, separators=(",", ":"))
+        database.save_sequence_gauge(catchment_id, gid, gauge_doc)
 
-    # Remove legacy monolithic file if present
+    # Remove legacy monolithic file if present (pre-sharded layout).
     legacy_path = input_dir / GAUGE_SUMMARY_FILENAME
     if legacy_path.exists():
         legacy_path.unlink()
 
-    total_mb = sum(
-        p.stat().st_size for p in sg_dir.iterdir()
-    ) / 1_048_576
-    print(f"  ->  {GAUGE_SUMMARY_DIR}/  ({n_gauges + 1} files, "
-          f"{total_mb:.1f} MB)", flush=True)
+    print(f"  ->  {GAUGE_SUMMARY_DIR}/  ({n_gauges + 1} records)", flush=True)
 
 
 def run_classifier_training(*, single_gauge_mode, gauge_id, gauge_params_list,

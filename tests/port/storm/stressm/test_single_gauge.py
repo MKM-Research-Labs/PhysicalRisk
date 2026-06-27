@@ -20,12 +20,10 @@
 
 """Tests for single-gauge mode and single-gauge + classifier training."""
 
-import json
-
 import pytest
 
+import database
 from port.src.stressm import SCHEMA_VERSION_SPATIAL, generate_stressm
-
 
 # ---------------------------------------------------------------------------
 # Single-gauge mode
@@ -37,26 +35,23 @@ class TestSingleGaugeMode:
         assert single_run["num_gauges"] == 1
 
     def test_named_output_file_written(self, gauge_dir, single_run):
-        assert (gauge_dir / "sequence_gauge_GAUGE-test002.json").exists()
+        # Single-gauge output is persisted under the gauge's sequence_gauge key.
+        assert database.get_sequence_gauge("thames", "GAUGE-test002") is not None
 
     def test_named_file_schema_version(self, gauge_dir, single_run):
-        with open(gauge_dir / "sequence_gauge_GAUGE-test002.json") as f:
-            d = json.load(f)
+        d = database.get_sequence_gauge("thames", "GAUGE-test002")
         assert d["schema_version"] == SCHEMA_VERSION_SPATIAL
 
     def test_named_file_gauge_ids(self, gauge_dir, single_run):
-        with open(gauge_dir / "sequence_gauge_GAUGE-test002.json") as f:
-            d = json.load(f)
+        d = database.get_sequence_gauge("thames", "GAUGE-test002")
         assert d["gauge_ids"] == ["GAUGE-test002"]
 
     def test_named_file_peaks_length_one(self, gauge_dir, single_run):
-        with open(gauge_dir / "sequence_gauge_GAUGE-test002.json") as f:
-            d = json.load(f)
+        d = database.get_sequence_gauge("thames", "GAUGE-test002")
         assert all(len(r["peaks_m"]) == 1 for r in d["sequences"])
 
     def test_named_file_sequence_count(self, gauge_dir, single_run):
-        with open(gauge_dir / "sequence_gauge_GAUGE-test002.json") as f:
-            d = json.load(f)
+        d = database.get_sequence_gauge("thames", "GAUGE-test002")
         assert len(d["sequences"]) == 40
 
     def test_invalid_gauge_id_raises(self, gauge_dir, tmp_path):
