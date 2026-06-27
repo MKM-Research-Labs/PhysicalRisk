@@ -83,15 +83,16 @@ class PropertyHazardCurveGenerator(
         self.log(f"{cfg.label} Hazard Curve Generator{mode_label}")
         self.log(f"Catchment: {config.CATCHMENT}")
 
-        pts_dir = cfg.ts_dir(self.output_dir, self.mode)
-        if not pts_dir.exists():
+        catchment = database.active_catchment()
+        if not cfg.timeseries_exists(catchment, self.mode):
             raise FileNotFoundError(
-                f"{cfg.label} timeseries directory not found: {pts_dir}\n"
+                f"{cfg.label} timeseries collection not generated "
+                f"(mode '{self.mode}')\n"
                 f"Run: python app.py port --{cfg.ts_dirs[self.mode]} first"
             )
 
-        property_files = sorted(pts_dir.glob(cfg.id_glob))
-        self.log(f"Found {len(property_files)} property timeseries files")
+        asset_ids = sorted(cfg.iter_timeseries_ids(catchment, self.mode))
+        self.log(f"Found {len(asset_ids)} {cfg.label.lower()} timeseries records")
 
         gauge_hazard, num_storms = self._load_gauge_hazard_curves()
         self.log(f"Loaded hazard curves for {len(gauge_hazard)} gauges ({num_storms} storms)")
@@ -100,7 +101,7 @@ class PropertyHazardCurveGenerator(
 
         results = {}
         stats = {
-            'total_properties': len(property_files),
+            'total_properties': len(asset_ids),
             'properties_processed': 0,
             'properties_skipped': 0,
             'total_flood_events': 0,
@@ -113,8 +114,15 @@ class PropertyHazardCurveGenerator(
         transmission_rates = []
         spread_values = []
 
-        for i, pf in enumerate(property_files):
-            result = self._process_property(pf, gauge_hazard, price_prs_func, num_storms)
+        for i, asset_id in enumerate(asset_ids):
+            try:
+                pdata = cfg.get_timeseries(catchment, asset_id, self.mode)
+            except (OSError, ValueError) as exc:
+                # A per-asset record vanished or is unreadable mid-build — skip it
+                # rather than aborting the whole hazard-curve generation.
+                self.log(f"Skipping {asset_id}: {exc}")
+                pdata = None
+            result = self._process_property(pdata, gauge_hazard, price_prs_func, num_storms)
             if result:
                 results[result['property_id']] = result
                 stats['properties_processed'] += 1
@@ -132,7 +140,7 @@ class PropertyHazardCurveGenerator(
                 stats['properties_skipped'] += 1
 
             if (i + 1) % 50 == 0:
-                self.log(f"  Processed {i + 1}/{len(property_files)} properties")
+                self.log(f"  Processed {i + 1}/{len(asset_ids)} properties")
 
         stats['avg_basis_bps'] = round(np.mean(basis_values), 2) if basis_values else 0.0
         stats['avg_transmission_rate'] = round(np.mean(transmission_rates), 4) if transmission_rates else 0.0

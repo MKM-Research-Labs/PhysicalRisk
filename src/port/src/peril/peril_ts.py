@@ -59,14 +59,13 @@ A catchment with no typhoon damage produces empty peril dirs and the wind
 hazard stage is skipped — flood-only output is untouched.
 """
 
-import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional, Union
 
+import database
 from models.floodrisk.depth_damage import is_prs_flood
 from models.winddamage.threshold import is_prs_wind
-
 from port.src._typhoon_join import load_seq_to_event_map, load_wind_damage_index
 from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 
@@ -166,40 +165,36 @@ class PerilTimeseriesGenerator:
 
         seq_to_event = self._seq_to_event_map()
 
-        normal_dir = self.output_dir / cfg.ts_dirs["normal"]
-        if not normal_dir.exists():
+        catchment = database.active_catchment()
+        if not cfg.timeseries_exists(catchment, "normal"):
             raise FileNotFoundError(
-                f"{cfg.label} base timeseries directory not found: {normal_dir}\n"
+                f"{cfg.label} base timeseries collection not generated\n"
                 f"Run the flood timeseries stage first."
             )
 
         mode_stats: Dict[str, Dict] = {}
         for mode in PERIL_MODES:
             base_mode = PERIL_BASE_MODE[mode]
-            base_dir = self.output_dir / cfg.ts_dirs[base_mode]
-            if not base_dir.exists():
+            if not cfg.timeseries_exists(catchment, base_mode):
                 # bow/baw need the BRI ts; skip silently when it hasn't run
                 # (the flood-only / pre-BRI portfolio keeps its layout).
                 self.log(
-                    f"{cfg.label} [{mode}]: base ts {base_dir.name} absent — skipped"
+                    f"{cfg.label} [{mode}]: base ts {cfg.ts_dirs[base_mode]} absent — skipped"
                 )
                 continue
-            base_files = sorted(base_dir.glob(cfg.id_glob))
-            out_dir = self.output_dir / cfg.ts_dirs[mode]
-            out_dir.mkdir(parents=True, exist_ok=True)
+            base_ids = sorted(cfg.iter_timeseries_ids(catchment, base_mode))
 
-            # Remove stale per-asset files from a previous (possibly larger)
-            # run so a smaller portfolio doesn't leave leftovers that the
-            # hazard-curve stage would glob (it globs this dir directly).
-            for stale in out_dir.glob(cfg.id_glob):
-                stale.unlink()
+            # Reset the peril-mode collection so a smaller portfolio doesn't
+            # leave leftovers the hazard-curve stage would still read.
+            cfg.clear_timeseries(catchment, mode)
 
             triggers = 0
             assets_with_trigger = 0
 
-            for pf in base_files:
-                with open(pf, 'r') as f:
-                    pdata = json.load(f)
+            for asset_id in base_ids:
+                pdata = cfg.get_timeseries(catchment, asset_id, base_mode)
+                if not pdata:
+                    continue
 
                 prop_id = pdata.get('property_id')
                 events = pdata.get('flood_events', [])
@@ -223,17 +218,16 @@ class PerilTimeseriesGenerator:
                 if asset_hit:
                     assets_with_trigger += 1
 
-                with open(out_dir / pf.name, 'w') as f:
-                    json.dump(pdata, f, indent=2)
+                cfg.save_timeseries(catchment, asset_id, pdata, mode)
 
             mode_stats[mode] = {
                 "dir": cfg.ts_dirs[mode],
-                "files": len(base_files),
+                "files": len(base_ids),
                 "triggers": triggers,
                 "assets_with_trigger": assets_with_trigger,
             }
             self.log(
-                f"{cfg.label} [{mode}]: {len(base_files)} files, "
+                f"{cfg.label} [{mode}]: {len(base_ids)} files, "
                 f"{triggers} triggers across {assets_with_trigger} assets"
             )
 

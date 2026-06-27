@@ -18,19 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""A missing/unreadable per-property timeseries file must skip that property,
+"""A missing/unreadable per-asset timeseries record must skip that asset,
 not abort the whole hazard-curve build.
 
-Regression: a stale or incomplete peril ts directory (e.g. propertytsfaw/
-missing a PROP-*.json that the glob still listed, or a concurrent
-regeneration) used to raise FileNotFoundError out of _process_property and
-crash the entire port at the wind hazard-curve stage.
+Regression: a stale or incomplete peril ts collection (e.g. a record the
+iterator still lists but that can't be read, or a concurrent regeneration)
+used to raise out of the per-asset read and crash the entire port at the
+wind hazard-curve stage. The read now goes through the database seam in
+``_generator``; the unreadable record is skipped there, and
+``_process_property`` itself just returns ``None`` for a falsy record.
 """
 
-import json
-from pathlib import Path
-
+import database
 from port.src.property.hc.pricing._process import _ProcessMixin
+from port.src.property.propertyhc import PropertyHazardCurveGenerator
+
+from .conftest import write_property_ts
 
 
 class _Host(_ProcessMixin):
@@ -41,16 +44,33 @@ class _Host(_ProcessMixin):
         self.logged.append(msg)
 
 
-class TestProcessPropertyMissingFile:
-    def test_missing_file_returns_none(self):
-        host = _Host()
-        result = host._process_property(
-            Path("/no/such/dir/PROP-deadbeef.json"), {}, lambda *a, **k: None, 100)
-        assert result is None
-        assert any("PROP-deadbeef.json" in m for m in host.logged)
+class TestProcessPropertyFalsyRecord:
+    """_process_property is storage-agnostic: a falsy record returns None."""
 
-    def test_corrupt_file_returns_none(self, tmp_path):
-        bad = tmp_path / "PROP-corrupt.json"
-        bad.write_text("{ this is not json")
-        host = _Host()
-        assert host._process_property(bad, {}, lambda *a, **k: None, 100) is None
+    def test_none_record_returns_none(self):
+        assert _Host()._process_property(None, {}, lambda *a, **k: None, 100) is None
+
+    def test_empty_record_returns_none(self):
+        assert _Host()._process_property({}, {}, lambda *a, **k: None, 100) is None
+
+
+class TestGeneratorSkipsUnreadableRecord:
+    """The generator skips an asset whose seam read raises, not crashing."""
+
+    def test_unreadable_record_skipped(self, basic_output_dir, monkeypatch):
+        output_dir, pts_dir = basic_output_dir
+        write_property_ts(pts_dir, "PROP-good", n_floods=2)
+        write_property_ts(pts_dir, "PROP-bad", n_floods=2)
+
+        real = database.get_property_timeseries
+
+        def flaky(catchment, asset_id, *a, **k):
+            if asset_id == "PROP-bad":
+                raise ValueError("corrupt record")
+            return real(catchment, asset_id, *a, **k)
+
+        monkeypatch.setattr(database, "get_property_timeseries", flaky)
+
+        stats = PropertyHazardCurveGenerator(output_dir, verbose=False).generate()
+        assert stats["properties_processed"] == 1
+        assert stats["properties_skipped"] == 1

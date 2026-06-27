@@ -79,11 +79,11 @@ class TestWindUnion:
         """Without typhoon/damage, the result carries no peril block and the
         headline severe spread is the flood-only spread (byte-identical)."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-nowind", n_floods=3)
+        pdata = write_property_ts(pts_dir, "PROP-nowind", n_floods=3)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
-            pts_dir / "PROP-nowind.json", gauge_hazard, None, num_storms=100)
+            pdata, gauge_hazard, None, num_storms=100)
         assert "prs_perils" not in result
         assert "perils" not in result["term_structure"]
         assert result["term_structure"]["severe"]["prs_spread_bps"][0] == round(
@@ -95,7 +95,7 @@ class TestWindUnion:
         below threshold. flood=2, wind=2, union={EVT-0,EVT-1,EVT-2}=3, joint
         (EVT-0)=1."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-u", n_floods=2)  # storms S0, S1
+        pdata = write_property_ts(pts_dir, "PROP-u", n_floods=2)  # storms S0, S1
         _write_wind_setup(
             output_dir,
             seq_to_event={"S0": "EVT-0", "S1": "EVT-1", "S-WIND": "EVT-2"},
@@ -111,7 +111,7 @@ class TestWindUnion:
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
-            pts_dir / "PROP-u.json", gauge_hazard, None, num_storms=100)
+            pdata, gauge_hazard, None, num_storms=100)
         perils = result["prs_perils"]
         assert perils["flood_only"]["count"] == 2
         assert perils["wind_only"]["count"] == 2          # EVT-0, EVT-2
@@ -129,7 +129,7 @@ class TestWindUnion:
         """Typhoon present but every paired wind is below threshold → union ==
         flood, wind == 0, joint == 0 (block present since typhoon data exists)."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-calm", n_floods=2)
+        pdata = write_property_ts(pts_dir, "PROP-calm", n_floods=2)
         _write_wind_setup(
             output_dir,
             seq_to_event={"S0": "EVT-0", "S1": "EVT-1"},
@@ -143,7 +143,7 @@ class TestWindUnion:
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
-            pts_dir / "PROP-calm.json", gauge_hazard, None, num_storms=100)
+            pdata, gauge_hazard, None, num_storms=100)
         perils = result["prs_perils"]
         assert perils["wind_only"]["count"] == 0
         assert perils["flood_or_wind"]["count"] == 2
@@ -155,7 +155,7 @@ class TestWindUnion:
         """Property never floods but is wind-damaged in a paired typhoon →
         union counts the wind event even with flood_count == 0; joint == 0."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-windonly", n_floods=0)
+        pdata = write_property_ts(pts_dir, "PROP-windonly", n_floods=0)
         _write_wind_setup(
             output_dir,
             seq_to_event={"S-W": "EVT-9"},
@@ -167,7 +167,7 @@ class TestWindUnion:
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
-            pts_dir / "PROP-windonly.json", gauge_hazard, None, num_storms=100)
+            pdata, gauge_hazard, None, num_storms=100)
         perils = result["prs_perils"]
         assert perils["flood_only"]["count"] == 0
         assert perils["wind_only"]["count"] == 1
@@ -179,7 +179,7 @@ class TestWindUnion:
         """Both floods are on storms whose paired typhoon also fires wind →
         flood=2, wind=2, joint=2, union=2 (every event triggers both)."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-both", n_floods=2)  # storms S0, S1
+        pdata = write_property_ts(pts_dir, "PROP-both", n_floods=2)  # storms S0, S1
         _write_wind_setup(
             output_dir,
             seq_to_event={"S0": "EVT-0", "S1": "EVT-1"},
@@ -193,7 +193,7 @@ class TestWindUnion:
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
-            pts_dir / "PROP-both.json", gauge_hazard, None, num_storms=100)
+            pdata, gauge_hazard, None, num_storms=100)
         perils = result["prs_perils"]
         assert perils["flood_only"]["count"] == 2
         assert perils["wind_only"]["count"] == 2
@@ -205,7 +205,7 @@ class TestWindUnion:
         """A damage roll naming a different property must not trigger wind for
         this one."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-self", n_floods=1)
+        pdata = write_property_ts(pts_dir, "PROP-self", n_floods=1)
         _write_wind_setup(
             output_dir,
             seq_to_event={"S0": "EVT-0"},
@@ -217,7 +217,7 @@ class TestWindUnion:
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(
-            pts_dir / "PROP-self.json", gauge_hazard, None, num_storms=100)
+            pdata, gauge_hazard, None, num_storms=100)
         perils = result["prs_perils"]
         assert perils["wind_only"]["count"] == 0
         assert perils["flood_or_wind"]["count"] == 1   # the flood on S0 still counts

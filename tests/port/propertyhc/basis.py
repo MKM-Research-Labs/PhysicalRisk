@@ -23,6 +23,7 @@
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
 from port.src.property.propertyhc import PropertyHazardCurveGenerator
 
@@ -232,18 +233,22 @@ class TestEdgeCases:
     """Test edge cases."""
 
     def test_no_propertyts_dir(self, tmp_path):
-        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        with pytest.raises(FileNotFoundError):
-            gen.generate()
+        # Bind a clean catchment with no property-timeseries collection (stage
+        # not run) — overrides the autouse-seeded one — and expect a raise.
+        clean = tmp_path / "noprop"
+        clean.mkdir()
+        with tmp_catchment(clean, "thames"):
+            with pytest.raises(FileNotFoundError):
+                PropertyHazardCurveGenerator(clean, verbose=False).generate()
 
     def test_empty_propertyts_dir(self, tmp_path):
-        pts_dir = tmp_path / "propertyts"
-        pts_dir.mkdir()
-        with open(tmp_path / "gaugehc.json", "w") as f:
+        # Collection exists but is empty -> 0 properties, no raise.
+        clean = tmp_path / "emptyprop"
+        (clean / "propertyts").mkdir(parents=True)
+        with open(clean / "gaugehc.json", "w") as f:
             json.dump({"hazard_curves": {}}, f)
-
-        gen = PropertyHazardCurveGenerator(tmp_path, verbose=False)
-        stats = gen.generate()
+        with tmp_catchment(clean, "thames"):
+            stats = PropertyHazardCurveGenerator(clean, verbose=False).generate()
         assert stats["total_properties"] == 0
         assert stats["properties_processed"] == 0
 

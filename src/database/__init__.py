@@ -124,6 +124,8 @@ from .storms import (
     typhoon_events_exist,
 )
 from .timeseries import (
+    clear_commercial_timeseries,
+    clear_property_timeseries,
     commercial_timeseries_exists,
     delete_gauge_history,
     delete_gauge_timeseries,
@@ -202,6 +204,7 @@ __all__ = [
     "commercial_timeseries_exists",
     "get_gauge_timeseries", "gauge_timeseries_exists", "iter_gauge_timeseries_ids",
     "save_gauge_timeseries", "delete_gauge_timeseries",
+    "clear_property_timeseries", "clear_commercial_timeseries",
     "get_gauge_history", "iter_gauge_history_ids", "save_gauge_history",
     "delete_gauge_history",
     # storms / perils

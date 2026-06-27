@@ -20,8 +20,6 @@
 
 """Per-property processing, PRS spread, and gauge-basis calculation."""
 
-import json
-from pathlib import Path
 from typing import Dict, Optional
 
 import numpy as np
@@ -34,19 +32,16 @@ from ..constants import TENORS
 class _ProcessMixin:
     """Property processing + PRS spread + gauge basis."""
 
-    def _process_property(self, prop_file: Path, gauge_hazard: Dict,
+    def _process_property(self, pdata: Dict, gauge_hazard: Dict,
                           price_prs_func, num_storms: int = 1000,
                           **kwargs) -> Optional[Dict]:
-        """Process a single property: count severe floods that reach property, compute spread and basis."""
-        try:
-            with open(prop_file, 'r') as f:
-                pdata = json.load(f)
-        except (FileNotFoundError, OSError, json.JSONDecodeError) as exc:
-            # The per-property timeseries file vanished or is unreadable — e.g.
-            # a stale/incomplete peril ts directory, or a concurrent
-            # regeneration removing files mid-build. Skip this property rather
-            # than aborting the entire hazard-curve generation.
-            self.log(f"Skipping {getattr(prop_file, 'name', prop_file)}: {exc}")
+        """Process a single asset's timeseries *pdata*: count severe floods that
+        reach it, compute spread and basis.
+
+        Takes the already-loaded per-asset timeseries record (the caller reads it
+        through the ``database`` seam); a falsy *pdata* is skipped rather than
+        aborting the whole hazard-curve generation."""
+        if not pdata:
             return None
 
         prop_id = pdata['property_id']

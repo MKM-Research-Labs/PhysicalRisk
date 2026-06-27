@@ -21,11 +21,11 @@
 """Property flood processing: orchestrates nearest-gauge selection,
 flood propagation, and per-property JSON output."""
 
-import json
 from pathlib import Path
 from typing import Dict, Optional
 
-from ..encoder import DateTimeEncoder
+import database
+
 from .nearest import NearestGaugeMixin
 from .propagation import PropagationMixin
 
@@ -204,7 +204,6 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             # SHE: zero distance — zone stays as derived from real elevation
             pass
 
-        prop_file = pts_dir / f'{prop_id}.json'
         prop_data = {
             'property_id': prop_id,
             'location': {
@@ -222,7 +221,6 @@ class FloodMixin(NearestGaugeMixin, PropagationMixin):
             'flood_events': flood_events,
             'summary': summary,
         }
-        with open(prop_file, 'w') as f:
-            json.dump(prop_data, f, indent=2, cls=DateTimeEncoder)
+        cfg.save_timeseries(database.active_catchment(), prop_id, prop_data, mode)
 
         return {'summary': summary}

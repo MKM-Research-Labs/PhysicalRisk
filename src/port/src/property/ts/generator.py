@@ -114,11 +114,10 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
             }
 
         pts_dir = self.output_dir / self.ASSET_CONFIG.ts_dirs[self.mode]
-        pts_dir.mkdir(parents=True, exist_ok=True)
 
-        # Remove stale per-asset JSON files from previous runs.
-        for stale in pts_dir.glob(self.ASSET_CONFIG.id_glob):
-            stale.unlink()
+        # Reset the per-asset timeseries collection so a smaller portfolio
+        # doesn't leave stale records from a previous (larger) run.
+        self.ASSET_CONFIG.clear_timeseries(database.active_catchment(), self.mode)
 
         summary_stats = {
             'total_properties': len(properties),

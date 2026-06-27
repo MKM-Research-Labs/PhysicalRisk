@@ -27,8 +27,6 @@ Tests for PropertyHazardCurveGenerator._process_property (part 1):
   - Summary statistics
 """
 
-import json
-
 import pytest
 
 from port.src.property.propertyhc import (
@@ -38,7 +36,6 @@ from port.src.property.propertyhc import (
 
 from .conftest import write_property_ts
 
-
 # ===========================================================================
 # _process_property — events with flooded=False excluded
 # ===========================================================================
@@ -47,20 +44,18 @@ class TestProcessPropertyFloodedFilter:
 
     def test_non_flooded_events_excluded_from_depth_count(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-filter", n_floods=4, include_non_flooded=True)
+        pdata = write_property_ts(pts_dir, "PROP-filter", n_floods=4, include_non_flooded=True)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-filter.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["flood_count"] == 4
 
     def test_zero_flooded_events_uses_event_count_pricing(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-nofloods", n_floods=0)
+        pdata = write_property_ts(pts_dir, "PROP-nofloods", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-nofloods.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["has_gev"] is False
         assert result["pricing_method"] == "event_count"
         assert result["flood_count"] == 0
@@ -74,32 +69,29 @@ class TestProcessPropertyEventCount:
 
     def test_spread_equals_flood_count_over_storms(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-exact", n_floods=5)
+        pdata = write_property_ts(pts_dir, "PROP-exact", n_floods=5)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-exact.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["flood_count"] == 5
         expected_spread = round((5 / 100) * 10000, 2)
         assert result["term_structure"]["severe"]["prs_spread_bps"][0] == expected_spread
 
     def test_few_events_still_uses_event_count(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-below", n_floods=2)
+        pdata = write_property_ts(pts_dir, "PROP-below", n_floods=2)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-below.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["has_gev"] is False
         assert result["pricing_method"] == "event_count"
 
     def test_many_events_uses_event_count(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-many", n_floods=10)
+        pdata = write_property_ts(pts_dir, "PROP-many", n_floods=10)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-many.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["flood_count"] == 10
         assert result["pricing_method"] == "event_count"
         assert result["has_gev"] is False
@@ -113,40 +105,36 @@ class TestDepthThresholds:
 
     def test_only_severe_key_in_depth_thresholds(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-floor", n_floods=3)
+        pdata = write_property_ts(pts_dir, "PROP-floor", n_floods=3)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-floor.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert list(result["depth_thresholds"].keys()) == ["severe"]
 
     def test_annual_probability_equals_count_over_storms(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-prob", n_floods=5)
+        pdata = write_property_ts(pts_dir, "PROP-prob", n_floods=5)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-prob.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         prob = result["depth_thresholds"]["severe"]["annual_probability"]
         assert abs(prob - 5 / 100) < 1e-6
 
     def test_return_period_none_when_zero_floods(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-rp", n_floods=0)
+        pdata = write_property_ts(pts_dir, "PROP-rp", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-rp.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         rp = result["depth_thresholds"]["severe"]["return_period_yrs"]
         assert rp is None
 
     def test_return_period_positive_when_floods_present(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-rp2", n_floods=4)
+        pdata = write_property_ts(pts_dir, "PROP-rp2", n_floods=4)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-rp2.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         rp = result["depth_thresholds"]["severe"]["return_period_yrs"]
         assert rp is not None
         assert rp > 0
@@ -160,7 +148,7 @@ class TestIdwGaugeSpreads:
 
     def test_idw_gauge_spreads_computed_with_two_gauges(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-idw", n_floods=5,
+        pdata = write_property_ts(pts_dir, "PROP-idw", n_floods=5,
                           nearest_gauges=[
                               {"gauge_id": "GAUGE-001", "distance_m": 1000,
                                "gauge_elevation_m": 3.5},
@@ -168,9 +156,8 @@ class TestIdwGaugeSpreads:
                                "gauge_elevation_m": 4.0},
                           ])
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-idw.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         idw = result.get("idw_gauge_spreads", {})
         assert "severe" in idw
         assert len(idw["severe"]) == len(TENORS)
@@ -178,12 +165,11 @@ class TestIdwGaugeSpreads:
     def test_no_nearest_gauges_idw_returns_dict(self, basic_output_dir):
         """With empty nearest_gauges, idw_gauge_spreads is still a dict."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-noidw", n_floods=3,
+        pdata = write_property_ts(pts_dir, "PROP-noidw", n_floods=3,
                           nearest_gauges=[])
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-noidw.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert isinstance(result.get("idw_gauge_spreads"), dict)
 
 
@@ -195,21 +181,19 @@ class TestProcessPropertySummary:
 
     def test_max_depth_positive_for_flooded_property(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-depth", n_floods=5)
+        pdata = write_property_ts(pts_dir, "PROP-depth", n_floods=5)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-depth.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["summary"]["max_depth_m"] > 0
         assert result["summary"]["mean_depth_m"] > 0
 
     def test_zero_depths_for_non_flooded(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-zero", n_floods=0)
+        pdata = write_property_ts(pts_dir, "PROP-zero", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-zero.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["summary"]["max_depth_m"] == 0.0
         assert result["summary"]["mean_depth_m"] == 0.0
 
@@ -234,10 +218,8 @@ class TestProcessPropertySummary:
                 "floods_at_property": 0,
             },
         }
-        (pts_dir / "PROP-txzero.json").write_text(json.dumps(prop_data))
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-txzero.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(prop_data, gauge_hazard, None, num_storms=100)
         if result["nearest_gauges"]:
             assert result["nearest_gauges"][0]["flood_transmission_rate"] == 0.0

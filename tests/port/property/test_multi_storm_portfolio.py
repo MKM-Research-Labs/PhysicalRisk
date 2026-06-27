@@ -31,6 +31,7 @@ from unittest.mock import patch
 import pytest
 from db_helpers import tmp_catchment
 
+import database
 from tests.port.property.conftest import make_prop, make_readings
 
 
@@ -135,18 +136,12 @@ class TestGenerateWithMultiStormGaugets:
 
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False)
 
-        pts_dir = tmp_path / "propertyts"
-
         with tmp_catchment(input_dir, "thames"):
             with patch("models.audit.log_model_usage"):
                 gen.generate()
+            summary = database.get_portfolio_flood_summary("thames")
 
-        summary_path = pts_dir / "portfolio_flood_summary.json"
-        assert summary_path.exists()
-
-        with open(summary_path) as f:
-            summary = json.load(f)
-
+        assert summary is not None
         assert summary["summary"]["total_gauges"] == 1
         assert "properties" in summary
 

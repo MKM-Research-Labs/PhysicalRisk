@@ -39,6 +39,10 @@ def iter_property_timeseries_ids(catchment, mode=DEFAULT_MODE) -> Iterator[str]:
 def save_property_timeseries(catchment, property_id, payload, mode=DEFAULT_MODE):
     active_backend().save("property_timeseries", catchment, payload, property_id, mode=mode)
 
+def clear_property_timeseries(catchment, mode=DEFAULT_MODE):
+    """Remove the whole property-timeseries collection for *mode* (full-rewrite reset)."""
+    active_backend().clear("property_timeseries", catchment, mode=mode)
+
 def property_timeseries_exists(catchment, mode=DEFAULT_MODE) -> bool:
     """True if the property-timeseries collection has been generated (even if empty)."""
     return active_backend().has_collection("property_timeseries", catchment, mode=mode)
@@ -67,6 +71,10 @@ def commercial_timeseries_exists(catchment, mode=DEFAULT_MODE) -> bool:
 
 def save_commercial_timeseries(catchment, asset_id, payload, mode=DEFAULT_MODE):
     active_backend().save("commercial_timeseries", catchment, payload, asset_id, mode=mode)
+
+def clear_commercial_timeseries(catchment, mode=DEFAULT_MODE):
+    """Remove the whole commercial-timeseries collection for *mode* (full-rewrite reset)."""
+    active_backend().clear("commercial_timeseries", catchment, mode=mode)
 
 def get_gauge_timeseries(catchment, gauge_id):
     return load_or("gauge_timeseries", catchment, gauge_id)

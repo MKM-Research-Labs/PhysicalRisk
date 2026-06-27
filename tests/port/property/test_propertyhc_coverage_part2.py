@@ -37,7 +37,6 @@ from port.src.property.propertyhc import (
 
 from .conftest import write_gauge_hc, write_property_ts
 
-
 # ===========================================================================
 # loader.py lines 50-57 — sequence_gauge enrichment
 # ===========================================================================
@@ -117,7 +116,7 @@ class TestPricingSyntheticGaugeSummary:
         (output_dir / "gaugehc.json").write_text(json.dumps(gauge_data))
 
         # Property with SYNTH- nearest gauge
-        write_property_ts(
+        return write_property_ts(
             pts_dir, "PROP-synth", n_floods=5,
             nearest_gauges=[
                 {"gauge_id": "SYNTH-001", "distance_m": 500,
@@ -128,12 +127,11 @@ class TestPricingSyntheticGaugeSummary:
     def test_synth_gauge_sets_avg_basis(self, basic_output_dir):
         """When nearest gauge is SYNTH-, avg_basis comes from synth basis."""
         output_dir, pts_dir = basic_output_dir
-        self._make_synth_setup(output_dir, pts_dir)
+        pdata = self._make_synth_setup(output_dir, pts_dir)
 
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, num_storms = gen._load_gauge_hazard_curves()
-        prop_file = pts_dir / "PROP-synth.json"
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=num_storms)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=num_storms)
 
         # synth_nb is found, so summary uses its basis
         assert result['summary']['avg_basis_bps'] is not None
@@ -142,12 +140,11 @@ class TestPricingSyntheticGaugeSummary:
     def test_synth_gauge_sets_transmission_rate(self, basic_output_dir):
         """When nearest gauge is SYNTH-, transmission rate from synth gauge."""
         output_dir, pts_dir = basic_output_dir
-        self._make_synth_setup(output_dir, pts_dir)
+        pdata = self._make_synth_setup(output_dir, pts_dir)
 
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, num_storms = gen._load_gauge_hazard_curves()
-        prop_file = pts_dir / "PROP-synth.json"
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=num_storms)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=num_storms)
 
         assert result['summary']['flood_transmission_rate'] is not None
 
@@ -175,7 +172,7 @@ class TestPricingSyntheticGaugeSpreads:
         }
         (output_dir / "gaugehc.json").write_text(json.dumps(gauge_data))
 
-        write_property_ts(
+        pdata = write_property_ts(
             pts_dir, "PROP-synthspread", n_floods=5,
             nearest_gauges=[
                 {"gauge_id": "SYNTH-001", "distance_m": 500,
@@ -185,8 +182,7 @@ class TestPricingSyntheticGaugeSpreads:
 
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
         gauge_hazard, num_storms = gen._load_gauge_hazard_curves()
-        prop_file = pts_dir / "PROP-synthspread.json"
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=num_storms)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=num_storms)
 
         idw = result.get('idw_gauge_spreads', {})
         assert 'severe' in idw

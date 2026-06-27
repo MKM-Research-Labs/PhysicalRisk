@@ -29,17 +29,15 @@ Covers:
   - Edge cases: zero floods, non-flooded events excluded from flooded flag
 """
 
-import json
-
 import pytest
 
+import database
 from port.src.property.propertyhc import (
     TENORS,
     PropertyHazardCurveGenerator,
 )
 
 from .conftest import write_gauge_hc, write_property_ts
-
 
 # ===========================================================================
 # storm_details — array present and populated
@@ -49,30 +47,27 @@ class TestStormDetailsPresent:
 
     def test_storm_details_key_exists(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-SD01", n_floods=3)
+        pdata = write_property_ts(pts_dir, "PROP-SD01", n_floods=3)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-SD01.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert "storm_details" in result
 
     def test_storm_details_length_matches_flood_events(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-SD02", n_floods=5)
+        pdata = write_property_ts(pts_dir, "PROP-SD02", n_floods=5)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-SD02.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert len(result["storm_details"]) == 5
 
     def test_storm_details_includes_non_flooded(self, basic_output_dir):
         """Non-flooded events appear in storm_details (unlike flood_count)."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-SD03", n_floods=3, include_non_flooded=True)
+        pdata = write_property_ts(pts_dir, "PROP-SD03", n_floods=3, include_non_flooded=True)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-SD03.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         # flood_events has 3 flooded + 1 non-flooded = 4 total
         assert len(result["storm_details"]) == 4
         # flood_count only counts flooded=True
@@ -80,11 +75,10 @@ class TestStormDetailsPresent:
 
     def test_storm_details_empty_when_no_floods(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-SD04", n_floods=0)
+        pdata = write_property_ts(pts_dir, "PROP-SD04", n_floods=0)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-SD04.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["storm_details"] == []
 
 
@@ -97,11 +91,10 @@ class TestStormDetailsFields:
     @pytest.fixture
     def result_with_storms(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-FIELDS", n_floods=3, include_non_flooded=True)
+        pdata = write_property_ts(pts_dir, "PROP-FIELDS", n_floods=3, include_non_flooded=True)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-FIELDS.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        return gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        return gen._process_property(pdata, gauge_hazard, None, num_storms=100)
 
     def test_each_storm_has_storm_id(self, result_with_storms):
         for sd in result_with_storms["storm_details"]:
@@ -158,17 +151,14 @@ class TestStormDetailsConsistency:
 
     def test_storm_ids_match_flood_events(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-IDS", n_floods=4)
+        pdata = write_property_ts(pts_dir, "PROP-IDS", n_floods=4)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-IDS.json"
 
-        # Read the source flood_events to get expected storm IDs
-        with open(prop_file) as f:
-            pdata = json.load(f)
+        # Use the source flood_events to get expected storm IDs
         expected_ids = {e["storm_id"] for e in pdata["flood_events"]}
 
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         actual_ids = {sd["storm_id"] for sd in result["storm_details"]}
         assert actual_ids == expected_ids
 
@@ -212,57 +202,53 @@ class TestGaugeThresholds:
                 "floods_at_property": 1,
             },
         }
-        (pts_dir / f"{prop_id}.json").write_text(json.dumps(pdata))
+        database.save_property_timeseries(
+            database.active_catchment(), prop_id, pdata)
         return pdata
 
     def test_gauge_thresholds_key_exists(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        self._make_property_with_gauge_info(pts_dir)
+        pdata = self._make_property_with_gauge_info(pts_dir)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-GT01.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         for ng in result["nearest_gauges"]:
             assert "gauge_thresholds" in ng
 
     def test_gauge_thresholds_has_alert_level(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        self._make_property_with_gauge_info(pts_dir)
+        pdata = self._make_property_with_gauge_info(pts_dir)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-GT01.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         thresholds = result["nearest_gauges"][0]["gauge_thresholds"]
         assert thresholds["alert_level"] == 3.5
 
     def test_gauge_thresholds_has_warning_level(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        self._make_property_with_gauge_info(pts_dir)
+        pdata = self._make_property_with_gauge_info(pts_dir)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-GT01.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         thresholds = result["nearest_gauges"][0]["gauge_thresholds"]
         assert thresholds["warning_level"] == 4.5
 
     def test_gauge_thresholds_has_severe_level(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
-        self._make_property_with_gauge_info(pts_dir)
+        pdata = self._make_property_with_gauge_info(pts_dir)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-GT01.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         thresholds = result["nearest_gauges"][0]["gauge_thresholds"]
         assert thresholds["severe_level"] == 5.0
 
     def test_gauge_thresholds_empty_when_no_gauge_info(self, basic_output_dir):
         """When nearest_gauges lacks gauge_info, thresholds default to empty."""
         output_dir, pts_dir = basic_output_dir
-        write_property_ts(pts_dir, "PROP-GT02", n_floods=2)
+        pdata = write_property_ts(pts_dir, "PROP-GT02", n_floods=2)
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
-        prop_file = pts_dir / "PROP-GT02.json"
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
-        result = gen._process_property(prop_file, gauge_hazard, None, num_storms=100)
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         for ng in result["nearest_gauges"]:
             assert "gauge_thresholds" in ng
             assert isinstance(ng["gauge_thresholds"], dict)

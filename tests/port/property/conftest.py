@@ -174,7 +174,20 @@ def write_property_ts(pts_dir: Path, prop_id: str, n_floods: int,
             "floods_at_property": n_floods,
         },
     }
-    (pts_dir / f"{prop_id}.json").write_text(json.dumps(pdata))
+    # Seed the per-asset timeseries through the seam (the hazard-curve generator
+    # reads it back the same way). The seam mode is derived from the ts dir name
+    # (propertyts→flood, propertytsd→shd, propertytse→she, …) so existing call
+    # sites that vary only `pts_dir` seed the right collection unchanged.
+    import database
+    from port.utils.asset_config import RESIDENTIAL_CONFIG
+    _dir = Path(pts_dir).name
+    _mode = "flood"
+    for _local, _dname in RESIDENTIAL_CONFIG.ts_dirs.items():
+        if _dname == _dir:
+            _mode = "flood" if _local == "normal" else _local
+            break
+    database.save_property_timeseries(
+        database.active_catchment(), prop_id, pdata, mode=_mode)
     return pdata
 
 

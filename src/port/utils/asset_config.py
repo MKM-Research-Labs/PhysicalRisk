@@ -144,6 +144,49 @@ class AssetTypeConfig:
               else database.save_portfolio_flood_summary)
         fn(catchment, payload, mode=self._seam_mode(mode))
 
+    # ── database seam access (per-asset timeseries) ──────────────────────────
+    def iter_timeseries_ids(self, catchment: str, mode: str = "normal"):
+        """Yield this asset type's per-asset timeseries ids for *mode* via the seam.
+
+        Filtered to the asset id prefix (``PROP-`` / ``CPROP-``) so singleton docs
+        that share the ts directory — e.g. ``portfolio_flood_summary`` — are
+        excluded, matching the old ``glob(id_glob)`` semantics."""
+        import database
+        fn = (database.iter_commercial_timeseries_ids if self._is_commercial
+              else database.iter_property_timeseries_ids)
+        return [k for k in fn(catchment, mode=self._seam_mode(mode))
+                if k.startswith(self.id_prefix)]
+
+    def timeseries_exists(self, catchment: str, mode: str = "normal") -> bool:
+        """True if this asset type's per-asset timeseries collection for *mode* has
+        been generated (distinguishes 'stage not run' from an empty portfolio)."""
+        import database
+        fn = (database.commercial_timeseries_exists if self._is_commercial
+              else database.property_timeseries_exists)
+        return fn(catchment, mode=self._seam_mode(mode))
+
+    def get_timeseries(self, catchment: str, asset_id: str, mode: str = "normal"):
+        """Load one per-asset timeseries record for *mode* via the seam."""
+        import database
+        fn = (database.get_commercial_timeseries if self._is_commercial
+              else database.get_property_timeseries)
+        return fn(catchment, asset_id, mode=self._seam_mode(mode))
+
+    def save_timeseries(self, catchment: str, asset_id: str, payload, mode: str = "normal") -> None:
+        """Save one per-asset timeseries record for *mode* via the seam."""
+        import database
+        fn = (database.save_commercial_timeseries if self._is_commercial
+              else database.save_property_timeseries)
+        fn(catchment, asset_id, payload, mode=self._seam_mode(mode))
+
+    def clear_timeseries(self, catchment: str, mode: str = "normal") -> None:
+        """Remove this asset type's whole per-asset timeseries collection for *mode*
+        (replaces a glob-and-unlink of the ts dir before a full rewrite)."""
+        import database
+        fn = (database.clear_commercial_timeseries if self._is_commercial
+              else database.clear_property_timeseries)
+        fn(catchment, mode=self._seam_mode(mode))
+
 
 RESIDENTIAL_CONFIG = AssetTypeConfig(
     portfolio_filename="property.json",
