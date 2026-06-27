@@ -15,9 +15,25 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **9** |
-| **`src/port` reads** | 41 | **6** |
-| **`src/port` writes** | 14 | **6** |
+| **`src/port` files** | 26 | **6** |
+| **`src/port` reads** | 41 | **4** |
+| **`src/port` writes** | 14 | **4** |
+
+**2026-06-27 — property-timeseries group (biggest slice).** Migrated the whole
+`property_timeseries` artifact end-to-end as one unit (writer+reader together):
+TS write (`ts/flood/process` + `ts/generator` cleanup), HC read
+(`_process_property` now takes the loaded dict; `_generator` iterates the seam),
+and `peril_ts` read+write+cleanup. Added `AssetTypeConfig` iter/get/save/clear/
+exists timeseries accessors + `clear_property/commercial_timeseries`. **Bug caught
+by pipeline tests:** `iter_*_timeseries_ids` lists the `portfolio_flood_summary`
+singleton that shares the ts dir — filtered `iter_timeseries_ids` to the asset id
+prefix to match the old `glob(PROP-*.json)`. ~50 test sites migrated (4 parallel
+subagents + manual edge cases). 2807 `tests/port` pass.
+
+**Remaining `src/port` (6 files / 4r / 4w):** `cdm/gaugehd` (new artifact),
+`spatial_correlation` (2r: 1 dead classmethod + config) + `_spatial_math` (config
+write), `geometry.py` (river-polyline cache), `book_common/_pricing` (book swap
+records), `stressm/summary.py` (2 — **HELD by design**, src/models-paired).
 
 **2026-06-27 — Tier 3 #2 (training_summary):** migrated the
 `classifiers/training_summary.json` cluster to the seam (`gaugets_writer` +
