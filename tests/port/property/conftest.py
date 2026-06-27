@@ -26,6 +26,17 @@ import json
 from pathlib import Path
 
 import pytest
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch backend rooted at tmp_path so the property hazard-curve
+    generator/loader's seam I/O (gauge hazard curves, storm sequences,
+    sequence_gauge) resolves there — the same path the file-writing test helpers
+    (write_gauge_hc, etc.) stage their inputs under."""
+    with tmp_catchment(tmp_path, "thames"):
+        yield
 
 
 def make_prop(prop_id="PROP-001", lat=51.5, lon=-0.1, elevation=5.0,

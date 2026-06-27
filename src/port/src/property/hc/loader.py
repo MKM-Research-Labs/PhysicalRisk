@@ -20,56 +20,47 @@
 
 """Data loading mixin for PropertyHazardCurveGenerator."""
 
-import json
-from typing import Dict
+import database
 
 
 class LoaderMixin:
     """Mixin providing data-loading helpers."""
 
     def _load_gauge_hazard_curves(self) -> tuple:
-        """Load gauge hazard curves and sequence count.
+        """Load gauge hazard curves and sequence count through the database seam.
 
         Returns (hazard_curves_dict, num_sequences).  The denominator for
         property base-rate must be the number of *sequences* (the unit of
-        risk), not the number of individual storm pulses stored in
-        gaugehc.json ``num_storms``.
+        risk), not the number of individual storm pulses stored in the gauge
+        hazard curves' ``num_storms``.
         """
-        hc_path = self.output_dir / 'gaugehc.json'
-        if not hc_path.exists():
-            self.log("  Warning: gaugehc.json not found, basis will be empty")
+        catchment = database.active_catchment()
+        data = database.get_gauge_hazard_curves(catchment)
+        if not data:
+            self.log("  Warning: gauge hazard curves not found, basis will be empty")
             return {}, 1000
 
-        with open(hc_path, 'r') as f:
-            data = json.load(f)
-
-        # Sequence count is the correct denominator for property pricing.
-        # storm_sequences.json holds the authoritative count.
-        seq_path = self.output_dir / 'storm_sequences.json'
-        if seq_path.exists():
-            with open(seq_path, 'r') as f:
-                seq_data = json.load(f)
+        # Sequence count is the correct denominator for property pricing; the
+        # storm sequences hold the authoritative count.
+        seq_data = database.get_storm_sequences(catchment)
+        if seq_data:
             num_sequences = seq_data.get('num_sequences', len(seq_data.get('sequences', [])))
         else:
             # Fallback: gaugehc num_storms (may overcount if multi-pulse)
             num_sequences = data.get('metadata', {}).get('num_storms', 1000)
-            self.log("  Warning: storm_sequences.json not found, using gaugehc num_storms as fallback")
+            self.log("  Warning: storm sequences not found, using gaugehc num_storms as fallback")
 
         hazard_curves = data.get('hazard_curves', {})
 
-        # Enrich each gauge with its severe event count from sequence_gauge/.
-        # This gives the true Monte Carlo count rather than the GEV-derived
-        # probability in gaugehc.
-        seq_gauge_dir = self.output_dir / 'sequence_gauge'
-        if seq_gauge_dir.exists():
-            for gid in hazard_curves:
-                sg_path = seq_gauge_dir / f'{gid}.json'
-                if sg_path.exists():
-                    with open(sg_path, 'r') as f:
-                        sg = json.load(f)
-                    seqs = sg.get('sequences', [])
-                    severe_count = sum(1 for s in seqs if s.get('severe'))
-                    hazard_curves[gid]['severe_event_count'] = severe_count
+        # Enrich each gauge with its severe event count from the sequence_gauge
+        # records. This gives the true Monte Carlo count rather than the
+        # GEV-derived probability in the gauge hazard curves.
+        for gid in hazard_curves:
+            sg = database.get_sequence_gauge(catchment, gid)
+            if sg:
+                seqs = sg.get('sequences', [])
+                severe_count = sum(1 for s in seqs if s.get('severe'))
+                hazard_curves[gid]['severe_event_count'] = severe_count
 
         return hazard_curves, num_sequences
 
