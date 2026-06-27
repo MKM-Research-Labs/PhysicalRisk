@@ -15,8 +15,8 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **17** |
-| **`src/port` reads** | 41 | **19** |
+| **`src/port` files** | 26 | **16** |
+| **`src/port` reads** | 41 | **16** |
 | **`src/port` writes** | 14 | **12** |
 
 **2026-06-27 — Tier 1 (property/commercial hazard-curve I/O) DONE.** Migrated the
@@ -95,7 +95,7 @@ For a corrupt-record case, **monkeypatch the seam getter** to raise `ValueError`
 |---|---|---|---|
 | ~~`property/hc/generator/_decomposition.py`~~ | ~~9r 1w~~ | — | **DONE 2026-06-27** (via `AssetTypeConfig.get/save_hazard_curves`). |
 | ~~`property/hc/generator/_generator.py`~~ | ~~1w~~ | — | **DONE 2026-06-27**. |
-| `property/hc/loader.py` | 3r | `cfg.get_hazard_curves`, `get_storm_sequences`, `get_sequence_gauge` | generator-side loader — **next**; reuse the new AssetTypeConfig accessor |
+| ~~`property/hc/loader.py`~~ | ~~3r~~ | — | **DONE 2026-06-27** (gauge HC + storm sequences + sequence_gauge enrichment). |
 | `property/hc/pricing/_process.py` | 1r | (confirm: property record vs timeseries) | check before swapping |
 | `gauge/synthetic/generator/_core.py` | 1r 1w | `get_gauge_portfolio` / `save_gauges` | read+write pair |
 | `cdm/gaugehd/generator.py` | 1w | `save_gauge_history` | gaugehd writer (key = station id) |
