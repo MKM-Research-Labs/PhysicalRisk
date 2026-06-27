@@ -15,9 +15,24 @@ non-gating until the backlog hits zero).
 
 | Scope | Programme start | **Now** |
 |---|---|---|
-| **`src/port` files** | 26 | **6** |
-| **`src/port` reads** | 41 | **4** |
-| **`src/port` writes** | 14 | **4** |
+| **`src/port` files** | 26 | **1** (held) |
+| **`src/port` reads** | 41 | **1** (held) |
+| **`src/port` writes** | 14 | **1** (held) |
+
+**2026-06-27 — `src/port` migration COMPLETE.** Every `src/port` JSON I/O is now
+either routed through the `src/database` seam or allowlisted with justification.
+The only remaining backlog finding is **`stressm/summary.py`** (the
+`stressm/training_summary.json` read+write), **HELD by design** — it is read by
+the excluded `src/models` flood-classifier predictor.
+
+Final slices this session:
+- **book PRS-trade write** → `save_prs_trade` seam (closed a latent split-brain:
+  blotter/client/routes already read trades via `iter_prs_trade_ids`).
+- **Allowlisted** (intentional file artifacts, not DB state): spatial-correlation
+  config export/import (`_spatial_math` + `spatial_correlation.Params.load`),
+  river-polyline snap geometry (`geometry.py`, static external input), and the
+  standalone CSV→JSON `cdm/gaugehd` conversion tool. Deleted dead
+  `from_gauge_portfolio_file`.
 
 **2026-06-27 — property-timeseries group (biggest slice).** Migrated the whole
 `property_timeseries` artifact end-to-end as one unit (writer+reader together):
