@@ -26,12 +26,13 @@ loads, creates, or updates a ``.json`` file on disk** — every such artifact
 in PostgreSQL behind the single ``src/database`` seam, reached through the
 ``database`` public API.
 
-The JSON->Postgres migration is ~90% complete, so this is currently a **tracked
-report, not a gate**: it enumerates the remaining backlog of ``.py`` modules
-still bound to ``.json`` files, split into *load* (reads) and *create/update*
-(writes), and surfaces it for visibility — it never fails the build. The switch
-to a hard gate is a single flag flip (``GATED = True``): the gate test already
-asserts the enforcement path so the zero-tolerance day is one line away.
+The JSON->Postgres migration is **complete**: the backlog of first-party modules
+bound to ``.json`` files is zero, every remaining ``.json`` touch is an explicitly
+justified ``_ALLOWLIST`` entry, and the tracker is now a **hard gate**
+(``GATED = True``) — any NEW unallowlisted ``.json`` load/create/update fails the
+build. Findings are still split into *load* (reads) and *create/update* (writes)
+for reporting; the gate test enforces that the live (non-allowlisted) backlog
+stays empty.
 
 A finding is a non-comment, non-docstring line — **anywhere in first-party code,
 including the ``src/database`` seam**; skipped are ``tests/``, the model-doc/audit
@@ -86,7 +87,7 @@ _EXCLUDED_PREFIXES = ('docs/models', 'src/routes/governance', 'src/models')
 
 # Flip to True once the backlog reaches zero to turn the tracker into a
 # zero-tolerance gate (the gate test honours this flag).
-GATED = False
+GATED = True
 
 # First-party files exempt by explicit, justified registration — JSON files that
 # are intentionally NOT migrating to the database (kept minimal; reviewed by the
@@ -213,6 +214,22 @@ _ALLOWLIST = {
     'tools/snap_gauges_to_river.py':
         'standalone prep CLI; reads static river_polyline.json, rewrites config '
         'GAUGE_POINTS — not the live pipeline',
+    # --- Post-generation summary/report display tools ------------------------
+    # These two read the just-generated port OUTPUT bundle to print/render a
+    # summary. Their shared _load is irreducibly file-bound because it reads the
+    # HELD stressm/training_summary (src/models-paired, allowlisted above) AND
+    # sequences_summary.json, which has no seam artifact (a summary doc, not a
+    # migrated portfolio). Not the live web-app read path (that is on the seam);
+    # a fuller seam migration of their count bundle is a deferred live_app_pg_gap
+    # follow-up, tracked separately, not part of this backlog.
+    'app/commands/port/summary.py':
+        'post-generation port-summary stats CLI; reads the output bundle incl. the '
+        'held stressm/training_summary + the no-seam sequences_summary; display '
+        'tool, broader seam migration deferred',
+    'src/reports/port/data_loader.py':
+        'port PDF-report data bundle; reads generated output incl. the held '
+        'stressm/training_summary + the no-seam sequences_summary; report display, '
+        'broader seam migration deferred',
 }
 
 # ---------------------------------------------------------------------------
