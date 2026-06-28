@@ -21,7 +21,7 @@
 """Tests for stress infrastructure — part 1: edge cases, error handling, caching."""
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -127,48 +127,26 @@ class TestRunStressEdgeCases:
 # Coverage expansion — _helpers.py lines 37-38, 67, 86-97
 # ===========================================================================
 
-class TestLoadStressStormsOSError:
-    """OSError from path.stat() returns cached value."""
+class TestLoadStressStormsViaSeam:
+    """_load_stress_storms reads the current stress index through the seam."""
 
-    def test_stat_oserror_returns_cached(self, stress_env):
-        """When path.stat() raises OSError, return existing cache."""
-        import routes.trading.stress._helpers as stress_helpers
-        stress_helpers._stress_index_cache = {"storms": [{"storm_id": "cached"}]}
-        stress_helpers._stress_index_mtime = 12345.0
+    def test_returns_index_when_present(self, stress_env):
+        import json
 
-        index_path = stress_env['input_dir'] / 'stress_storms' / '_index.json'
-        real_stat = type(index_path).stat
-        call_count = [0]
-        def stat_side_effect(self_path, *a, **kw):
-            call_count[0] += 1
-            if call_count[0] >= 2:
-                raise OSError('disk error')
-            return real_stat(self_path, *a, **kw)
+        import routes.trading.stress._helpers as h
+        ss = stress_env['input_dir'] / 'stress_storms'
+        ss.mkdir(exist_ok=True)
+        (ss / '_index.json').write_text(json.dumps({"storms": [{"storm_id": "A"}]}))
+        result = h._load_stress_storms()
+        assert result["storms"][0]["storm_id"] == "A"
 
-        with patch('pathlib.PosixPath.stat', stat_side_effect):
-            result = stress_helpers._load_stress_storms()
-        assert result == {"storms": [{"storm_id": "cached"}]}
-        stress_helpers._stress_index_cache = None
-        stress_helpers._stress_index_mtime = None
-
-    def test_stat_oserror_returns_none_when_no_cache(self, stress_env):
-        """When path.stat() raises OSError and no cache, returns None."""
-        import routes.trading.stress._helpers as stress_helpers
-        stress_helpers._stress_index_cache = None
-        stress_helpers._stress_index_mtime = None
-
-        index_path = stress_env['input_dir'] / 'stress_storms' / '_index.json'
-        real_stat = type(index_path).stat
-        call_count = [0]
-        def stat_side_effect(self_path, *a, **kw):
-            call_count[0] += 1
-            if call_count[0] >= 2:
-                raise OSError('disk error')
-            return real_stat(self_path, *a, **kw)
-
-        with patch('pathlib.PosixPath.stat', stat_side_effect):
-            result = stress_helpers._load_stress_storms()
-        assert result is None
+    def test_returns_none_when_absent(self, stress_env):
+        import routes.trading.stress._helpers as h
+        ss = stress_env['input_dir'] / 'stress_storms'
+        index_path = ss / '_index.json'
+        if index_path.exists():
+            index_path.unlink()
+        assert h._load_stress_storms() is None
 
 
 class TestHydrographRemainingZeroExact:

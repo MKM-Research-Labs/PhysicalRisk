@@ -22,9 +22,8 @@
 
 from __future__ import annotations
 
-import json
-import math
 import logging
+import math
 from pathlib import Path
 
 import database
@@ -48,50 +47,14 @@ def _get_stress_storms_dir() -> Path:
 
 
 def _load_stress_storms():
-    """Load the stress storm index (lightweight metadata, no gauge_responses).
+    """Load the stress storm index (lightweight metadata) via the database seam.
 
-    Reads from ``stress_storms/_index.json``.  Falls back to the legacy
-    single ``stress_storms.json`` file for backward compatibility with data
-    generated before the directory split.
-
-    The cache is invalidated automatically whenever the index file's
-    modification time changes — regenerating storms via ``port --stressm``
-    takes effect on the next request without requiring a server restart.
+    Returns the raw ``stress_storms/_index.json`` document for the active
+    catchment (``None`` when stress storms haven't been generated). The DB serves
+    the current value directly, so no file-mtime cache is needed any more.
     """
-    global _stress_index_cache, _stress_index_mtime
-
-    # Primary: directory-based layout
-    ss_dir = _get_stress_storms_dir()
-    index_path = ss_dir / '_index.json'
-    if index_path.exists():
-        try:
-            mtime = index_path.stat().st_mtime
-        except OSError:
-            return _stress_index_cache
-        if _stress_index_cache is None or mtime != _stress_index_mtime:
-            with open(index_path) as f:
-                _stress_index_cache = json.load(f)
-            _stress_index_mtime = mtime
-            logger.info("stress_storms/_index.json loaded/reloaded (%d storms)",
-                        len((_stress_index_cache or {}).get("storms", [])))
-        return _stress_index_cache
-
-    # Legacy fallback: single stress_storms.json
-    legacy_path = config.get_input_dir() / 'stress_storms.json'
-    if legacy_path.exists():
-        try:
-            mtime = legacy_path.stat().st_mtime
-        except OSError:
-            return _stress_index_cache
-        if _stress_index_cache is None or mtime != _stress_index_mtime:
-            with open(legacy_path) as f:
-                _stress_index_cache = json.load(f)
-            _stress_index_mtime = mtime
-            logger.info("stress_storms.json (legacy) loaded (%d storms)",
-                        len((_stress_index_cache or {}).get("storms", [])))
-        return _stress_index_cache
-
-    return None
+    import database
+    return database.get_stress_storm_index(database.active_catchment())
 
 
 def _load_stress_storm(storm_id: str) -> dict | None:
