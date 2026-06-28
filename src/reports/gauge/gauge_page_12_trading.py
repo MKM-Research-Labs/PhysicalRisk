@@ -25,7 +25,6 @@ Gauge blotter table (open PRS trades) and market hazard curve comparison.
 
 import json
 import logging
-from pathlib import Path
 from typing import Any, Dict, List
 
 from reportlab.lib import colors
@@ -69,31 +68,20 @@ class GaugeTradingPage(GaugeBasePage):
         return elements
 
     def _load_gauge_trades(self, gauge_id: str) -> List[Dict]:
-        """Load open PRS trades for this gauge from trade files."""
+        """Load open PRS trades for this gauge via the prs_trade seam."""
+        import database
         trades = []
-        try:
-            from config import config
-            prs_dir = Path(config.get_reports_dir('prs'))
-        except Exception:
+        catchment = database.active_catchment()
+        for swap_id in database.iter_prs_trade_ids(catchment):
             try:
-                from config import config
-                prs_dir = config.get_output_path() / 'prs'
-            except Exception:
-                return trades
-
-        if not prs_dir.exists():
-            return trades
-
-        for f in sorted(prs_dir.glob('PRS-*.json')):
-            try:
-                data = json.loads(f.read_text())
+                data = database.get_prs_trade(catchment, swap_id) or {}
                 ps = data.get('PhysicalSwap', {})
                 gauge_basket = ps.get('GaugeSet', {}).get('GaugeBasket', [])
                 gauge_ids = [g.get('GaugeID') for g in gauge_basket]
                 if gauge_id in gauge_ids:
                     trades.append(ps)
             except Exception as e:
-                logger.debug(f"Skipping trade file {f.name}: {e}")
+                logger.debug(f"Skipping trade {swap_id}: {e}")
 
         return trades
 

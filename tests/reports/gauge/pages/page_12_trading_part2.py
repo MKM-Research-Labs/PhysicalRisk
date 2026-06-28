@@ -24,12 +24,12 @@ Tests for GaugeTradingPage — part 2.
 _load_gauge_trades private branches and _load_market_state.
 """
 
-import json
-
 import pytest
+from db_helpers import tmp_catchment
+
+import database
 
 from .conftest import make_page
-
 
 # ===========================================================================
 # _load_gauge_trades private branches
@@ -37,64 +37,33 @@ from .conftest import make_page
 
 class TestLoadGaugeTrades:
 
-    def test_prs_dir_not_exist_returns_empty(self, tmp_path, monkeypatch):
-        """Line 67: prs_dir doesn't exist -> return empty list."""
-        from config import config
-        monkeypatch.setattr(config, "get_reports_dir", lambda x: str(tmp_path / "prs"))
-        page = make_page()
-        result = page._load_gauge_trades("GAUGE-001")
-        assert result == []
+    def test_no_trades_returns_empty(self, tmp_path):
+        """No PRS trades in the seam -> empty list."""
+        with tmp_catchment(tmp_path, "thames"):
+            assert make_page()._load_gauge_trades("GAUGE-001") == []
 
-    def test_trade_matching_gauge_id_appended(self, tmp_path, monkeypatch):
-        """Lines 75-76: trade with matching gauge_id -> appended to list."""
-        from config import config
-        prs_dir = tmp_path / "prs"
-        prs_dir.mkdir()
+    def test_trade_matching_gauge_id_appended(self, tmp_path):
+        """Trade whose GaugeBasket contains the gauge -> appended."""
+        with tmp_catchment(tmp_path, "thames"):
+            database.save_prs_trade("thames", "PRS-001", {
+                "PhysicalSwap": {
+                    "Header": {"SwapID": "PRS-001"},
+                    "GaugeSet": {"GaugeBasket": [{"GaugeID": "GAUGE-001"}]},
+                }
+            })
+            result = make_page()._load_gauge_trades("GAUGE-001")
+            assert len(result) == 1
 
-        trade = {
-            "PhysicalSwap": {
-                "Header": {"SwapID": "PRS-001"},
-                "GaugeSet": {"GaugeBasket": [{"GaugeID": "GAUGE-001"}]},
-            }
-        }
-        (prs_dir / "PRS-001.json").write_text(json.dumps(trade))
-
-        monkeypatch.setattr(config, "get_reports_dir", lambda x: str(prs_dir))
-        page = make_page()
-        result = page._load_gauge_trades("GAUGE-001")
-        assert len(result) == 1
-
-    def test_trade_not_matching_gauge_skipped(self, tmp_path, monkeypatch):
-        """Trade for different gauge not appended."""
-        from config import config
-        prs_dir = tmp_path / "prs"
-        prs_dir.mkdir()
-
-        trade = {
-            "PhysicalSwap": {
-                "Header": {"SwapID": "PRS-001"},
-                "GaugeSet": {"GaugeBasket": [{"GaugeID": "GAUGE-999"}]},
-            }
-        }
-        (prs_dir / "PRS-001.json").write_text(json.dumps(trade))
-
-        monkeypatch.setattr(config, "get_reports_dir", lambda x: str(prs_dir))
-        page = make_page()
-        result = page._load_gauge_trades("GAUGE-001")
-        assert result == []
-
-    def test_get_reports_dir_raises_fallback(self, tmp_path, monkeypatch):
-        """Lines 59-64: get_reports_dir raises -> fallback to get_output_path."""
-        from config import config
-
-        def _bad_reports_dir(x):
-            raise AttributeError("no such method")
-
-        monkeypatch.setattr(config, "get_reports_dir", _bad_reports_dir)
-        monkeypatch.setattr(config, "get_output_dir", lambda: tmp_path)
-        page = make_page()
-        result = page._load_gauge_trades("GAUGE-001")
-        assert result == []  # prs subdir doesn't exist
+    def test_trade_not_matching_gauge_skipped(self, tmp_path):
+        """Trade for a different gauge -> not appended."""
+        with tmp_catchment(tmp_path, "thames"):
+            database.save_prs_trade("thames", "PRS-001", {
+                "PhysicalSwap": {
+                    "Header": {"SwapID": "PRS-001"},
+                    "GaugeSet": {"GaugeBasket": [{"GaugeID": "GAUGE-999"}]},
+                }
+            })
+            assert make_page()._load_gauge_trades("GAUGE-001") == []
 
 
 class TestLoadMarketState:

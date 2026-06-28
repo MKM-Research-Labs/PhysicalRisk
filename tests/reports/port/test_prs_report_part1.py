@@ -20,13 +20,12 @@
 
 """Tests for src/reports/port/prs_report.py — PRSPortfolioReport."""
 
-import json
-
 import pytest
-from reportlab.platypus import Paragraph, Spacer, Table, PageBreak
+from db_helpers import tmp_catchment
+from reportlab.platypus import PageBreak, Paragraph, Spacer, Table
 
+import database
 from reports.port.prs_report import PRSPortfolioReport
-
 
 # ---------------------------------------------------------------------------
 # Helpers to build test data on disk
@@ -62,28 +61,28 @@ def _property_hc(pid='PROP-001', zone='Zone 2', elev=12.5, floor=0.5,
 
 
 def _write_propertyhc(d, curves, num_storms=1000):
-    (d / 'propertyhc.json').write_text(json.dumps({
+    database.save_property_hazard_curves(database.active_catchment(), {
         'metadata': {'num_storms': num_storms},
         'property_hazard_curves': dict(curves),
-    }))
+    }, mode="flood")
 
 
 def _write_propertyshd(d, curves):
-    (d / 'propertyshd.json').write_text(json.dumps({
+    database.save_property_hazard_curves(database.active_catchment(), {
         'property_hazard_curves': dict(curves),
-    }))
+    }, mode="shd")
 
 
 def _write_propertyshe(d, curves):
-    (d / 'propertyshe.json').write_text(json.dumps({
+    database.save_property_hazard_curves(database.active_catchment(), {
         'property_hazard_curves': dict(curves),
-    }))
+    }, mode="she")
 
 
 def _write_storm_sequences(d, num_sequences=5000):
-    (d / 'storm_sequences.json').write_text(json.dumps({
+    database.save_storm_sequences(database.active_catchment(), {
         'num_sequences': num_sequences,
-    }))
+    })
 
 
 def _shd_she_entry(pid, spread_bps=30):
@@ -100,7 +99,8 @@ def _shd_she_entry(pid, spread_bps=30):
 def input_dir(tmp_path):
     d = tmp_path / 'catchment_x'
     d.mkdir()
-    return d
+    with tmp_catchment(d, "thames"):
+        yield d
 
 
 @pytest.fixture

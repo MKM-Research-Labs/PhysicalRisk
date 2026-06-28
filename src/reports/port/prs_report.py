@@ -30,7 +30,6 @@ Usage:
     path = report.generate()
 """
 
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -119,28 +118,21 @@ class PRSPortfolioReport:
         return self.output_path
 
     def _load_data(self) -> Dict:
-        """Load propertyhc, propertyshd, propertyshe data."""
-        with open(self.input_dir / 'propertyhc.json') as f:
-            hc = json.load(f)
-        shd_curves = {}
-        shd_path = self.input_dir / 'propertyshd.json'
-        if shd_path.exists():
-            with open(shd_path) as f:
-                shd_curves = json.load(f).get('property_hazard_curves', {})
-        she_curves = {}
-        she_path = self.input_dir / 'propertyshe.json'
-        if she_path.exists():
-            with open(she_path) as f:
-                she_curves = json.load(f).get('property_hazard_curves', {})
+        """Load property hazard curves (flood/shd/she) + storm sequences via the seam."""
+        import database
+        catchment = database.active_catchment()
+        hc = database.get_property_hazard_curves(catchment, mode="flood") or {}
+        shd_curves = (database.get_property_hazard_curves(catchment, mode="shd")
+                      or {}).get('property_hazard_curves', {})
+        she_curves = (database.get_property_hazard_curves(catchment, mode="she")
+                      or {}).get('property_hazard_curves', {})
 
         hc_curves = hc.get('property_hazard_curves', {})
 
         # Get num_storms from propertyhc metadata, fall back to storm_sequences
         num_storms = hc.get('metadata', {}).get('num_storms', 0)
-        seq_path = self.input_dir / 'storm_sequences.json'
-        if seq_path.exists():
-            with open(seq_path) as f:
-                seq_data = json.load(f)
+        seq_data = database.get_storm_sequences(catchment)
+        if seq_data:
             num_storms = seq_data.get('num_sequences', num_storms)
 
         # Build per-property records
