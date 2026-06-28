@@ -115,6 +115,10 @@ def _build_modularisation(styles) -> list:
     from .json_files import _build_json_files
     elems.extend(_build_json_files(styles))
 
+    # 4.6 — database-usage audit (positive map of seam adoption + .json complement)
+    from .database_usage import _build_database_usage
+    elems.extend(_build_database_usage(styles))
+
     return elems
 
 

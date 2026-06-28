@@ -33,10 +33,11 @@ from .copyright_headers import _build_copyright_headers
 from .path_definitions import _build_path_definitions
 from .data_access import _build_data_access
 from .json_files import _build_json_files
+from .database_usage import _build_database_usage
 
 __all__ = [
     '_build_test_detail', '_build_unit_failures', '_build_skipped_tests',
     '_short_msg', '_build_coverage', '_build_modularisation', '_build_init_audit',
     '_build_copyright_headers', '_build_path_definitions', '_build_data_access',
-    '_build_json_files',
+    '_build_json_files', '_build_database_usage',
 ]

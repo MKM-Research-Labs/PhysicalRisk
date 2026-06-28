@@ -239,6 +239,7 @@ def cmd_test(args):
             ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
             ('Embedded JS/CSS PDF',    os.path.join(audit_dir, 'embedded_js_report.pdf')),
             ('JSON-File Audit PDF',    os.path.join(audit_dir, 'json_files_report.pdf')),
+            ('Database-Usage Audit PDF', os.path.join(audit_dir, 'database_usage_report.pdf')),
             ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
             ('Model Risk Report PDF',  os.path.join(audit_dir, 'model_risk_report.pdf')),
             ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
