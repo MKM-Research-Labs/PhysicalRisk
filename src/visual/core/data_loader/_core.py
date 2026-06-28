@@ -28,6 +28,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import database
 from config import config
 from jsonfiles import JSONFileConfig
 from loaders import GaugeLoader, PropertyLoader, RLoanLoader
@@ -86,15 +87,10 @@ class DataLoader(_LoadersMixin, _LookupsMixin):
         )
 
         # --- Commercial portfolio (optional — silently absent for catchments
-        # without commercial.json) ---
-        self.loaded_data.commercial_data = self._load_optional_json(
-            self.input_dir / JSONFileConfig.COMMERCIAL_PORTFOLIO,
-            "commercial",
-        )
-        self.loaded_data.commercial_loan_data = self._load_optional_json(
-            self.input_dir / JSONFileConfig.COMMERCIAL_LOAN_PORTFOLIO,
-            "commercial_loan",
-        )
+        # without a commercial portfolio) ---
+        _catchment = database.active_catchment()
+        self.loaded_data.commercial_data = database.get_commercial_portfolio(_catchment)
+        self.loaded_data.commercial_loan_data = database.get_commercial_loan_portfolio(_catchment)
 
         # --- Hazard curves ---
         logger.info("Loading hazard curves...")

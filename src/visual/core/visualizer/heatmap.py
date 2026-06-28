@@ -20,12 +20,13 @@
 
 """Worst-case storm flood heatmap overlay."""
 
-import json
 import logging
 from pathlib import Path
 
 import folium
 from folium.plugins import HeatMap
+
+import database
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +39,7 @@ def add_flood_heatmap(base_map, input_dir: Path, loaded_data) -> None:
         input_dir: Data input directory containing gaugets/ and propertyts/
         loaded_data: LoadedData container with gauge data
     """
-    gaugets_dir = input_dir / 'gaugets'
-    if not gaugets_dir.exists():
-        return
+    catchment = database.active_catchment()
 
     # Collect gauge locations and storm peak levels
     gauge_data = loaded_data.gauge_data
@@ -61,10 +60,9 @@ def add_flood_heatmap(base_map, input_dir: Path, loaded_data) -> None:
 
     # Load storm responses from gaugets files
     storm_peaks = {}  # storm_id -> [(lat, lon, peak_level)]
-    for gt_file in sorted(gaugets_dir.glob('GAUGE-*.json')):
+    for gid_key in sorted(database.iter_gauge_timeseries_ids(catchment)):
         try:
-            with open(gt_file) as f:
-                gt_data = json.load(f)
+            gt_data = database.get_gauge_timeseries(catchment, gid_key) or {}
             gid = gt_data.get('gauge_id')
             if gid not in gauge_locations:
                 continue
@@ -93,25 +91,24 @@ def add_flood_heatmap(base_map, input_dir: Path, loaded_data) -> None:
     heat_data = [[p[0], p[1], p[2] / max_peak] for p in worst_points]
 
     # Add property-level flood depths for the worst storm
-    pts_dir = input_dir / 'propertyts'
     prop_count = 0
-    if pts_dir.exists():
-        for pf in pts_dir.glob('PROP-*.json'):
-            try:
-                with open(pf) as f:
-                    pdata = json.load(f)
-                ploc = pdata.get('location', {})
-                plat, plon = ploc.get('lat'), ploc.get('lon')
-                if not plat or not plon:
-                    continue
-                for ev in pdata.get('flood_events', []):
-                    if ev.get('storm_id') == worst_id and ev.get('flood_depth_m', 0) > 0:
-                        intensity = min(1.0, ev['flood_depth_m'] / max_peak)
-                        heat_data.append([plat, plon, intensity])
-                        prop_count += 1
-                        break
-            except Exception:
+    for pid in database.iter_property_timeseries_ids(catchment):
+        if not pid.startswith('PROP-'):
+            continue  # skip the portfolio_flood_summary singleton
+        try:
+            pdata = database.get_property_timeseries(catchment, pid) or {}
+            ploc = pdata.get('location', {})
+            plat, plon = ploc.get('lat'), ploc.get('lon')
+            if not plat or not plon:
                 continue
+            for ev in pdata.get('flood_events', []):
+                if ev.get('storm_id') == worst_id and ev.get('flood_depth_m', 0) > 0:
+                    intensity = min(1.0, ev['flood_depth_m'] / max_peak)
+                    heat_data.append([plat, plon, intensity])
+                    prop_count += 1
+                    break
+        except Exception:
+            continue
 
     # Add as toggleable layer
     heatmap_group = folium.FeatureGroup(name='Worst Case Flood Extent', show=False)

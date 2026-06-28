@@ -107,3 +107,5 @@ def _write_gaugets(gaugets_dir: Path, gauge_id: str = "GAUGE-001",
         }
     }
     (gaugets_dir / f"{gauge_id}.json").write_text(json.dumps(data))
+    # Seed the seam too — the heatmap overlay reads gauge timeseries via database.
+    database.save_gauge_timeseries(database.active_catchment(), gauge_id, data)

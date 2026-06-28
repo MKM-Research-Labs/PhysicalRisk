@@ -20,8 +20,7 @@
 
 """Tests for DataLoader helper methods and _print_loading_summary."""
 
-from .conftest import (write_gauge, write_property, write_mortgage,
-                       write_hazard, write_storms)
+from .conftest import write_gauge, write_hazard, write_mortgage, write_property, write_storms
 
 
 class TestDataLoaderHelpers:
@@ -119,37 +118,33 @@ class TestDataLoaderHelpers:
 
 
 class TestLoadOptionalJson:
-    """Covers _load_optional_json + _build_commercial_loan_lookup."""
+    """Covers commercial portfolio loading (via the seam) + _build_commercial_loan_lookup."""
 
-    def test_missing_file_returns_none(self, tmp_path):
+    def test_commercial_absent_is_none(self, tmp_path):
+        import database
         from visual.core.data_loader import DataLoader
         dl = DataLoader(input_dir=tmp_path)
-        assert dl._load_optional_json(tmp_path / "nope.json", "commercial") is None
+        dl.load_all_data()
+        assert dl.loaded_data.commercial_data is None
+        assert dl.loaded_data.commercial_loan_data is None
 
-    def test_loads_commercial_assets_count(self, tmp_path):
-        import json
+    def test_commercial_loaded_from_seam(self, tmp_path):
+        import database
         from visual.core.data_loader import DataLoader
-        p = tmp_path / "commercial.json"
-        p.write_text(json.dumps({"commercial_assets": [{"a": 1}, {"b": 2}]}))
+        cat = database.active_catchment()
+        database.save_commercial(cat, {"commercial_assets": [{"a": 1}, {"b": 2}]})
         dl = DataLoader(input_dir=tmp_path)
-        out = dl._load_optional_json(p, "commercial")
-        assert out["commercial_assets"][0] == {"a": 1}
+        dl.load_all_data()
+        assert dl.loaded_data.commercial_data["commercial_assets"][0] == {"a": 1}
 
-    def test_loads_commercial_loans_count(self, tmp_path):
-        import json
+    def test_commercial_loan_loaded_from_seam(self, tmp_path):
+        import database
         from visual.core.data_loader import DataLoader
-        p = tmp_path / "commercial_loan.json"
-        p.write_text(json.dumps({"commercial_loans": [{"x": 1}]}))
+        cat = database.active_catchment()
+        database.save_commercial_loans(cat, {"commercial_loans": [{"x": 1}]})
         dl = DataLoader(input_dir=tmp_path)
-        out = dl._load_optional_json(p, "commercial_loan")
-        assert out["commercial_loans"] == [{"x": 1}]
-
-    def test_bad_json_returns_none(self, tmp_path):
-        from visual.core.data_loader import DataLoader
-        p = tmp_path / "commercial.json"
-        p.write_text("{not valid")
-        dl = DataLoader(input_dir=tmp_path)
-        assert dl._load_optional_json(p, "commercial") is None
+        dl.load_all_data()
+        assert dl.loaded_data.commercial_loan_data["commercial_loans"] == [{"x": 1}]
 
     def test_build_commercial_loan_lookup_indexes_by_pid(self, tmp_path):
         from visual.core.data_loader import DataLoader
