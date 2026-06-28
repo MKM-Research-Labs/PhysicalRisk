@@ -141,6 +141,11 @@ _ALLOWLIST = {
     'src/reports/property/property_integrator.py':
         'explicit caller-supplied property_file path (test-only callers); the live '
         'property-report route reads via the seam',
+    # Risk report CLI __main__ reads an explicit --flood-file path; the production
+    # RiskReportGenerator.generate_report(flood_data: dict) takes a dict, not a file.
+    'src/reports/risk/generator.py':
+        'CLI __main__ reads an explicit --flood-file path; the generator API takes '
+        'a flood_data dict',
 }
 
 # ---------------------------------------------------------------------------
