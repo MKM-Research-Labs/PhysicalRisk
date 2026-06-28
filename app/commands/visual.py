@@ -39,8 +39,13 @@ def register_parser(subparsers):
 
 def cmd_visual(args):
     """Generate and open the interactive visualisation."""
+    from database.config_binding import use_configured_backend
     from visual.core.visualizer import TCEventVisualization
-    
+
+    # The visual data loader reads catchment data through the database seam, so
+    # bind the configured backend (file | pg) before building the map.
+    use_configured_backend()
+
     viz = TCEventVisualization(
         input_dir=config.get_input_dir(),
         output_dir=config.get_results_dir()

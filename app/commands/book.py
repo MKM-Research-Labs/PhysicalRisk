@@ -52,16 +52,19 @@ def register_parser(subparsers):
 
 def cmd_book(args):
     """Generate a PRS trading book."""
+    from database.config_binding import use_configured_backend
     from port.src.book import (
         generate_market_making_book, generate_thames_central_book,
         generate_trade_pdfs, print_book_summary
     )
-    
+
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
-    
+
     catchment = 'thames'
     # Scope the catchment for the run (replaces permanent ``config.catchment_id =``).
     with config.use_catchment(catchment):
+        # Book generation persists trades through the database seam.
+        use_configured_backend()
         output_dir = config.get_reports_dir('prs')
         output_dir.mkdir(parents=True, exist_ok=True)
 
