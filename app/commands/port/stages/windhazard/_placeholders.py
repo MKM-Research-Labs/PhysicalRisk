@@ -39,25 +39,26 @@ skip-and-404 behaviour.
 """
 
 import copy
-import json
 from pathlib import Path
 
-# asset mode -> (source hazard-curve file, embedded peril-fan key).
+import database
+
+# asset mode -> (source hazard-curve mode, embedded peril-fan key).
 # win/faw/baw resolve to zero events; fow/bow carry the flood / BRI-flood leg.
 _SPEC = {
     "property": {
-        "win": ("propertyhc.json", "wind_only"),
-        "faw": ("propertyhc.json", "flood_and_wind"),
-        "fow": ("propertyhc.json", "flood_or_wind"),
-        "bow": ("propertybri.json", "flood_or_wind"),
-        "baw": ("propertybri.json", "flood_and_wind"),
+        "win": ("flood", "wind_only"),
+        "faw": ("flood", "flood_and_wind"),
+        "fow": ("flood", "flood_or_wind"),
+        "bow": ("bri", "flood_or_wind"),
+        "baw": ("bri", "flood_and_wind"),
     },
     "commercial": {
-        "win": ("commercialhc.json", "wind_only"),
-        "faw": ("commercialhc.json", "flood_and_wind"),
-        "fow": ("commercialhc.json", "flood_or_wind"),
-        "bow": ("commercialbri.json", "flood_or_wind"),
-        "baw": ("commercialbri.json", "flood_and_wind"),
+        "win": ("flood", "wind_only"),
+        "faw": ("flood", "flood_and_wind"),
+        "fow": ("flood", "flood_or_wind"),
+        "bow": ("bri", "flood_or_wind"),
+        "baw": ("bri", "flood_and_wind"),
     },
 }
 
@@ -96,24 +97,26 @@ def _project_peril(doc: dict, peril_key: str, mode: str) -> dict:
 
 
 def write_peril_placeholders(out_dir: Path, asset: str, log=print) -> list:
-    """Write the five standalone scenario files for *asset* from the embedded
-    peril fans. Returns the list of modes written. Never raises."""
+    """Write the five standalone scenario hazard-curve collections for *asset*
+    from the embedded peril fans, through the database seam. Returns the list of
+    modes written; ``out_dir`` is kept for call-site compatibility. Never raises."""
+    catchment = database.active_catchment()
+    get_hc = (database.get_property_hazard_curves if asset == "property"
+              else database.get_commercial_hazard_curves)
+    save_hc = (database.save_property_hazard_curves if asset == "property"
+               else database.save_commercial_hazard_curves)
     spec = _SPEC[asset]
     written = []
     for mode in _MODES:
         try:
-            src_name, peril_key = spec[mode]
-            src_path = out_dir / src_name
-            out_path = out_dir / f"{asset}{mode}.json"
-            if not src_path.exists():
+            base_mode, peril_key = spec[mode]
+            doc = get_hc(catchment, mode=base_mode)
+            if not doc:
                 continue
-            with open(src_path) as f:
-                doc = json.load(f)
             projected = _project_peril(doc, peril_key, mode)
-            with open(out_path, "w") as f:
-                json.dump(projected, f, indent=2)
+            save_hc(catchment, projected, mode=mode)
             written.append(mode)
-        except (OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        except (OSError, ValueError, KeyError, TypeError) as exc:
             log(f"   [placeholder] {asset}{mode}: skipped ({exc})")
             continue
     if written:

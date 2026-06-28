@@ -27,9 +27,20 @@ serve consistent zero-event data instead of 404."""
 
 import json
 
+import pytest
 from app.commands.port.stages.windhazard._placeholders import (
     write_peril_placeholders,
 )
+from db_helpers import tmp_catchment
+
+
+@pytest.fixture(autouse=True)
+def _seam_backend(tmp_path):
+    """Bind a scratch catchment rooted at tmp_path so the placeholder generator's
+    hazard-curve seam I/O resolves to the same propertyhc/propertybri/property*.json
+    files these tests write and read back."""
+    with tmp_catchment(tmp_path, "thames"):
+        yield
 
 
 def _curve(severe_spread, perils):

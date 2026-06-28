@@ -20,13 +20,15 @@
 
 """Shared predicates for the wind-coupled hazard stages."""
 
+import database
+
 from ...context import StageContext
 
 
 def _damage_available(ctx: StageContext) -> bool:
-    """True when the typhoon damage join input exists for this catchment."""
-    damage_dir = ctx.input_dir / "typhoon" / "damage"
-    return damage_dir.exists() and any(damage_dir.glob("EVT-*.json"))
+    """True when typhoon damage exists for this catchment (the typhoon_event
+    seam artifact, i.e. the EVT-* damage records)."""
+    return any(database.iter_typhoon_event_ids(database.active_catchment()))
 
 
 def _peril_requested(ctx: StageContext) -> bool:
