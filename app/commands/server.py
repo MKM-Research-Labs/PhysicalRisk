@@ -66,7 +66,10 @@ def cmd_server(args):
         port = args.port or config.SERVER_PORT
         debug = args.debug or config.DEBUG
 
+        app = create_app()
+
         # Warn if no PRS trades exist — blotter will be empty until generated.
+        # Done after create_app(), which configures the database backend.
         import database
         prs_trades = list(database.iter_prs_trade_ids(database.active_catchment()))
         if not prs_trades:
@@ -76,8 +79,6 @@ def cmd_server(args):
             print(f"     Run:  python app.py port --{config.CATCHMENT} --blotter")
             print(f"     to generate the {config.CATCHMENT} trading book.")
             print()
-
-        app = create_app()
 
         print(f"Starting {config.CATCHMENT} server on http://{host}:{port}")
         app.run(host=host, port=port, debug=debug)
