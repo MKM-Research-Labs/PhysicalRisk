@@ -146,6 +146,30 @@ _ALLOWLIST = {
     'src/reports/risk/generator.py':
         'CLI __main__ reads an explicit --flood-file path; the generator API takes '
         'a flood_data dict',
+    # Test-runner commands that parse junit.xml/coverage and emit test-result
+    # summary JSON into the audit dir (e2e_results / data_lineage_results /
+    # test_failures_report) for the CI/audit tab — reporting output, not DB state.
+    'app/commands/test/e2e.py':
+        'writes e2e_results.json test-run output to the audit dir; reporting '
+        'artifact, not DB state',
+    'app/commands/test/lineage.py':
+        'writes data_lineage_results.json test-run output to the audit dir; '
+        'reporting artifact, not DB state',
+    'app/commands/test/reports.py':
+        'writes test_failures_report.json (parsed from junit.xml) to the audit '
+        'dir; reporting artifact, not DB state',
+    # Pre-regeneration safety backup: copies the output dir's *.json to a
+    # timestamped .backups/ folder (shutil.copy2, no content read). A file-backend
+    # maintenance utility; database backups are handled separately (pg_dump, WP5.2).
+    'app/commands/port/orchestrator.py':
+        'file-backend pre-regen backup (copies *.json to .backups/); DB backups '
+        'are a separate concern (pg_dump / WP5.2)',
+    # Port-CLI admin-gate credential (salt+hash for the `python app.py port`
+    # mutation gate). A small local credential file read at CLI time, distinct from
+    # the DB-backed app RBAC users — intentionally a file, not DB-managed state.
+    'app/commands/port/auth.py':
+        'port-CLI admin-gate credential file (salt+hash); local credential by '
+        'design, distinct from the DB RBAC users',
 }
 
 # ---------------------------------------------------------------------------
