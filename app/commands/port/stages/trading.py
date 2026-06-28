@@ -20,9 +20,9 @@
 
 """Trading-book stages: counterparties (9), blotter + EOD (10)."""
 
-import json as _json
 import time
 
+import database
 from config import config
 
 from ..context import StageContext
@@ -124,16 +124,14 @@ def run_blotter(ctx: StageContext):
 
     print_book_summary(trades)
 
-    # Initialise trade_marks.json with all trades as Open
-    trading_dir = config.get_trading_dir()
-    trading_dir.mkdir(parents=True, exist_ok=True)
+    # Initialise trade marks with all trades as Open (via the seam — the blotter
+    # / trade-marks model read these back through database.get_trade_marks).
     marks = {}
     for t in trades:
         sid = t.get('PhysicalSwap', {}).get('Header', {}).get('SwapID')
         if sid:
             marks[sid] = {'trade_status': 'Open'}
-    with open(trading_dir / 'trade_marks.json', 'w') as f:
-        _json.dump(marks, f, indent=2)
+    database.save_trade_marks(database.active_catchment(), marks)
 
     print("  Generating trade confirmation PDFs...")
     pdfs = generate_trade_pdfs(trades, blotter_dir)

@@ -66,13 +66,12 @@ def cmd_server(args):
         port = args.port or config.SERVER_PORT
         debug = args.debug or config.DEBUG
 
-        # Warn if no PRS trade files exist — blotter will be empty until generated.
-        prs_dir = config.get_reports_dir('prs')
-        prs_trades = list(prs_dir.glob('PRS-*.json')) if prs_dir.exists() else []
+        # Warn if no PRS trades exist — blotter will be empty until generated.
+        import database
+        prs_trades = list(database.iter_prs_trade_ids(database.active_catchment()))
         if not prs_trades:
             print()
-            print("  ⚠  No PRS trade files found in:")
-            print(f"       {prs_dir}")
+            print("  ⚠  No PRS trades found for this catchment.")
             print("     The Trading Desk blotter will be empty.")
             print(f"     Run:  python app.py port --{config.CATCHMENT} --blotter")
             print(f"     to generate the {config.CATCHMENT} trading book.")
