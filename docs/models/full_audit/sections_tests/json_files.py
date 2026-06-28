@@ -118,6 +118,18 @@ _ALLOWLIST = {
     'src/port/cdm/gaugehd/generator.py':
         'standalone CSV->JSON gauge-history conversion tool; intentional file '
         'output, content read by no module (live pipeline uses gauge_history seam)',
+    # Gauge report generators that read an EXPLICIT, caller-supplied file path
+    # (not a config/catchment-resolved artifact): gauge_generator's CLI __main__
+    # reads --gauge-file/--timeseries-file, and gauge_integrator's functions take
+    # a gauge_file param (only test callers). The live gauge-report route does NOT
+    # use these — it builds from dicts loaded through the seam
+    # (gauge_loader.find_by_id + database.get_gauge_history / get_gauge_hazard_curves).
+    'src/reports/gauge/gauge_generator.py':
+        'CLI __main__ reads an explicit --gauge-file/--timeseries-file path; the '
+        'live route generates from seam-loaded dicts',
+    'src/reports/gauge/gauge_integrator.py':
+        'explicit caller-supplied gauge_file path (test-only callers); the live '
+        'gauge-report route reads via the seam',
 }
 
 # ---------------------------------------------------------------------------

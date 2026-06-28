@@ -20,12 +20,13 @@
 
 """Historical-risk assessment and gauge-derived flood-history builders."""
 
-import json
 from datetime import datetime
 from typing import Any, Dict, List
 
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
+
+import database
 
 
 class _HistoryBuildersMixin:
@@ -72,8 +73,6 @@ class _HistoryBuildersMixin:
 
     def _build_flood_history(self, property_data: Dict[str, Any]) -> List:
         """Build flood history from nearest gauge historical daily data."""
-        from config import config
-
         elements = []
         elements.append(Paragraph("Flood History", self.styles['SubSectionHeader']))
 
@@ -93,21 +92,17 @@ class _HistoryBuildersMixin:
         floor_level = ph.get('Construction', {}).get('FloorLevelMeters', 0)
         flood_threshold = prop_elev + floor_level
 
-        # Load gauge historical daily data
-        gaugehd_dir = config.get_gaugehd_dir()
-        hd_file = gaugehd_dir / f'gauge_{gauge_id}_hd.json'
-        if not hd_file.exists():
+        # Load gauge historical daily data via the database seam.
+        try:
+            hd = database.get_gauge_history(database.active_catchment(), gauge_id)
+        except Exception:
+            elements.append(Paragraph("Error loading gauge historical data.", self.styles['Normal']))
+            return elements
+        if not hd:
             elements.append(Paragraph(
                 f"No historical daily data for gauge {gauge_id}.",
                 self.styles['Normal']
             ))
-            return elements
-
-        try:
-            with open(hd_file) as f:
-                hd = json.load(f)
-        except Exception:
-            elements.append(Paragraph("Error loading gauge historical data.", self.styles['Normal']))
             return elements
 
         stages = hd.get('gauge_metadata', {}).get('flood_stages', {})

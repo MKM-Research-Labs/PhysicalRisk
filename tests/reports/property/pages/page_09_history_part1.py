@@ -21,9 +21,11 @@
 """Tests for reports.property.property_page_09_history — HistoryPage."""
 
 import pytest
+from db_helpers import tmp_catchment
 from reportlab.platypus import Paragraph, Table
 
-from tests.reports.property.pages.conftest import _make_property, _make_mortgage
+import database
+from tests.reports.property.pages.conftest import _make_mortgage, _make_property
 
 
 class TestHistoryPage:
@@ -161,19 +163,14 @@ class TestHistoryPage:
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No reference gauges" in t for t in texts)
 
-    def test_build_flood_history_no_hd_file(self, tmp_path, monkeypatch):
-        from config import config
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: tmp_path)
-        page = self._page()
+    def test_build_flood_history_no_hd_file(self, tmp_path):
         prop = {"PropertyHeader": {"ReferenceGauges": ["GAUGE-MISSING"]}}
-        result = page._build_flood_history(prop)
+        with tmp_catchment(tmp_path, "thames"):
+            result = self._page()._build_flood_history(prop)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No historical" in t or "historical" in t.lower() for t in texts)
 
-    def test_build_flood_history_with_flood_data(self, tmp_path, monkeypatch):
-        import json
-        from config import config
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: tmp_path)
+    def test_build_flood_history_with_flood_data(self, tmp_path):
         hd_data = {
             "gauge_metadata": {
                 "flood_stages": {"FloodWarning": 2.0},
@@ -186,8 +183,6 @@ class TestHistoryPage:
                 {"date": "2020-06-01", "level_meters": 3.0},
             ],
         }
-        hd_file = tmp_path / "gauge_GAUGE-001_hd.json"
-        hd_file.write_text(json.dumps(hd_data))
         prop = {
             "PropertyHeader": {
                 "ReferenceGauges": ["GAUGE-001"],
@@ -195,16 +190,14 @@ class TestHistoryPage:
                 "Construction": {"FloorLevelMeters": 0.5},
             }
         }
-        page = self._page()
-        result = page._build_flood_history(prop)
+        with tmp_catchment(tmp_path, "thames"):
+            database.save_gauge_history("thames", "GAUGE-001", hd_data)
+            result = self._page()._build_flood_history(prop)
         assert isinstance(result, list)
         tables = [e for e in result if isinstance(e, Table)]
         assert len(tables) >= 1
 
-    def test_build_flood_history_no_flood_days(self, tmp_path, monkeypatch):
-        import json
-        from config import config
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: tmp_path)
+    def test_build_flood_history_no_flood_days(self, tmp_path):
         hd_data = {
             "gauge_metadata": {
                 "flood_stages": {"FloodWarning": 10.0},
@@ -215,21 +208,19 @@ class TestHistoryPage:
                 {"date": "2020-01-15", "level_meters": 1.0},
             ],
         }
-        hd_file = tmp_path / "gauge_GAUGE-001_hd.json"
-        hd_file.write_text(json.dumps(hd_data))
         prop = {"PropertyHeader": {"ReferenceGauges": ["GAUGE-001"]}}
-        page = self._page()
-        result = page._build_flood_history(prop)
+        with tmp_catchment(tmp_path, "thames"):
+            database.save_gauge_history("thames", "GAUGE-001", hd_data)
+            result = self._page()._build_flood_history(prop)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("No flood events" in t for t in texts)
 
     def test_build_flood_history_bad_json(self, tmp_path, monkeypatch):
-        from config import config
-        monkeypatch.setattr(config, "get_gaugehd_dir", lambda: tmp_path)
-        hd_file = tmp_path / "gauge_GAUGE-001_hd.json"
-        hd_file.write_text("NOT VALID JSON {{{")
+        def _boom(*a, **k):
+            raise ValueError("corrupt gauge history record")
+        monkeypatch.setattr(database, "get_gauge_history", _boom)
         prop = {"PropertyHeader": {"ReferenceGauges": ["GAUGE-001"]}}
-        page = self._page()
-        result = page._build_flood_history(prop)
+        with tmp_catchment(tmp_path, "thames"):
+            result = self._page()._build_flood_history(prop)
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, 'text')]
         assert any("Error" in t or "error" in t.lower() for t in texts)
