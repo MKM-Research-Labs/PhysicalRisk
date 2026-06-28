@@ -49,12 +49,15 @@ def _get_stress_storms_dir() -> Path:
 def _load_stress_storms():
     """Load the stress storm index (lightweight metadata) via the database seam.
 
-    Returns the raw ``stress_storms/_index.json`` document for the active
-    catchment (``None`` when stress storms haven't been generated). The DB serves
-    the current value directly, so no file-mtime cache is needed any more.
+    Returns the ``stress_storms/_index.json`` document for the active catchment,
+    falling back to the legacy single-file ``stress_storms.json`` (both served
+    through the seam) and ``None`` when neither exists. The DB serves the current
+    value directly, so no file-mtime cache is needed any more.
     """
     import database
-    return database.get_stress_storm_index(database.active_catchment())
+    catchment = database.active_catchment()
+    return (database.get_stress_storm_index(catchment)
+            or database.get_legacy_stress_storms(catchment))
 
 
 def _load_stress_storm(storm_id: str) -> dict | None:
