@@ -60,6 +60,25 @@ def _area(path: str) -> str:
     return '/'.join(parts[:2]) if len(parts) > 1 else path
 
 
+def _acceptable_table(allowlisted, styles) -> Table:
+    """One row per allowlisted file with its justification — the files that
+    intentionally keep .json I/O and are NOT migrating to the database."""
+    reasons = {}
+    for a in allowlisted:
+        reasons.setdefault(a['file'], a.get('reason', ''))
+    rows = [[Paragraph('<b>File</b>', styles['tbl_hdr']),
+             Paragraph('<b>Why it stays a file (not migrating)</b>',
+                       styles['tbl_hdr'])]]
+    for fp in sorted(reasons, key=lambda p: (_area(p), p)):
+        rows.append([Paragraph(fp, styles['tbl_cell']),
+                     Paragraph(reasons[fp], styles['tbl_cell'])])
+    t = Table(rows, colWidths=[70 * mm, 90 * mm], repeatRows=1)
+    style = TableStyle(_TABLE_STYLE.getCommands())
+    style.add('ALIGN', (0, 0), (-1, -1), 'LEFT')
+    t.setStyle(style)
+    return t
+
+
 def _by_area_table(io_files, styles) -> Table:
     counts = Counter(_area(f) for f in io_files)
     rows = [[Paragraph('<b>Area</b>', styles['tbl_hdr']),
@@ -105,10 +124,12 @@ def create_pdf_report(scan: dict, output_path, root, generated: str):
     story.append(Paragraph('JSON-File Audit Report', S['cover_title']))
     story.append(Paragraph(
         'Zero-Tolerance Tracker — .json loads &amp; create/updates outside the '
-        'database seam', S['cover_sub']))
+        'database seam: what needs to migrate vs. what is acceptable to keep',
+        S['cover_sub']))
     story.append(Spacer(1, 4 * mm))
 
     n_io = len(scan['io_files'])
+    n_accept = len({a['file'] for a in scan['allowlisted']})
     mode = 'GATING (zero-tolerance)' if GATED else 'TRACKING (non-gating)'
     mode_colour = RED if (GATED and scan['io_findings']) else GREEN
     story.append(Paragraph(
@@ -118,6 +139,9 @@ def create_pdf_report(scan: dict, output_path, root, generated: str):
         f"disk — all such state lives in PostgreSQL behind src/database.<br/>"
         f"<b>Scope:</b> all first-party .py except tests/, docs/models, "
         f"src/routes/governance, src/models, and inert dirs.<br/>"
+        f"<b>Acceptable (allowlisted, not migrating):</b> {n_accept} file(s) — "
+        f"config exports, analytical-model artifacts, provenance metadata, test "
+        f"harness, and standalone tools, each with a recorded justification.<br/>"
         f"<b>Mode:</b> <font color='{mode_colour.hexval()}'>{mode}</font>",
         S['cover_meta']))
     story.append(Spacer(1, 4 * mm))
@@ -127,15 +151,21 @@ def create_pdf_report(scan: dict, output_path, root, generated: str):
     # --- headline metrics --------------------------------------------------
     story.append(Paragraph(
         f"<b>{scan['scanned']}</b> files scanned &nbsp;·&nbsp; "
-        f"<b>{n_io}</b> I/O backlog files &nbsp;·&nbsp; "
+        f"<b>{n_io}</b> needs-migration files &nbsp;·&nbsp; "
         f"<b>{scan['reads']}</b> load &nbsp;·&nbsp; "
         f"<b>{scan['writes']}</b> create/update &nbsp;·&nbsp; "
+        f"<b>{n_accept}</b> acceptable (allowlisted) &nbsp;·&nbsp; "
         f"<b>{scan['refs']}</b> bare path reference(s)", S['body']))
     story.append(Spacer(1, 4 * mm))
 
-    # --- backlog by area ---------------------------------------------------
-    story.append(Paragraph('Backlog by area', S['h3']))
+    # --- needs migration: backlog by area ----------------------------------
+    story.append(Paragraph('Needs migration — backlog by area', S['h3']))
     story.append(HRFlowable(width='100%', thickness=1, color=NAVY))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph(
+        'Live port state still loaded or created/updated as a .json file outside '
+        'the database seam. These shrink to zero as each artifact moves onto the '
+        'seam, at which point the audit flips to a zero-tolerance gate.', S['body']))
     story.append(Spacer(1, 2 * mm))
     if scan['io_files']:
         story.append(_by_area_table(scan['io_files'], S))
@@ -144,13 +174,32 @@ def create_pdf_report(scan: dict, output_path, root, generated: str):
                                S['body']))
     story.append(PageBreak())
 
-    # --- per-file detail (complete list) -----------------------------------
-    story.append(Paragraph('Per-file detail — every load &amp; create/update',
-                           S['h3']))
+    # --- needs migration: per-file detail (complete list) ------------------
+    story.append(Paragraph('Needs migration — per-file detail '
+                           '(every load &amp; create/update)', S['h3']))
     story.append(HRFlowable(width='100%', thickness=1, color=NAVY))
     story.append(Spacer(1, 2 * mm))
     if scan['io_findings']:
         story.append(_per_file_table(scan['io_findings'], S))
+    else:
+        story.append(Paragraph('None.', S['body']))
+
+    # --- acceptable: allowlisted files, intentionally not migrating --------
+    story.append(PageBreak())
+    story.append(Paragraph('Acceptable — intentionally not migrating '
+                           '(allowlisted)', S['h3']))
+    story.append(HRFlowable(width='100%', thickness=1, color=NAVY))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph(
+        'Files whose .json I/O is deliberate and exempt from the migration — '
+        'config exports whose canonical values live in config.port, analytical-'
+        'model artifacts, BCBS 239 provenance metadata, the test/audit harness, '
+        'and standalone developer tools. Each is registered with a justification; '
+        'a contract test removes any entry that no longer touches a .json file, so '
+        'this list cannot accumulate stale exemptions.', S['body']))
+    story.append(Spacer(1, 2 * mm))
+    if scan['allowlisted']:
+        story.append(_acceptable_table(scan['allowlisted'], S))
     else:
         story.append(Paragraph('None.', S['body']))
 

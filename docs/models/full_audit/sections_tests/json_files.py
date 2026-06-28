@@ -170,6 +170,49 @@ _ALLOWLIST = {
     'app/commands/port/auth.py':
         'port-CLI admin-gate credential file (salt+hash); local credential by '
         'design, distinct from the DB RBAC users',
+    # --- Config export/import (canonical values in config.port) --------------
+    # storm_control.json hand-off between config.port (EVENT_WINDOW_HOURS et al.)
+    # and the running app — a human-inspectable config mirror, same exemption as
+    # the spatial-correlation config files above.
+    'config/storm_control/__init__.py':
+        'storm_control.json config export/import; canonical values live in '
+        'config.port, intentional human-inspectable file',
+    # --- Analytical-model artifact (src/models-style exemption) --------------
+    # training_summary.json in the classifier model dir, read by the src/models
+    # flood-classifier predictor (analytical models keep their .json). The
+    # seam-backed classifiers/ summary used by the trading-stress UI is the
+    # separate update_classifier_training_summary() path in the same module.
+    'src/port/src/stressm/summary.py':
+        'file-based classifier training_summary.json read by the src/models '
+        'flood-classifier; analytical-model exemption (seam-backed variant exists)',
+    # --- BCBS 239 provenance metadata (separate lineage concern) -------------
+    # data_lineage.json is the run manifest: hashes of pipeline artifacts for
+    # audit/provenance, not port data itself. Its migration is coupled to (and
+    # tracked with) the artifact migration it records, not this backlog.
+    'src/lineage/manifest/_core.py':
+        'data_lineage.json BCBS-239 provenance manifest; audit metadata over '
+        'artifacts, separate lineage concern — not port data',
+    # --- Standalone CLIs / sandbox tools outside the live pipeline -----------
+    # None of these run in the port pipeline or are read by a live route; each is
+    # a developer tool operating on tempdirs, golden fixtures, study snapshots, or
+    # a tool-local sandbox — intentional file I/O, not DB-managed state.
+    'docs/repository_demo.py':
+        'standalone repository-pattern demo; tempfile only, not in the live pipeline',
+    'scripts/beta_sweep_analyze.py':
+        'standalone sensitivity-analysis CLI; reads .beta_study/ snapshots, not '
+        'live port state',
+    'tools/cdm_property_editor/app.py':
+        'standalone asset-review sandbox; reads catchment data via the database '
+        'seam, writes only tool-local sandbox/audit files',
+    'tools/cdm_property_editor/_recompute_oracle.py':
+        'standalone oracle-validation CLI; isolated tempdir + golden fixtures, '
+        'not the live pipeline',
+    'tools/snap_gauges_geometry.py':
+        'gauge-snapping prep tool; optional cached river_polyline.json catchment '
+        'geometry, not live port state',
+    'tools/snap_gauges_to_river.py':
+        'standalone prep CLI; reads static river_polyline.json, rewrites config '
+        'GAUGE_POINTS — not the live pipeline',
 }
 
 # ---------------------------------------------------------------------------
@@ -332,6 +375,15 @@ def _build_json_files(styles) -> list:
     elems.append(Paragraph(
         f'Plus <b>{scan["refs"]}</b> bare .json path/filename reference(s) '
         f'(tracked, non-gating downstream cleanup).', styles['body']))
+
+    n_accept = len({a['file'] for a in scan['allowlisted']})
+    elems.append(Spacer(1, 2 * mm))
+    elems.append(Paragraph(
+        f'Acceptable (allowlisted, intentionally not migrating): '
+        f'<b>{n_accept}</b> file(s) — config exports, analytical-model artifacts, '
+        f'provenance metadata, the test harness, and standalone tools, each with a '
+        f'recorded justification and kept honest by a stale-entry contract test.',
+        styles['body']))
 
     if scan['io_findings']:
         elems.append(Spacer(1, 2 * mm))
