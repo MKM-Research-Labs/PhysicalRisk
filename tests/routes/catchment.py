@@ -31,7 +31,6 @@ from unittest.mock import patch
 
 import pytest
 
-
 # ===========================================================================
 # Fixtures
 # ===========================================================================
@@ -54,17 +53,14 @@ def client(tmp_path, monkeypatch):
 
 class TestServeCatchmentSelector:
 
-    def test_returns_404_when_file_missing(self, client):
-        # The static HTML file is very unlikely to exist in test env
-        with patch("routes.catchment.Path") as mock_path_class:
-            mock_path = mock_path_class.return_value
-            mock_path.__truediv__ = lambda s, x: mock_path
-            mock_path.resolve.return_value.parent.parent.__truediv__ = lambda s, x: mock_path
-            mock_path.exists.return_value = False
+    def test_returns_404_when_file_missing(self, client, tmp_path, monkeypatch):
+        # Point the static dir at an empty tmp dir so the HTML file is missing.
+        from config import config
+        monkeypatch.setattr(config, "get_static_dir", lambda: tmp_path)
 
-            r = client.get("/select-catchment")
-            # Either 404 (file missing) or 200 (file exists in real project) — both valid
-            assert r.status_code in (200, 404, 500)
+        r = client.get("/select-catchment")
+        # Either 404 (file missing) or 200 (file exists in real project) — both valid
+        assert r.status_code in (200, 404, 500)
 
     def test_returns_json_error_or_html(self, client):
         r = client.get("/select-catchment")
@@ -73,8 +69,9 @@ class TestServeCatchmentSelector:
 
     def test_returns_html_when_file_exists(self, tmp_path, monkeypatch):
         """Lines 33-35: send_file when HTML file actually exists."""
-        from unittest.mock import patch
         from pathlib import Path
+        from unittest.mock import patch
+
         from config import config
 
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
@@ -170,26 +167,24 @@ class TestSetCatchment:
 class TestCatchmentExceptionHandlers:
     """Lines 54-56: exception handler in serve_catchment_selector."""
 
-    def test_serve_catchment_selector_exception_returns_500(self, client):
+    def test_serve_catchment_selector_exception_returns_500(self, client, tmp_path, monkeypatch):
         """Lines 54-56: internal error returns 500 JSON error.
 
-        Force the exists() check to pass so we reach send_file, then make
-        send_file raise so the except branch executes.
+        Make the html file exist (so we reach send_file), then make send_file
+        raise so the except branch executes.
         """
-        with patch("routes.catchment.Path") as mock_path_class:
-            fake_path = mock_path_class.return_value
-            # Path(__file__).resolve().parent.parent
-            fake_path.resolve.return_value.parent.parent = fake_path
-            # fake_path / 'static' / 'select_catchment.html'  → still fake_path
-            fake_path.__truediv__ = lambda self, other: fake_path
-            # Pretend the html file exists so we reach send_file
-            fake_path.exists.return_value = True
+        from config import config
 
-            with patch(
-                "routes.catchment.send_file",
-                side_effect=RuntimeError("disk error"),
-            ):
-                r = client.get("/select-catchment")
+        # Point the static dir at a tmp dir and create the HTML there so the
+        # exists() check passes and we reach send_file.
+        monkeypatch.setattr(config, "get_static_dir", lambda: tmp_path)
+        (tmp_path / "select_catchment.html").write_text("<html></html>")
+
+        with patch(
+            "routes.catchment.send_file",
+            side_effect=RuntimeError("disk error"),
+        ):
+            r = client.get("/select-catchment")
 
         assert r.status_code == 500
         data = json.loads(r.data)
