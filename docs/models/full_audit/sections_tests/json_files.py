@@ -130,6 +130,17 @@ _ALLOWLIST = {
     'src/reports/gauge/gauge_integrator.py':
         'explicit caller-supplied gauge_file path (test-only callers); the live '
         'gauge-report route reads via the seam',
+    # Property report generators reading an EXPLICIT, caller-supplied file path
+    # (mirror of the gauge ones): property_generator's CLI __main__ reads
+    # --property-file/--mortgage-file, and property_integrator's functions take a
+    # property_file param (only test callers). The live property-report route
+    # (generate_property_report) builds from dicts loaded through the seam.
+    'src/reports/property/property_generator.py':
+        'CLI __main__ reads an explicit --property-file/--mortgage-file path; the '
+        'live route generates from seam-loaded dicts',
+    'src/reports/property/property_integrator.py':
+        'explicit caller-supplied property_file path (test-only callers); the live '
+        'property-report route reads via the seam',
 }
 
 # ---------------------------------------------------------------------------

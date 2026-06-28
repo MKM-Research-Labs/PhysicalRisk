@@ -24,10 +24,11 @@ Mirrors src/reports/property/property_generator.py — loads the data,
 locates the matching loan record, hands to CommercialReportGenerator.
 """
 
-import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+import database
 
 from .generator import CommercialReportGenerator
 
@@ -38,13 +39,8 @@ def _load_commercial_record(
     property_id: str,
     catchment_input_dir: Path,
 ) -> Optional[Dict[str, Any]]:
-    """Find a single commercial record by PropertyID."""
-    commercial_path = catchment_input_dir / "commercial.json"
-    if not commercial_path.exists():
-        logger.error("commercial.json not found at %s", commercial_path)
-        return None
-    with open(commercial_path) as f:
-        data = json.load(f)
+    """Find a single commercial record by PropertyID (via the database seam)."""
+    data = database.get_commercial_portfolio(database.active_catchment()) or {}
     for record in data.get("commercial_assets", []):
         rec_pid = (record.get("CommercialAsset", {})
                          .get("Header", {})
@@ -58,12 +54,8 @@ def _load_cloan_record(
     property_id: str,
     catchment_input_dir: Path,
 ) -> Optional[Dict[str, Any]]:
-    """Find the commercial loan linked to the given PropertyID."""
-    loan_path = catchment_input_dir / "commercial_loan.json"
-    if not loan_path.exists():
-        return None
-    with open(loan_path) as f:
-        data = json.load(f)
+    """Find the commercial loan linked to the given PropertyID (via the seam)."""
+    data = database.get_commercial_loan_portfolio(database.active_catchment()) or {}
     for record in data.get("commercial_loans", []):
         rec_pid = (record.get("Mortgage", {})
                          .get("Header", {})
