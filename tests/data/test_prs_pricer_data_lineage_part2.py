@@ -24,6 +24,19 @@ def _input_dir() -> Path:
     return config.get_input_dir()
 
 
+# Disk-based lineage integration test: it reads the on-disk ``.json`` artifact
+# tree directly with bare ``open()``. Skip when that tree is absent — under
+# ``MKM_REPO_BACKEND=pg`` or a decommissioned tree the portfolio lives in the
+# seam, not on disk, and lineage is not yet seam-aware (see
+# test_lineage_backend_coupling.py). This turns a confusing FileNotFoundError
+# into a clean skip.
+pytestmark = pytest.mark.skipif(
+    not (config.get_input_dir() / "propertyhc.json").is_file(),
+    reason="requires the on-disk propertyhc.json artifact (file backend); "
+    "skipped under pg backend / decommissioned tree",
+)
+
+
 def _load_json(path: Path) -> dict:
     with open(path) as f:
         return json.load(f)

@@ -256,6 +256,18 @@ is something the current file layout does poorly and pairs naturally with `data_
 - **Audit coverage:** without a data-access audit, new code will bypass the repository
   the way reads bypass abstraction today.
 - **Governance files out of scope** but are a natural future DB fit — keep the door open.
+- **Lineage is file-backend coupled (OPEN DECISION, blocks WP5.3).** The `src/lineage/`
+  subsystem models provenance as on-disk artifact hashes: `repair_manifest` scans the
+  `data/input/<catchment>/` tree, and `_live_hash` / `_outputs_exist` stat disk. It has
+  **zero** seam awareness, so under `MKM_REPO_BACKEND=pg` (no `.json` on disk) manifest
+  population and freshness/completeness checks silently degrade to "everything missing".
+  Decide before decommissioning files: (a) grow a seam-backed provenance path
+  (hash `PortRecord.cdm` rows), or (b) keep lineage file-only and scope it out under pg
+  (export-to-file for archival). The characterisation test
+  `tests/data/test_lineage_backend_coupling.py` pins today's honest behaviour and will
+  fail when this is addressed; the disk-based lineage integration tests
+  (`test_prs_pricer_data_lineage_part*`, `test_blotter_elevation_lineage`,
+  `test_synthetic_gauge_lineage`) now skip cleanly when the on-disk tree is absent.
 
 ---
 
