@@ -142,6 +142,58 @@
                     '<td style="padding:3px 6px;text-align:right;color:#1976D2;">' + adjustedPropSpread.toFixed(1) + ' bp</td>' +
                     '<td></td></tr>';
 
+                // ---- Independent perils (fire / seismic) ----------------------
+                // Mirrors the Hazard Curve tab's "Independent perils" block
+                // (phc-hazard.js). Rendered only when the commercial hazard
+                // route's read-time joins have folded fire_spread_bps /
+                // seismic_spread_bps into the decomposition — a no-op for
+                // residential / pre-peril assets, so the table is unchanged for
+                // them. Fire and seismic are independent hazards: they don't
+                // combine linearly with the flood/wind basis, so the all-in PRS
+                // is a root-sum-of-squares of the basis and each peril leg.
+                var fireBps = (sd.fire_spread_bps != null && !isNaN(sd.fire_spread_bps))
+                    ? parseFloat(sd.fire_spread_bps) : null;
+                var seisBps = (sd.seismic_spread_bps != null && !isNaN(sd.seismic_spread_bps))
+                    ? parseFloat(sd.seismic_spread_bps) : null;
+                if (fireBps !== null || seisBps !== null) {
+                    var po = sd.peril_outcomes || {};
+                    function _perilCount(o) {
+                        return (o && typeof o.count === 'number') ? o.count : 0;
+                    }
+                    // Flood/wind basis the all-in lands on: prefer the widest
+                    // union scenario (BRI-OR-wind, then flood-OR-wind), else the
+                    // terrain-adjusted property spread heading this table.
+                    var fwBase = (sd.bow_spread_bps != null) ? sd.bow_spread_bps
+                               : (sd.fow_spread_bps != null) ? sd.fow_spread_bps
+                               : adjustedPropSpread;
+                    var sumSq = fwBase * fwBase;
+                    if (fireBps !== null) sumSq += fireBps * fireBps;
+                    if (seisBps !== null) sumSq += seisBps * seisBps;
+                    var allIn = Math.sqrt(sumSq);
+
+                    sdRows +=
+                        '<tr style="background:#ECEFF1;">' +
+                        '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:#455A64;">' +
+                        'Independent Perils — all-in (√Σ sq)</td></tr>';
+                    if (fireBps !== null) {
+                        sdRows +=
+                            '<tr><td style="padding:2px 6px;font-size:10px;color:#BF360C;font-weight:600;">FIRE (full conflagration)</td>' +
+                            '<td style="padding:2px 6px;text-align:right;font-weight:600;color:#BF360C;">' + fireBps.toFixed(1) + '</td>' +
+                            '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">' + _perilCount(po.fire_conflagration).toLocaleString() + ' PNR</td></tr>';
+                    }
+                    if (seisBps !== null) {
+                        sdRows +=
+                            '<tr><td style="padding:2px 6px;font-size:10px;color:#455A64;font-weight:600;">SEISMIC (collapse)</td>' +
+                            '<td style="padding:2px 6px;text-align:right;font-weight:600;color:#455A64;">' + seisBps.toFixed(1) + '</td>' +
+                            '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">' + _perilCount(po.seismic).toLocaleString() + ' DS3</td></tr>';
+                    }
+                    sdRows +=
+                        '<tr style="border-top:2px solid #333;font-weight:bold;background:#ECEFF1;">' +
+                        '<td style="padding:3px 6px;">All-in PRS</td>' +
+                        '<td style="padding:3px 6px;text-align:right;color:#111;">' + allIn.toFixed(1) + ' bp</td>' +
+                        '<td></td></tr>';
+                }
+
                 return '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:monospace;margin-top:4px;">' +
                     '<thead><tr style="background:#FFF8E1;border-bottom:1px solid #FFE082;">' +
                     '<th style="padding:2px 6px;text-align:left;font-size:10px;">Spread Decomposition</th>' +
