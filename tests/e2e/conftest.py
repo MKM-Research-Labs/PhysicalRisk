@@ -409,3 +409,39 @@ def first_property_id(property_data):
         prop_id = p.get("property_id", "")
     assert prop_id, "Could not find property ID in property.json"
     return prop_id
+
+
+@pytest.fixture(scope="session")
+def first_commercial_peril_id():
+    """Return a commercial (CPROP-) asset ID that has BOTH fire and seismic
+    peril results AND a commercial hazard curve.
+
+    The PRS pricer's independent-peril (FIRE/SEISMIC) rows are folded into the
+    spread decomposition by the commercial hazard route's read-time joins, so
+    they only render for assets present in fire.json/seismic.json *and* in
+    commercialhc.json. Skips when the active catchment's peril data does not
+    intersect its commercial hazard curves (e.g. fire/seismic generated for a
+    since-regenerated commercial portfolio) — the rows cannot render there.
+    """
+    base = ROOT / "data" / "input" / "halong"
+    fire_path = base / "fire" / "fire.json"
+    seismic_path = base / "seismic" / "seismic.json"
+    hc_path = base / "commercialhc.json"
+    if not (fire_path.exists() and seismic_path.exists() and hc_path.exists()):
+        pytest.skip(
+            "fire/seismic/commercialhc not generated for the active catchment"
+        )
+    with open(fire_path) as f:
+        fire_ids = {a.get("asset_id") for a in json.load(f).get("assets", [])}
+    with open(seismic_path) as f:
+        seis_ids = {a.get("asset_id") for a in json.load(f).get("assets", [])}
+    with open(hc_path) as f:
+        hc_ids = set(json.load(f).get("property_hazard_curves", {}).keys())
+    candidates = sorted((fire_ids & seis_ids & hc_ids) - {None})
+    if not candidates:
+        pytest.skip(
+            "No commercial asset has both peril (fire+seismic) results and a "
+            "hazard curve in the active catchment — the independent-peril rows "
+            "cannot render (peril data is stale vs the commercial portfolio)"
+        )
+    return candidates[0]

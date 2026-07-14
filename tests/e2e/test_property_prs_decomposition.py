@@ -267,3 +267,83 @@ class TestPropertyPRSDecomposition:
                 "Gauge spread in decomposition is 0 despite synthetic gauge "
                 "being present in nearest_gauges"
             )
+
+
+class TestCommercialPRSIndependentPerils:
+    """Verify the FIRE/SEISMIC independent-peril rows in the PRS Pricing tab.
+
+    These rows are appended to the spread-decomposition waterfall by
+    _buildPRSWaterfallTableHTML (phc_prs_tables.js) when the commercial hazard
+    route's read-time joins have folded fire_spread_bps / seismic_spread_bps
+    into the decomposition. They only render for commercial (CPROP-) assets
+    with peril results — residential properties (no peril legs) must not show
+    them.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self, map_page):
+        close_all_panels(map_page)
+        yield
+        close_all_panels(map_page)
+
+    def _open_prs_tab(self, map_page, asset_id):
+        """Open the hazard panel for *asset_id* and switch to the PRS tab.
+
+        Shares the residential path: the panel + loadData() detect the CPROP-
+        prefix and route fetches to the commercial endpoints, so the same
+        helpers work for both asset types.
+        """
+        has_fn = map_page.evaluate(
+            "() => typeof window.viewPropertyHazard === 'function' || "
+            "(window.PropertyHazardCurvePanel && "
+            "typeof window.PropertyHazardCurvePanel.show === 'function')"
+        )
+        if not has_fn:
+            pytest.skip("Property hazard panel function not available")
+
+        # Hard-close first so phcData is nulled and controls rebuild (see the
+        # sibling _open_prs_tab in TestPropertyPRSDecomposition).
+        map_page.evaluate(
+            "() => window.PropertyHazardCurvePanel && "
+            "window.PropertyHazardCurvePanel.hide && "
+            "window.PropertyHazardCurvePanel.hide()"
+        )
+        open_property_panel(map_page, asset_id)
+        switch_to_prs_tab_property(map_page)
+        map_page.wait_for_timeout(3_000)
+
+    def test_independent_perils_rows_render_for_commercial(
+        self, map_page, first_commercial_peril_id
+    ):
+        """A commercial asset with peril results shows FIRE, SEISMIC and the
+        All-in PRS rows in the spread-decomposition waterfall."""
+        self._open_prs_tab(map_page, first_commercial_peril_id)
+
+        panel_text = map_page.locator("#property-hc-panel").inner_text()
+        assert "Independent Perils" in panel_text, (
+            "Independent Perils section not found in the PRS panel for "
+            f"commercial asset {first_commercial_peril_id}"
+        )
+        assert "FIRE (full conflagration)" in panel_text, (
+            "FIRE (full conflagration) row not found in the PRS waterfall"
+        )
+        assert "SEISMIC (collapse)" in panel_text, (
+            "SEISMIC (collapse) row not found in the PRS waterfall"
+        )
+        assert "All-in PRS" in panel_text, (
+            "All-in PRS row not found in the PRS waterfall"
+        )
+
+    def test_no_independent_perils_for_residential(
+        self, map_page, first_property_id
+    ):
+        """Residential properties have no peril legs, so the PRS pricer must
+        NOT render the Independent Perils section for them (no regression)."""
+        self._open_prs_tab(map_page, first_property_id)
+
+        panel_text = map_page.locator("#property-hc-panel").inner_text()
+        assert "Independent Perils" not in panel_text, (
+            "Independent Perils section unexpectedly rendered for residential "
+            f"property {first_property_id} — fire/seismic legs should be "
+            "commercial-only"
+        )
