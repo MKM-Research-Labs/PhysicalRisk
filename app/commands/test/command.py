@@ -267,3 +267,9 @@ def cmd_test(args):
         print()
         print('--- Worktree data cleanup (post-run) ---')
         _cleanup_worktree_data(str(project_root))
+
+        # Report the unit suite's verdict as the exit status. pytest returns
+        # non-zero for a failing test *or* a missed coverage gate, so both
+        # surface. The audit/PDF phases are evidence generation, not a verdict,
+        # and do not affect it; without --unit there is no verdict to report.
+        return 0 if pytest_ok else 1
