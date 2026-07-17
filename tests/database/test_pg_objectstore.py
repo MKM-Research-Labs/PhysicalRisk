@@ -47,7 +47,7 @@ def _minio_available() -> bool:
 
 @pytest.mark.skipif(
     not _minio_available(),
-    reason="no live MinIO (run: docker compose -f docker/docker-compose.yml up -d minio)",
+    reason="no live MinIO (run: scripts/minio-native.sh start)",
 )
 def test_get_client_creates_missing_bucket(monkeypatch):
     """First use of a fresh bucket creates it."""

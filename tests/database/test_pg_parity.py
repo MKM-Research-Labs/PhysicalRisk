@@ -383,7 +383,7 @@ def _postgres_available() -> bool:
 
 @pytest.mark.skipif(
     not _postgres_available(),
-    reason="no live Postgres (run: docker compose -f docker/docker-compose.yml up -d postgres)",
+    reason="no live Postgres (run: scripts/pg-native.sh start)",
 )
 def test_live_parity_holds_despite_file_order(tmp_path):
     """The convincing end-to-end proof: file records deliberately stored out of

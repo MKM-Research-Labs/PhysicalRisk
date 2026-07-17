@@ -77,13 +77,13 @@ def _minio_available() -> bool:
 
 requires_minio = pytest.mark.skipif(
     not _minio_available(),
-    reason="no live MinIO (run: docker compose -f docker/docker-compose.yml up -d minio)",
+    reason="no live MinIO (run: scripts/minio-native.sh start)",
 )
 
 
 pytestmark = pytest.mark.skipif(
     not _postgres_available(),
-    reason="no live Postgres (run: docker compose -f docker/docker-compose.yml up -d postgres)",
+    reason="no live Postgres (run: scripts/pg-native.sh start)",
 )
 
 

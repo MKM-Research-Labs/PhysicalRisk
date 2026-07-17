@@ -40,7 +40,10 @@ def _postgres_available() -> bool:
         _eng.reset_engine()
 
 
-pytestmark = pytest.mark.skipif(not _postgres_available(), reason="no live Postgres")
+pytestmark = pytest.mark.skipif(
+    not _postgres_available(),
+    reason="no live Postgres (run: scripts/pg-native.sh start)",
+)
 
 
 @pytest.fixture(autouse=True)

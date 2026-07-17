@@ -23,7 +23,7 @@
 These exercise engine/session construction and the ORM metadata WITHOUT a live
 database — ``create_engine``/``sessionmaker`` are lazy and do not connect until a
 statement runs, so the scaffolding is fully unit-testable. Live round-trips
-arrive with PostgresRepository (WP1.6) against the docker Postgres.
+arrive with PostgresRepository (WP1.6) against the native dev Postgres.
 """
 
 import pytest
@@ -103,7 +103,10 @@ def _pg_available() -> bool:
         reset_engine()
 
 
-@pytest.mark.skipif(not _pg_available(), reason="no live Postgres")
+@pytest.mark.skipif(
+    not _pg_available(),
+    reason="no live Postgres (run: scripts/pg-native.sh start)",
+)
 def test_bound_test_connection_rolls_back_repo_writes():
     """A repo write made while a test connection is bound is visible during the
     transaction but vanishes on rollback — the per-test isolation primitive."""

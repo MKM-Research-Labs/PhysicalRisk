@@ -20,10 +20,10 @@
 
 """Live-Postgres smoke tests (WP1) — connectivity + schema round-trip.
 
-These exercise a *real* database (the dev ``docker compose up postgres`` after
+These exercise a *real* database (the dev ``scripts/pg-native.sh start`` after
 ``alembic upgrade head``). They SKIP automatically when no Postgres is reachable,
-so the normal no-docker suite and CI stay green; run docker locally to exercise
-them. All writes roll back, so the database is left untouched.
+so the suite stays green without it; start Postgres locally to exercise them.
+All writes roll back, so the database is left untouched.
 """
 
 import pytest
@@ -46,7 +46,7 @@ def _postgres_available() -> bool:
 
 pytestmark = pytest.mark.skipif(
     not _postgres_available(),
-    reason="no live Postgres (run: docker compose -f docker/docker-compose.yml up -d postgres)",
+    reason="no live Postgres (run: scripts/pg-native.sh start)",
 )
 
 
