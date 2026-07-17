@@ -1,14 +1,14 @@
-// Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
+// Copyright (c) 2022-2026 MKM Research Labs.
 //
-// This software is licensed by MKM Research Labs for non-commercial 
-// research and educational use only. Any commercial use, including 
-// but not limited to use in or for products or services offered for sale, 
-// internal business operations intended for commercial advantage, or
-// research and development conducted for a commercial entity, is expressly
-// prohibited unless separately authorized in writing by MKM Research Labs.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// Use, reproduction, distribution, or modification of this code is subject to the
-// terms and conditions of the license agreement provided with this software.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -17,24 +17,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
-            // ================================================================
-            // Loan/Mortgage — combined debt view (flood + wind)
-            // ================================================================
-            //
-            // Row shape (combined):
-            //   { asset_id, asset_class, address, value,
-            //     outstanding_balance, current_ltv, remaining_term_months,
-            //     flood_damage, wind_damage, combined_damage,
-            //     combined_ratio, post_damage_value, combined_ltv,
-            //     impaired }
-            //
-            // Damage sources:
-            //   flood: spData (residential) + spCommercialImpact (commercial)
-            //   wind:  spWindData (single endpoint covers both classes)
-            // Asset value + outstanding balance come from spBlotterData /
-            // spCommercialData (full portfolio, including unaffected assets).
-            // ================================================================
 
             function _combinedRows() {
                 var rows = [];
