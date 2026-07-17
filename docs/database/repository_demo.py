@@ -21,7 +21,7 @@
 """
 DEMO — the single data-access utility (repository) pattern.
 
-Run it:  python docs/repository_demo.py
+Run it:  python docs/database/repository_demo.py
 
 The point this demonstrates:
   * The whole .py codebase talks to ONE package and just calls a function that

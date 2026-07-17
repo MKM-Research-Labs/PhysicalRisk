@@ -197,7 +197,7 @@ _ALLOWLIST = {
     # None of these run in the port pipeline or are read by a live route; each is
     # a developer tool operating on tempdirs, golden fixtures, study snapshots, or
     # a tool-local sandbox — intentional file I/O, not DB-managed state.
-    'docs/repository_demo.py':
+    'docs/database/repository_demo.py':
         'standalone repository-pattern demo; tempfile only, not in the live pipeline',
     'scripts/beta_sweep_analyze.py':
         'standalone sensitivity-analysis CLI; reads .beta_study/ snapshots, not '
