@@ -31,6 +31,7 @@ from .e2e import _run_e2e_tests
 from .helpers import _cleanup_worktree_data, _resolve_python
 from .lineage import _run_data_lineage_tests
 from .reports import _write_failures_report
+from .services import check_live_services
 
 
 def cmd_test(args):
@@ -143,6 +144,13 @@ def cmd_test(args):
             phases.append('audit reports')
         print(f' Phases  : {", ".join(phases)}')
         print()
+
+        # ---- Live-service preflight ----
+        # Before any phase: a unit run without Postgres skips the database/_pg
+        # tests and reads ~1 point under the coverage gate, which looks like a
+        # test gap rather than a missing service. Fail here, not 17 minutes in.
+        if check_live_services(do_unit) != 0:
+            return 1
 
         _python_exe = _resolve_python(project_root)
         pytest_ok = True

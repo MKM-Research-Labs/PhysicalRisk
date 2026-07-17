@@ -71,7 +71,7 @@ from .hazard import (
     save_property_hazard_curves,
 )
 from .memory_repo import InMemoryRepository
-from .meta import catchments, ping
+from .meta import catchments, object_store_reachable, ping, postgres_reachable
 from .portfolio import (
     get_commercial,
     get_commercial_loan,
@@ -181,7 +181,7 @@ __all__ = [
     "Repository", "FileRepository", "InMemoryRepository", "configure_backend",
     "backend_configured",
     "active_catchment", "catchment_context",
-    "catchments", "ping",
+    "catchments", "ping", "postgres_reachable", "object_store_reachable",
     # portfolio
     "list_gauges", "get_gauge", "save_gauges", "get_gauge_portfolio",
     "list_properties", "get_property", "save_properties", "get_property_portfolio",

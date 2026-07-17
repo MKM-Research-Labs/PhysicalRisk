@@ -26,7 +26,7 @@ Private to ``src/database``. The connection *values* come from
 tests that point at a different database call :func:`reset_engine` to drop it.
 """
 
-from sqlalchemy import Connection, Engine, create_engine
+from sqlalchemy import Connection, Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from config.database import get_database_url
@@ -85,3 +85,23 @@ def reset_engine() -> None:
         _engine.dispose()
     _engine = None
     _Session = None
+
+
+def reachable() -> bool:
+    """True if Postgres answers a trivial statement — the health check callers
+    outside the seam gate on (mirrors ``_objectstore.reachable``).
+
+    Unlike ``database.ping``, this asks Postgres specifically rather than the
+    *active* backend, so it answers "is the service up?" even while the file
+    backend is bound. Drops the cached engine either side so a probe against a
+    dead service cannot poison the singleton for a later, live call.
+    """
+    try:
+        reset_engine()
+        with get_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False
+    finally:
+        reset_engine()

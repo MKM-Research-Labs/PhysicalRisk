@@ -59,8 +59,12 @@ def main():
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    
-    args.func(args)
+
+    # Propagate the command's return code. Handlers that return None (the
+    # common "nothing went wrong" case) exit 0; an int return becomes the
+    # process exit status, so callers and CI can detect failure.
+    rc = args.func(args)
+    sys.exit(rc if isinstance(rc, int) else 0)
 
 
 if __name__ == "__main__":

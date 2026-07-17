@@ -92,3 +92,15 @@ def get_repo_backend() -> str:
             f"MKM_REPO_BACKEND must be one of {REPO_BACKENDS}, got '{backend}'"
         )
     return backend
+
+
+# ── Dev-service start hints ─────────────────────────────────────────────────
+# Shown by the test preflight when a service is down. The dev services run
+# natively (Homebrew) with their data dirs on the external SSD; these are the
+# commands that start them.
+POSTGRES_START_HINT = "scripts/pg-native.sh start"
+MINIO_START_HINT = "scripts/minio-native.sh start"
+
+# Set to '1' to run the unit suite with Postgres down. The coverage gate cannot
+# pass in that state — the escape hatch exists for deliberate partial runs.
+NO_SERVICE_OVERRIDE_ENV = "MKM_ALLOW_NO_POSTGRES"

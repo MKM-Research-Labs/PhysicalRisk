@@ -31,3 +31,22 @@ def catchments() -> list[str]:
 
 def ping() -> bool:
     return active_backend().ping()
+
+
+def postgres_reachable() -> bool:
+    """True if the Postgres service answers, regardless of which backend is bound.
+
+    ``ping`` asks the *active* backend, so it says nothing about Postgres while
+    the file backend is bound. Callers that need to know whether the service
+    itself is up (the test preflight) ask this instead.
+    """
+    from ._pg.engine import reachable
+
+    return reachable()
+
+
+def object_store_reachable() -> bool:
+    """True if the blob-tier object store answers. See :func:`postgres_reachable`."""
+    from ._pg._objectstore import reachable
+
+    return reachable()
