@@ -1,15 +1,15 @@
-# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
-
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
-# internal business operations intended for commercial advantage, or
-# research and development conducted for a commercial entity, is expressly
-# prohibited unless separately authorized in writing by MKM Research Labs.
-
-# Use, reproduction, distribution, or modification of this code is subject to the
-# terms and conditions of the license agreement provided with this software.
-
+# Copyright (c) 2022-2026 MKM Research Labs.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,11 +46,18 @@ _CANONICAL_SOURCE = ('docs', 'shared', 'copyright.py')
 
 # Directories never descended: vendored code, caches, the ``data`` symlink to
 # the shared SSD, and sibling/nested git worktrees under .claude / .claire.
+# Pruned wherever they appear — caches, vendored trees, VCS internals that never
+# hold first-party source.
 _PRUNE_DIRS = {
     '.git', '.claude', '.claire', 'worktrees',
     '__pycache__', 'node_modules', '.venv', 'venv',
-    'data', 'dist', 'build', '.pytest_cache', '.mypy_cache', '.ruff_cache',
+    'dist', 'build', '.pytest_cache', '.mypy_cache', '.ruff_cache',
 }
+
+# Pruned ONLY at the repo root. ``data`` is the top-level symlink to shared
+# storage; pruning it by name everywhere also hid ``tests/data`` (50 real source
+# files) from the header sweep, so those were silently never relicensed.
+_PRUNE_DIRS_ROOT_ONLY = {'data'}
 
 # Substrings (case-insensitive) marking an existing — but possibly wrong —
 # license block, so we replace a header and never a file's first real comment.
@@ -164,7 +171,12 @@ def iter_source_files(root: Path):
     root = Path(root)
     canon_src = canonical_source_path(root).resolve()
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in _PRUNE_DIRS]
+        at_root = Path(dirpath).resolve() == root.resolve()
+        dirnames[:] = [
+            d for d in dirnames
+            if d not in _PRUNE_DIRS
+            and not (at_root and d in _PRUNE_DIRS_ROOT_ONLY)
+        ]
         for name in filenames:
             ext = os.path.splitext(name)[1]
             if ext not in _COMMENT_CHAR:

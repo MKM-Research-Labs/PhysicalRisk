@@ -1,15 +1,15 @@
-# Copyright (c) 2022-2026 MKM Research Labs. All rights reserved.
-
-# This software is licensed by MKM Research Labs for non-commercial 
-# research and educational use only. Any commercial use, including 
-# but not limited to use in or for products or services offered for sale, 
-# internal business operations intended for commercial advantage, or
-# research and development conducted for a commercial entity, is expressly
-# prohibited unless separately authorized in writing by MKM Research Labs.
-
-# Use, reproduction, distribution, or modification of this code is subject to the
-# terms and conditions of the license agreement provided with this software.
-
+# Copyright (c) 2022-2026 MKM Research Labs.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,7 +48,21 @@ class TestCopyrightHeadersRepo:
         canon = scanners.load_canonical_py(ROOT)
         assert len(canon) >= 19
         assert 'MKM Research Labs' in canon[0]
-        assert 'All rights reserved' in canon[0]
+        assert 'Copyright (c)' in canon[0]
+
+    def test_canonical_header_is_the_mit_licence(self):
+        """The header must state MIT terms, matching the root LICENSE. The old
+        non-commercial placeholder said the opposite and would contradict it."""
+        canon = '\n'.join(scanners.load_canonical_py(ROOT))
+        assert 'Permission is hereby granted, free of charge' in canon
+        assert 'without restriction' in canon
+        assert 'non-commercial' not in canon.lower()
+
+    def test_canonical_header_has_no_trailing_whitespace(self):
+        """Trailing whitespace here propagates to every file in the repo and
+        then trips ruff's W291 — the source must stay clean."""
+        canon = scanners.load_canonical_py(ROOT)
+        assert [ln for ln in canon if ln != ln.rstrip()] == []
 
     def test_all_headers_compliant_after_fix(self):
         findings = scanners.fix_repo(ROOT, apply=True)
