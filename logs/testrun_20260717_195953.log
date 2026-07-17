@@ -1,0 +1,185 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.1, pytest-8.3.4, pluggy-1.6.0 -- /Users/newdavid/Documents/PhysicalRisk/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/newdavid/Documents/PhysicalRisk
+configfile: pyproject.toml
+plugins: playwright-0.6.2, base-url-2.1.0, cov-7.0.0
+collecting ... collected 141 items
+
+tests/data/test_id_consistency_blotter_part1.py::TestTradeMarksConsistency::test_trade_marks_ids_match_prs_swap_ids PASSED [  0%]
+tests/data/test_id_consistency_blotter_part1.py::TestTradeMarksConsistency::test_trade_marks_non_empty PASSED [  1%]
+tests/data/test_id_consistency_blotter_part1.py::TestTradeMarksConsistency::test_trade_marks_all_have_trade_status PASSED [  2%]
+tests/data/test_id_consistency_blotter_part1.py::TestTradeMarksConsistency::test_prs_json_pdf_pairs_complete PASSED [  2%]
+tests/data/test_id_consistency_blotter_part1.py::TestMarketStateConsistency::test_yield_curve_exists PASSED [  3%]
+tests/data/test_id_consistency_blotter_part1.py::TestMarketStateConsistency::test_hazard_term_structure_exists PASSED [  4%]
+tests/data/test_id_consistency_blotter_part1.py::TestMarketStateConsistency::test_hazard_gauge_ids_valid PASSED [  4%]
+tests/data/test_id_consistency_blotter_part1.py::TestMarketStateConsistency::test_each_gauge_has_alert_warning_severe PASSED [  5%]
+tests/data/test_id_consistency_blotter_part1.py::TestMarketStateConsistency::test_rates_bounded_for_sampled_gauges PASSED [  6%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_directory_exists_with_files PASSED [  7%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_filenames_chronological PASSED [  7%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_files_non_empty PASSED [  8%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_sampled_have_required_keys PASSED [  9%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_gauge_set_matches_market_state PASSED [  9%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_dates_match_filenames PASSED [ 10%]
+tests/data/test_id_consistency_blotter_part2.py::TestEODConsistency::test_eod_count_reasonable PASSED [ 11%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyIntegrity::test_has_counterparties PASSED [ 12%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyIntegrity::test_every_counterparty_has_party_id PASSED [ 12%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyIntegrity::test_party_ids_unique PASSED [ 13%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyIntegrity::test_party_names_non_empty PASSED [ 14%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyIntegrity::test_has_accounts PASSED [ 14%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyTradeLinkage::test_prs_counterparty_exists PASSED [ 15%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyTradeLinkage::test_trade_ids_match_trade_marks PASSED [ 16%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyTradeLinkage::test_counterparty_name_non_empty_in_trades PASSED [ 17%]
+tests/data/test_id_consistency_counterparties_part1.py::TestCounterpartyTradeLinkage::test_no_orphan_counterparties PASSED [ 17%]
+tests/data/test_id_consistency_counterparties_part2.py::TestCounterpartySchema::test_contact_information_exists PASSED [ 18%]
+tests/data/test_id_consistency_counterparties_part2.py::TestCounterpartySchema::test_natural_persons_non_empty PASSED [ 19%]
+tests/data/test_id_consistency_counterparties_part2.py::TestCounterpartySchema::test_account_ids_present PASSED [ 19%]
+tests/data/test_id_consistency_counterparties_part2.py::TestPRSCounterpartyRule::test_reit_counterparty_exists_in_inventory PASSED [ 20%]
+tests/data/test_id_consistency_counterparties_part2.py::TestPRSCounterpartyRule::test_property_prs_uses_reit_only PASSED [ 21%]
+tests/data/test_id_consistency_counterparties_part2.py::TestPRSCounterpartyRule::test_gauge_prs_uses_external_only PASSED [ 21%]
+tests/data/test_id_consistency_counterparties_part2.py::TestPRSCounterpartyRule::test_reit_is_only_used_for_property_prs PASSED [ 22%]
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_config_format_defines_gauge_title PASSED [ 23%]
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_panel_data_uses_config_format PASSED [ 24%]
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_gaugesa_uses_config_format PASSED [ 24%]
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked PASSED [ 25%]
+tests/data/test_id_consistency_display_formats.py::TestStormFormatUsage::test_config_format_defines_storm_option PASSED [ 26%]
+tests/data/test_id_consistency_display_formats.py::TestStormFormatUsage::test_storm_dropdown_files_use_sentinel PASSED [ 26%]
+tests/data/test_id_consistency_display_formats.py::TestStormFormatUsage::test_known_storm_violations_tracked PASSED [ 27%]
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_config_format_defines_property_title PASSED [ 28%]
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked PASSED [ 29%]
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_no_new_property_display_violations PASSED [ 29%]
+tests/data/test_id_consistency_gauges.py::TestGaugeIDConsistency::test_gauge_json_has_gauges PASSED [ 30%]
+tests/data/test_id_consistency_gauges.py::TestGaugeIDConsistency::test_hazard_curves_match_gauges PASSED [ 31%]
+tests/data/test_id_consistency_gauges.py::TestGaugeIDConsistency::test_hazard_curves_subset_of_gauges PASSED [ 31%]
+tests/data/test_id_consistency_gauges.py::TestGaugeIDConsistency::test_trade_gauges_exist_in_gauge_json PASSED [ 32%]
+tests/data/test_id_consistency_gauges.py::TestGaugeIDConsistency::test_trade_gauges_have_hazard_curves PASSED [ 33%]
+tests/data/test_id_consistency_gauges.py::TestGaugeIDConsistency::test_gaugets_match_gauges PASSED [ 34%]
+tests/data/test_id_consistency_gauges.py::TestClassifierConsistency::test_classifier_gauge_ids_match SKIPPED [ 34%]
+tests/data/test_id_consistency_gauges.py::TestClassifierConsistency::test_training_summary_exists SKIPPED [ 35%]
+tests/data/test_id_consistency_gauges.py::TestPropertyIDConsistency::test_property_json_has_properties PASSED [ 36%]
+tests/data/test_id_consistency_gauges.py::TestPropertyIDConsistency::test_property_ids_in_header PASSED [ 36%]
+tests/data/test_id_consistency_gauges.py::TestPropertyIDConsistency::test_propertyts_files_match_properties PASSED [ 37%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeHazardCurveQuality::test_count_matches_gauges PASSED [ 38%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeHazardCurveQuality::test_gev_params_present_and_numeric PASSED [ 39%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeHazardCurveQuality::test_curve_points_non_empty PASSED [ 39%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeHazardCurveQuality::test_return_periods_monotonic_increasing PASSED [ 40%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeHazardCurveQuality::test_exceedance_probs_monotonic_decreasing PASSED [ 41%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeHazardCurveQuality::test_exceedance_rates_bounded PASSED [ 41%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeFloodThresholds::test_thresholds_ordered PASSED [ 42%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeFloodThresholds::test_thresholds_positive PASSED [ 43%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeFloodThresholds::test_coords_in_catchment_bounds PASSED [ 43%]
+tests/data/test_id_consistency_hazard_part1.py::TestGaugeFloodThresholds::test_gauge_names_non_empty PASSED [ 44%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardCurves::test_propertyhc_count_matches PASSED [ 45%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardCurves::test_propertyhc_ids_match PASSED [ 46%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardCurves::test_term_structure_exists PASSED [ 46%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardCurves::test_severe_trigger_present PASSED [ 47%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardDerived::test_propertyshd_count_matches PASSED [ 48%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardDerived::test_propertyshe_count_matches PASSED [ 48%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardDerived::test_propertyshd_ids_match PASSED [ 49%]
+tests/data/test_id_consistency_hazard_part2.py::TestPropertyHazardDerived::test_propertyshe_ids_match PASSED [ 50%]
+tests/data/test_id_consistency_mortgages.py::TestMortgagePropertyLinkage::test_mortgage_json_has_mortgages PASSED [ 51%]
+tests/data/test_id_consistency_mortgages.py::TestMortgagePropertyLinkage::test_every_mortgage_has_property_id PASSED [ 51%]
+tests/data/test_id_consistency_mortgages.py::TestMortgagePropertyLinkage::test_mortgage_property_ids_exist_in_property_json PASSED [ 52%]
+tests/data/test_id_consistency_mortgages.py::TestMortgagePropertyLinkage::test_no_orphan_mortgages PASSED [ 53%]
+tests/data/test_id_consistency_mortgages.py::TestMortgagePropertyLinkage::test_mortgage_ids_unique PASSED [ 53%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageFinancialTerms::test_every_mortgage_has_financial_terms PASSED [ 54%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageFinancialTerms::test_ltv_range_valid PASSED [ 55%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageFinancialTerms::test_loan_amount_positive PASSED [ 56%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageFinancialTerms::test_loan_term_positive PASSED [ 56%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageFinancialTerms::test_outstanding_balance_non_negative PASSED [ 57%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageCount::test_mortgage_count_matches_property_count PASSED [ 58%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageCount::test_mortgage_property_coverage PASSED [ 58%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageCount::test_currency_is_gbp PASSED [ 59%]
+tests/data/test_id_consistency_mortgages.py::TestMortgageCount::test_maturity_date_after_disbursal PASSED [ 60%]
+tests/data/test_id_consistency_naming.py::TestDirectoryFileCounts::test_gaugets_count_matches_gauge_count PASSED [ 60%]
+tests/data/test_id_consistency_naming.py::TestDirectoryFileCounts::test_propertyts_count_within_property_range PASSED [ 61%]
+tests/data/test_id_consistency_naming.py::TestDirectoryFileCounts::test_propertytsd_count_matches_propertyts PASSED [ 62%]
+tests/data/test_id_consistency_naming.py::TestDirectoryFileCounts::test_propertytse_count_matches_propertyts PASSED [ 63%]
+tests/data/test_id_consistency_naming.py::TestDirectoryFileCounts::test_sequence_gauge_count_close_to_gauge_count PASSED [ 63%]
+tests/data/test_id_consistency_naming.py::TestDirectoryFileCounts::test_gaugehd_count_within_gauge_range PASSED [ 64%]
+tests/data/test_id_consistency_naming.py::TestFileNamingConventions::test_gaugehd_naming_pattern PASSED [ 65%]
+tests/data/test_id_consistency_naming.py::TestFileNamingConventions::test_gaugets_naming_pattern PASSED [ 65%]
+tests/data/test_id_consistency_naming.py::TestFileNamingConventions::test_propertyts_naming_pattern PASSED [ 66%]
+tests/data/test_id_consistency_naming.py::TestFileNamingConventions::test_prs_naming_pattern PASSED [ 67%]
+tests/data/test_id_consistency_naming.py::TestFileNamingConventions::test_eod_naming_pattern PASSED [ 68%]
+tests/data/test_id_consistency_naming.py::TestStressStormsSampled::test_stress_storms_dir_exists PASSED [ 68%]
+tests/data/test_id_consistency_naming.py::TestStressStormsSampled::test_stress_storms_sample_naming PASSED [ 69%]
+tests/data/test_id_consistency_naming.py::TestStressStormsSampled::test_stress_storms_sample_valid_json PASSED [ 70%]
+tests/data/test_id_consistency_naming.py::TestStressStormsSampled::test_stress_storms_sample_ids_match_filenames PASSED [ 70%]
+tests/data/test_id_consistency_pipeline_part1.py::TestStormIDConsistency::test_propertyts_storms_from_sequences PASSED [ 71%]
+tests/data/test_id_consistency_pipeline_part1.py::TestStormIDConsistency::test_gaugets_storms_from_sequences PASSED [ 72%]
+tests/data/test_id_consistency_pipeline_part1.py::TestPipelineCompleteness::test_all_pipeline_outputs_exist PASSED [ 73%]
+tests/data/test_id_consistency_pipeline_part1.py::TestPipelineCompleteness::test_no_empty_output_directories PASSED [ 73%]
+tests/data/test_id_consistency_pipeline_part1.py::TestPipelineCompleteness::test_classifiers_match_storm_data SKIPPED [ 74%]
+tests/data/test_id_consistency_pipeline_part2.py::TestDataLineage::test_manifest_exists PASSED [ 75%]
+tests/data/test_id_consistency_pipeline_part2.py::TestDataLineage::test_output_hashes_current PASSED [ 75%]
+tests/data/test_id_consistency_pipeline_part2.py::TestDataLineage::test_lineage_file_exists PASSED [ 76%]
+tests/data/test_id_consistency_pipeline_part2.py::TestDataLineage::test_dependency_graph_complete PASSED [ 77%]
+tests/data/test_id_consistency_pipeline_part2.py::TestDeterministicIDs::test_gauge_ids_are_deterministic PASSED [ 78%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSCrossRefs::test_property_id_valid PASSED [ 78%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSCrossRefs::test_nearest_gauges_exist PASSED [ 79%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSCrossRefs::test_flood_events_have_storm_ids PASSED [ 80%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSCrossRefs::test_storm_ids_prefixed PASSED [ 80%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSCrossRefs::test_sample_coverage PASSED [ 81%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSDataQuality::test_coords_in_bounds PASSED [ 82%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSDataQuality::test_elevation_positive PASSED [ 82%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSDataQuality::test_damage_ratio_bounded PASSED [ 83%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSDataQuality::test_flood_depth_non_negative PASSED [ 84%]
+tests/data/test_id_consistency_propertyts_part1.py::TestPropertyTSDataQuality::test_distance_positive PASSED [ 85%]
+tests/data/test_id_consistency_propertyts_part2.py::TestPropertyTSVariants::test_propertytsd_count_matches PASSED [ 85%]
+tests/data/test_id_consistency_propertyts_part2.py::TestPropertyTSVariants::test_propertytse_count_matches PASSED [ 86%]
+tests/data/test_id_consistency_propertyts_part2.py::TestPropertyTSVariants::test_propertytsd_ids_match PASSED [ 87%]
+tests/data/test_id_consistency_propertyts_part2.py::TestPropertyTSVariants::test_propertytse_ids_match PASSED [ 87%]
+tests/data/test_id_consistency_propertyts_part2.py::TestPropertyTSVariants::test_propertytsd_nearest_gauges_present PASSED [ 88%]
+tests/data/test_id_consistency_propertyts_part2.py::TestPropertyTSVariants::test_propertytse_nearest_gauges_present PASSED [ 89%]
+tests/data/test_id_consistency_schema_part1.py::TestGaugeSchema::test_gauge_required_fields PASSED [ 90%]
+tests/data/test_id_consistency_schema_part1.py::TestGaugeSchema::test_gauge_has_location_coordinates PASSED [ 90%]
+tests/data/test_id_consistency_schema_part1.py::TestGaugeSchema::test_gauge_has_sensor_stats PASSED [ 91%]
+tests/data/test_id_consistency_schema_part1.py::TestPropertySchema::test_property_required_fields PASSED [ 92%]
+tests/data/test_id_consistency_schema_part1.py::TestPropertySchema::test_property_has_location PASSED [ 92%]
+tests/data/test_id_consistency_schema_part1.py::TestPropertySchema::test_property_has_valuation PASSED [ 93%]
+tests/data/test_id_consistency_schema_part1.py::TestPropertySchema::test_property_has_reference_gauges PASSED [ 94%]
+tests/data/test_id_consistency_schema_part1.py::TestMortgageSchema::test_mortgage_required_header PASSED [ 95%]
+tests/data/test_id_consistency_schema_part1.py::TestMortgageSchema::test_mortgage_has_financial_terms PASSED [ 95%]
+tests/data/test_id_consistency_schema_part1.py::TestMortgageSchema::test_mortgage_has_borrower_details PASSED [ 96%]
+tests/data/test_id_consistency_schema_part2.py::TestCounterpartySchemaFields::test_counterparty_required_fields PASSED [ 97%]
+tests/data/test_id_consistency_schema_part2.py::TestCounterpartySchemaFields::test_counterparty_accounts_have_ids PASSED [ 97%]
+tests/data/test_id_consistency_schema_part2.py::TestPRSTradeSchema::test_prs_required_header PASSED [ 98%]
+tests/data/test_id_consistency_schema_part2.py::TestPRSTradeSchema::test_prs_has_gauge_set PASSED [ 99%]
+tests/data/test_id_consistency_schema_part2.py::TestPRSTradeSchema::test_prs_has_pricing PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/data/test_id_consistency_display_formats.py::TestGaugeTitleFormatUsage::test_known_gauge_violations_tracked
+  /Users/newdavid/Documents/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:112: UserWarning: src/visual/layer/gauge_layer/marker.py uses gauge_name/gaugeName instead of gauge_title_js -- tracked violation
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/newdavid/Documents/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:203: UserWarning: src/visual/layer/property_layer/layer.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/newdavid/Documents/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:203: UserWarning: src/visual/layer/property_layer/popup.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_display_formats.py::TestPropertyFormatUsage::test_known_property_display_files_tracked
+  /Users/newdavid/Documents/PhysicalRisk/tests/data/test_id_consistency_display_formats.py:203: UserWarning: src/visual/popups/property_popup/builder.py uses property_id directly -- should use property_title_js from config/format.py
+    warnings.warn(
+
+tests/data/test_id_consistency_pipeline_part2.py::TestDataLineage::test_output_hashes_current
+  /Users/newdavid/Documents/PhysicalRisk/tests/data/test_id_consistency_pipeline_part2.py:84: UserWarning: 14 output hash mismatches -- data modified since last pipeline run:
+    - blotter/blotter/eod/: recorded=e3b0c44298fc... current=c22f2da16bda...
+    - blotter/blotter/market_state.json: recorded=111cec2fd6d9... current=b7bc24d81510...
+    - blotter/blotter/trade_marks.json: recorded=44136fa355b3... current=c82d644630cd...
+    - commercialhc/commercialhc.json: recorded=bf748ff59b79... current=947429f0a5fe...
+    - propertywin/propertywin.json: recorded=de6804e59e60... current=c91ca1f87bd1...
+    - propertyfaw/propertyfaw.json: recorded=ce4cbe701ec9... current=2678e50c994b...
+    - propertyfow/propertyfow.json: recorded=d71f8431cbc7... current=c8ff5e4c6908...
+    - propertybow/propertybow.json: recorded=ffc086ae95d8... current=8ec5aeda458a...
+    - propertybaw/propertybaw.json: recorded=826836d1fdcf... current=abdcd00555c7...
+    - commercialwin/commercialwin.json: recorded=0ce1e09cd87f... current=580a53299fe9...
+    Re-run: python3 app.py port
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /Users/newdavid/Documents/PhysicalRisk/data/output/audit/data_lineage_junit.xml -
+================= 138 passed, 3 skipped, 5 warnings in 10.80s ==================
