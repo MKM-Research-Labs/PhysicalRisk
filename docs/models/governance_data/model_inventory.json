@@ -1149,21 +1149,21 @@
         }
       ],
       "overall_risk_rating": {
-        "calculated_rating": "Conditional",
-        "calculated_score": 0.541,
+        "calculated_rating": "Unacceptable",
+        "calculated_score": 0.203,
         "component_scores": {
           "validation_coverage": 0.111,
-          "remediation_health": 0.55,
-          "review_currency": 1.0,
+          "remediation_health": 0.0,
+          "review_currency": 0.0,
           "assumption_risk": 0.6,
           "limitation_risk": 0.8
         },
-        "effective_rating": "Conditional",
+        "effective_rating": "Unacceptable",
         "mrc_override": null,
         "mrc_override_reason": null,
         "mrc_override_date": null,
         "mrc_override_by": null,
-        "last_calculated": "2026-02-19T14:31:13.894096"
+        "last_calculated": "2026-07-14T11:11:06.988020"
       }
     },
     {

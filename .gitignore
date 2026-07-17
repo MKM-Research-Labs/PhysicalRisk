@@ -30,3 +30,6 @@ docs/models/governance_data/model_audit_log.json
 
 # Machine-specific docker compose env (DB data dir paths, etc.)
 docker/.env
+
+# Client correspondence — must never be committed (repo is published under MIT)
+docs/licence/*.docx
