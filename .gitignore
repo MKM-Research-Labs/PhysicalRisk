@@ -36,3 +36,9 @@ docs/licence/*.docx
 
 # Test-history accumulator — regenerated every run, ~38 MB; keep latest on disk only
 docs/models/test_results/test_history.json
+
+# Generated test/audit artifacts — regenerated every run, never versioned
+docs/models/*/test_results.*
+docs/models/*/test_results_standalone.tex
+docs/models/test_results/test_report.*
+logs/*.log

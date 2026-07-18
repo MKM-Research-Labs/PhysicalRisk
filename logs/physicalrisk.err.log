@@ -1,5 +1,0 @@
-[2026-05-22 08:45:24 +0100] [14115] [INFO] Starting gunicorn 23.0.0
-[2026-05-22 08:45:24 +0100] [14115] [INFO] Listening at: http://0.0.0.0:5013 (14115)
-[2026-05-22 08:45:24 +0100] [14115] [INFO] Using worker: gthread
-[2026-05-22 08:45:24 +0100] [14233] [INFO] Booting worker with pid: 14233
-[INFO] 2026-05-22 08:45:41,988 - src.server - Application created, routes registered
