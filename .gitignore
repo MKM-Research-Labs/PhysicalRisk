@@ -33,3 +33,6 @@ docker/.env
 
 # Client correspondence — must never be committed (repo is published under MIT)
 docs/licence/*.docx
+
+# Test-history accumulator — regenerated every run, ~38 MB; keep latest on disk only
+docs/models/test_results/test_history.json
