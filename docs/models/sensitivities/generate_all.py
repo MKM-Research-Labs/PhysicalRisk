@@ -61,6 +61,9 @@ GENERATORS = {
     'bri': ('Building Resilience Index', 'docs.models.sensitivities.bri_resilience.generator'),
     'fire': ('Fire-Resilience Credit', 'docs.models.sensitivities.fire_resilience.generator'),
     'seismic': ('Seismic-Resilience Credit', 'docs.models.sensitivities.seismic_resilience.generator'),
+    'windspeed': ('Event Wind Lookup', 'docs.models.sensitivities.wind_speed.generator'),
+    'winddamage': ('Wind Damage', 'docs.models.sensitivities.wind_damage.generator'),
+    'brifloor': ('BRI-Adjusted Floor Level', 'docs.models.sensitivities.bri_floor.generator'),
 }
 
 

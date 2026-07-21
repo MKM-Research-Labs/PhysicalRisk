@@ -174,6 +174,27 @@ TEST_MODEL_MAP = {
     'tests/models/floodrisk/test_bri_floor_level.py':   'MKM-BRF-001',
 
     # ---------------------------------------------------------------------------
+    # MKM-FIRE-001  Building Fire-Resilience Credit Model
+    # ---------------------------------------------------------------------------
+    'tests/models/fire/test_initiation.py':             'MKM-FIRE-001',
+    'tests/models/fire/test_intensity_track.py':        'MKM-FIRE-001',
+    'tests/models/fire/test_containment.py':            'MKM-FIRE-001',
+    'tests/models/fire/test_response_effectiveness.py': 'MKM-FIRE-001',
+    'tests/models/fire/test_cdm_adapter.py':            'MKM-FIRE-001',
+
+    # ---------------------------------------------------------------------------
+    # MKM-SEIS-001  Building Seismic-Resilience Credit Model
+    # ---------------------------------------------------------------------------
+    'tests/models/seismic/test_occurrence.py':              'MKM-SEIS-001',
+    'tests/models/seismic/test_groundmotion.py':            'MKM-SEIS-001',
+    'tests/models/seismic/test_groundmotion_coverage.py':   'MKM-SEIS-001',
+    'tests/models/seismic/test_responseeffectiveness.py':   'MKM-SEIS-001',
+    'tests/models/seismic/test_damage.py':                  'MKM-SEIS-001',
+    'tests/models/seismic/test_fault_coverage.py':          'MKM-SEIS-001',
+    'tests/models/seismic/test_cdm_adapter.py':             'MKM-SEIS-001',
+    'tests/models/seismic/test_config.py':                  'MKM-SEIS-001',
+
+    # ---------------------------------------------------------------------------
     # CDM-ALL  CDM Schema Validation
     # ---------------------------------------------------------------------------
     'tests/port/cdm/schemas.py':                        'CDM-ALL',
@@ -246,8 +267,12 @@ MODEL_INFO = {
     'MKM-BRI-001': {'name': 'Building Resilience Index Model',  'dir': 'bri_resilience'},
     'MKM-BRF-001': {'name': 'BRI-Adjusted Floor Level Model',   'dir': 'bri_floor'},
     'MKM-TC-001': {'name': 'Tropical Cyclone Progression and Wind-Field', 'dir': 'typhoon'},
-    'MKM-WS-001': {'name': 'Event Wind Lookup',                 'dir': None},
-    'MKM-WD-001': {'name': 'Wind Damage',                       'dir': None},
+    'MKM-WS-001': {'name': 'Event Wind Lookup',                 'dir': 'wind_speed'},
+    'MKM-WD-001': {'name': 'Wind Damage',                       'dir': 'wind_damage'},
+    'MKM-FIRE-001': {'name': 'Building Fire-Resilience Credit Model',
+                     'dir': 'fire_resilience'},
+    'MKM-SEIS-001': {'name': 'Building Seismic-Resilience Credit Model',
+                     'dir': 'seismic_resilience'},
     'MKM-TD-001': {'name': 'Trading Desk',                      'dir': None},
     'CDM-ALL':    {'name': 'CDM Schema Validation',             'dir': None},
     'E2E-ALL':    {'name': 'End-to-End Browser Tests',          'dir': None},
@@ -267,5 +292,7 @@ MODEL_ALIASES = {
     'TC': 'MKM-TC-001',
     'WS': 'MKM-WS-001',
     'WD': 'MKM-WD-001',
+    'FIRE': 'MKM-FIRE-001',
+    'SEIS': 'MKM-SEIS-001',
     'E2E': 'E2E-ALL',
 }

@@ -151,6 +151,14 @@ _MODEL_DOC_DIRS = {
     'MKM-GHD-001': 'gaugehd_synthetic',
     'MKM-ST-001': 'stressm_pipeline',
     'MKM-PF-001': 'property_flood_response',
+    'MKM-FPO-001': 'flood_poly',
+    'MKM-BRI-001': 'bri_resilience',
+    'MKM-BRF-001': 'bri_floor',
+    'MKM-TC-001': 'typhoon',
+    'MKM-WS-001': 'wind_speed',
+    'MKM-WD-001': 'wind_damage',
+    'MKM-FIRE-001': 'fire_resilience',
+    'MKM-SEIS-001': 'seismic_resilience',
 }
 
 

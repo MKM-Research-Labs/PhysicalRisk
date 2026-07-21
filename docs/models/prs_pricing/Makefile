@@ -1,5 +1,5 @@
 TEX = pdflatex -interaction=nonstopmode
-SRC = $(filter-out sensitivity_tables.tex, $(wildcard *.tex))
+SRC = $(filter-out sensitivity_tables.tex test_results.tex, $(wildcard *.tex))
 PDF = $(SRC:.tex=.pdf)
 
 .PHONY: all clean

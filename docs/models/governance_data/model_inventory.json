@@ -4825,6 +4825,7 @@
       "recertification_date": null,
       "review_frequency": "Annual",
       "documents": [
+        "docs/models/wind_speed/wind_speed.pdf",
         "src/models/windspeed/__init__.py (module docstring)"
       ],
       "change_history": [
@@ -4996,6 +4997,7 @@
       "recertification_date": null,
       "review_frequency": "Annual",
       "documents": [
+        "docs/models/wind_damage/wind_damage.pdf",
         "src/models/winddamage/phase_2_plan.md"
       ],
       "change_history": [

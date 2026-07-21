@@ -78,8 +78,12 @@ def generate_detail_table(model_id, model_name, results, criteria_cache=None):
 
     lines = [
         r'\begin{longtable}{p{6cm}p{5.5cm}cc}',
-        f'    \\caption{{Detailed Test Results --- {tex_escape(model_name)}}} \\\\',
-        f'    \\label{{tab:test_detail_{label}}}',
+        # The \label must sit inside the caption row, before the \\ that ends
+        # it. Emitting it after the row break starts a fresh longtable row, so
+        # the following \toprule lands mid-row and pdflatex raises
+        # "Misplaced \noalign".
+        f'    \\caption{{Detailed Test Results --- {tex_escape(model_name)}}}'
+        f'\\label{{tab:test_detail_{label}}} \\\\',
         r'    \toprule',
         r'    \textbf{Test Description} & \textbf{Acceptance Criteria} & \textbf{Result} & \textbf{Time} \\',
         r'    \midrule',
