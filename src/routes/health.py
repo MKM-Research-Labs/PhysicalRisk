@@ -50,9 +50,14 @@ def apple_touch_icon_precomposed():
 
 @health_bp.route("/", methods=["GET"])
 def root():
-    """Root route - redirect to catchment selector."""
+    """Root route - redirect to the platform map.
+
+    The active catchment is fixed by the CLI flag at server start
+    (``app.py server --halong``), so there is no selection step: the
+    visualization page is the application entry point.
+    """
     from flask import redirect
-    return redirect('/select-catchment')
+    return redirect('/visualization')
 
 
 @health_bp.route("/health", methods=["GET"])

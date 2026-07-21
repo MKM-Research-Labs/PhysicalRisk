@@ -31,9 +31,14 @@ class TestHealthRoutes:
     """Test health check endpoints."""
 
     def test_root_redirects(self, client):
-        """Test GET / redirects to catchment selector."""
+        """Test GET / redirects to the visualization page.
+
+        The legacy /select-catchment selector was removed; the active
+        catchment comes from the CLI flag, so / goes straight to the map.
+        """
         response = client.get('/')
         assert response.status_code == 302
+        assert response.headers['Location'].endswith('/visualization')
 
     def test_health_check(self, client):
         """Test GET /health returns health status."""
