@@ -333,6 +333,14 @@ class TestCommercialPRSIndependentPerils:
         assert "All-in PRS" in panel_text, (
             "All-in PRS row not found in the PRS waterfall"
         )
+        # The all-in is a root-sum-of-squares over the flood/wind basis and
+        # each peril leg. That basis is usually NOT the Property Spread row
+        # directly above, so it is rendered explicitly — without it the
+        # all-in appears not to reconcile.
+        assert "Flood/wind basis" in panel_text, (
+            "Flood/wind basis row not found — the All-in PRS cannot be "
+            "reconciled from the visible rows without it"
+        )
 
     def test_no_independent_perils_for_residential(
         self, map_page, first_property_id

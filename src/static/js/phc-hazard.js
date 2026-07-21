@@ -318,11 +318,24 @@
                     // Base flood/wind coupon the waterfall lands on. Prefer the
                     // widest available union scenario (BRI-OR-wind, then flood-OR-
                     // wind), then the resilient flood, then the raw asset spread.
-                    // Folded into the all-in via root-sum-of-squares but NOT shown
-                    // as its own row (it already heads the waterfall above).
-                    var _fwBase = (_psd.bow_spread_bps != null) ? _psd.bow_spread_bps
-                                : (_psd.fow_spread_bps != null) ? _psd.fow_spread_bps
-                                : (hasBri ? briSpread : propSpread);
+                    // Folded into the all-in via root-sum-of-squares. It appears
+                    // in the waterfall above, but not as the row immediately
+                    // preceding this block (that is BAW), so it is labelled
+                    // explicitly below to make the all-in reconcile.
+                    var _fwBase, _fwBaseLabel;
+                    if (_psd.bow_spread_bps != null) {
+                        _fwBase = _psd.bow_spread_bps;
+                        _fwBaseLabel = 'BOW (BRI OR wind)';
+                    } else if (_psd.fow_spread_bps != null) {
+                        _fwBase = _psd.fow_spread_bps;
+                        _fwBaseLabel = 'FOW (flood OR wind)';
+                    } else if (hasBri) {
+                        _fwBase = briSpread;
+                        _fwBaseLabel = 'BRI resilient';
+                    } else {
+                        _fwBase = propSpread;
+                        _fwBaseLabel = 'asset spread';
+                    }
 
                     // Independent peril legs. Each is shown only when its model
                     // has produced a result for this asset; the seismic leg is the
@@ -349,6 +362,13 @@
                     ih += '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:0 8px 6px;">' +
                           'Independent perils \u2014 all-in (\u221a\u03a3 squares)</div>';
                     ih += '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;"><tbody>';
+                    // Basis row: which flood/wind leg the all-in is built on.
+                    ih += '<tr style="border-bottom:1px solid #f0f0f0;">' +
+                        '<td style="padding:8px;font-weight:600;color:#546E7A;">Flood/wind basis' +
+                        ' <span style="color:#aaa;font-weight:400;font-size:10px;">' + _fwBaseLabel + '</span></td>' +
+                        '<td style="padding:8px;"></td>' +
+                        '<td style="padding:8px;text-align:right;color:#555;">' + _fwBase.toFixed(1) + 'bp</td>' +
+                        '<td style="padding:8px;"></td><td style="padding:8px 12px;"></td></tr>';
                     _indSteps.forEach(function(s) {
                         var barPct = (maxCount > 0) ? (s.count / maxCount * 100) : 0;
                         ih += '<tr style="border-bottom:1px solid #f0f0f0;">' +

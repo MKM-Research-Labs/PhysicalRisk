@@ -161,10 +161,21 @@
                     }
                     // Flood/wind basis the all-in lands on: prefer the widest
                     // union scenario (BRI-OR-wind, then flood-OR-wind), else the
-                    // terrain-adjusted property spread heading this table.
-                    var fwBase = (sd.bow_spread_bps != null) ? sd.bow_spread_bps
-                               : (sd.fow_spread_bps != null) ? sd.fow_spread_bps
-                               : adjustedPropSpread;
+                    // terrain-adjusted property spread heading this table. This
+                    // is usually NOT the Property Spread row directly above, so
+                    // it is rendered as its own row below — without it the
+                    // all-in looks like it fails to reconcile.
+                    var fwBase, fwBaseLabel;
+                    if (sd.bow_spread_bps != null) {
+                        fwBase = parseFloat(sd.bow_spread_bps);
+                        fwBaseLabel = 'BOW (BRI OR wind)';
+                    } else if (sd.fow_spread_bps != null) {
+                        fwBase = parseFloat(sd.fow_spread_bps);
+                        fwBaseLabel = 'FOW (flood OR wind)';
+                    } else {
+                        fwBase = adjustedPropSpread;
+                        fwBaseLabel = 'property spread';
+                    }
                     var sumSq = fwBase * fwBase;
                     if (fireBps !== null) sumSq += fireBps * fireBps;
                     if (seisBps !== null) sumSq += seisBps * seisBps;
@@ -174,6 +185,11 @@
                         '<tr style="background:#ECEFF1;">' +
                         '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:#455A64;">' +
                         'Independent Perils — all-in (√Σ sq)</td></tr>';
+                    // Basis row: which flood/wind leg the all-in is built on.
+                    sdRows +=
+                        '<tr><td style="padding:2px 6px;font-size:10px;color:#546E7A;">Flood/wind basis</td>' +
+                        '<td style="padding:2px 6px;text-align:right;font-weight:600;color:#546E7A;">' + fwBase.toFixed(1) + '</td>' +
+                        '<td style="padding:2px 6px;text-align:right;color:#888;font-size:9px;">' + fwBaseLabel + '</td></tr>';
                     if (fireBps !== null) {
                         sdRows +=
                             '<tr><td style="padding:2px 6px;font-size:10px;color:#BF360C;font-weight:600;">FIRE (full conflagration)</td>' +
