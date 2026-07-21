@@ -219,4 +219,62 @@ def get_sections():
                 ]),
             ],
         },
+        # ──────────────────────────────────────────────
+        # MKM-WS-001: EVENT WIND LOOKUP
+        # ──────────────────────────────────────────────
+        {
+            'title': 'Event Wind Lookup',
+            'model_id': 'MKM-WS-001',
+            'source': 'models/windspeed/, config/typhoon/\\_field.py',
+            'subsections': [
+                ('Wind-Field Parameters (inherited from MKM-TC-001)', [
+                    ('alpha\\_eye',                   '0.40',  'Inner-core floor ratio: wind at the centre is alpha\\_eye * V\\_max', 'typhoon/\\_field.py:WindFieldParams'),
+                    ('outer\\_shape\\_p',             '1.50',  'Exponent p of the outer decay envelope',                              'typhoon/\\_field.py:WindFieldParams'),
+                    ('v\\_outer\\_ref\\_ms',          '17.50', 'Anchor wind (m/s) at R\\_outer used to calibrate the decay length L', 'typhoon/\\_field.py:WindFieldParams'),
+                    ('eps\\_max',                     '0.30',  'Cap on motion-linked asymmetry strength',                             'typhoon/\\_field.py:WindFieldParams'),
+                    ('c\\_eps',                       '0.60',  'Scaling of translation speed into asymmetry',                         'typhoon/\\_field.py:WindFieldParams'),
+                    ('eta\\_ms',                      '1.00',  'Stabiliser (m/s) preventing division by zero at low V\\_max',         'typhoon/\\_field.py:WindFieldParams'),
+                    ('asymmetry\\_phase\\_offset\\_deg', '90.0', 'Azimuthal offset of the asymmetry peak from motion (NH convention)', 'typhoon/\\_field.py:WindFieldParams'),
+                    ('rho\\_surf\\_sea',              '1.00',  'Surface reduction factor over sea',                                   'typhoon/\\_field.py:WindFieldParams'),
+                    ('rho\\_surf\\_land',             '0.80',  'Surface reduction factor over land',                                  'typhoon/\\_field.py:WindFieldParams'),
+                ]),
+                ('Query Behaviour (structural, not calibrated)', [
+                    ('interpolation',   'linear',           'Continuous state fields interpolate linearly between stored hours', 'windspeed/interpolation.py'),
+                    ('heading',         'circular',         'Heading interpolates on the shorter arc via signed compass delta',  'windspeed/interpolation.py'),
+                    ('regime, land\\_flag', 'nearest',      'Discrete fields take the nearest stored neighbour (switch at t=0.5)', 'windspeed/interpolation.py'),
+                    ('out-of-range',    'clamp',            'Queries outside the trajectory clamp to first/last state; never extrapolate', 'windspeed/interpolation.py'),
+                ]),
+            ],
+        },
+        # ──────────────────────────────────────────────
+        # MKM-WD-001: WIND DAMAGE
+        # ──────────────────────────────────────────────
+        {
+            'title': 'Wind Damage Model',
+            'model_id': 'MKM-WD-001',
+            'source': 'models/winddamage/, config/damage.py, config/bri.py',
+            'subsections': [
+                ('Vulnerability Curve (logistic in peak sustained wind)', [
+                    ('WIND\\_SIGMOID\\_A\\_PER\\_MS',    '0.20',  'Logistic slope a (per m/s); transition width 1/a = 5 m/s', 'damage.py:WIND\\_SIGMOID\\_A\\_PER\\_MS'),
+                    ('WIND\\_V50\\_BASE\\_MS',           '27.8',  'Baseline 50\\%-damage wind speed (m/s), approx 100 km/h',  'damage.py:WIND\\_V50\\_BASE\\_MS'),
+                    ('DEFAULT\\_WIND\\_THRESHOLD\\_KPH', '100.0', 'Fallback operational threshold (km/h) when the CDM carries none', 'damage.py:DEFAULT\\_WIND\\_THRESHOLD\\_KPH'),
+                ]),
+                ('Persistence (duration-of-load)', [
+                    ('WIND\\_PERSISTENCE\\_GUST\\_FLOOR', '0.45', 'Fraction of peak-curve damage realised by a momentary gust', 'damage.py:WIND\\_PERSISTENCE\\_GUST\\_FLOOR'),
+                    ('WIND\\_PERSISTENCE\\_TAU\\_H',      '4.0',  'Saturation time constant tau (hours) of Phi(t)',             'damage.py:WIND\\_PERSISTENCE\\_TAU\\_H'),
+                ]),
+                ('BRI Threshold Shift (log-differential, signed)', [
+                    ('BRI\\_WIND\\_ALPHA\\_MS',        '6.0',  'Sensitivity of the v\\_50 shift to the BRI wind sub-score (m/s per ln-unit)', 'bri.py:BRI\\_WIND\\_ALPHA\\_MS'),
+                    ('BRI\\_COMPOSITE\\_BETA\\_MS',    '3.0',  'Sensitivity to the BRI composite score (m/s per ln-unit)',                    'bri.py:BRI\\_COMPOSITE\\_BETA\\_MS'),
+                    ('BRI\\_WIND\\_REFERENCE',         '0.50', 'Neutral reference for the wind sub-score (zero shift)',                       'bri.py:BRI\\_WIND\\_REFERENCE'),
+                    ('BRI\\_COMPOSITE\\_REFERENCE',    '0.50', 'Neutral reference for the composite score (shared with the flood stilt)',     'bri.py:BRI\\_COMPOSITE\\_REFERENCE'),
+                    ('WIND\\_V50\\_SHIFT\\_MAX\\_MS',  '5.0',  'Cap on the signed shift (m/s); equals one full transition width',             'bri.py:WIND\\_V50\\_SHIFT\\_MAX\\_MS'),
+                    ('LN\\_FLOOR',                     '1e-6', 'Floor applied to scores before the logarithm',                                'bri.py:LN\\_FLOOR'),
+                ]),
+                ('PRS Trigger', [
+                    ('damage-onset', 'peak >= v\\_50\\_eff', 'Binary event count for the PRS wind leg; not the continuous damage ratio', 'winddamage/threshold.py:is\\_prs\\_wind'),
+                    ('threshold precedence', 'Minor -> Major -> Kph/3.6 -> default', 'CDM resolution order for the operational threshold', 'winddamage/threshold.py:resolve\\_threshold\\_ms'),
+                ]),
+            ],
+        },
     ]

@@ -1,0 +1,104 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\definecolor{mkmblue}{HTML}{1976d2}
+\definecolor{mkmgrey}{HTML}{666666}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{mkmgrey}{MKM Research Labs}}
+\fancyhead[R]{\small\textcolor{mkmgrey}{Event Wind Lookup --- Analysis --- v1.0}}
+\fancyfoot[L]{\small\textcolor{mkmgrey}{CONFIDENTIAL --- SR 11-7 / SS1/23 Model Governance}}
+\fancyfoot[R]{\small\textcolor{mkmgrey}{\thepage}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\textbf{Model Analysis Report}}\\[6pt]
+{\large\textcolor{mkmblue}{Event Wind Lookup}}\\[4pt]
+{\normalsize MKM-WS-001}\\[12pt]
+{\small Report Date: 21 July 2026}\\[4pt]
+{\footnotesize Governance Framework: SR 11-7 / SS1/23 Model Risk Management}
+\end{center}
+
+\vspace{8mm}
+\tableofcontents
+\newpage
+
+% ===================================================================
+% 1. SENSITIVITY ANALYSIS
+% ===================================================================
+\section{Sensitivity Analysis}
+
+This section presents the sensitivity of model outputs to key input parameters.
+Parameter perturbation ranges are chosen to cover plausible operating conditions
+and stress scenarios as required under SR~11-7 guidance.
+
+\input{sensitivity_tables}
+
+
+% ===================================================================
+% 2. STRESS TESTING
+% ===================================================================
+\section{Stress Testing}
+
+This section documents stress testing scenarios applied to the model
+under extreme but plausible conditions.
+
+\subsection{Stress Scenarios}
+
+\begin{table}[H]
+    \centering
+    \caption{Stress testing scenarios for Event Wind Lookup.}
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Scenario} & \textbf{Parameter Shock} & \textbf{Severity} & \textbf{Status} \\
+        \midrule
+        Baseline & No shock & --- & Passed \\
+        Moderate stress & +2$\sigma$ inputs & Medium & Pending \\
+        Severe stress & +3$\sigma$ inputs & High & Pending \\
+        Reverse stress & Output threshold breach & Critical & Pending \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textit{Detailed stress test results will be populated as scenarios are executed.
+Refer to the model's validation plan for the full stress testing programme.}
+
+% ===================================================================
+% 3. MODEL PERFORMANCE
+% ===================================================================
+\section{Model Performance}
+
+This section tracks key performance metrics for the model across
+validation and production environments.
+
+\begin{table}[H]
+    \centering
+    \caption{Performance metrics for Event Wind Lookup.}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Metric} & \textbf{Value} & \textbf{Status} \\
+        \midrule
+        Unit test pass rate & See Test Results & --- \\
+        Execution time (single run) & TBD & --- \\
+        Numerical stability & TBD & --- \\
+        Reproducibility & Deterministic & OK \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\vspace{12pt}
+
+\noindent\textit{\small This report is produced automatically; human review
+is required before formal model approval. Supporting artefacts are available
+in the model documentation directory.}
+
+\end{document}

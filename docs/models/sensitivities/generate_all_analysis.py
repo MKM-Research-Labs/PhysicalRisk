@@ -64,6 +64,14 @@ MODEL_REGISTRY = {
     'stress': ('Stress Test Pipeline', 'stressm_pipeline', 'MKM-ST-001'),
     'propflood': ('Property Flood Response', 'property_flood_response', 'MKM-PF-001'),
     'floodpoly': ('Flood Polynomial Model', 'flood_poly', 'MKM-FPO-001'),
+    'bri': ('Building Resilience Index Model', 'bri_resilience', 'MKM-BRI-001'),
+    'typhoon': ('Tropical Cyclone Progression and Wind-Field', 'typhoon', 'MKM-TC-001'),
+    'brifloor': ('BRI-Adjusted Floor Level Model', 'bri_floor', 'MKM-BRF-001'),
+    'windspeed': ('Event Wind Lookup', 'wind_speed', 'MKM-WS-001'),
+    'winddamage': ('Wind Damage Model', 'wind_damage', 'MKM-WD-001'),
+    'fire': ('Building Fire-Resilience Credit Model', 'fire_resilience', 'MKM-FIRE-001'),
+    'seismic': ('Building Seismic-Resilience Credit Model', 'seismic_resilience',
+                'MKM-SEIS-001'),
 }
 
 _docs_models = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
