@@ -1,0 +1,799 @@
+\documentclass[11pt]{article}
+
+\newcommand{\doctitle}{Event Frequency Layer}
+\newcommand{\docsubtitle}{Definition Document and Project Plan --- MKM-EF-001}
+\newcommand{\docversion}{2.0}
+\newcommand{\docdate}{22-July-2026}
+\newcommand{\docauthor}{David K Kelly, Chief Science Officer}
+
+\input{../shared/mkm_header}
+
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% Long source paths in \texttt must be allowed to break, or they run into the
+% margin. htt permits hyphenation inside typewriter text; \sloppy lets TeX
+% stretch interword space rather than overflow the measure.
+\usepackage[htt]{hyphenat}
+
+\begin{document}
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% ===========================================================================
+\section*{Status}
+\addcontentsline{toc}{section}{Status}
+
+\noindent
+\begin{tabular}{ll}
+\textbf{Document type} & Definition Document and Project Plan \\
+\textbf{Component}     & Event Frequency Model --- \texttt{MKM-EF-001} (new) \\
+\textbf{Version}       & 2.0 --- supersedes v1.0 of 22 July 2026 \\
+\textbf{Status}        & Draft for review \\
+\textbf{Owner}         & CSO, MKM Research Labs \\
+\textbf{Proposed tier} & 1 (Maximum) \\
+\end{tabular}
+
+\vspace{1em}
+\noindent This document is tabled for discussion. It proposes a new model for
+the inventory and a staged plan to remove a pricing defect in the existing
+flood chain. No code has been written against it.
+
+\clearpage
+
+% ===========================================================================
+\section{What changed from version 1}
+
+Version~1 diagnosed the problem correctly. Version~2 keeps the diagnosis and
+reworks the plan against what the codebase actually does. Six substantive
+changes:
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.40\textwidth}p{0.46\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Change} & \textbf{Driver} \\
+\midrule
+\endhead
+C1 & The layer is no longer greenfield --- it is a \textbf{port of the existing
+seismic and fire occurrence pattern} onto the storm chain &
+\texttt{src/models/seismic/occurrence/} and \texttt{src/models/fire/initiation.py}
+already implement precisely the proposed $\lambda \rightarrow$ Poisson $\rightarrow$
+event $\rightarrow$ severity construction. Storm and flood are the outlier, not
+the pioneer. \\
+\addlinespace
+C2 & Delivery splits into \textbf{Track~A} (analytic annualisation) and
+\textbf{Track~B} (ELT\,$\rightarrow$\,YLT); only Track~A is in scope &
+Version~1 went straight to the YLT sampler before any pricing benefit landed.
+Track~A fixes pricing at one node without touching port generation. \\
+\addlinespace
+C3 & Scope is a \textbf{generic per-peril frequency layer}, calibrated for storm
+first & The wind leg carries the identical defect; fire and seismic already
+carry their own $\lambda$. A flood-only layer would need a second frequency
+layer within months. \\
+\addlinespace
+C4 & New Section~\ref{sec:provenance}: \textbf{$\lambda$ provenance is currently
+circular} on synthetic catchments & The ``historical'' gauge series is generated
+\emph{from} the frequency field it would be used to calibrate. This materially
+changes what Stage~1 can claim. \\
+\addlinespace
+C5 & Version~1's ``critical alignment task'' is \textbf{already broken in a
+specific, locatable way} --- sequences are shredded into storms before the
+denominator is taken & \texttt{src/models/hazard/io/\_load.py:52} \\
+\addlinespace
+C6 & Non-functional requirements restated against the actual house rules and
+audit tooling & Version~1 cited \texttt{split\_audit.py}, which no longer exists;
+specified 100\% branch coverage against a house rule of $\geq$99\% line; and did
+not mention the \texttt{database} seam at all. \\
+\bottomrule
+\end{longtable}
+
+% ===========================================================================
+\section{Background and problem statement}
+
+\subsection{Current state}
+
+The simulator generates synthetic storm events and evaluates, at each river
+gauge, whether a storm produces a flood. Insurance cost is priced as the ratio
+of flooding storms to total storms. This is a \textbf{conditional probability}
+--- $P(\text{flood} \mid \text{storm})$ --- and is dimensionless with respect to
+time.
+
+Two gauges with identical conditional probability therefore receive identical
+prices even if one experiences eight qualifying storms a year and the other one.
+The true annualised risk differs by a factor of eight.
+
+\subsection{The defect, with evidence}
+
+The defect is not conceptual. It is written out in three places.
+
+\begin{longtable}{@{}p{0.34\textwidth}p{0.30\textwidth}p{0.30\textwidth}@{}}
+\toprule
+\textbf{Location} & \textbf{Code} & \textbf{Meaning} \\
+\midrule
+\endhead
+\texttt{src/port/src/property/hc/} \texttt{pricing/\_process.py:54} &
+\texttt{spread\_bps = (flood\_count / num\_storms) * 10000} &
+The property PRS spread \textbf{is} $P(\text{flood} \mid \text{storm})$,
+expressed in basis points \\
+\addlinespace
+\texttt{src/port/src/property/hc/} \texttt{pricing/\_process.py:250} &
+\texttt{return\_period\_yrs = num\_storms / flood\_count} &
+The assumption stated explicitly: \textbf{one storm = one year},
+$\lambda \equiv 1.0$ \\
+\addlinespace
+\texttt{src/models/hazard/} \texttt{builder.py:109--141} &
+GEV fitted to the peak level of \emph{every} simulated storm; the resulting
+exceedance probability assigned to \texttt{annual\_exceedance\_prob} and
+\texttt{annual\_hazard\_rate\_*} &
+A per-event conditional is relabelled \emph{annual} at the point of assignment \\
+\bottomrule
+\end{longtable}
+
+\noindent The same ratio construction appears on the gauge basis leg
+(\texttt{\_process.py:119}) and the wind leg (\texttt{\_process.py:70}, via
+\texttt{\_wind\_union}).
+
+\subsection{What is already correct}
+
+The downstream plumbing is rate-shaped and needs no rework:
+
+\begin{itemize}[nosep]
+  \item \texttt{src/models/hazard/gev.py:66} --- \texttt{compute\_term\_structure}
+        is already a Poisson compounding,
+        $P(\geq 1 \text{ flood by year } t) = 1 - e^{-\lambda t}$.
+  \item \texttt{src/models/hazard/prs\_analytical.py:100} --- already converts an
+        annual probability to a continuous hazard rate via $-\log(1-p)$.
+\end{itemize}
+
+\noindent Both are being fed a per-event number. \textbf{The remedy is a
+substitution at one node, not a pricer rewrite.}
+
+\subsection{The pattern already exists in this repository}
+
+Two production models already do what version~1 proposed to invent:
+
+\begin{itemize}[nosep]
+  \item \texttt{src/models/seismic/occurrence/} --- \texttt{\_rates.py} computes a
+        per-asset annual $\lambda$; \texttt{\_simulate.py:89} draws
+        \texttt{rng.poisson(lambda\_annual * horizon\_years, size=n\_sim)} and
+        instantiates events where the count is at least one; severity and damage
+        follow.
+  \item \texttt{src/models/fire/initiation.py} --- the same construction, labelled
+        ``Model~A --- Poisson initiation''.
+\end{itemize}
+
+\noindent MKM-EF-001 should mirror this package shape rather than introduce a
+parallel abstraction with different conventions.
+
+\subsection{Remedy}
+
+\begin{align}
+\text{Annual flood frequency}_g &= \lambda_g \times P(\text{flood} \mid \text{event}, g) \\
+\text{Annual exceedance probability}_g &= 1 - \exp\!\left(-\lambda_g \, P(\text{flood} \mid \text{event}, g)\right) \\
+\text{Pure premium}_g &= \lambda_g \times P(\text{flood} \mid \text{event}, g) \times \mathbb{E}[\text{loss} \mid \text{flood}, g]
+\end{align}
+
+\noindent with $\lambda_g$ the calibrated annual \textbf{event} arrival rate ---
+where ``event'' means the insurance hours-clause event, not the individual
+storm (Section~\ref{sec:eventdef}).
+
+% ===========================================================================
+\section{Objectives}
+
+\begin{longtable}{@{}p{0.05\textwidth}p{0.38\textwidth}p{0.47\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Objective} & \textbf{Success measure} \\
+\midrule
+\endhead
+O1 & Price reflects event frequency & AAL differs proportionally between high-
+and low-frequency gauges with equal conditional flood probability \\
+O2 & Honest return periods & \texttt{return\_period\_years} derived from
+$\lambda$ and the conditional, not from the storm count; the 100-year clamp
+reviewed \\
+O3 & Independently validatable components & Frequency backtestable separately
+from vulnerability; MKM-GH-001 outputs renamed so nothing claims to be annual
+that is not \\
+O4 & Compliance by construction & $\lambda_g$ provenance recorded and
+reproducible (BCBS~239), \emph{including honest recording of generator-derived
+provenance}; validation artefacts auto-generated (SR~11-7) \\
+O5 & No new technical debt & House rules R1--R6 satisfied; calibration persisted
+through the \texttt{database} seam, not JSON \\
+O6 & Quantified repricing before switchover & Per-gauge and per-property
+parallel-run delta report produced \emph{before} the legacy metric is retired \\
+\bottomrule
+\end{longtable}
+
+% ===========================================================================
+\section{Scope}
+
+\subsection{Locked decisions}
+
+\begin{longtable}{@{}p{0.18\textwidth}p{0.36\textwidth}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Decision} & \textbf{Choice} & \textbf{Rationale} \\
+\midrule
+\endhead
+Delivery & \textbf{Track~A first} --- analytic annualisation at the
+hazard-curve node. Track~B is a separate approval & Track~A is shippable without
+touching port generation, timeseries generation or the per-property flood-event
+pipeline \\
+\addlinespace
+Peril scope & \textbf{Generic abstraction with per-peril $\lambda$}; calibrate
+storm first & Wind carries the same defect; fire and seismic already have
+$\lambda$ and fold in later \\
+\addlinespace
+$\lambda$ source & \textbf{POT over the gauge record}, with a configured regional
+fallback for short records, the choice recorded in provenance & Matches the
+target architecture for real gauge data; see Section~\ref{sec:provenance} \\
+\addlinespace
+Chain position & \textbf{Downstream of storm severity} & Nothing upstream
+changes; one switch point \\
+\addlinespace
+Model ID & \texttt{MKM-EF-001} --- \emph{Event Frequency Model} & \texttt{EF} is
+unused in the model inventory \\
+\addlinespace
+Tier & \textbf{1} (proposed) & $\lambda$ is a linear multiplier on every PRS
+spread --- more material than MKM-SI-001 (tier~2, ``not directly into
+pricing''). Peers at tier~1: MKM-GH-001, MKM-PR-001, MKM-DE-001 \\
+\bottomrule
+\end{longtable}
+
+\subsection{In scope}
+
+\begin{itemize}[nosep]
+  \item Frequency abstraction with Poisson and Negative Binomial
+        implementations, per peril.
+  \item Calibration pipeline: peaks-over-threshold extraction, declustering,
+        arrival-rate estimation, dispersion diagnostics, per-gauge model
+        selection.
+  \item \textbf{Event-definition alignment}: the hours-clause event (a storm
+        \emph{sequence}), not the individual storm, becomes the unit of both
+        $\lambda$ and the conditional.
+  \item The annualisation seam and its wiring into MKM-GH-001.
+  \item Repricing of the property and gauge PRS legs.
+  \item Calibration persistence and provenance through the \texttt{database} seam.
+  \item Validation module: dispersion test, count backtest, threshold
+        sensitivity, reconciliation, POT round-trip.
+  \item Configuration schema extension in a new \texttt{config/frequency/} package.
+  \item Governance pack: inventory entry, model documentation, registry wiring.
+\end{itemize}
+
+\subsection{Chain position}
+
+\begin{center}
+\begin{tabular}{c}
+MKM-SI-001 (severity) $\rightarrow$ MKM-SG-001 (gauge response) $\rightarrow$
+MKM-GH-001 (GEV: per-event exceedance) \\[0.3em]
+$\downarrow$ \\[0.3em]
+\textbf{MKM-EF-001} ($\lambda_g$, annualisation) \\[0.3em]
+$\downarrow$ \\[0.3em]
+MKM-PR-001 (PRS pricing) \\
+\end{tabular}
+\end{center}
+
+\noindent Physically, frequency is a \emph{sibling} of severity rather than a
+descendant. As an implementation seam, downstream is the right choice: nothing
+upstream changes, MKM-GH-001 is merely \textbf{relabelled} --- its outputs become
+honest per-event conditionals --- and \texttt{builder.py} is the single switch
+point.
+
+Inventory \texttt{upstream\_models} and \texttt{downstream\_models} must be
+updated on MKM-GH-001 and MKM-PR-001 accordingly; chain consistency is scanned
+by full-audit section~4.7.
+
+\subsection{Out of scope for this phase}
+
+\begin{itemize}[nosep]
+  \item \textbf{Track~B}: ELT export, YLT sampler, AEP construction, portfolio
+        aggregation, cross-gauge count correlation.
+  \item Non-stationary or climate-conditioned $\lambda(t)$. Architected for, not
+        implemented.
+  \item Seasonal and non-homogeneous Poisson rates.
+  \item Wind, fire and seismic $\lambda$ \emph{calibration} --- the abstraction
+        accommodates them; only storm is calibrated in this phase.
+  \item Changes to the inundation model, the spatial model or the DEM
+        integration.
+  \item Multi-year contract pricing and discounting.
+\end{itemize}
+
+% ===========================================================================
+\section{Functional specification}
+
+\subsection{Package layout}
+
+Mirrors \texttt{src/models/seismic/occurrence/}. Every file under 300 lines
+(R2); no callable code in any \texttt{\_\_init\_\_.py} (R4); canonical copyright
+header on every file (R5).
+
+\begin{lstlisting}[language=,caption={Proposed package layout}]
+src/models/frequency/
+  __init__.py             # module docstring + re-exports only
+  datastructures/
+    _rate.py              # FittedRate: lambda, family, params, provenance
+    _diagnostics.py       # dispersion index, log-likelihood, AIC
+  pot/
+    _threshold.py         # threshold selection + stability diagnostics
+    _decluster.py         # minimum inter-event separation
+    _extract.py           # series -> declustered exceedances -> annual counts
+  families/
+    _poisson.py
+    _negbin.py
+    _select.py            # dispersion test + AIC tiebreak; logs any override
+  annualise.py            # p_annual = 1 - exp(-lambda * p_event)   <-- the seam
+  calibrate.py            # pure function of (series, config) -> FittedRate
+\end{lstlisting}
+
+\noindent \texttt{annualise.py} is deliberately tiny and deliberately the only
+place the composition happens. Frequency logic must not leak into the event
+simulator or the pricing modules.
+
+\subsection{Configuration}
+
+A new \texttt{config/frequency/} package with \texttt{\_schema.py} and
+\texttt{\_loader.py}, following the hydrated-dataclass pattern of
+\texttt{config/seismic/}. It owns, per house rule R1:
+
+\begin{itemize}[nosep]
+  \item Target mean exceedance rate band for threshold selection.
+  \item Declustering window (minimum inter-event separation).
+  \item Dispersion-test critical value; AIC tiebreak policy.
+  \item Minimum record length for per-gauge calibration; regional fallback
+        $\lambda$.
+  \item Return-period grid for output tables.
+  \item Per-peril family overrides, with the override itself logged (SR~11-7).
+\end{itemize}
+
+\noindent It also absorbs an existing orphan:
+\texttt{src/models/intensity/distribution/\_core.py:198} carries
+\texttt{storms\_per\_year: float = 20} as a default argument --- an undocumented
+frequency assumption living inside the severity model, and an R1 breach. That
+parameter moves here and the severity model takes it as an injected value.
+
+\subsection{Event-definition alignment}
+\label{sec:eventdef}
+
+This is not a hypothetical risk. It is already wrong, and locatably so.
+
+MKM-SS-001 produces \textbf{sequences} --- one to five related storms fitted
+inside a 168-hour insurance hours clause
+(\texttt{EVENT\_WINDOW\_HOURS} in \texttt{config/port/\_storm.py}). But
+\texttt{src/models/hazard/io/\_load.py:52--61} flattens every sequence into its
+member storms before the hazard model sees them. \texttt{num\_storms} is
+therefore one to five times the event count, and today's denominator is
+\textbf{neither events nor years}.
+
+\medskip
+\noindent Remedy:
+
+\begin{enumerate}[nosep]
+  \item Add an event-granular loader alongside the existing flattening one,
+        which stays for consumers that genuinely want individual storms.
+  \item Evaluate the conditional per sequence --- the gauge response over the
+        whole 168-hour window, that is the maximum peak level across member
+        storms, not one row per storm.
+  \item Quote $\lambda$ in \textbf{hours-clause events per year}, matching that
+        unit exactly.
+\end{enumerate}
+
+\noindent This step alone reprices, before $\lambda$ is applied, because the
+denominator changes. It is sequenced first precisely so its effect can be
+measured in isolation from the $\lambda$ effect.
+
+\subsection{Frequency abstraction}
+
+A single interface, per peril, following the seismic rates/simulate split:
+
+\begin{itemize}[nosep]
+  \item \texttt{fit(counts: AnnualCountSeries) -> FittedRate}
+  \item \texttt{annual\_rate() -> float}
+  \item \texttt{sample\_annual\_count(rng) -> int} \quad \emph{(unused in
+        Track~A; required by Track~B)}
+  \item \texttt{diagnostics() -> FrequencyDiagnostics}
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Implementation} & \textbf{Distribution} & \textbf{Selected when} \\
+\midrule
+\texttt{PoissonFrequency} & Poisson($\lambda$) & Dispersion index $\approx 1$ (default) \\
+\texttt{NegativeBinomialFrequency} & NegBin($r$, $p$) & Overdispersed counts (variance $>$ mean) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Selection is data-driven per gauge via the dispersion index with an
+AIC tiebreak, recorded in the calibration output. A configuration override may
+force a family; the override is logged with its justification.
+
+\subsection{Calibration pipeline}
+
+Per gauge, from the gauge level record:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Threshold selection} --- the threshold yielding a target mean
+        exceedance rate, anchored on bankfull discharge where available.
+        Diagnostics: mean-excess and threshold-stability.
+  \item \textbf{Declustering} --- enforce a minimum inter-event separation so
+        peaks are independent. Record the rule applied.
+  \item \textbf{Arrival rate} --- $\hat{\lambda}$ = exceedances / years of
+        record; the annual count series is retained for dispersion testing.
+  \item \textbf{Dispersion test and family selection}.
+  \item \textbf{Severity cross-check (validation only)} --- fit a GPD to
+        exceedance magnitudes and compare against the simulator's implied
+        severity at that gauge. Divergence beyond tolerance raises a validation
+        flag; it never silently recalibrates anything.
+\end{enumerate}
+
+\paragraph{Prior art to fix, not to write from scratch.}
+\texttt{src/models/statistics/timeseries.py:103--122} already computes a
+per-gauge \texttt{frequency\_per\_year} for alert, warning and severe. It counts
+\textbf{days over threshold}, not declustered events --- peaks-over-threshold
+with step~2 missing --- and therefore overstates $\lambda$ by roughly the mean
+event duration in days. Stage~1 is a fix-and-promote of this calculation into
+the new package, with the existing consumers repointed.
+
+\paragraph{Provenance (BCBS 239).}
+Every fitted rate carries: source dataset identifier and version, record period,
+threshold, declustering rule, family selected and why, fit timestamp, code
+version, configuration hash, and a \textbf{provenance class} ---
+\texttt{observed}, \texttt{generator-derived} or \texttt{regional-fallback}.
+Calibration is a pure function of (data, configuration): re-running with
+identical inputs must reproduce identical outputs, regression-tested against a
+golden master.
+
+\subsection{Persistence}
+
+Fitted rates and their provenance are written and read \textbf{exclusively
+through the \texttt{src/database/} seam} (R6). No JSON artefact is created at
+any point --- full-audit section~4.5 is walking JSON writes toward zero
+tolerance, and a new model must be born database-native.
+
+Deliverables: a new table plus Alembic migration following the existing gauge
+hazard-curve migration, with matching entries in the ORM model and column maps,
+and accessor functions in the \texttt{database} package API.
+
+\subsection{Wiring --- three edits}
+
+Only the third reprices via $\lambda$; the first reprices via the denominator.
+
+\begin{longtable}{@{}p{0.04\textwidth}p{0.42\textwidth}p{0.46\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{File} & \textbf{Change} \\
+\midrule
+\endhead
+1 & \texttt{src/models/hazard/io/\_load.py:52} & Add the event-granular loader;
+sequences stop being shredded before the denominator is taken \\
+2 & \texttt{src/models/hazard/builder.py:109--141} & GEV fits per-event peaks;
+outputs renamed to \texttt{event\_exceedance\_prob}; \texttt{annual\_hazard\_rate\_*}
+populated via the annualisation seam \\
+3 & \texttt{src/port/src/property/hc/pricing/\_process.py:54,119,250} & Property
+spread, gauge basis leg and return period become $\lambda$-based \\
+\bottomrule
+\end{longtable}
+
+\subsection{Pricing outputs (Track A)}
+
+\begin{itemize}[nosep]
+  \item \textbf{AAL and pure premium} ---
+        $\lambda_g \times P(\text{flood} \mid \text{event}, g) \times
+        \mathbb{E}[\text{loss} \mid \text{flood}, g]$.
+  \item \textbf{Annual exceedance probability} ---
+        $1 - \exp(-\lambda_g \, p_{\text{event}})$, replacing the current direct
+        assignment.
+  \item \textbf{Return periods} --- derived from the annualised probability,
+        with the compensating clamps reviewed.
+  \item \textbf{Event exceedance frequency} --- valid below the one-year return
+        period, which matters at frequent-flood gauges and cannot be expressed
+        by a probability at all.
+\end{itemize}
+
+\noindent Occurrence and aggregate exceedance probability curves require the
+year loss table and are \textbf{Track~B}. Track~A can state OEP analytically
+under Poisson, $1 - \exp(-\lambda S(x))$, but not empirically, and AEP not at
+all.
+
+\subsection{Extension points}
+
+Architected now, built later: $\lambda$ as a process rather than a constant (the
+interface takes an optional covariate or time argument);
+\texttt{sample\_annual\_count} present from day one though unused by Track~A, so
+Track~B needs no interface change; a per-peril $\lambda$ registry so wind, fire
+and seismic attach without restructuring.
+
+% ===========================================================================
+\section{The $\lambda$ provenance problem}
+\label{sec:provenance}
+
+\paragraph{Finding.}
+On synthetic catchments, calibrating $\lambda$ from the gauge ``historical''
+record is circular.
+
+\texttt{src/models/statistics/synthetic.py:122--124} generates the daily series
+by injecting severe exceedances at exactly the rate implied by the gauge's
+\texttt{FrequencyExceedLevel3} field:
+
+\begin{lstlisting}[language=Python]
+severe_floods_expected    = max(freq_exceed_level3, 1)
+severe_flood_prob_per_day = severe_floods_expected / (years * 365)
+\end{lstlisting}
+
+\noindent and \texttt{FrequencyExceedLevel3} is itself produced by
+\texttt{src/port/rand/shared/gauge/gauge\_field\_generators.py:168--170} as a
+\texttt{random.choices(...)} draw over a five-year window.
+
+A peaks-over-threshold extraction over that series therefore recovers the
+injected rate. \textbf{The only per-gauge frequency number the platform
+currently holds is a random integer.}
+
+\paragraph{Consequences.}
+\begin{enumerate}[nosep]
+  \item Version~1's stated risk --- ``short or gappy records give a noisy
+        $\hat{\lambda}$'' --- is the wrong risk. The real one is that $\lambda$
+        has no observational content on synthetic catchments.
+  \item It does not invalidate the POT pipeline. POT is exactly what would be
+        run against real gauge series, and building it now is correct.
+  \item It does change what Stage~1 may claim. The provenance class must record
+        \texttt{generator-derived}, not \texttt{observed}, and the validation
+        report must say so.
+\end{enumerate}
+
+\paragraph{Approach adopted.}
+\begin{itemize}[nosep]
+  \item \textbf{Now:} build POT as specified. On synthetic catchments, validate
+        it by \textbf{round-trip} --- the extracted $\hat{\lambda}$ must recover
+        the injected rate within tolerance once declustering is accounted for.
+        This is a genuinely strong test of the extraction code, and it is
+        labelled as such rather than presented as calibration.
+  \item \textbf{Follow-on} (separate approval; requires port regeneration): make
+        \texttt{FrequencyExceedLevel3} a \emph{modelled} field rather than a
+        random one, giving the gauge generator a catchment-level $\lambda$ prior
+        so synthetic frequencies are physically plausible and spatially coherent.
+        Gauges on the same reach should not carry independent $\lambda$.
+\end{itemize}
+
+% ===========================================================================
+\section{Non-functional requirements}
+
+Restated against the project coding rules.
+
+\begin{longtable}{@{}p{0.30\textwidth}p{0.66\textwidth}@{}}
+\toprule
+\textbf{Rule} & \textbf{Requirement for this project} \\
+\midrule
+\endhead
+R1 --- no parameters outside \texttt{config} & All thresholds, declustering
+windows, selection criteria, fallback $\lambda$ and return-period grids live in
+\texttt{config/frequency/}. The orphan \texttt{storms\_per\_year=20} is
+absorbed. \\
+\addlinespace
+R2 --- no file over 300 lines & Package layout adopted from the outset. \\
+\addlinespace
+R3 --- $\geq$99\% coverage, per stage & Verified at the end of \emph{each} stage.
+Version~1 specified 100\% branch coverage; aligning to the house rule avoids a
+bespoke standard for one package. Plus property-based tests for mean and
+variance recovery, and a golden-master calibration regression. \\
+\addlinespace
+R4 --- no functions in \texttt{\_\_init\_\_.py} & Re-exports only. \\
+\addlinespace
+R5 --- canonical copyright header & On every new source file; enforced by the
+self-healing header audit. \\
+\addlinespace
+R6 --- data store only via \texttt{database} & Zero direct SQL, ORM or
+connections; zero JSON artefacts. \\
+\bottomrule
+\end{longtable}
+
+\noindent Additionally: seeded RNG throughout, with calibration and simulation
+reproducible from (data version, configuration version, seed); a structured run
+log carrying inputs, configuration hash, code version, outputs and validation
+flags; and verification through the full audit --- \emph{not}
+\texttt{split\_audit.py}, which version~1 cited and which no longer exists.
+Relevant full-audit sections: 4.3 path definitions, 4.5 JSON files, 4.6 database
+usage, 4.7 model chain consistency.
+
+% ===========================================================================
+\section{Project plan}
+
+Leaves first; each stage independently shippable and tested; coverage checked at
+every stage boundary.
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.70\textwidth}p{0.20\textwidth}@{}}
+\toprule
+\textbf{Stage} & \textbf{Content} & \textbf{Reprices?} \\
+\midrule
+\endhead
+1 & Event-definition alignment; POT extraction with declustering;
+\texttt{frequency\_per\_year} fix-and-promote; $\lambda$ persisted through the
+seam with provenance & Denominator only \\
+\addlinespace
+2 & Poisson and NegBin families; dispersion selection; diagnostics; override
+logging; POT round-trip validation & No \\
+\addlinespace
+3 & Annualisation wired into \texttt{builder.py}; legacy metric behind a
+deprecation flag; \textbf{parallel-run repricing report} & \textbf{Yes --- via
+$\lambda$} \\
+\addlinespace
+4 & Property and gauge legs in \texttt{\_process.py}; return periods; clamp
+review & \textbf{Yes} \\
+\addlinespace
+5 & Governance: inventory entry, model documentation, registry wiring,
+auto-generated validation report, monitoring job & No \\
+\addlinespace
+6 & \emph{Separate approval:} Track~B --- ELT export, YLT sampler, OEP and AEP,
+portfolio aggregation, wind $\lambda$, seasonal rates, cross-gauge dependence &
+--- \\
+\bottomrule
+\end{longtable}
+
+\subsection{Stage acceptance}
+
+\begin{itemize}[nosep]
+  \item \textbf{S1} --- POT series reproducibly generated for all gauges;
+        provenance complete; event-granular loader covered; no pricing path yet
+        consumes $\lambda$.
+  \item \textbf{S2} --- families pass property tests for mean and variance
+        recovery; calibration deterministic under fixed inputs; per-gauge
+        selection report generated; round-trip recovers the injected rate within
+        tolerance.
+  \item \textbf{S3} --- parallel-run report produced, quantifying repricing per
+        gauge; legacy metric still available behind the flag; analytical and
+        empirical AAL reconcile within Monte Carlo error.
+  \item \textbf{S4} --- property-level repricing quantified; clamp decisions
+        recorded; user interface and end-of-day consumers verified against the
+        renamed fields.
+  \item \textbf{S5} --- validation report reviewed and signed off; monitoring
+        scheduled; legacy metric formally deprecated.
+\end{itemize}
+
+% ===========================================================================
+\section{Migration landmines}
+
+These will bite between Stage~3 and Stage~5. Each needs a decision before
+Stage~3 lands.
+
+\begin{longtable}{@{}p{0.04\textwidth}p{0.24\textwidth}p{0.40\textwidth}p{0.26\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Landmine} & \textbf{Detail} & \textbf{Action} \\
+\midrule
+\endhead
+L1 & \textbf{Magnitude of the reprice} & $\lambda \equiv 1$ today. A plausible
+$\lambda$ of 2--4 events per year scales spreads by roughly that factor at small
+$p$. This is a 2--4$\times$ move on \emph{every} PRS quote. & The Stage~3
+parallel-run report is the gating business artefact. No switchover without it. \\
+\addlinespace
+L2 & \textbf{Compensating hacks become distortions} &
+\texttt{builder.py:87} clamps the exceedance probability up to 0.01;
+\texttt{MAX\_RETURN\_PERIOD:~100} caps return periods. Both exist \emph{because}
+return periods were fake. & Once return periods are real, both must be reviewed
+or removed. Removing them widens the tail --- quantify alongside L1. \\
+\addlinespace
+L3 & \textbf{\texttt{num\_storms} is persisted and rendered} & It is a stored
+field read by the user interface, the blotter and end-of-day. Changing the
+denominator to events changes its meaning and value. & Either keep
+\texttt{num\_storms} and add \texttt{num\_events}, or rename with a migration.
+Decide before Stage~1 ships. \\
+\addlinespace
+L4 & \textbf{End-of-day history spans the cut} & Stored
+\texttt{annual\_hazard\_rate\_*} values change semantics \emph{and} magnitude;
+historical series become non-comparable across the switchover date. & Mark the
+cut in the end-of-day record; do not silently backfill. \\
+\addlinespace
+L5 & \textbf{Per-storm flood events collapse} & Under an event definition,
+several storms in a sequence become one event; per-property flood counts drop
+even before $\lambda$ is applied. & Measure separately at Stage~1 so it is not
+confused with the $\lambda$ effect at Stage~3. \\
+\addlinespace
+L6 & \textbf{Wind leg diverges} & The wind union also divides by
+\texttt{num\_storms}. If flood is annualised and wind is not, the BOW and BAW
+union and joint legs become internally inconsistent. & Either annualise both at
+Stage~4 or explicitly freeze the wind leg on the legacy metric with a recorded
+justification. \\
+\bottomrule
+\end{longtable}
+
+% ===========================================================================
+\section{Governance and registration}
+
+Per the new-model checklist, and noting that a new model document must be wired
+into \textbf{five registries} plus the Makefile filter:
+
+\begin{enumerate}[nosep]
+  \item Inventory entry \texttt{MKM-EF-001} --- tier~1 (proposed), category
+        Hazard, source module \texttt{src/models/frequency/}, upstream
+        MKM-GH-001, downstream MKM-PR-001.
+  \item Corresponding upstream and downstream amendments on MKM-GH-001 and
+        MKM-PR-001; the chain is hand-maintained and scanned by full-audit
+        section~4.7.
+  \item \texttt{docs/models/event\_frequency/event\_frequency.tex} and Makefile,
+        with the standard sections and the generated test-results and
+        sensitivity inputs.
+  \item Registry wiring: five registries plus the Makefile filter.
+  \item Assumptions and limitations recorded --- including, explicitly, the
+        provenance limitation of Section~\ref{sec:provenance} and the
+        stationarity assumption.
+\end{enumerate}
+
+\paragraph{Validation plan (SR 11-7).}
+Conceptual soundness; per-gauge count backtesting on a held-out split;
+dispersion coverage reporting (share of gauges selecting NegBin); threshold
+sensitivity ($\hat{\lambda}$ and AAL under a one-band threshold perturbation);
+reconciliation of analytical against empirical AAL; the POT round-trip; annual
+recalibration with a drift alert; and an effective-challenge artefact emitted on
+every run.
+
+Note that benchmarking return-period levels against published national
+flood-frequency estimates --- version~1's validation test~6 --- is \textbf{not
+meaningful} while catchments are synthetic. It is retained in the plan but
+flagged as pending real gauge data.
+
+% ===========================================================================
+\section{Risks and assumptions}
+
+\begin{longtable}{@{}p{0.38\textwidth}p{0.24\textwidth}p{0.34\textwidth}@{}}
+\toprule
+\textbf{Risk or assumption} & \textbf{Impact} & \textbf{Mitigation} \\
+\midrule
+\endhead
+$\lambda$ has no observational content on synthetic catchments & Pricing is
+precise but not accurate; validation claims could overstate & Provenance class
+recorded on every fitted rate; round-trip framed as extraction validation, not
+calibration; real-data path built and ready \\
+\addlinespace
+Repricing of 2--4$\times$ on every quote & Client and book impact & Stage~3
+parallel-run report before switchover; staged rollout; legacy metric retained
+behind a flag \\
+\addlinespace
+Event-definition change reprices before $\lambda$ does & Two effects confounded
+in the impact analysis & Sequenced deliberately: Stage~1 isolates the
+denominator effect, Stage~3 the $\lambda$ effect \\
+\addlinespace
+Threshold choice materially moves $\hat{\lambda}$ & Pricing instability &
+Sensitivity test; threshold governance in configuration with a change log \\
+\addlinespace
+Overdispersion ignored where present & Understated tail & NegBin selected
+wherever the dispersion test rejects Poisson \\
+\addlinespace
+Stationarity assumed & Understated forward risk under climate change & Explicit
+limitation in the model documentation; drift monitoring; Track~B roadmap \\
+\addlinespace
+Wind leg left on the legacy metric & Internally inconsistent peril comparison &
+Decide explicitly at Stage~4; do not leave implicit \\
+\addlinespace
+Clamp removal widens the tail & Compounds the repricing impact & Quantify
+jointly with the repricing report, not separately \\
+\bottomrule
+\end{longtable}
+
+% ===========================================================================
+\section{Glossary}
+
+\begin{description}[nosep,style=nextline]
+  \item[AAL] Average Annual Loss; expected loss per year.
+  \item[AEP] Aggregate Exceedance Probability; the probability that total annual
+        loss exceeds $x$. \emph{Track~B.}
+  \item[OEP] Occurrence Exceedance Probability; the probability that the largest
+        single event loss in a year exceeds $x$. \emph{Track~B.}
+  \item[EEF] Event Exceedance Frequency; the annual frequency, not probability,
+        of events exceeding a level.
+  \item[ELT / YLT] Event Loss Table and Year Loss Table. \emph{Track~B.}
+  \item[Event] Here, the insurance hours-clause event --- a storm \emph{sequence}
+        within the configured event window --- not an individual storm.
+  \item[POT] Peaks Over Threshold; extreme-value sampling of all independent
+        exceedances above a threshold.
+  \item[GPD] Generalised Pareto Distribution; the standard model for
+        peaks-over-threshold exceedance magnitudes.
+  \item[Dispersion index] Variance divided by mean of annual counts; near one
+        supports Poisson, above one indicates overdispersion.
+  \item[NHPP] Non-Homogeneous Poisson Process; a time-varying arrival rate.
+        \emph{Track~B.}
+  \item[Provenance class] \texttt{observed}, \texttt{generator-derived} or
+        \texttt{regional-fallback}; records what a fitted $\lambda$ is actually
+        based on.
+\end{description}
+
+\end{document}
