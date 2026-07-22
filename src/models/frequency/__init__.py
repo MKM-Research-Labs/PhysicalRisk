@@ -46,14 +46,18 @@ Per rule R4 this module contains no function definitions — only re-exports.
 from .calibrate import calibrate_gauge_rate, fallback_reason, summarise
 from .datastructures import (
     CalibrationProvenance,
+    EventCatalogue,
     FittedRate,
     Peak,
     PotDiagnostics,
     PotExtraction,
     ProvenanceClass,
 )
+from .events import build_catalogue
 
 __all__ = [
+    "build_catalogue",
+    "EventCatalogue",
     "calibrate_gauge_rate",
     "summarise",
     "fallback_reason",
