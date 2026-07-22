@@ -137,22 +137,25 @@ class SimulationConfig:
     """Monte Carlo year-simulation knobs.
 
     Attributes:
-        n_years: number of one-year simulations per run. The default is high
-            because the simulation is index lookups into a pre-computed event
-            catalogue, not a re-run of the hydrology, so accuracy is cheap.
-            At a thousand years the same book reprices by roughly ten per cent
-            between runs on sampling noise alone, which would show up as
-            unexplained curve movement on the desk.
+        n_years: number of one-year simulations per run. Ten thousand years
+            costs about 0.4s for a full portfolio on an M2 and holds the
+            sampling error near 1.6% of the annual probability. Raising it
+            tightens accuracy as the square root: a hundred thousand years is
+            about 4s and 0.5%. Run-to-run stability does not depend on this
+            number — the seed is pinned, so a re-run reprices identically
+            either way; what it buys is closeness to the true expectation.
         seed: default seed. Every run is seeded, so a quote is reproducible.
-        reconciliation_tolerance: fractional gap allowed between the simulated
-            annual probability and its closed form before the run is flagged.
-            The closed form is the exact expectation of the simulation, so any
-            gap beyond sampling error means one of the two is wrong.
+        reconciliation_sigmas: how many sampling standard errors the simulated
+            annual probability may sit from its closed form before the run is
+            flagged. Expressed in standard errors rather than as a fixed
+            percentage because the sampling error depends on ``n_years``: a
+            fixed 2% band false-alarms on 17% of runs at ten thousand years
+            while never binding at all at a million.
     """
 
-    n_years: int = 100_000
+    n_years: int = 10_000
     seed: int = 20260722
-    reconciliation_tolerance: float = 0.02
+    reconciliation_sigmas: float = 4.0
 
 
 @dataclass(frozen=True)

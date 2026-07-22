@@ -28,6 +28,7 @@ from ._reconcile import (
     analytic_annual_probability,
     analytic_expected_floods,
     reconcile,
+    sampling_standard_error,
 )
 from ._sample import (
     apply_catalogue,
@@ -44,4 +45,5 @@ __all__ = [
     "analytic_annual_probability",
     "analytic_expected_floods",
     "reconcile",
+    "sampling_standard_error",
 ]

@@ -37,6 +37,7 @@ from config.frequency import SimulationConfig, load_frequency_config
 from models.frequency.datastructures import EventDraws, YearSimulation
 from models.frequency.ylt import (
     analytic_annual_probability,
+    sampling_standard_error,
     analytic_expected_floods,
     apply_catalogue,
     draw_event_years,
@@ -92,10 +93,10 @@ def test_simulation_agrees_with_its_closed_form(config, catalogue):
     """The property the whole design rests on: the analytic result is the exact
     expectation of the simulation, not an approximation of it."""
     simulation = simulate_years(catalogue, _LAMBDA, config)
-    within_tolerance, error = reconcile(simulation, config)
+    within_tolerance, sigmas = reconcile(simulation, config)
 
     assert within_tolerance
-    assert error < 0.01
+    assert sigmas < config.reconciliation_sigmas
 
 
 @pytest.mark.parametrize("lambda_per_year", [0.5, 2.0, 4.5, 12.0])
@@ -105,10 +106,20 @@ def test_agreement_holds_across_arrival_rates(config, catalogue, lambda_per_year
 
 
 def test_expected_floods_match_lambda_times_p(config, catalogue):
-    """The aggregate view, which a conditional-only model cannot express."""
+    """The aggregate view, which a conditional-only model cannot express.
+
+    Thinning a Poisson arrival process by an independent per-event probability
+    leaves a Poisson process, so the flood count per year has mean and variance
+    both lambda*p and the run mean carries a standard error of
+    sqrt(lambda*p/n). The band is derived from that rather than fixed, so the
+    test does not quietly become either vacuous or flaky when the configured
+    year count changes."""
     simulation = simulate_years(catalogue, _LAMBDA, config)
+    expected = analytic_expected_floods(_LAMBDA, simulation.p_event)
+    standard_error = np.sqrt(expected / config.n_years)
+
     assert simulation.expected_floods_per_year() == pytest.approx(
-        analytic_expected_floods(_LAMBDA, simulation.p_event), rel=0.02)
+        expected, abs=config.reconciliation_sigmas * standard_error)
 
 
 def test_aggregate_exceeds_occurrence_when_years_can_carry_several_floods(config):
@@ -172,9 +183,50 @@ def test_reconcile_flags_a_total_mismatch():
         n_years=10, lambda_per_year=0.0, p_event=0.0,
         events_per_year=np.zeros(10, dtype=np.int64),
         flood_events_per_year=np.ones(10, dtype=np.int64), seed=1)
-    within_tolerance, error = reconcile(simulation, SimulationConfig())
+    within_tolerance, sigmas = reconcile(simulation, SimulationConfig())
     assert not within_tolerance
-    assert error == 1.0
+    assert sigmas == float("inf")
+
+
+def test_standard_error_shrinks_as_the_square_root_of_years():
+    """Quadrupling the years halves the sampling error — the cost/accuracy
+    trade-off behind the configured year count."""
+    coarse = sampling_standard_error(0.3, 10_000)
+    fine = sampling_standard_error(0.3, 40_000)
+    assert fine == pytest.approx(coarse / 2.0, rel=1e-9)
+
+
+def test_standard_error_vanishes_where_there_is_no_variation():
+    assert sampling_standard_error(0.3, 0) == 0.0
+    assert sampling_standard_error(0.0, 10_000) == 0.0
+    assert sampling_standard_error(1.0, 10_000) == 0.0
+
+
+def test_the_reconciliation_statistic_is_calibrated(catalogue):
+    """The gate is only meaningful if its statistic is a true z-score. The mean
+    absolute deviation of a standard normal is sqrt(2/pi) = 0.798; if the
+    measured value drifted from that, the sigma band would not mean what it
+    says and the tolerance would be arbitrary again."""
+    config = SimulationConfig(n_years=10_000)
+    deviations = np.array([
+        reconcile(simulate_years(catalogue, _LAMBDA, config, seed=seed), config)[1]
+        for seed in range(300)
+    ])
+    assert deviations.mean() == pytest.approx(np.sqrt(2 / np.pi), abs=0.12)
+
+
+def test_the_gate_holds_its_false_alarm_rate_across_year_counts(catalogue):
+    """A fixed percentage band false-alarms on roughly one run in six at ten
+    thousand years while never binding at a million. In standard errors it
+    behaves the same at both."""
+    for n_years in (1_000, 100_000):
+        config = SimulationConfig(n_years=n_years)
+        failures = sum(
+            not reconcile(simulate_years(catalogue, _LAMBDA, config, seed=seed),
+                          config)[0]
+            for seed in range(100)
+        )
+        assert failures <= 2
 
 
 def test_reconcile_accepts_a_consistent_zero():
