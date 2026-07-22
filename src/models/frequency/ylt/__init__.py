@@ -18,24 +18,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Data structures for the Event Frequency Model (MKM-EF-001).
+"""Year-loss-table sampling for the Event Frequency Model (MKM-EF-001).
 
-Per rule R4 this module contains no function definitions — only re-exports.
+The Monte Carlo year simulation and the closed form that validates it. Per rule
+R4 this module contains no function definitions — only re-exports.
 """
 
-from ._diagnostics import PotDiagnostics
-from ._extraction import Peak, PotExtraction
-from ._provenance import CalibrationProvenance, ProvenanceClass
-from ._rate import FittedRate
-from ._simulation import EventDraws, YearSimulation
+from ._reconcile import (
+    analytic_annual_probability,
+    analytic_expected_floods,
+    reconcile,
+)
+from ._sample import (
+    apply_catalogue,
+    draw_event_years,
+    simulate_annual_counts,
+    simulate_years,
+)
 
 __all__ = [
-    "PotDiagnostics",
-    "Peak",
-    "PotExtraction",
-    "CalibrationProvenance",
-    "ProvenanceClass",
-    "FittedRate",
-    "EventDraws",
-    "YearSimulation",
+    "simulate_years",
+    "draw_event_years",
+    "apply_catalogue",
+    "simulate_annual_counts",
+    "analytic_annual_probability",
+    "analytic_expected_floods",
+    "reconcile",
 ]

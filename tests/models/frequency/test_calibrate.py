@@ -238,7 +238,9 @@ def test_dispersion_index_is_variance_over_mean():
 
 
 def test_diagnostics_carry_the_extraction_convergence_flag():
-    rate = _calibrate(_record(3650, flood_every=180))
+    # A flood every 80 days is about 4.5 a year, matching the seeded Thames
+    # arrival rate the threshold search targets.
+    rate = _calibrate(_record(3650, flood_every=80))
     assert rate.diagnostics.threshold_converged is True
     assert rate.diagnostics.achieved_rate_per_year == pytest.approx(
         rate.lambda_per_year, rel=1e-9)

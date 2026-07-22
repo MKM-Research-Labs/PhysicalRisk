@@ -27,12 +27,19 @@ goes into every calibration's provenance record so a fitted rate can be traced
 back to the exact knobs that produced it (BCBS 239).
 """
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from hashlib import sha256
 from json import dumps
 from typing import Optional
 
-from config.frequency._schema import FrequencyConfig, PotConfig, RateConfig
+from config.frequency._schema import (
+    CATCHMENT_LAMBDA_PER_YEAR,
+    DEFAULT_LAMBDA_PER_YEAR,
+    FrequencyConfig,
+    PotConfig,
+    RateConfig,
+    SimulationConfig,
+)
 
 # Characters of the SHA-256 digest retained as the config hash. Sixteen hex
 # characters is 64 bits — ample to distinguish the handful of configurations a
@@ -40,22 +47,59 @@ from config.frequency._schema import FrequencyConfig, PotConfig, RateConfig
 CONFIG_HASH_CHARS: int = 16
 
 
+def catchment_lambda(catchment: Optional[str]) -> float:
+    """Return the seeded event arrival rate for *catchment*.
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively. ``None``
+            or an unseeded catchment returns the default rate.
+
+    Returns:
+        Qualifying storm events per year.
+    """
+    if not catchment:
+        return DEFAULT_LAMBDA_PER_YEAR
+    return CATCHMENT_LAMBDA_PER_YEAR.get(catchment.lower(), DEFAULT_LAMBDA_PER_YEAR)
+
+
 def load_frequency_config(
+    catchment: Optional[str] = None,
     pot: Optional[PotConfig] = None,
     rate: Optional[RateConfig] = None,
+    simulation: Optional[SimulationConfig] = None,
 ) -> FrequencyConfig:
     """Build a frequency configuration, optionally overriding either block.
 
+    When *catchment* is given and no explicit *pot* block is supplied, the
+    threshold search target is set from that catchment's arrival rate. That
+    keeps one source of truth: the qualifying-event threshold and lambda then
+    describe the same event population by construction rather than by
+    coincidence, which is the alignment the plan's §4.3 requires.
+
     Args:
-        pot: replacement peaks-over-threshold block; defaults to ``PotConfig()``.
+        catchment: catchment whose arrival rate drives the threshold target.
+        pot: replacement peaks-over-threshold block. Supplied explicitly it
+            wins outright, including its rate target.
         rate: replacement rate block; defaults to ``RateConfig()``.
+        simulation: replacement simulation block; defaults to
+            ``SimulationConfig()``.
 
     Returns:
         A ``FrequencyConfig``.
     """
+    if pot is not None:
+        pot_block = pot
+    elif catchment:
+        pot_block = replace(
+            PotConfig(),
+            target_exceedance_rate_per_year=catchment_lambda(catchment))
+    else:
+        pot_block = PotConfig()
+
     return FrequencyConfig(
-        pot=pot if pot is not None else PotConfig(),
+        pot=pot_block,
         rate=rate if rate is not None else RateConfig(),
+        simulation=simulation if simulation is not None else SimulationConfig(),
     )
 
 

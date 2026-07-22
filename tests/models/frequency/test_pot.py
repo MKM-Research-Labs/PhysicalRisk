@@ -189,10 +189,14 @@ def test_select_threshold_hits_the_target_rate():
         else:
             observations.append(Peak(_day(day), 1.0))
 
+    # Pinned rather than taking the default: this fixture is built to deliver
+    # two events a year, and must not silently stop testing convergence if the
+    # seeded catchment rate moves.
+    config = PotConfig(target_exceedance_rate_per_year=2.0)
     threshold, rate, converged = select_threshold(
-        observations, record_years=10.0, config=PotConfig())
+        observations, record_years=10.0, config=config)
     assert converged
-    assert rate == pytest.approx(2.0, abs=PotConfig().target_rate_tolerance)
+    assert rate == pytest.approx(2.0, abs=config.target_rate_tolerance)
     # It must have found the discriminating level, not the flood floor.
     assert threshold == 6.0
 
@@ -203,7 +207,7 @@ def test_select_threshold_empty_record_reports_no_convergence():
 
 
 def test_select_threshold_reports_failure_when_target_unreachable():
-    """A record with a single flood cannot deliver two events a year."""
+    """A record with a single flood cannot deliver the target rate."""
     observations = _series([(i, 5.0 if i == 0 else 1.0) for i in range(3650)])
     _, rate, converged = select_threshold(observations, 10.0, PotConfig())
     assert not converged

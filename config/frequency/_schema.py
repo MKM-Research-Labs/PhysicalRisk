@@ -38,7 +38,7 @@ See ``docs/storm_freq/frequency_layer_definition_and_plan_v2.md`` §4.2.
 """
 
 from dataclasses import dataclass, field
-from typing import Tuple
+from typing import Dict, Tuple
 
 # Model identity, stamped into every calibration's provenance record so a
 # persisted rate can be traced to the model version that produced it.
@@ -73,7 +73,9 @@ class PotConfig:
             Exceedances closer together than this belong to one flood event and
             collapse to their maximum.
         target_exceedance_rate_per_year: the mean number of declustered peaks
-            per year the threshold search aims for.
+            per year the threshold search aims for. Set from the catchment
+            arrival rate by ``load_frequency_config``, so the qualifying-event
+            threshold and lambda describe the same event population.
         target_rate_tolerance: acceptable absolute deviation from the target
             rate before the search reports that it failed to converge.
         search_quantile_lo: lowest quantile of the record considered as a
@@ -84,11 +86,30 @@ class PotConfig:
     """
 
     declustering_window_days: int = 5
-    target_exceedance_rate_per_year: float = 2.0
+    target_exceedance_rate_per_year: float = 4.5
     target_rate_tolerance: float = 0.5
     search_quantile_lo: float = 0.90
     search_quantile_hi: float = 0.999
     search_steps: int = 200
+
+
+# Catchment event arrival rates, in qualifying storm events per year.
+#
+# lambda is a property of the CATCHMENT, not of a gauge. A storm arrives over
+# the catchment and reaches every gauge in it; what differs per gauge is the
+# conditional response, not the arrival rate. Multiplying a per-gauge
+# exceedance rate by a per-gauge conditional would square the conditional and
+# double-count — see the plan's §4.3 event-alignment task.
+#
+# These are engineering-judgement seeds. The per-gauge peaks-over-threshold
+# calibration validates them rather than producing them: lambda multiplied by
+# the per-gauge conditional must reproduce that gauge's measured rate.
+CATCHMENT_LAMBDA_PER_YEAR: Dict[str, float] = {
+    "thames": 4.5,
+}
+
+# Arrival rate used for a catchment with no seed of its own.
+DEFAULT_LAMBDA_PER_YEAR: float = 4.5
 
 
 @dataclass(frozen=True)
@@ -107,8 +128,31 @@ class RateConfig:
 
     min_record_years: float = 5.0
     min_events_for_rate: int = 5
-    regional_fallback_lambda_per_year: float = 2.0
+    regional_fallback_lambda_per_year: float = DEFAULT_LAMBDA_PER_YEAR
     return_periods_years: Tuple[int, ...] = (2, 5, 10, 25, 50, 100, 200)
+
+
+@dataclass(frozen=True)
+class SimulationConfig:
+    """Monte Carlo year-simulation knobs.
+
+    Attributes:
+        n_years: number of one-year simulations per run. The default is high
+            because the simulation is index lookups into a pre-computed event
+            catalogue, not a re-run of the hydrology, so accuracy is cheap.
+            At a thousand years the same book reprices by roughly ten per cent
+            between runs on sampling noise alone, which would show up as
+            unexplained curve movement on the desk.
+        seed: default seed. Every run is seeded, so a quote is reproducible.
+        reconciliation_tolerance: fractional gap allowed between the simulated
+            annual probability and its closed form before the run is flagged.
+            The closed form is the exact expectation of the simulation, so any
+            gap beyond sampling error means one of the two is wrong.
+    """
+
+    n_years: int = 100_000
+    seed: int = 20260722
+    reconciliation_tolerance: float = 0.02
 
 
 @dataclass(frozen=True)
@@ -121,7 +165,9 @@ class FrequencyConfig:
     Attributes:
         pot: peaks-over-threshold extraction knobs.
         rate: arrival-rate estimation and fallback knobs.
+        simulation: Monte Carlo year-simulation knobs.
     """
 
     pot: PotConfig = field(default_factory=PotConfig)
     rate: RateConfig = field(default_factory=RateConfig)
+    simulation: SimulationConfig = field(default_factory=SimulationConfig)

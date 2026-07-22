@@ -29,11 +29,14 @@ Per rule R4 this module contains no function definitions — only re-exports.
 
 from config.frequency._loader import (
     CONFIG_HASH_CHARS,
+    catchment_lambda,
     config_hash,
     load_frequency_config,
 )
 from config.frequency._schema import (
     ANNUAL_BLOCK_DAYS,
+    CATCHMENT_LAMBDA_PER_YEAR,
+    DEFAULT_LAMBDA_PER_YEAR,
     DAYS_PER_YEAR,
     MODEL_ID,
     MODEL_VERSION,
@@ -42,18 +45,23 @@ from config.frequency._schema import (
     FrequencyConfig,
     PotConfig,
     RateConfig,
+    SimulationConfig,
 )
 
 __all__ = [
     "FrequencyConfig",
     "PotConfig",
     "RateConfig",
+    "SimulationConfig",
     "MODEL_ID",
     "MODEL_VERSION",
     "SOURCE_DATASET_GAUGE_DAILY",
     "PERIL_FLOOD",
     "DAYS_PER_YEAR",
     "ANNUAL_BLOCK_DAYS",
+    "CATCHMENT_LAMBDA_PER_YEAR",
+    "DEFAULT_LAMBDA_PER_YEAR",
+    "catchment_lambda",
     "load_frequency_config",
     "config_hash",
     "CONFIG_HASH_CHARS",
