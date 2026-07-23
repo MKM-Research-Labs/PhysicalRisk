@@ -2,7 +2,7 @@
 
 \newcommand{\doctitle}{Event Frequency Layer}
 \newcommand{\docsubtitle}{Definition Document and Project Plan --- MKM-EF-001}
-\newcommand{\docversion}{2.0}
+\newcommand{\docversion}{2.1}
 \newcommand{\docdate}{22-July-2026}
 \newcommand{\docauthor}{David K Kelly, Chief Science Officer}
 
@@ -33,21 +33,62 @@
 \begin{tabular}{ll}
 \textbf{Document type} & Definition Document and Project Plan \\
 \textbf{Component}     & Event Frequency Model --- \texttt{MKM-EF-001} (new) \\
-\textbf{Version}       & 2.0 --- supersedes v1.0 of 22 July 2026 \\
-\textbf{Status}        & Draft for review \\
+\textbf{Version}       & 2.1 --- supersedes v1.0 of 22 July 2026 \\
+\textbf{Status}        & Stage 1 implemented; plan reconciled with the build \\
 \textbf{Owner}         & CSO, MKM Research Labs \\
 \textbf{Proposed tier} & 1 (Maximum) \\
 \end{tabular}
 
 \vspace{1em}
-\noindent This document is tabled for discussion. It proposes a new model for
-the inventory and a staged plan to remove a pricing defect in the existing
-flood chain. No code has been written against it.
+\noindent This document proposes a new model for the inventory and a staged
+plan to remove a pricing defect in the existing flood chain. Stage~1 is built
+and under test; Section~\ref{sec:measured} reports what it measures. Nothing
+yet feeds a price.
 
 \clearpage
 
 % ===========================================================================
 \section{What changed from version 1}
+
+\subsection{What version 2.1 changes}
+
+Version~2.0 was written before any code existed. Building it moved four things,
+one of which was an outright error in version~2.0's design.
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.42\textwidth}p{0.44\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Change} & \textbf{Driver} \\
+\midrule
+\endhead
+C7 & \textbf{$\lambda$ is a property of the catchment, not of a gauge.}
+Version~2.0 had per-gauge peaks-over-threshold calibration feeding $\lambda$
+into pricing. That is wrong: a per-gauge exceedance rate is \emph{already}
+$\lambda \times P(\text{exceed} \mid \text{event})$, so using it as $\lambda$
+squares the conditional and double-counts. $\lambda$ is now a seeded
+per-catchment rate, and per-gauge extraction became the \textbf{validation
+arm} & A storm arrives over the catchment and reaches every gauge in it. What
+differs per gauge is the conditional response, not the arrival rate \\
+\addlinespace
+C8 & \textbf{The Monte Carlo year simulation is the engine}, and has moved
+forward out of Track~B. Version~2.0 deferred the sampler and priced off the
+closed form; the order is now reversed & The closed form is the simulation's
+\emph{exact expectation}, not an approximation of it, so it is worth more as a
+check than as an answer. The simulation additionally yields the annual
+distribution, which the closed form cannot \\
+\addlinespace
+C9 & \textbf{Ten thousand simulated years}, and the reconciliation gate is
+expressed in sampling standard errors rather than as a fixed percentage &
+Measured on the target hardware. A fixed 2\% band false-alarmed on 17\% of runs
+at ten thousand years while never binding at a million \\
+\addlinespace
+C10 & \textbf{Landmine L3 resolved:} \texttt{num\_storms} is kept and
+\texttt{num\_events} added beside it & The storm/event distinction becomes
+visible in the data rather than hidden in a redefinition of a field existing
+consumers already read \\
+\bottomrule
+\end{longtable}
+
+\subsection{What version 2.0 changed from version 1}
 
 Version~1 diagnosed the problem correctly. Version~2 keeps the diagnosis and
 reworks the plan against what the codebase actually does. Six substantive
@@ -217,18 +258,38 @@ parallel-run delta report produced \emph{before} the legacy metric is retired \\
 \textbf{Decision} & \textbf{Choice} & \textbf{Rationale} \\
 \midrule
 \endhead
-Delivery & \textbf{Track~A first} --- analytic annualisation at the
-hazard-curve node. Track~B is a separate approval & Track~A is shippable without
-touching port generation, timeseries generation or the per-property flood-event
-pipeline \\
+Pricing engine & \textbf{Monte Carlo year simulation.} Draw how many qualifying
+events arrive in a year, ask of each whether it floods, repeat. The annual flood
+probability is the fraction of simulated years that flooded & Retains the
+platform's simulation framework rather than replacing it with a formula, and
+yields the whole annual distribution --- occurrence and aggregate views, and
+return periods --- not just a mean \\
+\addlinespace
+Closed form & \textbf{Reconciliation self-test, not an alternative answer} & It
+is the simulation's exact expectation. Any disagreement beyond sampling error
+means one of the two is wrong, which makes it a real check rather than a
+restatement \\
+\addlinespace
+$\lambda$ granularity & \textbf{Per catchment}, not per gauge & A per-gauge
+exceedance rate is already $\lambda \times P(\text{exceed} \mid \text{event})$;
+using it as $\lambda$ would square the conditional \\
+\addlinespace
+$\lambda$ source & \textbf{Configured per-catchment seed} (Thames 4.5 events per
+year), with per-gauge extraction as the validation arm & Per house convention
+for a new probabilistic model. The data-driven estimator is blocked by
+Section~\ref{sec:provenance} on synthetic catchments in any case \\
 \addlinespace
 Peril scope & \textbf{Generic abstraction with per-peril $\lambda$}; calibrate
 storm first & Wind carries the same defect; fire and seismic already have
 $\lambda$ and fold in later \\
 \addlinespace
-$\lambda$ source & \textbf{POT over the gauge record}, with a configured regional
-fallback for short records, the choice recorded in provenance & Matches the
-target architecture for real gauge data; see Section~\ref{sec:provenance} \\
+Event aggregation & \textbf{Maximum level across the storms of a sequence} & A
+PRS pays on a level being breached, and a week containing two breaches is one
+breach of the contract, not two \\
+\addlinespace
+Denominator & \textbf{Keep \texttt{num\_storms}, add \texttt{num\_events}} &
+Existing consumers read \texttt{num\_storms}; redefining it in place would change
+their meaning silently \\
 \addlinespace
 Chain position & \textbf{Downstream of storm severity} & Nothing upstream
 changes; one switch point \\
@@ -266,11 +327,14 @@ pricing''). Peers at tier~1: MKM-GH-001, MKM-PR-001, MKM-DE-001 \\
 
 \begin{center}
 \begin{tabular}{c}
-MKM-SI-001 (severity) $\rightarrow$ MKM-SG-001 (gauge response) $\rightarrow$
-MKM-GH-001 (GEV: per-event exceedance) \\[0.3em]
-$\downarrow$ \\[0.3em]
-\textbf{MKM-EF-001} ($\lambda_g$, annualisation) \\[0.3em]
-$\downarrow$ \\[0.3em]
+MKM-SI-001 (severity) \\[0.2em]
+$\downarrow$ \\[0.2em]
+MKM-SG-001 (gauge response) \\[0.2em]
+$\downarrow$ \\[0.2em]
+MKM-GH-001 (per-event exceedance) \\[0.2em]
+$\downarrow$ \\[0.2em]
+\textbf{MKM-EF-001} --- catchment $\lambda$, year simulation \\[0.2em]
+$\downarrow$ \\[0.2em]
 MKM-PR-001 (PRS pricing) \\
 \end{tabular}
 \end{center}
@@ -367,21 +431,38 @@ therefore one to five times the event count, and today's denominator is
 \textbf{neither events nor years}.
 
 \medskip
-\noindent Remedy:
+\noindent \textbf{Built.} The remedy as delivered:
 
 \begin{enumerate}[nosep]
-  \item Add an event-granular loader alongside the existing flattening one,
-        which stays for consumers that genuinely want individual storms.
-  \item Evaluate the conditional per sequence --- the gauge response over the
-        whole 168-hour window, that is the maximum peak level across member
-        storms, not one row per storm.
-  \item Quote $\lambda$ in \textbf{hours-clause events per year}, matching that
-        unit exactly.
+  \item \texttt{load\_storms\_from\_sequences} tags each storm with its
+        \texttt{sequence\_id}. The key is \textbf{added, not substituted}, so
+        every existing consumer of the storm fields is untouched. An untagged
+        sequence falls back to a positional identity, so two untagged sequences
+        cannot silently merge into one event.
+  \item \texttt{event\_id} and \texttt{count\_events} live with the loader that
+        writes the tag, and the frequency aggregator imports them, so the
+        fallback rule cannot drift between the two. This also keeps the
+        dependency pointing downhill: frequency imports hazard, never the
+        reverse.
+  \item The conditional is evaluated per event --- the \textbf{maximum} peak
+        level across the member storms, not one row per storm.
+  \item Grouping is by storm \textbf{identity}, not position. The two coincide
+        today, but position would break silently if response ordering ever
+        changed.
+  \item $\lambda$ is quoted in \textbf{hours-clause events per year}, matching
+        that unit exactly.
+  \item \texttt{num\_storms} is kept and \texttt{num\_events} added beside it in
+        both the hazard metadata and the build summary.
 \end{enumerate}
 
-\noindent This step alone reprices, before $\lambda$ is applied, because the
-denominator changes. It is sequenced first precisely so its effect can be
-measured in isolation from the $\lambda$ effect.
+\noindent The physics is untouched: each storm is still routed through the gauge
+response model individually. Only the grouping changes.
+
+This step reprices on its own, before $\lambda$ is applied, because the
+denominator changes. It was sequenced first precisely so its effect could be
+measured apart from the $\lambda$ effect --- and doing so was worthwhile,
+because the two turned out to push the \emph{same} way rather than offsetting
+(Section~\ref{sec:measured}).
 
 \subsection{Frequency abstraction}
 
@@ -457,53 +538,119 @@ Deliverables: a new table plus Alembic migration following the existing gauge
 hazard-curve migration, with matching entries in the ORM model and column maps,
 and accessor functions in the \texttt{database} package API.
 
-\subsection{Wiring --- three edits}
+\subsection{The event catalogue}
 
-Only the third reprices via $\lambda$; the first reprices via the denominator.
+One row per event, one column per gauge, holding the highest level that event
+drove at that gauge. This is what the year simulation resamples from.
 
-\begin{longtable}{@{}p{0.04\textwidth}p{0.42\textwidth}p{0.46\textwidth}@{}}
-\toprule
-\textbf{\#} & \textbf{File} & \textbf{Change} \\
-\midrule
-\endhead
-1 & \texttt{src/models/hazard/io/\_load.py:52} & Add the event-granular loader;
-sequences stop being shredded before the denominator is taken \\
-2 & \texttt{src/models/hazard/builder.py:109--141} & GEV fits per-event peaks;
-outputs renamed to \texttt{event\_exceedance\_prob}; \texttt{annual\_hazard\_rate\_*}
-populated via the annualisation seam \\
-3 & \texttt{src/port/src/property/hc/pricing/\_process.py:54,119,250} & Property
-spread, gauge basis leg and return period become $\lambda$-based \\
-\bottomrule
-\end{longtable}
+Because every gauge's outcome for a given event sits in the \textbf{same row},
+drawing an event row draws a spatially coherent storm. The correlation between
+gauges is carried by the catalogue itself and does not have to be modelled
+again downstream.
 
-\subsection{Pricing outputs (Track A)}
+The catalogue also exposes the conditional half of the decomposition directly:
+$P(\text{flood at } g \mid \text{event})$ is the fraction of catalogue rows
+whose level at $g$ clears the trigger.
+
+\subsection{The Monte Carlo year simulation}
+\label{sec:simulation}
+
+For each simulated year: draw $N \sim \text{Poisson}(\lambda)$ qualifying
+events, resample $N$ catalogue rows with replacement, and record how many of
+them flood. The annual flood probability is the fraction of years with at least
+one flood.
+
+\paragraph{The draw is separated from its application.}
+\texttt{draw\_event\_years} runs once per run; \texttt{apply\_catalogue} runs
+per subject against those same draws. A storm arrives over the catchment and
+reaches every gauge and property in it, so one set of draws must serve every
+subject. Drawing independently per subject would discard the spatial
+correlation the catalogue supplies: measured, two gauges on one reach correlate
+\textbf{0.78} under shared draws and \textbf{$-0.004$} under independent ones,
+so a two-hundred-gauge book would look two hundred times better diversified
+than it is.
+
+\paragraph{Resampling, not regeneration.}
+The catalogue's outcomes are already computed, so a simulated year is index
+lookups rather than a re-run of the hydrology. That is what makes the year count
+affordable.
+
+\medskip
+\noindent Outputs, all from the same run:
 
 \begin{itemize}[nosep]
-  \item \textbf{AAL and pure premium} ---
-        $\lambda_g \times P(\text{flood} \mid \text{event}, g) \times
-        \mathbb{E}[\text{loss} \mid \text{flood}, g]$.
-  \item \textbf{Annual exceedance probability} ---
-        $1 - \exp(-\lambda_g \, p_{\text{event}})$, replacing the current direct
-        assignment.
-  \item \textbf{Return periods} --- derived from the annualised probability,
-        with the compensating clamps reviewed.
+  \item \textbf{Annual flood probability} --- the occurrence view; what the PRS
+        spread is priced from.
+  \item \textbf{Expected floods per year} --- the aggregate view. It exceeds the
+        occurrence probability whenever a year can carry more than one flood,
+        which is exactly the case a conditional-only model cannot represent at
+        all.
+  \item \textbf{Return-period levels} --- quantiles of the annual distribution.
   \item \textbf{Event exceedance frequency} --- valid below the one-year return
         period, which matters at frequent-flood gauges and cannot be expressed
-        by a probability at all.
+        as a probability.
 \end{itemize}
 
-\noindent Occurrence and aggregate exceedance probability curves require the
-year loss table and are \textbf{Track~B}. Track~A can state OEP analytically
-under Poisson, $1 - \exp(-\lambda S(x))$, but not empirically, and AEP not at
-all.
+\noindent All outputs carry the frequency-model identifier and calibration
+provenance in their metadata.
+
+\subsection{The closed form, and why it is a test rather than the answer}
+\label{sec:closedform}
+
+For $N \sim \text{Poisson}(\lambda)$ with each event flooding independently with
+probability $p$:
+
+\begin{equation}
+\mathbb{E}\!\left[(1-p)^N\right] = \exp\!\big(\lambda((1-p) - 1)\big) = \exp(-\lambda p)
+\end{equation}
+
+so $P(\text{at least one flood in a year}) = 1 - \exp(-\lambda p)$
+\textbf{exactly}. The closed form is not an approximation of the simulation ---
+it is the simulation's expectation. The same argument gives the aggregate view
+directly as $\lambda p$.
+
+That is precisely what makes it valuable as a check: any gap beyond sampling
+error means one of the two is wrong. It is wired in as a reconciliation gate,
+not as the production pricing path, because the simulation additionally yields
+the whole annual distribution.
+
+The gate measures the gap in \textbf{sampling standard errors},
+$\sqrt{p(1-p)/n}$, against a configured band, rather than as a fixed
+percentage. A fixed band cannot mean the same thing at every year count: at ten
+thousand years a 2\% band false-alarmed on 17\% of runs, while at a million it
+never bound at all. The statistic is verified to be a true $z$-score --- mean
+$|z|$ measures 0.811 and 0.797 at ten and a hundred thousand years against the
+theoretical $\sqrt{2/\pi} = 0.798$ --- and that calibration is itself a test, so
+the band cannot silently stop meaning what it says.
+
+\subsection{Wiring}
+
+\begin{longtable}{@{}p{0.03\textwidth}p{0.30\textwidth}p{0.45\textwidth}p{0.14\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{File} & \textbf{Change} & \textbf{State} \\
+\midrule
+\endhead
+1 & \texttt{src/models/hazard/io/\_load.py} & Sequence tagging;
+\texttt{event\_id} and \texttt{count\_events}; \texttt{num\_events} in metadata
+and summary & \textbf{Built} \\
+\addlinespace
+2 & \texttt{src/models/hazard/\linebreak[0]builder.py:109--141} & GEV fits per-event peaks;
+outputs renamed to \texttt{event\_exceedance\_prob}; annual rates come from the
+simulation & Stage 3 \\
+\addlinespace
+3 & \texttt{src/port/src/property/}\texttt{hc/pricing/\_process.py:}\texttt{54,119,250} & Property
+spread, gauge basis leg and return period become simulation-derived & Stage 4 \\
+\bottomrule
+\end{longtable}
 
 \subsection{Extension points}
 
 Architected now, built later: $\lambda$ as a process rather than a constant (the
-interface takes an optional covariate or time argument);
-\texttt{sample\_annual\_count} present from day one though unused by Track~A, so
-Track~B needs no interface change; a per-peril $\lambda$ registry so wind, fire
-and seismic attach without restructuring.
+interface takes an optional covariate or time argument); a per-peril $\lambda$
+registry so wind, fire and seismic attach without restructuring; and, because
+the simulation scores a boolean flood outcome per event, replacing that boolean
+with a loss quantum turns the same machinery into a full year loss table without
+changing the sampler.
 
 % ===========================================================================
 \section{The $\lambda$ provenance problem}
@@ -557,6 +704,118 @@ currently holds is a random integer.}
 \end{itemize}
 
 % ===========================================================================
+\section{Measured results}
+\label{sec:measured}
+
+Everything in this section is measured, not estimated. It supersedes the
+corresponding estimates in version~2.0.
+
+\subsection{Cost and accuracy of the year simulation}
+
+Apple M2, 8 cores, 8\,GB. A full portfolio is 2,200 subjects (gauges plus
+properties) scored against one shared set of draws.
+
+\begin{center}
+\begin{tabular}{@{}rrr@{}}
+\toprule
+\textbf{Simulated years} & \textbf{Full portfolio} & \textbf{Sampling error} \\
+\midrule
+1,000 & 0.07\,s & $\sim$5\% \\
+\textbf{10,000} \emph{(configured)} & \textbf{0.40\,s} & \textbf{$\sim$1.6\%} \\
+100,000 & 4.1\,s & $\sim$0.5\% \\
+1,000,000 & 43\,s & $\sim$0.16\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The cost is linear in the year count and the error falls as its square
+root, so this is a knob that can be turned without touching code.
+
+\textbf{Run-to-run stability does not depend on the year count.} The seed is
+pinned, so a re-run reprices identically at any setting. What the year count
+buys is closeness to the true expectation, not repeatability --- a distinction
+worth holding onto, because the two are easily conflated when a number is
+described as ``noisy''.
+
+\subsection{Repricing: withdrawn, not yet measurable}
+
+\noindent\textbf{An earlier draft of this section reported a 5.40$\times$
+reprice (1301\,bps to 7030\,bps). That figure is withdrawn.} It was not a model
+output. Two faults:
+
+\begin{enumerate}[nosep]
+  \item \textbf{The trigger level was invented.} The conditional came from an
+        arbitrary threshold applied to a synthetic catalogue, not from a
+        gauge's severe-warning level. Nothing anchored it.
+  \item \textbf{The catalogue was resampled uniformly.} MKM-SS-001 generates
+        its batches from 40\% moderate, 35\% severe, 20\% extreme and 5\%
+        catastrophic --- and \emph{no} minimal or baseline at all --- because it
+        exists to train the stress classifier, where oversampling the
+        interesting region is correct. Averaging over that uniformly answers
+        $P(\text{flood} \mid \text{event is at least moderate})$, and
+        multiplying \emph{that} by a $\lambda$ counting all qualifying events
+        double-counts severity.
+\end{enumerate}
+
+\noindent The tell was the implied return period: a severe flood every
+\textbf{0.81 years}. A conditional probability is easy to misread; a severe
+flood every nine months is obviously wrong. That check is now built in
+(\texttt{implied\_return\_period\_years}) precisely so this class of error
+announces itself.
+
+\textbf{Fault 2 is fixed} --- the catalogue now carries population weights and
+the sampler draws proportionally, which moves the implied return period from
+roughly 1.9 to 3.4 years.
+
+\textbf{That is still not credible, and no repriced number should be quoted
+until it is.} The remaining error is fault 1, and it cannot be fixed by choosing
+a better threshold by hand. It needs the constraint already present in the
+design:
+
+\begin{equation}
+\lambda_{\text{catchment}} \times P(\text{flood} \mid \text{event}, g)
+\;\equiv\; \text{gauge } g\text{'s measured severe-exceedance rate}
+\end{equation}
+
+Until that identity is asserted against real gauge trigger levels, any
+conditional this layer produces is unfalsifiable. \textbf{Anchoring it is
+Stage~3 work, and no repricing figure belongs in this document before then.}
+
+Two open questions the anchoring will settle, recorded so they are not lost:
+
+\begin{itemize}[nosep]
+  \item The population weights are engineering-judgement seeds. How often a
+        qualifying Thames storm event is severe-or-worse is the input that most
+        directly sets the answer, and it wants an owner's view rather than a
+        modeller's guess.
+  \item Whether $\lambda = 4.5$/yr and the seeded weights are \emph{jointly}
+        consistent with observed severe-flood return periods, or whether one of
+        them has to move.
+\end{itemize}
+
+\subsection{Extraction against the existing calculation}
+
+On a thirty-year synthetic gauge record, at the severe trigger:
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Measure} & \textbf{Rate} \\
+\midrule
+Exceedance \textbf{days} per year --- what the statistics module reports today & 1.234 \\
+Declustered \textbf{events} per year & 0.967 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent A \textbf{28\% overstatement}, being the mean flood duration in days.
+This is the quantity the fix-and-promote removes.
+
+The decomposition identity also holds exactly on that record: $\lambda \times
+P(\text{severe} \mid \text{event}) = 0.9672$ against a directly measured severe
+rate of $0.9672$. That identity is the per-gauge validation arm.
+
+% ===========================================================================
 \section{Non-functional requirements}
 
 Restated against the project coding rules.
@@ -602,50 +861,64 @@ usage, 4.7 model chain consistency.
 Leaves first; each stage independently shippable and tested; coverage checked at
 every stage boundary.
 
-\begin{longtable}{@{}p{0.06\textwidth}p{0.70\textwidth}p{0.20\textwidth}@{}}
+The staging has changed from version~2.0. The year sampler was version~2.0's
+Stage~6 and is now built, because it became the engine rather than a deferred
+extension. Stage~1 is correspondingly larger and partly done.
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.56\textwidth}p{0.14\textwidth}p{0.16\textwidth}@{}}
 \toprule
-\textbf{Stage} & \textbf{Content} & \textbf{Reprices?} \\
+\textbf{Stage} & \textbf{Content} & \textbf{State} & \textbf{Reprices?} \\
 \midrule
 \endhead
-1 & Event-definition alignment; POT extraction with declustering;
-\texttt{frequency\_per\_year} fix-and-promote; $\lambda$ persisted through the
-seam with provenance & Denominator only \\
+1a & Event-definition alignment; event catalogue; peaks-over-threshold
+extraction with declustering; per-catchment $\lambda$; \texttt{num\_events} &
+\textbf{Done} & Denominator only, not yet consumed \\
 \addlinespace
-2 & Poisson and NegBin families; dispersion selection; diagnostics; override
-logging; POT round-trip validation & No \\
+1b & Monte Carlo year sampler; shared draws; closed-form reconciliation gate &
+\textbf{Done} \emph{(was Stage 6)} & Not yet consumed \\
 \addlinespace
-3 & Annualisation wired into \texttt{builder.py}; legacy metric behind a
-deprecation flag; \textbf{parallel-run repricing report} & \textbf{Yes --- via
-$\lambda$} \\
+1c & Day-count fix-and-promote; $\lambda$ and provenance persisted through the
+\texttt{database} seam & To do & No \\
+\addlinespace
+2 & Poisson and NegBin families; dispersion selection; override logging;
+round-trip validation & To do & No \\
+\addlinespace
+3 & Simulation wired into \texttt{builder.py}; legacy metric behind a
+deprecation flag; \textbf{parallel-run repricing report on the real book} & To
+do & \textbf{Yes} \\
 \addlinespace
 4 & Property and gauge legs in \texttt{\_process.py}; return periods; clamp
-review & \textbf{Yes} \\
+review; wind-leg decision & To do & \textbf{Yes} \\
 \addlinespace
 5 & Governance: inventory entry, model documentation, registry wiring,
-auto-generated validation report, monitoring job & No \\
+auto-generated validation report, monitoring job & To do & No \\
 \addlinespace
-6 & \emph{Separate approval:} Track~B --- ELT export, YLT sampler, OEP and AEP,
-portfolio aggregation, wind $\lambda$, seasonal rates, cross-gauge dependence &
---- \\
+6 & \emph{Separate approval:} loss-weighted year loss table, ELT export, wind
+$\lambda$ calibration, seasonal rates & To do & --- \\
 \bottomrule
 \end{longtable}
 
 \subsection{Stage acceptance}
 
 \begin{itemize}[nosep]
-  \item \textbf{S1} --- POT series reproducibly generated for all gauges;
-        provenance complete; event-granular loader covered; no pricing path yet
-        consumes $\lambda$.
+  \item \textbf{S1a/S1b} --- \emph{met.} Event-granular loader covered;
+        catalogue and sampler under test; the simulation reconciles with its
+        closed form; no pricing path consumes $\lambda$. 204 tests, 100\%
+        coverage on the frequency packages and the hazard I/O module.
+  \item \textbf{S1c} --- peaks-over-threshold series reproducibly generated for
+        all gauges; provenance complete and persisted through the seam; the
+        day-count consumers repointed.
   \item \textbf{S2} --- families pass property tests for mean and variance
         recovery; calibration deterministic under fixed inputs; per-gauge
         selection report generated; round-trip recovers the injected rate within
         tolerance.
-  \item \textbf{S3} --- parallel-run report produced, quantifying repricing per
-        gauge; legacy metric still available behind the flag; analytical and
-        empirical AAL reconcile within Monte Carlo error.
-  \item \textbf{S4} --- property-level repricing quantified; clamp decisions
-        recorded; user interface and end-of-day consumers verified against the
-        renamed fields.
+  \item \textbf{S3} --- parallel-run report produced on the real book,
+        quantifying repricing per gauge; legacy metric still available behind
+        the flag; simulated and closed-form annual probabilities reconcile
+        within the sampling band.
+  \item \textbf{S4} --- property-level repricing quantified; clamp and wind-leg
+        decisions recorded; user interface and end-of-day consumers verified
+        against the renamed fields.
   \item \textbf{S5} --- validation report reviewed and signed off; monitoring
         scheduled; legacy metric formally deprecated.
 \end{itemize}
@@ -653,18 +926,28 @@ portfolio aggregation, wind $\lambda$, seasonal rates, cross-gauge dependence &
 % ===========================================================================
 \section{Migration landmines}
 
-These will bite between Stage~3 and Stage~5. Each needs a decision before
-Stage~3 lands.
+These bite between Stage~3 and Stage~5. Each needs a decision before Stage~3
+lands.
 
 \begin{longtable}{@{}p{0.04\textwidth}p{0.24\textwidth}p{0.40\textwidth}p{0.26\textwidth}@{}}
 \toprule
-\textbf{\#} & \textbf{Landmine} & \textbf{Detail} & \textbf{Action} \\
+\textbf{\#} & \textbf{Landmine} & \textbf{Detail} & \textbf{Status} \\
 \midrule
 \endhead
-L1 & \textbf{Magnitude of the reprice} & $\lambda \equiv 1$ today. A plausible
-$\lambda$ of 2--4 events per year scales spreads by roughly that factor at small
-$p$. This is a 2--4$\times$ move on \emph{every} PRS quote. & The Stage~3
-parallel-run report is the gating business artefact. No switchover without it. \\
+L1 & \textbf{Magnitude of the reprice} & $\lambda \equiv 1$ today, so a
+reprice is certain and material. Its size is \textbf{not yet measurable} --- the
+earlier 5.40$\times$ figure is withdrawn (Section~\ref{sec:measured}) and no
+replacement should be quoted until the conditional is anchored against real
+gauge trigger levels. & \textbf{Open, size unknown.} The Stage~3 parallel-run
+report on the real book is the gating business artefact. No switchover without
+it, and no number before it. \\
+\addlinespace
+L8 & \textbf{Population weights are load-bearing and unvalidated} & The
+conditional scales directly with the seeded event-population weights. A wrong
+severe-or-worse share moves every spread proportionally, and nothing currently
+contradicts a wrong value. & \textbf{Open.} Needs an owner's view on how often a
+qualifying Thames event is severe-or-worse, and the Stage~3 anchoring to make a
+wrong value fail loudly. \\
 \addlinespace
 L2 & \textbf{Compensating hacks become distortions} &
 \texttt{builder.py:87} clamps the exceedance probability up to 0.01;
@@ -672,11 +955,11 @@ L2 & \textbf{Compensating hacks become distortions} &
 return periods were fake. & Once return periods are real, both must be reviewed
 or removed. Removing them widens the tail --- quantify alongside L1. \\
 \addlinespace
-L3 & \textbf{\texttt{num\_storms} is persisted and rendered} & It is a stored
-field read by the user interface, the blotter and end-of-day. Changing the
-denominator to events changes its meaning and value. & Either keep
-\texttt{num\_storms} and add \texttt{num\_events}, or rename with a migration.
-Decide before Stage~1 ships. \\
+L3 & \textbf{\texttt{num\_storms} is persisted and rendered} & A stored field
+read by the user interface, the blotter and end-of-day. &
+\textbf{Resolved.} \texttt{num\_storms} kept, \texttt{num\_events} added beside
+it. Verified against the CDM property editor, hazard, storm-gauge and intensity
+suites --- no consumer changed. \\
 \addlinespace
 L4 & \textbf{End-of-day history spans the cut} & Stored
 \texttt{annual\_hazard\_rate\_*} values change semantics \emph{and} magnitude;
@@ -685,14 +968,22 @@ cut in the end-of-day record; do not silently backfill. \\
 \addlinespace
 L5 & \textbf{Per-storm flood events collapse} & Under an event definition,
 several storms in a sequence become one event; per-property flood counts drop
-even before $\lambda$ is applied. & Measure separately at Stage~1 so it is not
-confused with the $\lambda$ effect at Stage~3. \\
+even before $\lambda$ is applied. & \textbf{Open at the property leg.} Measured
+at the gauge leg: 2.34 storms per event, and the conditional \emph{rose} rather
+than fell. The property pipeline still counts per storm. \\
 \addlinespace
 L6 & \textbf{Wind leg diverges} & The wind union also divides by
 \texttt{num\_storms}. If flood is annualised and wind is not, the BOW and BAW
-union and joint legs become internally inconsistent. & Either annualise both at
-Stage~4 or explicitly freeze the wind leg on the legacy metric with a recorded
-justification. \\
+union and joint legs become internally inconsistent. & \textbf{Open.} Either
+move both at Stage~4 or explicitly freeze the wind leg on the legacy metric with
+a recorded justification. \\
+\addlinespace
+L7 & \textbf{Correlation is now load-bearing} & Portfolio risk depends on
+subjects sharing one set of event draws. A future caller that ran the
+single-subject convenience wrapper per subject would silently decorrelate the
+book --- measured at 0.78 versus $-0.004$. & \textbf{Open.} Guard at the
+portfolio entry point when Stage~4 wires it, and treat as a review point for any
+new caller. \\
 \bottomrule
 \end{longtable}
 
