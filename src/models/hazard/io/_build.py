@@ -27,7 +27,9 @@ import numpy as np
 
 import database
 from ..builder import HazardCurveBuilder
-from ._load import count_events, load_gauges, load_storms_from_sequences
+from models.frequency.events import count_events
+
+from ._load import load_gauges, load_storms_from_sequences
 from ._save import save_gauge_storm_responses, save_hazard_curves
 
 logger = logging.getLogger(__name__)
@@ -84,7 +86,8 @@ def build_hazard_curves(
         gauges=gauges,
         storms=storms,
         force_gumbel=(distribution == 'gumbel'),
-        verbose=verbose
+        verbose=verbose,
+        catchment=catchment_id
     )
 
     hazard_curves, responses = builder.build()

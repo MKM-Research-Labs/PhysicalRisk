@@ -23,6 +23,7 @@
 import json
 from pathlib import Path
 
+from config.frequency import SEQUENCE_ID_KEY
 from port.cdm.gauge import FloodGaugeCDM
 
 
@@ -31,33 +32,6 @@ def load_storms(input_path: Path) -> list:
     with open(input_path) as f:
         data = json.load(f)
     return data['storms']
-
-
-def event_id(storm: dict) -> str:
-    """Return the hours-clause event a storm belongs to.
-
-    Args:
-        storm: a storm dict from ``load_storms_from_sequences``.
-
-    Returns:
-        The parent sequence identifier, falling back to the storm's own
-        identifier when the storm carries no tag. An untagged catalogue
-        therefore degrades to one event per storm — the platform's behaviour
-        before events existed — rather than collapsing into a single event.
-    """
-    return storm.get("sequence_id") or storm["storm_id"]
-
-
-def count_events(storms: list) -> int:
-    """Count the distinct hours-clause events a storm list represents.
-
-    Args:
-        storms: storm dicts from ``load_storms_from_sequences``.
-
-    Returns:
-        The number of distinct events.
-    """
-    return len({event_id(storm) for storm in storms})
 
 
 def load_storms_from_sequences(sequences_data: dict) -> list:
@@ -99,7 +73,7 @@ def load_storms_from_sequences(sequences_data: dict) -> list:
                 "intensity_factor": storm["intensity_factor"],
                 "intensity_category": storm.get("intensity_category", ""),
                 "peak_position": storm.get("peak_position", 0.5),
-                "sequence_id": sequence_id,
+                SEQUENCE_ID_KEY: sequence_id,
             })
     return storms
 

@@ -41,11 +41,17 @@ from typing import Tuple
 
 from config.frequency import SimulationConfig
 
+from ..annualise import annual_exceedance_probability
+
 from ..datastructures import YearSimulation
 
 
 def analytic_annual_probability(lambda_per_year: float, p_event: float) -> float:
     """Return the exact annual flood probability under a Poisson arrival process.
+
+    Delegates to the annualisation seam so the production path and its own
+    self-test cannot drift apart — a check that recomputed the formula
+    independently could agree with itself while both were wrong.
 
     Args:
         lambda_per_year: the catchment arrival rate.
@@ -54,8 +60,7 @@ def analytic_annual_probability(lambda_per_year: float, p_event: float) -> float
     Returns:
         ``1 - exp(-lambda * p)``, clamped at zero for non-positive inputs.
     """
-    exponent = max(0.0, lambda_per_year) * max(0.0, p_event)
-    return 1.0 - math.exp(-exponent)
+    return annual_exceedance_probability(lambda_per_year, p_event)
 
 
 def analytic_expected_floods(lambda_per_year: float, p_event: float) -> float:

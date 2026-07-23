@@ -31,6 +31,11 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+from config.frequency import catchment_lambda
+
+from models.frequency import annual_exceedance_probability
+from models.frequency.events import build_catalogue
+
 from .data_structures import GaugeHazardCurve, HazardCurvePoint
 from .gev import GEVFitter, compute_term_structure
 from .response_model import GaugeResponseModel
@@ -47,11 +52,23 @@ class HazardCurveBuilder:
         gauges: List[Dict],
         storms: List[Dict],
         force_gumbel: bool = False,
-        verbose: bool = True
+        verbose: bool = True,
+        catchment: str = ""
     ):
+        """Build hazard curves from storms and gauges.
+
+        Args:
+            gauges: flat gauge dicts.
+            storms: storm dicts carrying their parent event tag.
+            force_gumbel: fit Gumbel rather than GEV.
+            verbose: log progress.
+            catchment: catchment whose event arrival rate annualises the
+                per-event conditionals. Empty uses the default seed rate.
+        """
         self.gauges = gauges
         self.storms = storms
         self.verbose = verbose
+        self.catchment = catchment
 
         self.response_model = GaugeResponseModel(gauges)
         self.gev_fitter = GEVFitter(force_gumbel)
@@ -64,6 +81,18 @@ class HazardCurveBuilder:
         """Build hazard curves for all gauges."""
         self.log(f"Computing gauge responses for {len(self.storms)} storms...")
         responses = self.response_model.compute_all_responses(self.storms)
+
+        # Regroup the per-storm responses onto hours-clause events. The physics
+        # is untouched — each storm was still routed individually — but an event
+        # is the unit that arrives at a rate, and the catalogue carries the
+        # population weights that stop a stress-weighted storm set being read as
+        # a fair sample of the events a year contains.
+        catalogue = build_catalogue(responses, self.storms)
+        lambda_per_year = catchment_lambda(self.catchment)
+        self.log(
+            f"Event catalogue: {catalogue.n_storms} storms -> {catalogue.n_events} "
+            f"events; lambda = {lambda_per_year}/yr"
+        )
 
         self.log(f"Fitting GEV distributions for {len(self.gauges)} gauges...")
         hazard_curves = {}
@@ -106,9 +135,22 @@ class HazardCurveBuilder:
             warning = gauge_chars['flood_warning']
             severe = gauge_chars['severe_warning']
 
-            prob_alert = self.gev_fitter.exceedance_probability(alert, shape, loc, scale)
-            prob_warning = self.gev_fitter.exceedance_probability(warning, shape, loc, scale)
-            prob_severe = self.gev_fitter.exceedance_probability(severe, shape, loc, scale)
+            # Per-EVENT conditional exceedance, weighted onto the event
+            # population (MKM-EF-001). This is an honest conditional; it is not
+            # an annual probability and is no longer labelled as one.
+            p_event_alert = catalogue.conditional_probability(gauge_id, alert)
+            p_event_warning = catalogue.conditional_probability(gauge_id, warning)
+            p_event_severe = catalogue.conditional_probability(gauge_id, severe)
+
+            # Annualise: P(at least one in a year) = 1 - exp(-lambda * p).
+            prob_alert = annual_exceedance_probability(lambda_per_year, p_event_alert)
+            prob_warning = annual_exceedance_probability(lambda_per_year, p_event_warning)
+            prob_severe = annual_exceedance_probability(lambda_per_year, p_event_severe)
+
+            # The pre-frequency metric, kept alongside for parallel-run
+            # comparison until the switchover is signed off.
+            legacy_severe = self.gev_fitter.exceedance_probability(
+                severe, shape, loc, scale)
 
             # Term structures
             term_structure_alert = compute_term_structure(prob_alert)
@@ -143,7 +185,16 @@ class HazardCurveBuilder:
                 term_structure_warning=term_structure_warning,
                 term_structure_severe=term_structure_severe,
                 num_storms_simulated=len(self.storms),
-                simulation_timestamp=datetime.now().isoformat()
+                simulation_timestamp=datetime.now().isoformat(),
+                num_events_simulated=catalogue.n_events,
+                lambda_per_year=lambda_per_year,
+                event_exceedance_prob_alert=p_event_alert,
+                event_exceedance_prob_warning=p_event_warning,
+                event_exceedance_prob_severe=p_event_severe,
+                implied_return_period_severe_years=(
+                    catalogue.implied_return_period_years(
+                        gauge_id, severe, lambda_per_year)),
+                legacy_annual_flood_prob_severe=legacy_severe,
             )
 
             hazard_curves[gauge_id] = hazard_curve
