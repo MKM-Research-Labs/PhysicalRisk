@@ -41,7 +41,7 @@ from typing import Any, Dict, List, Sequence
 
 import numpy as np
 
-from ..datastructures import EventCatalogue
+from ..datastructures import EventCatalogue, EventFrame
 from ._identity import event_id
 from ._weights import (
     catalogue_coverage,
@@ -83,6 +83,44 @@ def event_order(storms: Sequence[Dict[str, Any]]) -> List[str]:
     return list(seen)
 
 
+def build_event_frame(storms: Sequence[Dict[str, Any]]) -> EventFrame:
+    """Derive the hours-clause event structure from a storm catalogue.
+
+    Needs only the storms, so the property and commercial legs can regroup
+    their own per-asset flood records onto events without anyone's gauge
+    levels.
+
+    Args:
+        storms: storm dicts as produced by ``load_storms_from_sequences``.
+
+    Returns:
+        An ``EventFrame``.
+    """
+    events = event_order(storms)
+    index_of = {event: position for position, event in enumerate(events)}
+    mapping = storm_to_event(storms)
+
+    storms_per_event = [0] * len(events)
+    member_categories = [[] for _ in events]
+    for storm in storms:
+        position = index_of[mapping[storm["storm_id"]]]
+        storms_per_event[position] += 1
+        member_categories[position].append(storm_category(storm))
+
+    # An event's category is its most severe storm's, matching how its level is
+    # aggregated: the event is characterised by its worst moment.
+    categories = [event_category(members) for members in member_categories]
+
+    return EventFrame(
+        event_ids=tuple(events),
+        storms_per_event=tuple(storms_per_event),
+        categories=tuple(categories),
+        weights=population_weights(categories),
+        coverage=catalogue_coverage(categories),
+        event_of=mapping,
+    )
+
+
 def build_catalogue(
     responses: Dict[str, List[Any]],
     storms: Sequence[Dict[str, Any]],
@@ -102,20 +140,10 @@ def build_catalogue(
         that gauge's lowest observed level rather than zero, so a missing
         response cannot read as a dry event at a gauge whose datum is negative.
     """
-    events = event_order(storms)
-    index_of = {event_id: position for position, event_id in enumerate(events)}
-    mapping = storm_to_event(storms)
-
-    storms_per_event = [0] * len(events)
-    member_categories = [[] for _ in events]
-    for storm in storms:
-        position = index_of[mapping[storm["storm_id"]]]
-        storms_per_event[position] += 1
-        member_categories[position].append(storm_category(storm))
-
-    # An event's category is its most severe storm's, matching how its level is
-    # aggregated: the event is characterised by its worst moment.
-    categories = [event_category(members) for members in member_categories]
+    frame = build_event_frame(storms)
+    events = list(frame.event_ids)
+    index_of = {event: position for position, event in enumerate(events)}
+    mapping = frame.event_of
 
     peak_levels: Dict[str, np.ndarray] = {}
     for gauge_id, gauge_responses in responses.items():
@@ -137,10 +165,10 @@ def build_catalogue(
         peak_levels[gauge_id] = levels
 
     return EventCatalogue(
-        event_ids=tuple(events),
-        storms_per_event=tuple(storms_per_event),
-        categories=tuple(categories),
-        weights=population_weights(categories),
-        coverage=catalogue_coverage(categories),
+        event_ids=frame.event_ids,
+        storms_per_event=frame.storms_per_event,
+        categories=frame.categories,
+        weights=frame.weights,
+        coverage=frame.coverage,
         peak_levels=peak_levels,
     )

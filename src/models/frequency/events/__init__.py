@@ -24,7 +24,12 @@ Groups per-storm gauge responses into hours-clause events. Per rule R4 this
 module contains no function definitions — only re-exports.
 """
 
-from ._aggregate import build_catalogue, event_order, storm_to_event
+from ._aggregate import (
+    build_catalogue,
+    build_event_frame,
+    event_order,
+    storm_to_event,
+)
 from ._identity import count_events, event_id
 from ._weights import (
     catalogue_coverage,
@@ -36,6 +41,7 @@ from ._weights import (
 
 __all__ = [
     "build_catalogue",
+    "build_event_frame",
     "event_order",
     "storm_to_event",
     "event_id",

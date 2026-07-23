@@ -57,7 +57,7 @@ class TestProcessPropertyFloodedFilter:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["has_gev"] is False
-        assert result["pricing_method"] == "event_count"
+        assert result["pricing_method"] == "event_frequency"
         assert result["flood_count"] == 0
 
 
@@ -84,7 +84,7 @@ class TestProcessPropertyEventCount:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["has_gev"] is False
-        assert result["pricing_method"] == "event_count"
+        assert result["pricing_method"] == "event_frequency"
 
     def test_many_events_uses_event_count(self, basic_output_dir):
         output_dir, pts_dir = basic_output_dir
@@ -93,7 +93,7 @@ class TestProcessPropertyEventCount:
         gauge_hazard, _ = gen._load_gauge_hazard_curves()
         result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
         assert result["flood_count"] == 10
-        assert result["pricing_method"] == "event_count"
+        assert result["pricing_method"] == "event_frequency"
         assert result["has_gev"] is False
 
 

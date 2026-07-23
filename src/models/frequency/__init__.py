@@ -52,20 +52,23 @@ from .calibrate import calibrate_gauge_rate, fallback_reason, summarise
 from .datastructures import (
     CalibrationProvenance,
     EventCatalogue,
+    EventFrame,
     FittedRate,
     Peak,
     PotDiagnostics,
     PotExtraction,
     ProvenanceClass,
 )
-from .events import build_catalogue
+from .events import build_catalogue, build_event_frame
 
 __all__ = [
     "annual_exceedance_probability",
     "annual_exceedance_rate",
     "return_period_years",
     "build_catalogue",
+    "build_event_frame",
     "EventCatalogue",
+    "EventFrame",
     "calibrate_gauge_rate",
     "summarise",
     "fallback_reason",

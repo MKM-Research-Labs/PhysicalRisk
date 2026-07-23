@@ -25,6 +25,10 @@ from typing import Dict, Optional
 import numpy as np
 
 from models.floodrisk.depth_damage import is_prs_flood
+from models.frequency import (
+    annual_exceedance_probability,
+    return_period_years,
+)
 
 from ..constants import TENORS
 
@@ -34,6 +38,7 @@ class _ProcessMixin:
 
     def _process_property(self, pdata: Dict, gauge_hazard: Dict,
                           price_prs_func, num_storms: int = 1000,
+                          frame=None, lambda_per_year: float = 0.0,
                           **kwargs) -> Optional[Dict]:
         """Process a single asset's timeseries *pdata*: count severe floods that
         reach it, compute spread and basis.
@@ -46,12 +51,31 @@ class _ProcessMixin:
 
         prop_id = pdata['property_id']
         flood_events = pdata.get('flood_events', [])
-        flood_count = len([e for e in flood_events if is_prs_flood(e)])
+        prs_floods = [e for e in flood_events if is_prs_flood(e)]
+        flood_count = len(prs_floods)
 
-        # Flood-only spread = severe flood count / total scenarios (in bp).
-        # Kept unchanged: it drives the gauge basis and the spread
-        # decomposition, which stay flood-vs-gauge until Stage 6.
-        spread_bps = round((flood_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0
+        # Flood-only spread.
+        #
+        # Previously flood_count / num_storms: a per-STORM conditional with no
+        # time dimension, priced as though one storm were one year. The storms
+        # of a sequence are one hours-clause event, and an event is what
+        # arrives at a rate, so the count is regrouped onto events and then
+        # annualised through the frequency layer (MKM-EF-001).
+        if frame is not None and lambda_per_year > 0:
+            p_event = frame.conditional_probability(
+                e.get('storm_id') for e in prs_floods)
+            annual_prob = annual_exceedance_probability(lambda_per_year, p_event)
+            spread_bps = round(annual_prob * 10000, 2)
+            event_flood_count = int(frame.event_flags(
+                e.get('storm_id') for e in prs_floods).sum())
+        else:
+            # No event frame supplied — fall back to the pre-frequency metric
+            # in full, so a caller that has not been migrated prices exactly as
+            # it did before rather than silently reporting zeros.
+            p_event = (flood_count / num_storms) if num_storms > 0 else 0.0
+            annual_prob = p_event
+            event_flood_count = flood_count
+            spread_bps = round(annual_prob * 10000, 2)
 
         # Stage 6 — peril outcomes. Wind is a pure intersect/union at the
         # property/BRI node (no gauge propagation). Returns None when the
@@ -103,8 +127,11 @@ class _ProcessMixin:
             if not gauge_hc:
                 continue
 
-            # Gauge severe count from GEV probability in gaugehc
-            gauge_severe_count = self._get_gauge_severe_count(gauge_hc, num_storms)
+            # Gauge severe count, for the event-basis display. The gauge's own
+            # annual probability now comes from the frequency layer, so the
+            # count is expressed over events rather than storms.
+            gauge_severe_count = self._get_gauge_severe_count(
+                gauge_hc, gauge_hc.get('num_events_simulated') or num_storms)
             # Count property floods that came from severe gauge events
             # (not alert-only) — this is the hedged subset
             severe_and_flooded = sum(1 for e in flood_events if is_prs_flood(e))
@@ -116,7 +143,13 @@ class _ProcessMixin:
                 if gauge_flood_count > 0 else 0.0
             )
 
-            gauge_spread_bps = round((gauge_severe_count / num_storms) * 10000, 2) if num_storms > 0 else 0.0
+            # The gauge leg is already annualised in gaugehc; use it directly
+            # rather than re-deriving a ratio, so both sides of the basis are
+            # on the same footing.
+            gauge_annual = gauge_hc.get('annual_flood_prob_severe')
+            if gauge_annual is None:
+                gauge_annual = (gauge_severe_count / num_storms) if num_storms > 0 else 0.0
+            gauge_spread_bps = round(gauge_annual * 10000, 2)
 
             basis_at_tenors = [round(gauge_spread_bps - spread_bps, 2)] * len(TENORS)
             basis_bps = {
@@ -241,13 +274,17 @@ class _ProcessMixin:
             'flood_zone': pdata.get('flood_zone', 'Zone 1'),
             'flood_count': flood_count,
             'has_gev': False,
-            'pricing_method': 'event_count',
+            'pricing_method': 'event_frequency',
             'gev_params': None,
             'depth_thresholds': {
                 'severe': {
                     'threshold_m': 0.0,
-                    'annual_probability': round(flood_count / num_storms, 8) if num_storms > 0 else 0,
-                    'return_period_yrs': round(num_storms / flood_count, 2) if flood_count > 0 else None,
+                    'annual_probability': round(annual_prob, 8),
+                    'return_period_yrs': (
+                        round(return_period_years(lambda_per_year or 1.0, p_event), 2)
+                        if p_event > 0 else None),
+                    'event_flood_count': event_flood_count,
+                    'conditional_per_event': round(p_event, 8),
                 },
             },
             'term_structure': term_structure,

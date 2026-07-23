@@ -26,6 +26,36 @@ import database
 class LoaderMixin:
     """Mixin providing data-loading helpers."""
 
+    def _load_event_frame(self, catchment):
+        """Load the storm sequences and derive the hours-clause event frame.
+
+        Lives here rather than on the generator because both the property and
+        commercial generators inherit this mixin, and both price off the same
+        event structure.
+
+        Args:
+            catchment: catchment identifier.
+
+        Returns:
+            ``(frame, lambda_per_year)``, or ``(None, 0.0)`` when the sequences
+            are unavailable — the caller then prices on the pre-frequency
+            metric rather than failing.
+        """
+        from config.frequency import catchment_lambda
+        from models.frequency import build_event_frame
+        from models.hazard.io import load_storms_from_sequences
+
+        try:
+            sequences = database.get_storm_sequences(catchment)
+        except (OSError, ValueError, KeyError):
+            return None, 0.0
+        if not sequences:
+            return None, 0.0
+        storms = load_storms_from_sequences(sequences)
+        if not storms:
+            return None, 0.0
+        return build_event_frame(storms), catchment_lambda(catchment)
+
     def _load_gauge_hazard_curves(self) -> tuple:
         """Load gauge hazard curves and sequence count through the database seam.
 
