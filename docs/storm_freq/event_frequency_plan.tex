@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{Event Frequency Layer}
 \newcommand{\docsubtitle}{Definition Document and Project Plan --- MKM-EF-001}
-\newcommand{\docversion}{2.1}
-\newcommand{\docdate}{22-July-2026}
+\newcommand{\docversion}{2.2}
+\newcommand{\docdate}{23-July-2026}
 \newcommand{\docauthor}{David K Kelly, Chief Science Officer}
 
 \input{../shared/mkm_header}
@@ -33,24 +33,69 @@
 \begin{tabular}{ll}
 \textbf{Document type} & Definition Document and Project Plan \\
 \textbf{Component}     & Event Frequency Model --- \texttt{MKM-EF-001} (new) \\
-\textbf{Version}       & 2.1 --- supersedes v1.0 of 22 July 2026 \\
-\textbf{Status}        & Stage 1 implemented; plan reconciled with the build \\
+\textbf{Version}       & 2.2 --- supersedes v1.0 of 22 July 2026 \\
+\textbf{Status}        & Stages 1a/1b, 3 and 4 implemented and wired to pricing \\
 \textbf{Owner}         & CSO, MKM Research Labs \\
 \textbf{Proposed tier} & 1 (Maximum) \\
 \end{tabular}
 
 \vspace{1em}
 \noindent This document proposes a new model for the inventory and a staged
-plan to remove a pricing defect in the existing flood chain. Stage~1 is built
-and under test; Section~\ref{sec:measured} reports what it measures. Nothing
-yet feeds a price.
+plan to remove a pricing defect in the existing flood chain. The layer is built
+and now feeds pricing on the gauge, property, commercial and wind legs;
+Section~\ref{sec:measured} reports what it measures and, in
+Section~\ref{sec:notvalidated}, what it does not.
+
+\vspace{0.5em}
+\noindent Two of the three defects corrected during this work were
+\emph{pre-existing} and independent of the frequency model. One of them --- an
+unseeded random draw that made every hazard curve irreproducible at roughly
+$\pm$40\% --- is a governance matter in its own right and is set out in
+Section~\ref{sec:repro}.
 
 \clearpage
 
 % ===========================================================================
 \section{What changed from version 1}
 
-\subsection{What version 2.1 changes}
+\subsection{What version 2.2 changes}
+
+Wiring the layer into pricing and calibrating it on real halong data exposed
+three defects --- two of them pre-existing and more serious than the problem
+this model was written to fix.
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.42\textwidth}p{0.44\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Change} & \textbf{Driver} \\
+\midrule
+\endhead
+C11 & \textbf{The gauge response model was unseeded.} Fixed. Hazard curves were
+irreproducible at roughly $\pm$40\%; they are now byte-identical across rebuilds
+& Pre-existing, predating MKM-EF-001. Three unseeded uniform draws, two of which
+redrew each gauge's \emph{character} on every build. The BCBS~239
+reproducibility claim did not hold for this chain
+(Section~\ref{sec:repro}) \\
+\addlinespace
+C12 & \textbf{Missing mild events were reweighted onto the severe end.} Fixed by
+scaling the conditional by catalogue \emph{coverage} rather than renormalising
+the weights & The catalogue holds no minimal or baseline events, and those carry
+73\% of the population mass. A configured 8\% severe-or-worse share became an
+effective 29.6\% --- a 3.7$\times$ overstatement \\
+\addlinespace
+C13 & \textbf{Stages 3 and 4 are built}: gauge, property, commercial and wind
+legs all price off the frequency layer & The reprice is \textbf{downward},
+0.35$\times$--0.56$\times$ at the calibrated weights, not the upward move
+earlier drafts predicted \\
+\addlinespace
+C14 & \textbf{Two field-naming traps documented}, both of which produced
+confident wrong answers before being caught & \texttt{flood\_events[].storm\_id}
+holds \emph{sequence} identifiers; \texttt{\_load\_gauge\_hazard\_curves}
+returns the \emph{sequence} count while its caller names it
+\texttt{num\_storms} \\
+\bottomrule
+\end{longtable}
+
+\subsection{What version 2.1 changed}
 
 Version~2.0 was written before any code existed. Building it moved four things,
 one of which was an outright error in version~2.0's design.
@@ -373,27 +418,43 @@ Mirrors \texttt{src/models/seismic/occurrence/}. Every file under 300 lines
 (R2); no callable code in any \texttt{\_\_init\_\_.py} (R4); canonical copyright
 header on every file (R5).
 
-\begin{lstlisting}[language=,caption={Proposed package layout}]
+\begin{lstlisting}[language=,caption={Package layout. Items marked * are built and under test.}]
 src/models/frequency/
-  __init__.py             # module docstring + re-exports only
+  __init__.py             *  module docstring + re-exports only
+  annualise.py            *  the seam: P = 1 - exp(-lambda * p_event)
+  calibrate.py            *  pure function of (series, config) -> FittedRate
   datastructures/
-    _rate.py              # FittedRate: lambda, family, params, provenance
-    _diagnostics.py       # dispersion index, log-likelihood, AIC
+    _rate.py              *  FittedRate: lambda, threshold, diagnostics
+    _provenance.py        *  CalibrationProvenance, ProvenanceClass
+    _catalogue.py         *  EventCatalogue: events x gauges, + coverage
+    _frame.py             *  EventFrame: grouping without gauge levels
+    _simulation.py        *  EventDraws, YearSimulation
   pot/
-    _threshold.py         # threshold selection + stability diagnostics
-    _decluster.py         # minimum inter-event separation
-    _extract.py           # series -> declustered exceedances -> annual counts
+    _threshold.py         *  rate-targeted threshold search
+    _decluster.py         *  runs-method independent peaks
+    _extract.py           *  series -> declustered peaks -> annual counts
+  events/
+    _identity.py          *  which event a storm belongs to
+    _aggregate.py         *  per-storm responses -> catalogue / frame
+    _weights.py           *  population weights + catalogue coverage
+  ylt/
+    _sample.py            *  draw_event_years / apply_catalogue
+    _reconcile.py         *  closed form + sampling-error gate
   families/
-    _poisson.py
-    _negbin.py
-    _select.py            # dispersion test + AIC tiebreak; logs any override
-  annualise.py            # p_annual = 1 - exp(-lambda * p_event)   <-- the seam
-  calibrate.py            # pure function of (series, config) -> FittedRate
+    _poisson.py              Stage 2
+    _negbin.py               Stage 2
+    _select.py               Stage 2 -- dispersion test, logs overrides
 \end{lstlisting}
 
 \noindent \texttt{annualise.py} is deliberately tiny and deliberately the only
 place the composition happens. Frequency logic must not leak into the event
 simulator or the pricing modules.
+
+The dependency runs \textbf{hazard $\rightarrow$ frequency $\rightarrow$
+config}, one way. Event identity lives in \texttt{events/\_identity.py} rather
+than beside the loader that writes the tag, because siting it with the loader
+would have closed an import cycle the moment the hazard builder began consuming
+the frequency layer.
 
 \subsection{Configuration}
 
@@ -707,13 +768,50 @@ currently holds is a random integer.}
 \section{Measured results}
 \label{sec:measured}
 
-Everything in this section is measured, not estimated. It supersedes the
-corresponding estimates in version~2.0.
+Everything here is measured on the halong catchment (3 gauges, 1 residential
+property, 10 commercial assets, 1000 storm sequences) unless stated otherwise.
+It supersedes every estimate in earlier versions.
+
+\subsection{Reproducibility --- a pre-existing defect, now fixed}
+\label{sec:repro}
+
+\texttt{GaugeResponseModel} drew from three \textbf{unseeded} uniform random
+calls. Two of them redrew each gauge's \emph{fundamental character} --- its
+normal level and response coefficient --- on every build. Twelve rebuilds of one
+gauge, identical inputs:
+
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Metric} & \textbf{Mean} & \textbf{Min} & \textbf{Max} & \textbf{Spread} \\
+\midrule
+Frequency-derived annual probability & 0.1821 & 0.1332 & 0.2201 & \textbf{48\% of mean} \\
+Legacy annual probability & 0.1168 & 0.0923 & 0.1341 & \textbf{36\% of mean} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent This predates MKM-EF-001 entirely. \textbf{Every hazard curve the
+platform has ever produced was irreproducible at roughly $\pm$40\%}, and the
+BCBS~239 reproducibility claim did not hold for this chain. It is not a
+frequency-model problem; it was found because calibrating the frequency model
+required repeatable measurements.
+
+The fix seeds per gauge and per (gauge, storm), hashing the identifiers with a
+configured run seed rather than drawing from one global stream. A global seed
+would have been worse than useless: every gauge's character would shift whenever
+an unrelated gauge joined or left the portfolio. Verified --- identical across
+rebuilds, unchanged when another gauge is removed, and hazard curves now hash
+byte-identical between consecutive builds.
+
+\textbf{This is a governance event in its own right.} Re-running any existing
+catchment now gives a different --- and from now on stable --- answer,
+independent of anything MKM-EF-001 does.
 
 \subsection{Cost and accuracy of the year simulation}
 
-Apple M2, 8 cores, 8\,GB. A full portfolio is 2,200 subjects (gauges plus
-properties) scored against one shared set of draws.
+Apple M2, 8 cores, 8\,GB. A full portfolio is 2,200 subjects scored against one
+shared set of draws.
 
 \begin{center}
 \begin{tabular}{@{}rrr@{}}
@@ -728,92 +826,69 @@ properties) scored against one shared set of draws.
 \end{tabular}
 \end{center}
 
-\noindent The cost is linear in the year count and the error falls as its square
-root, so this is a knob that can be turned without touching code.
+\noindent Run-to-run stability does not depend on this number --- the seed is
+pinned --- so what the year count buys is closeness to the true expectation, not
+repeatability.
 
-\textbf{Run-to-run stability does not depend on the year count.} The seed is
-pinned, so a re-run reprices identically at any setting. What the year count
-buys is closeness to the true expectation, not repeatability --- a distinction
-worth holding onto, because the two are easily conflated when a number is
-described as ``noisy''.
+\subsection{Repricing on halong}
 
-\subsection{Repricing: withdrawn, not yet measurable}
-
-\noindent\textbf{An earlier draft of this section reported a 5.40$\times$
-reprice (1301\,bps to 7030\,bps). That figure is withdrawn.} It was not a model
-output. Two faults:
-
-\begin{enumerate}[nosep]
-  \item \textbf{The trigger level was invented.} The conditional came from an
-        arbitrary threshold applied to a synthetic catalogue, not from a
-        gauge's severe-warning level. Nothing anchored it.
-  \item \textbf{The catalogue was resampled uniformly.} MKM-SS-001 generates
-        its batches from 40\% moderate, 35\% severe, 20\% extreme and 5\%
-        catastrophic --- and \emph{no} minimal or baseline at all --- because it
-        exists to train the stress classifier, where oversampling the
-        interesting region is correct. Averaging over that uniformly answers
-        $P(\text{flood} \mid \text{event is at least moderate})$, and
-        multiplying \emph{that} by a $\lambda$ counting all qualifying events
-        double-counts severity.
-\end{enumerate}
-
-\noindent The tell was the implied return period: a severe flood every
-\textbf{0.81 years}. A conditional probability is easy to misread; a severe
-flood every nine months is obviously wrong. That check is now built in
-(\texttt{implied\_return\_period\_years}) precisely so this class of error
-announces itself.
-
-\textbf{Fault 2 is fixed} --- the catalogue now carries population weights and
-the sampler draws proportionally, which moves the implied return period from
-roughly 1.9 to 3.4 years.
-
-\textbf{That is still not credible, and no repriced number should be quoted
-until it is.} The remaining error is fault 1, and it cannot be fixed by choosing
-a better threshold by hand. It needs the constraint already present in the
-design:
-
-\begin{equation}
-\lambda_{\text{catchment}} \times P(\text{flood} \mid \text{event}, g)
-\;\equiv\; \text{gauge } g\text{'s measured severe-exceedance rate}
-\end{equation}
-
-Until that identity is asserted against real gauge trigger levels, any
-conditional this layer produces is unfalsifiable. \textbf{Anchoring it is
-Stage~3 work, and no repricing figure belongs in this document before then.}
-
-Two open questions the anchoring will settle, recorded so they are not lost:
-
-\begin{itemize}[nosep]
-  \item The population weights are engineering-judgement seeds. How often a
-        qualifying Thames storm event is severe-or-worse is the input that most
-        directly sets the answer, and it wants an owner's view rather than a
-        modeller's guess.
-  \item Whether $\lambda = 4.5$/yr and the seeded weights are \emph{jointly}
-        consistent with observed severe-flood return periods, or whether one of
-        them has to move.
-\end{itemize}
-
-\subsection{Extraction against the existing calculation}
-
-On a thirty-year synthetic gauge record, at the severe trigger:
+Catalogue: 2112 storms to \textbf{1000 events} (2.11 storms per event). Event
+category mix 421 moderate, 336 severe, 197 extreme, 46 catastrophic ---
+\textbf{no minimal or baseline at all}, confirming the importance-weighting is
+load-bearing rather than theoretical. Coverage 0.27. $\lambda = 4.5$ events per
+year. Severe-or-worse population share calibrated to 8\% by the model owner.
 
 \begin{center}
-\begin{tabular}{@{}lr@{}}
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
-\textbf{Measure} & \textbf{Rate} \\
+\textbf{Gauge} & $P(\text{fl}\mid\text{ev})$ & \textbf{New} & \textbf{Old} & \textbf{Ratio} & \textbf{New RP} & \textbf{Old RP} \\
 \midrule
-Exceedance \textbf{days} per year --- what the statistics module reports today & 1.234 \\
-Declustered \textbf{events} per year & 0.967 \\
+GAUGE-419b4a25 & 0.0145 & 0.0632 & 0.1120 & 0.56$\times$ & 15.3y & 8.9y \\
+GAUGE-635036ec & 0.0124 & 0.0542 & 0.1272 & 0.43$\times$ & 17.9y & 7.9y \\
+GAUGE-789592e7 & 0.0125 & 0.0546 & 0.1022 & 0.53$\times$ & 17.8y & 9.8y \\
+SYNTH-182600fa & 0.0100 & 0.0440 & 0.1266 & 0.35$\times$ & 22.2y & 7.9y \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent A \textbf{28\% overstatement}, being the mean flood duration in days.
-This is the quantity the fix-and-promote removes.
+\noindent \textbf{Property leg:} 1100\,bps to 587\,bps (0.53$\times$), return
+period 9.1y to 16.5y. \textbf{Commercial leg:} all ten assets priced, 6.8 to
+518.1\,bps, with inclusion-exclusion and union/intersection ordering verified
+across the peril legs.
 
-The decomposition identity also holds exactly on that record: $\lambda \times
-P(\text{severe} \mid \text{event}) = 0.9672$ against a directly measured severe
-rate of $0.9672$. That identity is the per-gauge validation arm.
+The reprice is therefore \textbf{downward, 0.35$\times$--0.56$\times$}, not the
+upward move every earlier draft of this document predicted. The direction
+reversed twice during development --- first when population weighting was added,
+again when the coverage treatment was corrected --- which is the strongest
+argument in this document for not quoting a repricing figure until the mechanism
+beneath it is settled.
+
+Severe-flood return periods of 15--22 years against the legacy model's 8--10 may
+still be too benign for a typhoon-exposed catchment. The lever is the
+event-population weighting; it now behaves linearly and reproducibly, and a
+rebuild takes about ten seconds.
+
+\subsection{Extraction against the existing calculation}
+
+On a thirty-year synthetic gauge record, at the severe trigger, the existing
+statistics module reports \textbf{1.234} exceedance \emph{days} per year against
+\textbf{0.967} declustered \emph{events} --- a \textbf{28\% overstatement},
+being the mean flood duration in days. The fix-and-promote that removes it is
+still outstanding.
+
+\subsection{What has not been validated}
+\label{sec:notvalidated}
+
+\begin{itemize}[nosep]
+  \item \textbf{The wind leg has never run on real data.} Halong's wind damage
+        index holds asset identifiers that are not in the current commercial
+        portfolio --- the stale peril-timeseries steps the port run reports.
+        Every asset prices wind at zero, on the baseline as well as after the
+        change. The annualisation is covered by unit tests only, which is weaker
+        evidence than a real run.
+  \item \textbf{$\lambda$ itself remains a seed}, and on synthetic catchments
+        cannot be calibrated from the gauge record at all.
+\end{itemize}
 
 % ===========================================================================
 \section{Non-functional requirements}
@@ -865,46 +940,58 @@ The staging has changed from version~2.0. The year sampler was version~2.0's
 Stage~6 and is now built, because it became the engine rather than a deferred
 extension. Stage~1 is correspondingly larger and partly done.
 
-\begin{longtable}{@{}p{0.06\textwidth}p{0.56\textwidth}p{0.14\textwidth}p{0.16\textwidth}@{}}
+\begin{longtable}{@{}p{0.05\textwidth}p{0.53\textwidth}p{0.15\textwidth}p{0.17\textwidth}@{}}
 \toprule
 \textbf{Stage} & \textbf{Content} & \textbf{State} & \textbf{Reprices?} \\
 \midrule
 \endhead
 1a & Event-definition alignment; event catalogue; peaks-over-threshold
-extraction with declustering; per-catchment $\lambda$; \texttt{num\_events} &
-\textbf{Done} & Denominator only, not yet consumed \\
+extraction; per-catchment $\lambda$; \texttt{num\_events} & \textbf{Done} &
+Denominator only \\
 \addlinespace
 1b & Monte Carlo year sampler; shared draws; closed-form reconciliation gate &
-\textbf{Done} \emph{(was Stage 6)} & Not yet consumed \\
+\textbf{Done} \emph{(was Stage 6)} & Not consumed directly \\
+\addlinespace
+--- & \emph{Unplanned, forced by calibration:} seed the response model;
+catalogue coverage & \textbf{Done} & \textbf{Yes} \\
+\addlinespace
+3 & Frequency layer wired into the hazard builder; legacy metric retained
+alongside & \textbf{Done} & \textbf{Yes} \\
+\addlinespace
+4 & Property, commercial, gauge-basis and wind legs; return periods &
+\textbf{Done} & \textbf{Yes} \\
 \addlinespace
 1c & Day-count fix-and-promote; $\lambda$ and provenance persisted through the
 \texttt{database} seam & To do & No \\
 \addlinespace
-2 & Poisson and NegBin families; dispersion selection; override logging;
-round-trip validation & To do & No \\
-\addlinespace
-3 & Simulation wired into \texttt{builder.py}; legacy metric behind a
-deprecation flag; \textbf{parallel-run repricing report on the real book} & To
-do & \textbf{Yes} \\
-\addlinespace
-4 & Property and gauge legs in \texttt{\_process.py}; return periods; clamp
-review; wind-leg decision & To do & \textbf{Yes} \\
+2 & Poisson and NegBin families; dispersion selection; round-trip validation &
+To do & No \\
 \addlinespace
 5 & Governance: inventory entry, model documentation, registry wiring,
-auto-generated validation report, monitoring job & To do & No \\
+validation report, monitoring job & To do & No \\
 \addlinespace
 6 & \emph{Separate approval:} loss-weighted year loss table, ELT export, wind
 $\lambda$ calibration, seasonal rates & To do & --- \\
 \bottomrule
 \end{longtable}
 
+\noindent The clamp review promised for Stage~4 --- the exceedance floor in the
+hazard builder and the 100-year return-period cap --- is \textbf{still
+outstanding}. Return periods now run 15--22 years, so neither clamp binds today,
+but they remain unreviewed and would bind at a lower severe-or-worse share.
+
 \subsection{Stage acceptance}
 
 \begin{itemize}[nosep]
   \item \textbf{S1a/S1b} --- \emph{met.} Event-granular loader covered;
         catalogue and sampler under test; the simulation reconciles with its
-        closed form; no pricing path consumes $\lambda$. 204 tests, 100\%
-        coverage on the frequency packages and the hazard I/O module.
+        closed form.
+  \item \textbf{S3/S4} --- \emph{met, with one gap.} Gauge, property, commercial
+        and wind legs price off the frequency layer; hazard curves are
+        reproducible across rebuilds; the port suite passed 2812 against a 2807
+        baseline with zero regressions; the legacy metric is retained alongside
+        for parallel run. \textbf{The wind leg has not been exercised on real
+        data} --- see Section~\ref{sec:notvalidated}.
   \item \textbf{S1c} --- peaks-over-threshold series reproducibly generated for
         all gauges; provenance complete and persisted through the seam; the
         day-count consumers repointed.
@@ -912,13 +999,10 @@ $\lambda$ calibration, seasonal rates & To do & --- \\
         recovery; calibration deterministic under fixed inputs; per-gauge
         selection report generated; round-trip recovers the injected rate within
         tolerance.
-  \item \textbf{S3} --- parallel-run report produced on the real book,
-        quantifying repricing per gauge; legacy metric still available behind
-        the flag; simulated and closed-form annual probabilities reconcile
-        within the sampling band.
-  \item \textbf{S4} --- property-level repricing quantified; clamp and wind-leg
-        decisions recorded; user interface and end-of-day consumers verified
-        against the renamed fields.
+  \item \textbf{Full-book parallel run} --- outstanding. Requires a port run
+        with the peril steps regenerated (L9), which is also what would first
+        exercise the wind leg.
+
   \item \textbf{S5} --- validation report reviewed and signed off; monitoring
         scheduled; legacy metric formally deprecated.
 \end{itemize}
@@ -929,61 +1013,62 @@ $\lambda$ calibration, seasonal rates & To do & --- \\
 These bite between Stage~3 and Stage~5. Each needs a decision before Stage~3
 lands.
 
-\begin{longtable}{@{}p{0.04\textwidth}p{0.24\textwidth}p{0.40\textwidth}p{0.26\textwidth}@{}}
+\begin{longtable}{@{}p{0.04\textwidth}p{0.24\textwidth}p{0.36\textwidth}p{0.30\textwidth}@{}}
 \toprule
 \textbf{\#} & \textbf{Landmine} & \textbf{Detail} & \textbf{Status} \\
 \midrule
 \endhead
-L1 & \textbf{Magnitude of the reprice} & $\lambda \equiv 1$ today, so a
-reprice is certain and material. Its size is \textbf{not yet measurable} --- the
-earlier 5.40$\times$ figure is withdrawn (Section~\ref{sec:measured}) and no
-replacement should be quoted until the conditional is anchored against real
-gauge trigger levels. & \textbf{Open, size unknown.} The Stage~3 parallel-run
-report on the real book is the gating business artefact. No switchover without
-it, and no number before it. \\
+L1 & \textbf{Magnitude of the reprice} & Measured at
+\textbf{0.35$\times$--0.56$\times$} at the calibrated 8\% share ---
+\emph{downward}. The direction reversed twice in development. & \textbf{Quantified,
+not signed off.} A full-book parallel run on regenerated data is the gating
+artefact. \\
+\addlinespace
+L2 & \textbf{Compensating clamps} & The exceedance floor and the 100-year
+return-period cap exist because return periods were fake. & \textbf{Open.}
+Neither binds at 15--22 years, but both remain unreviewed and would bind at a
+lower severe-or-worse share. \\
+\addlinespace
+L3 & \textbf{\texttt{num\_storms} is persisted and rendered} & Read by the user
+interface, the blotter and end-of-day. & \textbf{Resolved.} Kept, with
+\texttt{num\_events} beside it. No consumer changed. \\
+\addlinespace
+L4 & \textbf{End-of-day history spans the cut} & Stored hazard rates change
+semantics \emph{and} magnitude. & \textbf{Open, and wider than first thought.}
+The response-model seeding moves every curve independently of MKM-EF-001, so the
+discontinuity is not attributable to the frequency model alone. \\
+\addlinespace
+L5 & \textbf{Per-storm flood-event collapse} & --- & \textbf{Resolved, and the
+premise was wrong.} The property leg was already event-granular and already
+divided by the sequence count. Only $\lambda$ was missing. \\
+\addlinespace
+L6 & \textbf{Wind leg diverges} & Wind divided by the scenario count while flood
+was annualised, making the union and intersection legs incoherent. &
+\textbf{Resolved in code, unvalidated on data.} Both legs annualise on one frame
+in sequence space; halong cannot exercise it (L9). \\
+\addlinespace
+L7 & \textbf{Correlation is load-bearing} & Portfolio risk depends on subjects
+sharing one set of event draws; a per-subject caller would silently decorrelate
+the book (0.78 versus $-0.004$). & \textbf{Open.} Guard at the portfolio entry
+point; review point for any new caller. \\
 \addlinespace
 L8 & \textbf{Population weights are load-bearing and unvalidated} & The
-conditional scales directly with the seeded event-population weights. A wrong
-severe-or-worse share moves every spread proportionally, and nothing currently
-contradicts a wrong value. & \textbf{Open.} Needs an owner's view on how often a
-qualifying Thames event is severe-or-worse, and the Stage~3 anchoring to make a
-wrong value fail loudly. \\
+conditional scales directly with them; set to an 8\% severe-or-worse share on
+the owner's judgement. & \textbf{Open.} Nothing currently contradicts a wrong
+value; the per-gauge extraction arm is the intended check and depends on
+Stage~1c. \\
 \addlinespace
-L2 & \textbf{Compensating hacks become distortions} &
-\texttt{builder.py:87} clamps the exceedance probability up to 0.01;
-\texttt{MAX\_RETURN\_PERIOD:~100} caps return periods. Both exist \emph{because}
-return periods were fake. & Once return periods are real, both must be reviewed
-or removed. Removing them widens the tail --- quantify alongside L1. \\
+L9 & \textbf{Peril data is stale relative to the asset portfolio} & Halong's
+wind damage index holds asset identifiers absent from the current commercial
+portfolio, so every asset prices wind at zero --- before and after the change. &
+\textbf{Open.} A port run with the peril steps regenerated is required before
+the wind leg can be said to work. \\
 \addlinespace
-L3 & \textbf{\texttt{num\_storms} is persisted and rendered} & A stored field
-read by the user interface, the blotter and end-of-day. &
-\textbf{Resolved.} \texttt{num\_storms} kept, \texttt{num\_events} added beside
-it. Verified against the CDM property editor, hazard, storm-gauge and intensity
-suites --- no consumer changed. \\
-\addlinespace
-L4 & \textbf{End-of-day history spans the cut} & Stored
-\texttt{annual\_hazard\_rate\_*} values change semantics \emph{and} magnitude;
-historical series become non-comparable across the switchover date. & Mark the
-cut in the end-of-day record; do not silently backfill. \\
-\addlinespace
-L5 & \textbf{Per-storm flood events collapse} & Under an event definition,
-several storms in a sequence become one event; per-property flood counts drop
-even before $\lambda$ is applied. & \textbf{Open at the property leg.} Measured
-at the gauge leg: 2.34 storms per event, and the conditional \emph{rose} rather
-than fell. The property pipeline still counts per storm. \\
-\addlinespace
-L6 & \textbf{Wind leg diverges} & The wind union also divides by
-\texttt{num\_storms}. If flood is annualised and wind is not, the BOW and BAW
-union and joint legs become internally inconsistent. & \textbf{Open.} Either
-move both at Stage~4 or explicitly freeze the wind leg on the legacy metric with
-a recorded justification. \\
-\addlinespace
-L7 & \textbf{Correlation is now load-bearing} & Portfolio risk depends on
-subjects sharing one set of event draws. A future caller that ran the
-single-subject convenience wrapper per subject would silently decorrelate the
-book --- measured at 0.78 versus $-0.004$. & \textbf{Open.} Guard at the
-portfolio entry point when Stage~4 wires it, and treat as a review point for any
-new caller. \\
+L10 & \textbf{Silent-zero class of failure} & Records not corresponding to the
+storm catalogue produced a confident 0.0 conditional from 110 genuine flood
+events, with no error. & \textbf{Resolved for this path.} The conditional now
+raises on unresolved identifiers. The same class may exist elsewhere and has not
+been swept for. \\
 \bottomrule
 \end{longtable}
 
