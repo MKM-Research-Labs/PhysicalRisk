@@ -305,11 +305,21 @@ class _ProcessMixin:
     def _get_gauge_severe_count(gauge_hc: Dict, num_storms: int = 0) -> int:
         """Get the number of severe flood events from a gauge.
 
-        Uses the GEV-calibrated annual_flood_prob_severe from gaugehc,
-        converted to a count via num_storms.  Falls back to the
-        sequence_gauge enriched severe_event_count if GEV is unavailable.
+        Prefers the raw catalogue count written by the hazard builder. That
+        count and the property's flood-event count are both plain tallies over
+        the same event catalogue, so the transmission rate formed from them is
+        a genuine ratio.
+
+        The older path — annual probability x scenario count — is retained only
+        for curves predating the frequency layer. It cannot be used once the
+        probability is annualised: multiplying an annual probability by an
+        event count mixes bases and produced transmission rates near 200%,
+        where the quantity is bounded by 1 by construction.
         """
+        raw = gauge_hc.get('severe_event_count')
+        if raw:
+            return raw
         prob = gauge_hc.get('annual_flood_prob_severe', 0)
         if prob > 0 and num_storms > 0:
             return round(prob * num_storms)
-        return gauge_hc.get('severe_event_count', 0)
+        return 0

@@ -152,6 +152,12 @@ class HazardCurveBuilder:
             legacy_severe = self.gev_fitter.exceedance_probability(
                 severe, shape, loc, scale)
 
+            # Raw catalogue count, for the basis leg. Not weighted and not
+            # annualised: it is compared against a property's raw flood-event
+            # count over the same catalogue, so it has to be on that basis.
+            severe_event_count = int(
+                catalogue.flood_flags(gauge_id, severe).sum())
+
             # Term structures
             term_structure_alert = compute_term_structure(prob_alert)
             term_structure_warning = compute_term_structure(prob_warning)
@@ -195,6 +201,7 @@ class HazardCurveBuilder:
                     catalogue.implied_return_period_years(
                         gauge_id, severe, lambda_per_year)),
                 legacy_annual_flood_prob_severe=legacy_severe,
+                severe_event_count=severe_event_count,
             )
 
             hazard_curves[gauge_id] = hazard_curve
