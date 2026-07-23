@@ -96,3 +96,17 @@ class GaugeHazardCurve:
     # Metadata
     num_storms_simulated: int
     simulation_timestamp: str
+
+    # Event frequency layer (MKM-EF-001). Optional so that a curve built
+    # without the frequency layer still constructs; when present, the annual
+    # probabilities above are derived from these rather than being a per-event
+    # conditional relabelled as annual.
+    num_events_simulated: int = 0
+    lambda_per_year: float = 0.0
+    event_exceedance_prob_alert: float = 0.0
+    event_exceedance_prob_warning: float = 0.0
+    event_exceedance_prob_severe: float = 0.0
+    implied_return_period_severe_years: float = 0.0
+    # The pre-frequency metric, retained for parallel-run comparison until the
+    # switchover is signed off.
+    legacy_annual_flood_prob_severe: float = 0.0

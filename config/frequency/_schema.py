@@ -53,6 +53,10 @@ SOURCE_DATASET_GAUGE_DAILY: str = "gauge_historical_daily"
 # this phase, with wind, fire and seismic attaching later.
 PERIL_FLOOD: str = "flood"
 
+# Key carried on each storm dict naming the hours-clause event it belongs to.
+# Written by the hazard loader, read by the frequency layer.
+SEQUENCE_ID_KEY: str = "sequence_id"
+
 # Storm intensity categories in ascending severity. An event's category is the
 # most severe category among the storms in its sequence.
 INTENSITY_SEVERITY_ORDER: Tuple[str, ...] = (

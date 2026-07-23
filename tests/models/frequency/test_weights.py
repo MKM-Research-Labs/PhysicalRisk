@@ -319,3 +319,27 @@ def test_apply_catalogue_reports_the_unweighted_mean_without_weights():
                              SimulationConfig(n_years=1_000))
     assert apply_catalogue(draws, flags).p_event == pytest.approx(
         float(flags.mean()))
+
+
+# ------------------------------------------------------- the annualisation seam
+
+def test_annual_rate_is_lambda_times_the_conditional():
+    from models.frequency import annual_exceedance_rate
+    assert annual_exceedance_rate(4.5, 0.1) == pytest.approx(0.45)
+
+
+def test_annual_rate_clamps_negative_inputs():
+    from models.frequency import annual_exceedance_rate
+    assert annual_exceedance_rate(-1.0, 0.1) == 0.0
+    assert annual_exceedance_rate(4.5, -0.1) == 0.0
+
+
+def test_return_period_is_the_reciprocal_rate():
+    from models.frequency import return_period_years
+    assert return_period_years(4.5, 0.1) == pytest.approx(1 / 0.45)
+
+
+def test_a_zero_rate_gives_an_infinite_return_period():
+    from models.frequency import return_period_years
+    assert return_period_years(4.5, 0.0) == float("inf")
+    assert return_period_years(0.0, 0.1) == float("inf")

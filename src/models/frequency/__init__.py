@@ -43,6 +43,11 @@ Stage 2; nothing here is consumed for pricing yet.
 Per rule R4 this module contains no function definitions — only re-exports.
 """
 
+from .annualise import (
+    annual_exceedance_probability,
+    annual_exceedance_rate,
+    return_period_years,
+)
 from .calibrate import calibrate_gauge_rate, fallback_reason, summarise
 from .datastructures import (
     CalibrationProvenance,
@@ -56,6 +61,9 @@ from .datastructures import (
 from .events import build_catalogue
 
 __all__ = [
+    "annual_exceedance_probability",
+    "annual_exceedance_rate",
+    "return_period_years",
     "build_catalogue",
     "EventCatalogue",
     "calibrate_gauge_rate",

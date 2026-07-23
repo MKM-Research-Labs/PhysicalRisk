@@ -41,9 +41,8 @@ from typing import Any, Dict, List, Sequence
 
 import numpy as np
 
-from models.hazard.io import event_id
-
 from ..datastructures import EventCatalogue
+from ._identity import event_id
 from ._weights import event_category, population_weights, storm_category
 
 
