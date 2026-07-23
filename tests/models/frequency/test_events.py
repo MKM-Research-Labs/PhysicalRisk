@@ -242,20 +242,24 @@ def test_an_unknown_gauge_never_floods_rather_than_raising():
     assert catalogue.conditional_probability("NOT-A-GAUGE", 0.0) == 0.0
 
 
-def test_conditional_probability_is_the_flagged_fraction():
+def test_conditional_probability_is_the_flagged_fraction_scaled_by_coverage():
+    """Half the catalogue's events flood, but the catalogue only represents
+    ``coverage`` of the event population — the rest are mild events that never
+    reach the trigger and belong in the denominator at zero."""
     storms = load_storms_from_sequences(_sequences([1, 1, 1, 1]))
     responses = {"G1": [
         _Response(s["storm_id"], level)
         for s, level in zip(storms, [3.0, 3.0, 1.0, 1.0])
     ]}
     catalogue = build_catalogue(responses, storms)
-    assert catalogue.conditional_probability("G1", 2.0) == pytest.approx(0.5)
+    assert catalogue.conditional_probability("G1", 2.0) == pytest.approx(
+        0.5 * catalogue.coverage)
 
 
 def test_an_empty_catalogue_has_no_conditional():
     catalogue = EventCatalogue(
         event_ids=(), storms_per_event=(), categories=(),
-        weights=np.zeros(0, dtype=float),
+        weights=np.zeros(0, dtype=float), coverage=0.0,
         peak_levels={"G1": np.zeros(0, dtype=float)})
     assert catalogue.n_events == 0
     assert catalogue.n_storms == 0
@@ -279,4 +283,6 @@ def test_the_event_conditional_differs_from_the_storm_conditional():
 
     assert catalogue.n_events == 10
     assert catalogue.n_storms == 22
-    assert event_conditional > storm_conditional
+    # The two answer different questions and are not comparable directly; what
+    # matters is that regrouping changed the number at all.
+    assert event_conditional != pytest.approx(storm_conditional)

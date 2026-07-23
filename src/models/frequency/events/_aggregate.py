@@ -43,7 +43,12 @@ import numpy as np
 
 from ..datastructures import EventCatalogue
 from ._identity import event_id
-from ._weights import event_category, population_weights, storm_category
+from ._weights import (
+    catalogue_coverage,
+    event_category,
+    population_weights,
+    storm_category,
+)
 
 
 def storm_to_event(storms: Sequence[Dict[str, Any]]) -> Dict[str, str]:
@@ -136,5 +141,6 @@ def build_catalogue(
         storms_per_event=tuple(storms_per_event),
         categories=tuple(categories),
         weights=population_weights(categories),
+        coverage=catalogue_coverage(categories),
         peak_levels=peak_levels,
     )

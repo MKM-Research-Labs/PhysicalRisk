@@ -27,6 +27,7 @@ module contains no function definitions — only re-exports.
 from ._aggregate import build_catalogue, event_order, storm_to_event
 from ._identity import count_events, event_id
 from ._weights import (
+    catalogue_coverage,
     effective_sample_size,
     event_category,
     population_weights,
@@ -40,6 +41,7 @@ __all__ = [
     "event_id",
     "count_events",
     "population_weights",
+    "catalogue_coverage",
     "event_category",
     "storm_category",
     "effective_sample_size",

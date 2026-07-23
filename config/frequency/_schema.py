@@ -57,6 +57,15 @@ PERIL_FLOOD: str = "flood"
 # Written by the hazard loader, read by the frequency layer.
 SEQUENCE_ID_KEY: str = "sequence_id"
 
+# Seed for the gauge response model's character and noise draws.
+#
+# These draws were previously unseeded, which made every hazard curve
+# irreproducible: twelve rebuilds of one gauge spanned 36-48% of the mean.
+# Seeding is per gauge and per (gauge, storm), derived from this value and the
+# identifiers, so a gauge's character does not shift when an unrelated gauge is
+# added to or removed from the portfolio.
+GAUGE_RESPONSE_SEED: int = 20260723
+
 # Storm intensity categories in ascending severity. An event's category is the
 # most severe category among the storms in its sequence.
 INTENSITY_SEVERITY_ORDER: Tuple[str, ...] = (
@@ -80,13 +89,19 @@ INTENSITY_SEVERITY_ORDER: Tuple[str, ...] = (
 # These weights reweight the catalogue back onto the population it is meant to
 # represent. They are engineering-judgement seeds: most qualifying storms are
 # unremarkable, and the tail thins by roughly a factor of three per category.
+# Calibrated 2026-07-23 to a severe-or-worse share of 8%, on the owner's
+# judgement. The internal 8:3:1 ratio across severe/extreme/catastrophic is
+# unchanged; only the tail's total mass moved (from 12%). On halong this puts
+# the severe-flood return period at roughly 7 years against the pre-frequency
+# model's 8-10, so the annualisation is no longer buying its reprice purely by
+# making floods more frequent.
 EVENT_POPULATION_WEIGHTS: Dict[str, float] = {
-    "minimal": 0.40,
-    "baseline": 0.30,
-    "moderate": 0.18,
-    "severe": 0.08,
-    "extreme": 0.03,
-    "catastrophic": 0.01,
+    "minimal": 0.420,
+    "baseline": 0.310,
+    "moderate": 0.190,
+    "severe": 0.053,
+    "extreme": 0.020,
+    "catastrophic": 0.007,
 }
 
 # Days per year used to convert a record span into a length in years. The
