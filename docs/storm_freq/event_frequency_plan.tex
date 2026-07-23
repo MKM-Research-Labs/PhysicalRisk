@@ -34,7 +34,7 @@
 \textbf{Document type} & Definition Document and Project Plan \\
 \textbf{Component}     & Event Frequency Model --- \texttt{MKM-EF-001} (new) \\
 \textbf{Version}       & 2.2 --- supersedes v1.0 of 22 July 2026 \\
-\textbf{Status}        & Stages 1a/1b, 3 and 4 implemented and wired to pricing \\
+\textbf{Status}        & Stages 1a/1b, 3 and 4 implemented, wired to pricing, and exercised end-to-end on real flood and wind data \\
 \textbf{Owner}         & CSO, MKM Research Labs \\
 \textbf{Proposed tier} & 1 (Maximum) \\
 \end{tabular}
@@ -86,6 +86,11 @@ C13 & \textbf{Stages 3 and 4 are built}: gauge, property, commercial and wind
 legs all price off the frequency layer & The reprice is \textbf{downward},
 0.35$\times$--0.56$\times$ at the calibrated weights, not the upward move
 earlier drafts predicted \\
+\addlinespace
+C15 & \textbf{The wind leg is validated on real data}; L6 and L9 close & A
+\texttt{-{}-typhoon} run put real wind through all ten commercial assets with
+the peril coherence checks passing. It also surfaced L12: the wind trigger is
+one global constant, not asset-differentiated \\
 \addlinespace
 C14 & \textbf{Two field-naming traps documented}, both of which produced
 confident wrong answers before being caught & \texttt{flood\_events[].storm\_id}
@@ -908,19 +913,60 @@ a run log}, not by 2800 passing tests --- the invariant that would have caught
 it is asserted nowhere. And it is the same class of units error this document
 already records twice, committed this time by the author of those warnings.
 
+\subsection{The wind leg, exercised at last}
+
+A second run with \texttt{-{}-typhoon} generated 1000 coupled typhoons and put
+real wind through the peril legs for the first time.
+
+\begin{center}
+\begin{tabular}{@{}lp{0.42\textwidth}@{}}
+\toprule
+\textbf{Check} & \textbf{Result} \\
+\midrule
+Commercial assets with a non-zero wind leg & \textbf{10 of 10} \\
+Inclusion-exclusion; union $\geq$ both legs; intersection $\leq$ either & \textbf{PASS} \\
+Hazard curves reproducible across rebuilds & \textbf{Identical} \\
+Flood transmission rate & \textbf{55.7\%} property, \textbf{29.7\%} commercial \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The peril fan is live throughout --- property \texttt{win} 295.6,
+\texttt{faw} 151.8, \texttt{fow} 760.8\,bps; commercial \texttt{win} 31.9,
+\texttt{faw} 24.2, \texttt{fow} 372.0\,bps. \textbf{L6 and L9 are both closed},
+and the transmission rates confirm the units fix in a fresh run rather than in a
+patched rebuild.
+
+\paragraph{The wind trigger is not asset-differentiated.}
+All ten commercial assets trigger on the same five events. The wind field
+\emph{is} sampled per location --- \texttt{peak\_sustained\_ms} differs per
+asset --- but only in the fourth decimal, the portfolio being tightly
+clustered. The deciding quantity, \texttt{v\_50\_eff\_ms}, is \textbf{55.56 for
+every asset}: a Hotel, an Office, three MultiFamily and two Retail all share one
+vulnerability threshold. And 55.56\,m/s is exactly 200\,km/h
+($200 \div 3.6 = 55.5556$), a round design figure in one unit surfacing as a
+threshold in another. Wind exposure is therefore driven by a single global
+constant rather than by construction type. This sits in MKM-WD-001's territory,
+not this model's --- the annualisation is correct given whatever trigger it is
+handed --- but the wind spreads above describe one threshold, not asset-level
+resilience.
+
+\paragraph{Run cost.}
+The typhoon stage took 15 minutes for 1000 events at 100 particles, and the
+ensemble write a further $\sim$20 on a machine already deep into swap. A run
+that appears hung after the progress bar reaches 100\% is most likely still
+serialising.
+
 \subsection{What has not been validated}
 \label{sec:notvalidated}
 
 \begin{itemize}[nosep]
-  \item \textbf{The wind leg has never run on real data.} A clean run on
-        23~July~2026 established why, and it was not the reason first recorded:
-        the typhoon step is \textbf{opt-in and does not run under
-        \texttt{-{}-all}}. The peril timeseries steps regenerate correctly; they
-        simply have nothing current to consume, because the damage records are
-        left over from an earlier run and name asset identifiers that no longer
-        exist. Every asset prices wind at zero, on the baseline as well as after
-        the change. The outstanding check is a port run with
-        \texttt{-{}-typhoon}.
+  \item \textbf{Wind vulnerability is not asset-differentiated} (L12). The wind
+        leg now runs on real data and its arithmetic is verified, but the
+        trigger it consumes is one global constant, so the wind spreads describe
+        a threshold rather than a portfolio.
+  \item \textbf{No full-book parallel run.} Everything measured here is a single
+        small catchment: 3 gauges, 1 property, 10 commercial assets.
   \item \textbf{$\lambda$ itself remains a seed}, and on synthetic catchments
         cannot be calibrated from the gauge record at all.
 \end{itemize}
@@ -1093,13 +1139,27 @@ the owner's judgement. & \textbf{Open.} Nothing currently contradicts a wrong
 value; the per-gauge extraction arm is the intended check and depends on
 Stage~1c. \\
 \addlinespace
+L12 & \textbf{The wind trigger is a single global constant} &
+\texttt{v\_50\_eff\_ms} is 55.56\,m/s for every commercial asset regardless of
+construction type --- exactly 200\,km/h, a round figure in one unit appearing as
+a threshold in another. All ten assets consequently trigger on the same five
+events. & \textbf{Open, and outside this model.} MKM-WD-001 owns it. Any wind
+spread quoted from MKM-EF-001 inherits it. \\
+\addlinespace
+L13 & \textbf{The stale-lineage warning is unreliable} &
+\texttt{commercial\_peril\_ts} and \texttt{property\_peril\_ts} are reported
+stale after runs in which both demonstrably executed and produced triggers. &
+\textbf{Open.} A warning that cries wolf trains readers to ignore it, which is
+how the L9 root cause went misdiagnosed for a day. \\
+\addlinespace
 L9 & \textbf{The typhoon step is opt-in, so \texttt{-{}-all} produces no wind}
 & Corrected from a clean run. The peril timeseries steps \emph{do} regenerate;
 the fault is upstream. \texttt{-{}-all} does not run typhoon, so damage records
 are whatever a previous run left --- on halong, 25 asset identifiers with
 \textbf{zero overlap} against the 10 the run generated. The stale-lineage
-warning is a symptom, not the cause. & \textbf{Open.} Requires
-\texttt{-{}-typhoon} alongside \texttt{-{}-all}. \\
+warning is a symptom, not the cause. & \textbf{Resolved.} A run with
+\texttt{-{}-typhoon} put real wind through all ten assets and the coherence
+checks passed. The flag requirement stands as an operational note. \\
 \addlinespace
 L11 & \textbf{Pricing invariants are not asserted at write time} & The
 transmission-rate defect was caught by reading a run-log summary, not by the
