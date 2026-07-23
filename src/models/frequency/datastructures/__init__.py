@@ -26,12 +26,14 @@ Per rule R4 this module contains no function definitions — only re-exports.
 from ._catalogue import EventCatalogue
 from ._diagnostics import PotDiagnostics
 from ._extraction import Peak, PotExtraction
+from ._frame import EventFrame
 from ._provenance import CalibrationProvenance, ProvenanceClass
 from ._rate import FittedRate
 from ._simulation import EventDraws, YearSimulation
 
 __all__ = [
     "EventCatalogue",
+    "EventFrame",
     "PotDiagnostics",
     "Peak",
     "PotExtraction",

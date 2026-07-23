@@ -97,6 +97,18 @@ class PropertyHazardCurveGenerator(
         gauge_hazard, num_storms = self._load_gauge_hazard_curves()
         self.log(f"Loaded hazard curves for {len(gauge_hazard)} gauges ({num_storms} storms)")
 
+        # Event frame for the frequency layer (MKM-EF-001). Derived from the
+        # storm sequences alone, so the property leg can regroup its own
+        # per-asset flood records onto hours-clause events without needing
+        # anyone's gauge levels. A catchment with no sequences on disk prices
+        # on the pre-frequency metric rather than failing.
+        frame, lambda_per_year = self._load_event_frame(catchment)
+        if frame is not None:
+            self.log(
+                f"Event frame: {frame.n_storms} storms -> {frame.n_events} events, "
+                f"coverage {frame.coverage:.3f}, lambda {lambda_per_year}/yr"
+            )
+
         price_prs_func = self._get_prs_pricer()
 
         results = {}
@@ -122,7 +134,9 @@ class PropertyHazardCurveGenerator(
                 # rather than aborting the whole hazard-curve generation.
                 self.log(f"Skipping {asset_id}: {exc}")
                 pdata = None
-            result = self._process_property(pdata, gauge_hazard, price_prs_func, num_storms)
+            result = self._process_property(
+                pdata, gauge_hazard, price_prs_func, num_storms,
+                frame=frame, lambda_per_year=lambda_per_year)
             if result:
                 results[result['property_id']] = result
                 stats['properties_processed'] += 1

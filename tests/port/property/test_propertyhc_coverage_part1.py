@@ -64,7 +64,7 @@ class TestGeneratorSkippedProperty:
 
         original = gen._process_property
 
-        def returns_none(pf, gh, ppf, ns):
+        def returns_none(pf, gh, ppf, ns, **kwargs):
             return None
 
         with patch.object(gen, '_process_property', side_effect=returns_none):

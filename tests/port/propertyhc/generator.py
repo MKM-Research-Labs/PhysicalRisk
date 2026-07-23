@@ -68,7 +68,7 @@ class TestPropertyHazardCurveGenerator:
         assert prop1["property_id"] == "PROP-001"
         assert prop1["flood_count"] == 5
         assert prop1["has_gev"] is False
-        assert prop1["pricing_method"] == "event_count"
+        assert prop1["pricing_method"] == "event_frequency"
         assert prop1["gev_params"] is None
         assert "depth_thresholds" in prop1
         assert "term_structure" in prop1
@@ -77,7 +77,7 @@ class TestPropertyHazardCurveGenerator:
 
         prop2 = curves["PROP-002"]
         assert prop2["has_gev"] is False
-        assert prop2["pricing_method"] == "event_count"
+        assert prop2["pricing_method"] == "event_frequency"
         assert prop2["gev_params"] is None
 
     def test_gev_params_always_none(self, output_dir):
