@@ -27,7 +27,7 @@ import numpy as np
 
 import database
 from ..builder import HazardCurveBuilder
-from ._load import load_gauges, load_storms_from_sequences
+from ._load import count_events, load_gauges, load_storms_from_sequences
 from ._save import save_gauge_storm_responses, save_hazard_curves
 
 logger = logging.getLogger(__name__)
@@ -61,8 +61,13 @@ def build_hazard_curves(
         )
 
     storms = load_storms_from_sequences(sequences_data)
+    # An event is the hours-clause window a sequence occupies; a storm is one
+    # burst inside it. Both are reported: num_storms is what existing consumers
+    # read, num_events is the unit that carries an arrival rate.
+    num_events = count_events(storms)
     if verbose:
-        logger.info("Loaded %d individual storms from sequences", len(storms))
+        logger.info("Loaded %d individual storms from %d events",
+                    len(storms), num_events)
 
     gauge_portfolio = database.get_gauge_portfolio(catchment_id)
     if gauge_portfolio is None:
@@ -86,6 +91,7 @@ def build_hazard_curves(
 
     metadata = {
         'num_storms': len(storms),
+        'num_events': num_events,
         'distribution': distribution
     }
     save_hazard_curves(hazard_curves, catchment_id, metadata)
@@ -113,6 +119,7 @@ def build_hazard_curves(
         'summary': {
             'num_gauges': len(hazard_curves),
             'num_storms': len(storms),
+            'num_events': num_events,
             'avg_annual_prob_alert': avg_alert,
             'avg_annual_prob_warning': avg_warning,
             'avg_annual_prob_severe': avg_severe

@@ -171,3 +171,30 @@ class TestBuildHazardCurvesVerbose:
         info_msgs = [r for r in caplog.records if r.levelno == logging.INFO
                      and r.name == "models.hazard.io"]
         assert len(info_msgs) == 0
+
+
+class TestLoadEdgeCases:
+    """Pre-existing gaps in the loader, covered while events were added."""
+
+    def test_load_storms_reads_the_legacy_document(self, tmp_path):
+        """The legacy flat storms.json path, still reachable from the CLI."""
+        import json as _json
+        from models.hazard.io import load_storms
+
+        path = tmp_path / "storms.json"
+        path.write_text(_json.dumps({"storms": [{"storm_id": "ST-1"}]}))
+        assert load_storms(path) == [{"storm_id": "ST-1"}]
+
+    def test_load_gauges_rejects_an_empty_portfolio(self):
+        from models.hazard.io import load_gauges
+
+        with pytest.raises(ValueError, match="No gauges found"):
+            load_gauges({"wrong_key": []})
+
+    def test_load_gauges_rejects_a_gauge_without_an_id(self):
+        """A gauge that survives CDM mapping without an id would silently drop
+        out of every downstream lookup, so it fails loudly instead."""
+        from models.hazard.io import load_gauges
+
+        with pytest.raises(ValueError, match="no gauge_id"):
+            load_gauges({"flood_gauges": [{"Header": {}}]})

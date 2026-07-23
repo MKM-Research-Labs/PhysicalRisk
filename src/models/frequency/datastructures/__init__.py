@@ -18,28 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-I/O functions for hazard curve data — loading storms/gauges,
-saving hazard curves, and the main build_hazard_curves() entry point.
+"""Data structures for the Event Frequency Model (MKM-EF-001).
+
+Per rule R4 this module contains no function definitions — only re-exports.
 """
 
-from ._load import (
-    count_events,
-    event_id,
-    load_gauges,
-    load_storms,
-    load_storms_from_sequences,
-)
-from ._save import save_hazard_curves, save_gauge_storm_responses
-from ._build import build_hazard_curves
+from ._catalogue import EventCatalogue
+from ._diagnostics import PotDiagnostics
+from ._extraction import Peak, PotExtraction
+from ._provenance import CalibrationProvenance, ProvenanceClass
+from ._rate import FittedRate
+from ._simulation import EventDraws, YearSimulation
 
 __all__ = [
-    "load_storms",
-    "load_storms_from_sequences",
-    "load_gauges",
-    "event_id",
-    "count_events",
-    "save_hazard_curves",
-    "save_gauge_storm_responses",
-    "build_hazard_curves",
+    "EventCatalogue",
+    "PotDiagnostics",
+    "Peak",
+    "PotExtraction",
+    "CalibrationProvenance",
+    "ProvenanceClass",
+    "FittedRate",
+    "EventDraws",
+    "YearSimulation",
 ]

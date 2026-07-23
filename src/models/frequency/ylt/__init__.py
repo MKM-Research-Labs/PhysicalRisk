@@ -18,28 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-I/O functions for hazard curve data — loading storms/gauges,
-saving hazard curves, and the main build_hazard_curves() entry point.
+"""Year-loss-table sampling for the Event Frequency Model (MKM-EF-001).
+
+The Monte Carlo year simulation and the closed form that validates it. Per rule
+R4 this module contains no function definitions — only re-exports.
 """
 
-from ._load import (
-    count_events,
-    event_id,
-    load_gauges,
-    load_storms,
-    load_storms_from_sequences,
+from ._reconcile import (
+    analytic_annual_probability,
+    analytic_expected_floods,
+    reconcile,
+    sampling_standard_error,
 )
-from ._save import save_hazard_curves, save_gauge_storm_responses
-from ._build import build_hazard_curves
+from ._sample import (
+    apply_catalogue,
+    draw_event_years,
+    simulate_annual_counts,
+    simulate_years,
+)
 
 __all__ = [
-    "load_storms",
-    "load_storms_from_sequences",
-    "load_gauges",
-    "event_id",
-    "count_events",
-    "save_hazard_curves",
-    "save_gauge_storm_responses",
-    "build_hazard_curves",
+    "simulate_years",
+    "draw_event_years",
+    "apply_catalogue",
+    "simulate_annual_counts",
+    "analytic_annual_probability",
+    "analytic_expected_floods",
+    "reconcile",
+    "sampling_standard_error",
 ]

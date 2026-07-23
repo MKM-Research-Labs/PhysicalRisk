@@ -42,3 +42,4 @@ docs/models/*/test_results.*
 docs/models/*/test_results_standalone.tex
 docs/models/test_results/test_report.*
 logs/*.log
+docs/storm_freq/.build/
