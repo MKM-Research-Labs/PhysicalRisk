@@ -876,16 +876,51 @@ statistics module reports \textbf{1.234} exceedance \emph{days} per year against
 being the mean flood duration in days. The fix-and-promote that removes it is
 still outstanding.
 
+\subsection{The clean run}
+
+A full port with the frequency layer wired throughout (halong, 3 gauges, 1
+property, 10 commercial assets, 1000 sequences, 23~July~2026):
+
+\begin{center}
+\begin{tabular}{@{}lp{0.55\textwidth}@{}}
+\toprule
+\textbf{Check} & \textbf{Result} \\
+\midrule
+Hazard curves reproducible & \textbf{Identical} across rebuilds --- the seeding fix holds outside the test harness \\
+Gauge severe return period & \textbf{15.8--17.8 years} at $\lambda = 4.5$ and the 8\% share \\
+Property PRS & \textbf{587.2\,bps}, return period 16.5 years \\
+Commercial PRS & 10 assets, 75--606\,bps \\
+Wind leg & Zero everywhere --- see below \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The run also caught a defect no test had: \textbf{flood transmission
+rates of 183\%, 196\% and 200\%}, against a quantity bounded by 1 by
+construction. The basis leg derived its gauge count as annual probability times
+scenario count --- sound while that probability was a per-event conditional, and
+a units error the moment Stage~3 annualised it. The hazard builder now writes a
+raw catalogue count for the basis leg, and the rates return to 0.43--0.51. The
+headline spread is unaffected.
+
+Two things are worth drawing out. The error was found by a \emph{summary line in
+a run log}, not by 2800 passing tests --- the invariant that would have caught
+it is asserted nowhere. And it is the same class of units error this document
+already records twice, committed this time by the author of those warnings.
+
 \subsection{What has not been validated}
 \label{sec:notvalidated}
 
 \begin{itemize}[nosep]
-  \item \textbf{The wind leg has never run on real data.} Halong's wind damage
-        index holds asset identifiers that are not in the current commercial
-        portfolio --- the stale peril-timeseries steps the port run reports.
-        Every asset prices wind at zero, on the baseline as well as after the
-        change. The annualisation is covered by unit tests only, which is weaker
-        evidence than a real run.
+  \item \textbf{The wind leg has never run on real data.} A clean run on
+        23~July~2026 established why, and it was not the reason first recorded:
+        the typhoon step is \textbf{opt-in and does not run under
+        \texttt{-{}-all}}. The peril timeseries steps regenerate correctly; they
+        simply have nothing current to consume, because the damage records are
+        left over from an earlier run and name asset identifiers that no longer
+        exist. Every asset prices wind at zero, on the baseline as well as after
+        the change. The outstanding check is a port run with
+        \texttt{-{}-typhoon}.
   \item \textbf{$\lambda$ itself remains a seed}, and on synthetic catchments
         cannot be calibrated from the gauge record at all.
 \end{itemize}
@@ -1058,11 +1093,20 @@ the owner's judgement. & \textbf{Open.} Nothing currently contradicts a wrong
 value; the per-gauge extraction arm is the intended check and depends on
 Stage~1c. \\
 \addlinespace
-L9 & \textbf{Peril data is stale relative to the asset portfolio} & Halong's
-wind damage index holds asset identifiers absent from the current commercial
-portfolio, so every asset prices wind at zero --- before and after the change. &
-\textbf{Open.} A port run with the peril steps regenerated is required before
-the wind leg can be said to work. \\
+L9 & \textbf{The typhoon step is opt-in, so \texttt{-{}-all} produces no wind}
+& Corrected from a clean run. The peril timeseries steps \emph{do} regenerate;
+the fault is upstream. \texttt{-{}-all} does not run typhoon, so damage records
+are whatever a previous run left --- on halong, 25 asset identifiers with
+\textbf{zero overlap} against the 10 the run generated. The stale-lineage
+warning is a symptom, not the cause. & \textbf{Open.} Requires
+\texttt{-{}-typhoon} alongside \texttt{-{}-all}. \\
+\addlinespace
+L11 & \textbf{Pricing invariants are not asserted at write time} & The
+transmission-rate defect was caught by reading a run-log summary, not by the
+test suite. Bounded quantities --- transmission $\leq 1$, union $\geq$ both
+legs, intersection $\leq$ either --- hold by construction and are checked ad
+hoc, if at all. & \textbf{Open.} Assert them where the values are written, so a
+units error fails the run rather than being noticed by whoever reads the log. \\
 \addlinespace
 L10 & \textbf{Silent-zero class of failure} & Records not corresponding to the
 storm catalogue produced a confident 0.0 conditional from 110 genuine flood

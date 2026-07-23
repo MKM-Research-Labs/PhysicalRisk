@@ -659,15 +659,45 @@ On a thirty-year synthetic gauge record, at the severe trigger:
 A **28% overstatement**, being the mean flood duration in days. This is what
 §4.5's fix-and-promote removes; it is still outstanding (Stage 1c).
 
-### 6.5 What has NOT been validated
+### 6.5 The clean run
 
-- **The wind leg has never run on real data.** Halong's wind damage index holds
-  asset identifiers that are not in the current commercial portfolio — the stale
-  `commercial_peril_ts` and `property_peril_ts` steps the port run reports. Every
-  asset prices wind at zero, on the baseline as well as after the change. The
-  annualisation is covered by unit tests only, which is weaker evidence than a
-  real run, and a port run with the peril steps regenerated is the outstanding
-  check.
+A full port with the frequency layer wired throughout (halong, 3 gauges, 1
+property, 10 commercial assets, 1000 sequences, 2026-07-23):
+
+| Check | Result |
+|-------|--------|
+| Hazard curves reproducible across rebuilds | **Identical** — the seeding fix holds outside the test harness |
+| Gauge severe return period | **15.8–17.8 years** at λ = 4.5 and the 8% share |
+| Property PRS | **587.2 bps**, return period 16.5 years |
+| Commercial PRS | 10 assets, 75–606 bps |
+| Wind leg | Zero everywhere — see below |
+
+The run also caught a defect that no test had: **flood transmission rates of
+183%, 196% and 200%**, against a quantity bounded by 1 by construction. The
+basis leg derived its gauge count as annual probability × scenario count, which
+was sound while that probability was a per-event conditional and became a units
+error the moment Stage 3 annualised it. The hazard builder now writes a raw
+catalogue count for the basis leg to use, and the rates return to 0.43–0.51. The
+headline spread is unaffected, the basis leg feeding the decomposition display
+rather than the price.
+
+Two things worth drawing out. The error was found by a **summary line in a run
+log**, not by 2800 passing tests — the invariant that would have caught it
+(transmission ≤ 1) is not asserted anywhere. And it is the same class of units
+error this document records twice already (§4.11), committed this time by the
+author of those very warnings.
+
+### 6.6 What has NOT been validated
+
+- **The wind leg has never run on real data.** A clean run on 2026-07-23
+  established why, and it was not the reason first recorded here: the typhoon
+  step is **opt-in and does not run under `--all`**. The peril timeseries steps
+  regenerate correctly; they simply have nothing current to consume, because the
+  damage records are left over from an earlier run and reference asset
+  identifiers that no longer exist. Every asset prices wind at zero, on the
+  baseline as well as after the change. The annualisation is covered by unit
+  tests only — weaker evidence than a real run — and the outstanding check is a
+  port run with `--typhoon`.
 - **λ itself remains a seed**, and on synthetic catchments cannot be calibrated
   from the gauge record at all (§5).
 
@@ -761,7 +791,8 @@ These bite between Stage 3 and Stage 5. Each needs a decision before Stage 3 lan
 | L6 | **Wind leg diverges** | Wind divided by the scenario count while flood was annualised, making BOW/BAW union and intersection incoherent. | **Resolved in code, unvalidated on data.** Both legs annualise on the same frame in sequence space. Halong cannot exercise it — see L9. |
 | L7 | **Correlation is load-bearing** | Portfolio risk depends on subjects sharing one set of event draws; a caller running the single-subject wrapper per subject would silently decorrelate the book (0.78 versus −0.004). | **Open.** Guard at the portfolio entry point; review point for any new caller. |
 | L8 | **Population weights are load-bearing and unvalidated** | The conditional scales directly with `EVENT_POPULATION_WEIGHTS`. Set to an 8% severe-or-worse share on the owner's judgement. | **Open.** Nothing currently contradicts a wrong value; the per-gauge POT arm is the intended check and depends on Stage 1c. |
-| L9 | **Peril data is stale relative to the asset portfolio** | Halong's wind damage index holds asset identifiers absent from the current commercial portfolio, so every asset prices wind at zero — before and after the change. The port run reports `commercial_peril_ts` and `property_peril_ts` as stale. | **Open.** A port run with the peril steps regenerated is required before the wind leg can be said to work. |
+| L9 | **The typhoon step is opt-in, so `--all` produces no wind** | Corrected 2026-07-23 from a clean run. The peril timeseries steps *do* regenerate under `--all`; the fault is upstream. `--all` does not run typhoon, so the damage records are whatever a previous run left behind — on halong, 25 asset identifiers with **zero overlap** against the 10 assets the run generated, since assets take fresh identifiers each port. Every asset therefore prices wind at zero. The stale-lineage warning naming the peril timeseries steps is a symptom, not the cause. | **Open.** Requires `--typhoon` alongside `--all`. Until then the wind leg remains unexercised on real data. |
+| L11 | **Pricing invariants are not asserted at write time** | The transmission-rate defect (§6.5) was caught by reading a run-log summary, not by the test suite. Bounded quantities — transmission ≤ 1, union ≥ both legs, intersection ≤ either — hold by construction and are checked ad hoc, if at all. | **Open.** Assert them where the values are written, so a units error fails the run rather than being noticed by whoever happens to read the log. |
 | L10 | **Silent-zero class of failure** | Records that do not correspond to the storm catalogue produced a confident 0.0 conditional from 110 genuine flood events, with no error. | **Resolved for this path.** `conditional_probability` now raises on unresolved identifiers. The same class of failure may exist elsewhere in the chain and has not been swept for. |
 
 ## 10. Governance and registration
