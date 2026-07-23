@@ -65,3 +65,102 @@ class TestWindMixinCoverage:
         (dmg / "EVT-00002.json").write_text("not json")  # lines 119-120
         host = _Host(tmp_path)
         assert host._wind_damage_index() == {}
+
+
+class TestWindLegAnnualisation:
+    """The wind leg moves onto the frequency layer with the flood leg.
+
+    Leaving one annualised and the other not would make the union and
+    intersection legs internally inconsistent — the BOW/BAW products are
+    priced off exactly those two — so both move together or neither does.
+    """
+
+    @staticmethod
+    def _setup(tmp_path, wind_events=("EVT-00001",)):
+        """A host whose sequences pair 1:1 with typhoon events."""
+        dmg = tmp_path / "typhoon" / "damage"
+        dmg.mkdir(parents=True)
+        for event in wind_events:
+            _write(dmg / f"{event}.json", {"damages": [
+                {"property_id": "PROP-1", "peak_sustained_ms": 70.0,
+                 "threshold_ms": 50.0, "v_50_eff_ms": 50.0}]})
+        _write(tmp_path / "storm_sequences.json", {"sequences": [
+            {
+                "sequence_id": f"SEQ-{i}",
+                "event_id": f"EVT-{i:05d}",
+                "storms": [{
+                    "storm_id": f"ST-{i}", "precipitation_mm": 30.0,
+                    "duration_hours": 12, "intensity_factor": 1.0,
+                    "intensity_category": "severe",
+                }],
+            }
+            for i in range(4)
+        ]})
+        return _Host(tmp_path)
+
+    @staticmethod
+    def _frame(tmp_path):
+        from models.frequency import build_event_frame
+        from models.hazard.io import load_storms_from_sequences
+        return build_event_frame(load_storms_from_sequences(
+            json.loads((tmp_path / "storm_sequences.json").read_text())))
+
+    def test_without_a_frame_the_legacy_ratio_is_unchanged(self, tmp_path):
+        """An unmigrated caller must price exactly as it did before."""
+        host = self._setup(tmp_path)
+        result = host._wind_union("PROP-1", [], num_storms=100)
+        assert result["wind_count"] == 1
+        assert result["wind_spread_bps"] == 100.0      # 1 / 100
+
+    def test_with_a_frame_the_legs_are_annualised(self, tmp_path):
+        from models.frequency import annual_exceedance_probability
+        host = self._setup(tmp_path)
+        frame = self._frame(tmp_path)
+
+        result = host._wind_union(
+            "PROP-1", [], num_storms=100, frame=frame, lambda_per_year=4.5)
+
+        expected = annual_exceedance_probability(
+            4.5, frame.conditional_probability(["SEQ-1"]))
+        assert result["wind_spread_bps"] == round(expected * 10000, 2)
+        assert result["wind_spread_bps"] != 100.0
+
+    def test_union_and_intersection_stay_coherent(self, tmp_path):
+        """Union at least both legs, intersection at most either — the property
+        that makes BOW and BAW meaningful."""
+        host = self._setup(tmp_path, wind_events=("EVT-00001", "EVT-00002"))
+        frame = self._frame(tmp_path)
+        flood_events = [
+            {"flooded": True, "exceeded_severe": True, "storm_id": "SEQ-1"},
+            {"flooded": True, "exceeded_severe": True, "storm_id": "SEQ-3"},
+        ]
+
+        r = host._wind_union("PROP-1", flood_events, num_storms=100,
+                             frame=frame, lambda_per_year=4.5)
+
+        assert r["union_count"] == 3          # SEQ-1, SEQ-2, SEQ-3
+        assert r["joint_count"] == 1          # SEQ-1 only
+        assert r["union_spread_bps"] >= max(r["wind_spread_bps"], 0.0)
+        assert r["joint_spread_bps"] <= r["wind_spread_bps"]
+
+    def test_inclusion_exclusion_holds_on_counts(self, tmp_path):
+        host = self._setup(tmp_path, wind_events=("EVT-00001", "EVT-00002"))
+        frame = self._frame(tmp_path)
+        flood_events = [
+            {"flooded": True, "exceeded_severe": True, "storm_id": "SEQ-1"},
+            {"flooded": True, "exceeded_severe": True, "storm_id": "SEQ-3"},
+        ]
+        r = host._wind_union("PROP-1", flood_events, num_storms=100,
+                             frame=frame, lambda_per_year=4.5)
+        flood_count = 2
+        assert r["union_count"] == flood_count + r["wind_count"] - r["joint_count"]
+
+    def test_a_wind_event_with_no_paired_sequence_is_dropped(self, tmp_path):
+        """It cannot be placed on the flood timeline, so it cannot be unioned
+        with one. Counting it anyway would inflate the union leg."""
+        host = self._setup(tmp_path, wind_events=("EVT-99999",))
+        frame = self._frame(tmp_path)
+        r = host._wind_union("PROP-1", [], num_storms=100,
+                             frame=frame, lambda_per_year=4.5)
+        assert r["wind_count"] == 0
+        assert r["wind_spread_bps"] == 0.0

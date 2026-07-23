@@ -23,6 +23,7 @@
 from typing import Dict, List, Optional
 
 from models.floodrisk.depth_damage import is_prs_flood
+from models.frequency import annual_exceedance_probability
 from models.winddamage.threshold import is_prs_wind
 from port.src._typhoon_join import load_seq_to_event_map, load_wind_damage_index
 
@@ -35,7 +36,8 @@ class _WindMixin:
     # ------------------------------------------------------------------
 
     def _wind_union(self, prop_id: str, flood_events: List[Dict],
-                    num_storms: int) -> Optional[Dict]:
+                    num_storms: int, frame=None,
+                    lambda_per_year: float = 0.0) -> Optional[Dict]:
         """Count flood ∪ wind and flood ∩ wind PRS triggers for one property.
 
         Returns ``None`` when the catchment has no typhoon damage (flood-only
@@ -47,7 +49,19 @@ class _WindMixin:
         The wind trigger is :func:`is_prs_wind` (binary damage-onset). Each
         storm sequence carries its paired typhoon's ``event_id`` (Stage 2), so
         the flood leg (keyed by ``storm_id`` == ``sequence_id``) and the wind
-        leg (keyed by ``event_id``) meet in ``event_id`` space.
+        leg (keyed by ``event_id``) meet in *sequence* space: the wind side is
+        mapped back through the 1:1 pairing rather than the flood side being
+        mapped forward. Working in sequence space is what lets both legs be
+        annualised on the same event frame, and it removes the need to treat a
+        flood-triggered sequence with no paired typhoon as a special case —
+        it is simply a sequence that no wind event coincides with.
+
+        When *frame* and *lambda_per_year* are supplied, all three legs are
+        annualised through the frequency layer (MKM-EF-001). Without them the
+        pre-frequency count ratio is returned, so an unmigrated caller prices
+        exactly as before. Leaving flood annualised and wind not would make the
+        union and intersection legs internally inconsistent, which is why they
+        move together.
         """
         wind_index = self._wind_damage_index()
         if not wind_index:
@@ -60,32 +74,34 @@ class _WindMixin:
             if prop_id in pmap and is_prs_wind(pmap[prop_id])
         }
 
-        # Flood-triggered events, mapped storm_id → event_id. A flood-triggered
-        # storm with no paired event_id can't collide with a wind event, so it
-        # is counted on its own (keeps flood-only totals exact).
-        flood_eids = set()
-        flood_unmapped = 0
-        for e in flood_events:
-            if is_prs_flood(e):
-                eid = seq_to_event.get(e.get('storm_id', ''))
-                if eid:
-                    flood_eids.add(eid)
-                else:
-                    flood_unmapped += 1
+        # Everything is expressed in sequence space. The wind side is mapped
+        # back through the 1:1 pairing; a wind event with no paired sequence is
+        # dropped, because it cannot be placed on the flood timeline at all.
+        event_to_seq = {eid: sid for sid, eid in seq_to_event.items()}
+        wind_seqs = {event_to_seq[eid] for eid in wind_eids if eid in event_to_seq}
+        flood_seqs = {e.get('storm_id', '') for e in flood_events if is_prs_flood(e)}
+        flood_seqs.discard('')
 
-        wind_count = len(wind_eids)
-        union_count = len(flood_eids | wind_eids) + flood_unmapped
-        # Intersection (flood AND wind) lives in event_id space only — a
-        # flood-triggered storm with no event_id cannot also be a wind event.
-        joint_count = len(flood_eids & wind_eids)
-        bps = lambda c: round((c / num_storms) * 10000, 2) if num_storms > 0 else 0.0
+        union_seqs = flood_seqs | wind_seqs
+        joint_seqs = flood_seqs & wind_seqs
+
+        if frame is not None and lambda_per_year > 0:
+            def bps(seqs):
+                conditional = frame.conditional_probability(seqs)
+                return round(annual_exceedance_probability(
+                    lambda_per_year, conditional) * 10000, 2)
+        else:
+            def bps(seqs):
+                return (round((len(seqs) / num_storms) * 10000, 2)
+                        if num_storms > 0 else 0.0)
+
         return {
-            'wind_count': wind_count,
-            'union_count': union_count,
-            'joint_count': joint_count,
-            'wind_spread_bps': bps(wind_count),
-            'union_spread_bps': bps(union_count),
-            'joint_spread_bps': bps(joint_count),
+            'wind_count': len(wind_seqs),
+            'union_count': len(union_seqs),
+            'joint_count': len(joint_seqs),
+            'wind_spread_bps': bps(wind_seqs),
+            'union_spread_bps': bps(union_seqs),
+            'joint_spread_bps': bps(joint_seqs),
         }
 
     def _seq_to_event_map(self) -> Dict[str, str]:

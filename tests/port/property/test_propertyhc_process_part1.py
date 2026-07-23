@@ -223,3 +223,115 @@ class TestProcessPropertySummary:
         result = gen._process_property(prop_data, gauge_hazard, None, num_storms=100)
         if result["nearest_gauges"]:
             assert result["nearest_gauges"][0]["flood_transmission_rate"] == 0.0
+
+
+# ===========================================================================
+# _process_property — the frequency-layer path (MKM-EF-001)
+# ===========================================================================
+
+class TestFrequencyPricing:
+    """With an event frame the spread is annualised; without one the
+    pre-frequency numbers are reproduced exactly."""
+
+    @staticmethod
+    def _frame(n_events=10, category="severe"):
+        from models.frequency import build_event_frame
+        from models.hazard.io import load_storms_from_sequences
+        return build_event_frame(load_storms_from_sequences({"sequences": [
+            {
+                "sequence_id": f"S{i}",
+                "storms": [{
+                    "storm_id": f"ST-{i}", "precipitation_mm": 30.0,
+                    "duration_hours": 12, "intensity_factor": 1.0,
+                    "intensity_category": category,
+                }],
+            }
+            for i in range(n_events)
+        ]}))
+
+    def test_the_spread_is_annualised_through_the_frequency_layer(
+            self, basic_output_dir):
+        from models.frequency import annual_exceedance_probability
+
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-freq", n_floods=3)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        frame = self._frame()
+
+        result = gen._process_property(
+            pdata, gauge_hazard, None, num_storms=100,
+            frame=frame, lambda_per_year=4.5)
+
+        severe = result["depth_thresholds"]["severe"]
+        expected = annual_exceedance_probability(
+            4.5, frame.conditional_probability(["S0", "S1", "S2"]))
+
+        assert result["pricing_method"] == "event_frequency"
+        assert severe["annual_probability"] == pytest.approx(expected, abs=1e-8)
+        assert severe["event_flood_count"] == 3
+        assert severe["conditional_per_event"] > 0
+
+    def test_the_return_period_follows_the_annual_rate(self, basic_output_dir):
+        from models.frequency import return_period_years
+
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-rp", n_floods=2)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        frame = self._frame()
+
+        result = gen._process_property(
+            pdata, gauge_hazard, None, num_storms=100,
+            frame=frame, lambda_per_year=4.5)
+
+        severe = result["depth_thresholds"]["severe"]
+        expected = return_period_years(
+            4.5, frame.conditional_probability(["S0", "S1"]))
+        assert severe["return_period_yrs"] == pytest.approx(expected, abs=0.01)
+
+    def test_several_storms_in_one_event_price_once(self, basic_output_dir):
+        """Two flood records inside the same hours-clause event are one
+        breach of the contract, so they must not price as two."""
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-dedup", n_floods=2)
+        # Both records point at the same event.
+        for event in pdata["flood_events"]:
+            event["storm_id"] = "S0"
+
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        result = gen._process_property(
+            pdata, gauge_hazard, None, num_storms=100,
+            frame=self._frame(), lambda_per_year=4.5)
+
+        assert result["flood_count"] == 2
+        assert result["depth_thresholds"]["severe"]["event_flood_count"] == 1
+
+    def test_records_from_a_different_storm_set_are_refused(self, basic_output_dir):
+        """A confident small number from foreign records is worse than a
+        failure — this is the guard for the silent-zero regression."""
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-foreign", n_floods=2)
+        for event in pdata["flood_events"]:
+            event["storm_id"] = "FROM-ANOTHER-RUN"
+
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        with pytest.raises(ValueError, match="different storm sets"):
+            gen._process_property(
+                pdata, gauge_hazard, None, num_storms=100,
+                frame=self._frame(), lambda_per_year=4.5)
+
+    def test_without_a_frame_the_legacy_numbers_are_reproduced(
+            self, basic_output_dir):
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-legacy", n_floods=5)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+
+        result = gen._process_property(pdata, gauge_hazard, None, num_storms=100)
+
+        severe = result["depth_thresholds"]["severe"]
+        assert severe["annual_probability"] == pytest.approx(5 / 100)
+        assert severe["return_period_yrs"] == pytest.approx(20.0)
