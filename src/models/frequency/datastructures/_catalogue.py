@@ -45,12 +45,19 @@ class EventCatalogue:
             because the ratio of storms to events is the quantity that changes
             when pricing moves off a per-storm denominator, and it has to be
             reportable rather than inferred.
+        categories: each event's intensity category (its most severe storm's).
+        weights: sampling weight per event, summing to one. The catalogue is an
+            importance sample that oversamples severe categories, so these
+            reweight it onto the population a real year draws from. Uniform
+            weights would answer P(flood | event is at least moderate).
         peak_levels: gauge identifier to that gauge's peak level for each event,
             aligned with ``event_ids``.
     """
 
     event_ids: Tuple[str, ...]
     storms_per_event: Tuple[int, ...]
+    categories: Tuple[str, ...]
+    weights: np.ndarray
     peak_levels: Dict[str, np.ndarray]
 
     @property
@@ -93,6 +100,10 @@ class EventCatalogue:
         The conditional half of the decomposition: multiplied by the catchment
         arrival rate it gives the annual rate.
 
+        This is a **weighted** mean, not a plain one. Averaging uniformly over a
+        catalogue that oversamples severe storms answers P(flood | event is at
+        least moderate), which is a different and much larger number.
+
         Args:
             gauge_id: the gauge to test.
             threshold_m: the level defining a flood, in metres.
@@ -102,4 +113,25 @@ class EventCatalogue:
         """
         if self.n_events == 0:
             return 0.0
-        return float(self.flood_flags(gauge_id, threshold_m).mean())
+        return float(np.dot(self.flood_flags(gauge_id, threshold_m), self.weights))
+
+    def implied_return_period_years(
+        self, gauge_id: str, threshold_m: float, lambda_per_year: float
+    ) -> float:
+        """Return the flood return period this catalogue and rate imply.
+
+        The sanity check that a conditional on its own does not offer: a spread
+        is easy to misread, but a severe flood every nine months is obviously
+        wrong. Reported so it can be asserted against a plausible band.
+
+        Args:
+            gauge_id: the gauge to test.
+            threshold_m: the level defining a flood, in metres.
+            lambda_per_year: the catchment arrival rate.
+
+        Returns:
+            Years between floods, or infinity when the gauge never floods.
+        """
+        annual_rate = lambda_per_year * self.conditional_probability(
+            gauge_id, threshold_m)
+        return float("inf") if annual_rate <= 0 else 1.0 / annual_rate

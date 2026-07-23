@@ -44,6 +44,7 @@ import numpy as np
 from models.hazard.io import event_id
 
 from ..datastructures import EventCatalogue
+from ._weights import event_category, population_weights, storm_category
 
 
 def storm_to_event(storms: Sequence[Dict[str, Any]]) -> Dict[str, str]:
@@ -102,8 +103,15 @@ def build_catalogue(
     mapping = storm_to_event(storms)
 
     storms_per_event = [0] * len(events)
+    member_categories = [[] for _ in events]
     for storm in storms:
-        storms_per_event[index_of[mapping[storm["storm_id"]]]] += 1
+        position = index_of[mapping[storm["storm_id"]]]
+        storms_per_event[position] += 1
+        member_categories[position].append(storm_category(storm))
+
+    # An event's category is its most severe storm's, matching how its level is
+    # aggregated: the event is characterised by its worst moment.
+    categories = [event_category(members) for members in member_categories]
 
     peak_levels: Dict[str, np.ndarray] = {}
     for gauge_id, gauge_responses in responses.items():
@@ -127,5 +135,7 @@ def build_catalogue(
     return EventCatalogue(
         event_ids=tuple(events),
         storms_per_event=tuple(storms_per_event),
+        categories=tuple(categories),
+        weights=population_weights(categories),
         peak_levels=peak_levels,
     )

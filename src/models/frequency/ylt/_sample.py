@@ -47,6 +47,24 @@ from config.frequency import SimulationConfig
 from ..datastructures import EventDraws, YearSimulation
 
 
+def _conditional(flags: np.ndarray, weights: Optional[np.ndarray]) -> float:
+    """Return P(flood | event) for a subject under the sampling weights.
+
+    Args:
+        flags: per-event flood outcomes.
+        weights: per-event sampling weights, or None for a uniform catalogue.
+
+    Returns:
+        The weighted fraction of events that flood, or zero for an empty
+        catalogue.
+    """
+    if flags.size == 0:
+        return 0.0
+    if weights is None or weights.size != flags.size:
+        return float(flags.mean())
+    return float(np.dot(flags, weights))
+
+
 def simulate_annual_counts(
     lambda_per_year: float,
     n_years: int,
@@ -72,6 +90,7 @@ def draw_event_years(
     config: SimulationConfig,
     seed: Optional[int] = None,
     n_years: Optional[int] = None,
+    weights: Optional[np.ndarray] = None,
 ) -> EventDraws:
     """Draw the events arriving in each simulated year, once for a whole run.
 
@@ -84,6 +103,11 @@ def draw_event_years(
         config: simulation knobs supplying the year-count and seed defaults.
         seed: seed override; defaults to the configured seed.
         n_years: year-count override; defaults to the configured count.
+        weights: per-event sampling weights summing to one, from the
+            catalogue. Omitting them samples uniformly, which is only correct
+            for a catalogue that is already a fair sample of the event
+            population — the generated storm catalogue is not, so callers
+            should pass ``catalogue.weights``.
 
     Returns:
         An ``EventDraws`` carrying the per-year counts and the flat array of
@@ -97,8 +121,17 @@ def draw_event_years(
     if n_catalogue_events <= 0:
         counts = np.zeros(years, dtype=np.int64)
         indices = np.zeros(0, dtype=np.int64)
-    else:
+    elif weights is None or weights.size != n_catalogue_events:
         indices = rng.integers(0, n_catalogue_events, size=int(counts.sum()))
+    else:
+        # Inverse-transform sampling against the cumulative weights. Much faster
+        # than rng.choice(p=...) at these draw counts, which rebuilds the
+        # distribution on every call.
+        cumulative = np.cumsum(weights)
+        cumulative[-1] = 1.0
+        indices = np.searchsorted(
+            cumulative, rng.random(int(counts.sum())), side="right")
+        np.clip(indices, 0, n_catalogue_events - 1, out=indices)
 
     return EventDraws(
         n_years=years,
@@ -109,14 +142,20 @@ def draw_event_years(
     )
 
 
-def apply_catalogue(draws: EventDraws, event_floods: np.ndarray) -> YearSimulation:
+def apply_catalogue(
+    draws: EventDraws,
+    event_floods: np.ndarray,
+    weights: Optional[np.ndarray] = None,
+) -> YearSimulation:
     """Score one subject's catalogue outcomes against a set of year draws.
 
     Args:
         draws: the shared per-run event draws.
         event_floods: boolean array, one entry per catalogue event, True where
-            that event floods this subject. Every event is equally likely, the
-            catalogue being itself a sample from the event distribution.
+            that event floods this subject.
+        weights: the same per-event weights the draws used. Needed so the
+            reported conditional matches the population the draws came from;
+            omitting them reports the unweighted catalogue mean.
 
     Returns:
         A ``YearSimulation``. An empty catalogue yields a run with no floods
@@ -129,7 +168,7 @@ def apply_catalogue(draws: EventDraws, event_floods: np.ndarray) -> YearSimulati
         return YearSimulation(
             n_years=draws.n_years,
             lambda_per_year=draws.lambda_per_year,
-            p_event=float(flags.mean()) if flags.size else 0.0,
+            p_event=_conditional(flags, weights),
             events_per_year=draws.events_per_year,
             flood_events_per_year=np.zeros(draws.n_years, dtype=np.int64),
             seed=draws.seed,
@@ -146,7 +185,7 @@ def apply_catalogue(draws: EventDraws, event_floods: np.ndarray) -> YearSimulati
     return YearSimulation(
         n_years=draws.n_years,
         lambda_per_year=draws.lambda_per_year,
-        p_event=float(flags.mean()),
+        p_event=_conditional(flags, weights),
         events_per_year=draws.events_per_year,
         flood_events_per_year=floods,
         seed=draws.seed,
@@ -159,6 +198,7 @@ def simulate_years(
     config: SimulationConfig,
     seed: Optional[int] = None,
     n_years: Optional[int] = None,
+    weights: Optional[np.ndarray] = None,
 ) -> YearSimulation:
     """Run a single-subject year simulation.
 
@@ -172,10 +212,12 @@ def simulate_years(
         config: simulation knobs.
         seed: seed override; defaults to the configured seed.
         n_years: year-count override; defaults to the configured count.
+        weights: per-event sampling weights; see ``draw_event_years``.
 
     Returns:
         A ``YearSimulation``.
     """
     flags = np.asarray(event_floods, dtype=bool)
-    draws = draw_event_years(flags.size, lambda_per_year, config, seed, n_years)
-    return apply_catalogue(draws, flags)
+    draws = draw_event_years(
+        flags.size, lambda_per_year, config, seed, n_years, weights)
+    return apply_catalogue(draws, flags, weights)

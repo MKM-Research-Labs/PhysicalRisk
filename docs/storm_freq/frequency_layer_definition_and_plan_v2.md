@@ -515,32 +515,53 @@ closeness to the true expectation, not repeatability — a distinction worth
 holding onto, because the two are easily conflated when a number is described
 as "noisy".
 
-### 6.2 First repricing measurement
+### 6.2 Repricing: WITHDRAWN, not yet measurable
 
-On a 500-event synthetic catalogue averaging 2.34 storms per event, with the
-Thames seeded rate of 4.5 events/yr:
+**An earlier draft of this section reported a 5.40× reprice (1301 bps → 7030 bps).
+That figure is withdrawn.** It was not a model output. Two faults:
 
-| Quantity | Value | |
-|----------|-------|--|
-| P(flood \| storm) — priced as annual today | 0.1301 | **1301 bps** |
-| P(flood \| event) | 0.2740 | |
-| λ | 4.5/yr | |
-| P(flood in a year) | 0.7030 | **7030 bps** |
-| **Reprice factor** | **5.40×** | reconciling at 1.23σ |
+1. **The trigger level was invented.** The conditional came from an arbitrary
+   threshold applied to a synthetic catalogue, not from a gauge's severe-warning
+   level. Nothing anchored it.
+2. **The catalogue was resampled uniformly.** MKM-SS-001 generates its batches
+   from `DEFAULT_INTENSITY_WEIGHTS` — 40% moderate, 35% severe, 20% extreme, 5%
+   catastrophic, and **no minimal or baseline at all** — because it exists to
+   train the stress classifier, where oversampling the interesting region is
+   correct. Averaging over it uniformly answers `P(flood | event is at least
+   moderate)`, and multiplying *that* by a λ counting all qualifying events
+   double-counts severity.
 
-Two things to note.
+The tell was the implied return period: a severe flood every **0.81 years**.
+A conditional probability is easy to misread; a severe flood every nine months
+is obviously wrong. That check is now built in
+(`EventCatalogue.implied_return_period_years`) precisely so this class of error
+announces itself.
 
-First, **5.4× is above the 2–4× v2.0 estimated** in landmine L1, and the reason
-is that two effects compound rather than offset. Most of the move is the missing
-time dimension. But the conditional *itself* rises from 0.130 to 0.274, because
-regrouping strips more from the denominator (1168 storms → 500 events) than
-taking the maximum within an event costs the numerator. The denominator fix
-therefore pushes the **same way** as λ. This is exactly why the two were staged
-apart; had they landed together they could not have been attributed.
+**Fault 2 is fixed** — the catalogue now carries population weights (§4.7) and
+the sampler draws proportionally. On a replication of the arithmetic that
+correction moves the implied return period from 1.9 to 3.4 years.
 
-Second, this is a **synthetic catalogue at an arbitrary trigger level**, not the
-Thames book. It establishes the mechanism and the order of magnitude. The real
-figure requires a port run and is the Stage 3 deliverable.
+**That is still not credible, and no repriced number should be quoted until it
+is.** A 3.4-year severe flood remains far too frequent. The remaining error is
+fault 1, and it cannot be fixed by choosing a better threshold by hand — it
+needs the constraint that already exists in the design:
+
+```
+λ_catchment × P(flood | event, g)  ≡  gauge g's measured severe-exceedance rate
+```
+
+Until that identity is asserted against real gauge trigger levels, any
+conditional this layer produces is unfalsifiable. **Anchoring it is Stage 3
+work, and no repricing figure belongs in this document before then.**
+
+Two open questions the anchoring will settle, recorded so they are not lost:
+
+- The population weights (§4.2, `EVENT_POPULATION_WEIGHTS`) are
+  engineering-judgement seeds. How often a qualifying Thames storm event is
+  severe-or-worse is the input that most directly sets the answer, and it wants
+  an owner's view rather than a modeller's guess.
+- Whether λ = 4.5/yr and the seeded weights are *jointly* consistent with
+  observed severe-flood return periods, or whether one of them has to move.
 
 ### 6.3 Extraction against the existing calculation
 
@@ -632,12 +653,13 @@ These bite between Stage 3 and Stage 5. Each needs a decision before Stage 3 lan
 
 | # | Landmine | Detail | Status |
 |---|----------|--------|--------|
-| L1 | **Magnitude of the reprice** | λ ≡ 1 today. First measurement is **5.40×** on a synthetic catalogue (§6.2) — above v2.0's 2–4× estimate, because the denominator change compounds with λ instead of offsetting it. | **Open, and larger than expected.** The Stage 3 parallel-run report on the real book is the gating business artefact. No switchover without it. |
+| L1 | **Magnitude of the reprice** | λ ≡ 1 today, so a reprice is certain and material. Its size is **not yet measurable** — the earlier 5.40× figure is withdrawn (§6.2) and no replacement should be quoted until the conditional is anchored against real gauge trigger levels. | **Open, size unknown.** The Stage 3 parallel-run report on the real book is the gating business artefact. No switchover without it, and no number before it. |
 | L2 | **Two compensating hacks become distortions** | `src/models/hazard/builder.py:87` clamps `exc_prob` up to 0.01; `MAX_RETURN_PERIOD: 100` in `config/port/_storm.py` caps return periods. Both exist *because* return periods were fake. | **Open.** Once return periods are real, both must be reviewed or removed. Removing them widens the tail — quantify alongside L1. |
 | L3 | **`num_storms` is persisted and rendered** | A stored field read by the UI, the blotter and EOD. | **Resolved.** `num_storms` kept, `num_events` added beside it. Verified against the CDM property editor, hazard, stormgauge and intensity suites — no consumer changed. |
 | L4 | **EOD history spans the cut** | Stored `annual_hazard_rate_*` values change semantics *and* magnitude; historical series become non-comparable across the switchover date. | **Open.** Mark the cut in the EOD record; do not silently backfill. |
 | L5 | **Per-storm `flood_events` collapse** | Under an event definition, several storms in a sequence become one event; per-property flood counts drop even before λ is applied. | **Open at the property leg.** Measured at the gauge leg: 2.34 storms per event, and the conditional *rose* rather than fell (§6.2). The property pipeline still counts per storm. |
 | L6 | **Wind leg diverges** | `_wind_union` (`_process.py:70`) divides by `num_storms` too. If flood moves to an annual basis and wind does not, the BOW/BAW union and joint legs become internally inconsistent. | **Open.** Either move both at Stage 4 or explicitly freeze the wind leg on the legacy metric with a recorded justification. |
+| L8 | **Population weights are load-bearing and unvalidated** | The conditional scales directly with `EVENT_POPULATION_WEIGHTS`, which are engineering-judgement seeds. A wrong severe-or-worse share moves every spread proportionally, and nothing currently contradicts a wrong value. | **Open.** Needs an owner's view on how often a qualifying Thames event is severe-or-worse, and the Stage 3 anchoring to make a wrong value fail loudly. |
 | L7 | **Correlation is now load-bearing** | Portfolio risk depends on subjects sharing one set of event draws. A future caller that runs the single-subject convenience wrapper per subject would silently decorrelate the book — measured at 0.78 versus −0.004 (§4.8). | **Open.** Guard at the portfolio entry point when Stage 4 wires it, and treat as a review point for any new caller. |
 
 ---

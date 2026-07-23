@@ -254,7 +254,8 @@ def test_conditional_probability_is_the_flagged_fraction():
 
 def test_an_empty_catalogue_has_no_conditional():
     catalogue = EventCatalogue(
-        event_ids=(), storms_per_event=(),
+        event_ids=(), storms_per_event=(), categories=(),
+        weights=np.zeros(0, dtype=float),
         peak_levels={"G1": np.zeros(0, dtype=float)})
     assert catalogue.n_events == 0
     assert catalogue.n_storms == 0

@@ -53,6 +53,38 @@ SOURCE_DATASET_GAUGE_DAILY: str = "gauge_historical_daily"
 # this phase, with wind, fire and seismic attaching later.
 PERIL_FLOOD: str = "flood"
 
+# Storm intensity categories in ascending severity. An event's category is the
+# most severe category among the storms in its sequence.
+INTENSITY_SEVERITY_ORDER: Tuple[str, ...] = (
+    "minimal", "baseline", "moderate", "severe", "extreme", "catastrophic",
+)
+
+# Relative frequency of each intensity category among qualifying events in a
+# real year.
+#
+# THE CATALOGUE IS NOT A SAMPLE OF THIS DISTRIBUTION. MKM-SS-001 generates its
+# batches from config.port DEFAULT_INTENSITY_WEIGHTS — 40% moderate, 35%
+# severe, 20% extreme, 5% catastrophic, and no minimal or baseline at all —
+# because it exists to train the stress classifier, where oversampling the
+# interesting region is exactly right.
+#
+# Resampling that catalogue uniformly and calling the result P(flood | event)
+# therefore answers a different question: P(flood | event is at least
+# moderate). Multiplying that by a lambda counting ALL qualifying events
+# double-counts severity. Measured, it implied a severe flood every 0.81 years.
+#
+# These weights reweight the catalogue back onto the population it is meant to
+# represent. They are engineering-judgement seeds: most qualifying storms are
+# unremarkable, and the tail thins by roughly a factor of three per category.
+EVENT_POPULATION_WEIGHTS: Dict[str, float] = {
+    "minimal": 0.40,
+    "baseline": 0.30,
+    "moderate": 0.18,
+    "severe": 0.08,
+    "extreme": 0.03,
+    "catastrophic": 0.01,
+}
+
 # Days per year used to convert a record span into a length in years. The
 # fractional value keeps long records from drifting against leap years.
 DAYS_PER_YEAR: float = 365.25
@@ -121,6 +153,11 @@ class RateConfig:
             this the regional fallback is used and recorded in provenance.
         min_events_for_rate: fewest declustered peaks accepted for a per-gauge
             rate. Below this the regional fallback is used.
+        min_plausible_return_period_years: shortest severe-flood return period
+            a calibration may imply before it is flagged. A trigger breached
+            more often than this is not a severe flood.
+        max_plausible_return_period_years: longest return period before a
+            calibration is flagged as implausibly benign.
         regional_fallback_lambda_per_year: the rate assigned when a gauge record
             is too short or too sparse to support its own estimate.
         return_periods_years: the return-period grid reported in output tables.
@@ -128,6 +165,8 @@ class RateConfig:
 
     min_record_years: float = 5.0
     min_events_for_rate: int = 5
+    min_plausible_return_period_years: float = 2.0
+    max_plausible_return_period_years: float = 500.0
     regional_fallback_lambda_per_year: float = DEFAULT_LAMBDA_PER_YEAR
     return_periods_years: Tuple[int, ...] = (2, 5, 10, 25, 50, 100, 200)
 

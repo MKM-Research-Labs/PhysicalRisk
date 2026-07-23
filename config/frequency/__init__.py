@@ -35,6 +35,8 @@ from config.frequency._loader import (
 )
 from config.frequency._schema import (
     ANNUAL_BLOCK_DAYS,
+    EVENT_POPULATION_WEIGHTS,
+    INTENSITY_SEVERITY_ORDER,
     CATCHMENT_LAMBDA_PER_YEAR,
     DEFAULT_LAMBDA_PER_YEAR,
     DAYS_PER_YEAR,
@@ -59,6 +61,8 @@ __all__ = [
     "PERIL_FLOOD",
     "DAYS_PER_YEAR",
     "ANNUAL_BLOCK_DAYS",
+    "EVENT_POPULATION_WEIGHTS",
+    "INTENSITY_SEVERITY_ORDER",
     "CATCHMENT_LAMBDA_PER_YEAR",
     "DEFAULT_LAMBDA_PER_YEAR",
     "catchment_lambda",
