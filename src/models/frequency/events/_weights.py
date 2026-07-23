@@ -84,6 +84,33 @@ def event_category(categories: Sequence[str]) -> str:
     return max(categories, key=lambda name: _SEVERITY_RANK.get(name, 0))
 
 
+def catalogue_coverage(categories: Sequence[str]) -> float:
+    """Return the share of the event population the catalogue represents.
+
+    The generated catalogue contains no minimal or baseline events at all, and
+    those categories carry most of the population's mass. They are not missing
+    data — they are real events that simply never reach a flood trigger, so
+    they belong in the denominator at a conditional of zero.
+
+    Renormalising the weights onto the categories that happen to be present
+    would silently redistribute that mass to the severe end and overstate the
+    hazard; measured on halong it did so by a factor of 3.7. Reporting the
+    coverage separately keeps the sampling weights usable while letting the
+    conditional be scaled back onto the whole population.
+
+    Args:
+        categories: each event's intensity category.
+
+    Returns:
+        The population mass of the categories present, in ``[0, 1]``. Zero for
+        an empty catalogue.
+    """
+    if not categories:
+        return 0.0
+    present = set(categories)
+    return float(sum(EVENT_POPULATION_WEIGHTS.get(c, 0.0) for c in present))
+
+
 def population_weights(categories: Sequence[str]) -> np.ndarray:
     """Return sampling weights that reweight a catalogue onto the population.
 
@@ -93,6 +120,11 @@ def population_weights(categories: Sequence[str]) -> np.ndarray:
 
     Args:
         categories: each event's intensity category, in catalogue order.
+
+    These are *sampling* weights and are normalised to one, so drawing from
+    them draws a catalogue-representable event. They do not carry the fact that
+    such events are only a fraction of all events; that is
+    ``catalogue_coverage``, and the conditional must be scaled by it.
 
     Returns:
         Weights summing to one, aligned with *categories*. An empty catalogue

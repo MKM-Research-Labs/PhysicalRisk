@@ -206,7 +206,7 @@ def test_the_weighted_conditional_is_lower_than_the_unweighted_one():
 def test_an_empty_catalogue_has_no_conditional():
     catalogue = EventCatalogue(
         event_ids=(), storms_per_event=(), categories=(),
-        weights=np.zeros(0), peak_levels={"G1": np.zeros(0)})
+        weights=np.zeros(0), coverage=0.0, peak_levels={"G1": np.zeros(0)})
     assert catalogue.conditional_probability("G1", 1.0) == 0.0
 
 
@@ -263,10 +263,12 @@ def test_the_simulated_conditional_matches_the_catalogue():
     conditional — otherwise the gate compares against the wrong expectation."""
     catalogue = _catalogue()
     simulation = simulate_years(
-        catalogue.flood_flags("G1", 2.4), 4.5,
+        catalogue.flood_flags("G1", 2.4), catalogue.effective_lambda(4.5),
         SimulationConfig(n_years=5_000), weights=catalogue.weights)
 
-    assert simulation.p_event == pytest.approx(
+    # The sampler works within the catalogue, so its conditional is the
+    # within-catalogue one; scaling by coverage recovers the population figure.
+    assert simulation.p_event * catalogue.coverage == pytest.approx(
         catalogue.conditional_probability("G1", 2.4))
 
 
@@ -343,3 +345,68 @@ def test_a_zero_rate_gives_an_infinite_return_period():
     from models.frequency import return_period_years
     assert return_period_years(4.5, 0.0) == float("inf")
     assert return_period_years(0.0, 0.1) == float("inf")
+
+
+# --------------------------------------------------- coverage of the population
+
+def test_coverage_is_the_mass_of_the_categories_present():
+    from models.frequency.events import catalogue_coverage
+    assert catalogue_coverage(["moderate", "severe"]) == pytest.approx(
+        EVENT_POPULATION_WEIGHTS["moderate"] + EVENT_POPULATION_WEIGHTS["severe"])
+
+
+def test_coverage_of_an_empty_catalogue_is_zero():
+    from models.frequency.events import catalogue_coverage
+    assert catalogue_coverage([]) == 0.0
+
+
+def test_coverage_ignores_repeats():
+    from models.frequency.events import catalogue_coverage
+    assert catalogue_coverage(["severe"] * 50) == pytest.approx(
+        EVENT_POPULATION_WEIGHTS["severe"])
+
+
+def test_a_generated_catalogue_covers_only_part_of_the_population():
+    """The generated catalogue has no minimal or baseline events, and those
+    carry most of the population's mass. Coverage well below one is the whole
+    reason the conditional has to be scaled rather than renormalised."""
+    catalogue = _catalogue()
+    assert 0.0 < catalogue.coverage < 0.5
+
+
+def test_mild_events_are_counted_in_the_denominator_not_dropped():
+    """The regression for a 3.7x overstatement.
+
+    Renormalising the weights onto the categories that happen to be present
+    silently moves the missing mild-event mass to the severe end. Scaling by
+    coverage instead keeps those events in the denominator at a conditional of
+    zero, which is what they are."""
+    catalogue = _catalogue()
+    flags = catalogue.flood_flags("G1", 2.4)
+
+    renormalised = float(np.dot(flags, catalogue.weights))
+    population = catalogue.conditional_probability("G1", 2.4)
+
+    assert population == pytest.approx(renormalised * catalogue.coverage)
+    assert population < renormalised
+
+
+def test_effective_lambda_scales_the_rate_to_the_catalogue():
+    catalogue = _catalogue()
+    assert catalogue.effective_lambda(4.5) == pytest.approx(
+        4.5 * catalogue.coverage)
+
+
+def test_the_two_paths_agree_on_the_annual_rate():
+    """Scaling the conditional and scaling the rate must give the same annual
+    number, or the sampler and the closed form would disagree by construction."""
+    from models.frequency import annual_exceedance_rate
+    catalogue = _catalogue()
+    flags = catalogue.flood_flags("G1", 2.4)
+
+    via_conditional = annual_exceedance_rate(
+        4.5, catalogue.conditional_probability("G1", 2.4))
+    via_rate = annual_exceedance_rate(
+        catalogue.effective_lambda(4.5), float(np.dot(flags, catalogue.weights)))
+
+    assert via_conditional == pytest.approx(via_rate)

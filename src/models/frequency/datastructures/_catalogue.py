@@ -50,6 +50,12 @@ class EventCatalogue:
             importance sample that oversamples severe categories, so these
             reweight it onto the population a real year draws from. Uniform
             weights would answer P(flood | event is at least moderate).
+        coverage: the share of the whole event population these events
+            represent. The generated catalogue holds no minimal or baseline
+            events, and those carry most of the population's mass; they are
+            real events that simply never reach a trigger, so the conditional
+            must be scaled back onto the full population rather than the
+            weights being renormalised onto whatever is present.
         peak_levels: gauge identifier to that gauge's peak level for each event,
             aligned with ``event_ids``.
     """
@@ -58,6 +64,7 @@ class EventCatalogue:
     storms_per_event: Tuple[int, ...]
     categories: Tuple[str, ...]
     weights: np.ndarray
+    coverage: float
     peak_levels: Dict[str, np.ndarray]
 
     @property
@@ -100,9 +107,12 @@ class EventCatalogue:
         The conditional half of the decomposition: multiplied by the catchment
         arrival rate it gives the annual rate.
 
-        This is a **weighted** mean, not a plain one. Averaging uniformly over a
-        catalogue that oversamples severe storms answers P(flood | event is at
-        least moderate), which is a different and much larger number.
+        This is a **weighted** mean scaled by the catalogue's coverage, not a
+        plain average. Averaging uniformly over a catalogue that oversamples
+        severe storms answers P(flood | event is at least moderate); leaving
+        the coverage out answers P(flood | event is represented in the
+        catalogue). Both are larger than the quantity wanted here, which is
+        over every qualifying event.
 
         Args:
             gauge_id: the gauge to test.
@@ -113,7 +123,25 @@ class EventCatalogue:
         """
         if self.n_events == 0:
             return 0.0
-        return float(np.dot(self.flood_flags(gauge_id, threshold_m), self.weights))
+        within = float(np.dot(self.flood_flags(gauge_id, threshold_m), self.weights))
+        return within * self.coverage
+
+    def effective_lambda(self, lambda_per_year: float) -> float:
+        """Return the arrival rate of *catalogue-representable* events.
+
+        The year sampler draws from the catalogue, so it must be told how often
+        a catalogue-representable event arrives — not how often any qualifying
+        event does. Scaling the rate here and leaving the sampling weights
+        normalised is equivalent to scaling the conditional, and keeps the two
+        paths agreeing.
+
+        Args:
+            lambda_per_year: the catchment rate over all qualifying events.
+
+        Returns:
+            Catalogue-representable events per year.
+        """
+        return lambda_per_year * self.coverage
 
     def implied_return_period_years(
         self, gauge_id: str, threshold_m: float, lambda_per_year: float

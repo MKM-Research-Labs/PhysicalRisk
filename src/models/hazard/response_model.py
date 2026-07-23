@@ -31,7 +31,11 @@ Uses CDM field names from FloodGaugeCDM.create_mapping():
 
 from typing import Dict, List
 
+import hashlib
+
 import numpy as np
+
+from config.frequency import GAUGE_RESPONSE_SEED
 
 from .data_structures import GaugeResponse
 
@@ -39,15 +43,32 @@ from .data_structures import GaugeResponse
 class GaugeResponseModel:
     """Models gauge response to storm scenarios."""
 
-    def __init__(self, gauges: List[Dict]):
+    def __init__(self, gauges: List[Dict], seed: int = GAUGE_RESPONSE_SEED):
         """
         Initialize the response model.
 
         Args:
             gauges: List of gauge dictionaries (flattened via CDM)
+            seed: Run seed for the character and noise draws. Defaults to the
+                configured value; pass a different one to explore the response
+                model's own uncertainty deliberately rather than by accident.
         """
         self.gauges = gauges
+        self.seed = seed
         self._calculate_gauge_characteristics()
+
+    def _rng(self, *parts: str) -> np.random.Generator:
+        """Return a generator seeded from the run seed and the given labels.
+
+        Deriving the stream from the identifiers rather than drawing from one
+        global sequence keeps a gauge's character stable when an unrelated
+        gauge is added to or removed from the portfolio, and keeps a storm's
+        noise stable when the storm set is re-ordered. Without that, a curve
+        would move for reasons that have nothing to do with its own inputs.
+        """
+        label = "|".join((str(self.seed),) + parts)
+        digest = hashlib.sha256(label.encode("utf-8")).digest()
+        return np.random.default_rng(int.from_bytes(digest[:8], "big"))
 
     def _calculate_gauge_characteristics(self):
         """Calculate response characteristics for each gauge."""
@@ -63,7 +84,8 @@ class GaugeResponseModel:
 
             # Normal water level is BELOW alert threshold
             # Typically 50-70% of alert level
-            normal_level = flood_alert * np.random.uniform(0.5, 0.7)
+            rng = self._rng("char", gauge_id)
+            normal_level = flood_alert * rng.uniform(0.5, 0.7)
 
             # Response coefficient determines how much storm intensity
             # translates to water level rise. Calibrated so that:
@@ -75,7 +97,7 @@ class GaugeResponseModel:
             # normal level and severe warning
             level_range = severe_warning - normal_level
             base_response = level_range * 0.015
-            response_coef = base_response * np.random.uniform(0.8, 1.2)
+            response_coef = base_response * rng.uniform(0.8, 1.2)
 
             self.gauge_chars[gauge_id] = {
                 'response_coef': response_coef,
@@ -103,8 +125,9 @@ class GaugeResponseModel:
             storm['intensity_factor']
         )
 
-        # Add noise
-        level_change *= np.random.uniform(0.85, 1.15)
+        # Add noise, drawn per (gauge, storm) so it is stable under re-ordering
+        # of the storm set.
+        level_change *= self._rng("noise", gauge_id, storm['storm_id']).uniform(0.85, 1.15)
 
         peak_level = base_level + level_change
 
