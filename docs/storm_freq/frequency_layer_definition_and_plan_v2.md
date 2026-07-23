@@ -3,7 +3,7 @@
 **Document type:** Definition Document & Project Plan
 **Component:** Event Frequency Model — `MKM-EF-001` (new)
 **Version:** 2.2 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
-**Status:** Stages 1a/1b, 3 and 4 implemented and wired to pricing
+**Status:** Stages 1a/1b, 3 and 4 implemented, wired to pricing, and exercised end-to-end on real flood and wind data
 **Date:** 2026-07-23
 **Owner:** CSO, MKM Research Labs
 
@@ -22,6 +22,7 @@ problem this model was written to fix.
 | C11 | **The gauge response model was unseeded.** Fixed. Hazard curves were irreproducible at roughly ±40%; they are now byte-identical across rebuilds | Pre-existing, predating MKM-EF-001. Three `np.random.uniform` calls, two of which redrew each gauge's *character* on every build. The BCBS 239 reproducibility claim did not hold for this chain (§6.1) |
 | C12 | **Missing mild events were reweighted onto the severe end.** Fixed by scaling the conditional by catalogue *coverage* rather than renormalising the weights | The catalogue holds no minimal or baseline events, and those carry 73% of the population mass. A configured 8% severe-or-worse share became an effective 29.6%, a 3.7× overstatement (§4.9) |
 | C13 | **Stages 3 and 4 are built**: gauge, property, commercial and wind legs all price off the frequency layer | The reprice is **downward**, 0.35×–0.56× at the calibrated weights (§6.3), not the upward move earlier drafts predicted |
+| C15 | **The wind leg is validated on real data**; L6 and L9 close | A `--typhoon` run put real wind through all ten commercial assets with the peril coherence checks passing (§6.6). It also surfaced L12: the wind trigger is one global constant, not asset-differentiated |
 | C14 | **Two field-naming traps documented**, both of which produced confident wrong answers before being caught | `flood_events[].storm_id` holds *sequence* identifiers; `_load_gauge_hazard_curves` returns the *sequence* count while its caller names it `num_storms` (§4.11) |
 
 ### 0.2 What v2.1 changed
@@ -687,17 +688,53 @@ log**, not by 2800 passing tests — the invariant that would have caught it
 error this document records twice already (§4.11), committed this time by the
 author of those very warnings.
 
-### 6.6 What has NOT been validated
+### 6.6 The wind leg, exercised at last
 
-- **The wind leg has never run on real data.** A clean run on 2026-07-23
-  established why, and it was not the reason first recorded here: the typhoon
-  step is **opt-in and does not run under `--all`**. The peril timeseries steps
-  regenerate correctly; they simply have nothing current to consume, because the
-  damage records are left over from an earlier run and reference asset
-  identifiers that no longer exist. Every asset prices wind at zero, on the
-  baseline as well as after the change. The annualisation is covered by unit
-  tests only — weaker evidence than a real run — and the outstanding check is a
-  port run with `--typhoon`.
+A second run with `--typhoon` (2026-07-23, 15:01–15:36) generated 1000 coupled
+typhoons and put real wind through the peril legs for the first time.
+
+| Check | Result |
+|-------|--------|
+| Commercial assets with a non-zero wind leg | **10 of 10** |
+| Inclusion-exclusion on counts; union ≥ both legs; intersection ≤ either | **PASS** |
+| Hazard curves reproducible across rebuilds | **Identical** |
+| Flood transmission rate | **55.7%** property, **29.7%** commercial |
+
+The peril fan is live throughout — property `win` 295.6, `faw` 151.8, `fow`
+760.8 bps; commercial `win` 31.9, `faw` 24.2, `fow` 372.0 bps. **L6 and L9 are
+both closed**, and the transmission rates confirm the §6.5 units fix in a fresh
+run rather than in a patched rebuild.
+
+Two observations from the run that are *not* frequency-layer problems but which
+bear on any wind number quoted from it.
+
+**The wind trigger is not asset-differentiated.** All ten commercial assets
+trigger on the same five events. The wind field *is* sampled per location —
+`peak_sustained_ms` differs per asset — but only in the fourth decimal, the
+portfolio being tightly clustered. The deciding quantity, `v_50_eff_ms`, is
+**55.56 for every asset**: a Hotel, an Office, three MultiFamily and two Retail
+all share one vulnerability threshold. And 55.56 m/s is exactly 200 km/h
+(200 ÷ 3.6 = 55.5556), a round design figure in one unit surfacing as a
+threshold in another. Wind exposure is therefore currently driven by a single
+global constant rather than by construction type. This sits in MKM-WD-001's
+territory, not this model's — the annualisation is correct given whatever
+trigger it is handed — but it means the wind spreads above describe one
+threshold, not asset-level resilience.
+
+**Run cost.** The typhoon stage took 15 minutes for 1000 events at 100
+particles, and the ensemble write a further ~20 on a machine already deep into
+swap; the 69 MB `ensemble.json` and 2100 damage files are the bulk of it. A run
+that appears hung after the progress bar reaches 100% is most likely still
+serialising.
+
+### 6.7 What has NOT been validated
+
+- **Wind vulnerability is not asset-differentiated** (L12). The wind leg now
+  runs on real data and its arithmetic is verified, but the trigger it consumes
+  is one global constant, so the wind spreads describe a threshold rather than a
+  portfolio.
+- **No full-book parallel run.** Everything measured here is a single
+  small catchment: 3 gauges, 1 property, 10 commercial assets.
 - **λ itself remains a seed**, and on synthetic catchments cannot be calibrated
   from the gauge record at all (§5).
 
@@ -788,10 +825,12 @@ These bite between Stage 3 and Stage 5. Each needs a decision before Stage 3 lan
 | L3 | **`num_storms` is persisted and rendered** | Read by the UI, the blotter and end-of-day. | **Resolved.** Kept, with `num_events` added beside it. No consumer changed. |
 | L4 | **End-of-day history spans the cut** | Stored `annual_hazard_rate_*` change semantics *and* magnitude; series become non-comparable across the switchover. | **Open, and wider than first thought.** The response-model seeding (§6.1) moves every curve independently of MKM-EF-001, so the discontinuity is not attributable to the frequency model alone. Mark the cut; do not backfill. |
 | L5 | **Per-storm flood-event collapse** | | **Resolved — and the premise was wrong.** The property leg was already event-granular and already divided by the sequence count. The only thing missing was λ (§4.11). |
-| L6 | **Wind leg diverges** | Wind divided by the scenario count while flood was annualised, making BOW/BAW union and intersection incoherent. | **Resolved in code, unvalidated on data.** Both legs annualise on the same frame in sequence space. Halong cannot exercise it — see L9. |
+| L6 | **Wind leg diverges** | Wind divided by the scenario count while flood was annualised, making BOW/BAW union and intersection incoherent. | **Resolved and validated.** Both legs annualise on the same frame in sequence space; verified on real wind data with the coherence checks passing (§6.6). |
 | L7 | **Correlation is load-bearing** | Portfolio risk depends on subjects sharing one set of event draws; a caller running the single-subject wrapper per subject would silently decorrelate the book (0.78 versus −0.004). | **Open.** Guard at the portfolio entry point; review point for any new caller. |
 | L8 | **Population weights are load-bearing and unvalidated** | The conditional scales directly with `EVENT_POPULATION_WEIGHTS`. Set to an 8% severe-or-worse share on the owner's judgement. | **Open.** Nothing currently contradicts a wrong value; the per-gauge POT arm is the intended check and depends on Stage 1c. |
-| L9 | **The typhoon step is opt-in, so `--all` produces no wind** | Corrected 2026-07-23 from a clean run. The peril timeseries steps *do* regenerate under `--all`; the fault is upstream. `--all` does not run typhoon, so the damage records are whatever a previous run left behind — on halong, 25 asset identifiers with **zero overlap** against the 10 assets the run generated, since assets take fresh identifiers each port. Every asset therefore prices wind at zero. The stale-lineage warning naming the peril timeseries steps is a symptom, not the cause. | **Open.** Requires `--typhoon` alongside `--all`. Until then the wind leg remains unexercised on real data. |
+| L12 | **The wind trigger is a single global constant** | `v_50_eff_ms` is 55.56 m/s for every commercial asset regardless of construction type — exactly 200 km/h, a round figure in one unit appearing as a threshold in another. All ten assets consequently trigger on the same five events. Wind vulnerability is not asset-differentiated. | **Open, and outside this model.** MKM-WD-001 owns it; it connects to the open m/s-versus-km/h question already logged against the wind work. Any wind spread quoted from MKM-EF-001 inherits it. |
+| L13 | **The stale-lineage warning is unreliable** | `commercial_peril_ts` and `property_peril_ts` are reported stale after runs in which both demonstrably executed and produced triggers. | **Open.** A warning that cries wolf trains readers to ignore it, which is how the L9 root cause went misdiagnosed for a day. |
+| L9 | **The typhoon step is opt-in, so `--all` produces no wind** | Corrected 2026-07-23 from a clean run. The peril timeseries steps *do* regenerate under `--all`; the fault is upstream. `--all` does not run typhoon, so the damage records are whatever a previous run left behind — on halong, 25 asset identifiers with **zero overlap** against the 10 assets the run generated, since assets take fresh identifiers each port. Every asset therefore prices wind at zero. The stale-lineage warning naming the peril timeseries steps is a symptom, not the cause. | **Resolved.** A run with `--typhoon` on 2026-07-23 put real wind through all ten commercial assets and the peril coherence checks passed (§6.6). The flag requirement stands as an operational note: `--all` alone still produces no wind. |
 | L11 | **Pricing invariants are not asserted at write time** | The transmission-rate defect (§6.5) was caught by reading a run-log summary, not by the test suite. Bounded quantities — transmission ≤ 1, union ≥ both legs, intersection ≤ either — hold by construction and are checked ad hoc, if at all. | **Open.** Assert them where the values are written, so a units error fails the run rather than being noticed by whoever happens to read the log. |
 | L10 | **Silent-zero class of failure** | Records that do not correspond to the storm catalogue produced a confident 0.0 conditional from 110 genuine flood events, with no error. | **Resolved for this path.** `conditional_probability` now raises on unresolved identifiers. The same class of failure may exist elsewhere in the chain and has not been swept for. |
 
