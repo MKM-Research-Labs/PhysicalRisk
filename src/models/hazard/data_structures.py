@@ -107,6 +107,10 @@ class GaugeHazardCurve:
     event_exceedance_prob_warning: float = 0.0
     event_exceedance_prob_severe: float = 0.0
     implied_return_period_severe_years: float = 0.0
+    # Raw count of catalogue events exceeding the severe level at this gauge.
+    # Unweighted and unannualised on purpose: the basis leg compares it with a
+    # property's raw flood-event count, and the two must share a basis.
+    severe_event_count: int = 0
     # The pre-frequency metric, retained for parallel-run comparison until the
     # switchover is signed off.
     legacy_annual_flood_prob_severe: float = 0.0

@@ -335,3 +335,35 @@ class TestFrequencyPricing:
         severe = result["depth_thresholds"]["severe"]
         assert severe["annual_probability"] == pytest.approx(5 / 100)
         assert severe["return_period_yrs"] == pytest.approx(20.0)
+
+
+class TestTransmissionRateBasis:
+    """The transmission rate is bounded by 1 by construction — the gauge is on
+    the river, so a property cannot flood in more events than its gauge does.
+
+    Regression for a units error: once the gauge probability was annualised,
+    deriving a count as ``annual_probability x scenario_count`` mixed an annual
+    figure with an event tally and produced rates near 200%.
+    """
+
+    def test_the_raw_catalogue_count_is_preferred(self):
+        from port.src.property.propertyhc import PropertyHazardCurveGenerator as G
+        curve = {"severe_event_count": 214, "annual_flood_prob_severe": 0.06}
+        assert G._get_gauge_severe_count(curve, 1000) == 214
+
+    def test_an_annualised_probability_is_not_scaled_by_an_event_count(self):
+        """With the raw count present the annual probability must be ignored;
+        0.06 x 1000 = 60 would understate the gauge and push the rate above 1."""
+        from port.src.property.propertyhc import PropertyHazardCurveGenerator as G
+        curve = {"severe_event_count": 214, "annual_flood_prob_severe": 0.06}
+        assert G._get_gauge_severe_count(curve, 1000) != 60
+
+    def test_pre_frequency_curves_still_resolve(self):
+        """Curves written before the frequency layer carry no raw count."""
+        from port.src.property.propertyhc import PropertyHazardCurveGenerator as G
+        curve = {"annual_flood_prob_severe": 0.127}
+        assert G._get_gauge_severe_count(curve, 1000) == 127
+
+    def test_a_curve_with_neither_field_gives_zero(self):
+        from port.src.property.propertyhc import PropertyHazardCurveGenerator as G
+        assert G._get_gauge_severe_count({}, 1000) == 0
