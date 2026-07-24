@@ -43,7 +43,10 @@ from datetime import datetime
 
 import pytest
 
-from .models import TEST_MODEL_MAP, MODEL_INFO, MODEL_ALIASES
+from .models import MODEL_INFO, MODEL_ALIASES
+from .attribution import (
+    collectable_paths, format_reconciliation, paths_for_models, reconcile,
+)
 from .collector import TestResultCollector
 from .assertions import build_criteria_cache
 from .history import update_history
@@ -120,12 +123,7 @@ def run_tests(model_filter=None):
                     if alias_upper in full_id:
                         target_ids.add(full_id)
 
-        test_paths = []
-        for test_file, model_id in TEST_MODEL_MAP.items():
-            if model_id in target_ids:
-                full_path = os.path.join(_project_root, test_file)
-                if os.path.exists(full_path):
-                    test_paths.append(full_path)
+        test_paths = paths_for_models(target_ids, _project_root)
 
         if not test_paths:
             print(f'No test files found for models: {model_filter}')
@@ -146,7 +144,8 @@ def run_tests(model_filter=None):
         os.path.join(test_root, 'visual', 'phase'),
         os.path.join(test_root, 'visual', 'popup'),
         os.path.join(test_root, 'visual', 'utils'),
-        os.path.join(test_root, 'models', 'floodrisk', 'risk_analytics.py'),
+        # risk_analytics.py is no longer ignored: geopandas is installed, the
+        # suite passes, and ignoring it left MKM-RA-001 with no test evidence.
         os.path.join(test_root, 'models', 'floodrisk', 'risk_visualization.py'),
         os.path.join(test_root, 'models', 'prs', 'prs_pricing.py'),
     ]
@@ -181,12 +180,27 @@ def main():
                         help='Line coverage percentage to embed in report')
     parser.add_argument('--e2e-junit', dest='e2e_junit', default=None,
                         help='Path to E2E JUnit XML to include in report')
+    parser.add_argument('--reconcile-only', dest='reconcile_only',
+                        action='store_true',
+                        help='Check the attribution rules against the test '
+                             'tree and exit, without running any tests')
     args = parser.parse_args()
 
-    print('=' * 60)
-    print('MKM Research Labs — Model Test Results Generator')
-    print('=' * 60)
+    if not args.reconcile_only:
+        print('=' * 60)
+        print('MKM Research Labs — Model Test Results Generator')
+        print('=' * 60)
+        print()
+
+    # Reconcile before running: a rule that no longer resolves means a model has
+    # silently lost its evidence, and the fragment it writes below would be
+    # short by exactly that much with nothing in the output to say so.
+    reconciliation = reconcile(collectable_paths(_project_root))
+    print(format_reconciliation(reconciliation))
     print()
+
+    if args.reconcile_only:
+        return 0 if reconciliation.ok else 1
 
     results, duration = run_tests(args.model)
 
@@ -203,7 +217,7 @@ def main():
 
     if not results:
         print('\nNo test results collected.')
-        return
+        return 1
 
     run_timestamp = datetime.now()
 
@@ -268,6 +282,10 @@ def main():
             print('    pdflatex timed out.')
 
     print('\nDone.')
+
+    # The documents are written either way — they are still the best evidence
+    # available — but an unreconciled run is not a clean one.
+    return 0 if reconciliation.ok else 1
 
 
 if __name__ == '__main__':

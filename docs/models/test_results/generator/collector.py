@@ -24,7 +24,7 @@ import os
 
 from config import config
 
-from .models import TEST_MODEL_MAP
+from .attribution import model_for_path
 
 _project_root = str(config.get_project_root())
 
@@ -57,12 +57,13 @@ class TestResultCollector:
             rel_path = report.fspath
             if rel_path.startswith(_project_root):
                 rel_path = os.path.relpath(rel_path, _project_root)
+            rel_path = rel_path.replace(os.sep, '/')
 
             parts = report.nodeid.split('::')
             test_class = parts[1] if len(parts) > 2 else ''
             test_name = parts[-1]
 
-            model_id = TEST_MODEL_MAP.get(rel_path, 'PLATFORM')
+            model_id = model_for_path(rel_path)
 
             info = getattr(self, '_item_info', {}).get(report.nodeid, {})
 

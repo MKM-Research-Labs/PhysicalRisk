@@ -51,6 +51,10 @@ def _stub_run(monkeypatch, tmp_path):
     monkeypatch.setattr(cmd, '_parse_coverage_pct', lambda *a, **k: 99.1)
     monkeypatch.setattr(cmd, '_write_failures_report', lambda *a, **k: None)
     monkeypatch.setattr(cmd, 'check_live_services', lambda *a, **k: 0)
+    # Stubbed explicitly: it runs through the same sp.run as the pytest child,
+    # so without this its verdict would silently track the suite's return code
+    # instead of being the independent preflight it is.
+    monkeypatch.setattr(cmd, '_check_test_attribution', lambda *a, **k: 0)
     monkeypatch.setattr(cmd.config, 'get_reports_dir', lambda *a, **k: tmp_path)
 
     def _set(rc):
@@ -94,3 +98,18 @@ def test_aborts_with_one_when_preflight_blocks(_stub_run, monkeypatch):
     monkeypatch.setattr(cmd, 'check_live_services', lambda *a, **k: 1)
     _stub_run(0)
     assert cmd.cmd_test(_args()) == 1
+
+
+def test_aborts_with_one_when_attribution_is_stale(_stub_run, monkeypatch):
+    """Unreconciled attribution rules mean the model documents are wrong."""
+    monkeypatch.setattr(cmd, '_check_test_attribution', lambda *a, **k: 1)
+    _stub_run(0)
+    assert cmd.cmd_test(_args()) == 1
+
+
+def test_audit_alone_still_aborts_on_stale_attribution(_stub_run, monkeypatch):
+    """--audit has no suite verdict to report, but it does write the model
+    documents — so broken attribution is a reason to stop even here."""
+    monkeypatch.setattr(cmd, '_check_test_attribution', lambda *a, **k: 1)
+    _stub_run(0)
+    assert cmd.cmd_test(_args(unit=False, audit=True)) == 1

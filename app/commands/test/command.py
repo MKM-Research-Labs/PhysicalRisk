@@ -28,7 +28,9 @@ from config import config
 
 from .audit import _check_deps, _parse_coverage_pct, _run_audit_reports
 from .e2e import _run_e2e_tests
-from .helpers import _cleanup_worktree_data, _resolve_python
+from .helpers import (
+    _check_test_attribution, _cleanup_worktree_data, _resolve_python,
+)
 from .lineage import _run_data_lineage_tests
 from .reports import _write_failures_report
 from .services import check_live_services
@@ -153,6 +155,18 @@ def cmd_test(args):
             return 1
 
         _python_exe = _resolve_python(project_root)
+
+        # ---- Model-attribution preflight ----
+        # The per-model test documentation is driven by attribution rules that
+        # name files in tests/. Splitting or renaming a test file used to slip
+        # past those rules in silence, and the only symptom was a model's
+        # test_results.tex quietly getting shorter. Reconcile the rules against
+        # the tree first: it takes under a second, and it fails on the change
+        # that broke it rather than on the audit weeks later.
+        if do_unit or do_audit:
+            if _check_test_attribution(_python_exe, project_root) != 0:
+                return 1
+
         pytest_ok = True
         coverage_pct = None
         data_lineage_results = None

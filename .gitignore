@@ -41,5 +41,8 @@ docs/models/test_results/test_history.json
 docs/models/*/test_results.*
 docs/models/*/test_results_standalone.tex
 docs/models/test_results/test_report.*
+# Upload copies of the per-model unit test documents — same artefacts as
+# docs/models/*/test_results.pdf, renamed by scripts/package_unit_pdfs.py
+docs/models/test_results/unit/
 logs/*.log
 docs/storm_freq/.build/

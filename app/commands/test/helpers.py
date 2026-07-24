@@ -18,11 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Python-interpreter resolution and worktree data-cleanup helpers."""
+"""Python-interpreter resolution, attribution preflight and data-cleanup helpers."""
 
 import os
 import shutil
 import subprocess as sp
+
+
+def _check_test_attribution(python_exe, project_root):
+    """Reconcile the model attribution rules against the test tree.
+
+    Runs the documentation generator's own resolver rather than a second copy
+    of it, so the check and the documents can never disagree. Returns 0 when
+    every rule resolves to at least one collected test file and every
+    documented model has evidence, 1 otherwise.
+    """
+    result = sp.run(
+        [python_exe, '-m', 'docs.models.test_results.generator',
+         '--reconcile-only'],
+        cwd=str(project_root),
+    )
+    if result.returncode != 0:
+        print()
+        print('  ✗ Model test attribution is out of date — see above.')
+        print('    Fix the rules in '
+              'docs/models/test_results/generator/models.py, or re-run')
+        print('    without --unit/--audit to skip this check.')
+        print()
+    return result.returncode
 
 
 def _resolve_python(project_root):

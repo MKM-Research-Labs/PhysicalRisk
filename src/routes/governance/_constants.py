@@ -72,6 +72,8 @@ _MODEL_DOC_DIRS = {
     'MKM-WD-001': 'wind_damage',
     'MKM-FIRE-001': 'fire_resilience',
     'MKM-SEIS-001': 'seismic_resilience',
+    'MKM-TD-001': 'trading_desk',
+    'CDM-ALL': 'cdm_schema',
 }
 
 MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
