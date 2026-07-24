@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{Event Frequency Layer}
 \newcommand{\docsubtitle}{Definition Document and Project Plan --- MKM-EF-001}
-\newcommand{\docversion}{2.2}
-\newcommand{\docdate}{23-July-2026}
+\newcommand{\docversion}{2.3}
+\newcommand{\docdate}{24-July-2026}
 \newcommand{\docauthor}{David K Kelly, Chief Science Officer}
 
 \input{../shared/mkm_header}
@@ -33,8 +33,8 @@
 \begin{tabular}{ll}
 \textbf{Document type} & Definition Document and Project Plan \\
 \textbf{Component}     & Event Frequency Model --- \texttt{MKM-EF-001} (new) \\
-\textbf{Version}       & 2.2 --- supersedes v1.0 of 22 July 2026 \\
-\textbf{Status}        & Stages 1a/1b, 3 and 4 implemented, wired to pricing, and exercised end-to-end on real flood and wind data \\
+\textbf{Version}       & 2.3 --- supersedes v1.0 of 22 July 2026 \\
+\textbf{Status}        & Stages 1a/1b/1c, 3 and 4 implemented and wired to pricing; Stages 2 and 5 remain \\
 \textbf{Owner}         & CSO, MKM Research Labs \\
 \textbf{Proposed tier} & 1 (Maximum) \\
 \end{tabular}
@@ -58,7 +58,39 @@ Section~\ref{sec:repro}.
 % ===========================================================================
 \section{What changed from version 1}
 
-\subsection{What version 2.2 changes}
+\subsection{What version 2.3 changes}
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.42\textwidth}p{0.44\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Change} & \textbf{Driver} \\
+\midrule
+\endhead
+C16 & \textbf{The per-gauge validation arm is circular.} It cannot check
+$\lambda$, because the threshold search targets $\lambda$ & The
+peaks-over-threshold target is set \emph{from} the catchment rate, so the search
+finds whatever threshold delivers it and recovers the seed by construction.
+Halong returned 4.48--4.58 against a seed of 4.5. \textbf{Nothing now validates
+$\lambda$} \\
+\addlinespace
+C17 & \textbf{Stage 1c complete}: exceedance \emph{events} alongside exceedance
+\emph{days} in the statistics module; fitted rates and provenance persisted
+through the \texttt{database} seam & The day count was never a rate.
+Persistence closes the BCBS~239 traceability requirement \\
+\addlinespace
+C18 & \textbf{The wind threshold is traced and now per-asset.} 55.56\,m/s was a
+deliberate uniform constant (200\,km/h), not a unit bug;
+\texttt{DesignWindSpeedKmh} drives the threshold instead, and design speeds were
+raised 40\,km/h & Wind vulnerability was undifferentiated across a portfolio.
+L12 partially closes; the calibration question remains \\
+\addlinespace
+C19 & \textbf{L13 resolved}: the peril stages record the BRI spine they read,
+and a guard warns when any stage under-declares & The warning fired after every
+successful run and had already misled one root-cause investigation. The gap was
+real: a change to the BRI spine never invalidated the consuming step \\
+\bottomrule
+\end{longtable}
+
+\subsection{What version 2.2 changed}
 
 Wiring the layer into pricing and calibrating it on real halong data exposed
 three defects --- two of them pre-existing and more serious than the problem
@@ -970,6 +1002,58 @@ serialising.
   \item \textbf{$\lambda$ itself remains a seed}, and on synthetic catchments
         cannot be calibrated from the gauge record at all.
 \end{itemize}
+
+% ===========================================================================
+\section{The validation arm cannot validate lambda}
+\label{sec:circular2}
+
+Version~2.1 demoted per-gauge extraction from \emph{producing} $\lambda$ to
+\emph{validating} it. Running that validation on halong in Stage~1c showed it
+cannot do the job either, for a reason independent of the synthetic-record
+circularity.
+
+The peaks-over-threshold search target is set \textbf{from the catchment arrival
+rate} --- deliberately, so the qualifying-event threshold and $\lambda$ describe
+the same event population rather than drifting apart. But the search then picks
+whatever threshold delivers that rate, so the recovered rate equals the seed by
+construction:
+
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Gauge} & \textbf{Recovered $\lambda$} & \textbf{Seed} \\
+\midrule
+GAUGE-419b4a25 & 4.523 & 4.5 \\
+GAUGE-635036ec & 4.483 & 4.5 \\
+GAUGE-789592e7 & 4.583 & 4.5 \\
+SYNTH-74cf6170 & 4.503 & 4.5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent A quantity that reproduces its own input is not a measurement. The arm
+validates the \textbf{extraction code}, not the rate. Combined with the
+synthetic-record problem, \textbf{nothing in the platform currently constrains
+$\lambda$}, and landmine L8 is correspondingly wider than earlier versions of
+this document implied.
+
+Two things the arm can still say, and both are worth having:
+
+\begin{itemize}[nosep]
+  \item \textbf{Dispersion.} Halong's four gauges returned a dispersion index of
+        \textbf{0.46--0.97} --- annual counts \emph{less} variable than Poisson.
+        That bears directly on Stage~2: under-dispersion is fitted badly by
+        Poisson and worse by Negative Binomial, which models only the
+        over-dispersed side.
+  \item \textbf{The decomposition identity.} $\lambda \times P(\text{exceed}
+        \mid \text{event})$ reproducing a gauge's directly measured exceedance
+        rate remains a genuine consistency check on the composition,
+        independent of whether $\lambda$ itself is right.
+\end{itemize}
+
+Breaking the circularity needs a threshold anchored outside the rate being
+tested --- bankfull discharge, or a published national flood-frequency estimate
+--- and therefore real gauge data.
 
 % ===========================================================================
 \section{Non-functional requirements}
