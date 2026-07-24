@@ -35,22 +35,30 @@ a registry today.
 
 from typing import Dict, List, Optional
 
+from config.damage import (
+    COMMERCIAL_FLASH_MAJOR_M,
+    COMMERCIAL_FLASH_MINOR_M,
+    COMMERCIAL_WATER_MAJOR_M,
+    COMMERCIAL_WATER_MINOR_M,
+    COMMERCIAL_WIND_MAJOR_KPH,
+    COMMERCIAL_WIND_MINOR_KPH,
+)
+
 
 # -- Thresholds (constants per the SE-Asia commercial prototype set) -------
 
-# Wind (cyclone) — Grade A = 250 km/h, Grade B = 200 km/h. Stored in m/s.
-WIND_MAJOR_KPH: float = 250.0
-WIND_MINOR_KPH: float = 200.0
-WIND_MAJOR_MPS: float = round(WIND_MAJOR_KPH / 3.6, 2)   # 69.44
-WIND_MINOR_MPS: float = round(WIND_MINOR_KPH / 3.6, 2)   # 55.56
+# Wind (cyclone) — Grade A = major, Grade B = minor (damage onset).
+# The km/h levels are parameters and live in config.damage (rule R1); only the
+# m/s conversion is done here, so the unit change happens in one place.
+WIND_MAJOR_MPS: float = round(COMMERCIAL_WIND_MAJOR_KPH / 3.6, 2)
+WIND_MINOR_MPS: float = round(COMMERCIAL_WIND_MINOR_KPH / 3.6, 2)
 
-# Water (tsunami / storm-surge) — m above the gauge SevereFloodWarning level.
-WATER_MAJOR_M: float = 10.0
-WATER_MINOR_M: float = 5.0
-
-# Flash flood / fluvial — m above the gauge SevereFloodWarning level.
-FLASH_MAJOR_M: float = 5.0
-FLASH_MINOR_M: float = 3.0
+# Water and flash thresholds are parameters and live in config.damage (R1);
+# re-exported here under the local names the prototype table uses.
+WATER_MAJOR_M: float = COMMERCIAL_WATER_MAJOR_M
+WATER_MINOR_M: float = COMMERCIAL_WATER_MINOR_M
+FLASH_MAJOR_M: float = COMMERCIAL_FLASH_MAJOR_M
+FLASH_MINOR_M: float = COMMERCIAL_FLASH_MINOR_M
 
 
 # -- Measure code lists (per the spreadsheet ticks) ------------------------
