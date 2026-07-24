@@ -73,16 +73,37 @@ def extract_wind_threshold_mps(record: dict) -> Optional[float]:
     """Return the property's wind damage-onset threshold in m/s, or None if absent.
 
     Resolution order:
-        1. ProtectionMeasures.HazardProfile.WindThresholdMinorMps (preferred —
-           the damage-ONSET level the binary PRS wind trigger keys off)
+        0. ProtectionMeasures.HazardProfile.DesignWindSpeedKmh / 3.6 (preferred
+           — the speed THIS building was designed to withstand, so the speed at
+           which its damage begins)
+        1. ProtectionMeasures.HazardProfile.WindThresholdMinorMps (the BRI
+           damage-ONSET level, published per resilience grade)
         2. ProtectionMeasures.HazardProfile.WindThresholdMajorMps (severe-damage
            level; used when no Minor threshold is published)
         3. ProtectionMeasures.HazardProfile.WindThresholdKph / 3.6 (legacy)
 
-    Minor is preferred because PRS counts the onset of wind damage, not the
-    onset of *severe* damage: keying off the Major (catastrophic) level made
-    commercial wind effectively never trigger.
+    Design speed takes precedence because it is the only per-asset quantity in
+    the set. The BRI thresholds are uniform across the prototype catalogue, so
+    keying off them gave every asset in a portfolio an identical trigger and no
+    wind differentiation at all: on halong, all ten commercial assets fired on
+    the same five events out of a thousand.
+
+    Minor is preferred over Major for the same reason it always was: PRS counts
+    the onset of wind damage, not the onset of *severe* damage, and keying off
+    the Major (catastrophic) level made commercial wind effectively never
+    trigger.
     """
+    design_kph = _get_nested(
+        record, "ProtectionMeasures", "HazardProfile", "DesignWindSpeedKmh"
+    )
+    if design_kph is not None:
+        try:
+            design = float(design_kph)
+            if design > 0:
+                return design / 3.6
+        except (TypeError, ValueError):
+            pass  # unusable — fall through to the published thresholds
+
     for field in ("WindThresholdMinorMps", "WindThresholdMajorMps"):
         mps = _get_nested(record, "ProtectionMeasures", "HazardProfile", field)
         if mps is not None:

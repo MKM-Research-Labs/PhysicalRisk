@@ -124,6 +124,29 @@ WIND_V50_BASE_MS: float = 27.8
 # the unit conversion stays in one place.
 DEFAULT_WIND_THRESHOLD_KPH: float = 100.0
 
+# Commercial BRI operational wind thresholds, in km/h.
+#
+# These are the levels the BRI resilience grades are designed to withstand:
+# Grade A = major, Grade B = minor (damage onset). They are published into the
+# CDM as WindThresholdMajorMps / WindThresholdMinorMps.
+#
+# The minor level was lowered from 200 to 150 on 2026-07-24: at 200 km/h the
+# commercial wind trigger fired on 5 of 1000 events per asset, which made the
+# leg effectively inert. It now applies only as the fallback for assets with no
+# published DesignWindSpeedKmh, which takes precedence — see
+# models.winddamage.cdm.extract_wind_threshold_mps.
+COMMERCIAL_WIND_MAJOR_KPH: float = 250.0
+COMMERCIAL_WIND_MINOR_KPH: float = 150.0
+
+# Commercial BRI operational water (tsunami / storm-surge) and flash-flood /
+# fluvial thresholds, in metres above the gauge SevereFloodWarning level.
+# Grade A = major, Grade B = minor. Published into the CDM as
+# WaterThreshold*M / FlashThreshold*M.
+COMMERCIAL_WATER_MAJOR_M: float = 10.0
+COMMERCIAL_WATER_MINOR_M: float = 5.0
+COMMERCIAL_FLASH_MAJOR_M: float = 5.0
+COMMERCIAL_FLASH_MINOR_M: float = 3.0
+
 # ===========================================================================
 # Wind persistence  (duration-of-load factor)
 # ===========================================================================

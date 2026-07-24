@@ -142,10 +142,20 @@ class TestHalongOffice:
 class TestHalongThresholdConstants:
 
     def test_wind_thresholds_in_mps(self):
+        """The published thresholds are the configured km/h levels in m/s.
+
+        Derived from config rather than hardcoded: these are parameters (R1),
+        and a test asserting a literal breaks every time the level is retuned
+        while proving nothing about the conversion.
+        """
+        from config.damage import (
+            COMMERCIAL_WIND_MAJOR_KPH,
+            COMMERCIAL_WIND_MINOR_KPH,
+        )
+
         _, get = _gen_halong(0)
-        # 250 km/h -> 69.44 m/s, 200 km/h -> 55.56 m/s (rounded to 2dp).
-        assert get("WindThresholdMajorMps") == 69.44
-        assert get("WindThresholdMinorMps") == 55.56
+        assert get("WindThresholdMajorMps") == round(COMMERCIAL_WIND_MAJOR_KPH / 3.6, 2)
+        assert get("WindThresholdMinorMps") == round(COMMERCIAL_WIND_MINOR_KPH / 3.6, 2)
 
     def test_flash_thresholds_in_metres(self):
         _, get = _gen_halong(0)

@@ -20,6 +20,8 @@
 
 """Tests for models.winddamage.cdm — property record navigation."""
 
+import pytest
+
 from models.winddamage.cdm import (
     extract_bri_scores,
     extract_lon_lat,
@@ -239,3 +241,46 @@ class TestExtractLonLat:
         rec = {"PropertyHeader": {"Location": {
             "LongitudeDegrees": "bad", "LatitudeDegrees": None}}}
         assert extract_lon_lat(rec) == (None, None)
+
+
+class TestDesignSpeedPrecedence:
+    """DesignWindSpeedKmh drives the damage-onset threshold.
+
+    The BRI WindThreshold* fields are uniform across the prototype catalogue,
+    so keying off them gave every asset in a portfolio an identical trigger:
+    on halong all ten commercial assets fired on the same five events out of a
+    thousand. The design speed is the only per-asset quantity available.
+    """
+
+    @staticmethod
+    def _record(**hazard):
+        return {"ProtectionMeasures": {"HazardProfile": dict(hazard)}}
+
+    def test_design_speed_wins_over_the_published_threshold(self):
+        from models.winddamage.cdm import extract_wind_threshold_mps
+        rec = self._record(DesignWindSpeedKmh=120.0, WindThresholdMinorMps=41.67)
+        assert extract_wind_threshold_mps(rec) == pytest.approx(120 / 3.6)
+
+    def test_two_assets_with_different_design_speeds_differ(self):
+        """The whole point: a portfolio must not share one trigger."""
+        from models.winddamage.cdm import extract_wind_threshold_mps
+        weak = extract_wind_threshold_mps(self._record(DesignWindSpeedKmh=77.0))
+        strong = extract_wind_threshold_mps(self._record(DesignWindSpeedKmh=140.0))
+        assert weak < strong
+
+    def test_falls_back_to_the_published_threshold_without_a_design_speed(self):
+        from models.winddamage.cdm import extract_wind_threshold_mps
+        rec = self._record(WindThresholdMinorMps=41.67)
+        assert extract_wind_threshold_mps(rec) == pytest.approx(41.67)
+
+    def test_an_unusable_design_speed_falls_through(self):
+        from models.winddamage.cdm import extract_wind_threshold_mps
+        for bad in ("not-a-number", 0, -5):
+            rec = self._record(DesignWindSpeedKmh=bad, WindThresholdMinorMps=41.67)
+            assert extract_wind_threshold_mps(rec) == pytest.approx(41.67), bad
+
+    def test_the_minor_threshold_comes_from_config(self):
+        """R1: the km/h levels are parameters and live in the config package."""
+        from config.damage import COMMERCIAL_WIND_MINOR_KPH
+        from port.rand.shared.commercial.bri_codes import WIND_MINOR_MPS
+        assert WIND_MINOR_MPS == pytest.approx(COMMERCIAL_WIND_MINOR_KPH / 3.6, abs=0.01)
