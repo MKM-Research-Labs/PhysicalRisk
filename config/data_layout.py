@@ -51,6 +51,10 @@ PORTFOLIO_FILES = {
 
 # ── Hazard-curve documents (by scenario mode) ────────────────────────────────
 GAUGE_HAZARD_FILE = "gaugehc.json"
+
+# Per-gauge fitted event arrival rates and their calibration provenance
+# (MKM-EF-001). One document per catchment.
+FREQUENCY_RATES_FILE = "frequency_rates.json"
 PROPERTY_HAZARD_FILES = {
     "flood": "propertyhc.json", "shd": "propertyshd.json", "she": "propertyshe.json",
     "bri": "propertybri.json", "win": "propertywin.json", "faw": "propertyfaw.json",

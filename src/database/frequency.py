@@ -18,31 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Data structures for the Event Frequency Model (MKM-EF-001).
+"""Public API — fitted event arrival rates and their calibration provenance.
 
-Per rule R4 this module contains no function definitions — only re-exports.
+One document per catchment, keyed by gauge. Written by the frequency model
+(MKM-EF-001); read by anything that needs to know how often a qualifying event
+arrives, and on what evidence.
 """
 
-from ._catalogue import EventCatalogue
-from ._diagnostics import PotDiagnostics
-from ._extraction import Peak, PotExtraction
-from ._frame import EventFrame
-from ._provenance import CalibrationProvenance, ProvenanceClass
-from ._rate import FittedRate
-from ._serialise import rate_from_dict, rate_to_dict
-from ._simulation import EventDraws, YearSimulation
+from __future__ import annotations
 
-__all__ = [
-    "EventCatalogue",
-    "EventFrame",
-    "PotDiagnostics",
-    "Peak",
-    "PotExtraction",
-    "CalibrationProvenance",
-    "ProvenanceClass",
-    "FittedRate",
-    "rate_to_dict",
-    "rate_from_dict",
-    "EventDraws",
-    "YearSimulation",
-]
+from .backend import active_backend
+from ._helpers import load_or
+
+
+def get_frequency_rates(catchment):
+    """Return the fitted rate document for *catchment*, or None."""
+    return load_or("frequency_rates", catchment)
+
+def save_frequency_rates(catchment, payload):
+    """Persist the fitted rate document for *catchment*."""
+    active_backend().save("frequency_rates", catchment, payload)

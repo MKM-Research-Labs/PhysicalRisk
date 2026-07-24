@@ -62,6 +62,7 @@ from .classifiers import (
 from .context import active_catchment, catchment_context
 from .documents import iter_document_names, read_json_document
 from .file_repo import FileRepository
+from .frequency import get_frequency_rates, save_frequency_rates
 from .hazard import (
     get_commercial_hazard_curves,
     get_gauge_hazard_curves,
@@ -193,6 +194,7 @@ __all__ = [
     "get_counterparty_portfolio",
     # hazard
     "get_gauge_hazard_curves", "save_gauge_hazard_curves",
+    "get_frequency_rates", "save_frequency_rates",
     "get_property_hazard_curves", "save_property_hazard_curves",
     "get_commercial_hazard_curves", "save_commercial_hazard_curves",
     # timeseries
