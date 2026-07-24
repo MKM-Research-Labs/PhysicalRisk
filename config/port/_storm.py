@@ -83,6 +83,24 @@ GAUGETS_SIM_PARAMS: Dict[str, object] = {
 # Mortgage Random Generator  (port/rand/thames/mortgage/constants.py)
 # ===========================================================================
 
+# ===========================================================================
+# Property Hazard Profile — design wind speed
+#     (port/rand/shared/property/property_random/generators/_registry_a.py)
+# ===========================================================================
+
+# Base design wind speeds (km/h) an asset may be built to, with the sampling
+# weight of each. A uniform jitter of +/- DESIGN_WIND_SPEED_JITTER_KPH is added
+# so assets do not all land exactly on a base point.
+#
+# Raised by 40 km/h on 2026-07-24. The previous set (80-160) was a Thames /
+# UK "urban-low-wind" distribution applied to every catchment, which put 61%
+# of assets below 120 km/h — implausible for a typhoon-exposed coast, and it
+# drove the wind damage threshold now that DesignWindSpeedKmh resolves it.
+DESIGN_WIND_SPEED_KPH_POINTS: List[int] = [120, 140, 160, 180, 200]
+DESIGN_WIND_SPEED_WEIGHTS: List[float] = [0.05, 0.40, 0.35, 0.15, 0.05]
+DESIGN_WIND_SPEED_JITTER_KPH: float = 5.0
+
+
 # Sampling weights for mortgage types: Residential / Buy-to-Let / Second Home /
 # Holiday Home / Shared Ownership
 MORTGAGE_TYPE_WEIGHTS: List[float] = [0.70, 0.15, 0.05, 0.05, 0.05]

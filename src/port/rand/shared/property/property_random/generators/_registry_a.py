@@ -24,6 +24,11 @@ import random
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict
 
+from config.port import (
+    DESIGN_WIND_SPEED_JITTER_KPH,
+    DESIGN_WIND_SPEED_KPH_POINTS,
+    DESIGN_WIND_SPEED_WEIGHTS,
+)
 from port.rand.profiles import active_profile as _profile
 
 from ..helpers import (
@@ -215,9 +220,10 @@ def field_generators_part_a():
 
         # HazardProfile — design intensities
         "DesignWindSpeedKmh":  lambda _: round(random.choices(
-            [80, 100, 120, 140, 160],
-            weights=[0.05, 0.40, 0.35, 0.15, 0.05],
-        )[0] + random.uniform(-5, 5), 0),
+            DESIGN_WIND_SPEED_KPH_POINTS,
+            weights=DESIGN_WIND_SPEED_WEIGHTS,
+        )[0] + random.uniform(
+            -DESIGN_WIND_SPEED_JITTER_KPH, DESIGN_WIND_SPEED_JITTER_KPH), 0),
         "DesignFloodReturnYr": lambda _: random.choice([50, 100, 200, 500, 1000]),
         "DesignSeismicPGA":    lambda _: round(random.uniform(*_profile().SEISMIC_PGA_RANGE), 3),
         "WindHazardClass":    lambda _: random.choices(
