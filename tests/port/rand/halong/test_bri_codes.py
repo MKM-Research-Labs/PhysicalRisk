@@ -188,3 +188,47 @@ class TestThamesEmpty:
         for field in ("WindCodes", "WaterCodes", "FlashCodes",
                       "FireCodes", "SeismicCodes"):
             assert get(field) == [], f"Thames must leave {field} as []"
+
+
+class TestDesignWindSpeedDistribution:
+    """The design wind speed drives the wind damage threshold, so its
+    distribution is a pricing parameter rather than cosmetic asset colour.
+
+    Raised by 40 km/h on 2026-07-24: the previous 80-160 set was a Thames /
+    UK "urban-low-wind" distribution applied to every catchment, putting 61%
+    of assets below 120 km/h.
+    """
+
+    def test_the_parameters_live_in_config(self):
+        """R1 — sampling points and weights are parameters, not literals in the
+        generator."""
+        from config.port import (
+            DESIGN_WIND_SPEED_JITTER_KPH,
+            DESIGN_WIND_SPEED_KPH_POINTS,
+            DESIGN_WIND_SPEED_WEIGHTS,
+        )
+
+        assert len(DESIGN_WIND_SPEED_KPH_POINTS) == len(DESIGN_WIND_SPEED_WEIGHTS)
+        assert sum(DESIGN_WIND_SPEED_WEIGHTS) == pytest.approx(1.0)
+        assert DESIGN_WIND_SPEED_JITTER_KPH > 0
+
+    def test_the_range_is_plausible_for_a_typhoon_coast(self):
+        from config.port import (
+            DESIGN_WIND_SPEED_JITTER_KPH,
+            DESIGN_WIND_SPEED_KPH_POINTS,
+        )
+
+        lowest = min(DESIGN_WIND_SPEED_KPH_POINTS) - DESIGN_WIND_SPEED_JITTER_KPH
+        highest = max(DESIGN_WIND_SPEED_KPH_POINTS) + DESIGN_WIND_SPEED_JITTER_KPH
+        assert lowest >= 100, "design speeds below 100 km/h are a UK-urban artefact"
+        assert highest <= 250, "above 250 km/h exceeds the BRI Grade A level"
+
+    def test_the_generator_reads_the_configured_points(self):
+        """Guards against the literals creeping back into the generator."""
+        import inspect
+
+        from port.rand.shared.property.property_random.generators import _registry_a
+
+        source = inspect.getsource(_registry_a)
+        assert "DESIGN_WIND_SPEED_KPH_POINTS" in source
+        assert "[80, 100, 120, 140, 160]" not in source
