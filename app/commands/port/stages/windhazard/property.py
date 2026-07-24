@@ -35,6 +35,12 @@ def run_property_peril_ts(ctx: StageContext):
     from port.src.peril import PerilTimeseriesGenerator
     inputs = {
         "propertyts/": ctx.input_dir / "propertyts",
+        # The bow/baw modes read the BRI-resilient spine (PERIL_BASE_MODE
+        # maps them to "bri"), so it is a genuine input. It was declared in
+        # the lineage topology but omitted here, which both raised a
+        # permanent false stale warning and left a real gap: a change to
+        # propertytsb/ would not have invalidated this step.
+        "propertytsb/": ctx.input_dir / "propertytsb",
         "typhoon/damage/": ctx.input_dir / "typhoon" / "damage",
         "storm_sequences.json": ctx.input_dir / "storm_sequences.json",
     }

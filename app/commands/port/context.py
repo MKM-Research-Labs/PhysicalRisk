@@ -68,6 +68,36 @@ class StageContext:
         """Hash inputs if lineage is available, else None."""
         return self.pre_hash_inputs(inputs) if self.pre_hash_inputs else None
 
+    @staticmethod
+    def _warn_undeclared_inputs(step_name: str, inputs: dict) -> None:
+        """Warn when a stage records fewer inputs than the topology declares.
+
+        A stage that reads an artefact but omits it here produces a permanent
+        false "stale step" warning — the freshness check cannot verify an input
+        with no recorded hash — and, worse, a silent lineage gap: a change to
+        that artefact never invalidates this step. Both happened to the peril
+        timeseries steps, which read the BRI-resilient spine for their bow/baw
+        modes without declaring it, and reported stale after every successful
+        run for as long as anyone had been looking.
+
+        Reported rather than raised: a lineage-completeness problem should not
+        abort a generation run that is otherwise sound.
+        """
+        try:
+            from lineage.validation import STEP_IO
+        except Exception:
+            return  # lineage unavailable — nothing to check against
+        declared = set((STEP_IO.get(step_name) or {}).get("inputs", ()))
+        if not declared:
+            return
+        missing = declared - set(inputs or {})
+        if missing:
+            print(
+                f"  [lineage] Warning: step '{step_name}' declares "
+                f"{sorted(missing)} in the topology but did not record "
+                "them; downstream freshness cannot be verified"
+            )
+
     def record(self, **kwargs):
         """Wrap record_step + get_stale_downstream with a single helper.
 
@@ -77,6 +107,8 @@ class StageContext:
         if self.record_step is None:
             return
         stale_name = kwargs.pop("stale_name", None)
+        if kwargs.get("step_name"):
+            self._warn_undeclared_inputs(kwargs["step_name"], kwargs.get("inputs"))
         try:
             self.record_step(run_id=self.run_id, **kwargs)
             if stale_name and self.get_stale_downstream is not None:
