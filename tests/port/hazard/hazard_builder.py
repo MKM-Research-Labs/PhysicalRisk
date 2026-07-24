@@ -22,7 +22,9 @@
 Unit tests for hazard curve builder: GEVFitter, GaugeResponseModel, HazardCurveBuilder.
 """
 
+import pytest
 import numpy as np
+from scipy import stats
 
 from models.hazard import (
     GaugeHazardCurve,
@@ -48,6 +50,43 @@ class TestGEVFitter:
         assert isinstance(shape, float)
         assert isinstance(loc, float)
         assert isinstance(scale, float)
+
+    def test_fit_returns_the_evt_shape_not_scipys(self):
+        """A heavy Frechet tail must come back POSITIVE.
+
+        scipy parameterises genextreme with c = -xi, so returning its shape
+        unconverted reports a heavy tail as negative — and the model's recorded
+        weakness, "shape > 0.5 indicates a heavy tail", never fires on the fits
+        it exists to catch.
+        """
+        xi = 0.3
+        data = stats.genextreme.rvs(c=-xi, loc=10, scale=2, size=5000,
+                                    random_state=0)
+        shape, _loc, _scale = GEVFitter().fit(data)
+        assert shape > 0
+        assert shape == pytest.approx(xi, abs=0.05)
+
+    def test_fit_reports_a_bounded_tail_as_negative(self):
+        """The other end of the same convention: a Weibull tail is xi < 0."""
+        xi = -0.3
+        data = stats.genextreme.rvs(c=-xi, loc=10, scale=2, size=5000,
+                                    random_state=0)
+        shape, _loc, _scale = GEVFitter().fit(data)
+        assert shape < 0
+        assert shape == pytest.approx(xi, abs=0.05)
+
+    def test_exceedance_reads_the_shape_in_the_same_convention_fit_returns(self):
+        """fit() and exceedance_probability() must not disagree about the sign,
+        or the curve is built from the mirror image of the fitted tail."""
+        xi = 0.3
+        data = stats.genextreme.rvs(c=-xi, loc=10, scale=2, size=5000,
+                                    random_state=0)
+        fitter = GEVFitter()
+        shape, loc, scale = fitter.fit(data)
+        # A heavy tail must exceed a far threshold more often than a bounded one.
+        heavy = fitter.exceedance_probability(30.0, shape, loc, scale)
+        bounded = fitter.exceedance_probability(30.0, -abs(shape), loc, scale)
+        assert heavy > bounded
 
     def test_force_gumbel_sets_shape_zero(self):
         np.random.seed(42)

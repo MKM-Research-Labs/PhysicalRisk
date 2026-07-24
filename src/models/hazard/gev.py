@@ -32,35 +32,62 @@ from .data_structures import TermStructurePoint
 
 
 class GEVFitter:
-    """Fits Generalized Extreme Value distributions to peak level data."""
+    """Fits Generalized Extreme Value distributions to peak level data.
+
+    The shape parameter this class accepts and returns is the extreme-value
+    convention, xi, in which a POSITIVE value is a heavy Frechet tail:
+
+        xi > 0   Frechet, heavy tail, unbounded above
+        xi = 0   Gumbel, exponential tail
+        xi < 0   Weibull, bounded above
+
+    scipy's ``genextreme`` parameterises the same family with ``c = -xi``, so a
+    heavy tail is a *negative* c there. Every conversion happens inside this
+    class: nothing outside it should see scipy's sign. The distinction is not
+    cosmetic — the model's recorded weakness ("shape > 0.5 indicates a heavy
+    tail that may be physically unrealistic") is written in xi, and against
+    scipy's sign that test stays silent on exactly the fits it exists to catch.
+    """
+
+    # scipy's genextreme shape is the negative of the EVT xi, so one negation
+    # converts in either direction. Named once so the conversion points cannot
+    # drift apart, and so a reader is never left guessing which way a bare minus
+    # sign was going.
+    @staticmethod
+    def _flip_convention(shape: float) -> float:
+        return -shape
 
     def __init__(self, force_gumbel: bool = False):
         self.force_gumbel = force_gumbel
 
     def fit(self, peak_levels: np.ndarray) -> Tuple[float, float, float]:
-        """Fit GEV distribution. Returns (shape, location, scale)."""
+        """Fit GEV distribution. Returns (xi, location, scale).
+
+        ``xi`` is the extreme-value shape: positive means a heavy tail. Gumbel
+        is xi = 0, which is the same number in either convention.
+        """
         if self.force_gumbel:
             loc, scale = stats.gumbel_r.fit(peak_levels)
             return (0.0, loc, scale)
         else:
-            shape, loc, scale = stats.genextreme.fit(peak_levels)
-            return (shape, loc, scale)
+            c, loc, scale = stats.genextreme.fit(peak_levels)
+            return (self._flip_convention(c), loc, scale)
 
     def exceedance_probability(self, threshold: float, shape: float, loc: float, scale: float) -> float:
-        """Calculate P(X > threshold)."""
+        """Calculate P(X > threshold). ``shape`` is xi (positive = heavy tail)."""
         if abs(shape) < 1e-10:
             cdf = stats.gumbel_r.cdf(threshold, loc, scale)
         else:
-            cdf = stats.genextreme.cdf(threshold, shape, loc, scale)
+            cdf = stats.genextreme.cdf(threshold, self._flip_convention(shape), loc, scale)
         return 1.0 - cdf
 
     def return_level(self, return_period: float, shape: float, loc: float, scale: float) -> float:
-        """Calculate return level for a given return period."""
+        """Calculate return level for a return period. ``shape`` is xi."""
         p = 1.0 / return_period
         if abs(shape) < 1e-10:
             return stats.gumbel_r.ppf(1 - p, loc, scale)
         else:
-            return stats.genextreme.ppf(1 - p, shape, loc, scale)
+            return stats.genextreme.ppf(1 - p, self._flip_convention(shape), loc, scale)
 
 
 def compute_term_structure(annual_hazard_rate: float, max_years: int = 5) -> List[TermStructurePoint]:
