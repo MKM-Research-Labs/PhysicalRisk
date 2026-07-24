@@ -2,16 +2,25 @@
 
 **Document type:** Definition Document & Project Plan
 **Component:** Event Frequency Model — `MKM-EF-001` (new)
-**Version:** 2.2 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
-**Status:** Stages 1a/1b, 3 and 4 implemented, wired to pricing, and exercised end-to-end on real flood and wind data
-**Date:** 2026-07-23
+**Version:** 2.3 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
+**Status:** Stages 1a/1b/1c, 3 and 4 implemented and wired to pricing; Stages 2 and 5 remain
+**Date:** 2026-07-24
 **Owner:** CSO, MKM Research Labs
 
 ---
 
 ## 0. What changed from v1
 
-### 0.1 What v2.2 changes
+### 0.1 What v2.3 changes
+
+| # | Change | Driver |
+|---|--------|--------|
+| C16 | **The per-gauge validation arm is circular.** It cannot check λ, because the threshold search targets λ | `load_frequency_config` sets the peaks-over-threshold target *from* the catchment rate, so the search finds whatever threshold delivers it and recovers the seed by construction. Halong returned 4.48–4.58 against a seed of 4.5 (§5.2). **Nothing now validates λ** |
+| C17 | **Stage 1c complete**: exceedance *events* alongside exceedance *days* in the statistics module; fitted rates and provenance persisted through the `database` seam | The day count was never a rate. Persistence closes the BCBS 239 traceability requirement (§4.14) |
+| C18 | **The wind threshold is traced and now per-asset.** 55.56 m/s was a deliberate uniform constant (200 km/h), not a unit bug; `DesignWindSpeedKmh` drives the threshold instead, and design speeds were raised 40 km/h | Wind vulnerability was undifferentiated across a portfolio. L12 partially closes; the calibration question remains (§6.8) |
+| C19 | **L13 resolved**: the peril stages record the BRI spine they read, and a guard warns when any stage under-declares | The warning fired after every successful run and had already misled one root-cause investigation. The gap was real: a change to the BRI spine never invalidated the consuming step |
+
+### 0.2 What v2.2 changed
 
 Wiring the layer into pricing and calibrating it on real halong data
 exposed three defects — two of them pre-existing and more serious than the
@@ -25,7 +34,7 @@ problem this model was written to fix.
 | C15 | **The wind leg is validated on real data**; L6 and L9 close | A `--typhoon` run put real wind through all ten commercial assets with the peril coherence checks passing (§6.6). It also surfaced L12: the wind trigger is one global constant, not asset-differentiated |
 | C14 | **Two field-naming traps documented**, both of which produced confident wrong answers before being caught | `flood_events[].storm_id` holds *sequence* identifiers; `_load_gauge_hazard_curves` returns the *sequence* count while its caller names it `num_storms` (§4.11) |
 
-### 0.2 What v2.1 changed
+### 0.3 What v2.1 changed
 
 v2.0 was written before any code existed. Building it moved four things, one of
 which was an outright error in v2.0's design.
@@ -37,7 +46,7 @@ which was an outright error in v2.0's design.
 | C9 | **10,000 simulated years, and the reconciliation gate is expressed in sampling standard errors rather than as a fixed percentage** | Measured on the target hardware (§6.1). A fixed 2% band false-alarmed on 17% of runs at ten thousand years while never binding at a million |
 | C10 | **Landmine L3 resolved:** `num_storms` is kept and `num_events` added beside it | The storm/event distinction becomes visible in the data rather than hidden in a redefinition of a field existing consumers already read |
 
-### 0.3 What v2.0 changed from v1
+### 0.4 What v2.0 changed from v1
 
 v1 diagnosed the problem correctly. v2 keeps the diagnosis and reworks the plan against
 what the codebase actually does. Six substantive changes:
@@ -504,7 +513,26 @@ dangerous than a failure.
 | 4 | `src/port/src/property/hc/pricing/_wind.py` | Wind, union and intersection legs annualised on the same frame, in sequence space | **Built** |
 | 5 | `src/models/hazard/response_model.py` | Seeded per gauge and per (gauge, storm) | **Built** |
 
-### 4.13 Extension points (architected now, built later)
+### 4.13 Persistence of fitted rates
+
+`frequency_rates` is registered as a DOCUMENT artefact, so both backends carry
+it with **no migration** — the PostgreSQL repository derives its document set
+from the registry rather than a hand-maintained list.
+
+`models/frequency/persist.py` calibrates every gauge in a catchment and writes
+through `database.save_frequency_rates`. It names no file path (R6).
+
+Two deliberate strictnesses:
+
+- **The provenance class is a required argument with no default.** A synthetic
+  catchment's record is generated from an assumed frequency (§5.1), so
+  defaulting to `observed` would launder an assumption into evidence.
+- **A partial provenance record raises rather than defaulting on read.**
+  Provenance that cannot be read back in full looks like evidence and is not.
+
+The round trip is exact and asserted: `rate_from_dict(rate_to_dict(r)) == r`.
+
+### 4.14 Extension points (architected now, built later)
 
 - λ as a process rather than a constant: the interface takes an optional covariate/time
   argument so a doubly stochastic or climate-conditioned rate can be added without an
@@ -516,7 +544,9 @@ dangerous than a failure.
 
 ---
 
-## 5. The λ provenance problem (new in v2)
+## 5. The λ provenance problem
+
+### 5.1 The record is generated from the frequency it would calibrate
 
 **Finding.** On synthetic catchments, calibrating λ from the gauge "historical" record is
 circular.
@@ -558,6 +588,47 @@ per-gauge frequency number the platform currently holds is a random integer.**
   and spatially coherent (gauges on the same reach should not carry independent λ). This
   touches the shared `rand` tree and requires a port regeneration, which is not
   undertaken without explicit instruction.
+
+### 5.2 The validation arm cannot validate λ
+
+v2.1 demoted per-gauge extraction from *producing* λ to *validating* it (C7).
+Running that validation on halong in Stage 1c showed it cannot do the job
+either, for a reason independent of §5.1.
+
+`load_frequency_config` sets the peaks-over-threshold search target **from the
+catchment arrival rate** — deliberately, so that the qualifying-event threshold
+and λ describe the same event population rather than drifting apart (§4.2). But
+the search then picks whatever threshold delivers that rate, so the recovered
+rate equals the seed by construction:
+
+| Gauge | Recovered λ | Seed |
+|-------|-------------|------|
+| GAUGE-419b4a25 | 4.523 | 4.5 |
+| GAUGE-635036ec | 4.483 | 4.5 |
+| GAUGE-789592e7 | 4.583 | 4.5 |
+| SYNTH-74cf6170 | 4.503 | 4.5 |
+
+A quantity that reproduces its own input is not a measurement of anything. The
+arm validates the **extraction code** — that declustering and the threshold
+search behave — not the rate. Combined with §5.1, **nothing in the platform
+currently constrains λ**, and landmine L8 is correspondingly wider than earlier
+versions of this document implied.
+
+Two things the arm *can* still say, and both are worth having:
+
+- **Dispersion.** Halong's four gauges returned a dispersion index of
+  **0.46–0.97**, i.e. annual counts *less* variable than Poisson. That is a
+  real property of the arrival process and it bears directly on Stage 2:
+  under-dispersion is fitted badly by Poisson and worse by Negative Binomial,
+  which only models the over-dispersed side.
+- **The decomposition identity.** λ × P(exceed | event) reproducing a gauge's
+  directly measured exceedance rate remains a genuine consistency check on the
+  composition, independent of whether λ itself is right.
+
+Breaking the circularity needs the threshold to come from somewhere other than
+the rate being tested — a physical anchor such as bankfull discharge, or a
+published national flood-frequency estimate. Both require real gauge data and
+are Stage 2 work at the earliest.
 
 ---
 
@@ -727,12 +798,64 @@ swap; the 69 MB `ensemble.json` and 2100 damage files are the bulk of it. A run
 that appears hung after the progress bar reaches 100% is most likely still
 serialising.
 
-### 6.7 What has NOT been validated
+### 6.7 The wind threshold, traced
 
-- **Wind vulnerability is not asset-differentiated** (L12). The wind leg now
-  runs on real data and its arithmetic is verified, but the trigger it consumes
-  is one global constant, so the wind spreads describe a threshold rather than a
-  portfolio.
+L12 recorded that every asset shared one wind trigger. Tracing it settled what
+it was — and it was neither of the two hypotheses on record.
+
+**Not a unit bug.** `bri_codes.WIND_MINOR_KPH = 200.0`, converted to 55.56 m/s.
+The arithmetic is right; this is not another instance of the m/s-versus-km/h
+problem logged against the wind work.
+
+**Not a missing default.** The configured fallback is 100 km/h (27.8 m/s), so
+the 55.56 was actively supplied, not defaulted.
+
+It was a **deliberate uniform prototype constant** — the comment beside it says
+so — published identically into every asset. Meanwhile `DesignWindSpeedKmh`, the
+one genuinely per-asset quantity, sat unused by the damage model.
+
+Two changes followed:
+
+| Change | Effect |
+|--------|--------|
+| `DesignWindSpeedKmh / 3.6` now resolves the threshold, falling back to the BRI level | Thresholds became per-asset; commercial wind triggers went 50 → 653 per 1000 events |
+| Base design speeds raised 40 km/h to 120–200 (the previous 80–160 was a Thames "urban-low-wind" set applied to a typhoon coast) | Pulled the triggers back to 276 — the two changes oppose each other |
+
+On the regenerated portfolio: design speeds **122–159 km/h**, thresholds
+**33.9–44.2 m/s**, wind triggers **22–53 per asset**, wind-only spread
+**162.0 bps** against 0.0 before. `fow` rose to 429.8 bps against a flood-only
+313.1, so wind contributes roughly 37% of the combined leg where it previously
+contributed nothing.
+
+The sampling points, weights and jitter moved to `config.port`; the BRI
+thresholds to `config.damage`. Both were literals outside the config package
+(R1), and lowering a value in place would have perpetuated that.
+
+### 6.8 Exceedance days against exceedance events
+
+Stage 1c's fix, measured on halong's fifty-year gauge records:
+
+| Level | Days/yr | Events/yr | Overstatement |
+|-------|---------|-----------|---------------|
+| Alert | 0.38 | 0.26 | 1.46× |
+| Warning | 0.06 | 0.06 | 1.00× |
+| Severe | 0.06 | 0.06 | 1.00× |
+
+Smaller than the 28% recorded in §6.4 from an earlier synthetic record, and for
+an informative reason: **this generator injects mostly single-day floods**, so
+there is little to decluster. The correction is in the calculation, not the
+data — on a real record with multi-day floods it matters considerably more, and
+the platform now reports both numbers with the ratio between them
+(`mean_event_duration_days`) so the difference is visible rather than implied.
+
+### 6.9 What has NOT been validated
+
+- **λ is unconstrained** (§5). Neither the synthetic gauge record nor the
+  per-gauge extraction arm can test it. This is the single largest open item.
+- **The wind threshold level.** It is now per-asset (§6.7), but whether a
+  building's design wind speed is the right *damage-onset* level, and whether
+  the 120–200 km/h band suits a typhoon coast, are modelling questions for
+  MKM-WD-001 that no measurement here settles.
 - **No full-book parallel run.** Everything measured here is a single
   small catchment: 3 gauges, 1 property, 10 commercial assets.
 - **λ itself remains a seed**, and on synthetic catchments cannot be calibrated
@@ -780,8 +903,8 @@ is correspondingly larger and partly done.
 | — | *Unplanned, forced by calibration:* seed the response model; catalogue coverage | **Done** | **Yes** (§6.1, §4.9) |
 | 3 | Frequency layer wired into `builder.py`; legacy metric retained alongside | **Done** | **Yes** |
 | 4 | Property, commercial, gauge-basis and wind legs; return periods | **Done** | **Yes** |
-| 1c | Day-count fix-and-promote (§6.4); λ and provenance persisted through the `database` seam | To do | No |
-| 2 | Poisson / NegBin families; dispersion selection; override logging; round-trip validation | To do | No |
+| 1c | Day-count fix-and-promote (§6.8); λ and provenance persisted through the `database` seam | **Done** | No |
+| 2 | Poisson / NegBin families; dispersion selection; override logging; round-trip validation. **Note §5.2:** halong's gauges are *under*-dispersed (0.46–0.97), which NegBin cannot model — it covers the over-dispersed side only. A third family, or an honest "neither fits", may be the outcome | To do | No |
 | 5 | Governance: inventory entry, LaTeX documentation, registry wiring, validation report, monitoring job | To do | No |
 | 6 | *Separate approval:* loss-weighted YLT, ELT export, wind λ calibration, seasonal rates | To do | — |
 
@@ -827,9 +950,9 @@ These bite between Stage 3 and Stage 5. Each needs a decision before Stage 3 lan
 | L5 | **Per-storm flood-event collapse** | | **Resolved — and the premise was wrong.** The property leg was already event-granular and already divided by the sequence count. The only thing missing was λ (§4.11). |
 | L6 | **Wind leg diverges** | Wind divided by the scenario count while flood was annualised, making BOW/BAW union and intersection incoherent. | **Resolved and validated.** Both legs annualise on the same frame in sequence space; verified on real wind data with the coherence checks passing (§6.6). |
 | L7 | **Correlation is load-bearing** | Portfolio risk depends on subjects sharing one set of event draws; a caller running the single-subject wrapper per subject would silently decorrelate the book (0.78 versus −0.004). | **Open.** Guard at the portfolio entry point; review point for any new caller. |
-| L8 | **Population weights are load-bearing and unvalidated** | The conditional scales directly with `EVENT_POPULATION_WEIGHTS`. Set to an 8% severe-or-worse share on the owner's judgement. | **Open.** Nothing currently contradicts a wrong value; the per-gauge POT arm is the intended check and depends on Stage 1c. |
-| L12 | **The wind trigger is a single global constant** | `v_50_eff_ms` is 55.56 m/s for every commercial asset regardless of construction type — exactly 200 km/h, a round figure in one unit appearing as a threshold in another. All ten assets consequently trigger on the same five events. Wind vulnerability is not asset-differentiated. | **Open, and outside this model.** MKM-WD-001 owns it; it connects to the open m/s-versus-km/h question already logged against the wind work. Any wind spread quoted from MKM-EF-001 inherits it. |
-| L13 | **The stale-lineage warning is unreliable** | `commercial_peril_ts` and `property_peril_ts` are reported stale after runs in which both demonstrably executed and produced triggers. | **Open.** A warning that cries wolf trains readers to ignore it, which is how the L9 root cause went misdiagnosed for a day. |
+| L8 | **λ and the population weights are load-bearing and unvalidated** | The conditional scales directly with `EVENT_POPULATION_WEIGHTS` (8% severe-or-worse, on the owner's judgement) and with λ (4.5/yr, seeded). | **Open and wider than previously recorded.** The per-gauge arm was the intended check and §5.2 shows it cannot be one: it recovers λ from its own target. Stage 1c is done and did not close this. Breaking the circularity needs a threshold anchored outside the rate — bankfull discharge or a published flood-frequency estimate — and therefore real gauge data. |
+| L12 | **The wind trigger was a single global constant** | Traced (§6.7): a deliberate uniform prototype constant, correctly converted — not the m/s-versus-km/h bug it resembled, and not a missing default. | **Differentiation resolved; level open.** `DesignWindSpeedKmh` now drives the threshold and design speeds were raised to 120–200 km/h, so triggers vary 22–53 per asset. Whether a design speed is the right *damage-onset* level, and whether that band suits a typhoon coast, remain MKM-WD-001 modelling questions. |
+| L13 | **The stale-lineage warning was unreliable** | Both peril stages read the BRI-resilient spine (`PERIL_BASE_MODE` maps bow/baw to `"bri"`) but omitted it from their recorded inputs. The freshness check cannot verify an input with no recorded hash, so the step reported stale permanently — **and the lineage graph had a real hole**: a change to that spine never invalidated the step. | **Resolved.** Both stages record it, and `StageContext.record` now warns when any stage records fewer inputs than the topology declares, so the class of gap announces itself where it is introduced. The warning clears on the next regen. |
 | L9 | **The typhoon step is opt-in, so `--all` produces no wind** | Corrected 2026-07-23 from a clean run. The peril timeseries steps *do* regenerate under `--all`; the fault is upstream. `--all` does not run typhoon, so the damage records are whatever a previous run left behind — on halong, 25 asset identifiers with **zero overlap** against the 10 assets the run generated, since assets take fresh identifiers each port. Every asset therefore prices wind at zero. The stale-lineage warning naming the peril timeseries steps is a symptom, not the cause. | **Resolved.** A run with `--typhoon` on 2026-07-23 put real wind through all ten commercial assets and the peril coherence checks passed (§6.6). The flag requirement stands as an operational note: `--all` alone still produces no wind. |
 | L11 | **Pricing invariants are not asserted at write time** | The transmission-rate defect (§6.5) was caught by reading a run-log summary, not by the test suite. Bounded quantities — transmission ≤ 1, union ≥ both legs, intersection ≤ either — hold by construction and are checked ad hoc, if at all. | **Open.** Assert them where the values are written, so a units error fails the run rather than being noticed by whoever happens to read the log. |
 | L10 | **Silent-zero class of failure** | Records that do not correspond to the storm catalogue produced a confident 0.0 conditional from 110 genuine flood events, with no error. | **Resolved for this path.** `conditional_probability` now raises on unresolved identifiers. The same class of failure may exist elsewhere in the chain and has not been swept for. |
