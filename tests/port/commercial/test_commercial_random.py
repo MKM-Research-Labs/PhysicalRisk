@@ -234,3 +234,127 @@ class TestPeriodFromYear:
     ])
     def test_boundary_cases(self, year, expected):
         assert period_from_year(year) == expected
+
+
+class TestBriRatingCompleteness:
+    """Every BRI sub-rating the CDM defines must actually be published.
+
+    Regression for a silent omission: the prototype set computed six grades,
+    the CDM schema defined six rating fields, and the generator wrote two. Wind,
+    fire, seismic and the overall rating were dropped, so the wind damage model
+    had no grade to read while water and flash sat published beside it.
+
+    Asserted against the schema rather than a hand-written list, so a rating
+    added to the CDM later fails here until the generator publishes it too.
+    """
+
+    @staticmethod
+    def _schema_rating_fields():
+        from port.cdm.asset.resilience._ratings import RATINGS_SCHEMA
+        block = RATINGS_SCHEMA["GoverningBodyRatings"]
+        return {k for k in block if k.startswith("BRI") and k.endswith("Rating")}
+
+    def test_generator_publishes_every_schema_rating(self):
+        from port.rand.shared.commercial.commercial_random.generators import (
+            _commercial_generators,
+        )
+        published = set(_commercial_generators())
+        missing = self._schema_rating_fields() - published
+        assert not missing, f"CDM defines these ratings but the generator omits them: {sorted(missing)}"
+
+    def test_wind_rating_is_published(self):
+        """Named separately because the wind damage model reads it."""
+        from port.rand.shared.commercial.commercial_random.generators import (
+            _commercial_generators,
+        )
+        assert "BRIWindRating" in _commercial_generators()
+
+    def test_wind_rating_varies_by_asset_type(self):
+        """A rating identical across every prototype would be no better than the
+        omission it replaced. The hotel prototype carries the WD06 differentiator
+        and must grade above the rest.
+
+        Reads the grade from the prototype set directly rather than through the
+        generator, because the generator gates every BRI field on the active
+        catchment profile's ``COMMERCIAL_BRI_ENABLED`` and the default test
+        profile has no BRI regime — which would make this pass vacuously on a
+        column of nulls.
+        """
+        from port.rand.shared.commercial.bri_codes import for_commercial
+
+        grades = {
+            t: (for_commercial(t) or {}).get("wind_grade")
+            for t in ("Hotel", "Office", "Retail", "MultiFamily", "MixedUse")
+        }
+        assert grades["Hotel"] == "A", grades
+        assert len(set(grades.values())) > 1, grades
+
+
+class TestFloodEnvelopeRating:
+    """BRIFloodRating is the water envelope: the weaker of Water and Flash.
+
+    The subtlety is what "N/A" means. For commercial it is a *value* meaning the
+    asset has no exposure to that hazard, not a bad score. Treating it as the
+    weakest letter would report an asset with genuine flash exposure as having
+    no flood exposure at all.
+
+    Every test here forces ``COMMERCIAL_BRI_ENABLED``. Without it the function
+    returns None before reaching its body, and an assertion that tolerated that
+    None would pass while testing nothing.
+    """
+
+    @staticmethod
+    def _envelope(monkeypatch, water, flash):
+        """Evaluate the envelope for a given (water, flash) grade pair."""
+        import port.rand.shared.commercial.commercial_random.generators as gen
+
+        class _Profile:
+            COMMERCIAL_BRI_ENABLED = True
+
+        monkeypatch.setattr(gen, "active_profile", lambda: _Profile())
+        monkeypatch.setattr(
+            gen, "_bri",
+            lambda info: {"water_grade": water, "flash_grade": flash})
+        return gen._flood_envelope_rating({"commercial_type": "Office"})
+
+    def test_the_weaker_of_two_applicable_ratings_wins(self, monkeypatch):
+        assert self._envelope(monkeypatch, "A", "B") == "B"
+        assert self._envelope(monkeypatch, "B", "A") == "B"
+        assert self._envelope(monkeypatch, "AA", "A") == "A"
+
+    def test_equal_ratings_return_that_rating(self, monkeypatch):
+        assert self._envelope(monkeypatch, "A", "A") == "A"
+
+    def test_an_unexposed_hazard_is_excluded_not_treated_as_weakest(self, monkeypatch):
+        """The point of the whole function. An asset with no tsunami exposure
+        but real flash exposure must report the flash rating, not N/A."""
+        assert self._envelope(monkeypatch, "N/A", "B") == "B"
+        assert self._envelope(monkeypatch, "A", "N/A") == "A"
+
+    def test_na_only_when_nothing_is_applicable(self, monkeypatch):
+        assert self._envelope(monkeypatch, "N/A", "N/A") == "N/A"
+
+    def test_none_grades_are_treated_as_unexposed(self, monkeypatch):
+        assert self._envelope(monkeypatch, None, "B") == "B"
+        assert self._envelope(monkeypatch, None, None) == "N/A"
+
+    def test_returns_none_when_the_catchment_has_no_bri_regime(self, monkeypatch):
+        """A catchment without a BRI regime leaves the field null rather than
+        stamping N/A — the same distinction _bri_rating draws."""
+        import port.rand.shared.commercial.commercial_random.generators as gen
+
+        class _Profile:
+            COMMERCIAL_BRI_ENABLED = False
+
+        monkeypatch.setattr(gen, "active_profile", lambda: _Profile())
+        assert gen._flood_envelope_rating({"commercial_type": "Office"}) is None
+
+    def test_the_office_prototype_really_has_this_shape(self):
+        """Guards the premise: if the prototype set changed so that Office had
+        tsunami exposure, the tests above would still pass but would no longer
+        describe the case that motivated the function."""
+        from port.rand.shared.commercial.bri_codes import for_commercial
+
+        proto = for_commercial("Office")
+        assert proto["water_grade"] in (None, "N/A")
+        assert proto["flash_grade"] not in (None, "N/A")
