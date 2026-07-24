@@ -58,13 +58,21 @@ from .datastructures import (
     PotDiagnostics,
     PotExtraction,
     ProvenanceClass,
+    rate_from_dict,
+    rate_to_dict,
 )
 from .events import build_catalogue, build_event_frame
+from .persist import calibrate_and_save, calibrate_catchment
+from .pot import ExceedanceRate, exceedance_rate
 
 __all__ = [
     "annual_exceedance_probability",
     "annual_exceedance_rate",
     "return_period_years",
+    "calibrate_catchment",
+    "calibrate_and_save",
+    "exceedance_rate",
+    "ExceedanceRate",
     "build_catalogue",
     "build_event_frame",
     "EventCatalogue",
@@ -78,4 +86,6 @@ __all__ = [
     "Peak",
     "CalibrationProvenance",
     "ProvenanceClass",
+    "rate_to_dict",
+    "rate_from_dict",
 ]

@@ -94,33 +94,43 @@ def calculate_timeseries_statistics(
         "p99": percentile(99),
     }
 
-    # Flood exceedance counts (only for level data with thresholds)
+    # Flood exceedance counts (only for level data with thresholds).
+    #
+    # Both a day count and an event rate are reported, because they answer
+    # different questions and only one of them is a frequency.
+    #
+    # ``count`` / ``frequency_per_year`` are exceedance DAYS: a five-day flood
+    # contributes five. That is a legitimate measure of how long a gauge spends
+    # above a level, and it is what this module has always reported — but read
+    # as an arrival rate it overstates by roughly the mean event duration in
+    # days (measured at 28% on a thirty-year record at the severe level).
+    #
+    # ``event_count`` / ``events_per_year`` are declustered independent events,
+    # computed by the frequency layer (MKM-EF-001) so the platform has one
+    # definition of an event rather than two. These are the arrival rate.
     if flood_stages:
-        flood_alert = flood_stages.get("FloodAlert", float("inf"))
-        flood_warning = flood_stages.get("FloodWarning", float("inf"))
-        severe_warning = flood_stages.get("SevereFloodWarning", float("inf"))
+        from config.frequency import load_frequency_config
+        from models.frequency import exceedance_rate
 
-        alert_count = sum(1 for obs in observations if obs[value_key] >= flood_alert)
-        warning_count = sum(1 for obs in observations if obs[value_key] >= flood_warning)
-        severe_count = sum(1 for obs in observations if obs[value_key] >= severe_warning)
-
-        result["flood_exceedances"] = {
-            "flood_alert": {
-                "threshold": flood_alert,
-                "count": alert_count,
-                "frequency_per_year": round(alert_count / result["total_years"], 2),
-            },
-            "flood_warning": {
-                "threshold": flood_warning,
-                "count": warning_count,
-                "frequency_per_year": round(warning_count / result["total_years"], 2),
-            },
-            "severe_warning": {
-                "threshold": severe_warning,
-                "count": severe_count,
-                "frequency_per_year": round(severe_count / result["total_years"], 2),
-            },
+        pot_config = load_frequency_config().pot
+        levels = {
+            "flood_alert": flood_stages.get("FloodAlert", float("inf")),
+            "flood_warning": flood_stages.get("FloodWarning", float("inf")),
+            "severe_warning": flood_stages.get("SevereFloodWarning", float("inf")),
         }
+
+        exceedances = {}
+        for name, threshold in levels.items():
+            rate = exceedance_rate(observations, value_key, threshold, pot_config)
+            exceedances[name] = {
+                "threshold": threshold,
+                "count": rate.exceedance_days,
+                "frequency_per_year": round(rate.exceedance_days_per_year, 2),
+                "event_count": rate.event_count,
+                "events_per_year": round(rate.events_per_year, 2),
+                "mean_event_duration_days": round(rate.mean_event_duration_days, 2),
+            }
+        result["flood_exceedances"] = exceedances
 
     # Q5/Q95 for NRFA flow data
     if value_key == "flow_cumecs":

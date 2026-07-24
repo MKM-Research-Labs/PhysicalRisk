@@ -52,6 +52,9 @@ _REGISTRY: dict[str, Spec] = {
 
     # Hazard curves (documents; property/commercial vary by mode)
     "gauge_hazard_curve": Spec(DOCUMENT, _const(dl.GAUGE_HAZARD_FILE)),
+
+    # Fitted event arrival rates + provenance (MKM-EF-001)
+    "frequency_rates": Spec(DOCUMENT, _const(dl.FREQUENCY_RATES_FILE)),
     "property_hazard_curve": Spec(DOCUMENT, lambda mode: dl.PROPERTY_HAZARD_FILES[mode]),
     "commercial_hazard_curve": Spec(DOCUMENT, lambda mode: dl.COMMERCIAL_HAZARD_FILES[mode]),
 

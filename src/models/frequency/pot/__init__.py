@@ -25,6 +25,7 @@ contains no function definitions — only re-exports.
 """
 
 from ._decluster import decluster, parse_date
+from ._rate import ExceedanceRate, exceedance_rate
 from ._extract import (
     annual_counts,
     extract_pot,
@@ -40,6 +41,8 @@ from ._threshold import (
 
 __all__ = [
     "decluster",
+    "exceedance_rate",
+    "ExceedanceRate",
     "parse_date",
     "extract_pot",
     "to_peaks",
