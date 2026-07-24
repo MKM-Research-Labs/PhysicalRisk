@@ -159,8 +159,13 @@ def for_commercial(commercial_type: str) -> Dict[str, object]:
         "flash_codes":   list(proto["flash_codes"]),
         "fire_codes":    list(proto["fire_codes"]),
         "seismic_codes": list(proto["seismic_codes"]),
-        # Operational thresholds are uniform across the prototype set;
-        # the grade decides which one matters for the damage model.
+        # Operational thresholds are uniform across the prototype set.
+        #
+        # The grade does NOT currently select between major and minor. The wind
+        # damage model always reads the Minor (damage-onset) threshold — see
+        # models.winddamage.cdm.extract_wind_threshold_mps, which records why:
+        # keying off Major made commercial wind effectively never trigger.
+        # A grade-sensitive threshold would need that decision revisited first.
         "wind_threshold_major_mps":  WIND_MAJOR_MPS,
         "wind_threshold_minor_mps":  WIND_MINOR_MPS,
         "water_threshold_major_m":   WATER_MAJOR_M,

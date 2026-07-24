@@ -78,6 +78,31 @@ def _grade_to_rating(grade: Optional[str]) -> str:
     return grade
 
 
+def _flood_envelope_rating(info: Dict[str, Any]) -> Optional[str]:
+    """BRIFloodRating — the overall water envelope, min(Water, Flash).
+
+    Derived rather than carried by the prototype set, matching the CDM's own
+    definition and the residential path's ``_weaker_rating``. "min" means the
+    weaker letter: an asset is only as flood-resilient as its worse exposure.
+    """
+    if not active_profile().COMMERCIAL_BRI_ENABLED:
+        return None
+    # "N/A" means the asset has no exposure to that hazard, not that it scored
+    # badly, so it is excluded from the envelope rather than treated as the
+    # weakest letter. Including it would report an asset with real flash
+    # exposure as having no flood exposure at all. This mirrors the residential
+    # path, where an unscored hazard arrives as None and is skipped the same way.
+    order = ["AA", "A", "B", "NR"]
+    applicable = [
+        r for r in (_grade_to_rating(_bri(info)["water_grade"]),
+                    _grade_to_rating(_bri(info)["flash_grade"]))
+        if r in order
+    ]
+    if not applicable:
+        return "N/A"
+    return max(applicable, key=order.index)
+
+
 def _bri_rating(info: Dict[str, Any], grade_key: str) -> Optional[str]:
     """BRI letter rating for a hazard, or ``None`` when BRI coding is off.
 
@@ -218,10 +243,27 @@ def _commercial_generators() -> Dict[str, Callable]:
         ),
 
         # BRI ratings (null when BRI coding is off; 'N/A' for an unexposed hazard)
+        #
+        # All six sub-ratings the CDM defines are published. Wind, fire, seismic
+        # and the overall rating were previously computed by the prototype set
+        # and then dropped, leaving the wind damage model with no grade to read
+        # while water and flash were published beside it.
+        "BRIRating": lambda info: _bri_rating(info, "overall_grade"),
         "BRIWaterRating": lambda info: _bri_rating(info, "water_grade"),
         "BRIFlashRating": lambda info: _bri_rating(info, "flash_grade"),
+        "BRIWindRating": lambda info: _bri_rating(info, "wind_grade"),
+        "BRIFireRating": lambda info: _bri_rating(info, "fire_grade"),
+        "BRISeismicRating": lambda info: _bri_rating(info, "seismic_grade"),
+        "BRIFloodRating": _flood_envelope_rating,
+        # Scores are diagnostic companions to the letter grades and are not
+        # produced by the prototype set; left null rather than invented.
+        "BRIScore": lambda _: None,
         "BRIWaterScore": lambda _: None,
         "BRIFlashScore": lambda _: None,
+        "BRIWindScore": lambda _: None,
+        "BRIFireScore": lambda _: None,
+        "BRISeismicScore": lambda _: None,
+        "BRIFloodScore": lambda _: None,
 
         # BRI measure codes (empty unless the profile enables BRI)
         "WindCodes": lambda info: list(_bri(info)["wind_codes"]),
