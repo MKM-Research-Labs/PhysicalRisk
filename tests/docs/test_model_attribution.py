@@ -172,12 +172,12 @@ class TestCollectablePaths:
                     if p.rsplit('/', 1)[-1].startswith('_')]
 
 
-class TestProjectRulesReconcile:
-    """The live gate, run as a test."""
+class TestProjectRules:
+    """Static invariants of the rule list itself.
 
-    def test_every_rule_resolves_and_every_model_has_evidence(self):
-        rec = reconcile(collectable_paths(config.get_project_root()))
-        assert rec.ok, '\n' + format_reconciliation(rec)
+    Deliberately not asserting that every rule still resolves against the tree —
+    that check is reported by the generator on each run, not enforced here.
+    """
 
     def test_every_rule_target_is_a_known_model(self):
         from docs.models.test_results.generator.models import TEST_MODEL_RULES

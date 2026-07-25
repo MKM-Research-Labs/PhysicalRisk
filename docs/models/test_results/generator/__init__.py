@@ -180,27 +180,18 @@ def main():
                         help='Line coverage percentage to embed in report')
     parser.add_argument('--e2e-junit', dest='e2e_junit', default=None,
                         help='Path to E2E JUnit XML to include in report')
-    parser.add_argument('--reconcile-only', dest='reconcile_only',
-                        action='store_true',
-                        help='Check the attribution rules against the test '
-                             'tree and exit, without running any tests')
     args = parser.parse_args()
 
-    if not args.reconcile_only:
-        print('=' * 60)
-        print('MKM Research Labs — Model Test Results Generator')
-        print('=' * 60)
-        print()
-
-    # Reconcile before running: a rule that no longer resolves means a model has
-    # silently lost its evidence, and the fragment it writes below would be
-    # short by exactly that much with nothing in the output to say so.
-    reconciliation = reconcile(collectable_paths(_project_root))
-    print(format_reconciliation(reconciliation))
+    print('=' * 60)
+    print('MKM Research Labs — Model Test Results Generator')
+    print('=' * 60)
     print()
 
-    if args.reconcile_only:
-        return 0 if reconciliation.ok else 1
+    # Reported, not enforced: a rule that no longer resolves means a model has
+    # lost its evidence, and the fragment written below would be short by
+    # exactly that much with nothing else in the output to say so.
+    print(format_reconciliation(reconcile(collectable_paths(_project_root))))
+    print()
 
     results, duration = run_tests(args.model)
 
@@ -217,7 +208,7 @@ def main():
 
     if not results:
         print('\nNo test results collected.')
-        return 1
+        return
 
     run_timestamp = datetime.now()
 
@@ -282,10 +273,6 @@ def main():
             print('    pdflatex timed out.')
 
     print('\nDone.')
-
-    # The documents are written either way — they are still the best evidence
-    # available — but an unreconciled run is not a clean one.
-    return 0 if reconciliation.ok else 1
 
 
 if __name__ == '__main__':

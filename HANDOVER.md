@@ -164,7 +164,7 @@ Until it's fixed, **generate documents with a full run only**.
 
 ### 6.2 Package as `test_unit_<modelID>.pdf` — DONE, but re-run after any regeneration
 
-`scripts/package_unit_pdfs.py` (runnable from anywhere). It copies each `docs/models/<dir>/test_results.pdf` to
+`python -m scripts.package_unit_pdfs` (from the repo root). It copies each `docs/models/<dir>/test_results.pdf` to
 `docs/models/test_results/unit/test_unit_<MODEL_ID>.pdf` — 26 files, one flat
 folder, easier to select for upload.
 
