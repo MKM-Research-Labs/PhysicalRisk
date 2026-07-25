@@ -49,6 +49,7 @@ from config.frequency._schema import (
     FrequencyConfig,
     PotConfig,
     RateConfig,
+    SelectionConfig,
     SimulationConfig,
 )
 
@@ -56,6 +57,7 @@ __all__ = [
     "FrequencyConfig",
     "PotConfig",
     "RateConfig",
+    "SelectionConfig",
     "SimulationConfig",
     "MODEL_ID",
     "MODEL_VERSION",

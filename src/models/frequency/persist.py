@@ -44,6 +44,7 @@ from config.frequency import (
 )
 
 from .calibrate import calibrate_gauge_rate
+from .families import select_family, selection_to_dict
 from .datastructures import ProvenanceClass, rate_to_dict
 
 # Key under which the daily observations sit in a gauge history record.
@@ -103,7 +104,15 @@ def calibrate_catchment(
             source_version=source_version,
             fitted_at=stamp,
         )
-        rates[gauge_id] = rate_to_dict(rate)
+        # Select and record the distribution family from the annual counts
+        # (Stage 2). This does not change lambda — the catchment seed still
+        # drives the rate — but it records whether the arrivals look Poisson,
+        # clustered, or (as on synthetic data) artefactually regular.
+        selection = select_family(
+            rate.diagnostics.annual_counts, settings.selection)
+        record = rate_to_dict(rate)
+        record["family"] = selection_to_dict(selection)
+        rates[gauge_id] = record
 
     return {
         "metadata": {

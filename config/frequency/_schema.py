@@ -191,6 +191,42 @@ class RateConfig:
 
 
 @dataclass(frozen=True)
+class SelectionConfig:
+    """Distribution-family selection knobs (MKM-EF-001, Stage 2).
+
+    Only two families are fitted: Poisson (the default) and Negative Binomial
+    (for over-dispersed counts, the physical signature of storm clustering).
+
+    There is deliberately no under-dispersion family. Under-dispersion in this
+    platform is largely an artefact of declustering — merging nearby events
+    caps the annual count and pushes the variance below the mean — measured at a
+    mean dispersion index of 0.90 when genuinely-Poisson daily injection is put
+    through the pipeline. Fitting a distribution to it would dress a pipeline
+    quirk as a physical regularity. Under-dispersion is therefore recorded and
+    flagged, and Poisson selected as the nearest fittable family.
+
+    Attributes:
+        overdispersion_significance: two-sided significance level for the
+            chi-square dispersion test. The test guards against selecting
+            NegBin on a dispersion index that is high only by sampling chance —
+            with fifty years of counts, a genuine Poisson process produces
+            index values up to about 1.4 (§5.2), so a bare ``D > 1`` rule would
+            over-select NegBin badly.
+        prefer_poisson_within_aic: when NegBin's AIC beats Poisson's by less
+            than this margin, keep Poisson. NegBin nests Poisson in the limit,
+            so a negligible AIC gain is not evidence for the extra parameter.
+        force_family: optional family name (``"poisson"`` / ``"negbin"``) that
+            overrides selection for every gauge. The override and its
+            justification are logged (SR 11-7); ``None`` leaves selection
+            data-driven.
+    """
+
+    overdispersion_significance: float = 0.05
+    prefer_poisson_within_aic: float = 2.0
+    force_family: object = None
+
+
+@dataclass(frozen=True)
 class SimulationConfig:
     """Monte Carlo year-simulation knobs.
 
@@ -226,9 +262,11 @@ class FrequencyConfig:
     Attributes:
         pot: peaks-over-threshold extraction knobs.
         rate: arrival-rate estimation and fallback knobs.
+        selection: distribution-family selection knobs.
         simulation: Monte Carlo year-simulation knobs.
     """
 
     pot: PotConfig = field(default_factory=PotConfig)
     rate: RateConfig = field(default_factory=RateConfig)
+    selection: SelectionConfig = field(default_factory=SelectionConfig)
     simulation: SimulationConfig = field(default_factory=SimulationConfig)
