@@ -43,7 +43,7 @@ from typing import Dict, Tuple
 # Model identity, stamped into every calibration's provenance record so a
 # persisted rate can be traced to the model version that produced it.
 MODEL_ID: str = "MKM-EF-001"
-MODEL_VERSION: str = "0.1.0"
+MODEL_VERSION: str = "1.0.0"  # 1.0: built, wired to pricing, validated end-to-end (Stages 1-4)
 
 # Dataset identifier recorded as the source of a peaks-over-threshold
 # calibration run over the gauge daily record.
