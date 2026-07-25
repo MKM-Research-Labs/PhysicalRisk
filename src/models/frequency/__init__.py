@@ -62,6 +62,7 @@ from .datastructures import (
     rate_to_dict,
 )
 from .events import build_catalogue, build_event_frame
+from .families import FamilySelection, dispersion_test, select_family
 from .persist import calibrate_and_save, calibrate_catchment
 from .pot import ExceedanceRate, exceedance_rate
 
@@ -73,6 +74,9 @@ __all__ = [
     "calibrate_and_save",
     "exceedance_rate",
     "ExceedanceRate",
+    "select_family",
+    "dispersion_test",
+    "FamilySelection",
     "build_catalogue",
     "build_event_frame",
     "EventCatalogue",

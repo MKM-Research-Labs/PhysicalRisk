@@ -208,3 +208,41 @@ class TestSeamRoundTrip:
         assert "GAUGE-OK" in doc["rates"]
         assert "GAUGE-EMPTY" in doc["metadata"]["skipped_gauges"]
         assert doc["metadata"]["num_skipped"] == 1
+
+
+class TestFamilyIsRecorded:
+    """Stage 2: the persisted document carries the selected family per gauge."""
+
+    def test_each_gauge_records_its_family(self, tmp_path):
+        import database
+        from db_helpers import tmp_catchment
+
+        from models.frequency import calibrate_catchment
+
+        with tmp_catchment(tmp_path):
+            database.save_gauge_history("test", "GAUGE-1", {
+                "daily_observations": _record(),
+            })
+            doc = calibrate_catchment("test", ProvenanceClass.GENERATOR_DERIVED)
+
+        family = doc["rates"]["GAUGE-1"]["family"]
+        assert family["family"] in ("poisson", "negbin")
+        assert "regime" in family["dispersion"]
+        assert "note" in family
+        assert family["poisson"]["lambda"] >= 0.0
+
+    def test_the_family_block_is_json_serialisable(self, tmp_path):
+        import json
+
+        import database
+        from db_helpers import tmp_catchment
+
+        from models.frequency import calibrate_catchment
+
+        with tmp_catchment(tmp_path):
+            database.save_gauge_history("test", "GAUGE-1", {
+                "daily_observations": _record(),
+            })
+            doc = calibrate_catchment("test", ProvenanceClass.GENERATOR_DERIVED)
+
+        json.dumps(doc)  # must not raise

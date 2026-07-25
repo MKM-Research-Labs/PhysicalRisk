@@ -38,6 +38,7 @@ from config.frequency._schema import (
     FrequencyConfig,
     PotConfig,
     RateConfig,
+    SelectionConfig,
     SimulationConfig,
 )
 
@@ -66,6 +67,7 @@ def load_frequency_config(
     catchment: Optional[str] = None,
     pot: Optional[PotConfig] = None,
     rate: Optional[RateConfig] = None,
+    selection: Optional[SelectionConfig] = None,
     simulation: Optional[SimulationConfig] = None,
 ) -> FrequencyConfig:
     """Build a frequency configuration, optionally overriding either block.
@@ -99,6 +101,7 @@ def load_frequency_config(
     return FrequencyConfig(
         pot=pot_block,
         rate=rate if rate is not None else RateConfig(),
+        selection=selection if selection is not None else SelectionConfig(),
         simulation=simulation if simulation is not None else SimulationConfig(),
     )
 
