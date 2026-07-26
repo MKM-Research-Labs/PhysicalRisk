@@ -2,16 +2,26 @@
 
 **Document type:** Definition Document & Project Plan
 **Component:** Event Frequency Model — `MKM-EF-001` (new)
-**Version:** 2.3 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
-**Status:** Stages 1a/1b/1c, 3 and 4 implemented and wired to pricing; Stages 2 and 5 remain
-**Date:** 2026-07-24
+**Version:** 2.4 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
+**Status:** Stages 1–5 complete — built, wired to pricing, validated end-to-end, and registered for governance; only the Track B extensions (Stage 6) remain, under separate approval
+**Date:** 2026-07-26
 **Owner:** CSO, MKM Research Labs
 
 ---
 
 ## 0. What changed from v1
 
-### 0.1 What v2.3 changes
+### 0.1 What v2.4 changes
+
+The two remaining stages landed. The model is now built, wired, validated and
+governed end-to-end; nothing on the critical path is outstanding.
+
+| # | Change | Driver |
+|---|--------|--------|
+| C20 | **Stage 2 complete**: Poisson and Negative-Binomial families with a *calibrated* selector — a chi-square dispersion test gates the choice, not a bare `D > 1` rule, and an AIC margin guards the extra NegBin parameter | With fifty annual counts a genuine Poisson process throws dispersion indices up to ≈1.4 by chance, so the naive rule over-selects NegBin badly (§5.2). Under-dispersion — halong's actual regime — is flagged, never fitted: no family on the Poisson–NegBin axis represents it, so Poisson is selected as the nearest fittable family and the note says so. The selected family and its justification are persisted per gauge (SR 11-7) |
+| C21 | **Stage 5 complete**, in the **ModelRisk** repo. MKM-EF-001 is registered through the governance command API, placed in the chain GH-001 → EF-001 → PR-001, with 4 assumptions, 4 limitations, 3 weaknesses and 9 SR 26-2 validation questions | Governance migrated to a separate event-sourced Postgres platform since v2.0 was written — there is no `model_inventory.json` and no LaTeX to wire (§10). This supersedes the JSON/registry/`.tex` plan §10 originally described. Version bumped 0.1.0 → **1.0.0** as a genuine release |
+
+### 0.2 What v2.3 changed
 
 | # | Change | Driver |
 |---|--------|--------|
@@ -20,7 +30,7 @@
 | C18 | **The wind threshold is traced and now per-asset.** 55.56 m/s was a deliberate uniform constant (200 km/h), not a unit bug; `DesignWindSpeedKmh` drives the threshold instead, and design speeds were raised 40 km/h | Wind vulnerability was undifferentiated across a portfolio. L12 partially closes; the calibration question remains (§6.8) |
 | C19 | **L13 resolved**: the peril stages record the BRI spine they read, and a guard warns when any stage under-declares | The warning fired after every successful run and had already misled one root-cause investigation. The gap was real: a change to the BRI spine never invalidated the consuming step |
 
-### 0.2 What v2.2 changed
+### 0.3 What v2.2 changed
 
 Wiring the layer into pricing and calibrating it on real halong data
 exposed three defects — two of them pre-existing and more serious than the
@@ -34,7 +44,7 @@ problem this model was written to fix.
 | C15 | **The wind leg is validated on real data**; L6 and L9 close | A `--typhoon` run put real wind through all ten commercial assets with the peril coherence checks passing (§6.6). It also surfaced L12: the wind trigger is one global constant, not asset-differentiated |
 | C14 | **Two field-naming traps documented**, both of which produced confident wrong answers before being caught | `flood_events[].storm_id` holds *sequence* identifiers; `_load_gauge_hazard_curves` returns the *sequence* count while its caller names it `num_storms` (§4.11) |
 
-### 0.3 What v2.1 changed
+### 0.4 What v2.1 changed
 
 v2.0 was written before any code existed. Building it moved four things, one of
 which was an outright error in v2.0's design.
@@ -46,7 +56,7 @@ which was an outright error in v2.0's design.
 | C9 | **10,000 simulated years, and the reconciliation gate is expressed in sampling standard errors rather than as a fixed percentage** | Measured on the target hardware (§6.1). A fixed 2% band false-alarmed on 17% of runs at ten thousand years while never binding at a million |
 | C10 | **Landmine L3 resolved:** `num_storms` is kept and `num_events` added beside it | The storm/event distinction becomes visible in the data rather than hidden in a redefinition of a field existing consumers already read |
 
-### 0.4 What v2.0 changed from v1
+### 0.5 What v2.0 changed from v1
 
 v1 diagnosed the problem correctly. v2 keeps the diagnosis and reworks the plan against
 what the codebase actually does. Six substantive changes:
@@ -222,7 +232,7 @@ because every gauge's outcome for a given event sits in the same catalogue row.
 Mirrors `src/models/seismic/occurrence/`. Every file under 300 lines (R2); no callable
 code in any `__init__.py` (R4); canonical copyright header on every file (R5).
 
-Items marked ✓ are built and under test; the rest are Stage 2 and beyond.
+Every item is built and under test.
 
 ```
 src/models/frequency/
@@ -244,10 +254,11 @@ src/models/frequency/
     _sample.py            ✓ draw_event_years / apply_catalogue
     _reconcile.py         ✓ closed form and the sampling-error gate
   families/
-    _poisson.py             Stage 2
-    _negbin.py              Stage 2
-    _select.py              Stage 2 — dispersion test + AIC tiebreak, logs overrides
+    _poisson.py          ✓ MLE Poisson fit; AIC; seeded annual-count sampler
+    _negbin.py           ✓ MLE Negative Binomial; collapses to Poisson at α→0
+    _select.py           ✓ chi-square dispersion test + AIC tiebreak; logs overrides
   calibrate.py            ✓ orchestration: pure function of (series, config) → FittedRate
+  persist.py              ✓ calibrate a catchment and save via the database seam (R6)
 ```
 
 The composition of rate and conditional happens in `ylt/` and nowhere else.
@@ -892,9 +903,10 @@ Additional:
 Leaves first; each stage independently shippable and tested; coverage checked at every
 stage boundary (R3).
 
-The staging has changed from v2.0. The year sampler was v2.0's Stage 6 and is now
-built, because it became the engine rather than a deferred extension (C8). Stage 1
-is correspondingly larger and partly done.
+The staging changed from v2.0. The year sampler was v2.0's Stage 6 and became the
+engine rather than a deferred extension (C8). Every stage on the critical path
+(1a–5) is now built, tested and shipped; only the Track B extensions (Stage 6)
+remain, under separate approval.
 
 | Stage | Content | State | Reprices? |
 |-------|---------|-------|-----------|
@@ -904,8 +916,8 @@ is correspondingly larger and partly done.
 | 3 | Frequency layer wired into `builder.py`; legacy metric retained alongside | **Done** | **Yes** |
 | 4 | Property, commercial, gauge-basis and wind legs; return periods | **Done** | **Yes** |
 | 1c | Day-count fix-and-promote (§6.8); λ and provenance persisted through the `database` seam | **Done** | No |
-| 2 | Poisson / NegBin families; dispersion selection; override logging; round-trip validation. **Note §5.2:** halong's gauges are *under*-dispersed (0.46–0.97), which NegBin cannot model — it covers the over-dispersed side only. A third family, or an honest "neither fits", may be the outcome | To do | No |
-| 5 | Governance: inventory entry, LaTeX documentation, registry wiring, validation report, monitoring job | To do | No |
+| 2 | Poisson / NegBin families; calibrated dispersion selection; override logging; per-gauge family persisted; round-trip validation. **Outcome (§5.2):** halong's gauges are *under*-dispersed (0.46–0.97), which no count family on the Poisson–NegBin axis can model — so it is flagged and Poisson selected as the nearest fittable family, the "honest neither-fits" outcome rather than a third family | **Done** | No |
+| 5 | Governance: registered in the **ModelRisk** event-sourced platform (not JSON/LaTeX — §10); chain edges; assumptions/limitations/weaknesses; SR 26-2 questions | **Done** | No |
 | 6 | *Separate approval:* loss-weighted YLT, ELT export, wind λ calibration, seasonal rates | To do | — |
 
 The clamp review promised for Stage 4 (`builder.py` exceedance floor and
@@ -924,16 +936,20 @@ unreviewed.
   see §6.5.
 - **S1c** — POT series reproducibly generated for all gauges; provenance complete and
   persisted through the seam; the day-count consumers repointed.
-- **S2** — families pass property tests (mean/variance recovery); calibration
-  deterministic under fixed inputs; per-gauge selection report generated; round-trip
-  recovers the injected rate within tolerance.
-- **S3** — parallel-run report produced on the real book, quantifying repricing per
-  gauge; legacy metric still available behind the flag; simulated and closed-form
-  annual probabilities reconcile within the sampling band.
-- **S4** — property-level repricing quantified; clamp decisions recorded; wind-leg
-  decision recorded; UI and EOD consumers verified against the renamed fields.
-- **S5** — validation report reviewed and signed off; monitoring scheduled; legacy metric
-  formally deprecated.
+- **S2** — *met.* Each family recovers its own parameters, mean and variance from data
+  drawn from itself; the selector holds its NegBin false-positive rate on genuine
+  Poisson counts below the configured significance while still catching real
+  over-dispersion; under-dispersion selects Poisson and is flagged; the chosen family
+  and its justification round-trip through the persisted rate document. NegBin covers
+  the over-dispersed side only — on halong, which is under-dispersed, the honest
+  neither-fits path fires (§5.2).
+- **S5** — *met, in the ModelRisk repo.* MKM-EF-001 registered v1.0.0 (tier 1, Amber)
+  through the governance command API, placed in the chain GH-001 → EF-001 → PR-001,
+  with the §5 λ-circularity and stationarity limitations recorded, and the SR 26-2
+  validation questions seeded. Idempotent seed under test. The **still-outstanding**
+  governance items are the MRC decision on retiring the pre-existing direct GH-001 →
+  PR-001 chain edge, and formal deprecation of the legacy metric — both MRC actions,
+  not build work.
 
 ---
 
@@ -959,19 +975,53 @@ These bite between Stage 3 and Stage 5. Each needs a decision before Stage 3 lan
 
 ## 10. Governance and registration
 
-Per `docs/models/new_model.md`, and noting that a new model doc must be wired into **five
-registries** plus the Makefile filter:
+**This supersedes what v2.0 planned here.** v2.0 described registration into
+`docs/models/governance_data/model_inventory.json`, a LaTeX model document, and
+wiring into five registries plus a Makefile filter. Since then model governance
+has migrated out of PhysicalRisk into a separate **event-sourced Postgres
+platform** (the ModelRisk repo). There is no `model_inventory.json` to amend and
+no `.tex` to write; models are registered through a governance command API and
+the inventory is a derived read-model. Stage 5 was therefore completed *there*,
+not here.
 
-1. Inventory entry `MKM-EF-001` in `docs/models/governance_data/model_inventory.json` —
-   tier 1 (proposed), category Hazard, `source_module: src/models/frequency/`,
-   `upstream_models: [MKM-GH-001]`, `downstream_models: [MKM-PR-001]`.
-2. Corresponding `upstream_models` / `downstream_models` amendments on MKM-GH-001 and
-   MKM-PR-001 (full-audit §4.7 scans chain consistency; the chain is hand-maintained).
-3. `docs/models/event_frequency/event_frequency.tex` + Makefile, with the standard
-   sections and `\input{test_results}` / `\input{sensitivity_tables}`.
-4. Registry wiring (five registries + Makefile filter).
-5. Assumptions and limitations recorded — including, explicitly, the §5 provenance
-   limitation and the stationarity assumption.
+**What was registered (ModelRisk, `scripts/register_ef001.py`).** The 24 existing
+PhysicalRisk models were bulk-migrated from the old JSON; MKM-EF-001 post-dates
+that inventory, so it is registered directly through the same API the migration
+used. The seed is idempotent (`python -m scripts.register_ef001` is a no-op on a
+re-run) and under test (`tests/test_register_ef001.py`):
+
+1. **Scalar record** — `MKM-EF-001`, "Event Frequency Model", **v1.0.0**, tier 1,
+   category Hazard, type "Analytical Model", materiality High, RAG **Amber**
+   (mechanism built and validated, but λ and the population weights are
+   unvalidated seeds — see limitations), `source_module: src/models/frequency/`.
+   The version was bumped 0.1.0 → 1.0.0 as a genuine release: built, wired to
+   pricing on all legs, and validated end-to-end.
+2. **Chain edges** — `MKM-GH-001 → MKM-EF-001 → MKM-PR-001`, declared as
+   dependency collection items on the producer (direction downstream), matching
+   how the migration declared source edges. GH-001 produces per-event
+   exceedance, EF-001 annualises it, PR-001 prices it.
+3. **4 assumptions** — λ is a catchment property not a gauge property; qualifying
+   events arrive Poisson; the 168-hour hours-clause sequence is one event; the
+   catalogue is an importance sample reweighted by the population weights.
+4. **4 limitations** — the §5 λ-circularity ("lambda is unvalidated", recorded
+   verbatim and asserted by a test), the population-weight judgement, the
+   stationarity assumption, and single-small-catchment calibration.
+5. **3 weaknesses** — the circular per-gauge validation arm; under-dispersion
+   being unrepresentable on the Poisson–NegBin axis; and Monte Carlo sampling
+   error (~1.6% at 10,000 years).
+6. **9 SR 26-2 validation questions** auto-seeded on registration.
+
+**Implementation note carried forward.** The registration API guards chain edges
+against models not yet visible in the inventory view, so the ordering is
+load-bearing: register, `rebuild_inventory_view`, *then* declare the chain, then
+rebuild again. Declaring the chain before the rebuild silently drops both edges —
+the property `tests/test_register_ef001.py` exists to catch.
+
+**Open for the MRC (not build work).** The chain now carries both the new
+GH → EF → PR path *and* the pre-existing direct GH → PR edge; removing a declared
+dependency is an MRC decision, so the shortcut was left in place and flagged.
+Formal deprecation of the legacy `flood_count / num_storms` metric is likewise an
+MRC action pending the full-book parallel run.
 
 **Validation plan (SR 11-7).** Conceptual soundness; per-gauge count backtesting on a
 held-out split; dispersion coverage reporting (share of gauges selecting NegBin);
