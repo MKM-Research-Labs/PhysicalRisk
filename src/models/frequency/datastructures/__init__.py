@@ -27,6 +27,7 @@ from ._catalogue import EventCatalogue
 from ._diagnostics import PotDiagnostics
 from ._extraction import Peak, PotExtraction
 from ._frame import EventFrame
+from ._loss import EventLossTable, LossSimulation
 from ._provenance import CalibrationProvenance, ProvenanceClass
 from ._rate import FittedRate
 from ._serialise import rate_from_dict, rate_to_dict
@@ -35,6 +36,8 @@ from ._simulation import EventDraws, YearSimulation
 __all__ = [
     "EventCatalogue",
     "EventFrame",
+    "EventLossTable",
+    "LossSimulation",
     "PotDiagnostics",
     "Peak",
     "PotExtraction",

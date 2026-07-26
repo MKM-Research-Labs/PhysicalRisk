@@ -53,7 +53,9 @@ from .datastructures import (
     CalibrationProvenance,
     EventCatalogue,
     EventFrame,
+    EventLossTable,
     FittedRate,
+    LossSimulation,
     Peak,
     PotDiagnostics,
     PotExtraction,
@@ -61,10 +63,16 @@ from .datastructures import (
     rate_from_dict,
     rate_to_dict,
 )
+from .elt import build_event_loss_table, elt_document
 from .events import build_catalogue, build_event_frame
 from .families import FamilySelection, dispersion_test, select_family
 from .persist import calibrate_and_save, calibrate_catchment
 from .pot import ExceedanceRate, exceedance_rate
+from .ylt import (
+    apply_catalogue_losses,
+    reconcile_losses,
+    simulate_losses,
+)
 
 __all__ = [
     "annual_exceedance_probability",
@@ -79,8 +87,15 @@ __all__ = [
     "FamilySelection",
     "build_catalogue",
     "build_event_frame",
+    "build_event_loss_table",
+    "elt_document",
+    "apply_catalogue_losses",
+    "simulate_losses",
+    "reconcile_losses",
     "EventCatalogue",
     "EventFrame",
+    "EventLossTable",
+    "LossSimulation",
     "calibrate_gauge_rate",
     "summarise",
     "fallback_reason",
