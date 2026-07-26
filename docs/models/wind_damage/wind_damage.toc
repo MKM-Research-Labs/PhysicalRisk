@@ -1,0 +1,36 @@
+\contentsline {section}{\numberline {1}Executive Summary}{4}{section.1}%
+\contentsline {section}{\numberline {2}Model Purpose and Scope}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Purpose}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Scope}{5}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Out of Scope}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Mathematical Framework}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Vulnerability Curve}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}BRI Threshold Shift}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Persistence}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}PRS Damage-Onset Trigger}{6}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Threshold Resolution}{6}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Input Parameters and Calibration}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Calibration Status}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Data Inputs}{7}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Implementation Details}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Public Interface}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Separation from Pricing}{8}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Sensitivity Analysis}{8}{section.6}%
+\contentsline {section}{\numberline {7}Validation and Backtesting}{10}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Verification Approach}{10}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Backtesting}{11}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Automated Test Results}{11}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Test Document History}{24}{subsection.7.4}%
+\contentsline {section}{\numberline {8}Model Limitations and Known Weaknesses}{24}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Remediation}{24}{subsection.8.1}%
+\contentsline {section}{\numberline {9}Governance Validation Questions}{25}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Q1 --- Model purpose and use}{25}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Q2 --- Conceptual soundness}{25}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Q3 --- Data quality}{25}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Q4 --- Assumptions}{25}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Q5 --- Implementation verification}{25}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Q6 --- Sensitivity and stability}{26}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Q7 --- Limitations and weaknesses}{26}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Q8 --- Ongoing monitoring}{26}{subsection.9.8}%
+\contentsline {subsection}{\numberline {9.9}Q9 --- Governance and approval}{26}{subsection.9.9}%
+\contentsline {section}{\numberline {10}Change History}{26}{section.10}%

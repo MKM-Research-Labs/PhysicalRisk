@@ -1,0 +1,72 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Executive Summary}{4}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Model Purpose and Scope}{4}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Purpose}{4}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Scope}{5}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Out of Scope}{5}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Mathematical Framework}{5}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Vulnerability Curve}{5}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}BRI Threshold Shift}{5}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Persistence}{6}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}PRS Damage-Onset Trigger}{6}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Threshold Resolution}{6}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Input Parameters and Calibration}{7}{section.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Model parameters}}{7}{table.caption.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Calibration Status}{7}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Data Inputs}{7}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Per-property inputs}}{7}{table.caption.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Implementation Details}{8}{section.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Implementation map (\texttt  {src/models/winddamage/})}}{8}{table.caption.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Public Interface}{8}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Separation from Pricing}{8}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Sensitivity Analysis}{8}{section.6}\protected@file@percent }
+\newlabel{sec:sensitivity}{{6}{8}{Sensitivity Analysis}{section.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Pure vulnerability curve: damage ratio by peak sustained wind, at the configured base $v_{50}=27.8$~m/s and slope $a=0.2$~m$^{-1}$s.}}{9}{table.caption.7}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:sens_wd_scalar}{{4}{9}{Pure vulnerability curve: damage ratio by peak sustained wind, at the configured base $v_{50}=27.8$~m/s and slope $a=0.2$~m$^{-1}$s}{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Signed $v_{50}$ shift (m/s) by BRI wind sub-score and composite score, capped at $\pm 12.0$~m/s. Positive shifts move the curve rightward (the building tolerates more wind before damage).}}{9}{table.caption.8}\protected@file@percent }
+\newlabel{tab:sens_wd_bri_shift}{{5}{9}{Signed $v_{50}$ shift (m/s) by BRI wind sub-score and composite score, capped at $\pm 12.0$~m/s. Positive shifts move the curve rightward (the building tolerates more wind before damage)}{table.caption.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces BRI-adjusted damage ratio by resilience grade at a common operational threshold of 27.8~m/s (wind sub-score and composite both set to the grade mid-point).}}{9}{table.caption.9}\protected@file@percent }
+\newlabel{tab:sens_wd_by_grade}{{6}{9}{BRI-adjusted damage ratio by resilience grade at a common operational threshold of 27.8~m/s (wind sub-score and composite both set to the grade mid-point)}{table.caption.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Persistence multiplier $\Phi (t)$ by hours above the damage-onset threshold ($\phi _{gust}=0.45$, $\tau =4.0$~h). A momentary gust realises only the floor; a prolonged blow saturates at the full peak-curve damage.}}{10}{table.caption.10}\protected@file@percent }
+\newlabel{tab:sens_wd_persistence}{{7}{10}{Persistence multiplier $\Phi (t)$ by hours above the damage-onset threshold ($\phi _{gust}=0.45$, $\tau =4.0$~h). A momentary gust realises only the floor; a prolonged blow saturates at the full peak-curve damage}{table.caption.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Persistence-aware damage ratio (severity $\times $ duration) for a B-grade building at a 27.8~m/s operational threshold.}}{10}{table.caption.11}\protected@file@percent }
+\newlabel{tab:sens_wd_severity_duration}{{8}{10}{Persistence-aware damage ratio (severity $\times $ duration) for a B-grade building at a 27.8~m/s operational threshold}{table.caption.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces PRS damage-onset trigger by resilience grade. The trigger fires when the peak sustained wind reaches the BRI-adjusted effective threshold, so a resilient building fires less readily at the same wind.}}{10}{table.caption.12}\protected@file@percent }
+\newlabel{tab:sens_wd_prs_trigger}{{9}{10}{PRS damage-onset trigger by resilience grade. The trigger fires when the peak sustained wind reaches the BRI-adjusted effective threshold, so a resilient building fires less readily at the same wind}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Validation and Backtesting}{10}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Verification Approach}{10}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Backtesting}{11}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Automated Test Results}{11}{subsection.7.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Test Results Summary --- Wind Damage (MKM-WD-001)}}{11}{table.caption.13}\protected@file@percent }
+\newlabel{tab:test_summary_mkm_wd_001}{{10}{11}{Test Results Summary --- Wind Damage (MKM-WD-001)}{table.caption.13}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Detailed Test Results --- Wind Damage}}{11}{table.11}\protected@file@percent }
+\newlabel{tab:test_detail_mkm_wd_001}{{11}{11}{Automated Test Results}{table.11}{}}
+\gdef \LT@i {\LT@entry 
+    {1}{182.71652pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{47.57361pt}\LT@entry 
+    {4}{41.26088pt}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Test Document History}{24}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Model Limitations and Known Weaknesses}{24}{section.8}\protected@file@percent }
+\newlabel{sec:limitations}{{8}{24}{Model Limitations and Known Weaknesses}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Remediation}{24}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Governance Validation Questions}{25}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Q1 --- Model purpose and use}{25}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Q2 --- Conceptual soundness}{25}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Q3 --- Data quality}{25}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Q4 --- Assumptions}{25}{subsection.9.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5}Q5 --- Implementation verification}{25}{subsection.9.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.6}Q6 --- Sensitivity and stability}{26}{subsection.9.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.7}Q7 --- Limitations and weaknesses}{26}{subsection.9.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.8}Q8 --- Ongoing monitoring}{26}{subsection.9.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.9}Q9 --- Governance and approval}{26}{subsection.9.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Change History}{26}{section.10}\protected@file@percent }
+\newlabel{LastPage}{{10}{26}{Change History}{page.26}{}}
+\gdef\lastpage@lastpage{26}
+\gdef\lastpage@lastpageHy{26}
+\gdef \@abspage@last{27}
