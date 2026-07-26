@@ -33,13 +33,15 @@ alignment is deliberate: it is what makes the table's closed-form average annual
 loss the exact expectation of the sampler's mean aggregate loss.
 """
 
+from typing import Union
+
 import numpy as np
 
-from ..datastructures import EventCatalogue, EventLossTable
+from ..datastructures import EventCatalogue, EventFrame, EventLossTable
 
 
 def build_event_loss_table(
-    catalogue: EventCatalogue,
+    catalogue: Union[EventCatalogue, EventFrame],
     event_losses: np.ndarray,
     lambda_per_year: float,
     subject_id: str,
@@ -47,9 +49,10 @@ def build_event_loss_table(
     """Assemble the event loss table for one subject.
 
     Args:
-        catalogue: the event catalogue the losses were computed against; it
-            supplies the event identifiers, the sampling weights and the
-            coverage.
+        catalogue: the event catalogue or frame the losses were computed
+            against; either supplies the event identifiers, the sampling weights
+            and the coverage the table needs. Gauge subjects pass a catalogue;
+            the property and commercial legs pass their frame.
         event_losses: one loss per catalogue event, aligned with
             ``catalogue.event_ids``.
         lambda_per_year: the catchment arrival rate over all qualifying events;
