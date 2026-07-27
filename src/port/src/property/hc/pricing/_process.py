@@ -31,6 +31,7 @@ from models.frequency import (
 )
 
 from ..constants import TENORS
+from ._basis import gauge_severe_count, nearest_gauge_basis
 from ._loss import property_loss_block
 
 
@@ -124,116 +125,14 @@ class _ProcessMixin:
                 for name, o in prs_perils.items()
             }
 
-        # Compute basis vs nearest gauges
-        nearest_gauges_data = pdata.get('nearest_gauges', [])
-        nearest_basis = []
-        for ng in nearest_gauges_data:
-            gid = ng['gauge_id']
-            gauge_hc = gauge_hazard.get(gid)
-            if not gauge_hc:
-                continue
-
-            # Gauge severe count, for the event-basis display. The gauge's own
-            # annual probability now comes from the frequency layer, so the
-            # count is expressed over events rather than storms.
-            gauge_severe_count = self._get_gauge_severe_count(
-                gauge_hc, gauge_hc.get('num_events_simulated') or num_storms)
-            # Count property floods that came from severe gauge events
-            # (not alert-only) — this is the hedged subset
-            severe_and_flooded = sum(1 for e in flood_events if is_prs_flood(e))
-            gauge_flood_count = gauge_severe_count
-            # Transmission rate: fraction of severe gauge events that reach
-            # the property.  By definition <= 1 (gauge is on the river).
-            transmission_rate = (
-                severe_and_flooded / gauge_flood_count
-                if gauge_flood_count > 0 else 0.0
-            )
-
-            # The gauge leg is already annualised in gaugehc; use it directly
-            # rather than re-deriving a ratio, so both sides of the basis are
-            # on the same footing.
-            gauge_annual = gauge_hc.get('annual_flood_prob_severe')
-            if gauge_annual is None:
-                gauge_annual = (gauge_severe_count / num_storms) if num_storms > 0 else 0.0
-            gauge_spread_bps = round(gauge_annual * 10000, 2)
-
-            basis_at_tenors = [round(gauge_spread_bps - spread_bps, 2)] * len(TENORS)
-            basis_bps = {
-                'severe': {
-                    'tenors': TENORS,
-                    'values': basis_at_tenors,
-                },
-            }
-
-            # Gauge threshold levels for visualisation
-            gauge_thresholds = {}
-            g_info = ng.get('gauge_info') or {}
-            if g_info:
-                gauge_thresholds = {
-                    'alert_level': round(g_info.get('alert_level', 0), 2),
-                    'warning_level': round(g_info.get('warning_level', 0), 2),
-                    'severe_level': round(g_info.get('severe_level', 0), 2),
-                }
-
-            nearest_basis.append({
-                'gauge_id': gid,
-                'distance_km': round(ng.get('distance_m', 0) / 1000, 2),
-                'gauge_elevation_m': round(ng.get('gauge_elevation_m', 0), 2),
-                'gauge_flood_count': gauge_flood_count,
-                'property_flood_count': severe_and_flooded,
-                'event_basis': gauge_flood_count - severe_and_flooded,
-                'flood_transmission_rate': round(transmission_rate, 4),
-                'basis_bps': basis_bps,
-                'gauge_thresholds': gauge_thresholds,
-            })
-
-        # Summary — use synthetic gauge basis as primary
-        avg_basis = 0.0
-        avg_transmission = 0.0
-        if nearest_basis:
-            synth_nb = next(
-                (nb for nb in nearest_basis if nb['gauge_id'].startswith('SYNTH-')),
-                None
-            )
-            if synth_nb:
-                severe_basis = synth_nb['basis_bps'].get('severe', {}).get('values', [])
-                avg_basis = severe_basis[0] if severe_basis else 0.0
-                avg_transmission = synth_nb.get('flood_transmission_rate', 0.0)
-            else:
-                bases = [nb['basis_bps'].get('severe', {}).get('values', [0])[0]
-                         for nb in nearest_basis]
-                avg_basis = np.mean(bases) if bases else 0.0
-                avg_transmission = np.mean([nb['flood_transmission_rate']
-                                            for nb in nearest_basis])
-
-        # Gauge spread: use synthetic gauge directly when present
-        idw_gauge_spreads = {}
-        synth_basis = next(
-            (nb for nb in nearest_basis if nb['gauge_id'].startswith('SYNTH-')),
-            None
-        ) if nearest_basis else None
-
-        if synth_basis:
-            synth_spreads = []
-            for j in range(len(TENORS)):
-                basis_v = synth_basis['basis_bps'].get('severe', {}).get('values', [])
-                b = basis_v[j] if j < len(basis_v) else 0
-                synth_spreads.append(round(spread_bps + b, 2))
-            idw_gauge_spreads['severe'] = synth_spreads
-        elif nearest_basis:
-            distances = [nb.get('distance_km', 1.0) for nb in nearest_basis]
-            weights = [1.0 / max(d, 0.1) for d in distances]
-            w_total = sum(weights)
-            weights = [w / w_total for w in weights]
-            weighted_spreads = []
-            for j in range(len(TENORS)):
-                gs = 0.0
-                for k, nb in enumerate(nearest_basis):
-                    basis_v = nb['basis_bps'].get('severe', {}).get('values', [])
-                    b = basis_v[j] if j < len(basis_v) else 0
-                    gs += weights[k] * (spread_bps + b)
-                weighted_spreads.append(round(gs, 2))
-            idw_gauge_spreads['severe'] = weighted_spreads
+        # Basis vs the nearest gauges, its summary, and the IDW gauge spread —
+        # extracted to ``_basis.py`` to keep this file within the size limit.
+        basis = nearest_gauge_basis(
+            pdata, gauge_hazard, flood_events, spread_bps, num_storms)
+        nearest_basis = basis['nearest_basis']
+        avg_basis = basis['avg_basis']
+        avg_transmission = basis['avg_transmission']
+        idw_gauge_spreads = basis['idw_gauge_spreads']
 
         from models.audit import log_model_usage
         audit_params = {
@@ -336,23 +235,9 @@ class _ProcessMixin:
 
     @staticmethod
     def _get_gauge_severe_count(gauge_hc: Dict, num_storms: int = 0) -> int:
-        """Get the number of severe flood events from a gauge.
+        """Number of severe flood events at a gauge — delegates to ``_basis``.
 
-        Prefers the raw catalogue count written by the hazard builder. That
-        count and the property's flood-event count are both plain tallies over
-        the same event catalogue, so the transmission rate formed from them is
-        a genuine ratio.
-
-        The older path — annual probability x scenario count — is retained only
-        for curves predating the frequency layer. It cannot be used once the
-        probability is annualised: multiplying an annual probability by an
-        event count mixes bases and produced transmission rates near 200%,
-        where the quantity is bounded by 1 by construction.
+        Kept as a method because callers (and tests) reach it through the
+        generator; the logic lives in ``_basis.gauge_severe_count``.
         """
-        raw = gauge_hc.get('severe_event_count')
-        if raw:
-            return raw
-        prob = gauge_hc.get('annual_flood_prob_severe', 0)
-        if prob > 0 and num_storms > 0:
-            return round(prob * num_storms)
-        return 0
+        return gauge_severe_count(gauge_hc, num_storms)
