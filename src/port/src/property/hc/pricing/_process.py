@@ -42,6 +42,7 @@ class _ProcessMixin:
                           frame=None, lambda_per_year: float = 0.0,
                           freq_config=None, catchment: str = "",
                           loss_draws=None, value_lookup=None,
+                          wind_lambda_per_year=None, wind_loss_draws=None,
                           **kwargs) -> Optional[Dict]:
         """Process a single asset's timeseries *pdata*: count severe floods that
         reach it, compute spread and basis.
@@ -318,13 +319,19 @@ class _ProcessMixin:
                 frame, prs_floods, lambda_per_year, freq_config, prop_id,
                 catchment, asset_value=asset_value, draws=loss_draws)
             # Wind peril loss (Stage 6e), on the same footing, when the typhoon
-            # stage ran. Keyed by the same value and shared draws so the flood
-            # and wind loss views are comparable and correlated.
+            # stage ran. Priced on the wind arrival rate (Stage 6f); this
+            # defaults to the storm event rate, so the numbers are unchanged
+            # unless a catchment carries a distinct wind lambda. The draws must
+            # match that rate, hence a separate wind draw set rather than the
+            # flood one.
             if wind_info is not None:
+                w_lambda = (lambda_per_year if wind_lambda_per_year is None
+                            else wind_lambda_per_year)
+                w_draws = loss_draws if wind_loss_draws is None else wind_loss_draws
                 result['loss_metrics_wind'] = property_loss_block(
-                    frame, wind_info['wind_loss_records'], lambda_per_year,
+                    frame, wind_info['wind_loss_records'], w_lambda,
                     freq_config, prop_id, catchment, asset_value=asset_value,
-                    draws=loss_draws)
+                    draws=w_draws)
         return result
 
     @staticmethod

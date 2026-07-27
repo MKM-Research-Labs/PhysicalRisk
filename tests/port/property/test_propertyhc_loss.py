@@ -237,6 +237,39 @@ class TestWindLoss:
         # The flood block is still there and independent of the wind one.
         assert "loss_metrics" in result
 
+    def test_a_distinct_wind_lambda_prices_the_wind_block_on_its_own_rate(
+            self, monkeypatch, basic_output_dir):
+        """Stage 6f: the wind block is priced on the wind arrival rate and its
+        own matching draws, so a distinct wind lambda flows through and still
+        reconciles."""
+        from models.frequency import shared_draws
+
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-wl", n_floods=2)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        monkeypatch.setattr(gen, "_wind_union", lambda *a, **k: {
+            "wind_count": 1, "union_count": 2, "joint_count": 1,
+            "wind_spread_bps": 10.0, "union_spread_bps": 20.0,
+            "joint_spread_bps": 5.0,
+            "wind_loss_records": [{"storm_id": "S0", "damage_ratio": 0.5}],
+        })
+        frame = _frame()
+        cfg = load_frequency_config("thames")
+        wind_lambda = 9.0  # deliberately distinct from the flood rate of 4.5
+        wind_draws = shared_draws(frame, wind_lambda, cfg.simulation)
+
+        result = gen._process_property(
+            pdata, gauge_hazard, None, num_storms=100,
+            frame=frame, lambda_per_year=4.5, freq_config=cfg, catchment="thames",
+            value_lookup={"PROP-wl": 100_000.0},
+            wind_lambda_per_year=wind_lambda, wind_loss_draws=wind_draws)
+
+        wind = result["loss_metrics_wind"]
+        assert wind["metadata"]["lambda_effective"] == pytest.approx(
+            wind_lambda * frame.coverage)
+        assert wind["reconciliation"]["within_tolerance"]
+
 
 class TestValueLookup:
 

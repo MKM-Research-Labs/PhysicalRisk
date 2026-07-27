@@ -34,6 +34,7 @@ from typing import Optional
 
 from config.frequency._schema import (
     CATCHMENT_LAMBDA_PER_YEAR,
+    CATCHMENT_WIND_LAMBDA_PER_YEAR,
     DEFAULT_LAMBDA_PER_YEAR,
     FrequencyConfig,
     PotConfig,
@@ -61,6 +62,32 @@ def catchment_lambda(catchment: Optional[str]) -> float:
     if not catchment:
         return DEFAULT_LAMBDA_PER_YEAR
     return CATCHMENT_LAMBDA_PER_YEAR.get(catchment.lower(), DEFAULT_LAMBDA_PER_YEAR)
+
+
+def catchment_wind_lambda(catchment: Optional[str]) -> float:
+    """Return the WIND event arrival rate for *catchment* (MKM-EF-001, 6f).
+
+    The per-peril arrival rate the plan's §4.14 architected for. It falls back
+    to the storm event rate (``catchment_lambda``) whenever the catchment has no
+    wind-specific seed — which, with ``CATCHMENT_WIND_LAMBDA_PER_YEAR`` empty, is
+    every catchment. That fallback is not a placeholder but the model: under the
+    current 1:1 storm-typhoon coupling wind is not an independent arrival
+    process, so it shares the storm rate (see the schema note on the registry).
+
+    An explicit entry overrides only the additive wind-loss view; the priced
+    wind spread stays on the coupled event rate until the unpaired-typhoon
+    counting that a real decoupling needs is built and signed off.
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively. ``None`` or
+            an unseeded catchment returns the storm event rate.
+
+    Returns:
+        Wind events per year.
+    """
+    if catchment and catchment.lower() in CATCHMENT_WIND_LAMBDA_PER_YEAR:
+        return CATCHMENT_WIND_LAMBDA_PER_YEAR[catchment.lower()]
+    return catchment_lambda(catchment)
 
 
 def load_frequency_config(

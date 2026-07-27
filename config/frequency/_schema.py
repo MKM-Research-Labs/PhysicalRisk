@@ -162,6 +162,28 @@ CATCHMENT_LAMBDA_PER_YEAR: Dict[str, float] = {
 # Arrival rate used for a catchment with no seed of its own.
 DEFAULT_LAMBDA_PER_YEAR: float = 4.5
 
+# Wind peril label, for the per-peril arrival-rate registry below.
+PERIL_WIND: str = "wind"
+
+# Per-catchment WIND event arrival rates (MKM-EF-001, Stage 6f). This is the
+# per-peril lambda registry the plan's §4.14 architected for.
+#
+# It is deliberately EMPTY. Under the current 1:1 storm-typhoon coupling wind is
+# not an independent arrival process: every wind event is paired with a storm
+# sequence, and the wind leg works in that sequence space, dropping any typhoon
+# with no paired sequence (see port .../pricing/_wind.py). So wind shares the
+# storm event arrival rate, and ``catchment_wind_lambda`` falls back to
+# ``catchment_lambda`` for every catchment.
+#
+# A genuinely independent wind rate only becomes meaningful once those unpaired,
+# off-sequence typhoon events are counted — a larger change that also re-derives
+# the coupled union/intersection legs and, because it moves the priced wind
+# spread, is gated on model-risk sign-off and real typhoon data (the same
+# circularity as flood lambda applies on synthetic catchments — plan §5). Until
+# then this registry is the seam, not a set of validated rates: an entry here
+# overrides only the ADDITIVE wind-loss view, never the priced spread.
+CATCHMENT_WIND_LAMBDA_PER_YEAR: Dict[str, float] = {}
+
 
 @dataclass(frozen=True)
 class RateConfig:
