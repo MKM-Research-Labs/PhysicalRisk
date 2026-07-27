@@ -36,10 +36,11 @@ touching it. Three things are pinned:
 import numpy as np
 import pytest
 
+import config.frequency._loader as freq_loader
 from config.frequency import load_frequency_config
 from port.src.property.hc.generator import PropertyHazardCurveGenerator
 from port.src.property.hc.pricing._loss import property_loss_block
-from port.src.property.hc.pricing._wind import _WindMixin
+from port.src.property.hc.pricing._wind import _WindMixin, decoupled_wind_legs
 
 from .conftest import basic_output_dir, write_property_ts  # noqa: F401
 
@@ -269,6 +270,57 @@ class TestWindLoss:
         assert wind["metadata"]["lambda_effective"] == pytest.approx(
             wind_lambda * frame.coverage)
         assert wind["reconciliation"]["within_tolerance"]
+
+
+class TestDecoupledWind:
+    """Stage 6i (opt-in): wind priced as an independent arrival process that
+    counts the unpaired typhoons the coupled model drops."""
+
+    @staticmethod
+    def _host_with_unpaired():
+        host = _WindHost()
+        host._wind_damage_cache = {
+            "EVT-00000": {"PROP-1": {"peak_sustained_ms": 70, "threshold_ms": 50,
+                                     "v_50_eff_ms": 50, "damage_ratio": 0.4}},
+            "EVT-00002": {"PROP-1": {"peak_sustained_ms": 70, "threshold_ms": 50,
+                                     "v_50_eff_ms": 50, "damage_ratio": 0.5}},
+            "EVT-UNPAIRED": {"PROP-1": {"peak_sustained_ms": 80, "threshold_ms": 50,
+                                        "v_50_eff_ms": 50, "damage_ratio": 0.6}},
+        }
+        host._seq_to_event_cache = {"S0": "EVT-00000", "S2": "EVT-00002"}
+        return host
+
+    _FLOODS = [{"flooded": True, "exceeded_severe": True, "storm_id": "S0"}]
+
+    def test_legs_count_unpaired_and_keep_inclusion_exclusion(self):
+        legs = decoupled_wind_legs(
+            wind_eids={"EVT-00000", "EVT-00002", "EVT-UNPAIRED"},
+            n_wind_events=3, flood_seqs={"S0"}, paired_wind_seqs={"S0", "S2"},
+            frame=_frame(), lambda_flood=4.5, lambda_wind=4.5)
+        assert legs["wind_count"] == 3            # the unpaired typhoon is counted
+        assert legs["joint_count"] == 1           # only S0 is flood AND (paired) wind
+        assert legs["union_count"] == 1 + 3 - 1   # flood + wind - joint
+        # Independence: the union is at least the wind leg, the joint at most it.
+        assert legs["union_spread_bps"] >= legs["wind_spread_bps"]
+        assert legs["joint_spread_bps"] <= legs["wind_spread_bps"]
+
+    def test_coupled_by_default_drops_the_unpaired_typhoon(self):
+        res = self._host_with_unpaired()._wind_union(
+            "PROP-1", self._FLOODS, 100, frame=_frame(), lambda_per_year=4.5,
+            catchment="thames")
+        assert res["wind_count"] == 2  # paired S0, S2 only — EVT-UNPAIRED dropped
+
+    def test_opting_in_counts_the_unpaired_typhoon(self, monkeypatch):
+        monkeypatch.setattr(
+            freq_loader, "DECOUPLED_WIND_CATCHMENTS", frozenset({"thames"}))
+        res = self._host_with_unpaired()._wind_union(
+            "PROP-1", self._FLOODS, 100, frame=_frame(), lambda_per_year=4.5,
+            catchment="thames", wind_lambda_per_year=4.5)
+        assert res["wind_count"] == 3
+        assert res["joint_count"] == 1
+        assert res["union_count"] == 3
+        # The additive wind-loss records stay sequence-space (paired only).
+        assert len(res["wind_loss_records"]) == 2
 
 
 class TestValueLookup:

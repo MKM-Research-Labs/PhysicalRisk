@@ -198,6 +198,21 @@ CATCHMENT_ANNUAL_GROWTH: Dict[str, float] = {}
 # Growth used for a catchment with no seed of its own: stationary.
 DEFAULT_ANNUAL_GROWTH: float = 0.0
 
+# Catchments whose wind peril is priced as an INDEPENDENT arrival process rather
+# than coupled 1:1 to the storm sequences (MKM-EF-001, Stage 6i).
+#
+# Deliberately EMPTY: every catchment is coupled by default, the behaviour of
+# every stage before 6i. The coupled model drops any typhoon with no paired
+# storm sequence, so it understates wind where unpaired typhoons are common; the
+# decoupled model counts those events and prices wind on its own lambda, treating
+# flood and wind as independent Poisson processes for the union/intersection.
+#
+# That independence is an explicit modelling assumption — it trades the coupled
+# model's pairing correlation for coverage of unpaired events — and the wind rate
+# it uses is unvalidated on synthetic catchments (the plan-§5 circularity), so
+# opting a catchment in is a model-risk decision resting on real typhoon data.
+DECOUPLED_WIND_CATCHMENTS: frozenset = frozenset()
+
 
 @dataclass(frozen=True)
 class RateConfig:

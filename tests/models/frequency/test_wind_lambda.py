@@ -35,6 +35,7 @@ from config.frequency import (
     catchment_annual_growth,
     catchment_lambda,
     catchment_wind_lambda,
+    is_wind_decoupled,
 )
 
 
@@ -79,3 +80,23 @@ def test_a_growth_override_is_honoured_case_insensitively(monkeypatch):
     assert catchment_annual_growth("halong") == 0.02
     assert catchment_annual_growth("HALONG") == 0.02
     assert catchment_annual_growth("thames") == 0.0
+
+
+# ------------------------------------------------- decoupled wind (Stage 6i)
+
+def test_wind_is_coupled_by_default():
+    """Empty registry — every catchment is coupled 1:1, the prior behaviour."""
+    assert is_wind_decoupled("thames") is False
+    assert is_wind_decoupled(None) is False
+
+
+def test_the_decoupled_registry_is_empty_by_default():
+    from config.frequency import DECOUPLED_WIND_CATCHMENTS
+    assert DECOUPLED_WIND_CATCHMENTS == frozenset()
+
+
+def test_a_catchment_can_opt_into_decoupled_wind(monkeypatch):
+    monkeypatch.setattr(loader, "DECOUPLED_WIND_CATCHMENTS", frozenset({"halong"}))
+    assert is_wind_decoupled("halong") is True
+    assert is_wind_decoupled("HALONG") is True
+    assert is_wind_decoupled("thames") is False

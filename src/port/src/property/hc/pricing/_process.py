@@ -98,7 +98,8 @@ class _ProcessMixin:
         else:
             wind_info = self._wind_union(
                 prop_id, flood_events, num_storms,
-                frame=frame, lambda_per_year=lambda_per_year)
+                frame=frame, lambda_per_year=lambda_per_year,
+                catchment=catchment, wind_lambda_per_year=wind_lambda_per_year)
 
         # The four peril outcomes (Stage 6). flood_only is the flood spine
         # (unchanged); the others are derived from the 1:1-paired event set.

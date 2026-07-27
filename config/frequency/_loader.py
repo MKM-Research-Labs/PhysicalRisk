@@ -36,6 +36,7 @@ from config.frequency._schema import (
     CATCHMENT_ANNUAL_GROWTH,
     CATCHMENT_LAMBDA_PER_YEAR,
     CATCHMENT_WIND_LAMBDA_PER_YEAR,
+    DECOUPLED_WIND_CATCHMENTS,
     DEFAULT_ANNUAL_GROWTH,
     DEFAULT_LAMBDA_PER_YEAR,
     FrequencyConfig,
@@ -113,6 +114,22 @@ def catchment_annual_growth(catchment: Optional[str]) -> float:
     if catchment and catchment.lower() in CATCHMENT_ANNUAL_GROWTH:
         return CATCHMENT_ANNUAL_GROWTH[catchment.lower()]
     return DEFAULT_ANNUAL_GROWTH
+
+
+def is_wind_decoupled(catchment: Optional[str]) -> bool:
+    """Return whether *catchment* prices wind as an independent process (6i).
+
+    False for every catchment while ``DECOUPLED_WIND_CATCHMENTS`` is empty — the
+    coupled 1:1 model, i.e. the behaviour of every stage before 6i. Opting a
+    catchment in is a model-risk decision (see the schema note).
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively.
+
+    Returns:
+        True if wind is decoupled for the catchment.
+    """
+    return bool(catchment) and catchment.lower() in DECOUPLED_WIND_CATCHMENTS
 
 
 def load_frequency_config(
