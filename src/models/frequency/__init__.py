@@ -68,6 +68,12 @@ from .events import build_catalogue, build_event_frame
 from .families import FamilySelection, dispersion_test, select_family
 from .persist import calibrate_and_save, calibrate_catchment
 from .pot import ExceedanceRate, exceedance_rate
+from .rate_process import (
+    ConstantRate,
+    RateProcess,
+    TrendRate,
+    term_exceedance_probability,
+)
 from .subject_losses import (
     compact_loss_block,
     loss_metrics,
@@ -104,6 +110,10 @@ __all__ = [
     "shared_draws",
     "loss_metrics",
     "compact_loss_block",
+    "RateProcess",
+    "ConstantRate",
+    "TrendRate",
+    "term_exceedance_probability",
     "EventCatalogue",
     "EventFrame",
     "EventLossTable",
