@@ -31,7 +31,11 @@ The registry is the §4.14 extension point. Two properties matter:
 """
 
 import config.frequency._loader as loader
-from config.frequency import catchment_lambda, catchment_wind_lambda
+from config.frequency import (
+    catchment_annual_growth,
+    catchment_lambda,
+    catchment_wind_lambda,
+)
 
 
 def test_wind_falls_back_to_the_storm_rate_when_unseeded():
@@ -53,3 +57,25 @@ def test_an_override_is_honoured_case_insensitively(monkeypatch):
     assert catchment_wind_lambda("HALONG") == 2.0
     # A catchment absent from the override still falls back to the storm rate.
     assert catchment_wind_lambda("thames") == catchment_lambda("thames")
+
+
+# ------------------------------------------------- annual growth (Stage 6h)
+
+def test_annual_growth_is_stationary_by_default():
+    """The empty registry means zero growth everywhere — the term structure is
+    unchanged until a catchment is deliberately given a trend."""
+    assert catchment_annual_growth("thames") == 0.0
+    assert catchment_annual_growth(None) == 0.0
+    assert catchment_annual_growth("unseeded") == 0.0
+
+
+def test_the_growth_registry_is_empty_by_default():
+    from config.frequency import CATCHMENT_ANNUAL_GROWTH
+    assert CATCHMENT_ANNUAL_GROWTH == {}
+
+
+def test_a_growth_override_is_honoured_case_insensitively(monkeypatch):
+    monkeypatch.setattr(loader, "CATCHMENT_ANNUAL_GROWTH", {"halong": 0.02})
+    assert catchment_annual_growth("halong") == 0.02
+    assert catchment_annual_growth("HALONG") == 0.02
+    assert catchment_annual_growth("thames") == 0.0

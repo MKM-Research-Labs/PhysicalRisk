@@ -33,8 +33,10 @@ from json import dumps
 from typing import Optional
 
 from config.frequency._schema import (
+    CATCHMENT_ANNUAL_GROWTH,
     CATCHMENT_LAMBDA_PER_YEAR,
     CATCHMENT_WIND_LAMBDA_PER_YEAR,
+    DEFAULT_ANNUAL_GROWTH,
     DEFAULT_LAMBDA_PER_YEAR,
     FrequencyConfig,
     PotConfig,
@@ -88,6 +90,29 @@ def catchment_wind_lambda(catchment: Optional[str]) -> float:
     if catchment and catchment.lower() in CATCHMENT_WIND_LAMBDA_PER_YEAR:
         return CATCHMENT_WIND_LAMBDA_PER_YEAR[catchment.lower()]
     return catchment_lambda(catchment)
+
+
+def catchment_annual_growth(catchment: Optional[str]) -> float:
+    """Return the annual arrival-rate growth for *catchment* (MKM-EF-001, 6h).
+
+    The fractional change in λ per contract year that makes the multi-year term
+    structure non-stationary. Returns a plain number, not a rate process, so
+    ``config`` stays a leaf: the ``RateProcess`` is built from this in the model
+    layer (``rate_process_for``).
+
+    With ``CATCHMENT_ANNUAL_GROWTH`` empty this is zero for every catchment — a
+    stationary rate, leaving the term structure unchanged. A non-zero value is a
+    model-risk decision, not a default.
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively.
+
+    Returns:
+        The fractional annual growth; ``0.0`` when unseeded.
+    """
+    if catchment and catchment.lower() in CATCHMENT_ANNUAL_GROWTH:
+        return CATCHMENT_ANNUAL_GROWTH[catchment.lower()]
+    return DEFAULT_ANNUAL_GROWTH
 
 
 def load_frequency_config(

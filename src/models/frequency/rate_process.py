@@ -112,6 +112,26 @@ class TrendRate:
         return sum(self.rate_at(year) for year in range(max(0, n_years)))
 
 
+def rate_process_for(lambda_per_year: float, annual_growth: float) -> RateProcess:
+    """Return the rate process implied by a base rate and an annual growth.
+
+    Zero growth returns a ``ConstantRate`` — the stationary model — so a
+    catchment with no configured trend prices exactly as before. Any other
+    growth returns a ``TrendRate``. Keeping the zero-growth branch here means no
+    call site has to special-case the stationary default.
+
+    Args:
+        lambda_per_year: the base (tenor-start) arrival rate.
+        annual_growth: the fractional change per year; ``0.0`` is stationary.
+
+    Returns:
+        A ``RateProcess``.
+    """
+    if annual_growth == 0.0:
+        return ConstantRate(lambda_per_year)
+    return TrendRate(lambda_per_year, annual_growth)
+
+
 def term_exceedance_probability(
     process: RateProcess, p_event: float, n_years: int
 ) -> float:

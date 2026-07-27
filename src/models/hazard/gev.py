@@ -23,7 +23,7 @@ Generalized Extreme Value (GEV) distribution fitting and term structure computat
 """
 
 import math
-from typing import List, Tuple
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 from scipy import stats
@@ -90,24 +90,41 @@ class GEVFitter:
             return stats.genextreme.ppf(1 - p, self._flip_convention(shape), loc, scale)
 
 
-def compute_term_structure(annual_hazard_rate: float, max_years: int = 5) -> List[TermStructurePoint]:
+def compute_term_structure(
+    annual_hazard_rate: Union[float, Sequence[float]],
+    max_years: int = 5,
+) -> List[TermStructurePoint]:
     """
-    Compute term structure for PRS pricing using Poisson model.
+    Compute term structure for PRS pricing using a Poisson model.
 
-    For Poisson process with annual intensity lambda:
+    For a Poisson process with annual intensity lambda:
     - P(no flood by year t) = e^(-lambda*t)
     - P(at least one flood by year t) = 1 - e^(-lambda*t)
-    """
-    term_structure = []
 
+    ``annual_hazard_rate`` may be a single rate — the stationary case, where the
+    cumulative hazard by year t is ``rate * t`` — or a per-year sequence of
+    rates, where the cumulative hazard is their running sum. The sequence form
+    carries a non-stationary rate (MKM-EF-001, Stage 6h); a flat sequence
+    reproduces the scalar result exactly. A sequence shorter than *max_years*
+    holds its last value; only *max_years* points are ever produced.
+    """
+    if isinstance(annual_hazard_rate, (int, float)):
+        rates = [float(annual_hazard_rate)] * max_years
+    else:
+        rates = [float(r) for r in annual_hazard_rate]
+
+    term_structure = []
+    cumulative = 0.0
     for year in range(1, max_years + 1):
-        expected_floods = annual_hazard_rate * year
-        survival_prob = math.exp(-expected_floods)
+        # Hold the last supplied rate if the sequence is short, so a caller that
+        # passes fewer years than the tenor still gets a full, sane structure.
+        cumulative += rates[year - 1] if year - 1 < len(rates) else rates[-1]
+        survival_prob = math.exp(-cumulative)
         prob_at_least_one = 1.0 - survival_prob
 
         term_structure.append(TermStructurePoint(
             year=year,
-            expected_floods=expected_floods,
+            expected_floods=cumulative,
             prob_at_least_one=prob_at_least_one,
             survival_prob=survival_prob,
             cumulative_default_prob=prob_at_least_one

@@ -31,14 +31,21 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-from config.frequency import catchment_lambda, config_hash, load_frequency_config
+from config.frequency import (
+    catchment_annual_growth,
+    catchment_lambda,
+    config_hash,
+    load_frequency_config,
+)
 
 from models.floodrisk.depth_damage import scalar_depth_damage
 from models.frequency import (
     annual_exceedance_probability,
+    annual_hazard_by_year,
     compact_loss_block,
     loss_metrics,
     peak_level_losses,
+    rate_process_for,
     shared_draws,
 )
 from models.frequency.datastructures import ProvenanceClass
@@ -111,6 +118,12 @@ class HazardCurveBuilder:
         loss_config_hash = config_hash(freq_config)
         loss_return_periods = freq_config.rate.return_periods_years
         loss_draws = shared_draws(catalogue, lambda_per_year, freq_config.simulation)
+
+        # Arrival-rate process for the multi-year term structure (Stage 6h).
+        # Stationary by default — an empty growth registry gives a ConstantRate,
+        # so the term structure is unchanged unless a catchment carries a trend.
+        rate_process = rate_process_for(
+            lambda_per_year, catchment_annual_growth(self.catchment))
 
         self.log(f"Fitting GEV distributions for {len(self.gauges)} gauges...")
         hazard_curves = {}
@@ -191,10 +204,15 @@ class HazardCurveBuilder:
                 config_hash=loss_config_hash, draws=loss_draws)
             loss_block = compact_loss_block(metrics, "unit_exposure_damage_ratio")
 
-            # Term structures
-            term_structure_alert = compute_term_structure(prob_alert)
-            term_structure_warning = compute_term_structure(prob_warning)
-            term_structure_severe = compute_term_structure(prob_severe)
+            # Term structures. The per-year hazards compound the arrival-rate
+            # process over the tenor (Stage 6h); under the default stationary
+            # process every year is identical and this is the prior behaviour.
+            term_structure_alert = compute_term_structure(
+                annual_hazard_by_year(rate_process, p_event_alert, 5))
+            term_structure_warning = compute_term_structure(
+                annual_hazard_by_year(rate_process, p_event_warning, 5))
+            term_structure_severe = compute_term_structure(
+                annual_hazard_by_year(rate_process, p_event_severe, 5))
 
             # Get coordinates
             lat = gauge.get('gauge_latitude') or gauge.get('latitude') or 0.0

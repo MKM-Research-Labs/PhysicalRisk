@@ -46,6 +46,7 @@ Per rule R4 this module contains no function definitions — only re-exports.
 from .annualise import (
     annual_exceedance_probability,
     annual_exceedance_rate,
+    annual_hazard_by_year,
     return_period_years,
 )
 from .calibrate import calibrate_gauge_rate, fallback_reason, summarise
@@ -72,6 +73,7 @@ from .rate_process import (
     ConstantRate,
     RateProcess,
     TrendRate,
+    rate_process_for,
     term_exceedance_probability,
 )
 from .subject_losses import (
@@ -90,6 +92,7 @@ from .ylt import (
 __all__ = [
     "annual_exceedance_probability",
     "annual_exceedance_rate",
+    "annual_hazard_by_year",
     "return_period_years",
     "calibrate_catchment",
     "calibrate_and_save",
@@ -113,6 +116,7 @@ __all__ = [
     "RateProcess",
     "ConstantRate",
     "TrendRate",
+    "rate_process_for",
     "term_exceedance_probability",
     "EventCatalogue",
     "EventFrame",

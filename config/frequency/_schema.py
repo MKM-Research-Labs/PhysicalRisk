@@ -184,6 +184,20 @@ PERIL_WIND: str = "wind"
 # overrides only the ADDITIVE wind-loss view, never the priced spread.
 CATCHMENT_WIND_LAMBDA_PER_YEAR: Dict[str, float] = {}
 
+# Per-catchment annual growth of the arrival rate (MKM-EF-001, Stage 6h): the
+# fractional change in lambda per contract year, for a non-stationary
+# (climate-drifting) multi-year term structure — lambda_t = lambda_0 * (1+g)^t.
+#
+# Deliberately EMPTY, default zero — a stationary rate, the behaviour of every
+# stage before 6h. This is the seam, not a set of validated trends: a non-zero
+# growth moves a priced multi-year quantity, so populating it is a model-risk
+# decision resting on a real climate signal. With the registry empty the term
+# structure is byte-identical to the stationary one.
+CATCHMENT_ANNUAL_GROWTH: Dict[str, float] = {}
+
+# Growth used for a catchment with no seed of its own: stationary.
+DEFAULT_ANNUAL_GROWTH: float = 0.0
+
 
 @dataclass(frozen=True)
 class RateConfig:

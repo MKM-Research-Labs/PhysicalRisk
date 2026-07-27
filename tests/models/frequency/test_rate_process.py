@@ -40,6 +40,8 @@ from models.frequency import (
     ConstantRate,
     TrendRate,
     annual_exceedance_probability,
+    annual_hazard_by_year,
+    rate_process_for,
     term_exceedance_probability,
 )
 
@@ -124,3 +126,38 @@ class TestTermExceedance:
         """A conditional outside [0, 1] cannot push the probability out of range."""
         assert term_exceedance_probability(ConstantRate(4.5), 5.0, 3) <= 1.0
         assert term_exceedance_probability(ConstantRate(4.5), -1.0, 3) == 0.0
+
+
+# ------------------------------------------------------------- the factory
+
+class TestRateProcessFactory:
+
+    def test_zero_growth_gives_a_constant_rate(self):
+        process = rate_process_for(4.5, 0.0)
+        assert isinstance(process, ConstantRate)
+        assert process.lambda_per_year == 4.5
+
+    def test_a_non_zero_growth_gives_a_trend(self):
+        process = rate_process_for(4.5, 0.02)
+        assert isinstance(process, TrendRate)
+        assert process.base_lambda_per_year == 4.5
+        assert process.annual_growth == 0.02
+
+
+# ------------------------------------------------------- annual hazard by year
+
+class TestAnnualHazardByYear:
+
+    def test_a_constant_rate_gives_a_flat_series_equal_to_the_annual_hazard(self):
+        hazards = annual_hazard_by_year(ConstantRate(4.5), 0.03, 5)
+        expected = annual_exceedance_probability(4.5, 0.03)
+        assert hazards == [pytest.approx(expected)] * 5
+
+    def test_a_trend_gives_a_rising_series(self):
+        hazards = annual_hazard_by_year(TrendRate(4.5, 0.05), 0.03, 5)
+        assert hazards == sorted(hazards)
+        assert hazards[-1] > hazards[0]
+
+    def test_the_length_matches_the_tenor(self):
+        assert len(annual_hazard_by_year(ConstantRate(4.5), 0.03, 8)) == 8
+        assert annual_hazard_by_year(ConstantRate(4.5), 0.03, 0) == []
