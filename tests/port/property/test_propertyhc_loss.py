@@ -71,9 +71,40 @@ def test_block_is_attributed_and_reconciles():
         frame, floods, 4.5, load_frequency_config("thames"), "PROP-1", "thames")
 
     assert block["basis"] == "unit_exposure_damage_ratio"
+    assert block["exposure_value"] == 1.0
     assert block["metadata"]["subject_id"] == "PROP-1"
     assert block["reconciliation"]["within_tolerance"]
     assert set(block["aep"]) == {"2yr", "5yr", "10yr", "25yr", "50yr", "100yr", "200yr"}
+
+
+def test_a_value_makes_the_loss_a_currency_amount():
+    """Stage 6d: with an asset value the loss is value x damage_ratio and the
+    basis flips to currency, scaling the whole distribution linearly."""
+    frame = _frame()
+    floods = [{"storm_id": "S0", "damage_ratio": 0.5}]
+    cfg = load_frequency_config("thames")
+
+    unit = property_loss_block(frame, floods, 4.5, cfg, "PROP-1", "thames")
+    money = property_loss_block(
+        frame, floods, 4.5, cfg, "PROP-1", "thames", asset_value=400_000.0)
+
+    assert money["basis"] == "currency"
+    assert money["exposure_value"] == 400_000.0
+    assert money["metadata"]["average_annual_loss"] == pytest.approx(
+        unit["metadata"]["average_annual_loss"] * 400_000.0, rel=1e-6)
+
+
+def test_a_missing_value_is_zero_currency_not_unit_exposure():
+    """A value of zero keeps the currency basis and reports a zero loss, so a
+    portfolio data gap does not silently rebase one asset to a severity."""
+    frame = _frame()
+    floods = [{"storm_id": "S0", "damage_ratio": 0.5}]
+    block = property_loss_block(
+        frame, floods, 4.5, load_frequency_config("thames"), "PROP-1", "thames",
+        asset_value=0.0)
+    assert block["basis"] == "currency"
+    assert block["exposure_value"] == 0.0
+    assert block["metadata"]["average_annual_loss"] == 0.0
 
 
 def test_two_floods_in_one_event_take_the_worse_loss():
@@ -117,6 +148,24 @@ class TestGating:
         # The spread is untouched by the loss block.
         assert result["term_structure"]["severe"]["prs_spread_bps"][0] > 0
 
+    def test_a_value_lookup_makes_the_block_monetary(self, basic_output_dir):
+        """Stage 6d: the generator path passes a value lookup, so the asset's
+        block is priced in currency at its own value."""
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-money", n_floods=3)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        result = gen._process_property(
+            pdata, gauge_hazard, None, num_storms=100,
+            frame=_frame(), lambda_per_year=4.5,
+            freq_config=load_frequency_config("thames"), catchment="thames",
+            value_lookup={"PROP-money": 250_000.0})
+
+        block = result["loss_metrics"]
+        assert block["basis"] == "currency"
+        assert block["exposure_value"] == 250_000.0
+        assert block["reconciliation"]["within_tolerance"]
+
     def test_no_block_without_a_config(self, basic_output_dir):
         """A frame but no config — the shape every existing unit test uses —
         must not grow a loss block."""
@@ -129,3 +178,31 @@ class TestGating:
             frame=_frame(), lambda_per_year=4.5)
 
         assert "loss_metrics" not in result
+
+
+class TestValueLookup:
+
+    def test_it_reads_each_assets_valuation(self, monkeypatch, basic_output_dir):
+        import database
+        output_dir, _ = basic_output_dir
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        monkeypatch.setattr(database, "list_properties", lambda c: [
+            {"PropertyHeader": {"Header": {"PropertyID": "PROP-A"},
+                                "Valuation": {"PropertyValue": 500_000}}},
+            {"PropertyHeader": {"Header": {"PropertyID": "PROP-B"}}},  # no value -> 0
+            {"PropertyHeader": {}},  # no id -> skipped
+        ])
+        assert gen._load_asset_values("thames") == {
+            "PROP-A": 500_000.0, "PROP-B": 0.0}
+
+    def test_an_unreadable_portfolio_yields_an_empty_lookup(
+            self, monkeypatch, basic_output_dir):
+        import database
+
+        def boom(_catchment):
+            raise OSError("portfolio gone")
+
+        output_dir, _ = basic_output_dir
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        monkeypatch.setattr(database, "list_properties", boom)
+        assert gen._load_asset_values("thames") == {}

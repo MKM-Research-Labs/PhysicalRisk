@@ -110,6 +110,7 @@ class PropertyHazardCurveGenerator(
         # scored against the same simulated storms.
         freq_config = None
         loss_draws = None
+        value_lookup = None
         if frame is not None:
             self.log(
                 f"Event frame: {frame.n_storms} storms -> {frame.n_events} events, "
@@ -117,6 +118,7 @@ class PropertyHazardCurveGenerator(
             )
             freq_config = load_frequency_config(catchment or None)
             loss_draws = shared_draws(frame, lambda_per_year, freq_config.simulation)
+            value_lookup = self._load_asset_values(catchment)
 
         price_prs_func = self._get_prs_pricer()
 
@@ -147,7 +149,7 @@ class PropertyHazardCurveGenerator(
                 pdata, gauge_hazard, price_prs_func, num_storms,
                 frame=frame, lambda_per_year=lambda_per_year,
                 freq_config=freq_config, catchment=catchment,
-                loss_draws=loss_draws)
+                loss_draws=loss_draws, value_lookup=value_lookup)
             if result:
                 results[result['property_id']] = result
                 stats['properties_processed'] += 1

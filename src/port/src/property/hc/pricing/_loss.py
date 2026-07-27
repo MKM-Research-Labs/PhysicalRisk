@@ -27,11 +27,15 @@ table — for the same severe-flood peril the spread is priced on.
 Each severe flood the asset takes already carries a depth-damage ratio. Those
 records are regrouped onto the hours-clause events (taking the worst within an
 event, matching the occurrence rule) and run through the frequency model's loss
-sampler. The loss is expressed at *unit exposure* — the damage ratio itself,
-with no property value multiplied in — so it is a severity per unit of value,
-directly comparable across assets. Multiplying by the asset's own value to get a
-currency loss is the next step and is deliberately kept out of this seam so the
-value plumbing is a separate, reviewable change.
+sampler.
+
+The loss is a currency amount — the depth-damage ratio times the asset's own
+value, the same ``value × damage_ratio`` the routes and reports use — when the
+value is supplied. When it is not (``asset_value=None``) the block falls back to
+*unit exposure*, the damage ratio itself, a severity per unit of value. A value
+of zero is not the same as a missing value: it keeps the currency basis and
+reports a zero loss, so a data gap in the portfolio surfaces as ``exposure_value
+= 0`` rather than being silently rebased to a severity.
 """
 
 from typing import Dict, List, Optional, Sequence
@@ -52,6 +56,7 @@ def property_loss_block(
     freq_config: FrequencyConfig,
     subject_id: str,
     catchment: str,
+    asset_value: Optional[float] = None,
     draws: Optional[EventDraws] = None,
 ) -> Dict:
     """Return the additive loss block for one asset.
@@ -65,14 +70,25 @@ def property_loss_block(
             the return-period grid and the hash recorded in the export.
         subject_id: the property or commercial asset identifier.
         catchment: the catchment, recorded in the export metadata.
+        asset_value: the asset's reinstatement value. When given (including
+            zero), each event's loss is ``damage_ratio * asset_value`` and the
+            block is a currency amount; when ``None`` the loss is the damage
+            ratio at unit exposure.
         draws: shared run draws, so every asset is scored against the same
             simulated storms; omitting them samples the asset on its own.
 
     Returns:
-        A compact, JSON-serialisable loss block at unit exposure.
+        A compact, JSON-serialisable loss block carrying ``exposure_value`` and
+        a ``basis`` of ``"currency"`` or ``"unit_exposure_damage_ratio"``.
     """
+    if asset_value is None:
+        multiplier, basis = 1.0, "unit_exposure_damage_ratio"
+    else:
+        multiplier, basis = float(asset_value), "currency"
+
     identifiers: List[str] = [event.get("storm_id") for event in prs_floods]
-    per_record = [float(event.get("damage_ratio", 0.0)) for event in prs_floods]
+    per_record = [float(event.get("damage_ratio", 0.0)) * multiplier
+                  for event in prs_floods]
     event_losses = regrouped_event_losses(frame, identifiers, per_record)
 
     metrics = loss_metrics(
@@ -80,4 +96,6 @@ def property_loss_block(
         subject_id, catchment, ProvenanceClass.GENERATOR_DERIVED.value,
         freq_config.rate.return_periods_years,
         config_hash=config_hash(freq_config), draws=draws)
-    return compact_loss_block(metrics, "unit_exposure_damage_ratio")
+    block = compact_loss_block(metrics, basis)
+    block["exposure_value"] = multiplier
+    return block
