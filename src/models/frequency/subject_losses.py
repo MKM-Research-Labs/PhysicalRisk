@@ -244,3 +244,29 @@ def loss_metrics(
             "deviation_sigmas": sigmas,
         },
     }
+
+
+def compact_loss_block(metrics: Dict, basis: str) -> Dict:
+    """Compact a ``loss_metrics`` result for storage beside a spread.
+
+    Drops the per-event ELT rows — which would bloat a per-subject record by up
+    to the catalogue size — while keeping the attributed metadata, and states
+    the return-period keys as strings so they match the ``"<rp>yr"`` naming the
+    rest of the hazard curve already uses.
+
+    Args:
+        metrics: a ``loss_metrics`` return value.
+        basis: what a unit of loss means — e.g. ``"unit_exposure_damage_ratio"``
+            where no asset value has been multiplied in, or a currency once it
+            has. Recorded so a reader cannot mistake a severity index for money.
+
+    Returns:
+        A compact, JSON-serialisable loss block.
+    """
+    return {
+        "metadata": metrics["elt"]["metadata"],
+        "aep": {f"{rp}yr": value for rp, value in metrics["aep"].items()},
+        "oep": {f"{rp}yr": value for rp, value in metrics["oep"].items()},
+        "reconciliation": metrics["reconciliation"],
+        "basis": basis,
+    }

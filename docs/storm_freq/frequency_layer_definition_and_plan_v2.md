@@ -2,16 +2,25 @@
 
 **Document type:** Definition Document & Project Plan
 **Component:** Event Frequency Model — `MKM-EF-001` (new)
-**Version:** 2.6 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
-**Status:** Stages 1–5 complete — built, wired to pricing, validated end-to-end, and registered for governance. Stage 6 (Track B) in progress: the loss-weighted YLT + ELT machinery (6a) and the subject-loss **adapter** (6b, additive) are built and reconciled; the leg *wiring* itself (6c: gauge + property/commercial), and 6d (wind loss, wind λ calibration, seasonal rates), are open
-**Date:** 2026-07-26
+**Version:** 2.7 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
+**Status:** Stages 1–5 complete — built, wired to pricing, validated end-to-end, and registered for governance. Stage 6 (Track B) in progress: the loss-weighted YLT + ELT machinery (6a), the subject-loss adapter (6b), and the **leg wiring** (6c: gauge + property/commercial, additive, at unit exposure) are built and reconciled. Open: the monetary uplift (× asset value), the wind leg, wind λ calibration and seasonal rates (6d)
+**Date:** 2026-07-27
 **Owner:** CSO, MKM Research Labs
 
 ---
 
 ## 0. What changed from v1
 
-### 0.1 What v2.6 changes
+### 0.1 What v2.7 changes
+
+Stage 6c — the additive loss wiring itself — landed on the gauge and
+property/commercial legs.
+
+| # | Change | Driver |
+|---|--------|--------|
+| C27 | **Loss block wired into the gauge leg (`builder.py`) and the property/commercial legs (`_process.py`).** Each gauge hazard curve and each asset pricing record now carries an additive `loss_metrics` block — average annual loss, AEP and OEP curves and the attributed event-loss-table metadata — beside the unchanged spread. The gauge loss quantum is the depth-damage ratio applied to depth above the severe trigger; the asset legs regroup each asset's per-event `damage_ratio` onto the hours-clause events (worst-within-event). Both are at **unit exposure** — the damage ratio itself, no asset value multiplied in — so a gauge with no value and an asset are on one comparable footing, and the shared `compact_loss_block` keeps the two call sites identical. Every block reconciles against its closed-form AAL | The loss layer (6a/6b) had no callers; this consumes it. Additive by the owner's decision (§ v2.6 C26): the spread is untouched, so no price moves and no port regen is needed to keep current pricing valid. Gated on the frequency config being supplied, so the fallback path and every existing unit test stay byte-identical. **The monetary uplift — multiplying by `PropertyValue` / commercial value — is 6d: it needs the asset value threaded in, a separate change** |
+
+### 0.2 What v2.6 changed
 
 Stage 6b — the additive loss wiring — was scoped and its reusable core built.
 
@@ -19,7 +28,7 @@ Stage 6b — the additive loss wiring — was scoped and its reusable core built
 |---|--------|--------|
 | C26 | **Loss wiring decided *additive*, and the subject-loss adapter built** (`subject_losses.py`). Reconnaissance established that today's PRS spread is pure `P(flood) × 10000` with **no monetary loss in it at all**, so the owner's decision is to emit AAL/AEP/OEP/ELT as *new* outputs beside the unchanged spread — no price moves, no port regen to keep current pricing valid, no MRC pricing-policy change. The adapter turns a gauge's `peak_levels` (via a caller-supplied damage curve) or an asset's per-storm records (regrouped onto events by their maximum) into an aligned per-event loss vector, and `loss_metrics` centralises the coverage scaling — the ELT takes the raw λ, the sampler λ×coverage — so the units trap that has bitten this project cannot recur at a call site | The loss machinery (6a) was dormant with no callers; the adapter is the seam every pricing leg calls. Keeping the damage model in the caller preserves 6a's boundary and the frequency layer's peril-generic shape (§4.14). The **leg wiring itself (6c/6d) is not yet done** |
 
-### 0.2 What v2.5 changed
+### 0.3 What v2.5 changed
 
 Stage 6 (Track B) began with the loss extension. The occurrence sampler now has
 a loss-weighted twin: give each catalogue event a loss quantum and the same
@@ -33,7 +42,7 @@ table for third-party comparison.
 | C24 | **Loss reconciliation gate.** The ELT's `AAL = Σ rate × loss = λ_effective × Σ weight × loss` is the simulation's *exact expectation* (compound-Poisson mean); `reconcile_losses` measures the gap in sampling standard errors of that mean, mirroring §4.10's occurrence gate | Same principle as the occurrence self-test: the closed form is not a second opinion, it is what the simulation must converge to, so a gap beyond sampling error means one of the two is wrong. Measured deviation 0.30σ at the default 10,000 years |
 | C25 | **The loss quantum stays the caller's.** The frequency layer supplies only the machinery; per-event losses come in as an argument, exactly as flood flags do. Wiring the platform's damage model to produce them per subject — and the pricing consequences — is the next Track B sub-step, not this one | Keeps the frequency layer generic and the damage model's integration a separate, separately-reviewable change, as Stage 1's machinery preceded Stage 3's wiring |
 
-### 0.3 What v2.4 changed
+### 0.4 What v2.4 changed
 
 The two remaining critical-path stages landed. The model is now built, wired,
 validated and governed end-to-end; nothing on the critical path is outstanding.
@@ -43,7 +52,7 @@ validated and governed end-to-end; nothing on the critical path is outstanding.
 | C20 | **Stage 2 complete**: Poisson and Negative-Binomial families with a *calibrated* selector — a chi-square dispersion test gates the choice, not a bare `D > 1` rule, and an AIC margin guards the extra NegBin parameter | With fifty annual counts a genuine Poisson process throws dispersion indices up to ≈1.4 by chance, so the naive rule over-selects NegBin badly (§5.2). Under-dispersion — halong's actual regime — is flagged, never fitted: no family on the Poisson–NegBin axis represents it, so Poisson is selected as the nearest fittable family and the note says so. The selected family and its justification are persisted per gauge (SR 11-7) |
 | C21 | **Stage 5 complete**, in the **ModelRisk** repo. MKM-EF-001 is registered through the governance command API, placed in the chain GH-001 → EF-001 → PR-001, with 4 assumptions, 4 limitations, 3 weaknesses and 9 SR 26-2 validation questions | Governance migrated to a separate event-sourced Postgres platform since v2.0 was written — there is no `model_inventory.json` and no LaTeX to wire (§10). This supersedes the JSON/registry/`.tex` plan §10 originally described. Version bumped 0.1.0 → **1.0.0** as a genuine release |
 
-### 0.4 What v2.3 changed
+### 0.5 What v2.3 changed
 
 | # | Change | Driver |
 |---|--------|--------|
@@ -52,7 +61,7 @@ validated and governed end-to-end; nothing on the critical path is outstanding.
 | C18 | **The wind threshold is traced and now per-asset.** 55.56 m/s was a deliberate uniform constant (200 km/h), not a unit bug; `DesignWindSpeedKmh` drives the threshold instead, and design speeds were raised 40 km/h | Wind vulnerability was undifferentiated across a portfolio. L12 partially closes; the calibration question remains (§6.8) |
 | C19 | **L13 resolved**: the peril stages record the BRI spine they read, and a guard warns when any stage under-declares | The warning fired after every successful run and had already misled one root-cause investigation. The gap was real: a change to the BRI spine never invalidated the consuming step |
 
-### 0.5 What v2.2 changed
+### 0.6 What v2.2 changed
 
 Wiring the layer into pricing and calibrating it on real halong data
 exposed three defects — two of them pre-existing and more serious than the
@@ -66,7 +75,7 @@ problem this model was written to fix.
 | C15 | **The wind leg is validated on real data**; L6 and L9 close | A `--typhoon` run put real wind through all ten commercial assets with the peril coherence checks passing (§6.6). It also surfaced L12: the wind trigger is one global constant, not asset-differentiated |
 | C14 | **Two field-naming traps documented**, both of which produced confident wrong answers before being caught | `flood_events[].storm_id` holds *sequence* identifiers; `_load_gauge_hazard_curves` returns the *sequence* count while its caller names it `num_storms` (§4.11) |
 
-### 0.6 What v2.1 changed
+### 0.7 What v2.1 changed
 
 v2.0 was written before any code existed. Building it moved four things, one of
 which was an outright error in v2.0's design.
@@ -78,7 +87,7 @@ which was an outright error in v2.0's design.
 | C9 | **10,000 simulated years, and the reconciliation gate is expressed in sampling standard errors rather than as a fixed percentage** | Measured on the target hardware (§6.1). A fixed 2% band false-alarmed on 17% of runs at ten thousand years while never binding at a million |
 | C10 | **Landmine L3 resolved:** `num_storms` is kept and `num_events` added beside it | The storm/event distinction becomes visible in the data rather than hidden in a redefinition of a field existing consumers already read |
 
-### 0.7 What v2.0 changed from v1
+### 0.8 What v2.0 changed from v1
 
 v1 diagnosed the problem correctly. v2 keeps the diagnosis and reworks the plan against
 what the codebase actually does. Six substantive changes:
@@ -945,8 +954,8 @@ remain, under separate approval.
 | 5 | Governance: registered in the **ModelRisk** event-sourced platform (not JSON/LaTeX — §10); chain edges; assumptions/limitations/weaknesses; SR 26-2 questions | **Done** | No |
 | 6a | *Separate approval:* **loss-weighted YLT + ELT export** — `LossSimulation` (AEP/OEP/AAL), `EventLossTable` (rates = λ_eff × weight), attributed JSON export, and a compound-Poisson `reconcile_losses` gate (0.30σ at 10k years). Loss quantum stays the caller's | **Done** *(machinery; not yet fed by the damage model)* | Not consumed directly yet |
 | 6b | *Separate approval, **additive** — decided 2026-07-26:* the loss layer produces AAL/AEP/OEP/ELT as **new** outputs alongside the existing probability spread; the spread is **not** changed. **Adapter built** (`subject_losses.py`): `peak_level_losses` (gauge), `regrouped_event_losses` (asset legs, max-within-event), `shared_draws` + `loss_metrics` — the latter centralises the coverage scaling (ELT takes raw λ; sampler takes λ×coverage) so no call site can get it out of step. Damage model stays with the caller | **Adapter done** | Not consumed yet |
-| 6c | *Next:* wire the adapter into the **gauge leg** (`builder.py`, `peak_levels` → damage curve) and the **property/commercial legs** (`_process.py`, regroup per-asset `flood_events` × `PropertyValue`), emitting the loss block additively. **Recon finding:** today's spread is pure `P × 10000` with no loss in it, so this is purely additive; measuring the data effect needs a user-run port | To do | Additive |
-| 6d | *Later:* wind leg loss wiring; wind λ calibration; seasonal / NHPP rates | To do | — |
+| 6c | **Loss block wired, additively, into the gauge leg** (`builder.py` → `GaugeHazardCurve.loss_metrics`) **and the property/commercial legs** (`_process.py` → `result['loss_metrics']`, via `pricing/_loss.py`; commercial inherits the same generator). AAL + AEP/OEP + attributed ELT metadata beside the unchanged spread, at **unit exposure** (damage ratio). Gated on the frequency config so the fallback and existing tests stay byte-identical; every block reconciles. 66 tests; new modules 100% cov; hazard suite 82 passed, property sweep 81 passed | **Done** | Additive (spread unchanged) |
+| 6d | *Next:* the **monetary uplift** — thread `PropertyValue` / commercial value into the asset legs and multiply the unit-exposure loss by it (needs a portfolio value lookup for both asset shapes). Then the **wind leg** loss wiring; **wind λ calibration**; **seasonal / NHPP** rates. Measuring the data effect of 6c/6d needs a user-run port | To do | — |
 
 The clamp review promised for Stage 4 (`builder.py` exceedance floor and
 `MAX_RETURN_PERIOD`) is **still outstanding**; return periods now run to 15–22

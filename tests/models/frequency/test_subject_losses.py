@@ -41,6 +41,7 @@ import pytest
 
 from config.frequency import load_frequency_config
 from models.frequency import (
+    compact_loss_block,
     loss_metrics,
     peak_level_losses,
     regrouped_event_losses,
@@ -184,6 +185,22 @@ def test_shared_draws_drive_the_metrics_and_correlate_subjects(config):
         cat, losses_a, 4.5, config, "G1", "thames", "generator_derived",
         _PERIODS, draws=draws)
     assert metrics["reconciliation"]["within_tolerance"]
+
+
+def test_compact_block_drops_rows_and_stringifies_periods(config):
+    """The stored block keeps the attributed metadata but not the per-event
+    rows, and names return periods as strings to match the rest of the curve."""
+    cat = _catalogue()
+    losses = peak_level_losses(cat, "G1", lambda lvl: lvl * 100.0)
+    metrics = loss_metrics(
+        cat, losses, 4.5, config, "G1", "thames", "generator-derived", _PERIODS)
+
+    block = compact_loss_block(metrics, "unit_exposure_damage_ratio")
+    assert set(block) == {"metadata", "aep", "oep", "reconciliation", "basis"}
+    assert "elt" not in block and "events" not in block
+    assert block["basis"] == "unit_exposure_damage_ratio"
+    assert set(block["aep"]) == {f"{rp}yr" for rp in _PERIODS}
+    assert block["metadata"]["subject_id"] == "G1"
 
 
 def test_an_empty_frame_yields_zero_metrics(config):

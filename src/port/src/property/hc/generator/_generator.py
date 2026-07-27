@@ -29,6 +29,8 @@ import numpy as np
 
 import database
 from config import config
+from config.frequency import load_frequency_config
+from models.frequency import shared_draws
 from models.hazard.terrain_grid import compute_terrain_grid
 from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 from port.utils.generator_base import GeneratorInitMixin
@@ -103,11 +105,18 @@ class PropertyHazardCurveGenerator(
         # anyone's gauge levels. A catchment with no sequences on disk prices
         # on the pre-frequency metric rather than failing.
         frame, lambda_per_year = self._load_event_frame(catchment)
+        # Loss-weighted view (MKM-EF-001 Stage 6c, additive). Config loaded and
+        # draws taken once for the whole book, so every asset's loss run is
+        # scored against the same simulated storms.
+        freq_config = None
+        loss_draws = None
         if frame is not None:
             self.log(
                 f"Event frame: {frame.n_storms} storms -> {frame.n_events} events, "
                 f"coverage {frame.coverage:.3f}, lambda {lambda_per_year}/yr"
             )
+            freq_config = load_frequency_config(catchment or None)
+            loss_draws = shared_draws(frame, lambda_per_year, freq_config.simulation)
 
         price_prs_func = self._get_prs_pricer()
 
@@ -136,7 +145,9 @@ class PropertyHazardCurveGenerator(
                 pdata = None
             result = self._process_property(
                 pdata, gauge_hazard, price_prs_func, num_storms,
-                frame=frame, lambda_per_year=lambda_per_year)
+                frame=frame, lambda_per_year=lambda_per_year,
+                freq_config=freq_config, catchment=catchment,
+                loss_draws=loss_draws)
             if result:
                 results[result['property_id']] = result
                 stats['properties_processed'] += 1

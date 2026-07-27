@@ -69,6 +69,7 @@ from .families import FamilySelection, dispersion_test, select_family
 from .persist import calibrate_and_save, calibrate_catchment
 from .pot import ExceedanceRate, exceedance_rate
 from .subject_losses import (
+    compact_loss_block,
     loss_metrics,
     peak_level_losses,
     regrouped_event_losses,
@@ -102,6 +103,7 @@ __all__ = [
     "regrouped_event_losses",
     "shared_draws",
     "loss_metrics",
+    "compact_loss_block",
     "EventCatalogue",
     "EventFrame",
     "EventLossTable",

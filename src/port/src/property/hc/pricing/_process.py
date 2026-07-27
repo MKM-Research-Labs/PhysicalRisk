@@ -31,6 +31,7 @@ from models.frequency import (
 )
 
 from ..constants import TENORS
+from ._loss import property_loss_block
 
 
 class _ProcessMixin:
@@ -39,7 +40,8 @@ class _ProcessMixin:
     def _process_property(self, pdata: Dict, gauge_hazard: Dict,
                           price_prs_func, num_storms: int = 1000,
                           frame=None, lambda_per_year: float = 0.0,
-                          **kwargs) -> Optional[Dict]:
+                          freq_config=None, catchment: str = "",
+                          loss_draws=None, **kwargs) -> Optional[Dict]:
         """Process a single asset's timeseries *pdata*: count severe floods that
         reach it, compute spread and basis.
 
@@ -299,6 +301,16 @@ class _ProcessMixin:
         # stage ran (keeps flood-only output byte-identical).
         if prs_perils is not None:
             result['prs_perils'] = prs_perils
+
+        # Loss-weighted view (MKM-EF-001 Stage 6c, additive). Present only when
+        # the frequency layer is active and its config was supplied — i.e. the
+        # real generator path — so the unit-test callers that pass a frame but
+        # no config, and the pre-frequency fallback, keep byte-identical output.
+        # Does not touch the spread.
+        if frame is not None and lambda_per_year > 0 and freq_config is not None:
+            result['loss_metrics'] = property_loss_block(
+                frame, prs_floods, lambda_per_year, freq_config, prop_id,
+                catchment, draws=loss_draws)
         return result
 
     @staticmethod
