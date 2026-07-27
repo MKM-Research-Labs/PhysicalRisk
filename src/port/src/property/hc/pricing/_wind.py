@@ -95,6 +95,17 @@ class _WindMixin:
                 return (round((len(seqs) / num_storms) * 10000, 2)
                         if num_storms > 0 else 0.0)
 
+        # Sequence-space wind-loss records for the additive loss leg (Stage 6e).
+        # One pseudo-record per wind-triggered event, carrying the authoritative
+        # per-event damage ratio, keyed by sequence so the loss assembly regroups
+        # it onto the same event frame the flood leg uses. Shaped like a flood
+        # record (storm_id + damage_ratio) so the one loss builder serves both.
+        wind_loss_records = [
+            {'storm_id': event_to_seq[eid],
+             'damage_ratio': wind_index[eid][prop_id].get('damage_ratio') or 0.0}
+            for eid in wind_eids if eid in event_to_seq
+        ]
+
         return {
             'wind_count': len(wind_seqs),
             'union_count': len(union_seqs),
@@ -102,6 +113,7 @@ class _WindMixin:
             'wind_spread_bps': bps(wind_seqs),
             'union_spread_bps': bps(union_seqs),
             'joint_spread_bps': bps(joint_seqs),
+            'wind_loss_records': wind_loss_records,
         }
 
     def _seq_to_event_map(self) -> Dict[str, str]:

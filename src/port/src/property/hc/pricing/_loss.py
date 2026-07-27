@@ -61,10 +61,16 @@ def property_loss_block(
 ) -> Dict:
     """Return the additive loss block for one asset.
 
+    Peril-agnostic: it reads only ``storm_id`` and ``damage_ratio`` from each
+    record, so the flood leg passes its severe flood events and the wind leg
+    passes its wind-triggered events (mapped into sequence space) through the
+    very same builder.
+
     Args:
         frame: the event frame the spread was priced on.
-        prs_floods: the asset's severe flood events — the same set the spread
-            counts — each carrying its ``storm_id`` and ``damage_ratio``.
+        prs_floods: the asset's triggering events for the peril — the same set
+            the spread counts — each carrying its ``storm_id`` and
+            ``damage_ratio``.
         lambda_per_year: the catchment arrival rate.
         freq_config: the frequency configuration; supplies the simulation knobs,
             the return-period grid and the hash recorded in the export.

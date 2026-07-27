@@ -317,6 +317,14 @@ class _ProcessMixin:
             result['loss_metrics'] = property_loss_block(
                 frame, prs_floods, lambda_per_year, freq_config, prop_id,
                 catchment, asset_value=asset_value, draws=loss_draws)
+            # Wind peril loss (Stage 6e), on the same footing, when the typhoon
+            # stage ran. Keyed by the same value and shared draws so the flood
+            # and wind loss views are comparable and correlated.
+            if wind_info is not None:
+                result['loss_metrics_wind'] = property_loss_block(
+                    frame, wind_info['wind_loss_records'], lambda_per_year,
+                    freq_config, prop_id, catchment, asset_value=asset_value,
+                    draws=loss_draws)
         return result
 
     @staticmethod

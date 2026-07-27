@@ -63,6 +63,11 @@ def load_wind_damage_index() -> Dict[str, Dict[str, Dict]]:
                     # rows; carried for the insurance-loss / traceability view.
                     'duration_above_hours': d.get('duration_above_hours'),
                     'persistence_factor': d.get('persistence_factor'),
+                    # Authoritative per-event wind damage ratio (BRI + persistence
+                    # already applied where written). The loss leg reuses it
+                    # rather than re-deriving, exactly as the flood leg reuses the
+                    # depth-damage ratio carried on each flood record.
+                    'damage_ratio': d.get('damage_ratio'),
                 }
         if pmap:
             out[eid] = pmap

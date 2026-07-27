@@ -39,8 +39,24 @@ import pytest
 from config.frequency import load_frequency_config
 from port.src.property.hc.generator import PropertyHazardCurveGenerator
 from port.src.property.hc.pricing._loss import property_loss_block
+from port.src.property.hc.pricing._wind import _WindMixin
 
 from .conftest import basic_output_dir, write_property_ts  # noqa: F401
+
+
+class _WindHost(_WindMixin):
+    """A bare wind host whose index and sequence map are pre-seeded, so the
+    record-building logic is exercised without the typhoon filesystem."""
+
+
+def _wind_host(damage_ratio=0.4, peak=70.0, threshold=50.0):
+    host = _WindHost()
+    host._wind_damage_cache = {
+        "EVT-00000": {"PROP-1": {
+            "peak_sustained_ms": peak, "threshold_ms": threshold,
+            "v_50_eff_ms": threshold, "damage_ratio": damage_ratio}}}
+    host._seq_to_event_cache = {"S0": "EVT-00000"}
+    return host
 
 
 def _frame(n_events=10, category="severe"):
@@ -178,6 +194,48 @@ class TestGating:
             frame=_frame(), lambda_per_year=4.5)
 
         assert "loss_metrics" not in result
+
+
+class TestWindLoss:
+    """Stage 6e: the wind peril gets its own additive loss block, built by the
+    same peril-agnostic loss builder the flood leg uses."""
+
+    def test_wind_union_emits_sequence_space_loss_records(self):
+        host = _wind_host(damage_ratio=0.4)
+        result = host._wind_union("PROP-1", [], num_storms=100)
+        # The wind-triggered event maps back to its sequence and carries the
+        # authoritative per-event damage ratio.
+        assert result["wind_loss_records"] == [
+            {"storm_id": "S0", "damage_ratio": 0.4}]
+
+    def test_a_sub_threshold_asset_has_no_wind_loss_records(self):
+        host = _wind_host(peak=20.0, threshold=50.0)  # below onset
+        result = host._wind_union("PROP-1", [], num_storms=100)
+        assert result["wind_loss_records"] == []
+
+    def test_process_attaches_a_wind_loss_block(self, monkeypatch, basic_output_dir):
+        output_dir, pts_dir = basic_output_dir
+        pdata = write_property_ts(pts_dir, "PROP-wind", n_floods=2)
+        gen = PropertyHazardCurveGenerator(output_dir, verbose=False)
+        gauge_hazard, _ = gen._load_gauge_hazard_curves()
+        monkeypatch.setattr(gen, "_wind_union", lambda *a, **k: {
+            "wind_count": 1, "union_count": 2, "joint_count": 1,
+            "wind_spread_bps": 10.0, "union_spread_bps": 20.0,
+            "joint_spread_bps": 5.0,
+            "wind_loss_records": [{"storm_id": "S0", "damage_ratio": 0.6}],
+        })
+        result = gen._process_property(
+            pdata, gauge_hazard, None, num_storms=100,
+            frame=_frame(), lambda_per_year=4.5,
+            freq_config=load_frequency_config("thames"), catchment="thames",
+            value_lookup={"PROP-wind": 300_000.0})
+
+        wind = result["loss_metrics_wind"]
+        assert wind["basis"] == "currency"
+        assert wind["exposure_value"] == 300_000.0
+        assert wind["reconciliation"]["within_tolerance"]
+        # The flood block is still there and independent of the wind one.
+        assert "loss_metrics" in result
 
 
 class TestValueLookup:
