@@ -162,6 +162,57 @@ CATCHMENT_LAMBDA_PER_YEAR: Dict[str, float] = {
 # Arrival rate used for a catchment with no seed of its own.
 DEFAULT_LAMBDA_PER_YEAR: float = 4.5
 
+# Wind peril label, for the per-peril arrival-rate registry below.
+PERIL_WIND: str = "wind"
+
+# Per-catchment WIND event arrival rates (MKM-EF-001, Stage 6f). This is the
+# per-peril lambda registry the plan's §4.14 architected for.
+#
+# It is deliberately EMPTY. Under the current 1:1 storm-typhoon coupling wind is
+# not an independent arrival process: every wind event is paired with a storm
+# sequence, and the wind leg works in that sequence space, dropping any typhoon
+# with no paired sequence (see port .../pricing/_wind.py). So wind shares the
+# storm event arrival rate, and ``catchment_wind_lambda`` falls back to
+# ``catchment_lambda`` for every catchment.
+#
+# A genuinely independent wind rate only becomes meaningful once those unpaired,
+# off-sequence typhoon events are counted — a larger change that also re-derives
+# the coupled union/intersection legs and, because it moves the priced wind
+# spread, is gated on model-risk sign-off and real typhoon data (the same
+# circularity as flood lambda applies on synthetic catchments — plan §5). Until
+# then this registry is the seam, not a set of validated rates: an entry here
+# overrides only the ADDITIVE wind-loss view, never the priced spread.
+CATCHMENT_WIND_LAMBDA_PER_YEAR: Dict[str, float] = {}
+
+# Per-catchment annual growth of the arrival rate (MKM-EF-001, Stage 6h): the
+# fractional change in lambda per contract year, for a non-stationary
+# (climate-drifting) multi-year term structure — lambda_t = lambda_0 * (1+g)^t.
+#
+# Deliberately EMPTY, default zero — a stationary rate, the behaviour of every
+# stage before 6h. This is the seam, not a set of validated trends: a non-zero
+# growth moves a priced multi-year quantity, so populating it is a model-risk
+# decision resting on a real climate signal. With the registry empty the term
+# structure is byte-identical to the stationary one.
+CATCHMENT_ANNUAL_GROWTH: Dict[str, float] = {}
+
+# Growth used for a catchment with no seed of its own: stationary.
+DEFAULT_ANNUAL_GROWTH: float = 0.0
+
+# Catchments whose wind peril is priced as an INDEPENDENT arrival process rather
+# than coupled 1:1 to the storm sequences (MKM-EF-001, Stage 6i).
+#
+# Deliberately EMPTY: every catchment is coupled by default, the behaviour of
+# every stage before 6i. The coupled model drops any typhoon with no paired
+# storm sequence, so it understates wind where unpaired typhoons are common; the
+# decoupled model counts those events and prices wind on its own lambda, treating
+# flood and wind as independent Poisson processes for the union/intersection.
+#
+# That independence is an explicit modelling assumption — it trades the coupled
+# model's pairing correlation for coverage of unpaired events — and the wind rate
+# it uses is unvalidated on synthetic catchments (the plan-§5 circularity), so
+# opting a catchment in is a model-risk decision resting on real typhoon data.
+DECOUPLED_WIND_CATCHMENTS: frozenset = frozenset()
+
 
 @dataclass(frozen=True)
 class RateConfig:

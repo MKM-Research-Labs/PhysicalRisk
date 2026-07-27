@@ -72,6 +72,11 @@ def simulate_annual_counts(
 ) -> np.ndarray:
     """Draw the number of qualifying events arriving in each simulated year.
 
+    Every simulated year is an independent replication of the *same* calendar
+    year, so the rate is one scalar across all *n_years* draws. A non-stationary
+    rate varies across calendar years, not across these replications; that is a
+    term-structure concern handled in ``rate_process`` / annualisation, not here.
+
     Args:
         lambda_per_year: the catchment arrival rate. Negative rates are treated
             as zero.

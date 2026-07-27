@@ -31,9 +31,24 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-from config.frequency import catchment_lambda
+from config.frequency import (
+    catchment_annual_growth,
+    catchment_lambda,
+    config_hash,
+    load_frequency_config,
+)
 
-from models.frequency import annual_exceedance_probability
+from models.floodrisk.depth_damage import scalar_depth_damage
+from models.frequency import (
+    annual_exceedance_probability,
+    annual_hazard_by_year,
+    compact_loss_block,
+    loss_metrics,
+    peak_level_losses,
+    rate_process_for,
+    shared_draws,
+)
+from models.frequency.datastructures import ProvenanceClass
 from models.frequency.events import build_catalogue
 
 from .data_structures import GaugeHazardCurve, HazardCurvePoint
@@ -93,6 +108,22 @@ class HazardCurveBuilder:
             f"Event catalogue: {catalogue.n_storms} storms -> {catalogue.n_events} "
             f"events; lambda = {lambda_per_year}/yr"
         )
+
+        # Loss-weighted view (MKM-EF-001 Stage 6c, additive). Drawn once for the
+        # whole catchment so every gauge is scored against the same simulated
+        # storms, which keeps their annual losses correlated. The lambda is
+        # a config seed rather than a fitted rate, so the loss table is stamped
+        # generator-derived.
+        freq_config = load_frequency_config(self.catchment or None)
+        loss_config_hash = config_hash(freq_config)
+        loss_return_periods = freq_config.rate.return_periods_years
+        loss_draws = shared_draws(catalogue, lambda_per_year, freq_config.simulation)
+
+        # Arrival-rate process for the multi-year term structure (Stage 6h).
+        # Stationary by default — an empty growth registry gives a ConstantRate,
+        # so the term structure is unchanged unless a catchment carries a trend.
+        rate_process = rate_process_for(
+            lambda_per_year, catchment_annual_growth(self.catchment))
 
         self.log(f"Fitting GEV distributions for {len(self.gauges)} gauges...")
         hazard_curves = {}
@@ -158,10 +189,30 @@ class HazardCurveBuilder:
             severe_event_count = int(
                 catalogue.flood_flags(gauge_id, severe).sum())
 
-            # Term structures
-            term_structure_alert = compute_term_structure(prob_alert)
-            term_structure_warning = compute_term_structure(prob_warning)
-            term_structure_severe = compute_term_structure(prob_severe)
+            # Per-event loss vector for this gauge. A gauge carries no asset
+            # value, so the loss quantum is the depth-damage ratio at unit
+            # exposure, keyed off depth above the severe trigger — a severity
+            # index in [0, 1], not a currency amount. The property and
+            # commercial legs multiply their own value into the same shape.
+            gauge_losses = peak_level_losses(
+                catalogue, gauge_id,
+                lambda level: scalar_depth_damage(level - severe))
+            metrics = loss_metrics(
+                catalogue, gauge_losses, lambda_per_year,
+                freq_config.simulation, gauge_id, self.catchment,
+                ProvenanceClass.GENERATOR_DERIVED.value, loss_return_periods,
+                config_hash=loss_config_hash, draws=loss_draws)
+            loss_block = compact_loss_block(metrics, "unit_exposure_damage_ratio")
+
+            # Term structures. The per-year hazards compound the arrival-rate
+            # process over the tenor (Stage 6h); under the default stationary
+            # process every year is identical and this is the prior behaviour.
+            term_structure_alert = compute_term_structure(
+                annual_hazard_by_year(rate_process, p_event_alert, 5))
+            term_structure_warning = compute_term_structure(
+                annual_hazard_by_year(rate_process, p_event_warning, 5))
+            term_structure_severe = compute_term_structure(
+                annual_hazard_by_year(rate_process, p_event_severe, 5))
 
             # Get coordinates
             lat = gauge.get('gauge_latitude') or gauge.get('latitude') or 0.0
@@ -202,6 +253,7 @@ class HazardCurveBuilder:
                         gauge_id, severe, lambda_per_year)),
                 legacy_annual_flood_prob_severe=legacy_severe,
                 severe_event_count=severe_event_count,
+                loss_metrics=loss_block,
             )
 
             hazard_curves[gauge_id] = hazard_curve

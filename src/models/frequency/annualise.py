@@ -34,6 +34,9 @@ return-period levels — and those come from ``ylt/``.
 """
 
 import math
+from typing import List
+
+from .rate_process import RateProcess
 
 
 def annual_exceedance_probability(lambda_per_year: float, p_event: float) -> float:
@@ -83,3 +86,34 @@ def return_period_years(lambda_per_year: float, p_event: float) -> float:
     """
     rate = annual_exceedance_rate(lambda_per_year, p_event)
     return float("inf") if rate <= 0 else 1.0 / rate
+
+
+def annual_hazard_by_year(
+    process: RateProcess, p_event: float, max_years: int
+) -> List[float]:
+    """Return the annual exceedance probability for each year of a tenor.
+
+    Year ``y``'s value is ``annual_exceedance_probability(λ_y, p)`` where
+    ``λ_y`` is the arrival rate the *process* gives for that year. Under a
+    ``ConstantRate`` every year is identical and this is a flat list, which is
+    what keeps a non-stationary term structure a strict generalisation of the
+    stationary one (MKM-EF-001, Stage 6h).
+
+    These are the per-year hazards the multi-year term structure compounds. They
+    follow the platform's existing convention — the annual *probability* used as
+    the per-year hazard — rather than the exact ``1 - exp(-p·Σλ)`` of
+    ``term_exceedance_probability``, so that wiring a flat (stationary) process
+    reproduces the current term structure exactly.
+
+    Args:
+        process: the arrival-rate process over the tenor.
+        p_event: the per-event conditional exceedance probability.
+        max_years: the tenor length in years.
+
+    Returns:
+        A list of *max_years* annual exceedance probabilities, year 1 first.
+    """
+    return [
+        annual_exceedance_probability(process.rate_at(year), p_event)
+        for year in range(max(0, max_years))
+    ]

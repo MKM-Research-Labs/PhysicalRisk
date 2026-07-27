@@ -23,7 +23,7 @@ Data structures for hazard curve computation.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -114,3 +114,9 @@ class GaugeHazardCurve:
     # The pre-frequency metric, retained for parallel-run comparison until the
     # switchover is signed off.
     legacy_annual_flood_prob_severe: float = 0.0
+    # Loss-weighted view (MKM-EF-001 Stage 6c, additive). A compact summary of
+    # the event loss table and annual loss distribution — average annual loss,
+    # AEP/OEP curves and the reconciliation verdict — at unit exposure, since a
+    # gauge carries no asset value. None when the curve is built without the
+    # loss layer. Does not feed the spread; it is an additional output.
+    loss_metrics: Optional[Dict] = None

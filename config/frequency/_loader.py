@@ -33,7 +33,11 @@ from json import dumps
 from typing import Optional
 
 from config.frequency._schema import (
+    CATCHMENT_ANNUAL_GROWTH,
     CATCHMENT_LAMBDA_PER_YEAR,
+    CATCHMENT_WIND_LAMBDA_PER_YEAR,
+    DECOUPLED_WIND_CATCHMENTS,
+    DEFAULT_ANNUAL_GROWTH,
     DEFAULT_LAMBDA_PER_YEAR,
     FrequencyConfig,
     PotConfig,
@@ -61,6 +65,71 @@ def catchment_lambda(catchment: Optional[str]) -> float:
     if not catchment:
         return DEFAULT_LAMBDA_PER_YEAR
     return CATCHMENT_LAMBDA_PER_YEAR.get(catchment.lower(), DEFAULT_LAMBDA_PER_YEAR)
+
+
+def catchment_wind_lambda(catchment: Optional[str]) -> float:
+    """Return the WIND event arrival rate for *catchment* (MKM-EF-001, 6f).
+
+    The per-peril arrival rate the plan's §4.14 architected for. It falls back
+    to the storm event rate (``catchment_lambda``) whenever the catchment has no
+    wind-specific seed — which, with ``CATCHMENT_WIND_LAMBDA_PER_YEAR`` empty, is
+    every catchment. That fallback is not a placeholder but the model: under the
+    current 1:1 storm-typhoon coupling wind is not an independent arrival
+    process, so it shares the storm rate (see the schema note on the registry).
+
+    An explicit entry overrides only the additive wind-loss view; the priced
+    wind spread stays on the coupled event rate until the unpaired-typhoon
+    counting that a real decoupling needs is built and signed off.
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively. ``None`` or
+            an unseeded catchment returns the storm event rate.
+
+    Returns:
+        Wind events per year.
+    """
+    if catchment and catchment.lower() in CATCHMENT_WIND_LAMBDA_PER_YEAR:
+        return CATCHMENT_WIND_LAMBDA_PER_YEAR[catchment.lower()]
+    return catchment_lambda(catchment)
+
+
+def catchment_annual_growth(catchment: Optional[str]) -> float:
+    """Return the annual arrival-rate growth for *catchment* (MKM-EF-001, 6h).
+
+    The fractional change in λ per contract year that makes the multi-year term
+    structure non-stationary. Returns a plain number, not a rate process, so
+    ``config`` stays a leaf: the ``RateProcess`` is built from this in the model
+    layer (``rate_process_for``).
+
+    With ``CATCHMENT_ANNUAL_GROWTH`` empty this is zero for every catchment — a
+    stationary rate, leaving the term structure unchanged. A non-zero value is a
+    model-risk decision, not a default.
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively.
+
+    Returns:
+        The fractional annual growth; ``0.0`` when unseeded.
+    """
+    if catchment and catchment.lower() in CATCHMENT_ANNUAL_GROWTH:
+        return CATCHMENT_ANNUAL_GROWTH[catchment.lower()]
+    return DEFAULT_ANNUAL_GROWTH
+
+
+def is_wind_decoupled(catchment: Optional[str]) -> bool:
+    """Return whether *catchment* prices wind as an independent process (6i).
+
+    False for every catchment while ``DECOUPLED_WIND_CATCHMENTS`` is empty — the
+    coupled 1:1 model, i.e. the behaviour of every stage before 6i. Opting a
+    catchment in is a model-risk decision (see the schema note).
+
+    Args:
+        catchment: catchment identifier; matched case-insensitively.
+
+    Returns:
+        True if wind is decoupled for the catchment.
+    """
+    return bool(catchment) and catchment.lower() in DECOUPLED_WIND_CATCHMENTS
 
 
 def load_frequency_config(

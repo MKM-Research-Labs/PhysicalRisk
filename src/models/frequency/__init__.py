@@ -46,6 +46,7 @@ Per rule R4 this module contains no function definitions — only re-exports.
 from .annualise import (
     annual_exceedance_probability,
     annual_exceedance_rate,
+    annual_hazard_by_year,
     return_period_years,
 )
 from .calibrate import calibrate_gauge_rate, fallback_reason, summarise
@@ -53,7 +54,9 @@ from .datastructures import (
     CalibrationProvenance,
     EventCatalogue,
     EventFrame,
+    EventLossTable,
     FittedRate,
+    LossSimulation,
     Peak,
     PotDiagnostics,
     PotExtraction,
@@ -61,14 +64,35 @@ from .datastructures import (
     rate_from_dict,
     rate_to_dict,
 )
+from .elt import build_event_loss_table, elt_document
 from .events import build_catalogue, build_event_frame
 from .families import FamilySelection, dispersion_test, select_family
 from .persist import calibrate_and_save, calibrate_catchment
 from .pot import ExceedanceRate, exceedance_rate
+from .rate_process import (
+    ConstantRate,
+    RateProcess,
+    TrendRate,
+    rate_process_for,
+    term_exceedance_probability,
+)
+from .subject_losses import (
+    compact_loss_block,
+    loss_metrics,
+    peak_level_losses,
+    regrouped_event_losses,
+    shared_draws,
+)
+from .ylt import (
+    apply_catalogue_losses,
+    reconcile_losses,
+    simulate_losses,
+)
 
 __all__ = [
     "annual_exceedance_probability",
     "annual_exceedance_rate",
+    "annual_hazard_by_year",
     "return_period_years",
     "calibrate_catchment",
     "calibrate_and_save",
@@ -79,8 +103,25 @@ __all__ = [
     "FamilySelection",
     "build_catalogue",
     "build_event_frame",
+    "build_event_loss_table",
+    "elt_document",
+    "apply_catalogue_losses",
+    "simulate_losses",
+    "reconcile_losses",
+    "peak_level_losses",
+    "regrouped_event_losses",
+    "shared_draws",
+    "loss_metrics",
+    "compact_loss_block",
+    "RateProcess",
+    "ConstantRate",
+    "TrendRate",
+    "rate_process_for",
+    "term_exceedance_probability",
     "EventCatalogue",
     "EventFrame",
+    "EventLossTable",
+    "LossSimulation",
     "calibrate_gauge_rate",
     "summarise",
     "fallback_reason",

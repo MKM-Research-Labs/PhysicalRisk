@@ -22,10 +22,70 @@
 
 from typing import Dict, List, Optional
 
+from config.frequency import is_wind_decoupled
 from models.floodrisk.depth_damage import is_prs_flood
 from models.frequency import annual_exceedance_probability
 from models.winddamage.threshold import is_prs_wind
 from port.src._typhoon_join import load_seq_to_event_map, load_wind_damage_index
+
+
+def decoupled_wind_legs(
+    wind_eids: set,
+    n_wind_events: int,
+    flood_seqs: set,
+    paired_wind_seqs: set,
+    frame,
+    lambda_flood: float,
+    lambda_wind: float,
+) -> Dict:
+    """Price wind as an INDEPENDENT arrival process (MKM-EF-001, Stage 6i).
+
+    The opt-in alternative to the coupled 1:1 model. Flood and wind are treated
+    as independent Poisson processes, so the union and intersection follow from
+    the two marginal annual probabilities — ``1-(1-P_f)(1-P_w)`` and
+    ``P_f·P_w`` — rather than from set operations in a shared event space.
+
+    This counts the unpaired typhoons the coupled model drops: the wind
+    conditional is ``triggering wind events / all wind events`` over the whole
+    typhoon catalogue, not just the paired subset. Two assumptions are baked in
+    and documented as the mode's limitations: independence (it trades the coupled
+    model's pairing correlation for coverage of unpaired events), and uniform
+    weights over the damage-bearing typhoon population (a coverage/weighting
+    refinement is a follow-on, as it was for the flood catalogue). The counts use
+    inclusion-exclusion so ``union = flood + wind - joint`` still holds for
+    display, while the spreads use the independent-probability model.
+
+    Args:
+        wind_eids: the wind events (paired and unpaired) that trigger the asset.
+        n_wind_events: the size of the wind (typhoon) catalogue — the denominator.
+        flood_seqs: the flood-triggering sequences for the asset.
+        paired_wind_seqs: the paired subset of ``wind_eids`` mapped to sequences,
+            the only wind events that can intersect a flood sequence.
+        frame: the flood event frame, for the flood conditional.
+        lambda_flood: the storm event arrival rate.
+        lambda_wind: the wind event arrival rate.
+
+    Returns:
+        The wind/union/joint counts and spreads, as ``_wind_union`` returns them.
+    """
+    p_flood = frame.conditional_probability(flood_seqs)
+    p_wind = (len(wind_eids) / n_wind_events) if n_wind_events else 0.0
+    prob_flood = annual_exceedance_probability(lambda_flood, p_flood)
+    prob_wind = annual_exceedance_probability(lambda_wind, p_wind)
+    prob_union = 1.0 - (1.0 - prob_flood) * (1.0 - prob_wind)
+    prob_joint = prob_flood * prob_wind
+
+    wind_count = len(wind_eids)
+    joint_count = len(flood_seqs & paired_wind_seqs)
+    union_count = len(flood_seqs) + wind_count - joint_count
+    return {
+        'wind_count': wind_count,
+        'union_count': union_count,
+        'joint_count': joint_count,
+        'wind_spread_bps': round(prob_wind * 10000, 2),
+        'union_spread_bps': round(prob_union * 10000, 2),
+        'joint_spread_bps': round(prob_joint * 10000, 2),
+    }
 
 
 class _WindMixin:
@@ -37,7 +97,8 @@ class _WindMixin:
 
     def _wind_union(self, prop_id: str, flood_events: List[Dict],
                     num_storms: int, frame=None,
-                    lambda_per_year: float = 0.0) -> Optional[Dict]:
+                    lambda_per_year: float = 0.0, catchment: str = "",
+                    wind_lambda_per_year=None) -> Optional[Dict]:
         """Count flood ∪ wind and flood ∩ wind PRS triggers for one property.
 
         Returns ``None`` when the catchment has no typhoon damage (flood-only
@@ -82,6 +143,31 @@ class _WindMixin:
         flood_seqs = {e.get('storm_id', '') for e in flood_events if is_prs_flood(e)}
         flood_seqs.discard('')
 
+        # Sequence-space wind-loss records for the additive loss leg (Stage 6e).
+        # One pseudo-record per PAIRED wind-triggered event, carrying the
+        # authoritative per-event damage ratio, keyed by sequence so the loss
+        # assembly regroups it onto the same event frame the flood leg uses.
+        # Shaped like a flood record (storm_id + damage_ratio) so the one loss
+        # builder serves both. Unchanged by the decoupling below — the additive
+        # wind-loss view stays sequence-space.
+        wind_loss_records = [
+            {'storm_id': event_to_seq[eid],
+             'damage_ratio': wind_index[eid][prop_id].get('damage_ratio') or 0.0}
+            for eid in wind_eids if eid in event_to_seq
+        ]
+
+        # Decoupled (Stage 6i, opt-in): wind is an independent arrival process
+        # counting unpaired typhoons. Otherwise the coupled 1:1 model in shared
+        # sequence space — the default, byte-identical to prior stages.
+        if frame is not None and lambda_per_year > 0 and is_wind_decoupled(catchment):
+            wind_lambda = (lambda_per_year if wind_lambda_per_year is None
+                           else wind_lambda_per_year)
+            legs = decoupled_wind_legs(
+                wind_eids, len(wind_index), flood_seqs, wind_seqs, frame,
+                lambda_per_year, wind_lambda)
+            legs['wind_loss_records'] = wind_loss_records
+            return legs
+
         union_seqs = flood_seqs | wind_seqs
         joint_seqs = flood_seqs & wind_seqs
 
@@ -102,6 +188,7 @@ class _WindMixin:
             'wind_spread_bps': bps(wind_seqs),
             'union_spread_bps': bps(union_seqs),
             'joint_spread_bps': bps(joint_seqs),
+            'wind_loss_records': wind_loss_records,
         }
 
     def _seq_to_event_map(self) -> Dict[str, str]:

@@ -18,44 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Year-loss-table sampling for the Event Frequency Model (MKM-EF-001).
+"""Event loss table construction and export (MKM-EF-001, Stage 6).
 
-The Monte Carlo year simulation and the closed form that validates it. Per rule
-R4 this module contains no function definitions — only re-exports.
+Per rule R4 this module contains no function definitions — only re-exports.
 """
 
-from ._losses import (
-    apply_catalogue_losses,
-    simulate_losses,
-)
-from ._reconcile import (
-    analytic_annual_probability,
-    analytic_average_annual_loss,
-    analytic_expected_floods,
-    loss_standard_error,
-    reconcile,
-    reconcile_losses,
-    sampling_standard_error,
-)
-from ._sample import (
-    apply_catalogue,
-    draw_event_years,
-    simulate_annual_counts,
-    simulate_years,
-)
+from ._export import elt_document
+from ._table import build_event_loss_table
 
 __all__ = [
-    "simulate_years",
-    "draw_event_years",
-    "apply_catalogue",
-    "simulate_annual_counts",
-    "apply_catalogue_losses",
-    "simulate_losses",
-    "analytic_annual_probability",
-    "analytic_expected_floods",
-    "analytic_average_annual_loss",
-    "loss_standard_error",
-    "reconcile",
-    "reconcile_losses",
-    "sampling_standard_error",
+    "build_event_loss_table",
+    "elt_document",
 ]

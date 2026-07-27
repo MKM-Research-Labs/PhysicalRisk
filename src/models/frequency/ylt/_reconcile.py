@@ -34,16 +34,26 @@ makes this a genuine check rather than a restatement.
 
 The same argument gives the aggregate view directly: E[floods per year] is
 lambda * p.
+
+The loss extension (Stage 6) reconciles on the same principle. A simulated
+year's aggregate loss is a compound-Poisson sum: N ~ Poisson(lambda_effective)
+events, each drawing a loss from the catalogue with the sampling weights. Its
+mean is lambda_effective * E[loss] and its variance is lambda_effective *
+E[loss^2] (Wald / the compound-Poisson identity), so the average annual loss the
+ELT reports in closed form is the simulation's exact expectation, and the gap is
+again measured in sampling standard errors of that mean.
 """
 
 import math
-from typing import Tuple
+from typing import Sequence, Tuple
+
+import numpy as np
 
 from config.frequency import SimulationConfig
 
 from ..annualise import annual_exceedance_probability
 
-from ..datastructures import YearSimulation
+from ..datastructures import LossSimulation, YearSimulation
 
 
 def analytic_annual_probability(lambda_per_year: float, p_event: float) -> float:
@@ -122,6 +132,102 @@ def reconcile(
         simulation.lambda_per_year, simulation.p_event)
 
     standard_error = sampling_standard_error(expected, simulation.n_years)
+    if standard_error == 0.0:
+        deviation = 0.0 if simulated == expected else math.inf
+    else:
+        deviation = abs(simulated - expected) / standard_error
+
+    return deviation <= config.reconciliation_sigmas, deviation
+
+
+def analytic_average_annual_loss(
+    lambda_effective: float,
+    weights: Sequence[float],
+    losses: Sequence[float],
+) -> float:
+    """Return the exact average annual loss of the compound-Poisson year.
+
+    ``lambda_effective * sum(weight * loss)`` — the arrival rate of
+    representable events times the weighted mean loss per event. This is the
+    ELT's average annual loss written out; the two agree by construction, which
+    is the point of reconciling against it.
+
+    Args:
+        lambda_effective: the arrival rate of catalogue-representable events.
+        weights: the per-event sampling weights, summing to one.
+        losses: the per-event losses to the subject.
+
+    Returns:
+        Expected loss per year.
+    """
+    weight = np.asarray(weights, dtype=float)
+    loss = np.asarray(losses, dtype=float)
+    if weight.size == 0 or weight.size != loss.size:
+        return 0.0
+    return float(max(0.0, lambda_effective) * np.dot(weight, loss))
+
+
+def loss_standard_error(
+    lambda_effective: float,
+    weights: Sequence[float],
+    losses: Sequence[float],
+    n_years: int,
+) -> float:
+    """Return the standard error of the average annual loss over a run.
+
+    The annual aggregate loss is compound Poisson, so its variance is
+    ``lambda_effective * sum(weight * loss^2)`` and the mean over ``n_years``
+    independent years has that variance divided by ``n_years``.
+
+    Args:
+        lambda_effective: the arrival rate of catalogue-representable events.
+        weights: the per-event sampling weights, summing to one.
+        losses: the per-event losses to the subject.
+        n_years: number of years simulated.
+
+    Returns:
+        The standard error of the AAL estimate, or ``0.0`` when there is no
+        sampling variation to speak of.
+    """
+    weight = np.asarray(weights, dtype=float)
+    loss = np.asarray(losses, dtype=float)
+    if n_years <= 0 or weight.size == 0 or weight.size != loss.size:
+        return 0.0
+    variance = max(0.0, lambda_effective) * float(np.dot(weight, loss * loss))
+    return math.sqrt(variance / n_years)
+
+
+def reconcile_losses(
+    simulation: LossSimulation,
+    lambda_effective: float,
+    weights: Sequence[float],
+    losses: Sequence[float],
+    config: SimulationConfig,
+) -> Tuple[bool, float]:
+    """Check a simulated average annual loss against its closed form.
+
+    The loss analogue of ``reconcile``: the gap between the run's mean aggregate
+    loss and the closed-form AAL, in standard errors of that mean, against the
+    configured band.
+
+    Args:
+        simulation: the completed loss run.
+        lambda_effective: the arrival rate of catalogue-representable events the
+            draws used (``lambda_per_year * coverage``).
+        weights: the per-event sampling weights the draws used.
+        losses: the per-event losses scored in the run.
+        config: simulation knobs supplying the allowed number of sigmas.
+
+    Returns:
+        ``(within_tolerance, deviation_in_standard_errors)``. With no sampling
+        variation the deviation is zero if the two agree exactly and infinite
+        otherwise.
+    """
+    simulated = simulation.average_annual_loss()
+    expected = analytic_average_annual_loss(lambda_effective, weights, losses)
+
+    standard_error = loss_standard_error(
+        lambda_effective, weights, losses, simulation.n_years)
     if standard_error == 0.0:
         deviation = 0.0 if simulated == expected else math.inf
     else:

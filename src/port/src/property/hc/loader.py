@@ -56,6 +56,37 @@ class LoaderMixin:
             return None, 0.0
         return build_event_frame(storms), catchment_lambda(catchment)
 
+    def _load_asset_values(self, catchment) -> dict:
+        """Return ``{asset_id: reinstatement_value}`` for the loss uplift.
+
+        Reads the portfolio through the seam and pulls each asset's value from
+        ``<root_section_key>.Valuation.PropertyValue`` — ``PropertyHeader`` for
+        residential, ``CommercialAsset`` for commercial, both supplied by
+        ``ASSET_CONFIG`` so the one reader serves both types. An unreadable
+        portfolio yields an empty lookup, which prices every asset's loss at a
+        value of zero rather than aborting; the missing values surface as
+        ``exposure_value = 0`` on each block.
+
+        Args:
+            catchment: catchment identifier.
+
+        Returns:
+            Mapping of asset identifier to its value.
+        """
+        section = self.ASSET_CONFIG.root_section_key
+        values = {}
+        try:
+            portfolio = self.ASSET_CONFIG.get_portfolio(catchment)
+        except (OSError, ValueError, KeyError):
+            return values
+        for record in portfolio:
+            root = record.get(section, {}) or {}
+            asset_id = root.get('Header', {}).get('PropertyID', '')
+            if asset_id:
+                values[asset_id] = float(
+                    root.get('Valuation', {}).get('PropertyValue', 0) or 0)
+        return values
+
     def _load_gauge_hazard_curves(self) -> tuple:
         """Load gauge hazard curves and sequence count through the database seam.
 
