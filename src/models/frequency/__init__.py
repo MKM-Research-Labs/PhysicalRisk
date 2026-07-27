@@ -76,6 +76,7 @@ from .rate_process import (
     rate_process_for,
     term_exceedance_probability,
 )
+from .sensitivity import trend_sensitivity
 from .subject_losses import (
     compact_loss_block,
     loss_metrics,
@@ -118,6 +119,7 @@ __all__ = [
     "TrendRate",
     "rate_process_for",
     "term_exceedance_probability",
+    "trend_sensitivity",
     "EventCatalogue",
     "EventFrame",
     "EventLossTable",

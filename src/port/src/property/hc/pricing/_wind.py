@@ -88,6 +88,46 @@ def decoupled_wind_legs(
     }
 
 
+def coupled_wind_legs(
+    wind_seqs: set,
+    flood_seqs: set,
+    frame,
+    lambda_flood: float,
+) -> Dict:
+    """Price wind coupled 1:1 in shared sequence space — the default model.
+
+    The frequency-active coupled path, extracted from ``_wind_union`` so the
+    sensitivity harness (Stage 6j) can call the exact production formula rather
+    than re-implement it. The union and intersection are set operations over the
+    shared sequences, each annualised at the storm event rate through the flood
+    event frame.
+
+    Args:
+        wind_seqs: the paired wind-triggering sequences for the asset.
+        flood_seqs: the flood-triggering sequences for the asset.
+        frame: the flood event frame supplying the conditional.
+        lambda_flood: the storm event arrival rate.
+
+    Returns:
+        The wind/union/joint counts and spreads, as ``_wind_union`` returns them.
+    """
+    union_seqs = flood_seqs | wind_seqs
+    joint_seqs = flood_seqs & wind_seqs
+
+    def bps(seqs):
+        return round(annual_exceedance_probability(
+            lambda_flood, frame.conditional_probability(seqs)) * 10000, 2)
+
+    return {
+        'wind_count': len(wind_seqs),
+        'union_count': len(union_seqs),
+        'joint_count': len(joint_seqs),
+        'wind_spread_bps': bps(wind_seqs),
+        'union_spread_bps': bps(union_seqs),
+        'joint_spread_bps': bps(joint_seqs),
+    }
+
+
 class _WindMixin:
     """Wind union/intersection peril counting and damage/seq index caches."""
 
@@ -168,28 +208,28 @@ class _WindMixin:
             legs['wind_loss_records'] = wind_loss_records
             return legs
 
-        union_seqs = flood_seqs | wind_seqs
-        joint_seqs = flood_seqs & wind_seqs
-
         if frame is not None and lambda_per_year > 0:
-            def bps(seqs):
-                conditional = frame.conditional_probability(seqs)
-                return round(annual_exceedance_probability(
-                    lambda_per_year, conditional) * 10000, 2)
+            legs = coupled_wind_legs(wind_seqs, flood_seqs, frame, lambda_per_year)
         else:
+            # Pre-frequency fallback: a plain count ratio, for a caller that has
+            # not been migrated onto the frequency layer.
+            union_seqs = flood_seqs | wind_seqs
+            joint_seqs = flood_seqs & wind_seqs
+
             def bps(seqs):
                 return (round((len(seqs) / num_storms) * 10000, 2)
                         if num_storms > 0 else 0.0)
 
-        return {
-            'wind_count': len(wind_seqs),
-            'union_count': len(union_seqs),
-            'joint_count': len(joint_seqs),
-            'wind_spread_bps': bps(wind_seqs),
-            'union_spread_bps': bps(union_seqs),
-            'joint_spread_bps': bps(joint_seqs),
-            'wind_loss_records': wind_loss_records,
-        }
+            legs = {
+                'wind_count': len(wind_seqs),
+                'union_count': len(union_seqs),
+                'joint_count': len(joint_seqs),
+                'wind_spread_bps': bps(wind_seqs),
+                'union_spread_bps': bps(union_seqs),
+                'joint_spread_bps': bps(joint_seqs),
+            }
+        legs['wind_loss_records'] = wind_loss_records
+        return legs
 
     def _seq_to_event_map(self) -> Dict[str, str]:
         """``sequence_id → event_id`` from ``storm_sequences.json`` (cached).

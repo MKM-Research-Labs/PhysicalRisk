@@ -2,8 +2,8 @@
 
 **Document type:** Definition Document & Project Plan
 **Component:** Event Frequency Model — `MKM-EF-001` (new)
-**Version:** 2.13 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
-**Status:** Stages 1–5 complete — built, wired to pricing, validated end-to-end, and registered for governance. Stage 6 (Track B) **complete as a set of opt-in/behaviour-preserving seams**: 6a–6h plus the **decoupled-wind mechanism** (6i: wind priced as an independent process counting unpaired typhoons, opt-in per catchment, off by default). Every stage's default reproduces the prior numbers; the remaining reprices (climate-trend seed, decoupled-wind activation) are one-line config flips gated on real data + MRC
+**Version:** 2.14 — supersedes `frequency_layer_definition_and_plan.md` (v1.0, 2026-07-22)
+**Status:** Stages 1–5 complete — built, wired to pricing, validated end-to-end, and registered for governance. Stage 6 (Track B) **complete as a set of opt-in/behaviour-preserving seams** (6a–6i), plus a **sensitivity harness** (6j) that quantifies the two deferred reprices without touching production. Every default reproduces the prior numbers; the reprices themselves (climate-trend seed, decoupled-wind activation) are one-line config flips gated on real data + MRC — the harness is the evidence that decision needs
 **Date:** 2026-07-27
 **Owner:** CSO, MKM Research Labs
 
@@ -11,7 +11,16 @@
 
 ## 0. What changed from v1
 
-### 0.1 What v2.13 changes
+### 0.1 What v2.14 changes
+
+Stage 6j: a sensitivity harness that measures the two deferred reprices, so the
+model-risk decision to switch either on has evidence.
+
+| # | Change | Driver |
+|---|--------|--------|
+| C34 | **Sensitivity / what-if harness.** `models.frequency.sensitivity.trend_sensitivity` reports, over a grid of candidate climate growths, the multi-year exceedance probability against the stationary baseline — each delta is exactly the reprice that seeding that growth would cause. `pricing._sensitivity.wind_decoupling_sensitivity` runs the coupled and decoupled wind legs off the same inputs and reports the spread deltas and the count of unpaired typhoons the coupled model is dropping. Both are pure, non-repricing diagnostics. `coupled_wind_legs` was extracted from `_wind_union` (behaviour-preserving) so the harness calls the exact production formula rather than re-implementing it | 6h and 6i left two reprices switched off behind empty registries because turning either on is a model-risk decision gated on real data. This is the evidence that decision needs — it quantifies the impact without changing anything priced, closing the gap between "the seam exists" and "here is what flipping it does" |
+
+### 0.2 What v2.13 changed
 
 Stage 6i: wind can be priced as an independent arrival process that counts the
 typhoons the coupled model drops — opt-in, off by default.
@@ -20,7 +29,7 @@ typhoons the coupled model drops — opt-in, off by default.
 |---|--------|--------|
 | C33 | **Decoupled-wind mechanism** (`decoupled_wind_legs`, `is_wind_decoupled`, `DECOUPLED_WIND_CATCHMENTS`). Opt a catchment in and its wind peril is priced as an independent Poisson process: the wind conditional runs over the *whole* typhoon catalogue rather than only the paired subset, so the unpaired, off-sequence typhoons the coupled model silently drops are counted; the union and intersection follow from the two marginal annual probabilities (`1-(1-P_f)(1-P_w)`, `P_f·P_w`). The registry is empty, so every catchment stays coupled and byte-identical by default | Closes the coupling finding of 6f: the coupled model understates wind where unpaired typhoons are common. Two assumptions are explicit and recorded as the mode's limitations — independence (it trades the pairing correlation for coverage of unpaired events) and uniform weights over the damage-bearing typhoon population — and the wind rate is unvalidated on synthetic catchments (§5), so opting a catchment in is a model-risk decision on real typhoon data. Mechanism built and tested; the reprice is deferred to that decision |
 
-### 0.2 What v2.12 changed
+### 0.3 What v2.12 changed
 
 Stage 6h: the non-stationary rate now flows through the production multi-year
 term structure — behaviour-preserving until a trend is seeded.
@@ -29,7 +38,7 @@ term structure — behaviour-preserving until a trend is seeded.
 |---|--------|--------|
 | C32 | **Non-stationary term structure.** `compute_term_structure` now accepts a per-year hazard sequence as well as a single rate, compounding a running sum instead of `rate·t`; the builder feeds it `annual_hazard_by_year(rate_process, p, tenor)`, and the rate process comes from `rate_process_for(λ, catchment_annual_growth(catchment))`. A `catchment_annual_growth` registry (empty, default 0.0) sits in config as a leaf — numbers only — with the `RateProcess` built in the model layer. Empty registry → zero growth → `ConstantRate` → flat hazards → the term structure is byte-identical to before | Wires 6g's rate process into the one place multi-year pricing is computed, so a climate trend can be turned on per catchment. Because a non-zero growth moves a priced multi-year quantity, the registry ships empty and the seeding is a model-risk decision resting on a real climate signal — the seam is behaviour-preserving, the reprice is deferred |
 
-### 0.3 What v2.11 changed
+### 0.4 What v2.11 changed
 
 Stage 6g: the non-stationary rate-process seam — and the finding that a drifting
 rate belongs on the tenor, not inside the Monte Carlo replications.
@@ -38,7 +47,7 @@ rate belongs on the tenor, not inside the Monte Carlo replications.
 |---|--------|--------|
 | C31 | **`RateProcess` for λ(t)** (`rate_process.py`): `ConstantRate` (the pre-6g model), `TrendRate` (`λ_t = λ₀·(1+g)^t`), and `term_exceedance_probability`, the non-homogeneous multi-year survival `1 - exp(-p·Σλ_y)`. This is §4.14's time-varying-rate extension point. Behaviour-preserving: a constant rate compounds to exactly the stationary `1 - exp(-λ·T·p)` and at one year is the ordinary annualisation seam; a trend with zero growth reduces to the constant. **Finding:** the drift is indexed by *contract year*, not Monte Carlo sample — a rate compounded across the ten-thousand within-year replications overflows to nonsense (caught in a smoke test), because those replications are the *same* calendar year, so non-stationarity is a term-structure concern, not a sampler one | Addresses the stationarity limitation (climate drift) recorded since v2.0. The seam is built and reconciled but **not yet wired into the production multi-year term structure** (`gev.compute_term_structure`) or given per-catchment trend seeds — doing so moves a priced multi-year quantity, so it is governance-gated, deferred to the wiring stage exactly as 6a's machinery preceded 6c's wiring |
 
-### 0.4 What v2.10 changed
+### 0.5 What v2.10 changed
 
 Stage 6f: the per-peril wind-λ seam — and the finding that, under the current
 coupling, wind has no independent rate to calibrate.
@@ -47,7 +56,7 @@ coupling, wind has no independent rate to calibrate.
 |---|--------|--------|
 | C30 | **Per-peril wind arrival-rate seam** (`catchment_wind_lambda`, `CATCHMENT_WIND_LAMBDA_PER_YEAR`) — the λ registry §4.14 architected. Wired into the **additive** wind-loss block (its own rate, its own draws). **Finding:** the wind leg works in sequence space and *drops any typhoon with no paired storm sequence*, so under the 1:1 coupling wind is not an independent arrival process — it shares the storm event rate. The registry is therefore empty and the accessor falls back to `catchment_lambda`, leaving all numbers unchanged; an entry overrides only the additive wind-loss view, never the priced spread | Completes the architected per-peril registry while being honest that a genuine wind-λ *reprice* is not a config tweak: it needs the unpaired, off-sequence typhoon events counted (a redesign of the coupled union/intersection legs) and, because it moves a priced spread, model-risk sign-off and real data — the same λ circularity as flood applies on synthetic catchments (§5). The seam is behaviour-preserving; the calibration is deferred with its blockers recorded |
 
-### 0.5 What v2.9 changed
+### 0.6 What v2.9 changed
 
 Stage 6e: the additive loss view reaches the wind peril.
 
@@ -55,7 +64,7 @@ Stage 6e: the additive loss view reaches the wind peril.
 |---|--------|--------|
 | C29 | **Wind-leg loss wiring.** Each asset now carries a second additive loss block, `loss_metrics_wind`, beside the flood one — same AAL/AEP/OEP/ELT machinery, same currency basis and shared draws, over the wind-triggered events. The authoritative per-event wind `damage_ratio` (BRI + persistence, already written into the typhoon damage files) is surfaced through `load_wind_damage_index` and reused, exactly as the flood leg reuses its depth-damage ratio; `_wind_union` maps each wind-triggered event back into sequence space and emits `wind_loss_records`, which `property_loss_block` — peril-agnostic, reading only `storm_id` + `damage_ratio` — turns into the block. Present only when the typhoon stage ran and the frequency config is supplied; the spread is untouched | Completes the additive loss view across both perils and all three subject types. Reusing the one loss builder for flood and wind keeps a single reconciled path rather than a parallel wind implementation |
 
-### 0.6 What v2.8 changed
+### 0.7 What v2.8 changed
 
 Stage 6d began: the property and commercial loss blocks are now a currency
 amount, not a unit-exposure severity.
@@ -64,7 +73,7 @@ amount, not a unit-exposure severity.
 |---|--------|--------|
 | C28 | **Monetary uplift on the property/commercial legs.** Each asset's loss is now `damage_ratio × PropertyValue` — the same `value × damage_ratio` the routes and reports already use — so the loss block's AAL, AEP/OEP and ELT are in currency, with `basis: "currency"` and `exposure_value` recorded. Values come from a single lookup over the portfolio (`LoaderMixin._load_asset_values`), reading `<root_section_key>.Valuation.PropertyValue` — `PropertyHeader` for residential, `CommercialAsset` for commercial, both from `ASSET_CONFIG`, so one reader serves both. A missing value is zero-in-currency, not a rebasing to severity, so a portfolio data gap shows as `exposure_value = 0` rather than hiding. The gauge leg stays at unit exposure — a gauge has no value. Still additive: the spread is untouched | Turns the severity index from 6c into the money figure the desk actually reserves against, completing the loss view for the asset legs. An unreadable portfolio yields an empty lookup and prices every loss at zero rather than aborting the build |
 
-### 0.7 What v2.7 changed
+### 0.8 What v2.7 changed
 
 Stage 6c — the additive loss wiring itself — landed on the gauge and
 property/commercial legs.
@@ -73,7 +82,7 @@ property/commercial legs.
 |---|--------|--------|
 | C27 | **Loss block wired into the gauge leg (`builder.py`) and the property/commercial legs (`_process.py`).** Each gauge hazard curve and each asset pricing record now carries an additive `loss_metrics` block — average annual loss, AEP and OEP curves and the attributed event-loss-table metadata — beside the unchanged spread. The gauge loss quantum is the depth-damage ratio applied to depth above the severe trigger; the asset legs regroup each asset's per-event `damage_ratio` onto the hours-clause events (worst-within-event). Both are at **unit exposure** — the damage ratio itself, no asset value multiplied in — so a gauge with no value and an asset are on one comparable footing, and the shared `compact_loss_block` keeps the two call sites identical. Every block reconciles against its closed-form AAL | The loss layer (6a/6b) had no callers; this consumes it. Additive by the owner's decision (§ v2.6 C26): the spread is untouched, so no price moves and no port regen is needed to keep current pricing valid. Gated on the frequency config being supplied, so the fallback path and every existing unit test stay byte-identical. **The monetary uplift — multiplying by `PropertyValue` / commercial value — is 6d: it needs the asset value threaded in, a separate change** |
 
-### 0.8 What v2.6 changed
+### 0.9 What v2.6 changed
 
 Stage 6b — the additive loss wiring — was scoped and its reusable core built.
 
@@ -81,7 +90,7 @@ Stage 6b — the additive loss wiring — was scoped and its reusable core built
 |---|--------|--------|
 | C26 | **Loss wiring decided *additive*, and the subject-loss adapter built** (`subject_losses.py`). Reconnaissance established that today's PRS spread is pure `P(flood) × 10000` with **no monetary loss in it at all**, so the owner's decision is to emit AAL/AEP/OEP/ELT as *new* outputs beside the unchanged spread — no price moves, no port regen to keep current pricing valid, no MRC pricing-policy change. The adapter turns a gauge's `peak_levels` (via a caller-supplied damage curve) or an asset's per-storm records (regrouped onto events by their maximum) into an aligned per-event loss vector, and `loss_metrics` centralises the coverage scaling — the ELT takes the raw λ, the sampler λ×coverage — so the units trap that has bitten this project cannot recur at a call site | The loss machinery (6a) was dormant with no callers; the adapter is the seam every pricing leg calls. Keeping the damage model in the caller preserves 6a's boundary and the frequency layer's peril-generic shape (§4.14). The **leg wiring itself (6c/6d) is not yet done** |
 
-### 0.9 What v2.5 changed
+### 0.10 What v2.5 changed
 
 Stage 6 (Track B) began with the loss extension. The occurrence sampler now has
 a loss-weighted twin: give each catalogue event a loss quantum and the same
@@ -95,7 +104,7 @@ table for third-party comparison.
 | C24 | **Loss reconciliation gate.** The ELT's `AAL = Σ rate × loss = λ_effective × Σ weight × loss` is the simulation's *exact expectation* (compound-Poisson mean); `reconcile_losses` measures the gap in sampling standard errors of that mean, mirroring §4.10's occurrence gate | Same principle as the occurrence self-test: the closed form is not a second opinion, it is what the simulation must converge to, so a gap beyond sampling error means one of the two is wrong. Measured deviation 0.30σ at the default 10,000 years |
 | C25 | **The loss quantum stays the caller's.** The frequency layer supplies only the machinery; per-event losses come in as an argument, exactly as flood flags do. Wiring the platform's damage model to produce them per subject — and the pricing consequences — is the next Track B sub-step, not this one | Keeps the frequency layer generic and the damage model's integration a separate, separately-reviewable change, as Stage 1's machinery preceded Stage 3's wiring |
 
-### 0.10 What v2.4 changed
+### 0.11 What v2.4 changed
 
 The two remaining critical-path stages landed. The model is now built, wired,
 validated and governed end-to-end; nothing on the critical path is outstanding.
@@ -105,7 +114,7 @@ validated and governed end-to-end; nothing on the critical path is outstanding.
 | C20 | **Stage 2 complete**: Poisson and Negative-Binomial families with a *calibrated* selector — a chi-square dispersion test gates the choice, not a bare `D > 1` rule, and an AIC margin guards the extra NegBin parameter | With fifty annual counts a genuine Poisson process throws dispersion indices up to ≈1.4 by chance, so the naive rule over-selects NegBin badly (§5.2). Under-dispersion — halong's actual regime — is flagged, never fitted: no family on the Poisson–NegBin axis represents it, so Poisson is selected as the nearest fittable family and the note says so. The selected family and its justification are persisted per gauge (SR 11-7) |
 | C21 | **Stage 5 complete**, in the **ModelRisk** repo. MKM-EF-001 is registered through the governance command API, placed in the chain GH-001 → EF-001 → PR-001, with 4 assumptions, 4 limitations, 3 weaknesses and 9 SR 26-2 validation questions | Governance migrated to a separate event-sourced Postgres platform since v2.0 was written — there is no `model_inventory.json` and no LaTeX to wire (§10). This supersedes the JSON/registry/`.tex` plan §10 originally described. Version bumped 0.1.0 → **1.0.0** as a genuine release |
 
-### 0.11 What v2.3 changed
+### 0.12 What v2.3 changed
 
 | # | Change | Driver |
 |---|--------|--------|
@@ -114,7 +123,7 @@ validated and governed end-to-end; nothing on the critical path is outstanding.
 | C18 | **The wind threshold is traced and now per-asset.** 55.56 m/s was a deliberate uniform constant (200 km/h), not a unit bug; `DesignWindSpeedKmh` drives the threshold instead, and design speeds were raised 40 km/h | Wind vulnerability was undifferentiated across a portfolio. L12 partially closes; the calibration question remains (§6.8) |
 | C19 | **L13 resolved**: the peril stages record the BRI spine they read, and a guard warns when any stage under-declares | The warning fired after every successful run and had already misled one root-cause investigation. The gap was real: a change to the BRI spine never invalidated the consuming step |
 
-### 0.12 What v2.2 changed
+### 0.13 What v2.2 changed
 
 Wiring the layer into pricing and calibrating it on real halong data
 exposed three defects — two of them pre-existing and more serious than the
@@ -128,7 +137,7 @@ problem this model was written to fix.
 | C15 | **The wind leg is validated on real data**; L6 and L9 close | A `--typhoon` run put real wind through all ten commercial assets with the peril coherence checks passing (§6.6). It also surfaced L12: the wind trigger is one global constant, not asset-differentiated |
 | C14 | **Two field-naming traps documented**, both of which produced confident wrong answers before being caught | `flood_events[].storm_id` holds *sequence* identifiers; `_load_gauge_hazard_curves` returns the *sequence* count while its caller names it `num_storms` (§4.11) |
 
-### 0.13 What v2.1 changed
+### 0.14 What v2.1 changed
 
 v2.0 was written before any code existed. Building it moved four things, one of
 which was an outright error in v2.0's design.
@@ -140,7 +149,7 @@ which was an outright error in v2.0's design.
 | C9 | **10,000 simulated years, and the reconciliation gate is expressed in sampling standard errors rather than as a fixed percentage** | Measured on the target hardware (§6.1). A fixed 2% band false-alarmed on 17% of runs at ten thousand years while never binding at a million |
 | C10 | **Landmine L3 resolved:** `num_storms` is kept and `num_events` added beside it | The storm/event distinction becomes visible in the data rather than hidden in a redefinition of a field existing consumers already read |
 
-### 0.14 What v2.0 changed from v1
+### 0.15 What v2.0 changed from v1
 
 v1 diagnosed the problem correctly. v2 keeps the diagnosis and reworks the plan against
 what the codebase actually does. Six substantive changes:
@@ -1014,7 +1023,8 @@ remain, under separate approval.
 | 6g | **Non-stationary rate-process seam done** (`rate_process.py`): `RateProcess`, `ConstantRate`, `TrendRate` (`λ₀·(1+g)^t`), `term_exceedance_probability` (the `1-exp(-p·Σλ_y)` multi-year survival). Behaviour-preserving — constant ≡ stationary `1-exp(-λTp)`, one-year ≡ the annualisation seam. **Finding**: drift is a tenor concern, not a per-MC-sample one (a per-sample trend overflows over 10k replications). New module 100% cov; frequency suite 294 passed | **Done** *(seam; term-structure wiring deferred)* | Behaviour-preserving |
 | 6h | **Non-stationary term structure wired**, behaviour-preserving. `compute_term_structure` compounds a per-year hazard sequence; the builder feeds it `annual_hazard_by_year(rate_process, p, tenor)` with `rate_process_for(λ, catchment_annual_growth(catchment))`. Empty growth registry → stationary → byte-identical term structure. Config leaf holds the growth numbers; the process is built in the model layer. New config/frequency/gev paths tested; 6h suites 308+ passed | **Done** *(seam; trend seeding deferred to a real signal + MRC)* | Behaviour-preserving |
 | 6i | **Decoupled-wind mechanism built** (opt-in): `decoupled_wind_legs` prices wind as an independent process counting unpaired typhoons, gated by `DECOUPLED_WIND_CATCHMENTS` (empty → coupled, byte-identical). `is_wind_decoupled` in config; `catchment`/`wind_lambda` threaded through `_wind_union`. Assumptions (independence, uniform typhoon weights) recorded as limitations. Config 100% cov; frequency + property suites 359 passed | **Done** *(mechanism; activation deferred to real data + MRC)* | Off by default; opting in reprices only that catchment's wind/union/joint |
-| 6j | *Remaining — both are config flips gated on external inputs, no code:* seed `CATCHMENT_ANNUAL_GROWTH` (real climate signal + MRC) to turn on the non-stationary term structure; add a catchment to `DECOUPLED_WIND_CATCHMENTS` (real typhoon data + MRC) to turn on decoupled wind. Measuring the data effect of the whole Track B view needs a user-run port | Deferred | — |
+| 6j | **Sensitivity harness built** (non-repricing): `trend_sensitivity` (frequency layer) quantifies the climate-trend reprice over a growth grid vs the stationary baseline; `wind_decoupling_sensitivity` (pricing layer) runs coupled vs decoupled wind off the same inputs, reporting spread deltas + dropped-typhoon count. `coupled_wind_legs` extracted from `_wind_union` (behaviour-preserving). New modules 100% cov / covered by execution; frequency + property suites 343 passed | **Done** | Diagnostic only — nothing priced changes |
+| 6k | *Remaining — the reprices themselves, config flips gated on external inputs (no code):* seed `CATCHMENT_ANNUAL_GROWTH` (real climate signal + MRC) and/or add a catchment to `DECOUPLED_WIND_CATCHMENTS` (real typhoon data + MRC). The §6j harness is the evidence for that decision; measuring the data effect end-to-end needs a user-run port | Deferred to data + MRC | — |
 
 The clamp review promised for Stage 4 (`builder.py` exceedance floor and
 `MAX_RETURN_PERIOD`) is **still outstanding**; return periods now run to 15–22

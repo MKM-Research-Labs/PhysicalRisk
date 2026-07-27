@@ -40,6 +40,7 @@ import config.frequency._loader as freq_loader
 from config.frequency import load_frequency_config
 from port.src.property.hc.generator import PropertyHazardCurveGenerator
 from port.src.property.hc.pricing._loss import property_loss_block
+from port.src.property.hc.pricing._sensitivity import wind_decoupling_sensitivity
 from port.src.property.hc.pricing._wind import _WindMixin, decoupled_wind_legs
 
 from .conftest import basic_output_dir, write_property_ts  # noqa: F401
@@ -321,6 +322,36 @@ class TestDecoupledWind:
         assert res["union_count"] == 3
         # The additive wind-loss records stay sequence-space (paired only).
         assert len(res["wind_loss_records"]) == 2
+
+
+class TestWindDecouplingSensitivity:
+    """Stage 6j: the non-repricing what-if that quantifies the wind decoupling
+    for the model-risk decision, running both legs off the same inputs."""
+
+    def test_it_reports_the_dropped_events_and_the_deltas(self):
+        report = wind_decoupling_sensitivity(
+            wind_eids={"EVT-00000", "EVT-00002", "EVT-UNPAIRED"},
+            event_to_seq={"S0": "EVT-00000", "S2": "EVT-00002",
+                          "EVT-00000": "S0", "EVT-00002": "S2"},
+            flood_seqs={"S0"}, n_wind_events=3, frame=_frame(),
+            lambda_flood=4.5, lambda_wind=4.5)
+
+        # One typhoon (EVT-UNPAIRED) has no sequence — the coupled model drops it.
+        assert report["dropped_unpaired_events"] == 1
+        # The coupled leg counts only the two paired events; decoupled counts all.
+        assert report["coupled"]["wind_count"] == 2
+        assert report["decoupled"]["wind_count"] == 3
+        # The deltas are the reprice the decoupling would introduce.
+        assert "wind_spread_delta_bps" in report
+        assert "union_spread_delta_bps" in report
+
+    def test_no_unpaired_events_means_no_dropped_count(self):
+        report = wind_decoupling_sensitivity(
+            wind_eids={"EVT-00000"},
+            event_to_seq={"S0": "EVT-00000", "EVT-00000": "S0"},
+            flood_seqs={"S0"}, n_wind_events=4, frame=_frame(),
+            lambda_flood=4.5, lambda_wind=4.5)
+        assert report["dropped_unpaired_events"] == 0
 
 
 class TestValueLookup:
