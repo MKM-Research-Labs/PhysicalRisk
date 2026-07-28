@@ -35,8 +35,116 @@ diagnostic a validation report or the MRC calls, not a production path.
 
 from typing import Dict, Sequence
 
+import math
+
 from .annualise import annual_exceedance_probability
 from .rate_process import ConstantRate, rate_process_for, term_exceedance_probability
+
+
+def rate_sensitivity(
+    lambda_per_year: float,
+    p_event: float,
+    factors: Sequence[float],
+) -> Dict:
+    """Quantify how a PRS spread responds to the arrival rate λ.
+
+    λ is a linear multiplier on the annual exceedance, so this is the model's
+    single most material sensitivity: the spread `1 - exp(-λ·p)` moves with λ,
+    and because `λ·p` is small at realistic conditionals the response is close to
+    proportional — an X% error in λ is roughly an X% error in the spread.
+
+    Reports, for each multiplicative *factor* on λ, the repriced annual
+    probability and spread against the base, plus the analytic derivative
+    `∂P/∂λ = p·exp(-λ·p)` so the response is stated in closed form, not only
+    sampled.
+
+    Args:
+        lambda_per_year: the base arrival rate.
+        p_event: the per-event conditional exceedance probability.
+        factors: multiplicative shocks to λ (e.g. 0.8, 1.0, 1.2).
+
+    Returns:
+        A dict with the base point, the closed-form derivative, and a row per
+        factor carrying the shocked rate, probability, spread (bps) and relative
+        change.
+    """
+    base = annual_exceedance_probability(lambda_per_year, p_event)
+    derivative = max(0.0, p_event) * math.exp(
+        -max(0.0, lambda_per_year) * max(0.0, p_event))
+
+    rows = []
+    for factor in factors:
+        shocked = lambda_per_year * factor
+        probability = annual_exceedance_probability(shocked, p_event)
+        rows.append({
+            "factor": factor,
+            "lambda_per_year": shocked,
+            "annual_probability": probability,
+            "spread_bps": probability * 10000.0,
+            "relative_change": (probability / base - 1.0) if base > 0 else 0.0,
+        })
+
+    return {
+        "lambda_per_year": lambda_per_year,
+        "p_event": p_event,
+        "base_probability": base,
+        "base_spread_bps": base * 10000.0,
+        "d_prob_d_lambda": derivative,
+        "rows": rows,
+    }
+
+
+def distributional_sensitivity(
+    mean_count: float,
+    alphas: Sequence[float],
+) -> Dict:
+    """Quantify how the spread responds to the count *distribution*, not its mean.
+
+    Holds the mean annual flood count fixed and swaps the Poisson for a Negative
+    Binomial of increasing over-dispersion `alpha`. `P(at least one) = 1 -
+    exp(-mean)` under Poisson; `1 - (r/(r+mean))^r` with `r = 1/alpha` under
+    NegBin. This isolates the effect of the *distributional form* — the thing the
+    Stage 2 dispersion test guards — from the effect of the rate.
+
+    At the low mean counts realistic here the occurrence probability is governed
+    by the mean, so the form is a second-order effect; the table makes that
+    explicit rather than assumed.
+
+    Args:
+        mean_count: the mean annual flood count, `λ·p`.
+        alphas: over-dispersion parameters; ``0`` (or negative) is the Poisson
+            limit, larger values are more clustered.
+
+    Returns:
+        A dict with the Poisson baseline and a row per alpha carrying the
+        family, the exceedance probability, the spread (bps), and its change
+        relative to the Poisson.
+    """
+    mean = max(0.0, mean_count)
+    poisson = 1.0 - math.exp(-mean)
+
+    rows = []
+    for alpha in alphas:
+        if alpha <= 0.0:
+            probability, family = poisson, "poisson"
+        else:
+            r = 1.0 / alpha
+            probability = 1.0 - (r / (r + mean)) ** r if mean > 0 else 0.0
+            family = "negbin"
+        rows.append({
+            "alpha": alpha,
+            "family": family,
+            "prob_at_least_one": probability,
+            "spread_bps": probability * 10000.0,
+            "relative_to_poisson": (probability / poisson - 1.0) if poisson > 0 else 0.0,
+        })
+
+    return {
+        "mean_count": mean,
+        "poisson_probability": poisson,
+        "poisson_spread_bps": poisson * 10000.0,
+        "rows": rows,
+    }
 
 
 def trend_sensitivity(

@@ -25,9 +25,15 @@ reprice: the zero-growth row is the stationary baseline exactly, and a positive
 growth's delta is the reprice seeding that growth would cause.
 """
 
+import math
+
 import pytest
 
-from models.frequency import trend_sensitivity
+from models.frequency import (
+    distributional_sensitivity,
+    rate_sensitivity,
+    trend_sensitivity,
+)
 
 _LAMBDA = 4.5
 _P = 0.03
@@ -80,3 +86,66 @@ def test_a_zero_baseline_does_not_divide_by_zero():
     report = trend_sensitivity(_LAMBDA, 0.0, _TENOR, [0.0, 0.05])
     assert report["stationary_probability"] == 0.0
     assert all(row["relative_change"] == 0.0 for row in report["rows"])
+
+
+# --------------------------------------------------------- rate sensitivity
+
+class TestRateSensitivity:
+
+    def test_the_base_factor_reproduces_the_operating_point(self):
+        report = rate_sensitivity(_LAMBDA, 0.01, [0.5, 1.0, 1.5])
+        base_row = next(r for r in report["rows"] if r["factor"] == 1.0)
+        assert base_row["annual_probability"] == pytest.approx(report["base_probability"])
+        assert base_row["relative_change"] == pytest.approx(0.0)
+
+    def test_the_derivative_is_the_closed_form(self):
+        report = rate_sensitivity(_LAMBDA, 0.02, [1.0])
+        assert report["d_prob_d_lambda"] == pytest.approx(
+            0.02 * math.exp(-_LAMBDA * 0.02))
+
+    def test_the_response_is_near_proportional_when_lambda_p_is_small(self):
+        """The headline finding: at a small conditional the spread tracks lambda
+        almost one-for-one, so a +20% rate is roughly a +20% spread."""
+        report = rate_sensitivity(_LAMBDA, 0.005, [1.2])
+        assert report["rows"][0]["relative_change"] == pytest.approx(0.20, abs=0.02)
+
+    def test_the_spread_rises_monotonically_with_the_rate(self):
+        report = rate_sensitivity(_LAMBDA, 0.02, [0.5, 0.8, 1.0, 1.2, 1.5])
+        spreads = [r["spread_bps"] for r in report["rows"]]
+        assert spreads == sorted(spreads)
+
+    def test_a_zero_base_does_not_divide_by_zero(self):
+        report = rate_sensitivity(_LAMBDA, 0.0, [0.5, 1.5])
+        assert report["base_probability"] == 0.0
+        assert all(r["relative_change"] == 0.0 for r in report["rows"])
+
+
+# ------------------------------------------------- distributional sensitivity
+
+class TestDistributionalSensitivity:
+
+    def test_alpha_zero_is_the_poisson_baseline(self):
+        report = distributional_sensitivity(0.03, [0.0, 1.0])
+        assert report["rows"][0]["family"] == "poisson"
+        assert report["rows"][0]["prob_at_least_one"] == pytest.approx(
+            report["poisson_probability"])
+        assert report["rows"][0]["relative_to_poisson"] == pytest.approx(0.0)
+
+    def test_overdispersion_lowers_the_occurrence_probability(self):
+        """More clustering puts more mass at zero, so P(at least one) falls."""
+        report = distributional_sensitivity(0.03, [0.0, 0.5, 1.0, 2.0])
+        rels = [r["relative_to_poisson"] for r in report["rows"]]
+        assert rels == sorted(rels, reverse=True)   # decreasing
+        assert rels[-1] < 0.0
+
+    def test_the_form_is_second_order_at_low_mean_counts(self):
+        """The finding that matters: at a realistic rare-flood mean the
+        distributional form moves the spread by only a few percent, so the rate
+        dominates, not the Poisson assumption."""
+        report = distributional_sensitivity(0.03, [2.0])
+        assert abs(report["rows"][0]["relative_to_poisson"]) < 0.05
+
+    def test_a_zero_mean_has_no_exceedance(self):
+        report = distributional_sensitivity(0.0, [0.0, 1.0])
+        assert report["poisson_probability"] == 0.0
+        assert all(r["prob_at_least_one"] == 0.0 for r in report["rows"])
