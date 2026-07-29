@@ -21,7 +21,7 @@
 """
 Portfolio Generation Report — PDF output.
 
-Generates a comprehensive PDF summarising the output of `app.py port`.
+Generates a comprehensive PDF summarising the output of `phys.py port`.
 Each pipeline step gets its own section with detailed item-level tables:
 
   1. Gauge Network     — gauge listing with thresholds + tidal info
@@ -65,7 +65,7 @@ class PortReportGenerator(StylesMixin, DataLoaderMixin, PortfolioSectionsMixin, 
             self.output_path = Path(output_path)
         else:
             from config import config
-            # Port deliverables are not part of the `app.py test` audit
+            # Port deliverables are not part of the `phys.py test` audit
             # sequence — keep them out of the audit root, under audit/archive/.
             archive_dir = config.get_output_dir() / 'audit' / 'archive'
             archive_dir.mkdir(parents=True, exist_ok=True)

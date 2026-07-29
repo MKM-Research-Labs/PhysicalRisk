@@ -79,7 +79,7 @@ class TestStormIDConsistency:
             f"ZERO storm ID overlap between storm_sequences.json ({len(seq_ids)} sequences) "
             f"and propertyts/ ({len(prop_storm_ids)} storms). "
             f"Data is from different generation runs. "
-            f"Fix: python app.py port --propertyts"
+            f"Fix: python phys.py port --propertyts"
         )
 
     def test_gaugets_storms_from_sequences(self):
@@ -117,7 +117,7 @@ class TestStormIDConsistency:
             f"ZERO storm ID overlap between storm_sequences.json ({len(seq_storm_ids)}) "
             f"and gaugets/ ({len(gaugets_storm_ids)}). "
             f"Data is from different runs. "
-            f"Fix: python app.py port --stressm"
+            f"Fix: python phys.py port --stressm"
         )
 
 
@@ -138,8 +138,8 @@ class TestPipelineCompleteness:
                 lines.append(
                     f"  - [{m['step']}] {m['output']} ({kind})"
                 )
-            lines.append("Fix: python app.py port")
-            # Partial/dev datasets (no full `app.py port` run) legitimately
+            lines.append("Fix: python phys.py port")
+            # Partial/dev datasets (no full `phys.py port` run) legitimately
             # lack some outputs. Skip rather than fail so the unit gate is not
             # coupled to a fully-generated pipeline; this check is meaningful
             # only after a complete generation.
@@ -170,13 +170,13 @@ class TestPipelineCompleteness:
         stress_storms_dir = INPUT_DIR / "stress_storms"
         assert stress_storms_dir.exists(), (
             f"{len(joblibs)} classifier(s) found but stress_storms/ is missing. "
-            f"Classifiers are stale. Fix: python3 app.py classifier"
+            f"Classifiers are stale. Fix: python3 phys.py classifier"
         )
         # training_summary must exist
         summary_path = classifiers_dir / "training_summary.json"
         assert summary_path.exists(), (
             f"{len(joblibs)} .joblib file(s) but no training_summary.json. "
-            f"Summary is out of sync. Fix: python3 app.py classifier"
+            f"Summary is out of sync. Fix: python3 phys.py classifier"
         )
         summary = json.load(open(summary_path))
         summary_ids = {g["gauge_id"] for g in summary.get("gauges", [])}
@@ -189,13 +189,13 @@ class TestPipelineCompleteness:
             warnings.warn(
                 f"{len(missing_joblib)} classifier(s) in training_summary.json "
                 f"but .joblib missing: {sorted(missing_joblib)[:5]}. "
-                f"Retrain: python3 app.py classifier",
+                f"Retrain: python3 phys.py classifier",
                 UserWarning,
             )
         assert len(available) > 0 or len(summary_ids) == 0, (
             f"No documented classifiers have a .joblib on disk. "
             f"Summary lists {sorted(summary_ids)[:5]} but none found. "
-            f"Fix: python3 app.py classifier"
+            f"Fix: python3 phys.py classifier"
         )
         # Warn about undocumented extras (stale from previous port run)
         undocumented = joblib_ids - summary_ids

@@ -42,7 +42,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestCopyrightHeadersRepo:
-    """Repo-wide self-heal + compliance assertion (runs under app.py test)."""
+    """Repo-wide self-heal + compliance assertion (runs under phys.py test)."""
 
     def test_canonical_header_loads(self):
         canon = scanners.load_canonical_py(ROOT)

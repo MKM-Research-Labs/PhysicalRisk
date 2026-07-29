@@ -232,12 +232,12 @@ loader family). Same standard pattern applies; slotted into their work package.
 
 Confirmed by sweeping frontend JS, entry points, static-file serving, `scripts/`, and a
 read_text/open catch-all across every code dir (`app config scripts src tests tools`
-+ `wsgi.py`/`app.py`).
++ `wsgi.py`/`phys.py`).
 
 | Area | Finding | Action |
 |---|---|---|
 | **Frontend JS** (all `src/**/*.js`) | Every fetch targets `/api/v1/…`; **no JS reads data files directly** | None — DB swap is invisible to the frontend |
-| **Entry points** (`wsgi.py`, `app.py`, `src/server.py`, `app/commands/server.py`) | No JSON IO; they only bind the active catchment (`config.catchment_id`) | Repo initializes/binds catchment here — no data-IO edit |
+| **Entry points** (`wsgi.py`, `phys.py`, `src/server.py`, `app/commands/server.py`) | No JSON IO; they only bind the active catchment (`config.catchment_id`) | Repo initializes/binds catchment here — no data-IO edit |
 | **Static/file serving** (`send_file`/`send_from_directory`) | Serve generated **PDFs** (EOD/PRS/MRC), governance docs, HTML, icons — **not port JSON** | None |
 | **Generated report PDFs** under `…/blotter/eod/*.pdf` etc. | Binary report outputs, not source data | Stay as files / object store; **not** part of JSON→DB scope. The *data* behind them moves to DB; the PDF generators (Group D) read from the repo |
 | **Governance JSON** (`model_inventory.json`, `data_lineage.json`, audit log) | Version-controlled, deliberately excluded | Out of scope (locked decision) |

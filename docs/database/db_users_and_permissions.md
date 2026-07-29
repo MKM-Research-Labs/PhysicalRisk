@@ -38,7 +38,7 @@ checkboxes. Rolling out a new area = add a row here + tag its endpoints; no sche
 
 | Code | Name | Underlying actions / endpoints it gates |
 |---|---|---|
-| **Func001** | Create synthetic portfolio | the port generation pipeline (`python app.py port …` / its app-driven equivalent) — produces gauges/properties/loans/commercial/timeseries/curves |
+| **Func001** | Create synthetic portfolio | the port generation pipeline (`python phys.py port …` / its app-driven equivalent) — produces gauges/properties/loans/commercial/timeseries/curves |
 | **Func002** | Upload real portfolio | ingest a real (customer) portfolio file → validate → load (the planned upload path; today partially in the CDM tool) |
 | **Func003** | Trade PRS | trading desk — `prs/*` and `trading/*` (blotter, commit, close, EOD) |
 

@@ -38,7 +38,7 @@ Structure:
     └── stormtseries_portfolio.py - Storm time series generator
 
 Usage:
-    # Catchment is pinned globally by the CLI entry point (app.py port
+    # Catchment is pinned globally by the CLI entry point (phys.py port
     # --thames / --halong, or `config.catchment_id = "halong"` from
     # tests). Generators just read config.catchment_id; they never
     # mutate it.

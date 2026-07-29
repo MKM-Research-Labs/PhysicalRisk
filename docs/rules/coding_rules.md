@@ -124,7 +124,7 @@ the text so it can be updated in one place.
 **Verified by.** `docs/models/full_audit/sections_tests/copyright_headers.py` — a
 **self-healing** audit (`is_compliant` / `fix_text` / `fix_repo`) exercised by
 `tests/commands/test_copyright_headers_report.py`, which repairs headers in place under
-`app.py test`. Note: run the repo-wide self-heal in the main checkout, not a worktree
+`phys.py test`. Note: run the repo-wide self-heal in the main checkout, not a worktree
 (dry-run `fix_repo(root, apply=False)` only in worktrees).
 
 ---

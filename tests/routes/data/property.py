@@ -53,7 +53,7 @@ class TestPropertyIDConsistency:
         assert not orphaned, (
             f"Property IDs in propertyts/ not found in property.json: {orphaned}. "
             f"This usually means propertyts was generated from a different property.json. "
-            f"Regenerate with: python app.py port --propertyts"
+            f"Regenerate with: python phys.py port --propertyts"
         )
 
     def test_propertyhc_ids_match_property_portfolio(self, fully_populated_data_dir):
@@ -79,7 +79,7 @@ class TestPropertyIDConsistency:
         orphaned = hc_ids - portfolio_ids
         assert not orphaned, (
             f"Property IDs in propertyhc.json not found in property.json: {orphaned}. "
-            f"Regenerate with: python app.py port --propertyhc"
+            f"Regenerate with: python phys.py port --propertyhc"
         )
 
     def test_propertyhc_ids_subset_of_propertyts(self, fully_populated_data_dir):

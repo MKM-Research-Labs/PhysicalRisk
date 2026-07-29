@@ -60,7 +60,7 @@ class TestPropertyDataLoads:
         assert "error" not in result, f"PropertyTS API failed: {result.get('error')}"
         assert result["http_status"] == 200, (
             f"PropertyTS summary API returned HTTP {result['http_status']}: "
-            f"{result.get('message')}. Run: python app.py port --propertyts"
+            f"{result.get('message')}. Run: python phys.py port --propertyts"
         )
         assert result["has_summary"], "PropertyTS summary missing from response"
         assert result["properties_with_floods"] > 0, (
@@ -90,7 +90,7 @@ class TestPropertyDataLoads:
         assert "error" not in result, f"Property API failed: {result.get('error')}"
         assert result["http_status"] == 200, (
             f"Property flood-events API returned HTTP {result['http_status']}: "
-            f"{result.get('message')}. Run: python app.py port --propertyts"
+            f"{result.get('message')}. Run: python phys.py port --propertyts"
         )
 
     def test_property_panel_loads_without_errors(self, map_page, first_property_id):

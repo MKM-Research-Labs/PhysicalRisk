@@ -61,7 +61,7 @@ class TestGaugeIDConsistency:
         missing = gauge_ids - hc_ids
         assert len(missing) == 0, (
             f"{len(missing)} gauges missing from gaugehc.json: "
-            f"{sorted(missing)[:5]}. Run: python app.py port --hazard"
+            f"{sorted(missing)[:5]}. Run: python phys.py port --hazard"
         )
 
     def test_hazard_curves_subset_of_gauges(self):
@@ -86,7 +86,7 @@ class TestGaugeIDConsistency:
         assert len(missing) == 0, (
             f"{len(missing)} trade gauge IDs not in gauge.json: "
             f"{sorted(missing)[:5]}. Blotter is stale — regenerate: "
-            f"python app.py port --blotter"
+            f"python phys.py port --blotter"
         )
 
     def test_trade_gauges_have_hazard_curves(self):
@@ -132,14 +132,14 @@ class TestClassifierConsistency:
             pytest.skip("classifiers/ not generated yet")
         classifiers = list(classifiers_dir.glob("GAUGE-*.joblib"))
         if not classifiers:
-            pytest.skip("No classifiers found — run: python3 app.py classifier --all")
+            pytest.skip("No classifiers found — run: python3 phys.py classifier --all")
         clf_ids = {f.stem for f in classifiers}
         valid = clf_ids & gauge_ids
         stale = clf_ids - gauge_ids
         if not valid:
             pytest.skip(
                 f"All {len(stale)} classifiers are stale (old gauge IDs). "
-                "Run: python3 app.py classifier --all"
+                "Run: python3 phys.py classifier --all"
             )
         assert len(valid) > 0
 
@@ -150,7 +150,7 @@ class TestClassifierConsistency:
             pytest.skip("classifiers/ not generated yet")
         summary = classifiers_dir / "training_summary.json"
         if not summary.exists():
-            pytest.skip("training_summary.json missing — run: python3 app.py classifier --all")
+            pytest.skip("training_summary.json missing — run: python3 phys.py classifier --all")
 
 
 # =========================================================================
@@ -183,7 +183,7 @@ class TestPropertyIDConsistency:
         assert len(empty_header_ids) == 0, (
             f"{len(empty_header_ids)} properties have PropertyID in Attributes "
             f"but not in Header. This breaks propertyts flood processing. "
-            f"Regenerate: python app.py port --property"
+            f"Regenerate: python phys.py port --property"
         )
 
     def test_propertyts_files_match_properties(self):

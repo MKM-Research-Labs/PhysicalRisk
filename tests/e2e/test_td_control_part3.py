@@ -25,7 +25,7 @@ Verifies that the Storm Sequence Control tab opens in the Storm Portfolio
 panel, displays parameter sections, loads data from the API, and supports
 save/reset interactions.
 
-Save and Reset require an admin password (same credential as ``python app.py
+Save and Reset require an admin password (same credential as ``python phys.py
 port``); the conftest ``_e2e_admin_password`` session fixture installs a
 known one at ``data/.port_admin``. Tests below stub ``window.prompt`` to
 return it.

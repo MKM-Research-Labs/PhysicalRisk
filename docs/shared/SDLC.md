@@ -58,7 +58,7 @@ ruff check src/ tests/
 ### Gate 2 — Unit & Model Tests
 
 ```bash
-python app.py test --unit
+python phys.py test --unit
 ```
 
 - **All tests must pass** (currently ~6,500+ tests across 16 model groups).
@@ -80,7 +80,7 @@ python app.py test --unit
 ### Gate 3 — Data Lineage Validation
 
 ```bash
-python app.py test --lineage
+python phys.py test --lineage
 ```
 
 - Every pipeline step recorded in `data_lineage.json`.
@@ -100,7 +100,7 @@ python app.py test --lineage
 ### Gate 4 — E2E Browser Tests
 
 ```bash
-python app.py test --e2e
+python phys.py test --e2e
 ```
 
 - Playwright tests validate the full request cycle: Flask routes → JSON API →
@@ -112,7 +112,7 @@ python app.py test --e2e
 ### Gate 5 — Full Audit Package
 
 ```bash
-python app.py test --audit --pdf
+python phys.py test --audit --pdf
 ```
 
 Generates the complete audit artefact set:
@@ -148,7 +148,7 @@ package in `docs/models/<model_id>/`.
 | File | Purpose |
 |------|---------|
 | `model_spec.tex` | Mathematical specification, assumptions, limitations |
-| `test_results.tex` | Auto-generated from `app.py test --audit` |
+| `test_results.tex` | Auto-generated from `phys.py test --audit` |
 | `Makefile` | `make pdf` compiles the full model document |
 
 ### Model Inventory Registration
@@ -234,10 +234,10 @@ Before raising a Pull Request, the developer must verify:
 
 ```
 [ ] ruff check src/ tests/                         — zero issues
-[ ] python app.py test --unit                       — all pass, coverage ≥ 90%
-[ ] python app.py test --lineage                    — no stale steps
-[ ] python app.py test --e2e                        — all pass (if routes/visual changed)
-[ ] python app.py test --audit --pdf                — clean audit package
+[ ] python phys.py test --unit                       — all pass, coverage ≥ 90%
+[ ] python phys.py test --lineage                    — no stale steps
+[ ] python phys.py test --e2e                        — all pass (if routes/visual changed)
+[ ] python phys.py test --audit --pdf                — clean audit package
 [ ] New parameters in config/*.py, not inline       — hardcoding audit clean
 [ ] New pipeline steps wired in DEPENDENCY_GRAPH    — structural test passes
 [ ] New models registered in governance inventory   — model doc package created
@@ -271,7 +271,7 @@ A release to production requires:
 3. Data lineage report showing all 15 pipeline steps consistent.
 4. Model documentation current for any models changed in the release.
 5. Governance model inventory updated with new version numbers.
-6. Portfolio generation (`python app.py port --all`) completes with zero
+6. Portfolio generation (`python phys.py port --all`) completes with zero
    stale steps and zero data lineage warnings.
 
 ---

@@ -67,7 +67,7 @@ def propertyts_summary():
     if data is None:
         return jsonify({
             'status': 'error',
-            'message': 'Property flood timeseries not yet generated. Run: python app.py port --propertyts'
+            'message': 'Property flood timeseries not yet generated. Run: python phys.py port --propertyts'
         }), 404
 
     return jsonify({

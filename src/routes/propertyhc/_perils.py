@@ -39,7 +39,7 @@ def propertyshd_summary():
     if not data:
         return jsonify({
             'status': 'error',
-            'message': 'Synthetic distance hazard curves not yet generated. Run: python app.py port --propertyshd'
+            'message': 'Synthetic distance hazard curves not yet generated. Run: python phys.py port --propertyshd'
         }), 404
     return jsonify({'status': 'success', 'data': {
         'metadata': data.get('metadata', {}),
@@ -56,7 +56,7 @@ def propertyshe_summary():
     if not data:
         return jsonify({
             'status': 'error',
-            'message': 'Synthetic elevation hazard curves not yet generated. Run: python app.py port --propertyshe'
+            'message': 'Synthetic elevation hazard curves not yet generated. Run: python phys.py port --propertyshe'
         }), 404
     return jsonify({'status': 'success', 'data': {
         'metadata': data.get('metadata', {}),

@@ -90,7 +90,7 @@ class PropertyHazardCurveGenerator(
             raise FileNotFoundError(
                 f"{cfg.label} timeseries collection not generated "
                 f"(mode '{self.mode}')\n"
-                f"Run: python app.py port --{cfg.ts_dirs[self.mode]} first"
+                f"Run: python phys.py port --{cfg.ts_dirs[self.mode]} first"
             )
 
         asset_ids = sorted(cfg.iter_timeseries_ids(catchment, self.mode))

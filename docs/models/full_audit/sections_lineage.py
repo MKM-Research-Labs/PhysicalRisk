@@ -119,7 +119,7 @@ def _build_data_lineage(styles) -> list:
         elems.append(Spacer(1, 3 * mm))
         elems.append(Paragraph(
             '<b>Remediation:</b> Regenerate data in the correct order: '
-            'python app.py port --gauge → port --stressm → port --hazard → port --blotter',
+            'python phys.py port --gauge → port --stressm → port --hazard → port --blotter',
             styles['body']))
 
     # ------------------------------------------------------------------

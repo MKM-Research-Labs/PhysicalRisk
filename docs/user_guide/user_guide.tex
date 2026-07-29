@@ -48,7 +48,7 @@ hazard curves, risk-adjusted mortgage valuations, and PRS contract pricing.
 \subsection{Architecture Overview}
 
 \begin{lstlisting}[language={},caption={Platform architecture}]
-app.py (CLI)
+phys.py (CLI)
   |-- server      --> src/server.py --> src/routes/*.py (Flask API)
   |-- port        --> src/port/src/*.py (generators)
   |                    |-- src/port/cdm/*.py (schemas)
@@ -91,7 +91,7 @@ cd PhysicalRisk
 pip install -r requirements.txt
 
 # Verify installation
-python app.py check
+python phys.py check
 \end{lstlisting}
 
 The \texttt{check} command verifies all required packages: \texttt{flask},
@@ -142,7 +142,7 @@ The platform uses two configuration classes in \texttt{config.py}:
 \end{itemize}
 
 \begin{lstlisting}[language=bash,caption={View current configuration}]
-$ python app.py config
+$ python phys.py config
 Project root:   /path/to/PhysicalRisk
 Catchment:      thames
 Input dir:      /path/to/PhysicalRisk/data/input/thames
@@ -157,7 +157,7 @@ Debug:          False
 
 \begin{lstlisting}[language={},caption={Project directory layout}]
 PhysicalRisk/
-  app.py                    CLI entry point
+  phys.py                    CLI entry point
   config.py                 Configuration (adds src/ to sys.path)
   requirements.txt          Python dependencies
   Dockerfile                Container image
@@ -205,12 +205,12 @@ random modules.
 % ===================================================================
 \section{CLI Reference}
 
-All commands are invoked via \texttt{python app.py <command> [options]}.
+All commands are invoked via \texttt{python phys.py <command> [options]}.
 
 \subsection{server --- Start Web Server}
 
 \begin{lstlisting}[language=bash]
-python app.py server [--host HOST] [--port PORT] [--debug]
+python phys.py server [--host HOST] [--port PORT] [--debug]
 \end{lstlisting}
 
 Starts the Flask web server. Registers all API route blueprints and serves
@@ -219,7 +219,7 @@ the interactive visualisation. Default: \texttt{http://127.0.0.1:5013}.
 \subsection{port --- Generate Portfolio Data}
 
 \begin{lstlisting}[language=bash]
-python app.py port [SEGMENTS] [OPTIONS]
+python phys.py port [SEGMENTS] [OPTIONS]
 \end{lstlisting}
 
 Generates synthetic portfolio data. Segments must be run in dependency order
@@ -276,7 +276,7 @@ Generates synthetic portfolio data. Segments must be run in dependency order
 \subsection{visual --- Generate Interactive Map}
 
 \begin{lstlisting}[language=bash]
-python app.py visual [--no-browser]
+python phys.py visual [--no-browser]
 \end{lstlisting}
 
 Generates an interactive Folium map at
@@ -286,7 +286,7 @@ default browser (unless \texttt{-{}-no-browser} is specified).
 \subsection{check --- Verify Dependencies}
 
 \begin{lstlisting}[language=bash]
-python app.py check
+python phys.py check
 \end{lstlisting}
 
 Reports the status of each required Python package. Exits with code 1 if any
@@ -295,7 +295,7 @@ packages are missing.
 \subsection{config --- Show Configuration}
 
 \begin{lstlisting}[language=bash]
-python app.py config
+python phys.py config
 \end{lstlisting}
 
 Displays current project root, catchment, directory paths, server URL, and
@@ -322,7 +322,7 @@ gauges --> gaugets --> storms --> gaugehd --> hazard
                           counterparties --------+
 \end{lstlisting}
 
-Running \texttt{python app.py port -{}-all} executes all segments in the
+Running \texttt{python phys.py port -{}-all} executes all segments in the
 correct order. When regenerating specific segments, ensure upstream
 dependencies exist.
 
@@ -471,7 +471,7 @@ All CDMs inherit from \texttt{BaseCDM} and provide \texttt{validate(data)},
 \subsection{Starting the Server}
 
 \begin{lstlisting}[language=bash]
-python app.py server --port 5013 --debug
+python phys.py server --port 5013 --debug
 \end{lstlisting}
 
 The server registers route blueprints and serves both the API and the
@@ -634,7 +634,7 @@ HTTP status codes: 200 (success), 400 (bad request), 404 (not found),
 \subsection{Map Generation}
 
 \begin{lstlisting}[language=bash]
-python app.py visual
+python phys.py visual
 \end{lstlisting}
 
 Generates an interactive Folium HTML map with all portfolio data overlaid.
@@ -987,7 +987,7 @@ docker run -p 5001:5001 -v ./data:/app/data physicalrisk
 \end{lstlisting}
 
 The container exposes port 5001 and runs
-\texttt{python app.py server -{}-host 0.0.0.0 -{}-port 5001}.
+\texttt{python phys.py server -{}-host 0.0.0.0 -{}-port 5001}.
 
 \subsection{Docker Compose}
 

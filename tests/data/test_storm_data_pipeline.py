@@ -25,8 +25,8 @@ Verifies that all files required by the stress test module are present
 on disk and structurally correct.  These tests use the real production
 data files, not fixtures.
 
-Run `python app.py port --gaugets` to (re)generate stress_storms.json.
-Run `python app.py port --stressm`  to retrain GBM flood classifiers.
+Run `python phys.py port --gaugets` to (re)generate stress_storms.json.
+Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 """
 
 import json

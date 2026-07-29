@@ -44,7 +44,7 @@ def _ensure_backend():
     """Bind the storage backend the run writes through, honouring the WP2.1
     ``MKM_REPO_BACKEND`` switch (``file`` by default, ``pg`` for Postgres). Skips
     when a caller already bound one — a test fixture, or the web app — so this
-    only fills in the gap for a bare ``app.py port`` invocation."""
+    only fills in the gap for a bare ``phys.py port`` invocation."""
     if not backend_configured():
         use_configured_backend()
 

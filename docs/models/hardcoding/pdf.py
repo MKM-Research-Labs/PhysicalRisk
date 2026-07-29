@@ -291,7 +291,7 @@ def create_pdf_report(findings: dict, output_path: Path, root: Path):
          "as a calibration finding requiring model review."),
 
         ("<b>Step 4 — Re-run the audit</b><br/>"
-         "Run <i>python app.py test --audit</i> to regenerate this report.  "
+         "Run <i>python phys.py test --audit</i> to regenerate this report.  "
          "The violation count in Section 1 of the Executive Summary should reach zero. "
          "Section 2 will reduce as parameters are migrated."),
 

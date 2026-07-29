@@ -46,7 +46,7 @@ entirely from richer, larger training data.
 The mean AUC-ROC across all 52 Thames gauges improved from 0.9525 (v1.3) to
 \textbf{$\approx$0.993} (v2.0), a further 4.2\% improvement.
 The stressm classifiers are stored in \texttt{data/output/stressm/}
-and trained via \texttt{app.py port --stressm --train-classifier}.
+and trained via \texttt{phys.py port --stressm --train-classifier}.
 
 \textbf{Key risk:} The model is trained on synthetically noised data (time-decaying
 Gaussian perturbation), which creates intentional early-hour uncertainty. The derivative

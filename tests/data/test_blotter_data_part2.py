@@ -45,7 +45,7 @@ class TestPRSTradeData:
         if not files:
             pytest.skip(
                 f"No PRS trade files found in {PRS_DIR}. "
-                "Run `python app.py book` to generate the trading book."
+                "Run `python phys.py book` to generate the trading book."
             )
         return files
 
@@ -121,13 +121,13 @@ class TestEODSnapshotData:
         if not EOD_DIR.exists():
             pytest.skip(
                 f"EOD directory not found: {EOD_DIR}. "
-                "Run `python app.py port --blotter` to generate."
+                "Run `python phys.py port --blotter` to generate."
             )
         files = sorted(EOD_DIR.glob("EOD-*.json"))
         if not files:
             pytest.skip(
                 "No EOD snapshot files found. "
-                "Run `python app.py port --blotter` to generate."
+                "Run `python phys.py port --blotter` to generate."
             )
         return files
 
@@ -135,14 +135,14 @@ class TestEODSnapshotData:
         """blotter/eod/ directory must exist."""
         assert EOD_DIR.exists(), (
             f"EOD directory missing: {EOD_DIR}. "
-            "Run `python app.py port --blotter` to generate."
+            "Run `python phys.py port --blotter` to generate."
         )
 
     def test_eod_snapshot_count(self, eod_files):
         """Should have ~63 EOD snapshots (3 months of business days)."""
         assert len(eod_files) >= 50, (
             f"Only {len(eod_files)} EOD snapshots (expected ~63). "
-            "Run `python app.py port --blotter` to regenerate."
+            "Run `python phys.py port --blotter` to regenerate."
         )
 
     def test_eod_files_are_valid_json(self, eod_files):
@@ -204,5 +204,5 @@ class TestEODSnapshotData:
         """trade_marks.json must exist in blotter directory."""
         assert TRADE_MARKS.exists(), (
             f"trade_marks.json missing: {TRADE_MARKS}. "
-            "Run `python app.py port --blotter` to generate."
+            "Run `python phys.py port --blotter` to generate."
         )

@@ -244,5 +244,5 @@ class TestClassifierAvailability:
         assert result["stress_http"] == 200, (
             f"Stress storms returned HTTP {result['stress_http']}: "
             f"{result.get('message')}. "
-            f"Classifier may be stale — retrain: python3 app.py classifier"
+            f"Classifier may be stale — retrain: python3 phys.py classifier"
         )

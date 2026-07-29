@@ -159,7 +159,7 @@ def _build_reconciliation(data: dict, story: list, S: dict):
         story.append(Spacer(1, 0.1 * inch))
         story.append(Paragraph(
             "<i>Reconciliation test results not available. "
-            "Run <b>python app.py test --audit</b> to generate.</i>",
+            "Run <b>python phys.py test --audit</b> to generate.</i>",
             S['note']))
 
 

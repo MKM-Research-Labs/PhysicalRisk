@@ -76,7 +76,7 @@ class TestPropertyTSVariants:
         tsd_count = len(list(tsd_dir.glob("PROP-*.json")))
         assert tsd_count == pts_count, (
             f"propertytsd/ has {tsd_count} files but propertyts/ has "
-            f"{pts_count}. Regenerate: python app.py port --propertyts"
+            f"{pts_count}. Regenerate: python phys.py port --propertyts"
         )
 
     def test_propertytse_count_matches(self):
@@ -91,7 +91,7 @@ class TestPropertyTSVariants:
         tse_count = len(list(tse_dir.glob("PROP-*.json")))
         assert tse_count == pts_count, (
             f"propertytse/ has {tse_count} files but propertyts/ has "
-            f"{pts_count}. Regenerate: python app.py port --propertyts"
+            f"{pts_count}. Regenerate: python phys.py port --propertyts"
         )
 
     def test_propertytsd_ids_match(self):

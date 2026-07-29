@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY config.py .
-COPY app.py .
+COPY phys.py .
 COPY src/ src/
 
 # Data should be volume-mounted in production; copy for dev convenience
@@ -30,4 +30,4 @@ ENV FLASK_ENV=production
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')" || exit 1
 
-CMD ["python", "app.py", "server", "--host", "0.0.0.0", "--port", "5001"]
+CMD ["python", "phys.py", "server", "--host", "0.0.0.0", "--port", "5001"]

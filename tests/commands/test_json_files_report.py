@@ -21,7 +21,7 @@
 """JSON-file audit — tracked .json-I/O backlog (zero-tolerance gate on flip).
 
 Sits with the other audit-report tests (test_data_access_report.py,
-test_path_definitions_report.py, …) and runs under ``app.py test``.
+test_path_definitions_report.py, …) and runs under ``phys.py test``.
 
 Policy goal: **no first-party module loads, creates, or updates a ``.json`` file
 on disk** — all such state lives in PostgreSQL behind ``src/database``. The

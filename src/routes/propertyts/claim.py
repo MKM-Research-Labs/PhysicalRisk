@@ -104,7 +104,7 @@ def property_claim_report(prop_id: str):
         return jsonify({
             'status': 'error',
             'message': f'Property {prop_id} not found in flood timeseries. '
-                       'Run: python app.py port --propertyts'
+                       'Run: python phys.py port --propertyts'
         }), 404
 
     if not prop_data.get('flood_events'):

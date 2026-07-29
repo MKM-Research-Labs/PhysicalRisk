@@ -143,7 +143,7 @@ def train_classifier(gauge_id):
     if not database.storm_sequences_exists(config.catchment_id):
         return jsonify({
             "status": "error",
-            "message": "storm_sequences.json not found. Run 'app.py port --stressm' first.",
+            "message": "storm_sequences.json not found. Run 'phys.py port --stressm' first.",
         }), 404
 
     # Start background training

@@ -39,13 +39,13 @@ pip install -r requirements.txt
 The repository does not include generated data. All data directories are created automatically on first run. Generate the full portfolio:
 
 ```bash
-python3 app.py port --all
+python3 phys.py port --all
 ```
 
 This takes approximately 30–60 minutes depending on hardware. To skip the multi-storm stress test and get running faster:
 
 ```bash
-python3 app.py port --all --nostress
+python3 phys.py port --all --nostress
 ```
 
 The platform is fully functional without the stress test — see [Flood Probability Fallback](#flood-probability-fallback) below.
@@ -53,31 +53,31 @@ The platform is fully functional without the stress test — see [Flood Probabil
 ### 3. Verify Data Integrity
 
 ```bash
-python3 app.py test --audit
+python3 phys.py test --audit
 ```
 
 ### 4. Generate the Visualisation
 
 ```bash
-python3 app.py visual
+python3 phys.py visual
 ```
 
 This produces a folium HTML map and opens it in the default browser. To generate without opening:
 
 ```bash
-python3 app.py visual --no-browser
+python3 phys.py visual --no-browser
 ```
 
 ### 5. Start the Server
 
 ```bash
-python3 app.py server
+python3 phys.py server
 ```
 
 The server runs on `http://127.0.0.1:5013`. Options:
 
 ```bash
-python3 app.py server --host 0.0.0.0 --port 8080 --debug
+python3 phys.py server --host 0.0.0.0 --port 8080 --debug
 ```
 
 ---
@@ -142,7 +142,7 @@ Additional property time series variants:
 ### Numeric Controls
 
 ```bash
-python3 app.py port --all \
+python3 phys.py port --all \
   --num-properties 200 \
   --num-gauges 52 \
   --num-sims 10000 \
@@ -154,8 +154,8 @@ python3 app.py port --all \
 ### Hazard Distribution
 
 ```bash
-python3 app.py port --hazard --distribution gev     # GEV (default)
-python3 app.py port --hazard --distribution gumbel   # Gumbel
+python3 phys.py port --hazard --distribution gev     # GEV (default)
+python3 phys.py port --hazard --distribution gumbel   # Gumbel
 ```
 
 ### Other Port Flags
@@ -173,7 +173,7 @@ python3 app.py port --hazard --distribution gumbel   # Gumbel
 Port generation is password-protected to prevent accidental or unauthorised data overwrites. On first run, you will be prompted to set an admin password. Subsequent runs require this password before any data is written.
 
 ```bash
-python3 app.py port --all
+python3 phys.py port --all
 
 # MKM Portfolio Generator — Admin Authentication
 #   Admin password: ********
@@ -231,7 +231,7 @@ Percentile values run from 50% to 99% in single percentage points, then 99.1% to
 ### Check Configuration
 
 ```bash
-python3 app.py config
+python3 phys.py config
 ```
 
 Prints the resolved project root, catchment, input/output directories, and server settings.
@@ -241,8 +241,8 @@ Prints the resolved project root, catchment, input/output directories, and serve
 Generate a PRS trading book independently:
 
 ```bash
-python3 app.py book --style thames-central --num-gauges 12
-python3 app.py book --style market-making --num-gauges 20 --pdf --seed 42 --clean
+python3 phys.py book --style thames-central --num-gauges 12
+python3 phys.py book --style market-making --num-gauges 20 --pdf --seed 42 --clean
 ```
 
 | Option | Description |
@@ -257,22 +257,22 @@ python3 app.py book --style market-making --num-gauges 20 --pdf --seed 42 --clea
 ### Testing and Audit
 
 ```bash
-python3 app.py test              # Run everything — all suites + audit reports
-python3 app.py test --unit       # Unit/model tests only
-python3 app.py test --e2e        # E2E browser tests (Playwright)
-python3 app.py test --lineage    # Data lineage consistency checks (BCBS 239)
-python3 app.py test --audit      # Generate audit reports
-python3 app.py test --audit --pdf    # Compile LaTeX reports to PDF
-python3 app.py test --params --pdf   # Generate parameter inventory
-python3 app.py test --check-deps     # Verify Python dependencies
-python3 app.py test --unit --model hazard prs   # Filter to specific models
+python3 phys.py test              # Run everything — all suites + audit reports
+python3 phys.py test --unit       # Unit/model tests only
+python3 phys.py test --e2e        # E2E browser tests (Playwright)
+python3 phys.py test --lineage    # Data lineage consistency checks (BCBS 239)
+python3 phys.py test --audit      # Generate audit reports
+python3 phys.py test --audit --pdf    # Compile LaTeX reports to PDF
+python3 phys.py test --params --pdf   # Generate parameter inventory
+python3 phys.py test --check-deps     # Verify Python dependencies
+python3 phys.py test --unit --model hazard prs   # Filter to specific models
 ```
 
 ### Visualisation
 
 ```bash
-python3 app.py visual               # Generate map and open in browser
-python3 app.py visual --no-browser   # Generate without opening
+python3 phys.py visual               # Generate map and open in browser
+python3 phys.py visual --no-browser   # Generate without opening
 ```
 
 ---

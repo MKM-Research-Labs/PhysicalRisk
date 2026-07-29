@@ -150,7 +150,7 @@ def run_blotter(ctx: StageContext):
                   "check gaugehc.json has all gauge curves")
     except Exception as e:
         print(f"  ⚠️  ERROR generating historical EOD: {e}")
-        print("     Run `python app.py port --blotter` to retry after data is complete")
+        print("     Run `python phys.py port --blotter` to retry after data is complete")
     elapsed = time.time() - t_step
     ctx.record(
         step_name="blotter",

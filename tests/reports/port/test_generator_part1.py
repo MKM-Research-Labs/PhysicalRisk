@@ -54,7 +54,7 @@ class TestInit:
         """When output_path is None, default to
         ``<output>/audit/archive/port_<catchment>.pdf`` using
         config.get_output_dir(). Port deliverables live under audit/archive/
-        so they stay out of the `app.py test` audit root.
+        so they stay out of the `phys.py test` audit root.
         """
         from config import config
 

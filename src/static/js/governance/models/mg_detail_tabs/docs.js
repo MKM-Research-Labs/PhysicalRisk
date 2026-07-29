@@ -68,7 +68,7 @@ function renderDocsTab(m) {
     // Check PDF availability for each section
     var checks = [
         {url: docUrl, containerId: 'mg-doc-pdf-container', label: 'No Documentation Available', hint: 'Model documentation PDF has not been generated for ' + m.model_id + '.'},
-        {url: testUrl, containerId: 'mg-test-pdf-container', label: 'No Test Results Available', hint: 'Run: <code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;">python app.py check tests --pdf</code>'},
+        {url: testUrl, containerId: 'mg-test-pdf-container', label: 'No Test Results Available', hint: 'Run: <code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;">python phys.py check tests --pdf</code>'},
         {url: analysisUrl, containerId: 'mg-analysis-pdf-container', label: 'No Analysis Available', hint: 'Run: <code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;">python -m docs.models.sensitivities.generate_all_analysis</code>'},
     ];
     checks.forEach(function(c) {

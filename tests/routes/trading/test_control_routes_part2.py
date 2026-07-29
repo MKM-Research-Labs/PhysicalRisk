@@ -22,7 +22,7 @@
 Unit tests for routes/trading/control.py — GET/POST/reset endpoints (part 2).
 
 Covers both behaviour and the admin-password gate (shared with
-``python app.py port``) on the mutating endpoints.
+``python phys.py port``) on the mutating endpoints.
 """
 
 import hashlib

@@ -52,7 +52,7 @@ relicensing is a decision, not a negotiation.
 `docs/shared/copyright.py` is the single source of truth. The audit
 (`docs/models/full_audit/sections_tests/copyright_headers.py`) reads it
 **verbatim** and `fix_repo(root, apply=True)` stamps it onto every `.py`/`.js`
-file, self-healing under `app.py test`. Changing the licence is therefore *one
+file, self-healing under `phys.py test`. Changing the licence is therefore *one
 file edit plus one sweep* — the enforcement infrastructure is what makes the
 switch nearly free.
 
@@ -110,7 +110,7 @@ commit, one meaning.
 | `docs/models/test_results/test_history.json` | **38 MB current — 44 versions, 1,038 MB total** |
 | `data/input/thames/storm_sequences.json` | 33 MB (data was tracked historically) |
 
-`test_history.json` **is still tracked**, so every `app.py test` run rewrites it
+`test_history.json` **is still tracked**, so every `phys.py test` run rewrites it
 and adds a fresh ~38 MB blob. The repository grows by ~38 MB per test run.
 
 > **Prerequisite:** untrack (or cap/relocate) `test_history.json` *before* any

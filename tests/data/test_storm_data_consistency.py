@@ -25,8 +25,8 @@ Verifies that all files required by the stress test module are present
 on disk and structurally correct.  These tests use the real production
 data files, not fixtures.
 
-Run `python app.py port --gaugets` to (re)generate stress_storms.json.
-Run `python app.py port --stressm`  to retrain GBM flood classifiers.
+Run `python phys.py port --gaugets` to (re)generate stress_storms.json.
+Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 """
 
 import json
@@ -144,7 +144,7 @@ class TestStormDataConsistency:
         reason=(
             "stress_storms.json and gaugehc.json gauge IDs may be out of sync "
             "when generated at different times. "
-            "Fix: python app.py port --gaugets"
+            "Fix: python phys.py port --gaugets"
         ),
     )
     def test_stress_storm_gauges_in_gaugehc(self, stress_gauge_ids, gaugehc_ids):
@@ -164,7 +164,7 @@ class TestStormDataConsistency:
         reason=(
             "stress_storms.json and gaugets/ may be from different generation runs "
             "(e.g. after --no-classifier partial run). "
-            "Fix: python app.py port --stressm"
+            "Fix: python phys.py port --stressm"
         ),
     )
     def test_stress_storm_ids_subset_of_gaugets(self, stress_storm_ids, gaugets_storm_ids):
@@ -172,7 +172,7 @@ class TestStormDataConsistency:
 
         This is the key invariant — stress_storms is derived FROM gaugets, so
         all IDs must match.  If this fails, re-run:
-            python app.py port --stressm
+            python phys.py port --stressm
         """
         if not gaugets_storm_ids:
             pytest.skip("gaugets directory is empty — cannot validate overlap")
@@ -180,7 +180,7 @@ class TestStormDataConsistency:
         assert not missing, (
             f"{len(missing)} stress_storms storm IDs not found in gaugets/: "
             f"{sorted(missing)[:5]}. "
-            "Run `python app.py port --stressm` to regenerate."
+            "Run `python phys.py port --stressm` to regenerate."
         )
 
     # ------------------------------------------------------------------
@@ -191,7 +191,7 @@ class TestStormDataConsistency:
         strict=False,
         reason=(
             "stress_storms.json and propertyts/ may be from different generation runs. "
-            "Fix: python app.py port --stressm --propertyts"
+            "Fix: python phys.py port --stressm --propertyts"
         ),
     )
     def test_stress_storm_ids_overlap_propertyts(self, stress_storm_ids, propertyts_storm_ids):
@@ -199,7 +199,7 @@ class TestStormDataConsistency:
 
         Both are derived from the same gaugets data, so the IDs must be consistent.
         If this fails, all three datasets need to be regenerated together:
-            python app.py port --stressm --propertyts
+            python phys.py port --stressm --propertyts
         """
         if not propertyts_storm_ids:
             pytest.skip("propertyts directory is empty — cannot validate overlap")
@@ -207,7 +207,7 @@ class TestStormDataConsistency:
         assert len(overlap) > 0, (
             "NO storm IDs overlap between stress_storms.json and propertyts/ files. "
             "The datasets are from different data generation runs. "
-            "Regenerate with `python app.py port --stressm` then `--propertyts`."
+            "Regenerate with `python phys.py port --stressm` then `--propertyts`."
         )
 
     # ------------------------------------------------------------------
@@ -218,7 +218,7 @@ class TestStormDataConsistency:
         strict=False,
         reason=(
             "Classifiers and gaugehc.json may be out of sync when generated at "
-            "different times. Fix: python app.py port --stressm"
+            "different times. Fix: python phys.py port --stressm"
         ),
     )
     def test_classifiers_cover_gaugehc_gauges(self, gaugehc_ids, classifier_ids):
@@ -226,14 +226,14 @@ class TestStormDataConsistency:
         missing = gaugehc_ids - classifier_ids
         assert not missing, (
             f"{len(missing)} gaugehc gauges have no classifier: "
-            f"{sorted(missing)[:5]}. Run `python app.py port --stressm`."
+            f"{sorted(missing)[:5]}. Run `python phys.py port --stressm`."
         )
 
     @pytest.mark.xfail(
         strict=False,
         reason=(
             "stress_storms.json and classifier gauge IDs may be out of sync "
-            "when generated at different times. Fix: python app.py port --stressm"
+            "when generated at different times. Fix: python phys.py port --stressm"
         ),
     )
     def test_classifiers_exist_for_stress_gauges(self, stress_gauge_ids, classifier_ids):
@@ -241,5 +241,5 @@ class TestStormDataConsistency:
         missing = stress_gauge_ids - classifier_ids
         assert not missing, (
             f"{len(missing)} stress-storm gauges have no classifier: "
-            f"{sorted(missing)[:5]}. Run `python app.py port --stressm`."
+            f"{sorted(missing)[:5]}. Run `python phys.py port --stressm`."
         )

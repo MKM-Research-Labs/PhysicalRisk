@@ -53,7 +53,7 @@ class PRSPortfolioReport:
         else:
             from config import config
             # PRS portfolio report is a port deliverable, not part of the
-            # `app.py test` audit sequence — keep it under audit/archive/.
+            # `phys.py test` audit sequence — keep it under audit/archive/.
             archive_dir = config.get_output_dir() / 'audit' / 'archive'
             archive_dir.mkdir(parents=True, exist_ok=True)
             self.output_path = archive_dir / 'prs_portfolio_report.pdf'

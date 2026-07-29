@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""CLI argument wiring tests for `python app.py port --commercial`.
+"""CLI argument wiring tests for `python phys.py port --commercial`.
 
 These exercise the parser and the segment-flag membership — they do NOT
 run the full pipeline (that is covered by the generator integration

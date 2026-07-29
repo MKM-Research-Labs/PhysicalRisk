@@ -134,7 +134,7 @@ def get_model_test_results_pdf(model_id):
 
     pdf_path = os.path.join(_docs_dir, doc_dir, "test_results.pdf")
     if not os.path.isfile(pdf_path):
-        return jsonify({"status": "error", "message": "Test results PDF not yet generated. Run: python app.py check tests --pdf"}), 404
+        return jsonify({"status": "error", "message": "Test results PDF not yet generated. Run: python phys.py check tests --pdf"}), 404
 
     return send_file(pdf_path, mimetype="application/pdf")
 

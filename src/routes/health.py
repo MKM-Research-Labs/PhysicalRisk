@@ -53,7 +53,7 @@ def root():
     """Root route - redirect to the platform map.
 
     The active catchment is fixed by the CLI flag at server start
-    (``app.py server --halong``), so there is no selection step: the
+    (``phys.py server --halong``), so there is no selection step: the
     visualization page is the application entry point.
     """
     from flask import redirect

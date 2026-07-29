@@ -165,7 +165,7 @@ _ALLOWLIST = {
     'app/commands/port/orchestrator.py':
         'file-backend pre-regen backup (copies *.json to .backups/); DB backups '
         'are a separate concern (pg_dump / WP5.2)',
-    # Port-CLI admin-gate credential (salt+hash for the `python app.py port`
+    # Port-CLI admin-gate credential (salt+hash for the `python phys.py port`
     # mutation gate). A small local credential file read at CLI time, distinct from
     # the DB-backed app RBAC users — intentionally a file, not DB-managed state.
     'app/commands/port/auth.py':

@@ -52,7 +52,7 @@ class TestDirectoryFileCounts:
         gaugets_count = len(list(gaugets_dir.glob("*.json")))
         assert gaugets_count >= len(gauge_ids), (
             f"gaugets/ has {gaugets_count} files but gauge.json has "
-            f"{len(gauge_ids)} gauges. Regenerate: python app.py port --stressm"
+            f"{len(gauge_ids)} gauges. Regenerate: python phys.py port --stressm"
         )
 
     def test_propertyts_count_within_property_range(self):
@@ -67,7 +67,7 @@ class TestDirectoryFileCounts:
         assert abs(pts_count - len(prop_ids)) <= 1, (
             f"propertyts/ has {pts_count} files but property.json has "
             f"{len(prop_ids)} properties (tolerance +-1). "
-            f"Regenerate: python app.py port --propertyts"
+            f"Regenerate: python phys.py port --propertyts"
         )
 
     def test_propertytsd_count_matches_propertyts(self):
@@ -82,7 +82,7 @@ class TestDirectoryFileCounts:
         ptsd_count = len(list(ptsd_dir.glob("PROP-*.json")))
         assert pts_count == ptsd_count, (
             f"propertytsd/ has {ptsd_count} files but propertyts/ has "
-            f"{pts_count}. Regenerate: python app.py port --propertytsd"
+            f"{pts_count}. Regenerate: python phys.py port --propertytsd"
         )
 
     def test_propertytse_count_matches_propertyts(self):
@@ -97,7 +97,7 @@ class TestDirectoryFileCounts:
         ptse_count = len(list(ptse_dir.glob("PROP-*.json")))
         assert pts_count == ptse_count, (
             f"propertytse/ has {ptse_count} files but propertyts/ has "
-            f"{pts_count}. Regenerate: python app.py port --propertytse"
+            f"{pts_count}. Regenerate: python phys.py port --propertytse"
         )
 
     def test_sequence_gauge_count_close_to_gauge_count(self):
@@ -113,7 +113,7 @@ class TestDirectoryFileCounts:
         assert abs(seq_count - len(gauge_ids)) <= 5, (
             f"sequence_gauge/ has {seq_count} files but gauge.json has "
             f"{len(gauge_ids)} gauges (tolerance +-5). "
-            f"Regenerate: python app.py port --sequence"
+            f"Regenerate: python phys.py port --sequence"
         )
 
     def test_gaugehd_count_within_gauge_range(self):
@@ -237,7 +237,7 @@ class TestStressStormsSampled:
         files = list(storms_dir.glob("STORM-*.json"))
         assert len(files) > 0, (
             "stress_storms/ exists but is empty. "
-            "Regenerate: python app.py stress --storms"
+            "Regenerate: python phys.py stress --storms"
         )
 
     def test_stress_storms_sample_naming(self):

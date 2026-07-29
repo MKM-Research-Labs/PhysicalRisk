@@ -21,7 +21,7 @@
 """Path-definition audit — zero-tolerance gate, scan logic, full-audit section.
 
 Sits with the other audit-report tests (test_copyright_headers_report.py,
-test_embedded_js_report.py, …) and runs under ``app.py test`` (which executes
+test_embedded_js_report.py, …) and runs under ``phys.py test`` (which executes
 ``pytest tests/``).
 
 Policy: every filesystem path definition must be housed in the ``config``
@@ -41,7 +41,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestPathDefinitionsGate:
-    """Repo-wide zero-tolerance enforcement (runs under app.py test)."""
+    """Repo-wide zero-tolerance enforcement (runs under phys.py test)."""
 
     def test_some_files_scanned(self):
         scan = scanner.scan_repo(ROOT)

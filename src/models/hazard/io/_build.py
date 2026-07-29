@@ -59,7 +59,7 @@ def build_hazard_curves(
     if sequences_data is None:
         raise FileNotFoundError(
             f"Storm sequences not found for catchment {catchment_id}. "
-            "Run 'python app.py port --stressm' first."
+            "Run 'python phys.py port --stressm' first."
         )
 
     storms = load_storms_from_sequences(sequences_data)

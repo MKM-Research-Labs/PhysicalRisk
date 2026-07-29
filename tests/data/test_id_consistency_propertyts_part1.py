@@ -79,7 +79,7 @@ class TestPropertyTSCrossRefs:
         assert len(bad) == 0, (
             f"{len(bad)}/{len(sample)} propertyts files reference "
             f"non-existent properties: {bad[:5]}. "
-            "Regenerate: python app.py port --propertyts"
+            "Regenerate: python phys.py port --propertyts"
         )
 
     def test_nearest_gauges_exist(self):

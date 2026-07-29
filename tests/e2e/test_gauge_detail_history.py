@@ -133,7 +133,7 @@ class TestStressTestTab:
             if "error" in text.lower() or "no " in text.lower() or not text.strip():
                 pytest.skip(
                     "No stress charts rendered — classifiers may be stale. "
-                    "Run: python3 app.py classifier --all"
+                    "Run: python3 phys.py classifier --all"
                 )
         assert chart_count > 0, (
             "No charts or tables found on Stress Test tab "

@@ -29,7 +29,7 @@ from . import propertyhc_bp, _get_hazard_data, _load_or_404
 @propertyhc_bp.route('/propertyhc/summary', methods=['GET', 'OPTIONS'])
 def propertyhc_summary():
     """Get portfolio-wide property hazard summary."""
-    data, err = _load_or_404(label='Property hazard curves. Run: python app.py port --propertyhc')
+    data, err = _load_or_404(label='Property hazard curves. Run: python phys.py port --propertyhc')
     if err:
         return err
 

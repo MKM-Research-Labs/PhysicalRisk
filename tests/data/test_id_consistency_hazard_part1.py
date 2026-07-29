@@ -71,7 +71,7 @@ class TestGaugeHazardCurveQuality:
             pytest.skip("gaugehc.json not generated yet")
         assert len(hc) == len(gauge_ids), (
             f"gaugehc.json has {len(hc)} curves but gauge.json has "
-            f"{len(gauge_ids)} gauges. Regenerate: python app.py port --hazard"
+            f"{len(gauge_ids)} gauges. Regenerate: python phys.py port --hazard"
         )
 
     def test_gev_params_present_and_numeric(self):

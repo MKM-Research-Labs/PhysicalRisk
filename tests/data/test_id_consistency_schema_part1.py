@@ -90,7 +90,7 @@ class TestGaugeSchema:
                 bad.append(f"{gid}: missing FloodStage.UK thresholds")
         assert len(bad) == 0, (
             f"{len(bad)} gauges have schema issues: {bad[:5]}. "
-            "Regenerate: python app.py port --gauge"
+            "Regenerate: python phys.py port --gauge"
         )
 
     def test_gauge_has_location_coordinates(self):
@@ -149,7 +149,7 @@ class TestPropertySchema:
                 bad.append(f"PropertyID={pid!r}, UPRN={uprn!r}")
         assert len(bad) == 0, (
             f"{len(bad)} properties missing PropertyID or UPRN: {bad[:5]}. "
-            "Regenerate: python app.py port --property"
+            "Regenerate: python phys.py port --property"
         )
 
     def test_property_has_location(self):

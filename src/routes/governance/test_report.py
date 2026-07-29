@@ -40,7 +40,7 @@ from . import governance_bp
 from ._constants import AUDIT_REPORTS_DIR
 
 _REPORT_FILE = os.path.join(AUDIT_REPORTS_DIR, "test_failures_report.json")
-# Web-UI test-run log is not part of the `app.py test` audit artefacts —
+# Web-UI test-run log is not part of the `phys.py test` audit artefacts —
 # keep it out of the audit root, under audit/archive/.
 _LOG_FILE    = os.path.join(AUDIT_REPORTS_DIR, "archive", "test_run.log")
 _LOCK = threading.Lock()
@@ -122,7 +122,7 @@ print(f'Report: {len(failures)} failures / {len(results)} tests')
         env = os.environ.copy()
         env['PYTHONUNBUFFERED'] = '1'
         proc1 = subprocess.Popen(
-            [sys.executable, '-u', 'app.py', 'test', '--audit', '--pdf'],
+            [sys.executable, '-u', 'phys.py', 'test', '--audit', '--pdf'],
             cwd=project_root,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

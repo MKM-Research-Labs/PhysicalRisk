@@ -584,7 +584,7 @@ Validation nonetheless runs as a defence-in-depth check.
 
 The model is invoked via:
 \begin{lstlisting}[language=bash]
-python app.py port --stressm [--num-storms N] [--gauge-id GID]
+python phys.py port --stressm [--num-storms N] [--gauge-id GID]
                    [--train-classifier]
 \end{lstlisting}
 
@@ -763,7 +763,7 @@ No. Generation of 10{,}000 sequences uses NumPy triangular and Normal draws in a
 Intensity category weights, gap type mappings, sequence probability table, and type weight tables are all defined as named constants in their respective Python modules (\texttt{batch\_generator.py}, \texttt{gap\_sampler.py}, \texttt{intensity\_sampler.py}). No mechanism exists for runtime override of these tables. Changes require code modification with version control tracking. The \texttt{force\_sequence\_type} parameter provides a deterministic override for testing purposes (e.g.\ generating a pure doublet batch), subject to normal version control review.
 
 \mkmvqitem{5}{Output Consumption}{How is the output consumed for risk decision-making?}
-Generated sequences are consumed in two ways: (i)~the stressm training pipeline (\texttt{app.py port --stressm --train-classifier}) uses sequences to synthesise multi-peak hydrographs and train per-gauge GBM flood classifiers; (ii)~the Portfolio Stress tab (Tab~8) on the Trading Desk presents sequence-level scenarios to traders and risk managers, showing P(flood) per gauge, stressed P\&L per trade, and portfolio-level stress P\&L in GBP.
+Generated sequences are consumed in two ways: (i)~the stressm training pipeline (\texttt{phys.py port --stressm --train-classifier}) uses sequences to synthesise multi-peak hydrographs and train per-gauge GBM flood classifiers; (ii)~the Portfolio Stress tab (Tab~8) on the Trading Desk presents sequence-level scenarios to traders and risk managers, showing P(flood) per gauge, stressed P\&L per trade, and portfolio-level stress P\&L in GBP.
 
 \mkmvqitem{6}{Model Chaining}{Is the model's output used as input to another model?}
 Yes. StormSequence objects are consumed by the stressm hydrograph synthesiser, which uses per-storm parameters (start time, duration, intensity factor, peak position) to compose a multi-peak time series at each gauge. This time series is the training input for MKM-FC-001 v2.0. At inference time, the same hydrograph composition pipeline is used for the portfolio stress scenario runner. The model has no upstream model dependencies beyond intensity category parameterisation, which is set by the analyst.

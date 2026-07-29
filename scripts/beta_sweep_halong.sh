@@ -25,8 +25,8 @@ for B in "${BETAS[@]}"; do
     echo "=================================================================="
     echo " β = $B  —  typhoon genesis + property hazard curves"
     echo "=================================================================="
-    python app.py port --halong --typhoon --coupling-beta "$B"
-    python app.py port --halong --propertyhc --propertyshd --propertyshe --propertybri
+    python phys.py port --halong --typhoon --coupling-beta "$B"
+    python phys.py port --halong --propertyhc --propertyshd --propertyshe --propertybri
 
     DEST="$STUDY/beta_${B}"
     mkdir -p "$DEST"

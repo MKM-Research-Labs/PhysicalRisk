@@ -31,7 +31,7 @@ from app.commands import server, port, visual, test, config, book
 def build_parser():
     """Build the main argument parser with all subcommands."""
     parser = argparse.ArgumentParser(
-        prog="app.py",
+        prog="phys.py",
         description="MKM Research Labs - Physical Risk Platform"
     )
     

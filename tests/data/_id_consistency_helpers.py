@@ -30,7 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 # Catchment-aware: lineage checks run against whichever catchment the rest
 # of the stack is pinned to (MKM_CATCHMENT), defaulting to thames. Previously
-# this was hardcoded to "thames", so `MKM_CATCHMENT=halong app.py test
+# this was hardcoded to "thames", so `MKM_CATCHMENT=halong phys.py test
 # --lineage` silently validated the wrong catchment's data.
 CATCHMENT = os.getenv("MKM_CATCHMENT", "thames")
 INPUT_DIR = ROOT / "data" / "input" / CATCHMENT

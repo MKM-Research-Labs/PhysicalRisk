@@ -151,7 +151,7 @@ def _build_cover(junit: dict, cov: dict, git_sha: str,
     elems.append(Spacer(1, 3 * mm))
     elems.append(Paragraph(
         'This report is generated automatically as part of the MKM Research Labs '
-        'model governance pipeline (app.py test --audit). It covers the Python '
+        'model governance pipeline (phys.py test --audit). It covers the Python '
         'source codebase under src/ and the tests/ directory. All figures reflect '
         'the state of the repository at the git SHA shown above.',
         styles['small']))

@@ -60,7 +60,7 @@ class TestGaugehcData:
         if count < 40:
             pytest.skip(
                 f"Partial port data ({count} gauges on disk); full pipeline "
-                f"not generated. Run `python app.py port` to exercise this check."
+                f"not generated. Run `python phys.py port` to exercise this check."
             )
         assert count >= 40, f"Expected at least 40 gauges, got {count}"
 

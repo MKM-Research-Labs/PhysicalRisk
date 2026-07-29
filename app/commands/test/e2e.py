@@ -45,7 +45,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
         return None
 
     # Check if playwright Python package is installed.
-    # Use sys.executable (the Python that launched app.py) rather than the
+    # Use sys.executable (the Python that launched phys.py) rather than the
     # venv python — playwright is typically installed in the user's base env.
     _pw_python = sys.executable
     check = sp.run(

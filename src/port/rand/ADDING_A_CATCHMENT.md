@@ -75,10 +75,10 @@ PYTHONPATH=src .venv/bin/python -m pytest -q \
   tests/port/rand/test_catchment_equivalence.py
 
 # Generate under the new catchment (MKM_CATCHMENT selects it for config):
-MKM_CATCHMENT=danube PYTHONPATH=src .venv/bin/python app.py port
+MKM_CATCHMENT=danube PYTHONPATH=src .venv/bin/python phys.py port
 ```
 
-(`app.py` may also expose a `--<catchment>` flag; `MKM_CATCHMENT` is the
+(`phys.py` may also expose a `--<catchment>` flag; `MKM_CATCHMENT` is the
 generic selector that `config` honours regardless.)
 
 `test_profile_completeness.py` discovers the new profile automatically and

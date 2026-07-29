@@ -69,7 +69,7 @@ class TestMortgagePropertyLinkage:
                 bad.append(mid)
         assert len(bad) == 0, (
             f"{len(bad)} mortgages have empty PropertyID: {bad[:5]}. "
-            "Regenerate: python app.py port --mortgage"
+            "Regenerate: python phys.py port --mortgage"
         )
 
     def test_mortgage_property_ids_exist_in_property_json(self):
@@ -83,7 +83,7 @@ class TestMortgagePropertyLinkage:
         assert mort_pids <= prop_ids, (
             f"{len(mort_pids - prop_ids)} mortgage PropertyIDs not in property.json: "
             f"{sorted(mort_pids - prop_ids)[:5]}. "
-            "Regenerate: python app.py port --mortgage"
+            "Regenerate: python phys.py port --mortgage"
         )
 
     def test_no_orphan_mortgages(self):

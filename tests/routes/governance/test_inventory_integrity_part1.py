@@ -48,7 +48,7 @@ OVERALL_RISK_RATING_KEYS = [
 def inventory():
     assert INVENTORY_PATH.exists(), (
         f"model_inventory.json not found at {INVENTORY_PATH}. "
-        "Run: python app.py port to generate it."
+        "Run: python phys.py port to generate it."
     )
     with open(INVENTORY_PATH) as f:
         return json.load(f)

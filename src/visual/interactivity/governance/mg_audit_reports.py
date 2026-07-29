@@ -20,7 +20,7 @@
 
 """Model Governance — Audit Reports tab.
 
-Lists all artefacts produced by ``python app.py test --audit``: JUnit XML,
+Lists all artefacts produced by ``python phys.py test --audit``: JUnit XML,
 coverage XML, test report PDF, and coverage HTML. Also provides a live
 test-run panel. The JavaScript fragment lives in the companion
 ``mg_audit_reports.js`` file.

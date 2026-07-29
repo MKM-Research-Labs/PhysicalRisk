@@ -21,7 +21,7 @@
 """Data-access audit — zero-tolerance DB-access gate + tracked file-I/O report.
 
 Sits with the other audit-report tests (test_path_definitions_report.py,
-test_copyright_headers_report.py, …) and runs under ``app.py test``.
+test_copyright_headers_report.py, …) and runs under ``phys.py test``.
 
 Policy: **all database access goes through the one ``src/database`` utility
 package.** ``TestDataAccessGate`` is the enforcement gate — it fails if any

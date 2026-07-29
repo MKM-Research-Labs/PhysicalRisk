@@ -200,14 +200,14 @@ def _build_remediation(data: dict, story: list, S: dict):
             f"<b>[P1 — High] Missing steps ({len(chain['missing_steps'])}):"
             f"</b> Run the pipeline for: "
             f"{', '.join(chain['missing_steps'])}. "
-            f"Use <i>python app.py port</i> with the appropriate flags.")
+            f"Use <i>python phys.py port</i> with the appropriate flags.")
 
     if chain.get('stale_steps'):
         steps.append(
             f"<b>[P1 — High] Stale data ({len(chain['stale_steps'])}):</b> "
             f"Regenerate: {', '.join(chain['stale_steps'])}. "
             f"Upstream inputs have changed since these steps were last run. "
-            f"Use <i>python app.py port --strict</i> to enforce freshness.")
+            f"Use <i>python phys.py port --strict</i> to enforce freshness.")
 
     if chain.get('details'):
         for step_name, issues in chain['details'].items():
@@ -226,7 +226,7 @@ def _build_remediation(data: dict, story: list, S: dict):
 
     steps.append(
         "<b>[P3 — Verify] Re-run validation:</b> Execute "
-        "<i>python app.py test --audit</i> to regenerate this report and "
+        "<i>python phys.py test --audit</i> to regenerate this report and "
         "confirm all checks pass.")
 
     for step in steps:

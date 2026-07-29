@@ -212,7 +212,7 @@ def create_pdf_report(findings: dict, output_path: Path, root: Path):
          "fragment spliced into a parent IIFE must stay a bare fragment."),
 
         ("<b>Step 4 — Re-run the audit</b><br/>"
-         "Run ``python app.py test --audit`` to regenerate this report.  The "
+         "Run ``python phys.py test --audit`` to regenerate this report.  The "
          "Executive Summary totals should reach zero."),
     ]
     for step in steps:

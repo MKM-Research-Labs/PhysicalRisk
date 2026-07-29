@@ -26,26 +26,26 @@ MKM Research Labs - Physical Risk Platform
 Unified CLI for all platform operations.
 
 Usage:
-    python3 app.py server                # Start Flask web server
-    python3 app.py server --port 8080    # Custom port
-    python3 app.py server --debug        # Debug mode
+    python3 phys.py server                # Start Flask web server
+    python3 phys.py server --port 8080    # Custom port
+    python3 phys.py server --debug        # Debug mode
     
-    python3 app.py port                  # Generate all synthetic data
-    python3 app.py port --gauges         # Only gauges
-    python3 app.py port --properties --mortgages  # Multiple segments
-    python3 app.py port --num-properties 500      # Custom counts
+    python3 phys.py port                  # Generate all synthetic data
+    python3 phys.py port --gauges         # Only gauges
+    python3 phys.py port --properties --mortgages  # Multiple segments
+    python3 phys.py port --num-properties 500      # Custom counts
     
-    python3 app.py visual                # Generate & open visualisation
-    python3 app.py visual --no-browser   # Generate only
+    python3 phys.py visual                # Generate & open visualisation
+    python3 phys.py visual --no-browser   # Generate only
     
-    python3 app.py check                 # Check dependencies
-    python3 app.py config                # Show configuration
+    python3 phys.py check                 # Check dependencies
+    python3 phys.py config                # Show configuration
     
-    python3 app.py test --audit          # Full audit evidence package
-    python3 app.py test --test           # Run pytest only (skip doc generators)
-    python3 app.py test --code           # Run doc generators only (skip pytest)
-    python3 app.py test --audit --pdf    # Also compile LaTeX to PDF
-    python3 app.py test --audit --model TD GH  # Filtered by model alias
+    python3 phys.py test --audit          # Full audit evidence package
+    python3 phys.py test --test           # Run pytest only (skip doc generators)
+    python3 phys.py test --code           # Run doc generators only (skip pytest)
+    python3 phys.py test --audit --pdf    # Also compile LaTeX to PDF
+    python3 phys.py test --audit --model TD GH  # Filtered by model alias
 """
 
 import sys

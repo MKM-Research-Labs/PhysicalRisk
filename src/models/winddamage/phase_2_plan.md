@@ -7,7 +7,7 @@ architecture (pure curve + BRI-aware wrapper) so the wind model and the
 flood model share shape, semantics, and reporting conventions.
 
 **Phase 2 deliverable:** `data/<catchment>/typhoon/damage/EVT-NNNN.json`
-written automatically by `python3 app.py port --typhoon` alongside the
+written automatically by `python3 phys.py port --typhoon` alongside the
 existing storm tracks and per-property wind timeseries.
 
 ---

@@ -25,8 +25,8 @@ Verifies that all files required by the stress test module are present
 on disk and structurally correct.  These tests use the real production
 data files, not fixtures.
 
-Run `python app.py port --gaugets` to (re)generate stress_storms.json.
-Run `python app.py port --stressm`  to retrain GBM flood classifiers.
+Run `python phys.py port --gaugets` to (re)generate stress_storms.json.
+Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 """
 
 import json
@@ -102,7 +102,7 @@ class TestStressStormsFilePart1:
         if result is None:
             pytest.skip(
                 f"stress_storms data not generated — skipping. "
-                f"Run `python app.py port --stressm` to create."
+                f"Run `python phys.py port --stressm` to create."
             )
         return result
 
@@ -110,7 +110,7 @@ class TestStressStormsFilePart1:
         if not (STRESS_STORMS_INDEX.exists() or STRESS_STORMS_PATH.exists()):
             pytest.skip(
                 f"stress_storms data not generated — skipping. "
-                f"Run `python app.py port --stressm` to create."
+                f"Run `python phys.py port --stressm` to create."
             )
 
     def test_has_storms(self):
@@ -122,7 +122,7 @@ class TestStressStormsFilePart1:
     def test_minimum_storm_count(self, storms):
         assert len(storms) >= MIN_STORM_COUNT, (
             f"Expected >= {MIN_STORM_COUNT} stress storms, got {len(storms)}. "
-            "Run `python app.py port --stressm` to regenerate."
+            "Run `python phys.py port --stressm` to regenerate."
         )
 
     def test_storm_ids_unique(self, storms):

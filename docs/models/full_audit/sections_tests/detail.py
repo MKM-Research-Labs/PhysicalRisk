@@ -98,7 +98,7 @@ def _build_test_detail(junit: dict, styles) -> list:
 
 def _build_skipped_tests(styles) -> list:
     """Subsection 2.2: skipped tests grouped by reason, sourced from
-    test_failures_report.json (written by ``app.py test --unit``). Most skips
+    test_failures_report.json (written by ``phys.py test --unit``). Most skips
     are data-dependent (port/blotter/PRS data not generated on disk), so
     grouping by reason — with an example test — is far more useful than a flat
     list of 50+ test names."""
@@ -117,7 +117,7 @@ def _build_skipped_tests(styles) -> list:
         elems.append(Paragraph(
             'No tests were skipped.' if not n_skip else
             f'{n_skip} test(s) skipped — per-test reasons unavailable (regenerate '
-            'with <b>python app.py test --unit</b> to capture them).',
+            'with <b>python phys.py test --unit</b> to capture them).',
             styles['body']))
         return elems
 
@@ -177,7 +177,7 @@ def _short_msg(longrepr: str) -> str:
 
 def _build_unit_failures(styles) -> list:
     """Subsection 2.1: list the individual failing unit tests, sourced from
-    test_failures_report.json (written by ``app.py test --unit``). Section 2's
+    test_failures_report.json (written by ``phys.py test --unit``). Section 2's
     table only gives per-package counts — this names the actual failures."""
     elems = []
     elems.append(Spacer(1, 5 * mm))
@@ -188,7 +188,7 @@ def _build_unit_failures(styles) -> list:
     if not report:
         elems.append(Paragraph(
             'test_failures_report.json not found — run '
-            '<b>python app.py test --unit</b> to generate it.', styles['body']))
+            '<b>python phys.py test --unit</b> to generate it.', styles['body']))
         return elems
 
     summary = report.get('summary', {})

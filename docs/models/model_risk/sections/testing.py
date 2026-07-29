@@ -209,7 +209,7 @@ def _build_remediation_actions(doc_completeness):
                 'priority': 'P2',
                 'model_id': mid,
                 'gap': 'Test Results',
-                'action': 'Run: python app.py check tests --pdf',
+                'action': 'Run: python phys.py check tests --pdf',
             })
 
         if not d['has_sensitivity']:

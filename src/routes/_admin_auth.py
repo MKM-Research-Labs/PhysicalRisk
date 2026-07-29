@@ -24,7 +24,7 @@ Top-level re-export of the ``data/.port_admin`` path helper.
 The web admin-password decorator (``require_admin_password``) was retired in WP5 —
 mutating endpoints are gated by RBAC capability now (``routes._rbac``). Only the
 ``_admin_file_path`` locator remains (``data/.port_admin`` is still owned by the CLI
-``python app.py port`` setup), re-exported here for the blueprint-agnostic import path.
+``python phys.py port`` setup), re-exported here for the blueprint-agnostic import path.
 """
 
 from .trading._admin_auth import _admin_file_path  # noqa: F401

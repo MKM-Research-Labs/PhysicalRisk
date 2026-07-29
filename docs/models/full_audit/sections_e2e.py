@@ -218,7 +218,7 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
          'for clone-pair details and refactoring recommendations.'),
         ('P6', 'LOW',
          'Run full audit before each model governance review',
-         'Execute: python app.py test --audit to regenerate all artefacts.'),
+         'Execute: python phys.py test --audit to regenerate all artefacts.'),
     ]
 
     tbl_data = [[

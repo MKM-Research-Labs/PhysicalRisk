@@ -104,7 +104,7 @@ def run_stress_scenario():
                 "status": "error",
                 "message": (
                     f"No gaugets data for {gauge_id}. "
-                    "Run: python app.py port --stressm"
+                    "Run: python phys.py port --stressm"
                 ),
             }), 404
 

@@ -56,7 +56,7 @@
 > **WP2 cutover done (WP2.2 + 2.3 reads, WP2.5 writes):** all three catchments —
 > mekong, halong, thames — imported and **dual-read parity-green** via the cutover
 > CLI (`python -m database._pg.cutover <catchment> --import`); reads serve from
-> Postgres under `MKM_REPO_BACKEND=pg`. `app.py port` now binds the same switch, so
+> Postgres under `MKM_REPO_BACKEND=pg`. `phys.py port` now binds the same switch, so
 > port **generation** writes to Postgres + MinIO under `pg` (file backend default).
 >
 > **WP4.1 + WP4.2 in progress (test suite on Postgres):** rollback-based per-test
@@ -326,7 +326,7 @@ with behavior byte-identical to today. No DB involved. This WP de-risks everythi
 | 2.2 | Cut **mekong** reads to PG (smallest) | mekong served from DB in a staging run; dual-read green; file fallback retained. | 2.1, 1.7 | M |
 | 2.3 | Cut **halong** then **thames** reads to PG | both catchments served from DB; parity green incl. typhoon blobs. | 2.2 | M |
 | 2.4 | Request-scoped catchment context | Replace global `config` catchment state with per-request context; removes existing concurrency race. | 2.1 | M |
-| 2.5 | Cut writes: port generator targets PG | `python app.py port --all` writes to DB (with `port_run_id`); files optional. | 2.3 | L |
+| 2.5 | Cut writes: port generator targets PG | `python phys.py port --all` writes to DB (with `port_run_id`); files optional. | 2.3 | L |
 
 ### WP3 — Tools
 

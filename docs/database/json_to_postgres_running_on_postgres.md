@@ -35,13 +35,13 @@ PYTHONPATH=src python -m database._pg.cutover thames --import
 #    (re-verify later without re-importing: drop --import)
 
 # 4. Run the app reading from Postgres (no caller changes).
-MKM_REPO_BACKEND=pg python app.py server --thames
+MKM_REPO_BACKEND=pg python phys.py server --thames
 ```
 
 **Cutover status:** **reads and writes both cut** (WP2.2 + WP2.3 + WP2.5). All
 three catchments are imported and dual-read parity-green — `mekong` 53/53,
 `halong` 64/64 (incl. 2,100 typhoon events), `thames` 54/54. Reads serve from
-Postgres via `MKM_REPO_BACKEND=pg`; and `app.py port` now binds the same switch,
+Postgres via `MKM_REPO_BACKEND=pg`; and `phys.py port` now binds the same switch,
 so port **generation** writes to Postgres + MinIO under `pg` (verified: the gauge
 generator wrote to PG with the SSD files untouched). File backend stays the
 default. Next: WP3 (tools onto the repo), WP4 (E2E + suites on `pg`), WP5
@@ -72,7 +72,7 @@ MinIO up and a catchment imported). Remaining migration work is no longer about
 artifact coverage:
 
 1. WP2 full cutover — **done**: all three catchments imported + parity-green; reads
-   and writes (`app.py port`) both honour `MKM_REPO_BACKEND=pg`.
+   and writes (`phys.py port`) both honour `MKM_REPO_BACKEND=pg`.
 2. WP4 test/E2E rework (**in progress**, see below), WP5 RBAC + pooling + decommission.
 
 ## Running the test suite on Postgres (WP4.2)

@@ -145,7 +145,7 @@ class TestCrossLayerConsistency:
         """flood_count in propertyhc should match severe-flooded event count in propertyts.
 
         flood_count uses the severe-only definition: flooded AND exceeded_severe.
-        Re-run `python3 app.py port` if propertyts data is stale.
+        Re-run `python3 phys.py port` if propertyts data is stale.
         """
         prop_id, pc = _first_property()
         pts = _propertyts_file(prop_id)
@@ -153,7 +153,7 @@ class TestCrossLayerConsistency:
             pytest.skip("No propertyts file")
         events = pts.get("flood_events", [])
         if events and "exceeded_severe" not in events[0]:
-            pytest.skip("Stale propertyts data — re-run: python3 app.py port")
+            pytest.skip("Stale propertyts data — re-run: python3 phys.py port")
         pts_severe_flooded = len([
             e for e in events
             if e.get("flooded", False) and e.get("exceeded_severe", False)

@@ -25,7 +25,7 @@ The **web** admin-password gate (``require_admin_password`` / ``X-Admin-Password
 was retired in WP5: mutating endpoints are now gated by RBAC capability
 (``@require(FUNC_TRADE_PRS, …)`` — see ``routes._rbac``). What remains here is only the
 path helper, kept because ``data/.port_admin`` is still owned by the CLI
-``python app.py port`` first-run setup (``app/commands/port/auth.py``) and the test
+``python phys.py port`` first-run setup (``app/commands/port/auth.py``) and the test
 suites redirect it via ``MKM_ADMIN_FILE_PATH``.
 """
 

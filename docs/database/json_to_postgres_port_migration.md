@@ -134,7 +134,7 @@ data = database.get_gauge_portfolio(catchment)        # read
 database.save_properties(catchment, output_data)      # write
 ```
 
-The backend is bound once at the entry point (`app.py port` →
+The backend is bound once at the entry point (`phys.py port` →
 `configure_backend`); per-call code just uses the public `database.*` API. Under
 the file backend the swap is a no-op behaviourally; under `MKM_REPO_BACKEND=pg`
 the same code serves from Postgres.

@@ -5,7 +5,7 @@
 from the tree, not inferred.
 
 How to read: each row is one artifact type. "Producer" = the module that writes it
-during `python app.py port ...`. "Consumers" = the modules that read it (Flask routes
+during `python phys.py port ...`. "Consumers" = the modules that read it (Flask routes
 + tools). "Target" = where it lands in the PostgreSQL design (see migration doc §2.2).
 `<id>` = entity id (e.g. `PROP-...`, `GAUGE-...`); `<mode>` = scenario variant.
 
@@ -46,7 +46,7 @@ Catchment lives in the path today (`data/input/<catchment>/...`) and becomes a
 | `gaugehd/gauge_<id>_hd.json` | `src/port/src/gauge/gaugehd/nrfa.py:171`, `…/synthetic.py:120` (+ `src/port/cdm/gaugehd/generator.py:216`) | `gauges/history.py:38,60`, `gauges/reports.py:78` | `gauge_history` |
 | `stress_storms/<id>.json` + `_index.json` | `src/port/src/gauge/_stress_storms_stages.py:240` (storm), `:274` (index) | `trading/stress/_helpers.py:49,96` (`_load_stress_storms` / `_load_stress_storm`, **mtime-cached**) → `storms.py`, `port_stress/_routes.py:47,125`; `_storm_enrich.py:79`; `propertyts/core_storm_list.py:53`, `financial_basis.py:129` | `stress_storm` |
 | `sequence_gauge/<id>.json` + `_index.json` | `src/port/src/stressm/pipeline/stages.py:118` (gauge), `:94` (index), `:59` (summary) | `governance/lineage/_trace/_data_trace.py:99` | `sequence_gauge` |
-| `storm_sequences.json` | `src/port/src/storm_multi/utils/serialization.py:65` (+ summary `:157`) | `_storm_enrich.py:51,137`, `gauges/storms.py:62`, `propertyts/claim.py:47`, `core_storm_list.py:114`, `risk.py:60`, `trading/stress/training.py:145,205`, tool `cdm_property_editor/app.py:244` | `storm_sequence` |
+| `storm_sequences.json` | `src/port/src/storm_multi/utils/serialization.py:65` (+ summary `:157`) | `_storm_enrich.py:51,137`, `gauges/storms.py:62`, `propertyts/claim.py:47`, `core_storm_list.py:114`, `risk.py:60`, `trading/stress/training.py:145,205`, tool `cdm_property_editor/phys.py:244` | `storm_sequence` |
 
 ## D. Large blobs → **object store + metadata row**
 

@@ -76,7 +76,7 @@ def cmd_server(args):
             print()
             print("  ⚠  No PRS trades found for this catchment.")
             print("     The Trading Desk blotter will be empty.")
-            print(f"     Run:  python app.py port --{config.CATCHMENT} --blotter")
+            print(f"     Run:  python phys.py port --{config.CATCHMENT} --blotter")
             print(f"     to generate the {config.CATCHMENT} trading book.")
             print()
 

@@ -45,7 +45,7 @@ class TestDataLineage:
         """data_lineage.json must exist after any port run."""
         lineage_path = ROOT / "data" / "data_lineage.json"
         if not lineage_path.exists():
-            pytest.skip("data_lineage.json not generated yet -- run: python app.py port")
+            pytest.skip("data_lineage.json not generated yet -- run: python phys.py port")
         data = json.load(open(lineage_path))
         assert "steps" in data, "Manifest missing 'steps' key"
         assert len(data["steps"]) > 0, "Manifest has no recorded steps"
@@ -84,14 +84,14 @@ class TestDataLineage:
             warnings.warn(
                 f"{len(mismatches)} output hash mismatches -- data modified since last pipeline run:\n"
                 + "\n".join(f"  - {m}" for m in mismatches[:10])
-                + "\n  Re-run: python3 app.py port"
+                + "\n  Re-run: python3 phys.py port"
             )
 
     def test_lineage_file_exists(self):
         """Data lineage file should exist after a port run."""
         lineage_path = ROOT / "data" / "data_lineage.json"
         assert lineage_path.exists(), (
-            "data_lineage.json not found. Run: python app.py port"
+            "data_lineage.json not found. Run: python phys.py port"
         )
 
     def test_dependency_graph_complete(self):
@@ -175,10 +175,10 @@ class TestDeterministicIDs:
             # meaningful against a complete generation.
             pytest.skip(
                 f"Partial gauge.json ({len(gauge_ids)}/{len(expected)} gauges); "
-                f"run `python app.py port --gauge` to exercise this check."
+                f"run `python phys.py port --gauge` to exercise this check."
             )
         assert not missing, (
             f"gauge.json is missing {len(missing)} deterministic gauge IDs "
             f"derived from GAUGE_POINTS. Sample: {sorted(missing)[:3]}. "
-            f"Regenerate: python app.py port --gauge"
+            f"Regenerate: python phys.py port --gauge"
         )

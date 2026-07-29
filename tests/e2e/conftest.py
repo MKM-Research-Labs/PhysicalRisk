@@ -223,7 +223,7 @@ def server_port(_isolated_catchment_dir, _isolated_governance_dir, _e2e_admin_pa
     interactive.unlink(missing_ok=True)
 
     proc = subprocess.Popen(
-        [sys.executable, "app.py", "server"],
+        [sys.executable, "phys.py", "server"],
         cwd=str(ROOT),
         env=env,
         stdout=subprocess.PIPE,
@@ -335,7 +335,7 @@ def gauge_data():
     """Load gauge.json for test assertions."""
     path = ROOT / "data" / "input" / "halong" / "gauge.json"
     if not path.exists():
-        pytest.skip("gauge.json not found — run `python app.py port` first")
+        pytest.skip("gauge.json not found — run `python phys.py port` first")
     with open(path) as f:
         return json.load(f)
 
@@ -345,7 +345,7 @@ def property_data():
     """Load property.json for test assertions."""
     path = ROOT / "data" / "input" / "halong" / "property.json"
     if not path.exists():
-        pytest.skip("property.json not found — run `python app.py port` first")
+        pytest.skip("property.json not found — run `python phys.py port` first")
     with open(path) as f:
         return json.load(f)
 

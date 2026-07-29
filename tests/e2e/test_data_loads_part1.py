@@ -212,11 +212,11 @@ class TestStressStormDataLoads:
         assert "error" not in result, f"Stress storms API failed: {result.get('error')}"
         assert result["http_status"] == 200, (
             f"Stress storms API returned HTTP {result['http_status']}: {result.get('message')}. "
-            f"Run: python app.py port --stressm"
+            f"Run: python phys.py port --stressm"
         )
         assert result["storm_count"] > 0, (
             "Stress storms API returned zero storms. "
-            "Run: python app.py port --stressm"
+            "Run: python phys.py port --stressm"
         )
 
     def test_portfolio_storms_api_returns_data(self, map_page):
@@ -243,7 +243,7 @@ class TestStressStormDataLoads:
         )
         assert result["http_status"] == 200, (
             f"Portfolio storms API returned HTTP {result['http_status']}: "
-            f"{result.get('message')}. Run: python app.py port --stressm"
+            f"{result.get('message')}. Run: python phys.py port --stressm"
         )
         assert result["storm_count"] > 0, (
             "Portfolio storms API returned zero storms"

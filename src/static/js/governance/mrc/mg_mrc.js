@@ -54,7 +54,7 @@ function renderParameterInventory() {
                 container.innerHTML = '<div style="padding:40px;text-align:center;">' +
                     '<div style="font-size:32px;margin-bottom:12px;">&#x26A0;</div>' +
                     '<div style="font-size:13px;font-weight:600;color:#333;margin-bottom:8px;">No Parameter Inventory Available</div>' +
-                    '<div style="font-size:11px;color:#888;">Run: <code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;">python app.py check params --pdf</code></div>' +
+                    '<div style="font-size:11px;color:#888;">Run: <code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;">python phys.py check params --pdf</code></div>' +
                     '</div>';
             }
         }

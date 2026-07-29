@@ -119,31 +119,31 @@ FAILURE_METADATA = {
         'principle': 'P3 (Accuracy)',
         'description': 'Every gauge in gauge.json has a matching hazard curve; '
                        'no orphan IDs in gaugehc.json.',
-        'remediation': 'Re-run python app.py port to regenerate gauge and '
+        'remediation': 'Re-run python phys.py port to regenerate gauge and '
                        'hazard curve data.',
     },
     'test_trade_gauge_references': {
         'principle': 'P3, P4 (Completeness)',
         'description': 'Every traded gauge_id exists in the gauge master file.',
-        'remediation': 'Re-run python app.py port to regenerate trade blotter '
+        'remediation': 'Re-run python phys.py port to regenerate trade blotter '
                        'with current gauge data.',
     },
     'test_trade_hazard_curves': {
         'principle': 'P3, P4 (Completeness)',
         'description': 'Every traded gauge_id has an associated hazard curve.',
-        'remediation': 'Re-run python app.py port to regenerate hazard curves.',
+        'remediation': 'Re-run python phys.py port to regenerate hazard curves.',
     },
     'test_property_id_consistency': {
         'principle': 'P3 (Accuracy)',
         'description': 'Property time-series files reference valid property IDs.',
-        'remediation': 'Re-run python app.py port to regenerate property '
+        'remediation': 'Re-run python phys.py port to regenerate property '
                        'time-series.',
     },
     'test_storm_id_consistency': {
         'principle': 'P3 (Accuracy)',
         'description': 'All storm IDs in time-series originate from storm '
                        'sequences.',
-        'remediation': 'Re-run python app.py port to regenerate stress/storm '
+        'remediation': 'Re-run python phys.py port to regenerate stress/storm '
                        'data.',
     },
     'test_classifier_gauge_alignment': {
@@ -164,7 +164,7 @@ FAILURE_METADATA = {
                        'differs from the upstream producer\'s current output '
                        'hash — i.e. upstream data has not changed since this '
                        'step last ran.',
-        'remediation': 'Re-run python app.py port to regenerate stale inputs '
+        'remediation': 'Re-run python phys.py port to regenerate stale inputs '
                        'before using these data for risk reporting.',
     },
     'test_deterministic_ids': {

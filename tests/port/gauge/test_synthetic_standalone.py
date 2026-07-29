@@ -69,7 +69,7 @@ class TestSyntheticGaugeStandalone:
             pytest.skip(
                 f"Synthetic gauge data ({len(synths)}) is stale relative to "
                 f"property.json ({n_props} properties) — likely from different "
-                f"runs / partial generation. Run `python app.py port` to refresh."
+                f"runs / partial generation. Run `python phys.py port` to refresh."
             )
         assert len(synths) >= min_expected, (
             f"Only {len(synths)} synthetics for {n_props} properties; "

@@ -88,7 +88,7 @@ class TestCounterpartyIntegrity:
         records = _load_counterparties()
         assert len(records) > 0, (
             "counterparty.json is empty or missing. "
-            "Run: python app.py port --counterparty"
+            "Run: python phys.py port --counterparty"
         )
 
     def test_every_counterparty_has_party_id(self):
@@ -197,7 +197,7 @@ class TestCounterpartyTradeLinkage:
             import warnings
             warnings.warn(
                 f"{len(missing)} PRS trades missing from trade_marks.json: "
-                f"{sorted(missing)[:5]}. Run: python app.py port --blotter"
+                f"{sorted(missing)[:5]}. Run: python phys.py port --blotter"
             )
         # Hard-fail only if more than 15% are missing
         tolerance = max(1, len(trade_ids) * 15 // 100)

@@ -21,7 +21,7 @@
 """Model-chain consistency audit — scan logic and full-audit section.
 
 Sits with the other audit-report tests (test_path_definitions_report.py,
-test_copyright_headers_report.py, …) and runs under ``app.py test``.
+test_copyright_headers_report.py, …) and runs under ``phys.py test``.
 
 ``scan_model_chain`` cross-checks the three overlapping views of the model
 dependency graph in ``model_inventory.json`` (chain links, upstream/downstream

@@ -63,7 +63,7 @@ class TestPropertyHazardCurves:
             pytest.skip("propertyhc.json not generated yet")
         assert len(phc_ids) == len(prop_ids), (
             f"propertyhc.json has {len(phc_ids)} entries but property.json "
-            f"has {len(prop_ids)}. Regenerate: python app.py port --propertyhc"
+            f"has {len(prop_ids)}. Regenerate: python phys.py port --propertyhc"
         )
 
     def test_propertyhc_ids_match(self):

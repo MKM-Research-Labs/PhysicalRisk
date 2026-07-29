@@ -162,7 +162,7 @@ def main():
 
     config_path.write_text(new_source)
     print(f"\nUpdated {config_path}")
-    print(f"Run `python app.py port --all --no-backup` to regenerate "
+    print(f"Run `python phys.py port --all --no-backup` to regenerate "
           f"portfolio with corrected gauges.")
 
 

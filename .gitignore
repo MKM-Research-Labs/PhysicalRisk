@@ -10,7 +10,7 @@ coverage.json
 .coverage
 .claude/
 
-# Port-generated data — receivers run `python app.py port` locally
+# Port-generated data — receivers run `python phys.py port` locally
 data/input/
 data/output/
 data/results/

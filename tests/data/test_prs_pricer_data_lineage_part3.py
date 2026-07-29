@@ -162,8 +162,8 @@ class TestSpreadDecompositionLineage:
         """propertyshd.json and propertyshe.json must exist for decomposition."""
         shd = _input_dir() / "propertyshd.json"
         she = _input_dir() / "propertyshe.json"
-        assert shd.exists(), "propertyshd.json missing — run: python app.py port --propertyshd"
-        assert she.exists(), "propertyshe.json missing — run: python app.py port --propertyshe"
+        assert shd.exists(), "propertyshd.json missing — run: python phys.py port --propertyshd"
+        assert she.exists(), "propertyshe.json missing — run: python phys.py port --propertyshe"
 
     def test_property_spread_matches_term_structure(self):
         """property_spread_bps should equal the 5yr severe spread from term_structure."""

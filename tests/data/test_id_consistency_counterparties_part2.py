@@ -160,7 +160,7 @@ class TestPRSCounterpartyRule:
             f"{REIT_PARTY_ID} (Thames Property REIT) is missing from "
             "counterparty.json. The REIT is a fixed counterparty for "
             "all property PRS trades and must be regenerated. Run: "
-            "python app.py port --counterparties"
+            "python phys.py port --counterparties"
         )
 
     def test_property_prs_uses_reit_only(self):

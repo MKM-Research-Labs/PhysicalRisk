@@ -13,7 +13,7 @@
    - **Raw values** live in `data/catch/<id>/tc.py` (a tropical-cyclone-specific sibling to the existing `storm.py`). The model is catchment-agnostic; each catchment that wants typhoon simulation provides its own `tc.py`.
    - **Routing** is the `config` package. The active catchment is selected via the `MKM_CATCHMENT` environment variable; `config.load_params_module()` / `config.get_catchment()` resolves the catchment-specific module. The model reads from `config`, never directly from `data/catch/*`.
    - **Math** lives in `src/models/typhoon/`. The model receives a `CatchmentTyphoonConfig` parameter dataclass (assembled by an adapter at the boundary) and operates only on that.
-3. **Invocation.** End-state CLI is `python3 app.py port --typhoon`, alongside the existing `--gauges`, `--hazard`, `--stressm` flags. The flag dispatches to a new orchestrator stage that calls into `src/models/typhoon/pipeline.py`.
+3. **Invocation.** End-state CLI is `python3 phys.py port --typhoon`, alongside the existing `--gauges`, `--hazard`, `--stressm` flags. The flag dispatches to a new orchestrator stage that calls into `src/models/typhoon/pipeline.py`.
 4. **Heavy math + forward models in `src/models/typhoon/`.** Nothing in `src/port/src/`. The orchestrator stage is a thin shim that imports from the model.
 5. **Hand-rolled.** Particle filter, transitions, wind-field profiles all NumPy-only. No new heavy dependencies in Phase 1.
 6. **Specs.**
@@ -278,7 +278,7 @@ src/models/typhoon/pipeline.simulate_typhoon_events(config_obj, ...)
 
 ---
 
-## Phase 1.7 — End-to-end pipeline + `app.py port --typhoon` wiring
+## Phase 1.7 — End-to-end pipeline + `phys.py port --typhoon` wiring
 
 **Files**
 - `src/models/typhoon/pipeline.py` (model side)
@@ -316,7 +316,7 @@ src/models/typhoon/pipeline.simulate_typhoon_events(config_obj, ...)
 
 **Invocation (end state)**
 ```
-MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon --num-typhoon-events 1000
+MKM_CATCHMENT=<catchment_id> python3 phys.py port --typhoon --num-typhoon-events 1000
 ```
 
 **Tests**
@@ -325,7 +325,7 @@ MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon --num-typhoon-events 
 - Scenario family swap shifts distribution (`SEVERE` > `BASELINE` at p99)
 - Property closer to the typical track centerline gets higher mean peak wind than a far property
 - Output JSON validates against schema
-- `python3 app.py port --typhoon` exits 0 against the launch catchment
+- `python3 phys.py port --typhoon` exits 0 against the launch catchment
 
 **Done when:** the end-state invocation against the launch catchment produces a per-property peak-wind distribution file in <2 minutes, with quantile spread that reflects the configured tail.
 
@@ -375,6 +375,6 @@ MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon --num-typhoon-events 
 3. The parameter schema lives in `config/typhoon.py` — enums + dataclasses
 4. Each catchment that wants typhoon simulation provides a `data/catch/<id>/tc.py` containing raw values only, importing parameter dataclasses from `config.typhoon`
 5. Catchment params reach the model via the `config` package routing + a single boundary adapter at `app/commands/port/stages/typhoon_stage.py`
-6. `MKM_CATCHMENT=<catchment_id> python3 app.py port --typhoon --num-typhoon-events 1000` produces a per-property peak-wind distribution file
+6. `MKM_CATCHMENT=<catchment_id> python3 phys.py port --typhoon --num-typhoon-events 1000` produces a per-property peak-wind distribution file
 7. Scenario-family swap demonstrably moves the upper tail
 8. Test suite green; import-discipline test confirms catchment-agnosticism of the model

@@ -25,8 +25,8 @@ Verifies that all files required by the stress test module are present
 on disk and structurally correct.  These tests use the real production
 data files, not fixtures.
 
-Run `python app.py port --gaugets` to (re)generate stress_storms.json.
-Run `python app.py port --stressm`  to retrain GBM flood classifiers.
+Run `python phys.py port --gaugets` to (re)generate stress_storms.json.
+Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 """
 
 import json
@@ -100,7 +100,7 @@ class TestStressStormsFilePart2:
         if result is None:
             pytest.skip(
                 f"stress_storms data not generated — skipping. "
-                f"Run `python app.py port --stressm` to create."
+                f"Run `python phys.py port --stressm` to create."
             )
         return result
 
@@ -109,7 +109,7 @@ class TestStressStormsFilePart2:
         if len(gauges) < 10:
             pytest.skip(
                 f"Partial storm data ({len(gauges)} gauges covered); full "
-                f"pipeline not generated. Run `python app.py port --gaugets`."
+                f"pipeline not generated. Run `python phys.py port --gaugets`."
             )
         assert len(gauges) >= 10, f"Expected storms to cover >= 10 gauges, got {len(gauges)}"
 
@@ -180,7 +180,7 @@ class TestStressStormsFilePart2:
         severe_counts = [s["trigger_summary"]["gauges_severe"] for s in storms]
         assert severe_counts == sorted(severe_counts, reverse=True), (
             "stress_storms.json is NOT sorted by gauges_severe DESC. "
-            "Re-run `python app.py port --gaugets`."
+            "Re-run `python phys.py port --gaugets`."
         )
 
     def test_all_gauge_ids_use_gauge_prefix(self, storms):
@@ -218,10 +218,10 @@ class TestStressStormsFilePart2:
         if len(gauge_ids) < 52:
             pytest.skip(
                 f"Partial storm data ({len(gauge_ids)}/52 gauge IDs); full "
-                f"pipeline not generated. Run `python app.py port --gaugets`."
+                f"pipeline not generated. Run `python phys.py port --gaugets`."
             )
         assert len(gauge_ids) == 52, (
             f"Expected 52 unique gauge IDs in stress_storms responses, "
             f"got {len(gauge_ids)}. "
-            "Run `python app.py port --gaugets` to regenerate."
+            "Run `python phys.py port --gaugets` to regenerate."
         )

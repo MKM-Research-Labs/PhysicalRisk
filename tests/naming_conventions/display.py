@@ -190,7 +190,7 @@ class TestBlotterTradeExistence:
         found = list(prs_dir.glob('PRS-*.json'))
         assert len(found) == 1, (
             "PRS-*.json glob found no files — blotter would return empty trades. "
-            "Check that trade files exist in data/input/<catchment>/prs/ (run: python app.py book)."
+            "Check that trade files exist in data/input/<catchment>/prs/ (run: python phys.py book)."
         )
 
     def test_blotter_glob_pattern_matches_prs_id_protocol(self):

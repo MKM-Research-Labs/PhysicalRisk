@@ -29,7 +29,7 @@ def run_pdf_reports(args, output_dir, run_all):
         return
     try:
         from reports.port import PortReportGenerator
-        # Port/PRS deliverables are not part of the `app.py test` audit
+        # Port/PRS deliverables are not part of the `phys.py test` audit
         # sequence — keep them out of the audit root, under audit/archive/.
         archive_dir = config.get_output_dir() / 'audit' / 'archive'
         archive_dir.mkdir(parents=True, exist_ok=True)

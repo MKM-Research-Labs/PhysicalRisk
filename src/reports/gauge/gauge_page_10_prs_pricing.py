@@ -45,7 +45,7 @@ class GaugePRSPricingPage(GaugeBasePage):
         hc = gauge_data.get('hazard_curve', {})
         if not hc:
             elements.append(Paragraph(
-                "No hazard curve data available. Run: python app.py port --hazard",
+                "No hazard curve data available. Run: python phys.py port --hazard",
                 self.styles['Normal']
             ))
             return elements

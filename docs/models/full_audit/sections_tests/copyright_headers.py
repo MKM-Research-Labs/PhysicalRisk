@@ -28,7 +28,7 @@ must begin with the exact 19-line MKM license header from
 The scan/repair logic lives here (``is_compliant`` / ``fix_text`` / ``fix_repo``)
 and is exercised by the self-healing audit test in
 ``tests/commands/test_copyright_headers_report.py`` (which repairs in place under
-``app.py test``).  ``_build_copyright_headers`` renders the read-only compliance
+``phys.py test``).  ``_build_copyright_headers`` renders the read-only compliance
 section for the consolidated audit report.
 """
 
@@ -286,7 +286,7 @@ def _build_copyright_headers(styles) -> list:
     elems.append(Paragraph(
         f'{len(remaining)} file(s) are not compliant (showing up to 25). The '
         'audit test (tests/commands/test_copyright_headers_report.py) repairs '
-        'these under <b>app.py test</b>.', styles['body']))
+        'these under <b>phys.py test</b>.', styles['body']))
     elems.append(Spacer(1, 2 * mm))
     data = [[
         Paragraph('<b>File (relative to project root)</b>', styles['tbl_hdr']),

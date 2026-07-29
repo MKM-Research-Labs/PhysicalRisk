@@ -125,7 +125,7 @@ For a corrupt-record case, **monkeypatch the seam getter** to raise `ValueError`
 - **Seam API:** `src/database/__init__.py` — portfolios, hazard curves
   (`mode=` for peril variants), timeseries, storm sequences, sequence_gauge,
   typhoon_event, **gauge_history** (= the `gaugehd` files), classifiers, etc.
-- **Backend binding:** `app.py port` calls `configure_backend`; per-call code
+- **Backend binding:** `phys.py port` calls `configure_backend`; per-call code
   just uses `database.*`. Under the file backend the swap is behaviourally a
   no-op; under `MKM_REPO_BACKEND=pg` it serves from Postgres.
 

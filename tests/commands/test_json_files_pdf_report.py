@@ -50,7 +50,7 @@ class TestHelpers:
         assert pdfmod._area('src/port/loader.py') == 'src/port'
 
     def test_area_top_level_file(self):
-        assert pdfmod._area('app.py') == 'app.py'
+        assert pdfmod._area('phys.py') == 'phys.py'
 
 
 class TestPdfBuilder:

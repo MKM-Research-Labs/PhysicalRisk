@@ -59,7 +59,7 @@ the layer above wrote.
   printing "Auto-running prerequisites: …". `--strict` blocks instead of
   auto-running.
 
-So: **edit `property.json` → run `app.py port --propertyhc` → lineage sees
+So: **edit `property.json` → run `phys.py port --propertyhc` → lineage sees
 property.json changed ⇒ propertyts stale ⇒ reruns propertyts + propertyhc only;
 storms (layer 2) unchanged ⇒ skipped.** Exactly "tinker in the middle, re-run
 downstream." We DRIVE this; we don't build it.
@@ -144,7 +144,7 @@ problem already rejected for the waterfall.
   becomes `regenerate(all)`. Tool calls it directly. Fast (ms–100ms). Needs a
   careful generator refactor + tests. Single-source if batch routes through it.
 - **Opt 2 — Scoped subprocess.** Stage a 1-property sandbox workspace and run
-  the real CLI (`app.py port --propertyts --propertyhc`) in a fresh process.
+  the real CLI (`phys.py port --propertyts --propertyhc`) in a fresh process.
   Zero divergence (it IS the batch), fresh singleton, no refactor. Slower
   (seconds; subprocess + reload), so before/after is async (spinner). Safest.
 - **Opt 3 — Pure re-price only.** Only Tier A (+ Tier B *iff* Spike 1 says depth
@@ -278,7 +278,7 @@ events/catchments and as the correctness oracle to validate the shortcut.
 
 ### Locked 2026-06-17 (still valid as the fallback/oracle)
 - **Opt 2, scoped subprocess.** Stage a 1-property sandbox workspace, run the
-  real CLI (`app.py port --propertyts --propertyhc …`) in a fresh process. Zero
+  real CLI (`phys.py port --propertyts --propertyhc …`) in a fresh process. Zero
   divergence from batch. Now the FALLBACK (compound events) + oracle, not the
   primary path.
 - **Gauge-threshold (Tier C) edits = deferred for v1.** Allow + audit the edit,

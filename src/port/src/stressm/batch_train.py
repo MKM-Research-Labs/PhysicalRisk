@@ -26,7 +26,7 @@ once; per-gauge temporaries (vectors, trainer, result) are explicitly freed and
 ``gc.collect()`` is called between gauges to keep the RSS footprint minimal.
 
 Usage (CLI):
-    python app.py port --train-classifiers
+    python phys.py port --train-classifiers
 
 Usage (Python):
     from port.src.stressm.batch_train import batch_train_classifiers
@@ -105,7 +105,7 @@ def batch_train_classifiers(
     if not database.storm_sequences_exists(database.active_catchment()):
         raise FileNotFoundError(
             "storm_sequences not found. "
-            "Run 'python app.py port --stressm' first."
+            "Run 'python phys.py port --stressm' first."
         )
 
     print("  Loading storm sequences...", flush=True)

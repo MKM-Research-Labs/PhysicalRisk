@@ -8,7 +8,7 @@
 
 ## 1. What this was
 
-`app.py test --unit` runs ~11,000 tests. The question was whether a subset could be
+`phys.py test --unit` runs ~11,000 tests. The question was whether a subset could be
 aggregated into unit test documentation.
 
 It could — the machinery already existed (`docs/models/test_results/generator/`,
@@ -228,7 +228,7 @@ Steps 3–5, agreed as separate work:
 ## 8. Environment
 
 - Use `.venv`, not `venv` — `venv` is stale and missing dependencies.
-  `_resolve_python()` picks `.venv` first, so `python3 app.py …` is fine.
+  `_resolve_python()` picks `.venv` first, so `python3 phys.py …` is fine.
 - Postgres and MinIO were started during this session and left running:
   ```bash
   ./scripts/pg-native.sh stop
@@ -238,5 +238,5 @@ Steps 3–5, agreed as separate work:
   ```bash
   python3 -m docs.models.test_results.generator --reconcile-only  # fast, no tests
   python3 -m docs.models.test_results.generator --pdf             # ~13 min, all 26 docs
-  python3 app.py test --unit                                      # full suite + gate
+  python3 phys.py test --unit                                      # full suite + gate
   ```

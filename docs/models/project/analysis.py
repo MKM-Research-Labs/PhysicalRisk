@@ -81,7 +81,7 @@ def analyze_repo_files(project_root: Path,
         seen.add(item)
         all_files.append(FileInfo(item, rel, item.suffix.lower(), count_lines(item)))
 
-    # Root-level files (e.g. app.py, server.py)
+    # Root-level files (e.g. phys.py, server.py)
     for item in project_root.glob('*'):
         _consider(item)
     # Listed sub-trees
