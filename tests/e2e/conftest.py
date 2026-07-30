@@ -277,6 +277,19 @@ def _browser_page(browser, base_url):
     # Wait for Leaflet map
     page.wait_for_selector(".leaflet-container", timeout=60_000)
 
+    # Dismiss the licence gate (introduced with license_gate.js). Its overlay
+    # (#license-gate-overlay, z-index 10000) covers the whole viewport and
+    # intercepts every non-force click; its Accept handler is also what kicks
+    # off the startup preloader (_runStartupPreload). Without accepting it here
+    # the preloader never runs — so _tdPreloadDone never flips (the wait below
+    # would burn its full 120 s) — and the overlay blocks every real click.
+    gate = page.locator("#license-gate-overlay")
+    if gate.count() > 0:
+        gate.locator("button:has-text('Accept')").click(timeout=10_000)
+        page.wait_for_selector(
+            "#license-gate-overlay", state="detached", timeout=10_000
+        )
+
     # Wait for startup preloader to finish
     try:
         page.wait_for_function(
