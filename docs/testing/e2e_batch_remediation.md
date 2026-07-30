@@ -291,7 +291,7 @@ Re-ran each batch with the committed fixes (P0, C2, B2, B1, E1) to get the true 
 | 1 | 18 failed | (not re-run) | non-gov all fixed + verified via targeted runs (B/C/D/E/F) |
 | 2 | 4 failed + 28 errors | (not re-run) | non-gov fixed; 28 = governance (out of scope) |
 | 3 | 53 failed / 53 passed / 15 skipped | **32 failed / 80 passed / 9 skipped** | 0 errors (teardown cascade gone); **governance now passes**; 32 real residuals (property-panel cluster) |
-| 4 | "113 errors" (0 real fails) | (queued after batch 3) | pre-P0 record was a teardown cascade, not real; re-running with P0 |
+| 4 | "113 errors" (0 real fails) | **3 failed / 108 passed / 8 skipped** | the 113/119 "errors" were an infra flake (e2e Flask server "did not start in 30s", cascaded by a 2h39m orphaned server — now killed). True state: 3 real failures, all Control-tab **save/reset/admin-password** → the **P5** write-path theme. |
 | 5 | (interrupted) | **15 passed / 1 skipped / 0 failed** | clean post-P0 |
 
 ### Batch 3 residuals (32 real failures — new theme: **property-panel**)
@@ -342,15 +342,17 @@ likely the property-side analogue of P0+E1 and should clear most of P1–P2.
 - **Fix approach:** confirm `viewPropertyHazard` open reliability; ungate/lazy-render the basis-explorer
   sub-tabs and resolve the property id from the panel dataset (E1-style). Investigate before coding.
 
-### P2 — Property Flood History tab empty (3) — direct E1 analogue
+### P2 — Property Flood History tab empty (3) — direct E1 analogue ✅ DONE `84f21e19`
 - **TestPropertyFloodHistory**: "Flood History tab is empty", no `#prop-history-chart`, no rows.
-- **Fix:** almost certainly the property version of E1 — the tab returns early / isn't populated when
-  property hazard data is absent. Ungate + resolve id from panel; render the scaffold regardless.
+- **Was:** content-load race, not missing data — the property **storm** panel (`#prop-storm-panel`,
+  `viewPropertyStorms`) shows immediately but its tabs are gated on async `propStormData`.
+- **Fix (done):** `_open_storm_panel` waits for `#prop-storm-status` to leave "Loading…" before
+  reading the tab. Verified 13 passed / 1 skipped (with P3).
 
-### P3 — Property context menu (1) — B1/B2 analogue, quick win
+### P3 — Property context menu (1) — B1/B2 analogue ✅ DONE `84f21e19`
 - **TestPropertyContextMenu::test_right_click_property_shows_menu**: "No .ctx-menu found" (elements []).
-- **Fix:** same overlap/actionability issue as gauge (B1) and commercial (B2) — dispatch the
-  `contextmenu` event on the property marker element instead of a pixel right-click.
+- **Fix (done):** dispatch `contextmenu` on the property marker element (fires Leaflet's L.Marker
+  listener; a force right-*click* only fires a click). Verified green.
 
 ### P4 — Property PRS decomposition + misc content (5)
 - **TestPropertyPRSDecomposition** (3): Spread-Decomposition section / Path 1 / Terrain-Effect row not found.
