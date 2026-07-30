@@ -249,6 +249,29 @@ def open_property_panel(page, property_id):
     page.locator("#property-hc-panel").wait_for(
         state="visible", timeout=10_000
     )
+    _wait_property_panel_loaded(page)
+
+
+def _wait_property_panel_loaded(page):
+    """Wait for the property panel's async data load to finish.
+
+    ``viewPropertyHazard`` shows ``#property-hc-panel`` immediately, but
+    ``loadData`` then fetches hazard + SHE/SHD/BRI/storms + counterparties
+    before setting ``phcData`` and re-rendering the active tab. Until that
+    completes the phcData-gated tabs (Basis Explorer, PRS, Flood History)
+    render nothing, so a caller that proceeds on "panel visible" alone races
+    an empty panel. ``#phc-status`` reads ``Loading...`` on entry and the
+    loaded summary (or an error) when done — wait for it to leave that state.
+    """
+    try:
+        page.wait_for_function(
+            "() => { var s = document.getElementById('phc-status');"
+            " return s && s.textContent"
+            " && s.textContent.indexOf('Loading') === -1; }",
+            timeout=20_000,
+        )
+    except Exception:
+        pass
 
 
 def switch_to_prs_tab_property(page):
