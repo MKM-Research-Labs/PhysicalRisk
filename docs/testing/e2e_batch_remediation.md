@@ -312,3 +312,56 @@ interaction tests — the property-side analogues of the gauge/commercial fixes 
 **Hypotheses (to confirm):** the property panel likely mirrors the gauge panel — content tabs gated
 on a hazard/data fetch that may be null (cf. E1), and `TestPropertyContextMenu` is the property
 marker analogue of the B1/B2 overlap fix. These are the next remediation candidates.
+
+---
+
+## 9. Batch-3 property-panel remediation plan (2026-07-30)
+
+The 32 batch-3 residuals are grouped below by **root cause** from their actual failure messages.
+26 are in scope; 6 are governance (out of scope). Overarching hypothesis (confirm first, cf. P0/E1):
+the **property hazard panel `#property-hc-panel` mirrors the gauge panel** — it opens via
+`window.viewPropertyHazard(id)` and its content tabs are gated on a property-hazard fetch that can
+be null/slow, so the panel and tabs render empty. Fixing the property-panel open + tab-gating is
+likely the property-side analogue of P0+E1 and should clear most of P1–P2.
+
+### P1 — Property Hazard Panel + Basis Explorer (15) ⭐ biggest, core property-PRS UI
+- **TestPropertyHazardPanel** (3): `open_property_panel` times out on `#property-hc-panel` visible —
+  the panel itself doesn't open reliably (`viewPropertyHazard`). This is the likely upstream blocker.
+- **TestBasisExplorerPanel** (12): once in the panel, the basis-explorer sub-tab bar (`.phc-basis-subtab`)
+  renders `count 0`, canvases (Gauge/SHE/SHD/Property scatter) missing, and label/content asserts fail
+  ('Storms:', 'Distance:', 'Gauge Spread:', 'Hedged'). Note inconsistent data ('0 severe' vs '59 severe')
+  → a data-load/tab-switch race or the sub-tabs gated on data.
+- **Fix approach:** confirm `viewPropertyHazard` open reliability; ungate/lazy-render the basis-explorer
+  sub-tabs and resolve the property id from the panel dataset (E1-style). Investigate before coding.
+
+### P2 — Property Flood History tab empty (3) — direct E1 analogue
+- **TestPropertyFloodHistory**: "Flood History tab is empty", no `#prop-history-chart`, no rows.
+- **Fix:** almost certainly the property version of E1 — the tab returns early / isn't populated when
+  property hazard data is absent. Ungate + resolve id from panel; render the scaffold regardless.
+
+### P3 — Property context menu (1) — B1/B2 analogue, quick win
+- **TestPropertyContextMenu::test_right_click_property_shows_menu**: "No .ctx-menu found" (elements []).
+- **Fix:** same overlap/actionability issue as gauge (B1) and commercial (B2) — dispatch the
+  `contextmenu` event on the property marker element instead of a pixel right-click.
+
+### P4 — Property PRS decomposition + misc content (5)
+- **TestPropertyPRSDecomposition** (3): Spread-Decomposition section / Path 1 / Terrain-Effect row not found.
+- **TestCommercialPRSIndependentPerils** (1): "Independent Perils section not found" in commercial PRS panel.
+- **TestPropertyStormPanel** (1): status bar stuck on 'Loading...' (flood counts never populate).
+- **Fix approach:** per-section — likely the same data-gating as P1/P2; investigate which fetch stalls.
+
+### P5 — Commit/write path (2) — separate investigation
+- **TestMarketUpdatePL::test_03_commit_market_changes**: "Market commit showed an error".
+- **TestPropertyPRSBookTrade::test_03_commit_property_trade**: "Property trade commit showed an error".
+- **Fix approach:** these exercise the mutating commit endpoints — check the admin-password gate
+  (RBAC/`@require`) and the write path; distinct from the render-gating themes above.
+
+### OUT OF SCOPE — DocsTab (6)
+- **TestDocsTabStructure**: "Docs tab button not found in model detail" / `#mg-docs-sec-*` — this is the
+  **model-governance** model-detail docs tab. Removed with the governance section. Do not remediate.
+
+### Suggested order
+1. **P1** (confirm `#property-hc-panel` open + ungate basis-explorer sub-tabs) — clears the most, core PRS-property UI.
+2. **P2** (property flood history — E1 clone) and **P3** (property context menu — B1 clone): both quick, known patterns.
+3. **P4** (decomposition + misc content).
+4. **P5** (commit/write path) — separate track.
