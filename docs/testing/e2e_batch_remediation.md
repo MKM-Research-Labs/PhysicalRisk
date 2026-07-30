@@ -324,7 +324,15 @@ the **property hazard panel `#property-hc-panel` mirrors the gauge panel** — i
 be null/slow, so the panel and tabs render empty. Fixing the property-panel open + tab-gating is
 likely the property-side analogue of P0+E1 and should clear most of P1–P2.
 
-### P1 — Property Hazard Panel + Basis Explorer (15) ⭐ biggest, core property-PRS UI
+### P1 — Property Hazard Panel + Basis Explorer (15) ⭐ DONE 2026-07-30
+
+> **DONE — committed `349172ab` + `4cabbad8`, verified.** Root cause was the async load race (not a
+> data-missing issue — real data was present): `viewPropertyHazard` shows `#property-hc-panel`
+> immediately, but `loadData` fetches hazard+SHE/SHD/BRI/storms+counterparties before setting
+> `phcData` and re-rendering, so callers raced an empty (phcData-gated) panel. Fix: `open_property_panel`
+> (and the inline `_open_hazard_panel`) now wait for `#phc-status` to leave "Loading…"; the inline
+> tab clicks also use `force=True` (they timed out on actionability mid-load). Verified:
+> basis-explorer 15 passed / 2 skipped; TestPropertyHazardPanel 5 passed. **All 15 green.**
 - **TestPropertyHazardPanel** (3): `open_property_panel` times out on `#property-hc-panel` visible —
   the panel itself doesn't open reliably (`viewPropertyHazard`). This is the likely upstream blocker.
 - **TestBasisExplorerPanel** (12): once in the panel, the basis-explorer sub-tab bar (`.phc-basis-subtab`)
