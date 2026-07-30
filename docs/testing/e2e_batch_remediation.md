@@ -246,6 +246,13 @@ overlay intercept). Does **not** fix Theme C (see C1/C2) or the Theme B viewport
 
 ### Theme E — Gauge panel tabs
 
+> **E1 DONE 2026-07-30 — committed `08c0f12c`, verified. Theme E complete.** `switchTab` no longer
+> gates the Historical (4) / Stress (5) tabs behind `hazardData` — they fetch their own data and
+> resolve the gauge id via a shared `_ghcGaugeId()` helper (falls back to the panel `dataset.gaugeId`),
+> so they render even when the hazard-curve fetch returns nothing. Fixed the real UX (blank tabs for a
+> gauge with no curve) as well as the test. e2e: 10 passed / 1 skipped (Historical + Stress +
+> TestGaugePanelTabs); cross-IIFE JS tests 74 passed.
+
 - `TestGaugePanelTabs::test_stress_tab_renders` / `test_historical_tab_renders` → **fixed by P0** (plain clicks).
 - **E1 (residual):** `TestHistoricalTab::test_storm_scenarios_list_exists` already force-clicks
   (`helpers.py:215`); it fails on content because `switchTab(4)` returns early when `hazardData` is null
