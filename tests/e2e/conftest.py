@@ -375,31 +375,30 @@ def trade_data(base_url):
 
 
 @pytest.fixture(scope="session")
-def first_traded_gauge_id():
-    """Return a gauge ID that has open (non-closed) trades."""
-    # Trades live in data/input/<catchment>/prs/
-    prs_dir = ROOT / "data" / "input" / "halong" / "prs"
-    if not prs_dir.exists():
-        # Fallback to legacy location
-        prs_dir = ROOT / "data" / "output" / "prs"
-    if not prs_dir.exists():
-        pytest.skip("No PRS trade directory")
-    for f in sorted(prs_dir.glob("PRS-*.json")):
-        try:
-            with open(f) as fh:
-                d = json.load(fh)
-            ps = d.get("PhysicalSwap", {})
-            status = ps.get("Header", {}).get("TradeStatus", "")
-            if status == "Closed":
-                continue
-            basket = ps.get("GaugeSet", {}).get("GaugeBasket", [])
-            for g in basket:
-                gid = g.get("GaugeID", "")
-                if gid:
-                    return gid
-        except Exception:
-            continue
-    pytest.skip("No open trades with gauge IDs found")
+def first_traded_gauge_id(base_url):
+    """Return a gauge ID the backend considers to have open trades.
+
+    Sourced from the same ``/trading/blotter/active-gauges`` endpoint that the
+    gauge panel's blotter-link enable logic uses, so the "Gauge Blotter" button
+    is guaranteed enabled for this gauge. (Previously this scanned PRS files for
+    ``Header.TradeStatus != "Closed"`` — a different definition of "traded" than
+    the backend's trade-mark logic, which could leave the button disabled for
+    the very gauge the test selected.)
+    """
+    import urllib.request
+    try:
+        resp = urllib.request.urlopen(
+            f"{base_url}/api/v1/trading/blotter/active-gauges", timeout=10
+        )
+        data = json.loads(resp.read())
+        gauge_ids = (
+            data.get("gauge_ids", []) if data.get("status") == "success" else []
+        )
+    except Exception:
+        gauge_ids = []
+    if not gauge_ids:
+        pytest.skip("No active (open-trade) gauges reported by /active-gauges")
+    return gauge_ids[0]
 
 
 @pytest.fixture(scope="session")
