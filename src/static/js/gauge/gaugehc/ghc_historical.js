@@ -38,7 +38,7 @@
                     '<div id="hist-storms-list" style="flex:1;overflow-y:auto;padding:4px;font-size:10px;color:#888;">Loading storms...</div>' +
                     '</div></div>';
 
-                var gaugeId = hazardData ? hazardData.gauge_id : '';
+                var gaugeId = _ghcGaugeId();
                 if (!gaugeId) return;
 
                 // Use cached data or fetch

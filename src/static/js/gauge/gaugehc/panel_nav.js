@@ -35,6 +35,16 @@
                 }
             }
 
+            // Resolve the active gauge id. Prefer the loaded hazard payload,
+            // but fall back to the panel's dataset (set in showPanel) so the
+            // Historical / Stress tabs still work when the hazard-curve fetch
+            // failed and hazardData is null.
+            function _ghcGaugeId() {
+                if (hazardData && hazardData.gauge_id) return hazardData.gauge_id;
+                var p = document.getElementById('hazard-curve-panel');
+                return (p && p.dataset.gaugeId) || '';
+            }
+
             function switchTab(idx) {
                 activeTab = idx;
                 var tabs = document.querySelectorAll('.hazard-tab');
@@ -51,7 +61,10 @@
                 var controls = document.getElementById('hazard-controls');
                 controls.style.display = idx === 0 ? 'block' : 'none';
 
-                if (!hazardData) return;
+                // Tabs 0-3 plot the hazard payload; Historical (4) and Stress
+                // (5) fetch their own data and only need the gauge id, so they
+                // render even when the hazard-curve fetch failed (hazardData null).
+                if (!hazardData && idx !== 4 && idx !== 5) return;
 
                 // Restore canvas for single-chart tabs (PRS and Historical manage their own layout)
                 if (idx !== 0 && idx !== 4 && idx !== 5) ensureCanvas();

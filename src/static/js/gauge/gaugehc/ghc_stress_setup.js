@@ -28,7 +28,7 @@
                 if (!container) return;
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
 
-                var gaugeId = hazardData ? hazardData.gauge_id : '';
+                var gaugeId = _ghcGaugeId();
                 if (!gaugeId) return;
 
                 // Check classifier status before rendering full UI
@@ -161,7 +161,7 @@
 
                 sel.onchange = function() {
                     if (this.value) {
-                        var gaugeId = hazardData ? hazardData.gauge_id : '';
+                        var gaugeId = _ghcGaugeId();
                         _runStressScenario(gaugeId, this.value);
 
                         var storm = storms.find(function(s) { return s.storm_id === sel.value; });
