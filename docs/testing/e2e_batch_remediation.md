@@ -197,6 +197,14 @@ overlay intercept). Does **not** fix Theme C (see C1/C2) or the Theme B viewport
 
 ### Theme B — Map marker context menus (residual after P0)
 
+> **B2 DONE 2026-07-30 — committed `d85517d5`, verified.** Fixed `_extract_coordinates`
+> (canonical `extract_gauges()` + commercial branch) so the map frames gauges + commercial, not
+> just properties; 4 new unit tests, visualizer suite 52 passed. Framing the whole portfolio packed
+> Hanoi's markers tightly enough that the commercial context-menu e2e then hit an *overlapping
+> property* marker — fixed test-side by dispatching `contextmenu` on the commercial marker element
+> (bypasses pixel hit-testing). Commercial context-menu e2e: 3 passed / 0 failed.
+> **B1 (gauge right-click actionability) still open.**
+
 - **B1 (test):** `test_context_menus.py:73` right-clicks via `markers.first.click(button="right")`
   (actionability-checked) → flaky on dense/overlapping halong markers even without the overlay. Fix:
   use `bounding_box()` + `page.mouse.click(cx, cy, button="right")` (the pattern
