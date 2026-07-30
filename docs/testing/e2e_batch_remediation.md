@@ -35,17 +35,23 @@ run, the e2e batch status, and the remediation worklist for the failing e2e test
 The e2e runner (`app/commands/test/e2e.py`) splits **66 test files into batches of 15**, so **5 batches**.
 Each batch is a separate pytest invocation writing `data/output/audit/e2e/e2e_junit_batch{N}.xml`.
 
-| Batch | Status (this run) |
-|---|---|
-| 1 | ✅ complete — `e2e_junit_batch1.xml` (2026-07-29 15:49) |
-| 2 | ✅ complete — `e2e_junit_batch2.xml` (2026-07-29 16:07) |
-| 3 | ❌ **interrupted** — never wrote fresh junit (`batch3.xml` on disk is **stale from Jul 7**) |
-| 4 | ⏭️ deferred to tomorrow |
-| 5 | ⏭️ deferred to tomorrow (small — ~6 files) |
+| Batch | Status (2026-07-29 run) | Files |
+|---|---|---|
+| 1 | ✅ complete — 18 failed, 52 passed, 10 skipped (`batch1.xml` 15:49) | 1–15 |
+| 2 | ✅ complete — 4 failed, 51 passed, 28 errors (`batch2.xml` 16:07) | 16–30 |
+| 3 | ❌ **timed out** at the 30-min batch limit — no fresh junit (`batch3.xml` stale Jul 7) | 31–45 |
+| 4 | ✅ complete — (`batch4.xml` 16:48) | 46–60 |
+| 5 | ❌ interrupted by the deliberate stop — no fresh junit (`batch5.xml` stale Jun 17) | 61–66 |
 
-**Action for next session:** to get the full "batches 1–3" picture, **re-run batch 3 cleanly**
-(fold it into the batch 4–5 run tomorrow, or run standalone ~12 min). The data below is
-**batches 1–2 only**.
+> **Correction (2026-07-30):** the earlier note that "batch 3 completed / batch 4 deferred" was wrong.
+> Yesterday's log jumps from the batch-2 junit straight to the batch-**4** junit, so batch 4 finished
+> and **batch 3 timed out** (it is heavy with the 60s marker/popup timeouts). Batch 5 was interrupted.
+
+**Status 2026-07-30:** re-running **batches 3 and 5** directly (mirroring the runner's pytest
+command, but with no 30-min kill so batch 3 can finish). Batch 3 is mostly PRS/property-lifecycle
+tests (lifecycle_gauge_prs, lifecycle_property_prs, property_context_menu, property_panel_storm,
+property_prs_decomposition, map_smoke, loan_calculator) — directly relevant to remediation.
+The Theme table below is **batches 1, 2 (+4 once parsed)**; batch 3/5 failures will be added.
 
 ---
 
@@ -150,12 +156,100 @@ Notes:
 
 ---
 
-## 6. Recommended next steps
+## 6. Recommended next steps (superseded by §7)
 
 1. **Skip governance (Theme A)** — will be deleted with the governance section.
-2. **Investigate the shared root cause** behind Themes B/C/D/E: do the Leaflet map markers /
-   popups actually render in the thames e2e state? Start with Theme C (Trading Desk link) since
-   it's the core PRS-trader path. Likely fixes B+C+D+E together.
-3. **Re-run e2e batch 3** to complete the "batches 1–3" set (defer 4–5 to a later run, or do all of 3–5).
-4. Theme F (commercial preloader cache vars) is likely its own data/JS-init issue — check the
-   startup preloader that populates the commercial asset-name lookup.
+2. Re-run e2e batch 3 + 5 to complete the current-run set (done 2026-07-30).
+3. See §7 for the grounded, root-cause-first plan.
+
+---
+
+## 7. Remediation plan (root-cause-first, evidence-backed 2026-07-30)
+
+Investigated with three source dives. Findings changed the picture: it is **not** one shared
+root cause. There is one big fixture-level cause (P0) plus several **genuine product bugs** in the
+PRS-trader UI worth fixing on their own merits.
+
+> **DONE 2026-07-30 — applied, verified, committed `7db56e7b`.** Targeted re-run of the
+> previously-failing Theme D + F tests now passes (11 passed, 2 skipped in 3:58; the 120 s
+> per-batch dead-wait is gone). Batch 5 (workflow suite) also ran clean **15/15** with P0.
+> Batch 3 pre-P0 baseline: 53 failed / 53 passed / 15 skipped — feeds the residual themes below.
+
+### P0 — Licence-gate overlay is never dismissed in the e2e session ⭐ do first (DONE)
+
+**Root cause:** `_browser_page` (`tests/e2e/conftest.py:257-289`) loads `/visualization` and waits
+for `window._tdPreloadDone===true`, but never accepts the licence gate. `license_gate.js:41-116`
+creates `#license-gate-overlay` (`position:fixed; inset:0; z-index:10000`) that (a) intercepts every
+non-`force` `.click()`, and (b) gates `_runStartupPreload` behind its **Accept** handler
+(`startup.js:248-260`) — so the preloader never runs, `_tdPreloadDone` never flips, the wait burns
+its full **120 s** every batch, then falls through with the overlay still up and no data preloaded.
+
+**Fix** (`tests/e2e/conftest.py`, after the `.leaflet-container` wait, before the preload wait):
+```python
+gate = page.locator("#license-gate-overlay")
+if gate.count() > 0:
+    page.locator("#license-gate-overlay button:has-text('Accept')").click(timeout=10_000)
+    page.wait_for_selector("#license-gate-overlay", state="detached", timeout=10_000)
+```
+**Clears:** Theme D (all), Theme E `TestGaugePanelTabs` (2), Theme F (both) — and removes the 120 s
+dead wait per batch (major speed-up). **Partially helps** Theme B gauge right-click (removes the
+overlay intercept). Does **not** fix Theme C (see C1/C2) or the Theme B viewport bug (B2).
+
+### Theme B — Map marker context menus (residual after P0)
+
+- **B1 (test):** `test_context_menus.py:73` right-clicks via `markers.first.click(button="right")`
+  (actionability-checked) → flaky on dense/overlapping halong markers even without the overlay. Fix:
+  use `bounding_box()` + `page.mouse.click(cx, cy, button="right")` (the pattern
+  `test_commercial_context_menu_part1.py:94-100` already uses), or `force=True`.
+- **B2 (PRODUCT BUG):** `coordinator._extract_coordinates()` (`src/visual/.../coordinator.py:165-188`)
+  reads gauge coords from the wrong schema (`items` / `Location.GaugeLatitude`) while halong uses
+  `flood_gauges` / `SensorDetails.GaugeInformation.GaugeLatitude`, **and ignores commercial coords
+  entirely**. `fit_bounds` therefore frames *properties only* → commercial markers can render
+  off-screen → coordinate right-click misses → "0 menus". Fix: correct the gauge key/path and add a
+  commercial-coords branch. This is a real UX bug (map doesn't frame gauges/commercial), not just a test.
+
+### Theme C — Gauge Blotter → Trading Desk (mostly its own product issues; core PRS path)
+
+- **C1 (PRODUCT):** first-open of `#trading-desk-panel` is gated on **8 preload fetches + 400 ms**
+  (`trading/preloader.js:139-182`, `panel_lifecycle.js:21-39`); tests wait only 5 s
+  (`test_cross_panel_flows_part1.py:117`) → timeout when stress/portfolio-storm/EOD endpoints are slow.
+  Fix: open the panel + show the blotter tab from `_tdPreBlotter` immediately, lazy-load heavy datasets per tab.
+- **C2 (PRODUCT + test):** the `#hazard-blotter-link` button is created **disabled**
+  (`gauge/gaugehc/panel_create.js:82-99`) and only enabled if the gauge ∈ `/api/v1/trading/blotter/active-gauges`
+  (`panel_data.js:57-69`), fetched **late** in the hazard/market await chain; `blotter.py:154` `raise`s
+  on error → 500 → `.catch` leaves it disabled. Worse, the fixture `first_traded_gauge_id`
+  (`conftest.py:365-389`) derives "traded" from the **PRS file `Header.TradeStatus`** while the backend
+  uses **trade-marks** — divergent, so the button is disabled for the very gauge the test selects.
+  Fix: enable the button early + **fail-open** on `active-gauges` error; align the fixture's "traded"
+  definition with the backend; tests wait for `#hazard-blotter-link:not([disabled])` then non-force click.
+
+### Theme D — Property storm tabs → **fixed by P0** (plain `.click()` under the overlay). Verify after P0.
+
+### Theme E — Gauge panel tabs
+
+- `TestGaugePanelTabs::test_stress_tab_renders` / `test_historical_tab_renders` → **fixed by P0** (plain clicks).
+- **E1 (residual):** `TestHistoricalTab::test_storm_scenarios_list_exists` already force-clicks
+  (`helpers.py:215`); it fails on content because `switchTab(4)` returns early when `hazardData` is null
+  (`panel_nav.js:54`) → `renderHistorical` never writes the "Flood Storm Scenarios" scaffold. `hazardData`
+  is null when `/api/v1/gauges/<id>/hazard` fails (likely untrained GBM classifiers for halong). Fix:
+  seed/train classifiers for the test gauge, **or** render the static scaffold even when `hazardData` is
+  absent (`ghc_historical.js:25-73`).
+
+### Theme F — Commercial startup preloader → **fixed by P0** (preloader now runs).
+
+- **F1 (verify):** the assertions read `_preCommercial.count` (`test_...part4.py:240-244`); confirm
+  `/api/v1/commercial` exposes a numeric `count` (vs `commercial_assets.length`) once the preloader runs.
+
+### Execution order
+1. **P0** (conftest licence-gate) — one change, clears D + E-tabs + F, big speed-up, unblocks B-gauge.
+2. **C1 + C2** (Trading Desk open + blotter-enable) — core PRS-trader path; product fixes.
+3. **B2** (coordinator fit_bounds) — real UX bug; **B1** test-click pattern.
+4. **E1** (historical scaffold / classifier data), **F1** (response-shape verify).
+
+### Genuine product bugs surfaced (fix on their own merit, PRS-trader-relevant)
+- `coordinator._extract_coordinates()` frames only properties (gauges wrong-schema, commercial ignored) — **B2**
+- Trading Desk panel blocks on full 8-fetch preload before showing anything — **C1**
+- Gauge-blotter enable is late + fails-closed on error; "traded" defined two different ways — **C2**
+
+> Batches 3 + 5 (re-run 2026-07-30) add instances to the **same themes** (batch 3 = property/gauge
+> lifecycle → C/D/E; batch 5 = workflow → C). Fold their failures into the themes above.
