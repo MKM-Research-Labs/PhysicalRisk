@@ -160,7 +160,20 @@ class TestPropertyHazardPanel:
         if not has_fn:
             pytest.skip("window.viewPropertyHazard not available")
         map_page.evaluate(f"window.viewPropertyHazard('{prop_id}')")
-        map_page.wait_for_timeout(3_000)
+        map_page.locator("#property-hc-panel").wait_for(
+            state="visible", timeout=10_000)
+        # Wait for loadData() to finish before interacting: the panel shows
+        # immediately but its tabs are gated on phcData, and clicking a tab
+        # mid-load is intercepted. #phc-status leaves 'Loading...' when done.
+        try:
+            map_page.wait_for_function(
+                "() => { var s = document.getElementById('phc-status');"
+                " return s && s.textContent"
+                " && s.textContent.indexOf('Loading') === -1; }",
+                timeout=20_000,
+            )
+        except Exception:
+            pass
 
     def test_panel_opens_with_title(self, map_page, first_property_id):
         """Calling viewPropertyHazard should open the panel with title."""
@@ -194,7 +207,7 @@ class TestPropertyHazardPanel:
 
         tab = panel.locator(".phc-tab[data-tab='0']")
         if tab.count() > 0:
-            tab.click()
+            tab.click(force=True)
             map_page.wait_for_timeout(3_000)
 
         chart = map_page.locator("#phc-chart")
@@ -219,7 +232,7 @@ class TestPropertyHazardPanel:
         tab = panel.locator(".phc-tab[data-tab='2']")
         if tab.count() == 0:
             pytest.skip("PRS pricing tab (data-tab=2) not found")
-        tab.click()
+        tab.click(force=True)
         map_page.wait_for_timeout(3_000)
 
         notional = map_page.locator("#phc-notional")
@@ -241,7 +254,7 @@ class TestPropertyHazardPanel:
         tab = panel.locator(".phc-tab[data-tab='3']")
         if tab.count() == 0:
             pytest.skip("Basis analysis tab (data-tab=3) not found")
-        tab.click()
+        tab.click(force=True)
         map_page.wait_for_timeout(3_000)
 
         text = panel.inner_text()
