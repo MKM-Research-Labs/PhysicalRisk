@@ -279,3 +279,36 @@ overlay intercept). Does **not** fix Theme C (see C1/C2) or the Theme B viewport
 
 > Batches 3 + 5 (re-run 2026-07-30) add instances to the **same themes** (batch 3 = property/gauge
 > lifecycle → C/D/E; batch 5 = workflow → C). Fold their failures into the themes above.
+
+---
+
+## 8. Batch re-run results with P0 + all fixes (2026-07-30)
+
+Re-ran each batch with the committed fixes (P0, C2, B2, B1, E1) to get the true residual set.
+
+| Batch | Pre-P0 | With P0 + fixes | Notes |
+|---|---|---|---|
+| 1 | 18 failed | (not re-run) | non-gov all fixed + verified via targeted runs (B/C/D/E/F) |
+| 2 | 4 failed + 28 errors | (not re-run) | non-gov fixed; 28 = governance (out of scope) |
+| 3 | 53 failed / 53 passed / 15 skipped | **32 failed / 80 passed / 9 skipped** | 0 errors (teardown cascade gone); **governance now passes**; 32 real residuals (property-panel cluster) |
+| 4 | "113 errors" (0 real fails) | (queued after batch 3) | pre-P0 record was a teardown cascade, not real; re-running with P0 |
+| 5 | (interrupted) | **15 passed / 1 skipped / 0 failed** | clean post-P0 |
+
+### Batch 3 residuals (32 real failures — new theme: **property-panel**)
+Not previously characterised (batch 3 never completed pre-P0). All are property/panel content or
+interaction tests — the property-side analogues of the gauge/commercial fixes already landed:
+
+- **TestBasisExplorerPanel** (12) — property basis-explorer sub-tabs (`test_sub_tab_bar_renders`, `test_four_sub_tabs_present`, labels, …)
+- **TestDocsTabStructure** (6) — docs tab sections *(verify: may be model-documentation / governance-adjacent → possibly out of scope)*
+- **TestPropertyFloodHistory** (3) — `test_history_renders` / `_has_chart` / `_table_has_rows`
+- **TestPropertyHazardPanel** (3) — `test_hazard_curve_chart_renders`, `test_prs_pricing_tab_has_controls`, `test_basis_analysis_tab_shows_content`
+- **TestPropertyPRSDecomposition** (3) — spread-decomposition section / both paths / terrain effect
+- **TestCommercialPRSIndependentPerils** (1) — independent-perils rows for commercial
+- **TestMarketUpdatePL** (1) — `test_03_commit_market_changes`
+- **TestPropertyContextMenu** (1) — `test_right_click_property_shows_menu` *(same overlap pattern as B1/B2 → likely the dispatch-contextmenu fix)*
+- **TestPropertyPRSBookTrade** (1) — `test_03_commit_property_trade`
+- **TestPropertyStormPanel** (1) — `test_status_bar_shows_flood_counts`
+
+**Hypotheses (to confirm):** the property panel likely mirrors the gauge panel — content tabs gated
+on a hazard/data fetch that may be null (cf. E1), and `TestPropertyContextMenu` is the property
+marker analogue of the B1/B2 overlap fix. These are the next remediation candidates.
