@@ -57,15 +57,25 @@
                     // Enable/disable blotter button based on active trades
                     var blBtn = document.getElementById('hazard-blotter-link');
                     if (blBtn) {
+                        var _setBlotterEnabled = function (enabled) {
+                            blBtn.disabled = !enabled;
+                            blBtn.style.color = enabled ? '#1565c0' : '#bbb';
+                            blBtn.style.cursor = enabled ? 'pointer' : 'default';
+                            blBtn.style.background = enabled ? '#e3f2fd' : '#f5f5f5';
+                        };
                         try {
                             var agResp = await fetch(baseUrl + '/api/v1/trading/blotter/active-gauges', {mode: 'cors'});
                             var agData = await agResp.json();
                             var hasT = agData.status === 'success' && (agData.gauge_ids || []).indexOf(gaugeId) !== -1;
-                            blBtn.disabled = !hasT;
-                            blBtn.style.color = hasT ? '#1565c0' : '#bbb';
-                            blBtn.style.cursor = hasT ? 'pointer' : 'default';
-                            blBtn.style.background = hasT ? '#e3f2fd' : '#f5f5f5';
-                        } catch (e) { /* leave muted */ }
+                            _setBlotterEnabled(hasT);
+                        } catch (e) {
+                            // Fail open: the active-gauges probe is a best-effort
+                            // convenience. If it errors (e.g. the endpoint 500s per
+                            // blotter.py:154's documented contract), enable the button
+                            // rather than silently locking the trader out — the Trading
+                            // Desk filters to this gauge on open regardless.
+                            _setBlotterEnabled(true);
+                        }
                     }
 
                     // Pre-populate inputs from blotter (trade review or close-out)

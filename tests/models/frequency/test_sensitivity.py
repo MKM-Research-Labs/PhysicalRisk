@@ -31,6 +31,7 @@ import pytest
 
 from models.frequency import (
     distributional_sensitivity,
+    lambda_price_distribution,
     rate_sensitivity,
     trend_sensitivity,
 )
@@ -149,3 +150,41 @@ class TestDistributionalSensitivity:
         report = distributional_sensitivity(0.0, [0.0, 1.0])
         assert report["poisson_probability"] == 0.0
         assert all(r["prob_at_least_one"] == 0.0 for r in report["rows"])
+
+
+# ---------------------------------------------- lambda price distribution (6l)
+
+class TestLambdaPriceDistribution:
+
+    def _band(self, lam=4.5):
+        # +-50% band expressed as P5/P50/P95 of lambda's prior.
+        return [("P5", lam * 0.5), ("P50", lam), ("P95", lam * 1.5)]
+
+    def test_the_median_row_is_the_base_spread(self):
+        r = lambda_price_distribution(0.01, 4.5, self._band())
+        med = next(row for row in r["rows"] if row["label"] == "P50")
+        assert med["spread_bps"] == pytest.approx(r["median_spread_bps"])
+        assert med["spread_rel_to_median"] == pytest.approx(0.0)
+
+    def test_the_spread_percentiles_transform_lambda_monotonically(self):
+        r = lambda_price_distribution(0.01, 4.5, self._band())
+        spreads = [row["spread_bps"] for row in r["rows"]]
+        assert spreads == sorted(spreads)   # P5 < P50 < P95, same order as lambda
+
+    def test_uncertainty_passes_through_near_one_for_one(self):
+        """The headline: at a small conditional a +-50% band on lambda induces a
+        near +-50% band on the spread, so passthrough is close to 1."""
+        r = lambda_price_distribution(0.005, 4.5, self._band())
+        assert r["passthrough"] == pytest.approx(1.0, abs=0.05)
+
+    def test_passthrough_falls_below_one_as_lambda_p_grows(self):
+        """Convexity: at a larger conditional the exp curve bends, so the spread
+        band is a little tighter than lambda's — passthrough drops below 1."""
+        small = lambda_price_distribution(0.005, 4.5, self._band())["passthrough"]
+        large = lambda_price_distribution(0.05, 4.5, self._band())["passthrough"]
+        assert large < small <= 1.0 + 1e-9
+
+    def test_a_zero_conditional_gives_a_degenerate_band(self):
+        r = lambda_price_distribution(0.0, 4.5, self._band())
+        assert r["median_spread_bps"] == 0.0
+        assert all(row["spread_rel_to_median"] == 0.0 for row in r["rows"])

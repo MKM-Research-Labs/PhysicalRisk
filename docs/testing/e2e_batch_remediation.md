@@ -210,6 +210,13 @@ overlay intercept). Does **not** fix Theme C (see C1/C2) or the Theme B viewport
 
 ### Theme C — Gauge Blotter → Trading Desk (mostly its own product issues; core PRS path)
 
+> **DONE 2026-07-30 — committed `9c489b02`, verified.** Theme C blotter/trading-desk e2e:
+> 9 passed / 0 failed (incl. the muted-when-no-trades case). **C1 needed no change** — the P0
+> startup preload loads all `_tdPre*` datasets and sets `_tdPreloadDone`, so the desk opens
+> immediately (the 8-fetch `_tdRunPreload` gate is only hit when preload hasn't run). **C2 fixed:**
+> fail-open in `panel_data.js` (honors `blotter.py:154`'s contract) + `first_traded_gauge_id`
+> re-sourced from `/active-gauges`. No Python / unit-tested code changed.
+
 - **C1 (PRODUCT):** first-open of `#trading-desk-panel` is gated on **8 preload fetches + 400 ms**
   (`trading/preloader.js:139-182`, `panel_lifecycle.js:21-39`); tests wait only 5 s
   (`test_cross_panel_flows_part1.py:117`) → timeout when stress/portfolio-storm/EOD endpoints are slow.

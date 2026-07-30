@@ -78,6 +78,7 @@ from .rate_process import (
 )
 from .sensitivity import (
     distributional_sensitivity,
+    lambda_price_distribution,
     rate_sensitivity,
     trend_sensitivity,
 )
@@ -126,6 +127,7 @@ __all__ = [
     "trend_sensitivity",
     "rate_sensitivity",
     "distributional_sensitivity",
+    "lambda_price_distribution",
     "EventCatalogue",
     "EventFrame",
     "EventLossTable",
