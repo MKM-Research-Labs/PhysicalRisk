@@ -147,6 +147,62 @@ def distributional_sensitivity(
     }
 
 
+def lambda_price_distribution(
+    p_event: float,
+    lambda_median: float,
+    percentiles: Sequence,
+) -> Dict:
+    """Propagate an uncertain λ to the induced distribution of the spread.
+
+    λ has no validated level, so it carries genuine uncertainty. Because the
+    spread `1 − exp(−λ·p)` is monotonically increasing in λ, a percentile of λ
+    maps to the *same* percentile of the spread — the induced spread
+    distribution is the exact transform of the λ distribution, with no Monte
+    Carlo error. Feeding the λ percentiles (e.g. P5/P50/P95 of a plausible
+    prior) therefore yields the spread's percentiles directly.
+
+    The headline this quantifies: in the near-linear regime `λp ≪ 1` the
+    spread's relative interval is close to λ's own, so **λ's uncertainty passes
+    through to price uncertainty almost one-for-one** — a ±50% band on λ is very
+    nearly a ±50% band on the spread.
+
+    Args:
+        p_event: the per-event conditional exceedance probability.
+        lambda_median: the median (P50) arrival rate.
+        percentiles: an iterable of ``(label, lambda_value)`` pairs giving λ at
+            each percentile of its prior; the median should be among them.
+
+    Returns:
+        A dict with the median spread and, per percentile, the λ value, the
+        spread (bps), and the spread's relative offset from the median — the
+        induced price-uncertainty band. ``passthrough`` compares the spread's
+        span to λ's span, so a value near 1.0 confirms the one-for-one relation.
+    """
+    median_spread = annual_exceedance_probability(lambda_median, p_event)
+    rows = []
+    for label, lam in percentiles:
+        spread = annual_exceedance_probability(lam, p_event)
+        rows.append({
+            "label": label,
+            "lambda_per_year": lam,
+            "spread_bps": spread * 10000.0,
+            "spread_rel_to_median": (spread / median_spread - 1.0) if median_spread > 0 else 0.0,
+            "lambda_rel_to_median": (lam / lambda_median - 1.0) if lambda_median > 0 else 0.0,
+        })
+
+    lo = min(rows, key=lambda r: r["lambda_per_year"])
+    hi = max(rows, key=lambda r: r["lambda_per_year"])
+    lam_span = hi["lambda_rel_to_median"] - lo["lambda_rel_to_median"]
+    spread_span = hi["spread_rel_to_median"] - lo["spread_rel_to_median"]
+    return {
+        "p_event": p_event,
+        "lambda_median": lambda_median,
+        "median_spread_bps": median_spread * 10000.0,
+        "rows": rows,
+        "passthrough": (spread_span / lam_span) if lam_span else 0.0,
+    }
+
+
 def trend_sensitivity(
     lambda_per_year: float,
     p_event: float,
