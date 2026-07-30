@@ -48,6 +48,37 @@ def _find_markers(page):
     return None
 
 
+def _find_gauge_markers(page):
+    """Find GAUGE markers specifically.
+
+    Gauges render with folium ``icon='tint'`` → an ``<i class='fa-tint'>``
+    inside the awesome-marker icon div (commercial=purple, properties use
+    other fa icons). Falls back to any marker if the structure differs.
+    """
+    markers = page.locator("[class*='awesome-marker-icon-']:has(i.fa-tint)")
+    if markers.count() > 0:
+        return markers
+    return _find_markers(page)
+
+
+def _dispatch_context_menu(page, markers):
+    """Fire ``contextmenu`` on the first marker via ``dispatch_event``.
+
+    A pixel right-click (``.click(button='right')``) is actionability-checked
+    and times out on dense/overlapping markers — under the portfolio-wide
+    auto-zoom, catchments like Hanoi pack markers tightly, and an overlapping
+    marker intercepts the hit-test. Dispatching on the element bypasses
+    hit-testing so the target marker's own Leaflet contextmenu handler fires.
+    """
+    box = markers.first.bounding_box()
+    init = {"bubbles": True, "cancelable": True, "button": 2}
+    if box:
+        init["clientX"] = int(box["x"] + box["width"] / 2)
+        init["clientY"] = int(box["y"] + box["height"] / 2)
+    markers.first.dispatch_event("contextmenu", init)
+    page.wait_for_timeout(1_500)
+
+
 class TestGaugeContextMenu:
     """Right-clicking a gauge marker should show a context menu."""
 
@@ -69,9 +100,8 @@ class TestGaugeContextMenu:
             }""")
             pytest.skip(f"No markers on map. Diagnostics: {diag}")
 
-        print(f"\n  [DEBUG] Found {markers.count()} markers, clicking first...")
-        markers.first.click(button="right")
-        map_page.wait_for_timeout(3_000)
+        print(f"\n  [DEBUG] Found {markers.count()} markers, right-clicking first...")
+        _dispatch_context_menu(map_page, markers)
 
         # Check multiple possible context menu selectors
         menu = map_page.locator(".ctx-menu")
@@ -96,8 +126,7 @@ class TestGaugeContextMenu:
         if markers is None or markers.count() == 0:
             pytest.skip("No markers on map")
 
-        markers.first.click(button="right")
-        map_page.wait_for_timeout(1_500)
+        _dispatch_context_menu(map_page, markers)
 
         items = map_page.locator(".ctx-menu-item")
         assert items.count() >= 2, f"Only {items.count()} menu items found"
@@ -108,8 +137,7 @@ class TestGaugeContextMenu:
         if markers is None or markers.count() == 0:
             pytest.skip("No markers on map")
 
-        markers.first.click(button="right")
-        map_page.wait_for_timeout(1_500)
+        _dispatch_context_menu(map_page, markers)
 
         header = map_page.locator(".ctx-menu-header")
         assert header.count() > 0, "No context menu header"
@@ -122,8 +150,7 @@ class TestGaugeContextMenu:
         if markers is None or markers.count() == 0:
             pytest.skip("No markers on map")
 
-        markers.first.click(button="right")
-        map_page.wait_for_timeout(1_500)
+        _dispatch_context_menu(map_page, markers)
 
         menu = map_page.locator(".ctx-menu")
         assert menu.first.is_visible()
@@ -143,12 +170,14 @@ class TestContextMenuNavigation:
 
     def test_hazard_curve_item_opens_gauge_panel(self, map_page):
         """Clicking 'Physical Risk Swap' should open the gauge hazard panel."""
-        markers = _find_markers(map_page)
+        # Target a GAUGE marker specifically: the "Physical Risk Swap" item
+        # exists in the property menu too (and opens the *property* panel), so
+        # a non-gauge marker here would open the wrong panel.
+        markers = _find_gauge_markers(map_page)
         if markers is None or markers.count() == 0:
-            pytest.skip("No markers on map")
+            pytest.skip("No gauge markers on map")
 
-        markers.first.click(button="right")
-        map_page.wait_for_timeout(1_500)
+        _dispatch_context_menu(map_page, markers)
 
         # Look for PRS / Hazard Curve menu item
         prs_item = map_page.locator(".ctx-menu-item", has_text="Physical Risk Swap")
