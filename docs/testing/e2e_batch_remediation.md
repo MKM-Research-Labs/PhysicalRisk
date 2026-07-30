@@ -203,7 +203,11 @@ overlay intercept). Does **not** fix Theme C (see C1/C2) or the Theme B viewport
 > Hanoi's markers tightly enough that the commercial context-menu e2e then hit an *overlapping
 > property* marker — fixed test-side by dispatching `contextmenu` on the commercial marker element
 > (bypasses pixel hit-testing). Commercial context-menu e2e: 3 passed / 0 failed.
-> **B1 (gauge right-click actionability) still open.**
+>
+> **B1 DONE 2026-07-30 — committed `0341cf02`, verified.** Gauge context-menu tests switched from
+> actionability-checked `.click(button='right')` (timed out on overlap) to a `dispatch_event`
+> contextmenu helper; the navigation test now targets a gauge marker (`i.fa-tint`) so "Physical
+> Risk Swap" opens the gauge panel. Gauge context-menu e2e: 5 passed / 0 failed. **Theme B complete.**
 
 - **B1 (test):** `test_context_menus.py:73` right-clicks via `markers.first.click(button="right")`
   (actionability-checked) → flaky on dense/overlapping halong markers even without the overlay. Fix:
