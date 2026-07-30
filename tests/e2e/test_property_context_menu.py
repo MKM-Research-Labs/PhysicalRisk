@@ -61,18 +61,25 @@ def _right_click_property_marker(page):
         }""")
         pytest.skip(f"No property markers on map. Diagnostics: {diag}")
 
-    # Dispatch the right-click at the marker's centre coordinates so the
-    # event propagates through Leaflet's event system (force=True on the
-    # DOM element can bypass Leaflet's L.Marker contextmenu listener).
+    # Dispatch a contextmenu event directly on the property marker element.
+    # A coordinate right-click is intercepted by overlapping markers under the
+    # portfolio-wide zoom (dense catchments), and a force right-*click* fires a
+    # click, not the contextmenu event Leaflet's L.Marker listener responds to.
+    # Dispatching contextmenu on the element bypasses hit-testing and fires the
+    # marker's own handler regardless of overlap.
     box = markers.first.bounding_box()
     if box:
-        cx = box["x"] + box["width"] / 2
-        cy = box["y"] + box["height"] / 2
-        page.mouse.click(cx, cy, button="right")
+        markers.first.dispatch_event("contextmenu", {
+            "bubbles": True,
+            "cancelable": True,
+            "button": 2,
+            "clientX": int(box["x"] + box["width"] / 2),
+            "clientY": int(box["y"] + box["height"] / 2),
+        })
     else:
-        # Fallback: direct Playwright right-click with force
-        markers.first.click(button="right", force=True)
-    page.wait_for_timeout(9_000)
+        markers.first.dispatch_event(
+            "contextmenu", {"bubbles": True, "cancelable": True, "button": 2})
+    page.wait_for_timeout(1_500)
 
 
 class TestPropertyContextMenu:

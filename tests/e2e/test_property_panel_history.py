@@ -40,7 +40,20 @@ class TestPropertyFloodHistory:
         if not has_fn:
             pytest.skip("window.viewPropertyStorms not available")
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-        map_page.wait_for_timeout(3_000)
+        map_page.locator("#prop-storm-panel").wait_for(
+            state="visible", timeout=10_000)
+        # Wait for loadData() to finish: the panel shows immediately, but its
+        # tabs (Flood History et al.) are gated on propStormData and render
+        # empty until it loads. #prop-storm-status leaves 'Loading...' when done.
+        try:
+            map_page.wait_for_function(
+                "() => { var s = document.getElementById('prop-storm-status');"
+                " return s && s.textContent"
+                " && s.textContent.indexOf('Loading') === -1; }",
+                timeout=20_000,
+            )
+        except Exception:
+            pass
 
     def test_history_renders(self, map_page, first_property_id):
         """Flood History tab (idx 3) should render content."""
@@ -130,7 +143,20 @@ class TestPropertyMortgageImpact:
         if not has_fn:
             pytest.skip("window.viewPropertyStorms not available")
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-        map_page.wait_for_timeout(3_000)
+        map_page.locator("#prop-storm-panel").wait_for(
+            state="visible", timeout=10_000)
+        # Wait for loadData() to finish: the panel shows immediately, but its
+        # tabs (Flood History et al.) are gated on propStormData and render
+        # empty until it loads. #prop-storm-status leaves 'Loading...' when done.
+        try:
+            map_page.wait_for_function(
+                "() => { var s = document.getElementById('prop-storm-status');"
+                " return s && s.textContent"
+                " && s.textContent.indexOf('Loading') === -1; }",
+                timeout=20_000,
+            )
+        except Exception:
+            pass
 
     def test_mortgage_impact_renders(self, map_page, first_property_id):
         """Mortgage Impact tab (idx 4) should render content."""
@@ -202,7 +228,20 @@ class TestPropertyInsuranceReport:
         if not has_fn:
             pytest.skip("window.viewPropertyStorms not available")
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-        map_page.wait_for_timeout(3_000)
+        map_page.locator("#prop-storm-panel").wait_for(
+            state="visible", timeout=10_000)
+        # Wait for loadData() to finish: the panel shows immediately, but its
+        # tabs (Flood History et al.) are gated on propStormData and render
+        # empty until it loads. #prop-storm-status leaves 'Loading...' when done.
+        try:
+            map_page.wait_for_function(
+                "() => { var s = document.getElementById('prop-storm-status');"
+                " return s && s.textContent"
+                " && s.textContent.indexOf('Loading') === -1; }",
+                timeout=20_000,
+            )
+        except Exception:
+            pass
 
     def test_insurance_tab_exists(self, map_page, first_property_id):
         """Insurance Report tab button (idx 5) should exist."""
