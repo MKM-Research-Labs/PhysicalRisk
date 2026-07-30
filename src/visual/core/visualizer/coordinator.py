@@ -163,16 +163,30 @@ class TCEventVisualization:
             return None
 
     def _extract_coordinates(self) -> list:
-        """Extract all marker coordinates for auto-zoom."""
+        """Extract every rendered marker's coordinates for auto-zoom.
+
+        Covers gauges, properties AND commercial assets so ``fit_bounds`` frames
+        all markers, not just properties. Gauge coordinates are read via the
+        canonical ``extract_gauges`` extractor (which handles the
+        ``items``/``floodGauges``/``flood_gauges`` key variants and the
+        ``SensorDetails.GaugeInformation`` path) rather than re-encoding one
+        schema here — the earlier inline version silently matched no gauges for
+        the ``flood_gauges`` schema, and commercial assets were omitted
+        entirely, so the map framed properties only and could leave gauge/
+        commercial markers off-screen.
+        """
         all_coords = []
-        if self.loaded_data.gauge_data and 'items' in self.loaded_data.gauge_data:
-            for gauge in self.loaded_data.gauge_data['items']:
-                loc = gauge.get('FloodGauge', {}).get('Location', {})
-                lat = loc.get('GaugeLatitude')
-                lon = loc.get('GaugeLongitude')
-                if lat and lon:
+
+        # Gauges — reuse the canonical extractor (all schema variants).
+        if self.loaded_data.gauge_data:
+            from visual.layer.gauge_layer.extract import extract_gauges
+            for gauge in extract_gauges(self.loaded_data.gauge_data):
+                lat = gauge.get('lat')
+                lon = gauge.get('lon')
+                if lat is not None and lon is not None:
                     all_coords.append((lat, lon))
 
+        # Properties.
         if self.loaded_data.property_data:
             from visual.utils import DataExtractor
             props = self.loaded_data.property_data.get('properties',
@@ -182,8 +196,18 @@ class TCEventVisualization:
                 if info and info.get('coordinates'):
                     plat = info['coordinates'].get('latitude')
                     plon = info['coordinates'].get('longitude')
-                    if plat and plon:
+                    if plat is not None and plon is not None:
                         all_coords.append((plat, plon))
+
+        # Commercial assets — same source/path the commercial layer renders
+        # from, so the purple markers are framed too.
+        commercial_data = getattr(self.loaded_data, 'commercial_data', None) or {}
+        for asset in commercial_data.get('commercial_assets', []):
+            location = asset.get('CommercialAsset', {}).get('Location', {})
+            lat = location.get('LatitudeDegrees')
+            lon = location.get('LongitudeDegrees')
+            if lat is not None and lon is not None:
+                all_coords.append((lat, lon))
 
         return all_coords
 

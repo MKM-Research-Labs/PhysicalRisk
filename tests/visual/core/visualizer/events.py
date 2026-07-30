@@ -22,6 +22,7 @@
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import pytest
 import folium
 from unittest.mock import MagicMock, patch
@@ -72,6 +73,70 @@ class TestCreateEventMap:
         vis = TCEventVisualization(input_dir=inp, output_dir=out, enable_interactivity=False)
         result = vis.create_event_map("bounds.html")
         assert result is not None
+
+
+class TestExtractCoordinates:
+    """_extract_coordinates must frame gauges AND commercial assets, not just
+    properties (the auto-zoom fit_bounds bug)."""
+
+    def _vis(self, tmp_path, loaded_data):
+        from visual.core.visualizer import TCEventVisualization
+        vis = TCEventVisualization(
+            input_dir=tmp_path / "i", output_dir=tmp_path / "o",
+            enable_interactivity=False,
+        )
+        vis.loaded_data = loaded_data
+        return vis
+
+    def test_gauge_coords_flood_gauges_schema(self, tmp_path):
+        """Gauges keyed 'flood_gauges' with the SensorDetails path are framed.
+
+        The previous inline extractor required an 'items' key and read
+        Location.GaugeLatitude, so it matched nothing for this (real) schema.
+        """
+        ld = SimpleNamespace(
+            gauge_data={"flood_gauges": [{"FloodGauge": {
+                "Header": {"GaugeID": "GAUGE-1"},
+                "SensorDetails": {"GaugeInformation": {
+                    "GaugeLatitude": 21.03, "GaugeLongitude": 105.85}},
+            }}]},
+            property_data=None,
+            commercial_data=None,
+        )
+        coords = self._vis(tmp_path, ld)._extract_coordinates()
+        assert (21.03, 105.85) in coords
+
+    def test_commercial_coords_included(self, tmp_path):
+        """Commercial assets are framed via Location.Latitude/LongitudeDegrees."""
+        ld = SimpleNamespace(
+            gauge_data=None,
+            property_data=None,
+            commercial_data={"commercial_assets": [{"CommercialAsset": {
+                "Location": {"LatitudeDegrees": 20.99, "LongitudeDegrees": 105.8}}}]},
+        )
+        coords = self._vis(tmp_path, ld)._extract_coordinates()
+        assert (20.99, 105.8) in coords
+
+    def test_gauge_and_commercial_both_framed(self, tmp_path):
+        """A mixed portfolio contributes both gauge and commercial coords."""
+        ld = SimpleNamespace(
+            gauge_data={"flood_gauges": [{"FloodGauge": {
+                "Header": {"GaugeID": "GAUGE-2"},
+                "SensorDetails": {"GaugeInformation": {
+                    "GaugeLatitude": 21.1, "GaugeLongitude": 105.9}},
+            }}]},
+            property_data=None,
+            commercial_data={"commercial_assets": [{"CommercialAsset": {
+                "Location": {"LatitudeDegrees": 21.0, "LongitudeDegrees": 105.7}}}]},
+        )
+        coords = self._vis(tmp_path, ld)._extract_coordinates()
+        assert (21.1, 105.9) in coords
+        assert (21.0, 105.7) in coords
+
+    def test_missing_commercial_data_is_safe(self, tmp_path):
+        """No commercial_data attribute at all → no error, empty result."""
+        ld = SimpleNamespace(gauge_data=None, property_data=None)
+        assert self._vis(tmp_path, ld)._extract_coordinates() == []
 
 
 class TestGetStatisticsComponents:
