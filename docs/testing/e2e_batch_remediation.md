@@ -354,17 +354,22 @@ likely the property-side analogue of P0+E1 and should clear most of P1–P2.
 - **Fix (done):** dispatch `contextmenu` on the property marker element (fires Leaflet's L.Marker
   listener; a force right-*click* only fires a click). Verified green.
 
-### P4 — Property PRS decomposition + misc content (5)
-- **TestPropertyPRSDecomposition** (3): Spread-Decomposition section / Path 1 / Terrain-Effect row not found.
-- **TestCommercialPRSIndependentPerils** (1): "Independent Perils section not found" in commercial PRS panel.
-- **TestPropertyStormPanel** (1): status bar stuck on 'Loading...' (flood counts never populate).
-- **Fix approach:** per-section — likely the same data-gating as P1/P2; investigate which fetch stalls.
+### P4 — Property PRS decomposition + misc content (5) ✅ DONE `7dbdb4fa` (+ `349172ab`)
+- **TestPropertyPRSDecomposition** (3) + **TestCommercialPRSIndependentPerils** (1): the same load
+  race — already cleared by the `open_property_panel` wait-for-load (`349172ab`, P1).
+- **TestPropertyStormPanel** (1): status bar stuck 'Loading...' — `_open_storm_panel` now waits for
+  `#prop-storm-status` to leave 'Loading…'. Verified in the combined P4+P5 run.
 
-### P5 — Commit/write path (2) — separate investigation
-- **TestMarketUpdatePL::test_03_commit_market_changes**: "Market commit showed an error".
-- **TestPropertyPRSBookTrade::test_03_commit_property_trade**: "Property trade commit showed an error".
-- **Fix approach:** these exercise the mutating commit endpoints — check the admin-password gate
-  (RBAC/`@require`) and the write path; distinct from the render-gating themes above.
+### P5 — Commit/write path (5: 2 batch-3 + 3 batch-4) ✅ DONE `286dcaeb`
+- **Root cause:** the **WP5.1 RBAC cutover** — `X-Admin-Password` was retired; mutating trading/PRS
+  endpoints now `@require(Func003)` via an `/auth/login` session. The e2e harness still provisioned
+  the old `.port_admin` credential, so every save/commit 401'd (dirty flag stuck; commits errored).
+- **Fix (test-side only):** autouse conftest fixture creates an RBAC user (username==password==`E2E_ADMIN_PW`,
+  Func000–Func003) so the existing `window.prompt` stubs log in; the Flask subprocess shares this
+  process's Postgres (`os.environ.copy()`). `test_save_prompts_for_password` rewritten to the new
+  async `/auth/login` prompt flow.
+- Clears: Control save/reset/admin (batch 4) + market & property-trade commits (batch 3). Verified
+  43 passed / 0 failed.
 
 ### OUT OF SCOPE — DocsTab (6)
 - **TestDocsTabStructure**: "Docs tab button not found in model detail" / `#mg-docs-sec-*` — this is the
