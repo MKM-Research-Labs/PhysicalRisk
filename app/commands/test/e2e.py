@@ -118,11 +118,11 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
 
     # Collect test files and run in batches to prevent a single stuck
     # test from blocking the entire suite.
-    # ~7 files per batch → ~10 batches over the current suite, for more frequent
+    # ~3 files per batch → ~22 batches over the current suite, for frequent
     # interim progress / junit checkpoints. Per-batch fixed cost is low now that
     # the catchment copy is an APFS copy-on-write clone (see conftest
-    # _isolated_catchment_dir), so smaller batches stay cheap.
-    BATCH_SIZE = 7
+    # _isolated_catchment_dir), so small batches stay cheap.
+    BATCH_SIZE = 3
     BATCH_TIMEOUT = 1800  # 30 minutes per batch
 
     import glob as _glob
