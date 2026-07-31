@@ -149,21 +149,31 @@ class TestControlTabAdmin:
         )
 
     def test_save_prompts_for_password(self, map_page):
-        """Clicking Save must invoke window.prompt for the admin password."""
-        # Install a spy that records the last prompt message and returns null (cancel)
-        map_page.evaluate("""() => {
-            window.__lastPrompt = null;
-            window.prompt = function(msg) { window.__lastPrompt = msg; return null; };
+        """Saving while unauthenticated must trigger the RBAC login prompt.
+
+        WP5.1 replaced the ``X-Admin-Password`` prompt with an ``/auth/login``
+        session: ``__mkmAdminFetch`` retries via ``__mkmLogin``, which prompts
+        for a username then a password — but only after the first write returns
+        401. Log out first so the save is unauthenticated and the prompt is
+        guaranteed to fire, and record prompts (returning null to cancel).
+        """
+        map_page.evaluate("""async () => {
+            window.__prompts = [];
+            window.prompt = function(msg) { window.__prompts.push(msg); return null; };
+            try { await fetch('/auth/logout', {method: 'POST', mode: 'cors'}); }
+            catch (e) {}
         }""")
         # Make dirty so save proceeds past the ctrlCollect guard
         first_input = map_page.locator("input[data-ctrl-key][type='number']").first
         first_input.fill("999")
         map_page.locator("#sp-ctrl-save-btn").click()
-        msg = map_page.evaluate("() => window.__lastPrompt")
-        assert msg is not None, "Save did not call window.prompt for password"
-        assert "admin" in msg.lower() and "password" in msg.lower(), (
-            f"Password prompt missing admin/password wording, got: {msg}"
-        )
+        # __mkmLogin prompts asynchronously, after the first fetch returns 401.
+        map_page.wait_for_function(
+            "() => (window.__prompts || []).length > 0", timeout=10_000)
+        msgs = map_page.evaluate("() => window.__prompts")
+        assert any(
+            ("sign in" in m.lower() or "username" in m.lower()) for m in msgs
+        ), f"Save did not trigger the RBAC login prompt, got: {msgs}"
 
     def test_save_rejects_empty_password(self, map_page):
         """Cancelling the password prompt must not clear the dirty flag."""

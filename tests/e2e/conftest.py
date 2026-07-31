@@ -172,6 +172,36 @@ def _e2e_admin_password(tmp_path_factory):
     # tmp_path_factory auto-cleans the directory; no restore logic needed.
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _e2e_rbac_user():
+    """Provision an RBAC user so write-path tests can authenticate.
+
+    The WP5.1 RBAC cutover retired the ``X-Admin-Password`` header: mutating
+    trading/PRS endpoints now ``@require(Func003)`` via an ``/auth/login``
+    session. The write tests stub ``window.prompt`` to return ``E2E_ADMIN_PW``
+    for both the username and password prompts of ``__mkmLogin``, so create a
+    user whose username == password == ``E2E_ADMIN_PW`` and grant it the
+    function permissions. The RBAC store is always Postgres, and the Flask
+    subprocess inherits this process's environment (``os.environ.copy()`` in
+    ``server_port``), so the user created here is visible to the server.
+    """
+    import database
+    from routes.auth import set_password
+
+    database.seed_function_registry()
+    if database.get_user(E2E_ADMIN_PW) is None:
+        database.create_user(E2E_ADMIN_PW, display_name="e2e")
+    set_password(E2E_ADMIN_PW, E2E_ADMIN_PW)
+    # Grant every registered function (Func000–Func003); the write endpoints
+    # gate on Func003 (FUNC_TRADE_PRS) but granting all keeps the fixture
+    # robust to other gated actions the tests may exercise.
+    for func in ("Func000", "Func001", "Func002", "Func003"):
+        database.set_permission(
+            E2E_ADMIN_PW, func,
+            read=True, write=True, create=True, delete=True,
+        )
+
+
 # ---------------------------------------------------------------------------
 # Session-scoped: one server + one browser for the entire test session
 # ---------------------------------------------------------------------------
