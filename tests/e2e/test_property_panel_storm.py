@@ -36,7 +36,20 @@ class TestPropertyStormPanel:
         if not has_fn:
             pytest.skip("window.viewPropertyStorms not available")
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-        map_page.wait_for_timeout(3_000)
+        map_page.locator("#prop-storm-panel").wait_for(
+            state="visible", timeout=10_000)
+        # Wait for loadData() to finish: the panel and its status bar show
+        # 'Loading...' until propStormData arrives. #prop-storm-status then
+        # shows the flood-count summary.
+        try:
+            map_page.wait_for_function(
+                "() => { var s = document.getElementById('prop-storm-status');"
+                " return s && s.textContent"
+                " && s.textContent.indexOf('Loading') === -1; }",
+                timeout=20_000,
+            )
+        except Exception:
+            pass
 
     def test_panel_opens_with_title(self, map_page, first_property_id):
         """Calling viewPropertyStorms should open the panel with title."""
