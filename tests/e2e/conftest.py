@@ -26,9 +26,12 @@ pre-navigated to the map, and tears everything down after the session.
 """
 
 import json
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -81,6 +84,39 @@ def _protect_mrc_meetings():
         _MRC_BACKUP.unlink()
 
 
+def _volume_mount_root(path):
+    """Mount point of the volume containing ``path``.
+
+    APFS ``clonefile`` (``cp -c``) needs source and destination on the *same*
+    volume, so clones live under the source volume's mount root — not the
+    internal tmp dir (a different volume, which would fall back to a deep copy).
+    """
+    path = os.path.realpath(path)
+    dev = os.stat(path).st_dev
+    while True:
+        parent = os.path.dirname(path)
+        if parent == path or os.stat(parent).st_dev != dev:
+            return path
+        path = parent
+
+
+def _sweep_stale_clones(base, prefix=".e2e_catch_", max_age_s=6 * 3600):
+    """Remove clone dirs orphaned by a SIGKILLed run (older than max_age)."""
+    try:
+        now = time.time()
+        for name in os.listdir(base):
+            if not name.startswith(prefix):
+                continue
+            p = os.path.join(base, name)
+            try:
+                if now - os.path.getmtime(p) > max_age_s:
+                    shutil.rmtree(p, ignore_errors=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _isolated_catchment_dir(tmp_path_factory):
     """Point the Flask subprocess at a tmp copy of data/input/<catchment>/.
@@ -107,17 +143,45 @@ def _isolated_catchment_dir(tmp_path_factory):
     (``gauge_data``, ``property_data``, ``first_traded_gauge_id``, etc.)
     continue to work unchanged because the tmp dir is a full copy.
     """
-    real_thames = ROOT / "data" / "input" / "halong"
-    tmp_root = tmp_path_factory.mktemp("e2e_catchment")
-    tmp_thames = tmp_root / "halong"
-    shutil.copytree(real_thames, tmp_thames)
+    real = ROOT / "data" / "input" / "halong"
+    real_resolved = os.path.realpath(real)
+
+    tmp_root = None
+    tmp_thames = None
+    # Fast path: a same-volume APFS copy-on-write clone (metadata-only, ~2s for
+    # 2.8 GB, vs a ~30-90s deep copy). Each batch still gets a *fully isolated*
+    # copy — writes are copy-on-write and never touch the real tree — so this
+    # keeps the isolation the write tests rely on while removing the per-batch
+    # copy from the critical path. clonefile requires same-volume placement, so
+    # clone under the source volume's mount root (tmp_path_factory is on the
+    # internal disk = cross-volume). Falls back to a deep copy if that fails.
+    try:
+        vol_root = _volume_mount_root(real_resolved)
+        _sweep_stale_clones(vol_root)
+        clone_root = tempfile.mkdtemp(prefix=".e2e_catch_", dir=vol_root)
+        clone_thames = os.path.join(clone_root, "halong")
+        subprocess.run(["cp", "-c", "-R", real_resolved, clone_thames],
+                       check=True, capture_output=True)
+        tmp_root = clone_root
+        tmp_thames = Path(clone_thames)
+    except Exception:
+        if tmp_root:
+            shutil.rmtree(tmp_root, ignore_errors=True)
+        # Portable fallback: deep copy into tmp_path_factory (non-APFS /
+        # cross-volume setups, e.g. CI on a single ext4 disk).
+        tmp_root = str(tmp_path_factory.mktemp("e2e_catchment"))
+        tmp_thames = Path(tmp_root) / "halong"
+        shutil.copytree(real, tmp_thames)
+
     # Scrub any user override that may live in the real file so the e2e
     # suite starts from Python-source defaults (as the control tests assert).
     ctrl_json = tmp_thames / "storm_control.json"
     if ctrl_json.exists():
         ctrl_json.unlink()
-    yield tmp_thames
-    # pytest auto-cleans tmp_path_factory dirs; no restore logic needed.
+    try:
+        yield tmp_thames
+    finally:
+        shutil.rmtree(tmp_root, ignore_errors=True)
 
 
 @pytest.fixture(scope="session", autouse=True)
