@@ -19,8 +19,15 @@
 // SOFTWARE.
 
             function computePRSCashflows() {
-                var trigger = document.getElementById('prs-trigger').value;
-                var notionalStr = document.getElementById('prs-notional').value.replace(/,/g, '');
+                // The PRS inputs (prs-trigger / prs-notional) are built by
+                // buildPRSControls() after the async hazard load. If they — or
+                // hazardData — aren't ready yet, bail rather than dereferencing
+                // null; the caller re-renders once controls exist.
+                var triggerEl = document.getElementById('prs-trigger');
+                var notionalEl = document.getElementById('prs-notional');
+                if (!triggerEl || !notionalEl || !hazardData) return null;
+                var trigger = triggerEl.value;
+                var notionalStr = notionalEl.value.replace(/,/g, '');
                 var notional = parseFloat(notionalStr) || 10000000;
 
                 // Get tenor from maturity select's data attribute

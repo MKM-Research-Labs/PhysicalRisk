@@ -24,6 +24,10 @@
 
                 try {
                     var result = computePRSCashflows();
+                    if (!result) {
+                        if (btn) { btn.disabled = false; }
+                        return;
+                    }
                     var ctpyEl = document.getElementById('prs-counterparty');
                     var ctpyId = ctpyEl ? ctpyEl.value : '';
                     var ctpyName = ctpyEl ? ctpyEl.options[ctpyEl.selectedIndex].text : '';

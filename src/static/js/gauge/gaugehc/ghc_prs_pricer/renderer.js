@@ -22,6 +22,7 @@
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
 
                 var result = computePRSCashflows();
+                if (!result) return;  // PRS controls not built yet; re-renders once they are
                 var periods = result.periods;
                 var container = document.getElementById('hazard-chart-container');
 

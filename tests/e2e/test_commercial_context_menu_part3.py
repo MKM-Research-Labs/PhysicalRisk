@@ -91,13 +91,25 @@ def _right_click_commercial_marker(page):
         }""")
         pytest.skip(f"No commercial markers on map. Diagnostics: {diag}")
 
+    # Dispatch the contextmenu event directly on the commercial (purple) marker
+    # element rather than pixel-clicking its centre. When the map is framed to
+    # the whole portfolio, dense areas (Hanoi) pack markers tightly and a
+    # property marker can overlap the commercial marker's centre pixel — a
+    # coordinate right-click then lands on the property (opening the property
+    # panel). Dispatching on the element bypasses hit-testing so the commercial
+    # marker's own Leaflet contextmenu handler fires regardless of overlap.
     box = markers.first.bounding_box()
     if box:
-        cx = box["x"] + box["width"] / 2
-        cy = box["y"] + box["height"] / 2
-        page.mouse.click(cx, cy, button="right")
+        markers.first.dispatch_event("contextmenu", {
+            "bubbles": True,
+            "cancelable": True,
+            "button": 2,
+            "clientX": int(box["x"] + box["width"] / 2),
+            "clientY": int(box["y"] + box["height"] / 2),
+        })
     else:
-        markers.first.click(button="right", force=True)
+        markers.first.dispatch_event(
+            "contextmenu", {"bubbles": True, "cancelable": True, "button": 2})
     # Short wait — the menu DOM is created synchronously in showMenu().
     page.wait_for_timeout(1_500)
 
