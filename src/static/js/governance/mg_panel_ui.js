@@ -116,6 +116,20 @@
                 header.appendChild(leftHeader);
                 header.appendChild(rightHeader);
 
+                // Illustrative-data banner. In PhysicalRisk (the open-source
+                // platform) this governance panel is a DEMO of the model-risk
+                // capability; MKM's live internal governance process lives in
+                // the separate MKM-ModelRisk system. Make that explicit so
+                // external reviewers don't read the inventory/MRC/RACI content
+                // as real governance records.
+                var demoBanner = document.createElement('div');
+                demoBanner.id = 'mg-demo-banner';
+                demoBanner.textContent =
+                    'Demo — illustrative sample data, not live governance records';
+                demoBanner.style.cssText = 'padding:5px 16px;font-size:11px;' +
+                    'font-weight:600;color:#8a6d00;background:#fff8e1;' +
+                    'border-bottom:1px solid #ffe082;flex-shrink:0;text-align:center;';
+
                 // Content area
                 var content = document.createElement('div');
                 content.id = 'mg-content';
@@ -127,6 +141,7 @@
                 statsBar.style.cssText = 'padding:8px 16px;border-top:1px solid #eee;display:flex;gap:20px;font-size:11px;color:#666;background:#f9f9f9;border-radius:0 0 8px 8px;';
 
                 mgPanel.appendChild(header);
+                mgPanel.appendChild(demoBanner);
                 mgPanel.appendChild(content);
                 mgPanel.appendChild(statsBar);
                 document.body.appendChild(mgPanel);
