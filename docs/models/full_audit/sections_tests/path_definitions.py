@@ -319,6 +319,13 @@ def _build_path_definitions(styles) -> list:
         return elems
 
     findings = scan['findings']
+    from ..results_json import write_results
+    write_results('path_definitions', {
+        'files_scanned': scan['scanned'],
+        'violations': len(findings),
+        'files_with_findings': len(scan['files_with_findings']),
+        'allowlisted': len(scan['allowlisted']),
+    })
     elems.append(Paragraph(
         f'Files scanned: <b>{scan["scanned"]}</b> &nbsp;|&nbsp; '
         f'Violations: <b>{len(findings)}</b> in '

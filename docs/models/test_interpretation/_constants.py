@@ -69,9 +69,11 @@ AUDIT_METRICS = (
     ('hardcoding',     'Hard-coded parameters',     'total_action_items',          'action items', False),
     ('embedded_js',    'Embedded JS/CSS in Python', 'total_action_items',          'action items', True),
     ('json_files',     'JSON I/O backlog',          'io_backlog_files',            'files',        True),
-    ('database_usage', 'Modules still on .json',    'json_only_modules',           'modules',      False),
-    ('duplication',    'Code duplication',          'duplication_pct',             '%',            False),
-    ('data_lineage',   'Data lineage failures',     'failed',                      'checks',       True),
+    ('database_usage',  'Modules still on .json',    'json_only_modules',          'modules',      False),
+    ('duplication',     'Code duplication',          'duplication_pct',            '%',            False),
+    ('path_definitions','Path-definition violations','violations',                 'sites',        True),
+    ('model_chain',     'Model-chain inconsistencies','inconsistencies',           'findings',     False),
+    ('data_lineage',    'Data lineage failures',     'failed',                     'checks',       True),
 )
 
 # Gate threshold: a gated audit whose metric exceeds this raises attention.

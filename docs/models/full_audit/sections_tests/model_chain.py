@@ -208,6 +208,12 @@ def _build_model_chain(styles) -> list:
         return elems
 
     findings = scan['findings']
+    from ..results_json import write_results
+    write_results('model_chain', {
+        'models': scan['models'],
+        'links': scan['links'],
+        'inconsistencies': len(findings),
+    })
     elems.append(Paragraph(
         f'Models: <b>{scan["models"]}</b> &nbsp;|&nbsp; '
         f'Chain links: <b>{scan["links"]}</b> &nbsp;|&nbsp; '
