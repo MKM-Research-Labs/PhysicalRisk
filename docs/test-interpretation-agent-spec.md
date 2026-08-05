@@ -1,7 +1,7 @@
 # Specification: Test Result Interpretation Agent
 
 **Project:** PhysicalRisk
-**Status:** Draft v0.2 — review amendments applied, ready for sign-off
+**Status:** Draft v0.3 — v0/v1 shipped; v2 (Documentation divergence) design added (§14)
 **Author:** David
 **Date:** 2026-08-05
 **Reviewed:** 2026-08-05 (viability + repo grounding)
@@ -305,10 +305,11 @@ no model involved. Establishes the pipeline and proves the artefacts are well-fo
 Agent reads v0 artefacts plus the diff. Produces Summary, Test outcome, Coverage,
 Audit findings, Uncertainties. Documentation divergence deferred.
 
-**v2 — Documentation divergence**
+**v2 — Documentation divergence** — detailed design in **§14**.
 Agent gains read access to the documentation tree and produces the divergence section.
 This is the section with the most value and the most room to be wrong, so it ships last
-and against the largest fixture set.
+and against the largest fixture set. Locked posture: high-precision detection,
+adversarial verification, targeted+capable model (§14.1).
 
 **v3 — Data lineage**
 Lineage trail for inputs feeding changed modules. Requires lineage metadata that does
@@ -361,3 +362,131 @@ v1 is accepted when, on a corpus of at least ten historical commits from Physica
 the agent produces a well-formed artefact for every one, and a reviewer judges the
 Summary section accurate on each. Accuracy here means: nothing asserted that is untrue,
 and nothing material to the change omitted. Elegance of prose is not a criterion.
+
+---
+
+## 14. v2 design — Documentation divergence
+
+This section details v2 (the §11 stub). It is the first section that runs a model
+and the first that can be wrong, so its design is dominated by *not fabricating*.
+Everything v0/v1 does stays deterministic; v2 adds a bounded model step whose every
+claim is anchored to a verbatim quote from a supplied input.
+
+### 14.1 Decisions (locked, review 2026-08-05)
+
+| Axis | Decision | Consequence |
+|---|---|---|
+| Detection posture | **High-precision** | Flag only a change that contradicts a *specific, quotable* documented claim. A missed subtle divergence is safer than a false alarm that erodes trust in the artefact. |
+| Verification | **Adversarial second pass** | Every candidate is independently re-judged by a model prompted to *refute* it; it survives only if the refutation fails. ~2× model cost, sharply lower fabrication. |
+| Model & cost | **Targeted + capable** | A capable model (Opus/Sonnet tier), fed only the mapped doc section(s) + the specific diff hunk — never whole documents. Keeps per-run tokens bounded under the §9 ceiling. |
+
+### 14.2 The code→doc bridge (deterministic)
+
+Grounded in what the repo already has:
+
+- `docs/models/governance_data/model_inventory.json` — each model carries
+  `model_id` ↔ `source_module` (e.g. `MKM-SI-001` ↔ `src/models/intensity/distribution.py`).
+- a model_id → `docs/models/<slug>/` registry (the one the test-results generator
+  already uses) locates the LaTeX docs; the primary doc is `<slug>.tex`, structured
+  by `\section`/`\subsection`.
+
+**Matching rule.** A changed file `F` in the diff maps to model `M` when `F` equals
+`M.source_module` **or** sits under that module's package directory. `source_module`
+often names a file that has since become a package (the <300-line split rule), so
+matching is **prefix-aware**, and a mismatch (source_module no longer on disk) is
+itself surfaced under Uncertainties rather than silently dropped.
+
+Changed files that map to **no** documented model (the PLATFORM majority) are
+**skipped, and the skip is stated** in the section (no silent truncation).
+
+### 14.3 Pipeline (per affected model)
+
+Deterministic stages are plain code; model stages are the only non-deterministic part.
+
+0. **Affected-model set** (deterministic) — from the diff, apply the bridge. Empty
+   set → the section renders one line: *"No change touched a documented model."*
+1. **Extract** (deterministic) — for each affected model gather (a) its diff hunks and
+   (b) *targeted* doc excerpts: parse `<slug>.tex` into sections, select those whose
+   text references the changed symbols (function/class names from the diff), falling
+   back to the methodology/assumptions sections. Bounded by a per-model token budget
+   (§8); what was truncated is recorded.
+2. **Detect — model pass 1** (high-precision) — the model receives the diff hunks +
+   the doc excerpts and returns candidate divergences, each **required** to quote (i)
+   the exact doc sentence and (ii) the exact diff line it contradicts, with a one-line
+   why. "Nothing contradicts" is a valid, expected answer.
+3. **Verify — model pass 2** (adversarial) — each candidate goes to an independent
+   pass instructed to *argue it is not a real divergence, defaulting to refuted when
+   uncertain*. A candidate is kept only if the refutation fails.
+4. **Render** — survivors populate **Documentation divergence**, each citing model,
+   doc, `\section`, the quoted sentence and the diff line. Anything the model was
+   unsure of, or could not ground, goes to **Uncertainties** — never into the body as
+   hedged prose.
+
+### 14.4 Grounding rules (anti-fabrication — the core of v2)
+
+- Every divergence **must** quote a verbatim doc sentence **and** a verbatim diff
+  line. A finding missing either quote is a **defect**, rejected by a deterministic
+  post-validator before render (not left to the model's goodwill).
+- No finding may reference a file absent from the diff, or a doc section not supplied
+  to the model.
+- The body states only survived-adversarial-verify findings. Confidence is not prose;
+  it is "survived / did not."
+
+### 14.5 Tool surface & config (extends §6, §8)
+
+- Read-only still holds; docs are already readable under §6. The **one** new
+  capability is reaching the model endpoint — the sole, explicit exception to §6's
+  no-network rule, scoped to that endpoint only. (A locally-hosted model needs no
+  exception; see §14.8.)
+- New config (§8): per-model and per-run token ceilings, max doc-section tokens, max
+  models assessed per run, and the `model_inventory` + doc-registry paths. All from
+  the config package, no literals.
+
+### 14.6 Guardrails (extends §9)
+
+| Risk | Control |
+|---|---|
+| Fabricated divergence | High-precision prompt + adversarial verify + deterministic quote-validator; a finding without both verbatim quotes never renders |
+| Cost overrun on a large diff | Per-run token ceiling; when hit, the run stops assessing further models and **names the models it did not reach** (no silent cap) |
+| Non-determinism | The section is evidence, not a verdict; re-runs may differ. Stated in the section and in Uncertainties |
+| Missing the bridge | A `source_module` not found on disk → Uncertainties, plus a nudge that `model_inventory.json` needs updating |
+
+### 14.7 Testing (extends §10)
+
+Deterministic parts (bridge/matching, section selection, quote-validator) are
+unit-tested to ≥99%. The model step is tested against a committed fixture corpus of
+`(diff, doc-excerpt)` pairs with known labels, asserting **structure and grounding,
+not prose**:
+
+- **true-divergence** fixtures — a change that contradicts a documented claim →
+  assert a grounded finding quoting the right sentence.
+- **no-divergence** fixtures — a change to a documented model that stays consistent →
+  assert **no** finding survives.
+- **insufficient-info** fixture — assert **Uncertainties**, not a guess.
+- **unmapped-change** fixture (PLATFORM code) — assert skipped **and** stated.
+
+Because the model is non-deterministic, the CI assertion is the quote-validator
+(every finding quotes a supplied sentence + a diff line; none references unsupplied
+files); a separate, flaky-tolerant calibration run over the labelled set tracks
+precision/recall but does not gate CI.
+
+### 14.8 Open questions (v2)
+
+1. **Model access from the local-nightly runner.** The overnight job would need egress
+   to the model endpoint (API key handling, or a locally-hosted model with no egress).
+   Which, and how is the key supplied to a non-interactive run? Ties to §12.5/§12.6.
+2. **Section-selection heuristic.** Start simple — `\section`-title + changed-symbol
+   keyword match — and only add retrieval/embeddings if recall proves too low.
+3. **Pre-existing vs. introduced divergence.** v2 flags divergence *introduced by this
+   diff*. Standing drift unrelated to the change is arguably a separate "documentation
+   consistency" audit; confirm it is out of v2 scope.
+4. **`source_module` drift.** Files split into packages leave `source_module` pointing
+   at a vanished path. Decide: keep `model_inventory.json` current as policy, or make
+   matching fully prefix-aware and tolerant.
+
+### 14.9 Internal phasing
+
+- **v2a** — bridge + section selection + detection pass only, single-pass, behind a
+  flag, writing to a scratch area for calibration (not the live section).
+- **v2b** — add the adversarial verify + the quote-validator, then promote to the live
+  **Documentation divergence** section.
