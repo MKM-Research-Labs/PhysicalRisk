@@ -1,9 +1,20 @@
 # Specification: Test Result Interpretation Agent
 
 **Project:** PhysicalRisk
-**Status:** Draft v0.1 — for review before implementation
+**Status:** Draft v0.2 — review amendments applied, ready for sign-off
 **Author:** David
 **Date:** 2026-08-05
+**Reviewed:** 2026-08-05 (viability + repo grounding)
+
+> **Review note (2026-08-05).** Changes below are marked inline with
+> `> **Amended:**` / `> **Amendment:**` / `> **Answered:**` blockquotes. Two
+> kinds: (a) factual reconciliation with the repo — the named audit tool does not
+> exist under that name; pytest emits coverage XML but no JUnit XML; a known
+> coverage-measurement bug on Python 3.13.1 threatens the Coverage section; output
+> must not live under `data/`; and (b) a **design decision** taken in review —
+> the runner is the **existing local nightly job**, and the agent runs as its
+> final interpretation step (§3–§4 rewritten), with cloud-CI / per-PR execution
+> deferred. None of this alters the agent's own contract (§6–§7).
 
 ---
 
@@ -49,21 +60,37 @@ Two components. They are separate on purpose; only the second is an agent.
 
 ### 3.1 Runner (not an agent)
 
-Standard CI. Deterministic, no model involved.
+> **Amended (review 2026-08-05).** This section was rewritten from a cloud-CI
+> runner to the **local nightly** model: the runner is the project's existing
+> overnight job, and the agent runs as its final interpretation step. Cloud-CI /
+> per-PR execution is retained as a deferred phase (§4).
+
+The runner is the project's **existing overnight job**, not a cloud CI service. It
+is deterministic, with no model involved: the nightly `app.py test … --audit` run
+already executes the suite and the repository audit and leaves their output on disk.
+The runner's only new responsibilities are to emit that output in machine-readable
+form and, on completion, hand the agent a path.
 
 Responsibilities:
 
-1. Execute the test suite on the trigger event
-2. Execute `split_audit.py`
-3. Emit machine-readable artefacts to a known path:
-   - test results (JUnit XML or equivalent)
+1. Execute the test suite — the overnight run already does this — adding
+   `--junitxml=<artefact-dir>/results.xml` so results are machine-readable.
+   Coverage XML is already emitted (`data/output/audit/coverage.xml`).
+2. Execute the repository audit — `python -m docs.models.full_audit` — in a
+   structured (JSON) output mode. **This mode does not exist yet and is a v0
+   prerequisite:** today the audit is a package emitting a sectioned *human*
+   report the agent cannot parse reliably. There is no `split_audit.py`; that name
+   in earlier drafts referred to this audit.
+3. Ensure the four artefacts are at a known path:
+   - test results (JUnit XML)
    - coverage report (XML + per-module summary)
-   - audit tool output
-   - the diff for the triggering change
-4. Invoke the agent with the path to those artefacts
+   - audit tool output (JSON)
+   - the diff for the change under assessment
+4. On completion, invoke the agent with the path to those artefacts.
 
-If the runner fails to produce any required artefact, the agent is **not** invoked and
-the failure surfaces as an ordinary CI failure. The agent never runs on partial input.
+If the runner fails to produce any required artefact, the agent is **not** invoked
+and the failure surfaces as an ordinary run failure. The agent never runs on partial
+input.
 
 ### 3.2 Assessment agent
 
@@ -74,12 +101,29 @@ stop. Terminates on completion or on iteration limit, whichever comes first.
 
 ## 4. Trigger
 
-**v0:** manual invocation and on push to any branch.
+> **Amended (review 2026-08-05).** Reframed from PR/branch-push events to the
+> **completion of the nightly run**. The original "explicitly not time-based" line
+> is retired: the trigger is still an *event* (a run finished), it simply falls in
+> the idle overnight window by construction.
 
-**Later:** on pull request open and update.
+**v0:** completion of the nightly run, plus manual invocation.
 
-Explicitly **not** time-based. Nothing about this work benefits from running on a
-schedule, and cron triggers create cost with no corresponding event to interpret.
+The interpretable event is **"the overnight suite finished."** The agent runs as
+the final step of that job, in the idle overnight window while the machine is awake
+but unattended (the same power / SSD-mounted / lid-awake prerequisites the overnight
+suite already requires — it does **not** run while the machine is asleep). Because
+the runner has just produced fresh test, coverage, audit, and diff artefacts, the
+agent always has something real to interpret.
+
+This is event-driven, not schedule-driven: the event is *run-completion*, and it
+happens to occur at night because that is when the run occurs — not because of a
+wall-clock cron. A fixed-time schedule independent of a run is explicitly avoided;
+with nothing newly tested, there is nothing to interpret.
+
+**Deferred to a later phase:** per-PR assessment in cloud CI (GitHub Actions,
+`.github/workflows/ci.yml`), for faster feedback than a nightly cadence. That reuses
+the same agent against CI-produced artefacts and changes only *where* the runner
+lives and *how often* it fires — not the agent itself.
 
 ---
 
@@ -89,8 +133,8 @@ schedule, and cron triggers create cost with no corresponding event to interpret
 |---|---|---|
 | Test results | Runner artefact | Yes |
 | Coverage report (current) | Runner artefact | Yes |
-| Coverage report (baseline) | Previous run on main | No — degrade gracefully |
-| Audit tool output | `split_audit.py` | Yes |
+| Coverage report (baseline) | Previous nightly run | No — degrade gracefully |
+| Audit tool output | `full_audit` (JSON mode) | Yes |
 | Change diff | VCS | Yes |
 | Model documentation | Repository docs tree | Yes |
 | Previous assessment | Last artefact written | No |
@@ -156,6 +200,17 @@ it is the one no test runner can produce.>
 omitted. A short list here is expected on most runs.>
 ```
 
+> **Amendment (Coverage — measurement-artefact risk).** On **Python 3.13.1** this
+> project's coverage under-reports (~84% measured vs ~99.3% true) because of a
+> `sys.monitoring` tracer defect; CI pins 3.13 and the mitigation is
+> `core=ctrace` in `pyproject`. Since the Coverage section interprets *deltas*
+> against a baseline, a tracer difference between baseline and current runs can
+> present as a large, entirely spurious coverage regression — exactly the
+> fabricated finding §9 forbids. **Controls:** (a) pin the coverage core
+> explicitly for the runner so baseline and current are measured identically;
+> (b) instruct the agent to treat any coverage swing not localised to files in
+> the diff as an environment signal for **Uncertainties**, never as a finding.
+
 ### Output constraints
 
 - Sections with nothing to report are rendered as a single line, not padded
@@ -180,6 +235,14 @@ Configurable at minimum:
 - Maximum agent iterations
 - Maximum token spend per run
 - Model identifier
+
+> **Amendment (output location).** The output directory **must not** be under
+> `data/` — `data/` is a symlink to a shared external SSD that is not to be
+> mutated by tooling. A commit-per-run into the tracked tree also collides with
+> existing self-heal churn in the audit/copyright tooling. Write assessments to
+> a git-ignored path (or a dedicated `assessments/` branch); never under `data/`.
+> The coverage core setting (§7 amendment) is also configured here, so baseline
+> and current runs are guaranteed to use the same tracer.
 
 ---
 
@@ -238,15 +301,36 @@ To be resolved before implementation begins.
 
 1. **Test framework and runner.** Assumed pytest with coverage. Confirm, and confirm
    what CI is available — GitHub Actions, or something local?
+   > **Answered.** pytest + coverage on GitHub Actions (`.github/workflows/ci.yml`):
+   > jobs `lint` (ruff), `test` (coverage→`coverage.xml`), `test-pg` (Postgres
+   > parity). Coverage XML already emitted; JUnit XML is not (see §3.1 amendment).
 2. **Documentation location and format.** Where does the model documentation live
    relative to the repository, and is it structured enough to reference by section?
+   > **Answered — favourable.** Model docs live in `docs/models/<model>/` as
+   > structured LaTeX (`\section`s). Better still, `model_inventory.json` carries
+   > `source_module` links mapping code modules → model docs (the chain
+   > `full_audit §4.7` validates), giving v2 a ready-made code→doc lookup instead
+   > of an inference. This is the biggest de-risker for the divergence section.
 3. **Baseline for coverage comparison.** Is there a stored baseline, or does the agent
    compute one from the previous run?
+   > **Open, with a caveat.** No stored baseline today; compute from the previous
+   > `main` run. Whichever source is chosen, it must be measured with the same
+   > coverage core as the current run (see §7 / §8 amendments) or the delta is
+   > meaningless.
 4. **Artefact retention.** Do assessments live in the repository, or in a separate
    store? Repository is simpler and gives free version history, but adds a commit per
    run unless written to an ignored path.
+   > **Constrained.** Must not be under `data/` (shared SSD symlink). Prefer a
+   > git-ignored path or a dedicated `assessments/` branch — see §8 amendment.
 5. **Model selection and cost tolerance.** What per-run spend is acceptable, and does
    that change the phasing?
+   > **Still open — for David.** Genuinely a business/cost decision; no repo answer.
+6. **Repo vs. MKM-ModelRisk (new).** A test-interpretation agent that reads model
+   docs + coverage is a *model-governance* capability, and governance is being
+   extracted into a separate **MKM-ModelRisk** repo. Decide deliberately whether
+   this ships inside PhysicalRisk or as an MKM-ModelRisk tool consuming
+   PhysicalRisk as its first corpus — it determines where the config module and
+   documentation-tree root point.
 
 ---
 
