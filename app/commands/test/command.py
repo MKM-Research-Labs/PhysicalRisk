@@ -230,6 +230,15 @@ def cmd_test(args):
         print('\n' + '=' * 60)
         print('Audit Package Contents')
         print('=' * 60)
+        # The assessment PDF has a dated, sha-stamped filename; resolve the most
+        # recent one actually written rather than reconstruct the name.
+        _assessments = sorted(
+            f for f in os.listdir(audit_dir)
+            if f.startswith('assessment_') and f.endswith('.pdf')
+        ) if os.path.isdir(audit_dir) else []
+        _assessment_path = os.path.join(
+            audit_dir,
+            _assessments[-1] if _assessments else 'assessment_<date>_<sha>.pdf')
         artefacts = [
             ('JUnit XML',              junit_xml),
             ('Coverage XML',           cov_xml),
@@ -251,6 +260,7 @@ def cmd_test(args):
             ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
             ('Model Risk Report PDF',  os.path.join(audit_dir, 'model_risk_report.pdf')),
             ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
+            ('Assessment PDF',         _assessment_path),
         ]
         for label, path in artefacts:
             exists = os.path.exists(path)

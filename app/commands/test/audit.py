@@ -111,6 +111,11 @@ def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
         ('data lineage report (BCBS 239)', 'docs.models.data_lineage'),
         ('model risk governance report',   'docs.models.model_risk'),
         ('full audit report',              'docs.models.full_audit'),
+        # Interpretation of the run — reads the junit/coverage artefacts written
+        # above and writes assessment_<date>_<sha>.pdf into the audit dir, where
+        # the governance Audit Reports panel surfaces it. Runs last: it is the
+        # read-only "so what" over everything the earlier steps produced.
+        ('test-interpretation assessment', 'docs.models.test_interpretation'),
     ):
         print(f'\nGenerating {label}...')
         sp.run([sys.executable, '-m', module], cwd=str(project_root))
