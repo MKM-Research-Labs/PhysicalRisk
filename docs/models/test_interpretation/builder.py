@@ -27,51 +27,22 @@ Uncertainties, not asserted.
 """
 
 import subprocess
-from datetime import datetime
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, Spacer, Table
 
-from ..full_audit._constants import NAVY, STEEL, _root, _TBL_STYLE_BASE
+from ..full_audit._constants import STEEL, _root, _TBL_STYLE_BASE
+from ..full_audit.results_json import read_results
 from ._constants import (
     AMBER,
+    AUDIT_GATE_THRESHOLD,
+    AUDIT_METRICS,
     COVERAGE_REPORT_THRESHOLD_PCT,
     GREEN,
+    GREY,
     MAX_COVERAGE_ROWS,
     RED,
 )
-
-# Running-header label — this is a sibling of the full audit, not the full audit
-# itself, so it must not reuse full_audit's "Full Audit Report" header.
-_HEADER_LABEL = "Test Interpretation — Assessment"
-
-
-def _header_footer(canvas, doc):
-    """Assessment-specific running header/footer (mirrors full_audit's styling
-    with the correct document label)."""
-    canvas.saveState()
-    w, h = A4
-    canvas.setFillColor(NAVY)
-    canvas.rect(0, h - 20 * mm, w, 20 * mm, fill=1, stroke=0)
-    canvas.setFillColor(colors.white)
-    canvas.setFont("Helvetica-Bold", 9)
-    canvas.drawString(20 * mm, h - 12 * mm, "MKM Physical Risk Platform")
-    canvas.setFont("Helvetica", 9)
-    canvas.drawRightString(
-        w - 20 * mm, h - 12 * mm,
-        f'{_HEADER_LABEL}  |  {datetime.now().strftime("%d %B %Y")}')
-    canvas.setFillColor(STEEL)
-    canvas.rect(0, 0, w, 8 * mm, fill=1, stroke=0)
-    canvas.setFillColor(colors.white)
-    canvas.setFont("Helvetica", 7.5)
-    canvas.drawString(
-        20 * mm, 2.5 * mm,
-        "CONFIDENTIAL — MKM Research Labs  |  SR 11-7 / SS1/23 Model Governance")
-    canvas.drawRightString(w - 20 * mm, 2.5 * mm, f"Page {doc.page}")
-    canvas.restoreState()
-
 
 def _git_branch() -> str:
     """Current branch name, or 'unknown' when it cannot be resolved."""
@@ -100,12 +71,33 @@ def _outcome(junit: dict):
     return "PASS", False
 
 
+def _audit_gate():
+    """(attention, breaches) from the gated audit metrics.
+
+    Only audits flagged ``gated`` in AUDIT_METRICS raise attention, and only when
+    their metric exceeds AUDIT_GATE_THRESHOLD — a regression from zero on a
+    genuinely zero-tolerance-and-currently-clean audit. Missing results (the
+    audit has not been re-run yet) never gate.
+    """
+    breaches = []
+    for name, label, key, unit, gated in AUDIT_METRICS:
+        if not gated:
+            continue
+        summary = read_results(name)
+        if summary is None:
+            continue
+        val = summary.get(key)
+        if isinstance(val, (int, float)) and val > AUDIT_GATE_THRESHOLD:
+            breaches.append(f"{label} = {val} {unit}")
+    return bool(breaches), breaches
+
+
 def _p(text, sty):
     return Paragraph(text, sty)
 
 
-def _build_header(junit, sha, date_iso, branch, sty):
-    outcome, attention = _outcome(junit)
+def _build_header(junit, sha, date_iso, branch, sty, attention):
+    outcome, _ = _outcome(junit)
     out_col = GREEN if outcome == "PASS" else RED
     att_col = RED if attention else GREEN
     rows = [
@@ -208,15 +200,45 @@ def _build_coverage(cov, sty):
     return out + [Spacer(1, 4 * mm)]
 
 
-def _build_audit_findings(sty):
-    return [
-        _p("Audit findings", sty["h2"]),
-        _p("Deferred. full_audit currently emits a human PDF, not a "
-           "machine-readable finding set; a structured (JSON) output mode is the "
-           "v0 prerequisite for this section. See full_audit_report.pdf in this "
-           "directory for the current audit.", sty["body"]),
-        Spacer(1, 4 * mm),
-    ]
+def _build_audit_findings(sty, breaches):
+    out = [_p("Audit findings", sty["h2"])]
+    out.append(_p("Deterministic snapshot of the run's audit metrics, read from "
+                  "each audit's results JSON. † marks a gated, zero-tolerance "
+                  "audit whose non-zero value raises reviewer attention; the rest "
+                  "are reported, not gated — v0 has no baseline to separate a new "
+                  "violation from a standing backlog.", sty["small"]))
+    rows = [[_p("<b>Audit</b>", sty["tbl_hdr"]),
+             _p("<b>Metric</b>", sty["tbl_hdr"]),
+             _p("<b>Value</b>", sty["tbl_hdr"])]]
+    any_present = False
+    for name, label, key, unit, gated in AUDIT_METRICS:
+        summary = read_results(name)
+        tag = " †" if gated else ""
+        if summary is None:
+            val_txt = (f'<font color="#{GREY.hexval()[2:]}">pending next run'
+                       f'</font>')
+        else:
+            any_present = True
+            val = summary.get(key)
+            numeric = isinstance(val, (int, float))
+            val_str = f"{val:g}" if numeric else str(val)
+            breached = gated and numeric and val > AUDIT_GATE_THRESHOLD
+            col = RED if breached else (GREEN if gated else STEEL)
+            val_txt = f'<font color="#{col.hexval()[2:]}">{val_str} {unit}</font>'
+        rows.append([_p(label + tag, sty["tbl_cell"]),
+                     _p(key.replace("_", " "), sty["tbl_cell"]),
+                     _p(val_txt, sty["tbl_cell_r"])])
+    tbl = Table(rows, colWidths=[70 * mm, 65 * mm, 35 * mm])
+    tbl.setStyle(_TBL_STYLE_BASE)
+    out += [Spacer(1, 2 * mm), tbl]
+    if breaches:
+        out.append(_p("<b>Gated audit non-zero</b> — raises reviewer attention: "
+                      + "; ".join(breaches) + ".", sty["body"]))
+    if not any_present:
+        out.append(_p("No audit results JSON present yet — these populate once "
+                      "the audit generators have run (next overnight run).",
+                      sty["small"]))
+    return out + [Spacer(1, 4 * mm)]
 
 
 def _build_doc_divergence(sty):
@@ -236,7 +258,10 @@ def _build_uncertainties(junit, cov, sty):
         "No baseline coverage delta is computed in v0; the Coverage section is a "
         "snapshot, not a change.",
         "Documentation divergence is deferred to v2 (no docs access at v0).",
-        "Audit findings await a structured full_audit output mode.",
+        "Audit metrics are a snapshot: only gated (zero-tolerance, currently-"
+        "clean) audits raise attention; standing backlogs (e.g. __init__ "
+        "substantive code, hard-coding) are reported, not gated, until v1 "
+        "compares against the previous nightly.",
         "Coverage may be under-reported on Python 3.13.1 (sys.monitoring tracer "
         "defect); a large swing not localised to changed files is an environment "
         "signal, not a finding.",

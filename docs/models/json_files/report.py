@@ -45,6 +45,14 @@ def main():
           f"({scan['reads']} load, {scan['writes']} create/update)")
     print(f"  {scan['refs']} bare path reference(s)")
 
+    from ..full_audit.results_json import write_results
+    write_results('json_files', {
+        'files_scanned': scan['scanned'],
+        'io_backlog_files': len(scan['io_files']),
+        'io_reads': scan['reads'],
+        'io_writes': scan['writes'],
+        'bare_path_refs': scan['refs'],
+    })
     generated = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     create_pdf_report(scan, output_path, root, generated)
     size_kb = output_path.stat().st_size / 1024

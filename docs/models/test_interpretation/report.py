@@ -37,6 +37,7 @@ from ..full_audit.parsers import _git_sha, _parse_coverage, _parse_junit
 from ..full_audit.styles import _styles
 from ._constants import AUDIT_DIR, COVERAGE_XML, JUNIT_XML, output_path
 from .builder import (
+    _audit_gate,
     _build_audit_findings,
     _build_coverage,
     _build_doc_divergence,
@@ -45,8 +46,9 @@ from .builder import (
     _build_test_outcome,
     _build_uncertainties,
     _git_branch,
-    _header_footer,
+    _outcome,
 )
+from .chrome import _header_footer
 
 
 def create_assessment_pdf() -> Path:
@@ -61,12 +63,18 @@ def create_assessment_pdf() -> Path:
     cov = _parse_coverage(COVERAGE_XML)
     sty = _styles()
 
+    # Reviewer attention = a test failure/error OR a gated zero-tolerance audit
+    # breaching zero (see builder._audit_gate).
+    _, test_attention = _outcome(junit)
+    audit_attention, breaches = _audit_gate()
+    attention = test_attention or audit_attention
+
     story = []
-    story += _build_header(junit, sha, date_iso, branch, sty)
+    story += _build_header(junit, sha, date_iso, branch, sty, attention)
     story += _build_summary(junit, cov, sty)
     story += _build_test_outcome(junit, sty)
     story += _build_coverage(cov, sty)
-    story += _build_audit_findings(sty)
+    story += _build_audit_findings(sty, breaches)
     story += _build_doc_divergence(sty)
     story += _build_uncertainties(junit, cov, sty)
 

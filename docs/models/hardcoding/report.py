@@ -54,4 +54,13 @@ def main():
     print(f"  {len(findings['inline'])} inline simulation literals")
     print(f"  {total_action} total action items")
 
+    from ..full_audit.results_json import write_results
+    write_results('hardcoding', {
+        'files_scanned': findings['files_scanned'],
+        'duplicate_constants': len(findings['duplicates']),
+        'allcaps_outside_config': len(caps_action),
+        'infra_literals': len(findings['infra']),
+        'inline_literals': len(findings['inline']),
+        'total_action_items': total_action,
+    })
     create_pdf_report(findings, output_path, root)

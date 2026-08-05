@@ -48,6 +48,16 @@ def main():
     print(f"  {len(scan['json_io_files'])} module(s) still on .json "
           f"(the 4.5 complement); {len(scan['both_files'])} do both")
 
+    from ..full_audit.results_json import write_results
+    write_results('database_usage', {
+        'files_scanned': scan['scanned'],
+        'seam_caller_modules': len(scan['caller_files']),
+        'call_sites': len(scan['calls']),
+        'api_used': len(scan['used_funcs']),
+        'api_total': len(scan['api_names']),
+        'json_only_modules': len(scan['json_io_files']),
+        'both_modules': len(scan['both_files']),
+    })
     generated = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     create_pdf_report(scan, output_path, root, generated)
     size_kb = output_path.stat().st_size / 1024

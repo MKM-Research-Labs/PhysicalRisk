@@ -44,6 +44,14 @@ def main():
           f"Clones: {analysis['num_clones']}  |  "
           f"Dup%: {total.get('percentage', 0):.1f}%")
 
+    from ..full_audit.results_json import write_results
+    write_results('duplication', {
+        'files': total.get('sources', 0),
+        'lines': total.get('lines', 0),
+        'clones': analysis['num_clones'],
+        'duplication_pct': round(total.get('percentage', 0), 2),
+    })
+
     print('Generating PDF …')
     run_at = datetime.now()
     pdf_bytes = pkg._make_pdf(analysis, run_at)

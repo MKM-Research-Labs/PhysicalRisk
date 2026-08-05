@@ -44,4 +44,13 @@ def main():
     print(f"  {len(findings['factories'])} JS factory strings")
     print(f"  {total} total action items across {findings['files_flagged']} files")
 
+    from ..full_audit.results_json import write_results
+    write_results('embedded_js', {
+        'files_scanned': findings['files_scanned'],
+        'inline_scripts': len(findings['scripts']),
+        'inline_styles': len(findings['styles']),
+        'js_factories': len(findings['factories']),
+        'total_action_items': total,
+        'files_flagged': findings['files_flagged'],
+    })
     create_pdf_report(findings, output_path, root)

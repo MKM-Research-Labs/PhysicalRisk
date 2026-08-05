@@ -57,6 +57,26 @@ COVERAGE_REPORT_THRESHOLD_PCT = 100.0
 # silent (no silent caps).
 MAX_COVERAGE_ROWS = 15
 
+# Audit metrics shown in the Audit findings section. Each row:
+#   (results_name, label, summary_key, unit, gated)
+# ``results_name`` is the <name>_results.json the audit writes; ``gated`` marks
+# the genuinely zero-tolerance-AND-currently-clean audits whose breach raises
+# "Reviewer attention" (a regression from zero). Audits with standing backlogs
+# (init __init__, hardcoding, path-defs) are reported, not gated — v0 has no
+# baseline to tell a new violation from the known backlog; that is a v1 concern.
+AUDIT_METRICS = (
+    ('init_audit',     '__init__ substantive code', 'files_with_substantive_code', 'files',       False),
+    ('hardcoding',     'Hard-coded parameters',     'total_action_items',          'action items', False),
+    ('embedded_js',    'Embedded JS/CSS in Python', 'total_action_items',          'action items', True),
+    ('json_files',     'JSON I/O backlog',          'io_backlog_files',            'files',        True),
+    ('database_usage', 'Modules still on .json',    'json_only_modules',           'modules',      False),
+    ('duplication',    'Code duplication',          'duplication_pct',             '%',            False),
+    ('data_lineage',   'Data lineage failures',     'failed',                      'checks',       True),
+)
+
+# Gate threshold: a gated audit whose metric exceeds this raises attention.
+AUDIT_GATE_THRESHOLD = 0
+
 __all__ = [
     "AUDIT_DIR",
     "NAVY",
@@ -70,6 +90,8 @@ __all__ = [
     "OUTPUT_PATTERN",
     "COVERAGE_REPORT_THRESHOLD_PCT",
     "MAX_COVERAGE_ROWS",
+    "AUDIT_METRICS",
+    "AUDIT_GATE_THRESHOLD",
     "output_path",
 ]
 
