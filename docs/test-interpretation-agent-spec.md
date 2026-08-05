@@ -73,9 +73,11 @@ form and, on completion, hand the agent a path.
 
 Responsibilities:
 
-1. Execute the test suite — the overnight run already does this — adding
-   `--junitxml=<artefact-dir>/results.xml` so results are machine-readable.
-   Coverage XML is already emitted (`data/output/audit/coverage.xml`).
+1. Execute the test suite — the overnight run already does this, and already
+   writes both `junit.xml` and `coverage.xml` into `config.get_reports_dir('audit')`
+   (`full_audit` parses them from there). So the machine-readable test and coverage
+   inputs **already exist locally**; the `--junitxml` gap is CI-only and belongs to
+   the deferred cloud phase (§4), not v0.
 2. Execute the repository audit — `python -m docs.models.full_audit` — in a
    structured (JSON) output mode. **This mode does not exist yet and is a v0
    prerequisite:** today the audit is a package emitting a sectioned *human*
@@ -162,7 +164,21 @@ assessing.
 
 ## 7. Output
 
-One markdown file per run, at `{output_dir}/{ISO-date}-{short-sha}.md`.
+Markdown is the source-of-truth body; the **delivered artefact is a PDF** rendered
+from it, one per run.
+
+> **Amended (review 2026-08-05) — delivery via the audit workflow.** The assessment
+> is rendered to a **standalone sibling PDF** and written to
+> `config.get_reports_dir('audit')` (→ `data/output/audit/`) — the same directory
+> `full_audit` writes `full_audit_report.pdf` to, using the same reportlab
+> `styles.py` / `helpers.py`. The Model Governance panel's Audit Reports section
+> already lists **every** file in that directory (`/governance/audit-reports` in
+> `src/routes/governance/audit_reports.py`, rendered by
+> `src/static/js/mg-audit-reports.js`) and serves each via a `/file/<name>`
+> download route — so the PDF **surfaces on the audit workflow with no extra
+> wiring**. Filename follows the dated pattern below
+> (`assessment_{ISO-date}_{short-sha}.pdf`). The markdown may be retained beside it
+> as the reviewable/diffable source.
 
 ### Required structure
 
@@ -188,7 +204,7 @@ expectation. Where the agent cannot tell, it says so.>
 the documented responsibility of the module. Silence where nothing moved.>
 
 ## Audit findings
-<New violations from split_audit.py, and violations resolved.>
+<New violations from the `full_audit` run, and violations resolved.>
 
 ## Documentation divergence
 <Changes touching behaviour described in model documentation, with the
@@ -236,11 +252,16 @@ Configurable at minimum:
 - Maximum token spend per run
 - Model identifier
 
-> **Amendment (output location).** The output directory **must not** be under
-> `data/` — `data/` is a symlink to a shared external SSD that is not to be
-> mutated by tooling. A commit-per-run into the tracked tree also collides with
-> existing self-heal churn in the audit/copyright tooling. Write assessments to
-> a git-ignored path (or a dedicated `assessments/` branch); never under `data/`.
+> **Amended (review 2026-08-05) — output location corrected.** An earlier draft
+> said output must not be under `data/`. That was too broad. The correct sink is
+> `config.get_reports_dir('audit')` → **`data/output/audit/`**, which is
+> regenerable **output** and is exactly what the audit workflow reads (§7). The
+> "do not mutate `data/`" rule protects `data/input` (port/property data on the
+> shared SSD) and governance *source* data — **not** `data/output`, which tooling
+> writes to routinely (`coverage.xml`, `full_audit_report.pdf` already live
+> there). Because that tree is not committed, there is no per-run commit churn.
+> Resolve the path from config (§8), never as a literal.
+>
 > The coverage core setting (§7 amendment) is also configured here, so baseline
 > and current runs are guaranteed to use the same tracer.
 
