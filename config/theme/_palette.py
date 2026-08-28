@@ -1,0 +1,162 @@
+# Copyright (c) 2022-2026 MKM Research Labs.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""The colour vocabulary: every hue the platform draws with, named once.
+
+This is the colour half of coding rule R7 — the console, the generated PDFs and the
+map layers all resolve a *token* from here rather than writing a value down. The
+scales (type, spacing, radius, shadow) live in :mod:`config.theme._scale`; the
+domain ramps that map a business value to a colour live in
+:mod:`config.theme._domain`.
+
+Token names are the CSS custom-property name without the leading ``--``, so a token
+is spelled identically here, in the emitted ``:root`` block, in the JavaScript and in
+an adopter's override file. There is no translation layer to drift.
+
+Names are shared with MKM-ModelRisk's ``config/theme.py`` wherever the two platforms
+mean the same thing (``accent``, ``panel``, ``muted``, ``line``, the RAG hues). The
+two products are meant to sit in one suite, and a single vocabulary is what lets one
+adopter theme file brand both.
+
+Values are strings, deliberately: a token is whatever CSS accepts in that position.
+Nothing here is arithmetic, so nothing here needs to be a number.
+
+The values are those the code already draws with, at the frequencies recorded in
+docs/refactor/theme_centralisation_plan.md §2 — near-duplicates are named distinctly
+rather than collapsed, because collapsing them moves pixels and this step is meant to
+be invisible. Which of them are genuine distinctions and which are drift is settled
+as each surface converts, not here.
+"""
+
+# --- The adopter's identity: the one group a rebrand almost always touches. -------
+# ``accent`` is the interactive colour — links, active tabs, primary buttons, the
+# selected state of anything. ``accent-ink`` is the darker blue the console reaches
+# for on panel headers and hover states; it is the same decision as ``accent`` in
+# nine sites out of ten and the two have already drifted apart (255 uses against
+# 151), so which is which gets decided per surface as that surface converts.
+BRAND = {
+    "accent": "#1976d2",
+    "accent-ink": "#1565c0",
+    "accent-deep": "#0d47a1",
+    "accent-bright": "#2196f3",
+    "accent-light": "#42a5f5",
+    "accent-soft": "#e3f2fd",
+    "accent-border": "#bbdefb",
+    "header-from": "#f5f7fa",
+    "header-to": "#c3cfe2",
+}
+
+# --- Paper: the neutral surfaces everything else sits on. ------------------------
+# Eleven of them, which is more than a design system would choose and exactly what
+# the console currently uses. ``code`` and ``line-soft`` share no value by accident:
+# ``#f0f0f0`` is a fill in six sites and a hairline in the rest, and separating the
+# two roles is what lets an adopter darken one without darkening the other.
+SURFACE = {
+    "bg": "#eef1f5",
+    "panel": "#ffffff",
+    "raised": "#fafafa",
+    "sunken": "#f5f5f5",
+    "control": "#f9f9f9",
+    "wash": "#f8f9fa",
+    "wash-cool": "#f8fafc",
+    "code": "#f0f0f0",
+    "line": "#e0e0e0",
+    "line-soft": "#eeeeee",
+    "line-strong": "#dddddd",
+    "divider": "#cccccc",
+    # A hairline over an unknown background, so it darkens whatever it crosses
+    # instead of assuming the panel colour.
+    "rule": "rgba(0, 0, 0, 0.12)",
+    "scrim": "rgba(0, 0, 0, 0.45)",
+    "veil": "rgba(255, 255, 255, 0.85)",
+}
+
+# --- Ink. Six weights, and the console spells all six: 226 uses of ``muted`` -----
+# against 196 of ``text`` and 195 of ``text-3``. A three-weight ramp would have
+# forced half the sites to keep a literal.
+TEXT = {
+    "text": "#333333",
+    "text-2": "#555555",
+    "text-3": "#666666",
+    "muted": "#888888",
+    "muted-2": "#999999",
+    "disabled": "#aaaaaa",
+    "faint": "#bbbbbb",
+    "inverse": "#ffffff",
+}
+
+# --- Red / Amber / Green is this platform's risk vocabulary, not a colour choice. -
+# Named for the rating, not for a semantic role, because that is what they mean:
+# a flood-risk band, a model's RAG rating and a gauge trigger level all draw from
+# here. Four reds and four ambers are in use today; they are all recorded so the
+# conversion can see them, and step 6 decides which distinctions are real.
+RAG = {
+    "green": "#2e7d32",
+    "green-mid": "#388e3c",
+    "green-bright": "#4caf50",
+    "green-deep": "#1b5e20",
+    "green-soft": "#66bb6a",
+    "amber": "#f57c00",
+    "amber-deep": "#e65100",
+    "amber-bright": "#ff9800",
+    "amber-yellow": "#ffc107",
+    "amber-soft": "#ffa726",
+    "red": "#c62828",
+    "red-mid": "#d32f2f",
+    "red-bright": "#f44336",
+    "red-deep": "#b71c1c",
+    "red-alt": "#e53935",
+    "red-soft": "#ef5350",
+    "grey": "#9e9e9e",
+}
+
+# --- Banner and chip tints, keyed to the state they announce. ---------------------
+STATE = {
+    "ok-bg": "#e8f5e9",
+    "warn-bg": "#fff3e0",
+    "warn-bg-alt": "#fff8e1",
+    "danger-bg": "#ffebee",
+    "danger-line": "#ffcdd2",
+    "info-bg": "#e8eaf6",
+}
+
+# --- Hues that distinguish a state without asserting a risk rating. ---------------
+# Deliberately outside RAG: a peril being seismic rather than flood, or a gauge being
+# the third one on a chart, is not a rating, and drawing it in a rating colour would
+# read as one.
+HUE = {
+    "navy": "#1a237e",
+    "slate": "#37474f",
+    "blue-grey": "#546e7a",
+    "blue-grey-light": "#78909c",
+    "blue-grey-pale": "#90a4ae",
+    "blue-grey-bg": "#eceff1",
+    "steel": "#6b7686",
+    "purple": "#7b1fa2",
+    "purple-deep": "#6a1b9a",
+    "purple-dark": "#4a148c",
+    "purple-bg": "#f3e5f5",
+    "orange-deep": "#bf360c",
+    "gold": "#fbc02d",
+    "gold-deep": "#f9a825",
+    "gold-dark": "#f57f17",
+}
+
+__all__ = ["BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE"]

@@ -26,6 +26,7 @@ import folium
 
 from config import config
 
+from ..theme_css import theme_html
 from .backend_handler import BackendHandler
 from .context_menus import ContextMenuHandler
 from .notifications import create_notification_system
@@ -83,7 +84,15 @@ class InteractivityManager:
         self.main_map_fs01 = MainMapFS01()
 
     def setup_map_interactivity(self, folium_map) -> 'InteractivityManager':
-        """Add all interactivity components to a map."""
+        """Add all interactivity components to a map.
+
+        The design tokens go on first, ahead of every component's own inlined CSS, so
+        a panel that redefines a token overrides the theme rather than being
+        overridden by it. This is the single seam that themes the console (coding
+        rule R7); the standalone admin page and the CDM Asset Review tool are
+        separate documents and carry their own injection.
+        """
+        folium_map.get_root().html.add_child(folium.Element(theme_html()))
         self.startup_preloader.add_to_map(folium_map)
         self.notifications.add_to_map(folium_map)
         self.backend.add_to_map(folium_map)
