@@ -37,7 +37,7 @@ otherwise would let two groups define ``--line`` and leave the winner to file or
 ``tests/config/test_theme.py`` holds that true.
 """
 
-from ._domain import DEPTH, MAP, PERIL, SERIES, SIGN
+from ._domain import DEPTH, FLOOD, MAP, MARKER, PERIL, SERIES, SIGN
 from ._palette import BRAND, HUE, RAG, STATE, SURFACE, TEXT
 from ._scale import RADIUS, SHADOW, SPACE, TYPE
 
@@ -53,6 +53,8 @@ THEME_GROUPS = (
     ("peril", PERIL),
     ("depth", DEPTH),
     ("map", MAP),
+    ("marker", MARKER),
+    ("flood", FLOOD),
     ("sign", SIGN),
     ("series", SERIES),
     ("type", TYPE),

@@ -157,6 +157,8 @@ HUE = {
     "gold": "#fbc02d",
     "gold-deep": "#f9a825",
     "gold-dark": "#f57f17",
+    "purple-bright": "#9c27b0",
+    "yellow": "#ffeb3b",
 }
 
 __all__ = ["BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE"]

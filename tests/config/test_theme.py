@@ -31,8 +31,12 @@ import re
 import pytest
 
 from config.theme import (
-    BRAND, DEPTH, HUE, MAP, PERIL, RADIUS, RAG, SERIES, SHADOW, SIGN, SPACE,
-    STATE, SURFACE, TEXT, THEME, THEME_GROUPS, TYPE,
+    BRAND, DEPTH, DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOKENS, DEPTH_BAND_TOP, FLOOD,
+    FLOOD_RISK_MARKERS, FLOOD_RISK_TOKENS, HUE, LOAN_RISK_TOKENS, LTV_BAND_BOUNDS,
+    LTV_BAND_TOKENS, LTV_BAND_TOP, MAP, MARKER, OPERATIONAL_STATUS_TOKENS, PERIL,
+    PROPERTY_TYPE_TOKENS, RADIUS, RAG, SERIES, SHADOW, SIGN, SPACE, STATE,
+    STATUS_TOKEN_RAMPS, STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS,
+    STORM_INTENSITY_TOP, SURFACE, TEXT, THEME, THEME_GROUPS, TYPE,
 )
 from config.theme.registry import SANCTIONED_PACKAGE
 
@@ -64,7 +68,7 @@ class TestTokenNames:
         """A group added to the package but not to THEME_GROUPS is never emitted."""
         declared = {id(group) for _, group in THEME_GROUPS}
         for group in (BRAND, SURFACE, TEXT, RAG, STATE, HUE, PERIL, DEPTH, MAP,
-                      SIGN, SERIES, TYPE, SPACE, RADIUS, SHADOW):
+                      MARKER, FLOOD, SIGN, SERIES, TYPE, SPACE, RADIUS, SHADOW):
             assert id(group) in declared
 
     def test_group_labels_are_unique(self):
@@ -86,7 +90,8 @@ class TestTokenValues:
             assert "}" not in value, f"--{name} contains a closing brace"
 
     @pytest.mark.parametrize("group", [BRAND, SURFACE, TEXT, RAG, STATE, HUE,
-                                       PERIL, DEPTH, MAP, SIGN, SERIES])
+                                       PERIL, DEPTH, MAP, MARKER, FLOOD, SIGN,
+                                       SERIES])
     def test_colour_groups_hold_colours(self, group):
         for name, value in group.items():
             assert value.startswith("#") or value.startswith("rgb"), \
@@ -161,3 +166,96 @@ class TestSanctionedPackage:
         """
         assert TYPE["font"]
         assert TYPE["font-mono"]
+
+
+class TestStatusRamps:
+    """The value→token ramps (``config.theme._status``).
+
+    These exist so a business value and the colour it is drawn in are decided once.
+    The invariant that matters is that every ramp points at a token the palette
+    actually defines — a ramp naming a token that does not exist resolves to nothing,
+    and the drawing code would paint with ``None``.
+    """
+
+    def test_every_ramp_resolves_to_defined_tokens(self):
+        unresolved = [
+            f"{ramp}[{value!r}] -> {token}"
+            for ramp, mapping in STATUS_TOKEN_RAMPS.items()
+            for value, token in mapping.items()
+            if token not in THEME
+        ]
+        assert unresolved == [], "ramps naming undefined tokens: " + ", ".join(unresolved)
+
+    def test_every_ramp_is_registered(self):
+        registered = {id(m) for m in STATUS_TOKEN_RAMPS.values()}
+        for ramp in (FLOOD_RISK_TOKENS, OPERATIONAL_STATUS_TOKENS, LOAN_RISK_TOKENS,
+                     PROPERTY_TYPE_TOKENS, STORM_INTENSITY_TOKENS, DEPTH_BAND_TOKENS,
+                     LTV_BAND_TOKENS):
+            assert id(ramp) in registered
+
+    def test_lookup_ramps_carry_an_unknown_band(self):
+        """A ramp keyed on free-text data needs a landing place for a value it
+        has never seen. The banded ramps (storm, depth, LTV) are keyed on a number
+        and cannot miss, so they are excluded."""
+        for ramp in (FLOOD_RISK_TOKENS, OPERATIONAL_STATUS_TOKENS, LOAN_RISK_TOKENS,
+                     PROPERTY_TYPE_TOKENS):
+            assert "Unknown" in ramp
+
+    def test_marker_ramp_holds_folium_names_not_tokens(self):
+        """Leaflet markers take a name from a fixed vocabulary, not a colour.
+
+        If one of these were ever changed to a token name like ``red-deep`` it would
+        silently stop being a valid marker colour and the marker would fall back to
+        blue on the map. Membership of Folium's vocabulary is the check; some names
+        (``green``, ``purple``) are also token names, which is a coincidence of
+        spelling and not a problem.
+        """
+        folium_names = {"red", "darkred", "lightred", "orange", "beige", "green",
+                        "darkgreen", "lightgreen", "blue", "darkblue", "cadetblue",
+                        "lightblue", "purple", "darkpurple", "pink", "white",
+                        "gray", "lightgray", "black"}
+        for value, name in FLOOD_RISK_MARKERS.items():
+            assert name in folium_names, f"{value!r} -> {name!r} is not a Folium colour"
+
+    def test_marker_ramp_covers_the_token_ramp(self):
+        """Every band with a colour has a marker, so a map and a popup agree."""
+        assert set(FLOOD_RISK_TOKENS) <= set(FLOOD_RISK_MARKERS)
+
+    def test_both_casings_of_each_flood_band_agree(self):
+        """The data carries both casings; they must not drift to different colours."""
+        for lower, upper in (("Very low", "Very Low"), ("Very high", "Very High")):
+            assert FLOOD_RISK_TOKENS[lower] == FLOOD_RISK_TOKENS[upper]
+            assert FLOOD_RISK_MARKERS[lower] == FLOOD_RISK_MARKERS[upper]
+
+
+class TestBandBounds:
+    """The thresholds the numeric ramps are cut at."""
+
+    @pytest.mark.parametrize("bounds,ramp", [
+        (STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS),
+        (DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOKENS),
+        (LTV_BAND_BOUNDS, LTV_BAND_TOKENS),
+    ])
+    def test_bounds_ascend(self, bounds, ramp):
+        values = [bound for bound, _ in bounds]
+        assert values == sorted(values)
+
+    @pytest.mark.parametrize("bounds,ramp,top", [
+        (STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS, STORM_INTENSITY_TOP),
+        (DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOKENS, DEPTH_BAND_TOP),
+        (LTV_BAND_BOUNDS, LTV_BAND_TOKENS, LTV_BAND_TOP),
+    ])
+    def test_every_band_named_by_the_bounds_has_a_colour(self, bounds, ramp, top):
+        for _, band in bounds:
+            assert band in ramp, f"band {band!r} has no colour"
+        assert top in ramp, f"top band {top!r} has no colour"
+
+    @pytest.mark.parametrize("bounds,ramp,top", [
+        (STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS, STORM_INTENSITY_TOP),
+        (DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOKENS, DEPTH_BAND_TOP),
+        (LTV_BAND_BOUNDS, LTV_BAND_TOKENS, LTV_BAND_TOP),
+    ])
+    def test_no_band_is_unreachable(self, bounds, ramp, top):
+        """A colour in the ramp that no bound selects would never be drawn."""
+        reachable = {band for _, band in bounds} | {top}
+        assert set(ramp) == reachable, f"unreachable bands: {set(ramp) - reachable}"

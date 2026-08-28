@@ -75,6 +75,36 @@ MAP = {
     "layer-neutral": "#566573",
 }
 
+# --- The map's markers and popups draw from a different palette than the console. --
+# These are the flat-UI family (Nephritis, Pomegranate, Peter River, Amethyst…) that
+# the gauge markers, the property markers and their popups have always used, where the
+# console chrome is Material. Two palettes in one product is drift, but it is drift
+# along a real seam — the map is a different surface with a different job — so they
+# are recorded distinctly rather than collapsed. Collapsing them would move pixels on
+# every marker, which is a decision for a design pass, not for this migration.
+MARKER = {
+    "marker-green": "#27ae60",
+    "marker-amber": "#f39c12",
+    "marker-red": "#c0392b",
+    "marker-red-alt": "#e74c3c",
+    "marker-purple": "#8e44ad",
+    "marker-violet": "#9b59b6",
+    "marker-orange": "#e67e22",
+    "marker-teal": "#1abc9c",
+    "marker-blue": "#3498db",
+    "marker-slate": "#34495e",
+    "marker-grey": "#7f8c8d",
+    "marker-silver": "#95a5a6",
+}
+
+# The "no flood" fill on the depth ramp. One digit away from the palette's ``ok-bg``
+# (#e8f5e9) and not the same colour — a near-duplicate that predates this package.
+# Recorded exactly as it is drawn today; whether the difference is intentional is a
+# question for the design pass, not something to silently resolve here.
+FLOOD = {
+    "flood-none": "#e8f5e8",
+}
+
 # --- The sign of a number. --------------------------------------------------------
 # The trading surfaces draw a gain green and a loss red, which are the RAG hues doing
 # a second job. Named separately because they are not a rating: a loss is not "Red"
@@ -105,4 +135,4 @@ SERIES = {
     "series-8": "#f57f17",
 }
 
-__all__ = ["PERIL", "DEPTH", "MAP", "SIGN", "SERIES"]
+__all__ = ["PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES"]

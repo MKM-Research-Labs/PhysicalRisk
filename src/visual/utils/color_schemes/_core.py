@@ -18,223 +18,185 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Color scheme utilities for the visualization system.
+"""Resolve the design tokens into the hex values the visualisation layer draws with.
 
-Provides consistent color mapping for different risk levels, statuses, and
-data categories. Gradient generation lives in the _gradient mixin.
+The ramps themselves — which token a flood band, a gauge status or an LTV bucket maps
+to — live in :mod:`config.theme._status`. This is the Python edge that turns a token
+into a colour, and it is deliberately thin: the class below holds no colour of its
+own, so there is no second place for the console's appearance to be decided (coding
+rule R7).
+
+``FLOOD_RISK_COLORS`` and its siblings are still exposed as concrete hex mappings,
+because callers and tests read them directly. They are now derived from the token
+ramps at import time rather than written down, so a palette change reaches them.
+
+Folium markers are the exception, and the reason ``get_folium_color_name`` and
+``FLOOD_RISK_MARKERS`` exist: a Leaflet marker takes a colour *name* from a fixed
+vocabulary, not a hex value, so no token can express one.
 """
+
+from config.theme import (
+    DEPTH_BAND_BOUNDS_M,
+    DEPTH_BAND_TOKENS,
+    DEPTH_BAND_TOP,
+    FLOOD_RISK_MARKERS,
+    FLOOD_RISK_TOKENS,
+    LOAN_RISK_TOKENS,
+    LTV_BAND_BOUNDS,
+    LTV_BAND_TOKENS,
+    LTV_BAND_TOP,
+    OPERATIONAL_STATUS_TOKENS,
+    PROPERTY_TYPE_TOKENS,
+    STORM_INTENSITY_BOUNDS_MS,
+    STORM_INTENSITY_TOKENS,
+    STORM_INTENSITY_TOP,
+    THEME,
+)
 
 from ._gradient import _GradientMixin
 
 
+def _resolve(ramp: dict) -> dict:
+    """Turn a value→token ramp into the value→hex mapping the drawing code wants.
+
+    A token missing from the theme is a programming error rather than a runtime
+    condition — it means a ramp names something the palette does not define — so it
+    fails at import rather than painting an element in a plausible wrong colour.
+    """
+    missing = sorted({token for token in ramp.values() if token not in THEME})
+    if missing:
+        raise KeyError(f"ramp refers to undefined design tokens: {', '.join(missing)}")
+    return {value: THEME[token] for value, token in ramp.items()}
+
+
+def _band(value: float, bounds: tuple, top: str, inclusive: bool = True) -> str:
+    """The first band *value* falls within, else *top*.
+
+    *inclusive* selects whether a value sitting exactly on a bound belongs to the band
+    below it or the one above. The three ramps disagree, and did before this package
+    existed: depth and LTV band on ``<=``, storm intensity on ``<``, so a wind speed of
+    exactly 30 m/s is "moderate" while a depth of exactly 0.5 m is "minor". That is an
+    inconsistency rather than a decision, but correcting it would recolour markers at
+    the boundaries, which is not what a styling migration should do. Preserved
+    faithfully and now visible in one place instead of implied by two spellings of the
+    same loop.
+    """
+    for bound, band in bounds:
+        if (value <= bound) if inclusive else (value < bound):
+            return band
+    return top
+
+
 class ColorSchemes(_GradientMixin):
-    """Color scheme definitions and utilities for the visualization system."""
+    """Colour lookups for the visualisation system, resolved from ``config.theme``."""
 
-    # Risk level color mappings
-    FLOOD_RISK_COLORS = {
-        'Very Low': '#2E7D32',      # Dark green
-        'Very low': '#2E7D32',      # Dark green (alternative casing)
-        'Low': '#66BB6A',           # Light green
-        'Medium': '#FF9800',        # Orange
-        'High': '#F44336',          # Red
-        'Very High': '#B71C1C',     # Dark red
-        'Very high': '#B71C1C',     # Dark red (alternative casing)
-        'Unknown': '#2196F3'        # Blue (default)
-    }
+    FLOOD_RISK_COLORS = _resolve(FLOOD_RISK_TOKENS)
+    OPERATIONAL_STATUS_COLORS = _resolve(OPERATIONAL_STATUS_TOKENS)
+    LOAN_RISK_COLORS = _resolve(LOAN_RISK_TOKENS)
+    PROPERTY_TYPE_COLORS = _resolve(PROPERTY_TYPE_TOKENS)
+    STORM_INTENSITY_COLORS = _resolve(STORM_INTENSITY_TOKENS)
+    DEPTH_BAND_COLORS = _resolve(DEPTH_BAND_TOKENS)
+    LTV_BAND_COLORS = _resolve(LTV_BAND_TOKENS)
 
-    # Operational status colors for gauges
-    OPERATIONAL_STATUS_COLORS = {
-        'Fully operational': '#27AE60',      # Green
-        'Maintenance required': '#F39C12',   # Orange
-        'Temporarily offline': '#C0392B',    # Red
-        'Decommissioned': '#7F8C8D',        # Gray
-        'Unknown': '#3498DB'                 # Blue
-    }
-
-    # Loan risk colors
-    LOAN_RISK_COLORS = {
-        'Low': '#27AE60',           # Green
-        'Moderate': '#F39C12',      # Orange
-        'High': '#E74C3C',          # Red
-        'Critical': '#8E44AD',      # Purple
-        'Unknown': '#34495E'        # Dark gray
-    }
-
-    # Property type colors
-    PROPERTY_TYPE_COLORS = {
-        'Residential': '#3498DB',    # Blue
-        'Commercial': '#9B59B6',     # Purple
-        'Industrial': '#E67E22',     # Orange
-        'Mixed': '#1ABC9C',          # Teal
-        'Unknown': '#95A5A6'         # Gray
-    }
-
-    # Storm intensity colors (based on wind speed)
-    STORM_INTENSITY_COLORS = {
-        'low': '#4CAF50',           # Green (< 30 m/s)
-        'moderate': '#FF9800',      # Orange (30-50 m/s)
-        'high': '#F44336',          # Red (50-70 m/s)
-        'extreme': '#9C27B0'        # Purple (> 70 m/s)
-    }
+    #: Folium's own marker vocabulary, which is not expressible as tokens.
+    FLOOD_RISK_MARKER_NAMES = dict(FLOOD_RISK_MARKERS)
 
     @classmethod
     def get_flood_risk_color(cls, risk_level: str) -> str:
-        """
-        Get color for flood risk level.
-
-        Args:
-            risk_level: Risk level string
-
-        Returns:
-            Hex color code
-        """
+        """Hex colour for a flood risk band, falling back to the Unknown band."""
         return cls.FLOOD_RISK_COLORS.get(risk_level, cls.FLOOD_RISK_COLORS['Unknown'])
 
     @classmethod
     def get_operational_status_color(cls, status: str) -> str:
-        """
-        Get color for operational status.
-
-        Args:
-            status: Operational status string
-
-        Returns:
-            Hex color code
-        """
-        return cls.OPERATIONAL_STATUS_COLORS.get(status, cls.OPERATIONAL_STATUS_COLORS['Unknown'])
+        """Hex colour for a gauge's operational status."""
+        return cls.OPERATIONAL_STATUS_COLORS.get(
+            status, cls.OPERATIONAL_STATUS_COLORS['Unknown'])
 
     @classmethod
     def get_loan_risk_color(cls, risk_level: str) -> str:
-        """
-        Get color for loan risk level.
-
-        Args:
-            risk_level: Risk level string
-
-        Returns:
-            Hex color code
-        """
+        """Hex colour for a loan risk grade."""
         return cls.LOAN_RISK_COLORS.get(risk_level, cls.LOAN_RISK_COLORS['Unknown'])
 
     @classmethod
     def get_property_type_color(cls, property_type: str) -> str:
-        """
-        Get color for property type.
-
-        Args:
-            property_type: Property type string
-
-        Returns:
-            Hex color code
-        """
-        return cls.PROPERTY_TYPE_COLORS.get(property_type, cls.PROPERTY_TYPE_COLORS['Unknown'])
+        """Hex colour for a property type."""
+        return cls.PROPERTY_TYPE_COLORS.get(
+            property_type, cls.PROPERTY_TYPE_COLORS['Unknown'])
 
     @classmethod
     def get_wind_speed_color(cls, wind_speed: float) -> str:
-        """
-        Get color based on wind speed.
-
-        Args:
-            wind_speed: Wind speed in m/s
-
-        Returns:
-            Hex color code
-        """
-        if wind_speed < 30:
-            return cls.STORM_INTENSITY_COLORS['low']
-        elif wind_speed < 50:
-            return cls.STORM_INTENSITY_COLORS['moderate']
-        elif wind_speed < 70:
-            return cls.STORM_INTENSITY_COLORS['high']
-        else:
-            return cls.STORM_INTENSITY_COLORS['extreme']
+        """Hex colour for a wind speed in m/s, banded per ``STORM_INTENSITY_BOUNDS_MS``."""
+        band = _band(wind_speed, STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOP,
+                     inclusive=False)
+        return cls.STORM_INTENSITY_COLORS[band]
 
     @classmethod
     def get_ltv_risk_color(cls, ltv_ratio: float) -> str:
-        """
-        Get color based on loan-to-value ratio.
-
-        Args:
-            ltv_ratio: LTV ratio (0-1 or 0-100)
-
-        Returns:
-            Hex color code
-        """
-        # Normalize to 0-1 if needed
+        """Hex colour for a loan-to-value ratio, given as either 0–1 or 0–100."""
         if ltv_ratio > 1:
             ltv_ratio = ltv_ratio / 100
-
-        if ltv_ratio <= 0.6:
-            return '#27AE60'  # Green
-        elif ltv_ratio <= 0.8:
-            return '#F39C12'  # Orange
-        elif ltv_ratio <= 0.95:
-            return '#E74C3C'  # Red
-        else:
-            return '#8E44AD'  # Purple (very high risk)
+        return cls.LTV_BAND_COLORS[_band(ltv_ratio, LTV_BAND_BOUNDS, LTV_BAND_TOP)]
 
     @classmethod
     def get_depth_color(cls, depth: float, max_depth: float = 5.0) -> str:
-        """
-        Get color based on flood depth.
+        """Hex colour for a flood depth in metres.
 
-        Args:
-            depth: Flood depth in meters
-            max_depth: Maximum depth for color scaling
-
-        Returns:
-            Hex color code
+        *max_depth* is accepted and unused: the ramp is banded at fixed depths, not
+        scaled to a maximum. The parameter is part of the published signature and
+        callers pass it, so removing it belongs in its own change.
         """
-        if depth <= 0:
-            return '#E8F5E8'  # Very light green (no flood)
-        elif depth <= 0.5:
-            return '#FFEB3B'  # Yellow (minor flooding)
-        elif depth <= 1.0:
-            return '#FF9800'  # Orange (moderate flooding)
-        elif depth <= 2.0:
-            return '#F44336'  # Red (significant flooding)
-        else:
-            return '#9C27B0'  # Purple (severe flooding)
+        return cls.DEPTH_BAND_COLORS[_band(depth, DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOP)]
 
     @classmethod
     def get_folium_color_name(cls, hex_color: str) -> str:
-        """
-        Convert hex color to closest Folium color name.
+        """The Folium marker name closest to a hex colour from one of the ramps.
 
-        Args:
-            hex_color: Hex color code
+        Reverse-resolved from the flood ramp, which is the ramp markers are drawn
+        from. A colour that is not in it — including one from the gauge or loan ramps
+        — falls back to ``blue``, as it always has.
 
-        Returns:
-            Folium-compatible color name
+        Matched case-insensitively. The ramps were spelled in uppercase hex before
+        they became tokens, so a caller holding an older literal still resolves.
         """
-        # Map of common hex colors to Folium color names
-        color_map = {
-            '#2E7D32': 'green',
-            '#66BB6A': 'lightgreen',
-            '#FF9800': 'orange',
-            '#F44336': 'red',
-            '#B71C1C': 'darkred',
-            '#2196F3': 'blue',
-            '#27AE60': 'green',
-            '#F39C12': 'orange',
-            '#C0392B': 'red',
-            '#7F8C8D': 'gray',
-            '#3498DB': 'blue',
-            '#E74C3C': 'red',
-            '#8E44AD': 'purple',
-            '#34495E': 'darkblue'
+        wanted = hex_color.lower() if hex_color else hex_color
+        by_hex = {
+            cls.FLOOD_RISK_COLORS[level]: name
+            for level, name in cls.FLOOD_RISK_MARKER_NAMES.items()
+            if level in cls.FLOOD_RISK_COLORS
         }
+        return by_hex.get(wanted, _LEGACY_FOLIUM_NAMES.get(wanted, 'blue'))
 
-        return color_map.get(hex_color, 'blue')
+    @classmethod
+    def get_flood_risk_marker(cls, risk_level: str) -> str:
+        """Folium marker name for a flood risk band.
+
+        The direct lookup that ``visual.utils.risk_assessors.get_risk_color`` and
+        ``visual.popups.popup_builder.get_risk_color`` each used to spell for
+        themselves.
+        """
+        return cls.FLOOD_RISK_MARKER_NAMES.get(risk_level, 'blue')
 
 
-# Convenience functions for backward compatibility
+# Marker names for colours outside the flood ramp. These come from the gauge, loan and
+# property ramps, whose hex values ``get_folium_color_name`` has always accepted even
+# though no marker is drawn from them. Kept so the function's behaviour is unchanged.
+_LEGACY_FOLIUM_NAMES = {
+    THEME['marker-green']: 'green',
+    THEME['marker-amber']: 'orange',
+    THEME['marker-red']: 'red',
+    THEME['marker-red-alt']: 'red',
+    THEME['marker-purple']: 'purple',
+    THEME['marker-grey']: 'gray',
+    THEME['marker-blue']: 'blue',
+    THEME['marker-slate']: 'darkblue',
+}
+
+
 def get_risk_color(risk_level: str) -> str:
-    """Get color for risk level (backward compatibility)."""
+    """Hex colour for a flood risk band (backward compatibility)."""
     return ColorSchemes.get_flood_risk_color(risk_level)
 
 
 def get_status_color(status: str) -> str:
-    """Get color for status (backward compatibility)."""
+    """Hex colour for a gauge status (backward compatibility)."""
     return ColorSchemes.get_operational_status_color(status)

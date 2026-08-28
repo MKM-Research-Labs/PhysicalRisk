@@ -30,21 +30,34 @@ Layout::
 
     _palette.py   BRAND, SURFACE, TEXT, RAG, STATE, HUE   — the chrome
     _scale.py     TYPE, SPACE, RADIUS, SHADOW             — the non-colour parameters
-    _domain.py    PERIL, DEPTH, MAP, SIGN, SERIES         — physical-risk vocabulary
+    _domain.py    PERIL, DEPTH, MAP, MARKER, FLOOD, …     — physical-risk vocabulary
+    _status.py    the value→token ramps and their bounds   — what a colour *means*
     registry.py   THEME, THEME_GROUPS                     — the flat view emitters use
 
 See docs/refactor/theme_centralisation_plan.md for the migration this package is
 step 1 of, and docs/rules/coding_rules.md R7 for the rule it exists to satisfy.
 """
 
-from ._domain import DEPTH, MAP, PERIL, SERIES, SIGN
+from ._domain import DEPTH, FLOOD, MAP, MARKER, PERIL, SERIES, SIGN
 from ._palette import BRAND, HUE, RAG, STATE, SURFACE, TEXT
 from ._scale import RADIUS, SHADOW, SPACE, TYPE
+from ._status import (
+    DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOKENS, DEPTH_BAND_TOP, FLOOD_RISK_MARKERS,
+    FLOOD_RISK_TOKENS, LOAN_RISK_TOKENS, LTV_BAND_BOUNDS, LTV_BAND_TOKENS,
+    LTV_BAND_TOP, OPERATIONAL_STATUS_TOKENS, PROPERTY_TYPE_TOKENS,
+    STATUS_TOKEN_RAMPS, STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS,
+    STORM_INTENSITY_TOP,
+)
 from .registry import SANCTIONED_PACKAGE, THEME, THEME_GROUPS
 
 __all__ = [
     "BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE",
     "TYPE", "SPACE", "RADIUS", "SHADOW",
-    "PERIL", "DEPTH", "MAP", "SIGN", "SERIES",
+    "PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES",
+    "FLOOD_RISK_TOKENS", "FLOOD_RISK_MARKERS", "OPERATIONAL_STATUS_TOKENS",
+    "LOAN_RISK_TOKENS", "PROPERTY_TYPE_TOKENS", "STORM_INTENSITY_TOKENS",
+    "DEPTH_BAND_TOKENS", "LTV_BAND_TOKENS", "STATUS_TOKEN_RAMPS",
+    "STORM_INTENSITY_BOUNDS_MS", "DEPTH_BAND_BOUNDS_M", "LTV_BAND_BOUNDS",
+    "STORM_INTENSITY_TOP", "DEPTH_BAND_TOP", "LTV_BAND_TOP",
     "THEME", "THEME_GROUPS", "SANCTIONED_PACKAGE",
 ]

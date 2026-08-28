@@ -207,7 +207,7 @@ to. Steps 1–5 are the load-bearing work; 6–8 are mechanical and can follow a
 | # | Step | Size | Why here |
 |---|---|---|---|
 | 1 | ✅ **Done** — `config/theme/` package + the token vocabulary + `:root` injection at the manager seam + `theme.js` | ~1.5 d | Nothing changes visually; the vocabulary now exists and reaches every console page |
-| 2 | `ColorSchemes` → `config/theme/_domain.py`; `src/visual/utils/color_schemes/` reads from it | ~0.5 d | Small, removes an existing R1 violation, and single-sources the flood/gauge/loan/property ramps the Python and the JS currently disagree about |
+| 2 | ✅ **Done** — `ColorSchemes` → `config/theme/_status.py`; `src/visual/utils/color_schemes/` reads from it | ~0.5 d | Small, removes an existing R1 violation, and single-sources the flood/gauge/loan/property ramps the Python and the JS currently disagree about |
 | 3 | The 36 JS status maps → one `STATUS_COLOUR_TOKENS` table | ~1.5 d | The highest-value step: every badge on every screen inherits, and the three disagreeing alert/warning/severe maps become one |
 | 4 | The four CSS files (169 literals) → `var(--…)` | ~0.5 d | Mechanical, easy to eyeball, includes the CDM tool's 838-line stylesheet |
 | 5 | `audit/` styling scanner + rule **R7** + `full_audit` §4.8 + gate test | ~1 d | What makes all of the above hold. Gate CSS/HTML/Python at zero, *report* the JS backlog with a count so step 6's remaining work is visible instead of silently passing |
@@ -296,6 +296,54 @@ loader at module scope closes a cycle — `theme_css` → `interactivity/__init_
 import inside `theme_html()` with a comment. The loader wants relocating a level up to
 `src/visual/`, which is a small change touching many importers and belongs in its own
 commit, not here.
+
+### 5.3 Step 2, as built
+
+The ramps moved to a new `config/theme/_status.py` rather than into `_domain.py` as the
+plan said: `_domain.py` names *hues*, `_status.py` says what they *mean*, and mixing the
+two would have pushed one file past the 300-line limit inside a step or two anyway.
+
+Every ramp maps a value to a **token name**, never to a colour, so the "High" flood band
+and a red RAG badge now move together. `ColorSchemes` became a resolver — it holds no
+colour of its own, and a ramp naming a token the palette does not define raises at import
+instead of painting with `None`. 15 new tokens: a `MARKER` group for the flat-UI family the
+map markers and popups use, and `flood-none`.
+
+**The duplication was worse than the plan recorded.** It listed the flood ramp as living in
+`ColorSchemes` plus the JS. In fact the Python side alone had four copies of the flood ramp
+(`ColorSchemes.FLOOD_RISK_COLORS`, `ColorSchemes.get_folium_color_name`,
+`visual.utils.risk_assessors.get_risk_color`, `visual.popups.popup_builder.get_risk_color`)
+and two of the gauge ramp (`ColorSchemes`, `visual.popups.gauge_popup`). Three of those are
+now deleted and delegate to the shared table.
+
+**Two palettes, not one.** The console chrome is Material; the map markers and popups are
+flat-UI (Nephritis, Pomegranate, Peter River, Amethyst). That is drift, but along a real
+seam — the map is a different surface — so they are recorded as separate groups rather than
+collapsed. Collapsing them would recolour every marker, which is a design decision, not a
+migration one.
+
+**Three things preserved deliberately, all now visible in one place instead of implied by
+the gap between two files:**
+
+- The numeric ramps disagree about boundaries. Storm intensity bands on a strict `<`, depth
+  and LTV on `<=`, so exactly 30 m/s is "moderate" while exactly 0.5 m is "minor". Caught by
+  the existing suite when the first rewrite normalised them; now pinned by its own test.
+- `flood-none` (#e8f5e8) is one digit from the palette's `ok-bg` (#e8f5e9) and is not the
+  same colour.
+- The Folium marker ramp carried an `N/A` band the hex ramp never had, so a property with no
+  assessment drew a grey marker and a blue popup swatch.
+
+**One behaviour change, and it is dead code.** `popup_builder.get_risk_color` omitted the
+`Unknown` and `N/A` bands and fell through to its default; deferring to the shared ramp
+changes `N/A` from blue to grey. `assess_flood_risk_level` only ever returns `Unknown`,
+`Very Low`, `Low`, `Medium`, `High` or `Very High`, so nothing reaches it.
+
+**Hex literals are now lowercase**, matching the rest of the package — `#2E7D32` became
+`#2e7d32`. Identical to a browser, but 35 test assertions compared the string, so they were
+updated. `get_folium_color_name` was made case-insensitive so any caller holding an older
+uppercase literal still resolves.
+
+Tests: 1985 pass across `tests/visual` and `tests/config`, `_core.py` at 100%.
 
 ## 6. Enforcement — rule R7
 

@@ -29,6 +29,8 @@ from typing import Any
 
 import folium
 
+from ..utils.color_schemes import ColorSchemes
+
 
 class PopupBuilder:
     """Base class for building popups with common utilities."""
@@ -156,25 +158,14 @@ class PopupBuilder:
             return str(value)
 
     def get_risk_color(self, risk_level: str) -> str:
-        """
-        Get color for risk level display.
+        """Folium marker name for a flood risk level.
 
-        Args:
-            risk_level: Risk level string
-
-        Returns:
-            Color code for the risk level
+        The ramp lives in ``config.theme._status``. This copy previously omitted the
+        ``Unknown`` and ``N/A`` bands and reached its default for them, which is the
+        same answer for ``Unknown`` and a different one for ``N/A`` — grey rather than
+        blue. Deferring to the shared ramp corrects that.
         """
-        risk_colors = {
-            'Very low': 'green',
-            'Very Low': 'green',
-            'Low': 'lightgreen',
-            'Medium': 'orange',
-            'High': 'red',
-            'Very high': 'darkred',
-            'Very High': 'darkred'
-        }
-        return risk_colors.get(risk_level, 'blue')
+        return ColorSchemes.get_flood_risk_marker(risk_level)
 
     def create_colored_text(self, text: str, color: str, bold: bool = False) -> str:
         """

@@ -65,13 +65,13 @@ class TestGaugePopupBuilder:
         }
 
     def test_status_color_operational(self):
-        assert self.builder.get_status_color('Fully operational') == '#27AE60'
+        assert self.builder.get_status_color('Fully operational') == '#27ae60'
 
     def test_status_color_maintenance(self):
-        assert self.builder.get_status_color('Maintenance required') == '#F39C12'
+        assert self.builder.get_status_color('Maintenance required') == '#f39c12'
 
     def test_status_color_offline(self):
-        assert self.builder.get_status_color('Temporarily offline') == '#C0392B'
+        assert self.builder.get_status_color('Temporarily offline') == '#c0392b'
 
     def _lon_bounds(self):
         from config.visual import get_catchment_bounds

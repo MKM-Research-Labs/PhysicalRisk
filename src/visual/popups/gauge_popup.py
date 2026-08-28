@@ -30,6 +30,7 @@ from typing import Any, Dict, Optional
 
 import folium
 
+from ..utils.color_schemes import ColorSchemes
 from .popup_builder import PopupBuilder
 
 
@@ -41,22 +42,11 @@ class GaugePopupBuilder(PopupBuilder):
         super().__init__()
 
     def get_status_color(self, status: str) -> str:
-        """
-        Get color for operational status display.
+        """Hex colour for a gauge's operational status.
 
-        Args:
-            status: Operational status string
-
-        Returns:
-            Color code for the status
+        The ramp lives in ``config.theme._status``.
         """
-        colors = {
-            'Fully operational': '#27AE60',
-            'Maintenance required': '#F39C12',
-            'Temporarily offline': '#C0392B',
-            'Decommissioned': '#7F8C8D'
-        }
-        return colors.get(status, '#3498DB')
+        return ColorSchemes.get_operational_status_color(status)
 
     def determine_location_description(self, lon: float) -> str:
         """

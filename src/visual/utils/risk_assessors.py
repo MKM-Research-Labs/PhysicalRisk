@@ -29,20 +29,17 @@ specific to the visualization layer.
 
 from models.risk.risk_assessor import RiskAssessor  # noqa: F401
 
+from .color_schemes import ColorSchemes
+
 # === Display helpers (visualization-only, not part of the model) ===
 
 def get_risk_color(risk_level: str) -> str:
-    """Get color code for flood risk level."""
-    risk_colors = {
-        'Very Low': 'green', 'Very low': 'green',
-        'Low': 'lightgreen',
-        'Medium': 'orange',
-        'High': 'red',
-        'Very High': 'darkred', 'Very high': 'darkred',
-        'Unknown': 'blue',
-        'N/A': 'gray'
-    }
-    return risk_colors.get(risk_level, 'blue')
+    """Folium marker name for a flood risk level.
+
+    A marker name, not a hex colour: Leaflet markers take a name from a fixed
+    vocabulary. The ramp lives in ``config.theme._status``.
+    """
+    return ColorSchemes.get_flood_risk_marker(risk_level)
 
 
 def get_risk_icon(risk_level: str) -> str:
