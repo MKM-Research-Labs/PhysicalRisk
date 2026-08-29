@@ -31,8 +31,9 @@
                 var isProp = mode === 'property';
                 var bins = isProp ? data.prop_histogram : data.mort_histogram;
                 var pd = isProp ? data.property_damage : data.mortgage_impairment;
-                var chartColor = isProp ? 'rgba(25,118,210' : 'rgba(123,31,162';
-                var lineColor = isProp ? '#1976d2' : '#7b1fa2';
+                var chartColor = isProp ? Theme.value('chart-fill-accent-half')
+                                        : Theme.value('chart-fill-purple-half');
+                var lineColor = isProp ? Theme.value('accent') : Theme.value('purple');
                 var distLabel = isProp ? 'Property Damage' : 'Mortgage Impairment';
                 var labels = [];
                 var propCounts = [];
@@ -52,13 +53,13 @@
                             label: distLabel,
                             data: propCounts,
                             backgroundColor: labels.map(function(v) {
-                                if (v >= pd.cond_var_999) return 'rgba(211,47,47,0.7)';
-                                if (v >= pd.cond_var_95) return 'rgba(245,124,0,0.6)';
-                                return chartColor + ',0.5)';
+                                if (v >= pd.cond_var_999) return Theme.value('severe-fill');
+                                if (v >= pd.cond_var_95) return Theme.value('warning-fill');
+                                return chartColor;
                             }),
                             borderColor: labels.map(function(v) {
-                                if (v >= pd.cond_var_999) return '#d32f2f';
-                                if (v >= pd.cond_var_95) return '#f57c00';
+                                if (v >= pd.cond_var_999) return Theme.value('red');
+                                if (v >= pd.cond_var_95) return Theme.value('amber');
                                 return lineColor;
                             }),
                             borderWidth: 1,
@@ -79,7 +80,7 @@
                                 display: true,
                                 text: distLabel + ' Distribution (' + data.storm_count.toLocaleString() + ' storms, ' + data.storms_with_damage + ' with damage)',
                                 font: { size: 13, weight: 'bold' },
-                                color: '#333',
+                                color: Theme.value('text'),
                             },
                             tooltip: {
                                 callbacks: {
@@ -98,14 +99,14 @@
                                         type: 'line',
                                         xMin: pd.cond_var_95,
                                         xMax: pd.cond_var_95,
-                                        borderColor: '#f57c00',
+                                        borderColor: Theme.value('amber'),
                                         borderWidth: 2,
                                         borderDash: [6, 4],
                                         label: {
                                             display: true,
                                             content: 'VaR 95%: ' + fmtGBP(pd.cond_var_95),
                                             position: 'start',
-                                            backgroundColor: 'rgba(245,124,0,0.9)',
+                                            backgroundColor: Theme.value('warning-fill'),
                                             color: 'white',
                                             font: { size: 10, weight: 'bold' },
                                             padding: 4,
@@ -115,14 +116,14 @@
                                         type: 'line',
                                         xMin: pd.cond_var_999,
                                         xMax: pd.cond_var_999,
-                                        borderColor: '#d32f2f',
+                                        borderColor: Theme.value('red'),
                                         borderWidth: 2,
                                         borderDash: [6, 4],
                                         label: {
                                             display: true,
                                             content: 'VaR 99.9%: ' + fmtGBP(pd.cond_var_999),
                                             position: 'start',
-                                            backgroundColor: 'rgba(211,47,47,0.9)',
+                                            backgroundColor: Theme.value('severe-fill'),
                                             color: 'white',
                                             font: { size: 10, weight: 'bold' },
                                             padding: 4,

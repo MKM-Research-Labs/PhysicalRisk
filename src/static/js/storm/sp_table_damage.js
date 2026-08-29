@@ -74,7 +74,7 @@
                 var container = document.getElementById('sp-table-container');
                 if (!stormId) {
                     summary.innerHTML = '';
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">Select a storm above</div>';
+                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Select a storm above</div>';
                     return;
                 }
 
@@ -87,7 +87,7 @@
                     return;
                 }
 
-                container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">Loading commercial impact...</div>';
+                container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Loading commercial impact...</div>';
                 fetch(getBaseUrl() + '/api/v1/commercial/' + stormId + '/portfolio-impact', {mode:'cors'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
@@ -135,17 +135,17 @@
                 var totalAffectedDebt = (p.total_affected_mortgages || 0) + (c.total_affected_loans || 0);
                 var negEquity = (p.mortgages_in_negative_equity || 0) + (c.loans_in_negative_equity || 0);
                 var cards = [
-                    { label: 'Properties Affected', value: (p.properties_affected || 0) + ' / ' + (p.total_properties || 0), color: '#1976d2' },
-                    { label: 'Commercials Affected', value: (c.assets_affected || 0) + ' / ' + (c.total_assets || 0), color: '#1976d2' },
-                    { label: 'Total Flood Damage', value: fmtGBP(totalDamage), color: '#d32f2f' },
-                    { label: 'Debt Exposure', value: fmtGBP(totalAffectedDebt), color: '#7b1fa2' },
-                    { label: 'Negative Equity', value: negEquity, color: negEquity > 0 ? '#d32f2f' : '#388e3c' },
+                    { label: 'Properties Affected', value: (p.properties_affected || 0) + ' / ' + (p.total_properties || 0), color: 'var(--accent)' },
+                    { label: 'Commercials Affected', value: (c.assets_affected || 0) + ' / ' + (c.total_assets || 0), color: 'var(--accent)' },
+                    { label: 'Total Flood Damage', value: fmtGBP(totalDamage), color: 'var(--red)' },
+                    { label: 'Debt Exposure', value: fmtGBP(totalAffectedDebt), color: 'var(--purple)' },
+                    { label: 'Negative Equity', value: negEquity, color: negEquity > 0 ? 'var(--red)' : 'var(--green)' },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(card) {
                     var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + card.color + ';margin-top:2px;">' + card.value + '</div>';
                     summary.appendChild(div);
                 });
@@ -167,7 +167,7 @@
                 if (!rows || rows.length === 0) {
                     container.innerHTML =
                         '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
-                          '<tbody><tr><td style="padding:40px;text-align:center;color:#999;font-size:13px;">' +
+                          '<tbody><tr><td style="padding:40px;text-align:center;color:var(--muted-2);font-size:13px;">' +
                             (kind === 'wind' ? 'Wind damage model not yet wired — no rows to show.'
                                              : 'This storm does not cause any flooding to the combined portfolio.') +
                           '</td></tr></tbody></table>';
@@ -182,7 +182,7 @@
                 cols.forEach(function(col) {
                     var th = document.createElement('th');
                     th.textContent = col.label + (spSortCol === col.key ? (spSortAsc ? ' \u25b2' : ' \u25bc') : '');
-                    th.style.cssText = 'padding:6px 8px;text-align:' + col.align + ';border-bottom:2px solid #ddd;background:#fafafa;cursor:pointer;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;';
+                    th.style.cssText = 'padding:6px 8px;text-align:' + col.align + ';border-bottom:2px solid var(--line-strong);background:var(--raised);cursor:pointer;white-space:nowrap;font-size:10px;color:var(--text-2);position:sticky;top:0;';
                     th.onclick = (function(k) {
                         return function() {
                             if (spSortCol === k) spSortAsc = !spSortAsc;
@@ -207,8 +207,8 @@
                 var tbody = document.createElement('tbody');
                 sorted.forEach(function(r, idx) {
                     var row = document.createElement('tr');
-                    if (r.asset_class === 'commercial') row.style.background = '#f3f7ff';
-                    else if (idx % 2 === 1) row.style.background = '#fafafa';
+                    if (r.asset_class === 'commercial') row.style.background = 'var(--rv-wash-4)';
+                    else if (idx % 2 === 1) row.style.background = 'var(--raised)';
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -228,8 +228,8 @@
                     cols.forEach(function(col) {
                         var td = document.createElement('td');
                         td.textContent = col.fmt(r[col.key]);
-                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:' + col.align + ';white-space:nowrap;';
-                        if (col.key === 'damage_amount' && r[col.key]) td.style.color = '#d32f2f';
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:' + col.align + ';white-space:nowrap;';
+                        if (col.key === 'damage_amount' && r[col.key]) td.style.color = 'var(--red)';
                         row.appendChild(td);
                     });
                     tbody.appendChild(row);

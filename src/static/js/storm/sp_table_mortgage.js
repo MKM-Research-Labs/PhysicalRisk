@@ -155,7 +155,7 @@
                 );
 
                 if (pending.length) {
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">Loading debt portfolio…</div>';
+                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Loading debt portfolio…</div>';
                     Promise.all(pending).then(_renderMortgageTab);
                 } else {
                     _renderMortgageTab();
@@ -175,17 +175,17 @@
                 var floodImpaired = rows.filter(function(r){return r.flood_damage > 0;}).length;
                 var windImpaired = rows.filter(function(r){return r.wind_damage > 0;}).length;
                 var cards = [
-                    { label: 'Loans Outstanding', value: rows.length, color: '#1976d2' },
-                    { label: 'Outstanding £', value: fmtGBP(totalOS), color: '#7b1fa2' },
-                    { label: 'Flood-Damaged', value: floodImpaired, color: floodImpaired > 0 ? '#1565c0' : '#888' },
-                    { label: 'Wind-Damaged', value: windImpaired, color: windImpaired > 0 ? '#bf360c' : '#888' },
-                    { label: 'Impaired (Combined)', value: impaired, color: impaired > 0 ? '#d32f2f' : '#388e3c' },
+                    { label: 'Loans Outstanding', value: rows.length, color: 'var(--accent)' },
+                    { label: 'Outstanding £', value: fmtGBP(totalOS), color: 'var(--purple)' },
+                    { label: 'Flood-Damaged', value: floodImpaired, color: floodImpaired > 0 ? 'var(--accent-mid)' : 'var(--muted)' },
+                    { label: 'Wind-Damaged', value: windImpaired, color: windImpaired > 0 ? 'var(--orange-deep)' : 'var(--muted)' },
+                    { label: 'Impaired (Combined)', value: impaired, color: impaired > 0 ? 'var(--red)' : 'var(--green)' },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(card) {
                     var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + card.color + ';margin-top:2px;">' + card.value + '</div>';
                     summary.appendChild(div);
                 });
@@ -194,7 +194,7 @@
             function _renderMortgageTable(rows) {
                 var container = document.getElementById('sp-table-container');
                 if (!rows.length) {
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">No loans outstanding in portfolio.</div>';
+                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">No loans outstanding in portfolio.</div>';
                     return;
                 }
 
@@ -208,35 +208,35 @@
                 // Post: Residual + LTV + Remaining (blue)
                 var thead = document.createElement('thead');
                 thead.innerHTML =
-                    '<tr style="background:#fafafa;">' +
-                      '<th rowspan="2" style="padding:6px 8px;text-align:left;border-bottom:2px solid #ddd;font-size:10px;color:#555;position:sticky;top:0;background:#fafafa;">Asset</th>' +
-                      '<th rowspan="2" style="padding:6px 8px;text-align:left;border-bottom:2px solid #ddd;font-size:10px;color:#555;position:sticky;top:0;background:#fafafa;">Address</th>' +
-                      '<th colspan="2" style="padding:6px 8px;text-align:center;border-bottom:1px solid #ddd;border-left:1px solid #eee;font-size:10px;color:#555;background:#f1f8e9;position:sticky;top:0;">Pre-Damage</th>' +
-                      '<th colspan="2" style="padding:6px 8px;text-align:center;border-bottom:1px solid #ddd;border-left:1px solid #eee;font-size:10px;color:#555;background:#fff4e6;position:sticky;top:0;">Damage (\u2212)</th>' +
-                      '<th colspan="3" style="padding:6px 8px;text-align:center;border-bottom:1px solid #ddd;border-left:1px solid #eee;font-size:10px;color:#555;background:#eaf3ff;position:sticky;top:0;">Post-Damage</th>' +
+                    '<tr style="background:var(--raised);">' +
+                      '<th rowspan="2" style="padding:6px 8px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);position:sticky;top:0;background:var(--raised);">Asset</th>' +
+                      '<th rowspan="2" style="padding:6px 8px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);position:sticky;top:0;background:var(--raised);">Address</th>' +
+                      '<th colspan="2" style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--ok-bg);position:sticky;top:0;">Pre-Damage</th>' +
+                      '<th colspan="2" style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--warn-bg-warm);position:sticky;top:0;">Damage (\u2212)</th>' +
+                      '<th colspan="3" style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);position:sticky;top:0;">Post-Damage</th>' +
                     '</tr>' +
-                    '<tr style="background:#fafafa;">' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;border-left:1px solid #eee;font-size:10px;color:#555;background:#f1f8e9;">Value</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;font-size:10px;color:#555;background:#f1f8e9;">Loan O/S</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;border-left:1px solid #eee;font-size:10px;color:#555;background:#fff4e6;">Flood</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;font-size:10px;color:#555;background:#fff4e6;">Wind</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;border-left:1px solid #eee;font-size:10px;color:#555;background:#eaf3ff;">Residual Value</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;font-size:10px;color:#555;background:#eaf3ff;">LTV</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid #ddd;font-size:10px;color:#555;background:#eaf3ff;">Remaining</th>' +
+                    '<tr style="background:var(--raised);">' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--ok-bg);">Value</th>' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--ok-bg);">Loan O/S</th>' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--warn-bg-warm);">Flood</th>' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--warn-bg-warm);">Wind</th>' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);">Residual Value</th>' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);">LTV</th>' +
+                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);">Remaining</th>' +
                     '</tr>';
                 table.appendChild(thead);
 
                 var tbody = document.createElement('tbody');
                 rows.forEach(function(r, idx) {
                     var tr = document.createElement('tr');
-                    if (r.impaired) tr.style.background = '#ffebee';
-                    else if (r.asset_class === 'commercial') tr.style.background = '#f3f7ff';
-                    else if (idx % 2 === 1) tr.style.background = '#fafafa';
+                    if (r.impaired) tr.style.background = 'var(--danger-bg-soft)';
+                    else if (r.asset_class === 'commercial') tr.style.background = 'var(--rv-wash-4)';
+                    else if (idx % 2 === 1) tr.style.background = 'var(--raised)';
 
                     function cell(text, align, color, bold) {
                         var td = document.createElement('td');
                         td.textContent = text;
-                        td.style.cssText = 'padding:5px 8px;text-align:' + (align||'right') + ';border-bottom:1px solid #f0f0f0;white-space:nowrap;';
+                        td.style.cssText = 'padding:5px 8px;text-align:' + (align||'right') + ';border-bottom:1px solid var(--code);white-space:nowrap;';
                         if (color) td.style.color = color;
                         if (bold) td.style.fontWeight = 'bold';
                         return td;
@@ -254,7 +254,7 @@
                     var totalLoss = r.post_damage_value === 0 && r.combined_damage > 0;
                     tr.appendChild(cell(
                         fmtGBP(r.post_damage_value || 0), 'right',
-                        totalLoss ? '#bf360c' : null, totalLoss
+                        totalLoss ? 'var(--orange-deep)' : null, totalLoss
                     ));
                     // LTV: Loan O/S / Residual × 100. When residual = 0 with
                     // outstanding debt it's a wipe-out — say so instead of
@@ -262,11 +262,11 @@
                     var ltvText, ltvColor = null, ltvBold = false;
                     if (totalLoss && r.outstanding_balance > 0) {
                         ltvText = 'Total loss';
-                        ltvColor = '#d32f2f';
+                        ltvColor = 'var(--red)';
                         ltvBold = true;
                     } else if (r.combined_ltv != null) {
                         ltvText = fmtPct(r.combined_ltv);
-                        if (r.combined_ltv > 100) { ltvColor = '#d32f2f'; ltvBold = true; }
+                        if (r.combined_ltv > 100) { ltvColor = 'var(--red)'; ltvBold = true; }
                     } else {
                         ltvText = '\u2014';
                     }

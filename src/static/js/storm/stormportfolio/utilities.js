@@ -49,14 +49,14 @@
 
             // Color helpers for sim map
             function spGaugeColor(status) {
-                if (status === 'severe') return '#d32f2f';
-                if (status === 'warning') return '#f57c00';
-                if (status === 'alert') return '#fbc02d';
-                return '#4caf50';
+                if (status === 'severe') return 'var(--red)';
+                if (status === 'warning') return 'var(--amber)';
+                if (status === 'alert') return 'var(--gold-bright)';
+                return 'var(--green-bright)';
             }
             function spWavefrontColor(p) {
-                if (p.peak || (p.flooded && p.depth_m >= 1.0)) return '#d32f2f';
-                if (p.flooded) return '#ff9800';
-                if (p.arrived) return '#2196f3';
-                return '#90caf9';
+                if (p.peak || (p.flooded && p.depth_m >= 1.0)) return 'var(--red)';
+                if (p.flooded) return 'var(--amber-bright)';
+                if (p.arrived) return 'var(--accent-bright)';
+                return 'var(--accent-pale)';
             }

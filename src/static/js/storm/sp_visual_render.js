@@ -46,7 +46,7 @@
                     gaugeIds.forEach(function(gid, idx) {
                         var row = document.createElement('label');
                         row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 10px;cursor:pointer;font-size:11px;white-space:nowrap;';
-                        row.onmouseenter = function() { this.style.background = '#f5f5f5'; };
+                        row.onmouseenter = function() { this.style.background = 'var(--sunken)'; };
                         row.onmouseleave = function() { this.style.background = ''; };
                         var cb = document.createElement('input');
                         cb.type = 'checkbox';
@@ -93,8 +93,8 @@
                 datasets.push({
                     label: 'Properties Flooded',
                     data: propsFlooded,
-                    borderColor: '#d32f2f',
-                    backgroundColor: 'rgba(211,47,47,0.1)',
+                    borderColor: Theme.value('red'),
+                    backgroundColor: Theme.value('severe-wash'),
                     borderWidth: 2.5,
                     pointRadius: 0,
                     tension: 0.3,
@@ -111,7 +111,7 @@
                             type: 'line',
                             yMin: refGauge.alert_level,
                             yMax: refGauge.alert_level,
-                            borderColor: '#fbc02d',
+                            borderColor: Theme.value('gold-bright'),
                             borderWidth: 1,
                             borderDash: [6, 4],
                             yScaleID: 'y',
@@ -119,7 +119,7 @@
                                 display: true,
                                 content: 'Alert',
                                 position: 'start',
-                                backgroundColor: 'rgba(251,192,45,0.8)',
+                                backgroundColor: Theme.value('alert-fill'),
                                 color: 'white',
                                 font: { size: 9 },
                                 padding: 2,
@@ -131,7 +131,7 @@
                             type: 'line',
                             yMin: refGauge.warning_level,
                             yMax: refGauge.warning_level,
-                            borderColor: '#f57c00',
+                            borderColor: Theme.value('amber'),
                             borderWidth: 1,
                             borderDash: [6, 4],
                             yScaleID: 'y',
@@ -139,7 +139,7 @@
                                 display: true,
                                 content: 'Warning',
                                 position: 'start',
-                                backgroundColor: 'rgba(245,124,0,0.8)',
+                                backgroundColor: Theme.value('warning-fill'),
                                 color: 'white',
                                 font: { size: 9 },
                                 padding: 2,
@@ -186,7 +186,7 @@
                                 display: true,
                                 text: (data._stormLabel || data.storm_id) + ' (' + data.n_frames + ' hours)',
                                 font: { size: 13, weight: 'bold' },
-                                color: '#333',
+                                color: Theme.value('text'),
                             },
                             annotation: {
                                 annotations: annotations,
@@ -219,12 +219,12 @@
                                     display: true,
                                     text: 'Properties Flooded',
                                     font: { size: 11 },
-                                    color: '#d32f2f',
+                                    color: Theme.value('red'),
                                 },
                                 beginAtZero: true,
                                 ticks: {
                                     font: { size: 10 },
-                                    color: '#d32f2f',
+                                    color: Theme.value('red'),
                                     stepSize: 1,
                                 },
                                 grid: { drawOnChartArea: false },

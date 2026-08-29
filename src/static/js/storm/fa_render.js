@@ -121,7 +121,7 @@
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status !== 'success') {
-                            statsBar.innerHTML = '<span style="color:red;">Error: ' + (data.message || 'Unknown') + '</span>';
+                            statsBar.innerHTML = '<span style="color:var(--red);">Error: ' + (data.message || 'Unknown') + '</span>';
                             return;
                         }
                         animData = data;
@@ -131,7 +131,7 @@
                         fitMiniMapBounds();
                     })
                     .catch(function(err) {
-                        statsBar.innerHTML = '<span style="color:red;">Failed to load storm data</span>';
+                        statsBar.innerHTML = '<span style="color:var(--red);">Failed to load storm data</span>';
                         console.error('Animate error:', err);
                     });
             }

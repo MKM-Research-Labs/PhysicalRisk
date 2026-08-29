@@ -40,8 +40,8 @@
                             btn.href = '#';
                             btn.title = 'Portfolio Storm Impact';
                             btn.setAttribute('role', 'button');
-                            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M2 12c1-3 3-5 5-5s3 2 5 2 3-2 5-2 4 2 5 5"/><path d="M2 17c1-3 3-5 5-5s3 2 5 2 3-2 5-2 4 2 5 5"/></svg>';
-                            btn.style.cssText = 'display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:white;';
+                            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M2 12c1-3 3-5 5-5s3 2 5 2 3-2 5-2 4 2 5 5"/><path d="M2 17c1-3 3-5 5-5s3 2 5 2 3-2 5-2 4 2 5 5"/></svg>';
+                            btn.style.cssText = 'display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:var(--panel);';
 
                             L.DomEvent.disableClickPropagation(container);
                             L.DomEvent.on(btn, 'click', function(e) {

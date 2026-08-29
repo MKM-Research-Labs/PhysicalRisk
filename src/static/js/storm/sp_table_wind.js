@@ -27,7 +27,7 @@
                     _renderWindEmpty('Select a storm to view wind impact.');
                     return;
                 }
-                container.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">Loading wind impact…</div>';
+                container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Loading wind impact…</div>';
                 var baseUrl = getBaseUrl();
                 fetch(baseUrl + '/api/v1/propertyts/' + sid + '/wind-impact', {mode:'cors'})
                     .then(function(r) { return r.json(); })
@@ -49,7 +49,7 @@
                 _renderWindSummary(null);
                 var container = document.getElementById('sp-table-container');
                 container.innerHTML =
-                    '<div style="padding:48px 24px;text-align:center;color:#888;font-size:13px;">' +
+                    '<div style="padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;">' +
                     '<div style="font-size:36px;margin-bottom:12px;">\u26A1</div>' +
                     '<div>' + msg + '</div></div>';
             }
@@ -77,18 +77,18 @@
                 var modelLabel = (data && data.typhoon)
                     ? '⚡ ' + (data.typhoon.event_id || '?') + ' (' + (data.typhoon.scenario_family || '?') + ')'
                     : 'No typhoon';
-                var modelColor = (data && data.typhoon) ? '#bf360c' : '#888';
+                var modelColor = (data && data.typhoon) ? 'var(--orange-deep)' : 'var(--muted)';
                 var cards = [
-                    { label: 'Properties Affected', value: resCount, color: '#1976d2' },
-                    { label: 'Commercials Affected', value: comCount, color: '#1976d2' },
-                    { label: 'Total Wind Damage', value: totalDamage ? fmtGBP(totalDamage) : '\u2014', color: '#d32f2f' },
+                    { label: 'Properties Affected', value: resCount, color: 'var(--accent)' },
+                    { label: 'Commercials Affected', value: comCount, color: 'var(--accent)' },
+                    { label: 'Total Wind Damage', value: totalDamage ? fmtGBP(totalDamage) : '\u2014', color: 'var(--red)' },
                     { label: 'Typhoon', value: modelLabel, color: modelColor },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(card) {
                     var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + card.color + ';margin-top:2px;">' + card.value + '</div>';
                     summary.appendChild(div);
                 });

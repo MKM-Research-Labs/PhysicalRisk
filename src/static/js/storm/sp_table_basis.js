@@ -21,7 +21,7 @@
             function loadBasisData(stormId) {
                 var summary = document.getElementById('sp-summary');
                 var container = document.getElementById('sp-table-container');
-                summary.innerHTML = '<div style="padding:4px;color:#888;font-size:11px;">Loading basis data...</div>';
+                summary.innerHTML = '<div style="padding:4px;color:var(--muted);font-size:11px;">Loading basis data...</div>';
                 container.innerHTML = '';
 
                 var baseUrl = getBaseUrl();
@@ -34,32 +34,32 @@
                             renderBasisTable(data.gauges);
                         } else {
                             summary.innerHTML = '';
-                            container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:13px;">No basis data for this storm</div>';
+                            container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted-2);font-size:13px;">No basis data for this storm</div>';
                         }
                     })
                     .catch(function(err) {
                         summary.innerHTML = '';
-                        container.innerHTML = '<div style="padding:20px;color:red;">Failed to load basis data</div>';
+                        container.innerHTML = '<div style="padding:20px;color:var(--red);">Failed to load basis data</div>';
                         console.error('[StormPortfolio] Basis error:', err);
                     });
             }
 
             function renderBasisSummary(s) {
                 var summary = document.getElementById('sp-summary');
-                var transmColor = (s.portfolio_transmission_pct || 0) >= 50 ? '#d32f2f' : '#388e3c';
+                var transmColor = (s.portfolio_transmission_pct || 0) >= 50 ? 'var(--red)' : 'var(--green)';
                 var cards = [
-                    { label: 'Synthetic Gauges', value: s.num_synthetic_gauges || 0, color: '#1976d2' },
-                    { label: 'Gauges Severe', value: s.gauges_severe || 0, color: '#d32f2f' },
-                    { label: 'With Flooding', value: s.gauges_with_flooding || 0, color: '#f57c00' },
-                    { label: 'Basis Only', value: s.gauges_basis_only || 0, color: '#7b1fa2' },
-                    { label: 'Properties Flooded', value: (s.total_flooded || 0) + ' / ' + (s.total_properties || 0), color: '#1565c0' },
+                    { label: 'Synthetic Gauges', value: s.num_synthetic_gauges || 0, color: 'var(--accent)' },
+                    { label: 'Gauges Severe', value: s.gauges_severe || 0, color: 'var(--red)' },
+                    { label: 'With Flooding', value: s.gauges_with_flooding || 0, color: 'var(--amber)' },
+                    { label: 'Basis Only', value: s.gauges_basis_only || 0, color: 'var(--purple)' },
+                    { label: 'Properties Flooded', value: (s.total_flooded || 0) + ' / ' + (s.total_properties || 0), color: 'var(--accent-mid)' },
                     { label: 'Transmission', value: (s.portfolio_transmission_pct || 0) + '%', color: transmColor },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;min-width:100px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                    card.style.cssText = 'flex:1;min-width:100px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
                     summary.appendChild(card);
                 });
@@ -89,7 +89,7 @@
                 basisCols.forEach(function(col) {
                     var th = document.createElement('th');
                     th.textContent = col.label;
-                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid #ddd;background:#fafafa;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;cursor:pointer;';
+                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid var(--line-strong);background:var(--raised);white-space:nowrap;font-size:10px;color:var(--text-2);position:sticky;top:0;cursor:pointer;';
                     if (col.key === 'gauge_name' || col.key === 'threshold') th.style.textAlign = 'left';
                     tr.appendChild(th);
                 });
@@ -102,18 +102,18 @@
 
                     // Row colour by threshold
                     if (g.threshold === 'severe' && g.properties_flooded === 0) {
-                        row.style.background = '#f3e5f5';  // purple tint — basis risk
+                        row.style.background = 'var(--purple-bg)';  // purple tint — basis risk
                     } else if (g.threshold === 'severe') {
-                        row.style.background = '#ffebee';  // red tint — severe with flooding
+                        row.style.background = 'var(--danger-bg-soft)';  // red tint — severe with flooding
                     } else if (g.threshold === 'warning') {
-                        row.style.background = '#fff3e0';  // orange tint
+                        row.style.background = 'var(--warn-bg-warm)';  // orange tint
                     }
 
                     basisCols.forEach(function(col) {
                         var td = document.createElement('td');
                         var val = g[col.key];
                         td.textContent = col.fmt(val);
-                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:right;white-space:nowrap;';
                         if (col.key === 'gauge_name' || col.key === 'threshold') td.style.textAlign = 'left';
 
                         // Colour coding
@@ -123,12 +123,12 @@
                             td.style.fontWeight = 'bold';
                         }
                         if (col.key === 'transmission_pct') {
-                            td.style.color = val >= 50 ? '#d32f2f' : (val > 0 ? '#f57c00' : '#388e3c');
+                            td.style.color = val >= 50 ? 'var(--red)' : (val > 0 ? 'var(--amber)' : 'var(--green)');
                             td.style.fontWeight = 'bold';
                         }
-                        if (col.key === 'properties_flooded' && val > 0) td.style.color = '#d32f2f';
+                        if (col.key === 'properties_flooded' && val > 0) td.style.color = 'var(--red)';
                         if (col.key === 'properties_not_flooded' && val > 0 && g.threshold === 'severe') {
-                            td.style.color = '#7b1fa2';  // basis risk highlight
+                            td.style.color = 'var(--purple)';  // basis risk highlight
                             td.style.fontWeight = 'bold';
                         }
 
@@ -142,7 +142,7 @@
                     var emptyRow = document.createElement('tr');
                     var emptyTd = document.createElement('td');
                     emptyTd.colSpan = basisCols.length;
-                    emptyTd.style.cssText = 'padding:40px;text-align:center;color:#999;';
+                    emptyTd.style.cssText = 'padding:40px;text-align:center;color:var(--muted-2);';
                     emptyTd.textContent = 'No gauge data for this storm';
                     emptyRow.appendChild(emptyTd);
                     tbody.appendChild(emptyRow);

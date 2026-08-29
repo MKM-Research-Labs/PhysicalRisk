@@ -25,19 +25,19 @@
 
                 // Top toolbar
                 var toolbar = document.createElement('div');
-                toolbar.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;background:#f5f7fa;flex-shrink:0;';
+                toolbar.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;background:var(--header-from);flex-shrink:0;';
                 toolbar.innerHTML =
-                    '<span style="font-size:12px;font-weight:700;color:#333;">Storm Sequence Control</span>' +
-                    '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#fff3e0;' +
-                        'color:#c62828;border:1px solid #ef9a9a;border-radius:10px;font-size:9px;font-weight:700;' +
+                    '<span style="font-size:12px;font-weight:700;color:var(--text);">Storm Sequence Control</span>' +
+                    '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--warn-bg-warm);' +
+                        'color:var(--red-dark);border:1px solid var(--danger-line-mid);border-radius:10px;font-size:9px;font-weight:700;' +
                         'letter-spacing:0.5px;text-transform:uppercase;" title="Changes here affect every storm ' +
                         'calculation across the platform. Admin password required to save or reset.">' +
                         '\ud83d\udd12 Admin Only</span>' +
-                    '<span id="sp-ctrl-dirty" style="font-size:10px;color:#e65100;font-weight:600;display:none;">Unsaved changes</span>' +
+                    '<span id="sp-ctrl-dirty" style="font-size:10px;color:var(--amber-deep);font-weight:600;display:none;">Unsaved changes</span>' +
                     '<span style="flex:1;"></span>' +
-                    '<button id="sp-ctrl-guide-btn" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">User Guide</button>' +
-                    '<button id="sp-ctrl-reset-btn" title="Admin password required" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #999;border-radius:3px;background:#f5f5f5;color:#555;cursor:pointer;">Reset Defaults</button>' +
-                    '<button id="sp-ctrl-save-btn" title="Admin password required" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid #1565c0;border-radius:3px;background:#1565c0;color:white;cursor:pointer;">Save &amp; Apply</button>';
+                    '<button id="sp-ctrl-guide-btn" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--accent-mid);border-radius:3px;background:var(--accent-soft);color:var(--accent-mid);cursor:pointer;">User Guide</button>' +
+                    '<button id="sp-ctrl-reset-btn" title="Admin password required" style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--muted-2);border-radius:3px;background:var(--sunken);color:var(--text-2);cursor:pointer;">Reset Defaults</button>' +
+                    '<button id="sp-ctrl-save-btn" title="Admin password required" style="padding:4px 14px;font-size:11px;font-weight:600;border:1px solid var(--accent-mid);border-radius:3px;background:var(--accent-mid);color:var(--inverse);cursor:pointer;">Save &amp; Apply</button>';
                 toolbar.querySelector('#sp-ctrl-guide-btn').onclick = function() { openControlGuide(); };
                 toolbar.querySelector('#sp-ctrl-reset-btn').onclick = function() { resetControlData(); };
                 toolbar.querySelector('#sp-ctrl-save-btn').onclick = function() { saveControlData(); };
@@ -58,14 +58,14 @@
 
                 sections.forEach(function(sec) {
                     var panel = document.createElement('div');
-                    panel.style.cssText = 'margin-bottom:10px;border:1px solid #ddd;border-radius:4px;background:white;';
+                    panel.style.cssText = 'margin-bottom:10px;border:1px solid var(--line-strong);border-radius:4px;background:var(--panel);';
 
                     var header = document.createElement('div');
-                    header.style.cssText = 'padding:8px 12px;background:#f8f9fa;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #eee;';
+                    header.style.cssText = 'padding:8px 12px;background:var(--wash);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-soft);';
                     header.innerHTML =
-                        '<span id="sp-ctrl-arrow-' + sec.id + '" style="font-size:10px;color:#666;transition:transform 0.2s;">\u25BC</span>' +
-                        '<span style="font-size:11px;font-weight:700;color:#1565c0;">' + sec.title + '</span>' +
-                        '<span style="font-size:10px;color:#999;margin-left:4px;">' + sec.desc + '</span>';
+                        '<span id="sp-ctrl-arrow-' + sec.id + '" style="font-size:10px;color:var(--text-3);transition:transform 0.2s;">\u25BC</span>' +
+                        '<span style="font-size:11px;font-weight:700;color:var(--accent-mid);">' + sec.title + '</span>' +
+                        '<span style="font-size:10px;color:var(--muted-2);margin-left:4px;">' + sec.desc + '</span>';
                     header.onclick = function() {
                         var content = document.getElementById('sp-ctrl-section-' + sec.id);
                         var arrow = document.getElementById('sp-ctrl-arrow-' + sec.id);
@@ -100,7 +100,7 @@
                 // Status bar
                 var statusBar = document.createElement('div');
                 statusBar.id = 'sp-ctrl-status';
-                statusBar.style.cssText = 'padding:4px 16px;border-top:1px solid #eee;font-size:10px;color:#999;background:#f9f9f9;flex-shrink:0;';
+                statusBar.style.cssText = 'padding:4px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--muted-2);background:var(--control);flex-shrink:0;';
                 statusBar.textContent = 'Source: loading...';
                 view.appendChild(statusBar);
 
@@ -118,12 +118,12 @@
                         'onmouseenter="document.getElementById(\'' + id + '\').style.display=\'block\';" ' +
                         'onmouseleave="document.getElementById(\'' + id + '\').style.display=\'none\';" ' +
                         'style="display:inline-block;width:13px;height:13px;line-height:13px;' +
-                        'text-align:center;font-size:9px;font-weight:700;color:#999;' +
-                        'border:1px solid #ccc;border-radius:50%;cursor:help;">?</span>' +
+                        'text-align:center;font-size:9px;font-weight:700;color:var(--muted-2);' +
+                        'border:1px solid var(--divider);border-radius:50%;cursor:help;">?</span>' +
                     '<div id="' + id + '" style="display:none;position:absolute;left:20px;top:-8px;z-index:9999;' +
-                        'width:280px;padding:8px 10px;background:#333;color:#f0f0f0;font-size:10px;' +
+                        'width:280px;padding:8px 10px;background:var(--text);color:var(--code);font-size:10px;' +
                         'font-weight:400;line-height:1.4;border-radius:4px;' +
-                        'box-shadow:0 2px 8px rgba(0,0,0,0.3);pointer-events:none;">' +
+                        'box-shadow:var(--shadow-ghost);pointer-events:none;">' +
                         text.replace(/"/g, '&quot;') +
                     '</div></span>';
             }
@@ -136,7 +136,7 @@
                 var type = typeof value === 'boolean' ? 'checkbox' : 'number';
                 var help = opts.help ? _ctrlHelp(opts.help) : '';
                 var html = '<div style="display:flex;align-items:center;gap:8px;margin:4px 0;">' +
-                    '<label style="font-size:10px;color:#555;min-width:200px;font-weight:600;">' + label + help + '</label>';
+                    '<label style="font-size:10px;color:var(--text-2);min-width:200px;font-weight:600;">' + label + help + '</label>';
                 if (type === 'checkbox') {
                     html += '<input type="checkbox" data-ctrl-key="' + key + '" ' +
                         (value ? 'checked ' : '') +
@@ -145,7 +145,7 @@
                     html += '<input type="number" data-ctrl-key="' + key + '" value="' + value + '" ' +
                         'step="' + step + '" ' +
                         '' +
-                        'style="width:100px;padding:3px 6px;font-size:11px;border:1px solid #ccc;border-radius:3px;font-family:monospace;">';
+                        'style="width:100px;padding:3px 6px;font-size:11px;border:1px solid var(--divider);border-radius:3px;font-family:monospace;">';
                 }
                 html += '</div>';
                 return html;
@@ -155,25 +155,25 @@
                 opts = opts || {};
                 var help = opts.help ? _ctrlHelp(opts.help) : '';
                 var html = '<div style="margin:6px 0;">' +
-                    '<div style="font-size:10px;color:#555;font-weight:600;margin-bottom:4px;">' + label + help + '</div>' +
+                    '<div style="font-size:10px;color:var(--text-2);font-weight:600;margin-bottom:4px;">' + label + help + '</div>' +
                     '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
                 Object.keys(dictVal).forEach(function(k) {
                     var v = dictVal[k];
                     if (Array.isArray(v)) {
-                        html += '<div style="border:1px solid #eee;border-radius:3px;padding:4px 6px;background:#fafafa;">' +
-                            '<span style="font-size:9px;color:#888;display:block;">' + k + '</span>';
+                        html += '<div style="border:1px solid var(--line-soft);border-radius:3px;padding:4px 6px;background:var(--raised);">' +
+                            '<span style="font-size:9px;color:var(--muted);display:block;">' + k + '</span>';
                         v.forEach(function(elem, i) {
                             html += '<input type="number" data-ctrl-key="' + key + '.' + k + '.' + i + '" value="' + elem + '" ' +
                                 'step="0.01" ' +
-                                'style="width:55px;padding:2px 4px;font-size:10px;border:1px solid #ccc;border-radius:2px;font-family:monospace;margin:1px;">';
+                                'style="width:55px;padding:2px 4px;font-size:10px;border:1px solid var(--divider);border-radius:2px;font-family:monospace;margin:1px;">';
                         });
                         html += '</div>';
                     } else {
-                        html += '<div style="border:1px solid #eee;border-radius:3px;padding:4px 6px;background:#fafafa;">' +
-                            '<span style="font-size:9px;color:#888;display:block;">' + k + '</span>' +
+                        html += '<div style="border:1px solid var(--line-soft);border-radius:3px;padding:4px 6px;background:var(--raised);">' +
+                            '<span style="font-size:9px;color:var(--muted);display:block;">' + k + '</span>' +
                             '<input type="number" data-ctrl-key="' + key + '.' + k + '" value="' + v + '" ' +
                             'step="0.01" ' +
-                            'style="width:65px;padding:2px 4px;font-size:10px;border:1px solid #ccc;border-radius:2px;font-family:monospace;">' +
+                            'style="width:65px;padding:2px 4px;font-size:10px;border:1px solid var(--divider);border-radius:2px;font-family:monospace;">' +
                             '</div>';
                     }
                 });
@@ -185,12 +185,12 @@
                 opts = opts || {};
                 var help = opts.help ? _ctrlHelp(opts.help) : '';
                 var html = '<div style="display:flex;align-items:center;gap:8px;margin:4px 0;">' +
-                    '<label style="font-size:10px;color:#555;min-width:200px;font-weight:600;">' + label + help + '</label>' +
+                    '<label style="font-size:10px;color:var(--text-2);min-width:200px;font-weight:600;">' + label + help + '</label>' +
                     '<div style="display:flex;gap:4px;">';
                 arr.forEach(function(v, i) {
                     html += '<input type="number" data-ctrl-key="' + key + '.' + i + '" value="' + v + '" ' +
                         'step="0.01" ' +
-                        'style="width:55px;padding:2px 4px;font-size:10px;border:1px solid #ccc;border-radius:2px;font-family:monospace;">';
+                        'style="width:55px;padding:2px 4px;font-size:10px;border:1px solid var(--divider);border-radius:2px;font-family:monospace;">';
                 });
                 html += '</div></div>';
                 return html;

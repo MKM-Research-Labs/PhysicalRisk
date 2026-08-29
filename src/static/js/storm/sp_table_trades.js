@@ -21,7 +21,7 @@
             function loadTradesData() {
                 var summary = document.getElementById('sp-summary');
                 var container = document.getElementById('sp-table-container');
-                summary.innerHTML = '<div style="padding:4px;color:#888;font-size:11px;">Loading REIT trades...</div>';
+                summary.innerHTML = '<div style="padding:4px;color:var(--muted);font-size:11px;">Loading REIT trades...</div>';
                 container.innerHTML = '';
 
                 if (spTradesData) {
@@ -39,11 +39,11 @@
                             renderTradesSummary(data);
                             renderTradesTable(data.trades);
                         } else {
-                            summary.innerHTML = '<div style="color:red;">Error loading trades</div>';
+                            summary.innerHTML = '<div style="color:var(--red);">Error loading trades</div>';
                         }
                     })
                     .catch(function(err) {
-                        summary.innerHTML = '<div style="color:red;">Failed to load trades</div>';
+                        summary.innerHTML = '<div style="color:var(--red);">Failed to load trades</div>';
                         console.error('[StormPortfolio] Trades error:', err);
                     });
             }
@@ -55,21 +55,21 @@
                 var totalNpv = 0;
                 trades.forEach(function(t) { totalNpv += (t.npv || 0); });
                 // Stored NPV is already from payer (REIT) perspective
-                var npvColor = totalNpv >= 0 ? '#388e3c' : '#d32f2f';
+                var npvColor = totalNpv >= 0 ? 'var(--green)' : 'var(--red)';
                 var totalPropValue = 0;
                 trades.forEach(function(t) { totalPropValue += (t.property_value || 0); });
                 var cards = [
-                    { label: 'Protection Bought', value: ts.num_trades || trades.length, color: '#1976d2' },
-                    { label: 'Total Notional', value: fmtGBP(ts.total_notional_sold || 0), color: '#7b1fa2' },
-                    { label: 'Avg Spread Paid', value: (ts.avg_spread_collected || 0).toFixed(1) + ' bps', color: '#e65100' },
-                    { label: 'Property Value Covered', value: fmtGBP(ts.total_property_value_covered || totalPropValue), color: '#388e3c' },
+                    { label: 'Protection Bought', value: ts.num_trades || trades.length, color: 'var(--accent)' },
+                    { label: 'Total Notional', value: fmtGBP(ts.total_notional_sold || 0), color: 'var(--purple)' },
+                    { label: 'Avg Spread Paid', value: (ts.avg_spread_collected || 0).toFixed(1) + ' bps', color: 'var(--amber-deep)' },
+                    { label: 'Property Value Covered', value: fmtGBP(ts.total_property_value_covered || totalPropValue), color: 'var(--green)' },
                     { label: 'Total NPV', value: fmtGBP(totalNpv), color: npvColor },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
                     summary.appendChild(card);
                 });
@@ -102,7 +102,7 @@
                 tradeCols.forEach(function(col) {
                     var th = document.createElement('th');
                     th.textContent = col.label;
-                    th.style.cssText = 'padding:6px 8px;text-align:' + col.align + ';border-bottom:2px solid #ddd;background:#fafafa;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;';
+                    th.style.cssText = 'padding:6px 8px;text-align:' + col.align + ';border-bottom:2px solid var(--line-strong);background:var(--raised);white-space:nowrap;font-size:10px;color:var(--text-2);position:sticky;top:0;';
                     tr.appendChild(th);
                 });
                 thead.appendChild(tr);
@@ -117,7 +117,7 @@
                     totalNpv += (t.npv || 0);
 
                     var row = document.createElement('tr');
-                    if (idx % 2 === 1) row.style.background = '#fafafa';
+                    if (idx % 2 === 1) row.style.background = 'var(--raised)';
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -126,18 +126,18 @@
                         var td = document.createElement('td');
                         var val = t[col.key];
                         td.textContent = col.fmt(val);
-                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:' + col.align + ';white-space:nowrap;';
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:' + col.align + ';white-space:nowrap;';
                         if (col.key === '_dir') {
-                            td.style.color = '#1565c0';
+                            td.style.color = 'var(--accent-mid)';
                             td.style.fontWeight = 'bold';
                         }
                         if (col.key === 'npv' || col.key === 'gauge_fs01') {
-                            td.style.color = val >= 0 ? '#2e7d32' : '#c62828';
+                            td.style.color = val >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                             td.style.fontWeight = 'bold';
                         }
                         if (col.key === 'hedge_ratio') {
                             var hv = t.hedge_ratio || 0;
-                            td.style.color = hv > 200 ? '#c62828' : hv > 100 ? '#e65100' : '#2e7d32';
+                            td.style.color = hv > 200 ? 'var(--red-dark)' : hv > 100 ? 'var(--amber-deep)' : 'var(--green-dark)';
                         }
                         row.appendChild(td);
                     });
@@ -146,7 +146,7 @@
 
                 // Footer totals row
                 var footRow = document.createElement('tr');
-                footRow.style.cssText = 'font-weight:bold;background:#f5f5f5;border-top:2px solid #ccc;';
+                footRow.style.cssText = 'font-weight:bold;background:var(--sunken);border-top:2px solid var(--divider);';
                 tradeCols.forEach(function(col) {
                     var td = document.createElement('td');
                     td.style.cssText = 'padding:6px 8px;text-align:' + col.align + ';white-space:nowrap;';
@@ -155,7 +155,7 @@
                     else if (col.key === 'notional') { td.textContent = fmtGBP(totalNotional); }
                     else if (col.key === 'npv') {
                         td.textContent = fmtGBP(totalNpv);
-                        td.style.color = totalNpv >= 0 ? '#2e7d32' : '#c62828';
+                        td.style.color = totalNpv >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                     }
                     footRow.appendChild(td);
                 });

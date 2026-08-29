@@ -21,7 +21,7 @@
             function loadCommercialData() {
                 var summary = document.getElementById('sp-summary');
                 var container = document.getElementById('sp-table-container');
-                summary.innerHTML = '<div style="padding:4px;color:#888;font-size:11px;">Loading commercial assets...</div>';
+                summary.innerHTML = '<div style="padding:4px;color:var(--muted);font-size:11px;">Loading commercial assets...</div>';
                 container.innerHTML = '';
 
                 if (spCommercialData) {
@@ -39,11 +39,11 @@
                             renderCommercialSummary(data);
                             renderCommercialTable(data.assets);
                         } else {
-                            summary.innerHTML = '<div style="color:red;">Error loading commercial</div>';
+                            summary.innerHTML = '<div style="color:var(--red);">Error loading commercial</div>';
                         }
                     })
                     .catch(function(err) {
-                        summary.innerHTML = '<div style="color:red;">Failed to load commercial</div>';
+                        summary.innerHTML = '<div style="color:var(--red);">Failed to load commercial</div>';
                         console.error('[StormPortfolio] Commercial error:', err);
                     });
             }
@@ -52,14 +52,14 @@
                 var summary = document.getElementById('sp-summary');
                 var s = data.summary || {};
                 var cards = [
-                    { label: 'Assets', value: s.num_assets || 0, color: '#1976d2' },
-                    { label: 'Total Value', value: fmtGBP(s.total_property_value || 0), color: '#388e3c' },
+                    { label: 'Assets', value: s.num_assets || 0, color: 'var(--accent)' },
+                    { label: 'Total Value', value: fmtGBP(s.total_property_value || 0), color: 'var(--green)' },
                 ];
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
                         '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
                     summary.appendChild(card);
                 });
@@ -91,7 +91,7 @@
                 cols.forEach(function(col) {
                     var th = document.createElement('th');
                     th.textContent = col.label;
-                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid #ddd;background:#fafafa;white-space:nowrap;font-size:10px;color:#555;position:sticky;top:0;';
+                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid var(--line-strong);background:var(--raised);white-space:nowrap;font-size:10px;color:var(--text-2);position:sticky;top:0;';
                     if (leftAlignKeys[col.key]) th.style.textAlign = 'left';
                     tr.appendChild(th);
                 });
@@ -101,7 +101,7 @@
                 var tbody = document.createElement('tbody');
                 (assets || []).forEach(function(a, idx) {
                     var row = document.createElement('tr');
-                    if (idx % 2 === 1) row.style.background = '#fafafa';
+                    if (idx % 2 === 1) row.style.background = 'var(--raised)';
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -121,7 +121,7 @@
                     cols.forEach(function(col) {
                         var td = document.createElement('td');
                         td.textContent = col.fmt(a[col.key]);
-                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;';
+                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:right;white-space:nowrap;';
                         if (leftAlignKeys[col.key]) td.style.textAlign = 'left';
                         row.appendChild(td);
                     });

@@ -39,12 +39,12 @@
                 // Controls row
                 var controls = document.createElement('div');
                 controls.id = 'sp-sim-controls';
-                controls.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;';
+                controls.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:10px;';
 
                 var playBtn = document.createElement('button');
                 playBtn.id = 'sp-sim-play-btn';
                 playBtn.innerHTML = '&#9654;';
-                playBtn.style.cssText = 'width:32px;height:32px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:14px;';
+                playBtn.style.cssText = 'width:32px;height:32px;border:1px solid var(--line-strong);border-radius:4px;background:var(--panel);cursor:pointer;font-size:14px;';
                 playBtn.onclick = spTogglePlay;
 
                 var speedBtns = document.createElement('div');
@@ -54,7 +54,7 @@
                     btn.textContent = s + 'x';
                     btn.className = 'sp-sim-speed-btn';
                     btn.dataset.speed = s;
-                    btn.style.cssText = 'padding:2px 8px;font-size:11px;border:1px solid #ddd;border-radius:3px;background:' + (s === 1 ? '#e3f2fd' : '#fff') + ';cursor:pointer;';
+                    btn.style.cssText = 'padding:2px 8px;font-size:11px;border:1px solid var(--line-strong);border-radius:3px;background:' + (s === 1 ? Theme.value('accent-soft') : Theme.value('panel')) + ';cursor:pointer;';
                     btn.onclick = function() { spSetSpeed(s); };
                     speedBtns.appendChild(btn);
                 });
@@ -81,20 +81,20 @@
                 // Stats bar
                 var statsBar = document.createElement('div');
                 statsBar.id = 'sp-sim-stats-bar';
-                statsBar.style.cssText = 'padding:6px 16px;border-bottom:1px solid #eee;display:flex;gap:20px;font-size:11px;color:#666;background:#f9f9f9;';
+                statsBar.style.cssText = 'padding:6px 16px;border-bottom:1px solid var(--line-soft);display:flex;gap:20px;font-size:11px;color:var(--text-3);background:var(--control);';
 
                 // Legend
                 var legend = document.createElement('div');
-                legend.style.cssText = 'padding:4px 16px;border-bottom:1px solid #eee;display:flex;gap:16px;font-size:10px;color:#666;background:#fff;align-items:center;';
+                legend.style.cssText = 'padding:4px 16px;border-bottom:1px solid var(--line-soft);display:flex;gap:16px;font-size:10px;color:var(--text-3);background:var(--panel);align-items:center;';
                 legend.innerHTML =
                     '<span style="font-weight:600;">Legend:</span>' +
-                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2196f3;margin-right:3px;vertical-align:middle;"></span>Approaching</span>' +
-                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff9800;margin-right:3px;vertical-align:middle;"></span>Flooded</span>' +
-                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d32f2f;margin-right:3px;vertical-align:middle;"></span>Peak/Severe</span>' +
-                    '<span style="margin-left:12px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4caf50;margin-right:3px;vertical-align:middle;"></span>Gauge Normal</span>' +
-                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fbc02d;margin-right:3px;vertical-align:middle;"></span>Alert</span>' +
-                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f57c00;margin-right:3px;vertical-align:middle;"></span>Warning</span>' +
-                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d32f2f;margin-right:3px;vertical-align:middle;"></span>Severe</span>';
+                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent-bright);margin-right:3px;vertical-align:middle;"></span>Approaching</span>' +
+                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber-bright);margin-right:3px;vertical-align:middle;"></span>Flooded</span>' +
+                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:3px;vertical-align:middle;"></span>Peak/Severe</span>' +
+                    '<span style="margin-left:12px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green-bright);margin-right:3px;vertical-align:middle;"></span>Gauge Normal</span>' +
+                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gold-bright);margin-right:3px;vertical-align:middle;"></span>Alert</span>' +
+                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber);margin-right:3px;vertical-align:middle;"></span>Warning</span>' +
+                    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:3px;vertical-align:middle;"></span>Severe</span>';
 
                 // Map container
                 var mapContainer = document.createElement('div');
@@ -177,7 +177,7 @@
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status !== 'success') {
-                            if (statsBar) statsBar.innerHTML = '<span style="color:red;">Error: ' + (data.message || 'Unknown') + '</span>';
+                            if (statsBar) statsBar.innerHTML = '<span style="color:var(--red);">Error: ' + (data.message || 'Unknown') + '</span>';
                             return;
                         }
                         spSimMapData = data;
@@ -186,7 +186,7 @@
                         spFitSimBounds();
                     })
                     .catch(function(err) {
-                        if (statsBar) statsBar.innerHTML = '<span style="color:red;">Failed to load storm</span>';
+                        if (statsBar) statsBar.innerHTML = '<span style="color:var(--red);">Failed to load storm</span>';
                         console.error('Sim map error:', err);
                     });
             }
@@ -290,7 +290,7 @@
             function spSetSpeed(s) {
                 spSimSpeed = s;
                 document.querySelectorAll('.sp-sim-speed-btn').forEach(function(btn) {
-                    btn.style.background = parseInt(btn.dataset.speed) === s ? '#e3f2fd' : '#fff';
+                    btn.style.background = parseInt(btn.dataset.speed) === s ? 'var(--accent-soft)' : 'var(--panel)';
                 });
                 if (spSimPlaying) { spStopAnim(); spStartAnim(); }
             }

@@ -32,7 +32,7 @@
                 if (!stormId) return;
                 console.log('[StormPortfolio] Loading simulation for', stormId);
                 var wrap = document.getElementById('sp-sim-chart-wrap');
-                wrap.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Loading simulation data...</div>';
+                wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading simulation data...</div>';
                 var stats = document.getElementById('sp-sim-stats');
                 stats.innerHTML = '';
                 var statsBar = document.getElementById('sp-stats-bar');
@@ -45,7 +45,7 @@
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status !== 'success') {
-                            wrap.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error: ' + (data.message || 'Unknown') + '</div>';
+                            wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + (data.message || 'Unknown') + '</div>';
                             return;
                         }
                         spSimData = data;
@@ -62,7 +62,7 @@
                             '<span>Properties: <b>' + data.n_properties_affected + '</b></span>';
                     })
                     .catch(function(err) {
-                        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Failed to load simulation</div>';
+                        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load simulation</div>';
                         console.error('Sim error:', err);
                     });
             }
@@ -88,10 +88,10 @@
                 });
 
                 var cards = [
-                    { label: 'Properties Affected', value: data.n_properties_affected, color: '#1976d2' },
-                    { label: 'Peak Hour', value: 'Hour ' + peakHour + ' (' + peakFlooded + ' flooded)', color: '#d32f2f' },
-                    { label: 'Max Flood Depth', value: maxDepth.toFixed(2) + 'm', color: '#f57c00' },
-                    { label: 'Flooding Duration', value: floodingHours + ' hours', color: '#7b1fa2' },
+                    { label: 'Properties Affected', value: data.n_properties_affected, color: 'var(--accent)' },
+                    { label: 'Peak Hour', value: 'Hour ' + peakHour + ' (' + peakFlooded + ' flooded)', color: 'var(--red)' },
+                    { label: 'Max Flood Depth', value: maxDepth.toFixed(2) + 'm', color: 'var(--amber)' },
+                    { label: 'Flooding Duration', value: floodingHours + ' hours', color: 'var(--purple)' },
                 ];
 
                 stats.innerHTML = '';
@@ -99,8 +99,8 @@
                 row.style.cssText = 'display:flex;gap:10px;width:100%;';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
                         '<div style="font-size:14px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
                     row.appendChild(card);
                 });

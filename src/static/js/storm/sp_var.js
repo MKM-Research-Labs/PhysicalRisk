@@ -31,21 +31,21 @@
                 view.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
 
                 var toggleRow = document.createElement('div');
-                toggleRow.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;background:#fafafa;';
+                toggleRow.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;background:var(--raised);';
                 var toggleLabel = document.createElement('span');
                 toggleLabel.textContent = 'Distribution:';
-                toggleLabel.style.cssText = 'font-size:12px;font-weight:600;color:#555;';
+                toggleLabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-2);';
                 var toggleWrap = document.createElement('div');
-                toggleWrap.style.cssText = 'display:flex;border:1px solid #ddd;border-radius:4px;overflow:hidden;';
+                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;';
                 var propBtn = document.createElement('button');
                 propBtn.id = 'sp-var-prop-btn';
                 propBtn.textContent = 'Property Damage';
-                propBtn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;background:#1976d2;color:white;';
+                propBtn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;background:var(--accent);color:var(--inverse);';
                 propBtn.onclick = function() { switchVarMode('property'); };
                 var mortBtn = document.createElement('button');
                 mortBtn.id = 'sp-var-mort-btn';
                 mortBtn.textContent = 'Mortgage Impairment';
-                mortBtn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;background:white;color:#333;';
+                mortBtn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;background:var(--panel);color:var(--text);';
                 mortBtn.onclick = function() { switchVarMode('mortgage'); };
                 toggleWrap.appendChild(propBtn);
                 toggleWrap.appendChild(mortBtn);
@@ -58,7 +58,7 @@
 
                 var metrics = document.createElement('div');
                 metrics.id = 'sp-var-metrics';
-                metrics.style.cssText = 'padding:10px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-wrap:wrap;';
+                metrics.style.cssText = 'padding:10px 16px;border-top:1px solid var(--line-soft);display:flex;gap:10px;flex-wrap:wrap;';
 
                 view.appendChild(toggleRow);
                 view.appendChild(chartWrap);
@@ -74,15 +74,15 @@
                 var propBtn = document.getElementById('sp-var-prop-btn');
                 var mortBtn = document.getElementById('sp-var-mort-btn');
                 if (mode === 'property') {
-                    propBtn.style.background = '#1976d2';
+                    propBtn.style.background = 'var(--accent)';
                     propBtn.style.color = 'white';
                     mortBtn.style.background = 'white';
-                    mortBtn.style.color = '#333';
+                    mortBtn.style.color = 'var(--text)';
                 } else {
-                    mortBtn.style.background = '#7b1fa2';
+                    mortBtn.style.background = 'var(--purple)';
                     mortBtn.style.color = 'white';
                     propBtn.style.background = 'white';
-                    propBtn.style.color = '#333';
+                    propBtn.style.color = 'var(--text)';
                 }
                 if (spVarData) {
                     renderVarChart(spVarData, mode);
@@ -95,12 +95,12 @@
                 var metrics = document.getElementById('sp-var-metrics');
                 var isProp = mode === 'property';
                 var d = isProp ? data.property_damage : data.mortgage_impairment;
-                var labelColor = isProp ? '#1976d2' : '#7b1fa2';
+                var labelColor = isProp ? 'var(--accent)' : 'var(--purple)';
                 var label = isProp ? 'Property Damage' : 'Mortgage Impairment';
                 metrics.innerHTML = '';
 
                 var probRow = document.createElement('div');
-                probRow.style.cssText = 'width:100%;padding:6px 10px;margin-bottom:6px;font-size:11px;color:#555;background:#f0f4f8;border-radius:4px;';
+                probRow.style.cssText = 'width:100%;padding:6px 10px;margin-bottom:6px;font-size:11px;color:var(--text-2);background:var(--bg);border-radius:4px;';
                 probRow.innerHTML = 'P(loss) = <b>' + data.prob_loss_pct.toFixed(2) + '%</b> (' + data.storms_with_damage + ' of ' + data.storm_count.toLocaleString() + ' storms)' +
                     ' &mdash; Conditional metrics below given a damaging storm occurs';
                 metrics.appendChild(probRow);
@@ -113,15 +113,15 @@
                 row.appendChild(lbl);
                 [
                     { label: 'Cond. Mean', value: fmtGBP(d.cond_mean), color: labelColor },
-                    { label: 'VaR 95%', value: fmtGBP(d.cond_var_95), color: '#f57c00' },
-                    { label: 'VaR 99.9%', value: fmtGBP(d.cond_var_999), color: '#d32f2f' },
-                    { label: 'ES 95%', value: fmtGBP(d.cond_es_95), color: '#f57c00' },
-                    { label: 'ES 99.9%', value: fmtGBP(d.cond_es_999), color: '#d32f2f' },
-                    { label: 'Max', value: fmtGBP(d.max), color: '#7b1fa2' },
+                    { label: 'VaR 95%', value: fmtGBP(d.cond_var_95), color: 'var(--amber)' },
+                    { label: 'VaR 99.9%', value: fmtGBP(d.cond_var_999), color: 'var(--red)' },
+                    { label: 'ES 95%', value: fmtGBP(d.cond_es_95), color: 'var(--amber)' },
+                    { label: 'ES 99.9%', value: fmtGBP(d.cond_es_999), color: 'var(--red)' },
+                    { label: 'Max', value: fmtGBP(d.max), color: 'var(--purple)' },
                 ].forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;padding:8px 10px;border-radius:5px;background:#f5f5f5;border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:9px;color:#888;text-transform:uppercase;">' + c.label + '</div>' +
+                    card.style.cssText = 'flex:1;padding:8px 10px;border-radius:5px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;">' + c.label + '</div>' +
                         '<div style="font-size:14px;font-weight:700;color:' + c.color + ';">' + c.value + '</div>';
                     card.appendChild(document.createElement('div'));
                     row.appendChild(card);
@@ -141,9 +141,9 @@
                 // chart-init code always find #sp-var-canvas, even during loading
                 // or when the backend returns an empty/erroring payload.
                 wrap.innerHTML = '<canvas id="sp-var-canvas"></canvas>' +
-                    '<div id="sp-var-status" style="padding:8px;text-align:center;color:#888;font-size:11px;">Loading VaR data…</div>';
+                    '<div id="sp-var-status" style="padding:8px;text-align:center;color:var(--muted);font-size:11px;">Loading VaR data…</div>';
                 var metrics = document.getElementById('sp-var-metrics');
-                metrics.innerHTML = '<span style="font-size:10px;color:#888;">VaR: loading…</span>';
+                metrics.innerHTML = '<span style="font-size:10px;color:var(--muted);">VaR: loading…</span>';
 
                 var baseUrl = getBaseUrl();
                 fetch(baseUrl + '/api/v1/propertyts/portfolio-var', {mode: 'cors'})
@@ -151,8 +151,8 @@
                     .then(function(data) {
                         if (data.status !== 'success') {
                             var statusEl = document.getElementById('sp-var-status');
-                            if (statusEl) statusEl.innerHTML = '<span style="color:#c62828;">Error loading VaR: ' + (data.message || 'Unknown') + '</span>';
-                            metrics.innerHTML = '<span style="font-size:10px;color:#c62828;">VaR unavailable — ' + (data.message || 'no data') + '</span>';
+                            if (statusEl) statusEl.innerHTML = '<span style="color:var(--red-dark);">Error loading VaR: ' + (data.message || 'Unknown') + '</span>';
+                            metrics.innerHTML = '<span style="font-size:10px;color:var(--red-dark);">VaR unavailable — ' + (data.message || 'no data') + '</span>';
                             return;
                         }
                         spVarData = data;
@@ -170,7 +170,7 @@
                             '<span>Portfolio mortgages: <b>' + fmtGBP(data.total_portfolio_mortgages) + '</b></span>';
                     })
                     .catch(function(err) {
-                        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Failed to load VaR data</div>';
+                        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load VaR data</div>';
                         console.error('VaR error:', err);
                     });
             }

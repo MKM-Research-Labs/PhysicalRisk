@@ -129,6 +129,20 @@ CHART = {
     "chart-fill-accent": "rgba(21, 101, 192, 0.08)",
     "chart-fill-danger": "rgba(244, 67, 54, 0.25)",
     "chart-transparent": "rgba(0, 0, 0, 0)",
+    # The trigger levels as chart fills, mirroring SIGN's gain-fill/loss-fill. The
+    # storm panels drew these at six different opacities across two charts — 0.6, 0.7,
+    # 0.8 and 0.9 for the same three levels — which is each chart having chosen for
+    # itself rather than a scale. One fill per level, plus the faint wash the VaR chart
+    # uses behind a distribution, which is a genuinely different job from a bar fill.
+    "alert-fill": "rgba(251, 192, 45, 0.8)",
+    "warning-fill": "rgba(245, 124, 0, 0.8)",
+    "severe-fill": "rgba(211, 47, 47, 0.8)",
+    "severe-wash": "rgba(211, 47, 47, 0.1)",
+    # The VaR histogram's two distributions. They were built by concatenating a partial
+    # rgba prefix with an alpha further down the file — 'rgba(25,118,210' + ',0.5)' —
+    # which no scan can read as a colour and no adopter could ever have found.
+    "chart-fill-accent-half": "rgba(25, 118, 210, 0.5)",
+    "chart-fill-purple-half": "rgba(123, 31, 162, 0.5)",
 }
 
 # --- Series colours for a chart with no meaning to carry. -------------------------
