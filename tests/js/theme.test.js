@@ -31,6 +31,20 @@ describe('Theme', () => {
     beforeEach(() => {
         document.documentElement.style.setProperty('--accent', '#1976d2');
         document.documentElement.style.setProperty('--space-7', '8px');
+        document.documentElement.style.setProperty('--green-mid', '#388e3c');
+        document.documentElement.style.setProperty('--amber', '#f57c00');
+        document.documentElement.style.setProperty('--red-mid', '#d32f2f');
+        document.documentElement.style.setProperty('--grey', '#9e9e9e');
+        document.documentElement.style.setProperty('--muted-2', '#999999');
+        window.__THEME_STATUS = {
+            ramps: {
+                rag: {
+                    Green: 'green-mid', Amber: 'amber', Red: 'red-mid',
+                    'Not Rated': 'grey',
+                },
+            },
+            defaults: { rag: 'muted-2' },
+        };
         window.Theme.reset();
     });
 
@@ -108,5 +122,103 @@ describe('Theme', () => {
         jest.resetModules();
         require('../../src/static/js/theme');
         expect(window.Theme).toBe(first);
+    });
+});
+
+// Theme.ramp / Theme.status — the lookups that replaced the 23 object literals.
+//
+// The distinction worth pinning is between an unknown VALUE and an unknown RAMP. An
+// unknown value is missing data and lands on the shared fallback token, so an
+// unrecognised state looks the same on every screen. An unknown ramp is a programming
+// error — a typo in a ramp name — and must not quietly resolve to a plausible grey,
+// because that is a bug that reaches production looking like a design choice.
+describe('Theme.ramp', () => {
+    beforeEach(() => {
+        document.documentElement.style.setProperty('--green-mid', '#388e3c');
+        document.documentElement.style.setProperty('--amber', '#f57c00');
+        document.documentElement.style.setProperty('--red-mid', '#d32f2f');
+        document.documentElement.style.setProperty('--grey', '#9e9e9e');
+        document.documentElement.style.setProperty('--muted-2', '#999999');
+        window.__THEME_STATUS = {
+            ramps: {
+                rag: {
+                    Green: 'green-mid', Amber: 'amber', Red: 'red-mid',
+                    'Not Rated': 'grey',
+                },
+            },
+            defaults: { rag: 'muted-2' },
+        };
+        window.Theme.reset();
+    });
+
+    test('resolves a whole ramp to hex values', () => {
+        expect(window.Theme.ramp('rag')).toEqual({
+            Green: '#388e3c', Amber: '#f57c00', Red: '#d32f2f', 'Not Rated': '#9e9e9e',
+        });
+    });
+
+    test('an unknown ramp is an empty object, not undefined', () => {
+        // The call sites read ramp[value] || fallback; undefined would throw there.
+        const r = window.Theme.ramp('no_such_ramp');
+        expect(r).toEqual({});
+        expect(r['anything']).toBeUndefined();
+    });
+
+    test('preserves the call sites’ || fallback idiom', () => {
+        const colors = window.Theme.ramp('rag');
+        expect(colors['Green'] || '#000').toBe('#388e3c');
+        expect(colors['Nonsense'] || '#000').toBe('#000');
+    });
+
+    test('memoises the resolved ramp', () => {
+        const spy = jest.spyOn(window, 'getComputedStyle');
+        window.Theme.ramp('rag');
+        window.Theme.ramp('rag');
+        // Four tokens resolved once each on the first call, nothing on the second.
+        expect(spy).toHaveBeenCalledTimes(4);
+        spy.mockRestore();
+    });
+
+    test('reset() clears the ramp memo too', () => {
+        expect(window.Theme.ramp('rag').Green).toBe('#388e3c');
+        document.documentElement.style.setProperty('--green-mid', '#1b5e20');
+        window.Theme.reset();
+        expect(window.Theme.ramp('rag').Green).toBe('#1b5e20');
+    });
+
+    test('survives a missing __THEME_STATUS', () => {
+        delete window.__THEME_STATUS;
+        window.Theme.reset();
+        expect(window.Theme.ramp('rag')).toEqual({});
+    });
+});
+
+describe('Theme.status', () => {
+    beforeEach(() => {
+        document.documentElement.style.setProperty('--green-mid', '#388e3c');
+        document.documentElement.style.setProperty('--muted-2', '#999999');
+        window.__THEME_STATUS = {
+            ramps: { rag: { Green: 'green-mid' } },
+            defaults: { rag: 'muted-2' },
+        };
+        window.Theme.reset();
+    });
+
+    test('resolves a known value', () => {
+        expect(window.Theme.status('rag', 'Green')).toBe('#388e3c');
+    });
+
+    test('an unknown VALUE lands on the shared fallback', () => {
+        expect(window.Theme.status('rag', 'Chartreuse')).toBe('#999999');
+    });
+
+    test('an unknown RAMP returns null, not the fallback', () => {
+        expect(window.Theme.status('no_such_ramp', 'Green')).toBeNull();
+    });
+
+    test('statusRef builds a var() reference', () => {
+        expect(window.Theme.statusRef('rag', 'Green')).toBe('var(--green-mid)');
+        expect(window.Theme.statusRef('rag', 'Chartreuse')).toBe('var(--muted-2)');
+        expect(window.Theme.statusRef('no_such_ramp', 'Green')).toBeNull();
     });
 });

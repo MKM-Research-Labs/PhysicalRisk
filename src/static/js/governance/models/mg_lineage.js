@@ -39,7 +39,7 @@ function renderDataLineage() {
 }
 
 function _lineageStatusBadge(status) {
-    var colors = {fresh: '#4caf50', stale: '#ff9800', missing: '#f44336'};
+    var colors = Theme.ramp('lineage_freshness');
     var labels = {fresh: 'Fresh', stale: 'Stale', missing: 'Missing'};
     var bg = colors[status] || '#999';
     var label = labels[status] || status;
@@ -47,7 +47,7 @@ function _lineageStatusBadge(status) {
 }
 
 function _lineageHealthBadge(health) {
-    var colors = {healthy: '#4caf50', degraded: '#ff9800', unhealthy: '#f44336'};
+    var colors = Theme.ramp('lineage_health');
     var bg = colors[health] || '#999';
     return '<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;color:white;background:' + bg + ';text-transform:uppercase;">' + health + '</span>';
 }
@@ -238,7 +238,7 @@ window._lineageTrace = function() {
                 return;
             }
             // Render visual provenance trail
-            var roleColors = {origin: '#1565c0', derived: '#2e7d32', consumed: '#e65100', found: '#616161'};
+            var roleColors = Theme.ramp('lineage_role');
             var roleIcons = {origin: '\u25cf', derived: '\u2192', consumed: '\u25b6', found: '\u2605'};
             var html = '<div style="padding:8px 0;">';
             html += '<div style="font-size:11px;color:#333;margin-bottom:8px;font-weight:600;">' +

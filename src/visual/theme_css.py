@@ -46,7 +46,11 @@ module free of any JavaScript, and leaves the browser's own cascade as the singl
 authority on what a token resolves to.
 """
 
-from config.theme import THEME, THEME_GROUPS
+import json
+
+from config.theme import (
+    STATUS_COLOUR_DEFAULTS, STATUS_COLOUR_TOKENS, THEME, THEME_GROUPS,
+)
 
 #: The element id carried by the injected ``<style>``, so a test — or a person with
 #: the inspector open — can find the block and confirm the page was themed.
@@ -68,6 +72,24 @@ def theme_css() -> str:
     return "\n".join(lines) + "\n"
 
 
+def theme_status_js() -> str:
+    """The value→token ramps, as the object ``theme.js`` reads them.
+
+    Token *names*, not colours. The browser resolves them against the ``:root`` block
+    through ``Theme.status()``, which keeps this the same single payload as everything
+    else here — there is no second copy of the palette to drift.
+
+    All three families are emitted together — the modelled world
+    (``config.theme._status``), the vocabulary shared with MKM-ModelRisk
+    (``config.theme._governance``) and this platform's own console states
+    (``config.theme._badges``). The front end does not care which is which; it asks for
+    a ramp by name. The per-ramp fallback tokens travel with them, so an unrecognised
+    value resolves the same way in the browser as it does in Python.
+    """
+    payload = {"ramps": STATUS_COLOUR_TOKENS, "defaults": STATUS_COLOUR_DEFAULTS}
+    return f"window.__THEME_STATUS = {json.dumps(payload, sort_keys=True)};"
+
+
 def theme_html() -> str:
     """The ``<style>`` and ``<script>`` pair that themes a page.
 
@@ -83,7 +105,7 @@ def theme_html() -> str:
 
     return (
         f'<style id="{THEME_STYLE_ID}">\n{theme_css()}</style>\n'
-        f"<script>{js_static('theme.js')}</script>\n"
+        f"<script>{theme_status_js()}\n{js_static('theme.js')}</script>\n"
     )
 
 
@@ -92,4 +114,5 @@ def token_names() -> tuple:
     return tuple(THEME)
 
 
-__all__ = ["THEME_STYLE_ID", "theme_css", "theme_html", "token_names"]
+__all__ = ["THEME_STYLE_ID", "theme_css", "theme_html", "theme_status_js",
+           "token_names"]

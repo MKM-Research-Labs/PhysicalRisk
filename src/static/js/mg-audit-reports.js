@@ -295,7 +295,7 @@ window._auditTerminalRefreshNow = _auditTerminalRefreshNow;
 function _auditCard(key, label, typeBadge, size, modified, actionUrl, actionLabel, actionColour) {
     var iconMap = {PDF: '&#128196;', XML: '&#128209;', HTML: '&#127760;', JSON: '&#128202;', LaTeX: '&#128195;', Log: '&#128203;'};
     var icon = iconMap[typeBadge] || '&#128196;';
-    var badgeColour = {PDF: '#c62828', XML: '#6a1b9a', HTML: '#0288d1', JSON: '#e65100', LaTeX: '#2e7d32', Log: '#555'}[typeBadge] || '#555';
+    var badgeColour = Theme.ramp('report_format')[typeBadge] || Theme.value('text-2');
 
     var sizeStr = '';
     if (size !== null && size !== undefined) {

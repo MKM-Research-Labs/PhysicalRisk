@@ -118,8 +118,8 @@
 
                         // Colour coding
                         if (col.key === 'threshold') {
-                            var tc = {'severe':'#d32f2f','warning':'#f57c00','alert':'#1976d2','clean':'#888'};
-                            td.style.color = tc[val] || '#333';
+                            var tc = Theme.ramp('trigger_level');
+                            td.style.color = tc[val] || Theme.value('text');
                             td.style.fontWeight = 'bold';
                         }
                         if (col.key === 'transmission_pct') {

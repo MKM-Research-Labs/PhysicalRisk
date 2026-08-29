@@ -208,7 +208,7 @@ to. Steps 1–5 are the load-bearing work; 6–8 are mechanical and can follow a
 |---|---|---|---|
 | 1 | ✅ **Done** — `config/theme/` package + the token vocabulary + `:root` injection at the manager seam + `theme.js` | ~1.5 d | Nothing changes visually; the vocabulary now exists and reaches every console page |
 | 2 | ✅ **Done** — `ColorSchemes` → `config/theme/_status.py`; `src/visual/utils/color_schemes/` reads from it | ~0.5 d | Small, removes an existing R1 violation, and single-sources the flood/gauge/loan/property ramps the Python and the JS currently disagree about |
-| 3 | The 36 JS status maps → one `STATUS_COLOUR_TOKENS` table | ~1.5 d | The highest-value step: every badge on every screen inherits, and the three disagreeing alert/warning/severe maps become one |
+| 3 | ✅ **Done** — the JS status maps → `config/theme/_badges.py`, read via `Theme.ramp()` | ~1.5 d | The highest-value step: every badge on every screen inherits, and the disagreeing alert/warning/severe maps become one |
 | 4 | The four CSS files (169 literals) → `var(--…)` | ~0.5 d | Mechanical, easy to eyeball, includes the CDM tool's 838-line stylesheet |
 | 5 | `audit/` styling scanner + rule **R7** + `full_audit` §4.8 + gate test | ~1 d | What makes all of the above hold. Gate CSS/HTML/Python at zero, *report* the JS backlog with a count so step 6's remaining work is visible instead of silently passing |
 | 6 | The remaining JS colour literals (~3,000 across ~140 files) | 3–4 d | The bulk. Batched by area — governance, trading, storm, property, gauge — each batch ending green |
@@ -344,6 +344,123 @@ updated. `get_folium_color_name` was made case-insensitive so any caller holding
 uppercase literal still resolves.
 
 Tests: 1985 pass across `tests/visual` and `tests/config`, `_core.py` at 100%.
+
+### 5.4 Step 3, as built
+
+**22 object literals, not 36.** §2's count came from grepping `const|var|let <name>Colors`,
+which also catches ~100 single-value assignments like `var color = pnl > 0 ? … : …`. Those
+are step 6. Extracting only balanced object literals whose values are colours gives 22 real
+maps (a 23rd, `iconMap` in `mg-audit-reports.js`, is a false positive — it holds HTML
+entities such as `&#128196;`, and the `#` matched). All 22 are converted.
+
+They now live in `config/theme/_badges.py` — the console's own workflow states, kept apart
+from `_status.py`'s modelled-world ramps because the two answer to different people: a
+hydrologist owns a flood band, the model risk function owns a validation status.
+
+**How the browser reads them.** `theme_css.py` emits `window.__THEME_STATUS` alongside the
+`:root` block, carrying token *names*, and `Theme.ramp('rag_rating')` resolves a whole ramp
+to `{value: hex}`. That shape was chosen because it is what the call sites already had —
+an object read as `map[value] || fallback` — so each conversion is a one-line change and the
+surrounding code is untouched. `Theme.status()` / `Theme.statusRef()` exist for single
+lookups. An unknown *value* lands on one shared fallback token; an unknown *ramp* returns
+null, because that is a typo rather than missing data and should not quietly paint grey.
+
+**The trigger ramp existed five times in four spellings**, not three:
+
+| site | alert | warning | severe |
+|---|---|---|---|
+| `ghc_historical.js` | `#ffc107` | `#ff9800` | `#f44336` |
+| `curve_history.js` | `#f9a825` | `#e65100` | `#c62828` |
+| `market/render.js` fg | `#fbc02d` | `#f57c00` | `#d32f2f` |
+| `market/render.js` dark | `#f9a825` | `#e65100` | `#b71c1c` |
+| `sp_table_basis.js` | **`#1976d2`** | `#f57c00` | `#d32f2f` |
+
+The canon is `market/render.js`, the only site carrying both a foreground and an emphasis
+form, plus the background trio from `curve_history.js`. Nothing is invented — all nine were
+already in the codebase and all nine were already tokens.
+
+**Seven of 19 badge colours move.** `ghc_historical` and `curve_history` deepen by one
+Material step. The one substantive change is `sp_table_basis`, which drew *alert* in the
+accent blue — so the same word meant caution on one screen and information on another.
+
+**A fourth form was added that nothing consumes yet.** The trigger levels also appear as
+~20 single literals in chart code (`ghc_hazard`, `ghc_return`, `gsa_distribution`,
+`phc_basis_gauge`, `psa_timeline`), consistently in the brighter Material 500 tones. That is
+a legitimate distinction rather than drift — a 1px stroke on a white chart needs saturation
+that 9px bold text on a chip does not — so `TRIGGER_LEVEL_CHART_TOKENS` records it now,
+giving step 6 a target instead of a fifth spelling to invent.
+
+**Nine tokens added** for hues the maps used that the palette did not yet name (`teal`,
+`cyan`, `pink`, `pink-bg`, `brown`, `slate-light`, `orange-bright`, `purple-soft`,
+`grey-dark`), plus `DATASET` and `SEQUENCE` categorical groups. 182 tokens, 26 ramps.
+
+Verified by replaying the emitted `:root` block and `theme.js` under Node and resolving
+every converted call site, including that `tierColors[1]` and `tierColors['1']` agree —
+the tier ramp was keyed on numbers in JS and is keyed on strings in JSON.
+
+### 5.5 Reconciliation with MKM-ModelRisk
+
+Steps 1–3 were built to ModelRisk's *shape* but not to its *values*, and a diff of the two
+token tables found **33 names carrying different values in the two products** — `green` was
+`#388e3c` there and `#2e7d32` here, `radius-md` 6px there and 4px here. That silently breaks
+the premise the whole exercise rests on: one adopter theme file branding both products. An
+institution setting `--green` would get one green in the governance platform and another in
+the console.
+
+All four divergences are now closed. PhysicalRisk is a **strict superset** of ModelRisk:
+all 90 of its tokens, all 9 of its ramps, zero value conflicts, same public API.
+
+| | ModelRisk | PhysicalRisk |
+|---|---|---|
+| Tokens | 90 | 202 (all 90 shared, 0 conflicts) |
+| Ramps | 9 | 32 (all 9 shared, 0 conflicts) |
+| API | `THEME`, `STATUS_COLOUR_TOKENS`, `STATUS_COLOUR_DEFAULTS` | same |
+
+**1. The scales now match, and this reverses an earlier decision.** §5.1 recorded measuring
+the type/space/radius ladders from PhysicalRisk's own histogram, which gave a 1px step at
+the low end. That produced a scale fitting every existing site — but fitting every existing
+site is what a catalogue does, not a design system. A system is useful because it
+*constrains*; the rungs it omits are the ones it is telling you not to use. ModelRisk's
+ladders are now in place value for value.
+
+The cost is real and lands in step 7: the ~172 sites on a 4px radius have no exact rung
+(ModelRisk goes 3, 6, 8, 10, 12), and the spacing sites on 1, 3, 5, 7, 20 and 40px have
+none either. They snap to the nearest rung, which makes **step 7 a deliberate design change
+rather than the mechanical sweep it was planned as**. Nothing consumed these tokens when
+they were replaced, so the change cost nothing today — it is spent in step 7.
+
+**2. The package presents ModelRisk's API.** `config/theme.py` cannot be a single file here
+— 202 tokens against 90 would breach the 300-line rule (R2) — but `config/theme/__init__.py`
+exports the same three names, so code and adopters move between the repositories unchanged.
+A new `_governance.py` holds the ramps the two products share (RAG, mission criticality,
+lifecycle, MRC state, meeting status, product status, review thread, attention), separated
+from `_badges.py`'s PhysicalRisk-only ones. The per-ramp `STATUS_COLOUR_DEFAULTS` replaced a
+single global fallback, matching ModelRisk's shape.
+
+**3. Both routes now exist.** `src/routes/theme.py` serves `/theme.css` and `/api/theme`,
+with the same `theme_version()` cache stamp. The Folium console still takes the inlined
+payload — it has the bytes already and a fetch would be slower — but every other surface
+(the admin page, the CDM tool, any external consumer) can now use the routes. Both read the
+same `config.theme`: one source, two deliveries, never two copies. A test asserts the served
+payload equals the inlined one.
+
+**4. The shared vocabulary is carried whole.** `rag_rating` → `rag`, `validation_status` →
+`validation_question`, `model_tier` → `mission_criticality` (with ModelRisk's fifth level).
+ModelRisk's five ramps that PhysicalRisk had no equivalent of — `meeting_status`,
+`mrc_state`, `product_status`, `review_thread`, `attention` — are carried across even though
+nothing draws them yet, so a governance surface added later reaches for the shared table
+instead of inventing a parallel one. `lifecycle` holds the union of both products'
+enumerations, so one ramp serves both. ModelRisk's `GRAPH` node-graph palette came across
+whole for the same reason.
+
+What remains PhysicalRisk-only is inherent rather than drift: perils, flood depth, map
+layers, markers, P&L sign, chart series, datasets, storm sequences, trigger levels — 112
+tokens and 23 ramps with no ModelRisk counterpart, because ModelRisk does not model physical
+risk.
+
+The parity is held by `TestModelRiskVocabulary` in `tests/config/test_theme.py`, which
+asserts ModelRisk's values rather than importing them, because the two repositories are
+separate checkouts and a test may not have the other on disk.
 
 ## 6. Enforcement — rule R7
 

@@ -135,4 +135,36 @@ SERIES = {
     "series-8": "#f57f17",
 }
 
-__all__ = ["PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES"]
+# --- Categorical palettes: hues that identify a thing, not rate it. ---------------
+# A lineage step, a storm sequence type, a report format. The colour is a label, so the
+# only requirement is that neighbours stay distinguishable. Kept apart from the RAG and
+# badge ramps precisely because these carry no judgement — drawing a dataset red would
+# read as a problem with it.
+
+#: The pipeline steps the lineage panels colour-code. Ten steps, ten hues.
+DATASET = {
+    "dataset-gauges": "#4caf50",
+    "dataset-properties": "#2196f3",
+    "dataset-mortgages": "#ff9800",
+    "dataset-gaugehd": "#009688",
+    "dataset-stressm": "#e91e63",
+    "dataset-hazard": "#f44336",
+    "dataset-propertyts": "#795548",
+    "dataset-propertyhc": "#607d8b",
+    "dataset-counterparties": "#9c27b0",
+    "dataset-blotter": "#ff5722",
+}
+
+#: Storm sequence types, in the two forms the impact panels draw them: a saturated hue
+#: for chart bars and a tint/ink pair for the inline chips.
+SEQUENCE = {
+    "sequence-isolated": "#42a5f5",
+    "sequence-doublet": "#ffa726",
+    "sequence-cluster": "#ef5350",
+    "sequence-persistent": "#ab47bc",
+}
+
+__all__ = [
+    "PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES", "DATASET",
+    "SEQUENCE",
+]

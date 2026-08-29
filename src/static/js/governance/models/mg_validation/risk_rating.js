@@ -18,12 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-var riskRatingColors = {
-    'Acceptable': '#388e3c',
-    'Conditional': '#f57c00',
-    'Unacceptable': '#d32f2f',
-    'Not Rated': '#9e9e9e'
-};
+var riskRatingColors = Theme.ramp('risk_rating');
 
 function riskRatingBadge(rating) {
     var c = riskRatingColors[rating] || '#9e9e9e';

@@ -19,8 +19,8 @@
 // SOFTWARE.
 
             var tdHistoryCharts = [];
-            var tdHistoryTrigColors = {alert:'#f9a825', warning:'#e65100', severe:'#c62828'};
-            var tdHistoryTrigBg    = {alert:'#fff8e1', warning:'#fff3e0', severe:'#ffebee'};
+            var tdHistoryTrigColors = Theme.ramp('trigger_level');
+            var tdHistoryTrigBg     = Theme.ramp('trigger_level_bg');
 
             window.tdShowCurveHistory = function() {
                 if (tdCurveMode === 'yield' || !tdSelectedGauge) {

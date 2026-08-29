@@ -38,6 +38,11 @@ from config.theme import (
     STATUS_TOKEN_RAMPS, STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS,
     STORM_INTENSITY_TOP, SURFACE, TEXT, THEME, THEME_GROUPS, TYPE,
 )
+from config.theme import (
+    RAG_TOKENS, STATUS_COLOUR_DEFAULTS, STATUS_COLOUR_TOKENS,
+    TRIGGER_LEVEL_BG_TOKENS, TRIGGER_LEVEL_CHART_TOKENS,
+    TRIGGER_LEVEL_DARK_TOKENS, TRIGGER_LEVEL_TOKENS,
+)
 from config.theme.registry import SANCTIONED_PACKAGE
 
 # A CSS custom-property name: what a token is allowed to be called, so a token can
@@ -107,6 +112,18 @@ class TestTokenValues:
             if name.startswith("size-"):
                 assert value.endswith("px"), f"--{name} = {value!r} is not a length"
 
+    def test_scales_are_deliberately_sparse(self):
+        """The rungs the ladders omit are the point, not an oversight.
+
+        An earlier pass measured these from PhysicalRisk's own histogram and produced a
+        1px step, which fitted every existing site — but fitting every existing site is
+        what a catalogue does, not a design system. These are ModelRisk's ladders, so a
+        shared token name carries a shared value across the two products.
+        """
+        assert len(SPACE) == 10
+        assert len(RADIUS) == 5
+        assert len([k for k in TYPE if k.startswith("size-")]) == 6
+
     def test_shadows_are_whole_box_shadow_values(self):
         """Whole values, not the colours inside them.
 
@@ -135,17 +152,18 @@ class TestScales:
         assert len(set(rungs)) == len(rungs), "two space rungs share a value"
 
     def test_radius_ladder_ascends(self):
-        order = ["radius-xs", "radius-sm", "radius-md", "radius-lg", "radius-xl",
-                 "radius-2xl"]
+        order = ["radius-sm", "radius-md", "radius-lg", "radius-xl", "radius-pill"]
         rungs = [self._px(RADIUS[name]) for name in order]
         assert rungs == sorted(rungs)
+        assert set(RADIUS) == set(order), "the radius ladder is ModelRisk's five rungs"
 
     def test_type_ladder_ascends(self):
-        order = ["size-3xs", "size-xxs", "size-xs", "size-sm", "size-md", "size-base",
-                 "size-lg", "size-xl", "size-2xl", "size-3xl", "size-4xl"]
+        order = ["size-xxs", "size-xs", "size-sm", "size-md", "size-lg", "size-xl"]
         rungs = [self._px(TYPE[name]) for name in order]
         assert rungs == sorted(rungs)
         assert len(set(rungs)) == len(rungs), "two type rungs share a value"
+        sizes = {k for k in TYPE if k.startswith("size-")}
+        assert sizes == set(order), "the type ladder is ModelRisk's six rungs"
 
     def test_space_ladder_is_contiguous(self):
         """No gap in the numbering — ``space-7`` missing would be a silent hole."""
@@ -259,3 +277,161 @@ class TestBandBounds:
         """A colour in the ramp that no bound selects would never be drawn."""
         reachable = {band for _, band in bounds} | {top}
         assert set(ramp) == reachable, f"unreachable bands: {set(ramp) - reachable}"
+
+
+class TestBadgeRamps:
+    """The console's own workflow-state ramps (``config.theme._badges``).
+
+    These replaced 22 object literals in ``src/static/js``. The reason they are worth
+    testing separately from the domain ramps is that the front end reaches them through
+    a name — ``Theme.ramp('rag_rating')`` — so a renamed ramp fails at the browser,
+    silently, on whichever panel nobody opened.
+    """
+
+    def test_every_ramp_resolves_to_defined_tokens(self):
+        unresolved = [
+            f"{ramp}[{value!r}] -> {token}"
+            for ramp, mapping in STATUS_COLOUR_TOKENS.items()
+            for value, token in mapping.items()
+            if token not in THEME
+        ]
+        assert unresolved == [], "ramps naming undefined tokens: " + ", ".join(unresolved)
+
+    def test_every_default_is_a_real_token(self):
+        bad = {r: t for r, t in STATUS_COLOUR_DEFAULTS.items() if t not in THEME}
+        assert bad == {}
+
+    def test_defaults_only_name_ramps_that_exist(self):
+        """A default for a ramp that is gone is dead configuration."""
+        orphans = sorted(set(STATUS_COLOUR_DEFAULTS) - set(STATUS_COLOUR_TOKENS))
+        assert orphans == []
+
+    def test_the_three_families_share_one_flat_namespace(self):
+        """The front end asks for a ramp by name and cannot see which module it is in.
+
+        Two families defining the same ramp name would resolve by merge order, which is
+        a silent, order-dependent bug — the same failure mode as a duplicate token.
+        """
+        from config.theme import (
+            BADGE_TOKEN_RAMPS, GOVERNANCE_TOKEN_RAMPS, STATUS_TOKEN_RAMPS,
+        )
+        names = (list(STATUS_TOKEN_RAMPS) + list(GOVERNANCE_TOKEN_RAMPS)
+                 + list(BADGE_TOKEN_RAMPS))
+        duplicates = sorted({n for n in names if names.count(n) > 1})
+        assert duplicates == []
+        assert len(STATUS_COLOUR_TOKENS) == len(names)
+
+    def test_ramp_names_are_javascript_safe(self):
+        """A ramp is addressed by name from JS; keep them plain identifiers."""
+        for name in STATUS_COLOUR_TOKENS:
+            assert re.match(r"^[a-z][a-z0-9_]*$", name), name
+
+
+class TestTriggerLevels:
+    """The ramp that existed five times in four different spellings.
+
+    Collapsing it is the one place this migration deliberately changes what is on
+    screen, so the shape of the result is pinned rather than left implicit.
+    """
+
+    LEVELS = ("alert", "warning", "severe", "clean")
+
+    def test_all_forms_cover_the_same_levels(self):
+        """A level with a foreground but no background would draw ink on nothing."""
+        for form in (TRIGGER_LEVEL_TOKENS, TRIGGER_LEVEL_DARK_TOKENS,
+                     TRIGGER_LEVEL_BG_TOKENS, TRIGGER_LEVEL_CHART_TOKENS):
+            assert set(form) == set(self.LEVELS)
+
+    def test_the_chart_form_is_brighter_than_the_badge_form(self):
+        """They are deliberately different; if they converge, one of them is wrong."""
+        for level in ("alert", "warning", "severe"):
+            assert TRIGGER_LEVEL_CHART_TOKENS[level] != TRIGGER_LEVEL_TOKENS[level]
+
+    def test_the_three_forms_are_distinct_per_level(self):
+        """A tint that equals its ink is an invisible badge."""
+        for level in self.LEVELS:
+            fg = THEME[TRIGGER_LEVEL_TOKENS[level]]
+            bg = THEME[TRIGGER_LEVEL_BG_TOKENS[level]]
+            assert fg != bg, f"{level}: foreground and background are the same colour"
+
+    def test_alert_is_no_longer_the_accent_blue(self):
+        """sp_table_basis drew "alert" in the accent, which made the same word mean
+        caution on one screen and information on another. That is the visible change
+        step 3 set out to make."""
+        assert TRIGGER_LEVEL_TOKENS["alert"] != "accent"
+
+    def test_severity_deepens_from_alert_to_severe(self):
+        """The ladder must not be reordered into an incoherent ramp."""
+        assert TRIGGER_LEVEL_TOKENS["alert"] == "gold-bright"
+        assert TRIGGER_LEVEL_TOKENS["warning"] == "amber"
+        assert TRIGGER_LEVEL_TOKENS["severe"] == "red"
+
+
+class TestRagVocabulary:
+    """RAG means the same thing wherever it is drawn."""
+
+    def test_rag_ramp_uses_the_rag_palette(self):
+        for value, token in RAG_TOKENS.items():
+            if value != "Not Rated":
+                assert THEME[token] in THEME.values()
+                assert token.split("-")[0] in {"green", "amber", "red"}, token
+
+
+class TestModelRiskVocabulary:
+    """A token name means the same thing in PhysicalRisk and MKM-ModelRisk.
+
+    The two products are meant to sit in one suite and ModelRisk was extracted from this
+    codebase, so a single adopter theme file should brand both. That only works if a
+    shared name carries a shared value: an institution setting ``--green`` for its house
+    palette must not get one green in the console and a different one in the governance
+    platform.
+
+    The values below are ModelRisk's, asserted here rather than imported because the two
+    repositories are separate checkouts and a test may not have the other one on disk.
+    Reconciled 2026-08-28 against ModelRisk's ``config/theme.py``; 33 names collided and
+    13 of them were colours, all resolved in ModelRisk's favour.
+    """
+
+    #: Names the two products share, with the value both must carry.
+    MODELRISK_VALUES = {
+        "accent": "#1976d2", "accent-soft": "#e3f2fd", "accent-border": "#bbdefb",
+        "accent-ink": "#0d47a1", "accent-wash": "#f7fbff", "header-from": "#f5f7fa",
+        "header-to": "#c3cfe2", "header-ink": "#2a3a4d", "header-sub": "#5b6b7d",
+        "bg": "#eef1f5", "panel": "#ffffff", "raised": "#fafafa", "sunken": "#f5f5f5",
+        "control": "#f9f9f9", "readonly": "#f4f5f7", "code": "#f0f0f0",
+        "line": "#e0e0e0", "line-soft": "#eeeeee",
+        "text": "#333333", "text-2": "#555555", "muted": "#888888",
+        "inverse": "#ffffff",
+        "green": "#388e3c", "amber": "#f57c00", "red": "#d32f2f", "grey": "#9e9e9e",
+        "green-soft": "#66bb6a", "amber-soft": "#ffa726", "red-soft": "#ef5350",
+        "danger-bg": "#fdecea", "danger-ink": "#b71c1c", "danger-line": "#f5c6c2",
+        "danger-line-soft": "#f1c5c2", "warn-bg": "#fff8e1", "warn-bg-alt": "#fef3c7",
+        "warn-ink": "#92400e", "warn-line": "#d97706", "warn-ink-alt": "#b26a00",
+        "ok-bg": "#e8f5e9",
+        "info": "#0288d1", "violet": "#8e24aa", "blue-grey": "#607d8b",
+        "gold": "#b8860b", "slate": "#94a3b8", "teal": "#00897b",
+    }
+
+    def test_shared_names_carry_the_shared_value(self):
+        wrong = {
+            name: (expected, THEME[name])
+            for name, expected in self.MODELRISK_VALUES.items()
+            if name in THEME and THEME[name].lower() != expected.lower()
+        }
+        assert wrong == {}, f"diverged from ModelRisk: {wrong}"
+
+    def test_no_shared_name_has_been_dropped(self):
+        missing = sorted(n for n in self.MODELRISK_VALUES if n not in THEME)
+        assert missing == [], f"tokens ModelRisk defines that we no longer do: {missing}"
+
+    def test_our_darker_tones_kept_names_of_their_own(self):
+        """The values ModelRisk does not have are still available, under new names.
+
+        ``green``/``red``/``gold``/``accent-ink`` moved to ModelRisk's values; the tones
+        they used to carry are what the map markers and PDF palettes draw with, so they
+        had to survive the rename rather than be dropped.
+        """
+        assert THEME["green-dark"] == "#2e7d32"
+        assert THEME["red-dark"] == "#c62828"
+        assert THEME["gold-bright"] == "#fbc02d"
+        assert THEME["accent-mid"] == "#1565c0"

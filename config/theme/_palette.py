@@ -53,14 +53,17 @@ as each surface converts, not here.
 # 151), so which is which gets decided per surface as that surface converts.
 BRAND = {
     "accent": "#1976d2",
-    "accent-ink": "#1565c0",
-    "accent-deep": "#0d47a1",
+    "accent-mid": "#1565c0",
+    "accent-ink": "#0d47a1",
     "accent-bright": "#2196f3",
     "accent-light": "#42a5f5",
     "accent-soft": "#e3f2fd",
     "accent-border": "#bbdefb",
+    "accent-wash": "#f7fbff",
     "header-from": "#f5f7fa",
     "header-to": "#c3cfe2",
+    "header-ink": "#2a3a4d",
+    "header-sub": "#5b6b7d",
 }
 
 # --- Paper: the neutral surfaces everything else sits on. ------------------------
@@ -74,6 +77,7 @@ SURFACE = {
     "raised": "#fafafa",
     "sunken": "#f5f5f5",
     "control": "#f9f9f9",
+    "readonly": "#f4f5f7",
     "wash": "#f8f9fa",
     "wash-cool": "#f8fafc",
     "code": "#f0f0f0",
@@ -84,7 +88,6 @@ SURFACE = {
     # A hairline over an unknown background, so it darkens whatever it crosses
     # instead of assuming the panel colour.
     "rule": "rgba(0, 0, 0, 0.12)",
-    "scrim": "rgba(0, 0, 0, 0.45)",
     "veil": "rgba(255, 255, 255, 0.85)",
 }
 
@@ -108,8 +111,8 @@ TEXT = {
 # here. Four reds and four ambers are in use today; they are all recorded so the
 # conversion can see them, and step 6 decides which distinctions are real.
 RAG = {
-    "green": "#2e7d32",
-    "green-mid": "#388e3c",
+    "green": "#388e3c",
+    "green-dark": "#2e7d32",
     "green-bright": "#4caf50",
     "green-deep": "#1b5e20",
     "green-soft": "#66bb6a",
@@ -118,8 +121,8 @@ RAG = {
     "amber-bright": "#ff9800",
     "amber-yellow": "#ffc107",
     "amber-soft": "#ffa726",
-    "red": "#c62828",
-    "red-mid": "#d32f2f",
+    "red": "#d32f2f",
+    "red-dark": "#c62828",
     "red-bright": "#f44336",
     "red-deep": "#b71c1c",
     "red-alt": "#e53935",
@@ -130,10 +133,18 @@ RAG = {
 # --- Banner and chip tints, keyed to the state they announce. ---------------------
 STATE = {
     "ok-bg": "#e8f5e9",
-    "warn-bg": "#fff3e0",
-    "warn-bg-alt": "#fff8e1",
-    "danger-bg": "#ffebee",
-    "danger-line": "#ffcdd2",
+    "warn-bg": "#fff8e1",
+    "warn-bg-alt": "#fef3c7",
+    "warn-bg-warm": "#fff3e0",
+    "warn-ink": "#92400e",
+    "warn-ink-alt": "#b26a00",
+    "warn-line": "#d97706",
+    "danger-bg": "#fdecea",
+    "danger-bg-soft": "#ffebee",
+    "danger-ink": "#b71c1c",
+    "danger-line": "#f5c6c2",
+    "danger-line-soft": "#f1c5c2",
+    "danger-line-alt": "#ffcdd2",
     "info-bg": "#e8eaf6",
 }
 
@@ -143,8 +154,10 @@ STATE = {
 # read as one.
 HUE = {
     "navy": "#1a237e",
-    "slate": "#37474f",
-    "blue-grey": "#546e7a",
+    "slate": "#94a3b8",
+    "slate-dark": "#37474f",
+    "blue-grey": "#607d8b",
+    "blue-grey-dark": "#546e7a",
     "blue-grey-light": "#78909c",
     "blue-grey-pale": "#90a4ae",
     "blue-grey-bg": "#eceff1",
@@ -154,11 +167,22 @@ HUE = {
     "purple-dark": "#4a148c",
     "purple-bg": "#f3e5f5",
     "orange-deep": "#bf360c",
-    "gold": "#fbc02d",
+    "gold": "#b8860b",
+    "gold-bright": "#fbc02d",
     "gold-deep": "#f9a825",
     "gold-dark": "#f57f17",
     "purple-bright": "#9c27b0",
+    "purple-soft": "#ab47bc",
     "yellow": "#ffeb3b",
+    "teal": "#00897b",
+    "teal-bright": "#009688",
+    "info": "#0288d1",
+    "violet": "#8e24aa",
+    "pink": "#e91e63",
+    "pink-bg": "#fce4ec",
+    "brown": "#795548",
+    "orange-bright": "#ff5722",
+    "grey-dark": "#616161",
 }
 
 __all__ = ["BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE"]

@@ -48,8 +48,8 @@ the two cannot drift apart unnoticed.
 # Both casings of "Very Low"/"Very High" are live in the data and both are kept; the
 # data is not being normalised as part of a styling change.
 FLOOD_RISK_TOKENS = {
-    "Very Low": "green",
-    "Very low": "green",
+    "Very Low": "green-dark",
+    "Very low": "green-dark",
     "Low": "green-soft",
     "Medium": "amber-bright",
     "High": "red-bright",

@@ -52,13 +52,15 @@
 
                 // Sequence type badge styling
                 var seqBadge = function(seqType) {
-                    var cfg = {
-                        'isolated':  {bg:'#e3f2fd', color:'#1565c0', label:'Isolated'},
-                        'doublet':   {bg:'#fff3e0', color:'#e65100', label:'Doublet'},
-                        'cluster':   {bg:'#fce4ec', color:'#c62828', label:'Cluster'},
-                        'persistent':{bg:'#f3e5f5', color:'#6a1b9a', label:'Persistent'}
+                    var seqBg = Theme.ramp('sequence_bg');
+                    var seqInk = Theme.ramp('sequence_ink');
+                    var labels = {isolated:'Isolated', doublet:'Doublet',
+                                  cluster:'Cluster', persistent:'Persistent'};
+                    var c = {
+                        bg: seqBg[seqType] || Theme.value('sunken'),
+                        color: seqInk[seqType] || Theme.value('text-2'),
+                        label: labels[seqType] || seqType || '?'
                     };
-                    var c = cfg[seqType] || {bg:'#f5f5f5', color:'#555', label:seqType || '?'};
                     return '<span style="background:' + c.bg + ';color:' + c.color + ';font-size:9px;' +
                            'padding:1px 5px;border-radius:3px;font-weight:600;">' + c.label + '</span>';
                 };
@@ -130,9 +132,7 @@
                 // Bar chart of flood depths
                 var labels = events.map(function(e) { return (e.storm_id || '').substring(0, 10); });
                 var depths = events.map(function(e) { return e.flood_depth_m || 0; });
-                var seqTypeColors = {
-                    isolated: '#42a5f5', doublet: '#ffa726', cluster: '#ef5350', persistent: '#ab47bc'
-                };
+                var seqTypeColors = Theme.ramp('sequence');
                 var barColors = events.map(function(e) {
                     return seqTypeColors[e.sequence_type] || '#42a5f5';
                 });

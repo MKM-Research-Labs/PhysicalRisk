@@ -18,12 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-            var tierColors = {1: '#d32f2f', 2: '#f57c00', 3: '#1976d2', 4: '#388e3c'};
+            var tierColors = Theme.ramp('mission_criticality');
             var tierLabels = {1: 'Tier 1 - Maximum', 2: 'Tier 2 - Substantial', 3: 'Tier 3 - Moderate', 4: 'Tier 4 - Minimal'};
-            var reviewColors = {'Overdue': '#d32f2f', 'Due Soon': '#f57c00', 'Upcoming': '#fbc02d', 'On Track': '#388e3c', 'Not Scheduled': '#9e9e9e'};
+            var reviewColors = Theme.ramp('review_status');
             var catIcons = {'Hazard': '\u26a0\ufe0f', 'Pricing': '\ud83d\udcb0', 'Loss': '\ud83d\udcc9', 'Spatial': '\ud83c\udf0d', 'Valuation': '\ud83c\udfe0', 'Risk': '\ud83d\udcca'};
-            var lifecycleColors = {'Production': '#388e3c', 'Development': '#1976d2', 'Validation': '#f57c00', 'Retired': '#9e9e9e'};
-            var ragColors = {'Green': '#388e3c', 'Amber': '#f57c00', 'Red': '#d32f2f', 'Not Rated': '#9e9e9e'};
+            var lifecycleColors = Theme.ramp('lifecycle');
+            var ragColors = Theme.ramp('rag');
 
             function badge(text, bg, fg) {
                 return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:' + bg + ';color:' + (fg || 'white') + ';">' + text + '</span>';

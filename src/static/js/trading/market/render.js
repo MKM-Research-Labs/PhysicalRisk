@@ -79,8 +79,8 @@
                 var tenors = ['1', '2', '3', '4', '5'];
                 var rates = tenors.map(function(t) { return (triggerTS[t] || 0) * 10000; });
 
-                var colors = {alert: '#fbc02d', warning: '#f57c00', severe: '#d32f2f'};
-                var darks = {alert: '#f9a825', warning: '#e65100', severe: '#b71c1c'};
+                var colors = Theme.ramp('trigger_level');
+                var darks = Theme.ramp('trigger_level_dark');
                 var color = colors[trigger] || '#1565c0';
                 var dark = darks[trigger] || '#0d47a1';
 

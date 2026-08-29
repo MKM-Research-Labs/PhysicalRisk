@@ -36,7 +36,9 @@ import pytest
 
 from config import config
 from config.theme import THEME, THEME_GROUPS
-from visual.theme_css import THEME_STYLE_ID, theme_css, theme_html, token_names
+from visual.theme_css import (
+    THEME_STYLE_ID, theme_css, theme_html, theme_status_js, token_names,
+)
 
 _DECLARATION = re.compile(r"^\s*--([a-z0-9-]+):\s*(.+);$", re.MULTILINE)
 _VAR_REFERENCE = re.compile(r"var\(\s*--([a-zA-Z0-9_-]+)")
@@ -185,3 +187,72 @@ class TestRenderedPage:
 
     def test_theme_helper_is_available_to_panel_scripts(self):
         assert "window.Theme" in self._rendered()
+
+
+class TestStatusRampsReachTheBrowser:
+    """``window.__THEME_STATUS`` — the ramps the front end reads by name.
+
+    The load-bearing test is :meth:`test_every_js_ramp_reference_exists`. A ramp name
+    typo'd in JavaScript fails the same silent way an undefined token does: the lookup
+    yields an empty object, every badge falls through to its ``||`` default, and a whole
+    panel quietly goes grey on a screen nobody happened to open.
+    """
+
+    def test_payload_is_valid_json(self):
+        import json
+
+        payload = theme_status_js()
+        assert payload.startswith("window.__THEME_STATUS = ")
+        body = payload[len("window.__THEME_STATUS = "):].rstrip(";")
+        json.loads(body)
+
+    def test_carries_every_ramp_family(self):
+        import json
+
+        from config.theme import STATUS_COLOUR_TOKENS
+
+        body = theme_status_js()[len("window.__THEME_STATUS = "):].rstrip(";")
+        ramps = json.loads(body)["ramps"]
+        assert set(ramps) == set(STATUS_COLOUR_TOKENS)
+
+    def test_carries_the_per_ramp_defaults(self):
+        """The browser must fall back the same way Python does."""
+        import json
+
+        from config.theme import STATUS_COLOUR_DEFAULTS
+
+        body = theme_status_js()[len("window.__THEME_STATUS = "):].rstrip(";")
+        assert json.loads(body)["defaults"] == STATUS_COLOUR_DEFAULTS
+
+    def test_emits_token_names_not_colours(self):
+        """A second copy of the palette here could drift from the :root block."""
+        import json
+
+        body = theme_status_js()[len("window.__THEME_STATUS = "):].rstrip(";")
+        for ramp, mapping in json.loads(body)["ramps"].items():
+            for value, token in mapping.items():
+                assert not token.startswith("#"), f"{ramp}[{value}] is a colour"
+                assert token in THEME, f"{ramp}[{value}] -> {token} is not a token"
+
+    def test_every_js_ramp_reference_exists(self, repo_root):
+        """Every Theme.ramp('x') in the front end names a ramp the emitter defines."""
+        import json
+        import re as _re
+
+        body = theme_status_js()[len("window.__THEME_STATUS = "):].rstrip(";")
+        defined = set(json.loads(body)["ramps"])
+        pattern = _re.compile(r"Theme\.(?:ramp|status|statusRef)\(\s*['\"]([\w]+)['\"]")
+        unknown = []
+        for path in (repo_root / "src" / "static" / "js").rglob("*.js"):
+            if path.name == "theme.js":
+                continue
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for name in pattern.findall(line):
+                    if name not in defined:
+                        unknown.append(f"{path.relative_to(repo_root)}:{number} {name}")
+        assert unknown == [], "unknown ramp names: " + ", ".join(unknown)
+
+    def test_status_payload_precedes_theme_js_in_the_page(self):
+        """theme.js reads window.__THEME_STATUS; it must already be assigned."""
+        html = theme_html()
+        assert html.index("window.__THEME_STATUS") < html.index("window.Theme")

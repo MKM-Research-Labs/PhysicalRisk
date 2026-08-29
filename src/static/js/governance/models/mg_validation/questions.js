@@ -20,12 +20,7 @@
 
 var vqExpandedId = null;
 
-var vqStatusColors = {
-    'Addressed': '#388e3c',
-    'Partially Addressed': '#f57c00',
-    'Not Addressed': '#d32f2f',
-    'Not Applicable': '#9e9e9e'
-};
+var vqStatusColors = Theme.ramp('validation_question');
 
 function vqStatusBadge(status) {
     var c = vqStatusColors[status] || '#9e9e9e';

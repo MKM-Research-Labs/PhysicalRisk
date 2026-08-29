@@ -37,9 +37,14 @@ otherwise would let two groups define ``--line`` and leave the winner to file or
 ``tests/config/test_theme.py`` holds that true.
 """
 
-from ._domain import DEPTH, FLOOD, MAP, MARKER, PERIL, SERIES, SIGN
+from ._badges import BADGE_COLOUR_DEFAULTS, BADGE_TOKEN_RAMPS
+from ._domain import (
+    DATASET, DEPTH, FLOOD, MAP, MARKER, PERIL, SEQUENCE, SERIES, SIGN,
+)
 from ._palette import BRAND, HUE, RAG, STATE, SURFACE, TEXT
-from ._scale import RADIUS, SHADOW, SPACE, TYPE
+from ._governance import GOVERNANCE_COLOUR_DEFAULTS, GOVERNANCE_TOKEN_RAMPS
+from ._scale import GRAPH, RADIUS, SHADOW, SPACE, TYPE
+from ._status import STATUS_TOKEN_RAMPS
 
 # The groups in the order they are emitted, so the served ``:root`` block reads in
 # the same order as the package and a diff of either is legible.
@@ -57,14 +62,34 @@ THEME_GROUPS = (
     ("flood", FLOOD),
     ("sign", SIGN),
     ("series", SERIES),
+    ("dataset", DATASET),
+    ("sequence", SEQUENCE),
     ("type", TYPE),
     ("space", SPACE),
     ("radius", RADIUS),
     ("shadow", SHADOW),
+    ("graph", GRAPH),
 )
 
 # Every token, flat, keyed by custom-property name.
 THEME = {name: value for _, group in THEME_GROUPS for name, value in group.items()}
+
+# Every value→token ramp, flat, under MKM-ModelRisk's name for this table. The three
+# families — the modelled world (``_status``), the shared governance vocabulary
+# (``_governance``) and this platform's own console states (``_badges``) — are one
+# namespace for a consumer, because the front end asks for a ramp by name and does not
+# care which module it came from.
+STATUS_COLOUR_TOKENS = {
+    **STATUS_TOKEN_RAMPS,
+    **GOVERNANCE_TOKEN_RAMPS,
+    **BADGE_TOKEN_RAMPS,
+}
+
+# Per-ramp fallback token, ModelRisk's shape. A ramp absent from here has no default.
+STATUS_COLOUR_DEFAULTS = {
+    **GOVERNANCE_COLOUR_DEFAULTS,
+    **BADGE_COLOUR_DEFAULTS,
+}
 
 # Package (relative to the repo root) that is the sanctioned home for *all* visual
 # parameters. Modules under here are exempt from the styling audit — this is the one
@@ -72,4 +97,7 @@ THEME = {name: value for _, group in THEME_GROUPS for name, value in group.items
 # down. The mirror of ``config.path.registry.SANCTIONED_PACKAGE`` for rule R7.
 SANCTIONED_PACKAGE = "config/theme"
 
-__all__ = ["THEME", "THEME_GROUPS", "SANCTIONED_PACKAGE"]
+__all__ = [
+    "THEME", "THEME_GROUPS", "SANCTIONED_PACKAGE",
+    "STATUS_COLOUR_TOKENS", "STATUS_COLOUR_DEFAULTS",
+]

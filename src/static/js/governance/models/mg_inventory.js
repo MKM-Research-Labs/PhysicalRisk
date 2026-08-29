@@ -241,7 +241,7 @@ function renderInventory() {
         html += '<td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;white-space:nowrap;">' + (m.next_review_date || '—') + '</td>';
         html += '<td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;">' + reviewBadge(m.review_status) + '</td>';
         var rrVal = m.risk_rating || 'Not Rated';
-        var rrColors = {'Acceptable':'#388e3c','Conditional':'#f57c00','Unacceptable':'#d32f2f','Not Rated':'#9e9e9e'};
+        var rrColors = Theme.ramp('risk_rating');
         html += '<td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;">' + badge(rrVal, rrColors[rrVal] || '#9e9e9e') + '</td>';
         var remCount = m.open_remediations || 0;
         html += '<td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center;">' + (remCount > 0 ? '<span style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;">' + remCount + ' open</span>' : '<span style="color:#388e3c;font-size:10px;">Clear</span>') + '</td>';

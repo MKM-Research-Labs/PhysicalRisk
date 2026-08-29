@@ -48,8 +48,8 @@ function renderRemediationTab(m) {
     });
     html += '</tr></thead><tbody>';
 
-    var priorityColors = {'High': '#d32f2f', 'Medium': '#f57c00', 'Low': '#1976d2'};
-    var statusColors = {'Open': '#e65100', 'In Progress': '#1976d2', 'Closed': '#388e3c'};
+    var priorityColors = Theme.ramp('priority');
+    var statusColors = Theme.ramp('task_status');
 
     steps.forEach(function(r) {
         var isOverdue = r.status === 'Open' && r.due_date && new Date(r.due_date) < new Date();

@@ -33,6 +33,7 @@ def register_blueprints(app: Flask) -> None:
     from .gauges import gauges_bp
     from .governance import governance_bp
     from .health import health_bp
+    from .theme import theme_bp
     from .perils import perils_bp
     from .properties import properties_bp
     from .propertyhc import propertyhc_bp
@@ -42,6 +43,7 @@ def register_blueprints(app: Flask) -> None:
     from .visualization import visualization_bp
 
     app.register_blueprint(health_bp)
+    app.register_blueprint(theme_bp)
     app.register_blueprint(auth_bp)  # /auth/* — login/logout/me (top-level, no prefix)
     app.register_blueprint(admin_bp)  # /admin + /admin/api/* — RBAC admin grid
     app.register_blueprint(cdm_review_bp)

@@ -198,7 +198,7 @@
                 var listEl = document.getElementById('hist-storms-list');
                 if (!listEl) return;
 
-                var triggerColors = {alert: '#FFC107', warning: '#FF9800', severe: '#F44336'};
+                var triggerColors = Theme.ramp('trigger_level');
 
                 var html = '<div style="padding:2px 4px;font-size:9px;color:#888;margin-bottom:4px;">' +
                     storms.length + ' storms breached alert at this gauge</div>';

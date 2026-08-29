@@ -47,12 +47,7 @@ function _flSourceBadge(source) {
 
 function _flStepBadge(step) {
     if (!step) return '<span style="font-size:9px;color:#999;">\u2014</span>';
-    var colors = {
-        gauges: '#4caf50', properties: '#2196f3', mortgages: '#ff9800',
-        gaugehd: '#009688', stressm: '#e91e63', hazard: '#f44336',
-        propertyts: '#795548', propertyhc: '#607d8b', counterparties: '#9c27b0',
-        blotter: '#ff5722'
-    };
+    var colors = Theme.ramp('dataset');
     var bg = colors[step] || '#999';
     return '<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:8px;font-weight:600;color:white;background:' + bg + ';">' + step + '</span>';
 }
