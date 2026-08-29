@@ -51,7 +51,7 @@
                 tabs.forEach(function(t, i) {
                     if (i === idx) {
                         t.style.background = '#1976d2';
-                        t.style.color = 'white';
+                        t.style.color = Theme.value('panel');
                     } else {
                         t.style.background = '#f5f5f5';
                         t.style.color = '#555';

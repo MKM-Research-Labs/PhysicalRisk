@@ -27,14 +27,14 @@
                 if (tableWrap) {
                     tableWrap.innerHTML =
                         '<div style="text-align:center;padding:40px 20px;">' +
-                            '<div style="font-size:24px;color:#e0e0e0;margin-bottom:12px;">&#9888;</div>' +
-                            '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:8px;">Classifier Not Available</div>' +
-                            '<div style="font-size:11px;color:#666;margin-bottom:16px;">' +
+                            '<div style="font-size:24px;color:var(--line);margin-bottom:12px;">&#9888;</div>' +
+                            '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">Classifier Not Available</div>' +
+                            '<div style="font-size:11px;color:var(--text-3);margin-bottom:16px;">' +
                                 'No trained flood classifier for this gauge.<br>Training takes approx. 3-5 minutes.' +
                             '</div>' +
                             '<button id="td-stress-train-btn" style="padding:6px 20px;font-size:11px;font-weight:600;' +
-                                'background:#1565c0;color:#fff;border:none;border-radius:3px;cursor:pointer;">Train Now</button>' +
-                            '<div id="td-stress-train-msg" style="font-size:10px;color:#999;margin-top:8px;"></div>' +
+                                'background:var(--accent-mid);color:var(--panel);border:none;border-radius:3px;cursor:pointer;">Train Now</button>' +
+                            '<div id="td-stress-train-msg" style="font-size:10px;color:var(--muted-2);margin-top:8px;"></div>' +
                         '</div>';
                     var btn = document.getElementById('td-stress-train-btn');
                     if (btn) btn.addEventListener('click', function() { _tdStartTraining(gaugeId); });
@@ -48,13 +48,13 @@
                 if (tableWrap) {
                     tableWrap.innerHTML =
                         '<div style="text-align:center;padding:40px 20px;">' +
-                            '<div style="width:32px;height:32px;border:3px solid #e0e0e0;border-top:3px solid #1565c0;' +
+                            '<div style="width:32px;height:32px;border:3px solid var(--line);border-top:3px solid var(--accent-mid);' +
                                 'border-radius:50%;animation:tdStressSpin 1s linear infinite;margin:0 auto 12px;"></div>' +
-                            '<div style="font-size:12px;font-weight:600;color:#333;">Training Classifier</div>' +
-                            '<div id="td-stress-train-elapsed" style="font-size:11px;color:#666;margin-top:6px;">' +
+                            '<div style="font-size:12px;font-weight:600;color:var(--text);">Training Classifier</div>' +
+                            '<div id="td-stress-train-elapsed" style="font-size:11px;color:var(--text-3);margin-top:6px;">' +
                                 'Training in progress... (' + elapsed + 's elapsed)' +
                             '</div>' +
-                            '<div style="font-size:10px;color:#999;margin-top:8px;">You can switch tabs — training continues in the background.</div>' +
+                            '<div style="font-size:10px;color:var(--muted-2);margin-top:8px;">You can switch tabs — training continues in the background.</div>' +
                         '</div>' +
                         '<style>@keyframes tdStressSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>';
                 }
@@ -68,11 +68,11 @@
                 if (tableWrap) {
                     tableWrap.innerHTML =
                         '<div style="text-align:center;padding:40px 20px;">' +
-                            '<div style="font-size:24px;color:#c00;margin-bottom:12px;">&#10060;</div>' +
-                            '<div style="font-size:12px;font-weight:600;color:#c00;margin-bottom:8px;">Training Failed</div>' +
-                            '<div style="font-size:11px;color:#666;margin-bottom:16px;">' + error + '</div>' +
+                            '<div style="font-size:24px;color:var(--red);margin-bottom:12px;">&#10060;</div>' +
+                            '<div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:8px;">Training Failed</div>' +
+                            '<div style="font-size:11px;color:var(--text-3);margin-bottom:16px;">' + error + '</div>' +
                             '<button id="td-stress-retry-btn" style="padding:6px 20px;font-size:11px;font-weight:600;' +
-                                'background:#1565c0;color:#fff;border:none;border-radius:3px;cursor:pointer;">Retry</button>' +
+                                'background:var(--accent-mid);color:var(--panel);border:none;border-radius:3px;cursor:pointer;">Retry</button>' +
                         '</div>';
                     var btn = document.getElementById('td-stress-retry-btn');
                     if (btn) btn.addEventListener('click', function() { _tdStartTraining(gaugeId); });

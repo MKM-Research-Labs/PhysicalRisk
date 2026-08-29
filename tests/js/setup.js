@@ -53,3 +53,46 @@ if (typeof global.CustomEvent !== 'function') {
     }
   };
 }
+
+// --- Design tokens (coding rule R7) -----------------------------------------
+//
+// The console injects the :root block and theme.js as the first element in the body,
+// ahead of every panel script, so Theme is always defined by the time any of them run.
+// A unit test that requires a panel module in isolation has no such page, so the setup
+// builds the same thing: the real token values from config/theme, applied to the
+// document root, then the real theme.js on top.
+//
+// Reading the tokens from the emitted stylesheet rather than restating them here is
+// deliberate — a fixture that lists its own colours is a second palette, and it would
+// drift from the first the moment anyone renamed a token.
+const { execFileSync } = require('child_process');
+const path = require('path');
+
+const repoRoot = path.resolve(__dirname, '../..');
+let themeCss = '';
+try {
+  themeCss = execFileSync(
+    '/Users/newdavid/Documents/PhysicalRisk/.venv/bin/python',
+    ['-c',
+     "import sys; sys.path.insert(0, 'src')\n"
+     + 'from visual.theme_css import theme_css\n'
+     + 'print(theme_css())'],
+    { cwd: repoRoot, encoding: 'utf8' });
+} catch (err) {
+  // Python unavailable (a bare `npx jest` on a machine without the venv). The tests
+  // that assert a resolved colour will fail loudly rather than silently pass on an
+  // empty palette, which is the right way round.
+  themeCss = '';
+}
+
+const style = document.createElement('style');
+style.textContent = themeCss;
+document.head.appendChild(style);
+
+// jsdom does not resolve custom properties from a <style> block, so apply them to the
+// root element's inline style, which it does resolve.
+for (const match of themeCss.matchAll(/--([a-z0-9-]+):\s*([^;]+);/g)) {
+  document.documentElement.style.setProperty('--' + match[1], match[2].trim());
+}
+
+require('../../src/static/js/theme.js');

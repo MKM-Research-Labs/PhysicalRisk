@@ -46,7 +46,7 @@
                     gaugeIds.forEach(function(gid, idx) {
                         var row = document.createElement('label');
                         row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 10px;cursor:pointer;font-size:11px;white-space:nowrap;';
-                        row.onmouseenter = function() { this.style.background = 'var(--sunken)'; };
+                        row.onmouseenter = function() { this.style.background = Theme.value('sunken'); };
                         row.onmouseleave = function() { this.style.background = ''; };
                         var cb = document.createElement('input');
                         cb.type = 'checkbox';

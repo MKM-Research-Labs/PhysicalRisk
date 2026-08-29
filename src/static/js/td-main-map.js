@@ -57,7 +57,7 @@
             'box-shadow: none !important; ' +
             'font-size: 10px !important; ' +
             'font-weight: 600 !important; ' +
-            'color: #333 !important; ' +
+            'color: var(--text) !important; ' +
             'padding: 0 !important; ' +
             '}' +
             '.fs01-main-label::before { display: none !important; }';
@@ -106,7 +106,7 @@
             if (!g.lat || !g.lon) continue;
 
             var fs01 = g.net_fs01 || 0;
-            var color = fs01 >= 0 ? '#1565c0' : '#c62828';
+            var color = fs01 >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
             var absFs01 = Math.abs(fs01);
             var radius = maxAbsFs01 > 0
                 ? Math.max(6, Math.sqrt(absFs01 / maxAbsFs01) * 30)
@@ -119,29 +119,29 @@
                 var tenorKeys = Object.keys(g.fs01_by_tenor);
                 for (var ti = 0; ti < tenorKeys.length; ti++) {
                     var tv = g.fs01_by_tenor[tenorKeys[ti]];
-                    var tc = tv >= 0 ? '#1565c0' : '#c62828';
-                    tenorRows += '<tr><td style="padding:1px 4px;color:#666;">' + tenorKeys[ti] + '</td>' +
+                    var tc = tv >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
+                    tenorRows += '<tr><td style="padding:1px 4px;color:var(--text-3);">' + tenorKeys[ti] + '</td>' +
                         '<td style="padding:1px 4px;text-align:right;color:' + tc + ';font-weight:600;">' + fmtGBP(tv) + '</td></tr>';
                 }
             }
 
             var dailyPnl = g.daily_pnl || 0;
-            var dColor = dailyPnl >= 0 ? '#2e7d32' : '#c62828';
+            var dColor = dailyPnl >= 0 ? Theme.value('green-dark') : Theme.value('red-dark');
 
             var popup =
                 '<div style="font-size:11px;min-width:180px;">' +
                     '<b style="font-size:12px;">' + areaName + '</b><br>' +
-                    '<span style="color:#888;font-size:10px;">' + g.gauge_id + '</span><br>' +
-                    '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                    '<span style="color:var(--muted);font-size:10px;">' + g.gauge_id + '</span><br>' +
+                    '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                     '<div style="display:flex;justify-content:space-between;"><span>Trades:</span><b>' + g.num_trades + '</b></div>' +
                     '<div style="display:flex;justify-content:space-between;"><span>Notional:</span><b>' + fmtGBP(g.total_notional) + '</b></div>' +
                     '<div style="display:flex;justify-content:space-between;"><span>Net FS01:</span><span style="color:' + color + ';font-weight:bold;">' + fmtGBP(fs01) + '</span></div>' +
-                    (tenorRows ? '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;"><div style="font-size:10px;font-weight:600;color:#555;margin-bottom:2px;">FS01 by Tenor</div><table style="width:100%;font-size:10px;">' + tenorRows + '</table>' : '') +
-                    '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                    (tenorRows ? '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);"><div style="font-size:10px;font-weight:600;color:var(--text-2);margin-bottom:2px;">FS01 by Tenor</div><table style="width:100%;font-size:10px;">' + tenorRows + '</table>' : '') +
+                    '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                     '<div style="display:flex;justify-content:space-between;"><span>Daily P&amp;L:</span><span style="color:' + dColor + ';font-weight:600;">' + fmtGBP(dailyPnl) + '</span></div>' +
-                    '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                    '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                     '<a href="#" onclick="event.preventDefault();window.showGaugeBlotter&&window.showGaugeBlotter(\'' + g.gauge_id + '\',\'' + (g.gauge_name || '').replace(/\'/g, "\\\'") + '\')" ' +
-                        'style="color:#1565c0;font-size:10px;">View Gauge Blotter \u2192</a>' +
+                        'style="color:var(--accent-mid);font-size:10px;">View Gauge Blotter \u2192</a>' +
                 '</div>';
 
             var circle = L.circleMarker([g.lat, g.lon], {

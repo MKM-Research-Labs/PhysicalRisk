@@ -256,7 +256,7 @@
                     }}
                     if (c.seismic_included) {{
                         var sl = (c.seismic_spread > 0) ? '' : ' · no asset leg';
-                        couponRows.push(['Seismic (independent' + sl + ')', fmtPct(c.seismic_spread), '#455A64']);
+                        couponRows.push(['Seismic (independent' + sl + ')', fmtPct(c.seismic_spread), Theme.value('peril-seismic-row')]);
                     }}
                     if (c.fire_included || c.seismic_included) {{
                         couponRows.push(['All-in Hazard (√Σ sq)', fmtPct(c.hazard_spread), '#0D47A1']);

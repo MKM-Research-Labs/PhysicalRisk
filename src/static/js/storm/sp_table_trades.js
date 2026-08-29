@@ -117,7 +117,7 @@
                     totalNpv += (t.npv || 0);
 
                     var row = document.createElement('tr');
-                    if (idx % 2 === 1) row.style.background = 'var(--raised)';
+                    if (idx % 2 === 1) row.style.background = Theme.value('raised');
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -128,7 +128,7 @@
                         td.textContent = col.fmt(val);
                         td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:' + col.align + ';white-space:nowrap;';
                         if (col.key === '_dir') {
-                            td.style.color = 'var(--accent-mid)';
+                            td.style.color = Theme.value('accent-mid');
                             td.style.fontWeight = 'bold';
                         }
                         if (col.key === 'npv' || col.key === 'gauge_fs01') {

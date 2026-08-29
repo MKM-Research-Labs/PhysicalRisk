@@ -39,7 +39,7 @@ otherwise would let two groups define ``--line`` and leave the winner to file or
 
 from ._badges import BADGE_COLOUR_DEFAULTS, BADGE_TOKEN_RAMPS
 from ._domain import (
-    CHART, DATASET, DEPTH, FLOOD, MAP, MARKER, PERIL, SEQUENCE, SERIES, SIGN,
+    CHART, DATASET, DEPTH, FLOOD, LOG, MAP, MARKER, PERIL, SEQUENCE, SERIES, SIGN,
 )
 from ._palette import BRAND, DARK, HUE, RAG, STATE, SURFACE, TEXT
 from ._review import REVIEW
@@ -66,6 +66,7 @@ THEME_GROUPS = (
     ("dataset", DATASET),
     ("sequence", SEQUENCE),
     ("chart", CHART),
+    ("log", LOG),
     ("type", TYPE),
     ("space", SPACE),
     ("radius", RADIUS),

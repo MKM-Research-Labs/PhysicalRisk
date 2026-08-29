@@ -59,9 +59,9 @@
                 var shdSpread = sd.shd_spread_bps || 0;
 
                 // --- Left panel: Detail ---
-                var lbl = 'font-size:10px;color:#888;';
-                var val = 'font-size:13px;font-weight:600;color:#333;';
-                var hdr = 'font-size:11px;font-weight:700;color:#555;margin:10px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #eee;padding-bottom:3px;';
+                var lbl = 'font-size:10px;color:var(--muted);';
+                var val = 'font-size:13px;font-weight:600;color:var(--text);';
+                var hdr = 'font-size:11px;font-weight:700;color:var(--text-2);margin:10px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--line-soft);padding-bottom:3px;';
                 var row = 'display:flex;justify-content:space-between;padding:2px 0;';
 
                 // Gauge info — fetch severe counts from storms data if available
@@ -72,7 +72,7 @@
                 nearestGauges.forEach(function(ng) {
                     var isSynth = ng.gauge_id.indexOf('SYNTH') === 0;
                     var icon = isSynth ? '\u2605 ' : '';
-                    var tag = isSynth ? ' <span style="font-size:9px;color:#1976D2;background:#E3F2FD;padding:1px 4px;border-radius:3px;">controlling</span>' : '';
+                    var tag = isSynth ? ' <span style="font-size:9px;color:var(--accent);background:var(--accent-soft);padding:1px 4px;border-radius:3px;">controlling</span>' : '';
 
                     // Find severe count and name from storms endpoint
                     var stormGauge = stormsNearestGauges.find(function(sg) { return sg.gauge_id === ng.gauge_id; }) || {};
@@ -81,12 +81,12 @@
                     var gaugeName = stormGauge.gauge_name || ng.gauge_id;
 
                     gaugeRows +=
-                        '<div style="padding:4px 0;border-bottom:1px solid #f5f5f5;">' +
+                        '<div style="padding:4px 0;border-bottom:1px solid var(--sunken);">' +
                         '<div style="font-size:11px;font-weight:600;">' + icon + gaugeName + tag + '</div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Distance</span><span style="' + val + '">' + (ng.distance_km || 0).toFixed(2) + 'km</span></div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + (ng.gauge_elevation_m || 0).toFixed(1) + 'm</span></div>';
                     if (sevCount !== undefined) {
-                        gaugeRows += '<div style="' + row + '"><span style="' + lbl + '">Severe storms</span><span style="' + val + 'color:#F44336;">' + sevCount + ' (' + (sevSpread || 0).toFixed(0) + 'bp)</span></div>';
+                        gaugeRows += '<div style="' + row + '"><span style="' + lbl + '">Severe storms</span><span style="' + val + 'color:var(--red-bright);">' + sevCount + ' (' + (sevSpread || 0).toFixed(0) + 'bp)</span></div>';
                     }
                     gaugeRows += '</div>';
                 });
@@ -95,7 +95,7 @@
                 var effectiveDiff = elevDiff + floorLevel - 0.5;
 
                 var detailHtml =
-                    '<div style="width:300px;min-width:260px;padding:8px 12px;overflow-y:auto;border-right:1px solid #eee;font-size:12px;">' +
+                    '<div style="width:300px;min-width:260px;padding:8px 12px;overflow-y:auto;border-right:1px solid var(--line-soft);font-size:12px;">' +
 
                     // Asset section
                     '<div style="' + hdr + '">Asset</div>' +
@@ -112,7 +112,7 @@
                     '<div style="' + hdr + '">Pricing</div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Scenarios</span><span style="' + val + '">' + (numStorms ? numStorms.toLocaleString() : '\u2014') + '</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Asset floods</span><span style="' + val + '">' + floodCount + '</span></div>' +
-                    '<div style="' + row + '"><span style="' + lbl + '">Asset spread</span><span style="' + val + 'color:#1976D2;">' + propSpread.toFixed(1) + 'bp</span></div>' +
+                    '<div style="' + row + '"><span style="' + lbl + '">Asset spread</span><span style="' + val + 'color:var(--accent);">' + propSpread.toFixed(1) + 'bp</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Annual prob</span><span style="' + val + '">' + (annualProb * 100).toFixed(3) + '%</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Return period</span><span style="' + val + '">' + rpStr + '</span></div>' +
                     '<div style="' + row + '"><span style="' + lbl + '">Max depth</span><span style="' + val + '">' + (summary.max_depth_m || 0).toFixed(2) + 'm</span></div>' +
@@ -124,7 +124,7 @@
                 // --- Right panel: Waterfall table ---
                 var chartHtml =
                     '<div id="phc-waterfall-container" style="flex:1;display:flex;flex-direction:column;padding:8px;overflow-y:auto;">' +
-                    '<div style="text-align:center;font-size:12px;font-weight:600;color:#555;padding:4px 0 8px 0;">Basis Waterfall: Storm Attenuation</div>' +
+                    '<div style="text-align:center;font-size:12px;font-weight:600;color:var(--text-2);padding:4px 0 8px 0;">Basis Waterfall: Storm Attenuation</div>' +
                     '</div>';
 
                 container.innerHTML = detailHtml + chartHtml;
@@ -155,7 +155,7 @@
                     '<span><b>SHE:</b> ' + sheCount + ' (' + sheSpread.toFixed(1) + 'bp)</span>' +
                     '<span><b>SHD:</b> ' + shdCount + ' (' + shdSpread.toFixed(1) + 'bp)</span>' +
                     '<span><b>Asset:</b> ' + floodCount + ' (' + propSpread.toFixed(1) + 'bp)</span>' +
-                    '<span><b>Basis:</b> <span style="color:#E65100;">' + basis.toFixed(1) + 'bp</span></span>';
+                    '<span><b>Basis:</b> <span style="color:var(--amber-deep);">' + basis.toFixed(1) + 'bp</span></span>';
             }
 
             // ================================================================
@@ -168,10 +168,10 @@
                 // hazard payload — no per-step storm-count arithmetic in
                 // the panel any more.
                 var steps = [
-                    { label: 'Gauge Severe', count: gaugeCount, spread: gaugeSpread, color: '#F44336', bg: '#FFEBEE' },
-                    { label: 'SHE (elevation)', count: sheCount, spread: sheSpread, color: '#E65100', bg: '#FFF3E0' },
-                    { label: 'SHD (distance)', count: shdCount, spread: shdSpread, color: '#2E7D32', bg: '#E8F5E9' },
-                    { label: 'Asset', count: propCount, spread: propSpread, color: '#1565C0', bg: '#E3F2FD' },
+                    { label: 'Gauge Severe', count: gaugeCount, spread: gaugeSpread, color: 'var(--red-bright)', bg: 'var(--danger-bg-soft)' },
+                    { label: 'SHE (elevation)', count: sheCount, spread: sheSpread, color: 'var(--amber-deep)', bg: 'var(--warn-bg-warm)' },
+                    { label: 'SHD (distance)', count: shdCount, spread: shdSpread, color: 'var(--green-dark)', bg: 'var(--ok-bg)' },
+                    { label: 'Asset', count: propCount, spread: propSpread, color: 'var(--accent-mid)', bg: 'var(--accent-soft)' },
                 ];
 
                 // 5th stage — BRI-adjusted (resilient) spread. Completes the
@@ -181,7 +181,7 @@
                 // attenuation column then falls back to a count-free row.
                 if (hasBri) {
                     steps.push({ label: 'BRI Resilient', count: (briCount == null ? propCount : briCount),
-                                 spread: briSpread, color: '#4527A0', bg: '#EDE7F6',
+                                 spread: briSpread, color: 'var(--product-ink)', bg: 'var(--product-bg)',
                                  countMissing: (briCount == null) });
                 }
 
@@ -199,14 +199,14 @@
                     steps.push({ label: 'WIN (wind only)',
                                  count: _perilCount(_pp.wind_only),
                                  spread: _psd.win_spread_bps || 0,
-                                 color: '#00897B', bg: '#E0F2F1',
+                                 color: 'var(--teal)', bg: 'var(--teal-bg)',
                                  isPeril: true, perilFirst: true });
                 }
                 if (_psd.faw_spread_bps !== undefined && _psd.faw_spread_bps !== null) {
                     steps.push({ label: 'FAW (flood AND wind)',
                                  count: _perilCount(_pp.flood_and_wind),
                                  spread: _psd.faw_spread_bps || 0,
-                                 color: '#00838F', bg: '#E0F7FA',
+                                 color: 'var(--peril-wind)', bg: Theme.value('peril-flood-and-wind-bg'),
                                  isPeril: true,
                                  perilFirst: (_psd.win_spread_bps === undefined || _psd.win_spread_bps === null) });
                 }
@@ -214,7 +214,7 @@
                     steps.push({ label: 'FOW (flood OR wind)',
                                  count: _perilCount(_pp.flood_or_wind),
                                  spread: _psd.fow_spread_bps || 0,
-                                 color: '#5D4037', bg: '#EFEBE9',
+                                 color: Theme.value('peril-flood-or-wind'), bg: Theme.value('peril-flood-or-wind-bg'),
                                  isPeril: true, perilUplift: true });
                 }
 
@@ -228,7 +228,7 @@
                     steps.push({ label: 'BOW (BRI OR wind)',
                                  count: _perilCount(_po.bri_or_wind),
                                  spread: _psd.bow_spread_bps || 0,
-                                 color: '#6A1B9A', bg: '#F3E5F5',
+                                 color: 'var(--purple-deep)', bg: 'var(--purple-bg)',
                                  isPeril: true, perilUplift: true, perilUpliftBase: briSpread,
                                  perilFirst: (_psd.win_spread_bps == null && _psd.faw_spread_bps == null && _psd.fow_spread_bps == null) });
                 }
@@ -236,14 +236,14 @@
                     steps.push({ label: 'BAW (BRI AND wind)',
                                  count: _perilCount(_po.bri_and_wind),
                                  spread: _psd.baw_spread_bps || 0,
-                                 color: '#4A148C', bg: '#EDE7F6',
+                                 color: 'var(--purple-dark)', bg: 'var(--product-bg)',
                                  isPeril: true });
                 }
 
                 var maxCount = Math.max(gaugeCount, 1);
                 if (!container) return;
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;">';
-                html += '<thead><tr style="border-bottom:2px solid #ddd;font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' +
+                html += '<thead><tr style="border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' +
                     '<th style="padding:6px 8px;text-align:left;">Stage</th>' +
                     '<th style="padding:6px 8px;text-align:right;">Storms</th>' +
                     '<th style="padding:6px 8px;text-align:right;">Spread</th>' +
@@ -266,7 +266,7 @@
                             var _base = (typeof s.perilUpliftBase === 'number') ? s.perilUpliftBase : propSpread;
                             var wUp = s.spread - _base;
                             if (Math.abs(wUp) >= 0.05) {
-                                var upCol = wUp > 0 ? '#2E7D32' : '#E53935';
+                                var upCol = wUp > 0 ? 'var(--green-dark)' : 'var(--red-alt)';
                                 lossCell = '<span style="color:' + upCol + ';">' +
                                     (wUp > 0 ? '+' : '') + wUp.toFixed(1) + 'bp wind</span>';
                             }
@@ -279,23 +279,23 @@
                         var lossPct = (loss > 0 && steps[i - 1].count > 0)
                             ? (loss / steps[i - 1].count * 100).toFixed(0) : '';
                         if (loss > 0) {
-                            lossCell = '<span style="color:#E53935;">-' + loss.toLocaleString() +
+                            lossCell = '<span style="color:var(--red-alt);">-' + loss.toLocaleString() +
                                 ' (' + lossPct + '%)</span>';
                         }
                     }
 
                     var rowStyle = s.perilFirst
-                        ? 'border-top:2px solid #cfcfcf;border-bottom:1px solid #f0f0f0;'
-                        : 'border-bottom:1px solid #f0f0f0;';
+                        ? 'border-top:2px solid var(--divider);border-bottom:1px solid var(--code);'
+                        : 'border-bottom:1px solid var(--code);';
 
                     html += '<tr style="' + rowStyle + '">' +
                         '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label + '</td>' +
                         '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + countCell + '</td>' +
-                        '<td style="padding:8px;text-align:right;color:#555;">' + s.spread.toFixed(1) + 'bp</td>' +
+                        '<td style="padding:8px;text-align:right;color:var(--text-2);">' + s.spread.toFixed(1) + 'bp</td>' +
                         '<td style="padding:8px;text-align:right;">' + lossCell + '</td>' +
                         '<td style="padding:8px 12px;">' +
                         (s.countMissing ? '' :
-                        '<div style="background:#f5f5f5;border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
+                        '<div style="background:var(--sunken);border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
                         '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:3px 0 0 3px;"></div>' +
                         '</div>') +
                         '</td></tr>';
@@ -344,12 +344,12 @@
                     if (_fireBps !== null) {
                         _indSteps.push({ label: 'FIRE (full conflagration)', sub: 'PNR events',
                                          count: _perilCount(_po.fire_conflagration), spread: _fireBps,
-                                         color: '#BF360C' });
+                                         color: 'var(--orange-deep)' });
                     }
                     if (_seisBps !== null) {
                         _indSteps.push({ label: 'SEISMIC (collapse)', sub: 'DS3 events',
                                          count: _perilCount(_po.seismic), spread: _seisBps,
-                                         color: '#455A64' });
+                                         color: Theme.value('peril-seismic-row') });
                     }
 
                     // All-in coupon = root-sum-of-squares of the flood/wind basis
@@ -358,34 +358,34 @@
                     _indSteps.forEach(function(s) { _sumSq += (s.spread || 0) * (s.spread || 0); });
                     var _allIn = Math.sqrt(_sumSq);
 
-                    var ih = '<div style="margin-top:16px;border-top:2px solid #e0e0e0;padding-top:10px;">';
-                    ih += '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:0 8px 6px;">' +
+                    var ih = '<div style="margin-top:16px;border-top:2px solid var(--line);padding-top:10px;">';
+                    ih += '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:0 8px 6px;">' +
                           'Independent perils \u2014 all-in (\u221a\u03a3 squares)</div>';
                     ih += '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;"><tbody>';
                     // Basis row: which flood/wind leg the all-in is built on.
-                    ih += '<tr style="border-bottom:1px solid #f0f0f0;">' +
-                        '<td style="padding:8px;font-weight:600;color:#546E7A;">Flood/wind basis' +
-                        ' <span style="color:#aaa;font-weight:400;font-size:10px;">' + _fwBaseLabel + '</span></td>' +
+                    ih += '<tr style="border-bottom:1px solid var(--code);">' +
+                        '<td style="padding:8px;font-weight:600;color:var(--blue-grey-dark);">Flood/wind basis' +
+                        ' <span style="color:var(--disabled);font-weight:400;font-size:10px;">' + _fwBaseLabel + '</span></td>' +
                         '<td style="padding:8px;"></td>' +
-                        '<td style="padding:8px;text-align:right;color:#555;">' + _fwBase.toFixed(1) + 'bp</td>' +
+                        '<td style="padding:8px;text-align:right;color:var(--text-2);">' + _fwBase.toFixed(1) + 'bp</td>' +
                         '<td style="padding:8px;"></td><td style="padding:8px 12px;"></td></tr>';
                     _indSteps.forEach(function(s) {
                         var barPct = (maxCount > 0) ? (s.count / maxCount * 100) : 0;
-                        ih += '<tr style="border-bottom:1px solid #f0f0f0;">' +
+                        ih += '<tr style="border-bottom:1px solid var(--code);">' +
                             '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label +
-                            ' <span style="color:#aaa;font-weight:400;font-size:10px;">' + s.sub + '</span></td>' +
+                            ' <span style="color:var(--disabled);font-weight:400;font-size:10px;">' + s.sub + '</span></td>' +
                             '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + s.count.toLocaleString() + '</td>' +
-                            '<td style="padding:8px;text-align:right;color:#555;">' + s.spread.toFixed(1) + 'bp</td>' +
+                            '<td style="padding:8px;text-align:right;color:var(--text-2);">' + s.spread.toFixed(1) + 'bp</td>' +
                             '<td style="padding:8px;text-align:right;"></td>' +
                             '<td style="padding:8px 12px;width:45%;">' +
-                            '<div style="background:#f5f5f5;border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
+                            '<div style="background:var(--sunken);border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
                             '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:3px 0 0 3px;"></div>' +
                             '</div></td></tr>';
                     });
-                    ih += '<tr style="border-top:2px solid #cfcfcf;">' +
-                        '<td style="padding:8px;font-weight:700;color:#111;">All-in PRS</td>' +
+                    ih += '<tr style="border-top:2px solid var(--divider);">' +
+                        '<td style="padding:8px;font-weight:700;color:var(--text);">All-in PRS</td>' +
                         '<td style="padding:8px;"></td>' +
-                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:15px;color:#111;">' +
+                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:15px;color:var(--text);">' +
                         _allIn.toFixed(1) + 'bp</td>' +
                         '<td colspan="2"></td></tr>';
                     ih += '</tbody></table></div>';

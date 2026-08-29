@@ -32,25 +32,25 @@
                 propPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'property-details-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#1a5276;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--depth-5);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
                     'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
+                    'color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 header.appendChild(title);
@@ -94,13 +94,13 @@
             function section(title, color, rows) {
                 var html = '<div style="margin-bottom:14px;">' +
                     '<div style="font-weight:700;font-size:12px;color:' + color + ';' +
-                    'border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:6px;">' +
+                    'border-bottom:1px solid var(--line-soft);padding-bottom:4px;margin-bottom:6px;">' +
                     title + '</div>';
                 rows.forEach(function(r) {
                     if (r[1] === 'N/A') return;
                     html += '<div style="display:flex;justify-content:space-between;padding:2px 0;">' +
-                        '<span style="color:#666;">' + r[0] + '</span>' +
-                        '<span style="font-weight:600;color:#333;">' + r[1] + '</span></div>';
+                        '<span style="color:var(--text-3);">' + r[0] + '</span>' +
+                        '<span style="font-weight:600;color:var(--text);">' + r[1] + '</span></div>';
                 });
                 html += '</div>';
                 return html;
@@ -113,7 +113,7 @@
 
                 var label = window.propertyDisplayName ? window.propertyDisplayName(propertyId) : propertyId;
                 title.textContent = label;
-                content.innerHTML = '<p style="color:#999;text-align:center;padding-top:20px;">Loading...</p>';
+                content.innerHTML = '<p style="color:var(--muted-2);text-align:center;padding-top:20px;">Loading...</p>';
                 panel.style.display = 'flex';
 
                 try {
@@ -135,7 +135,7 @@
 
                     var html = '';
 
-                    html += section('Property', '#1a5276', [
+                    html += section('Property', 'var(--depth-5)', [
                         ['Property ID',  fmt(hdr.PropertyID)],
                         ['UPRN',         fmt(hdr.UPRN)],
                         ['Type',         fmt(hdr.propertyType)],
@@ -143,7 +143,7 @@
                         ['Catchment',    fmt(hdr.CatchmentID)],
                     ]);
 
-                    html += section('Address', '#154360', [
+                    html += section('Address', 'var(--layer-navy)', [
                         ['Building',     fmt(loc.BuildingNumber) + (loc.SubBuildingNumber ? ' (' + loc.SubBuildingNumber + ')' : '')],
                         ['Street',       fmt(loc.StreetName)],
                         ['Town / City',  fmt(loc.TownCity)],
@@ -153,7 +153,7 @@
                         ['Coordinates',  loc.LatitudeDegrees ? loc.LatitudeDegrees.toFixed(5) + 'N, ' + loc.LongitudeDegrees.toFixed(5) + 'E' : 'N/A'],
                     ]);
 
-                    html += section('Property Attributes', '#1b5e20', [
+                    html += section('Property Attributes', 'var(--green-deep)', [
                         ['Occupancy',    fmt(att.OccupancyType)],
                         ['Area',         att.PropertyAreaSqm ? att.PropertyAreaSqm.toFixed(0) + ' m²' : 'N/A'],
                         ['Storeys',      fmt(att.NumberOfStoreys)],
@@ -165,7 +165,7 @@
                         ['Council Tax',  fmt(att.CouncilTaxBand)],
                     ]);
 
-                    html += section('Construction', '#4a235a', [
+                    html += section('Construction', 'var(--layer-plum)', [
                         ['Type',         fmt(con.ConstructionType)],
                         ['Foundation',   fmt(con.FoundationType)],
                         ['Floor Type',   fmt(con.FloorType)],
@@ -173,13 +173,13 @@
                         ['Basement',     fmtBool(con.BasementPresent)],
                     ]);
 
-                    html += section('Valuation', '#7d6608', [
+                    html += section('Valuation', 'var(--layer-olive)', [
                         ['Property Value', fmtCurrency(val.PropertyValue)],
                         ['Valuation Date', fmt(val.ValuationDate)],
                         ['Method',         fmt(val.ValuationMethod)],
                     ]);
 
-                    html += section('Flood Risk', '#922b21', [
+                    html += section('Flood Risk', 'var(--layer-brick)', [
                         ['EA Flood Zone',   fmt(risk.EAFloodZone)],
                         ['Overall Risk',    fmt(risk.OverallFloodRisk)],
                         ['Risk Type',       fmt(risk.FloodRiskType)],
@@ -193,7 +193,7 @@
 
                     content.innerHTML = html;
                 } catch (error) {
-                    content.innerHTML = '<p style="color:#d32f2f;text-align:center;">Error: ' + error.message + '</p>';
+                    content.innerHTML = '<p style="color:var(--red);text-align:center;">Error: ' + error.message + '</p>';
                 }
             }
 

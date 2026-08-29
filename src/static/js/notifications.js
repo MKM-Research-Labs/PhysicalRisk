@@ -27,11 +27,11 @@
         var timeout = config.timeout != null ? config.timeout : 5000;
         var maxVisible = config.maxVisible || 5;
         var templates = config.templates || {
-            info:    { icon: '\u2139\uFE0F', color: '#2196F3', background: '#E3F2FD' },
-            success: { icon: '\u2705',       color: '#4CAF50', background: '#E8F5E8' },
-            warning: { icon: '\u26A0\uFE0F', color: '#FF9800', background: '#FFF3E0' },
-            error:   { icon: '\u274C',       color: '#f44336', background: '#FFEBEE' },
-            loading: { icon: '\uD83D\uDD04', color: '#9E9E9E', background: '#F5F5F5' }
+            info:    { icon: '\u2139\uFE0F', color: Theme.value('accent-bright'), background: Theme.value('accent-soft') },
+            success: { icon: '\u2705',       color: Theme.value('green-bright'), background: Theme.value('ok-bg') },
+            warning: { icon: '\u26A0\uFE0F', color: Theme.value('amber-bright'), background: Theme.value('warn-bg-warm') },
+            error:   { icon: '\u274C',       color: Theme.value('red-bright'), background: Theme.value('danger-bg-soft') },
+            loading: { icon: '\uD83D\uDD04', color: Theme.value('grey'), background: Theme.value('sunken') }
         };
 
         var queue = [];

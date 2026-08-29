@@ -200,11 +200,11 @@
                     var btn = document.getElementById('ps-tab-' + id);
                     if (btn) {
                         if (id === tab) {
-                            btn.style.background = 'var(--accent)';
-                            btn.style.color = 'white';
+                            btn.style.background = Theme.value('accent');
+                            btn.style.color = Theme.value('panel');
                         } else {
-                            btn.style.background = 'var(--sunken)';
-                            btn.style.color = 'var(--text-2)';
+                            btn.style.background = Theme.value('sunken');
+                            btn.style.color = Theme.value('text-2');
                         }
                     }
                 });

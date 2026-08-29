@@ -102,11 +102,11 @@
 
                     // Row colour by threshold
                     if (g.threshold === 'severe' && g.properties_flooded === 0) {
-                        row.style.background = 'var(--purple-bg)';  // purple tint — basis risk
+                        row.style.background = Theme.value('purple-bg');  // purple tint — basis risk
                     } else if (g.threshold === 'severe') {
-                        row.style.background = 'var(--danger-bg-soft)';  // red tint — severe with flooding
+                        row.style.background = Theme.value('danger-bg-soft');  // red tint — severe with flooding
                     } else if (g.threshold === 'warning') {
-                        row.style.background = 'var(--warn-bg-warm)';  // orange tint
+                        row.style.background = Theme.value('warn-bg-warm');  // orange tint
                     }
 
                     basisCols.forEach(function(col) {
@@ -126,9 +126,9 @@
                             td.style.color = val >= 50 ? 'var(--red)' : (val > 0 ? 'var(--amber)' : 'var(--green)');
                             td.style.fontWeight = 'bold';
                         }
-                        if (col.key === 'properties_flooded' && val > 0) td.style.color = 'var(--red)';
+                        if (col.key === 'properties_flooded' && val > 0) td.style.color = Theme.value('red');
                         if (col.key === 'properties_not_flooded' && val > 0 && g.threshold === 'severe') {
-                            td.style.color = 'var(--purple)';  // basis risk highlight
+                            td.style.color = Theme.value('purple');  // basis risk highlight
                             td.style.fontWeight = 'bold';
                         }
 

@@ -229,9 +229,9 @@
                 var tbody = document.createElement('tbody');
                 rows.forEach(function(r, idx) {
                     var tr = document.createElement('tr');
-                    if (r.impaired) tr.style.background = 'var(--danger-bg-soft)';
-                    else if (r.asset_class === 'commercial') tr.style.background = 'var(--rv-wash-4)';
-                    else if (idx % 2 === 1) tr.style.background = 'var(--raised)';
+                    if (r.impaired) tr.style.background = Theme.value('danger-bg-soft');
+                    else if (r.asset_class === 'commercial') tr.style.background = Theme.value('rv-wash-4');
+                    else if (idx % 2 === 1) tr.style.background = Theme.value('raised');
 
                     function cell(text, align, color, bold) {
                         var td = document.createElement('td');

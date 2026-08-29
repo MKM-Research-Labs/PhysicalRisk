@@ -27,8 +27,8 @@
                     var btn = document.getElementById('td-tab-' + v);
                     if (el) el.style.display = 'none';
                     if (btn) {
-                        btn.style.background = 'var(--sunken)';
-                        btn.style.color = 'var(--text-2)';
+                        btn.style.background = Theme.value('sunken');
+                        btn.style.color = Theme.value('text-2');
                     }
                 });
 
@@ -36,8 +36,8 @@
                 var activeBtn = document.getElementById('td-tab-' + tab);
                 if (activeEl) activeEl.style.display = 'flex';
                 if (activeBtn) {
-                    activeBtn.style.background = 'var(--accent)';
-                    activeBtn.style.color = 'white';
+                    activeBtn.style.background = Theme.value('accent');
+                    activeBtn.style.color = Theme.value('panel');
                 }
 
                 // Load data for each tab

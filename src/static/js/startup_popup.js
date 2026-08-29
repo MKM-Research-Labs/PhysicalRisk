@@ -23,13 +23,13 @@
                 popup.id = 'startup-preloader-popup';
                 popup.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-                    'background:white;border:1px solid #ddd;border-radius:10px;' +
-                    'box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:9999;' +
+                    'background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;' +
+                    'box-shadow:var(--shadow-modal);z-index:9999;' +
                     'min-width:360px;padding:24px 28px;font-family:Arial,sans-serif;';
 
                 var title = document.createElement('div');
                 title.style.cssText =
-                    'font-size:15px;font-weight:bold;color:#1565c0;' +
+                    'font-size:15px;font-weight:bold;color:var(--accent-mid);' +
                     'margin-bottom:16px;display:flex;align-items:center;gap:8px;';
                 title.innerHTML =
                     '<span style="font-size:20px;">&#9651;</span>' +
@@ -39,12 +39,12 @@
                 // Overall progress bar
                 var barWrap = document.createElement('div');
                 barWrap.style.cssText =
-                    'background:#f0f0f0;border-radius:4px;height:6px;' +
+                    'background:var(--code);border-radius:4px;height:6px;' +
                     'margin-bottom:16px;overflow:hidden;';
                 var bar = document.createElement('div');
                 bar.id = 'startup-pre-bar';
                 bar.style.cssText =
-                    'height:100%;width:0%;background:#1976d2;' +
+                    'height:100%;width:0%;background:var(--accent);' +
                     'transition:width 0.3s ease;border-radius:4px;';
                 barWrap.appendChild(bar);
                 popup.appendChild(barWrap);
@@ -58,12 +58,12 @@
                     var row = document.createElement('div');
                     row.id = 'startup-row-' + ds[0];
                     row.style.cssText =
-                        'display:flex;align-items:center;gap:8px;font-size:11px;color:#555;';
+                        'display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-2);';
                     var icon = document.createElement('span');
                     icon.id = 'startup-icon-' + ds[0];
                     icon.style.cssText =
                         'width:14px;height:14px;border-radius:50%;' +
-                        'border:2px solid #ccc;display:inline-block;flex-shrink:0;' +
+                        'border:2px solid var(--divider);display:inline-block;flex-shrink:0;' +
                         'animation:startup-spin 0.8s linear infinite;';
                     var label = document.createElement('span');
                     label.textContent = ds[1];
@@ -79,8 +79,8 @@
                     style.id = 'startup-pre-style';
                     style.textContent =
                         '@keyframes startup-spin {' +
-                        '  0%{border-top-color:#1976d2;transform:rotate(0deg);}' +
-                        '  100%{border-top-color:#1976d2;transform:rotate(360deg);}' +
+                        '  0%{border-top-color:var(--accent);transform:rotate(0deg);}' +
+                        '  100%{border-top-color:var(--accent);transform:rotate(360deg);}' +
                         '}';
                     document.head.appendChild(style);
                 }
@@ -97,13 +97,13 @@
                     icon.style.cssText =
                         'width:14px;height:14px;border-radius:50%;display:inline-flex;' +
                         'align-items:center;justify-content:center;font-size:10px;flex-shrink:0;' +
-                        'background:#e8f5e9;color:#2e7d32;border:2px solid #a5d6a7;';
+                        'background:var(--ok-bg);color:var(--green-dark);border:2px solid var(--green-pale);';
                     icon.textContent = '✓';
                     if (detail) {
                         var row = document.getElementById('startup-row-' + key);
                         if (row) {
                             var det = document.createElement('span');
-                            det.style.cssText = 'color:#aaa;font-size:10px;margin-left:auto;';
+                            det.style.cssText = 'color:var(--disabled);font-size:10px;margin-left:auto;';
                             det.textContent = detail;
                             row.appendChild(det);
                         }
@@ -112,7 +112,7 @@
                     icon.style.cssText =
                         'width:14px;height:14px;border-radius:50%;display:inline-flex;' +
                         'align-items:center;justify-content:center;font-size:10px;flex-shrink:0;' +
-                        'background:#fff3e0;color:#e65100;border:2px solid #ffcc80;';
+                        'background:var(--warn-bg-warm);color:var(--amber-deep);border:2px solid var(--warn-line-pale-2);';
                     icon.textContent = '–';
                 }
             }

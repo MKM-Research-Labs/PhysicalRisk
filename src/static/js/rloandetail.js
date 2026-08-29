@@ -32,26 +32,26 @@
                 mortPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
                 // Header
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'mortgage-detail-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
                     'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
+                    'color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 header.appendChild(title);
@@ -96,12 +96,12 @@
 
             function section(title, rows) {
                 var html = '<div style="margin-bottom:12px;">' +
-                    '<div style="font-weight:700;font-size:12px;color:#8E44AD;border-bottom:1px solid #E8DAEF;' +
+                    '<div style="font-weight:700;font-size:12px;color:var(--layer-violet-soft);border-bottom:1px solid var(--layer-violet-bg);' +
                     'padding-bottom:4px;margin-bottom:6px;">' + title + '</div>';
                 rows.forEach(function(r) {
                     html += '<div style="display:flex;justify-content:space-between;padding:2px 0;">' +
-                        '<span style="color:#666;">' + r[0] + '</span>' +
-                        '<span style="font-weight:600;color:#333;">' + r[1] + '</span></div>';
+                        '<span style="color:var(--text-3);">' + r[0] + '</span>' +
+                        '<span style="font-weight:600;color:var(--text);">' + r[1] + '</span></div>';
                 });
                 html += '</div>';
                 return html;
@@ -113,7 +113,7 @@
                 var title = document.getElementById('mortgage-detail-title');
                 var content = document.getElementById('mortgage-detail-content');
                 title.textContent = 'Mortgage Details: ' + propertyId;
-                content.innerHTML = '<p style="color:#999;text-align:center;">Loading...</p>';
+                content.innerHTML = '<p style="color:var(--muted-2);text-align:center;">Loading...</p>';
                 panel.style.display = 'flex';
 
                 try {
@@ -179,7 +179,7 @@
 
                     content.innerHTML = html;
                 } catch (error) {
-                    content.innerHTML = '<p style="color:#d32f2f;text-align:center;">Error: ' + error.message + '</p>';
+                    content.innerHTML = '<p style="color:var(--red);text-align:center;">Error: ' + error.message + '</p>';
                 }
             }
 

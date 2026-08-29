@@ -40,8 +40,8 @@
                 var subTabBar = document.createElement('div');
                 subTabBar.id = 'sp-sub-tab-bar';
                 subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
-                var inactiveStyle = 'padding:5px 16px;font-size:11px;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:white;color:#555;';
-                var activeStyle = 'padding:5px 16px;font-size:11px;border:1px solid #1976d2;border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:#1976d2;color:white;';
+                var inactiveStyle = 'padding:5px 16px;font-size:11px;border:1px solid var(--line-strong);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:var(--panel);color:var(--text-2);';
+                var activeStyle = 'padding:5px 16px;font-size:11px;border:1px solid var(--accent);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:var(--accent);color:var(--inverse);';
 
                 function mkBtn(id, label, key, active) {
                     var b = document.createElement('button');
@@ -61,7 +61,7 @@
 
                 var summaryRow = document.createElement('div');
                 summaryRow.id = 'sp-summary';
-                summaryRow.style.cssText = 'padding:10px 16px;border-bottom:1px solid #eee;display:flex;gap:10px;flex-wrap:wrap;';
+                summaryRow.style.cssText = 'padding:10px 16px;border-bottom:1px solid var(--line-soft);display:flex;gap:10px;flex-wrap:wrap;';
 
                 var tableContainer = document.createElement('div');
                 tableContainer.id = 'sp-table-container';
@@ -76,10 +76,10 @@
                 spTableSubTab = sub;
                 ['portfolio','commercial','damage','wind','mortgage','summary'].forEach(function(k) {
                     var b = document.getElementById('sp-sub-' + k);
-                    if (b) { b.style.background = 'white'; b.style.color = '#555'; b.style.borderColor = '#ddd'; }
+                    if (b) { b.style.background = Theme.value('panel'); b.style.color = Theme.value('text-2'); b.style.borderColor = Theme.value('line-strong'); }
                 });
                 var active = document.getElementById('sp-sub-' + sub);
-                if (active) { active.style.background = '#1976d2'; active.style.color = 'white'; active.style.borderColor = '#1976d2'; }
+                if (active) { active.style.background = Theme.value('accent'); active.style.color = Theme.value('panel'); active.style.borderColor = Theme.value('accent'); }
 
                 // The Summary report card writes inline padding/overflow on the
                 // table container — reset to the default so other tabs render
@@ -250,8 +250,8 @@
                 var totalDmg = floodDmg + windDmg;
                 var dmgPct = pf.total_portfolio_value > 0 ? (totalDmg / pf.total_portfolio_value * 100) : 0;
                 var windLabel = (spWindData && spWindData.typhoon)
-                    ? ' <span style="color:#bf360c;">(\u26A1 ' + (spWindData.typhoon.event_id || '') + ')</span>'
-                    : ' <span style="color:#888;">(no typhoon)</span>';
+                    ? ' <span style="color:var(--orange-deep);">(\u26A1 ' + (spWindData.typhoon.event_id || '') + ')</span>'
+                    : ' <span style="color:var(--muted);">(no typhoon)</span>';
                 statsBar.innerHTML =
                     '<span>Combined loss: <b>' + dmgPct.toFixed(1) + '%</b> of portfolio</span>' +
                     '<span>Flood £: <b>' + fmtGBP(floodDmg) + '</b></span>' +
@@ -268,7 +268,7 @@
                 var statsBar = document.getElementById('sp-stats-bar');
                 statsBar.innerHTML = '<span>Loading portfolio impact...</span>';
                 var summary = document.getElementById('sp-summary');
-                summary.innerHTML = '<div style="padding:8px;color:#888;font-size:12px;">Loading...</div>';
+                summary.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:12px;">Loading...</div>';
                 var tableContainer = document.getElementById('sp-table-container');
                 tableContainer.innerHTML = '';
 
@@ -281,7 +281,7 @@
                         spCommercialImpact = null;
                         if (data.status !== 'success') {
                             spData = null;
-                            statsBar.innerHTML = '<span style="color:#888;">No properties affected by this storm</span>';
+                            statsBar.innerHTML = '<span style="color:var(--muted);">No properties affected by this storm</span>';
                             // Re-render whatever sub-tab the user is on so it
                             // shows the right empty state for the new storm.
                             switchSubTab(spTableSubTab || 'damage');
@@ -319,7 +319,7 @@
                         }
                     })
                     .catch(function(err) {
-                        statsBar.innerHTML = '<span style="color:red;">Failed to load portfolio impact</span>';
+                        statsBar.innerHTML = '<span style="color:var(--red);">Failed to load portfolio impact</span>';
                         console.error('Portfolio impact error:', err);
                     });
             }

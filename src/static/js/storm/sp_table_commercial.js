@@ -101,7 +101,7 @@
                 var tbody = document.createElement('tbody');
                 (assets || []).forEach(function(a, idx) {
                     var row = document.createElement('tr');
-                    if (idx % 2 === 1) row.style.background = 'var(--raised)';
+                    if (idx % 2 === 1) row.style.background = Theme.value('raised');
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };

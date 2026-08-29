@@ -44,31 +44,31 @@ function _showLicenseGate(onAccept, onCancel) {
     var overlay = document.createElement('div');
     overlay.id = 'license-gate-overlay';
     overlay.style.cssText =
-        'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:10000;' +
+        'position:fixed;inset:0;background:var(--scrim-cool);z-index:10000;' +
         'display:flex;align-items:center;justify-content:center;' +
         'font-family:Arial,Helvetica,sans-serif;';
 
     var modal = document.createElement('div');
     modal.style.cssText =
-        'background:#fff;max-width:560px;width:90%;border-radius:10px;' +
-        'box-shadow:0 12px 48px rgba(0,0,0,0.32);padding:26px 30px;';
+        'background:var(--panel);max-width:560px;width:90%;border-radius:10px;' +
+        'box-shadow:var(--shadow-modal);padding:26px 30px;';
 
     var title = document.createElement('div');
     title.style.cssText =
-        'font-size:17px;font-weight:bold;color:#1565c0;margin-bottom:6px;';
+        'font-size:17px;font-weight:bold;color:var(--accent-mid);margin-bottom:6px;';
     title.textContent = 'MKM Research Labs — Physical Risk Platform';
     modal.appendChild(title);
 
     var sub = document.createElement('div');
-    sub.style.cssText = 'font-size:12px;color:#888;margin-bottom:14px;';
+    sub.style.cssText = 'font-size:12px;color:var(--muted);margin-bottom:14px;';
     sub.textContent = 'Please review and accept the licence terms to continue.';
     modal.appendChild(sub);
 
     var box = document.createElement('div');
     box.style.cssText =
-        'font-size:12px;line-height:1.55;color:#444;max-height:280px;' +
-        'overflow:auto;border:1px solid #eee;border-radius:6px;' +
-        'padding:14px 16px;background:#fafafa;';
+        'font-size:12px;line-height:1.55;color:var(--rv-ink-2);max-height:280px;' +
+        'overflow:auto;border:1px solid var(--line-soft);border-radius:6px;' +
+        'padding:14px 16px;background:var(--raised);';
     _licenseText().forEach(function (p, idx) {
         var el = document.createElement('p');
         el.style.cssText = 'margin:' + (idx ? '10px 0 0' : '0') + ';';
@@ -78,7 +78,7 @@ function _showLicenseGate(onAccept, onCancel) {
     modal.appendChild(box);
 
     var note = document.createElement('div');
-    note.style.cssText = 'margin-top:16px;font-size:12px;color:#666;';
+    note.style.cssText = 'margin-top:16px;font-size:12px;color:var(--text-3);';
     note.innerHTML =
         'Selecting <b>Accept</b> agrees to these terms and begins loading the ' +
         'platform data.';
@@ -91,13 +91,13 @@ function _showLicenseGate(onAccept, onCancel) {
     var cancel = document.createElement('button');
     cancel.textContent = 'Cancel';
     cancel.style.cssText =
-        'padding:8px 18px;border:1px solid #ccc;background:#fff;color:#555;' +
+        'padding:8px 18px;border:1px solid var(--divider);background:var(--panel);color:var(--text-2);' +
         'border-radius:6px;font-size:13px;cursor:pointer;';
 
     var accept = document.createElement('button');
     accept.textContent = 'Accept';
     accept.style.cssText =
-        'padding:8px 20px;border:none;background:#1976d2;color:#fff;' +
+        'padding:8px 20px;border:none;background:var(--accent);color:var(--panel);' +
         'border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;';
 
     actions.appendChild(cancel);
@@ -123,12 +123,12 @@ function _onLicenseDeclined() {
     note.id = 'license-declined-note';
     note.style.cssText =
         'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-        'background:#fff;border:1px solid #ddd;border-radius:10px;' +
+        'background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;' +
         'padding:22px 28px;font-family:Arial,Helvetica,sans-serif;' +
-        'font-size:13px;color:#555;max-width:380px;text-align:center;' +
-        'box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:9999;';
+        'font-size:13px;color:var(--text-2);max-width:380px;text-align:center;' +
+        'box-shadow:var(--shadow-modal);z-index:9999;';
     note.innerHTML =
-        '<div style="font-weight:bold;color:#c62828;margin-bottom:8px;">' +
+        '<div style="font-weight:bold;color:var(--red-dark);margin-bottom:8px;">' +
         'Licence not accepted</div>' +
         'Data loading was cancelled. Reload the page to review the licence ' +
         'again and start the platform.';

@@ -128,6 +128,17 @@ def _without_comments(text: str, suffix: str) -> str:
     return text
 
 
+#: A ``var()`` reference being string-concatenated. ``var(--accent) + '20'`` produces
+#: the text "var(--accent)20", which is not a colour in any context — the element draws
+#: nothing and the chart draws black. It is the one way a token conversion can make
+#: things *worse* than the literal it replaced, and it is invisible: the code reads
+#: perfectly, and only that one series or badge goes wrong. Several sites append an
+#: alpha this way (``opts.lineColor + '20'``), so they must be fed ``Theme.value()``,
+#: which returns a real hex, and never a ``var()``.
+_CONCATENATED_VAR = re.compile(
+    r"var\(--[a-zA-Z0-9_-]+\)\s*['\"]?\s*\+"
+    r"|\+\s*['\"]\s*var\(--[a-zA-Z0-9_-]+\)")
+
 #: A colour built from variables rather than written down — ``'hsl(' + hue + ',' …``.
 #: The curve chart spreads hues evenly across however many gauges are on screen, which
 #: is generated colour, not a hardcoded one: there is no value here for config to own.
@@ -152,7 +163,13 @@ def scan_text(text: str, path: str, suffix: str) -> dict:
             if match.group(1) not in THEME:
                 undefined.append({"path": path, "line": number,
                                   "snippet": "--" + match.group(1)})
-    return {"literals": literals, "undefined": undefined}
+    concatenated = []
+    for number, line in enumerate(clean.splitlines(), start=1):
+        for match in _CONCATENATED_VAR.finditer(line):
+            concatenated.append({"path": path, "line": number,
+                                 "snippet": match.group(0).strip()})
+    return {"literals": literals, "undefined": undefined,
+            "concatenated": concatenated}
 
 
 def scan_repo(root: Path = None) -> dict:
@@ -162,7 +179,7 @@ def scan_repo(root: Path = None) -> dict:
         root = config.get_project_root()
     root = Path(root)
 
-    gated, backlog, undefined, scanned = [], [], [], 0
+    gated, backlog, undefined, concatenated, scanned = [], [], [], [], 0
     for path in _asset_files(root):
         relative = str(path.relative_to(root))
         if relative.startswith(_SELF):
@@ -174,11 +191,13 @@ def scan_repo(root: Path = None) -> dict:
         else:
             backlog.extend(found["literals"])
         undefined.extend(found["undefined"])
+        concatenated.extend(found["concatenated"])
     return {
         "scanned": scanned,
         "gated": gated,
         "backlog": backlog,
         "undefined": undefined,
+        "concatenated": concatenated,
         "tokens": len(THEME),
         "files_with_findings": sorted({f["path"] for f in gated + undefined}),
     }
@@ -214,6 +233,7 @@ def _build_styling(styles) -> list:
         'tokens_defined': scan['tokens'],
         'violations': len(scan['gated']),
         'undefined_tokens': len(scan['undefined']),
+        'concatenated_vars': len(scan['concatenated']),
         'javascript_backlog': len(scan['backlog']),
     })
 
@@ -225,13 +245,14 @@ def _build_styling(styles) -> list:
         f'JavaScript backlog: <b>{len(scan["backlog"])}</b>.', styles['body']))
     elems.append(Spacer(1, 2 * mm))
 
-    if not scan['gated'] and not scan['undefined']:
+    if not scan['gated'] and not scan['undefined'] and not scan['concatenated']:
         elems.append(Paragraph(
             'Every colour in the gated surfaces comes from config/theme, and every '
             'token reference resolves. <b>PASS</b>', styles['body']))
     else:
         for label, findings in (('Colour literals outside config/theme', scan['gated']),
-                                ('Undefined design tokens', scan['undefined'])):
+                                ('Undefined design tokens', scan['undefined']),
+                                ('Concatenated var() references', scan['concatenated'])):
             if not findings:
                 continue
             elems.append(Paragraph(f'<b>{label}</b>', styles['body']))

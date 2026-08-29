@@ -232,7 +232,7 @@
                                 popup.style.padding = '14px 18px';
                                 popup.style.fontSize = '11px';
                                 popup.style.opacity = '0.92';
-                                popup.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
+                                popup.style.boxShadow = Theme.value('shadow-toast');
                                 setTimeout(function() {
                                     popup.style.transition = 'opacity 0.8s ease';
                                     popup.style.opacity = '0';

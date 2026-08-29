@@ -203,7 +203,7 @@
                 if (controlEl) controlEl.style.display = 'none';
 
                 [btnTable, btnSim, btnVis, btnVar, btnCtrl].forEach(function(b) {
-                    if (b) { b.style.background = 'white'; b.style.color = 'var(--text)'; }
+                    if (b) { b.style.background = Theme.value('panel'); b.style.color = Theme.value('text'); }
                 });
 
                 if (tab !== 'sim' && spSimPlaying) {
@@ -212,12 +212,12 @@
 
                 if (tab === 'table') {
                     tableEl.style.display = 'flex';
-                    btnTable.style.background = 'var(--accent)';
-                    btnTable.style.color = 'white';
+                    btnTable.style.background = Theme.value('accent');
+                    btnTable.style.color = Theme.value('panel');
                 } else if (tab === 'sim') {
                     simEl.style.display = 'flex';
-                    btnSim.style.background = 'var(--accent)';
-                    btnSim.style.color = 'white';
+                    btnSim.style.background = Theme.value('accent');
+                    btnSim.style.color = Theme.value('panel');
                     var ss = document.getElementById('sp-storm-select');
                     var sid = ss ? ss.value : '';
                     if (sid) {
@@ -228,8 +228,8 @@
                     }
                 } else if (tab === 'vis') {
                     visEl.style.display = 'flex';
-                    btnVis.style.background = 'var(--accent)';
-                    btnVis.style.color = 'white';
+                    btnVis.style.background = Theme.value('accent');
+                    btnVis.style.color = Theme.value('panel');
                     var ss2 = document.getElementById('sp-storm-select');
                     var sid2 = ss2 ? ss2.value : '';
                     if (sid2 && (!spSimData || spSimData.storm_id !== sid2)) {
@@ -237,13 +237,13 @@
                     }
                 } else if (tab === 'var') {
                     varEl.style.display = 'flex';
-                    btnVar.style.background = 'var(--accent)';
-                    btnVar.style.color = 'white';
+                    btnVar.style.background = Theme.value('accent');
+                    btnVar.style.color = Theme.value('panel');
                     if (!spVarData) loadVarData();
                 } else if (tab === 'control') {
                     if (controlEl) controlEl.style.display = 'flex';
-                    btnCtrl.style.background = 'var(--accent)';
-                    btnCtrl.style.color = 'white';
+                    btnCtrl.style.background = Theme.value('accent');
+                    btnCtrl.style.color = Theme.value('panel');
                     loadControlData();
                 }
             }

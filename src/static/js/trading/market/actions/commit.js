@@ -67,7 +67,7 @@
                             totalAffected + ' trades revalued, P&L impact: ' + fmtGBP(totalImpact);
                         console.log('[Market] COMMIT DONE: ' + impactMsg);
                         if (window.showSuccess) window.showSuccess(impactMsg);
-                        if (btn) { btn.textContent = 'Commit'; btn.disabled = false; btn.style.background = 'var(--accent)'; }
+                        if (btn) { btn.textContent = 'Commit'; btn.disabled = false; btn.style.background = Theme.value('accent'); }
 
                         // Reload market data to confirm curve saved, then switch to blotter
                         tdYieldDirty = false;

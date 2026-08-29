@@ -68,7 +68,13 @@ def convert_line(line, tokens_by_literal):
 
     rewritten = _STRINGS.sub(in_string, line)
 
-    # ``el.style.color = '#333'`` — the string is bare, so the line is the only evidence.
+    # ``el.style.color = '#333'`` — the string is bare, so the line is the only
+    # evidence. These take Theme.value(), not var(): a browser accepts a var() through
+    # the CSSOM but jsdom's stricter implementation validates the value against the
+    # property's type and silently drops it, so every unit test reading the property
+    # back sees an empty string. Theme.value() returns a real hex, which every context
+    # accepts, and removes the question of how faithfully a given CSSOM implements
+    # custom properties.
     if not changed and _CSS_CONTEXT.search(line) and classify(line) == "css":
         def swap_bare(hit):
             nonlocal changed
@@ -76,9 +82,11 @@ def convert_line(line, tokens_by_literal):
             if token is None:
                 return hit.group(0)
             changed += 1
-            return f"var(--{token})"
+            return f"Theme.value('{token}')"
 
         rewritten = HEX.sub(swap_bare, rewritten)
+        rewritten = re.sub(r"""['"](Theme\.value\('[a-z0-9-]+'\))['"]""", r"\1",
+                           rewritten)
 
     return rewritten, changed
 

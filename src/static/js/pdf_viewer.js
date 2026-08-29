@@ -31,19 +31,19 @@
                     pdfPanel.style.cssText =
                         'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                         'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                        'background:white;border:1px solid #ccc;border-radius:8px;' +
-                        'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                        'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                        'box-shadow:var(--shadow-toast);z-index:2000;' +
                         'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
                     var header = document.createElement('div');
                     header.style.cssText =
                         'display:flex;justify-content:space-between;align-items:center;' +
-                        'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                        'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                         'border-radius:8px 8px 0 0;min-height:40px;';
 
                     var title = document.createElement('span');
                     title.id = '__NS__-title';
-                    title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                    title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
                     title.textContent = '__DEFAULT_TITLE__';
 
                     var btnGroup = document.createElement('div');
@@ -54,7 +54,7 @@
                     downloadBtn.textContent = 'Download';
                     downloadBtn.style.cssText =
                         'padding:4px 12px;border:1px solid __BTN_COLOR__;border-radius:4px;' +
-                        'background:__BTN_COLOR__;color:white;cursor:pointer;font-size:12px;';
+                        'background:__BTN_COLOR__;color:var(--inverse);cursor:pointer;font-size:12px;';
                     downloadBtn.onclick = function() {
                         var iframe = document.getElementById('__NS__-iframe');
                         if (iframe && iframe.src) {
@@ -68,8 +68,8 @@
                     var closeBtn = document.createElement('button');
                     closeBtn.textContent = 'Close';
                     closeBtn.style.cssText =
-                        'padding:4px 12px;border:1px solid #dc3545;border-radius:4px;' +
-                        'background:#dc3545;color:white;cursor:pointer;font-size:12px;';
+                        'padding:4px 12px;border:1px solid var(--red);border-radius:4px;' +
+                        'background:var(--red);color:var(--inverse);cursor:pointer;font-size:12px;';
                     closeBtn.onclick = function() { hidePanel(); };
 
                     btnGroup.appendChild(downloadBtn);

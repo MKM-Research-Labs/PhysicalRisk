@@ -46,33 +46,33 @@ __PSA_IMPACT_JS__
                 propStormPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
                 // Header
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'prop-storm-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
 
                 var rightHeader = document.createElement('div');
                 rightHeader.style.cssText = 'display:flex;align-items:center;gap:10px;';
 
                 var status = document.createElement('span');
                 status.id = 'prop-storm-status';
-                status.style.cssText = 'font-size:11px;color:#888;';
+                status.style.cssText = 'font-size:11px;color:var(--muted);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
                     'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
+                    'color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 rightHeader.appendChild(status);
@@ -84,7 +84,7 @@ __PSA_IMPACT_JS__
                 var tabBar = document.createElement('div');
                 tabBar.id = 'prop-storm-tab-bar';
                 tabBar.style.cssText =
-                    'display:flex;gap:0;border-bottom:2px solid #eee;padding:0 16px;background:#fafafa;';
+                    'display:flex;gap:0;border-bottom:2px solid var(--line-soft);padding:0 16px;background:var(--raised);';
 
                 var tabs = ['Distribution', 'Flood Timeline', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report', 'PRS Pricing'];
                 tabs.forEach(function(name, i) {
@@ -96,7 +96,7 @@ __PSA_IMPACT_JS__
                         // Insurance Report: fetch PDF and show in popup
                         tab.style.cssText =
                             'padding:8px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:600;color:#c62828;' +
+                            'font-size:12px;font-weight:600;color:var(--red-dark);' +
                             'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:8px;';
                         tab.title = 'View flood damage claim report';
                         tab.onclick = async function() {
@@ -131,7 +131,7 @@ __PSA_IMPACT_JS__
                         // PRS Pricing: open PRS Pricer panel
                         tab.style.cssText =
                             'padding:8px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:600;color:#1565c0;' +
+                            'font-size:12px;font-weight:600;color:var(--accent-mid);' +
                             'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:4px;';
                         tab.title = 'Open PRS pricing workflow';
                         tab.onclick = function() {
@@ -144,7 +144,7 @@ __PSA_IMPACT_JS__
                     } else {
                         tab.style.cssText =
                             'padding:8px 16px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:500;color:#666;' +
+                            'font-size:12px;font-weight:500;color:var(--text-3);' +
                             'border-bottom:2px solid transparent;margin-bottom:-2px;';
                         tab.onclick = function() { switchTab(i); };
                     }
@@ -168,8 +168,8 @@ __PSA_IMPACT_JS__
             function switchTab(idx, stormId) {
                 activeTab = idx;
                 document.querySelectorAll('.prop-storm-tab').forEach(function(t, i) {
-                    t.style.color = i === idx ? '#1976d2' : '#666';
-                    t.style.borderBottomColor = i === idx ? '#1976d2' : 'transparent';
+                    t.style.color = i === idx ? 'var(--accent)' : 'var(--text-3)';
+                    t.style.borderBottomColor = i === idx ? 'var(--accent)' : 'transparent';
                     t.style.fontWeight = i === idx ? '700' : '500';
                 });
                 if (!propStormData) return;

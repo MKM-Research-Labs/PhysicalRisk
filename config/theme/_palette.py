@@ -90,6 +90,7 @@ SURFACE = {
     # instead of assuming the panel colour.
     "rule": "rgba(0, 0, 0, 0.12)",
     "veil": "rgba(255, 255, 255, 0.85)",
+    "scrim-cool": "rgba(15, 23, 42, 0.55)",
 }
 
 # --- Ink. Six weights, and the console spells all six: 226 uses of ``muted`` -----
@@ -153,6 +154,10 @@ STATE = {
     "danger-line-soft": "#f1c5c2",
     "danger-line-alt": "#ffcdd2",
     "danger-line-mid": "#ef9a9a",
+    "danger-bg-pale": "#fff8f8",
+    "ok-line": "#c8e6c9",
+    "warn-line-pale": "#ffe0b2",
+    "warn-line-pale-2": "#ffcc80",
     "info-bg": "#e8eaf6",
 }
 

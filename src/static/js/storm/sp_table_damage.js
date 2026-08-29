@@ -207,8 +207,8 @@
                 var tbody = document.createElement('tbody');
                 sorted.forEach(function(r, idx) {
                     var row = document.createElement('tr');
-                    if (r.asset_class === 'commercial') row.style.background = 'var(--rv-wash-4)';
-                    else if (idx % 2 === 1) row.style.background = 'var(--raised)';
+                    if (r.asset_class === 'commercial') row.style.background = Theme.value('rv-wash-4');
+                    else if (idx % 2 === 1) row.style.background = Theme.value('raised');
                     row.style.cursor = 'pointer';
                     row.onmouseenter = function() { this.style.opacity = '0.8'; };
                     row.onmouseleave = function() { this.style.opacity = '1'; };
@@ -229,7 +229,7 @@
                         var td = document.createElement('td');
                         td.textContent = col.fmt(r[col.key]);
                         td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:' + col.align + ';white-space:nowrap;';
-                        if (col.key === 'damage_amount' && r[col.key]) td.style.color = 'var(--red)';
+                        if (col.key === 'damage_amount' && r[col.key]) td.style.color = Theme.value('red');
                         row.appendChild(td);
                     });
                     tbody.appendChild(row);

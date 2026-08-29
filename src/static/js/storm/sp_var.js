@@ -74,15 +74,15 @@
                 var propBtn = document.getElementById('sp-var-prop-btn');
                 var mortBtn = document.getElementById('sp-var-mort-btn');
                 if (mode === 'property') {
-                    propBtn.style.background = 'var(--accent)';
-                    propBtn.style.color = 'white';
-                    mortBtn.style.background = 'white';
-                    mortBtn.style.color = 'var(--text)';
+                    propBtn.style.background = Theme.value('accent');
+                    propBtn.style.color = Theme.value('panel');
+                    mortBtn.style.background = Theme.value('panel');
+                    mortBtn.style.color = Theme.value('text');
                 } else {
-                    mortBtn.style.background = 'var(--purple)';
-                    mortBtn.style.color = 'white';
-                    propBtn.style.background = 'white';
-                    propBtn.style.color = 'var(--text)';
+                    mortBtn.style.background = Theme.value('purple');
+                    mortBtn.style.color = Theme.value('panel');
+                    propBtn.style.background = Theme.value('panel');
+                    propBtn.style.color = Theme.value('text');
                 }
                 if (spVarData) {
                     renderVarChart(spVarData, mode);

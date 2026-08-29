@@ -25,15 +25,15 @@
                 if (statusEl) statusEl.textContent = 'Classifier not trained for this gauge';
                 container.innerHTML =
                     '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">' +
-                        '<div style="font-size:36px;color:#e0e0e0;">&#9888;</div>' +
-                        '<div style="font-size:13px;font-weight:600;color:#333;">Classifier Not Available</div>' +
-                        '<div style="font-size:11px;color:#666;max-width:400px;text-align:center;">' +
+                        '<div style="font-size:36px;color:var(--line);">&#9888;</div>' +
+                        '<div style="font-size:13px;font-weight:600;color:var(--text);">Classifier Not Available</div>' +
+                        '<div style="font-size:11px;color:var(--text-3);max-width:400px;text-align:center;">' +
                             'No trained flood classifier found for this gauge. ' +
                             'Training takes approximately 3-5 minutes and runs in the background.' +
                         '</div>' +
                         '<button id="stress-train-btn" style="padding:8px 24px;font-size:12px;font-weight:600;' +
-                            'background:#1565c0;color:#fff;border:none;border-radius:4px;cursor:pointer;">Train Now</button>' +
-                        '<div id="stress-train-status" style="font-size:10px;color:#999;"></div>' +
+                            'background:var(--accent-mid);color:var(--panel);border:none;border-radius:4px;cursor:pointer;">Train Now</button>' +
+                        '<div id="stress-train-status" style="font-size:10px;color:var(--muted-2);"></div>' +
                     '</div>';
                 var btn = document.getElementById('stress-train-btn');
                 if (btn) btn.addEventListener('click', function() { _startClassifierTraining(gaugeId); });
@@ -44,13 +44,13 @@
                 if (statusEl) statusEl.textContent = 'Training classifier... (' + elapsed + 's)';
                 container.innerHTML =
                     '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">' +
-                        '<div class="stress-spinner" style="width:40px;height:40px;border:4px solid #e0e0e0;' +
-                            'border-top:4px solid #1565c0;border-radius:50%;animation:stressSpin 1s linear infinite;"></div>' +
-                        '<div style="font-size:13px;font-weight:600;color:#333;">Training Classifier</div>' +
-                        '<div id="stress-train-elapsed" style="font-size:11px;color:#666;">' +
+                        '<div class="stress-spinner" style="width:40px;height:40px;border:4px solid var(--line);' +
+                            'border-top:4px solid var(--accent-mid);border-radius:50%;animation:stressSpin 1s linear infinite;"></div>' +
+                        '<div style="font-size:13px;font-weight:600;color:var(--text);">Training Classifier</div>' +
+                        '<div id="stress-train-elapsed" style="font-size:11px;color:var(--text-3);">' +
                             'Training in progress... (' + elapsed + 's elapsed)' +
                         '</div>' +
-                        '<div style="font-size:10px;color:#999;">You can switch tabs and come back — training continues in the background.</div>' +
+                        '<div style="font-size:10px;color:var(--muted-2);">You can switch tabs and come back — training continues in the background.</div>' +
                     '</div>' +
                     '<style>@keyframes stressSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>';
                 _pollClassifierStatus(gaugeId);
@@ -61,11 +61,11 @@
                 if (statusEl) statusEl.textContent = 'Classifier training failed';
                 container.innerHTML =
                     '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">' +
-                        '<div style="font-size:36px;color:#c00;">&#10060;</div>' +
-                        '<div style="font-size:13px;font-weight:600;color:#c00;">Training Failed</div>' +
-                        '<div style="font-size:11px;color:#666;max-width:400px;text-align:center;">' + error + '</div>' +
+                        '<div style="font-size:36px;color:var(--red);">&#10060;</div>' +
+                        '<div style="font-size:13px;font-weight:600;color:var(--red);">Training Failed</div>' +
+                        '<div style="font-size:11px;color:var(--text-3);max-width:400px;text-align:center;">' + error + '</div>' +
                         '<button id="stress-retry-btn" style="padding:8px 24px;font-size:12px;font-weight:600;' +
-                            'background:#1565c0;color:#fff;border:none;border-radius:4px;cursor:pointer;">Retry</button>' +
+                            'background:var(--accent-mid);color:var(--panel);border:none;border-radius:4px;cursor:pointer;">Retry</button>' +
                     '</div>';
                 var btn = document.getElementById('stress-retry-btn');
                 if (btn) btn.addEventListener('click', function() { _startClassifierTraining(gaugeId); });

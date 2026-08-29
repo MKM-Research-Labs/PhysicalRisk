@@ -53,7 +53,7 @@
                 // Update dirty indicator on commit button
                 var commitBtn = document.getElementById('td-commit-btn');
                 if (commitBtn) {
-                    commitBtn.style.background = 'var(--amber-deep)';
+                    commitBtn.style.background = Theme.value('amber-deep');
                     commitBtn.textContent = 'Commit*';
                 }
 

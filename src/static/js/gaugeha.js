@@ -33,26 +33,26 @@
                 graphPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
                 // Header
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'gauge-graph-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
                     'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
+                    'color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hideGraphPanel;
 
                 header.appendChild(title);
@@ -71,19 +71,19 @@
                 var statsBar = document.createElement('div');
                 statsBar.id = 'gauge-stats-bar';
                 statsBar.style.cssText =
-                    'padding:8px 16px;border-top:1px solid #eee;font-size:12px;color:#555;' +
+                    'padding:8px 16px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--text-2);' +
                     'display:flex;gap:16px;flex-wrap:wrap;';
 
                 // Footer with time range
                 var footer = document.createElement('div');
                 footer.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:8px 16px;border-top:1px solid #eee;background:#f8f9fa;' +
+                    'padding:8px 16px;border-top:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:0 0 8px 8px;font-size:12px;';
 
                 var timeRange = document.createElement('div');
                 timeRange.innerHTML =
-                    '<select id="gauge-time-range" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;">' +
+                    '<select id="gauge-time-range" style="padding:4px 8px;border:1px solid var(--divider);border-radius:4px;">' +
                     '<option value="30">Last 30 Days</option>' +
                     '<option value="90">Last 90 Days</option>' +
                     '<option value="365" selected>Last Year</option>' +
@@ -93,7 +93,7 @@
 
                 var status = document.createElement('span');
                 status.id = 'gauge-graph-status';
-                status.style.color = '#666';
+                status.style.color = Theme.value('text-3');
 
                 footer.appendChild(timeRange);
                 footer.appendChild(status);
@@ -197,8 +197,8 @@
                     {
                         label: 'Water Level (m)',
                         data: levels,
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33,150,243,0.1)',
+                        borderColor: Theme.value('accent-bright'),
+                        backgroundColor: Theme.value('chart-wash-bright'),
                         fill: true,
                         tension: 0.3,
                         pointRadius: 0,
@@ -209,17 +209,17 @@
                 if (fs.FloodAlert) datasets.push({
                     label: 'Alert (' + fs.FloodAlert.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.FloodAlert),
-                    borderColor: '#FFC107', borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
+                    borderColor: Theme.value('amber-yellow'), borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
                 });
                 if (fs.FloodWarning) datasets.push({
                     label: 'Warning (' + fs.FloodWarning.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.FloodWarning),
-                    borderColor: '#FF9800', borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
+                    borderColor: Theme.value('amber-bright'), borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
                 });
                 if (fs.SevereFloodWarning) datasets.push({
                     label: 'Severe (' + fs.SevereFloodWarning.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.SevereFloodWarning),
-                    borderColor: '#F44336', borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
+                    borderColor: Theme.value('red-bright'), borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
                 });
 
                 currentChart = new Chart(ctx, {

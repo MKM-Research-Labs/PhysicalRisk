@@ -72,8 +72,8 @@ __MG_FIELD_LINEAGE_JS__
         ['inventory', 'chain', 'params', 'bcbs239', 'raci', 'mrc', 'audit', 'documents', 'bibliography', 'audit-reports', 'lineage', 'field-lineage'].forEach(function(t) {
             var btn = document.getElementById('mg-tab-' + t);
             if (btn) {
-                btn.style.background = t === tab ? '#1976d2' : 'white';
-                btn.style.color = t === tab ? 'white' : '#333';
+                btn.style.background = t === tab ? 'var(--accent)' : 'white';
+                btn.style.color = t === tab ? 'white' : 'var(--text)';
             }
         });
         document.getElementById('mg-title').textContent = 'Regulatory Compliance';
@@ -107,7 +107,7 @@ __MG_FIELD_LINEAGE_JS__
         mgSelectedModel = null;
 
         var content = document.getElementById('mg-content');
-        content.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Loading model inventory...</div>';
+        content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading model inventory...</div>';
 
         var baseUrl = getBaseUrl();
         console.log('[Governance] Fetching model inventory from', baseUrl + '/api/v1/governance/models');
@@ -115,7 +115,7 @@ __MG_FIELD_LINEAGE_JS__
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.status !== 'success') {
-                    content.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error: ' + (data.message || 'Unknown') + '</div>';
+                    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + (data.message || 'Unknown') + '</div>';
                     return;
                 }
                 console.log('[Governance] Loaded', data.total_models, 'models');
@@ -123,7 +123,7 @@ __MG_FIELD_LINEAGE_JS__
                 switchMgTab('inventory');
             })
             .catch(function(err) {
-                content.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Failed to load model inventory. Is the server running?</div>';
+                content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load model inventory. Is the server running?</div>';
                 console.error('[Governance] Load error:', err);
             });
     }

@@ -50,37 +50,37 @@ describe('NotificationSystem', () => {
         const id = notif.show('Info msg', 'info');
         const el = document.getElementById('notif-' + id);
         expect(el.className).toContain('notif');
-        expect(el.style.borderLeftColor).toBe('#2196F3');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('accent-bright'));
     });
 
     test('show() uses correct template for success type', () => {
         const id = notif.show('Success msg', 'success');
         const el = document.getElementById('notif-' + id);
-        expect(el.style.borderLeftColor).toBe('#4CAF50');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('green-bright'));
     });
 
     test('show() uses correct template for warning type', () => {
         const id = notif.show('Warn msg', 'warning');
         const el = document.getElementById('notif-' + id);
-        expect(el.style.borderLeftColor).toBe('#FF9800');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('amber-bright'));
     });
 
     test('show() uses correct template for error type', () => {
         const id = notif.show('Error msg', 'error');
         const el = document.getElementById('notif-' + id);
-        expect(el.style.borderLeftColor).toBe('#f44336');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('red-bright'));
     });
 
     test('show() uses correct template for loading type', () => {
         const id = notif.show('Loading msg', 'loading');
         const el = document.getElementById('notif-' + id);
-        expect(el.style.borderLeftColor).toBe('#9E9E9E');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('grey'));
     });
 
     test('show() defaults to info for unknown type', () => {
         const id = notif.show('Unknown', 'nonexistent');
         const el = document.getElementById('notif-' + id);
-        expect(el.style.borderLeftColor).toBe('#2196F3');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('accent-bright'));
     });
 
     test('respects maxVisible — oldest dismissed when exceeded', () => {
@@ -124,7 +124,7 @@ describe('NotificationSystem', () => {
         const id = notif.show('Msg', 'info', { persistent: true });
         notif.update(id, 'Now error', 'error');
         const el = document.getElementById('notif-' + id);
-        expect(el.style.borderLeftColor).toBe('#f44336');
+        expect(el.style.borderLeftColor).toBe(window.Theme.value('red-bright'));
     });
 
     test('clearAll() removes all notifications', () => {

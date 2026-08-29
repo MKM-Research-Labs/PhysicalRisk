@@ -27,7 +27,7 @@
                 for (var i = 0; i < btns.length; i++) {
                     btns[i].disabled = true;
                     btns[i].textContent = 'Training\u2026';
-                    btns[i].style.background = 'var(--blue-grey-pale)';
+                    btns[i].style.background = Theme.value('blue-grey-pale');
                 }
 
                 window.__mkmAdminFetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
@@ -107,7 +107,7 @@
                 if (btn) {
                     btn.disabled = true;
                     btn.textContent = 'Training\u2026';
-                    btn.style.background = 'var(--blue-grey-pale)';
+                    btn.style.background = Theme.value('blue-grey-pale');
                 }
 
                 // Show progress bar
@@ -235,7 +235,7 @@
                 if (btn) {
                     btn.disabled = false;
                     btn.textContent = 'Train All Untrained';
-                    btn.style.background = 'var(--accent)';
+                    btn.style.background = Theme.value('accent');
                 }
             }
 
@@ -247,7 +247,7 @@
                 if (btn) {
                     btn.disabled = true;
                     btn.textContent = 'Clearing\u2026';
-                    btn.style.background = 'var(--blue-grey-pale)';
+                    btn.style.background = Theme.value('blue-grey-pale');
                 }
 
                 window.__mkmAdminFetch(baseUrl + '/api/v1/trading/classifiers/clear-all', {
@@ -259,7 +259,7 @@
                     if (btn) {
                         btn.disabled = false;
                         btn.textContent = 'Clear All';
-                        btn.style.background = 'var(--red-alt)';
+                        btn.style.background = Theme.value('red-alt');
                     }
                     clSelectedGaugeId = null;
                     var detailPane = document.getElementById('cl-detail-pane');
@@ -275,7 +275,7 @@
                     if (btn) {
                         btn.disabled = false;
                         btn.textContent = 'Clear All';
-                        btn.style.background = 'var(--red-alt)';
+                        btn.style.background = Theme.value('red-alt');
                     }
                 });
             }

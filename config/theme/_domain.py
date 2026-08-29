@@ -42,6 +42,18 @@ PERIL = {
     "peril-wind": "#00838f",
     "peril-fire": "#bf360c",
     "peril-seismic": "#6a1b9a",
+    # The combined-peril rows (flood AND wind, flood OR wind) on the hazard panel, each
+    # an ink and a tint. They are their own colours rather than a blend of the two
+    # perils they combine, which is a reasonable choice — a blend of blue and teal would
+    # read as neither.
+    "peril-flood-and-wind-bg": "#e0f7fa",
+    "peril-flood-or-wind": "#5d4037",
+    "peril-flood-or-wind-bg": "#efebe9",
+    # The seismic row on the same panel draws #455a64, not peril-seismic's #6a1b9a. The
+    # two disagree, and have since the seismic work landed: the independent-perils row
+    # is slate where the peril's own colour is purple. Recorded rather than resolved,
+    # because picking one recolours a row on a live panel and that is a design call.
+    "peril-seismic-row": "#455a64",
 }
 
 # --- Water depth, shallow to deep. The map's flood layers and the depth legends. --
@@ -73,6 +85,11 @@ MAP = {
     "layer-earth": "#6e2c00",
     "layer-earth-wash": "#fdebd0",
     "layer-neutral": "#566573",
+    # Section header accents in the property detail panel, from the same flat-UI family
+    # as the layer fills above.
+    "layer-navy": "#154360",
+    "layer-plum": "#4a235a",
+    "layer-brick": "#922b21",
 }
 
 # --- The map's markers and popups draw from a different palette than the console. --
@@ -103,6 +120,24 @@ MARKER = {
 # question for the design pass, not something to silently resolve here.
 FLOOD = {
     "flood-none": "#e8f5e8",
+}
+
+# --- The audit report viewer's terminal. ------------------------------------------
+# ``mg-audit-reports.js`` renders build logs in a dark panel with macOS traffic-light
+# chrome and log-level syntax colouring. It is a dark surface inside a light console —
+# the only one besides the admin page — so it names its colours separately rather than
+# borrowing tokens that mean "paper" and "ink" everywhere else.
+LOG = {
+    "log-bg": "#1e1e1e",
+    "log-header": "#2d2d2d",
+    "log-text": "#d4d4d4",
+    "log-info": "#9cdcfe",
+    "log-warn": "#e5a00d",
+    "log-ok-bg": "#1a3a1a",
+    # The three window buttons, in their conventional order and colours.
+    "log-close": "#ff5f56",
+    "log-minimise": "#ffbd2e",
+    "log-expand": "#27c93f",
 }
 
 # --- The sign of a number. --------------------------------------------------------
@@ -143,6 +178,12 @@ CHART = {
     # which no scan can read as a colour and no adopter could ever have found.
     "chart-fill-accent-half": "rgba(25, 118, 210, 0.5)",
     "chart-fill-purple-half": "rgba(123, 31, 162, 0.5)",
+    # The impact panel's series fills — accent bright, red bright and amber deep, each
+    # translucent over the plot area.
+    "chart-fill-bright": "rgba(33, 150, 243, 0.6)",
+    "chart-wash-bright": "rgba(33, 150, 243, 0.1)",
+    "chart-fill-red": "rgba(244, 67, 54, 0.7)",
+    "chart-fill-amber": "rgba(230, 81, 0, 0.8)",
 }
 
 # --- Series colours for a chart with no meaning to carry. -------------------------
@@ -192,5 +233,5 @@ SEQUENCE = {
 
 __all__ = [
     "PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES", "DATASET",
-    "SEQUENCE", "CHART",
+    "SEQUENCE", "CHART", "LOG",
 ]

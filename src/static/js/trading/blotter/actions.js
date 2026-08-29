@@ -171,12 +171,12 @@
                     var raw = spreadInput.value.trim();
                     if (raw === '' || isNaN(parseFloat(raw)) || parseFloat(raw) < 0) {
                         document.getElementById('td-settle-amount').textContent = 'Enter spread above';
-                        document.getElementById('td-settle-amount').style.color = 'var(--disabled)';
+                        document.getElementById('td-settle-amount').style.color = Theme.value('disabled');
                         document.getElementById('td-settle-dir').textContent = '—';
-                        document.getElementById('td-settle-dir').style.color = 'var(--disabled)';
+                        document.getElementById('td-settle-dir').style.color = Theme.value('disabled');
                         document.getElementById('td-closeout-move').textContent = '—';
                         confirmBtn.disabled = true;
-                        confirmBtn.style.background = 'var(--faint)';
+                        confirmBtn.style.background = Theme.value('faint');
                         confirmBtn.style.cursor = 'not-allowed';
                         return;
                     }
@@ -187,14 +187,14 @@
                     var moveS = move >= 0 ? '+' : '';
 
                     document.getElementById('td-settle-amount').textContent = fmtGBP(settle.amount);
-                    document.getElementById('td-settle-amount').style.color = 'var(--text)';
+                    document.getElementById('td-settle-amount').style.color = Theme.value('text');
                     document.getElementById('td-settle-dir').textContent = settle.dir;
                     document.getElementById('td-settle-dir').style.color = settle.color;
                     document.getElementById('td-closeout-move').textContent = moveS + move.toFixed(1) + ' bps';
                     document.getElementById('td-closeout-move').style.color = moveC;
 
                     confirmBtn.disabled = false;
-                    confirmBtn.style.background = 'var(--amber-deep)';
+                    confirmBtn.style.background = Theme.value('amber-deep');
                     confirmBtn.style.cursor = 'pointer';
                 });
 
