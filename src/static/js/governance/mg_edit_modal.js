@@ -31,56 +31,56 @@
 
                 var overlay = document.createElement('div');
                 overlay.id = 'mg-edit-modal';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:3000;display:flex;align-items:center;justify-content:center;';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--scrim);z-index:3000;display:flex;align-items:center;justify-content:center;';
 
                 var dialog = document.createElement('div');
-                dialog.style.cssText = 'background:white;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.3);width:420px;max-width:90vw;font-family:Arial,sans-serif;';
+                dialog.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:420px;max-width:90vw;font-family:Arial,sans-serif;';
 
                 // Header
                 var hdr = document.createElement('div');
-                hdr.style.cssText = 'padding:16px 20px;border-bottom:1px solid #eee;';
-                hdr.innerHTML = '<div style="font-size:14px;font-weight:700;color:#333;">Edit ' + spec.label + '</div><div style="font-size:11px;color:#888;margin-top:2px;">Model: ' + modelId + '</div>';
+                hdr.style.cssText = 'padding:16px 20px;border-bottom:1px solid var(--line-soft);';
+                hdr.innerHTML = '<div style="font-size:14px;font-weight:700;color:var(--text);">Edit ' + spec.label + '</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">Model: ' + modelId + '</div>';
 
                 // Body
                 var body = document.createElement('div');
                 body.style.cssText = 'padding:16px 20px;';
 
                 // Current value
-                body.innerHTML = '<div style="font-size:11px;color:#666;margin-bottom:12px;">Current value: <b>' + (currentVal || '\u2014') + '</b></div>';
+                body.innerHTML = '<div style="font-size:11px;color:var(--text-3);margin-bottom:12px;">Current value: <b>' + (currentVal || '\u2014') + '</b></div>';
 
                 // Input
                 var inputHtml = '';
                 if (spec.type === 'choice') {
-                    inputHtml = '<select id="mg-edit-value" style="width:100%;padding:8px;font-size:12px;border:1px solid #ddd;border-radius:4px;">';
+                    inputHtml = '<select id="mg-edit-value" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;">';
                     spec.options.forEach(function(opt) {
                         inputHtml += '<option value="' + opt + '"' + (opt === currentVal ? ' selected' : '') + '>' + opt + '</option>';
                     });
                     inputHtml += '</select>';
                 } else if (spec.type === 'date') {
-                    inputHtml = '<input type="date" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:8px;font-size:12px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">';
+                    inputHtml = '<input type="date" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;">';
                 } else {
-                    inputHtml = '<input type="text" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:8px;font-size:12px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">';
+                    inputHtml = '<input type="text" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;">';
                 }
-                body.innerHTML += '<label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">New Value</label>' + inputHtml;
+                body.innerHTML += '<label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:4px;">New Value</label>' + inputHtml;
 
                 // Reason
-                body.innerHTML += '<div style="margin-top:12px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">Reason for Change (required)</label><textarea id="mg-edit-reason" rows="3" style="width:100%;padding:8px;font-size:12px;border:1px solid #ddd;border-radius:4px;resize:vertical;box-sizing:border-box;" placeholder="Explain why this change is being made..."></textarea></div>';
+                body.innerHTML += '<div style="margin-top:12px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:4px;">Reason for Change (required)</label><textarea id="mg-edit-reason" rows="3" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;" placeholder="Explain why this change is being made..."></textarea></div>';
 
                 // Error
-                body.innerHTML += '<div id="mg-edit-error" style="display:none;margin-top:8px;padding:6px 10px;background:#ffebee;color:#c62828;border-radius:4px;font-size:11px;"></div>';
+                body.innerHTML += '<div id="mg-edit-error" style="display:none;margin-top:8px;padding:6px 10px;background:var(--danger-bg-soft);color:var(--red-dark);border-radius:4px;font-size:11px;"></div>';
 
                 // Footer
                 var footer = document.createElement('div');
-                footer.style.cssText = 'padding:12px 20px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end;';
+                footer.style.cssText = 'padding:12px 20px;border-top:1px solid var(--line-soft);display:flex;gap:8px;justify-content:flex-end;';
 
                 var cancelBtn = document.createElement('button');
                 cancelBtn.textContent = 'Cancel';
-                cancelBtn.style.cssText = 'padding:8px 18px;font-size:12px;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:white;color:#666;';
+                cancelBtn.style.cssText = 'padding:8px 18px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);';
                 cancelBtn.onclick = function() { overlay.remove(); };
 
                 var confirmBtn = document.createElement('button');
                 confirmBtn.textContent = 'Confirm Change';
-                confirmBtn.style.cssText = 'padding:8px 18px;font-size:12px;border:none;border-radius:4px;cursor:pointer;background:#1976d2;color:white;font-weight:600;';
+                confirmBtn.style.cssText = 'padding:8px 18px;font-size:12px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:600;';
                 confirmBtn.onclick = function() {
                     var newVal = document.getElementById('mg-edit-value').value.trim();
                     var reason = document.getElementById('mg-edit-reason').value.trim();

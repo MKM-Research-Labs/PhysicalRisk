@@ -59,6 +59,7 @@ BRAND = {
     "accent-light": "#42a5f5",
     "accent-soft": "#e3f2fd",
     "accent-border": "#bbdefb",
+    "accent-pale": "#90caf9",
     "accent-wash": "#f7fbff",
     "header-from": "#f5f7fa",
     "header-to": "#c3cfe2",
@@ -101,6 +102,7 @@ TEXT = {
     "muted": "#888888",
     "muted-2": "#999999",
     "disabled": "#aaaaaa",
+    "text-4": "#777777",
     "faint": "#bbbbbb",
     "inverse": "#ffffff",
 }
@@ -139,12 +141,15 @@ STATE = {
     "warn-ink": "#92400e",
     "warn-ink-alt": "#b26a00",
     "warn-line": "#d97706",
+    "warn-line-soft": "#ffe082",
+    "warn-ink-deep": "#8a6d00",
     "danger-bg": "#fdecea",
     "danger-bg-soft": "#ffebee",
     "danger-ink": "#b71c1c",
     "danger-line": "#f5c6c2",
     "danger-line-soft": "#f1c5c2",
     "danger-line-alt": "#ffcdd2",
+    "danger-line-mid": "#ef9a9a",
     "info-bg": "#e8eaf6",
 }
 
@@ -154,6 +159,8 @@ STATE = {
 # read as one.
 HUE = {
     "navy": "#1a237e",
+    "navy-mid": "#283593",
+    "navy-pale": "#c5cae9",
     "slate": "#94a3b8",
     "slate-dark": "#37474f",
     "blue-grey": "#607d8b",

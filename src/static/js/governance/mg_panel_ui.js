@@ -43,11 +43,11 @@
 
                 mgPanel = document.createElement('div');
                 mgPanel.id = 'mg-panel';
-                mgPanel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:' + MG_W + ';height:' + MG_H + ';background:white;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:2000;display:none;flex-direction:column;font-family:Arial,Helvetica,sans-serif;overflow:hidden;transition:width 0.2s,height 0.2s;';
+                mgPanel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:' + MG_W + ';height:' + MG_H + ';background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);z-index:2000;display:none;flex-direction:column;font-family:Arial,Helvetica,sans-serif;overflow:hidden;transition:width 0.2s,height 0.2s;';
 
                 // Header
                 var header = document.createElement('div');
-                header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;flex-shrink:0;';
+                header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line-soft);flex-shrink:0;';
 
                 var leftHeader = document.createElement('div');
                 leftHeader.style.cssText = 'display:flex;align-items:center;gap:12px;';
@@ -55,11 +55,11 @@
                 var title = document.createElement('span');
                 title.id = 'mg-title';
                 title.textContent = 'Regulatory Compliance';
-                title.style.cssText = 'font-size:14px;font-weight:700;color:#333;';
+                title.style.cssText = 'font-size:14px;font-weight:700;color:var(--text);';
 
                 // Tab buttons
                 var toggleWrap = document.createElement('div');
-                toggleWrap.style.cssText = 'display:flex;border:1px solid #ddd;border-radius:4px;overflow:hidden;';
+                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;';
 
                 var tabs = [
                     {id: 'inventory', label: 'Inventory'},
@@ -79,7 +79,7 @@
                     btn.id = 'mg-tab-' + t.id;
                     btn.textContent = t.label;
                     btn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;' +
-                        (t.id === 'inventory' ? 'background:#1976d2;color:white;' : 'background:white;color:#333;');
+                        (t.id === 'inventory' ? 'background:var(--accent);color:var(--inverse);' : 'background:var(--panel);color:var(--text);');
                     btn.onclick = (function(tabId) { return function() { switchMgTab(tabId); }; })(t.id);
                     toggleWrap.appendChild(btn);
                 });
@@ -91,7 +91,7 @@
                 var backBtn = document.createElement('button');
                 backBtn.id = 'mg-back-btn';
                 backBtn.textContent = '\u2190 Back to Models';
-                backBtn.style.cssText = 'display:none;padding:6px 14px;font-size:12px;font-weight:500;border:1px solid #1976d2;border-radius:4px;cursor:pointer;background:#e3f2fd;color:#1976d2;margin-left:12px;';
+                backBtn.style.cssText = 'display:none;padding:6px 14px;font-size:12px;font-weight:500;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);margin-left:12px;';
                 backBtn.onclick = function() { showInventory(); };
                 leftHeader.appendChild(backBtn);
 
@@ -102,12 +102,12 @@
                 expandBtn.id = 'mg-expand-btn';
                 expandBtn.innerHTML = '&#x26F6;';
                 expandBtn.title = 'Expand';
-                expandBtn.style.cssText = 'border:none;background:none;font-size:18px;cursor:pointer;color:#666;padding:0 6px;line-height:1;';
+                expandBtn.style.cssText = 'border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);padding:0 6px;line-height:1;';
                 expandBtn.onclick = toggleMgExpand;
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
-                closeBtn.style.cssText = 'border:none;background:none;font-size:24px;cursor:pointer;color:#666;padding:0 8px;line-height:1;';
+                closeBtn.style.cssText = 'border:none;background:none;font-size:24px;cursor:pointer;color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hideMgPanel;
 
                 rightHeader.appendChild(expandBtn);
@@ -127,8 +127,8 @@
                 demoBanner.textContent =
                     'Demo — illustrative sample data, not live governance records';
                 demoBanner.style.cssText = 'padding:5px 16px;font-size:11px;' +
-                    'font-weight:600;color:#8a6d00;background:#fff8e1;' +
-                    'border-bottom:1px solid #ffe082;flex-shrink:0;text-align:center;';
+                    'font-weight:600;color:var(--warn-ink-deep);background:var(--warn-bg);' +
+                    'border-bottom:1px solid var(--warn-line-soft);flex-shrink:0;text-align:center;';
 
                 // Content area
                 var content = document.createElement('div');
@@ -138,7 +138,7 @@
                 // Stats bar
                 var statsBar = document.createElement('div');
                 statsBar.id = 'mg-stats-bar';
-                statsBar.style.cssText = 'padding:8px 16px;border-top:1px solid #eee;display:flex;gap:20px;font-size:11px;color:#666;background:#f9f9f9;border-radius:0 0 8px 8px;';
+                statsBar.style.cssText = 'padding:8px 16px;border-top:1px solid var(--line-soft);display:flex;gap:20px;font-size:11px;color:var(--text-3);background:var(--control);border-radius:0 0 8px 8px;';
 
                 mgPanel.appendChild(header);
                 mgPanel.appendChild(demoBanner);

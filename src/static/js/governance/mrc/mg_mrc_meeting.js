@@ -22,14 +22,14 @@ var mrcMeetingTab = 'agenda';
 
 function showMrcMeeting(meetingId) {
     var sc = document.getElementById('mrc-sub-content');
-    sc.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Loading meeting...</div>';
+    sc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading meeting...</div>';
 
     console.log('[MRC] Loading meeting:', meetingId);
     fetch(getBaseUrl() + '/api/v1/governance/mrc/meetings/' + meetingId, {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                sc.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Meeting not found</div>';
+                sc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Meeting not found</div>';
                 return;
             }
             console.log('[MRC] Meeting loaded:', data.meeting.title, '(' + data.meeting.status + ')');
@@ -39,7 +39,7 @@ function showMrcMeeting(meetingId) {
         })
         .catch(function(err) {
             console.error('[MRC] Meeting load error:', err);
-            sc.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error: ' + err.message + '</div>';
+            sc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + err.message + '</div>';
         });
 }
 
@@ -49,18 +49,18 @@ function renderMrcMeetingDetail(m) {
     var html = '<div style="padding:0;">';
 
     // Header
-    html += '<div style="padding:12px 16px;border-bottom:1px solid #eee;">';
+    html += '<div style="padding:12px 16px;border-bottom:1px solid var(--line-soft);">';
     html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">';
-    html += '<button onclick="window.MG.switchMrcTab(\'meetings\')" style="padding:4px 10px;font-size:11px;border:1px solid #1976d2;border-radius:4px;cursor:pointer;background:#e3f2fd;color:#1976d2;font-weight:500;">&larr; Back</button>';
-    html += '<div style="font-size:14px;font-weight:700;color:#333;">' + m.title + '</div>';
-    var statusColor = m.status === 'Completed' ? '#388e3c' : m.status === 'Scheduled' ? '#1976d2' : '#f57c00';
+    html += '<button onclick="window.MG.switchMrcTab(\'meetings\')" style="padding:4px 10px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&larr; Back</button>';
+    html += '<div style="font-size:14px;font-weight:700;color:var(--text);">' + m.title + '</div>';
+    var statusColor = m.status === 'Completed' ? 'var(--green)' : m.status === 'Scheduled' ? 'var(--accent)' : 'var(--amber)';
     html += badge(m.status, statusColor);
     html += '<div style="flex:1;"></div>';
-    html += '<button onclick="window.MG.downloadMeetingPdf(\'' + m.id + '\')" style="padding:5px 12px;font-size:11px;border:1px solid #1976d2;border-radius:4px;cursor:pointer;background:#e3f2fd;color:#1976d2;font-weight:500;">&#x2913; Meeting Pack PDF</button>';
+    html += '<button onclick="window.MG.downloadMeetingPdf(\'' + m.id + '\')" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&#x2913; Meeting Pack PDF</button>';
     html += '</div>';
 
     // Meeting info row
-    html += '<div style="display:flex;gap:20px;font-size:11px;color:#666;flex-wrap:wrap;">';
+    html += '<div style="display:flex;gap:20px;font-size:11px;color:var(--text-3);flex-wrap:wrap;">';
     html += '<span>Date: <b>' + m.date + '</b></span>';
     html += '<span>Time: <b>' + (m.time || '\u2014') + '</b></span>';
     html += '<span>Location: <b>' + (m.location || '\u2014') + '</b></span>';
@@ -69,7 +69,7 @@ function renderMrcMeetingDetail(m) {
     html += '</div>';
 
     // Meeting sub-tabs
-    html += '<div style="display:flex;border-bottom:1px solid #eee;background:#fafafa;">';
+    html += '<div style="display:flex;border-bottom:1px solid var(--line-soft);background:var(--raised);">';
     var pCount = (m.participants || []).length;
     var minCount = Array.isArray(m.minutes) ? m.minutes.length : 0;
     var mTabs = [
@@ -82,7 +82,7 @@ function renderMrcMeetingDetail(m) {
         {id: 'mdocs', label: 'Documents (' + (m.documents || []).length + ')'},
     ];
     mTabs.forEach(function(t) {
-        html += '<button id="mrc-mtab-' + t.id + '" onclick="window.MG.switchMeetingTab(\'' + t.id + '\')" style="padding:8px 14px;font-size:11px;border:none;cursor:pointer;border-bottom:2px solid ' + (t.id === mrcMeetingTab ? '#1976d2' : 'transparent') + ';background:transparent;color:' + (t.id === mrcMeetingTab ? '#1976d2' : '#666') + ';font-weight:' + (t.id === mrcMeetingTab ? '600' : '400') + ';">' + t.label + '</button>';
+        html += '<button id="mrc-mtab-' + t.id + '" onclick="window.MG.switchMeetingTab(\'' + t.id + '\')" style="padding:8px 14px;font-size:11px;border:none;cursor:pointer;border-bottom:2px solid ' + (t.id === mrcMeetingTab ? 'var(--accent)' : 'transparent') + ';background:transparent;color:' + (t.id === mrcMeetingTab ? 'var(--accent)' : 'var(--text-3)') + ';font-weight:' + (t.id === mrcMeetingTab ? '600' : '400') + ';">' + t.label + '</button>';
     });
     html += '</div>';
 
@@ -98,8 +98,8 @@ function switchMeetingTab(tabId) {
     ['agenda', 'minutes', 'participants', 'models', 'decisions', 'actions', 'mdocs'].forEach(function(t) {
         var btn = document.getElementById('mrc-mtab-' + t);
         if (btn) {
-            btn.style.borderBottomColor = t === tabId ? '#1976d2' : 'transparent';
-            btn.style.color = t === tabId ? '#1976d2' : '#666';
+            btn.style.borderBottomColor = t === tabId ? 'var(--accent)' : 'transparent';
+            btn.style.color = t === tabId ? 'var(--accent)' : 'var(--text-3)';
             btn.style.fontWeight = t === tabId ? '600' : '400';
         }
     });

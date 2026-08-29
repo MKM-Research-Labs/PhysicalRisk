@@ -123,6 +123,9 @@ def _build_modularisation(styles) -> list:
     from .model_chain import _build_model_chain
     elems.extend(_build_model_chain(styles))
 
+    from .styling import _build_styling
+    elems.extend(_build_styling(styles))
+
     return elems
 
 

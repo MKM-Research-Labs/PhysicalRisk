@@ -139,6 +139,15 @@ LINEAGE_FRESHNESS_TOKENS = {
     "missing": "red-bright",
 }
 
+#: The tint form of the freshness ramp — a lineage step's row background sits behind
+#: its badge. Was a second ternary alongside the first in ``mg_lineage.js``, spelling
+#: the same three states in background tones.
+LINEAGE_FRESHNESS_BG_TOKENS = {
+    "fresh": "ok-bg",
+    "stale": "warn-bg-warm",
+    "missing": "danger-bg-soft",
+}
+
 LINEAGE_HEALTH_TOKENS = {
     "healthy": "green-bright",
     "degraded": "amber-bright",
@@ -215,6 +224,7 @@ BADGE_COLOUR_DEFAULTS = {
     "task_status": "grey",
     "risk_rating": "grey",
     "lineage_freshness": "muted-2",
+    "lineage_freshness_bg": "sunken",
     "lineage_health": "muted-2",
     "lineage_role": "grey",
     "dataset": "muted-2",
@@ -235,6 +245,7 @@ BADGE_TOKEN_RAMPS = {
     "task_status": TASK_STATUS_TOKENS,
     "risk_rating": RISK_RATING_TOKENS,
     "lineage_freshness": LINEAGE_FRESHNESS_TOKENS,
+    "lineage_freshness_bg": LINEAGE_FRESHNESS_BG_TOKENS,
     "lineage_health": LINEAGE_HEALTH_TOKENS,
     "lineage_role": LINEAGE_ROLE_TOKENS,
     "dataset": DATASET_TOKENS,
@@ -251,7 +262,7 @@ __all__ = [
     "MEETING_STATUS_TOKENS", "MRC_STATE_TOKENS", "PRODUCT_STATUS_TOKENS",
     "REVIEW_THREAD_TOKENS", "ATTENTION_TOKENS",
     "RAG_TOKENS", "PRIORITY_TOKENS", "TASK_STATUS_TOKENS",
-    "RISK_RATING_TOKENS", "VALIDATION_QUESTION_TOKENS", "LINEAGE_FRESHNESS_TOKENS",
+    "RISK_RATING_TOKENS", "VALIDATION_QUESTION_TOKENS", "LINEAGE_FRESHNESS_TOKENS", "LINEAGE_FRESHNESS_BG_TOKENS",
     "LINEAGE_HEALTH_TOKENS", "LINEAGE_ROLE_TOKENS", "DATASET_TOKENS",
     "SEQUENCE_TOKENS", "SEQUENCE_BG_TOKENS", "SEQUENCE_INK_TOKENS",
     "REPORT_FORMAT_TOKENS", "BADGE_TOKEN_RAMPS",

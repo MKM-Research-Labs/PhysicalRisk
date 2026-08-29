@@ -20,7 +20,7 @@
 
 function renderDocuments() {
     var content = document.getElementById('mg-content');
-    content.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Loading documents...</div>';
+    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading documents...</div>';
 
     var baseUrl = getBaseUrl();
 
@@ -36,7 +36,7 @@ function renderDocuments() {
         .then(function(r) { return r.json(); })
         .then(function(data) { _applyDocuments(data); })
         .catch(function(err) {
-            content.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error loading documents: ' + err + '</div>';
+            content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error loading documents: ' + err + '</div>';
         });
 }
 
@@ -52,26 +52,26 @@ function _applyDocuments(data) {
             var html = '<div style="padding:16px;">';
 
             // Upload section
-            html += '<div style="margin-bottom:20px;padding:16px;border:2px dashed #ccc;border-radius:8px;background:#fafafa;">';
-            html += '<div style="font-weight:600;font-size:13px;color:#333;margin-bottom:8px;">Upload Document</div>';
+            html += '<div style="margin-bottom:20px;padding:16px;border:2px dashed var(--divider);border-radius:8px;background:var(--raised);">';
+            html += '<div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:8px;">Upload Document</div>';
             html += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
             html += '<input type="file" id="mg-doc-file" style="font-size:11px;">';
-            html += '<input type="text" id="mg-doc-desc" placeholder="Description (optional)" style="flex:1;padding:6px 8px;font-size:11px;border:1px solid #ccc;border-radius:4px;min-width:150px;">';
-            html += '<button onclick="window.MG.uploadDocument()" style="padding:6px 16px;font-size:11px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600;">Upload</button>';
+            html += '<input type="text" id="mg-doc-desc" placeholder="Description (optional)" style="flex:1;padding:6px 8px;font-size:11px;border:1px solid var(--divider);border-radius:4px;min-width:150px;">';
+            html += '<button onclick="window.MG.uploadDocument()" style="padding:6px 16px;font-size:11px;background:var(--accent);color:var(--inverse);border:none;border-radius:4px;cursor:pointer;font-weight:600;">Upload</button>';
             html += '</div></div>';
 
             // Inline error (if the list fetch failed) — shown below the upload form
             if (loadError) {
-                html += '<div style="padding:10px 12px;margin-bottom:12px;border:1px solid #ef9a9a;background:#ffebee;color:#c62828;font-size:11px;border-radius:4px;">' +
+                html += '<div style="padding:10px 12px;margin-bottom:12px;border:1px solid var(--danger-line-mid);background:var(--danger-bg-soft);color:var(--red-dark);font-size:11px;border-radius:4px;">' +
                         'Could not load existing document list. Upload still works.' +
                         '</div>';
             }
 
             // Documents table
-            html += '<div style="font-weight:600;font-size:13px;color:#333;margin-bottom:8px;">Uploaded Documents (' + docs.length + ')</div>';
+            html += '<div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:8px;">Uploaded Documents (' + docs.length + ')</div>';
             if (docs.length > 0) {
                 html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
-                html += '<thead><tr style="background:#eceff1;">';
+                html += '<thead><tr style="background:var(--blue-grey-bg);">';
                 html += '<th style="padding:8px 10px;text-align:left;font-weight:600;">Name</th>';
                 html += '<th style="padding:8px 10px;text-align:left;font-weight:600;">Description</th>';
                 html += '<th style="padding:8px 10px;text-align:left;font-weight:600;">Date Added</th>';
@@ -81,23 +81,23 @@ function _applyDocuments(data) {
 
                 for (var i = 0; i < docs.length; i++) {
                     var d = docs[i];
-                    var bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+                    var bg = i % 2 === 0 ? 'var(--panel)' : 'var(--wash)';
                     var sizeKb = d.size ? (d.size / 1024).toFixed(1) + ' KB' : '';
                     var dateStr = d.uploaded_at ? d.uploaded_at.substring(0, 10) : '';
 
-                    html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
+                    html += '<tr style="background:' + bg + ';border-bottom:1px solid var(--line-soft);">';
                     html += '<td style="padding:6px 10px;">' + (d.filename || '') + '</td>';
-                    html += '<td style="padding:6px 10px;color:#666;">' + (d.description || '') + '</td>';
+                    html += '<td style="padding:6px 10px;color:var(--text-3);">' + (d.description || '') + '</td>';
                     html += '<td style="padding:6px 10px;">' + dateStr + '</td>';
                     html += '<td style="padding:6px 10px;text-align:right;">' + sizeKb + '</td>';
                     html += '<td style="padding:6px 10px;text-align:center;">' +
-                        '<a href="#" onclick="event.preventDefault();window.MG.downloadDocument(\'' + d.id + '\')" style="color:#1976d2;margin-right:8px;">Download</a>' +
-                        '<a href="#" onclick="event.preventDefault();window.MG.deleteDocument(\'' + d.id + '\')" style="color:#c62828;">Delete</a>' +
+                        '<a href="#" onclick="event.preventDefault();window.MG.downloadDocument(\'' + d.id + '\')" style="color:var(--accent);margin-right:8px;">Download</a>' +
+                        '<a href="#" onclick="event.preventDefault();window.MG.deleteDocument(\'' + d.id + '\')" style="color:var(--red-dark);">Delete</a>' +
                         '</td></tr>';
                 }
                 html += '</tbody></table>';
             } else {
-                html += '<div style="padding:16px;color:#888;font-size:11px;text-align:center;">No documents uploaded yet.</div>';
+                html += '<div style="padding:16px;color:var(--muted);font-size:11px;text-align:center;">No documents uploaded yet.</div>';
             }
 
             html += '</div>';

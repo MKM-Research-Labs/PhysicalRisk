@@ -25,14 +25,14 @@ var mgBibData = [];
 
 function renderBibliography() {
     var content = document.getElementById('mg-content');
-    content.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Loading bibliography...</div>';
+    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading bibliography...</div>';
 
     var baseUrl = getBaseUrl();
     fetch(baseUrl + '/api/v1/governance/bibliography', {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                content.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Error loading bibliography</div>';
+                content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error loading bibliography</div>';
                 return;
             }
 
@@ -60,8 +60,8 @@ function renderBibliography() {
             // Controls bar
             html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">';
             html += '<div style="display:flex;gap:8px;align-items:center;">';
-            html += '<span style="font-size:11px;font-weight:600;color:#555;">Category:</span>';
-            html += '<select id="mg-bib-cat" onchange="mgBibFilter=this.value;renderBibliography();" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:4px;">';
+            html += '<span style="font-size:11px;font-weight:600;color:var(--text-2);">Category:</span>';
+            html += '<select id="mg-bib-cat" onchange="mgBibFilter=this.value;renderBibliography();" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:4px;">';
             html += '<option value="">All (' + mgBibData.length + ')</option>';
             for (var ci = 0; ci < categories.length; ci++) {
                 var sel = mgBibFilter === categories[ci] ? ' selected' : '';
@@ -69,13 +69,13 @@ function renderBibliography() {
             }
             html += '</select></div>';
             html += '<div style="display:flex;gap:8px;">';
-            html += '<button onclick="window.MG.showBibForm()" style="padding:5px 14px;font-size:11px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600;">+ Add Reference</button>';
-            html += '<button onclick="window.MG.exportBibtex()" style="padding:5px 14px;font-size:11px;background:#f5f5f5;color:#333;border:1px solid #ccc;border-radius:4px;cursor:pointer;">Export BibTeX</button>';
+            html += '<button onclick="window.MG.showBibForm()" style="padding:5px 14px;font-size:11px;background:var(--accent);color:var(--inverse);border:none;border-radius:4px;cursor:pointer;font-weight:600;">+ Add Reference</button>';
+            html += '<button onclick="window.MG.exportBibtex()" style="padding:5px 14px;font-size:11px;background:var(--sunken);color:var(--text);border:1px solid var(--divider);border-radius:4px;cursor:pointer;">Export BibTeX</button>';
             html += '</div></div>';
 
             // Table
             html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
-            html += '<thead><tr style="background:#eceff1;">';
+            html += '<thead><tr style="background:var(--blue-grey-bg);">';
 
             var cols = [
                 {key:'author', label:'Author(s)', w:'22%'},
@@ -92,33 +92,33 @@ function renderBibliography() {
                 var arrow = '';
                 if (c.key === mgBibSortCol) arrow = mgBibSortAsc ? ' \u25b4' : ' \u25be';
                 var onClick = sortable ? ' onclick="window.MG.sortBib(\'' + c.key + '\')" style="cursor:pointer;"' : '';
-                html += '<th style="padding:8px 10px;text-align:left;font-weight:600;font-size:10px;color:#555;width:' + c.w + ';"' + onClick + '>' + c.label + arrow + '</th>';
+                html += '<th style="padding:8px 10px;text-align:left;font-weight:600;font-size:10px;color:var(--text-2);width:' + c.w + ';"' + onClick + '>' + c.label + arrow + '</th>';
             }
             html += '</tr></thead><tbody>';
 
             for (var i = 0; i < refs.length; i++) {
                 var r = refs[i];
-                var bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+                var bg = i % 2 === 0 ? 'var(--panel)' : 'var(--wash)';
                 var link = r.doi ? 'https://doi.org/' + r.doi : (r.url || '');
 
-                html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
+                html += '<tr style="background:' + bg + ';border-bottom:1px solid var(--line-soft);">';
                 html += '<td style="padding:6px 10px;">' + (r.author || '') + '</td>';
                 html += '<td style="padding:6px 10px;">' + (r.year || '') + '</td>';
                 html += '<td style="padding:6px 10px;">';
-                if (link) html += '<a href="' + link + '" target="_blank" style="color:#1976d2;">';
+                if (link) html += '<a href="' + link + '" target="_blank" style="color:var(--accent);">';
                 html += (r.title || '');
                 if (link) html += '</a>';
                 html += '</td>';
-                html += '<td style="padding:6px 10px;color:#666;font-style:italic;">' + (r.journal || '') + '</td>';
-                html += '<td style="padding:6px 10px;"><span style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:8px;font-size:10px;">' + (r.category || '') + '</span></td>';
+                html += '<td style="padding:6px 10px;color:var(--text-3);font-style:italic;">' + (r.journal || '') + '</td>';
+                html += '<td style="padding:6px 10px;"><span style="background:var(--accent-soft);color:var(--accent-mid);padding:1px 6px;border-radius:8px;font-size:10px;">' + (r.category || '') + '</span></td>';
                 html += '<td style="padding:6px 10px;">' +
-                    '<a href="#" onclick="event.preventDefault();window.MG.editBibRef(\'' + r.id + '\')" style="color:#1976d2;font-size:10px;">Edit</a> ' +
-                    '<a href="#" onclick="event.preventDefault();window.MG.deleteBibRef(\'' + r.id + '\')" style="color:#c62828;font-size:10px;">Del</a>' +
+                    '<a href="#" onclick="event.preventDefault();window.MG.editBibRef(\'' + r.id + '\')" style="color:var(--accent);font-size:10px;">Edit</a> ' +
+                    '<a href="#" onclick="event.preventDefault();window.MG.deleteBibRef(\'' + r.id + '\')" style="color:var(--red-dark);font-size:10px;">Del</a>' +
                     '</td></tr>';
             }
 
             if (refs.length === 0) {
-                html += '<tr><td colspan="6" style="padding:20px;text-align:center;color:#888;">No references match filter.</td></tr>';
+                html += '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">No references match filter.</td></tr>';
             }
 
             html += '</tbody></table></div>';
@@ -128,7 +128,7 @@ function renderBibliography() {
                 '<span>References: <b>' + refs.length + '</b>' + (mgBibFilter ? ' (filtered from ' + mgBibData.length + ')' : '') + '</span>';
         })
         .catch(function(err) {
-            content.innerHTML = '<div style="padding:40px;text-align:center;color:red;">Failed to load bibliography: ' + err.message + '</div>';
+            content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load bibliography: ' + err.message + '</div>';
         });
 }
 
@@ -153,7 +153,7 @@ window.MG.showBibForm = function(editRef) {
 
     var popup = document.createElement('div');
     popup.id = 'mg-bib-form-popup';
-    popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:4000;padding:20px;min-width:420px;font-size:12px;';
+    popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--divider);border-radius:8px;box-shadow:var(--shadow-toast);z-index:4000;padding:20px;min-width:420px;font-size:12px;';
 
     var fields = [
         {id:'bib-author', label:'Author(s)', val: r.author || '', type:'text'},
@@ -168,19 +168,19 @@ window.MG.showBibForm = function(editRef) {
 
     var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
         '<span style="font-weight:bold;font-size:14px;">' + (isEdit ? 'Edit' : 'Add') + ' Reference</span>' +
-        '<button onclick="document.getElementById(\'mg-bib-form-popup\').remove()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#666;">&times;</button></div>';
+        '<button onclick="document.getElementById(\'mg-bib-form-popup\').remove()" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-3);">&times;</button></div>';
 
     for (var fi = 0; fi < fields.length; fi++) {
         var f = fields[fi];
         html += '<div style="margin-bottom:8px;">' +
-            '<label style="display:block;font-size:10px;font-weight:600;color:#555;margin-bottom:2px;">' + f.label + '</label>' +
+            '<label style="display:block;font-size:10px;font-weight:600;color:var(--text-2);margin-bottom:2px;">' + f.label + '</label>' +
             '<input id="' + f.id + '" type="' + f.type + '" value="' + f.val.toString().replace(/"/g, '&quot;') + '" ' +
-            'style="width:100%;padding:6px 8px;font-size:11px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;"></div>';
+            'style="width:100%;padding:6px 8px;font-size:11px;border:1px solid var(--divider);border-radius:4px;box-sizing:border-box;"></div>';
     }
 
     html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">' +
-        '<button onclick="document.getElementById(\'mg-bib-form-popup\').remove()" style="padding:6px 16px;font-size:11px;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;">Cancel</button>' +
-        '<button onclick="window.MG.submitBibRef(' + (isEdit ? "\'" + r.id + "\'" : 'null') + ')" style="padding:6px 16px;font-size:11px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600;">' + (isEdit ? 'Save' : 'Add') + '</button></div>';
+        '<button onclick="document.getElementById(\'mg-bib-form-popup\').remove()" style="padding:6px 16px;font-size:11px;background:var(--sunken);border:1px solid var(--divider);border-radius:4px;cursor:pointer;">Cancel</button>' +
+        '<button onclick="window.MG.submitBibRef(' + (isEdit ? "\'" + r.id + "\'" : 'null') + ')" style="padding:6px 16px;font-size:11px;background:var(--accent);color:var(--inverse);border:none;border-radius:4px;cursor:pointer;font-weight:600;">' + (isEdit ? 'Save' : 'Add') + '</button></div>';
 
     popup.innerHTML = html;
     document.body.appendChild(popup);
