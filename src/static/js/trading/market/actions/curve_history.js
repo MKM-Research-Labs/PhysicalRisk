@@ -36,25 +36,25 @@
                 // Build modal overlay
                 var overlay = document.createElement('div');
                 overlay.id = 'td-history-overlay';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9000;display:flex;align-items:center;justify-content:center;';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--scrim);z-index:9000;display:flex;align-items:center;justify-content:center;';
                 overlay.addEventListener('click', function(e) {
                     if (e.target === overlay) tdCloseCurveHistory();
                 });
 
                 var modal = document.createElement('div');
-                modal.style.cssText = 'background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.25);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
+                modal.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
 
                 // Header
                 var header = document.createElement('div');
-                header.style.cssText = 'display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #eee;background:#f8f9fa;flex-shrink:0;';
+                header.style.cssText = 'display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
                 var trigLabel = trigger.charAt(0).toUpperCase() + trigger.slice(1);
                 header.innerHTML =
-                    '<span style="font-size:14px;font-weight:700;color:#333;">Hazard Curve History</span>' +
-                    '<span style="margin:0 10px;color:#aaa;">|</span>' +
-                    '<span style="font-size:12px;color:#555;">' + gaugeName + '</span>' +
-                    '<span style="margin:0 8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:white;background:' + (tdHistoryTrigColors[trigger]||'#546e7a') + ';">' + trigLabel + '</span>' +
+                    '<span style="font-size:14px;font-weight:700;color:var(--text);">Hazard Curve History</span>' +
+                    '<span style="margin:0 10px;color:var(--disabled);">|</span>' +
+                    '<span style="font-size:12px;color:var(--text-2);">' + gaugeName + '</span>' +
+                    '<span style="margin:0 8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:var(--inverse);background:' + (tdHistoryTrigColors[trigger]||'var(--blue-grey-dark)') + ';">' + trigLabel + '</span>' +
                     '<span style="flex:1;"></span>' +
-                    '<button onclick="tdCloseCurveHistory()" style="padding:4px 12px;font-size:11px;background:#78909c;color:white;border:none;border-radius:3px;cursor:pointer;">Close</button>';
+                    '<button onclick="tdCloseCurveHistory()" style="padding:4px 12px;font-size:11px;background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">Close</button>';
                 modal.appendChild(header);
 
                 // Loading state
@@ -73,13 +73,13 @@
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status !== 'success' || !result.history || result.history.length === 0) {
-                            body.innerHTML = '<span style="color:#c62828;font-size:13px;">No history available for this gauge/trigger</span>';
+                            body.innerHTML = '<span style="color:var(--red-dark);font-size:13px;">No history available for this gauge/trigger</span>';
                             return;
                         }
                         tdBuildHistoryCharts(body, result.history, trigger);
                     })
                     .catch(function(err) {
-                        body.innerHTML = '<span style="color:#c62828;font-size:13px;">Error loading history: ' + err.message + '</span>';
+                        body.innerHTML = '<span style="color:var(--red-dark);font-size:13px;">Error loading history: ' + err.message + '</span>';
                     });
             };
 
@@ -103,8 +103,8 @@
                     return (i % step === 0) ? d.slice(5) : '';  // MM-DD
                 });
 
-                var lineColor = tdHistoryTrigColors[trigger] || '#546e7a';
-                var fillColor = tdHistoryTrigBg[trigger] || '#eceff1';
+                var lineColor = tdHistoryTrigColors[trigger] || Theme.value('blue-grey-dark');
+                var fillColor = tdHistoryTrigBg[trigger] || Theme.value('blue-grey-bg');
 
                 // Grid: row 1 = 1Y 2Y 3Y, row 2 = 4Y 5Y (centred)
                 container.style.cssText = 'flex:1;display:flex;flex-direction:column;padding:16px 20px;gap:14px;overflow:hidden;';
@@ -131,7 +131,7 @@
 
                     // Chart wrapper
                     var wrap = document.createElement('div');
-                    wrap.style.cssText = 'flex:1;max-width:' + (idx < 3 ? '33%' : '40%') + ';position:relative;background:#fafafa;border-radius:6px;border:1px solid #e0e0e0;padding:8px;';
+                    wrap.style.cssText = 'flex:1;max-width:' + (idx < 3 ? '33%' : '40%') + ';position:relative;background:var(--raised);border-radius:6px;border:1px solid var(--line);padding:8px;';
                     var canvas = document.createElement('canvas');
                     canvas.style.cssText = 'width:100%;height:100%;';
                     wrap.appendChild(canvas);
@@ -164,7 +164,7 @@
                                     display: true,
                                     text: tenor + 'Y Tenor',
                                     font: {size: 11, weight: '600'},
-                                    color: '#333',
+                                    color: Theme.value('text'),
                                     padding: {bottom: 4}
                                 },
                                 legend: {display: false},

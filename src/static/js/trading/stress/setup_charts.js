@@ -23,8 +23,8 @@
                 for (var i = 0; i < 3; i++) {
                     var tab = document.getElementById('td-stress-ctab-' + i);
                     if (tab) {
-                        tab.style.borderBottomColor = (i === idx) ? '#1565c0' : 'transparent';
-                        tab.style.color = (i === idx) ? '#1565c0' : '#999';
+                        tab.style.borderBottomColor = (i === idx) ? 'var(--accent-mid)' : 'transparent';
+                        tab.style.color = (i === idx) ? 'var(--accent-mid)' : 'var(--muted-2)';
                     }
                 }
                 _tdDrawStressChart();

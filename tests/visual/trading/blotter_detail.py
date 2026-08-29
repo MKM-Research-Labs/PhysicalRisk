@@ -86,10 +86,10 @@ class TestNewPRSButton:
         assert 'viewHazardCurve' in blotter_js
 
     def test_new_prs_button_styled_blue(self, blotter_js):
-        """New PRS button must be blue (#1565c0) — primary action."""
+        """New PRS button must be the accent blue — primary action."""
         idx = blotter_js.index('New PRS')
         snippet = blotter_js[max(0, idx - 200):idx + 50]
-        assert '#1565c0' in snippet, "New PRS button must be blue (#1565c0)"
+        assert 'var(--accent-mid)' in snippet, "New PRS button must be the accent blue"
 
     def test_new_prs_button_after_clear(self, blotter_js):
         """New PRS button must appear after Clear button in filter bar HTML."""

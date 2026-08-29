@@ -29,16 +29,16 @@
                 // Map container
                 var mapContainer = document.createElement('div');
                 mapContainer.id = 'td-map-container';
-                mapContainer.style.cssText = 'flex:1;min-height:300px;background:#e8eaf6;';
+                mapContainer.style.cssText = 'flex:1;min-height:300px;background:var(--info-bg);';
                 view.appendChild(mapContainer);
 
                 // Legend bar
                 var legend = document.createElement('div');
                 legend.id = 'td-map-legend';
-                legend.style.cssText = 'padding:6px 16px;border-top:1px solid #eee;font-size:10px;color:#666;background:#f9f9f9;display:flex;gap:16px;align-items:center;';
+                legend.style.cssText = 'padding:6px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--text-3);background:var(--control);display:flex;gap:16px;align-items:center;';
                 legend.innerHTML =
-                    '<span>\u25cf <span style="color:#1565c0;">Long FS01</span></span>' +
-                    '<span>\u25cf <span style="color:#c62828;">Short FS01</span></span>' +
+                    '<span>\u25cf <span style="color:var(--accent-mid);">Long FS01</span></span>' +
+                    '<span>\u25cf <span style="color:var(--red-dark);">Short FS01</span></span>' +
                     '<span>Solid = Gauge</span>' +
                     '<span>Dashed = Property</span>' +
                     '<span>Circle size = |FS01|</span>';
@@ -100,7 +100,7 @@
                     if (!g.lat || !g.lon) continue;
 
                     var fs01 = g.net_fs01 || 0;
-                    var color = fs01 >= 0 ? '#1565c0' : '#c62828';
+                    var color = fs01 >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
 
                     // Area-proportional: r = sqrt(|FS01| / max) * maxRadius
                     var absFs01 = Math.abs(fs01);
@@ -116,54 +116,54 @@
                     if (g.fs01_by_tenor) {
                         var tenorKeys = Object.keys(g.fs01_by_tenor);
                         var hzByTenor = g.hazard_by_tenor || {};
-                        tenorRows += '<tr style="border-bottom:1px solid #eee;"><td style="padding:1px 4px;color:#999;font-size:9px;"></td>' +
-                            '<td style="padding:1px 4px;text-align:right;color:#999;font-size:9px;">FS01</td>' +
-                            '<td style="padding:1px 4px;text-align:right;color:#999;font-size:9px;">Rate</td></tr>';
+                        tenorRows += '<tr style="border-bottom:1px solid var(--line-soft);"><td style="padding:1px 4px;color:var(--muted-2);font-size:9px;"></td>' +
+                            '<td style="padding:1px 4px;text-align:right;color:var(--muted-2);font-size:9px;">FS01</td>' +
+                            '<td style="padding:1px 4px;text-align:right;color:var(--muted-2);font-size:9px;">Rate</td></tr>';
                         for (var ti = 0; ti < tenorKeys.length; ti++) {
                             var tv = g.fs01_by_tenor[tenorKeys[ti]];
-                            var tc = tv >= 0 ? '#1565c0' : '#c62828';
+                            var tc = tv >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
                             var hzRate = hzByTenor[tenorKeys[ti]];
                             var hzDisplay = (hzRate !== undefined && hzRate !== null) ? hzRate.toFixed(0) + 'bp' : '';
-                            tenorRows += '<tr><td style="padding:1px 4px;color:#666;">' + tenorKeys[ti] + '</td>' +
+                            tenorRows += '<tr><td style="padding:1px 4px;color:var(--text-3);">' + tenorKeys[ti] + '</td>' +
                                 '<td style="padding:1px 4px;text-align:right;color:' + tc + ';font-weight:600;">' + fmtGBP(tv) + '</td>' +
-                                '<td style="padding:1px 4px;text-align:right;color:#555;">' + hzDisplay + '</td></tr>';
+                                '<td style="padding:1px 4px;text-align:right;color:var(--text-2);">' + hzDisplay + '</td></tr>';
                         }
                     }
 
                     var dailyPnl = g.daily_pnl || 0;
                     var runPnl = g.running_pnl || 0;
-                    var dColor = dailyPnl >= 0 ? '#2e7d32' : '#c62828';
-                    var rColor = runPnl >= 0 ? '#2e7d32' : '#c62828';
+                    var dColor = dailyPnl >= 0 ? Theme.value('gain') : Theme.value('loss');
+                    var rColor = runPnl >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                     var netNotional = g.net_notional || 0;
-                    var nnColor = netNotional >= 0 ? '#1565c0' : '#c62828';
+                    var nnColor = netNotional >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
 
                     var popup =
                         '<div style="font-size:11px;min-width:180px;">' +
                             '<b style="font-size:12px;">' + areaName + '</b><br>' +
-                            '<span style="color:#888;">' + g.gauge_id + '</span><br>' +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                            '<span style="color:var(--muted);">' + g.gauge_id + '</span><br>' +
+                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Trades:</span><b>' + g.num_trades + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Gross Notional:</span><b>' + fmtGBP(g.total_notional) + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Net Notional:</span><span style="color:' + nnColor + ';font-weight:bold;">' + fmtGBP(netNotional) + '</span></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Net FS01:</span><span style="color:' + color + ';font-weight:bold;">' + fmtGBP(fs01) + '</span></div>' +
-                            (tenorRows ? '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;"><div style="font-size:10px;font-weight:600;color:#555;margin-bottom:2px;">FS01 by Tenor</div><table style="width:100%;font-size:10px;">' + tenorRows + '</table>' : '') +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                            (tenorRows ? '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);"><div style="font-size:10px;font-weight:600;color:var(--text-2);margin-bottom:2px;">FS01 by Tenor</div><table style="width:100%;font-size:10px;">' + tenorRows + '</table>' : '') +
+                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Daily P&amp;L:</span><span style="color:' + dColor + ';font-weight:600;">' + fmtGBP(dailyPnl) + '</span></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Running P&amp;L:</span><span style="color:' + rColor + ';font-weight:600;">' + fmtGBP(runPnl) + '</span></div>' +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<a href="#" onclick="event.preventDefault();window.showGaugeBlotter&&window.showGaugeBlotter(\'' + g.gauge_id + '\',\'' + (g.gauge_name || '').replace(/\'/g, "\\\'") + '\')" ' +
-                                'style="color:#1565c0;font-size:10px;">View Gauge Blotter \u2192</a><br>' +
+                                'style="color:var(--accent-mid);font-size:10px;">View Gauge Blotter \u2192</a><br>' +
                             '<a href="#" onclick="event.preventDefault();window.tdViewHazardCurve&&window.tdViewHazardCurve(\'' + g.gauge_id + '\')" ' +
-                                'style="color:#1565c0;font-size:10px;">View Hazard Curve \u2192</a><br>' +
+                                'style="color:var(--accent-mid);font-size:10px;">View Hazard Curve \u2192</a><br>' +
                             '<a href="#" onclick="event.preventDefault();window.tdNewTrade&&window.tdNewTrade(\'' + g.gauge_id + '\')" ' +
-                                'style="color:#1565c0;font-size:10px;">New Trade \u2192</a>' +
+                                'style="color:var(--accent-mid);font-size:10px;">New Trade \u2192</a>' +
                         '</div>';
 
                     var circle = L.circleMarker([g.lat, g.lon], {
                         radius: radius,
                         fillColor: color,
-                        color: '#fff',
+                        color: Theme.value('panel'),
                         weight: 2,
                         fillOpacity: 0.7
                     }).bindPopup(popup).addTo(tdTradeMap);
@@ -186,22 +186,22 @@
                     if (!p.lat || !p.lon) continue;
 
                     var pFs01 = p.fs01 || 0;
-                    var pColor = pFs01 >= 0 ? '#1565c0' : '#c62828';
+                    var pColor = pFs01 >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
                     var pAbsFs01 = Math.abs(pFs01);
                     var pRadius = maxAbsFs01 > 0
                         ? Math.max(5, Math.sqrt(pAbsFs01 / maxAbsFs01) * 25)
                         : 5;
 
                     var pNotional = p.net_notional || 0;
-                    var pnColor = pNotional >= 0 ? '#1565c0' : '#c62828';
-                    var npvColor = (p.npv || 0) >= 0 ? '#2e7d32' : '#c62828';
+                    var pnColor = pNotional >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
+                    var npvColor = (p.npv || 0) >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                     var pDisplayName = window.propertyDisplayName(p.property_id, p.address);
                     var pPopup =
                         '<div style="font-size:11px;min-width:180px;">' +
                             '<b style="font-size:12px;">' + pDisplayName + '</b><br>' +
-                            '<span style="color:#888;">' + (p.postcode || '') + ' \u2014 ' + (p.ea_flood_zone || '') + '</span><br>' +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid #eee;">' +
+                            '<span style="color:var(--muted);">' + (p.postcode || '') + ' \u2014 ' + (p.ea_flood_zone || '') + '</span><br>' +
+                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Swap:</span><b>' + (p.swap_id || '') + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Ctpy:</span><b>' + (p.counterparty || '') + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Direction:</span><b>' + (p.is_payer ? 'Payer' : 'Receiver') + '</b></div>' +
@@ -214,7 +214,7 @@
                     L.circleMarker([p.lat, p.lon], {
                         radius: pRadius,
                         fillColor: pColor,
-                        color: '#fff',
+                        color: Theme.value('panel'),
                         weight: 1.5,
                         fillOpacity: 0.55,
                         dashArray: '3 3'
@@ -237,17 +237,17 @@
                     'box-shadow: none !important; ' +
                     'font-size: 10px !important; ' +
                     'font-weight: 600 !important; ' +
-                    'color: #333 !important; ' +
+                    'color: var(--text) !important; ' +
                     'padding: 0 !important; ' +
                     '}' +
                     '.td-gauge-label::before { display: none !important; }' +
                     '.td-prop-label { ' +
-                    'background: white !important; ' +
-                    'border: 1px solid #ccc !important; ' +
-                    'box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important; ' +
+                    'background: var(--panel) !important; ' +
+                    'border: 1px solid var(--divider) !important; ' +
+                    'box-shadow: var(--shadow-card-hover) !important; ' +
                     'font-size: 10px !important; ' +
                     'font-weight: 600 !important; ' +
-                    'color: #000 !important; ' +
+                    'color: var(--black) !important; ' +
                     'padding: 2px 6px !important; ' +
                     'border-radius: 3px !important; ' +
                     '}' +

@@ -27,8 +27,8 @@
                     var btn = document.getElementById('td-tab-' + v);
                     if (el) el.style.display = 'none';
                     if (btn) {
-                        btn.style.background = '#f5f5f5';
-                        btn.style.color = '#555';
+                        btn.style.background = 'var(--sunken)';
+                        btn.style.color = 'var(--text-2)';
                     }
                 });
 
@@ -36,7 +36,7 @@
                 var activeBtn = document.getElementById('td-tab-' + tab);
                 if (activeEl) activeEl.style.display = 'flex';
                 if (activeBtn) {
-                    activeBtn.style.background = '#1976d2';
+                    activeBtn.style.background = 'var(--accent)';
                     activeBtn.style.color = 'white';
                 }
 

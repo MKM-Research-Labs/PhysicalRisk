@@ -23,12 +23,12 @@
                 if (!pane) return;
 
                 if (!gauges || gauges.length === 0) {
-                    pane.innerHTML = '<div style="padding:20px;color:#999;font-size:12px;">No gauges found</div>';
+                    pane.innerHTML = '<div style="padding:20px;color:var(--muted-2);font-size:12px;">No gauges found</div>';
                     return;
                 }
 
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
-                html += '<thead><tr style="background:#f5f7fa;border-bottom:2px solid #ddd;">';
+                html += '<thead><tr style="background:var(--header-from);border-bottom:2px solid var(--line-strong);">';
                 html += '<th style="padding:6px 10px;text-align:left;font-weight:600;">Gauge</th>';
                 html += '<th style="padding:6px 8px;text-align:center;font-weight:600;">Status</th>';
                 html += '<th style="padding:6px 8px;text-align:right;font-weight:600;">AUC</th>';
@@ -42,31 +42,31 @@
                     var g = gauges[i];
                     var isTrained = g.has_model;
                     var isSelected = (g.gauge_id === clSelectedGaugeId);
-                    var rowBg = isSelected ? '#e3f2fd' : (i % 2 === 0 ? '#fff' : '#fafbfc');
+                    var rowBg = isSelected ? 'var(--accent-soft)' : (i % 2 === 0 ? 'var(--panel)' : 'var(--tray-bg)');
 
                     html += '<tr data-gauge-id="' + g.gauge_id + '" ';
-                    html += 'style="cursor:pointer;background:' + rowBg + ';border-bottom:1px solid #f0f0f0;" ';
-                    html += 'onmouseover="this.style.background=\'#e8f0fe\'" ';
+                    html += 'style="cursor:pointer;background:' + rowBg + ';border-bottom:1px solid var(--code);" ';
+                    html += 'onmouseover="this.style.background=\'var(--rv-wash)\'" ';
                     html += 'onmouseout="this.style.background=\'' + rowBg + '\'">';
 
                     // Gauge name
                     html += '<td style="padding:6px 10px;font-weight:500;">' + g.gauge_name + '</td>';
 
                     // Status dot
-                    var dotColor = isTrained ? '#4caf50' : '#bbb';
+                    var dotColor = isTrained ? 'var(--green-bright)' : 'var(--faint)';
                     var dotLabel = isTrained ? 'Trained' : 'Not trained';
                     html += '<td style="padding:6px 8px;text-align:center;">';
                     html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' +
                             dotColor + ';margin-right:4px;vertical-align:middle;"></span>';
-                    html += '<span style="color:#666;">' + dotLabel + '</span></td>';
+                    html += '<span style="color:var(--text-3);">' + dotLabel + '</span></td>';
 
                     // AUC
                     if (g.auc_roc != null) {
-                        var aucColor = g.auc_roc >= 0.95 ? '#2e7d32' : (g.auc_roc >= 0.90 ? '#f57f17' : '#c62828');
+                        var aucColor = g.auc_roc >= 0.95 ? 'var(--green-dark)' : (g.auc_roc >= 0.90 ? 'var(--gold-dark)' : 'var(--red-dark)');
                         html += '<td style="padding:6px 8px;text-align:right;color:' + aucColor + ';font-weight:600;">' +
                                 g.auc_roc.toFixed(4) + '</td>';
                     } else {
-                        html += '<td style="padding:6px 8px;text-align:right;color:#ccc;">\u2014</td>';
+                        html += '<td style="padding:6px 8px;text-align:right;color:var(--divider);">\u2014</td>';
                     }
 
                     // Accuracy
@@ -84,10 +84,10 @@
                     // Action button
                     html += '<td style="padding:6px 10px;text-align:center;">';
                     var btnLabel = isTrained ? 'Retrain' : 'Train';
-                    var btnColor = isTrained ? '#f57f17' : '#1976d2';
+                    var btnColor = isTrained ? 'var(--gold-dark)' : 'var(--accent)';
                     html += '<button data-train-gauge="' + g.gauge_id + '" ';
                     html += 'style="padding:3px 10px;font-size:10px;font-weight:600;background:' + btnColor + ';';
-                    html += 'color:white;border:none;border-radius:3px;cursor:pointer;">' + btnLabel + '</button>';
+                    html += 'color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">' + btnLabel + '</button>';
                     html += '</td>';
 
                     html += '</tr>';

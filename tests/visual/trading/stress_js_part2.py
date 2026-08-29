@@ -143,8 +143,8 @@ class TestStressTabSubmodule:
         js = stress.get_js()
         assert 'probability_surface' in js
         assert 'td-stress-surface-wrap' in js
-        assert '#FFEBEE' in js  # severe band
-        assert '#FFF8E1' in js  # alert band
+        assert 'var(--danger-bg-soft)' in js  # severe band
+        assert 'var(--warn-bg)' in js  # alert band
 
 
 class TestStressGaugeHint:

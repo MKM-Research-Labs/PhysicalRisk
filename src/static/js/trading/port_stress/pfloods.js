@@ -28,7 +28,7 @@
                 });
 
                 if (gauges.length === 0) {
-                    content.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">No gauges with open positions and hydrograph data.</div>';
+                    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted-2);">No gauges with open positions and hydrograph data.</div>';
                     return;
                 }
 
@@ -36,11 +36,11 @@
                 gauges.sort(function(a, b) { return a.stress_pnl - b.stress_pnl; });
 
                 content.innerHTML =
-                    '<div style="padding:4px 16px 0;font-size:10px;color:#666;flex-shrink:0;display:flex;align-items:center;gap:16px;">' +
+                    '<div style="padding:4px 16px 0;font-size:10px;color:var(--text-3);flex-shrink:0;display:flex;align-items:center;gap:16px;">' +
                     '<span style="font-weight:600;">Storm P&amp;L Heatmap</span>' +
                     '<span>Gauges with positions, sorted by peak stress P&amp;L</span>' +
                     '<span style="margin-left:auto;display:flex;align-items:center;gap:4px;">' +
-                    '<span style="display:inline-block;width:60px;height:10px;background:linear-gradient(to right,#b71c1c,#e53935,#ff8a80,#f5f5f5,#81c784,#2e7d32);border-radius:2px;"></span>' +
+                    '<span style="display:inline-block;width:60px;height:10px;background:linear-gradient(to right,var(--red-deep),var(--red-alt),var(--red-pale),var(--sunken),var(--green-pale),var(--green-dark));border-radius:2px;"></span>' +
                     '<span style="font-size:9px;">Loss → Gain</span>' +
                     '</span>' +
                     '</div>' +
@@ -122,7 +122,7 @@
                 }
 
                 // Clear
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = Theme.value('panel');
                 ctx.fillRect(0, 0, totalWidth, totalHeight);
 
                 // Draw heatmap cells
@@ -135,7 +135,7 @@
                     }
 
                     // Row border
-                    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+                    ctx.strokeStyle = Theme.value('grid-line');
                     ctx.beginPath();
                     ctx.moveTo(labelWidth, y + rowHeight);
                     ctx.lineTo(totalWidth - rightPad, y + rowHeight);
@@ -144,9 +144,9 @@
                     // Gauge label
                     var gName = gauges[gi].gauge_name || gauges[gi].gauge_id;
                     if (gName.length > 22) gName = gName.substring(0, 20) + '…';
-                    var thColor = gauges[gi].threshold === 'severe' ? '#c62828' :
-                                  gauges[gi].threshold === 'warning' ? '#e65100' :
-                                  gauges[gi].threshold === 'alert' ? '#f9a825' : '#757575';
+                    var thColor = gauges[gi].threshold === 'severe' ? Theme.value('red-dark') :
+                                  gauges[gi].threshold === 'warning' ? Theme.value('amber-deep') :
+                                  gauges[gi].threshold === 'alert' ? Theme.value('gold-deep') : Theme.value('text-4');
 
                     ctx.fillStyle = thColor;
                     ctx.font = '600 ' + Math.min(10, rowHeight - 4) + 'px system-ui, sans-serif';
@@ -156,7 +156,7 @@
 
                     // P&L label at end of row
                     var peakPnl = gauges[gi].stress_pnl;
-                    ctx.fillStyle = peakPnl >= 0 ? '#2e7d32' : '#c62828';
+                    ctx.fillStyle = peakPnl >= 0 ? Theme.value('gain') : Theme.value('loss');
                     ctx.font = '700 ' + Math.min(9, rowHeight - 4) + 'px system-ui, sans-serif';
                     ctx.textAlign = 'left';
                     ctx.fillText(fmtGBP(peakPnl), totalWidth - rightPad + 4, y + rowHeight / 2);
@@ -166,7 +166,7 @@
                 var totalY = topPad + gauges.length * rowHeight;
 
                 // Separator line
-                ctx.strokeStyle = '#333';
+                ctx.strokeStyle = Theme.value('text');
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.moveTo(labelWidth, totalY);
@@ -186,7 +186,7 @@
                 }
 
                 // "TOTAL" label
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = Theme.value('text');
                 ctx.font = '700 ' + Math.min(10, rowHeight - 4) + 'px system-ui, sans-serif';
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
@@ -195,13 +195,13 @@
                 // Total P&L value
                 var portPnlSum = 0;
                 gauges.forEach(function(g) { portPnlSum += g.stress_pnl; });
-                ctx.fillStyle = portPnlSum >= 0 ? '#2e7d32' : '#c62828';
+                ctx.fillStyle = portPnlSum >= 0 ? Theme.value('gain') : Theme.value('loss');
                 ctx.font = '700 ' + Math.min(10, rowHeight - 4) + 'px system-ui, sans-serif';
                 ctx.textAlign = 'left';
                 ctx.fillText(fmtGBP(portPnlSum), totalWidth - rightPad + 4, totalY + rowHeight / 2);
 
                 // X-axis: hour labels
-                ctx.fillStyle = '#666';
+                ctx.fillStyle = Theme.value('text-3');
                 ctx.font = '9px system-ui, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
@@ -213,7 +213,7 @@
                 }
 
                 // Title
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = Theme.value('text');
                 ctx.font = '600 10px system-ui, sans-serif';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'top';

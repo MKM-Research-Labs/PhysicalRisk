@@ -38,7 +38,7 @@
 
                 function buildSelect(id, label, opts, currentVal) {
                     var html = '<select id="' + id + '" onchange="tdFilterChanged()" ' +
-                        'style="padding:2px 6px;font-size:10px;border:1px solid #ccc;border-radius:3px;background:white;min-width:70px;">';
+                        'style="padding:2px 6px;font-size:10px;border:1px solid var(--divider);border-radius:3px;background:var(--panel);min-width:70px;">';
                     html += '<option value="">All ' + label + '</option>';
                     var keys = Object.keys(opts).sort();
                     for (var k = 0; k < keys.length; k++) {
@@ -51,33 +51,33 @@
 
                 var hasFilter = Object.keys(tdBlotterFilters).length > 0;
                 var clearBtn = hasFilter ?
-                    '<button onclick="tdClearFilters()" style="padding:2px 8px;font-size:10px;background:#78909c;color:white;border:none;border-radius:3px;cursor:pointer;">Clear</button>' :
+                    '<button onclick="tdClearFilters()" style="padding:2px 8px;font-size:10px;background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">Clear</button>' :
                     '';
                 var newPrsBtn = tdBlotterFilters.gauge_id ?
-                    '<button onclick="tdNewPRS()" style="margin-left:6px;padding:2px 8px;font-size:10px;background:#1565c0;color:white;border:none;border-radius:3px;cursor:pointer;">New PRS</button>' :
+                    '<button onclick="tdNewPRS()" style="margin-left:6px;padding:2px 8px;font-size:10px;background:var(--accent-mid);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">New PRS</button>' :
                     '';
 
                 // Active filter pills
                 var pills = '';
                 if (tdBlotterFilters.gauge_id) {
                     var areaName = gaugeSet[tdBlotterFilters.gauge_id] || tdBlotterFilters.gauge_name || tdBlotterFilters.gauge_id;
-                    pills += '<span style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--accent-soft);color:var(--accent-mid);padding:1px 6px;border-radius:8px;font-size:10px;">' +
                         areaName + ' <span onclick="tdRemoveFilter(\'gauge_id\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.tenor) {
-                    pills += '<span style="background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--ok-bg);color:var(--green-dark);padding:1px 6px;border-radius:8px;font-size:10px;">' +
                         tdBlotterFilters.tenor + ' <span onclick="tdRemoveFilter(\'tenor\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.counterparty) {
-                    pills += '<span style="background:#fce4ec;color:#c62828;padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--pink-bg);color:var(--red-dark);padding:1px 6px;border-radius:8px;font-size:10px;">' +
                         tdBlotterFilters.counterparty.substring(0, 12) + ' <span onclick="tdRemoveFilter(\'counterparty\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.trigger) {
-                    pills += '<span style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--warn-bg-warm);color:var(--amber-deep);padding:1px 6px;border-radius:8px;font-size:10px;">' +
                         tdBlotterFilters.trigger + ' <span onclick="tdRemoveFilter(\'trigger\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.status) {
-                    pills += '<span style="background:#f3e5f5;color:#7b1fa2;padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--purple-bg);color:var(--purple);padding:1px 6px;border-radius:8px;font-size:10px;">' +
                         tdBlotterFilters.status + ' <span onclick="tdRemoveFilter(\'status\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
 
@@ -89,7 +89,7 @@
                 }
 
                 bar.innerHTML =
-                    '<span style="font-weight:600;color:#555;">Filter:</span>' +
+                    '<span style="font-weight:600;color:var(--text-2);">Filter:</span>' +
                     buildSelect('td-filter-gauge', 'Gauges', gaugeSet, tdBlotterFilters.gauge_id || '') +
                     buildSelect('td-filter-ctpy', 'Ctpy', ctpySet, tdBlotterFilters.counterparty || '') +
                     buildSelect('td-filter-trigger', 'Triggers', triggerSet, tdBlotterFilters.trigger || '') +

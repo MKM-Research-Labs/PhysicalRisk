@@ -27,8 +27,8 @@
                 tdRenderLineChart(chartArea, tenors.map(function(t) { return t + 'Y'; }), rates, {
                     title: 'Yield Curve (Continuous Rate)',
                     yLabel: 'Rate (%)',
-                    lineColor: '#1565c0',
-                    pointColor: '#0d47a1',
+                    lineColor: Theme.value('accent-mid'),
+                    pointColor: Theme.value('accent-ink'),
                     yDecimals: 2,
                     suffix: '%'
                 });
@@ -36,16 +36,16 @@
                 // Editable tenor inputs
                 if (inputRow) {
                     var html = '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">';
-                    html += '<span style="font-size:10px;font-weight:600;color:#555;">Rates:</span>';
+                    html += '<span style="font-size:10px;font-weight:600;color:var(--text-2);">Rates:</span>';
                     for (var i = 0; i < tenors.length; i++) {
                         var rate = (tdYieldCurve[tenors[i]] || 0) * 100;
                         html += '<div style="display:flex;align-items:center;gap:2px;">' +
-                            '<span style="font-size:10px;color:#888;">' + tenors[i] + 'Y</span>' +
+                            '<span style="font-size:10px;color:var(--muted);">' + tenors[i] + 'Y</span>' +
                             '<input type="number" value="' + rate.toFixed(2) + '" step="0.05" min="0" max="20" ' +
                                 'data-tenor="' + tenors[i] + '" data-mode="yield" ' +
                                 'onchange="tdCurveInputChanged(this)" oninput="tdCurveInputChanged(this)" ' +
-                                'style="width:52px;font-size:10px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;text-align:right;">' +
-                            '<span style="font-size:9px;color:#999;">%</span>' +
+                                'style="width:52px;font-size:10px;padding:2px 4px;border:1px solid var(--line-strong);border-radius:3px;text-align:right;">' +
+                            '<span style="font-size:9px;color:var(--muted-2);">%</span>' +
                         '</div>';
                     }
                     html += '</div>';
@@ -56,12 +56,12 @@
                 if (info) {
                     var avg = rates.reduce(function(a, b) { return a + b; }, 0) / rates.length;
                     info.innerHTML = 'Average yield: ' + avg.toFixed(2) + '% | Peak: ' + Math.max.apply(null, rates).toFixed(2) + '%' +
-                        (tdYieldDirty ? ' | <span style="color:#e65100;font-weight:600;">UNCOMMITTED</span>' : '');
+                        (tdYieldDirty ? ' | <span style="color:var(--amber-deep);font-weight:600;">UNCOMMITTED</span>' : '');
                 }
                 var commitBtn = document.getElementById('td-commit-btn');
                 if (commitBtn) {
                     var anyDirty = tdYieldDirty || Object.keys(tdHazardDirtyKeys).some(function(k) { return tdHazardDirtyKeys[k]; });
-                    commitBtn.style.background = anyDirty ? '#e65100' : '#1976d2';
+                    commitBtn.style.background = anyDirty ? 'var(--amber-deep)' : 'var(--accent)';
                     commitBtn.textContent = anyDirty ? 'Commit*' : 'Commit';
                 }
             }
@@ -81,8 +81,8 @@
 
                 var colors = Theme.ramp('trigger_level');
                 var darks = Theme.ramp('trigger_level_dark');
-                var color = colors[trigger] || '#1565c0';
-                var dark = darks[trigger] || '#0d47a1';
+                var color = colors[trigger] || Theme.value('accent-mid');
+                var dark = darks[trigger] || Theme.value('accent-ink');
 
                 // Get base flat rate for annotation line
                 var baseRate = 0;
@@ -109,12 +109,12 @@
                     for (var i = 0; i < tenors.length; i++) {
                         var rate = (triggerTS[tenors[i]] || 0) * 10000;
                         html += '<div style="display:flex;align-items:center;gap:2px;">' +
-                            '<span style="font-size:10px;color:#888;">' + tenors[i] + 'Y</span>' +
+                            '<span style="font-size:10px;color:var(--muted);">' + tenors[i] + 'Y</span>' +
                             '<input type="number" value="' + rate.toFixed(1) + '" step="1" min="0" max="5000" ' +
                                 'data-tenor="' + tenors[i] + '" data-mode="hazard" data-trigger="' + trigger + '" data-gauge="' + tdSelectedGauge + '" ' +
                                 'onchange="tdCurveInputChanged(this)" oninput="tdCurveInputChanged(this)" ' +
-                                'style="width:55px;font-size:10px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;text-align:right;">' +
-                            '<span style="font-size:9px;color:#999;">bps</span>' +
+                                'style="width:55px;font-size:10px;padding:2px 4px;border:1px solid var(--line-strong);border-radius:3px;text-align:right;">' +
+                            '<span style="font-size:9px;color:var(--muted-2);">bps</span>' +
                         '</div>';
                     }
                     html += '</div>';
@@ -127,13 +127,13 @@
                     info.innerHTML =
                         'Historical (flat): ' + baseRate.toFixed(1) + ' bps | ' +
                         'Short end: ' + rates[0].toFixed(1) + ' bps | Long end: ' + rates[rates.length - 1].toFixed(1) + ' bps' +
-                        (tdMarketData[tdSelectedGauge].is_adjusted ? ' | <span style="color:#f57c00;font-weight:600;">ADJUSTED</span>' : '') +
-                        (isDirty ? ' | <span style="color:#e65100;font-weight:600;">UNCOMMITTED</span>' : '');
+                        (tdMarketData[tdSelectedGauge].is_adjusted ? ' | <span style="color:var(--amber);font-weight:600;">ADJUSTED</span>' : '') +
+                        (isDirty ? ' | <span style="color:var(--amber-deep);font-weight:600;">UNCOMMITTED</span>' : '');
                 }
                 // Highlight commit button if there are uncommitted changes
                 var commitBtn = document.getElementById('td-commit-btn');
                 if (commitBtn) {
-                    commitBtn.style.background = isDirty ? '#e65100' : '#1976d2';
+                    commitBtn.style.background = isDirty ? 'var(--amber-deep)' : 'var(--accent)';
                     commitBtn.textContent = isDirty ? 'Commit*' : 'Commit';
                 }
             }
@@ -148,7 +148,7 @@
                 // Guard: Chart.js must be loaded
                 if (typeof Chart === 'undefined') {
                     console.error('[Market] Chart.js not loaded');
-                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#c62828;font-size:12px;">Chart.js not loaded — refresh the page</div>';
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--red-dark);font-size:12px;">Chart.js not loaded — refresh the page</div>';
                     return;
                 }
 
@@ -223,7 +223,7 @@
                                 type: 'line',
                                 yMin: opts.annotationY,
                                 yMax: opts.annotationY,
-                                borderColor: '#90a4ae',
+                                borderColor: Theme.value('blue-grey-pale'),
                                 borderWidth: 1.5,
                                 borderDash: [6, 3],
                                 label: {
@@ -231,7 +231,7 @@
                                     content: opts.annotationLabel || 'Base',
                                     position: 'start',
                                     font: {size: 9},
-                                    backgroundColor: 'rgba(144,164,174,0.8)'
+                                    backgroundColor: Theme.value('flat-fill')
                                 }
                             }
                         }

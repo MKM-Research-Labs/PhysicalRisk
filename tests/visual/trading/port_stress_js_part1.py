@@ -153,9 +153,9 @@ class TestPortStressPFloodTab:
 
     def test_pflood_threshold_colours(self, ps_js):
         """Threshold bar colours must be present: severe red, warning orange, alert amber."""
-        assert '#c62828' in ps_js  # severe red
-        assert '#e65100' in ps_js  # warning orange
-        assert '#f9a825' in ps_js  # alert amber
+        assert 'var(--red-dark)' in ps_js  # severe red
+        assert 'var(--amber-deep)' in ps_js  # warning orange
+        assert 'var(--gold-deep)' in ps_js  # alert amber
 
 
 class TestPortStressPortPnlTab:

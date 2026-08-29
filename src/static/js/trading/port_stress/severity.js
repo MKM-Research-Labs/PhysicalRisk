@@ -35,33 +35,33 @@
                     {
                         label: 'SEVERE',
                         gauges: severeGauges,
-                        bg: '#ffebee',
-                        headerBg: '#c62828',
-                        dotColor: '#c62828',
+                        bg: 'var(--danger-bg-soft)',
+                        headerBg: 'var(--red-dark)',
+                        dotColor: 'var(--red-dark)',
                         emptyMsg: 'No gauges at severe level'
                     },
                     {
                         label: 'WARNING',
                         gauges: warningGauges,
-                        bg: '#fff3e0',
-                        headerBg: '#e65100',
-                        dotColor: '#e65100',
+                        bg: 'var(--warn-bg-warm)',
+                        headerBg: 'var(--amber-deep)',
+                        dotColor: 'var(--amber-deep)',
                         emptyMsg: 'No gauges at warning level'
                     },
                     {
                         label: 'ALERT',
                         gauges: alertGauges,
-                        bg: '#fffde7',
-                        headerBg: '#f9a825',
-                        dotColor: '#f9a825',
+                        bg: 'var(--warn-bg)',
+                        headerBg: 'var(--gold-deep)',
+                        dotColor: 'var(--gold-deep)',
                         emptyMsg: 'No gauges at alert level'
                     },
                     {
                         label: 'CLEAN',
                         gauges: cleanGauges,
-                        bg: '#f5f5f5',
-                        headerBg: '#757575',
-                        dotColor: '#bdbdbd',
+                        bg: 'var(--sunken)',
+                        headerBg: 'var(--text-4)',
+                        dotColor: 'var(--faint)',
                         emptyMsg: 'No trades at clean gauges'
                     }
                 ];
@@ -75,30 +75,30 @@
                     html +=
                         '<div style="margin-bottom:16px;">' +
                         '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px;' +
-                        'background:' + section.headerBg + ';color:white;border-radius:4px 4px 0 0;">' +
+                        'background:' + section.headerBg + ';color:var(--inverse);border-radius:4px 4px 0 0;">' +
                         '<span style="font-size:12px;font-weight:700;">' + section.label + '</span>' +
                         '<span style="font-size:11px;opacity:0.85;">— ' + count + ' gauge' + (count !== 1 ? 's' : '') + '</span>' +
                         '</div>' +
-                        '<div style="border:1px solid #ddd;border-top:none;border-radius:0 0 4px 4px;background:' + section.bg + ';overflow:hidden;">';
+                        '<div style="border:1px solid var(--line-strong);border-top:none;border-radius:0 0 4px 4px;background:' + section.bg + ';overflow:hidden;">';
 
                     {
                         section.gauges.forEach(function(g) {
-                            var pnlColor = g.stress_pnl >= 0 ? '#2e7d32' : '#c62828';
+                            var pnlColor = g.stress_pnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                             html +=
-                                '<div style="display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid rgba(0,0,0,0.06);">' +
+                                '<div style="display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--grid-line);">' +
                                 '<span style="width:10px;height:10px;border-radius:50%;background:' + section.dotColor + ';display:inline-block;flex-shrink:0;"></span>' +
-                                '<span style="font-size:11px;font-weight:600;color:#333;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+                                '<span style="font-size:11px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
                                 g.gauge_name + '</span>' +
-                                '<span style="font-size:10px;color:#555;white-space:nowrap;min-width:80px;text-align:right;">' +
+                                '<span style="font-size:10px;color:var(--text-2);white-space:nowrap;min-width:80px;text-align:right;">' +
                                 'P(flood): <b>' + g.p_flood_pct.toFixed(1) + '%</b>' +
                                 '</span>' +
-                                '<span style="font-size:10px;color:#555;white-space:nowrap;min-width:60px;text-align:right;">' +
+                                '<span style="font-size:10px;color:var(--text-2);white-space:nowrap;min-width:60px;text-align:right;">' +
                                 g.num_trades + ' trade' + (g.num_trades !== 1 ? 's' : '') +
                                 '</span>' +
                                 '<span style="font-size:10px;font-weight:700;color:' + pnlColor + ';white-space:nowrap;min-width:80px;text-align:right;">' +
                                 fmtGBP(g.stress_pnl) + '</span>' +
                                 (g.num_trades > 0 ?
-                                    '<button data-gaugeid="' + g.gauge_id + '" class="ps-sev-gauge-btn" style="padding:2px 8px;font-size:9px;background:#1976d2;color:white;border:none;border-radius:3px;cursor:pointer;white-space:nowrap;">' +
+                                    '<button data-gaugeid="' + g.gauge_id + '" class="ps-sev-gauge-btn" style="padding:2px 8px;font-size:9px;background:var(--accent);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;white-space:nowrap;">' +
                                     '→ Gauge P&amp;L</button>'
                                     : '<span style="min-width:72px;"></span>') +
                                 '</div>';

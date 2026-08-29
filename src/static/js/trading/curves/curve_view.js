@@ -28,16 +28,16 @@
 
                 // Controls bar
                 var controls = document.createElement('div');
-                controls.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid #eee;background:#f8f9fa;flex-shrink:0;';
+                controls.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
 
                 controls.innerHTML =
-                    '<span style="font-size:11px;font-weight:600;color:#555;">Trigger:</span>' +
-                    '<select id="td-curve-trigger" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:4px;">' +
+                    '<span style="font-size:11px;font-weight:600;color:var(--text-2);">Trigger:</span>' +
+                    '<select id="td-curve-trigger" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:4px;">' +
                     '<option value="severe">Severe</option>' +
                     '<option value="warning">Warning</option>' +
                     '<option value="alert">Alert</option>' +
                     '</select>' +
-                    '<span id="td-curve-info" style="font-size:10px;color:#888;margin-left:auto;"></span>';
+                    '<span id="td-curve-info" style="font-size:10px;color:var(--muted);margin-left:auto;"></span>';
                 view.appendChild(controls);
 
                 // Attach event listener (IIFE-safe, no inline onchange)
@@ -189,7 +189,7 @@
                                 display: true,
                                 text: 'Hazard Term Structures \u2014 ' + trigger.charAt(0).toUpperCase() + trigger.slice(1),
                                 font: {size: 13, weight: 'bold'},
-                                color: '#333',
+                                color: Theme.value('text'),
                             },
                             legend: {
                                 display: true,

@@ -114,35 +114,36 @@ class TestActionButtonFormat:
 
     def test_buttons_in_shared_container(self, market_js):
         """All four buttons must sit inside a single flex container (group)."""
-        assert 'display:flex;border:1px solid #ddd;border-radius:4px;overflow:hidden;' in market_js, \
+        assert ('display:flex;border:1px solid var(--line-strong);border-radius:4px;'
+                'overflow:hidden;') in market_js, \
             "Buttons must be in a bordered group container matching header tabs"
 
     def test_history_button_grey_not_blue(self, market_js):
-        """History button must be grey (#f5f5f5) — inactive like unselected header tabs."""
+        """History button must be the sunken grey — inactive, like an unselected tab."""
         idx = market_js.index('td-history-btn')
         snippet = market_js[idx:idx+300]
-        assert '#f5f5f5' in snippet, "History button must be grey (#f5f5f5) not blue"
-        assert '#1976d2' not in snippet, "History must NOT be blue — only Commit is blue"
+        assert 'var(--sunken)' in snippet, "History button must be grey, not blue"
+        assert 'var(--accent)' not in snippet, "History must NOT be blue — only Commit is"
 
     def test_plhist_button_grey_not_blue(self, market_js):
-        """PL Hist button must be grey (#f5f5f5) — inactive like unselected header tabs."""
+        """PL Hist button must be the sunken grey — inactive, like an unselected tab."""
         idx = market_js.index('td-plhist-btn')
         snippet = market_js[idx:idx+300]
-        assert '#f5f5f5' in snippet, "PL Hist button must be grey (#f5f5f5) not blue"
-        assert '#1976d2' not in snippet, "PL Hist must NOT be blue — only Commit is blue"
+        assert 'var(--sunken)' in snippet, "PL Hist button must be grey, not blue"
+        assert 'var(--accent)' not in snippet, "PL Hist must NOT be blue — only Commit is"
 
     def test_commit_button_blue(self, market_js):
-        """Commit button must be blue (#1976d2) — primary action like active header tab."""
+        """Commit button must be the accent blue — primary action, like an active tab."""
         idx = market_js.index('td-commit-btn')
         snippet = market_js[idx:idx+300]
-        assert '#1976d2' in snippet, "Commit button must be blue (#1976d2)"
-        assert 'color:white' in snippet, "Commit button text must be white"
+        assert 'var(--accent)' in snippet, "Commit button must be the accent blue"
+        assert 'color:var(--inverse)' in snippet, "Commit button text must be inverse ink"
 
     def test_reset_button_grey(self, market_js):
-        """Reset button must be grey (#f5f5f5) — inactive."""
+        """Reset button must be the sunken grey — inactive."""
         commit_idx = market_js.index('tdResetCurve')
         snippet = market_js[commit_idx:commit_idx+200]
-        assert '#f5f5f5' in snippet, "Reset button must be grey (#f5f5f5)"
+        assert 'var(--sunken)' in snippet, "Reset button must be grey"
 
     def test_button_padding_matches_tabs(self, market_js):
         """All buttons must use padding:4px 14px matching header tab buttons."""
@@ -194,11 +195,11 @@ class TestNewTradeButton:
         assert 'tdSelectedGauge' in market_js
 
     def test_new_trade_button_grey(self, market_js):
-        """New Trade button must be grey (#f5f5f5) — non-primary action."""
+        """New Trade button must be the sunken grey — non-primary action."""
         idx = market_js.index('td-newtrade-btn')
         snippet = market_js[idx:idx + 300]
-        assert '#f5f5f5' in snippet, "New Trade button must be grey (#f5f5f5)"
-        assert '#1976d2' not in snippet, "New Trade must NOT be blue"
+        assert 'var(--sunken)' in snippet, "New Trade button must be grey"
+        assert 'var(--accent)' not in snippet, "New Trade must NOT be blue"
 
     def test_no_border_radius_on_new_trade_btn(self, market_js):
         """New Trade button must not have its own border-radius (container clips it)."""

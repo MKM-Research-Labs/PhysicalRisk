@@ -30,12 +30,12 @@
                               abs.toFixed(0);
                     return (v < 0 ? '-' : '+') + '\u00A3' + str;
                 };
-                var stCol = function(v) { return v >= 0 ? '#2e7d32' : '#c62828'; };
+                var stCol = function(v) { return v >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; };
 
                 var koText = s.num_triggered > 0 ?
-                    '<span style="font-weight:700;color:#c62828;"><b>Knocked Out:</b> ' +
+                    '<span style="font-weight:700;color:var(--red-dark);"><b>Knocked Out:</b> ' +
                         s.num_triggered + '/' + s.num_trades + ' @ H' + s.first_trigger_hour + '</span>' :
-                    '<span style="color:#2e7d32;"><b>No KO</b></span>';
+                    '<span style="color:var(--green-dark);"><b>No KO</b></span>';
 
                 var gaugeId = data.gauge_id || '';
                 var stormId = data.storm_id || '';
@@ -45,8 +45,8 @@
                 var aucText = '';
                 if (aucVal !== null && aucVal !== undefined) {
                     var aucPct = (aucVal * 100).toFixed(1);
-                    var aucCol = aucVal >= 0.95 ? '#2e7d32' :
-                                 aucVal >= 0.88 ? '#e65100' : '#c62828';
+                    var aucCol = aucVal >= 0.95 ? 'var(--green-dark)' :
+                                 aucVal >= 0.88 ? 'var(--amber-deep)' : 'var(--red-dark)';
                     var aucTip = aucVal >= 0.95 ? 'High confidence' :
                                  aucVal >= 0.88 ? 'Moderate confidence' :
                                  'Low confidence — rare flood gauge';
@@ -54,12 +54,12 @@
                         '<b>Model AUC:</b> ' + aucPct + '%</span>';
                 }
 
-                var linkStyle = 'font-size:10px;color:#1565c0;cursor:pointer;text-decoration:underline;font-weight:600;margin-left:4px;';
+                var linkStyle = 'font-size:10px;color:var(--accent-mid);cursor:pointer;text-decoration:underline;font-weight:600;margin-left:4px;';
 
                 var parts = [
                     '<span><b>MTM:</b> <span style="color:' + stCol(s.total_mtm) + ';">' +
                         stFmt(s.total_mtm) + '</span></span>',
-                    '<span style="color:#e65100;"><b>Peak P:</b> ' +
+                    '<span style="color:var(--amber-deep);"><b>Peak P:</b> ' +
                         (s.peak_p_flood * 100).toFixed(1) + '% @ H' + s.peak_p_flood_hour + '</span>',
                     koText,
                     '<span style="font-weight:700;color:' + stCol(s.max_stress_pnl) + ';">' +
@@ -67,7 +67,7 @@
                         ' @ H' + s.max_stress_hour + '</span>',
                 ];
                 if (aucText) parts.push(aucText);
-                bar.innerHTML = parts.join('<span style="margin:0 6px;color:#ddd;">|</span>');
+                bar.innerHTML = parts.join('<span style="margin:0 6px;color:var(--line-strong);">|</span>');
             }
 
             // ---- Link handlers ----
@@ -115,7 +115,7 @@
                 var overlay = document.createElement('div');
                 overlay.id = 'td-stress-damage-overlay';
                 overlay.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;box-shadow:var(--shadow-toast);' +
                     'z-index:3000;padding:20px;min-width:340px;max-width:500px;font-family:Arial,sans-serif;';
 
                 if (data.message) {
@@ -123,9 +123,9 @@
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
                             '<span style="font-weight:700;font-size:13px;">Property Damage</span>' +
                             '<button onclick="this.parentElement.parentElement.remove()" ' +
-                                'style="border:none;background:none;font-size:18px;cursor:pointer;color:#666;">&times;</button>' +
+                                'style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);">&times;</button>' +
                         '</div>' +
-                        '<div style="color:#999;font-size:12px;">' + data.message + '</div>';
+                        '<div style="color:var(--muted-2);font-size:12px;">' + data.message + '</div>';
                 } else {
                     var impact = data.impact || data;
                     var fmtK = function(v) {
@@ -137,27 +137,27 @@
                         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
                             '<span style="font-weight:700;font-size:13px;">Portfolio Damage \u2014 ' + (data.storm_name || stormId) + '</span>' +
                             '<button onclick="this.parentElement.parentElement.remove()" ' +
-                                'style="border:none;background:none;font-size:18px;cursor:pointer;color:#666;">&times;</button>' +
+                                'style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);">&times;</button>' +
                         '</div>' +
                         '<table style="width:100%;font-size:12px;border-collapse:collapse;">' +
-                            '<tr style="border-bottom:1px solid #eee;">' +
-                                '<td style="padding:6px 0;color:#666;">Properties Flooded</td>' +
+                            '<tr style="border-bottom:1px solid var(--line-soft);">' +
+                                '<td style="padding:6px 0;color:var(--text-3);">Properties Flooded</td>' +
                                 '<td style="padding:6px 0;text-align:right;font-weight:600;">' + (impact.properties_flooded || 0) + '</td>' +
                             '</tr>' +
-                            '<tr style="border-bottom:1px solid #eee;">' +
-                                '<td style="padding:6px 0;color:#666;">Total Properties</td>' +
+                            '<tr style="border-bottom:1px solid var(--line-soft);">' +
+                                '<td style="padding:6px 0;color:var(--text-3);">Total Properties</td>' +
                                 '<td style="padding:6px 0;text-align:right;">' + (impact.total_properties || 0) + '</td>' +
                             '</tr>' +
-                            '<tr style="border-bottom:1px solid #eee;">' +
-                                '<td style="padding:6px 0;color:#666;">Total Damage</td>' +
-                                '<td style="padding:6px 0;text-align:right;font-weight:700;color:#c62828;">' + fmtK(impact.total_damage) + '</td>' +
+                            '<tr style="border-bottom:1px solid var(--line-soft);">' +
+                                '<td style="padding:6px 0;color:var(--text-3);">Total Damage</td>' +
+                                '<td style="padding:6px 0;text-align:right;font-weight:700;color:var(--red-dark);">' + fmtK(impact.total_damage) + '</td>' +
                             '</tr>' +
-                            '<tr style="border-bottom:1px solid #eee;">' +
-                                '<td style="padding:6px 0;color:#666;">Max Flood Depth</td>' +
+                            '<tr style="border-bottom:1px solid var(--line-soft);">' +
+                                '<td style="padding:6px 0;color:var(--text-3);">Max Flood Depth</td>' +
                                 '<td style="padding:6px 0;text-align:right;">' + ((impact.max_depth || 0).toFixed(2)) + 'm</td>' +
                             '</tr>' +
                             '<tr>' +
-                                '<td style="padding:6px 0;color:#666;">Avg Damage per Property</td>' +
+                                '<td style="padding:6px 0;color:var(--text-3);">Avg Damage per Property</td>' +
                                 '<td style="padding:6px 0;text-align:right;">' + fmtK(impact.avg_damage) + '</td>' +
                             '</tr>' +
                         '</table>';

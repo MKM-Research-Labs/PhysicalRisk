@@ -30,13 +30,13 @@
                 // P&L header bar
                 var pnlBar = document.createElement('div');
                 pnlBar.id = 'td-pnl-bar';
-                pnlBar.style.cssText = 'display:flex;gap:20px;padding:10px 16px;background:#f0f4f8;border-bottom:1px solid #e0e0e0;align-items:center;flex-wrap:wrap;';
+                pnlBar.style.cssText = 'display:flex;gap:20px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap;';
                 view.appendChild(pnlBar);
 
                 // Filter bar
                 var filterBar = document.createElement('div');
                 filterBar.id = 'td-filter-bar';
-                filterBar.style.cssText = 'display:flex;gap:8px;padding:6px 16px;background:#fafafa;border-bottom:1px solid #eee;align-items:center;flex-wrap:wrap;font-size:11px;';
+                filterBar.style.cssText = 'display:flex;gap:8px;padding:6px 16px;background:var(--raised);border-bottom:1px solid var(--line-soft);align-items:center;flex-wrap:wrap;font-size:11px;';
                 view.appendChild(filterBar);
 
                 // Sortable table container
@@ -116,42 +116,42 @@
                     }
                 }
 
-                var dailyColor = dailyPnl >= 0 ? '#2e7d32' : '#c62828';
-                var runColor = runningPnl >= 0 ? '#2e7d32' : '#c62828';
+                var dailyColor = dailyPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
+                var runColor = runningPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
 
-                var realColor = realizedPnl >= 0 ? '#2e7d32' : '#c62828';
-                var tradeLabel = liveTrades + (closedTrades > 0 ? ' <span style="font-size:10px;color:#999;">(' + closedTrades + ' closed)</span>' : '');
+                var realColor = realizedPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
+                var tradeLabel = liveTrades + (closedTrades > 0 ? ' <span style="font-size:10px;color:var(--muted-2);">(' + closedTrades + ' closed)</span>' : '');
 
                 bar.innerHTML =
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Trades</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Trades</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + tradeLabel + '</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Notional</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Notional</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + fmtGBP(netNotional) + '</span>' +
                     '</div>' +
-                    '<div style="width:1px;height:30px;background:#ccc;"></div>' +
+                    '<div style="width:1px;height:30px;background:var(--divider);"></div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Daily P&amp;L</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Daily P&amp;L</span>' +
                         '<span style="font-size:18px;font-weight:bold;color:' + dailyColor + ';">' + fmtGBP(dailyPnl) + '</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Running P&amp;L</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Running P&amp;L</span>' +
                         '<span style="font-size:18px;font-weight:bold;color:' + runColor + ';">' + fmtGBP(runningPnl) + '</span>' +
                     '</div>' +
                     (closedTrades > 0 ?
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Realized</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Realized</span>' +
                         '<span style="font-size:18px;font-weight:bold;color:' + realColor + ';">' + fmtGBP(realizedPnl) + '</span>' +
                     '</div>' : '') +
-                    '<div style="width:1px;height:30px;background:#ccc;"></div>' +
+                    '<div style="width:1px;height:30px;background:var(--divider);"></div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">From Trades</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">From Trades</span>' +
                         '<span style="font-size:13px;font-weight:600;">' + fmtGBP(fromTrades) + '</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">From Market</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">From Market</span>' +
                         '<span style="font-size:13px;font-weight:600;">' + fmtGBP(fromMarket) + '</span>' +
                     '</div>';
             }

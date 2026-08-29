@@ -27,7 +27,7 @@
                 for (var i = 0; i < btns.length; i++) {
                     btns[i].disabled = true;
                     btns[i].textContent = 'Training\u2026';
-                    btns[i].style.background = '#90a4ae';
+                    btns[i].style.background = 'var(--blue-grey-pale)';
                 }
 
                 window.__mkmAdminFetch(baseUrl + '/api/v1/trading/stress/train/' + gaugeId, {
@@ -107,7 +107,7 @@
                 if (btn) {
                     btn.disabled = true;
                     btn.textContent = 'Training\u2026';
-                    btn.style.background = '#90a4ae';
+                    btn.style.background = 'var(--blue-grey-pale)';
                 }
 
                 // Show progress bar
@@ -206,7 +206,7 @@
                 var summ = '<div style="margin-bottom:4px;font-weight:600;font-family:sans-serif;">';
                 if (avgAuc != null) summ += 'Avg AUC: ' + avgAuc.toFixed(4) + '  \u00b7  ';
                 summ += (numTrained || 0) + ' trained';
-                if (numFailed) summ += ', <span style="color:#c62828;">' + numFailed + ' failed</span>';
+                if (numFailed) summ += ', <span style="color:var(--red-dark);">' + numFailed + ' failed</span>';
                 if (numSkipped) summ += ', ' + numSkipped + ' skipped';
                 summ += '</div>';
 
@@ -215,7 +215,7 @@
                 for (var i = results.length - 1; i >= 0; i--) {
                     var r = results[i];
                     var icon = r.status === 'trained' ? '\u2713' : r.status === 'failed' ? '\u2717' : '\u2298';
-                    var color = r.status === 'trained' ? '#2e7d32' : r.status === 'failed' ? '#c62828' : '#f57f17';
+                    var color = r.status === 'trained' ? 'var(--green-dark)' : r.status === 'failed' ? 'var(--red-dark)' : 'var(--gold-dark)';
                     var timeStr = r.elapsed_seconds != null ? r.elapsed_seconds.toFixed(1) + 's' : '\u2014';
                     var aucStr = r.auc_roc != null ? 'AUC ' + r.auc_roc.toFixed(3) : (r.error ? r.error.substring(0, 30) : '\u2014');
                     rows += '<div style="color:' + color + ';">' +
@@ -235,7 +235,7 @@
                 if (btn) {
                     btn.disabled = false;
                     btn.textContent = 'Train All Untrained';
-                    btn.style.background = '#1976d2';
+                    btn.style.background = 'var(--accent)';
                 }
             }
 
@@ -247,7 +247,7 @@
                 if (btn) {
                     btn.disabled = true;
                     btn.textContent = 'Clearing\u2026';
-                    btn.style.background = '#90a4ae';
+                    btn.style.background = 'var(--blue-grey-pale)';
                 }
 
                 window.__mkmAdminFetch(baseUrl + '/api/v1/trading/classifiers/clear-all', {
@@ -259,13 +259,13 @@
                     if (btn) {
                         btn.disabled = false;
                         btn.textContent = 'Clear All';
-                        btn.style.background = '#e53935';
+                        btn.style.background = 'var(--red-alt)';
                     }
                     clSelectedGaugeId = null;
                     var detailPane = document.getElementById('cl-detail-pane');
                     if (detailPane) {
                         detailPane.innerHTML =
-                            '<div style="text-align:center;color:#999;font-size:12px;padding-top:40px;">' +
+                            '<div style="text-align:center;color:var(--muted-2);font-size:12px;padding-top:40px;">' +
                             'Select a gauge to view classifier details</div>';
                     }
                     loadClassifiersData();
@@ -275,7 +275,7 @@
                     if (btn) {
                         btn.disabled = false;
                         btn.textContent = 'Clear All';
-                        btn.style.background = '#e53935';
+                        btn.style.background = 'var(--red-alt)';
                     }
                 });
             }

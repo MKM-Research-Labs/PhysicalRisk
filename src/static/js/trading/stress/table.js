@@ -39,10 +39,10 @@
                             abs.toFixed(0);
                     return (v < 0 ? '-' : '') + '\u00A3' + s;
                 };
-                var stPnlColor = function(v) { return v >= 0 ? '#2e7d32' : '#c62828'; };
+                var stPnlColor = function(v) { return v >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; };
 
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:10px;">' +
-                    '<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd;">' +
+                    '<thead><tr style="background:var(--sunken);border-bottom:2px solid var(--line-strong);">' +
                     '<th style="padding:4px 6px;text-align:left;">Swap</th>' +
                     '<th style="padding:4px 4px;text-align:center;">Dir</th>' +
                     '<th style="padding:4px 6px;text-align:right;">Notional</th>' +
@@ -60,20 +60,20 @@
                     var cashPrice = pt.cash_price || 0;
                     var stressPnl = pt.stress_pnl || 0;
                     var dir = t.is_payer ? 'Pay' : 'Rcv';
-                    var dirColor = t.is_payer ? '#c62828' : '#2e7d32';
+                    var dirColor = t.is_payer ? 'var(--red-dark)' : 'var(--green-dark)';
                     var isTriggered = t.triggered_hour != null;
                     if (isTriggered) numTriggered++;
                     var statusLabel = isTriggered ?
-                        '<span style="background:#c62828;color:#fff;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">KO H' + t.triggered_hour + '</span>' :
-                        '<span style="color:#999;font-size:8px;">Live</span>';
+                        '<span style="background:var(--red-dark);color:var(--panel);padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">KO H' + t.triggered_hour + '</span>' :
+                        '<span style="color:var(--muted-2);font-size:8px;">Live</span>';
 
                     totalNotional += t.notional;
                     totalMtm += t.mtm;
                     totalCash += cashPrice;
                     totalStress += stressPnl;
 
-                    html += '<tr style="border-bottom:1px solid #f0f0f0;' +
-                            (isTriggered ? 'background:#fff5f5;' : '') + '">' +
+                    html += '<tr style="border-bottom:1px solid var(--code);' +
+                            (isTriggered ? 'background:var(--rv-bad-bg);' : '') + '">' +
                         '<td style="padding:3px 6px;font-family:monospace;font-size:9px;">' +
                             t.swap_id.substring(0, 12) + '</td>' +
                         '<td style="padding:3px 4px;text-align:center;color:' + dirColor + ';font-weight:600;">' +
@@ -89,7 +89,7 @@
                         '</tr>';
                 });
 
-                html += '<tr style="border-top:2px solid #333;background:#f8f9fa;font-weight:700;">' +
+                html += '<tr style="border-top:2px solid var(--text);background:var(--wash);font-weight:700;">' +
                     '<td style="padding:4px 6px;" colspan="2">TOTAL</td>' +
                     '<td style="padding:4px 6px;text-align:right;">' + stFmtGBP(totalNotional) + '</td>' +
                     '<td style="padding:4px 6px;text-align:right;color:' + stPnlColor(totalMtm) + ';">' +
@@ -98,13 +98,13 @@
                         stFmtGBP(totalCash) + '</td>' +
                     '<td style="padding:4px 6px;text-align:right;color:' + stPnlColor(totalStress) + ';">' +
                         stFmtGBP(totalStress) + '</td>' +
-                    '<td style="padding:4px 4px;text-align:center;font-size:9px;color:#c62828;">' +
+                    '<td style="padding:4px 4px;text-align:center;font-size:9px;color:var(--red-dark);">' +
                         (numTriggered > 0 ? numTriggered + '/' + trades.length : '') + '</td>' +
                     '</tr>';
 
                 html += '</tbody></table>';
 
-                var headerHtml = '<div style="padding:4px 0 8px 0;font-size:10px;color:#666;">' +
+                var headerHtml = '<div style="padding:4px 0 8px 0;font-size:10px;color:var(--text-3);">' +
                     '<b>Values at peak P(flood) \u2014 Hour ' + peakHour + '</b>' +
                     ' | Water: ' + (peakData.water_level || 0).toFixed(2) + 'm' +
                     ' | P(flood): ' + ((peakData.p_flood || 0) * 100).toFixed(1) + '%' +

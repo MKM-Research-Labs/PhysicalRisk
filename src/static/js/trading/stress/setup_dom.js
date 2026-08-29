@@ -26,21 +26,21 @@
                 // Selector bar: gauge + storm dropdowns
                 var selectorBar = document.createElement('div');
                 selectorBar.id = 'td-stress-selector-bar';
-                selectorBar.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;background:#f5f7fa;flex-shrink:0;';
+                selectorBar.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;background:var(--header-from);flex-shrink:0;';
                 selectorBar.innerHTML =
-                    '<span style="font-size:11px;font-weight:600;color:#333;">Gauge:</span>' +
-                    '<select id="td-stress-gauge" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:240px;max-width:300px;">' +
+                    '<span style="font-size:11px;font-weight:600;color:var(--text);">Gauge:</span>' +
+                    '<select id="td-stress-gauge" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:3px;min-width:240px;max-width:300px;">' +
                         '<option value="">Loading gauges...</option>' +
                     '</select>' +
-                    '<span style="font-size:11px;font-weight:600;color:#333;margin-left:8px;">Storm:</span>' +
-                    '<select id="td-stress-storm" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:300px;max-width:420px;">' +
+                    '<span style="font-size:11px;font-weight:600;color:var(--text);margin-left:8px;">Storm:</span>' +
+                    '<select id="td-stress-storm" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:3px;min-width:300px;max-width:420px;">' +
                         '<option value="">Select gauge first</option>' +
                     '</select>' +
                     '__PCT_HTML__' +
-                    '<span id="td-stress-storm-info" style="font-size:10px;color:#666;flex:1;"></span>' +
+                    '<span id="td-stress-storm-info" style="font-size:10px;color:var(--text-3);flex:1;"></span>' +
                     '<button id="td-stress-sim-btn" onclick="tdStressOpenGauge(document.getElementById(\'td-stress-gauge\').value)" ' +
-                        'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;' +
-                        'border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;white-space:nowrap;">' +
+                        'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--accent-mid);' +
+                        'border-radius:3px;background:var(--accent-soft);color:var(--accent-mid);cursor:pointer;white-space:nowrap;">' +
                         'Storm Simulation</button>';
                 view.appendChild(selectorBar);
 
@@ -51,8 +51,8 @@
                 // Left: trade table
                 var tableWrap = document.createElement('div');
                 tableWrap.id = 'td-stress-table-wrap';
-                tableWrap.style.cssText = 'width:42%;overflow-y:auto;border-right:1px solid #eee;padding:8px;font-size:11px;';
-                tableWrap.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">Select a gauge and storm to run stress test</div>';
+                tableWrap.style.cssText = 'width:42%;overflow-y:auto;border-right:1px solid var(--line-soft);padding:8px;font-size:11px;';
+                tableWrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Select a gauge and storm to run stress test</div>';
                 body.appendChild(tableWrap);
 
                 // Right: chart with sub-tabs
@@ -62,11 +62,11 @@
                 // Chart sub-tabs
                 var chartTabs = document.createElement('div');
                 chartTabs.id = 'td-stress-chart-tabs';
-                chartTabs.style.cssText = 'display:flex;gap:0;border-bottom:1px solid #ddd;background:#f8f9fa;flex-shrink:0;position:relative;z-index:2;';
+                chartTabs.style.cssText = 'display:flex;gap:0;border-bottom:1px solid var(--line-strong);background:var(--wash);flex-shrink:0;position:relative;z-index:2;';
                 chartTabs.innerHTML =
-                    '<div id="td-stress-ctab-0" style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;border-bottom:2px solid #1565c0;color:#1565c0;">Flood Probability</div>' +
-                    '<div id="td-stress-ctab-1" style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:#999;">Stress P&amp;L</div>' +
-                    '<div id="td-stress-ctab-2" style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:#999;">Surface</div>';
+                    '<div id="td-stress-ctab-0" style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--accent-mid);color:var(--accent-mid);">Flood Probability</div>' +
+                    '<div id="td-stress-ctab-1" style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted-2);">Stress P&amp;L</div>' +
+                    '<div id="td-stress-ctab-2" style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted-2);">Surface</div>';
                 chartPane.appendChild(chartTabs);
 
                 // Chart canvas
@@ -82,8 +82,8 @@
                 // Stats/links bar at bottom
                 var statsBar = document.createElement('div');
                 statsBar.id = 'td-stress-stats-bar';
-                statsBar.style.cssText = 'padding:6px 16px;border-top:1px solid #eee;font-size:10px;color:#666;background:#f9f9f9;display:flex;align-items:center;gap:16px;flex-shrink:0;';
-                statsBar.innerHTML = '<span style="color:#999;">Run a stress scenario to see results</span>';
+                statsBar.style.cssText = 'padding:6px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--text-3);background:var(--control);display:flex;align-items:center;gap:16px;flex-shrink:0;';
+                statsBar.innerHTML = '<span style="color:var(--muted-2);">Run a stress scenario to see results</span>';
                 view.appendChild(statsBar);
 
                 return view;

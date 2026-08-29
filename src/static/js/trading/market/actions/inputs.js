@@ -53,13 +53,13 @@
                 // Update dirty indicator on commit button
                 var commitBtn = document.getElementById('td-commit-btn');
                 if (commitBtn) {
-                    commitBtn.style.background = '#e65100';
+                    commitBtn.style.background = 'var(--amber-deep)';
                     commitBtn.textContent = 'Commit*';
                 }
 
                 // Update info bar dirty label
                 var info = document.getElementById('td-market-info');
                 if (info && info.innerHTML.indexOf('UNCOMMITTED') < 0) {
-                    info.innerHTML += ' | <span style="color:#e65100;font-weight:600;">UNCOMMITTED</span>';
+                    info.innerHTML += ' | <span style="color:var(--amber-deep);font-weight:600;">UNCOMMITTED</span>';
                 }
             };

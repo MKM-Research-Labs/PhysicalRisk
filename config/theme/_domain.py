@@ -117,6 +117,18 @@ SIGN = {
     "gain-fill": "rgba(46, 125, 50, 0.8)",
     "loss-fill": "rgba(198, 40, 40, 0.8)",
     "flat": "#90a4ae",
+    "flat-fill": "rgba(144, 164, 174, 0.8)",
+}
+
+# --- Chart infrastructure: the marks a chart draws that carry no data. -------------
+# Grid lines, axis rules and the translucent fills under a series. They are here rather
+# than in SURFACE because a chart's furniture sits on a different background from a
+# panel's and has to stay legible over both.
+CHART = {
+    "grid-line": "rgba(0, 0, 0, 0.06)",
+    "chart-fill-accent": "rgba(21, 101, 192, 0.08)",
+    "chart-fill-danger": "rgba(244, 67, 54, 0.25)",
+    "chart-transparent": "rgba(0, 0, 0, 0)",
 }
 
 # --- Series colours for a chart with no meaning to carry. -------------------------
@@ -166,5 +178,5 @@ SEQUENCE = {
 
 __all__ = [
     "PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES", "DATASET",
-    "SEQUENCE",
+    "SEQUENCE", "CHART",
 ]

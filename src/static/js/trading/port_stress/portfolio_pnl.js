@@ -24,23 +24,23 @@
 
                 var totalPnl = result.portfolio_stress_pnl || 0;
                 var totalMtm = result.portfolio_mtm || 0;
-                var pnlColor = totalPnl >= 0 ? '#2e7d32' : '#c62828';
-                var mtmColor = totalMtm >= 0 ? '#2e7d32' : '#c62828';
+                var pnlColor = totalPnl >= 0 ? Theme.value('gain') : Theme.value('loss');
+                var mtmColor = totalMtm >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                 var headerHtml =
-                    '<div style="padding:12px 16px;border-bottom:1px solid #eee;background:#f5f7fa;flex-shrink:0;">' +
+                    '<div style="padding:12px 16px;border-bottom:1px solid var(--line-soft);background:var(--header-from);flex-shrink:0;">' +
                     '<div style="display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;">' +
                     '<div>' +
-                    '<span style="font-size:11px;color:#666;">Portfolio Stress P&amp;L</span><br>' +
+                    '<span style="font-size:11px;color:var(--text-3);">Portfolio Stress P&amp;L</span><br>' +
                     '<span style="font-size:22px;font-weight:700;color:' + pnlColor + ';">' + fmtGBP(totalPnl) + '</span>' +
                     '</div>' +
                     '<div>' +
-                    '<span style="font-size:11px;color:#666;">vs MTM</span><br>' +
+                    '<span style="font-size:11px;color:var(--text-3);">vs MTM</span><br>' +
                     '<span style="font-size:16px;font-weight:600;color:' + mtmColor + ';">' + fmtGBP(totalMtm) + '</span>' +
                     '</div>' +
                     '<div>' +
-                    '<span style="font-size:11px;color:#666;">Move vs MTM</span><br>' +
-                    '<span style="font-size:16px;font-weight:600;color:' + (totalPnl - totalMtm >= 0 ? '#2e7d32' : '#c62828') + ';">' +
+                    '<span style="font-size:11px;color:var(--text-3);">Move vs MTM</span><br>' +
+                    '<span style="font-size:16px;font-weight:600;color:' + (totalPnl - totalMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' +
                     fmtGBP(totalPnl - totalMtm) + '</span>' +
                     '</div>' +
                     '</div>' +
@@ -70,10 +70,10 @@
                 });
                 var data = gaugesWithTrades.map(function(g) { return g.stress_pnl; });
                 var bgColors = gaugesWithTrades.map(function(g) {
-                    return g.stress_pnl >= 0 ? '#2e7d32' : '#c62828';
+                    return g.stress_pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
                 });
                 var bgAlpha = gaugesWithTrades.map(function(g) {
-                    return g.stress_pnl >= 0 ? 'rgba(46,125,50,0.7)' : 'rgba(198,40,40,0.7)';
+                    return g.stress_pnl >= 0 ? Theme.value('gain-fill') : Theme.value('loss-fill');
                 });
 
                 psPortPnlChart = new Chart(ctx.getContext('2d'), {

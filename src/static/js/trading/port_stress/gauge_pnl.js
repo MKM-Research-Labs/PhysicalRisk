@@ -28,15 +28,15 @@
 
                 if (gaugesWithTrades.length === 0) {
                     content.innerHTML =
-                        '<div style="padding:40px;text-align:center;color:#999;">No open trades in portfolio for this storm.</div>';
+                        '<div style="padding:40px;text-align:center;color:var(--muted-2);">No open trades in portfolio for this storm.</div>';
                     return;
                 }
 
                 // Build dropdown
                 var dropdownHtml =
-                    '<div style="padding:8px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;background:#f5f7fa;flex-shrink:0;">' +
-                    '<span style="font-size:11px;font-weight:600;color:#333;">Gauge:</span>' +
-                    '<select id="ps-gaugepnl-sel" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:300px;">';
+                    '<div style="padding:8px 12px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:10px;background:var(--header-from);flex-shrink:0;">' +
+                    '<span style="font-size:11px;font-weight:600;color:var(--text);">Gauge:</span>' +
+                    '<select id="ps-gaugepnl-sel" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:3px;min-width:300px;">';
 
                 gaugesWithTrades.forEach(function(g) {
                     var thresholdBadge = g.threshold !== 'clean' ? ' [' + g.threshold.toUpperCase() + ']' : '';
@@ -82,26 +82,26 @@
                 if (!container) container = document.getElementById('ps-gauge-table-area');
                 if (!container) return;
 
-                var thresholdColor = gaugeData.threshold === 'severe' ? '#c62828' :
-                                     gaugeData.threshold === 'warning' ? '#e65100' :
-                                     gaugeData.threshold === 'alert' ? '#f9a825' : '#757575';
-                var thresholdBg = gaugeData.threshold === 'severe' ? '#ffebee' :
-                                  gaugeData.threshold === 'warning' ? '#fff3e0' :
-                                  gaugeData.threshold === 'alert' ? '#fffde7' : '#f5f5f5';
-                var pnlColor = gaugeData.stress_pnl >= 0 ? '#2e7d32' : '#c62828';
+                var thresholdColor = gaugeData.threshold === 'severe' ? Theme.value('red-dark') :
+                                     gaugeData.threshold === 'warning' ? Theme.value('amber-deep') :
+                                     gaugeData.threshold === 'alert' ? Theme.value('gold-deep') : Theme.value('text-4');
+                var thresholdBg = gaugeData.threshold === 'severe' ? Theme.value('danger-bg-soft') :
+                                  gaugeData.threshold === 'warning' ? Theme.value('warn-bg-warm') :
+                                  gaugeData.threshold === 'alert' ? 'var(--warn-bg)' : Theme.value('sunken');
+                var pnlColor = gaugeData.stress_pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                 var headerHtml =
-                    '<div style="padding:10px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">' +
+                    '<div style="padding:10px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">' +
                     '<div style="display:flex;align-items:center;gap:10px;">' +
-                    '<span style="font-size:13px;font-weight:700;color:#333;">' + gaugeData.gauge_name + '</span>' +
+                    '<span style="font-size:13px;font-weight:700;color:var(--text);">' + gaugeData.gauge_name + '</span>' +
                     '<span style="background:' + thresholdBg + ';color:' + thresholdColor + ';border:1px solid ' + thresholdColor + ';' +
                     'padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700;">' + gaugeData.threshold.toUpperCase() + '</span>' +
                     '</div>' +
                     '<div style="display:flex;align-items:center;gap:16px;">' +
-                    '<span style="font-size:11px;color:#666;">P(flood): <b>' + gaugeData.p_flood_pct.toFixed(1) + '%</b></span>' +
-                    '<span style="font-size:11px;color:#666;">Peak: <b>' + gaugeData.peak_water_level_m.toFixed(2) + 'm</b></span>' +
+                    '<span style="font-size:11px;color:var(--text-3);">P(flood): <b>' + gaugeData.p_flood_pct.toFixed(1) + '%</b></span>' +
+                    '<span style="font-size:11px;color:var(--text-3);">Peak: <b>' + gaugeData.peak_water_level_m.toFixed(2) + 'm</b></span>' +
                     '<span style="font-size:13px;font-weight:700;color:' + pnlColor + ';">Total Stress P&amp;L: ' + fmtGBP(gaugeData.stress_pnl) + '</span>' +
-                    '<button data-gaugeid="' + gaugeData.gauge_id + '" class="ps-detail-btn" style="padding:3px 10px;font-size:10px;background:#1976d2;color:white;border:none;border-radius:3px;cursor:pointer;">' +
+                    '<button data-gaugeid="' + gaugeData.gauge_id + '" class="ps-detail-btn" style="padding:3px 10px;font-size:10px;background:var(--accent);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">' +
                     '→ Full Detail ↗' +
                     '</button>' +
                     '</div>' +
@@ -118,7 +118,7 @@
                 if (gaugeData.trades && gaugeData.trades.length > 0) {
                     tradesHtml =
                         '<table style="width:100%;border-collapse:collapse;font-size:10px;">' +
-                        '<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd;">' +
+                        '<thead><tr style="background:var(--sunken);border-bottom:2px solid var(--line-strong);">' +
                         '<th style="padding:5px 8px;text-align:left;">Trade</th>' +
                         '<th style="padding:5px 4px;text-align:center;">Dir</th>' +
                         '<th style="padding:5px 4px;text-align:center;">Trigger</th>' +
@@ -131,13 +131,13 @@
 
                     var totalNotional = 0, totalMtm = 0, totalStress = 0;
                     gaugeData.trades.forEach(function(t) {
-                        var dirColor = t.is_payer ? '#c62828' : '#2e7d32';
-                        var spnlColor = t.stress_pnl >= 0 ? '#2e7d32' : '#c62828';
+                        var dirColor = t.is_payer ? Theme.value('red-dark') : Theme.value('green-dark');
+                        var spnlColor = t.stress_pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
                         totalNotional += t.notional;
                         totalMtm += t.mtm;
                         totalStress += t.stress_pnl;
                         tradesHtml +=
-                            '<tr style="border-bottom:1px solid #f0f0f0;">' +
+                            '<tr style="border-bottom:1px solid var(--code);">' +
                             '<td style="padding:4px 8px;font-family:monospace;font-size:9px;">' + t.swap_id.substring(0, 14) + '</td>' +
                             '<td style="padding:4px 4px;text-align:center;color:' + dirColor + ';font-weight:600;">' + (t.is_payer ? 'Pay' : 'Rcv') + '</td>' +
                             '<td style="padding:4px 4px;text-align:center;font-size:9px;text-transform:capitalize;">' + (t.trigger || '—') + '</td>' +
@@ -150,15 +150,15 @@
                     });
 
                     tradesHtml +=
-                        '<tr style="border-top:2px solid #333;background:#f8f9fa;font-weight:700;">' +
+                        '<tr style="border-top:2px solid var(--text);background:var(--wash);font-weight:700;">' +
                         '<td style="padding:5px 8px;" colspan="4">TOTAL</td>' +
                         '<td style="padding:5px 8px;text-align:right;">' + fmtGBP(totalNotional) + '</td>' +
                         '<td style="padding:5px 8px;text-align:right;">' + gaugeData.p_flood_pct.toFixed(1) + '%</td>' +
-                        '<td style="padding:5px 8px;text-align:right;color:' + (totalMtm >= 0 ? '#2e7d32' : '#c62828') + ';">' + fmtGBP(totalMtm) + '</td>' +
-                        '<td style="padding:5px 8px;text-align:right;color:' + (totalStress >= 0 ? '#2e7d32' : '#c62828') + ';">' + fmtGBP(totalStress) + '</td>' +
+                        '<td style="padding:5px 8px;text-align:right;color:' + (totalMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalMtm) + '</td>' +
+                        '<td style="padding:5px 8px;text-align:right;color:' + (totalStress >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalStress) + '</td>' +
                         '</tr></tbody></table>';
                 } else {
-                    tradesHtml = '<div style="padding:24px;color:#999;text-align:center;">No open trades at this gauge.</div>';
+                    tradesHtml = '<div style="padding:24px;color:var(--muted-2);text-align:center;">No open trades at this gauge.</div>';
                 }
 
                 container.innerHTML = headerHtml + chartHtml + tradesHtml;
@@ -219,8 +219,8 @@
                             {
                                 label: 'Stress P&L',
                                 data: stressPnlSeries,
-                                borderColor: '#1976d2',
-                                backgroundColor: 'rgba(25,118,210,0.08)',
+                                borderColor: Theme.value('accent'),
+                                backgroundColor: Theme.value('chart-fill-accent'),
                                 fill: true,
                                 yAxisID: 'yPnl',
                                 pointRadius: 0,
@@ -230,7 +230,7 @@
                             {
                                 label: 'P(flood) %',
                                 data: pFloodSeries,
-                                borderColor: '#c62828',
+                                borderColor: Theme.value('red-dark'),
                                 backgroundColor: 'transparent',
                                 borderDash: [4, 2],
                                 yAxisID: 'yPflood',
@@ -269,7 +269,7 @@
                                     font: { size: 8 },
                                     callback: function(v) { return fmtGBP(v); }
                                 },
-                                grid: { color: 'rgba(0,0,0,0.06)' }
+                                grid: { color: Theme.value('grid-line') }
                             },
                             yPflood: {
                                 type: 'linear',

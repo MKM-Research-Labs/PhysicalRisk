@@ -95,7 +95,7 @@
 
                 stormSel.innerHTML = '<option value="">Checking classifier...</option>';
                 var tableWrap = document.getElementById('td-stress-table-wrap');
-                if (tableWrap) tableWrap.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">Checking classifier...</div>';
+                if (tableWrap) tableWrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Checking classifier...</div>';
 
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
@@ -127,7 +127,7 @@
                 var tableWrap = document.getElementById('td-stress-table-wrap');
 
                 if (stormSel) stormSel.innerHTML = '<option value="">Loading storms...</option>';
-                if (tableWrap) tableWrap.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">Loading storms...</div>';
+                if (tableWrap) tableWrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Loading storms...</div>';
 
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
@@ -141,7 +141,7 @@
                         } else {
                             if (stormSel) stormSel.innerHTML = '<option value="">No storms: ' + (data.message || 'error') + '</option>';
                             if (tableWrap) tableWrap.innerHTML =
-                                '<div style="color:#c00;text-align:center;padding:40px 0;">' + (data.message || 'No storms found') + '</div>';
+                                '<div style="color:var(--red);text-align:center;padding:40px 0;">' + (data.message || 'No storms found') + '</div>';
                         }
                     })
                     .catch(function(err) {
@@ -218,7 +218,7 @@
                 if (!gaugeId || !stormId) return;
 
                 var tableWrap = document.getElementById('td-stress-table-wrap');
-                if (tableWrap) tableWrap.innerHTML = '<div style="color:#999;text-align:center;padding:40px 0;">Running scenario...</div>';
+                if (tableWrap) tableWrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Running scenario...</div>';
 
                 var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
@@ -238,12 +238,12 @@
                         _tdRenderStressStats(data);
                     } else {
                         if (tableWrap) tableWrap.innerHTML =
-                            '<div style="color:#c00;text-align:center;padding:40px 0;">' + (data.message || 'Error') + '</div>';
+                            '<div style="color:var(--red);text-align:center;padding:40px 0;">' + (data.message || 'Error') + '</div>';
                     }
                 })
                 .catch(function(err) {
                     console.error('[Stress] Run error:', err);
                     if (tableWrap) tableWrap.innerHTML =
-                        '<div style="color:#c00;text-align:center;padding:40px 0;">Error running stress scenario</div>';
+                        '<div style="color:var(--red);text-align:center;padding:40px 0;">Error running stress scenario</div>';
                 });
             }

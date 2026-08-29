@@ -128,11 +128,19 @@ def _without_comments(text: str, suffix: str) -> str:
     return text
 
 
+#: A colour built from variables rather than written down — ``'hsl(' + hue + ',' …``.
+#: The curve chart spreads hues evenly across however many gauges are on screen, which
+#: is generated colour, not a hardcoded one: there is no value here for config to own.
+_COMPUTED_COLOUR = re.compile(r"\b(?:rgba?|hsla?)\(\s*'\s*\+|\+\s*'\s*\)")
+
+
 def scan_text(text: str, path: str, suffix: str) -> dict:
     """The literals and undefined token references in one file's text."""
     literals, undefined = [], []
     clean = _without_comments(text, suffix)
     for number, line in enumerate(clean.splitlines(), start=1):
+        if _COMPUTED_COLOUR.search(line):
+            continue
         for match in _COLOUR.finditer(line):
             literals.append({"path": path, "line": number,
                              "snippet": match.group(0).rstrip("(").strip()})

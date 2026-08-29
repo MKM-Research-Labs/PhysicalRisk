@@ -29,7 +29,7 @@
                 // Summary header bar
                 var summaryBar = document.createElement('div');
                 summaryBar.id = 'td-client-summary-bar';
-                summaryBar.style.cssText = 'display:flex;gap:20px;padding:10px 16px;background:#f0f4f8;border-bottom:1px solid #e0e0e0;align-items:center;flex-wrap:wrap;';
+                summaryBar.style.cssText = 'display:flex;gap:20px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap;';
                 view.appendChild(summaryBar);
 
                 // Scrollable table container
@@ -78,30 +78,30 @@
                     if (t.spread_bps > 0) { totalSpread += t.spread_bps; spreadCount++; }
                 }
                 var avgSpread = spreadCount > 0 ? (totalSpread / spreadCount).toFixed(1) : '0.0';
-                var npvColor = totalNpv >= 0 ? '#2e7d32' : '#c62828';
+                var npvColor = totalNpv >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
 
                 bar.innerHTML =
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Client Trades</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Client Trades</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + numTrades + '</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Notional Sold</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Notional Sold</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + fmtGBP(totalNotional) + '</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Avg Spread</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Avg Spread</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + avgSpread + ' bps</span>' +
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Property Value Covered</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Property Value Covered</span>' +
                         '<span style="font-size:16px;font-weight:bold;">' + fmtGBP(totalPropValue) + '</span>' +
                     '</div>' +
-                    '<div style="width:1px;height:30px;background:#ccc;"></div>' +
+                    '<div style="width:1px;height:30px;background:var(--divider);"></div>' +
                     '<div style="display:flex;flex-direction:column;align-items:center;">' +
-                        '<span style="font-size:10px;color:#888;text-transform:uppercase;">Total NPV</span>' +
+                        '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;">Total NPV</span>' +
                         '<span style="font-size:18px;font-weight:bold;color:' + npvColor + ';">' + fmtGBP(totalNpv) + '</span>' +
                     '</div>' +
                     '<div style="flex:1;"></div>' +
-                    '<div style="font-size:10px;color:#78909c;font-style:italic;">Client Property PRS \u2014 Trader\u2019s Book</div>';
+                    '<div style="font-size:10px;color:var(--blue-grey-light);font-style:italic;">Client Property PRS \u2014 Trader\u2019s Book</div>';
             }

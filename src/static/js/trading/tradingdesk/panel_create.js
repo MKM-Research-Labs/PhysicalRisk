@@ -41,7 +41,7 @@
                             btn.title = "Trader's Workstation";
                             btn.setAttribute('role', 'button');
                             btn.innerHTML = '<span style="font-size:18px;font-weight:bold;font-family:serif;">&Pi;</span>';
-                            btn.style.cssText = 'display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:white;';
+                            btn.style.cssText = 'display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:var(--panel);';
 
                             L.DomEvent.disableClickPropagation(container);
                             L.DomEvent.on(btn, 'click', function(e) {
@@ -70,8 +70,8 @@
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
                     'max-width:1400px;max-height:900px;min-width:600px;min-height:400px;' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;' +
                     'resize:both;overflow:hidden;';
 
@@ -79,7 +79,7 @@
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var leftHeader = document.createElement('div');
@@ -87,14 +87,14 @@
 
                 var piIcon = document.createElement('span');
                 piIcon.innerHTML = '&Pi;';
-                piIcon.style.cssText = 'font-size:22px;font-weight:bold;font-family:serif;color:#1565c0;';
+                piIcon.style.cssText = 'font-size:22px;font-weight:bold;font-family:serif;color:var(--accent-mid);';
 
                 var title = document.createElement('span');
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
                 title.textContent = "Trader's Workstation";
 
                 var toggleWrap = document.createElement('div');
-                toggleWrap.style.cssText = 'display:flex;border:1px solid #ddd;border-radius:4px;overflow:hidden;';
+                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;';
 
                 var tabs = [
                     {id: 'client', label: 'Client'},
@@ -114,7 +114,7 @@
                     btn.id = 'td-tab-' + tab.id;
                     btn.textContent = tab.label;
                     btn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;font-weight:600;' +
-                        (tab.id === 'blotter' ? 'background:#1976d2;color:white;' : 'background:#f5f5f5;color:#555;');
+                        (tab.id === 'blotter' ? 'background:var(--accent);color:var(--inverse);' : 'background:var(--sunken);color:var(--text-2);');
                     btn.onclick = function() { switchTab(tab.id); };
                     toggleWrap.appendChild(btn);
                 });
@@ -126,7 +126,7 @@
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
-                    'border:none;background:none;font-size:24px;cursor:pointer;color:#666;padding:0 8px;line-height:1;';
+                    'border:none;background:none;font-size:24px;cursor:pointer;color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 header.appendChild(leftHeader);
@@ -147,7 +147,7 @@
                 // Stats bar
                 var statsBar = document.createElement('div');
                 statsBar.id = 'td-stats-bar';
-                statsBar.style.cssText = 'padding:6px 16px;border-top:1px solid #eee;font-size:10px;color:#999;background:#f9f9f9;border-radius:0 0 8px 8px;text-align:right;';
+                statsBar.style.cssText = 'padding:6px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--muted-2);background:var(--control);border-radius:0 0 8px 8px;text-align:right;';
                 statsBar.textContent = 'MKM Research Labs \u2014 Physical Risk Trading Desk';
 
                 tdPanel.appendChild(header);

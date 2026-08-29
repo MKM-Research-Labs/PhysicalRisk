@@ -26,14 +26,14 @@
                 var latest = tdEodHistory && tdEodHistory.length > 0 ? tdEodHistory[0] : null;
 
                 if (!latest) {
-                    cards.innerHTML = '<span style="font-size:12px;color:#aaa;">No EOD snapshots yet. Click EOD Submit to generate.</span>';
+                    cards.innerHTML = '<span style="font-size:12px;color:var(--disabled);">No EOD snapshots yet. Click EOD Submit to generate.</span>';
                     return;
                 }
 
                 function card(label, value, color) {
-                    return '<div style="background:#f5f5f5;border-radius:6px;padding:8px 16px;min-width:120px;text-align:center;">' +
-                        '<div style="font-size:9px;color:#888;text-transform:uppercase;">' + label + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:' + (color || '#333') + ';">' + value + '</div>' +
+                    return '<div style="background:var(--sunken);border-radius:6px;padding:8px 16px;min-width:120px;text-align:center;">' +
+                        '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;">' + label + '</div>' +
+                        '<div style="font-size:16px;font-weight:700;color:' + (color || 'var(--text)') + ';">' + value + '</div>' +
                     '</div>';
                 }
 
@@ -41,8 +41,8 @@
                 var live = tdLiveSummary || {};
                 var dailyPnl = live.total_daily_pnl != null ? live.total_daily_pnl : latest.total_daily_pnl;
                 var runPnl = live.total_running_pnl != null ? live.total_running_pnl : latest.total_running_pnl;
-                var dailyColor = dailyPnl >= 0 ? '#2e7d32' : '#c62828';
-                var runColor = runPnl >= 0 ? '#2e7d32' : '#c62828';
+                var dailyColor = dailyPnl >= 0 ? Theme.value('gain') : Theme.value('loss');
+                var runColor = runPnl >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                 cards.innerHTML =
                     card('Last EOD', latest.date || '\u2014') +
@@ -56,16 +56,16 @@
                 var wrap = document.getElementById('td-eod-history-wrap');
                 if (!wrap) return;
 
-                var html = '<div style="font-size:11px;font-weight:600;color:#555;padding:4px 8px;margin-bottom:4px;">EOD History (' + (tdEodHistory ? tdEodHistory.length : 0) + ' days)</div>';
+                var html = '<div style="font-size:11px;font-weight:600;color:var(--text-2);padding:4px 8px;margin-bottom:4px;">EOD History (' + (tdEodHistory ? tdEodHistory.length : 0) + ' days)</div>';
 
                 if (!tdEodHistory || tdEodHistory.length === 0) {
-                    html += '<div style="color:#aaa;font-size:11px;padding:8px;">No snapshots yet.</div>';
+                    html += '<div style="color:var(--disabled);font-size:11px;padding:8px;">No snapshots yet.</div>';
                     wrap.innerHTML = html;
                     return;
                 }
 
                 html += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
-                html += '<tr style="background:#eceff1;">' +
+                html += '<tr style="background:var(--blue-grey-bg);">' +
                     '<th style="padding:4px 6px;text-align:left;">Date</th>' +
                     '<th style="padding:4px 6px;text-align:right;">Trades</th>' +
                     '<th style="padding:4px 6px;text-align:right;">Daily P&L</th>' +
@@ -74,18 +74,18 @@
 
                 for (var i = 0; i < tdEodHistory.length; i++) {
                     var e = tdEodHistory[i];
-                    var dColor = e.total_daily_pnl >= 0 ? '#2e7d32' : '#c62828';
-                    var rColor = e.total_running_pnl >= 0 ? '#2e7d32' : '#c62828';
-                    var bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+                    var dColor = e.total_daily_pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
+                    var rColor = e.total_running_pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
+                    var bg = i % 2 === 0 ? Theme.value('panel') : Theme.value('wash');
 
                     var pdfBtn = '';
                     if (e.has_pdf) {
                         pdfBtn = '<button onclick="event.stopPropagation();tdDownloadEodPdf(\'' + e.date + '\')" ' +
-                            'style="padding:1px 4px;font-size:9px;background:none;border:1px solid #90a4ae;border-radius:3px;cursor:pointer;color:#546e7a;" ' +
+                            'style="padding:1px 4px;font-size:9px;background:none;border:1px solid var(--blue-grey-pale);border-radius:3px;cursor:pointer;color:var(--blue-grey-dark);" ' +
                             'title="Download EOD PDF">\u2193</button>';
                     }
 
-                    html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">' +
+                    html += '<tr style="background:' + bg + ';border-bottom:1px solid var(--line-soft);">' +
                         '<td style="padding:4px 6px;">' + e.date + '</td>' +
                         '<td style="padding:4px 6px;text-align:right;">' + e.num_open_trades + '</td>' +
                         '<td style="padding:4px 6px;text-align:right;color:' + dColor + ';">' + fmtGBP(e.total_daily_pnl) + '</td>' +
@@ -103,7 +103,7 @@
                 if (!wrap) return;
 
                 if (!tdEodPnlSeries || tdEodPnlSeries.length === 0) {
-                    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:12px;">P&L chart will appear after EOD submissions.</div>';
+                    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--disabled);font-size:12px;">P&L chart will appear after EOD submissions.</div>';
                     return;
                 }
 
@@ -120,7 +120,7 @@
 
                 var labels = tdEodPnlSeries.map(function(d) { return d.date; });
                 var dailyPnl = tdEodPnlSeries.map(function(d) { return d.daily_pnl; });
-                var dailyColors = dailyPnl.map(function(v) { return v >= 0 ? 'rgba(46,125,50,0.8)' : 'rgba(198,40,40,0.8)'; });
+                var dailyColors = dailyPnl.map(function(v) { return v >= 0 ? Theme.value('gain-fill') : Theme.value('loss-fill'); });
 
                 tdEodChart = new Chart(canvas.getContext('2d'), {
                     type: 'bar',
@@ -153,7 +153,7 @@
                         scales: {
                             y: {
                                 title: {display: true, text: 'GBP'},
-                                grid: {color: '#eee'},
+                                grid: {color: Theme.value('line-soft')},
                                 ticks: {
                                     callback: function(val) { return fmtGBP(val); }
                                 }
@@ -181,7 +181,7 @@
 
                 // P&L Attribution breakdown
                 html += '<div style="flex:1;">';
-                html += '<div style="font-weight:700;color:#555;margin-bottom:6px;font-size:11px;">P&L Attribution</div>';
+                html += '<div style="font-weight:700;color:var(--text-2);margin-bottom:6px;font-size:11px;">P&L Attribution</div>';
                 html += '<table style="width:100%;border-collapse:collapse;">';
 
                 var fromTrades = live.daily_pnl_from_trades || 0;
@@ -189,22 +189,22 @@
                 var totalDaily = live.total_daily_pnl || 0;
 
                 function attrRow(label, val) {
-                    var c = val >= 0 ? '#2e7d32' : '#c62828';
-                    return '<tr style="border-bottom:1px solid #f0f0f0;">' +
-                        '<td style="padding:3px 6px;color:#666;">' + label + '</td>' +
+                    var c = val >= 0 ? Theme.value('gain') : Theme.value('loss');
+                    return '<tr style="border-bottom:1px solid var(--code);">' +
+                        '<td style="padding:3px 6px;color:var(--text-3);">' + label + '</td>' +
                         '<td style="padding:3px 6px;text-align:right;font-weight:600;color:' + c + ';">' + fmtGBP(val) + '</td></tr>';
                 }
 
                 html += attrRow('New Trades', fromTrades);
                 html += attrRow('Market Moves', fromMarket);
-                html += '<tr style="border-top:2px solid #1565c0;font-weight:700;">' +
+                html += '<tr style="border-top:2px solid var(--accent-mid);font-weight:700;">' +
                     '<td style="padding:3px 6px;">Total Daily</td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:' + (totalDaily >= 0 ? '#2e7d32' : '#c62828') + ';">' + fmtGBP(totalDaily) + '</td></tr>';
+                    '<td style="padding:3px 6px;text-align:right;color:' + (totalDaily >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalDaily) + '</td></tr>';
                 html += '</table></div>';
 
                 // Top trades by running P&L (use blotter-loaded data if available)
                 html += '<div style="flex:1;">';
-                html += '<div style="font-weight:700;color:#555;margin-bottom:6px;font-size:11px;">Top Trades (Running P&L)</div>';
+                html += '<div style="font-weight:700;color:var(--text-2);margin-bottom:6px;font-size:11px;">Top Trades (Running P&L)</div>';
 
                 if (tdBlotterData && tdBlotterData.length > 0) {
                     var sorted = tdBlotterData.slice().sort(function(a, b) {
@@ -212,21 +212,21 @@
                     });
                     var top5 = sorted.slice(0, 5);
                     html += '<table style="width:100%;border-collapse:collapse;">';
-                    html += '<tr style="color:#999;"><td style="padding:2px 4px;">Trade</td><td style="padding:2px 4px;">Gauge</td><td style="padding:2px 4px;text-align:right;">P&L</td></tr>';
+                    html += '<tr style="color:var(--muted-2);"><td style="padding:2px 4px;">Trade</td><td style="padding:2px 4px;">Gauge</td><td style="padding:2px 4px;text-align:right;">P&L</td></tr>';
                     for (var ti = 0; ti < top5.length; ti++) {
                         var tt = top5[ti];
                         var pnl = tt.running_pnl || tt.mtm || 0;
-                        var tc = pnl >= 0 ? '#2e7d32' : '#c62828';
+                        var tc = pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
                         var shortId = (tt.swap_id || '').slice(-8);
                         var gName = tt.gauge_name || tt.gauge_id || '';
-                        html += '<tr style="border-bottom:1px solid #f0f0f0;">' +
-                            '<td style="padding:2px 4px;color:#1565c0;font-family:monospace;">' + shortId + '</td>' +
-                            '<td style="padding:2px 4px;color:#666;">' + gName + '</td>' +
+                        html += '<tr style="border-bottom:1px solid var(--code);">' +
+                            '<td style="padding:2px 4px;color:var(--accent-mid);font-family:monospace;">' + shortId + '</td>' +
+                            '<td style="padding:2px 4px;color:var(--text-3);">' + gName + '</td>' +
                             '<td style="padding:2px 4px;text-align:right;font-weight:600;color:' + tc + ';">' + fmtGBP(pnl) + '</td></tr>';
                     }
                     html += '</table>';
                 } else {
-                    html += '<span style="color:#aaa;">Load blotter tab for trade data</span>';
+                    html += '<span style="color:var(--disabled);">Load blotter tab for trade data</span>';
                 }
                 html += '</div>';
                 html += '</div>';

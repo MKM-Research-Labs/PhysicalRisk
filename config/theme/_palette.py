@@ -105,6 +105,7 @@ TEXT = {
     "text-4": "#777777",
     "faint": "#bbbbbb",
     "inverse": "#ffffff",
+    "black": "#000000",
 }
 
 # --- Red / Amber / Green is this platform's risk vocabulary, not a colour choice. -
@@ -118,6 +119,7 @@ RAG = {
     "green-bright": "#4caf50",
     "green-deep": "#1b5e20",
     "green-soft": "#66bb6a",
+    "green-pale": "#a5d6a7",
     "amber": "#f57c00",
     "amber-deep": "#e65100",
     "amber-bright": "#ff9800",
@@ -129,6 +131,7 @@ RAG = {
     "red-deep": "#b71c1c",
     "red-alt": "#e53935",
     "red-soft": "#ef5350",
+    "red-pale": "#ff8a80",
     "grey": "#9e9e9e",
 }
 

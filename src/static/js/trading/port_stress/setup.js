@@ -32,19 +32,19 @@
                 // Storm selector bar
                 var stormBar = document.createElement('div');
                 stormBar.id = 'ps-storm-bar';
-                stormBar.style.cssText = 'padding:8px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;background:#f5f7fa;flex-shrink:0;';
+                stormBar.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;background:var(--header-from);flex-shrink:0;';
                 stormBar.innerHTML =
-                    '<span style="font-size:11px;font-weight:600;color:#333;">Storm:</span>' +
-                    '<select id="ps-storm-sel" style="padding:4px 8px;font-size:11px;border:1px solid #ccc;border-radius:3px;min-width:380px;">' +
+                    '<span style="font-size:11px;font-weight:600;color:var(--text);">Storm:</span>' +
+                    '<select id="ps-storm-sel" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:3px;min-width:380px;">' +
                     '<option value="">Loading storms…</option>' +
                     '</select>' +
                     '__PCT_HTML__' +
-                    '<span id="ps-storm-info" style="flex:1;font-size:10px;color:#666;"></span>';
+                    '<span id="ps-storm-info" style="flex:1;font-size:10px;color:var(--text-3);"></span>';
                 view.appendChild(stormBar);
 
                 // Sub-tab bar
                 var subTabBar = document.createElement('div');
-                subTabBar.style.cssText = 'display:flex;gap:0;border-bottom:1px solid #ddd;background:#f8f9fa;flex-shrink:0;';
+                subTabBar.style.cssText = 'display:flex;gap:0;border-bottom:1px solid var(--line-strong);background:var(--wash);flex-shrink:0;';
 
                 var subTabs = [
                     {id: 'pflood',     label: 'P(flood)'},
@@ -60,7 +60,7 @@
                     var isActive = st.id === psActiveSubTab;
                     btn.style.cssText =
                         'padding:5px 16px;font-size:10px;font-weight:600;border:none;cursor:pointer;border-bottom:2px solid transparent;' +
-                        (isActive ? 'background:#1976d2;color:white;border-bottom-color:#1976d2;' : 'background:#f5f5f5;color:#555;');
+                        (isActive ? 'background:var(--accent);color:var(--inverse);border-bottom-color:var(--accent);' : 'background:var(--sunken);color:var(--text-2);');
                     btn.addEventListener('click', (function(tabId) {
                         return function() { psSwitchSubTab(tabId); };
                     })(st.id));
@@ -73,13 +73,13 @@
                 contentDiv.id = 'ps-content';
                 contentDiv.style.cssText = 'flex:1;overflow:hidden;display:flex;flex-direction:column;';
                 contentDiv.innerHTML =
-                    '<div style="color:#999;text-align:center;padding:40px 0;">Select a storm to run portfolio stress assessment</div>';
+                    '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Select a storm to run portfolio stress assessment</div>';
                 view.appendChild(contentDiv);
 
                 // Stats bar
                 var statsBar = document.createElement('div');
                 statsBar.id = 'ps-stats-bar';
-                statsBar.style.cssText = 'padding:6px 16px;border-top:1px solid #eee;font-size:10px;color:#666;background:#f9f9f9;flex-shrink:0;';
+                statsBar.style.cssText = 'padding:6px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--text-3);background:var(--control);flex-shrink:0;';
                 statsBar.textContent = 'MKM Research Labs — Portfolio Stress Assessment';
                 view.appendChild(statsBar);
 
@@ -143,7 +143,7 @@
                 var content = document.getElementById('ps-content');
                 if (content) {
                     content.innerHTML =
-                        '<div style="color:#999;text-align:center;padding:40px 0;">Running portfolio stress…</div>';
+                        '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Running portfolio stress…</div>';
                 }
 
                 var cfg = window.__BACKEND_CONFIG || {};
@@ -177,7 +177,7 @@
                     } else {
                         if (content) {
                             content.innerHTML =
-                                '<div style="color:#c00;text-align:center;padding:40px 0;">' +
+                                '<div style="color:var(--red);text-align:center;padding:40px 0;">' +
                                 (data.message || 'Error running portfolio stress') +
                                 '</div>';
                         }
@@ -187,7 +187,7 @@
                     console.error('[PortStress] Run error:', err);
                     if (content) {
                         content.innerHTML =
-                            '<div style="color:#c00;text-align:center;padding:40px 0;">Network error running portfolio stress</div>';
+                            '<div style="color:var(--red);text-align:center;padding:40px 0;">Network error running portfolio stress</div>';
                     }
                 });
             }
@@ -200,11 +200,11 @@
                     var btn = document.getElementById('ps-tab-' + id);
                     if (btn) {
                         if (id === tab) {
-                            btn.style.background = '#1976d2';
+                            btn.style.background = 'var(--accent)';
                             btn.style.color = 'white';
                         } else {
-                            btn.style.background = '#f5f5f5';
-                            btn.style.color = '#555';
+                            btn.style.background = 'var(--sunken)';
+                            btn.style.color = 'var(--text-2)';
                         }
                     }
                 });
@@ -223,16 +223,16 @@
                 var statsBar = document.getElementById('ps-stats-bar');
                 if (!statsBar) return;
                 var pnl = result.portfolio_stress_pnl || 0;
-                var pnlColor = pnl >= 0 ? '#2e7d32' : '#c62828';
+                var pnlColor = pnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                 statsBar.innerHTML =
                     '<span style="margin-right:20px;">Portfolio Stress P&amp;L: ' +
                     '<b style="color:' + pnlColor + ';">' + fmtGBP(pnl) + '</b></span>' +
                     '<span style="margin-right:20px;">Gauges: ' +
-                    '<b style="color:#c62828;">' + (result.gauges_severe || []).length + ' severe</b>' +
+                    '<b style="color:var(--red-dark);">' + (result.gauges_severe || []).length + ' severe</b>' +
                     ' &nbsp;' +
-                    '<b style="color:#e65100;">' + (result.gauges_warning || []).length + ' warning</b>' +
+                    '<b style="color:var(--amber-deep);">' + (result.gauges_warning || []).length + ' warning</b>' +
                     ' &nbsp;' +
-                    '<b style="color:#f9a825;">' + (result.gauges_alert || []).length + ' alert</b>' +
+                    '<b style="color:var(--gold-deep);">' + (result.gauges_alert || []).length + ' alert</b>' +
                     '</span>';
             }
 

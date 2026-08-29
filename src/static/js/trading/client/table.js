@@ -45,7 +45,7 @@
                 var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
 
                 // Header
-                html += '<thead><tr style="background:#0d47a1;color:white;position:sticky;top:0;z-index:1;">';
+                html += '<thead><tr style="background:var(--accent-ink);color:var(--inverse);position:sticky;top:0;z-index:1;">';
                 for (var c = 0; c < cols.length; c++) {
                     var align = c > 5 ? 'right' : 'left';
                     html += '<th style="padding:6px 8px;text-align:' + align + ';font-weight:600;white-space:nowrap;">' + cols[c].label + '</th>';
@@ -55,10 +55,10 @@
                 // Rows
                 for (var i = 0; i < trades.length; i++) {
                     var t = trades[i];
-                    var bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+                    var bg = i % 2 === 0 ? 'var(--panel)' : 'var(--wash)';
 
-                    html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;" ' +
-                        'onmouseenter="this.style.background=\'#e3f2fd\'" ' +
+                    html += '<tr style="background:' + bg + ';border-bottom:1px solid var(--line-soft);" ' +
+                        'onmouseenter="this.style.background=\'var(--accent-soft)\'" ' +
                         'onmouseleave="this.style.background=\'' + bg + '\'">';
 
                     for (var c = 0; c < cols.length; c++) {
@@ -66,25 +66,25 @@
                         var val = t[col.key];
                         var align = c > 5 ? 'right' : 'left';
                         var display = '';
-                        var color = '#333';
+                        var color = 'var(--text)';
 
                         if (col.key === '_property_label') {
                             display = window.propertyDisplayName(t.property_id, t.property_address);
                         } else if (col.key === 'direction') {
                             // Trader is always receiver on PropertyPRS
-                            display = '<span style="font-weight:bold;color:#2e7d32;">Rcv</span>';
+                            display = '<span style="font-weight:bold;color:var(--green-dark);">Rcv</span>';
                         } else if (col.fmt === 'variant') {
                             // Pure (surveyed floor) vs resilient (BRI-adjusted).
                             var isResilient = (val === 'resilient');
-                            var vBg = isResilient ? '#EDE7F6' : '#E3F2FD';
-                            var vFg = isResilient ? '#4527A0' : '#1565C0';
+                            var vBg = isResilient ? 'var(--product-bg)' : 'var(--accent-soft)';
+                            var vFg = isResilient ? 'var(--product-ink)' : 'var(--accent-mid)';
                             var vLbl = isResilient ? 'Resilient' : 'Pure';
                             display = '<span style="background:' + vBg + ';color:' + vFg +
                                 ';padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;">' +
                                 vLbl + '</span>';
                         } else if (col.fmt === 'hedge') {
                             display = val != null ? val.toFixed(1) + '%' : '\u2014';
-                            color = val >= 100 ? '#2e7d32' : (val > 0 ? '#f57c00' : '#999');
+                            color = val >= 100 ? 'var(--green-dark)' : (val > 0 ? 'var(--amber)' : 'var(--muted-2)');
                         } else if (col.fmt === 'gbp') {
                             display = fmtGBP(val);
                         } else if (col.fmt === 'bps') {
@@ -92,10 +92,10 @@
                         } else if (col.fmt === 'mat') {
                             display = fmtMaturity(val);
                         } else if (col.fmt === 'dv01') {
-                            color = val > 0 ? '#1565c0' : (val < 0 ? '#c62828' : '#333');
+                            color = val > 0 ? 'var(--accent-mid)' : (val < 0 ? 'var(--red-dark)' : 'var(--text)');
                             display = fmtGBP(val);
                         } else if (col.fmt === 'pnl') {
-                            color = val >= 0 ? '#2e7d32' : '#c62828';
+                            color = val >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                             display = fmtGBP(val);
                         } else {
                             display = val != null ? String(val) : '\u2014';
@@ -107,12 +107,12 @@
                 }
 
                 if (trades.length === 0) {
-                    html += '<tr><td colspan="' + cols.length + '" style="padding:20px;text-align:center;color:#999;">No property PRS trades found</td></tr>';
+                    html += '<tr><td colspan="' + cols.length + '" style="padding:20px;text-align:center;color:var(--muted-2);">No property PRS trades found</td></tr>';
                 }
 
                 // Totals row
                 if (trades.length > 0) {
-                    html += '</tbody><tfoot><tr style="background:#e8eaf6;border-top:2px solid #0d47a1;font-weight:700;position:sticky;bottom:0;z-index:1;">';
+                    html += '</tbody><tfoot><tr style="background:var(--info-bg);border-top:2px solid var(--accent-ink);font-weight:700;position:sticky;bottom:0;z-index:1;">';
                     var totNotional = 0, totNpv = 0, totFs01 = 0, totSpread = 0, totPropVal = 0, spreadCnt = 0;
                     for (var si = 0; si < trades.length; si++) {
                         var st = trades[si];
@@ -129,14 +129,14 @@
                         var fcol = cols[fc];
                         var fAlign = fc > 5 ? 'right' : 'left';
                         var fVal = '';
-                        var fColor = '#333';
+                        var fColor = 'var(--text)';
                         if (fcol.key === 'swap_id') { fVal = 'Total'; }
                         else if (fcol.key === 'property_value') { fVal = fmtGBP(totPropVal); }
                         else if (fcol.key === 'notional') { fVal = fmtGBP(totNotional); }
-                        else if (fcol.key === 'hedge_ratio') { fVal = totHedge.toFixed(1) + '%'; fColor = totHedge >= 100 ? '#2e7d32' : '#f57c00'; }
-                        else if (fcol.key === 'spread_bps') { fVal = avgSpread.toFixed(1); fColor = '#666'; }
-                        else if (fcol.key === 'gauge_fs01') { fColor = totFs01 > 0 ? '#1565c0' : (totFs01 < 0 ? '#c62828' : '#333'); fVal = fmtGBP(totFs01); }
-                        else if (fcol.key === 'npv') { fColor = totNpv >= 0 ? '#2e7d32' : '#c62828'; fVal = fmtGBP(totNpv); }
+                        else if (fcol.key === 'hedge_ratio') { fVal = totHedge.toFixed(1) + '%'; fColor = totHedge >= 100 ? 'var(--green-dark)' : 'var(--amber)'; }
+                        else if (fcol.key === 'spread_bps') { fVal = avgSpread.toFixed(1); fColor = 'var(--text-3)'; }
+                        else if (fcol.key === 'gauge_fs01') { fColor = totFs01 > 0 ? 'var(--accent-mid)' : (totFs01 < 0 ? 'var(--red-dark)' : 'var(--text)'); fVal = fmtGBP(totFs01); }
+                        else if (fcol.key === 'npv') { fColor = totNpv >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totNpv); }
                         html += '<td style="padding:6px 8px;text-align:' + fAlign + ';color:' + fColor + ';white-space:nowrap;font-size:11px;">' + fVal + '</td>';
                     }
                     html += '</tr></tfoot>';

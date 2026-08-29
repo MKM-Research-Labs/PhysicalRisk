@@ -79,9 +79,9 @@ class TestPortStressSeverityTab:
         assert 'CLEAN' in ps_js
 
     def test_severity_severe_colour(self, ps_js):
-        """Severe group must use the #ffebee background colour."""
-        assert ps_js.lower().find('#ffebee') >= 0, \
-            "Severe group must use #ffebee background"
+        """Severe group must use the danger background tint."""
+        assert 'var(--danger-bg-soft)' in ps_js, \
+            "Severe group must use the danger background tint"
 
     def test_severity_gauge_pnl_link(self, ps_js):
         """Severity rows must navigate to Gauge P&L sub-tab via psSwitchSubTab."""

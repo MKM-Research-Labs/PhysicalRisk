@@ -23,30 +23,30 @@
             window.tdShowPLHistory = function() {
                 var overlay = document.createElement('div');
                 overlay.id = 'td-plhist-overlay';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9000;display:flex;align-items:center;justify-content:center;';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--scrim);z-index:9000;display:flex;align-items:center;justify-content:center;';
                 overlay.addEventListener('click', function(e) {
                     if (e.target === overlay) tdClosePLHistory();
                 });
 
                 var modal = document.createElement('div');
-                modal.style.cssText = 'background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.25);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
+                modal.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
 
                 // Header
                 var header = document.createElement('div');
-                header.style.cssText = 'display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #eee;background:#f8f9fa;flex-shrink:0;';
+                header.style.cssText = 'display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
                 header.innerHTML =
-                    '<span style="font-size:14px;font-weight:700;color:#333;">P&amp;L History</span>' +
-                    '<span style="margin:0 10px;color:#aaa;">|</span>' +
-                    '<span style="font-size:12px;color:#555;">Daily P&amp;L with market move vs trade components</span>' +
+                    '<span style="font-size:14px;font-weight:700;color:var(--text);">P&amp;L History</span>' +
+                    '<span style="margin:0 10px;color:var(--disabled);">|</span>' +
+                    '<span style="font-size:12px;color:var(--text-2);">Daily P&amp;L with market move vs trade components</span>' +
                     '<span style="flex:1;"></span>' +
-                    '<button onclick="tdClosePLHistory()" style="padding:4px 12px;font-size:11px;background:#78909c;color:white;border:none;border-radius:3px;cursor:pointer;">Close</button>';
+                    '<button onclick="tdClosePLHistory()" style="padding:4px 12px;font-size:11px;background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">Close</button>';
                 modal.appendChild(header);
 
                 // Stats bar
                 var statsRow = document.createElement('div');
                 statsRow.id = 'td-plhist-stats';
-                statsRow.style.cssText = 'display:flex;gap:24px;padding:8px 20px;border-bottom:1px solid #eee;background:#fafafa;font-size:11px;color:#555;flex-shrink:0;';
-                statsRow.innerHTML = '<span style="color:#aaa;">Loading…</span>';
+                statsRow.style.cssText = 'display:flex;gap:24px;padding:8px 20px;border-bottom:1px solid var(--line-soft);background:var(--raised);font-size:11px;color:var(--text-2);flex-shrink:0;';
+                statsRow.innerHTML = '<span style="color:var(--disabled);">Loading…</span>';
                 modal.appendChild(statsRow);
 
                 // Chart body
@@ -65,14 +65,14 @@
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status !== 'success' || !result.series || result.series.length === 0) {
-                            body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:#c62828;font-size:13px;">No P&L history available — run EOD first</span></div>';
+                            body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:13px;">No P&L history available — run EOD first</span></div>';
                             statsRow.innerHTML = '';
                             return;
                         }
                         tdBuildPLHistChart(body, statsRow, result.series);
                     })
                     .catch(function(err) {
-                        body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:#c62828;font-size:13px;">Error: ' + err.message + '</span></div>';
+                        body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:13px;">Error: ' + err.message + '</span></div>';
                     });
             };
 
@@ -102,16 +102,16 @@
 
                 statsRow.innerHTML =
                     '<span>Running P&amp;L: <strong>' + fmtGBP(finalPnl) + '</strong></span>' +
-                    '<span style="color:#2e7d32;">▲ Positive days: <strong>' + positiveDays + '</strong></span>' +
-                    '<span style="color:#c62828;">▼ Negative days: <strong>' + negativeDays + '</strong></span>' +
+                    '<span style="color:var(--green-dark);">▲ Positive days: <strong>' + positiveDays + '</strong></span>' +
+                    '<span style="color:var(--red-dark);">▼ Negative days: <strong>' + negativeDays + '</strong></span>' +
                     '<span>Curve move P&amp;L: <strong>' + fmtGBP(totalMktMove) + '</strong></span>' +
-                    '<span style="color:#999;">' + series.length + ' trading days</span>';
+                    '<span style="color:var(--muted-2);">' + series.length + ' trading days</span>';
 
                 var canvas = document.getElementById('td-plhist-canvas');
                 if (!canvas || typeof Chart === 'undefined') return;
 
-                var barBg     = dailyPnl.map(function(v) { return v >= 0 ? 'rgba(46,125,50,0.65)' : 'rgba(198,40,40,0.65)'; });
-                var barBorder = dailyPnl.map(function(v) { return v >= 0 ? '#2e7d32' : '#c62828'; });
+                var barBg     = dailyPnl.map(function(v) { return v >= 0 ? Theme.value('gain-fill') : Theme.value('loss-fill'); });
+                var barBorder = dailyPnl.map(function(v) { return v >= 0 ? Theme.value('gain') : Theme.value('loss'); });
 
                 try {
                     tdPLHistChart = new Chart(canvas.getContext('2d'), {
@@ -133,7 +133,7 @@
                                     type: 'line',
                                     label: 'Market Move Component',
                                     data: fromMarket,
-                                    borderColor: '#f57c00',
+                                    borderColor: Theme.value('amber'),
                                     backgroundColor: 'transparent',
                                     borderWidth: 1.5,
                                     borderDash: [5, 3],
@@ -147,7 +147,7 @@
                                     type: 'line',
                                     label: 'Running P&L',
                                     data: runningPnl,
-                                    borderColor: '#1b5e20',
+                                    borderColor: Theme.value('green-deep'),
                                     backgroundColor: 'transparent',
                                     borderWidth: 2,
                                     pointRadius: 0,
@@ -168,7 +168,7 @@
                                     display: true,
                                     text: 'Daily P⁠&⁠L — bars = daily total, orange line = curve move component, green line = running P⁠&⁠L',
                                     font: {size: 11},
-                                    color: '#555',
+                                    color: Theme.value('text-2'),
                                     padding: {bottom: 6}
                                 },
                                 legend: {
@@ -210,6 +210,6 @@
                     });
                 } catch(e) {
                     console.error('[PLHist] Chart error:', e);
-                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:#c62828;font-size:12px;">Chart error: ' + e.message + '</span></div>';
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:12px;">Chart error: ' + e.message + '</span></div>';
                 }
             }

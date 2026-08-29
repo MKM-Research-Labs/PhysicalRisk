@@ -30,7 +30,7 @@
                 var stressPnls = hourly.map(function(h) { return h.portfolio_stress_pnl; });
 
                 var barColors = stressPnls.map(function(v) {
-                    return v >= 0 ? 'rgba(46,125,50,0.6)' : 'rgba(198,40,40,0.6)';
+                    return v >= 0 ? Theme.value('gain-fill') : Theme.value('loss-fill');
                 });
 
                 var koPlugins2 = {};
@@ -42,15 +42,15 @@
                                 type: 'line',
                                 xMin: summary2.first_trigger_hour,
                                 xMax: summary2.first_trigger_hour,
-                                borderColor: '#c62828',
+                                borderColor: Theme.value('red-dark'),
                                 borderWidth: 2,
                                 borderDash: [4, 3],
                                 label: {
                                     display: true,
                                     content: 'KO H' + summary2.first_trigger_hour,
                                     position: 'start',
-                                    backgroundColor: 'rgba(198,40,40,0.85)',
-                                    color: '#fff',
+                                    backgroundColor: Theme.value('loss-fill'),
+                                    color: Theme.value('panel'),
                                     font: { size: 9, weight: 'bold' },
                                     padding: 3
                                 }
@@ -76,8 +76,8 @@
                                 label: 'Water Level (m)',
                                 type: 'line',
                                 data: waterLevels,
-                                borderColor: '#1565c0',
-                                backgroundColor: 'rgba(21,101,192,0.08)',
+                                borderColor: Theme.value('accent-mid'),
+                                backgroundColor: Theme.value('chart-fill-accent'),
                                 fill: true,
                                 borderWidth: 2.5,
                                 pointRadius: 0,
@@ -113,13 +113,13 @@
                             },
                             yLevel: {
                                 position: 'left',
-                                title: { display: true, text: 'Water Level (m)', font: { size: 10 }, color: '#1565c0' },
-                                ticks: { font: { size: 9 }, color: '#1565c0' },
+                                title: { display: true, text: 'Water Level (m)', font: { size: 10 }, color: Theme.value('accent-mid') },
+                                ticks: { font: { size: 9 }, color: Theme.value('accent-mid') },
                                 grid: { drawOnChartArea: false }
                             },
                             yPnl: {
                                 position: 'right',
-                                title: { display: true, text: 'Stress P&L (\u00A3)', font: { size: 10 }, color: '#555' },
+                                title: { display: true, text: 'Stress P&L (\u00A3)', font: { size: 10 }, color: Theme.value('text-2') },
                                 ticks: {
                                     font: { size: 9 },
                                     callback: function(v) {
@@ -130,7 +130,7 @@
                                         return (v < 0 ? '-' : '') + '\u00A3' + s;
                                     }
                                 },
-                                grid: { color: 'rgba(0,0,0,0.04)' }
+                                grid: { color: Theme.value('grid-line') }
                             }
                         }
                     }
