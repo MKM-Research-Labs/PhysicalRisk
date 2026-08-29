@@ -4,37 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MKM — User & Permission Admin</title>
+  <link rel="stylesheet" href="/theme.css">
   <style>
-    :root { --bg:#0f1720; --panel:#16212e; --line:#27384a; --txt:#dbe5ef;
-            --muted:#8aa0b5; --accent:#3b9dd6; --ok:#2faa6a; --bad:#d9534f; }
+    /* Tokens come from /theme.css (config/theme, coding rule R7). This page is the
+       platform's only dark surface, so it draws the dk-* group. */
     * { box-sizing:border-box; }
     body { margin:0; font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;
-           background:var(--bg); color:var(--txt); }
-    header { padding:16px 24px; border-bottom:1px solid var(--line);
+           background:var(--dk-bg); color:var(--dk-text); }
+    header { padding:16px 24px; border-bottom:1px solid var(--dk-line);
              display:flex; align-items:center; gap:16px; }
     header h1 { font-size:16px; margin:0; font-weight:600; }
-    header .who { margin-left:auto; color:var(--muted); }
+    header .who { margin-left:auto; color:var(--dk-muted); }
     main { padding:24px; max-width:1100px; margin:0 auto; }
-    .panel { background:var(--panel); border:1px solid var(--line);
+    .panel { background:var(--dk-panel); border:1px solid var(--dk-line);
              border-radius:8px; padding:20px; margin-bottom:20px; }
     h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em;
-         color:var(--muted); margin:0 0 14px; }
-    label { display:block; color:var(--muted); margin:8px 0 4px; font-size:12px; }
+         color:var(--dk-muted); margin:0 0 14px; }
+    label { display:block; color:var(--dk-muted); margin:8px 0 4px; font-size:12px; }
     input[type=text], input[type=password] {
-      background:var(--bg); border:1px solid var(--line); color:var(--txt);
+      background:var(--dk-bg); border:1px solid var(--dk-line); color:var(--dk-text);
       border-radius:5px; padding:7px 9px; width:220px; }
-    button { background:var(--accent); border:0; color:#fff; padding:7px 14px;
+    button { background:var(--dk-accent); border:0; color:var(--inverse); padding:7px 14px;
              border-radius:5px; cursor:pointer; font-weight:600; }
-    button.ghost { background:transparent; border:1px solid var(--line);
-                   color:var(--txt); font-weight:400; }
+    button.ghost { background:transparent; border:1px solid var(--dk-line);
+                   color:var(--dk-text); font-weight:400; }
     button:disabled { opacity:.5; cursor:default; }
     table { border-collapse:collapse; width:100%; }
-    th, td { border:1px solid var(--line); padding:7px 9px; text-align:center; }
+    th, td { border:1px solid var(--dk-line); padding:7px 9px; text-align:center; }
     th.user, td.user { text-align:left; white-space:nowrap; }
-    td.inactive { color:var(--muted); text-decoration:line-through; }
-    .caps { font-size:11px; color:var(--muted); }
+    td.inactive { color:var(--dk-muted); text-decoration:line-through; }
+    .caps { font-size:11px; color:var(--dk-muted); }
     .msg { margin-top:10px; min-height:18px; font-size:13px; }
-    .msg.err { color:var(--bad); } .msg.ok { color:var(--ok); }
+    .msg.err { color:var(--dk-bad); } .msg.ok { color:var(--dk-ok); }
     .hidden { display:none; }
     .row { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
   </style>

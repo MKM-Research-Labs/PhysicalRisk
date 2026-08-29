@@ -41,7 +41,8 @@ from ._badges import BADGE_COLOUR_DEFAULTS, BADGE_TOKEN_RAMPS
 from ._domain import (
     DATASET, DEPTH, FLOOD, MAP, MARKER, PERIL, SEQUENCE, SERIES, SIGN,
 )
-from ._palette import BRAND, HUE, RAG, STATE, SURFACE, TEXT
+from ._palette import BRAND, DARK, HUE, RAG, STATE, SURFACE, TEXT
+from ._review import REVIEW
 from ._governance import GOVERNANCE_COLOUR_DEFAULTS, GOVERNANCE_TOKEN_RAMPS
 from ._scale import GRAPH, RADIUS, SHADOW, SPACE, TYPE
 from ._status import STATUS_TOKEN_RAMPS
@@ -69,6 +70,8 @@ THEME_GROUPS = (
     ("radius", RADIUS),
     ("shadow", SHADOW),
     ("graph", GRAPH),
+    ("review", REVIEW),
+    ("dark", DARK),
 )
 
 # Every token, flat, keyed by custom-property name.

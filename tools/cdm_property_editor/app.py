@@ -321,6 +321,16 @@ def _hc_record(asset: str, rid: str) -> dict | None:
 
 
 app = Flask(__name__)
+
+# The design tokens (coding rule R7). This tool's stylesheet used to carry its own
+# ``:root`` block of eleven colours; it now refers to the shared vocabulary in
+# ``config.theme``, so the ``:root`` has to arrive from somewhere. Registering the
+# platform's theme blueprint serves it at ``/theme.css``, which ``templates/index.html``
+# links ahead of its own stylesheet. Same tokens, same values, one source — this tool
+# and the console cannot drift apart.
+from routes.theme import theme_bp  # noqa: E402
+
+app.register_blueprint(theme_bp)
 # Preserve the curated CDM key order (schema + records) instead of
 # alphabetising it — the section/field order is meaningful.
 app.json.sort_keys = False

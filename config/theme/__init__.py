@@ -57,7 +57,8 @@ from ._governance import (
 from ._domain import (
     DATASET, DEPTH, FLOOD, MAP, MARKER, PERIL, SEQUENCE, SERIES, SIGN,
 )
-from ._palette import BRAND, HUE, RAG, STATE, SURFACE, TEXT
+from ._palette import BRAND, DARK, HUE, RAG, STATE, SURFACE, TEXT
+from ._review import REVIEW
 from ._scale import GRAPH, RADIUS, SHADOW, SPACE, TYPE
 from ._status import (
     DEPTH_BAND_BOUNDS_M, DEPTH_BAND_TOKENS, DEPTH_BAND_TOP, FLOOD_RISK_MARKERS,
@@ -72,8 +73,8 @@ from .registry import (
 )
 
 __all__ = [
-    "BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE",
-    "TYPE", "SPACE", "RADIUS", "SHADOW", "GRAPH",
+    "BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE", "DARK",
+    "TYPE", "SPACE", "RADIUS", "SHADOW", "GRAPH", "REVIEW",
     "PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES", "DATASET",
     "SEQUENCE",
     "TRIGGER_LEVEL_TOKENS", "TRIGGER_LEVEL_DARK_TOKENS", "TRIGGER_LEVEL_BG_TOKENS",

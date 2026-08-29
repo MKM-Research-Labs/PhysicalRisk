@@ -185,4 +185,25 @@ HUE = {
     "grey-dark": "#616161",
 }
 
-__all__ = ["BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE"]
+# --- The admin console's dark surface. --------------------------------------------
+# ``src/static/admin/admin.html`` is a standalone dark page — the only dark surface in
+# the platform — served straight from disk by ``routes.admin``. Its palette has no
+# overlap with the light one, so it is named separately rather than being forced through
+# tokens that mean "paper" and "ink" on every other screen.
+#
+# It reused four names the light palette also uses (``bg``, ``panel``, ``line``,
+# ``muted``) with dark values, in its own ``:root``. That worked only because the page is
+# a separate document; the ``dk-`` prefix makes the separation explicit rather than
+# accidental, so the two can never be served into the same document and collide.
+DARK = {
+    "dk-bg": "#0f1720",
+    "dk-panel": "#16212e",
+    "dk-line": "#27384a",
+    "dk-text": "#dbe5ef",
+    "dk-muted": "#8aa0b5",
+    "dk-accent": "#3b9dd6",
+    "dk-ok": "#2faa6a",
+    "dk-bad": "#d9534f",
+}
+
+__all__ = ["BRAND", "SURFACE", "TEXT", "RAG", "STATE", "HUE", "DARK"]

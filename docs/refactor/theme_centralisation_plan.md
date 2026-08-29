@@ -209,7 +209,7 @@ to. Steps 1–5 are the load-bearing work; 6–8 are mechanical and can follow a
 | 1 | ✅ **Done** — `config/theme/` package + the token vocabulary + `:root` injection at the manager seam + `theme.js` | ~1.5 d | Nothing changes visually; the vocabulary now exists and reaches every console page |
 | 2 | ✅ **Done** — `ColorSchemes` → `config/theme/_status.py`; `src/visual/utils/color_schemes/` reads from it | ~0.5 d | Small, removes an existing R1 violation, and single-sources the flood/gauge/loan/property ramps the Python and the JS currently disagree about |
 | 3 | ✅ **Done** — the JS status maps → `config/theme/_badges.py`, read via `Theme.ramp()` | ~1.5 d | The highest-value step: every badge on every screen inherits, and the disagreeing alert/warning/severe maps become one |
-| 4 | The four CSS files (169 literals) → `var(--…)` | ~0.5 d | Mechanical, easy to eyeball, includes the CDM tool's 838-line stylesheet |
+| 4 | ✅ **Done** — the four CSS files + the admin page (178 literals) → `var(--…)` | ~0.5 d | Mechanical, easy to eyeball, includes the CDM tool's 838-line stylesheet |
 | 5 | `audit/` styling scanner + rule **R7** + `full_audit` §4.8 + gate test | ~1 d | What makes all of the above hold. Gate CSS/HTML/Python at zero, *report* the JS backlog with a count so step 6's remaining work is visible instead of silently passing |
 | 6 | The remaining JS colour literals (~3,000 across ~140 files) | 3–4 d | The bulk. Batched by area — governance, trading, storm, property, gauge — each batch ending green |
 | 7 | The inline `style=` scale: 2,346 attributes — type, spacing, radius | 2–3 d | Lowest value, cosmetic consistency. Define the spacing scale from the *actual* frequency histogram first, per ModelRisk's step-6 lesson |
@@ -461,6 +461,57 @@ risk.
 The parity is held by `TestModelRiskVocabulary` in `tests/config/test_theme.py`, which
 asserts ModelRisk's values rather than importing them, because the two repositories are
 separate checkouts and a test may not have the other on disk.
+
+### 5.6 Step 4, as built
+
+**CSS and HTML are now at zero colour literals.** 178 gone: 169 in the four stylesheets,
+plus the nine in `src/static/admin/admin.html`, which the plan had not counted but which
+step 5 gates all the same.
+
+| surface | literals before | after |
+|---|---|---|
+| `context-menus.css` / `nav-menus.css` / `notifications.css` | 19 | 0 |
+| `tools/cdm_property_editor/static/styles.css` (838 lines) | 150 | 0 |
+| `src/static/admin/admin.html` | 9 | 0 |
+
+**Two documents stopped defining their own `:root`.** The CDM tool carried eleven tokens
+of its own and the admin page eight — including four names (`bg`, `panel`, `line`,
+`muted`) that the shared palette also uses, with different values. That only ever worked
+because they are separate documents. Both now link `/theme.css`, the route added in step
+3, so there is one definition of a token in the platform rather than three. The CDM tool
+registers the theme blueprint on its own Flask app to get it.
+
+**The CDM tool's 65 distinct colours needed 27 new tokens, not 65.** Each literal was
+measured against the existing palette in CIE Lab: 38 were within 1.5 ΔE of a token that
+already existed — imperceptible — and now use it. The remaining 27 are the tool's own
+cooler identity (pale blue washes where the console uses neutral greys) and live in
+`config/theme/_review.py` under an `rv-` prefix, so an adopter theming both products does
+not have to reason about a tool they may not deploy.
+
+That group has **known drift, recorded rather than resolved**: `rv-line`/`rv-line-2` are
+0.5 ΔE apart, `rv-border`/`rv-border-2` likewise, and the pale-wash rungs sit within 2 ΔE
+of one another. A design pass should collapse the cool ramp to four or five rungs.
+Collapsing it changes what the tool looks like, and it is a tool someone uses, so it is
+not this migration's call. One consolidation *was* made: two white veils at 0.70 and 0.72
+alpha became one, a difference below what a display resolves.
+
+**The admin page's dark palette became config too.** It is the platform's only dark
+surface, so its eight colours are a `DARK` group under a `dk-` prefix rather than being
+forced through tokens that mean "paper" and "ink" everywhere else.
+
+**Shadows are tokens now, which moved a few pixels.** Five `box-shadow` values had no
+exact token; one was exactly `shadow-modal` and took it, the rest became `rv-shadow-*` at
+their existing values. In the console files three shadows took the nearest shared token:
+`0 2px 10px rgba(0,0,0,0.2)` → `shadow-ghost`, `0 1px 4px rgba(0,0,0,0.15)` →
+`shadow-card-hover`, and the notification toast → `shadow-toast`. The first two differ by
+2px of blur and 0.02–0.03 alpha; the toast is the one visible change, going from a light
+`0 2px 10px` at 0.1 alpha to `0 4px 16px` at 0.25.
+
+**Type, spacing and radius are untouched here.** They are step 7, and step 7 is now the
+design pass §5.5 describes — the `border-radius: 4px` in these files has no rung on
+ModelRisk's ladder.
+
+229 tokens across 20 groups.
 
 ## 6. Enforcement — rule R7
 

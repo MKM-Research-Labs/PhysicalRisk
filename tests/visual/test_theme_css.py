@@ -47,9 +47,9 @@ _VAR_REFERENCE = re.compile(r"var\(\s*--([a-zA-Z0-9_-]+)")
 # injection: each is self-contained, carries its own ``:root``, and gets its own
 # emitter in a later step. Named here rather than skipped silently, so the day one of
 # them is converted the omission is visible.
-SELF_CONTAINED_DOCUMENTS = (
-    "src/static/admin/admin.html",
-)
+# Every document is served the shared tokens now — the admin page and the CDM tool both
+# link /theme.css since step 4 — so nothing is exempt from the resolution check.
+SELF_CONTAINED_DOCUMENTS = ()
 
 
 @pytest.fixture(scope="module")
@@ -142,10 +142,9 @@ class TestTokenResolution:
                         unresolved.append(f"{path.relative_to(repo_root)}:{number} --{token}")
         assert unresolved == [], "undefined design tokens: " + ", ".join(unresolved)
 
-    def test_self_contained_documents_still_exist(self, repo_root):
-        """The exemption list names real files, so it cannot rot into a blanket pass."""
-        for relative in SELF_CONTAINED_DOCUMENTS:
-            assert (repo_root / relative).is_file(), f"{relative} no longer exists"
+    def test_nothing_is_exempt_from_token_resolution(self):
+        """Step 4 served every document the shared block; the list should stay empty."""
+        assert SELF_CONTAINED_DOCUMENTS == ()
 
 
 class TestRenderedPage:
@@ -256,3 +255,63 @@ class TestStatusRampsReachTheBrowser:
         """theme.js reads window.__THEME_STATUS; it must already be assigned."""
         html = theme_html()
         assert html.index("window.__THEME_STATUS") < html.index("window.Theme")
+
+
+class TestStylesheetsAreTokenised:
+    """No colour literal survives in a stylesheet or a served HTML document.
+
+    Step 5 gates these at zero, so this is the check that keeps them there. The
+    JavaScript backlog is deliberately not included — it is step 6's work and is
+    reported by count rather than gated.
+    """
+
+    #: Every stylesheet and standalone document the platform serves.
+    STYLE_SURFACES = (
+        "src/static/css/context-menus.css",
+        "src/static/css/nav-menus.css",
+        "src/static/css/notifications.css",
+        "src/static/admin/admin.html",
+        "tools/cdm_property_editor/static/styles.css",
+    )
+
+    _LITERAL = re.compile(
+        r"#[0-9a-fA-F]{3,6}\b"          # hex
+        r"|rgba?\([0-9.,\s]+\)"          # rgb/rgba
+        r"|(?<=[:\s])(?:white|black)(?=[;\s,)])"  # bare keywords
+    )
+
+    def test_no_colour_literals_remain(self, repo_root):
+        offenders = []
+        for relative in self.STYLE_SURFACES:
+            path = repo_root / relative
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if line.lstrip().startswith(("/*", "*", "//")):
+                    continue
+                for hit in self._LITERAL.findall(line):
+                    offenders.append(f"{relative}:{number} {hit}")
+        assert offenders == [], "colour literals outside config: " + ", ".join(offenders)
+
+    def test_every_token_they_use_is_defined(self, repo_root):
+        """A ``var()`` naming nothing renders as an inherited colour, silently."""
+        unresolved = []
+        for relative in self.STYLE_SURFACES:
+            text = (repo_root / relative).read_text(encoding="utf-8")
+            for token in set(re.findall(r"var\(--([a-z0-9-]+)\)", text)):
+                if token not in THEME:
+                    unresolved.append(f"{relative} --{token}")
+        assert unresolved == [], "undefined tokens: " + ", ".join(unresolved)
+
+    def test_the_surfaces_still_exist(self, repo_root):
+        """So the list cannot rot into a blanket pass."""
+        for relative in self.STYLE_SURFACES:
+            assert (repo_root / relative).is_file(), relative
+
+    def test_no_surface_carries_its_own_root_block(self, repo_root):
+        """A local ``:root`` is a second place the appearance gets decided.
+
+        Both the CDM tool and the admin page used to define one; they are served
+        ``/theme.css`` now. A new one would silently shadow the shared tokens.
+        """
+        for relative in self.STYLE_SURFACES:
+            text = (repo_root / relative).read_text(encoding="utf-8")
+            assert ":root" not in text, f"{relative} defines its own :root"
