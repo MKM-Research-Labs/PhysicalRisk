@@ -22,5 +22,15 @@ module.exports = {
   rootDir: '../../',
   testEnvironment: 'jsdom',
   testMatch: ['**/tests/js/**/*.test.js'],
+  // rootDir is the repo root so coverage can reach src/static/js, but that
+  // also puts .claude/worktrees/ inside testMatch's reach — jest would collect
+  // stale copies of these same files from other branches and run them against
+  // this checkout's source (306 tests instead of 87, with failures owned by
+  // whichever branch happens to be checked out elsewhere). `roots` scopes
+  // DISCOVERY to this checkout's own tests while leaving rootDir alone for
+  // coverage. Note an ignore pattern on '.claude' cannot do this job: a
+  // worktree lives *inside* .claude/worktrees/, so it would discard the
+  // worktree's own tests when run from there.
+  roots: ['<rootDir>/tests/js'],
   setupFiles: ['<rootDir>/tests/js/setup.js']
 };
