@@ -31,11 +31,11 @@ function renderSummaryCards() {
         {label: 'Due Soon', value: d.review_status_distribution['Due Soon'] || 0, color: (d.review_status_distribution['Due Soon'] || 0) > 0 ? 'var(--amber)' : 'var(--green)'},
         {label: 'Assessed', value: assessedCount + '/' + d.total_models, color: 'var(--product-ink)'},
     ];
-    var html = '<div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap;">';
+    var html = '<div style="display:flex;gap:var(--space-5);padding:var(--space-6) var(--space-8);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;">';
     cards.forEach(function(c) {
-        html += '<div style="flex:1;min-width:100px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';">' +
-            '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
-            '<div style="font-size:18px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div></div>';
+        html += '<div style="flex:1;min-width:100px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + c.color + ';">' +
+            '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+            '<div style="font-size:var(--size-18);font-weight:700;color:' + c.color + ';margin-top:var(--space-1);">' + c.value + '</div></div>';
     });
     html += '</div>';
     return html;
@@ -138,8 +138,8 @@ function mgClearFilters() {
 }
 
 function mgSortArrow(key) {
-    if (mgSortCol !== key) return '<span style="color:var(--divider);margin-left:3px;">&#x21C5;</span>';
-    return mgSortAsc ? '<span style="color:var(--accent);margin-left:3px;">&#x25B2;</span>' : '<span style="color:var(--accent);margin-left:3px;">&#x25BC;</span>';
+    if (mgSortCol !== key) return '<span style="color:var(--divider);margin-left:var(--space-2);">&#x21C5;</span>';
+    return mgSortAsc ? '<span style="color:var(--accent);margin-left:var(--space-2);">&#x25B2;</span>' : '<span style="color:var(--accent);margin-left:var(--space-2);">&#x25BC;</span>';
 }
 
 // ================================================================
@@ -155,16 +155,16 @@ function renderInventory() {
     // Active filter indicator
     var filterCount = Object.keys(mgFilters).length;
     if (filterCount > 0 || mgSortCol) {
-        html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--accent-soft);border-bottom:1px solid var(--accent-border);">';
-        html += '<span style="font-size:10px;color:var(--accent-mid);">Showing ' + models.length + ' of ' + mgData.models.length + ' models</span>';
+        html += '<div style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-3) var(--space-8);background:var(--accent-soft);border-bottom:1px solid var(--accent-border);">';
+        html += '<span style="font-size:var(--size-xxs);color:var(--accent-mid);">Showing ' + models.length + ' of ' + mgData.models.length + ' models</span>';
         if (filterCount > 0) {
-            html += '<span style="font-size:10px;color:var(--accent-mid);font-weight:600;">' + filterCount + ' filter' + (filterCount > 1 ? 's' : '') + ' active</span>';
+            html += '<span style="font-size:var(--size-xxs);color:var(--accent-mid);font-weight:600;">' + filterCount + ' filter' + (filterCount > 1 ? 's' : '') + ' active</span>';
         }
         if (mgSortCol) {
             var sortLabel = mgColumns.find(function(c) { return c.key === mgSortCol; });
-            html += '<span style="font-size:10px;color:var(--accent-mid);">Sorted by ' + (sortLabel ? sortLabel.label : mgSortCol) + (mgSortAsc ? ' &#x25B2;' : ' &#x25BC;') + '</span>';
+            html += '<span style="font-size:var(--size-xxs);color:var(--accent-mid);">Sorted by ' + (sortLabel ? sortLabel.label : mgSortCol) + (mgSortAsc ? ' &#x25B2;' : ' &#x25BC;') + '</span>';
         }
-        html += '<button onclick="window.MG.clearFilters()" style="margin-left:auto;padding:2px 10px;font-size:10px;border:1px solid var(--accent-pale);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--accent-mid);">Clear All</button>';
+        html += '<button onclick="window.MG.clearFilters()" style="margin-left:auto;padding:var(--space-1) var(--space-5);font-size:var(--size-xxs);border:1px solid var(--accent-pale);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--accent-mid);">Clear All</button>';
         html += '</div>';
     }
 
@@ -183,13 +183,13 @@ function renderInventory() {
 
     // Table
     html += '<div style="padding:0;">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
 
     // Header row with sort controls
     html += '<thead>';
     html += '<tr style="background:var(--raised);">';
     mgColumns.forEach(function(col) {
-        var thStyle = 'padding:8px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);white-space:nowrap;position:sticky;top:0;background:var(--raised);';
+        var thStyle = 'padding:var(--space-4) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);white-space:nowrap;position:sticky;top:0;background:var(--raised);';
         if (col.sortable) thStyle += 'cursor:pointer;user-select:none;';
         html += '<th style="' + thStyle + '"';
         if (col.sortable) html += ' onclick="window.MG.toggleSort(\'' + col.key + '\')"';
@@ -202,10 +202,10 @@ function renderInventory() {
     // Filter row
     html += '<tr style="background:var(--sunken);">';
     mgColumns.forEach(function(col) {
-        html += '<td style="padding:4px 6px;border-bottom:1px solid var(--line-strong);">';
+        html += '<td style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--line-strong);">';
         if (col.filter === 'select') {
             var curVal = mgFilters[col.key] || '';
-            html += '<select onchange="window.MG.setFilter(\'' + col.key + '\', this.value)" style="width:100%;font-size:10px;padding:3px 4px;border:1px solid var(--line-strong);border-radius:3px;background:var(--panel);">';
+            html += '<select onchange="window.MG.setFilter(\'' + col.key + '\', this.value)" style="width:100%;font-size:var(--size-xxs);padding:var(--space-2) var(--space-2);border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--panel);">';
             html += '<option value="">All</option>';
             (distinctVals[col.key] || []).forEach(function(v) {
                 html += '<option value="' + v + '"' + (v === String(curVal) ? ' selected' : '') + '>' + v + '</option>';
@@ -213,9 +213,9 @@ function renderInventory() {
             html += '</select>';
         } else if (col.filter === 'date') {
             var df = mgFilters[col.key] || {};
-            html += '<div style="display:flex;flex-direction:column;gap:2px;">';
-            html += '<input type="date" value="' + (df.from || '') + '" onchange="window.MG.setDateFilter(\'' + col.key + '\', \'from\', this.value)" style="font-size:9px;padding:2px;border:1px solid var(--line-strong);border-radius:3px;width:100%;" placeholder="From" title="From date">';
-            html += '<input type="date" value="' + (df.to || '') + '" onchange="window.MG.setDateFilter(\'' + col.key + '\', \'to\', this.value)" style="font-size:9px;padding:2px;border:1px solid var(--line-strong);border-radius:3px;width:100%;" placeholder="To" title="To date">';
+            html += '<div style="display:flex;flex-direction:column;gap:var(--space-1);">';
+            html += '<input type="date" value="' + (df.from || '') + '" onchange="window.MG.setDateFilter(\'' + col.key + '\', \'from\', this.value)" style="font-size:var(--size-xxs);padding:var(--space-1);border:1px solid var(--line-strong);border-radius:var(--radius-sm);width:100%;" placeholder="From" title="From date">';
+            html += '<input type="date" value="' + (df.to || '') + '" onchange="window.MG.setDateFilter(\'' + col.key + '\', \'to\', this.value)" style="font-size:var(--size-xxs);padding:var(--space-1);border:1px solid var(--line-strong);border-radius:var(--radius-sm);width:100%;" placeholder="To" title="To date">';
             html += '</div>';
         } else {
             html += '';
@@ -231,25 +231,25 @@ function renderInventory() {
         else if (m.review_status === 'Due Soon') rowBg = 'background:var(--warn-bg-warm);';
 
         html += '<tr style="cursor:pointer;' + rowBg + '" onmouseenter="this.style.opacity=\'0.8\'" onmouseleave="this.style.opacity=\'1\'" onclick="window.MG.showDetail(\'' + m.model_id + '\')">';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);white-space:nowrap;">' + m.model_id + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (catIcons[m.category] || '') + ' ' + m.short_name + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + tierBadge(m.tier) + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + ragBadge(m.rag_rating) + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + m.owner + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + (m.last_review_date || '—') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + (m.mrc_signoff_date || '—') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + (m.next_review_date || '—') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + reviewBadge(m.review_status) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);white-space:nowrap;">' + m.model_id + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (catIcons[m.category] || '') + ' ' + m.short_name + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + tierBadge(m.tier) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + ragBadge(m.rag_rating) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + m.owner + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + (m.last_review_date || '—') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + (m.mrc_signoff_date || '—') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + (m.next_review_date || '—') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + reviewBadge(m.review_status) + '</td>';
         var rrVal = m.risk_rating || 'Not Rated';
         var rrColors = Theme.ramp('risk_rating');
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + badge(rrVal, rrColors[rrVal] || 'var(--grey)') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + badge(rrVal, rrColors[rrVal] || 'var(--grey)') + '</td>';
         var remCount = m.open_remediations || 0;
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);text-align:center;">' + (remCount > 0 ? '<span style="background:var(--warn-bg-warm);color:var(--amber-deep);padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;">' + remCount + ' open</span>' : '<span style="color:var(--green);font-size:10px;">Clear</span>') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);text-align:center;">' + (remCount > 0 ? '<span style="background:var(--warn-bg-warm);color:var(--amber-deep);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);font-weight:600;">' + remCount + ' open</span>' : '<span style="color:var(--green);font-size:var(--size-xxs);">Clear</span>') + '</td>';
         html += '</tr>';
     });
 
     if (models.length === 0) {
-        html += '<tr><td colspan="11" style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">No models match the current filters</td></tr>';
+        html += '<tr><td colspan="11" style="padding:var(--space-wide);text-align:center;color:var(--muted);font-size:var(--size-sm);">No models match the current filters</td></tr>';
     }
 
     html += '</tbody></table></div>';

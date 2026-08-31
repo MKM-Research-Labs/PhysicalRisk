@@ -25,14 +25,14 @@ function showModelDetail(modelId) {
     document.getElementById('mg-title').textContent = 'Model Detail';
 
     var content = document.getElementById('mg-content');
-    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading model detail...</div>';
+    content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);">Loading model detail...</div>';
 
     var baseUrl = getBaseUrl();
     fetch(baseUrl + '/api/v1/governance/models/' + modelId, {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error loading model</div>';
+                content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Error loading model</div>';
                 return;
             }
             console.log('[Governance] Model loaded:', data.model.short_name, '(Tier', data.model.tier + ')');
@@ -40,7 +40,7 @@ function showModelDetail(modelId) {
             renderModelDetail(data.model, data.audit_entries);
         })
         .catch(function(err) {
-            content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load model detail</div>';
+            content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Failed to load model detail</div>';
             console.error('[Governance] Model detail error:', err);
         });
 }
@@ -50,30 +50,30 @@ function renderModelDetail(m, auditEntries) {
     var html = '';
 
     // Model header card
-    html += '<div style="padding:16px;background:linear-gradient(135deg, var(--header-from) 0%, var(--header-to) 100%);border-bottom:1px solid var(--line-strong);">';
+    html += '<div style="padding:var(--space-8);background:linear-gradient(135deg, var(--header-from) 0%, var(--header-to) 100%);border-bottom:1px solid var(--line-strong);">';
     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">';
     html += '<div>';
-    html += '<div style="font-size:20px;font-weight:700;color:var(--text);">' + (catIcons[m.category] || '') + ' ' + m.name + '</div>';
-    html += '<div style="font-size:12px;color:var(--text-3);margin-top:4px;">' + m.model_id + ' &middot; v' + m.version + ' &middot; ' + m.category + '</div>';
-    html += '<div style="margin-top:8px;">' + tierBadge(m.tier) + ' <span style="font-size:11px;color:var(--text-2);margin-left:8px;">' + (tierLabels[m.tier] || '') + '</span>';
+    html += '<div style="font-size:var(--size-xl);font-weight:700;color:var(--text);">' + (catIcons[m.category] || '') + ' ' + m.name + '</div>';
+    html += '<div style="font-size:var(--size-sm);color:var(--text-3);margin-top:var(--space-2);">' + m.model_id + ' &middot; v' + m.version + ' &middot; ' + m.category + '</div>';
+    html += '<div style="margin-top:var(--space-4);">' + tierBadge(m.tier) + ' <span style="font-size:var(--size-xs);color:var(--text-2);margin-left:var(--space-4);">' + (tierLabels[m.tier] || '') + '</span>';
     var _rr = (m.overall_risk_rating || {});
     var _effRating = _rr.effective_rating || _rr.calculated_rating || 'Not Rated';
-    html += ' <span style="margin-left:8px;">' + riskRatingBadge(_effRating) + '</span>';
+    html += ' <span style="margin-left:var(--space-4);">' + riskRatingBadge(_effRating) + '</span>';
     html += '</div>';
     html += '</div>';
     html += '<div style="text-align:right;">';
-    html += '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Owner' + editBtn('owner', m.model_id) + '</div>';
-    html += '<div style="font-size:13px;font-weight:600;color:var(--text);">' + m.owner + '</div>';
-    html += '<div style="font-size:10px;color:var(--text-3);">' + (m.model_owner_role || '') + editBtn('model_owner_role', m.model_id) + '</div>';
-    html += '<div style="margin-top:8px;">' + ragBadge(m.rag_rating) + editBtn('rag_rating', m.model_id) + '</div>';
+    html += '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;">Owner' + editBtn('owner', m.model_id) + '</div>';
+    html += '<div style="font-size:var(--size-md);font-weight:600;color:var(--text);">' + m.owner + '</div>';
+    html += '<div style="font-size:var(--size-xxs);color:var(--text-3);">' + (m.model_owner_role || '') + editBtn('model_owner_role', m.model_id) + '</div>';
+    html += '<div style="margin-top:var(--space-4);">' + ragBadge(m.rag_rating) + editBtn('rag_rating', m.model_id) + '</div>';
     html += '</div></div>';
 
     // Governance dates bar
-    html += '<div style="display:flex;gap:20px;margin-top:12px;padding-top:10px;border-top:1px solid var(--divider);flex-wrap:wrap;">';
-    html += '<div style="font-size:11px;"><span style="color:var(--muted);">Last Review:</span> <b>' + (m.last_review_date || '—') + '</b>' + editBtn('last_review_date', m.model_id) + '</div>';
-    html += '<div style="font-size:11px;"><span style="color:var(--muted);">MRC Signoff:</span> <b>' + (m.mrc_signoff_date || '—') + '</b>' + editBtn('mrc_signoff_date', m.model_id) + '</div>';
-    html += '<div style="font-size:11px;"><span style="color:var(--muted);">Next Review:</span> <b>' + (m.next_review_date || '—') + '</b>' + editBtn('next_review_date', m.model_id) + '</div>';
-    html += '<div style="font-size:11px;"><span style="color:var(--muted);">Recertification:</span> <b>' + (m.recertification_date || '—') + '</b>' + editBtn('recertification_date', m.model_id) + '</div>';
+    html += '<div style="display:flex;gap:var(--space-wide);margin-top:var(--space-6);padding-top:var(--space-5);border-top:1px solid var(--divider);flex-wrap:wrap;">';
+    html += '<div style="font-size:var(--size-xs);"><span style="color:var(--muted);">Last Review:</span> <b>' + (m.last_review_date || '—') + '</b>' + editBtn('last_review_date', m.model_id) + '</div>';
+    html += '<div style="font-size:var(--size-xs);"><span style="color:var(--muted);">MRC Signoff:</span> <b>' + (m.mrc_signoff_date || '—') + '</b>' + editBtn('mrc_signoff_date', m.model_id) + '</div>';
+    html += '<div style="font-size:var(--size-xs);"><span style="color:var(--muted);">Next Review:</span> <b>' + (m.next_review_date || '—') + '</b>' + editBtn('next_review_date', m.model_id) + '</div>';
+    html += '<div style="font-size:var(--size-xs);"><span style="color:var(--muted);">Recertification:</span> <b>' + (m.recertification_date || '—') + '</b>' + editBtn('recertification_date', m.model_id) + '</div>';
     html += '</div>';
     html += '</div>';
 
@@ -96,12 +96,12 @@ function renderModelDetail(m, auditEntries) {
         {id: 'modelaudit', label: 'Audit (' + (auditEntries || []).length + ')'},
     ];
     detailTabs.forEach(function(t, i) {
-        html += '<button id="mg-dtab-' + t.id + '" onclick="window.MG.switchDetailTab(\'' + t.id + '\')" style="padding:8px 14px;font-size:11px;border:none;cursor:pointer;border-bottom:2px solid ' + (i === 0 ? 'var(--accent)' : 'transparent') + ';background:transparent;color:' + (i === 0 ? 'var(--accent)' : 'var(--text-3)') + ';font-weight:' + (i === 0 ? '600' : '400') + ';">' + t.label + '</button>';
+        html += '<button id="mg-dtab-' + t.id + '" onclick="window.MG.switchDetailTab(\'' + t.id + '\')" style="padding:var(--space-4) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;border-bottom:2px solid ' + (i === 0 ? 'var(--accent)' : 'transparent') + ';background:transparent;color:' + (i === 0 ? 'var(--accent)' : 'var(--text-3)') + ';font-weight:' + (i === 0 ? '600' : '400') + ';">' + t.label + '</button>';
     });
     html += '</div>';
 
     // Content area
-    html += '<div id="mg-detail-content" style="padding:16px;overflow-y:auto;">';
+    html += '<div id="mg-detail-content" style="padding:var(--space-8);overflow-y:auto;">';
     html += renderOverviewTab(m);
     html += '</div>';
 
@@ -131,8 +131,8 @@ function switchDetailTab(tabId) {
     // No model loaded (e.g. detail view never opened): render an empty-state
     // rather than throwing on m.model_id inside the per-tab renderers.
     if (!m && tabId !== 'modelaudit') {
-        dc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);' +
-            'font-size:12px;">No model selected.</div>';
+        dc.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);' +
+            'font-size:var(--size-sm);">No model selected.</div>';
         return;
     }
 

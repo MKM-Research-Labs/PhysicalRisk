@@ -58,7 +58,7 @@
                 }
 
                 if (pending.length) {
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Building report card...</div>';
+                    container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">Building report card...</div>';
                     Promise.all(pending).then(_renderSummary);
                 } else {
                     _renderSummary();
@@ -101,25 +101,25 @@
                 container.style.padding = '16px';
                 container.style.overflowY = 'auto';
 
-                var cardStyle = 'background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;';
-                var labelStyle = 'font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:4px;';
+                var cardStyle = 'background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-7) var(--space-8);';
+                var labelStyle = 'font-size:var(--size-xxs);text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:var(--space-2);';
                 var bigValStyle = 'font-size:22px;font-weight:700;';
-                var smallStyle = 'font-size:11px;color:var(--text-2);margin-top:2px;';
+                var smallStyle = 'font-size:var(--size-xs);color:var(--text-2);margin-top:var(--space-1);';
 
                 // Report-card HTML -------------------------------------------
                 var html = '';
-                html += '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Report card for storm</div>';
-                html += '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px;">' + stormLabel + '</div>';
+                html += '<div style="font-size:var(--size-xs);color:var(--muted);margin-bottom:var(--space-3);">Report card for storm</div>';
+                html += '<div style="font-size:var(--size-14);font-weight:600;color:var(--text);margin-bottom:var(--space-8);">' + stormLabel + '</div>';
 
                 // Row 1: assets affected
-                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6);">';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--accent);">'
                       +  '<div style="' + labelStyle + '">Properties Affected</div>'
-                      +  '<div style="' + bigValStyle + 'color:var(--accent);">' + propAffected + ' <span style="font-size:13px;color:var(--muted);font-weight:400;">/ ' + propTotal + '</span></div>'
+                      +  '<div style="' + bigValStyle + 'color:var(--accent);">' + propAffected + ' <span style="font-size:var(--size-md);color:var(--muted);font-weight:400;">/ ' + propTotal + '</span></div>'
                       + '</div>';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--accent);">'
                       +  '<div style="' + labelStyle + '">Commercials Affected</div>'
-                      +  '<div style="' + bigValStyle + 'color:var(--accent);">' + comAffected + ' <span style="font-size:13px;color:var(--muted);font-weight:400;">/ ' + comTotal + '</span></div>'
+                      +  '<div style="' + bigValStyle + 'color:var(--accent);">' + comAffected + ' <span style="font-size:var(--size-md);color:var(--muted);font-weight:400;">/ ' + comTotal + '</span></div>'
                       + '</div>';
                 html += '<div style="' + cardStyle + 'border-left:3px solid ' + ((impairedRes + impairedCom) > 0 ? 'var(--red)' : 'var(--green)') + ';">'
                       +  '<div style="' + labelStyle + '">Impaired Mortgages</div>'
@@ -129,8 +129,8 @@
                 html += '</div>';
 
                 // Row 2: loss types
-                html += '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:18px 0 6px 0;">Aggregate Losses</div>';
-                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">';
+                html += '<div style="font-size:var(--size-xs);text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:var(--space-9) 0 var(--space-3) 0;">Aggregate Losses</div>';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6);">';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--red);">'
                       +  '<div style="' + labelStyle + '">Flood Damage</div>'
                       +  '<div style="' + bigValStyle + 'color:var(--red);">' + fmtGBP(floodLoss) + '</div>'
@@ -148,8 +148,8 @@
                 html += '</div>';
 
                 // Row 3: hedges
-                html += '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:18px 0 6px 0;">PRS Hedges</div>';
-                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">';
+                html += '<div style="font-size:var(--size-xs);text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:var(--space-9) 0 var(--space-3) 0;">PRS Hedges</div>';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6);">';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--purple);">'
                       +  '<div style="' + labelStyle + '">Trades Live</div>'
                       +  '<div style="' + bigValStyle + 'color:var(--purple);">' + (ts.num_trades || trades.length) + '</div>'
@@ -165,9 +165,9 @@
                 html += '</div>';
 
                 // Net line
-                html += '<div style="margin-top:18px;padding:14px 16px;border-radius:8px;background:' + (net >= 0 ? 'var(--ok-bg)' : 'var(--danger-bg-soft)') + ';border-left:4px solid ' + (net >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">';
+                html += '<div style="margin-top:var(--space-9);padding:var(--space-7) var(--space-8);border-radius:var(--radius-lg);background:' + (net >= 0 ? 'var(--ok-bg)' : 'var(--danger-bg-soft)') + ';border-left:4px solid ' + (net >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">';
                 html += '<div style="' + labelStyle + '">Net Portfolio P&L (gross loss + hedge NPV)</div>';
-                html += '<div style="font-size:24px;font-weight:700;color:' + (net >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(net) + '</div>';
+                html += '<div style="font-size:var(--size-24);font-weight:700;color:' + (net >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(net) + '</div>';
                 html += '</div>';
 
                 container.innerHTML = html;

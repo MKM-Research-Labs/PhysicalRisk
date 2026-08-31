@@ -26,7 +26,7 @@
                 spPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:var(--radius-lg);' +
                     'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
@@ -34,42 +34,42 @@
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
-                    'border-radius:8px 8px 0 0;';
+                    'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--wash);' +
+                    'border-radius:var(--radius-lg) var(--radius-lg) 0 0;';
 
                 var leftHeader = document.createElement('div');
-                leftHeader.style.cssText = 'display:flex;align-items:center;gap:16px;';
+                leftHeader.style.cssText = 'display:flex;align-items:center;gap:var(--space-8);';
                 var title = document.createElement('span');
                 title.id = 'sp-panel-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
+                title.style.cssText = 'font-weight:bold;font-size:var(--size-14);color:var(--text);';
                 title.textContent = 'Portfolio Storm Impact';
 
                 var toggleWrap = document.createElement('div');
-                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;';
+                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:var(--radius-4);overflow:hidden;';
                 var tabBtn = document.createElement('button');
                 tabBtn.id = 'sp-tab-table';
                 tabBtn.textContent = 'Table';
-                tabBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:var(--accent);color:var(--inverse);';
+                tabBtn.style.cssText = 'padding:var(--space-2) var(--space-6);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--accent);color:var(--inverse);';
                 tabBtn.onclick = function() { switchTab('table'); };
                 var simBtn = document.createElement('button');
                 simBtn.id = 'sp-tab-sim';
                 simBtn.textContent = 'Sim';
-                simBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:var(--panel);color:var(--text);';
+                simBtn.style.cssText = 'padding:var(--space-2) var(--space-6);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--panel);color:var(--text);';
                 simBtn.onclick = function() { switchTab('sim'); };
                 var visBtn = document.createElement('button');
                 visBtn.id = 'sp-tab-vis';
                 visBtn.textContent = 'Visual';
-                visBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:var(--panel);color:var(--text);';
+                visBtn.style.cssText = 'padding:var(--space-2) var(--space-6);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--panel);color:var(--text);';
                 visBtn.onclick = function() { switchTab('vis'); };
                 var varBtn = document.createElement('button');
                 varBtn.id = 'sp-tab-var';
                 varBtn.textContent = 'VaR';
-                varBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:var(--panel);color:var(--text);';
+                varBtn.style.cssText = 'padding:var(--space-2) var(--space-6);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--panel);color:var(--text);';
                 varBtn.onclick = function() { switchTab('var'); };
                 var ctrlBtn = document.createElement('button');
                 ctrlBtn.id = 'sp-tab-control';
                 ctrlBtn.textContent = 'Control';
-                ctrlBtn.style.cssText = 'padding:3px 12px;font-size:11px;border:none;cursor:pointer;background:var(--panel);color:var(--text);';
+                ctrlBtn.style.cssText = 'padding:var(--space-2) var(--space-6);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--panel);color:var(--text);';
                 ctrlBtn.onclick = function() { switchTab('control'); };
                 toggleWrap.appendChild(tabBtn);
                 toggleWrap.appendChild(simBtn);
@@ -83,7 +83,7 @@
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
-                    'border:none;background:none;font-size:24px;cursor:pointer;color:var(--text-3);padding:0 8px;line-height:1;';
+                    'border:none;background:none;font-size:var(--size-24);cursor:pointer;color:var(--text-3);padding:0 var(--space-4);line-height:1;';
                 closeBtn.onclick = hidePanel;
                 header.appendChild(leftHeader);
                 header.appendChild(closeBtn);
@@ -93,18 +93,18 @@
                 // (sort / typhoon-only / percentile) sit on a row below.
                 var selectorWrap = document.createElement('div');
                 selectorWrap.id = 'sp-selector-wrap';
-                selectorWrap.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);background:var(--raised);display:flex;flex-direction:column;gap:6px;';
+                selectorWrap.style.cssText = 'padding:var(--space-4) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--raised);display:flex;flex-direction:column;gap:var(--space-3);';
 
                 // Top row: storm picker only
                 var selectorRow = document.createElement('div');
                 selectorRow.id = 'sp-selector-row';
-                selectorRow.style.cssText = 'display:flex;align-items:center;gap:12px;';
+                selectorRow.style.cssText = 'display:flex;align-items:center;gap:var(--space-6);';
                 var selLabel = document.createElement('span');
                 selLabel.textContent = 'Storm:';
-                selLabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-2);';
+                selLabel.style.cssText = 'font-size:var(--size-sm);font-weight:600;color:var(--text-2);';
                 var stormSelect = document.createElement('select');
                 stormSelect.id = 'sp-storm-select';
-                stormSelect.style.cssText = 'flex:1;padding:4px 8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;';
+                stormSelect.style.cssText = 'flex:1;padding:var(--space-2) var(--space-4);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);';
                 stormSelect.onchange = function() { onStormChanged(this.value); };
                 selectorRow.appendChild(selLabel);
                 selectorRow.appendChild(stormSelect);
@@ -112,27 +112,27 @@
                 // Bottom row: sort + typhoon filter + percentile control
                 var controlsRow = document.createElement('div');
                 controlsRow.id = 'sp-controls-row';
-                controlsRow.style.cssText = 'display:flex;align-items:center;gap:16px;flex-wrap:wrap;';
+                controlsRow.style.cssText = 'display:flex;align-items:center;gap:var(--space-8);flex-wrap:wrap;';
                 var sortLabel = document.createElement('span');
                 sortLabel.textContent = 'Sort:';
-                sortLabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-2);';
+                sortLabel.style.cssText = 'font-size:var(--size-sm);font-weight:600;color:var(--text-2);';
                 var sortSelect = document.createElement('select');
                 sortSelect.id = 'sp-sort-select';
-                sortSelect.style.cssText = 'padding:4px 8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;';
+                sortSelect.style.cssText = 'padding:var(--space-2) var(--space-4);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);';
                 sortSelect.innerHTML =
                     '<option value="damage" selected>Damage cost</option>' +
                     '<option value="flooded">Properties flooded</option>' +
                     '<option value="severity">Gauge severity</option>';
                 sortSelect.onchange = function() { loadStormList(this.value); };
                 var pctWrap = document.createElement('span');
-                pctWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+                pctWrap.style.cssText = 'display:flex;align-items:center;gap:var(--space-3);';
                 pctWrap.innerHTML = '__SP_PCT_HTML__';
 
                 // Typhoon-only filter — narrows the storm dropdown to storms
                 // that were paired with a typhoon event by the severity-bucket
                 // linkage. Click-handler lives in sp_table.py's loadStormList.
                 var typhoonWrap = document.createElement('label');
-                typhoonWrap.style.cssText = 'display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text);cursor:pointer;user-select:none;';
+                typhoonWrap.style.cssText = 'display:flex;align-items:center;gap:var(--space-3);font-size:var(--size-sm);color:var(--text);cursor:pointer;user-select:none;';
                 typhoonWrap.title = 'Show only the storms that carried a typhoon';
                 var typhoonChk = document.createElement('input');
                 typhoonChk.type = 'checkbox';
@@ -143,7 +143,7 @@
                 typhoonLabel.innerHTML = '⚡ <b>Typhoon only</b>';
                 var typhoonCount = document.createElement('span');
                 typhoonCount.id = 'sp-typhoon-count';
-                typhoonCount.style.cssText = 'color:var(--muted);font-size:11px;margin-left:2px;';
+                typhoonCount.style.cssText = 'color:var(--muted);font-size:var(--size-xs);margin-left:var(--space-1);';
                 typhoonWrap.appendChild(typhoonChk);
                 typhoonWrap.appendChild(typhoonLabel);
                 typhoonWrap.appendChild(typhoonCount);
@@ -166,7 +166,7 @@
                 // Stats bar (shared)
                 var statsBar = document.createElement('div');
                 statsBar.id = 'sp-stats-bar';
-                statsBar.style.cssText = 'padding:8px 16px;border-top:1px solid var(--line-soft);display:flex;gap:20px;font-size:11px;color:var(--text-3);background:var(--control);border-radius:0 0 8px 8px;';
+                statsBar.style.cssText = 'padding:var(--space-4) var(--space-8);border-top:1px solid var(--line-soft);display:flex;gap:var(--space-wide);font-size:var(--size-xs);color:var(--text-3);background:var(--control);border-radius:0 0 var(--radius-lg) var(--radius-lg);';
 
                 spPanel.appendChild(header);
                 spPanel.appendChild(selectorWrap);

@@ -39,33 +39,33 @@
                 periods.forEach(function(p) {
                     tableRows +=
                         '<tr>' +
-                        '<td style="padding:2px 8px;font-weight:600;">' + p.label + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;">' + (p.S_t * 100).toFixed(2) + '%</td>' +
-                        '<td style="padding:2px 8px;text-align:right;">' + p.df.toFixed(4) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:var(--accent);">' + fmtNum(p.premCF) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:var(--accent);">' + fmtNum(p.premPV) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:var(--red-bright);">' + fmtNum(p.protCF) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:var(--red-bright);">' + fmtNum(p.protPV) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);font-weight:600;">' + p.label + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);text-align:right;">' + (p.S_t * 100).toFixed(2) + '%</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);text-align:right;">' + p.df.toFixed(4) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);text-align:right;color:var(--accent);">' + fmtNum(p.premCF) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);text-align:right;color:var(--accent);">' + fmtNum(p.premPV) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);text-align:right;color:var(--red-bright);">' + fmtNum(p.protCF) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-4);text-align:right;color:var(--red-bright);">' + fmtNum(p.protPV) + '</td>' +
                         '</tr>';
                 });
 
                 // Totals row
                 tableRows +=
                     '<tr style="border-top:2px solid var(--text);font-weight:bold;background:var(--code);">' +
-                    '<td style="padding:4px 8px;">TOTAL</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);">TOTAL</td>' +
                     '<td></td><td></td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:var(--accent);">' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:var(--accent);">' +
                         fmtNum(periods.reduce(function(s,p){ return s+p.premCF; }, 0)) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:var(--accent);font-weight:bold;">' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:var(--accent);font-weight:bold;">' +
                         fmtMoney(result.totalPremPV) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:var(--red-bright);">' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:var(--red-bright);">' +
                         fmtNum(periods.reduce(function(s,p){ return s+p.protCF; }, 0)) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:var(--red-bright);font-weight:bold;">' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:var(--red-bright);font-weight:bold;">' +
                         fmtMoney(result.totalProtPV) + '</td>' +
                     '</tr>';
 
                 var tableHtml =
-                    '<div style="display:flex;gap:16px;height:100%;">' +
+                    '<div style="display:flex;gap:var(--space-8);height:100%;">' +
                     '<div style="flex:1;min-width:0;display:flex;align-items:center;">' +
                     '<canvas id="prs-hazard-curve-chart" style="width:100%;height:100%;"></canvas>' +
                     '</div>' +
@@ -246,19 +246,19 @@
                 }
                 var commitBtn = '';
                 if (isTradeReview) {
-                    commitBtn = '<span style="color:var(--accent-mid);font-size:10px;font-weight:600;margin-left:8px;">Trade Review</span>';
+                    commitBtn = '<span style="color:var(--accent-mid);font-size:var(--size-xxs);font-weight:600;margin-left:var(--space-4);">Trade Review</span>';
                 } else if (isCloseOut) {
                     commitBtn = ctpySelected ?
                         '<button id="prs-commit-btn" onclick="commitPRSTrade()" ' +
-                        'style="padding:4px 14px;background:var(--red-soft);color:var(--inverse);border:none;border-radius:3px;' +
-                        'cursor:pointer;font-weight:bold;font-size:11px;margin-left:8px;">Close Out</button>' :
-                        '<span style="color:var(--disabled);font-size:10px;margin-left:8px;">(select ctpy to close out)</span>';
+                        'style="padding:var(--space-2) var(--space-7);background:var(--red-soft);color:var(--inverse);border:none;border-radius:var(--radius-sm);' +
+                        'cursor:pointer;font-weight:bold;font-size:var(--size-xs);margin-left:var(--space-4);">Close Out</button>' :
+                        '<span style="color:var(--disabled);font-size:var(--size-xxs);margin-left:var(--space-4);">(select ctpy to close out)</span>';
                 } else if (ctpySelected) {
                     commitBtn = '<button id="prs-commit-btn" onclick="commitPRSTrade()" ' +
-                    'style="padding:4px 14px;background:var(--green-bright);color:var(--inverse);border:none;border-radius:3px;' +
-                    'cursor:pointer;font-weight:bold;font-size:11px;margin-left:8px;">Commit</button>';
+                    'style="padding:var(--space-2) var(--space-7);background:var(--green-bright);color:var(--inverse);border:none;border-radius:var(--radius-sm);' +
+                    'cursor:pointer;font-weight:bold;font-size:var(--size-xs);margin-left:var(--space-4);">Commit</button>';
                 } else {
-                    commitBtn = '<span style="color:var(--disabled);font-size:10px;margin-left:8px;">(select ctpy to commit)</span>';
+                    commitBtn = '<span style="color:var(--disabled);font-size:var(--size-xxs);margin-left:var(--space-4);">(select ctpy to commit)</span>';
                 }
 
                 var ctpyTag = ctpyDisplayName ?
@@ -268,7 +268,7 @@
                 bar.innerHTML = [
                     ctpyTag,
                     '<span style="font-weight:bold;color:' + (result.isPayer ? Theme.value('accent') : Theme.value('amber-deep')) + ';">' + dirLabel + '</span>',
-                    '<span><b>Fair Spread:</b> <span style="font-size:13px;color:var(--accent);">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
+                    '<span><b>Fair Spread:</b> <span style="font-size:var(--size-md);color:var(--accent);">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
                     '<span><b>Running:</b> ' + result.spreadBps.toFixed(0) + ' bps</span>',
                     '<span style="color:' + npvColor + ';"><b>NPV:</b> ' + fmtMoney(result.npv) + '</span>',
                     '<span><b>Premium Leg:</b> ' + fmtMoney(result.totalPremPV) + '</span>',

@@ -27,7 +27,7 @@
                     _renderWindEmpty('Select a storm to view wind impact.');
                     return;
                 }
-                container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Loading wind impact…</div>';
+                container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">Loading wind impact…</div>';
                 var baseUrl = getBaseUrl();
                 fetch(baseUrl + '/api/v1/propertyts/' + sid + '/wind-impact', {mode:'cors'})
                     .then(function(r) { return r.json(); })
@@ -49,8 +49,8 @@
                 _renderWindSummary(null);
                 var container = document.getElementById('sp-table-container');
                 container.innerHTML =
-                    '<div style="padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;">' +
-                    '<div style="font-size:36px;margin-bottom:12px;">\u26A1</div>' +
+                    '<div style="padding:48px 24px;text-align:center;color:var(--muted);font-size:var(--size-md);">' +
+                    '<div style="font-size:var(--size-36);margin-bottom:var(--space-6);">\u26A1</div>' +
                     '<div>' + msg + '</div></div>';
             }
 
@@ -87,9 +87,9 @@
                 summary.innerHTML = '';
                 cards.forEach(function(card) {
                     var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:' + card.color + ';margin-top:2px;">' + card.value + '</div>';
+                    div.style.cssText = 'flex:1;min-width:120px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + card.color + ';margin-top:var(--space-1);">' + card.value + '</div>';
                     summary.appendChild(div);
                 });
             }

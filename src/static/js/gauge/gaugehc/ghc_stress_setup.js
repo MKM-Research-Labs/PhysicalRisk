@@ -65,22 +65,22 @@
                 container.innerHTML =
                     '<div style="display:flex;flex-direction:column;height:100%;gap:0;">' +
                     // Storm selector bar
-                    '<div id="stress-selector" style="display:flex;align-items:center;gap:10px;' +
-                        'padding:8px 12px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;">' +
-                        '<span style="font-size:11px;font-weight:600;color:var(--text);">Storm:</span>' +
-                        '<select id="stress-storm-select" style="padding:3px 8px;font-size:11px;' +
-                            'border:1px solid var(--divider);border-radius:3px;min-width:200px;">' +
+                    '<div id="stress-selector" style="display:flex;align-items:center;gap:var(--space-5);' +
+                        'padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;">' +
+                        '<span style="font-size:var(--size-xs);font-weight:600;color:var(--text);">Storm:</span>' +
+                        '<select id="stress-storm-select" style="padding:var(--space-2) var(--space-4);font-size:var(--size-xs);' +
+                            'border:1px solid var(--divider);border-radius:var(--radius-sm);min-width:200px;">' +
                             '<option value="">Loading storms...</option>' +
                         '</select>' +
                         '__PCT_HTML__' +
-                        '<span id="stress-storm-info" style="font-size:10px;color:var(--text-3);"></span>' +
+                        '<span id="stress-storm-info" style="font-size:var(--size-xxs);color:var(--text-3);"></span>' +
                     '</div>' +
                     // Main content: table + chart
                     '<div style="display:flex;flex:1;min-height:0;overflow:hidden;">' +
                         // Left: trade table
                         '<div id="stress-table-wrap" style="width:42%;overflow-y:auto;border-right:1px solid var(--line-soft);' +
-                            'padding:8px;font-size:11px;">' +
-                            '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Select a storm to run stress test</div>' +
+                            'padding:var(--space-4);font-size:var(--size-xs);">' +
+                            '<div style="color:var(--muted-2);text-align:center;padding:var(--space-inset) 0;">Select a storm to run stress test</div>' +
                         '</div>' +
                         // Right: chart with sub-tabs
                         '<div style="flex:1;display:flex;flex-direction:column;min-width:0;">' +
@@ -88,17 +88,17 @@
                             '<div id="stress-chart-tabs" style="display:flex;gap:0;border-bottom:1px solid var(--line-strong);' +
                                 'background:var(--wash);flex-shrink:0;position:relative;z-index:2;">' +
                                 '<div id="stress-ctab-0" ' +
-                                    'style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;' +
+                                    'style="padding:var(--space-3) var(--space-7);font-size:var(--size-xxs);font-weight:600;cursor:pointer;' +
                                     'border-bottom:2px solid var(--accent-mid);color:var(--accent-mid);">Flood Probability</div>' +
                                 '<div id="stress-ctab-1" ' +
-                                    'style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;' +
+                                    'style="padding:var(--space-3) var(--space-7);font-size:var(--size-xxs);font-weight:600;cursor:pointer;' +
                                     'border-bottom:2px solid transparent;color:var(--muted-2);">Stress P&amp;L</div>' +
                                 '<div id="stress-ctab-2" ' +
-                                    'style="padding:5px 14px;font-size:10px;font-weight:600;cursor:pointer;' +
+                                    'style="padding:var(--space-3) var(--space-7);font-size:var(--size-xxs);font-weight:600;cursor:pointer;' +
                                     'border-bottom:2px solid transparent;color:var(--muted-2);">Surface</div>' +
                             '</div>' +
                             // Chart canvas
-                            '<div id="stress-chart-wrap" style="flex:1;padding:8px;min-width:0;position:relative;overflow:hidden;">' +
+                            '<div id="stress-chart-wrap" style="flex:1;padding:var(--space-4);min-width:0;position:relative;overflow:hidden;">' +
                                 '<canvas id="stress-chart-canvas" style="width:100%;height:100%;"></canvas>' +
                             '</div>' +
                         '</div>' +
@@ -205,7 +205,7 @@
                 if (statusEl) statusEl.textContent = 'Running stress scenario...';
 
                 var tableWrap = document.getElementById('stress-table-wrap');
-                if (tableWrap) tableWrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">Running...</div>';
+                if (tableWrap) tableWrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:var(--space-inset) 0;">Running...</div>';
 
                 fetch(baseUrl + '/api/v1/trading/stress/run', {
                     method: 'POST',
@@ -224,7 +224,7 @@
                     } else {
                         if (statusEl) statusEl.textContent = 'Error: ' + (data.message || 'Failed');
                         if (tableWrap) tableWrap.innerHTML =
-                            '<div style="color:var(--red);text-align:center;padding:40px 0;">' + (data.message || 'Error') + '</div>';
+                            '<div style="color:var(--red);text-align:center;padding:var(--space-inset) 0;">' + (data.message || 'Error') + '</div>';
                     }
                 })
                 .catch(function(err) {

@@ -57,30 +57,30 @@
                 periods.forEach(function(p) {
                     cfRows +=
                         '<tr>' +
-                        '<td style="padding:2px 6px;font-weight:600;">' + p.label + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;">' + (p.S_t * 100).toFixed(2) + '%</td>' +
-                        '<td style="padding:2px 6px;text-align:right;">' + p.df.toFixed(4) + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;color:var(--accent);">' + fmtK(p.premPV) + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;color:var(--red-bright);">' + fmtK(p.protPV) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);font-weight:600;">' + p.label + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;">' + (p.S_t * 100).toFixed(2) + '%</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;">' + p.df.toFixed(4) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--accent);">' + fmtK(p.premPV) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--red-bright);">' + fmtK(p.protPV) + '</td>' +
                         '</tr>';
                 });
 
                 cfRows +=
                     '<tr style="border-top:2px solid var(--text);font-weight:bold;background:var(--code);">' +
-                    '<td style="padding:3px 6px;">TOTAL</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);">TOTAL</td>' +
                     '<td></td><td></td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:var(--accent);font-weight:bold;">' + fmtMoney(result.totalPremPV) + '</td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:var(--red-bright);font-weight:bold;">' + fmtMoney(result.totalProtPV) + '</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:var(--accent);font-weight:bold;">' + fmtMoney(result.totalPremPV) + '</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:var(--red-bright);font-weight:bold;">' + fmtMoney(result.totalProtPV) + '</td>' +
                     '</tr>';
 
                 var cashflowTable =
-                    '<table style="width:100%;border-collapse:collapse;font-size:10px;font-family:monospace;">' +
+                    '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xxs);font-family:monospace;">' +
                     '<thead><tr style="background:var(--sunken);border-bottom:2px solid var(--line-strong);">' +
-                    '<th style="padding:3px 6px;text-align:left;">Period</th>' +
-                    '<th style="padding:3px 6px;text-align:right;">S(t)</th>' +
-                    '<th style="padding:3px 6px;text-align:right;">DF(t)</th>' +
-                    '<th style="padding:3px 6px;text-align:right;color:var(--accent);">PV Prem</th>' +
-                    '<th style="padding:3px 6px;text-align:right;color:var(--red-bright);">PV Prot</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:left;">Period</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">S(t)</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">DF(t)</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;color:var(--accent);">PV Prem</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;color:var(--red-bright);">PV Prot</th>' +
                     '</tr></thead>' +
                     '<tbody>' + cfRows + '</tbody></table>';
 
@@ -97,14 +97,14 @@
                     '<span style="color:var(--accent-mid);font-weight:bold;">' + ctpyDisplayName + '</span> \u2014 ' : '';
 
                 container.innerHTML =
-                    '<div style="display:flex;flex-direction:column;height:100%;gap:6px;">' +
-                    '<div style="font-weight:bold;font-size:12px;color:var(--text);">' +
+                    '<div style="display:flex;flex-direction:column;height:100%;gap:var(--space-3);">' +
+                    '<div style="font-weight:bold;font-size:var(--size-sm);color:var(--text);">' +
                     ctpyHeader + 'Severe Trigger \u2014 ' + result.tenor + 'yr Tenor</div>' +
-                    '<div style="flex:0 0 auto;display:flex;gap:10px;overflow-y:auto;max-height:42%;">' +
+                    '<div style="flex:0 0 auto;display:flex;gap:var(--space-5);overflow-y:auto;max-height:42%;">' +
                     '<div style="flex:1;min-width:0;">' + componentTable + '</div>' +
                     '<div style="flex:1;min-width:0;">' + waterfallTable + '</div>' +
                     '</div>' +
-                    '<div style="flex:1;display:flex;gap:12px;min-height:0;">' +
+                    '<div style="flex:1;display:flex;gap:var(--space-6);min-height:0;">' +
                     '<div style="flex:1;overflow-y:auto;min-width:0;">' + cashflowTable + '</div>' +
                     '<div style="flex:1;min-width:0;display:flex;align-items:center;">' +
                     '<canvas id="phc-chart" style="width:100%;height:100%;"></canvas>' +
@@ -168,9 +168,9 @@
 
                 var commitBtn = ctpySelected ?
                     '<button id="phc-commit-btn" onclick="commitPropertyPRSTrade()" ' +
-                    'style="padding:4px 14px;background:var(--green-bright);color:var(--inverse);border:none;border-radius:3px;' +
-                    'cursor:pointer;font-weight:bold;font-size:11px;margin-left:8px;">Commit</button>' :
-                    '<span style="color:var(--disabled);font-size:10px;margin-left:8px;">(select ctpy to commit)</span>';
+                    'style="padding:var(--space-2) var(--space-7);background:var(--green-bright);color:var(--inverse);border:none;border-radius:var(--radius-sm);' +
+                    'cursor:pointer;font-weight:bold;font-size:var(--size-xs);margin-left:var(--space-4);">Commit</button>' :
+                    '<span style="color:var(--disabled);font-size:var(--size-xxs);margin-left:var(--space-4);">(select ctpy to commit)</span>';
 
                 var ctpyTag = ctpyDisplayName ?
                     '<span><b>Ctpy:</b> <span style="color:var(--accent-mid);">' + ctpyDisplayName + '</span></span>' :
@@ -184,7 +184,7 @@
                 bar.innerHTML = [
                     ctpyTag,
                     zoneTag,
-                    '<span><b>Fair Spread:</b> <span style="font-size:13px;color:var(--accent);">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
+                    '<span><b>Fair Spread:</b> <span style="font-size:var(--size-md);color:var(--accent);">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
                     '<span><b>Running:</b> ' + result.spreadBps.toFixed(0) + ' bps</span>',
                     '<span style="color:' + npvColor + ';"><b>NPV:</b> ' + fmtMoney(result.npv) + ' (' + npvLabel + ')</span>',
                     '<span><b>Premium:</b> ' + fmtMoney(result.totalPremPV) + '</span>',

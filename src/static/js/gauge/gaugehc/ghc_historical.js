@@ -29,13 +29,13 @@
 
                 // Build dual layout: chart (left) + storms panel (right)
                 container.innerHTML =
-                    '<div style="display:flex;gap:16px;height:100%;">' +
+                    '<div style="display:flex;gap:var(--space-8);height:100%;">' +
                     '<div style="flex:3;min-width:0;">' +
                     '<canvas id="hist-timeseries-chart" style="width:100%;height:100%;"></canvas>' +
                     '</div>' +
                     '<div id="hist-storms-panel" style="flex:2;min-width:0;display:flex;flex-direction:column;overflow:hidden;">' +
-                    '<div style="font-size:11px;font-weight:700;color:var(--text);padding:4px 8px;border-bottom:1px solid var(--line-soft);background:var(--wash);">Flood Storm Scenarios</div>' +
-                    '<div id="hist-storms-list" style="flex:1;overflow-y:auto;padding:4px;font-size:10px;color:var(--muted);">Loading storms...</div>' +
+                    '<div style="font-size:var(--size-xs);font-weight:700;color:var(--text);padding:var(--space-2) var(--space-4);border-bottom:1px solid var(--line-soft);background:var(--wash);">Flood Storm Scenarios</div>' +
+                    '<div id="hist-storms-list" style="flex:1;overflow-y:auto;padding:var(--space-2);font-size:var(--size-xxs);color:var(--muted);">Loading storms...</div>' +
                     '</div></div>';
 
                 var gaugeId = _ghcGaugeId();
@@ -183,14 +183,14 @@
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status !== 'success' || !result.storms || result.storms.length === 0) {
-                            listEl.innerHTML = '<div style="padding:12px;color:var(--disabled);text-align:center;">No storm scenarios available for this gauge</div>';
+                            listEl.innerHTML = '<div style="padding:var(--space-6);color:var(--disabled);text-align:center;">No storm scenarios available for this gauge</div>';
                             return;
                         }
                         _renderStormList(result.storms, gaugeId);
                     })
                     .catch(function(err) {
                         console.error('[Historical] Storm fetch error:', err);
-                        listEl.innerHTML = '<div style="padding:12px;color:var(--red-dark);">Failed to load storms</div>';
+                        listEl.innerHTML = '<div style="padding:var(--space-6);color:var(--red-dark);">Failed to load storms</div>';
                     });
             }
 
@@ -200,7 +200,7 @@
 
                 var triggerColors = Theme.ramp('trigger_level');
 
-                var html = '<div style="padding:2px 4px;font-size:9px;color:var(--muted);margin-bottom:4px;">' +
+                var html = '<div style="padding:var(--space-1) var(--space-2);font-size:var(--size-xxs);color:var(--muted);margin-bottom:var(--space-2);">' +
                     storms.length + ' storms breached alert at this gauge</div>';
 
                 // Show top 30 storms (sorted by peak level desc)
@@ -215,21 +215,21 @@
 
                     html +=
                         '<div class="hist-storm-row" data-storm-id="' + s.storm_id + '" data-gauge-id="' + gaugeId + '" ' +
-                        'style="padding:5px 8px;border-bottom:1px solid var(--code);cursor:pointer;display:flex;align-items:center;gap:6px;" ' +
+                        'style="padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--code);cursor:pointer;display:flex;align-items:center;gap:var(--space-3);" ' +
                         'onmouseover="this.style.background=\'' + Theme.value('accent-soft') + '\'" ' +
                         'onmouseout="this.style.background=\'\'">' +
                         '<span style="width:6px;height:6px;border-radius:50%;background:' + trigColor + ';flex-shrink:0;"></span>' +
                         '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+                        '<div style="font-size:var(--size-xxs);font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
                         (s.name ? s.name + ' (' + s.storm_id + ')' : s.storm_id) + '</div>' +
-                        '<div style="font-size:9px;color:var(--muted);">' + category + ' | ' + (s.gauges_severe || 0) + ' sev | ' + Math.round(s.effective_precipitation_mm || 0) + 'mm</div>' +
+                        '<div style="font-size:var(--size-xxs);color:var(--muted);">' + category + ' | ' + (s.gauges_severe || 0) + ' sev | ' + Math.round(s.effective_precipitation_mm || 0) + 'mm</div>' +
                         '</div>' +
-                        '<span style="font-size:9px;color:var(--accent-mid);">\u2192</span>' +
+                        '<span style="font-size:var(--size-xxs);color:var(--accent-mid);">\u2192</span>' +
                         '</div>';
                 }
 
                 if (storms.length > shown) {
-                    html += '<div style="padding:6px 8px;font-size:9px;color:var(--muted);text-align:center;">+ ' + (storms.length - shown) + ' more storms</div>';
+                    html += '<div style="padding:var(--space-3) var(--space-4);font-size:var(--size-xxs);color:var(--muted);text-align:center;">+ ' + (storms.length - shown) + ' more storms</div>';
                 }
 
                 listEl.innerHTML = html;

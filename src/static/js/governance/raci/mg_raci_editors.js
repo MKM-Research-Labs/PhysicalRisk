@@ -24,19 +24,19 @@ function showRaciEditRole(roleId) {
     var role = (raciData.roles || []).find(function(r) { return r.role_id === roleId; });
     if (!role) return;
 
-    var html = '<div style="padding:16px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-top:8px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">Edit Role: ' + role.label + ' (' + role.raci_code + ')</div>';
+    var html = '<div style="padding:var(--space-8);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-top:var(--space-4);">';
+    html += '<div style="font-size:var(--size-sm);font-weight:600;color:var(--text);margin-bottom:var(--space-5);">Edit Role: ' + role.label + ' (' + role.raci_code + ')</div>';
 
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Assigned To</label>';
-    html += '<input type="text" id="raci-role-assigned" value="' + (role.assigned_to || '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Backup</label>';
-    html += '<input type="text" id="raci-role-backup" value="' + (role.backup || '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-5);">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Assigned To</label>';
+    html += '<input type="text" id="raci-role-assigned" value="' + (role.assigned_to || '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Backup</label>';
+    html += '<input type="text" id="raci-role-backup" value="' + (role.backup || '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
     html += '</div>';
 
-    html += '<div style="display:flex;gap:8px;">';
-    html += '<button onclick="window.MG.saveRaciRole(\'' + roleId + '\')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
-    html += '<button onclick="document.getElementById(\'raci-role-edit-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    html += '<div style="display:flex;gap:var(--space-4);">';
+    html += '<button onclick="window.MG.saveRaciRole(\'' + roleId + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
+    html += '<button onclick="document.getElementById(\'raci-role-edit-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
 
     area.innerHTML = html;
@@ -86,14 +86,14 @@ function showRaciEditActivity(activityId) {
 
     var roles = raciData.roles || [];
 
-    var html = '<div style="padding:16px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-top:8px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">Edit Activity: ' + act.activity + '</div>';
+    var html = '<div style="padding:var(--space-8);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-top:var(--space-4);">';
+    html += '<div style="font-size:var(--size-sm);font-weight:600;color:var(--text);margin-bottom:var(--space-5);">Edit Activity: ' + act.activity + '</div>';
 
-    html += '<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;margin-bottom:10px;">';
+    html += '<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:var(--space-4);margin-bottom:var(--space-5);">';
     ['R', 'A', 'C', 'I'].forEach(function(code) {
         var codeLabel = code === 'R' ? 'Responsible' : code === 'A' ? 'Accountable' : code === 'C' ? 'Consulted' : 'Informed';
-        html += '<div><label style="font-size:10px;color:' + raciCodeColor(code) + ';font-weight:600;display:block;margin-bottom:2px;">' + code + ' \u2014 ' + codeLabel + '</label>';
-        html += '<select id="raci-act-' + code + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;">';
+        html += '<div><label style="font-size:var(--size-xxs);color:' + raciCodeColor(code) + ';font-weight:600;display:block;margin-bottom:var(--space-1);">' + code + ' \u2014 ' + codeLabel + '</label>';
+        html += '<select id="raci-act-' + code + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
         html += '<option value="">None</option>';
         roles.forEach(function(r) {
             html += '<option value="' + r.role_id + '"' + (act[code] === r.role_id ? ' selected' : '') + '>' + r.label + '</option>';
@@ -102,15 +102,15 @@ function showRaciEditActivity(activityId) {
     });
     html += '</div>';
 
-    html += '<div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Tier Emphasis</label>';
-    html += '<input type="text" id="raci-act-tier" value="' + (act.tier_emphasis || '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
+    html += '<div style="margin-bottom:var(--space-4);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Tier Emphasis</label>';
+    html += '<input type="text" id="raci-act-tier" value="' + (act.tier_emphasis || '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
 
-    html += '<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Notes</label>';
-    html += '<textarea id="raci-act-notes" rows="2" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;line-height:1.5;">' + (act.notes || '') + '</textarea></div>';
+    html += '<div style="margin-bottom:var(--space-5);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Notes</label>';
+    html += '<textarea id="raci-act-notes" rows="2" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;line-height:1.5;">' + (act.notes || '') + '</textarea></div>';
 
-    html += '<div style="display:flex;gap:8px;">';
-    html += '<button onclick="window.MG.saveRaciActivity(\'' + activityId + '\')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
-    html += '<button onclick="document.getElementById(\'raci-activity-edit-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    html += '<div style="display:flex;gap:var(--space-4);">';
+    html += '<button onclick="window.MG.saveRaciActivity(\'' + activityId + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
+    html += '<button onclick="document.getElementById(\'raci-activity-edit-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
 
     area.innerHTML = html;
@@ -155,22 +155,22 @@ function showRaciEditEscalation(triggerId) {
 
     var th = trig.tier_threshold || {};
 
-    var html = '<div style="padding:16px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-top:8px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">Edit Escalation: ' + trig.trigger + '</div>';
+    var html = '<div style="padding:var(--space-8);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-top:var(--space-4);">';
+    html += '<div style="font-size:var(--size-sm);font-weight:600;color:var(--text);margin-bottom:var(--space-5);">Edit Escalation: ' + trig.trigger + '</div>';
 
-    html += '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;margin-bottom:10px;">';
+    html += '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:var(--space-4);margin-bottom:var(--space-5);">';
     ['1', '2', '3'].forEach(function(tier) {
-        html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Tier ' + tier + ' Threshold</label>';
-        html += '<input type="text" id="raci-esc-t' + tier + '" value="' + (th[tier] || '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
+        html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Tier ' + tier + ' Threshold</label>';
+        html += '<input type="text" id="raci-esc-t' + tier + '" value="' + (th[tier] || '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
     });
     html += '</div>';
 
-    html += '<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Response Required</label>';
-    html += '<textarea id="raci-esc-response" rows="2" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;line-height:1.5;">' + (trig.response_required || '') + '</textarea></div>';
+    html += '<div style="margin-bottom:var(--space-5);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Response Required</label>';
+    html += '<textarea id="raci-esc-response" rows="2" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;line-height:1.5;">' + (trig.response_required || '') + '</textarea></div>';
 
-    html += '<div style="display:flex;gap:8px;">';
-    html += '<button onclick="window.MG.saveRaciEscalation(\'' + triggerId + '\')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
-    html += '<button onclick="document.getElementById(\'raci-escalation-edit-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    html += '<div style="display:flex;gap:var(--space-4);">';
+    html += '<button onclick="window.MG.saveRaciEscalation(\'' + triggerId + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
+    html += '<button onclick="document.getElementById(\'raci-escalation-edit-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
 
     area.innerHTML = html;

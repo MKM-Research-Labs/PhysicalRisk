@@ -19,12 +19,12 @@
 // SOFTWARE.
 
             function selectHtml(id, label, options) {{
-                var h = '<div style="margin-bottom:6px;">' +
-                    '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
+                var h = '<div style="margin-bottom:var(--space-3);">' +
+                    '<label style="display:block;color:var(--text-3);font-size:var(--size-xs);margin-bottom:var(--space-1);">' +
                     label + '</label>' +
                     '<select id="' + id + '" ' +
-                    'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                    'border:1px solid var(--divider);border-radius:4px;font-size:13px;">';
+                    'style="width:100%;box-sizing:border-box;padding:var(--space-2) var(--space-3);' +
+                    'border:1px solid var(--divider);border-radius:var(--radius-4);font-size:var(--size-md);">';
                 options.forEach(function(o) {{
                     // Accept either a plain string (value === text) or a
                     // {{value, label}} object so the same helper builds both the
@@ -40,12 +40,12 @@
             // State lives in the button's data-on attribute; setToggle reflects
             // it visually and toggleState reads it back for the overrides.
             function toggleHtml(id, label) {{
-                return '<div style="margin-bottom:6px;">' +
-                    '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
+                return '<div style="margin-bottom:var(--space-3);">' +
+                    '<label style="display:block;color:var(--text-3);font-size:var(--size-xs);margin-bottom:var(--space-1);">' +
                     label + '</label>' +
                     '<button id="' + id + '" type="button" data-on="0" ' +
-                    'style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--divider);' +
-                    'border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;' +
+                    'style="width:100%;box-sizing:border-box;padding:var(--space-3);border:1px solid var(--divider);' +
+                    'border-radius:var(--radius-4);font-size:var(--size-md);font-weight:600;cursor:pointer;' +
                     'background:var(--sunken);color:var(--muted);">Off</button></div>';
             }}
 
@@ -65,19 +65,19 @@
 
             function buildForm() {{
                 var form = document.getElementById('loan-pricer-form');
-                var html = '<div style="font-weight:700;font-size:12px;color:var(--accent-mid);' +
-                    'border-bottom:1px solid var(--accent-border);padding-bottom:4px;margin-bottom:8px;">' +
+                var html = '<div style="font-weight:700;font-size:var(--size-sm);color:var(--accent-mid);' +
+                    'border-bottom:1px solid var(--accent-border);padding-bottom:var(--space-2);margin-bottom:var(--space-4);">' +
                     'Loan Inputs</div>';
                 FIELDS.forEach(function(f) {{
                     // In standalone mode the coupon is derived (rating + hazard),
                     // so the contractual rate isn't a free input.
                     if (standaloneMode && f.id === 'lp-interest_rate') return;
-                    html += '<div style="margin-bottom:6px;">' +
-                        '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
+                    html += '<div style="margin-bottom:var(--space-3);">' +
+                        '<label style="display:block;color:var(--text-3);font-size:var(--size-xs);margin-bottom:var(--space-1);">' +
                         f.label + '</label>' +
                         '<input id="' + f.id + '" type="number" step="any" ' +
-                        'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                        'border:1px solid var(--divider);border-radius:4px;font-size:13px;"></div>';
+                        'style="width:100%;box-sizing:border-box;padding:var(--space-2) var(--space-3);' +
+                        'border:1px solid var(--divider);border-radius:var(--radius-4);font-size:var(--size-md);"></div>';
                 }});
                 // Standalone calculator exposes the coupon build-up drivers:
                 // borrower credit rating + wind hazard category. The flood leg
@@ -94,24 +94,24 @@
                     // above sets the basis; fire and seismic are independent
                     // legs folded into the all-in coupon by root-sum-of-squares
                     // when toggled on (their spreads come from the asset curve).
-                    html += '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;' +
-                        'letter-spacing:0.5px;margin:8px 0 2px;">Independent Perils</div>';
+                    html += '<div style="font-size:var(--size-xs);color:var(--muted);text-transform:uppercase;' +
+                        'letter-spacing:0.5px;margin:var(--space-4) 0 var(--space-1);">Independent Perils</div>';
                     html += toggleHtml('lp-include_fire', 'Fire');
                     html += toggleHtml('lp-include_seismic', 'Seismic');
                     // User-defined contractual coupon. Seeded with the model-
                     // derived coupon on the first price; editing it overrides the
                     // rate the borrower pays, while the model coupon stays visible
                     // in the build-up as the "Original Contractual Coupon".
-                    html += '<div style="margin-bottom:6px;">' +
-                        '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
+                    html += '<div style="margin-bottom:var(--space-3);">' +
+                        '<label style="display:block;color:var(--text-3);font-size:var(--size-xs);margin-bottom:var(--space-1);">' +
                         'Contractual Coupon (%)</label>' +
                         '<input id="lp-contractual_coupon" type="number" step="any" ' +
-                        'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                        'border:1px solid var(--divider);border-radius:4px;font-size:13px;"></div>';
+                        'style="width:100%;box-sizing:border-box;padding:var(--space-2) var(--space-3);' +
+                        'border:1px solid var(--divider);border-radius:var(--radius-4);font-size:var(--size-md);"></div>';
                 }}
                 html += '<button id="lp-reprice-btn" ' +
-                    'style="width:100%;margin-top:4px;padding:8px;background:var(--accent-mid);color:var(--inverse);' +
-                    'border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">' +
+                    'style="width:100%;margin-top:var(--space-2);padding:var(--space-4);background:var(--accent-mid);color:var(--inverse);' +
+                    'border:none;border-radius:var(--radius-4);font-size:var(--size-md);font-weight:600;cursor:pointer;">' +
                     'Re-price</button>';
                 form.innerHTML = html;
                 document.getElementById('lp-reprice-btn').onclick = reprice;
@@ -208,7 +208,7 @@
                         : 'Flood Hazard (PRS \u00b7 category)';
                     if (standaloneOriginAssetId && window.viewPropertyHazard) {{
                         floodLabel += ' <a href="#" id="lp-flood-prs-link" ' +
-                            'style="color:var(--accent-mid);text-decoration:underline;font-size:11px;" ' +
+                            'style="color:var(--accent-mid);text-decoration:underline;font-size:var(--size-xs);" ' +
                             'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
                     }}
                     // The wind leg is either PRS-priced from the asset's modelled
@@ -237,7 +237,7 @@
                         var prsLabel = 'PRS Hazard (' + scLabel + ')';
                         if (standaloneOriginAssetId && window.viewPropertyHazard) {{
                             prsLabel += ' <a href="#" id="lp-flood-prs-link" ' +
-                                'style="color:var(--accent-mid);text-decoration:underline;font-size:11px;" ' +
+                                'style="color:var(--accent-mid);text-decoration:underline;font-size:var(--size-xs);" ' +
                                 'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
                         }}
                         // The flood/wind basis (pre-RSS). Falls back to the all-in
@@ -261,22 +261,22 @@
                     if (c.fire_included || c.seismic_included) {{
                         couponRows.push(['All-in Hazard (√Σ sq)', fmtPct(c.hazard_spread), 'var(--accent-ink)']);
                     }}
-                    html += '<div style="font-weight:700;font-size:12px;color:var(--accent-mid);' +
-                        'border-bottom:1px solid var(--accent-border);padding-bottom:4px;margin-bottom:8px;">' +
+                    html += '<div style="font-weight:700;font-size:var(--size-sm);color:var(--accent-mid);' +
+                        'border-bottom:1px solid var(--accent-border);padding-bottom:var(--space-2);margin-bottom:var(--space-4);">' +
                         'Coupon Build-up</div>';
                     couponRows.forEach(function(r) {{
-                        html += '<div style="display:flex;justify-content:space-between;padding:3px 0;' +
+                        html += '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;' +
                             'border-bottom:1px solid var(--sunken);">' +
                             '<span style="color:var(--text-3);">' + r[0] + '</span>' +
                             '<span style="font-weight:600;color:' + r[2] + ';">' + r[1] + '</span></div>';
                     }});
                     html += '<div style="height:12px;"></div>';
                 }}
-                html += '<div style="font-weight:700;font-size:12px;color:var(--accent-mid);' +
-                    'border-bottom:1px solid var(--accent-border);padding-bottom:4px;margin-bottom:8px;">' +
+                html += '<div style="font-weight:700;font-size:var(--size-sm);color:var(--accent-mid);' +
+                    'border-bottom:1px solid var(--accent-border);padding-bottom:var(--space-2);margin-bottom:var(--space-4);">' +
                     'Pricing Results</div>';
                 rows.forEach(function(r) {{
-                    html += '<div style="display:flex;justify-content:space-between;padding:3px 0;' +
+                    html += '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;' +
                         'border-bottom:1px solid var(--sunken);">' +
                         '<span style="color:var(--text-3);">' + r[0] + '</span>' +
                         '<span style="font-weight:600;color:' + r[2] + ';">' + r[1] + '</span></div>';

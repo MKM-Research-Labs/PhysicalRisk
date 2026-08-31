@@ -22,13 +22,13 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flood events</p>';
                     return;
                 }
 
                 var events = propStormData.flood_events.filter(function(e) { return e.flooded; });
                 if (events.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flooded events with hydrograph data</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flooded events with hydrograph data</p>';
                     return;
                 }
                 var info = propStormData.property_info || {};
@@ -38,9 +38,9 @@
                 var nearestGauges = propStormData.nearest_gauges || [];
 
                 // Storm selector
-                var selectorHtml = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
-                    '<span style="font-size:11px;font-weight:600;color:var(--text-2);">Storm:</span>' +
-                    '<select id="prop-timeline-select" style="flex:1;padding:3px 6px;font-size:11px;border:1px solid var(--line-strong);border-radius:3px;">';
+                var selectorHtml = '<div style="display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-4);">' +
+                    '<span style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);">Storm:</span>' +
+                    '<select id="prop-timeline-select" style="flex:1;padding:var(--space-2) var(--space-3);font-size:var(--size-xs);border:1px solid var(--line-strong);border-radius:var(--radius-sm);">';
                 events.forEach(function(e, i) {
                     var sel = (selectedStormId && e.storm_id === selectedStormId) || (!selectedStormId && i === 0) ? ' selected' : '';
                     selectorHtml += '<option value="' + e.storm_id + '"' + sel + '>' +
@@ -51,7 +51,7 @@
                 content.innerHTML = selectorHtml +
                     '<div id="prop-timeline-typhoon-banner"></div>' +
                     '<canvas id="prop-timeline-chart" height="300"></canvas>' +
-                    '<div id="prop-timeline-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
+                    '<div id="prop-timeline-stats" style="display:flex;gap:var(--space-8);flex-wrap:wrap;font-size:var(--size-xs);color:var(--text-2);padding:var(--space-4) 0;border-top:1px solid var(--line-soft);"></div>';
 
                 document.getElementById('prop-timeline-select').onchange = function() {
                     renderTimeline(this.value);
@@ -78,9 +78,9 @@
                         banner.innerHTML =
                             '<div style="background:linear-gradient(90deg,var(--warn-bg-warm) 0%,var(--warn-line-pale) 100%);' +
                             'border:1px solid var(--amber-dark);border-left:5px solid var(--orange-deep);' +
-                            'border-radius:4px;padding:6px 12px;margin:4px 0 8px;' +
-                            'display:flex;align-items:center;gap:12px;font-size:12px;">' +
-                              '<span style="font-size:18px;">⚡</span>' +
+                            'border-radius:var(--radius-4);padding:var(--space-3) var(--space-6);margin:var(--space-2) 0 var(--space-4);' +
+                            'display:flex;align-items:center;gap:var(--space-6);font-size:var(--size-sm);">' +
+                              '<span style="font-size:var(--size-18);">⚡</span>' +
                               '<span style="font-weight:700;color:var(--orange-deep);letter-spacing:0.5px;">TYPHOON</span>' +
                               '<span style="color:var(--text);">' + (t.event_id || '?') + ' &nbsp;·&nbsp; ' +
                                   '<b>' + (t.scenario_family || '?') + '</b> family</span>' +

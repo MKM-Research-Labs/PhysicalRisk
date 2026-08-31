@@ -22,14 +22,14 @@ var mrcMeetingTab = 'agenda';
 
 function showMrcMeeting(meetingId) {
     var sc = document.getElementById('mrc-sub-content');
-    sc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading meeting...</div>';
+    sc.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);">Loading meeting...</div>';
 
     console.log('[MRC] Loading meeting:', meetingId);
     fetch(getBaseUrl() + '/api/v1/governance/mrc/meetings/' + meetingId, {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                sc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Meeting not found</div>';
+                sc.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Meeting not found</div>';
                 return;
             }
             console.log('[MRC] Meeting loaded:', data.meeting.title, '(' + data.meeting.status + ')');
@@ -39,7 +39,7 @@ function showMrcMeeting(meetingId) {
         })
         .catch(function(err) {
             console.error('[MRC] Meeting load error:', err);
-            sc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + err.message + '</div>';
+            sc.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Error: ' + err.message + '</div>';
         });
 }
 
@@ -49,18 +49,18 @@ function renderMrcMeetingDetail(m) {
     var html = '<div style="padding:0;">';
 
     // Header
-    html += '<div style="padding:12px 16px;border-bottom:1px solid var(--line-soft);">';
-    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">';
-    html += '<button onclick="window.MG.switchMrcTab(\'meetings\')" style="padding:4px 10px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&larr; Back</button>';
-    html += '<div style="font-size:14px;font-weight:700;color:var(--text);">' + m.title + '</div>';
+    html += '<div style="padding:var(--space-6) var(--space-8);border-bottom:1px solid var(--line-soft);">';
+    html += '<div style="display:flex;align-items:center;gap:var(--space-6);margin-bottom:var(--space-4);">';
+    html += '<button onclick="window.MG.switchMrcTab(\'meetings\')" style="padding:var(--space-2) var(--space-5);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&larr; Back</button>';
+    html += '<div style="font-size:var(--size-14);font-weight:700;color:var(--text);">' + m.title + '</div>';
     var statusColor = m.status === 'Completed' ? 'var(--green)' : m.status === 'Scheduled' ? 'var(--accent)' : 'var(--amber)';
     html += badge(m.status, statusColor);
     html += '<div style="flex:1;"></div>';
-    html += '<button onclick="window.MG.downloadMeetingPdf(\'' + m.id + '\')" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&#x2913; Meeting Pack PDF</button>';
+    html += '<button onclick="window.MG.downloadMeetingPdf(\'' + m.id + '\')" style="padding:var(--space-3) var(--space-6);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&#x2913; Meeting Pack PDF</button>';
     html += '</div>';
 
     // Meeting info row
-    html += '<div style="display:flex;gap:20px;font-size:11px;color:var(--text-3);flex-wrap:wrap;">';
+    html += '<div style="display:flex;gap:var(--space-wide);font-size:var(--size-xs);color:var(--text-3);flex-wrap:wrap;">';
     html += '<span>Date: <b>' + m.date + '</b></span>';
     html += '<span>Time: <b>' + (m.time || '\u2014') + '</b></span>';
     html += '<span>Location: <b>' + (m.location || '\u2014') + '</b></span>';
@@ -82,11 +82,11 @@ function renderMrcMeetingDetail(m) {
         {id: 'mdocs', label: 'Documents (' + (m.documents || []).length + ')'},
     ];
     mTabs.forEach(function(t) {
-        html += '<button id="mrc-mtab-' + t.id + '" onclick="window.MG.switchMeetingTab(\'' + t.id + '\')" style="padding:8px 14px;font-size:11px;border:none;cursor:pointer;border-bottom:2px solid ' + (t.id === mrcMeetingTab ? 'var(--accent)' : 'transparent') + ';background:transparent;color:' + (t.id === mrcMeetingTab ? 'var(--accent)' : 'var(--text-3)') + ';font-weight:' + (t.id === mrcMeetingTab ? '600' : '400') + ';">' + t.label + '</button>';
+        html += '<button id="mrc-mtab-' + t.id + '" onclick="window.MG.switchMeetingTab(\'' + t.id + '\')" style="padding:var(--space-4) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;border-bottom:2px solid ' + (t.id === mrcMeetingTab ? 'var(--accent)' : 'transparent') + ';background:transparent;color:' + (t.id === mrcMeetingTab ? 'var(--accent)' : 'var(--text-3)') + ';font-weight:' + (t.id === mrcMeetingTab ? '600' : '400') + ';">' + t.label + '</button>';
     });
     html += '</div>';
 
-    html += '<div id="mrc-meeting-content" style="padding:16px;overflow-y:auto;"></div>';
+    html += '<div id="mrc-meeting-content" style="padding:var(--space-8);overflow-y:auto;"></div>';
     html += '</div>';
 
     sc.innerHTML = html;

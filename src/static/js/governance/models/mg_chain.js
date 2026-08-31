@@ -25,9 +25,9 @@ function renderModelChain() {
     var chain = mgData.model_chain;
     var models = mgData.models;
 
-    var html = '<div style="padding:16px;">';
-    html += '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">Model Dependency Chain (String of Pearls)</div>';
-    html += '<div style="font-size:11px;color:var(--text-3);margin-bottom:16px;">' + chain.description + '</div>';
+    var html = '<div style="padding:var(--space-8);">';
+    html += '<div style="font-size:var(--size-md);font-weight:700;color:var(--text);margin-bottom:var(--space-6);">Model Dependency Chain (String of Pearls)</div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--text-3);margin-bottom:var(--space-8);">' + chain.description + '</div>';
 
     // Helper: render a chain node circle
     function chainNode(mid) {
@@ -36,26 +36,26 @@ function renderModelChain() {
         var h = '<div style="text-align:center;cursor:pointer;" onclick="window.MG.showDetail(\'' + mid + '\')">';
         h += '<div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg, ' + tierColors[m.tier] + '22, ' + tierColors[m.tier] + '44);border:3px solid ' + tierColors[m.tier] + ';display:flex;align-items:center;justify-content:center;margin:0 auto;">';
         h += '<div style="text-align:center;">';
-        h += '<div style="font-size:18px;">' + (catIcons[m.category] || '') + '</div>';
-        h += '<div style="font-size:9px;font-weight:700;color:' + tierColors[m.tier] + ';margin-top:2px;">T' + m.tier + '</div>';
+        h += '<div style="font-size:var(--size-18);">' + (catIcons[m.category] || '') + '</div>';
+        h += '<div style="font-size:var(--size-xxs);font-weight:700;color:' + tierColors[m.tier] + ';margin-top:var(--space-1);">T' + m.tier + '</div>';
         h += '</div></div>';
-        h += '<div style="font-size:10px;font-weight:600;color:var(--text);margin-top:6px;">' + m.short_name + '</div>';
-        h += '<div style="font-size:9px;color:var(--muted);">' + m.model_id + '</div>';
+        h += '<div style="font-size:var(--size-xxs);font-weight:600;color:var(--text);margin-top:var(--space-3);">' + m.short_name + '</div>';
+        h += '<div style="font-size:var(--size-xxs);color:var(--muted);">' + m.model_id + '</div>';
         h += '</div>';
         return h;
     }
     function chainArrow(label) {
-        var h = '<div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;">';
-        h += '<div style="font-size:18px;color:var(--muted-2);">→</div>';
-        h += '<div style="font-size:8px;color:var(--muted);max-width:80px;text-align:center;">' + label + '</div>';
+        var h = '<div style="display:flex;flex-direction:column;align-items:center;padding:0 var(--space-4);">';
+        h += '<div style="font-size:var(--size-18);color:var(--muted-2);">→</div>';
+        h += '<div style="font-size:var(--size-8);color:var(--muted);max-width:80px;text-align:center;">' + label + '</div>';
         h += '</div>';
         return h;
     }
 
     // Pricing chain: SI -> SG -> GH -> PR
     var chainOrder = ['MKM-SI-001', 'MKM-SG-001', 'MKM-GH-001', 'MKM-PR-001'];
-    html += '<div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:4px;">Pricing Chain</div>';
-    html += '<div style="display:flex;align-items:center;justify-content:center;gap:0;padding:12px 0;flex-wrap:wrap;">';
+    html += '<div style="font-size:var(--size-xxs);font-weight:600;color:var(--muted);margin-bottom:var(--space-2);">Pricing Chain</div>';
+    html += '<div style="display:flex;align-items:center;justify-content:center;gap:0;padding:var(--space-6) 0;flex-wrap:wrap;">';
     chainOrder.forEach(function(mid, idx) {
         html += chainNode(mid);
         if (idx < chainOrder.length - 1) {
@@ -71,12 +71,12 @@ function renderModelChain() {
         return models.find(function(x) { return x.model_id === mid; });
     });
     if (hasBranch) {
-        html += '<div style="display:flex;align-items:flex-start;margin-top:4px;margin-bottom:8px;">';
+        html += '<div style="display:flex;align-items:flex-start;margin-top:var(--space-2);margin-bottom:var(--space-4);">';
         // Spacer to align under SG node
         html += '<div style="flex:1;"></div>';
         html += '<div style="display:flex;flex-direction:column;align-items:center;">';
         html += '<div style="width:2px;height:20px;background:var(--divider);"></div>';
-        html += '<div style="font-size:8px;color:var(--muted);margin:2px 0;">stress branch</div>';
+        html += '<div style="font-size:var(--size-8);color:var(--muted);margin:var(--space-1) 0;">stress branch</div>';
         html += '<div style="width:2px;height:8px;background:var(--divider);"></div>';
         html += '<div style="display:flex;align-items:center;gap:0;">';
         stressBranch.forEach(function(mid, idx) {
@@ -93,42 +93,42 @@ function renderModelChain() {
     }
 
     // Supporting models
-    html += '<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--line-soft);">';
-    html += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;">Supporting Models</div>';
-    html += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
+    html += '<div style="margin-top:var(--space-10);padding-top:var(--space-8);border-top:1px solid var(--line-soft);">';
+    html += '<div style="font-size:var(--size-sm);font-weight:700;color:var(--text);margin-bottom:var(--space-6);">Supporting Models</div>';
+    html += '<div style="display:flex;gap:var(--space-6);flex-wrap:wrap;">';
 
     var diagramModels = chainOrder.concat(stressBranch || []);
     var supportModels = models.filter(function(m) {
         return diagramModels.indexOf(m.model_id) === -1;
     });
     supportModels.forEach(function(m) {
-        html += '<div style="padding:10px 14px;border:1px solid var(--line);border-radius:6px;cursor:pointer;min-width:180px;border-left:3px solid ' + tierColors[m.tier] + ';" onclick="window.MG.showDetail(\'' + m.model_id + '\')">';
-        html += '<div style="font-size:11px;font-weight:600;color:var(--text);">' + (catIcons[m.category] || '') + ' ' + m.short_name + '</div>';
-        html += '<div style="font-size:9px;color:var(--muted);margin-top:2px;">' + m.model_id + ' &middot; ' + tierBadge(m.tier) + '</div>';
+        html += '<div style="padding:var(--space-5) var(--space-7);border:1px solid var(--line);border-radius:var(--radius-md);cursor:pointer;min-width:180px;border-left:3px solid ' + tierColors[m.tier] + ';" onclick="window.MG.showDetail(\'' + m.model_id + '\')">';
+        html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);">' + (catIcons[m.category] || '') + ' ' + m.short_name + '</div>';
+        html += '<div style="font-size:var(--size-xxs);color:var(--muted);margin-top:var(--space-1);">' + m.model_id + ' &middot; ' + tierBadge(m.tier) + '</div>';
         html += '</div>';
     });
     html += '</div></div>';
 
     // Link detail table with expandable fields
-    html += '<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--line-soft);">';
-    html += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Data Handoffs</div>';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<div style="margin-top:var(--space-10);padding-top:var(--space-8);border-top:1px solid var(--line-soft);">';
+    html += '<div style="font-size:var(--size-sm);font-weight:700;color:var(--text);margin-bottom:var(--space-4);">Data Handoffs</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
     html += '<thead><tr style="background:var(--raised);">';
     ['From', 'To', 'Data Handoff', 'Granularity', 'Fields'].forEach(function(h) {
-        html += '<th style="padding:6px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);">' + h + '</th>';
+        html += '<th style="padding:var(--space-3) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);">' + h + '</th>';
     });
     html += '</tr></thead><tbody>';
     chain.links.forEach(function(l, li) {
         var fields = l.fields || [];
         var rowId = 'mg-chain-fields-' + li;
         html += '<tr style="cursor:pointer;" onclick="var el=document.getElementById(\'' + rowId + '\');el.style.display=el.style.display===\'none\'?\'table-row\':\'none\';">';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + l.from + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + l.to + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);">' + l.data_handoff + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-size:10px;color:var(--text-3);">' + l.granularity + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);">';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + l.from + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + l.to + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + l.data_handoff + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-size:var(--size-xxs);color:var(--text-3);">' + l.granularity + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">';
         if (fields.length > 0) {
-            html += '<span style="color:var(--accent);font-size:10px;">▶ ' + fields.length + ' fields</span>';
+            html += '<span style="color:var(--accent);font-size:var(--size-xxs);">▶ ' + fields.length + ' fields</span>';
         }
         html += '</td>';
         html += '</tr>';
@@ -136,14 +136,14 @@ function renderModelChain() {
         // Expandable field detail row
         if (fields.length > 0) {
             html += '<tr id="' + rowId + '" style="display:none;">';
-            html += '<td colspan="5" style="padding:0 10px 10px 24px;background:var(--wash-cool);border-bottom:2px solid var(--accent-soft);">';
-            html += '<table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;">';
-            html += '<tr style="background:var(--accent-soft);"><th style="padding:4px 8px;text-align:left;color:var(--accent-mid);">Field</th><th style="padding:4px 8px;text-align:left;color:var(--accent-mid);">Type</th><th style="padding:4px 8px;text-align:left;color:var(--accent-mid);">Description</th></tr>';
+            html += '<td colspan="5" style="padding:0 var(--space-5) var(--space-5) var(--space-10);background:var(--wash-cool);border-bottom:2px solid var(--accent-soft);">';
+            html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xxs);margin-top:var(--space-2);">';
+            html += '<tr style="background:var(--accent-soft);"><th style="padding:var(--space-2) var(--space-4);text-align:left;color:var(--accent-mid);">Field</th><th style="padding:var(--space-2) var(--space-4);text-align:left;color:var(--accent-mid);">Type</th><th style="padding:var(--space-2) var(--space-4);text-align:left;color:var(--accent-mid);">Description</th></tr>';
             fields.forEach(function(f) {
                 html += '<tr>';
-                html += '<td style="padding:3px 8px;border-bottom:1px solid var(--info-bg);font-family:monospace;font-weight:600;color:var(--text);white-space:nowrap;">' + f.name + '</td>';
-                html += '<td style="padding:3px 8px;border-bottom:1px solid var(--info-bg);color:var(--muted);white-space:nowrap;">' + f.type + '</td>';
-                html += '<td style="padding:3px 8px;border-bottom:1px solid var(--info-bg);color:var(--text-2);">' + f.description + '</td>';
+                html += '<td style="padding:var(--space-2) var(--space-4);border-bottom:1px solid var(--info-bg);font-family:monospace;font-weight:600;color:var(--text);white-space:nowrap;">' + f.name + '</td>';
+                html += '<td style="padding:var(--space-2) var(--space-4);border-bottom:1px solid var(--info-bg);color:var(--muted);white-space:nowrap;">' + f.type + '</td>';
+                html += '<td style="padding:var(--space-2) var(--space-4);border-bottom:1px solid var(--info-bg);color:var(--text-2);">' + f.description + '</td>';
                 html += '</tr>';
             });
             html += '</table></td></tr>';

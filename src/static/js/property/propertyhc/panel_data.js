@@ -50,9 +50,9 @@
                         if (content) {
                             content.innerHTML =
                                 '<div style="text-align:center;padding:60px 20px;color:var(--muted);">' +
-                                '<p style="font-size:16px;font-weight:600;margin-bottom:12px;">No Hazard Curve Data</p>' +
+                                '<p style="font-size:var(--size-lg);font-weight:600;margin-bottom:var(--space-6);">No Hazard Curve Data</p>' +
                                 '<p>' + msg + '</p>' +
-                                '<p style="margin-top:16px;font-size:12px;color:var(--disabled);">' +
+                                '<p style="margin-top:var(--space-8);font-size:var(--size-sm);color:var(--disabled);">' +
                                 'Try re-running: <code>python phys.py port --propertyts --propertyhc</code></p></div>';
                         }
                         return;

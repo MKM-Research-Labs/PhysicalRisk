@@ -45,7 +45,7 @@
                     dd.innerHTML = '';
                     gaugeIds.forEach(function(gid, idx) {
                         var row = document.createElement('label');
-                        row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 10px;cursor:pointer;font-size:11px;white-space:nowrap;';
+                        row.style.cssText = 'display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-5);cursor:pointer;font-size:var(--size-xs);white-space:nowrap;';
                         row.onmouseenter = function() { this.style.background = Theme.value('sunken'); };
                         row.onmouseleave = function() { this.style.background = ''; };
                         var cb = document.createElement('input');

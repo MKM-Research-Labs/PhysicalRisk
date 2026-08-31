@@ -163,7 +163,7 @@
                 // Stats bar with trigger dropdown
                 var bar = document.getElementById('hazard-stats-bar');
                 var selHtml = '<select id="hc-trigger-select" onchange="window._hcTriggerChanged(this.value)" ' +
-                    'style="padding:2px 6px;font-size:10px;border:1px solid var(--divider);border-radius:3px;background:var(--panel);margin-right:8px;">' +
+                    'style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);border:1px solid var(--divider);border-radius:var(--radius-sm);background:var(--panel);margin-right:var(--space-4);">' +
                     '<option value="all"' + (filter === 'all' ? ' selected' : '') + '>All Triggers</option>' +
                     '<option value="alert"' + (filter === 'alert' ? ' selected' : '') + '>Alert</option>' +
                     '<option value="warning"' + (filter === 'warning' ? ' selected' : '') + '>Warning</option>' +

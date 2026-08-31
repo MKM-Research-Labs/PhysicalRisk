@@ -38,7 +38,7 @@
 
                 function buildSelect(id, label, opts, currentVal) {
                     var html = '<select id="' + id + '" onchange="tdFilterChanged()" ' +
-                        'style="padding:2px 6px;font-size:10px;border:1px solid var(--divider);border-radius:3px;background:var(--panel);min-width:70px;">';
+                        'style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);border:1px solid var(--divider);border-radius:var(--radius-sm);background:var(--panel);min-width:70px;">';
                     html += '<option value="">All ' + label + '</option>';
                     var keys = Object.keys(opts).sort();
                     for (var k = 0; k < keys.length; k++) {
@@ -51,33 +51,33 @@
 
                 var hasFilter = Object.keys(tdBlotterFilters).length > 0;
                 var clearBtn = hasFilter ?
-                    '<button onclick="tdClearFilters()" style="padding:2px 8px;font-size:10px;background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">Clear</button>' :
+                    '<button onclick="tdClearFilters()" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">Clear</button>' :
                     '';
                 var newPrsBtn = tdBlotterFilters.gauge_id ?
-                    '<button onclick="tdNewPRS()" style="margin-left:6px;padding:2px 8px;font-size:10px;background:var(--accent-mid);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">New PRS</button>' :
+                    '<button onclick="tdNewPRS()" style="margin-left:var(--space-3);padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);background:var(--accent-mid);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">New PRS</button>' :
                     '';
 
                 // Active filter pills
                 var pills = '';
                 if (tdBlotterFilters.gauge_id) {
                     var areaName = gaugeSet[tdBlotterFilters.gauge_id] || tdBlotterFilters.gauge_name || tdBlotterFilters.gauge_id;
-                    pills += '<span style="background:var(--accent-soft);color:var(--accent-mid);padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--accent-soft);color:var(--accent-mid);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);">' +
                         areaName + ' <span onclick="tdRemoveFilter(\'gauge_id\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.tenor) {
-                    pills += '<span style="background:var(--ok-bg);color:var(--green-dark);padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--ok-bg);color:var(--green-dark);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);">' +
                         tdBlotterFilters.tenor + ' <span onclick="tdRemoveFilter(\'tenor\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.counterparty) {
-                    pills += '<span style="background:var(--pink-bg);color:var(--red-dark);padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--pink-bg);color:var(--red-dark);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);">' +
                         tdBlotterFilters.counterparty.substring(0, 12) + ' <span onclick="tdRemoveFilter(\'counterparty\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.trigger) {
-                    pills += '<span style="background:var(--warn-bg-warm);color:var(--amber-deep);padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--warn-bg-warm);color:var(--amber-deep);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);">' +
                         tdBlotterFilters.trigger + ' <span onclick="tdRemoveFilter(\'trigger\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
                 if (tdBlotterFilters.status) {
-                    pills += '<span style="background:var(--purple-bg);color:var(--purple);padding:1px 6px;border-radius:8px;font-size:10px;">' +
+                    pills += '<span style="background:var(--purple-bg);color:var(--purple);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);">' +
                         tdBlotterFilters.status + ' <span onclick="tdRemoveFilter(\'status\')" style="cursor:pointer;font-weight:bold;">&times;</span></span>';
                 }
 

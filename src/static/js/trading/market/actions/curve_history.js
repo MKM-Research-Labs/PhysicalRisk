@@ -42,19 +42,19 @@
                 });
 
                 var modal = document.createElement('div');
-                modal.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
+                modal.style.cssText = 'background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow-modal);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
 
                 // Header
                 var header = document.createElement('div');
-                header.style.cssText = 'display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
+                header.style.cssText = 'display:flex;align-items:center;padding:var(--space-7) var(--space-wide);border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
                 var trigLabel = trigger.charAt(0).toUpperCase() + trigger.slice(1);
                 header.innerHTML =
-                    '<span style="font-size:14px;font-weight:700;color:var(--text);">Hazard Curve History</span>' +
-                    '<span style="margin:0 10px;color:var(--disabled);">|</span>' +
-                    '<span style="font-size:12px;color:var(--text-2);">' + gaugeName + '</span>' +
-                    '<span style="margin:0 8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:var(--inverse);background:' + (tdHistoryTrigColors[trigger]||'var(--blue-grey-dark)') + ';">' + trigLabel + '</span>' +
+                    '<span style="font-size:var(--size-14);font-weight:700;color:var(--text);">Hazard Curve History</span>' +
+                    '<span style="margin:0 var(--space-5);color:var(--disabled);">|</span>' +
+                    '<span style="font-size:var(--size-sm);color:var(--text-2);">' + gaugeName + '</span>' +
+                    '<span style="margin:0 var(--space-4);padding:var(--space-1) var(--space-4);border-radius:var(--radius-xl);font-size:var(--size-xxs);font-weight:700;color:var(--inverse);background:' + (tdHistoryTrigColors[trigger]||'var(--blue-grey-dark)') + ';">' + trigLabel + '</span>' +
                     '<span style="flex:1;"></span>' +
-                    '<button onclick="tdCloseCurveHistory()" style="padding:4px 12px;font-size:11px;background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">Close</button>';
+                    '<button onclick="tdCloseCurveHistory()" style="padding:var(--space-2) var(--space-6);font-size:var(--size-xs);background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">Close</button>';
                 modal.appendChild(header);
 
                 // Loading state
@@ -73,13 +73,13 @@
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status !== 'success' || !result.history || result.history.length === 0) {
-                            body.innerHTML = '<span style="color:var(--red-dark);font-size:13px;">No history available for this gauge/trigger</span>';
+                            body.innerHTML = '<span style="color:var(--red-dark);font-size:var(--size-md);">No history available for this gauge/trigger</span>';
                             return;
                         }
                         tdBuildHistoryCharts(body, result.history, trigger);
                     })
                     .catch(function(err) {
-                        body.innerHTML = '<span style="color:var(--red-dark);font-size:13px;">Error loading history: ' + err.message + '</span>';
+                        body.innerHTML = '<span style="color:var(--red-dark);font-size:var(--size-md);">Error loading history: ' + err.message + '</span>';
                     });
             };
 
@@ -107,12 +107,12 @@
                 var fillColor = tdHistoryTrigBg[trigger] || Theme.value('blue-grey-bg');
 
                 // Grid: row 1 = 1Y 2Y 3Y, row 2 = 4Y 5Y (centred)
-                container.style.cssText = 'flex:1;display:flex;flex-direction:column;padding:16px 20px;gap:14px;overflow:hidden;';
+                container.style.cssText = 'flex:1;display:flex;flex-direction:column;padding:var(--space-8) var(--space-wide);gap:var(--space-7);overflow:hidden;';
 
                 var row1 = document.createElement('div');
-                row1.style.cssText = 'display:flex;flex:1;gap:14px;';
+                row1.style.cssText = 'display:flex;flex:1;gap:var(--space-7);';
                 var row2 = document.createElement('div');
-                row2.style.cssText = 'display:flex;flex:1;gap:14px;justify-content:center;';
+                row2.style.cssText = 'display:flex;flex:1;gap:var(--space-7);justify-content:center;';
 
                 container.appendChild(row1);
                 container.appendChild(row2);
@@ -131,7 +131,7 @@
 
                     // Chart wrapper
                     var wrap = document.createElement('div');
-                    wrap.style.cssText = 'flex:1;max-width:' + (idx < 3 ? '33%' : '40%') + ';position:relative;background:var(--raised);border-radius:6px;border:1px solid var(--line);padding:8px;';
+                    wrap.style.cssText = 'flex:1;max-width:' + (idx < 3 ? '33%' : '40%') + ';position:relative;background:var(--raised);border-radius:var(--radius-md);border:1px solid var(--line);padding:var(--space-4);';
                     var canvas = document.createElement('canvas');
                     canvas.style.cssText = 'width:100%;height:100%;';
                     wrap.appendChild(canvas);

@@ -35,7 +35,7 @@
                 // Legend bar
                 var legend = document.createElement('div');
                 legend.id = 'td-map-legend';
-                legend.style.cssText = 'padding:6px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--text-3);background:var(--control);display:flex;gap:16px;align-items:center;';
+                legend.style.cssText = 'padding:var(--space-3) var(--space-8);border-top:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-3);background:var(--control);display:flex;gap:var(--space-8);align-items:center;';
                 legend.innerHTML =
                     '<span>\u25cf <span style="color:var(--accent-mid);">Long FS01</span></span>' +
                     '<span>\u25cf <span style="color:var(--red-dark);">Short FS01</span></span>' +
@@ -116,17 +116,17 @@
                     if (g.fs01_by_tenor) {
                         var tenorKeys = Object.keys(g.fs01_by_tenor);
                         var hzByTenor = g.hazard_by_tenor || {};
-                        tenorRows += '<tr style="border-bottom:1px solid var(--line-soft);"><td style="padding:1px 4px;color:var(--muted-2);font-size:9px;"></td>' +
-                            '<td style="padding:1px 4px;text-align:right;color:var(--muted-2);font-size:9px;">FS01</td>' +
-                            '<td style="padding:1px 4px;text-align:right;color:var(--muted-2);font-size:9px;">Rate</td></tr>';
+                        tenorRows += '<tr style="border-bottom:1px solid var(--line-soft);"><td style="padding:var(--space-hair) var(--space-2);color:var(--muted-2);font-size:var(--size-xxs);"></td>' +
+                            '<td style="padding:var(--space-hair) var(--space-2);text-align:right;color:var(--muted-2);font-size:var(--size-xxs);">FS01</td>' +
+                            '<td style="padding:var(--space-hair) var(--space-2);text-align:right;color:var(--muted-2);font-size:var(--size-xxs);">Rate</td></tr>';
                         for (var ti = 0; ti < tenorKeys.length; ti++) {
                             var tv = g.fs01_by_tenor[tenorKeys[ti]];
                             var tc = tv >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
                             var hzRate = hzByTenor[tenorKeys[ti]];
                             var hzDisplay = (hzRate !== undefined && hzRate !== null) ? hzRate.toFixed(0) + 'bp' : '';
-                            tenorRows += '<tr><td style="padding:1px 4px;color:var(--text-3);">' + tenorKeys[ti] + '</td>' +
-                                '<td style="padding:1px 4px;text-align:right;color:' + tc + ';font-weight:600;">' + fmtGBP(tv) + '</td>' +
-                                '<td style="padding:1px 4px;text-align:right;color:var(--text-2);">' + hzDisplay + '</td></tr>';
+                            tenorRows += '<tr><td style="padding:var(--space-hair) var(--space-2);color:var(--text-3);">' + tenorKeys[ti] + '</td>' +
+                                '<td style="padding:var(--space-hair) var(--space-2);text-align:right;color:' + tc + ';font-weight:600;">' + fmtGBP(tv) + '</td>' +
+                                '<td style="padding:var(--space-hair) var(--space-2);text-align:right;color:var(--text-2);">' + hzDisplay + '</td></tr>';
                         }
                     }
 
@@ -139,25 +139,25 @@
                     var nnColor = netNotional >= 0 ? Theme.value('accent-mid') : Theme.value('red-dark');
 
                     var popup =
-                        '<div style="font-size:11px;min-width:180px;">' +
-                            '<b style="font-size:12px;">' + areaName + '</b><br>' +
+                        '<div style="font-size:var(--size-xs);min-width:180px;">' +
+                            '<b style="font-size:var(--size-sm);">' + areaName + '</b><br>' +
                             '<span style="color:var(--muted);">' + g.gauge_id + '</span><br>' +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
+                            '<hr style="margin:var(--space-2) 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Trades:</span><b>' + g.num_trades + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Gross Notional:</span><b>' + fmtGBP(g.total_notional) + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Net Notional:</span><span style="color:' + nnColor + ';font-weight:bold;">' + fmtGBP(netNotional) + '</span></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Net FS01:</span><span style="color:' + color + ';font-weight:bold;">' + fmtGBP(fs01) + '</span></div>' +
-                            (tenorRows ? '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);"><div style="font-size:10px;font-weight:600;color:var(--text-2);margin-bottom:2px;">FS01 by Tenor</div><table style="width:100%;font-size:10px;">' + tenorRows + '</table>' : '') +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
+                            (tenorRows ? '<hr style="margin:var(--space-2) 0;border:0;border-top:1px solid var(--line-soft);"><div style="font-size:var(--size-xxs);font-weight:600;color:var(--text-2);margin-bottom:var(--space-1);">FS01 by Tenor</div><table style="width:100%;font-size:var(--size-xxs);">' + tenorRows + '</table>' : '') +
+                            '<hr style="margin:var(--space-2) 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Daily P&amp;L:</span><span style="color:' + dColor + ';font-weight:600;">' + fmtGBP(dailyPnl) + '</span></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Running P&amp;L:</span><span style="color:' + rColor + ';font-weight:600;">' + fmtGBP(runPnl) + '</span></div>' +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
+                            '<hr style="margin:var(--space-2) 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<a href="#" onclick="event.preventDefault();window.showGaugeBlotter&&window.showGaugeBlotter(\'' + g.gauge_id + '\',\'' + (g.gauge_name || '').replace(/\'/g, "\\\'") + '\')" ' +
-                                'style="color:var(--accent-mid);font-size:10px;">View Gauge Blotter \u2192</a><br>' +
+                                'style="color:var(--accent-mid);font-size:var(--size-xxs);">View Gauge Blotter \u2192</a><br>' +
                             '<a href="#" onclick="event.preventDefault();window.tdViewHazardCurve&&window.tdViewHazardCurve(\'' + g.gauge_id + '\')" ' +
-                                'style="color:var(--accent-mid);font-size:10px;">View Hazard Curve \u2192</a><br>' +
+                                'style="color:var(--accent-mid);font-size:var(--size-xxs);">View Hazard Curve \u2192</a><br>' +
                             '<a href="#" onclick="event.preventDefault();window.tdNewTrade&&window.tdNewTrade(\'' + g.gauge_id + '\')" ' +
-                                'style="color:var(--accent-mid);font-size:10px;">New Trade \u2192</a>' +
+                                'style="color:var(--accent-mid);font-size:var(--size-xxs);">New Trade \u2192</a>' +
                         '</div>';
 
                     var circle = L.circleMarker([g.lat, g.lon], {
@@ -198,10 +198,10 @@
 
                     var pDisplayName = window.propertyDisplayName(p.property_id, p.address);
                     var pPopup =
-                        '<div style="font-size:11px;min-width:180px;">' +
-                            '<b style="font-size:12px;">' + pDisplayName + '</b><br>' +
+                        '<div style="font-size:var(--size-xs);min-width:180px;">' +
+                            '<b style="font-size:var(--size-sm);">' + pDisplayName + '</b><br>' +
                             '<span style="color:var(--muted);">' + (p.postcode || '') + ' \u2014 ' + (p.ea_flood_zone || '') + '</span><br>' +
-                            '<hr style="margin:4px 0;border:0;border-top:1px solid var(--line-soft);">' +
+                            '<hr style="margin:var(--space-2) 0;border:0;border-top:1px solid var(--line-soft);">' +
                             '<div style="display:flex;justify-content:space-between;"><span>Swap:</span><b>' + (p.swap_id || '') + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Ctpy:</span><b>' + (p.counterparty || '') + '</b></div>' +
                             '<div style="display:flex;justify-content:space-between;"><span>Direction:</span><b>' + (p.is_payer ? 'Payer' : 'Receiver') + '</b></div>' +
@@ -235,7 +235,7 @@
                     'background: transparent !important; ' +
                     'border: none !important; ' +
                     'box-shadow: none !important; ' +
-                    'font-size: 10px !important; ' +
+                    'font-size: var(--size-xxs) !important; ' +
                     'font-weight: 600 !important; ' +
                     'color: var(--text) !important; ' +
                     'padding: 0 !important; ' +
@@ -245,11 +245,11 @@
                     'background: var(--panel) !important; ' +
                     'border: 1px solid var(--divider) !important; ' +
                     'box-shadow: var(--shadow-card-hover) !important; ' +
-                    'font-size: 10px !important; ' +
+                    'font-size: var(--size-xxs) !important; ' +
                     'font-weight: 600 !important; ' +
                     'color: var(--black) !important; ' +
-                    'padding: 2px 6px !important; ' +
-                    'border-radius: 3px !important; ' +
+                    'padding: var(--space-1) var(--space-3) !important; ' +
+                    'border-radius: var(--radius-sm) !important; ' +
                     '}' +
                     '.td-prop-label::before { display: none !important; }';
                 document.head.appendChild(style);

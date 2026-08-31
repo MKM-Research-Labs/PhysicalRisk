@@ -36,12 +36,12 @@
 
 .notif {
     pointer-events: auto;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    border-radius: 4px;
+    padding: var(--space-6) var(--space-8);
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-4);
     box-shadow: var(--shadow-toast);
     font-family: Arial, sans-serif;
-    font-size: 14px;
+    font-size: var(--size-14);
     max-width: 350px;
     border-left: 4px solid transparent;
     opacity: 0;
@@ -57,7 +57,7 @@
 .notif-content {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--space-4);
 }
 
 .notif-icon {
@@ -72,9 +72,9 @@
 .notif-close {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: var(--size-18);
     cursor: pointer;
     color: var(--text-3);
     padding: 0;
-    margin-left: 8px;
+    margin-left: var(--space-4);
 }

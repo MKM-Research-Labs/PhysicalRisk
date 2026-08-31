@@ -22,7 +22,7 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events for this property</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flood events for this property</p>';
                     return;
                 }
 
@@ -32,7 +32,7 @@
                 var info = propStormData.property_info || {};
 
                 if (depths.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No valid flood depth data</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No valid flood depth data</p>';
                     return;
                 }
 
@@ -52,11 +52,11 @@
                 }
 
                 content.innerHTML =
-                    '<div style="display:flex;gap:12px;margin-bottom:8px;">' +
+                    '<div style="display:flex;gap:var(--space-6);margin-bottom:var(--space-4);">' +
                     '<div style="flex:1;">' +
                     '<canvas id="prop-dist-chart" height="260"></canvas>' +
                     '</div></div>' +
-                    '<div id="prop-dist-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
+                    '<div id="prop-dist-stats" style="display:flex;gap:var(--space-8);flex-wrap:wrap;font-size:var(--size-xs);color:var(--text-2);padding:var(--space-4) 0;border-top:1px solid var(--line-soft);"></div>';
 
                 var ctx = document.getElementById('prop-dist-chart').getContext('2d');
                 currentChart = new Chart(ctx, {
@@ -110,7 +110,7 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flood events</p>';
                     return;
                 }
 
@@ -130,7 +130,7 @@
 
                 content.innerHTML =
                     '<canvas id="prop-worst-chart" height="350"></canvas>' +
-                    '<div id="prop-worst-stats" style="display:flex;gap:16px;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
+                    '<div id="prop-worst-stats" style="display:flex;gap:var(--space-8);font-size:var(--size-xs);color:var(--text-2);padding:var(--space-4) 0;border-top:1px solid var(--line-soft);"></div>';
 
                 var ctx = document.getElementById('prop-worst-chart').getContext('2d');
                 currentChart = new Chart(ctx, {

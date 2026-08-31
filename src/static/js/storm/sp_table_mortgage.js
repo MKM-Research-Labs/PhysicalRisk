@@ -155,7 +155,7 @@
                 );
 
                 if (pending.length) {
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Loading debt portfolio…</div>';
+                    container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">Loading debt portfolio…</div>';
                     Promise.all(pending).then(_renderMortgageTab);
                 } else {
                     _renderMortgageTab();
@@ -184,9 +184,9 @@
                 summary.innerHTML = '';
                 cards.forEach(function(card) {
                     var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:' + card.color + ';margin-top:2px;">' + card.value + '</div>';
+                    div.style.cssText = 'flex:1;min-width:120px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + card.color + ';margin-top:var(--space-1);">' + card.value + '</div>';
                     summary.appendChild(div);
                 });
             }
@@ -194,12 +194,12 @@
             function _renderMortgageTable(rows) {
                 var container = document.getElementById('sp-table-container');
                 if (!rows.length) {
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">No loans outstanding in portfolio.</div>';
+                    container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">No loans outstanding in portfolio.</div>';
                     return;
                 }
 
                 var table = document.createElement('table');
-                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:11px;';
+                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:var(--size-xs);';
 
                 // Three-group header so the maths reads left-to-right:
                 //   Pre-damage  →  Damage subtractions  →  Post-damage
@@ -209,20 +209,20 @@
                 var thead = document.createElement('thead');
                 thead.innerHTML =
                     '<tr style="background:var(--raised);">' +
-                      '<th rowspan="2" style="padding:6px 8px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);position:sticky;top:0;background:var(--raised);">Asset</th>' +
-                      '<th rowspan="2" style="padding:6px 8px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);position:sticky;top:0;background:var(--raised);">Address</th>' +
-                      '<th colspan="2" style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--ok-bg);position:sticky;top:0;">Pre-Damage</th>' +
-                      '<th colspan="2" style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--warn-bg-warm);position:sticky;top:0;">Damage (\u2212)</th>' +
-                      '<th colspan="3" style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);position:sticky;top:0;">Post-Damage</th>' +
+                      '<th rowspan="2" style="padding:var(--space-3) var(--space-4);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);position:sticky;top:0;background:var(--raised);">Asset</th>' +
+                      '<th rowspan="2" style="padding:var(--space-3) var(--space-4);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);position:sticky;top:0;background:var(--raised);">Address</th>' +
+                      '<th colspan="2" style="padding:var(--space-3) var(--space-4);text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-2);background:var(--ok-bg);position:sticky;top:0;">Pre-Damage</th>' +
+                      '<th colspan="2" style="padding:var(--space-3) var(--space-4);text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-2);background:var(--warn-bg-warm);position:sticky;top:0;">Damage (\u2212)</th>' +
+                      '<th colspan="3" style="padding:var(--space-3) var(--space-4);text-align:center;border-bottom:1px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-2);background:var(--rv-wash-2);position:sticky;top:0;">Post-Damage</th>' +
                     '</tr>' +
                     '<tr style="background:var(--raised);">' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--ok-bg);">Value</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--ok-bg);">Loan O/S</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--warn-bg-warm);">Flood</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--warn-bg-warm);">Wind</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);">Residual Value</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);">LTV</th>' +
-                      '<th style="padding:4px 8px;text-align:right;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--rv-wash-2);">Remaining</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-2);background:var(--ok-bg);">Value</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);background:var(--ok-bg);">Loan O/S</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-2);background:var(--warn-bg-warm);">Flood</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);background:var(--warn-bg-warm);">Wind</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);border-left:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--text-2);background:var(--rv-wash-2);">Residual Value</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);background:var(--rv-wash-2);">LTV</th>' +
+                      '<th style="padding:var(--space-2) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);background:var(--rv-wash-2);">Remaining</th>' +
                     '</tr>';
                 table.appendChild(thead);
 
@@ -236,7 +236,7 @@
                     function cell(text, align, color, bold) {
                         var td = document.createElement('td');
                         td.textContent = text;
-                        td.style.cssText = 'padding:5px 8px;text-align:' + (align||'right') + ';border-bottom:1px solid var(--code);white-space:nowrap;';
+                        td.style.cssText = 'padding:var(--space-3) var(--space-4);text-align:' + (align||'right') + ';border-bottom:1px solid var(--code);white-space:nowrap;';
                         if (color) td.style.color = color;
                         if (bold) td.style.fontWeight = 'bold';
                         return td;

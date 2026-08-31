@@ -24,7 +24,7 @@
 
                 var surface = data.probability_surface;
                 if (!surface || !surface.water_levels || !surface.hours) {
-                    wrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:40px 0;">No surface data available</div>';
+                    wrap.innerHTML = '<div style="color:var(--muted-2);text-align:center;padding:var(--space-inset) 0;">No surface data available</div>';
                     return;
                 }
 
@@ -37,11 +37,11 @@
                 var koHour = (data.summary || {}).first_trigger_hour;
 
                 // Build HTML table
-                var html = '<table style="border-collapse:collapse;font-size:10px;font-family:monospace;">';
+                var html = '<table style="border-collapse:collapse;font-size:var(--size-xxs);font-family:monospace;">';
                 // Header row: hours
-                html += '<tr><th style="padding:3px 6px;border:1px solid var(--line-strong);background:var(--sunken);font-size:9px;position:sticky;left:0;z-index:1;">m \\ H</th>';
+                html += '<tr><th style="padding:var(--space-2) var(--space-3);border:1px solid var(--line-strong);background:var(--sunken);font-size:var(--size-xxs);position:sticky;left:0;z-index:1;">m \\ H</th>';
                 for (var hi = 0; hi < hours.length; hi++) {
-                    html += '<th style="padding:3px 5px;border:1px solid var(--line-strong);background:var(--sunken);font-size:9px;min-width:38px;text-align:center;">H' + hours[hi] + '</th>';
+                    html += '<th style="padding:var(--space-2) var(--space-3);border:1px solid var(--line-strong);background:var(--sunken);font-size:var(--size-xxs);min-width:38px;text-align:center;">H' + hours[hi] + '</th>';
                 }
                 html += '</tr>';
 
@@ -61,7 +61,7 @@
                     else if (alertLv > 0 && lv >= alertLv) lvColor = 'var(--gold-dark)';
 
                     html += '<tr>';
-                    html += '<td style="padding:3px 6px;border:1px solid var(--line-strong);background:var(--sunken);font-weight:bold;color:' + lvColor + ';position:sticky;left:0;z-index:1;white-space:nowrap;">' + lv.toFixed(1) + '</td>';
+                    html += '<td style="padding:var(--space-2) var(--space-3);border:1px solid var(--line-strong);background:var(--sunken);font-weight:bold;color:' + lvColor + ';position:sticky;left:0;z-index:1;white-space:nowrap;">' + lv.toFixed(1) + '</td>';
 
                     for (var hi = 0; hi < hours.length; hi++) {
                         var p = probs[li][hi];
@@ -81,15 +81,15 @@
                             else cellBg = 'rgba(200,200,200,' + (alpha * 0.3) + ')';
                         }
 
-                        html += '<td style="padding:2px 4px;border:1px solid var(--line-soft);text-align:right;background:' + cellBg + ';font-size:9px;">' + cellText + '</td>';
+                        html += '<td style="padding:var(--space-1) var(--space-2);border:1px solid var(--line-soft);text-align:right;background:' + cellBg + ';font-size:var(--size-xxs);">' + cellText + '</td>';
                     }
                     html += '</tr>';
                 }
                 html += '</table>';
-                html += '<div style="padding:6px 8px;font-size:9px;color:var(--muted);">P(flood) % at each water level (rows) and hour (columns). Capped at severe level. Shading: ' +
-                    '<span style="background:var(--warn-bg);padding:1px 6px;border:1px solid var(--line-strong);">Alert</span> ' +
-                    '<span style="background:var(--warn-bg-warm);padding:1px 6px;border:1px solid var(--line-strong);">Warning</span> ' +
-                    '<span style="background:var(--danger-bg-soft);padding:1px 6px;border:1px solid var(--line-strong);">Severe</span>' +
+                html += '<div style="padding:var(--space-3) var(--space-4);font-size:var(--size-xxs);color:var(--muted);">P(flood) % at each water level (rows) and hour (columns). Capped at severe level. Shading: ' +
+                    '<span style="background:var(--warn-bg);padding:var(--space-hair) var(--space-3);border:1px solid var(--line-strong);">Alert</span> ' +
+                    '<span style="background:var(--warn-bg-warm);padding:var(--space-hair) var(--space-3);border:1px solid var(--line-strong);">Warning</span> ' +
+                    '<span style="background:var(--danger-bg-soft);padding:var(--space-hair) var(--space-3);border:1px solid var(--line-strong);">Severe</span>' +
                     (koHour != null ? ' | Columns trimmed at KO H' + koHour : '') +
                     '</div>';
                 wrap.innerHTML = html;

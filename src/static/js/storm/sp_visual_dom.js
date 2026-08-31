@@ -33,10 +33,10 @@
                 // Gauge filter toolbar
                 var filterRow = document.createElement('div');
                 filterRow.id = 'sp-vis-filter-row';
-                filterRow.style.cssText = 'padding:6px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:10px;background:var(--raised);';
+                filterRow.style.cssText = 'padding:var(--space-3) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:var(--space-5);background:var(--raised);';
 
                 var filterLabel = document.createElement('span');
-                filterLabel.style.cssText = 'font-size:11px;font-weight:600;color:var(--text-2);';
+                filterLabel.style.cssText = 'font-size:var(--size-xs);font-weight:600;color:var(--text-2);';
                 filterLabel.textContent = 'Gauges:';
 
                 var gaugeDropWrap = document.createElement('div');
@@ -44,28 +44,28 @@
                 var gaugeBtn = document.createElement('button');
                 gaugeBtn.id = 'sp-vis-gauge-btn';
                 gaugeBtn.textContent = 'All Gauges';
-                gaugeBtn.style.cssText = 'padding:3px 10px;font-size:11px;border:1px solid var(--line-strong);border-radius:4px;background:var(--panel);cursor:pointer;min-width:120px;text-align:left;';
+                gaugeBtn.style.cssText = 'padding:var(--space-2) var(--space-5);font-size:var(--size-xs);border:1px solid var(--line-strong);border-radius:var(--radius-4);background:var(--panel);cursor:pointer;min-width:120px;text-align:left;';
                 gaugeBtn.onclick = function() {
                     var dd = document.getElementById('sp-vis-gauge-dropdown');
                     dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
                 };
                 var gaugeDropdown = document.createElement('div');
                 gaugeDropdown.id = 'sp-vis-gauge-dropdown';
-                gaugeDropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;z-index:100;background:var(--panel);border:1px solid var(--line-strong);border-radius:4px;box-shadow:var(--shadow-ghost);max-height:240px;overflow-y:auto;min-width:200px;padding:4px 0;';
+                gaugeDropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;z-index:100;background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-shadow:var(--shadow-ghost);max-height:240px;overflow-y:auto;min-width:200px;padding:var(--space-2) 0;';
                 gaugeDropWrap.appendChild(gaugeBtn);
                 gaugeDropWrap.appendChild(gaugeDropdown);
 
                 var allBtn = document.createElement('button');
                 allBtn.textContent = 'Show All';
-                allBtn.style.cssText = 'padding:3px 10px;font-size:10px;border:1px solid var(--line-strong);border-radius:3px;background:var(--accent-soft);cursor:pointer;';
+                allBtn.style.cssText = 'padding:var(--space-2) var(--space-5);font-size:var(--size-xxs);border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--accent-soft);cursor:pointer;';
                 allBtn.onclick = function() { toggleAllGauges(true); };
                 var noneBtn = document.createElement('button');
                 noneBtn.textContent = 'Hide All';
-                noneBtn.style.cssText = 'padding:3px 10px;font-size:10px;border:1px solid var(--line-strong);border-radius:3px;background:var(--panel);cursor:pointer;';
+                noneBtn.style.cssText = 'padding:var(--space-2) var(--space-5);font-size:var(--size-xxs);border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--panel);cursor:pointer;';
                 noneBtn.onclick = function() { toggleAllGauges(false); };
 
                 var propsIndicator = document.createElement('span');
-                propsIndicator.style.cssText = 'margin-left:auto;font-size:11px;color:var(--red);font-weight:600;display:flex;align-items:center;gap:4px;';
+                propsIndicator.style.cssText = 'margin-left:auto;font-size:var(--size-xs);color:var(--red);font-weight:600;display:flex;align-items:center;gap:var(--space-2);';
                 propsIndicator.innerHTML = '<span style="display:inline-block;width:12px;height:3px;background:var(--red);border-radius:1px;"></span> Properties Flooded';
 
                 filterRow.appendChild(filterLabel);
@@ -76,11 +76,11 @@
 
                 var chartWrap = document.createElement('div');
                 chartWrap.id = 'sp-sim-chart-wrap';
-                chartWrap.style.cssText = 'flex:1;padding:12px 16px;position:relative;';
+                chartWrap.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);position:relative;';
 
                 var stats = document.createElement('div');
                 stats.id = 'sp-sim-stats';
-                stats.style.cssText = 'padding:10px 16px;border-top:1px solid var(--line-soft);display:flex;gap:10px;flex-wrap:wrap;';
+                stats.style.cssText = 'padding:var(--space-5) var(--space-8);border-top:1px solid var(--line-soft);display:flex;gap:var(--space-5);flex-wrap:wrap;';
 
                 view.appendChild(filterRow);
                 view.appendChild(chartWrap);

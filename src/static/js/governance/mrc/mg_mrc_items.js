@@ -20,35 +20,35 @@
 
 function renderMrcParticipants(m) {
     var items = m.participants || [];
-    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
-    html += '<div style="font-size:12px;color:var(--text-3);">' + items.length + ' participant' + (items.length !== 1 ? 's' : '') + '</div>';
-    html += '<button onclick="window.MG.showParticipantForm()" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">+ Add Participant</button>';
+    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6);">';
+    html += '<div style="font-size:var(--size-sm);color:var(--text-3);">' + items.length + ' participant' + (items.length !== 1 ? 's' : '') + '</div>';
+    html += '<button onclick="window.MG.showParticipantForm()" style="padding:var(--space-3) var(--space-6);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">+ Add Participant</button>';
     html += '</div>';
 
     html += '<div id="mrc-participant-form-area"></div>';
 
     if (items.length === 0) {
-        html += '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">No participants yet. Click "+ Add Participant" to add one.</div>';
+        html += '<div style="color:var(--muted);font-size:var(--size-sm);padding:var(--space-wide);text-align:center;">No participants yet. Click "+ Add Participant" to add one.</div>';
         return html;
     }
 
-    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
     html += '<thead><tr style="background:var(--raised);">';
     ['Name', 'Role', 'Organisation', 'Status', ''].forEach(function(h) {
-        html += '<th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);">' + h + '</th>';
+        html += '<th style="padding:var(--space-4) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);">' + h + '</th>';
     });
     html += '</tr></thead><tbody>';
 
     items.forEach(function(p) {
         var sc = p.status === 'Attended' ? 'var(--green)' : p.status === 'Invited' ? 'var(--accent)' : p.status === 'Apologies' ? 'var(--amber)' : 'var(--muted)';
         html += '<tr>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:600;">' + p.name + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (p.role || '\u2014') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (p.organisation || '\u2014') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + badge(p.status, sc) + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">';
-        html += '<button onclick="window.MG.showParticipantForm(\'' + p.id + '\')" style="padding:2px 8px;font-size:10px;border:1px solid var(--accent);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--accent);margin-right:4px;">Edit</button>';
-        html += '<button onclick="window.MG.deleteParticipant(\'' + p.id + '\')" style="padding:2px 8px;font-size:10px;border:1px solid var(--red);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--red);">Del</button>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;">' + p.name + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (p.role || '\u2014') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (p.organisation || '\u2014') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + badge(p.status, sc) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">';
+        html += '<button onclick="window.MG.showParticipantForm(\'' + p.id + '\')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--accent);margin-right:var(--space-2);">Edit</button>';
+        html += '<button onclick="window.MG.deleteParticipant(\'' + p.id + '\')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--red);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--red);">Del</button>';
         html += '</td>';
         html += '</tr>';
     });
@@ -66,26 +66,26 @@ function showParticipantForm(editId) {
         existing = (m.participants || []).find(function(p) { return p.id === editId; });
     }
 
-    var html = '<div style="padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">' + (existing ? 'Edit Participant ' + editId : 'New Participant') + '</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Name</label>';
-    html += '<input type="text" id="mrc-pf-name" value="' + (existing ? existing.name : '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Role</label>';
-    html += '<input type="text" id="mrc-pf-role" value="' + (existing ? (existing.role || '') : '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
+    var html = '<div style="padding:var(--space-6);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-bottom:var(--space-6);">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">' + (existing ? 'Edit Participant ' + editId : 'New Participant') + '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Name</label>';
+    html += '<input type="text" id="mrc-pf-name" value="' + (existing ? existing.name : '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Role</label>';
+    html += '<input type="text" id="mrc-pf-role" value="' + (existing ? (existing.role || '') : '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
     html += '</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Organisation</label>';
-    html += '<input type="text" id="mrc-pf-org" value="' + (existing ? (existing.organisation || '') : 'MKM Research Labs') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Status</label>';
-    html += '<select id="mrc-pf-status" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;">';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-top:var(--space-4);">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Organisation</label>';
+    html += '<input type="text" id="mrc-pf-org" value="' + (existing ? (existing.organisation || '') : 'MKM Research Labs') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Status</label>';
+    html += '<select id="mrc-pf-status" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
     ['Invited', 'Attended', 'Apologies', 'Declined'].forEach(function(s) {
         html += '<option value="' + s + '"' + (existing && existing.status === s ? ' selected' : '') + '>' + s + '</option>';
     });
     html += '</select></div></div>';
-    html += '<div style="display:flex;gap:8px;margin-top:8px;">';
-    html += '<button onclick="window.MG.saveParticipant(\'' + (editId || '') + '\')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">' + (existing ? 'Update' : 'Add') + '</button>';
-    html += '<button onclick="document.getElementById(\'mrc-participant-form-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    html += '<div style="display:flex;gap:var(--space-4);margin-top:var(--space-4);">';
+    html += '<button onclick="window.MG.saveParticipant(\'' + (editId || '') + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">' + (existing ? 'Update' : 'Add') + '</button>';
+    html += '<button onclick="document.getElementById(\'mrc-participant-form-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
     area.innerHTML = html;
 }
@@ -118,24 +118,24 @@ function deleteParticipant(participantId) {
 // ================================================================
 function renderMrcModelsInScope(m) {
     var ids = m.models_in_scope || [];
-    if (ids.length === 0) return '<div style="color:var(--muted);font-size:12px;">No models in scope.</div>';
+    if (ids.length === 0) return '<div style="color:var(--muted);font-size:var(--size-sm);">No models in scope.</div>';
 
     var allModels = (mgData && mgData.models) ? mgData.models : [];
-    var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
     html += '<thead><tr style="background:var(--raised);">';
     ['Model ID', 'Name', 'Tier', 'RAG', 'Status'].forEach(function(h) {
-        html += '<th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);">' + h + '</th>';
+        html += '<th style="padding:var(--space-4) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);">' + h + '</th>';
     });
     html += '</tr></thead><tbody>';
 
     ids.forEach(function(mid) {
         var info = allModels.find(function(x) { return x.model_id === mid; });
         html += '<tr style="cursor:pointer;" onmouseenter="this.style.background=\'var(--sunken)\'" onmouseleave="this.style.background=\'\'" onclick="window.MG.showDetail(\'' + mid + '\')">';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + mid + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (info ? info.short_name : mid) + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (info ? tierBadge(info.tier) : '\u2014') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (info ? ragBadge(info.rag_rating) : '\u2014') + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (info ? reviewBadge(info.review_status) : '\u2014') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + mid + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (info ? info.short_name : mid) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (info ? tierBadge(info.tier) : '\u2014') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (info ? ragBadge(info.rag_rating) : '\u2014') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (info ? reviewBadge(info.review_status) : '\u2014') + '</td>';
         html += '</tr>';
     });
 
@@ -148,31 +148,31 @@ function renderMrcModelsInScope(m) {
 // ================================================================
 function renderMrcDecisions(m) {
     var items = m.decisions || [];
-    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
-    html += '<div style="font-size:12px;color:var(--text-3);">' + items.length + ' decision' + (items.length !== 1 ? 's' : '') + '</div>';
-    html += '<button onclick="window.MG.showDecisionForm()" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">+ Add Decision</button>';
+    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6);">';
+    html += '<div style="font-size:var(--size-sm);color:var(--text-3);">' + items.length + ' decision' + (items.length !== 1 ? 's' : '') + '</div>';
+    html += '<button onclick="window.MG.showDecisionForm()" style="padding:var(--space-3) var(--space-6);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">+ Add Decision</button>';
     html += '</div>';
 
     html += '<div id="mrc-decision-form-area"></div>';
 
     if (items.length === 0) {
-        html += '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">No decisions recorded yet.</div>';
+        html += '<div style="color:var(--muted);font-size:var(--size-sm);padding:var(--space-wide);text-align:center;">No decisions recorded yet.</div>';
         return html;
     }
 
-    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    html += '<div style="display:flex;flex-direction:column;gap:var(--space-4);">';
     items.forEach(function(d) {
-        html += '<div style="padding:10px 14px;border:1px solid var(--line);border-radius:6px;background:var(--control);border-left:3px solid var(--accent);">';
+        html += '<div style="padding:var(--space-5) var(--space-7);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--control);border-left:3px solid var(--accent);">';
         html += '<div style="display:flex;align-items:center;justify-content:space-between;">';
-        html += '<div style="display:flex;align-items:center;gap:8px;">';
-        html += '<span style="font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:3px;">' + d.id + '</span>';
-        html += '<span style="font-size:10px;color:var(--muted);">' + d.date + '</span>';
+        html += '<div style="display:flex;align-items:center;gap:var(--space-4);">';
+        html += '<span style="font-size:var(--size-xxs);font-weight:700;color:var(--accent);background:var(--accent-soft);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-sm);">' + d.id + '</span>';
+        html += '<span style="font-size:var(--size-xxs);color:var(--muted);">' + d.date + '</span>';
         html += '</div>';
         html += '<div>';
-        html += '<button onclick="window.MG.showDecisionForm(\'' + d.id + '\')" style="padding:2px 8px;font-size:10px;border:1px solid var(--accent);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--accent);margin-right:4px;">Edit</button>';
-        html += '<button onclick="window.MG.deleteDecision(\'' + d.id + '\')" style="padding:2px 8px;font-size:10px;border:1px solid var(--red);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--red);">Del</button>';
+        html += '<button onclick="window.MG.showDecisionForm(\'' + d.id + '\')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--accent);margin-right:var(--space-2);">Edit</button>';
+        html += '<button onclick="window.MG.deleteDecision(\'' + d.id + '\')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--red);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--red);">Del</button>';
         html += '</div></div>';
-        html += '<div style="font-size:12px;color:var(--text);margin-top:6px;">' + d.description + '</div>';
+        html += '<div style="font-size:var(--size-sm);color:var(--text);margin-top:var(--space-3);">' + d.description + '</div>';
         html += '</div>';
     });
     html += '</div>';
@@ -188,15 +188,15 @@ function showDecisionForm(editId) {
         existing = (m.decisions || []).find(function(d) { return d.id === editId; });
     }
 
-    var html = '<div style="padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">' + (existing ? 'Edit Decision ' + editId : 'New Decision') + '</div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Description</label>';
-    html += '<textarea id="mrc-df-desc" rows="3" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;">' + (existing ? existing.description : '') + '</textarea></div>';
-    html += '<div style="display:flex;gap:8px;margin-top:8px;align-items:flex-end;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Date</label>';
-    html += '<input type="date" id="mrc-df-date" value="' + (existing ? existing.date : m.date) + '" style="font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;"></div>';
-    html += '<button onclick="window.MG.saveDecision(\'' + (editId || '') + '\')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">' + (existing ? 'Update' : 'Add') + '</button>';
-    html += '<button onclick="document.getElementById(\'mrc-decision-form-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    var html = '<div style="padding:var(--space-6);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-bottom:var(--space-6);">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">' + (existing ? 'Edit Decision ' + editId : 'New Decision') + '</div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Description</label>';
+    html += '<textarea id="mrc-df-desc" rows="3" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;">' + (existing ? existing.description : '') + '</textarea></div>';
+    html += '<div style="display:flex;gap:var(--space-4);margin-top:var(--space-4);align-items:flex-end;">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Date</label>';
+    html += '<input type="date" id="mrc-df-date" value="' + (existing ? existing.date : m.date) + '" style="font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);"></div>';
+    html += '<button onclick="window.MG.saveDecision(\'' + (editId || '') + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">' + (existing ? 'Update' : 'Add') + '</button>';
+    html += '<button onclick="document.getElementById(\'mrc-decision-form-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
     area.innerHTML = html;
 }
@@ -227,36 +227,36 @@ function deleteDecision(decisionId) {
 // ================================================================
 function renderMrcActions(m) {
     var items = m.actions || [];
-    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
-    html += '<div style="font-size:12px;color:var(--text-3);">' + items.length + ' action' + (items.length !== 1 ? 's' : '') + '</div>';
-    html += '<button onclick="window.MG.showActionForm()" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">+ Add Action</button>';
+    var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6);">';
+    html += '<div style="font-size:var(--size-sm);color:var(--text-3);">' + items.length + ' action' + (items.length !== 1 ? 's' : '') + '</div>';
+    html += '<button onclick="window.MG.showActionForm()" style="padding:var(--space-3) var(--space-6);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">+ Add Action</button>';
     html += '</div>';
 
     html += '<div id="mrc-action-form-area"></div>';
 
     if (items.length === 0) {
-        html += '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;">No actions recorded yet.</div>';
+        html += '<div style="color:var(--muted);font-size:var(--size-sm);padding:var(--space-wide);text-align:center;">No actions recorded yet.</div>';
         return html;
     }
 
-    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
     html += '<thead><tr style="background:var(--raised);">';
     ['ID', 'Action', 'Owner', 'Target Date', 'Status', ''].forEach(function(h) {
-        html += '<th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);">' + h + '</th>';
+        html += '<th style="padding:var(--space-4) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);">' + h + '</th>';
     });
     html += '</tr></thead><tbody>';
 
     items.forEach(function(a) {
         var sc = a.status === 'Open' ? 'var(--amber)' : a.status === 'Closed' ? 'var(--green)' : 'var(--accent)';
         html += '<tr>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + a.id + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + a.description + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + a.owner + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + a.target_date + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + badge(a.status, sc) + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">';
-        html += '<button onclick="window.MG.showActionForm(\'' + a.id + '\')" style="padding:2px 8px;font-size:10px;border:1px solid var(--accent);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--accent);margin-right:4px;">Edit</button>';
-        html += '<button onclick="window.MG.deleteAction(\'' + a.id + '\')" style="padding:2px 8px;font-size:10px;border:1px solid var(--red);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--red);">Del</button>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--accent);">' + a.id + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + a.description + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + a.owner + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + a.target_date + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + badge(a.status, sc) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">';
+        html += '<button onclick="window.MG.showActionForm(\'' + a.id + '\')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--accent);margin-right:var(--space-2);">Edit</button>';
+        html += '<button onclick="window.MG.deleteAction(\'' + a.id + '\')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--red);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--red);">Del</button>';
         html += '</td>';
         html += '</tr>';
     });
@@ -274,24 +274,24 @@ function showActionForm(editId) {
         existing = (m.actions || []).find(function(a) { return a.id === editId; });
     }
 
-    var html = '<div style="padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">' + (existing ? 'Edit Action ' + editId : 'New Action') + '</div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Description</label>';
-    html += '<textarea id="mrc-actf-desc" rows="2" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;">' + (existing ? existing.description : '') + '</textarea></div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Owner</label>';
-    html += '<input type="text" id="mrc-actf-owner" value="' + (existing ? existing.owner : '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Target Date</label>';
-    html += '<input type="date" id="mrc-actf-date" value="' + (existing ? existing.target_date : '') + '" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Status</label>';
-    html += '<select id="mrc-actf-status" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;">';
+    var html = '<div style="padding:var(--space-6);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-bottom:var(--space-6);">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">' + (existing ? 'Edit Action ' + editId : 'New Action') + '</div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Description</label>';
+    html += '<textarea id="mrc-actf-desc" rows="2" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;">' + (existing ? existing.description : '') + '</textarea></div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-4);margin-top:var(--space-4);">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Owner</label>';
+    html += '<input type="text" id="mrc-actf-owner" value="' + (existing ? existing.owner : '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Target Date</label>';
+    html += '<input type="date" id="mrc-actf-date" value="' + (existing ? existing.target_date : '') + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Status</label>';
+    html += '<select id="mrc-actf-status" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
     ['Open', 'In Progress', 'Closed'].forEach(function(s) {
         html += '<option value="' + s + '"' + (existing && existing.status === s ? ' selected' : '') + '>' + s + '</option>';
     });
     html += '</select></div></div>';
-    html += '<div style="display:flex;gap:8px;margin-top:8px;">';
-    html += '<button onclick="window.MG.saveAction(\'' + (editId || '') + '\')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">' + (existing ? 'Update' : 'Add') + '</button>';
-    html += '<button onclick="document.getElementById(\'mrc-action-form-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    html += '<div style="display:flex;gap:var(--space-4);margin-top:var(--space-4);">';
+    html += '<button onclick="window.MG.saveAction(\'' + (editId || '') + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">' + (existing ? 'Update' : 'Add') + '</button>';
+    html += '<button onclick="document.getElementById(\'mrc-action-form-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
     area.innerHTML = html;
 }

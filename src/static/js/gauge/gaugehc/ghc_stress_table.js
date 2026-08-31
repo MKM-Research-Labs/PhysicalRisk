@@ -43,15 +43,15 @@
                 };
                 var pnlColor = function(v) { return v >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; };
 
-                var html = '<table style="width:100%;border-collapse:collapse;font-size:10px;">' +
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xxs);">' +
                     '<thead><tr style="background:var(--sunken);border-bottom:2px solid var(--line-strong);">' +
-                    '<th style="padding:4px 6px;text-align:left;">Swap</th>' +
-                    '<th style="padding:4px 4px;text-align:center;">Dir</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">Notional</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">MTM</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">Cash Price</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">Stress P&L</th>' +
-                    '<th style="padding:4px 4px;text-align:center;">Status</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:left;">Swap</th>' +
+                    '<th style="padding:var(--space-2) var(--space-2);text-align:center;">Dir</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">Notional</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">MTM</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">Cash Price</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">Stress P&L</th>' +
+                    '<th style="padding:var(--space-2) var(--space-2);text-align:center;">Status</th>' +
                     '</tr></thead><tbody>';
 
                 var totalNotional = 0, totalMtm = 0, totalCash = 0, totalStress = 0;
@@ -66,8 +66,8 @@
                     var isTriggered = t.triggered_hour != null;
                     if (isTriggered) numTriggered++;
                     var statusLabel = isTriggered ?
-                        '<span style="background:var(--red-dark);color:var(--panel);padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">KO H' + t.triggered_hour + '</span>' :
-                        '<span style="color:var(--muted-2);font-size:8px;">Live</span>';
+                        '<span style="background:var(--red-dark);color:var(--panel);padding:var(--space-hair) var(--space-2);border-radius:var(--radius-sm);font-size:var(--size-8);font-weight:700;">KO H' + t.triggered_hour + '</span>' :
+                        '<span style="color:var(--muted-2);font-size:var(--size-8);">Live</span>';
 
                     totalNotional += t.notional;
                     totalMtm += t.mtm;
@@ -76,37 +76,37 @@
 
                     html += '<tr style="border-bottom:1px solid var(--code);' +
                             (isTriggered ? 'background:var(--rv-bad-bg);' : '') + '">' +
-                        '<td style="padding:3px 6px;font-family:monospace;font-size:9px;">' +
+                        '<td style="padding:var(--space-2) var(--space-3);font-family:monospace;font-size:var(--size-xxs);">' +
                             t.swap_id.substring(0, 12) + '</td>' +
-                        '<td style="padding:3px 4px;text-align:center;color:' + dirColor + ';font-weight:600;">' +
+                        '<td style="padding:var(--space-2) var(--space-2);text-align:center;color:' + dirColor + ';font-weight:600;">' +
                             dir + '</td>' +
-                        '<td style="padding:3px 6px;text-align:right;">' + fmtGBP(t.notional) + '</td>' +
-                        '<td style="padding:3px 6px;text-align:right;color:' + pnlColor(t.mtm) + ';">' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;">' + fmtGBP(t.notional) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + pnlColor(t.mtm) + ';">' +
                             fmtGBP(t.mtm) + '</td>' +
-                        '<td style="padding:3px 6px;text-align:right;color:' + pnlColor(cashPrice) + ';">' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + pnlColor(cashPrice) + ';">' +
                             fmtGBP(cashPrice) + '</td>' +
-                        '<td style="padding:3px 6px;text-align:right;font-weight:700;color:' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;font-weight:700;color:' +
                             pnlColor(stressPnl) + ';">' + fmtGBP(stressPnl) + '</td>' +
-                        '<td style="padding:3px 4px;text-align:center;">' + statusLabel + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-2);text-align:center;">' + statusLabel + '</td>' +
                         '</tr>';
                 });
 
                 html += '<tr style="border-top:2px solid var(--text);background:var(--wash);font-weight:700;">' +
-                    '<td style="padding:4px 6px;" colspan="2">TOTAL</td>' +
-                    '<td style="padding:4px 6px;text-align:right;">' + fmtGBP(totalNotional) + '</td>' +
-                    '<td style="padding:4px 6px;text-align:right;color:' + pnlColor(totalMtm) + ';">' +
+                    '<td style="padding:var(--space-2) var(--space-3);" colspan="2">TOTAL</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;">' + fmtGBP(totalNotional) + '</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + pnlColor(totalMtm) + ';">' +
                         fmtGBP(totalMtm) + '</td>' +
-                    '<td style="padding:4px 6px;text-align:right;color:' + pnlColor(totalCash) + ';">' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + pnlColor(totalCash) + ';">' +
                         fmtGBP(totalCash) + '</td>' +
-                    '<td style="padding:4px 6px;text-align:right;color:' + pnlColor(totalStress) + ';">' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + pnlColor(totalStress) + ';">' +
                         fmtGBP(totalStress) + '</td>' +
-                    '<td style="padding:4px 4px;text-align:center;font-size:9px;color:var(--red-dark);">' +
+                    '<td style="padding:var(--space-2) var(--space-2);text-align:center;font-size:var(--size-xxs);color:var(--red-dark);">' +
                         (numTriggered > 0 ? numTriggered + '/' + trades.length : '') + '</td>' +
                     '</tr>';
 
                 html += '</tbody></table>';
 
-                var headerHtml = '<div style="padding:4px 0 8px 0;font-size:10px;color:var(--text-3);">' +
+                var headerHtml = '<div style="padding:var(--space-2) 0 var(--space-4) 0;font-size:var(--size-xxs);color:var(--text-3);">' +
                     '<b>Values at peak P(flood) \u2014 Hour ' + peakHour + '</b>' +
                     ' | Water: ' + (peakData.water_level || 0).toFixed(2) + 'm' +
                     ' | P(flood): ' + ((peakData.p_flood || 0) * 100).toFixed(1) + '%' +

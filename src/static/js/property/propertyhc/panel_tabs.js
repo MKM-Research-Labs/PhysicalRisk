@@ -74,7 +74,7 @@
                     subBar = document.createElement('div');
                     subBar.id = 'phc-basis-subtab-bar';
                     subBar.style.cssText =
-                        'display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 16px;' +
+                        'display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 var(--space-8);' +
                         'background:var(--bg);';
 
                     basisSubTabNames.forEach(function(name, i) {
@@ -83,8 +83,8 @@
                         btn.dataset.subtab = i;
                         btn.textContent = name;
                         btn.style.cssText =
-                            'padding:6px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:11px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;' +
+                            'padding:var(--space-3) var(--space-7);border:none;background:none;cursor:pointer;' +
+                            'font-size:var(--size-xs);font-weight:600;color:var(--muted);border-bottom:2px solid transparent;' +
                             'margin-bottom:-1px;transition:all 0.2s;';
                         btn.onclick = function() {
                             basisActiveSubTab = i;

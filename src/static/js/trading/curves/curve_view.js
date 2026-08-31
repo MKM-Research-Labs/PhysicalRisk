@@ -28,16 +28,16 @@
 
                 // Controls bar
                 var controls = document.createElement('div');
-                controls.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
+                controls.style.cssText = 'display:flex;align-items:center;gap:var(--space-6);padding:var(--space-4) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
 
                 controls.innerHTML =
-                    '<span style="font-size:11px;font-weight:600;color:var(--text-2);">Trigger:</span>' +
-                    '<select id="td-curve-trigger" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:4px;">' +
+                    '<span style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);">Trigger:</span>' +
+                    '<select id="td-curve-trigger" style="padding:var(--space-2) var(--space-4);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);">' +
                     '<option value="severe">Severe</option>' +
                     '<option value="warning">Warning</option>' +
                     '<option value="alert">Alert</option>' +
                     '</select>' +
-                    '<span id="td-curve-info" style="font-size:10px;color:var(--muted);margin-left:auto;"></span>';
+                    '<span id="td-curve-info" style="font-size:var(--size-xxs);color:var(--muted);margin-left:auto;"></span>';
                 view.appendChild(controls);
 
                 // Attach event listener (IIFE-safe, no inline onchange)
@@ -48,7 +48,7 @@
 
                 // Chart container
                 var chartWrap = document.createElement('div');
-                chartWrap.style.cssText = 'flex:1;padding:12px 16px;overflow:hidden;position:relative;';
+                chartWrap.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);overflow:hidden;position:relative;';
                 var canvas = document.createElement('canvas');
                 canvas.id = 'td-curve-canvas';
                 chartWrap.appendChild(canvas);

@@ -35,8 +35,8 @@
                 // Left: gauge list
                 var left = document.createElement('div');
                 left.id = 'td-market-gauge-list';
-                left.style.cssText = 'width:220px;overflow-y:auto;border-right:1px solid var(--line-soft);background:var(--raised);padding:8px;';
-                left.innerHTML = '<div style="font-size:11px;font-weight:600;color:var(--text-2);padding:4px 8px;margin-bottom:4px;">Gauges</div>';
+                left.style.cssText = 'width:220px;overflow-y:auto;border-right:1px solid var(--line-soft);background:var(--raised);padding:var(--space-4);';
+                left.innerHTML = '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);padding:var(--space-2) var(--space-4);margin-bottom:var(--space-2);">Gauges</div>';
 
                 // Right: mode selector + chart + inputs
                 var right = document.createElement('div');
@@ -45,39 +45,39 @@
                 // Mode selector row
                 var modeBar = document.createElement('div');
                 modeBar.id = 'td-market-mode-bar';
-                modeBar.style.cssText = 'padding:10px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;';
+                modeBar.style.cssText = 'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:var(--space-6);';
                 modeBar.innerHTML =
-                    '<select id="td-curve-mode" onchange="tdCurveModeChanged(this.value)" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:4px;background:var(--panel);">' +
+                    '<select id="td-curve-mode" onchange="tdCurveModeChanged(this.value)" style="padding:var(--space-2) var(--space-4);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);background:var(--panel);">' +
                         '<option value="yield">Yield Curve</option>' +
                         '<option value="alert">Hazard \u2014 Alert</option>' +
                         '<option value="warning">Hazard \u2014 Warning</option>' +
                         '<option value="severe">Hazard \u2014 Severe</option>' +
                     '</select>' +
-                    '<span id="td-curve-label" style="font-size:12px;font-weight:600;color:var(--text);"></span>' +
+                    '<span id="td-curve-label" style="font-size:var(--size-sm);font-weight:600;color:var(--text);"></span>' +
                     '<span style="flex:1;"></span>' +
-                    '<div style="display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;">' +
-                        '<button id="td-newtrade-btn" onclick="tdMarketNewTrade()" style="padding:4px 14px;font-size:11px;border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">New Trade</button>' +
-                        '<button id="td-history-btn" onclick="tdShowCurveHistory()" style="padding:4px 14px;font-size:11px;border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">History</button>' +
-                        '<button id="td-plhist-btn" onclick="tdShowPLHistory()" style="padding:4px 14px;font-size:11px;border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">PL Hist</button>' +
-                        '<button id="td-commit-btn" onclick="tdCommitMarket()" style="padding:4px 14px;font-size:11px;border:none;cursor:pointer;font-weight:600;background:var(--accent);color:var(--inverse);">Commit</button>' +
-                        '<button onclick="tdResetCurve()" style="padding:4px 14px;font-size:11px;border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">Reset</button>' +
+                    '<div style="display:flex;border:1px solid var(--line-strong);border-radius:var(--radius-4);overflow:hidden;">' +
+                        '<button id="td-newtrade-btn" onclick="tdMarketNewTrade()" style="padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">New Trade</button>' +
+                        '<button id="td-history-btn" onclick="tdShowCurveHistory()" style="padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">History</button>' +
+                        '<button id="td-plhist-btn" onclick="tdShowPLHistory()" style="padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">PL Hist</button>' +
+                        '<button id="td-commit-btn" onclick="tdCommitMarket()" style="padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;font-weight:600;background:var(--accent);color:var(--inverse);">Commit</button>' +
+                        '<button onclick="tdResetCurve()" style="padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;font-weight:600;background:var(--sunken);color:var(--text-2);">Reset</button>' +
                     '</div>';
 
                 // Chart area
                 var chartArea = document.createElement('div');
                 chartArea.id = 'td-market-chart-area';
-                chartArea.style.cssText = 'flex:1;padding:12px 16px;min-height:200px;';
+                chartArea.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);min-height:200px;';
                 chartArea.innerHTML = '<canvas id="td-market-canvas" style="width:100%;height:100%;"></canvas>';
 
                 // Tenor inputs row
                 var inputRow = document.createElement('div');
                 inputRow.id = 'td-market-inputs';
-                inputRow.style.cssText = 'padding:8px 16px;border-top:1px solid var(--line-soft);background:var(--control);';
+                inputRow.style.cssText = 'padding:var(--space-4) var(--space-8);border-top:1px solid var(--line-soft);background:var(--control);';
 
                 // Info bar
                 var info = document.createElement('div');
                 info.id = 'td-market-info';
-                info.style.cssText = 'padding:6px 16px;border-top:1px solid var(--line-soft);font-size:10px;color:var(--muted);background:var(--raised);';
+                info.style.cssText = 'padding:var(--space-3) var(--space-8);border-top:1px solid var(--line-soft);font-size:var(--size-xxs);color:var(--muted);background:var(--raised);';
 
                 right.appendChild(modeBar);
                 right.appendChild(chartArea);
@@ -145,7 +145,7 @@
                 var isYield = tdCurveMode === 'yield';
                 var opacity = isYield ? '0.5' : '1';
                 var header = isYield ? 'Gauges (select hazard mode)' : 'Gauges';
-                var html = '<div style="font-size:11px;font-weight:600;color:var(--text-2);padding:4px 8px;margin-bottom:4px;opacity:' + opacity + ';">' + header + '</div>';
+                var html = '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);padding:var(--space-2) var(--space-4);margin-bottom:var(--space-2);opacity:' + opacity + ';">' + header + '</div>';
                 var gaugeIds = Object.keys(tdMarketData).sort().filter(function(id) { return id.indexOf('SYNTH-') !== 0; });
 
                 for (var i = 0; i < gaugeIds.length; i++) {
@@ -155,10 +155,10 @@
                     var isAdj = g.is_adjusted;
                     var isSelected = gid === tdSelectedGauge;
                     var bg = isSelected && !isYield ? 'var(--accent-soft)' : (isAdj ? 'var(--warn-bg-warm)' : 'transparent');
-                    var dot = isAdj ? '<span style="color:var(--amber);margin-right:4px;">\u25cf</span>' : '';
+                    var dot = isAdj ? '<span style="color:var(--amber);margin-right:var(--space-2);">\u25cf</span>' : '';
                     var cursor = isYield ? 'default' : 'pointer';
 
-                    html += '<div onclick="tdSelectGauge(\'' + gid + '\')" style="padding:5px 8px;cursor:' + cursor + ';background:' + bg + ';border-radius:4px;margin-bottom:2px;font-size:11px;opacity:' + opacity + ';">' +
+                    html += '<div onclick="tdSelectGauge(\'' + gid + '\')" style="padding:var(--space-3) var(--space-4);cursor:' + cursor + ';background:' + bg + ';border-radius:var(--radius-4);margin-bottom:var(--space-1);font-size:var(--size-xs);opacity:' + opacity + ';">' +
                         dot + name + '</div>';
                 }
 
@@ -191,7 +191,7 @@
                     if (!tdSelectedGauge) {
                         // Clear chart area with prompt
                         if (tdMarketChart) { tdMarketChart.destroy(); tdMarketChart = null; }
-                        chartArea.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--disabled);font-size:13px;">Select a gauge from the list</span></div>';
+                        chartArea.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--disabled);font-size:var(--size-md);">Select a gauge from the list</span></div>';
                         if (inputRow) inputRow.innerHTML = '';
                         if (label) label.textContent = '';
                         if (info) info.innerHTML = '';

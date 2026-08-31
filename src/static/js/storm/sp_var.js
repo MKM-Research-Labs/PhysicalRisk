@@ -31,21 +31,21 @@
                 view.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
 
                 var toggleRow = document.createElement('div');
-                toggleRow.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;background:var(--raised);';
+                toggleRow.style.cssText = 'padding:var(--space-4) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:var(--space-6);background:var(--raised);';
                 var toggleLabel = document.createElement('span');
                 toggleLabel.textContent = 'Distribution:';
-                toggleLabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-2);';
+                toggleLabel.style.cssText = 'font-size:var(--size-sm);font-weight:600;color:var(--text-2);';
                 var toggleWrap = document.createElement('div');
-                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;';
+                toggleWrap.style.cssText = 'display:flex;border:1px solid var(--line-strong);border-radius:var(--radius-4);overflow:hidden;';
                 var propBtn = document.createElement('button');
                 propBtn.id = 'sp-var-prop-btn';
                 propBtn.textContent = 'Property Damage';
-                propBtn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;background:var(--accent);color:var(--inverse);';
+                propBtn.style.cssText = 'padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--accent);color:var(--inverse);';
                 propBtn.onclick = function() { switchVarMode('property'); };
                 var mortBtn = document.createElement('button');
                 mortBtn.id = 'sp-var-mort-btn';
                 mortBtn.textContent = 'Mortgage Impairment';
-                mortBtn.style.cssText = 'padding:4px 14px;font-size:11px;border:none;cursor:pointer;background:var(--panel);color:var(--text);';
+                mortBtn.style.cssText = 'padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;background:var(--panel);color:var(--text);';
                 mortBtn.onclick = function() { switchVarMode('mortgage'); };
                 toggleWrap.appendChild(propBtn);
                 toggleWrap.appendChild(mortBtn);
@@ -54,11 +54,11 @@
 
                 var chartWrap = document.createElement('div');
                 chartWrap.id = 'sp-var-chart-wrap';
-                chartWrap.style.cssText = 'flex:1;padding:12px 16px;position:relative;';
+                chartWrap.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);position:relative;';
 
                 var metrics = document.createElement('div');
                 metrics.id = 'sp-var-metrics';
-                metrics.style.cssText = 'padding:10px 16px;border-top:1px solid var(--line-soft);display:flex;gap:10px;flex-wrap:wrap;';
+                metrics.style.cssText = 'padding:var(--space-5) var(--space-8);border-top:1px solid var(--line-soft);display:flex;gap:var(--space-5);flex-wrap:wrap;';
 
                 view.appendChild(toggleRow);
                 view.appendChild(chartWrap);
@@ -100,15 +100,15 @@
                 metrics.innerHTML = '';
 
                 var probRow = document.createElement('div');
-                probRow.style.cssText = 'width:100%;padding:6px 10px;margin-bottom:6px;font-size:11px;color:var(--text-2);background:var(--bg);border-radius:4px;';
+                probRow.style.cssText = 'width:100%;padding:var(--space-3) var(--space-5);margin-bottom:var(--space-3);font-size:var(--size-xs);color:var(--text-2);background:var(--bg);border-radius:var(--radius-4);';
                 probRow.innerHTML = 'P(loss) = <b>' + data.prob_loss_pct.toFixed(2) + '%</b> (' + data.storms_with_damage + ' of ' + data.storm_count.toLocaleString() + ' storms)' +
                     ' &mdash; Conditional metrics below given a damaging storm occurs';
                 metrics.appendChild(probRow);
 
                 var row = document.createElement('div');
-                row.style.cssText = 'display:flex;gap:8px;width:100%;';
+                row.style.cssText = 'display:flex;gap:var(--space-4);width:100%;';
                 var lbl = document.createElement('div');
-                lbl.style.cssText = 'min-width:130px;padding:8px 10px;font-size:11px;font-weight:700;color:' + labelColor + ';display:flex;align-items:center;';
+                lbl.style.cssText = 'min-width:130px;padding:var(--space-4) var(--space-5);font-size:var(--size-xs);font-weight:700;color:' + labelColor + ';display:flex;align-items:center;';
                 lbl.textContent = label;
                 row.appendChild(lbl);
                 [
@@ -120,9 +120,9 @@
                     { label: 'Max', value: fmtGBP(d.max), color: 'var(--purple)' },
                 ].forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;padding:8px 10px;border-radius:5px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;">' + c.label + '</div>' +
-                        '<div style="font-size:14px;font-weight:700;color:' + c.color + ';">' + c.value + '</div>';
+                    card.style.cssText = 'flex:1;padding:var(--space-4) var(--space-5);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;">' + c.label + '</div>' +
+                        '<div style="font-size:var(--size-14);font-weight:700;color:' + c.color + ';">' + c.value + '</div>';
                     card.appendChild(document.createElement('div'));
                     row.appendChild(card);
                 });
@@ -141,9 +141,9 @@
                 // chart-init code always find #sp-var-canvas, even during loading
                 // or when the backend returns an empty/erroring payload.
                 wrap.innerHTML = '<canvas id="sp-var-canvas"></canvas>' +
-                    '<div id="sp-var-status" style="padding:8px;text-align:center;color:var(--muted);font-size:11px;">Loading VaR data…</div>';
+                    '<div id="sp-var-status" style="padding:var(--space-4);text-align:center;color:var(--muted);font-size:var(--size-xs);">Loading VaR data…</div>';
                 var metrics = document.getElementById('sp-var-metrics');
-                metrics.innerHTML = '<span style="font-size:10px;color:var(--muted);">VaR: loading…</span>';
+                metrics.innerHTML = '<span style="font-size:var(--size-xxs);color:var(--muted);">VaR: loading…</span>';
 
                 var baseUrl = getBaseUrl();
                 fetch(baseUrl + '/api/v1/propertyts/portfolio-var', {mode: 'cors'})
@@ -152,7 +152,7 @@
                         if (data.status !== 'success') {
                             var statusEl = document.getElementById('sp-var-status');
                             if (statusEl) statusEl.innerHTML = '<span style="color:var(--red-dark);">Error loading VaR: ' + (data.message || 'Unknown') + '</span>';
-                            metrics.innerHTML = '<span style="font-size:10px;color:var(--red-dark);">VaR unavailable — ' + (data.message || 'no data') + '</span>';
+                            metrics.innerHTML = '<span style="font-size:var(--size-xxs);color:var(--red-dark);">VaR unavailable — ' + (data.message || 'no data') + '</span>';
                             return;
                         }
                         spVarData = data;
@@ -170,7 +170,7 @@
                             '<span>Portfolio mortgages: <b>' + fmtGBP(data.total_portfolio_mortgages) + '</b></span>';
                     })
                     .catch(function(err) {
-                        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load VaR data</div>';
+                        wrap.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Failed to load VaR data</div>';
                         console.error('VaR error:', err);
                     });
             }

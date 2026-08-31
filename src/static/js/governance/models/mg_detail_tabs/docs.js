@@ -20,7 +20,7 @@
 
 function renderDocsTab(m) {
     if (!m || !m.model_id) {
-        return '<div style="padding:40px;text-align:center;color:var(--muted);font-size:12px;">' +
+        return '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);font-size:var(--size-sm);">' +
             'No model selected.</div>';
     }
     var docUrl = '/api/v1/governance/models/' + m.model_id + '/documentation/pdf';
@@ -30,7 +30,7 @@ function renderDocsTab(m) {
     var html = '<div style="display:flex;flex-direction:column;height:100%;">';
 
     // Sub-tab bar
-    html += '<div id="mg-docs-subtabs" style="display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:12px;">';
+    html += '<div id="mg-docs-subtabs" style="display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:var(--space-6);">';
     var sections = [
         {id: 'core-docs', label: 'Core Documentation'},
         {id: 'test-results', label: 'Test Results'},
@@ -39,7 +39,7 @@ function renderDocsTab(m) {
     sections.forEach(function(s, i) {
         var active = i === 0;
         html += '<button id="mg-docs-btn-' + s.id + '" onclick="window.MG.switchDocsSection(\'' + s.id + '\')" ';
-        html += 'style="padding:8px 16px;font-size:11px;font-weight:' + (active ? '600' : '400') + ';';
+        html += 'style="padding:var(--space-4) var(--space-8);font-size:var(--size-xs);font-weight:' + (active ? '600' : '400') + ';';
         html += 'border:none;cursor:pointer;background:transparent;';
         html += 'color:' + (active ? 'var(--accent)' : 'var(--text-3)') + ';';
         html += 'border-bottom:2px solid ' + (active ? 'var(--accent)' : 'transparent') + ';';
@@ -68,18 +68,18 @@ function renderDocsTab(m) {
     // Check PDF availability for each section
     var checks = [
         {url: docUrl, containerId: 'mg-doc-pdf-container', label: 'No Documentation Available', hint: 'Model documentation PDF has not been generated for ' + m.model_id + '.'},
-        {url: testUrl, containerId: 'mg-test-pdf-container', label: 'No Test Results Available', hint: 'Run: <code style="background:var(--sunken);padding:2px 6px;border-radius:3px;">python phys.py check tests --pdf</code>'},
-        {url: analysisUrl, containerId: 'mg-analysis-pdf-container', label: 'No Analysis Available', hint: 'Run: <code style="background:var(--sunken);padding:2px 6px;border-radius:3px;">python -m docs.models.sensitivities.generate_all_analysis</code>'},
+        {url: testUrl, containerId: 'mg-test-pdf-container', label: 'No Test Results Available', hint: 'Run: <code style="background:var(--sunken);padding:var(--space-1) var(--space-3);border-radius:var(--radius-sm);">python phys.py check tests --pdf</code>'},
+        {url: analysisUrl, containerId: 'mg-analysis-pdf-container', label: 'No Analysis Available', hint: 'Run: <code style="background:var(--sunken);padding:var(--space-1) var(--space-3);border-radius:var(--radius-sm);">python -m docs.models.sensitivities.generate_all_analysis</code>'},
     ];
     checks.forEach(function(c) {
         fetch(c.url, {method: 'HEAD'}).then(function(resp) {
             if (!resp.ok) {
                 var el = document.getElementById(c.containerId);
                 if (el) {
-                    el.innerHTML = '<div style="padding:40px;text-align:center;">' +
-                        '<div style="font-size:32px;margin-bottom:12px;">&#x26A0;</div>' +
-                        '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">' + c.label + '</div>' +
-                        '<div style="font-size:11px;color:var(--muted);">' + c.hint + '</div></div>';
+                    el.innerHTML = '<div style="padding:var(--space-inset);text-align:center;">' +
+                        '<div style="font-size:var(--size-32);margin-bottom:var(--space-6);">&#x26A0;</div>' +
+                        '<div style="font-size:var(--size-md);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">' + c.label + '</div>' +
+                        '<div style="font-size:var(--size-xs);color:var(--muted);">' + c.hint + '</div></div>';
                 }
             }
         });
@@ -90,17 +90,17 @@ function renderDocsTab(m) {
 
 function _docsPdfSection(pdfUrl, containerId, description) {
     var html = '';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;margin-bottom:8px;">';
-    html += '<div style="font-size:12px;color:var(--text-3);">' + description + '</div>';
-    html += '<a href="' + pdfUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--accent);color:var(--inverse);border-radius:4px;text-decoration:none;font-size:11px;font-weight:500;">&#x2913; Download PDF</a>';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-4) 0;margin-bottom:var(--space-4);">';
+    html += '<div style="font-size:var(--size-sm);color:var(--text-3);">' + description + '</div>';
+    html += '<a href="' + pdfUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-7);background:var(--accent);color:var(--inverse);border-radius:var(--radius-4);text-decoration:none;font-size:var(--size-xs);font-weight:500;">&#x2913; Download PDF</a>';
     html += '</div>';
-    html += '<div id="' + containerId + '" style="flex:1;min-height:500px;border:1px solid var(--line);border-radius:6px;overflow:hidden;">';
+    html += '<div id="' + containerId + '" style="flex:1;min-height:500px;border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;">';
     html += '<object data="' + pdfUrl + '" type="application/pdf" width="100%" height="500" style="border:none;">';
-    html += '<div style="padding:40px;text-align:center;">';
-    html += '<div style="font-size:32px;margin-bottom:12px;">&#x1F4C4;</div>';
-    html += '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">PDF Document</div>';
-    html += '<div style="font-size:11px;color:var(--muted);margin-bottom:16px;">Your browser cannot display the PDF inline.</div>';
-    html += '<a href="' + pdfUrl + '" target="_blank" style="display:inline-block;padding:8px 20px;background:var(--accent);color:var(--inverse);border-radius:4px;text-decoration:none;font-size:12px;">Open PDF</a>';
+    html += '<div style="padding:var(--space-inset);text-align:center;">';
+    html += '<div style="font-size:var(--size-32);margin-bottom:var(--space-6);">&#x1F4C4;</div>';
+    html += '<div style="font-size:var(--size-md);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">PDF Document</div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--muted);margin-bottom:var(--space-8);">Your browser cannot display the PDF inline.</div>';
+    html += '<a href="' + pdfUrl + '" target="_blank" style="display:inline-block;padding:var(--space-4) var(--space-wide);background:var(--accent);color:var(--inverse);border-radius:var(--radius-4);text-decoration:none;font-size:var(--size-sm);">Open PDF</a>';
     html += '</div></object></div>';
     return html;
 }

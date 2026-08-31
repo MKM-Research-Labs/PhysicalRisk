@@ -39,9 +39,9 @@
                 // Sub-tab toggle: Residential | Commercial | Flood Damage | Wind Damage | Loan/Mortgage | Summary
                 var subTabBar = document.createElement('div');
                 subTabBar.id = 'sp-sub-tab-bar';
-                subTabBar.style.cssText = 'display:flex;gap:0;padding:8px 16px 0;';
-                var inactiveStyle = 'padding:5px 16px;font-size:11px;border:1px solid var(--line-strong);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:var(--panel);color:var(--text-2);';
-                var activeStyle = 'padding:5px 16px;font-size:11px;border:1px solid var(--accent);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:var(--accent);color:var(--inverse);';
+                subTabBar.style.cssText = 'display:flex;gap:0;padding:var(--space-4) var(--space-8) 0;';
+                var inactiveStyle = 'padding:var(--space-3) var(--space-8);font-size:var(--size-xs);border:1px solid var(--line-strong);border-bottom:none;border-radius:var(--radius-4) var(--radius-4) 0 0;cursor:pointer;background:var(--panel);color:var(--text-2);';
+                var activeStyle = 'padding:var(--space-3) var(--space-8);font-size:var(--size-xs);border:1px solid var(--accent);border-bottom:none;border-radius:var(--radius-4) var(--radius-4) 0 0;cursor:pointer;background:var(--accent);color:var(--inverse);';
 
                 function mkBtn(id, label, key, active) {
                     var b = document.createElement('button');
@@ -61,7 +61,7 @@
 
                 var summaryRow = document.createElement('div');
                 summaryRow.id = 'sp-summary';
-                summaryRow.style.cssText = 'padding:10px 16px;border-bottom:1px solid var(--line-soft);display:flex;gap:10px;flex-wrap:wrap;';
+                summaryRow.style.cssText = 'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;gap:var(--space-5);flex-wrap:wrap;';
 
                 var tableContainer = document.createElement('div');
                 tableContainer.id = 'sp-table-container';
@@ -268,7 +268,7 @@
                 var statsBar = document.getElementById('sp-stats-bar');
                 statsBar.innerHTML = '<span>Loading portfolio impact...</span>';
                 var summary = document.getElementById('sp-summary');
-                summary.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:12px;">Loading...</div>';
+                summary.innerHTML = '<div style="padding:var(--space-4);color:var(--muted);font-size:var(--size-sm);">Loading...</div>';
                 var tableContainer = document.getElementById('sp-table-container');
                 tableContainer.innerHTML = '';
 

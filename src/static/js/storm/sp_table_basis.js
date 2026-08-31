@@ -21,7 +21,7 @@
             function loadBasisData(stormId) {
                 var summary = document.getElementById('sp-summary');
                 var container = document.getElementById('sp-table-container');
-                summary.innerHTML = '<div style="padding:4px;color:var(--muted);font-size:11px;">Loading basis data...</div>';
+                summary.innerHTML = '<div style="padding:var(--space-2);color:var(--muted);font-size:var(--size-xs);">Loading basis data...</div>';
                 container.innerHTML = '';
 
                 var baseUrl = getBaseUrl();
@@ -34,12 +34,12 @@
                             renderBasisTable(data.gauges);
                         } else {
                             summary.innerHTML = '';
-                            container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted-2);font-size:13px;">No basis data for this storm</div>';
+                            container.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted-2);font-size:var(--size-md);">No basis data for this storm</div>';
                         }
                     })
                     .catch(function(err) {
                         summary.innerHTML = '';
-                        container.innerHTML = '<div style="padding:20px;color:var(--red);">Failed to load basis data</div>';
+                        container.innerHTML = '<div style="padding:var(--space-wide);color:var(--red);">Failed to load basis data</div>';
                         console.error('[StormPortfolio] Basis error:', err);
                     });
             }
@@ -58,9 +58,9 @@
                 summary.innerHTML = '';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;min-width:100px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
+                    card.style.cssText = 'flex:1;min-width:100px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + c.color + ';margin-top:var(--space-1);">' + c.value + '</div>';
                     summary.appendChild(card);
                 });
             }
@@ -82,14 +82,14 @@
                 ];
 
                 var table = document.createElement('table');
-                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:11px;';
+                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:var(--size-xs);';
 
                 var thead = document.createElement('thead');
                 var tr = document.createElement('tr');
                 basisCols.forEach(function(col) {
                     var th = document.createElement('th');
                     th.textContent = col.label;
-                    th.style.cssText = 'padding:6px 8px;text-align:right;border-bottom:2px solid var(--line-strong);background:var(--raised);white-space:nowrap;font-size:10px;color:var(--text-2);position:sticky;top:0;cursor:pointer;';
+                    th.style.cssText = 'padding:var(--space-3) var(--space-4);text-align:right;border-bottom:2px solid var(--line-strong);background:var(--raised);white-space:nowrap;font-size:var(--size-xxs);color:var(--text-2);position:sticky;top:0;cursor:pointer;';
                     if (col.key === 'gauge_name' || col.key === 'threshold') th.style.textAlign = 'left';
                     tr.appendChild(th);
                 });
@@ -113,7 +113,7 @@
                         var td = document.createElement('td');
                         var val = g[col.key];
                         td.textContent = col.fmt(val);
-                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:right;white-space:nowrap;';
+                        td.style.cssText = 'padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--code);text-align:right;white-space:nowrap;';
                         if (col.key === 'gauge_name' || col.key === 'threshold') td.style.textAlign = 'left';
 
                         // Colour coding
@@ -142,7 +142,7 @@
                     var emptyRow = document.createElement('tr');
                     var emptyTd = document.createElement('td');
                     emptyTd.colSpan = basisCols.length;
-                    emptyTd.style.cssText = 'padding:40px;text-align:center;color:var(--muted-2);';
+                    emptyTd.style.cssText = 'padding:var(--space-inset);text-align:center;color:var(--muted-2);';
                     emptyTd.textContent = 'No gauge data for this storm';
                     emptyRow.appendChild(emptyTd);
                     tbody.appendChild(emptyRow);

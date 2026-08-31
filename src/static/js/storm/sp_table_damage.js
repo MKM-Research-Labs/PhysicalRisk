@@ -74,7 +74,7 @@
                 var container = document.getElementById('sp-table-container');
                 if (!stormId) {
                     summary.innerHTML = '';
-                    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Select a storm above</div>';
+                    container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">Select a storm above</div>';
                     return;
                 }
 
@@ -87,7 +87,7 @@
                     return;
                 }
 
-                container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted-2);">Loading commercial impact...</div>';
+                container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">Loading commercial impact...</div>';
                 fetch(getBaseUrl() + '/api/v1/commercial/' + stormId + '/portfolio-impact', {mode:'cors'})
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
@@ -144,9 +144,9 @@
                 summary.innerHTML = '';
                 cards.forEach(function(card) {
                     var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:' + card.color + ';margin-top:2px;">' + card.value + '</div>';
+                    div.style.cssText = 'flex:1;min-width:120px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + card.color + ';margin-top:var(--space-1);">' + card.value + '</div>';
                     summary.appendChild(div);
                 });
             }
@@ -166,8 +166,8 @@
 
                 if (!rows || rows.length === 0) {
                     container.innerHTML =
-                        '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
-                          '<tbody><tr><td style="padding:40px;text-align:center;color:var(--muted-2);font-size:13px;">' +
+                        '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">' +
+                          '<tbody><tr><td style="padding:var(--space-inset);text-align:center;color:var(--muted-2);font-size:var(--size-md);">' +
                             (kind === 'wind' ? 'Wind damage model not yet wired — no rows to show.'
                                              : 'This storm does not cause any flooding to the combined portfolio.') +
                           '</td></tr></tbody></table>';
@@ -175,14 +175,14 @@
                 }
 
                 var table = document.createElement('table');
-                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:11px;';
+                table.style.cssText = 'width:100%;border-collapse:collapse;font-size:var(--size-xs);';
 
                 var thead = document.createElement('thead');
                 var tr = document.createElement('tr');
                 cols.forEach(function(col) {
                     var th = document.createElement('th');
                     th.textContent = col.label + (spSortCol === col.key ? (spSortAsc ? ' \u25b2' : ' \u25bc') : '');
-                    th.style.cssText = 'padding:6px 8px;text-align:' + col.align + ';border-bottom:2px solid var(--line-strong);background:var(--raised);cursor:pointer;white-space:nowrap;font-size:10px;color:var(--text-2);position:sticky;top:0;';
+                    th.style.cssText = 'padding:var(--space-3) var(--space-4);text-align:' + col.align + ';border-bottom:2px solid var(--line-strong);background:var(--raised);cursor:pointer;white-space:nowrap;font-size:var(--size-xxs);color:var(--text-2);position:sticky;top:0;';
                     th.onclick = (function(k) {
                         return function() {
                             if (spSortCol === k) spSortAsc = !spSortAsc;
@@ -228,7 +228,7 @@
                     cols.forEach(function(col) {
                         var td = document.createElement('td');
                         td.textContent = col.fmt(r[col.key]);
-                        td.style.cssText = 'padding:5px 8px;border-bottom:1px solid var(--code);text-align:' + col.align + ';white-space:nowrap;';
+                        td.style.cssText = 'padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--code);text-align:' + col.align + ';white-space:nowrap;';
                         if (col.key === 'damage_amount' && r[col.key]) td.style.color = Theme.value('red');
                         row.appendChild(td);
                     });

@@ -19,11 +19,11 @@
 // SOFTWARE.
 
 function sectionHeader(text) {
-    return '<div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--line-soft);">' + text + '</div>';
+    return '<div style="font-size:var(--size-xs);font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-top:var(--space-8);margin-bottom:var(--space-4);padding-bottom:var(--space-2);border-bottom:1px solid var(--line-soft);">' + text + '</div>';
 }
 
 function infoRow(label, value) {
-    return '<div style="display:flex;padding:3px 0;font-size:11px;">' +
+    return '<div style="display:flex;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
         '<span style="min-width:130px;color:var(--muted);flex-shrink:0;">' + label + '</span>' +
         '<span style="color:var(--text);">' + value + '</span></div>';
 }

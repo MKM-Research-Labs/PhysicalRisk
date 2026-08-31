@@ -46,7 +46,7 @@ __PSA_IMPACT_JS__
                 propStormPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:var(--radius-lg);' +
                     'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
@@ -54,25 +54,25 @@ __PSA_IMPACT_JS__
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
-                    'border-radius:8px 8px 0 0;';
+                    'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--wash);' +
+                    'border-radius:var(--radius-lg) var(--radius-lg) 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'prop-storm-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
+                title.style.cssText = 'font-weight:bold;font-size:var(--size-14);color:var(--text);';
 
                 var rightHeader = document.createElement('div');
-                rightHeader.style.cssText = 'display:flex;align-items:center;gap:10px;';
+                rightHeader.style.cssText = 'display:flex;align-items:center;gap:var(--space-5);';
 
                 var status = document.createElement('span');
                 status.id = 'prop-storm-status';
-                status.style.cssText = 'font-size:11px;color:var(--muted);';
+                status.style.cssText = 'font-size:var(--size-xs);color:var(--muted);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
-                    'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:var(--text-3);padding:0 8px;line-height:1;';
+                    'border:none;background:none;font-size:var(--size-24);cursor:pointer;' +
+                    'color:var(--text-3);padding:0 var(--space-4);line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 rightHeader.appendChild(status);
@@ -84,7 +84,7 @@ __PSA_IMPACT_JS__
                 var tabBar = document.createElement('div');
                 tabBar.id = 'prop-storm-tab-bar';
                 tabBar.style.cssText =
-                    'display:flex;gap:0;border-bottom:2px solid var(--line-soft);padding:0 16px;background:var(--raised);';
+                    'display:flex;gap:0;border-bottom:2px solid var(--line-soft);padding:0 var(--space-8);background:var(--raised);';
 
                 var tabs = ['Distribution', 'Flood Timeline', 'Worst Storms', 'Flood History', 'Mortgage Impact', 'Insurance Report', 'PRS Pricing'];
                 tabs.forEach(function(name, i) {
@@ -95,9 +95,9 @@ __PSA_IMPACT_JS__
                     if (i === 5) {
                         // Insurance Report: fetch PDF and show in popup
                         tab.style.cssText =
-                            'padding:8px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:600;color:var(--red-dark);' +
-                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:8px;';
+                            'padding:var(--space-4) var(--space-7);border:none;background:none;cursor:pointer;' +
+                            'font-size:var(--size-sm);font-weight:600;color:var(--red-dark);' +
+                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:var(--space-4);';
                         tab.title = 'View flood damage claim report';
                         tab.onclick = async function() {
                             var propId = document.getElementById('prop-storm-panel') &&
@@ -130,9 +130,9 @@ __PSA_IMPACT_JS__
                     } else if (i === 6) {
                         // PRS Pricing: open PRS Pricer panel
                         tab.style.cssText =
-                            'padding:8px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:600;color:var(--accent-mid);' +
-                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:4px;';
+                            'padding:var(--space-4) var(--space-7);border:none;background:none;cursor:pointer;' +
+                            'font-size:var(--size-sm);font-weight:600;color:var(--accent-mid);' +
+                            'border-bottom:2px solid transparent;margin-bottom:-2px;margin-left:var(--space-2);';
                         tab.title = 'Open PRS pricing workflow';
                         tab.onclick = function() {
                             var propId = document.getElementById('prop-storm-panel') &&
@@ -143,8 +143,8 @@ __PSA_IMPACT_JS__
                         };
                     } else {
                         tab.style.cssText =
-                            'padding:8px 16px;border:none;background:none;cursor:pointer;' +
-                            'font-size:12px;font-weight:500;color:var(--text-3);' +
+                            'padding:var(--space-4) var(--space-8);border:none;background:none;cursor:pointer;' +
+                            'font-size:var(--size-sm);font-weight:500;color:var(--text-3);' +
                             'border-bottom:2px solid transparent;margin-bottom:-2px;';
                         tab.onclick = function() { switchTab(i); };
                     }
@@ -154,7 +154,7 @@ __PSA_IMPACT_JS__
                 // Content area
                 var content = document.createElement('div');
                 content.id = 'prop-storm-content';
-                content.style.cssText = 'flex:1;padding:12px 16px;overflow-y:auto;position:relative;';
+                content.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);overflow-y:auto;position:relative;';
 
                 propStormPanel.appendChild(header);
                 propStormPanel.appendChild(tabBar);

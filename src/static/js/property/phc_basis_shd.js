@@ -61,7 +61,7 @@
                 avgRetention = storms.length > 0 ? avgRetention / storms.length : 0;
 
                 var summaryHtml =
-                    '<div style="padding:8px 0 4px 0;font-size:12px;color:var(--text-2);">' +
+                    '<div style="padding:var(--space-4) 0 var(--space-2) 0;font-size:var(--size-sm);color:var(--text-2);">' +
                     '<b>Distance Effect:</b> Gauge ' + distanceKm.toFixed(1) + 'km from property' +
                     ' &nbsp;|&nbsp; Avg retention: ' + (avgRetention * 100).toFixed(0) + '%' +
                     ' &nbsp;|&nbsp; <b>' + withDepthCount + '</b> of <b>' + storms.length +
@@ -69,7 +69,7 @@
                     '</div>';
 
                 container.innerHTML = summaryHtml +
-                    '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
+                    '<div style="display:flex;flex:1;gap:var(--space-4);min-height:0;">' +
                     '<canvas id="basis-shd-decay" style="width:35%;min-width:250px;"></canvas>' +
                     '<canvas id="basis-shd-waterfall" style="flex:1;"></canvas>' +
                     '</div>';

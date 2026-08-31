@@ -28,8 +28,8 @@
                     return b.peak_level_m - a.peak_level_m;
                 });
 
-                var html = '<label style="margin-right:8px;font-weight:600;">Storm:</label>';
-                html += '<select id="storm-selector" style="padding:4px 8px;border:1px solid var(--divider);border-radius:4px;max-width:400px;">';
+                var html = '<label style="margin-right:var(--space-4);font-weight:600;">Storm:</label>';
+                html += '<select id="storm-selector" style="padding:var(--space-2) var(--space-4);border:1px solid var(--divider);border-radius:var(--radius-4);max-width:400px;">';
                 html += '<option value="sim">Flood Simulation (default)</option>';
 
                 sorted.forEach(function(r, i) {

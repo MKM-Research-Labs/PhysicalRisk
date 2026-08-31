@@ -37,41 +37,41 @@
                 popup.id = 'td-preloader-popup';
                 popup.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-                    'background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;' +
+                    'background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--radius-xl);' +
                     'box-shadow:var(--shadow-modal);z-index:3000;' +
                     'min-width:340px;padding:24px 28px;font-family:Arial,sans-serif;';
 
                 var title = document.createElement('div');
-                title.style.cssText = 'font-size:15px;font-weight:bold;color:var(--accent-mid);' +
-                    'margin-bottom:16px;display:flex;align-items:center;gap:8px;';
+                title.style.cssText = 'font-size:var(--size-lg);font-weight:bold;color:var(--accent-mid);' +
+                    'margin-bottom:var(--space-8);display:flex;align-items:center;gap:var(--space-4);';
                 title.innerHTML =
-                    '<span style="font-size:20px;font-family:serif;">&Pi;</span>' +
+                    '<span style="font-size:var(--size-xl);font-family:serif;">&Pi;</span>' +
                     ' Loading Trading Desk…';
                 popup.appendChild(title);
 
                 // Progress bar
                 var barWrap = document.createElement('div');
                 barWrap.style.cssText =
-                    'background:var(--code);border-radius:4px;height:6px;' +
-                    'margin-bottom:16px;overflow:hidden;';
+                    'background:var(--code);border-radius:var(--radius-4);height:6px;' +
+                    'margin-bottom:var(--space-8);overflow:hidden;';
                 var bar = document.createElement('div');
                 bar.id = 'td-pre-bar';
                 bar.style.cssText =
                     'height:100%;width:0%;background:var(--accent);' +
-                    'transition:width 0.3s ease;border-radius:4px;';
+                    'transition:width 0.3s ease;border-radius:var(--radius-4);';
                 barWrap.appendChild(bar);
                 popup.appendChild(barWrap);
 
                 // Dataset rows
                 var list = document.createElement('div');
                 list.id = 'td-pre-list';
-                list.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+                list.style.cssText = 'display:flex;flex-direction:column;gap:var(--space-3);';
                 _tdDatasets.forEach(function(ds) {
                     var row = document.createElement('div');
                     row.id = 'td-pre-row-' + ds[0];
                     row.style.cssText =
-                        'display:flex;align-items:center;gap:10px;' +
-                        'font-size:12px;color:var(--text-2);';
+                        'display:flex;align-items:center;gap:var(--space-5);' +
+                        'font-size:var(--size-sm);color:var(--text-2);';
                     var icon = document.createElement('span');
                     icon.id = 'td-pre-icon-' + ds[0];
                     icon.style.cssText =
@@ -109,7 +109,7 @@
                 if (ok) {
                     icon.style.cssText =
                         'width:16px;height:16px;border-radius:50%;display:inline-flex;' +
-                        'align-items:center;justify-content:center;font-size:11px;flex-shrink:0;' +
+                        'align-items:center;justify-content:center;font-size:var(--size-xs);flex-shrink:0;' +
                         'background:var(--ok-bg);color:var(--green-dark);border:2px solid var(--green-pale);';
                     icon.textContent = '✓';
                     // Append detail count next to label
@@ -117,7 +117,7 @@
                         var row = document.getElementById('td-pre-row-' + key);
                         if (row) {
                             var det = document.createElement('span');
-                            det.style.cssText = 'color:var(--muted-2);font-size:11px;margin-left:auto;';
+                            det.style.cssText = 'color:var(--muted-2);font-size:var(--size-xs);margin-left:auto;';
                             det.textContent = detail;
                             row.appendChild(det);
                         }
@@ -125,7 +125,7 @@
                 } else {
                     icon.style.cssText =
                         'width:16px;height:16px;border-radius:50%;display:inline-flex;' +
-                        'align-items:center;justify-content:center;font-size:11px;flex-shrink:0;' +
+                        'align-items:center;justify-content:center;font-size:var(--size-xs);flex-shrink:0;' +
                         'background:var(--danger-bg-soft);color:var(--red-dark);border:2px solid var(--danger-line-mid);';
                     icon.textContent = '✗';
                 }

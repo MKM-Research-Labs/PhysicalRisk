@@ -32,7 +32,7 @@
                 if (!stormId) return;
                 console.log('[StormPortfolio] Loading simulation for', stormId);
                 var wrap = document.getElementById('sp-sim-chart-wrap');
-                wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading simulation data...</div>';
+                wrap.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);">Loading simulation data...</div>';
                 var stats = document.getElementById('sp-sim-stats');
                 stats.innerHTML = '';
                 var statsBar = document.getElementById('sp-stats-bar');
@@ -45,7 +45,7 @@
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data.status !== 'success') {
-                            wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + (data.message || 'Unknown') + '</div>';
+                            wrap.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Error: ' + (data.message || 'Unknown') + '</div>';
                             return;
                         }
                         spSimData = data;
@@ -62,7 +62,7 @@
                             '<span>Properties: <b>' + data.n_properties_affected + '</b></span>';
                     })
                     .catch(function(err) {
-                        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load simulation</div>';
+                        wrap.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Failed to load simulation</div>';
                         console.error('Sim error:', err);
                     });
             }
@@ -96,12 +96,12 @@
 
                 stats.innerHTML = '';
                 var row = document.createElement('div');
-                row.style.cssText = 'display:flex;gap:10px;width:100%;';
+                row.style.cssText = 'display:flex;gap:var(--space-5);width:100%;';
                 cards.forEach(function(c) {
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:1;min-width:120px;padding:8px 12px;border-radius:6px;background:var(--sunken);border-left:3px solid ' + c.color + ';';
-                    card.innerHTML = '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
-                        '<div style="font-size:14px;font-weight:700;color:' + c.color + ';margin-top:2px;">' + c.value + '</div>';
+                    card.style.cssText = 'flex:1;min-width:120px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + c.color + ';';
+                    card.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + c.label + '</div>' +
+                        '<div style="font-size:var(--size-14);font-weight:700;color:' + c.color + ';margin-top:var(--space-1);">' + c.value + '</div>';
                     row.appendChild(card);
                 });
                 stats.appendChild(row);

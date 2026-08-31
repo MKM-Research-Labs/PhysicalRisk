@@ -42,13 +42,13 @@
 
                 var trades = tdClientData;
 
-                var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
 
                 // Header
                 html += '<thead><tr style="background:var(--accent-ink);color:var(--inverse);position:sticky;top:0;z-index:1;">';
                 for (var c = 0; c < cols.length; c++) {
                     var align = c > 5 ? 'right' : 'left';
-                    html += '<th style="padding:6px 8px;text-align:' + align + ';font-weight:600;white-space:nowrap;">' + cols[c].label + '</th>';
+                    html += '<th style="padding:var(--space-3) var(--space-4);text-align:' + align + ';font-weight:600;white-space:nowrap;">' + cols[c].label + '</th>';
                 }
                 html += '</tr></thead><tbody>';
 
@@ -80,7 +80,7 @@
                             var vFg = isResilient ? 'var(--product-ink)' : 'var(--accent-mid)';
                             var vLbl = isResilient ? 'Resilient' : 'Pure';
                             display = '<span style="background:' + vBg + ';color:' + vFg +
-                                ';padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;">' +
+                                ';padding:var(--space-hair) var(--space-3);border-radius:var(--radius-lg);font-size:var(--size-xxs);font-weight:600;">' +
                                 vLbl + '</span>';
                         } else if (col.fmt === 'hedge') {
                             display = val != null ? val.toFixed(1) + '%' : '\u2014';
@@ -101,13 +101,13 @@
                             display = val != null ? String(val) : '\u2014';
                         }
 
-                        html += '<td style="padding:5px 8px;text-align:' + align + ';color:' + color + ';white-space:nowrap;">' + display + '</td>';
+                        html += '<td style="padding:var(--space-3) var(--space-4);text-align:' + align + ';color:' + color + ';white-space:nowrap;">' + display + '</td>';
                     }
                     html += '</tr>';
                 }
 
                 if (trades.length === 0) {
-                    html += '<tr><td colspan="' + cols.length + '" style="padding:20px;text-align:center;color:var(--muted-2);">No property PRS trades found</td></tr>';
+                    html += '<tr><td colspan="' + cols.length + '" style="padding:var(--space-wide);text-align:center;color:var(--muted-2);">No property PRS trades found</td></tr>';
                 }
 
                 // Totals row
@@ -137,7 +137,7 @@
                         else if (fcol.key === 'spread_bps') { fVal = avgSpread.toFixed(1); fColor = 'var(--text-3)'; }
                         else if (fcol.key === 'gauge_fs01') { fColor = totFs01 > 0 ? 'var(--accent-mid)' : (totFs01 < 0 ? 'var(--red-dark)' : 'var(--text)'); fVal = fmtGBP(totFs01); }
                         else if (fcol.key === 'npv') { fColor = totNpv >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totNpv); }
-                        html += '<td style="padding:6px 8px;text-align:' + fAlign + ';color:' + fColor + ';white-space:nowrap;font-size:11px;">' + fVal + '</td>';
+                        html += '<td style="padding:var(--space-3) var(--space-4);text-align:' + fAlign + ';color:' + fColor + ';white-space:nowrap;font-size:var(--size-xs);">' + fVal + '</td>';
                     }
                     html += '</tr></tfoot>';
                 }

@@ -69,12 +69,12 @@
                 var shdCount = phcData._shd ? (phcData._shd.flood_count || 0) : '\u2014';
                 var briCount = phcData._bri ? (phcData._bri.flood_count || 0) : '\u2014';
 
-                var chipStyle = 'display:inline-flex;align-items:center;gap:4px;padding:4px 10px;' +
-                    'border-radius:12px;font-weight:600;font-size:11px;';
-                var arrowStyle = 'color:var(--faint);font-size:16px;margin:0 4px;';
-                var countStyle = 'font-size:15px;font-weight:700;';
-                var labelStyle = 'font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;';
-                var detailStyle = 'font-size:9px;color:var(--muted-2);line-height:1.1;';
+                var chipStyle = 'display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-5);' +
+                    'border-radius:var(--radius-pill);font-weight:600;font-size:var(--size-xs);';
+                var arrowStyle = 'color:var(--faint);font-size:var(--size-lg);margin:0 var(--space-2);';
+                var countStyle = 'font-size:var(--size-lg);font-weight:700;';
+                var labelStyle = 'font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;';
+                var detailStyle = 'font-size:var(--size-xxs);color:var(--muted-2);line-height:1.1;';
 
                 // Resilient (BRI) chip — only rendered when a BRI curve exists.
                 var briChip = '';
@@ -89,7 +89,7 @@
                 }
 
                 strip.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:2px;">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-1);">' +
 
                     // Gauge
                     '<div style="' + chipStyle + 'background:var(--danger-bg-soft);color:var(--red-dark);flex-direction:column;min-width:70px;text-align:center;">' +
@@ -129,7 +129,7 @@
                     briChip +
 
                     // Separator + spread summary
-                    '<div style="margin-left:12px;padding-left:12px;border-left:1px solid var(--line-strong);font-size:10px;color:var(--text-3);line-height:1.5;">' +
+                    '<div style="margin-left:var(--space-6);padding-left:var(--space-6);border-left:1px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-3);line-height:1.5;">' +
                     '<div><b>Gauge:</b> ' + gaugeName + '</div>' +
                     '<div><b>Spread:</b> ' + gaugeSpread.toFixed(1) + 'bp \u2192 ' + propSpread.toFixed(1) + 'bp</div>' +
                     '<div><b>Basis:</b> ' + (gaugeSpread - propSpread).toFixed(1) + 'bp</div>' +

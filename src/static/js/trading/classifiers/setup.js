@@ -32,28 +32,28 @@
                 // Top bar: Train All button + summary stats
                 var topBar = document.createElement('div');
                 topBar.id = 'cl-top-bar';
-                topBar.style.cssText = 'padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;background:var(--header-from);flex-shrink:0;';
+                topBar.style.cssText = 'padding:var(--space-4) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:var(--space-6);background:var(--header-from);flex-shrink:0;';
                 topBar.innerHTML =
-                    '<button id="cl-train-all-btn" style="padding:5px 14px;font-size:11px;font-weight:600;' +
-                    'background:var(--accent);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">' +
+                    '<button id="cl-train-all-btn" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);font-weight:600;' +
+                    'background:var(--accent);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">' +
                     'Train All Untrained</button>' +
-                    '<button id="cl-clear-all-btn" style="padding:5px 14px;font-size:11px;font-weight:600;' +
-                    'background:var(--red-alt);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">' +
+                    '<button id="cl-clear-all-btn" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);font-weight:600;' +
+                    'background:var(--red-alt);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">' +
                     'Clear All</button>' +
-                    '<span id="cl-summary-stats" style="flex:1;font-size:11px;color:var(--text-3);text-align:right;"></span>';
+                    '<span id="cl-summary-stats" style="flex:1;font-size:var(--size-xs);color:var(--text-3);text-align:right;"></span>';
                 view.appendChild(topBar);
 
                 // Progress bar (hidden by default)
                 var progressWrap = document.createElement('div');
                 progressWrap.id = 'cl-progress-wrap';
-                progressWrap.style.cssText = 'display:none;padding:6px 16px;border-bottom:1px solid var(--line-soft);background:var(--tray-bg);flex-shrink:0;';
+                progressWrap.style.cssText = 'display:none;padding:var(--space-3) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--tray-bg);flex-shrink:0;';
                 progressWrap.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:10px;">' +
-                    '<div style="flex:1;height:18px;background:var(--line);border-radius:9px;overflow:hidden;position:relative;">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-5);">' +
+                    '<div style="flex:1;height:18px;background:var(--line);border-radius:var(--radius-xl);overflow:hidden;position:relative;">' +
                     '<div id="cl-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-light));' +
-                    'border-radius:9px;transition:width 0.5s ease;"></div>' +
+                    'border-radius:var(--radius-xl);transition:width 0.5s ease;"></div>' +
                     '</div>' +
-                    '<span id="cl-progress-text" style="font-size:10px;color:var(--text-2);min-width:200px;"></span>' +
+                    '<span id="cl-progress-text" style="font-size:var(--size-xxs);color:var(--text-2);min-width:200px;"></span>' +
                     '</div>';
                 view.appendChild(progressWrap);
 
@@ -61,7 +61,7 @@
                 var progressResults = document.createElement('div');
                 progressResults.id = 'cl-progress-results';
                 progressResults.style.cssText = 'display:none;max-height:140px;overflow-y:auto;' +
-                    'font-family:monospace;font-size:10px;line-height:1.6;padding:4px 16px;' +
+                    'font-family:monospace;font-size:var(--size-xxs);line-height:1.6;padding:var(--space-2) var(--space-8);' +
                     'background:var(--tray-bg);border-bottom:1px solid var(--line-soft);flex-shrink:0;';
                 view.appendChild(progressResults);
 
@@ -75,9 +75,9 @@
 
                 var detailPane = document.createElement('div');
                 detailPane.id = 'cl-detail-pane';
-                detailPane.style.cssText = 'width:45%;overflow-y:auto;padding:16px;';
+                detailPane.style.cssText = 'width:45%;overflow-y:auto;padding:var(--space-8);';
                 detailPane.innerHTML =
-                    '<div style="text-align:center;color:var(--muted-2);font-size:12px;padding-top:40px;">' +
+                    '<div style="text-align:center;color:var(--muted-2);font-size:var(--size-sm);padding-top:var(--space-inset);">' +
                     'Select a gauge to view classifier details</div>';
 
                 body.appendChild(tablePane);

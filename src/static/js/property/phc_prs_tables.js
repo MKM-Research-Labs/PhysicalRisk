@@ -37,42 +37,42 @@
                     }
                     compRows +=
                         '<tr' + rowStyle + clickAttr + '>' +
-                        '<td style="padding:4px 8px;"><span style="color:' + color + ';">\u25CF</span> ' +
+                        '<td style="padding:var(--space-2) var(--space-4);"><span style="color:' + color + ';">\u25CF</span> ' +
                         label + '</td>' +
-                        '<td style="padding:4px 8px;text-align:right;">' + g.distance_km.toFixed(1) + 'km</td>' +
-                        '<td style="padding:4px 8px;text-align:right;">' + g.gauge_elevation_m.toFixed(1) + 'm</td>' +
-                        '<td style="padding:4px 8px;text-align:right;font-weight:600;">' + g.gauge_spread.toFixed(1) + '</td>' +
-                        '<td style="padding:4px 8px;text-align:right;color:var(--text-3);">+' + g.basis.toFixed(1) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + g.distance_km.toFixed(1) + 'km</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + g.gauge_elevation_m.toFixed(1) + 'm</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;font-weight:600;">' + g.gauge_spread.toFixed(1) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:var(--text-3);">+' + g.basis.toFixed(1) + '</td>' +
                         '</tr>';
                 });
 
                 // Property row
                 compRows +=
                     '<tr style="border-top:2px solid var(--accent);background:var(--accent-soft);">' +
-                    '<td style="padding:4px 8px;font-weight:bold;"><span style="color:var(--accent);">\u25CF</span> Property PRS</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">\u2014</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">' + propElev.toFixed(1) + 'm</td>' +
-                    '<td style="padding:4px 8px;text-align:right;font-weight:bold;color:var(--accent);">' + result.propSpreadAtTenor.toFixed(1) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">\u2014</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);font-weight:bold;"><span style="color:var(--accent);">\u25CF</span> Property PRS</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;">\u2014</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + propElev.toFixed(1) + 'm</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;font-weight:bold;color:var(--accent);">' + result.propSpreadAtTenor.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;">\u2014</td>' +
                     '</tr>';
 
                 // Avg basis row
                 compRows +=
                     '<tr style="background:var(--warn-bg-warm);">' +
-                    '<td style="padding:4px 8px;font-weight:bold;">Avg Basis</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">\u2014</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">\u2014</td>' +
-                    '<td style="padding:4px 8px;text-align:right;">\u2014</td>' +
-                    '<td style="padding:4px 8px;text-align:right;font-weight:bold;color:var(--amber-deep);">+' + result.avgBasis.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);font-weight:bold;">Avg Basis</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;">\u2014</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;">\u2014</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;">\u2014</td>' +
+                    '<td style="padding:var(--space-2) var(--space-4);text-align:right;font-weight:bold;color:var(--amber-deep);">+' + result.avgBasis.toFixed(1) + '</td>' +
                     '</tr>';
 
-                return '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:monospace;">' +
+                return '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);font-family:monospace;">' +
                     '<thead><tr style="background:var(--sunken);border-bottom:2px solid var(--line-strong);">' +
-                    '<th style="padding:4px 8px;text-align:left;">Component</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Distance</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Elevation</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Fair Spread</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Basis (bps)</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:left;">Component</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Distance</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Elevation</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Fair Spread</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Basis (bps)</th>' +
                     '</tr></thead>' +
                     '<tbody>' + compRows + '</tbody></table>';
             }
@@ -94,51 +94,51 @@
                 if (!zoneMatches && Math.abs(terrainDelta) >= 0.05) {
                     var tColor = terrainDelta < 0 ? 'var(--green-dark)' : 'var(--amber-deep)';
                     terrainRow =
-                        '<tr style="background:var(--purple-bg);"><td style="padding:2px 6px;font-size:10px;">Terrain Effect</td>' +
-                        '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + tColor + ';">' + (terrainDelta >= 0 ? '+' : '') + terrainDelta.toFixed(1) + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">' + selectedZone + '</td></tr>';
+                        '<tr style="background:var(--purple-bg);"><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);">Terrain Effect</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:' + tColor + ';">' + (terrainDelta >= 0 ? '+' : '') + terrainDelta.toFixed(1) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">' + selectedZone + '</td></tr>';
                 }
 
                 var sdRows = '';
                 // Path 1: Distance first
                 sdRows +=
                     '<tr style="background:var(--accent-soft);">' +
-                    '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:var(--accent-mid);">Path 1: Distance First</td></tr>';
+                    '<td colspan="3" style="padding:var(--space-2) var(--space-3);font-weight:bold;font-size:var(--size-xxs);color:var(--accent-mid);">Path 1: Distance First</td></tr>';
                 sdRows +=
-                    '<tr><td style="padding:2px 6px;font-size:10px;">Gauge Spread</td>' +
-                    '<td style="padding:2px 6px;text-align:right;font-weight:600;">' + gaugeSpread.toFixed(1) + '</td>' +
-                    '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">baseline</td></tr>';
+                    '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);">Gauge Spread</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;">' + gaugeSpread.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">baseline</td></tr>';
                 sdRows += terrainRow;
                 var distEff1 = df.distance_effect_bps || 0;
                 sdRows +=
-                    '<tr><td style="padding:2px 6px;font-size:10px;">Distance Effect</td>' +
-                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (distEff1 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (distEff1 >= 0 ? '+' : '') + distEff1.toFixed(1) + '</td>' +
-                    '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">SHE=' + sheSpread.toFixed(1) + 'bp</td></tr>';
+                    '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);">Distance Effect</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:' + (distEff1 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (distEff1 >= 0 ? '+' : '') + distEff1.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">SHE=' + sheSpread.toFixed(1) + 'bp</td></tr>';
                 var elevEff1 = df.elevation_effect_bps || 0;
                 sdRows +=
-                    '<tr><td style="padding:2px 6px;font-size:10px;">Elevation Effect</td>' +
-                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (elevEff1 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (elevEff1 >= 0 ? '+' : '') + elevEff1.toFixed(1) + '</td>' +
-                    '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">\u2192 property</td></tr>';
+                    '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);">Elevation Effect</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:' + (elevEff1 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (elevEff1 >= 0 ? '+' : '') + elevEff1.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">\u2192 property</td></tr>';
                 // Path 2: Elevation first
                 sdRows +=
                     '<tr style="background:var(--warn-bg-warm);">' +
-                    '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:var(--amber-deep);">Path 2: Elevation First</td></tr>';
+                    '<td colspan="3" style="padding:var(--space-2) var(--space-3);font-weight:bold;font-size:var(--size-xxs);color:var(--amber-deep);">Path 2: Elevation First</td></tr>';
                 sdRows += terrainRow;
                 var elevEff2 = ef.elevation_effect_bps || 0;
                 sdRows +=
-                    '<tr><td style="padding:2px 6px;font-size:10px;">Elevation Effect</td>' +
-                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (elevEff2 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (elevEff2 >= 0 ? '+' : '') + elevEff2.toFixed(1) + '</td>' +
-                    '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">SHD=' + shdSpread.toFixed(1) + 'bp</td></tr>';
+                    '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);">Elevation Effect</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:' + (elevEff2 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (elevEff2 >= 0 ? '+' : '') + elevEff2.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">SHD=' + shdSpread.toFixed(1) + 'bp</td></tr>';
                 var distEff2 = ef.distance_effect_bps || 0;
                 sdRows +=
-                    '<tr><td style="padding:2px 6px;font-size:10px;">Distance Effect</td>' +
-                    '<td style="padding:2px 6px;text-align:right;font-weight:600;color:' + (distEff2 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (distEff2 >= 0 ? '+' : '') + distEff2.toFixed(1) + '</td>' +
-                    '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">\u2192 property</td></tr>';
+                    '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);">Distance Effect</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:' + (distEff2 < 0 ? 'var(--green-dark)' : 'var(--amber-deep)') + ';">' + (distEff2 >= 0 ? '+' : '') + distEff2.toFixed(1) + '</td>' +
+                    '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">\u2192 property</td></tr>';
                 // Property row (adjusted for terrain)
                 sdRows +=
                     '<tr style="border-top:2px solid var(--text);font-weight:bold;background:var(--ok-bg);">' +
-                    '<td style="padding:3px 6px;">Property Spread</td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:var(--accent);">' + adjustedPropSpread.toFixed(1) + ' bp</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);">Property Spread</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:var(--accent);">' + adjustedPropSpread.toFixed(1) + ' bp</td>' +
                     '<td></td></tr>';
 
                 // ---- Independent perils (fire / seismic) ----------------------
@@ -183,37 +183,37 @@
 
                     sdRows +=
                         '<tr style="background:var(--blue-grey-bg);">' +
-                        '<td colspan="3" style="padding:3px 6px;font-weight:bold;font-size:10px;color:var(--peril-seismic-row);">' +
+                        '<td colspan="3" style="padding:var(--space-2) var(--space-3);font-weight:bold;font-size:var(--size-xxs);color:var(--peril-seismic-row);">' +
                         'Independent Perils — all-in (√Σ sq)</td></tr>';
                     // Basis row: which flood/wind leg the all-in is built on.
                     sdRows +=
-                        '<tr><td style="padding:2px 6px;font-size:10px;color:var(--blue-grey-dark);">Flood/wind basis</td>' +
-                        '<td style="padding:2px 6px;text-align:right;font-weight:600;color:var(--blue-grey-dark);">' + fwBase.toFixed(1) + '</td>' +
-                        '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">' + fwBaseLabel + '</td></tr>';
+                        '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);color:var(--blue-grey-dark);">Flood/wind basis</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:var(--blue-grey-dark);">' + fwBase.toFixed(1) + '</td>' +
+                        '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">' + fwBaseLabel + '</td></tr>';
                     if (fireBps !== null) {
                         sdRows +=
-                            '<tr><td style="padding:2px 6px;font-size:10px;color:var(--orange-deep);font-weight:600;">FIRE (full conflagration)</td>' +
-                            '<td style="padding:2px 6px;text-align:right;font-weight:600;color:var(--orange-deep);">' + fireBps.toFixed(1) + '</td>' +
-                            '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">' + _perilCount(po.fire_conflagration).toLocaleString() + ' PNR</td></tr>';
+                            '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);color:var(--orange-deep);font-weight:600;">FIRE (full conflagration)</td>' +
+                            '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:var(--orange-deep);">' + fireBps.toFixed(1) + '</td>' +
+                            '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">' + _perilCount(po.fire_conflagration).toLocaleString() + ' PNR</td></tr>';
                     }
                     if (seisBps !== null) {
                         sdRows +=
-                            '<tr><td style="padding:2px 6px;font-size:10px;color:var(--peril-seismic-row);font-weight:600;">SEISMIC (collapse)</td>' +
-                            '<td style="padding:2px 6px;text-align:right;font-weight:600;color:var(--peril-seismic-row);">' + seisBps.toFixed(1) + '</td>' +
-                            '<td style="padding:2px 6px;text-align:right;color:var(--muted);font-size:9px;">' + _perilCount(po.seismic).toLocaleString() + ' DS3</td></tr>';
+                            '<tr><td style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);color:var(--peril-seismic-row);font-weight:600;">SEISMIC (collapse)</td>' +
+                            '<td style="padding:var(--space-1) var(--space-3);text-align:right;font-weight:600;color:var(--peril-seismic-row);">' + seisBps.toFixed(1) + '</td>' +
+                            '<td style="padding:var(--space-1) var(--space-3);text-align:right;color:var(--muted);font-size:var(--size-xxs);">' + _perilCount(po.seismic).toLocaleString() + ' DS3</td></tr>';
                     }
                     sdRows +=
                         '<tr style="border-top:2px solid var(--text);font-weight:bold;background:var(--blue-grey-bg);">' +
-                        '<td style="padding:3px 6px;">All-in PRS</td>' +
-                        '<td style="padding:3px 6px;text-align:right;color:var(--text);">' + allIn.toFixed(1) + ' bp</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);">All-in PRS</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:var(--text);">' + allIn.toFixed(1) + ' bp</td>' +
                         '<td></td></tr>';
                 }
 
-                return '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:monospace;margin-top:4px;">' +
+                return '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);font-family:monospace;margin-top:var(--space-2);">' +
                     '<thead><tr style="background:var(--warn-bg);border-bottom:1px solid var(--warn-line-soft);">' +
-                    '<th style="padding:2px 6px;text-align:left;font-size:10px;">Spread Decomposition</th>' +
-                    '<th style="padding:2px 6px;text-align:right;font-size:10px;">bps</th>' +
-                    '<th style="padding:2px 6px;text-align:right;font-size:10px;">Detail</th>' +
+                    '<th style="padding:var(--space-1) var(--space-3);text-align:left;font-size:var(--size-xxs);">Spread Decomposition</th>' +
+                    '<th style="padding:var(--space-1) var(--space-3);text-align:right;font-size:var(--size-xxs);">bps</th>' +
+                    '<th style="padding:var(--space-1) var(--space-3);text-align:right;font-size:var(--size-xxs);">Detail</th>' +
                     '</tr></thead>' +
                     '<tbody>' + sdRows + '</tbody></table>';
             }

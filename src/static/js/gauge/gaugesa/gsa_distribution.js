@@ -29,7 +29,7 @@
                 var dataMin = Math.min.apply(null, peaks);
 
                 distCtrl.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:8px;">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-4);">' +
                     '<label style="font-weight:600;white-space:nowrap;">Min Level:</label>' +
                     '<span id="dist-min-label" style="min-width:30px;font-weight:600;">' + dataMin.toFixed(1) + 'm</span>' +
                     '<input id="dist-min-slider" type="range" min="' + dataMin.toFixed(2) + '" max="' + dataMax.toFixed(2) + '" ' +

@@ -29,30 +29,30 @@
                 });
 
                 var modal = document.createElement('div');
-                modal.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
+                modal.style.cssText = 'background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow-modal);width:92vw;max-width:1300px;height:82vh;display:flex;flex-direction:column;overflow:hidden;';
 
                 // Header
                 var header = document.createElement('div');
-                header.style.cssText = 'display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
+                header.style.cssText = 'display:flex;align-items:center;padding:var(--space-7) var(--space-wide);border-bottom:1px solid var(--line-soft);background:var(--wash);flex-shrink:0;';
                 header.innerHTML =
-                    '<span style="font-size:14px;font-weight:700;color:var(--text);">P&amp;L History</span>' +
-                    '<span style="margin:0 10px;color:var(--disabled);">|</span>' +
-                    '<span style="font-size:12px;color:var(--text-2);">Daily P&amp;L with market move vs trade components</span>' +
+                    '<span style="font-size:var(--size-14);font-weight:700;color:var(--text);">P&amp;L History</span>' +
+                    '<span style="margin:0 var(--space-5);color:var(--disabled);">|</span>' +
+                    '<span style="font-size:var(--size-sm);color:var(--text-2);">Daily P&amp;L with market move vs trade components</span>' +
                     '<span style="flex:1;"></span>' +
-                    '<button onclick="tdClosePLHistory()" style="padding:4px 12px;font-size:11px;background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">Close</button>';
+                    '<button onclick="tdClosePLHistory()" style="padding:var(--space-2) var(--space-6);font-size:var(--size-xs);background:var(--blue-grey-light);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">Close</button>';
                 modal.appendChild(header);
 
                 // Stats bar
                 var statsRow = document.createElement('div');
                 statsRow.id = 'td-plhist-stats';
-                statsRow.style.cssText = 'display:flex;gap:24px;padding:8px 20px;border-bottom:1px solid var(--line-soft);background:var(--raised);font-size:11px;color:var(--text-2);flex-shrink:0;';
+                statsRow.style.cssText = 'display:flex;gap:var(--space-10);padding:var(--space-4) var(--space-wide);border-bottom:1px solid var(--line-soft);background:var(--raised);font-size:var(--size-xs);color:var(--text-2);flex-shrink:0;';
                 statsRow.innerHTML = '<span style="color:var(--disabled);">Loading…</span>';
                 modal.appendChild(statsRow);
 
                 // Chart body
                 var body = document.createElement('div');
                 body.id = 'td-plhist-body';
-                body.style.cssText = 'flex:1;padding:16px 20px;min-height:0;position:relative;';
+                body.style.cssText = 'flex:1;padding:var(--space-8) var(--space-wide);min-height:0;position:relative;';
                 body.innerHTML = '<canvas id="td-plhist-canvas" style="width:100%;height:100%;"></canvas>';
                 modal.appendChild(body);
 
@@ -65,14 +65,14 @@
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status !== 'success' || !result.series || result.series.length === 0) {
-                            body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:13px;">No P&L history available — run EOD first</span></div>';
+                            body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:var(--size-md);">No P&L history available — run EOD first</span></div>';
                             statsRow.innerHTML = '';
                             return;
                         }
                         tdBuildPLHistChart(body, statsRow, result.series);
                     })
                     .catch(function(err) {
-                        body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:13px;">Error: ' + err.message + '</span></div>';
+                        body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:var(--size-md);">Error: ' + err.message + '</span></div>';
                     });
             };
 
@@ -210,6 +210,6 @@
                     });
                 } catch(e) {
                     console.error('[PLHist] Chart error:', e);
-                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:12px;">Chart error: ' + e.message + '</span></div>';
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span style="color:var(--red-dark);font-size:var(--size-sm);">Chart error: ' + e.message + '</span></div>';
                 }
             }

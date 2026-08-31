@@ -95,69 +95,69 @@
                 overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--scrim);z-index:10000;display:flex;align-items:center;justify-content:center;';
 
                 var modal = document.createElement('div');
-                modal.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:420px;max-width:90vw;overflow:hidden;';
+                modal.style.cssText = 'background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow-modal);width:420px;max-width:90vw;overflow:hidden;';
 
                 // Header
                 modal.innerHTML =
-                    '<div style="padding:12px 16px;background:var(--accent-mid);color:var(--inverse);display:flex;justify-content:space-between;align-items:center;">' +
-                        '<div style="font-size:13px;font-weight:700;">Close-Out: ' + swapId + '</div>' +
-                        '<span id="td-closeout-close" style="cursor:pointer;font-size:18px;opacity:0.8;">&times;</span>' +
+                    '<div style="padding:var(--space-6) var(--space-8);background:var(--accent-mid);color:var(--inverse);display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div style="font-size:var(--size-md);font-weight:700;">Close-Out: ' + swapId + '</div>' +
+                        '<span id="td-closeout-close" style="cursor:pointer;font-size:var(--size-18);opacity:0.8;">&times;</span>' +
                     '</div>' +
 
                     // Trade details
-                    '<div style="padding:12px 16px;border-bottom:1px solid var(--line-soft);">' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                    '<div style="padding:var(--space-6) var(--space-8);border-bottom:1px solid var(--line-soft);">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Gauge</span><span style="font-weight:600;">' + gaugeName + '</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Counterparty</span><span style="font-weight:600;">' + (t.counterparty || '') + '</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Trigger</span><span style="font-weight:600;">' + (t.trigger || '') + '</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Close-Out Direction</span><span style="font-weight:700;color:' + closeDirColor + ';">' + closeDir + '</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Notional</span><span style="font-weight:600;">' + fmtGBP(notional) + '</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Tenor / Maturity</span><span style="font-weight:600;">' + (t.tenor || '') + 'Y / ' + fmtMaturity(t.maturity || '') + '</span></div>' +
                     '</div>' +
 
                     // Pricing — closeout spread is editable; starts blank (user must fill in)
-                    '<div style="padding:12px 16px;border-bottom:1px solid var(--line-soft);">' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                    '<div style="padding:var(--space-6) var(--space-8);border-bottom:1px solid var(--line-soft);">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Trade Spread</span>' +
                             '<span style="font-weight:600;">' + tradeSpd.toFixed(1) + ' bps</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Current Spread</span>' +
                             '<span style="font-weight:600;">' + fairSpd.toFixed(1) + ' bps</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);font-weight:700;">Closeout Spread</span>' +
-                            '<span style="display:flex;align-items:center;gap:4px;">' +
+                            '<span style="display:flex;align-items:center;gap:var(--space-2);">' +
                                 '<input id="td-closeout-spread-input" type="number" min="0" step="0.1" ' +
-                                    'style="width:72px;text-align:right;padding:3px 5px;border:2px solid var(--accent-mid);border-radius:3px;font-size:11px;font-weight:700;" ' +
+                                    'style="width:72px;text-align:right;padding:var(--space-2) var(--space-3);border:2px solid var(--accent-mid);border-radius:var(--radius-sm);font-size:var(--size-xs);font-weight:700;" ' +
                                     'placeholder="bps">' +
                                 '<span style="color:var(--muted);">bps</span>' +
                             '</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Spread Move</span>' +
                             '<span id="td-closeout-move" style="font-weight:700;color:' + moveColor + ';">' + moveSign + spreadMove.toFixed(1) + ' bps</span></div>' +
                     '</div>' +
 
                     // Settlement — dynamically updated as closeout spread changes (indicative; backend confirms)
-                    '<div id="td-settlement-section" style="padding:12px 16px;background:var(--warn-bg);border-bottom:1px solid var(--line-soft);">' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                    '<div id="td-settlement-section" style="padding:var(--space-6) var(--space-8);background:var(--warn-bg);border-bottom:1px solid var(--line-soft);">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Settlement Amount</span>' +
-                            '<span id="td-settle-amount" style="font-size:14px;font-weight:700;color:var(--disabled);">Enter spread above</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                            '<span id="td-settle-amount" style="font-size:var(--size-14);font-weight:700;color:var(--disabled);">Enter spread above</span></div>' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Direction</span>' +
                             '<span id="td-settle-dir" style="font-weight:700;color:var(--disabled);">—</span></div>' +
-                        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">' +
+                        '<div style="display:flex;justify-content:space-between;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                             '<span style="color:var(--muted);">Settlement Date</span><span style="font-weight:600;">T+2</span></div>' +
-                        '<div style="padding-top:4px;font-size:9px;color:var(--disabled);text-align:right;">Indicative — confirmed by full revaluation on submit</div>' +
+                        '<div style="padding-top:var(--space-2);font-size:var(--size-xxs);color:var(--disabled);text-align:right;">Indicative — confirmed by full revaluation on submit</div>' +
                     '</div>' +
 
                     // Confirm button — disabled until spread is entered
-                    '<div style="padding:12px 16px;text-align:center;">' +
+                    '<div style="padding:var(--space-6) var(--space-8);text-align:center;">' +
                         '<button id="td-closeout-confirm" disabled ' +
-                            'style="padding:8px 32px;font-size:12px;font-weight:700;background:var(--faint);color:var(--inverse);border:none;border-radius:4px;cursor:not-allowed;">Confirm Close-Out</button>' +
+                            'style="padding:8px 32px;font-size:var(--size-sm);font-weight:700;background:var(--faint);color:var(--inverse);border:none;border-radius:var(--radius-4);cursor:not-allowed;">Confirm Close-Out</button>' +
                     '</div>';
 
                 overlay.appendChild(modal);

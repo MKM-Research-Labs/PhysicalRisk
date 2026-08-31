@@ -48,17 +48,31 @@ TYPE = {
     "font": "Arial, Helvetica, sans-serif",
     "font-mono": "ui-monospace, Menlo, monospace",
     "line-height": "1.5",
+    # ModelRisk's six rungs, at ModelRisk's values.
     "size-xxs": "10px",
     "size-xs": "11px",
     "size-sm": "12px",
     "size-md": "13px",
     "size-lg": "16px",
     "size-xl": "20px",
+    # Rungs ModelRisk's ladder does not have, named by pixel value so their provenance
+    # is obvious at every call site: these are ours, and a shared name is never one of
+    # them. ModelRisk stops at 20px because it has no page headings; this console has
+    # them at 24, 28, 32 and 36, and snapping a 36px heading to 20px would not be
+    # discipline, it would be a redesign nobody asked for.
+    "size-8": "8px",
+    "size-14": "14px",
+    "size-18": "18px",
+    "size-24": "24px",
+    "size-28": "28px",
+    "size-32": "32px",
+    "size-36": "36px",
 }
 
 # A 2px step to 12px, then widening. Six rungs where PhysicalRisk's markup currently
 # uses fifteen; the missing ones are the point, not an oversight.
 SPACE = {
+    # ModelRisk's ten rungs, at ModelRisk's values: a 2px step to 18px, then 24.
     "space-1": "2px",
     "space-2": "4px",
     "space-3": "6px",
@@ -69,16 +83,31 @@ SPACE = {
     "space-8": "16px",
     "space-9": "18px",
     "space-10": "24px",
+    # Ours, named rather than numbered. A numeric suffix would be ambiguous on this
+    # scale in a way it is not on the others: ModelRisk's ``space-10`` is the tenth rung
+    # and measures 24px, so a ``space-20`` reads as either the twentieth rung or 20px,
+    # and it cannot be both. ``space-hair`` is the 1px rule used in 45 places — the one
+    # value here that is not really a space; doubling it to reach ModelRisk's smallest
+    # rung would thicken every hairline in the console.
+    "space-hair": "1px",
+    "space-wide": "20px",
+    "space-inset": "40px",
 }
 
 # No 4px rung, which is PhysicalRisk's most common radius at 172 sites. They snap to
 # 3px or 6px in step 7 — the single largest visible consequence of adopting this scale.
 RADIUS = {
+    # ModelRisk's five rungs, at ModelRisk's values.
     "radius-sm": "3px",
     "radius-md": "6px",
     "radius-lg": "8px",
     "radius-xl": "10px",
     "radius-pill": "12px",
+    # Ours. 4px is this console's most common radius by a wide margin — 172 sites
+    # against 3px's 84 — so it is a real rung of this product's scale, not a near-miss
+    # of ModelRisk's. Rounding the dominant value to a less common neighbour would be
+    # the tail wagging the dog.
+    "radius-4": "4px",
 }
 
 # Whole ``box-shadow`` values rather than the colours inside them, so an adopter with a

@@ -50,25 +50,25 @@ function _showLicenseGate(onAccept, onCancel) {
 
     var modal = document.createElement('div');
     modal.style.cssText =
-        'background:var(--panel);max-width:560px;width:90%;border-radius:10px;' +
+        'background:var(--panel);max-width:560px;width:90%;border-radius:var(--radius-xl);' +
         'box-shadow:var(--shadow-modal);padding:26px 30px;';
 
     var title = document.createElement('div');
     title.style.cssText =
-        'font-size:17px;font-weight:bold;color:var(--accent-mid);margin-bottom:6px;';
+        'font-size:var(--size-18);font-weight:bold;color:var(--accent-mid);margin-bottom:var(--space-3);';
     title.textContent = 'MKM Research Labs — Physical Risk Platform';
     modal.appendChild(title);
 
     var sub = document.createElement('div');
-    sub.style.cssText = 'font-size:12px;color:var(--muted);margin-bottom:14px;';
+    sub.style.cssText = 'font-size:var(--size-sm);color:var(--muted);margin-bottom:var(--space-7);';
     sub.textContent = 'Please review and accept the licence terms to continue.';
     modal.appendChild(sub);
 
     var box = document.createElement('div');
     box.style.cssText =
-        'font-size:12px;line-height:1.55;color:var(--rv-ink-2);max-height:280px;' +
-        'overflow:auto;border:1px solid var(--line-soft);border-radius:6px;' +
-        'padding:14px 16px;background:var(--raised);';
+        'font-size:var(--size-sm);line-height:1.55;color:var(--rv-ink-2);max-height:280px;' +
+        'overflow:auto;border:1px solid var(--line-soft);border-radius:var(--radius-md);' +
+        'padding:var(--space-7) var(--space-8);background:var(--raised);';
     _licenseText().forEach(function (p, idx) {
         var el = document.createElement('p');
         el.style.cssText = 'margin:' + (idx ? '10px 0 0' : '0') + ';';
@@ -78,7 +78,7 @@ function _showLicenseGate(onAccept, onCancel) {
     modal.appendChild(box);
 
     var note = document.createElement('div');
-    note.style.cssText = 'margin-top:16px;font-size:12px;color:var(--text-3);';
+    note.style.cssText = 'margin-top:var(--space-8);font-size:var(--size-sm);color:var(--text-3);';
     note.innerHTML =
         'Selecting <b>Accept</b> agrees to these terms and begins loading the ' +
         'platform data.';
@@ -86,19 +86,19 @@ function _showLicenseGate(onAccept, onCancel) {
 
     var actions = document.createElement('div');
     actions.style.cssText =
-        'margin-top:20px;display:flex;justify-content:flex-end;gap:10px;';
+        'margin-top:var(--space-wide);display:flex;justify-content:flex-end;gap:var(--space-5);';
 
     var cancel = document.createElement('button');
     cancel.textContent = 'Cancel';
     cancel.style.cssText =
-        'padding:8px 18px;border:1px solid var(--divider);background:var(--panel);color:var(--text-2);' +
-        'border-radius:6px;font-size:13px;cursor:pointer;';
+        'padding:var(--space-4) var(--space-9);border:1px solid var(--divider);background:var(--panel);color:var(--text-2);' +
+        'border-radius:var(--radius-md);font-size:var(--size-md);cursor:pointer;';
 
     var accept = document.createElement('button');
     accept.textContent = 'Accept';
     accept.style.cssText =
-        'padding:8px 20px;border:none;background:var(--accent);color:var(--panel);' +
-        'border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;';
+        'padding:var(--space-4) var(--space-wide);border:none;background:var(--accent);color:var(--panel);' +
+        'border-radius:var(--radius-md);font-size:var(--size-md);font-weight:bold;cursor:pointer;';
 
     actions.appendChild(cancel);
     actions.appendChild(accept);
@@ -123,12 +123,12 @@ function _onLicenseDeclined() {
     note.id = 'license-declined-note';
     note.style.cssText =
         'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-        'background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;' +
+        'background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--radius-xl);' +
         'padding:22px 28px;font-family:Arial,Helvetica,sans-serif;' +
-        'font-size:13px;color:var(--text-2);max-width:380px;text-align:center;' +
+        'font-size:var(--size-md);color:var(--text-2);max-width:380px;text-align:center;' +
         'box-shadow:var(--shadow-modal);z-index:9999;';
     note.innerHTML =
-        '<div style="font-weight:bold;color:var(--red-dark);margin-bottom:8px;">' +
+        '<div style="font-weight:bold;color:var(--red-dark);margin-bottom:var(--space-4);">' +
         'Licence not accepted</div>' +
         'Data loading was cancelled. Reload the page to review the licence ' +
         'again and start the platform.';

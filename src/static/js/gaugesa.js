@@ -42,7 +42,7 @@ __GSA_TIMELINE_JS__
                 stormPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:var(--radius-lg);' +
                     'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
@@ -50,18 +50,18 @@ __GSA_TIMELINE_JS__
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
-                    'border-radius:8px 8px 0 0;';
+                    'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--wash);' +
+                    'border-radius:var(--radius-lg) var(--radius-lg) 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'storm-panel-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
+                title.style.cssText = 'font-weight:bold;font-size:var(--size-14);color:var(--text);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
-                    'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:var(--text-3);padding:0 8px;line-height:1;';
+                    'border:none;background:none;font-size:var(--size-24);cursor:pointer;' +
+                    'color:var(--text-3);padding:0 var(--space-4);line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 header.appendChild(title);
@@ -71,7 +71,7 @@ __GSA_TIMELINE_JS__
                 var tabBar = document.createElement('div');
                 tabBar.id = 'storm-tab-bar';
                 tabBar.style.cssText =
-                    'display:flex;gap:0;border-bottom:2px solid var(--line-soft);padding:0 16px;background:var(--raised);';
+                    'display:flex;gap:0;border-bottom:2px solid var(--line-soft);padding:0 var(--space-8);background:var(--raised);';
 
                 var tabs = ['Distribution', 'Flood Timeline', 'Worst Storms'];
                 tabs.forEach(function(name, i) {
@@ -80,8 +80,8 @@ __GSA_TIMELINE_JS__
                     tab.dataset.tab = i;
                     tab.textContent = name;
                     tab.style.cssText =
-                        'padding:8px 16px;border:none;background:none;cursor:pointer;' +
-                        'font-size:12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;' +
+                        'padding:var(--space-4) var(--space-8);border:none;background:none;cursor:pointer;' +
+                        'font-size:var(--size-sm);font-weight:600;color:var(--muted);border-bottom:2px solid transparent;' +
                         'margin-bottom:-2px;transition:all 0.2s;';
                     tab.onclick = function() { switchTab(i); };
                     tabBar.appendChild(tab);
@@ -91,18 +91,18 @@ __GSA_TIMELINE_JS__
                 var distControls = document.createElement('div');
                 distControls.id = 'storm-dist-controls';
                 distControls.style.cssText =
-                    'padding:6px 16px;display:none;border-bottom:1px solid var(--line-soft);font-size:12px;';
+                    'padding:var(--space-3) var(--space-8);display:none;border-bottom:1px solid var(--line-soft);font-size:var(--size-sm);';
 
                 // Controls area (for storm selector dropdown on Tab 1)
                 var controls = document.createElement('div');
                 controls.id = 'storm-controls';
                 controls.style.cssText =
-                    'padding:6px 16px;display:none;border-bottom:1px solid var(--line-soft);font-size:12px;';
+                    'padding:var(--space-3) var(--space-8);display:none;border-bottom:1px solid var(--line-soft);font-size:var(--size-sm);';
 
                 // Chart container
                 var chartBox = document.createElement('div');
                 chartBox.id = 'storm-chart-container';
-                chartBox.style.cssText = 'flex:1;padding:12px 16px;position:relative;min-height:0;';
+                chartBox.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);position:relative;min-height:0;';
 
                 var canvas = document.createElement('canvas');
                 canvas.id = 'storm-chart';
@@ -112,16 +112,16 @@ __GSA_TIMELINE_JS__
                 var statsBar = document.createElement('div');
                 statsBar.id = 'storm-stats-bar';
                 statsBar.style.cssText =
-                    'padding:8px 16px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--text-2);' +
-                    'display:flex;gap:16px;flex-wrap:wrap;';
+                    'padding:var(--space-4) var(--space-8);border-top:1px solid var(--line-soft);font-size:var(--size-sm);color:var(--text-2);' +
+                    'display:flex;gap:var(--space-8);flex-wrap:wrap;';
 
                 // Footer
                 var footer = document.createElement('div');
                 footer.id = 'storm-footer';
                 footer.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:8px 16px;border-top:1px solid var(--line-soft);background:var(--wash);' +
-                    'border-radius:0 0 8px 8px;font-size:12px;';
+                    'padding:var(--space-4) var(--space-8);border-top:1px solid var(--line-soft);background:var(--wash);' +
+                    'border-radius:0 0 var(--radius-lg) var(--radius-lg);font-size:var(--size-sm);';
 
                 var statusSpan = document.createElement('span');
                 statusSpan.id = 'storm-status';

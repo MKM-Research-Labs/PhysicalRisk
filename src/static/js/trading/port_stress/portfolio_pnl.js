@@ -28,26 +28,26 @@
                 var mtmColor = totalMtm >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                 var headerHtml =
-                    '<div style="padding:12px 16px;border-bottom:1px solid var(--line-soft);background:var(--header-from);flex-shrink:0;">' +
-                    '<div style="display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;">' +
+                    '<div style="padding:var(--space-6) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--header-from);flex-shrink:0;">' +
+                    '<div style="display:flex;align-items:baseline;gap:var(--space-10);flex-wrap:wrap;">' +
                     '<div>' +
-                    '<span style="font-size:11px;color:var(--text-3);">Portfolio Stress P&amp;L</span><br>' +
+                    '<span style="font-size:var(--size-xs);color:var(--text-3);">Portfolio Stress P&amp;L</span><br>' +
                     '<span style="font-size:22px;font-weight:700;color:' + pnlColor + ';">' + fmtGBP(totalPnl) + '</span>' +
                     '</div>' +
                     '<div>' +
-                    '<span style="font-size:11px;color:var(--text-3);">vs MTM</span><br>' +
-                    '<span style="font-size:16px;font-weight:600;color:' + mtmColor + ';">' + fmtGBP(totalMtm) + '</span>' +
+                    '<span style="font-size:var(--size-xs);color:var(--text-3);">vs MTM</span><br>' +
+                    '<span style="font-size:var(--size-lg);font-weight:600;color:' + mtmColor + ';">' + fmtGBP(totalMtm) + '</span>' +
                     '</div>' +
                     '<div>' +
-                    '<span style="font-size:11px;color:var(--text-3);">Move vs MTM</span><br>' +
-                    '<span style="font-size:16px;font-weight:600;color:' + (totalPnl - totalMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' +
+                    '<span style="font-size:var(--size-xs);color:var(--text-3);">Move vs MTM</span><br>' +
+                    '<span style="font-size:var(--size-lg);font-weight:600;color:' + (totalPnl - totalMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' +
                     fmtGBP(totalPnl - totalMtm) + '</span>' +
                     '</div>' +
                     '</div>' +
                     '</div>';
 
                 var chartAreaHtml =
-                    '<div style="flex:1;padding:8px;overflow:hidden;display:flex;flex-direction:column;">' +
+                    '<div style="flex:1;padding:var(--space-4);overflow:hidden;display:flex;flex-direction:column;">' +
                     '<div style="flex:1;position:relative;min-height:0;">' +
                     '<canvas id="ps-portpnl-canvas" style="width:100%;height:100%;"></canvas>' +
                     '</div></div>';

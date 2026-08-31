@@ -52,17 +52,17 @@
 
                 var todayStr = new Date().toISOString().slice(0, 10);
 
-                var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
 
                 // Header
                 html += '<thead><tr style="background:var(--accent-mid);color:var(--inverse);position:sticky;top:0;z-index:1;">';
                 for (var c = 0; c < cols.length; c++) {
                     var sortIcon = '';
                     if (cols[c].key === 'swap_id') {
-                        sortIcon = ' <span onclick="event.stopPropagation();tdToggleSort()" style="cursor:pointer;font-size:9px;opacity:0.8;">' +
+                        sortIcon = ' <span onclick="event.stopPropagation();tdToggleSort()" style="cursor:pointer;font-size:var(--size-xxs);opacity:0.8;">' +
                             (sortOrder === 'newest' ? '\u25bc' : '\u25b2') + '</span>';
                     }
-                    html += '<th style="padding:6px 8px;text-align:' + (c > 3 ? 'right' : 'left') + ';font-weight:600;white-space:nowrap;">' + cols[c].label + sortIcon + '</th>';
+                    html += '<th style="padding:var(--space-3) var(--space-4);text-align:' + (c > 3 ? 'right' : 'left') + ';font-weight:600;white-space:nowrap;">' + cols[c].label + sortIcon + '</th>';
                 }
                 html += '</tr></thead><tbody>';
 
@@ -91,14 +91,14 @@
 
                         if (col.key === '_contract') {
                             display = '<button onclick="event.stopPropagation();tdViewContract(\'' + (t.swap_id || '') + '\')" ' +
-                                'style="padding:1px 5px;font-size:10px;background:none;border:1px solid var(--blue-grey-pale);border-radius:3px;cursor:pointer;color:var(--blue-grey-dark);" ' +
+                                'style="padding:var(--space-hair) var(--space-3);font-size:var(--size-xxs);background:none;border:1px solid var(--blue-grey-pale);border-radius:var(--radius-sm);cursor:pointer;color:var(--blue-grey-dark);" ' +
                                 'title="View trade contract PDF">\u2709</button>';
                         } else if (col.key === '_close') {
                             if (isClosed) {
                                 display = '';
                             } else {
                                 display = '<button onclick="event.stopPropagation();tdCloseOutTrade(' + origIdx + ')" ' +
-                                    'style="padding:2px 6px;font-size:9px;background:var(--accent-mid);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;font-weight:600;" ' +
+                                    'style="padding:var(--space-1) var(--space-3);font-size:var(--size-xxs);background:var(--accent-mid);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;" ' +
                                     'title="Close out this trade">Close</button>';
                             }
                         } else if (col.key === 'direction') {
@@ -118,9 +118,9 @@
                             var curFair = t.fair_spread_bps || 0;
                             var prevFair = t.prev_fair_spread_bps || 0;
                             if (curFair > prevFair + 0.1) {
-                                color = 'var(--panel)'; display = '<span style="background:var(--green-deep);color:var(--panel);padding:1px 4px;border-radius:2px;">' + display + ' \u25b2</span>';
+                                color = 'var(--panel)'; display = '<span style="background:var(--green-deep);color:var(--panel);padding:var(--space-hair) var(--space-2);border-radius:var(--radius-sm);">' + display + ' \u25b2</span>';
                             } else if (curFair < prevFair - 0.1) {
-                                color = 'var(--panel)'; display = '<span style="background:var(--red-deep);color:var(--panel);padding:1px 4px;border-radius:2px;">' + display + ' \u25bc</span>';
+                                color = 'var(--panel)'; display = '<span style="background:var(--red-deep);color:var(--panel);padding:var(--space-hair) var(--space-2);border-radius:var(--radius-sm);">' + display + ' \u25bc</span>';
                             }
                         } else if (col.fmt === 'bps') {
                             display = val != null ? val.toFixed(1) : '\u2014';
@@ -143,14 +143,14 @@
 
                         // Swap ID: add CLOSED badge for closed trades
                         if (col.key === 'swap_id' && isClosed) {
-                            display += ' <span style="font-size:8px;background:var(--amber-deep);color:var(--inverse);padding:1px 4px;border-radius:3px;font-weight:700;vertical-align:middle;">CLOSED</span>';
+                            display += ' <span style="font-size:var(--size-8);background:var(--amber-deep);color:var(--inverse);padding:var(--space-hair) var(--space-2);border-radius:var(--radius-sm);font-weight:700;vertical-align:middle;">CLOSED</span>';
                         }
 
                         // Notional: show original struck through + 0 for closed trades
                         if (col.key === 'notional' && isClosed) {
                             var origNot = t.original_notional || 0;
                             var signedOrig = t.is_payer ? -Math.abs(origNot) : Math.abs(origNot);
-                            display = '<span style="text-decoration:line-through;color:var(--muted-2);font-size:10px;">' + fmtGBP(signedOrig) + '</span> <span style="font-weight:700;">0</span>';
+                            display = '<span style="text-decoration:line-through;color:var(--muted-2);font-size:var(--size-xxs);">' + fmtGBP(signedOrig) + '</span> <span style="font-weight:700;">0</span>';
                         }
 
                         // MTM: show final P&L for closed trades
@@ -160,13 +160,13 @@
                             display = fmtGBP(finalPnl);
                         }
 
-                        html += '<td style="padding:5px 8px;text-align:' + align + ';color:' + color + ';white-space:nowrap;">' + display + '</td>';
+                        html += '<td style="padding:var(--space-3) var(--space-4);text-align:' + align + ';color:' + color + ';white-space:nowrap;">' + display + '</td>';
                     }
                     html += '</tr>';
                 }
 
                 if (filtered.length === 0) {
-                    html += '<tr><td colspan="' + cols.length + '" style="padding:20px;text-align:center;color:var(--muted-2);">No trades match current filters</td></tr>';
+                    html += '<tr><td colspan="' + cols.length + '" style="padding:var(--space-wide);text-align:center;color:var(--muted-2);">No trades match current filters</td></tr>';
                 }
 
                 // Summary / totals row
@@ -202,7 +202,7 @@
                         else if (fcol.key === 'new_trade_pnl') { fColor = totNwtPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totNwtPnl); }
                         else if (fcol.key === 'market_pnl') { fColor = totMktPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totMktPnl); }
                         else if (fcol.key === 'mtm') { fColor = totMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totMtm); }
-                        html += '<td style="padding:6px 8px;text-align:' + fAlign + ';color:' + fColor + ';white-space:nowrap;font-size:11px;">' + fVal + '</td>';
+                        html += '<td style="padding:var(--space-3) var(--space-4);text-align:' + fAlign + ';color:' + fColor + ';white-space:nowrap;font-size:var(--size-xs);">' + fVal + '</td>';
                     }
                     html += '</tr></tfoot>';
                 }

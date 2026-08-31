@@ -61,14 +61,14 @@
 
                 // Summary
                 var summaryHtml =
-                    '<div style="padding:8px 0 4px 0;font-size:12px;color:var(--text-2);">' +
+                    '<div style="padding:var(--space-4) 0 var(--space-2) 0;font-size:var(--size-sm);color:var(--text-2);">' +
                     '<b>Gauge:</b> ' + (primaryGauge.gauge_id || 'Unknown').substring(0, 20) +
                     ' &nbsp;|&nbsp; <b>' + severeCount + '</b> of <b>' + storms.length +
                     '</b> storms exceed severe (' + (severeLevel > 0 ? severeLevel.toFixed(2) + 'm' : 'n/a') + ')' +
                     '</div>';
 
                 container.innerHTML = summaryHtml +
-                    '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
+                    '<div style="display:flex;flex:1;gap:var(--space-4);min-height:0;">' +
                     '<canvas id="basis-gauge-canvas" style="flex:1;"></canvas>' +
                     '<canvas id="basis-gauge-waterfall" style="width:35%;min-width:220px;"></canvas>' +
                     '</div>';

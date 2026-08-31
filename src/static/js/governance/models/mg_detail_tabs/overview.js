@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 function renderOverviewTab(m) {
-    var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+    var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-8);">';
 
     // Left: key details
     html += '<div>';
@@ -27,7 +27,7 @@ function renderOverviewTab(m) {
     html += infoRow('Description', m.description);
     html += infoRow('Methodology', m.methodology);
     html += infoRow('Tier Rationale', m.tier_rationale);
-    html += infoRow('Source Module', '<code style="font-size:11px;background:var(--code);padding:2px 6px;border-radius:3px;">' + m.source_module + '</code>');
+    html += infoRow('Source Module', '<code style="font-size:var(--size-xs);background:var(--code);padding:var(--space-1) var(--space-3);border-radius:var(--radius-sm);">' + m.source_module + '</code>');
     html += infoRow('Materiality', m.materiality);
     html += infoRow('Complexity', m.complexity);
     html += '</div>';
@@ -51,15 +51,15 @@ function renderOverviewTab(m) {
     html += infoRow('Unit Tests', tc.unit_tests ? '\u2705 Yes' : '\u274c No');
     html += infoRow('Integration Tests', tc.integration_tests ? '\u2705 Yes' : '\u274c No');
     html += infoRow('Benchmark Tests', tc.benchmark_tests ? '\u2705 Yes (' + (tc.benchmark_reference || '') + ')' : '\u274c No');
-    html += infoRow('Test File', tc.test_file ? '<code style="font-size:10px;background:var(--code);padding:2px 4px;border-radius:2px;">' + tc.test_file + '</code>' : '\u2014');
+    html += infoRow('Test File', tc.test_file ? '<code style="font-size:var(--size-xxs);background:var(--code);padding:var(--space-1) var(--space-2);border-radius:var(--radius-sm);">' + tc.test_file + '</code>' : '\u2014');
 
     if (m.alternatives_considered && m.alternatives_considered.length > 0) {
         html += sectionHeader('Alternatives Considered');
-        html += '<div style="font-size:11px;color:var(--text-2);">';
+        html += '<div style="font-size:var(--size-xs);color:var(--text-2);">';
         m.alternatives_considered.forEach(function(a) {
-            html += '<div style="padding:2px 0;">\u2022 ' + a + '</div>';
+            html += '<div style="padding:var(--space-1) 0;">\u2022 ' + a + '</div>';
         });
-        html += '<div style="margin-top:6px;font-size:11px;color:var(--text);font-style:italic;">' + (m.methodology_rationale || '') + '</div>';
+        html += '<div style="margin-top:var(--space-3);font-size:var(--size-xs);color:var(--text);font-style:italic;">' + (m.methodology_rationale || '') + '</div>';
         html += '</div>';
     }
 
@@ -71,9 +71,9 @@ function renderOverviewTab(m) {
     // Known failure modes
     if (m.known_failure_modes && m.known_failure_modes.length > 0) {
         html += sectionHeader('Known Failure Modes');
-        html += '<div style="font-size:11px;color:var(--text-2);">';
+        html += '<div style="font-size:var(--size-xs);color:var(--text-2);">';
         m.known_failure_modes.forEach(function(f) {
-            html += '<div style="padding:2px 0;color:var(--red);">\u26a0 ' + f + '</div>';
+            html += '<div style="padding:var(--space-1) 0;color:var(--red);">\u26a0 ' + f + '</div>';
         });
         html += '</div>';
     }

@@ -30,14 +30,14 @@
 
                 if (!g.has_model) {
                     pane.innerHTML =
-                        '<div style="text-align:center;padding-top:40px;">' +
-                        '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">' +
+                        '<div style="text-align:center;padding-top:var(--space-inset);">' +
+                        '<div style="font-size:var(--size-md);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">' +
                         g.gauge_name + '</div>' +
-                        '<div style="font-size:11px;color:var(--muted-2);margin-bottom:16px;">' + g.gauge_id + '</div>' +
-                        '<div style="color:var(--muted-2);font-size:12px;margin-bottom:20px;">No classifier trained</div>' +
+                        '<div style="font-size:var(--size-xs);color:var(--muted-2);margin-bottom:var(--space-8);">' + g.gauge_id + '</div>' +
+                        '<div style="color:var(--muted-2);font-size:var(--size-sm);margin-bottom:var(--space-wide);">No classifier trained</div>' +
                         '<button id="cl-detail-train-btn" data-train-gauge="' + g.gauge_id + '" ' +
-                        'style="padding:8px 24px;font-size:12px;font-weight:600;background:var(--accent);' +
-                        'color:var(--inverse);border:none;border-radius:4px;cursor:pointer;">Train Now</button>' +
+                        'style="padding:var(--space-4) var(--space-10);font-size:var(--size-sm);font-weight:600;background:var(--accent);' +
+                        'color:var(--inverse);border:none;border-radius:var(--radius-4);cursor:pointer;">Train Now</button>' +
                         '</div>';
                     var btn = document.getElementById('cl-detail-train-btn');
                     if (btn) {
@@ -51,13 +51,13 @@
                 var html = '';
 
                 // Header
-                html += '<div style="margin-bottom:12px;">';
-                html += '<div style="font-size:13px;font-weight:600;color:var(--text);">' + g.gauge_name + '</div>';
-                html += '<div style="font-size:10px;color:var(--muted-2);">' + g.gauge_id + '</div>';
+                html += '<div style="margin-bottom:var(--space-6);">';
+                html += '<div style="font-size:var(--size-md);font-weight:600;color:var(--text);">' + g.gauge_name + '</div>';
+                html += '<div style="font-size:var(--size-xxs);color:var(--muted-2);">' + g.gauge_id + '</div>';
                 html += '</div>';
 
                 // Metrics grid (2x2)
-                html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-8);">';
 
                 // AUC-ROC
                 var auc = g.auc_roc;
@@ -79,14 +79,14 @@
                 html += '</div>';
 
                 // Info line
-                html += '<div style="font-size:10px;color:var(--muted);margin-bottom:12px;">';
+                html += '<div style="font-size:var(--size-xxs);color:var(--muted);margin-bottom:var(--space-6);">';
                 if (g.n_samples) html += g.n_samples.toLocaleString() + ' samples';
                 if (g.label_threshold) html += '  \u00b7  label: ' + g.label_threshold;
                 if (g.severe_level) html += '  \u00b7  severe: ' + g.severe_level.toFixed(2) + 'm';
                 html += '</div>';
 
                 // Chart canvas
-                html += '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">Feature Importance</div>';
+                html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">Feature Importance</div>';
                 html += '<div style="height:180px;"><canvas id="cl-feature-chart"></canvas></div>';
 
                 pane.innerHTML = html;
@@ -96,10 +96,10 @@
             }
 
             function _clMetricCard(label, value, color) {
-                return '<div style="background:var(--wash);border-radius:6px;padding:10px;text-align:center;">' +
-                    '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">' +
+                return '<div style="background:var(--wash);border-radius:var(--radius-md);padding:var(--space-5);text-align:center;">' +
+                    '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:var(--space-2);">' +
                     label + '</div>' +
-                    '<div style="font-size:18px;font-weight:700;color:' + color + ';">' + value + '</div>' +
+                    '<div style="font-size:var(--size-18);font-weight:700;color:' + color + ';">' + value + '</div>' +
                     '</div>';
             }
 

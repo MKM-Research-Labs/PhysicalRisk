@@ -26,14 +26,14 @@
                 var latest = tdEodHistory && tdEodHistory.length > 0 ? tdEodHistory[0] : null;
 
                 if (!latest) {
-                    cards.innerHTML = '<span style="font-size:12px;color:var(--disabled);">No EOD snapshots yet. Click EOD Submit to generate.</span>';
+                    cards.innerHTML = '<span style="font-size:var(--size-sm);color:var(--disabled);">No EOD snapshots yet. Click EOD Submit to generate.</span>';
                     return;
                 }
 
                 function card(label, value, color) {
-                    return '<div style="background:var(--sunken);border-radius:6px;padding:8px 16px;min-width:120px;text-align:center;">' +
-                        '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;">' + label + '</div>' +
-                        '<div style="font-size:16px;font-weight:700;color:' + (color || 'var(--text)') + ';">' + value + '</div>' +
+                    return '<div style="background:var(--sunken);border-radius:var(--radius-md);padding:var(--space-4) var(--space-8);min-width:120px;text-align:center;">' +
+                        '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;">' + label + '</div>' +
+                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + (color || 'var(--text)') + ';">' + value + '</div>' +
                     '</div>';
                 }
 
@@ -56,21 +56,21 @@
                 var wrap = document.getElementById('td-eod-history-wrap');
                 if (!wrap) return;
 
-                var html = '<div style="font-size:11px;font-weight:600;color:var(--text-2);padding:4px 8px;margin-bottom:4px;">EOD History (' + (tdEodHistory ? tdEodHistory.length : 0) + ' days)</div>';
+                var html = '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);padding:var(--space-2) var(--space-4);margin-bottom:var(--space-2);">EOD History (' + (tdEodHistory ? tdEodHistory.length : 0) + ' days)</div>';
 
                 if (!tdEodHistory || tdEodHistory.length === 0) {
-                    html += '<div style="color:var(--disabled);font-size:11px;padding:8px;">No snapshots yet.</div>';
+                    html += '<div style="color:var(--disabled);font-size:var(--size-xs);padding:var(--space-4);">No snapshots yet.</div>';
                     wrap.innerHTML = html;
                     return;
                 }
 
-                html += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
+                html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xxs);">';
                 html += '<tr style="background:var(--blue-grey-bg);">' +
-                    '<th style="padding:4px 6px;text-align:left;">Date</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">Trades</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">Daily P&L</th>' +
-                    '<th style="padding:4px 6px;text-align:right;">Running</th>' +
-                    '<th style="padding:4px 4px;text-align:center;">PDF</th></tr>';
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:left;">Date</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">Trades</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">Daily P&L</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:right;">Running</th>' +
+                    '<th style="padding:var(--space-2) var(--space-2);text-align:center;">PDF</th></tr>';
 
                 for (var i = 0; i < tdEodHistory.length; i++) {
                     var e = tdEodHistory[i];
@@ -81,16 +81,16 @@
                     var pdfBtn = '';
                     if (e.has_pdf) {
                         pdfBtn = '<button onclick="event.stopPropagation();tdDownloadEodPdf(\'' + e.date + '\')" ' +
-                            'style="padding:1px 4px;font-size:9px;background:none;border:1px solid var(--blue-grey-pale);border-radius:3px;cursor:pointer;color:var(--blue-grey-dark);" ' +
+                            'style="padding:var(--space-hair) var(--space-2);font-size:var(--size-xxs);background:none;border:1px solid var(--blue-grey-pale);border-radius:var(--radius-sm);cursor:pointer;color:var(--blue-grey-dark);" ' +
                             'title="Download EOD PDF">\u2193</button>';
                     }
 
                     html += '<tr style="background:' + bg + ';border-bottom:1px solid var(--line-soft);">' +
-                        '<td style="padding:4px 6px;">' + e.date + '</td>' +
-                        '<td style="padding:4px 6px;text-align:right;">' + e.num_open_trades + '</td>' +
-                        '<td style="padding:4px 6px;text-align:right;color:' + dColor + ';">' + fmtGBP(e.total_daily_pnl) + '</td>' +
-                        '<td style="padding:4px 6px;text-align:right;color:' + rColor + ';">' + fmtGBP(e.total_running_pnl) + '</td>' +
-                        '<td style="padding:4px 4px;text-align:center;">' + pdfBtn + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);">' + e.date + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;">' + e.num_open_trades + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + dColor + ';">' + fmtGBP(e.total_daily_pnl) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + rColor + ';">' + fmtGBP(e.total_running_pnl) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-2);text-align:center;">' + pdfBtn + '</td>' +
                     '</tr>';
                 }
 
@@ -103,7 +103,7 @@
                 if (!wrap) return;
 
                 if (!tdEodPnlSeries || tdEodPnlSeries.length === 0) {
-                    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--disabled);font-size:12px;">P&L chart will appear after EOD submissions.</div>';
+                    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--disabled);font-size:var(--size-sm);">P&L chart will appear after EOD submissions.</div>';
                     return;
                 }
 
@@ -177,11 +177,11 @@
                 // If we have the blotter data from the parallel fetch, use it for top trades
                 // The blotter data is loaded into tdBlotterData by the blotter tab; in EOD we use
                 // the separate fetch result stored in tdLiveSummary
-                var html = '<div style="display:flex;gap:16px;font-size:10px;">';
+                var html = '<div style="display:flex;gap:var(--space-8);font-size:var(--size-xxs);">';
 
                 // P&L Attribution breakdown
                 html += '<div style="flex:1;">';
-                html += '<div style="font-weight:700;color:var(--text-2);margin-bottom:6px;font-size:11px;">P&L Attribution</div>';
+                html += '<div style="font-weight:700;color:var(--text-2);margin-bottom:var(--space-3);font-size:var(--size-xs);">P&L Attribution</div>';
                 html += '<table style="width:100%;border-collapse:collapse;">';
 
                 var fromTrades = live.daily_pnl_from_trades || 0;
@@ -191,20 +191,20 @@
                 function attrRow(label, val) {
                     var c = val >= 0 ? Theme.value('gain') : Theme.value('loss');
                     return '<tr style="border-bottom:1px solid var(--code);">' +
-                        '<td style="padding:3px 6px;color:var(--text-3);">' + label + '</td>' +
-                        '<td style="padding:3px 6px;text-align:right;font-weight:600;color:' + c + ';">' + fmtGBP(val) + '</td></tr>';
+                        '<td style="padding:var(--space-2) var(--space-3);color:var(--text-3);">' + label + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);text-align:right;font-weight:600;color:' + c + ';">' + fmtGBP(val) + '</td></tr>';
                 }
 
                 html += attrRow('New Trades', fromTrades);
                 html += attrRow('Market Moves', fromMarket);
                 html += '<tr style="border-top:2px solid var(--accent-mid);font-weight:700;">' +
-                    '<td style="padding:3px 6px;">Total Daily</td>' +
-                    '<td style="padding:3px 6px;text-align:right;color:' + (totalDaily >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalDaily) + '</td></tr>';
+                    '<td style="padding:var(--space-2) var(--space-3);">Total Daily</td>' +
+                    '<td style="padding:var(--space-2) var(--space-3);text-align:right;color:' + (totalDaily >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalDaily) + '</td></tr>';
                 html += '</table></div>';
 
                 // Top trades by running P&L (use blotter-loaded data if available)
                 html += '<div style="flex:1;">';
-                html += '<div style="font-weight:700;color:var(--text-2);margin-bottom:6px;font-size:11px;">Top Trades (Running P&L)</div>';
+                html += '<div style="font-weight:700;color:var(--text-2);margin-bottom:var(--space-3);font-size:var(--size-xs);">Top Trades (Running P&L)</div>';
 
                 if (tdBlotterData && tdBlotterData.length > 0) {
                     var sorted = tdBlotterData.slice().sort(function(a, b) {
@@ -212,7 +212,7 @@
                     });
                     var top5 = sorted.slice(0, 5);
                     html += '<table style="width:100%;border-collapse:collapse;">';
-                    html += '<tr style="color:var(--muted-2);"><td style="padding:2px 4px;">Trade</td><td style="padding:2px 4px;">Gauge</td><td style="padding:2px 4px;text-align:right;">P&L</td></tr>';
+                    html += '<tr style="color:var(--muted-2);"><td style="padding:var(--space-1) var(--space-2);">Trade</td><td style="padding:var(--space-1) var(--space-2);">Gauge</td><td style="padding:var(--space-1) var(--space-2);text-align:right;">P&L</td></tr>';
                     for (var ti = 0; ti < top5.length; ti++) {
                         var tt = top5[ti];
                         var pnl = tt.running_pnl || tt.mtm || 0;
@@ -220,9 +220,9 @@
                         var shortId = (tt.swap_id || '').slice(-8);
                         var gName = tt.gauge_name || tt.gauge_id || '';
                         html += '<tr style="border-bottom:1px solid var(--code);">' +
-                            '<td style="padding:2px 4px;color:var(--accent-mid);font-family:monospace;">' + shortId + '</td>' +
-                            '<td style="padding:2px 4px;color:var(--text-3);">' + gName + '</td>' +
-                            '<td style="padding:2px 4px;text-align:right;font-weight:600;color:' + tc + ';">' + fmtGBP(pnl) + '</td></tr>';
+                            '<td style="padding:var(--space-1) var(--space-2);color:var(--accent-mid);font-family:monospace;">' + shortId + '</td>' +
+                            '<td style="padding:var(--space-1) var(--space-2);color:var(--text-3);">' + gName + '</td>' +
+                            '<td style="padding:var(--space-1) var(--space-2);text-align:right;font-weight:600;color:' + tc + ';">' + fmtGBP(pnl) + '</td></tr>';
                     }
                     html += '</table>';
                 } else {

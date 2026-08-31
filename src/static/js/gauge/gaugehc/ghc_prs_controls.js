@@ -20,9 +20,9 @@
 
             function buildPRSControls() {
                 var controls = document.getElementById('hazard-controls');
-                var inputStyle = 'padding:3px 6px;border:1px solid var(--divider);border-radius:3px;width:90px;font-size:11px;';
-                var labelStyle = 'font-weight:600;font-size:11px;color:var(--text-2);margin-right:3px;';
-                var selectStyle = 'padding:3px 6px;border:1px solid var(--divider);border-radius:3px;font-size:11px;';
+                var inputStyle = 'padding:var(--space-2) var(--space-3);border:1px solid var(--divider);border-radius:var(--radius-sm);width:90px;font-size:var(--size-xs);';
+                var labelStyle = 'font-weight:600;font-size:var(--size-xs);color:var(--text-2);margin-right:var(--space-2);';
+                var selectStyle = 'padding:var(--space-2) var(--space-3);border:1px solid var(--divider);border-radius:var(--radius-sm);font-size:var(--size-xs);';
 
                 // Build counterparty options from loaded data
                 var ctpyOptions = '<option value="">-- Select --</option>';
@@ -42,7 +42,7 @@
                 }
 
                 controls.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-4) var(--space-8);">' +
                     '<span style="' + labelStyle + '">Direction:</span>' +
                     '<select id="prs-direction" style="' + selectStyle + '">' +
                     '<option value="payer">Payer (buy protection)</option>' +
@@ -60,11 +60,11 @@
                     maturityOptions +
                     '</select>' +
                     '<button id="prs-maturity-info" onclick="showMaturityPopup()" ' +
-                    'style="padding:2px 7px;font-size:10px;border:1px solid var(--divider);border-radius:3px;background:var(--bg);cursor:pointer;color:var(--accent-mid);font-weight:bold;" ' +
+                    'style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--divider);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;color:var(--accent-mid);font-weight:bold;" ' +
                     'title="Show maturity schedule">i</button>' +
                     '<span style="' + labelStyle + '">Spread (bps):</span>' +
                     '<input id="prs-spread" type="number" value="0" min="0" max="1000" style="' + inputStyle + 'width:60px;">' +
-                    '<span id="prs-hazard-display" style="font-size:10px;color:var(--muted);"></span>' +
+                    '<span id="prs-hazard-display" style="font-size:var(--size-xxs);color:var(--muted);"></span>' +
                     '</div>';
 
                 // Auto-recompute on any input change
@@ -84,30 +84,30 @@
                 var popup = document.createElement('div');
                 popup.id = 'maturity-popup';
                 popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-                    'background:var(--panel);border:1px solid var(--divider);border-radius:6px;box-shadow:var(--shadow-toast);' +
-                    'z-index:3000;padding:16px;font-family:monospace;font-size:12px;min-width:320px;';
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:var(--radius-md);box-shadow:var(--shadow-toast);' +
+                    'z-index:3000;padding:var(--space-8);font-family:monospace;font-size:var(--size-sm);min-width:320px;';
 
                 var today = new Date();
                 var roll = currentRollDate(today);
                 var rollLabel = formatMaturityDate(roll);
 
-                var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-                    '<span style="font-weight:bold;font-size:13px;font-family:Arial;">PRS Maturity Schedule</span>' +
+                var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-5);">' +
+                    '<span style="font-weight:bold;font-size:var(--size-md);font-family:Arial;">PRS Maturity Schedule</span>' +
                     '<button onclick="document.getElementById(\'maturity-popup\').remove()" ' +
-                    'style="border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-3);">&times;</button></div>' +
-                    '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Roll: ' + rollLabel + '</div>' +
+                    'style="border:none;background:none;font-size:var(--size-18);cursor:pointer;color:var(--text-3);">&times;</button></div>' +
+                    '<div style="font-size:var(--size-xxs);color:var(--muted);margin-bottom:var(--space-4);">Roll: ' + rollLabel + '</div>' +
                     '<table style="width:100%;border-collapse:collapse;">' +
-                    '<tr style="border-bottom:2px solid var(--line-strong);"><th style="text-align:left;padding:4px 8px;">Tenor</th>' +
-                    '<th style="text-align:left;padding:4px 8px;">Maturity</th>' +
-                    '<th style="text-align:right;padding:4px 8px;">Actual</th></tr>';
+                    '<tr style="border-bottom:2px solid var(--line-strong);"><th style="text-align:left;padding:var(--space-2) var(--space-4);">Tenor</th>' +
+                    '<th style="text-align:left;padding:var(--space-2) var(--space-4);">Maturity</th>' +
+                    '<th style="text-align:right;padding:var(--space-2) var(--space-4);">Actual</th></tr>';
 
                 for (var t = 1; t <= 5; t++) {
                     var matDate = computeMaturityDate(t, today);
                     var actualYears = ((matDate - today) / (365.25 * 86400000)).toFixed(2);
                     html += '<tr style="border-bottom:1px solid var(--line-soft);">' +
-                        '<td style="padding:4px 8px;font-weight:600;">' + t + 'Y</td>' +
-                        '<td style="padding:4px 8px;">' + formatMaturityDate(matDate) + '</td>' +
-                        '<td style="padding:4px 8px;text-align:right;">' + actualYears + 'y</td></tr>';
+                        '<td style="padding:var(--space-2) var(--space-4);font-weight:600;">' + t + 'Y</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);">' + formatMaturityDate(matDate) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + actualYears + 'y</td></tr>';
                 }
                 html += '</table>';
                 popup.innerHTML = html;

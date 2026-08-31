@@ -35,17 +35,17 @@
 
                 // Editable tenor inputs
                 if (inputRow) {
-                    var html = '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">';
-                    html += '<span style="font-size:10px;font-weight:600;color:var(--text-2);">Rates:</span>';
+                    var html = '<div style="display:flex;gap:var(--space-6);align-items:center;flex-wrap:wrap;">';
+                    html += '<span style="font-size:var(--size-xxs);font-weight:600;color:var(--text-2);">Rates:</span>';
                     for (var i = 0; i < tenors.length; i++) {
                         var rate = (tdYieldCurve[tenors[i]] || 0) * 100;
-                        html += '<div style="display:flex;align-items:center;gap:2px;">' +
-                            '<span style="font-size:10px;color:var(--muted);">' + tenors[i] + 'Y</span>' +
+                        html += '<div style="display:flex;align-items:center;gap:var(--space-1);">' +
+                            '<span style="font-size:var(--size-xxs);color:var(--muted);">' + tenors[i] + 'Y</span>' +
                             '<input type="number" value="' + rate.toFixed(2) + '" step="0.05" min="0" max="20" ' +
                                 'data-tenor="' + tenors[i] + '" data-mode="yield" ' +
                                 'onchange="tdCurveInputChanged(this)" oninput="tdCurveInputChanged(this)" ' +
-                                'style="width:52px;font-size:10px;padding:2px 4px;border:1px solid var(--line-strong);border-radius:3px;text-align:right;">' +
-                            '<span style="font-size:9px;color:var(--muted-2);">%</span>' +
+                                'style="width:52px;font-size:var(--size-xxs);padding:var(--space-1) var(--space-2);border:1px solid var(--line-strong);border-radius:var(--radius-sm);text-align:right;">' +
+                            '<span style="font-size:var(--size-xxs);color:var(--muted-2);">%</span>' +
                         '</div>';
                     }
                     html += '</div>';
@@ -104,17 +104,17 @@
 
                 // Editable tenor inputs
                 if (inputRow) {
-                    var html = '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">';
-                    html += '<span style="font-size:10px;font-weight:600;color:' + color + ';">' + trigger.charAt(0).toUpperCase() + trigger.slice(1) + ':</span>';
+                    var html = '<div style="display:flex;gap:var(--space-6);align-items:center;flex-wrap:wrap;">';
+                    html += '<span style="font-size:var(--size-xxs);font-weight:600;color:' + color + ';">' + trigger.charAt(0).toUpperCase() + trigger.slice(1) + ':</span>';
                     for (var i = 0; i < tenors.length; i++) {
                         var rate = (triggerTS[tenors[i]] || 0) * 10000;
-                        html += '<div style="display:flex;align-items:center;gap:2px;">' +
-                            '<span style="font-size:10px;color:var(--muted);">' + tenors[i] + 'Y</span>' +
+                        html += '<div style="display:flex;align-items:center;gap:var(--space-1);">' +
+                            '<span style="font-size:var(--size-xxs);color:var(--muted);">' + tenors[i] + 'Y</span>' +
                             '<input type="number" value="' + rate.toFixed(1) + '" step="1" min="0" max="5000" ' +
                                 'data-tenor="' + tenors[i] + '" data-mode="hazard" data-trigger="' + trigger + '" data-gauge="' + tdSelectedGauge + '" ' +
                                 'onchange="tdCurveInputChanged(this)" oninput="tdCurveInputChanged(this)" ' +
-                                'style="width:55px;font-size:10px;padding:2px 4px;border:1px solid var(--line-strong);border-radius:3px;text-align:right;">' +
-                            '<span style="font-size:9px;color:var(--muted-2);">bps</span>' +
+                                'style="width:55px;font-size:var(--size-xxs);padding:var(--space-1) var(--space-2);border:1px solid var(--line-strong);border-radius:var(--radius-sm);text-align:right;">' +
+                            '<span style="font-size:var(--size-xxs);color:var(--muted-2);">bps</span>' +
                         '</div>';
                     }
                     html += '</div>';
@@ -148,7 +148,7 @@
                 // Guard: Chart.js must be loaded
                 if (typeof Chart === 'undefined') {
                     console.error('[Market] Chart.js not loaded');
-                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--red-dark);font-size:12px;">Chart.js not loaded — refresh the page</div>';
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--red-dark);font-size:var(--size-sm);">Chart.js not loaded — refresh the page</div>';
                     return;
                 }
 

@@ -112,17 +112,38 @@ class TestTokenValues:
             if name.startswith("size-"):
                 assert value.endswith("px"), f"--{name} = {value!r} is not a length"
 
-    def test_scales_are_deliberately_sparse(self):
-        """The rungs the ladders omit are the point, not an oversight.
+    #: ModelRisk's ladders, which every shared name must still carry exactly.
+    MODELRISK_SCALE = {
+        "size-xxs": "10px", "size-xs": "11px", "size-sm": "12px", "size-md": "13px",
+        "size-lg": "16px", "size-xl": "20px",
+        "space-1": "2px", "space-2": "4px", "space-3": "6px", "space-4": "8px",
+        "space-5": "10px", "space-6": "12px", "space-7": "14px", "space-8": "16px",
+        "space-9": "18px", "space-10": "24px",
+        "radius-sm": "3px", "radius-md": "6px", "radius-lg": "8px",
+        "radius-xl": "10px", "radius-pill": "12px",
+    }
 
-        An earlier pass measured these from PhysicalRisk's own histogram and produced a
-        1px step, which fitted every existing site — but fitting every existing site is
-        what a catalogue does, not a design system. These are ModelRisk's ladders, so a
-        shared token name carries a shared value across the two products.
+    def test_shared_rungs_carry_modelrisk_values(self):
+        """A shared name means a shared value, on the scales as on the colours."""
+        wrong = {name: (want, THEME[name])
+                 for name, want in self.MODELRISK_SCALE.items()
+                 if THEME[name] != want}
+        assert wrong == {}, f"diverged from ModelRisk: {wrong}"
+
+    def test_our_extra_rungs_are_named_by_pixel_value(self):
+        """The rungs ModelRisk's ladders lack, so their provenance is legible.
+
+        ModelRisk stops at 20px type, has no 4px radius and no 1px hairline, because it
+        does not need them. Adding those is extending the vocabulary for a need it does
+        not have — the same thing the colour groups do — not diverging from it. Naming
+        them by pixel value keeps a shared name from ever being one of ours.
         """
-        assert len(SPACE) == 10
-        assert len(RADIUS) == 5
-        assert len([k for k in TYPE if k.startswith("size-")]) == 6
+        extras = ({k for k in TYPE if k.startswith("size-")} | set(SPACE) | set(RADIUS)
+                  ) - set(self.MODELRISK_SCALE)
+        assert extras == {
+            "size-8", "size-14", "size-18", "size-24", "size-28", "size-32", "size-36",
+            "space-hair", "space-wide", "space-inset", "radius-4",
+        }
 
     def test_shadows_are_whole_box_shadow_values(self):
         """Whole values, not the colours inside them.
@@ -147,27 +168,34 @@ class TestScales:
         return int(value.removesuffix("px"))
 
     def test_space_ladder_ascends(self):
-        rungs = [self._px(SPACE[f"space-{i}"]) for i in range(1, len(SPACE) + 1)]
+        """ModelRisk's ten numbered rungs ascend; ours are named, not numbered."""
+        rungs = [self._px(SPACE[f"space-{i}"]) for i in range(1, 11)]
         assert rungs == sorted(rungs)
-        assert len(set(rungs)) == len(rungs), "two space rungs share a value"
+        values = [self._px(v) for v in SPACE.values()]
+        assert len(set(values)) == len(values), "two space rungs share a value"
 
     def test_radius_ladder_ascends(self):
-        order = ["radius-sm", "radius-md", "radius-lg", "radius-xl", "radius-pill"]
+        order = ["radius-sm", "radius-4", "radius-md", "radius-lg", "radius-xl",
+                 "radius-pill"]
         rungs = [self._px(RADIUS[name]) for name in order]
         assert rungs == sorted(rungs)
-        assert set(RADIUS) == set(order), "the radius ladder is ModelRisk's five rungs"
+        assert set(RADIUS) == set(order)
 
     def test_type_ladder_ascends(self):
-        order = ["size-xxs", "size-xs", "size-sm", "size-md", "size-lg", "size-xl"]
-        rungs = [self._px(TYPE[name]) for name in order]
-        assert rungs == sorted(rungs)
-        assert len(set(rungs)) == len(rungs), "two type rungs share a value"
-        sizes = {k for k in TYPE if k.startswith("size-")}
-        assert sizes == set(order), "the type ladder is ModelRisk's six rungs"
+        sizes = sorted((self._px(v) for k, v in TYPE.items() if k.startswith("size-")))
+        assert sizes == sorted(set(sizes)), "two type rungs share a value"
+        assert sizes[0] == 8 and sizes[-1] == 36
 
-    def test_space_ladder_is_contiguous(self):
-        """No gap in the numbering — ``space-7`` missing would be a silent hole."""
-        assert set(SPACE) == {f"space-{i}" for i in range(1, len(SPACE) + 1)}
+    def test_space_numbering_is_contiguous(self):
+        """No gap in ModelRisk's numbering — ``space-7`` missing would be a silent hole.
+
+        Our own rungs are named rather than numbered (``space-px``, ``space-20``,
+        ``space-40``) precisely so they cannot open one.
+        """
+        numbered = {k for k in SPACE if k.removeprefix("space-").isdigit()}
+        assert numbered == {f"space-{i}" for i in range(1, 11)}, (
+            "a numeric suffix on this scale means a rung index, never a pixel value"
+        )
 
 
 class TestSanctionedPackage:

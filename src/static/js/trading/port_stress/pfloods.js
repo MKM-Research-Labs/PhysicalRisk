@@ -28,7 +28,7 @@
                 });
 
                 if (gauges.length === 0) {
-                    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted-2);">No gauges with open positions and hydrograph data.</div>';
+                    content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted-2);">No gauges with open positions and hydrograph data.</div>';
                     return;
                 }
 
@@ -36,15 +36,15 @@
                 gauges.sort(function(a, b) { return a.stress_pnl - b.stress_pnl; });
 
                 content.innerHTML =
-                    '<div style="padding:4px 16px 0;font-size:10px;color:var(--text-3);flex-shrink:0;display:flex;align-items:center;gap:16px;">' +
+                    '<div style="padding:var(--space-2) var(--space-8) 0;font-size:var(--size-xxs);color:var(--text-3);flex-shrink:0;display:flex;align-items:center;gap:var(--space-8);">' +
                     '<span style="font-weight:600;">Storm P&amp;L Heatmap</span>' +
                     '<span>Gauges with positions, sorted by peak stress P&amp;L</span>' +
-                    '<span style="margin-left:auto;display:flex;align-items:center;gap:4px;">' +
-                    '<span style="display:inline-block;width:60px;height:10px;background:linear-gradient(to right,var(--red-deep),var(--red-alt),var(--red-pale),var(--sunken),var(--green-pale),var(--green-dark));border-radius:2px;"></span>' +
-                    '<span style="font-size:9px;">Loss → Gain</span>' +
+                    '<span style="margin-left:auto;display:flex;align-items:center;gap:var(--space-2);">' +
+                    '<span style="display:inline-block;width:60px;height:10px;background:linear-gradient(to right,var(--red-deep),var(--red-alt),var(--red-pale),var(--sunken),var(--green-pale),var(--green-dark));border-radius:var(--radius-sm);"></span>' +
+                    '<span style="font-size:var(--size-xxs);">Loss → Gain</span>' +
                     '</span>' +
                     '</div>' +
-                    '<div id="ps-pflood-chart-area" style="flex:1;overflow:hidden;padding:4px 0;position:relative;">' +
+                    '<div id="ps-pflood-chart-area" style="flex:1;overflow:hidden;padding:var(--space-2) 0;position:relative;">' +
                     '<canvas id="ps-heatmap-canvas" style="display:block;"></canvas>' +
                     '</div>';
 

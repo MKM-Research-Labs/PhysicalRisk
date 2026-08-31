@@ -26,7 +26,7 @@
             var ragColors = Theme.ramp('rag');
 
             function badge(text, bg, fg) {
-                return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:' + bg + ';color:' + (fg || 'white') + ';">' + text + '</span>';
+                return '<span style="display:inline-block;padding:var(--space-1) var(--space-4);border-radius:var(--radius-xl);font-size:var(--size-xxs);font-weight:700;background:' + bg + ';color:' + (fg || 'white') + ';">' + text + '</span>';
             }
 
             function tierBadge(tier) {
@@ -38,12 +38,12 @@
             }
 
             function statusDot(color) {
-                return '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>';
+                return '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:var(--space-2);"></span>';
             }
 
             function ragBadge(rating) {
                 var color = ragColors[rating] || 'var(--grey)';
-                return '<span style="display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + color + ';border:1px solid ' + color + '88;"></span><span style="font-size:10px;font-weight:600;color:' + color + ';">' + (rating || 'Not Rated') + '</span></span>';
+                return '<span style="display:inline-flex;align-items:center;gap:var(--space-2);"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + color + ';border:1px solid ' + color + '88;"></span><span style="font-size:var(--size-xxs);font-weight:600;color:' + color + ';">' + (rating || 'Not Rated') + '</span></span>';
             }
 
             // ================================================================
@@ -64,18 +64,18 @@
             };
 
             function editBtn(field, modelId) {
-                return '<button onclick="window.MG.openEdit(\'' + field + '\', \'' + modelId + '\')" style="margin-left:6px;padding:1px 6px;font-size:9px;border:1px solid var(--divider);border-radius:3px;cursor:pointer;background:var(--control);color:var(--text-3);" title="Edit ' + (editableFields[field] ? editableFields[field].label : field) + '">Edit</button>';
+                return '<button onclick="window.MG.openEdit(\'' + field + '\', \'' + modelId + '\')" style="margin-left:var(--space-3);padding:var(--space-hair) var(--space-3);font-size:var(--size-xxs);border:1px solid var(--divider);border-radius:var(--radius-sm);cursor:pointer;background:var(--control);color:var(--text-3);" title="Edit ' + (editableFields[field] ? editableFields[field].label : field) + '">Edit</button>';
             }
 
             // ================================================================
             // HTML helpers
             // ================================================================
             function sectionHeader(text) {
-                return '<div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--line-soft);">' + text + '</div>';
+                return '<div style="font-size:var(--size-xs);font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-top:var(--space-8);margin-bottom:var(--space-4);padding-bottom:var(--space-2);border-bottom:1px solid var(--line-soft);">' + text + '</div>';
             }
 
             function infoRow(label, value) {
-                return '<div style="display:flex;padding:3px 0;font-size:11px;">' +
+                return '<div style="display:flex;padding:var(--space-2) 0;font-size:var(--size-xs);">' +
                     '<span style="min-width:130px;color:var(--muted);flex-shrink:0;">' + label + '</span>' +
                     '<span style="color:var(--text);">' + value + '</span></div>';
             }

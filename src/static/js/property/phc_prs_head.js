@@ -20,9 +20,9 @@
 
             function buildPRSControls() {
                 var controls = document.getElementById('phc-controls');
-                var inputStyle = 'padding:3px 6px;border:1px solid var(--divider);border-radius:3px;width:90px;font-size:11px;';
-                var labelStyle = 'font-weight:600;font-size:11px;color:var(--text-2);margin-right:3px;';
-                var selectStyle = 'padding:3px 6px;border:1px solid var(--divider);border-radius:3px;font-size:11px;';
+                var inputStyle = 'padding:var(--space-2) var(--space-3);border:1px solid var(--divider);border-radius:var(--radius-sm);width:90px;font-size:var(--size-xs);';
+                var labelStyle = 'font-weight:600;font-size:var(--size-xs);color:var(--text-2);margin-right:var(--space-2);';
+                var selectStyle = 'padding:var(--space-2) var(--space-3);border:1px solid var(--divider);border-radius:var(--radius-sm);font-size:var(--size-xs);';
 
                 // Build counterparty options
                 var ctpyOptions = '<option value="">-- Select --</option>';
@@ -41,7 +41,7 @@
                 });
 
                 controls.innerHTML =
-                    '<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap;">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-6);padding:var(--space-4) var(--space-8);flex-wrap:wrap;">' +
                     '<span style="' + labelStyle + '">Direction:</span>' +
                     '<select id="phc-direction" style="' + selectStyle + '">' +
                     '<option value="payer">Payer (buy protection)</option>' +

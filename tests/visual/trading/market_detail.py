@@ -114,7 +114,8 @@ class TestActionButtonFormat:
 
     def test_buttons_in_shared_container(self, market_js):
         """All four buttons must sit inside a single flex container (group)."""
-        assert ('display:flex;border:1px solid var(--line-strong);border-radius:4px;'
+        assert ('display:flex;border:1px solid var(--line-strong);'
+                'border-radius:var(--radius-4);'
                 'overflow:hidden;') in market_js, \
             "Buttons must be in a bordered group container matching header tabs"
 
@@ -146,14 +147,14 @@ class TestActionButtonFormat:
         assert 'var(--sunken)' in snippet, "Reset button must be grey"
 
     def test_button_padding_matches_tabs(self, market_js):
-        """All buttons must use padding:4px 14px matching header tab buttons."""
-        count = market_js.count('padding:4px 14px')
+        """All buttons must use the same padding as the header tab buttons."""
+        count = market_js.count('padding:var(--space-2) var(--space-7)')
         assert count >= 4, \
-            f"Expected >=4 buttons with 'padding:4px 14px', found {count}"
+            f"Expected >=4 buttons on the shared tab padding, found {count}"
 
     def test_button_font_matches_tabs(self, market_js):
-        """All buttons must use font-size:11px;font-weight:600 matching header tabs."""
-        count = market_js.count('font-size:11px')
+        """All buttons must use the same font size and weight as the header tabs."""
+        count = market_js.count('font-size:var(--size-xs)')
         assert count >= 4, \
             f"Expected >=4 elements with font-size:11px in market JS, found {count}"
 

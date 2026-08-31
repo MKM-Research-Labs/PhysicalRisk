@@ -66,39 +66,39 @@
                     }
                 ];
 
-                var html = '<div style="overflow-y:auto;height:100%;padding:12px 16px;">';
+                var html = '<div style="overflow-y:auto;height:100%;padding:var(--space-6) var(--space-8);">';
 
                 sections.forEach(function(section) {
                     var count = section.gauges.length;
                     if (count === 0) return;  // skip empty sections entirely
 
                     html +=
-                        '<div style="margin-bottom:16px;">' +
-                        '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px;' +
-                        'background:' + section.headerBg + ';color:var(--inverse);border-radius:4px 4px 0 0;">' +
-                        '<span style="font-size:12px;font-weight:700;">' + section.label + '</span>' +
-                        '<span style="font-size:11px;opacity:0.85;">— ' + count + ' gauge' + (count !== 1 ? 's' : '') + '</span>' +
+                        '<div style="margin-bottom:var(--space-8);">' +
+                        '<div style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-3) var(--space-6);' +
+                        'background:' + section.headerBg + ';color:var(--inverse);border-radius:var(--radius-4) var(--radius-4) 0 0;">' +
+                        '<span style="font-size:var(--size-sm);font-weight:700;">' + section.label + '</span>' +
+                        '<span style="font-size:var(--size-xs);opacity:0.85;">— ' + count + ' gauge' + (count !== 1 ? 's' : '') + '</span>' +
                         '</div>' +
-                        '<div style="border:1px solid var(--line-strong);border-top:none;border-radius:0 0 4px 4px;background:' + section.bg + ';overflow:hidden;">';
+                        '<div style="border:1px solid var(--line-strong);border-top:none;border-radius:0 0 var(--radius-4) var(--radius-4);background:' + section.bg + ';overflow:hidden;">';
 
                     {
                         section.gauges.forEach(function(g) {
                             var pnlColor = g.stress_pnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                             html +=
-                                '<div style="display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--grid-line);">' +
+                                '<div style="display:flex;align-items:center;gap:var(--space-5);padding:var(--space-4) var(--space-7);border-bottom:1px solid var(--grid-line);">' +
                                 '<span style="width:10px;height:10px;border-radius:50%;background:' + section.dotColor + ';display:inline-block;flex-shrink:0;"></span>' +
-                                '<span style="font-size:11px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+                                '<span style="font-size:var(--size-xs);font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
                                 g.gauge_name + '</span>' +
-                                '<span style="font-size:10px;color:var(--text-2);white-space:nowrap;min-width:80px;text-align:right;">' +
+                                '<span style="font-size:var(--size-xxs);color:var(--text-2);white-space:nowrap;min-width:80px;text-align:right;">' +
                                 'P(flood): <b>' + g.p_flood_pct.toFixed(1) + '%</b>' +
                                 '</span>' +
-                                '<span style="font-size:10px;color:var(--text-2);white-space:nowrap;min-width:60px;text-align:right;">' +
+                                '<span style="font-size:var(--size-xxs);color:var(--text-2);white-space:nowrap;min-width:60px;text-align:right;">' +
                                 g.num_trades + ' trade' + (g.num_trades !== 1 ? 's' : '') +
                                 '</span>' +
-                                '<span style="font-size:10px;font-weight:700;color:' + pnlColor + ';white-space:nowrap;min-width:80px;text-align:right;">' +
+                                '<span style="font-size:var(--size-xxs);font-weight:700;color:' + pnlColor + ';white-space:nowrap;min-width:80px;text-align:right;">' +
                                 fmtGBP(g.stress_pnl) + '</span>' +
                                 (g.num_trades > 0 ?
-                                    '<button data-gaugeid="' + g.gauge_id + '" class="ps-sev-gauge-btn" style="padding:2px 8px;font-size:9px;background:var(--accent);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;white-space:nowrap;">' +
+                                    '<button data-gaugeid="' + g.gauge_id + '" class="ps-sev-gauge-btn" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);background:var(--accent);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;white-space:nowrap;">' +
                                     '→ Gauge P&amp;L</button>'
                                     : '<span style="min-width:72px;"></span>') +
                                 '</div>';

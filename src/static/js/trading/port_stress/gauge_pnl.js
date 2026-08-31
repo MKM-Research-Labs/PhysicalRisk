@@ -28,15 +28,15 @@
 
                 if (gaugesWithTrades.length === 0) {
                     content.innerHTML =
-                        '<div style="padding:40px;text-align:center;color:var(--muted-2);">No open trades in portfolio for this storm.</div>';
+                        '<div style="padding:var(--space-inset);text-align:center;color:var(--muted-2);">No open trades in portfolio for this storm.</div>';
                     return;
                 }
 
                 // Build dropdown
                 var dropdownHtml =
-                    '<div style="padding:8px 12px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:10px;background:var(--header-from);flex-shrink:0;">' +
-                    '<span style="font-size:11px;font-weight:600;color:var(--text);">Gauge:</span>' +
-                    '<select id="ps-gaugepnl-sel" style="padding:4px 8px;font-size:11px;border:1px solid var(--divider);border-radius:3px;min-width:300px;">';
+                    '<div style="padding:var(--space-4) var(--space-6);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:var(--space-5);background:var(--header-from);flex-shrink:0;">' +
+                    '<span style="font-size:var(--size-xs);font-weight:600;color:var(--text);">Gauge:</span>' +
+                    '<select id="ps-gaugepnl-sel" style="padding:var(--space-2) var(--space-4);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-sm);min-width:300px;">';
 
                 gaugesWithTrades.forEach(function(g) {
                     var thresholdBadge = g.threshold !== 'clean' ? ' [' + g.threshold.toUpperCase() + ']' : '';
@@ -91,17 +91,17 @@
                 var pnlColor = gaugeData.stress_pnl >= 0 ? Theme.value('gain') : Theme.value('loss');
 
                 var headerHtml =
-                    '<div style="padding:10px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">' +
-                    '<div style="display:flex;align-items:center;gap:10px;">' +
-                    '<span style="font-size:13px;font-weight:700;color:var(--text);">' + gaugeData.gauge_name + '</span>' +
+                    '<div style="padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-4);">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-5);">' +
+                    '<span style="font-size:var(--size-md);font-weight:700;color:var(--text);">' + gaugeData.gauge_name + '</span>' +
                     '<span style="background:' + thresholdBg + ';color:' + thresholdColor + ';border:1px solid ' + thresholdColor + ';' +
-                    'padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700;">' + gaugeData.threshold.toUpperCase() + '</span>' +
+                    'padding:var(--space-hair) var(--space-4);border-radius:var(--radius-xl);font-size:var(--size-xxs);font-weight:700;">' + gaugeData.threshold.toUpperCase() + '</span>' +
                     '</div>' +
-                    '<div style="display:flex;align-items:center;gap:16px;">' +
-                    '<span style="font-size:11px;color:var(--text-3);">P(flood): <b>' + gaugeData.p_flood_pct.toFixed(1) + '%</b></span>' +
-                    '<span style="font-size:11px;color:var(--text-3);">Peak: <b>' + gaugeData.peak_water_level_m.toFixed(2) + 'm</b></span>' +
-                    '<span style="font-size:13px;font-weight:700;color:' + pnlColor + ';">Total Stress P&amp;L: ' + fmtGBP(gaugeData.stress_pnl) + '</span>' +
-                    '<button data-gaugeid="' + gaugeData.gauge_id + '" class="ps-detail-btn" style="padding:3px 10px;font-size:10px;background:var(--accent);color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">' +
+                    '<div style="display:flex;align-items:center;gap:var(--space-8);">' +
+                    '<span style="font-size:var(--size-xs);color:var(--text-3);">P(flood): <b>' + gaugeData.p_flood_pct.toFixed(1) + '%</b></span>' +
+                    '<span style="font-size:var(--size-xs);color:var(--text-3);">Peak: <b>' + gaugeData.peak_water_level_m.toFixed(2) + 'm</b></span>' +
+                    '<span style="font-size:var(--size-md);font-weight:700;color:' + pnlColor + ';">Total Stress P&amp;L: ' + fmtGBP(gaugeData.stress_pnl) + '</span>' +
+                    '<button data-gaugeid="' + gaugeData.gauge_id + '" class="ps-detail-btn" style="padding:var(--space-2) var(--space-5);font-size:var(--size-xxs);background:var(--accent);color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">' +
                     '→ Full Detail ↗' +
                     '</button>' +
                     '</div>' +
@@ -110,23 +110,23 @@
                 // Hourly P&L chart (top half)
                 var chartHtml = '';
                 if (gaugeData.hydrograph && gaugeData.hydrograph.length > 0 && gaugeData.severe_level > 0) {
-                    chartHtml = '<div style="padding:4px 16px 0 16px;height:200px;">' +
+                    chartHtml = '<div style="padding:var(--space-2) var(--space-8) 0 var(--space-8);height:200px;">' +
                         '<canvas id="ps-hourly-pnl-canvas"></canvas></div>';
                 }
 
                 var tradesHtml = '';
                 if (gaugeData.trades && gaugeData.trades.length > 0) {
                     tradesHtml =
-                        '<table style="width:100%;border-collapse:collapse;font-size:10px;">' +
+                        '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xxs);">' +
                         '<thead><tr style="background:var(--sunken);border-bottom:2px solid var(--line-strong);">' +
-                        '<th style="padding:5px 8px;text-align:left;">Trade</th>' +
-                        '<th style="padding:5px 4px;text-align:center;">Dir</th>' +
-                        '<th style="padding:5px 4px;text-align:center;">Trigger</th>' +
-                        '<th style="padding:5px 4px;text-align:center;">Tenor</th>' +
-                        '<th style="padding:5px 8px;text-align:right;">Notional</th>' +
-                        '<th style="padding:5px 8px;text-align:right;">P(flood)</th>' +
-                        '<th style="padding:5px 8px;text-align:right;">MTM</th>' +
-                        '<th style="padding:5px 8px;text-align:right;">Stress P&amp;L</th>' +
+                        '<th style="padding:var(--space-3) var(--space-4);text-align:left;">Trade</th>' +
+                        '<th style="padding:var(--space-3) var(--space-2);text-align:center;">Dir</th>' +
+                        '<th style="padding:var(--space-3) var(--space-2);text-align:center;">Trigger</th>' +
+                        '<th style="padding:var(--space-3) var(--space-2);text-align:center;">Tenor</th>' +
+                        '<th style="padding:var(--space-3) var(--space-4);text-align:right;">Notional</th>' +
+                        '<th style="padding:var(--space-3) var(--space-4);text-align:right;">P(flood)</th>' +
+                        '<th style="padding:var(--space-3) var(--space-4);text-align:right;">MTM</th>' +
+                        '<th style="padding:var(--space-3) var(--space-4);text-align:right;">Stress P&amp;L</th>' +
                         '</tr></thead><tbody>';
 
                     var totalNotional = 0, totalMtm = 0, totalStress = 0;
@@ -138,27 +138,27 @@
                         totalStress += t.stress_pnl;
                         tradesHtml +=
                             '<tr style="border-bottom:1px solid var(--code);">' +
-                            '<td style="padding:4px 8px;font-family:monospace;font-size:9px;">' + t.swap_id.substring(0, 14) + '</td>' +
-                            '<td style="padding:4px 4px;text-align:center;color:' + dirColor + ';font-weight:600;">' + (t.is_payer ? 'Pay' : 'Rcv') + '</td>' +
-                            '<td style="padding:4px 4px;text-align:center;font-size:9px;text-transform:capitalize;">' + (t.trigger || '—') + '</td>' +
-                            '<td style="padding:4px 4px;text-align:center;font-size:9px;">' + (t.tenor ? t.tenor + 'Y' : '—') + '</td>' +
-                            '<td style="padding:4px 8px;text-align:right;">' + fmtGBP(t.notional) + '</td>' +
-                            '<td style="padding:4px 8px;text-align:right;">' + gaugeData.p_flood_pct.toFixed(1) + '%</td>' +
-                            '<td style="padding:4px 8px;text-align:right;">' + fmtGBP(t.mtm) + '</td>' +
-                            '<td style="padding:4px 8px;text-align:right;font-weight:700;color:' + spnlColor + ';">' + fmtGBP(t.stress_pnl) + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-4);font-family:monospace;font-size:var(--size-xxs);">' + t.swap_id.substring(0, 14) + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-2);text-align:center;color:' + dirColor + ';font-weight:600;">' + (t.is_payer ? 'Pay' : 'Rcv') + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-2);text-align:center;font-size:var(--size-xxs);text-transform:capitalize;">' + (t.trigger || '—') + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-2);text-align:center;font-size:var(--size-xxs);">' + (t.tenor ? t.tenor + 'Y' : '—') + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + fmtGBP(t.notional) + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + gaugeData.p_flood_pct.toFixed(1) + '%</td>' +
+                            '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + fmtGBP(t.mtm) + '</td>' +
+                            '<td style="padding:var(--space-2) var(--space-4);text-align:right;font-weight:700;color:' + spnlColor + ';">' + fmtGBP(t.stress_pnl) + '</td>' +
                             '</tr>';
                     });
 
                     tradesHtml +=
                         '<tr style="border-top:2px solid var(--text);background:var(--wash);font-weight:700;">' +
-                        '<td style="padding:5px 8px;" colspan="4">TOTAL</td>' +
-                        '<td style="padding:5px 8px;text-align:right;">' + fmtGBP(totalNotional) + '</td>' +
-                        '<td style="padding:5px 8px;text-align:right;">' + gaugeData.p_flood_pct.toFixed(1) + '%</td>' +
-                        '<td style="padding:5px 8px;text-align:right;color:' + (totalMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalMtm) + '</td>' +
-                        '<td style="padding:5px 8px;text-align:right;color:' + (totalStress >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalStress) + '</td>' +
+                        '<td style="padding:var(--space-3) var(--space-4);" colspan="4">TOTAL</td>' +
+                        '<td style="padding:var(--space-3) var(--space-4);text-align:right;">' + fmtGBP(totalNotional) + '</td>' +
+                        '<td style="padding:var(--space-3) var(--space-4);text-align:right;">' + gaugeData.p_flood_pct.toFixed(1) + '%</td>' +
+                        '<td style="padding:var(--space-3) var(--space-4);text-align:right;color:' + (totalMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalMtm) + '</td>' +
+                        '<td style="padding:var(--space-3) var(--space-4);text-align:right;color:' + (totalStress >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalStress) + '</td>' +
                         '</tr></tbody></table>';
                 } else {
-                    tradesHtml = '<div style="padding:24px;color:var(--muted-2);text-align:center;">No open trades at this gauge.</div>';
+                    tradesHtml = '<div style="padding:var(--space-10);color:var(--muted-2);text-align:center;">No open trades at this gauge.</div>';
                 }
 
                 container.innerHTML = headerHtml + chartHtml + tradesHtml;

@@ -22,7 +22,7 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood history available</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flood history available</p>';
                     return;
                 }
 
@@ -61,8 +61,8 @@
                         color: seqInk[seqType] || Theme.value('text-2'),
                         label: labels[seqType] || seqType || '?'
                     };
-                    return '<span style="background:' + c.bg + ';color:' + c.color + ';font-size:9px;' +
-                           'padding:1px 5px;border-radius:3px;font-weight:600;">' + c.label + '</span>';
+                    return '<span style="background:' + c.bg + ';color:' + c.color + ';font-size:var(--size-xxs);' +
+                           'padding:var(--space-hair) var(--space-3);border-radius:var(--radius-sm);font-weight:600;">' + c.label + '</span>';
                 };
 
                 // Typhoon badge — emitted for any event whose storm was
@@ -74,22 +74,22 @@
                     var title = 'Typhoon ' + typhoon.event_id + ' (' + fam +
                                 ', peak ' + (peak != null ? peak.toFixed(1) : '?') + ' m/s)';
                     return '<span title="' + title + '" style="background:var(--warn-bg-warm);color:var(--orange-deep);' +
-                           'font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;' +
-                           'margin-left:4px;">⚡ ' + fam.toUpperCase() + '</span>';
+                           'font-size:var(--size-xxs);padding:var(--space-hair) var(--space-3);border-radius:var(--radius-sm);font-weight:700;' +
+                           'margin-left:var(--space-2);">⚡ ' + fam.toUpperCase() + '</span>';
                 };
 
                 // Table + chart layout
                 var html =
-                    '<div style="display:flex;gap:12px;height:100%;">' +
+                    '<div style="display:flex;gap:var(--space-6);height:100%;">' +
                     '<div style="flex:1;overflow-y:auto;max-height:360px;">' +
-                    '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
+                    '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">' +
                     '<thead><tr style="background:var(--sunken);position:sticky;top:0;">' +
-                    '<th style="padding:4px 8px;text-align:left;">Storm</th>' +
-                    '<th style="padding:4px 6px;text-align:left;">Sequence</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Depth (m)</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Flood Dmg %</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Wind (m/s)</th>' +
-                    '<th style="padding:4px 8px;text-align:right;">Wind Dmg %</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:left;">Storm</th>' +
+                    '<th style="padding:var(--space-2) var(--space-3);text-align:left;">Sequence</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Depth (m)</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Flood Dmg %</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Wind (m/s)</th>' +
+                    '<th style="padding:var(--space-2) var(--space-4);text-align:right;">Wind Dmg %</th>' +
                     '</tr></thead><tbody>';
 
                 events.forEach(function(e, i) {
@@ -112,20 +112,20 @@
                         '<tr style="background:' + bg + ';cursor:pointer;" ' +
                         'onclick="window.propStormSwitchTab(1, \'' + sid + '\')" ' +
                         'title="Click to view flood timeline">' +
-                        '<td style="padding:3px 8px;font-family:monospace;color:var(--accent-mid);">' +
+                        '<td style="padding:var(--space-2) var(--space-4);font-family:monospace;color:var(--accent-mid);">' +
                           (e.storm_id || '-').substring(0, 16) + typhoonBadge(ty) + '</td>' +
-                        '<td style="padding:3px 6px;">' + seqBadge(e.sequence_type) + '</td>' +
-                        '<td style="padding:3px 8px;text-align:right;color:' + depthColor + ';font-weight:600;">' + (e.flood_depth_m || 0).toFixed(2) + '</td>' +
-                        '<td style="padding:3px 8px;text-align:right;">' + ((e.damage_ratio || 0) * 100).toFixed(1) + '%</td>' +
-                        '<td style="padding:3px 8px;text-align:right;">' + windCell + '</td>' +
-                        '<td style="padding:3px 8px;text-align:right;color:' + windColor + ';font-weight:600;">' + windDmgCell + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-3);">' + seqBadge(e.sequence_type) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:' + depthColor + ';font-weight:600;">' + (e.flood_depth_m || 0).toFixed(2) + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + ((e.damage_ratio || 0) * 100).toFixed(1) + '%</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;">' + windCell + '</td>' +
+                        '<td style="padding:var(--space-2) var(--space-4);text-align:right;color:' + windColor + ';font-weight:600;">' + windDmgCell + '</td>' +
                         '</tr>';
                 });
                 html += '</tbody></table></div>';
                 html +=
                     '<div style="flex:1;"><canvas id="prop-history-chart" height="320"></canvas></div>' +
                     '</div>' +
-                    '<div id="prop-history-stats" style="display:flex;gap:16px;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
+                    '<div id="prop-history-stats" style="display:flex;gap:var(--space-8);font-size:var(--size-xs);color:var(--text-2);padding:var(--space-4) 0;border-top:1px solid var(--line-soft);"></div>';
 
                 content.innerHTML = html;
 
@@ -214,11 +214,11 @@
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
 
                 if (!propMortgageData) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No mortgage linked to this property</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No mortgage linked to this property</p>';
                     return;
                 }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events for this property</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flood events for this property</p>';
                     return;
                 }
 
@@ -229,7 +229,7 @@
                 var currentLtv = cur.CurrentLTV || 0;
 
                 if (propertyValue <= 0) {
-                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No property value available</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No property value available</p>';
                     return;
                 }
 
@@ -255,7 +255,7 @@
                 // Chart + stats layout
                 content.innerHTML =
                     '<canvas id="prop-mortgage-chart" height="280"></canvas>' +
-                    '<div id="prop-mortgage-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
+                    '<div id="prop-mortgage-stats" style="display:flex;gap:var(--space-8);flex-wrap:wrap;font-size:var(--size-xs);color:var(--text-2);padding:var(--space-4) 0;border-top:1px solid var(--line-soft);"></div>';
 
                 var labels = top.map(function(e) { return e.storm_id.substring(0, 16); });
                 var retained = top.map(function(e) { return e.post_value; });

@@ -25,37 +25,37 @@ function renderMrcDocuments(m) {
     var html = '<div>';
 
     // Upload form
-    html += '<div style="margin-bottom:16px;padding:12px;border:1px dashed var(--divider);border-radius:6px;background:var(--raised);">';
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">Upload Supporting Document</div>';
-    html += '<form id="mrc-upload-form" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">File</label>';
-    html += '<input type="file" id="mrc-upload-file" style="font-size:10px;"></div>';
-    html += '<div style="flex:1;min-width:150px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Description</label>';
-    html += '<input type="text" id="mrc-upload-desc" placeholder="Brief description" style="width:100%;font-size:11px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:3px;"></div>';
-    html += '<button type="button" onclick="window.MG.uploadMeetingDoc(\'' + m.id + '\')" style="padding:6px 14px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;white-space:nowrap;">Upload</button>';
+    html += '<div style="margin-bottom:var(--space-8);padding:var(--space-6);border:1px dashed var(--divider);border-radius:var(--radius-md);background:var(--raised);">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);margin-bottom:var(--space-4);">Upload Supporting Document</div>';
+    html += '<form id="mrc-upload-form" style="display:flex;gap:var(--space-4);align-items:flex-end;flex-wrap:wrap;">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">File</label>';
+    html += '<input type="file" id="mrc-upload-file" style="font-size:var(--size-xxs);"></div>';
+    html += '<div style="flex:1;min-width:150px;"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Description</label>';
+    html += '<input type="text" id="mrc-upload-desc" placeholder="Brief description" style="width:100%;font-size:var(--size-xs);padding:var(--space-2) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-sm);"></div>';
+    html += '<button type="button" onclick="window.MG.uploadMeetingDoc(\'' + m.id + '\')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;white-space:nowrap;">Upload</button>';
     html += '</form>';
-    html += '<div id="mrc-upload-status" style="margin-top:4px;font-size:10px;"></div>';
+    html += '<div id="mrc-upload-status" style="margin-top:var(--space-2);font-size:var(--size-xxs);"></div>';
     html += '</div>';
 
     // Document list
     if (docs.length === 0) {
-        html += '<div style="color:var(--muted);font-size:12px;">No documents uploaded yet.</div>';
+        html += '<div style="color:var(--muted);font-size:var(--size-sm);">No documents uploaded yet.</div>';
     } else {
-        html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
         html += '<thead><tr style="background:var(--raised);">';
         ['Filename', 'Description', 'Uploaded By', 'Date', ''].forEach(function(h) {
-            html += '<th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);">' + h + '</th>';
+            html += '<th style="padding:var(--space-4) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);">' + h + '</th>';
         });
         html += '</tr></thead><tbody>';
 
         docs.forEach(function(d) {
             var dlUrl = getBaseUrl() + '/api/v1/governance/mrc/meetings/' + m.id + '/documents/' + encodeURIComponent(d.filename);
             html += '<tr>';
-            html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:500;">' + d.filename + '</td>';
-            html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (d.description || '\u2014') + '</td>';
-            html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + (d.uploaded_by || '\u2014') + '</td>';
-            html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">' + (d.uploaded_at ? d.uploaded_at.substring(0, 10) : '\u2014') + '</td>';
-            html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);"><a href="' + dlUrl + '" target="_blank" style="color:var(--accent);text-decoration:none;font-size:10px;">Download</a></td>';
+            html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:500;">' + d.filename + '</td>';
+            html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (d.description || '\u2014') + '</td>';
+            html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + (d.uploaded_by || '\u2014') + '</td>';
+            html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">' + (d.uploaded_at ? d.uploaded_at.substring(0, 10) : '\u2014') + '</td>';
+            html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);"><a href="' + dlUrl + '" target="_blank" style="color:var(--accent);text-decoration:none;font-size:var(--size-xxs);">Download</a></td>';
             html += '</tr>';
         });
 
@@ -104,10 +104,10 @@ function uploadMeetingDoc(meetingId) {
 function showNewMeetingForm() {
     var sc = document.getElementById('mrc-sub-content');
 
-    var html = '<div style="padding:16px;">';
-    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">';
-    html += '<button onclick="window.MG.switchMrcTab(\'meetings\')" style="padding:4px 10px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&larr; Back</button>';
-    html += '<div style="font-size:14px;font-weight:700;color:var(--text);">Create New MRC Meeting</div>';
+    var html = '<div style="padding:var(--space-8);">';
+    html += '<div style="display:flex;align-items:center;gap:var(--space-6);margin-bottom:var(--space-8);">';
+    html += '<button onclick="window.MG.switchMrcTab(\'meetings\')" style="padding:var(--space-2) var(--space-5);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&larr; Back</button>';
+    html += '<div style="font-size:var(--size-14);font-weight:700;color:var(--text);">Create New MRC Meeting</div>';
     html += '</div>';
 
     var fields = [
@@ -117,20 +117,20 @@ function showNewMeetingForm() {
         {id: 'location', label: 'Location', type: 'text', value: 'Virtual (Teams)'},
     ];
 
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-8);">';
     fields.forEach(function(f) {
-        html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">' + f.label + '</label>';
-        html += '<input type="' + f.type + '" id="mrc-new-' + f.id + '" value="' + f.value + '" style="width:100%;font-size:11px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;"></div>';
+        html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">' + f.label + '</label>';
+        html += '<input type="' + f.type + '" id="mrc-new-' + f.id + '" value="' + f.value + '" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;"></div>';
     });
     html += '</div>';
 
     // Models in scope (checkboxes)
-    html += '<div style="margin-bottom:16px;">';
-    html += '<label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:6px;">Models in Scope</label>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    html += '<div style="margin-bottom:var(--space-8);">';
+    html += '<label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-3);">Models in Scope</label>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:var(--space-3);">';
     if (mgData && mgData.models) {
         mgData.models.forEach(function(mod) {
-            html += '<label style="display:flex;align-items:center;gap:4px;font-size:11px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:4px;cursor:pointer;background:var(--raised);">';
+            html += '<label style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--size-xs);padding:var(--space-2) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);cursor:pointer;background:var(--raised);">';
             html += '<input type="checkbox" class="mrc-model-cb" value="' + mod.model_id + '" checked> ' + mod.model_id + ' ' + mod.short_name;
             html += '</label>';
         });
@@ -138,20 +138,20 @@ function showNewMeetingForm() {
     html += '</div></div>';
 
     // Supporting documents
-    html += '<div style="margin-bottom:16px;">';
-    html += '<label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:6px;">Supporting Documents</label>';
-    html += '<div id="mrc-new-docs-list" style="margin-bottom:8px;"></div>';
-    html += '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding:10px;border:1px dashed var(--divider);border-radius:6px;background:var(--raised);">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">File</label>';
-    html += '<input type="file" id="mrc-new-doc-file" style="font-size:10px;"></div>';
-    html += '<div style="flex:1;min-width:150px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Description</label>';
-    html += '<input type="text" id="mrc-new-doc-desc" placeholder="Brief description" style="width:100%;font-size:11px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:3px;box-sizing:border-box;"></div>';
-    html += '<button type="button" onclick="window.MG.addNewMeetingDoc()" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--accent);font-weight:500;white-space:nowrap;">+ Add File</button>';
+    html += '<div style="margin-bottom:var(--space-8);">';
+    html += '<label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-3);">Supporting Documents</label>';
+    html += '<div id="mrc-new-docs-list" style="margin-bottom:var(--space-4);"></div>';
+    html += '<div style="display:flex;gap:var(--space-4);align-items:flex-end;flex-wrap:wrap;padding:var(--space-5);border:1px dashed var(--divider);border-radius:var(--radius-md);background:var(--raised);">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">File</label>';
+    html += '<input type="file" id="mrc-new-doc-file" style="font-size:var(--size-xxs);"></div>';
+    html += '<div style="flex:1;min-width:150px;"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Description</label>';
+    html += '<input type="text" id="mrc-new-doc-desc" placeholder="Brief description" style="width:100%;font-size:var(--size-xs);padding:var(--space-2) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-sm);box-sizing:border-box;"></div>';
+    html += '<button type="button" onclick="window.MG.addNewMeetingDoc()" style="padding:var(--space-3) var(--space-6);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--accent);font-weight:500;white-space:nowrap;">+ Add File</button>';
     html += '</div>';
     html += '</div>';
 
-    html += '<div id="mrc-create-status" style="margin-bottom:8px;font-size:10px;"></div>';
-    html += '<button onclick="window.MG.createMeeting()" style="padding:8px 20px;font-size:12px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:600;">Create Meeting</button>';
+    html += '<div id="mrc-create-status" style="margin-bottom:var(--space-4);font-size:var(--size-xxs);"></div>';
+    html += '<button onclick="window.MG.createMeeting()" style="padding:var(--space-4) var(--space-wide);font-size:var(--size-sm);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:600;">Create Meeting</button>';
 
     html += '</div>';
     sc.innerHTML = html;
@@ -171,11 +171,11 @@ function addNewMeetingDoc() {
     var listEl = document.getElementById('mrc-new-docs-list');
     var html = '';
     window._mrcPendingDocs.forEach(function(d, i) {
-        html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;margin-bottom:4px;border:1px solid var(--line);border-radius:4px;background:var(--panel);font-size:11px;">';
+        html += '<div style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-2) var(--space-4);margin-bottom:var(--space-2);border:1px solid var(--line);border-radius:var(--radius-4);background:var(--panel);font-size:var(--size-xs);">';
         html += '<span style="flex:1;font-weight:500;">' + d.file.name + '</span>';
         if (d.description) html += '<span style="color:var(--muted);">' + d.description + '</span>';
-        html += '<span style="color:var(--muted);font-size:10px;">(' + (d.file.size / 1024).toFixed(0) + ' KB)</span>';
-        html += '<button onclick="window.MG.removeNewMeetingDoc(' + i + ')" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;" title="Remove">&times;</button>';
+        html += '<span style="color:var(--muted);font-size:var(--size-xxs);">(' + (d.file.size / 1024).toFixed(0) + ' KB)</span>';
+        html += '<button onclick="window.MG.removeNewMeetingDoc(' + i + ')" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:var(--size-14);padding:0 var(--space-2);" title="Remove">&times;</button>';
         html += '</div>';
     });
     listEl.innerHTML = html;
@@ -190,11 +190,11 @@ function removeNewMeetingDoc(index) {
     var listEl = document.getElementById('mrc-new-docs-list');
     var html = '';
     window._mrcPendingDocs.forEach(function(d, i) {
-        html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;margin-bottom:4px;border:1px solid var(--line);border-radius:4px;background:var(--panel);font-size:11px;">';
+        html += '<div style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-2) var(--space-4);margin-bottom:var(--space-2);border:1px solid var(--line);border-radius:var(--radius-4);background:var(--panel);font-size:var(--size-xs);">';
         html += '<span style="flex:1;font-weight:500;">' + d.file.name + '</span>';
         if (d.description) html += '<span style="color:var(--muted);">' + d.description + '</span>';
-        html += '<span style="color:var(--muted);font-size:10px;">(' + (d.file.size / 1024).toFixed(0) + ' KB)</span>';
-        html += '<button onclick="window.MG.removeNewMeetingDoc(' + i + ')" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:14px;padding:0 4px;" title="Remove">&times;</button>';
+        html += '<span style="color:var(--muted);font-size:var(--size-xxs);">(' + (d.file.size / 1024).toFixed(0) + ' KB)</span>';
+        html += '<button onclick="window.MG.removeNewMeetingDoc(' + i + ')" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:var(--size-14);padding:0 var(--space-2);" title="Remove">&times;</button>';
         html += '</div>';
     });
     listEl.innerHTML = html;

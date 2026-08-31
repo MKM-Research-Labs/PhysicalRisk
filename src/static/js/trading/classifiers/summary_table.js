@@ -23,19 +23,19 @@
                 if (!pane) return;
 
                 if (!gauges || gauges.length === 0) {
-                    pane.innerHTML = '<div style="padding:20px;color:var(--muted-2);font-size:12px;">No gauges found</div>';
+                    pane.innerHTML = '<div style="padding:var(--space-wide);color:var(--muted-2);font-size:var(--size-sm);">No gauges found</div>';
                     return;
                 }
 
-                var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
                 html += '<thead><tr style="background:var(--header-from);border-bottom:2px solid var(--line-strong);">';
-                html += '<th style="padding:6px 10px;text-align:left;font-weight:600;">Gauge</th>';
-                html += '<th style="padding:6px 8px;text-align:center;font-weight:600;">Status</th>';
-                html += '<th style="padding:6px 8px;text-align:right;font-weight:600;">AUC</th>';
-                html += '<th style="padding:6px 8px;text-align:right;font-weight:600;">Accuracy</th>';
-                html += '<th style="padding:6px 8px;text-align:right;font-weight:600;">Flood Rate</th>';
-                html += '<th style="padding:6px 8px;text-align:right;font-weight:600;">Samples</th>';
-                html += '<th style="padding:6px 10px;text-align:center;font-weight:600;">Action</th>';
+                html += '<th style="padding:var(--space-3) var(--space-5);text-align:left;font-weight:600;">Gauge</th>';
+                html += '<th style="padding:var(--space-3) var(--space-4);text-align:center;font-weight:600;">Status</th>';
+                html += '<th style="padding:var(--space-3) var(--space-4);text-align:right;font-weight:600;">AUC</th>';
+                html += '<th style="padding:var(--space-3) var(--space-4);text-align:right;font-weight:600;">Accuracy</th>';
+                html += '<th style="padding:var(--space-3) var(--space-4);text-align:right;font-weight:600;">Flood Rate</th>';
+                html += '<th style="padding:var(--space-3) var(--space-4);text-align:right;font-weight:600;">Samples</th>';
+                html += '<th style="padding:var(--space-3) var(--space-5);text-align:center;font-weight:600;">Action</th>';
                 html += '</tr></thead><tbody>';
 
                 for (var i = 0; i < gauges.length; i++) {
@@ -50,44 +50,44 @@
                     html += 'onmouseout="this.style.background=\'' + rowBg + '\'">';
 
                     // Gauge name
-                    html += '<td style="padding:6px 10px;font-weight:500;">' + g.gauge_name + '</td>';
+                    html += '<td style="padding:var(--space-3) var(--space-5);font-weight:500;">' + g.gauge_name + '</td>';
 
                     // Status dot
                     var dotColor = isTrained ? 'var(--green-bright)' : 'var(--faint)';
                     var dotLabel = isTrained ? 'Trained' : 'Not trained';
-                    html += '<td style="padding:6px 8px;text-align:center;">';
+                    html += '<td style="padding:var(--space-3) var(--space-4);text-align:center;">';
                     html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' +
-                            dotColor + ';margin-right:4px;vertical-align:middle;"></span>';
+                            dotColor + ';margin-right:var(--space-2);vertical-align:middle;"></span>';
                     html += '<span style="color:var(--text-3);">' + dotLabel + '</span></td>';
 
                     // AUC
                     if (g.auc_roc != null) {
                         var aucColor = g.auc_roc >= 0.95 ? 'var(--green-dark)' : (g.auc_roc >= 0.90 ? 'var(--gold-dark)' : 'var(--red-dark)');
-                        html += '<td style="padding:6px 8px;text-align:right;color:' + aucColor + ';font-weight:600;">' +
+                        html += '<td style="padding:var(--space-3) var(--space-4);text-align:right;color:' + aucColor + ';font-weight:600;">' +
                                 g.auc_roc.toFixed(4) + '</td>';
                     } else {
-                        html += '<td style="padding:6px 8px;text-align:right;color:var(--divider);">\u2014</td>';
+                        html += '<td style="padding:var(--space-3) var(--space-4);text-align:right;color:var(--divider);">\u2014</td>';
                     }
 
                     // Accuracy
-                    html += '<td style="padding:6px 8px;text-align:right;">' +
+                    html += '<td style="padding:var(--space-3) var(--space-4);text-align:right;">' +
                             (g.accuracy != null ? g.accuracy.toFixed(4) : '\u2014') + '</td>';
 
                     // Flood rate
-                    html += '<td style="padding:6px 8px;text-align:right;">' +
+                    html += '<td style="padding:var(--space-3) var(--space-4);text-align:right;">' +
                             (g.flood_rate != null ? (g.flood_rate * 100).toFixed(1) + '%' : '\u2014') + '</td>';
 
                     // Samples
-                    html += '<td style="padding:6px 8px;text-align:right;">' +
+                    html += '<td style="padding:var(--space-3) var(--space-4);text-align:right;">' +
                             (g.n_samples != null ? g.n_samples.toLocaleString() : '\u2014') + '</td>';
 
                     // Action button
-                    html += '<td style="padding:6px 10px;text-align:center;">';
+                    html += '<td style="padding:var(--space-3) var(--space-5);text-align:center;">';
                     var btnLabel = isTrained ? 'Retrain' : 'Train';
                     var btnColor = isTrained ? 'var(--gold-dark)' : 'var(--accent)';
                     html += '<button data-train-gauge="' + g.gauge_id + '" ';
-                    html += 'style="padding:3px 10px;font-size:10px;font-weight:600;background:' + btnColor + ';';
-                    html += 'color:var(--inverse);border:none;border-radius:3px;cursor:pointer;">' + btnLabel + '</button>';
+                    html += 'style="padding:var(--space-2) var(--space-5);font-size:var(--size-xxs);font-weight:600;background:' + btnColor + ';';
+                    html += 'color:var(--inverse);border:none;border-radius:var(--radius-sm);cursor:pointer;">' + btnLabel + '</button>';
                     html += '</td>';
 
                     html += '</tr>';

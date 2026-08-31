@@ -25,14 +25,14 @@ function renderBCBS239() {
     var content = document.getElementById('mg-content');
     // Use overflow:hidden on content since inner flex layout handles its own scroll
     content.style.overflowY = 'hidden';
-    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading BCBS 239 assessment...</div>';
+    content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);">Loading BCBS 239 assessment...</div>';
 
     console.log('[BCBS239] Fetching assessment data');
     fetch(getBaseUrl() + '/api/v1/governance/bcbs239', {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Assessment not found</div>';
+                content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Assessment not found</div>';
                 return;
             }
             bcbs239Data = data.assessment;
@@ -44,7 +44,7 @@ function renderBCBS239() {
         })
         .catch(function(err) {
             console.error('[BCBS239] Load error:', err);
-            content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + err.message + '</div>';
+            content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Error: ' + err.message + '</div>';
         });
 }
 
@@ -81,48 +81,48 @@ function renderBCBS239Dashboard(a) {
 
     // Use a flex column layout: summary (fixed) + scrollable table
     var html = '<div style="display:flex;flex-direction:column;height:100%;">';
-    html += '<div style="padding:16px;flex-shrink:0;">';
+    html += '<div style="padding:var(--space-8);flex-shrink:0;">';
 
     // Header row
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-8);">';
     html += '<div>';
-    html += '<div style="font-size:15px;font-weight:700;color:var(--text);">BCBS 239 Self-Assessment</div>';
-    html += '<div style="font-size:11px;color:var(--muted);">Principles for Effective Risk Data Aggregation and Risk Reporting</div>';
+    html += '<div style="font-size:var(--size-lg);font-weight:700;color:var(--text);">BCBS 239 Self-Assessment</div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--muted);">Principles for Effective Risk Data Aggregation and Risk Reporting</div>';
     html += '</div>';
-    html += '<div style="display:flex;gap:8px;">';
-    html += '<button onclick="window.MG.downloadBcbs239Pdf()" style="padding:5px 12px;font-size:11px;border:1px solid var(--accent);border-radius:4px;cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&#x2913; Self-Assessment PDF</button>';
+    html += '<div style="display:flex;gap:var(--space-4);">';
+    html += '<button onclick="window.MG.downloadBcbs239Pdf()" style="padding:var(--space-3) var(--space-6);font-size:var(--size-xs);border:1px solid var(--accent);border-radius:var(--radius-4);cursor:pointer;background:var(--accent-soft);color:var(--accent);font-weight:500;">&#x2913; Self-Assessment PDF</button>';
     html += '</div>';
     html += '</div>';
 
     // Assessment metadata + overall score
-    html += '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">';
+    html += '<div style="display:flex;gap:var(--space-6);margin-bottom:var(--space-8);flex-wrap:wrap;">';
 
     // Overall compliance bar
-    html += '<div style="flex:2;min-width:200px;padding:12px 16px;border-radius:6px;background:var(--sunken);border:1px solid var(--line);">';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
-    html += '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Overall Compliance</div>';
-    html += '<div style="font-size:18px;font-weight:700;color:' + bcbs239ScoreColor(Math.round(totalScore / principles.length)) + ';">' + pct + '%</div>';
+    html += '<div style="flex:2;min-width:200px;padding:var(--space-6) var(--space-8);border-radius:var(--radius-md);background:var(--sunken);border:1px solid var(--line);">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);">';
+    html += '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Overall Compliance</div>';
+    html += '<div style="font-size:var(--size-18);font-weight:700;color:' + bcbs239ScoreColor(Math.round(totalScore / principles.length)) + ';">' + pct + '%</div>';
     html += '</div>';
-    html += '<div style="height:8px;background:var(--line);border-radius:4px;overflow:hidden;">';
-    html += '<div style="height:100%;width:' + pct + '%;background:' + bcbs239ScoreColor(Math.round(totalScore / principles.length)) + ';border-radius:4px;transition:width 0.3s;"></div>';
+    html += '<div style="height:8px;background:var(--line);border-radius:var(--radius-4);overflow:hidden;">';
+    html += '<div style="height:100%;width:' + pct + '%;background:' + bcbs239ScoreColor(Math.round(totalScore / principles.length)) + ';border-radius:var(--radius-4);transition:width 0.3s;"></div>';
     html += '</div>';
-    html += '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--muted);">';
+    html += '<div style="display:flex;justify-content:space-between;margin-top:var(--space-3);font-size:var(--size-xxs);color:var(--muted);">';
     html += '<span>' + totalScore + ' / ' + totalMax + ' points</span>';
     html += '<span>' + a.assessment_date + '</span>';
     html += '</div>';
     html += '</div>';
 
     // Metadata card
-    html += '<div style="flex:1;min-width:150px;padding:12px 16px;border-radius:6px;background:var(--sunken);border:1px solid var(--line);">';
-    html += '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Assessment</div>';
-    html += '<div style="font-size:11px;color:var(--text);margin-bottom:2px;">Assessor: <b>' + a.assessor + '</b></div>';
-    html += '<div style="font-size:11px;color:var(--text);margin-bottom:2px;">Version: <b>' + a.version + '</b></div>';
-    html += '<div style="font-size:11px;color:var(--text);">Status: ' + badge(a.overall_status, 'var(--accent)') + '</div>';
+    html += '<div style="flex:1;min-width:150px;padding:var(--space-6) var(--space-8);border-radius:var(--radius-md);background:var(--sunken);border:1px solid var(--line);">';
+    html += '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:var(--space-2);">Assessment</div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--text);margin-bottom:var(--space-1);">Assessor: <b>' + a.assessor + '</b></div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--text);margin-bottom:var(--space-1);">Version: <b>' + a.version + '</b></div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--text);">Status: ' + badge(a.overall_status, 'var(--accent)') + '</div>';
     html += '</div>';
     html += '</div>';
 
     // Category cards
-    html += '<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-bottom:16px;">';
+    html += '<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:var(--space-5);margin-bottom:var(--space-8);">';
     categories.forEach(function(cat) {
         var catScore = 0;
         var catMax = 0;
@@ -137,14 +137,14 @@ function renderBCBS239Dashboard(a) {
         var catPct = catMax > 0 ? Math.round(catScore / catMax * 100) : 0;
         var avgScore = catPrinciples.length > 0 ? Math.round(catScore / catPrinciples.length) : 0;
 
-        html += '<div style="padding:10px 14px;border-radius:6px;background:var(--panel);border:1px solid var(--line);border-top:3px solid ' + cat.color + ';">';
-        html += '<div style="font-size:10px;font-weight:600;color:' + cat.color + ';margin-bottom:6px;">' + cat.name + '</div>';
-        html += '<div style="display:flex;align-items:baseline;gap:4px;margin-bottom:4px;">';
-        html += '<span style="font-size:20px;font-weight:700;color:' + bcbs239ScoreColor(avgScore) + ';">' + catPct + '%</span>';
-        html += '<span style="font-size:10px;color:var(--muted);">' + catScore + '/' + catMax + '</span>';
+        html += '<div style="padding:var(--space-5) var(--space-7);border-radius:var(--radius-md);background:var(--panel);border:1px solid var(--line);border-top:3px solid ' + cat.color + ';">';
+        html += '<div style="font-size:var(--size-xxs);font-weight:600;color:' + cat.color + ';margin-bottom:var(--space-3);">' + cat.name + '</div>';
+        html += '<div style="display:flex;align-items:baseline;gap:var(--space-2);margin-bottom:var(--space-2);">';
+        html += '<span style="font-size:var(--size-xl);font-weight:700;color:' + bcbs239ScoreColor(avgScore) + ';">' + catPct + '%</span>';
+        html += '<span style="font-size:var(--size-xxs);color:var(--muted);">' + catScore + '/' + catMax + '</span>';
         html += '</div>';
-        html += '<div style="height:4px;background:var(--line);border-radius:2px;overflow:hidden;">';
-        html += '<div style="height:100%;width:' + catPct + '%;background:' + cat.color + ';border-radius:2px;"></div>';
+        html += '<div style="height:4px;background:var(--line);border-radius:var(--radius-sm);overflow:hidden;">';
+        html += '<div style="height:100%;width:' + catPct + '%;background:' + cat.color + ';border-radius:var(--radius-sm);"></div>';
         html += '</div>';
         html += '</div>';
     });
@@ -153,11 +153,11 @@ function renderBCBS239Dashboard(a) {
     html += '</div>';
 
     // Scrollable principle table area
-    html += '<div style="flex:1;overflow-y:auto;padding:0 16px 16px 16px;min-height:0;">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<div style="flex:1;overflow-y:auto;padding:0 var(--space-8) var(--space-8) var(--space-8);min-height:0;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
     html += '<thead><tr style="background:var(--raised);position:sticky;top:0;z-index:1;">';
     ['#', 'Principle', 'Category', 'Score', 'Status', ''].forEach(function(h) {
-        html += '<th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);background:var(--raised);">' + h + '</th>';
+        html += '<th style="padding:var(--space-4) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);background:var(--raised);">' + h + '</th>';
     });
     html += '</tr></thead><tbody>';
 
@@ -166,52 +166,52 @@ function renderBCBS239Dashboard(a) {
         var isExpanded = bcbs239ExpandedId === p.id;
 
         html += '<tr style="cursor:pointer;" onmouseenter="this.style.background=\'var(--sunken)\'" onmouseleave="this.style.background=\'\'" onclick="window.MG.toggleBcbs239Principle(' + p.id + ')">';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:600;width:30px;color:var(--accent);">' + p.id + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--text);">' + p.title + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);font-size:10px;color:var(--muted);">' + p.category + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">';
-        html += '<div style="display:flex;align-items:center;gap:4px;">';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;width:30px;color:var(--accent);">' + p.id + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--text);">' + p.title + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-size:var(--size-xxs);color:var(--muted);">' + p.category + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">';
+        html += '<div style="display:flex;align-items:center;gap:var(--space-2);">';
         for (var s = 1; s <= 4; s++) {
             html += '<div style="width:10px;height:10px;border-radius:50%;background:' + (s <= p.score ? sc : 'var(--line)') + ';"></div>';
         }
-        html += '<span style="font-size:10px;font-weight:600;color:' + sc + ';margin-left:4px;">' + p.score + '/4</span>';
+        html += '<span style="font-size:var(--size-xxs);font-weight:600;color:' + sc + ';margin-left:var(--space-2);">' + p.score + '/4</span>';
         html += '</div></td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);">' + badge(p.status, sc) + '</td>';
-        html += '<td style="padding:6px 10px;border-bottom:1px solid var(--code);white-space:nowrap;">';
-        html += '<button onclick="event.stopPropagation();window.MG.showBcbs239EditForm(' + p.id + ')" style="padding:2px 8px;font-size:10px;border:1px solid var(--accent);border-radius:3px;cursor:pointer;background:var(--panel);color:var(--accent);">Edit</button>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + badge(p.status, sc) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);white-space:nowrap;">';
+        html += '<button onclick="event.stopPropagation();window.MG.showBcbs239EditForm(' + p.id + ')" style="padding:var(--space-1) var(--space-4);font-size:var(--size-xxs);border:1px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;background:var(--panel);color:var(--accent);">Edit</button>';
         html += '</td>';
         html += '</tr>';
 
         // Expanded detail row
         if (isExpanded) {
             html += '<tr><td colspan="6" style="padding:0;border-bottom:1px solid var(--line);">';
-            html += '<div style="padding:12px 16px;background:var(--wash-cool);border-left:3px solid var(--accent);">';
+            html += '<div style="padding:var(--space-6) var(--space-8);background:var(--wash-cool);border-left:3px solid var(--accent);">';
 
-            html += '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">DESCRIPTION</div>';
-            html += '<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.5;">' + p.description + '</div>';
+            html += '<div style="font-size:var(--size-xxs);color:var(--muted);margin-bottom:var(--space-2);">DESCRIPTION</div>';
+            html += '<div style="font-size:var(--size-xs);color:var(--text);margin-bottom:var(--space-5);line-height:1.5;">' + p.description + '</div>';
 
-            html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);">';
 
             html += '<div>';
-            html += '<div style="font-size:10px;color:var(--green);font-weight:600;margin-bottom:3px;">EVIDENCE</div>';
-            html += '<div style="font-size:11px;color:var(--text);line-height:1.5;">' + (p.evidence || '\u2014') + '</div>';
+            html += '<div style="font-size:var(--size-xxs);color:var(--green);font-weight:600;margin-bottom:var(--space-2);">EVIDENCE</div>';
+            html += '<div style="font-size:var(--size-xs);color:var(--text);line-height:1.5;">' + (p.evidence || '\u2014') + '</div>';
             html += '</div>';
 
             html += '<div>';
-            html += '<div style="font-size:10px;color:var(--red);font-weight:600;margin-bottom:3px;">GAPS</div>';
-            html += '<div style="font-size:11px;color:var(--text);line-height:1.5;">' + (p.gaps || '\u2014') + '</div>';
+            html += '<div style="font-size:var(--size-xxs);color:var(--red);font-weight:600;margin-bottom:var(--space-2);">GAPS</div>';
+            html += '<div style="font-size:var(--size-xs);color:var(--text);line-height:1.5;">' + (p.gaps || '\u2014') + '</div>';
             html += '</div>';
 
             html += '</div>';
 
-            html += '<div style="margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:12px;">';
+            html += '<div style="margin-top:var(--space-5);display:grid;grid-template-columns:1fr auto;gap:var(--space-6);">';
             html += '<div>';
-            html += '<div style="font-size:10px;color:var(--amber);font-weight:600;margin-bottom:3px;">REMEDIATION</div>';
-            html += '<div style="font-size:11px;color:var(--text);line-height:1.5;">' + (p.remediation || '\u2014') + '</div>';
+            html += '<div style="font-size:var(--size-xxs);color:var(--amber);font-weight:600;margin-bottom:var(--space-2);">REMEDIATION</div>';
+            html += '<div style="font-size:var(--size-xs);color:var(--text);line-height:1.5;">' + (p.remediation || '\u2014') + '</div>';
             html += '</div>';
             html += '<div>';
-            html += '<div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:3px;">TARGET DATE</div>';
-            html += '<div style="font-size:11px;font-weight:600;color:var(--text);">' + (p.target_date || '\u2014') + '</div>';
+            html += '<div style="font-size:var(--size-xxs);color:var(--muted);font-weight:600;margin-bottom:var(--space-2);">TARGET DATE</div>';
+            html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text);">' + (p.target_date || '\u2014') + '</div>';
             html += '</div>';
             html += '</div>';
 
@@ -250,33 +250,33 @@ function showBcbs239EditForm(principleId) {
     });
     if (!p) return;
 
-    var html = '<div style="padding:16px;border:1px solid var(--line);border-radius:6px;background:var(--wash-cool);margin-top:16px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">Edit Principle ' + p.id + ': ' + p.title + '</div>';
+    var html = '<div style="padding:var(--space-8);border:1px solid var(--line);border-radius:var(--radius-md);background:var(--wash-cool);margin-top:var(--space-8);">';
+    html += '<div style="font-size:var(--size-sm);font-weight:600;color:var(--text);margin-bottom:var(--space-5);">Edit Principle ' + p.id + ': ' + p.title + '</div>';
 
-    html += '<div style="display:grid;grid-template-columns:auto 1fr;gap:8px;margin-bottom:10px;">';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Score</label>';
-    html += '<select id="bcbs239-ef-score" style="font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;">';
+    html += '<div style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-4);margin-bottom:var(--space-5);">';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Score</label>';
+    html += '<select id="bcbs239-ef-score" style="font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
     [1, 2, 3, 4].forEach(function(s) {
         var label = s === 4 ? '4 - Fully Compliant' : s === 3 ? '3 - Largely Compliant' : s === 2 ? '2 - Materially Non-compliant' : '1 - Non-compliant';
         html += '<option value="' + s + '"' + (p.score === s ? ' selected' : '') + '>' + label + '</option>';
     });
     html += '</select></div>';
-    html += '<div><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Target Date</label>';
-    html += '<input type="date" id="bcbs239-ef-date" value="' + (p.target_date || '') + '" style="font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;"></div>';
+    html += '<div><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Target Date</label>';
+    html += '<input type="date" id="bcbs239-ef-date" value="' + (p.target_date || '') + '" style="font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);"></div>';
     html += '</div>';
 
-    html += '<div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Evidence</label>';
-    html += '<textarea id="bcbs239-ef-evidence" rows="3" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;line-height:1.5;">' + (p.evidence || '') + '</textarea></div>';
+    html += '<div style="margin-bottom:var(--space-4);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Evidence</label>';
+    html += '<textarea id="bcbs239-ef-evidence" rows="3" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;line-height:1.5;">' + (p.evidence || '') + '</textarea></div>';
 
-    html += '<div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Gaps</label>';
-    html += '<textarea id="bcbs239-ef-gaps" rows="2" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;line-height:1.5;">' + (p.gaps || '') + '</textarea></div>';
+    html += '<div style="margin-bottom:var(--space-4);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Gaps</label>';
+    html += '<textarea id="bcbs239-ef-gaps" rows="2" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;line-height:1.5;">' + (p.gaps || '') + '</textarea></div>';
 
-    html += '<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:2px;">Remediation</label>';
-    html += '<textarea id="bcbs239-ef-remediation" rows="2" style="width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;line-height:1.5;">' + (p.remediation || '') + '</textarea></div>';
+    html += '<div style="margin-bottom:var(--space-5);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-1);">Remediation</label>';
+    html += '<textarea id="bcbs239-ef-remediation" rows="2" style="width:100%;font-size:var(--size-xs);padding:var(--space-3) var(--space-4);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;line-height:1.5;">' + (p.remediation || '') + '</textarea></div>';
 
-    html += '<div style="display:flex;gap:8px;">';
-    html += '<button onclick="window.MG.saveBcbs239Principle(' + principleId + ')" style="padding:5px 14px;font-size:11px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
-    html += '<button onclick="document.getElementById(\'bcbs239-edit-area\').innerHTML=\'\';" style="padding:5px 14px;font-size:11px;border:1px solid var(--divider);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
+    html += '<div style="display:flex;gap:var(--space-4);">';
+    html += '<button onclick="window.MG.saveBcbs239Principle(' + principleId + ')" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:500;">Save</button>';
+    html += '<button onclick="document.getElementById(\'bcbs239-edit-area\').innerHTML=\'\';" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);border:1px solid var(--divider);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);">Cancel</button>';
     html += '</div></div>';
 
     area.innerHTML = html;

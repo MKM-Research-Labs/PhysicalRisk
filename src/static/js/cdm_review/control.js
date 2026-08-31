@@ -25,7 +25,7 @@
     var expanded = false;
 
     var DEFAULT_CSS = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-        'width:90vw;max-width:1200px;height:85vh;background:var(--panel);border-radius:8px;' +
+        'width:90vw;max-width:1200px;height:85vh;background:var(--panel);border-radius:var(--radius-lg);' +
         'box-shadow:var(--shadow-modal);z-index:2000;display:none;' +
         'flex-direction:column;font-family:Arial,Helvetica,sans-serif;overflow:hidden;';
 
@@ -37,27 +37,27 @@
         // Header — title + expand/close, matching the other workstream panels.
         var header = document.createElement('div');
         header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;' +
-            'padding:10px 16px;border-bottom:1px solid var(--line-soft);flex-shrink:0;';
+            'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);flex-shrink:0;';
 
         var title = document.createElement('span');
         title.textContent = 'CDM Asset Review';
-        title.style.cssText = 'font-size:14px;font-weight:700;color:var(--text);';
+        title.style.cssText = 'font-size:var(--size-14);font-weight:700;color:var(--text);';
 
         var actions = document.createElement('div');
-        actions.style.cssText = 'display:flex;align-items:center;gap:2px;';
+        actions.style.cssText = 'display:flex;align-items:center;gap:var(--space-1);';
 
         var expandBtn = document.createElement('button');
         expandBtn.innerHTML = '&#x26F6;';
         expandBtn.title = 'Expand';
-        expandBtn.style.cssText = 'border:none;background:none;font-size:18px;cursor:pointer;' +
-            'color:var(--text-3);padding:0 6px;line-height:1;';
+        expandBtn.style.cssText = 'border:none;background:none;font-size:var(--size-18);cursor:pointer;' +
+            'color:var(--text-3);padding:0 var(--space-3);line-height:1;';
         expandBtn.onclick = function () { toggleExpand(expandBtn); };
 
         var closeBtn = document.createElement('button');
         closeBtn.innerHTML = '&times;';
         closeBtn.title = 'Close';
-        closeBtn.style.cssText = 'border:none;background:none;font-size:24px;cursor:pointer;' +
-            'color:var(--text-3);padding:0 8px;line-height:1;';
+        closeBtn.style.cssText = 'border:none;background:none;font-size:var(--size-24);cursor:pointer;' +
+            'color:var(--text-3);padding:0 var(--space-4);line-height:1;';
         closeBtn.onclick = hidePanel;
 
         actions.appendChild(expandBtn);

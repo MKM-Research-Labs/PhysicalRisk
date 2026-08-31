@@ -76,14 +76,14 @@
 
                 // Summary cards
                 var summaryHtml =
-                    '<div style="padding:8px 0 4px 0;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;">' +
-                    '<div style="padding:4px 10px;background:var(--ok-bg);border-radius:4px;border-left:3px solid var(--green-bright);">' +
+                    '<div style="padding:var(--space-4) 0 var(--space-2) 0;display:flex;gap:var(--space-6);flex-wrap:wrap;font-size:var(--size-xs);">' +
+                    '<div style="padding:var(--space-2) var(--space-5);background:var(--ok-bg);border-radius:var(--radius-4);border-left:3px solid var(--green-bright);">' +
                     '<b>Hedged</b><br>' + qTopRight + ' storms</div>' +
-                    '<div style="padding:4px 10px;background:var(--warn-bg-warm);border-radius:4px;border-left:3px solid var(--amber-bright);">' +
+                    '<div style="padding:var(--space-2) var(--space-5);background:var(--warn-bg-warm);border-radius:var(--radius-4);border-left:3px solid var(--amber-bright);">' +
                     '<b>Basis Risk</b> (gauge triggers, property dry)<br>' + qBottomRight + ' storms</div>' +
-                    '<div style="padding:4px 10px;background:var(--danger-bg-soft);border-radius:4px;border-left:3px solid var(--red-bright);">' +
+                    '<div style="padding:var(--space-2) var(--space-5);background:var(--danger-bg-soft);border-radius:var(--radius-4);border-left:3px solid var(--red-bright);">' +
                     '<b>Unhedged</b> (property floods, no trigger)<br>' + qTopLeft + ' storms</div>' +
-                    '<div style="padding:4px 10px;background:var(--sunken);border-radius:4px;border-left:3px solid var(--grey);">' +
+                    '<div style="padding:var(--space-2) var(--space-5);background:var(--sunken);border-radius:var(--radius-4);border-left:3px solid var(--grey);">' +
                     '<b>No Event</b><br>' + qBottomLeft + ' storms</div>' +
                     '</div>';
 
@@ -94,14 +94,14 @@
                 var hasPerils = (typeof _perilOutcomesData === 'function')
                     && _perilOutcomesData();
                 var rightCol = hasPerils
-                    ? ('<div style="display:flex;flex-direction:column;width:38%;min-width:240px;gap:6px;">' +
+                    ? ('<div style="display:flex;flex-direction:column;width:38%;min-width:240px;gap:var(--space-3);">' +
                        '<canvas id="basis-prop-waterfall" style="flex:1.4;min-height:0;"></canvas>' +
                        '<canvas id="basis-prop-perils" style="flex:1;min-height:0;"></canvas>' +
                        '</div>')
                     : '<canvas id="basis-prop-waterfall" style="width:35%;min-width:220px;"></canvas>';
 
                 container.innerHTML = summaryHtml +
-                    '<div style="display:flex;flex:1;gap:8px;min-height:0;">' +
+                    '<div style="display:flex;flex:1;gap:var(--space-4);min-height:0;">' +
                     '<canvas id="basis-prop-canvas" style="flex:1;"></canvas>' +
                     rightCol +
                     '</div>';

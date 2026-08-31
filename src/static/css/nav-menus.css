@@ -1,21 +1,21 @@
 #nav-menu-container {
     position: fixed; top: 10px; left: 60px; z-index: 1500;
-    display: flex; gap: 6px; align-items: center;
+    display: flex; gap: var(--space-3); align-items: center;
     font-family: Arial, sans-serif;
 }
 #nav-menu-container select {
-    padding: 5px 8px; font-size: 11px; border: 1px solid var(--faint);
-    border-radius: 4px; background: var(--panel); color: var(--text);
+    padding: var(--space-3) var(--space-4); font-size: var(--size-xs); border: 1px solid var(--faint);
+    border-radius: var(--radius-4); background: var(--panel); color: var(--text);
     box-shadow: var(--shadow-card-hover); cursor: pointer;
     max-width: 220px;
 }
 #nav-menu-container select:focus { outline: none; border-color: var(--accent); }
 #nav-action-bar {
-    display: flex; gap: 3px;
+    display: flex; gap: var(--space-2);
 }
 #nav-action-bar button {
-    padding: 4px 8px; font-size: 10px; border: 1px solid var(--divider);
-    border-radius: 3px; background: var(--wash); cursor: pointer;
+    padding: var(--space-2) var(--space-4); font-size: var(--size-xxs); border: 1px solid var(--divider);
+    border-radius: var(--radius-sm); background: var(--wash); cursor: pointer;
     color: var(--text); white-space: nowrap;
 }
 #nav-action-bar button:hover { background: var(--accent-soft); border-color: var(--accent); }

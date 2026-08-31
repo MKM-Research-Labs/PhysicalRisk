@@ -203,7 +203,7 @@
                 el.style.display = 'block';
 
                 // Summary line
-                var summ = '<div style="margin-bottom:4px;font-weight:600;font-family:sans-serif;">';
+                var summ = '<div style="margin-bottom:var(--space-2);font-weight:600;font-family:sans-serif;">';
                 if (avgAuc != null) summ += 'Avg AUC: ' + avgAuc.toFixed(4) + '  \u00b7  ';
                 summ += (numTrained || 0) + ' trained';
                 if (numFailed) summ += ', <span style="color:var(--red-dark);">' + numFailed + ' failed</span>';
@@ -265,7 +265,7 @@
                     var detailPane = document.getElementById('cl-detail-pane');
                     if (detailPane) {
                         detailPane.innerHTML =
-                            '<div style="text-align:center;color:var(--muted-2);font-size:12px;padding-top:40px;">' +
+                            '<div style="text-align:center;color:var(--muted-2);font-size:var(--size-sm);padding-top:var(--space-inset);">' +
                             'Select a gauge to view classifier details</div>';
                     }
                     loadClassifiersData();

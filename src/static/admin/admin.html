@@ -11,33 +11,33 @@
     * { box-sizing:border-box; }
     body { margin:0; font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;
            background:var(--dk-bg); color:var(--dk-text); }
-    header { padding:16px 24px; border-bottom:1px solid var(--dk-line);
-             display:flex; align-items:center; gap:16px; }
-    header h1 { font-size:16px; margin:0; font-weight:600; }
+    header { padding:var(--space-8) var(--space-10); border-bottom:1px solid var(--dk-line);
+             display:flex; align-items:center; gap:var(--space-8); }
+    header h1 { font-size:var(--size-lg); margin:0; font-weight:600; }
     header .who { margin-left:auto; color:var(--dk-muted); }
-    main { padding:24px; max-width:1100px; margin:0 auto; }
+    main { padding:var(--space-10); max-width:1100px; margin:0 auto; }
     .panel { background:var(--dk-panel); border:1px solid var(--dk-line);
-             border-radius:8px; padding:20px; margin-bottom:20px; }
-    h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em;
-         color:var(--dk-muted); margin:0 0 14px; }
-    label { display:block; color:var(--dk-muted); margin:8px 0 4px; font-size:12px; }
+             border-radius:var(--radius-lg); padding:var(--space-wide); margin-bottom:var(--space-wide); }
+    h2 { font-size:var(--size-md); text-transform:uppercase; letter-spacing:.06em;
+         color:var(--dk-muted); margin:0 0 var(--space-7); }
+    label { display:block; color:var(--dk-muted); margin:var(--space-4) 0 var(--space-2); font-size:var(--size-sm); }
     input[type=text], input[type=password] {
       background:var(--dk-bg); border:1px solid var(--dk-line); color:var(--dk-text);
-      border-radius:5px; padding:7px 9px; width:220px; }
-    button { background:var(--dk-accent); border:0; color:var(--inverse); padding:7px 14px;
-             border-radius:5px; cursor:pointer; font-weight:600; }
+      border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); width:220px; }
+    button { background:var(--dk-accent); border:0; color:var(--inverse); padding:var(--space-4) var(--space-7);
+             border-radius:var(--radius-md); cursor:pointer; font-weight:600; }
     button.ghost { background:transparent; border:1px solid var(--dk-line);
                    color:var(--dk-text); font-weight:400; }
     button:disabled { opacity:.5; cursor:default; }
     table { border-collapse:collapse; width:100%; }
-    th, td { border:1px solid var(--dk-line); padding:7px 9px; text-align:center; }
+    th, td { border:1px solid var(--dk-line); padding:var(--space-4) var(--space-5); text-align:center; }
     th.user, td.user { text-align:left; white-space:nowrap; }
     td.inactive { color:var(--dk-muted); text-decoration:line-through; }
-    .caps { font-size:11px; color:var(--dk-muted); }
-    .msg { margin-top:10px; min-height:18px; font-size:13px; }
+    .caps { font-size:var(--size-xs); color:var(--dk-muted); }
+    .msg { margin-top:var(--space-5); min-height:18px; font-size:var(--size-md); }
     .msg.err { color:var(--dk-bad); } .msg.ok { color:var(--dk-ok); }
     .hidden { display:none; }
-    .row { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
+    .row { display:flex; gap:var(--space-7); align-items:flex-end; flex-wrap:wrap; }
   </style>
 </head>
 <body>

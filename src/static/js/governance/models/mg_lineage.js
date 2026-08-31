@@ -20,20 +20,20 @@
 
 function renderDataLineage() {
     var content = document.getElementById('mg-content');
-    content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);">Loading data lineage...</div>';
+    content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--muted);">Loading data lineage...</div>';
 
     fetch(getBaseUrl() + '/api/v1/governance/data-lineage', {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Error: ' + (data.message || 'Unknown') + '</div>';
+                content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Error: ' + (data.message || 'Unknown') + '</div>';
                 return;
             }
             window._lineageData = data;
             _drawLineagePanel(data);
         })
         .catch(function(err) {
-            content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">Failed to load data lineage.</div>';
+            content.innerHTML = '<div style="padding:var(--space-inset);text-align:center;color:var(--red);">Failed to load data lineage.</div>';
             console.error('[Governance] Lineage load error:', err);
         });
 }
@@ -43,92 +43,92 @@ function _lineageStatusBadge(status) {
     var labels = {fresh: 'Fresh', stale: 'Stale', missing: 'Missing'};
     var bg = colors[status] || 'var(--muted-2)';
     var label = labels[status] || status;
-    return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;color:var(--inverse);background:' + bg + ';">' + label + '</span>';
+    return '<span style="display:inline-block;padding:var(--space-1) var(--space-4);border-radius:var(--radius-xl);font-size:var(--size-xxs);font-weight:700;color:var(--inverse);background:' + bg + ';">' + label + '</span>';
 }
 
 function _lineageHealthBadge(health) {
     var colors = Theme.ramp('lineage_health');
     var bg = colors[health] || 'var(--muted-2)';
-    return '<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;color:var(--inverse);background:' + bg + ';text-transform:uppercase;">' + health + '</span>';
+    return '<span style="display:inline-block;padding:var(--space-2) var(--space-5);border-radius:var(--radius-pill);font-size:var(--size-xxs);font-weight:700;color:var(--inverse);background:' + bg + ';text-transform:uppercase;">' + health + '</span>';
 }
 
 function _drawLineagePanel(data) {
     var content = document.getElementById('mg-content');
     var steps = data.pipeline_steps || [];
     var summary = data.summary || {};
-    var html = '<div style="padding:16px;">';
+    var html = '<div style="padding:var(--space-8);">';
 
     // Header with health badge
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-8);">';
     html += '<div>';
-    html += '<div style="font-size:13px;font-weight:700;color:var(--text);">Data Pipeline Lineage</div>';
-    html += '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">Pipeline health and data provenance tracking</div>';
+    html += '<div style="font-size:var(--size-md);font-weight:700;color:var(--text);">Data Pipeline Lineage</div>';
+    html += '<div style="font-size:var(--size-xs);color:var(--text-3);margin-top:var(--space-1);">Pipeline health and data provenance tracking</div>';
     html += '</div>';
     html += '<div style="text-align:right;">';
     html += _lineageHealthBadge(summary.health || 'unknown');
-    html += '<div style="font-size:10px;color:var(--muted);margin-top:4px;">' + (summary.fresh || 0) + '/' + (summary.total || 0) + ' steps fresh</div>';
+    html += '<div style="font-size:var(--size-xxs);color:var(--muted);margin-top:var(--space-2);">' + (summary.fresh || 0) + '/' + (summary.total || 0) + ' steps fresh</div>';
     html += '</div></div>';
 
     // Pipeline DAG
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Pipeline DAG</div>';
-    html += '<div style="display:flex;align-items:center;gap:0;padding:12px 0;overflow-x:auto;flex-wrap:wrap;justify-content:center;">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);margin-bottom:var(--space-4);">Pipeline DAG</div>';
+    html += '<div style="display:flex;align-items:center;gap:0;padding:var(--space-6) 0;overflow-x:auto;flex-wrap:wrap;justify-content:center;">';
     steps.forEach(function(s, idx) {
         var borderColor = Theme.ramp('lineage_freshness')[s.status];
         var bgColor = Theme.ramp('lineage_freshness_bg')[s.status];
-        html += '<div style="text-align:center;min-width:90px;padding:10px 8px;border:2px solid ' + borderColor + ';border-radius:8px;background:' + bgColor + ';margin:4px 0;">';
-        html += '<div style="font-size:10px;font-weight:700;color:var(--text);">' + s.step + '</div>';
+        html += '<div style="text-align:center;min-width:90px;padding:var(--space-5) var(--space-4);border:2px solid ' + borderColor + ';border-radius:var(--radius-lg);background:' + bgColor + ';margin:var(--space-2) 0;">';
+        html += '<div style="font-size:var(--size-xxs);font-weight:700;color:var(--text);">' + s.step + '</div>';
         if (s.last_run) {
             var d = s.last_run.substring(0, 16).replace('T', ' ');
-            html += '<div style="font-size:8px;color:var(--text-3);margin-top:4px;">' + d + '</div>';
+            html += '<div style="font-size:var(--size-8);color:var(--text-3);margin-top:var(--space-2);">' + d + '</div>';
         } else {
-            html += '<div style="font-size:8px;color:var(--red-bright);margin-top:4px;font-weight:600;">Not run</div>';
+            html += '<div style="font-size:var(--size-8);color:var(--red-bright);margin-top:var(--space-2);font-weight:600;">Not run</div>';
         }
-        html += '<div style="margin-top:4px;">' + _lineageStatusBadge(s.status) + '</div>';
+        html += '<div style="margin-top:var(--space-2);">' + _lineageStatusBadge(s.status) + '</div>';
         html += '</div>';
         if (idx < steps.length - 1) {
-            html += '<div style="font-size:16px;color:var(--muted-2);padding:0 4px;">\u2192</div>';
+            html += '<div style="font-size:var(--size-lg);color:var(--muted-2);padding:0 var(--space-2);">\u2192</div>';
         }
     });
     html += '</div>';
 
     // Staleness table
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text-2);margin:20px 0 8px;">Staleness Detail</div>';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);margin:var(--space-wide) 0 var(--space-4);">Staleness Detail</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-xs);">';
     html += '<thead><tr style="background:var(--raised);">';
     ['Step', 'Generator', 'Last Run', 'Status', 'Issues'].forEach(function(h) {
-        html += '<th style="padding:6px 10px;text-align:left;border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--text-2);">' + h + '</th>';
+        html += '<th style="padding:var(--space-3) var(--space-5);text-align:left;border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--text-2);">' + h + '</th>';
     });
     html += '</tr></thead><tbody>';
     steps.forEach(function(s) {
         html += '<tr>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-weight:600;color:var(--text);">' + s.step + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-family:monospace;font-size:10px;color:var(--text-3);">' + s.generator + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-size:10px;color:var(--text-3);">';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-weight:600;color:var(--text);">' + s.step + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-family:monospace;font-size:var(--size-xxs);color:var(--text-3);">' + s.generator + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-size:var(--size-xxs);color:var(--text-3);">';
         if (s.last_run) {
             html += s.last_run.substring(0, 19).replace('T', ' ');
         } else {
             html += '<span style="color:var(--red-bright);">\u2014</span>';
         }
         html += '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);">' + _lineageStatusBadge(s.status) + '</td>';
-        html += '<td style="padding:5px 10px;border-bottom:1px solid var(--code);font-size:10px;color:var(--muted);">' + (s.issues.length > 0 ? s.issues.join('; ') : '\u2014') + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);">' + _lineageStatusBadge(s.status) + '</td>';
+        html += '<td style="padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--code);font-size:var(--size-xxs);color:var(--muted);">' + (s.issues.length > 0 ? s.issues.join('; ') : '\u2014') + '</td>';
         html += '</tr>';
     });
     html += '</tbody></table>';
 
     // Trace search
-    html += '<div style="font-size:11px;font-weight:600;color:var(--text-2);margin:24px 0 8px;">Provenance Trace</div>';
-    html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">';
-    html += '<select id="lineage-trace-type" onchange="window._lineagePopulateIds()" style="padding:5px 8px;font-size:11px;border:1px solid var(--line-strong);border-radius:4px;">';
+    html += '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);margin:var(--space-10) 0 var(--space-4);">Provenance Trace</div>';
+    html += '<div style="display:flex;gap:var(--space-4);align-items:center;margin-bottom:var(--space-6);">';
+    html += '<select id="lineage-trace-type" onchange="window._lineagePopulateIds()" style="padding:var(--space-3) var(--space-4);font-size:var(--size-xs);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
     html += '<option value="gauge">Gauge</option>';
     html += '<option value="property">Property</option>';
     html += '<option value="trade">Trade (PRS)</option>';
     html += '<option value="counterparty">Counterparty</option>';
     html += '</select>';
-    html += '<select id="lineage-trace-id" style="flex:1;padding:5px 8px;font-size:11px;border:1px solid var(--line-strong);border-radius:4px;">';
+    html += '<select id="lineage-trace-id" style="flex:1;padding:var(--space-3) var(--space-4);font-size:var(--size-xs);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
     html += '<option value="">Loading...</option>';
     html += '</select>';
-    html += '<button onclick="window._lineageTrace()" style="padding:5px 14px;font-size:11px;font-weight:600;border:1px solid var(--accent);border-radius:4px;background:var(--accent);color:var(--inverse);cursor:pointer;">Trace</button>';
+    html += '<button onclick="window._lineageTrace()" style="padding:var(--space-3) var(--space-7);font-size:var(--size-xs);font-weight:600;border:1px solid var(--accent);border-radius:var(--radius-4);background:var(--accent);color:var(--inverse);cursor:pointer;">Trace</button>';
     html += '</div>';
     html += '<div id="lineage-trace-result"></div>';
 
@@ -221,62 +221,62 @@ window._lineageTrace = function() {
     var dataId = idSelect ? idSelect.value : '';
     var resultDiv = document.getElementById('lineage-trace-result');
     if (!dataId) {
-        resultDiv.innerHTML = '<div style="font-size:11px;color:var(--red-bright);">Please select an entity to trace.</div>';
+        resultDiv.innerHTML = '<div style="font-size:var(--size-xs);color:var(--red-bright);">Please select an entity to trace.</div>';
         return;
     }
-    resultDiv.innerHTML = '<div style="font-size:11px;color:var(--muted);">Tracing...</div>';
+    resultDiv.innerHTML = '<div style="font-size:var(--size-xs);color:var(--muted);">Tracing...</div>';
 
     fetch(getBaseUrl() + '/api/v1/governance/data-lineage/trace?data_type=' + encodeURIComponent(dataType) + '&data_id=' + encodeURIComponent(dataId), {mode: 'cors'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.status !== 'success') {
-                resultDiv.innerHTML = '<div style="font-size:11px;color:var(--red-bright);">Error: ' + (data.message || 'Unknown') + '</div>';
+                resultDiv.innerHTML = '<div style="font-size:var(--size-xs);color:var(--red-bright);">Error: ' + (data.message || 'Unknown') + '</div>';
                 return;
             }
             if (!data.found || data.trace.length === 0) {
-                resultDiv.innerHTML = '<div style="font-size:11px;color:var(--muted);">No provenance records found for <b>' + dataType + '/' + dataId + '</b>.</div>';
+                resultDiv.innerHTML = '<div style="font-size:var(--size-xs);color:var(--muted);">No provenance records found for <b>' + dataType + '/' + dataId + '</b>.</div>';
                 return;
             }
             // Render visual provenance trail
             var roleColors = Theme.ramp('lineage_role');
             var roleIcons = {origin: '\u25cf', derived: '\u2192', consumed: '\u25b6', found: '\u2605'};
-            var html = '<div style="padding:8px 0;">';
-            html += '<div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600;">' +
+            var html = '<div style="padding:var(--space-4) 0;">';
+            html += '<div style="font-size:var(--size-xs);color:var(--text);margin-bottom:var(--space-4);font-weight:600;">' +
                 data.trace.length + ' provenance step' + (data.trace.length > 1 ? 's' : '') +
                 ' for <span style="font-family:monospace;color:var(--accent-mid);">' + dataId + '</span></div>';
 
             // Breadcrumb arrows
-            html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:12px;">';
+            html += '<div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-6);">';
             data.trace.forEach(function(t, i) {
                 var col = roleColors[t.role] || 'var(--grey-dark)';
-                html += '<div style="padding:3px 10px;border-radius:12px;background:' + col + ';color:var(--inverse);font-size:10px;font-weight:600;">' + t.step + '</div>';
-                if (i < data.trace.length - 1) html += '<span style="color:var(--faint);font-size:14px;">\u25b8</span>';
+                html += '<div style="padding:var(--space-2) var(--space-5);border-radius:var(--radius-pill);background:' + col + ';color:var(--inverse);font-size:var(--size-xxs);font-weight:600;">' + t.step + '</div>';
+                if (i < data.trace.length - 1) html += '<span style="color:var(--faint);font-size:var(--size-14);">\u25b8</span>';
             });
             html += '</div>';
 
             // Detail table
-            html += '<table style="width:100%;font-size:10px;border-collapse:collapse;">';
+            html += '<table style="width:100%;font-size:var(--size-xxs);border-collapse:collapse;">';
             html += '<thead><tr style="background:var(--blue-grey-bg);">';
-            html += '<th style="padding:5px 8px;text-align:left;">Step</th>';
-            html += '<th style="padding:5px 8px;text-align:left;">Role</th>';
-            html += '<th style="padding:5px 8px;text-align:left;">File</th>';
-            html += '<th style="padding:5px 8px;text-align:left;">Context</th>';
+            html += '<th style="padding:var(--space-3) var(--space-4);text-align:left;">Step</th>';
+            html += '<th style="padding:var(--space-3) var(--space-4);text-align:left;">Role</th>';
+            html += '<th style="padding:var(--space-3) var(--space-4);text-align:left;">File</th>';
+            html += '<th style="padding:var(--space-3) var(--space-4);text-align:left;">Context</th>';
             html += '</tr></thead><tbody>';
             data.trace.forEach(function(t, i) {
                 var col = roleColors[t.role] || 'var(--grey-dark)';
                 var bg = i % 2 === 0 ? 'var(--panel)' : 'var(--wash)';
                 html += '<tr style="background:' + bg + ';border-bottom:1px solid var(--line-soft);">';
-                html += '<td style="padding:5px 8px;font-weight:600;color:' + col + ';">' + (roleIcons[t.role] || '') + ' ' + t.step + '</td>';
-                html += '<td style="padding:5px 8px;color:var(--text-3);">' + t.role + '</td>';
-                html += '<td style="padding:5px 8px;font-family:monospace;font-size:9px;color:var(--text-2);">' + (t.file || '') + '</td>';
-                html += '<td style="padding:5px 8px;color:var(--muted);">' + (t.context || '') + '</td>';
+                html += '<td style="padding:var(--space-3) var(--space-4);font-weight:600;color:' + col + ';">' + (roleIcons[t.role] || '') + ' ' + t.step + '</td>';
+                html += '<td style="padding:var(--space-3) var(--space-4);color:var(--text-3);">' + t.role + '</td>';
+                html += '<td style="padding:var(--space-3) var(--space-4);font-family:monospace;font-size:var(--size-xxs);color:var(--text-2);">' + (t.file || '') + '</td>';
+                html += '<td style="padding:var(--space-3) var(--space-4);color:var(--muted);">' + (t.context || '') + '</td>';
                 html += '</tr>';
             });
             html += '</tbody></table></div>';
             resultDiv.innerHTML = html;
         })
         .catch(function(err) {
-            resultDiv.innerHTML = '<div style="font-size:11px;color:var(--red-bright);">Trace request failed.</div>';
+            resultDiv.innerHTML = '<div style="font-size:var(--size-xs);color:var(--red-bright);">Trace request failed.</div>';
             console.error('[Governance] Trace error:', err);
         });
 };

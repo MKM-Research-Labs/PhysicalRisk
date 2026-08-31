@@ -110,7 +110,7 @@
                 var wrap = document.getElementById('sp-ctrl-section-' + sectionId);
                 if (!wrap) return;
                 var fields = _ctrlFields[sectionId];
-                if (!fields || !data) { wrap.innerHTML = '<span style="color:var(--muted-2);font-size:10px;">No data</span>'; return; }
+                if (!fields || !data) { wrap.innerHTML = '<span style="color:var(--muted-2);font-size:var(--size-xxs);">No data</span>'; return; }
 
                 var html = '';
                 fields.forEach(function(f) {

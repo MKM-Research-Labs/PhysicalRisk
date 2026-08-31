@@ -59,10 +59,10 @@
                 var shdSpread = sd.shd_spread_bps || 0;
 
                 // --- Left panel: Detail ---
-                var lbl = 'font-size:10px;color:var(--muted);';
-                var val = 'font-size:13px;font-weight:600;color:var(--text);';
-                var hdr = 'font-size:11px;font-weight:700;color:var(--text-2);margin:10px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--line-soft);padding-bottom:3px;';
-                var row = 'display:flex;justify-content:space-between;padding:2px 0;';
+                var lbl = 'font-size:var(--size-xxs);color:var(--muted);';
+                var val = 'font-size:var(--size-md);font-weight:600;color:var(--text);';
+                var hdr = 'font-size:var(--size-xs);font-weight:700;color:var(--text-2);margin:var(--space-5) 0 var(--space-2) 0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--line-soft);padding-bottom:var(--space-2);';
+                var row = 'display:flex;justify-content:space-between;padding:var(--space-1) 0;';
 
                 // Gauge info — fetch severe counts from storms data if available
                 var stormsData = phcData._storms_data || {};
@@ -72,7 +72,7 @@
                 nearestGauges.forEach(function(ng) {
                     var isSynth = ng.gauge_id.indexOf('SYNTH') === 0;
                     var icon = isSynth ? '\u2605 ' : '';
-                    var tag = isSynth ? ' <span style="font-size:9px;color:var(--accent);background:var(--accent-soft);padding:1px 4px;border-radius:3px;">controlling</span>' : '';
+                    var tag = isSynth ? ' <span style="font-size:var(--size-xxs);color:var(--accent);background:var(--accent-soft);padding:var(--space-hair) var(--space-2);border-radius:var(--radius-sm);">controlling</span>' : '';
 
                     // Find severe count and name from storms endpoint
                     var stormGauge = stormsNearestGauges.find(function(sg) { return sg.gauge_id === ng.gauge_id; }) || {};
@@ -81,8 +81,8 @@
                     var gaugeName = stormGauge.gauge_name || ng.gauge_id;
 
                     gaugeRows +=
-                        '<div style="padding:4px 0;border-bottom:1px solid var(--sunken);">' +
-                        '<div style="font-size:11px;font-weight:600;">' + icon + gaugeName + tag + '</div>' +
+                        '<div style="padding:var(--space-2) 0;border-bottom:1px solid var(--sunken);">' +
+                        '<div style="font-size:var(--size-xs);font-weight:600;">' + icon + gaugeName + tag + '</div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Distance</span><span style="' + val + '">' + (ng.distance_km || 0).toFixed(2) + 'km</span></div>' +
                         '<div style="' + row + '"><span style="' + lbl + '">Elevation</span><span style="' + val + '">' + (ng.gauge_elevation_m || 0).toFixed(1) + 'm</span></div>';
                     if (sevCount !== undefined) {
@@ -95,7 +95,7 @@
                 var effectiveDiff = elevDiff + floorLevel - 0.5;
 
                 var detailHtml =
-                    '<div style="width:300px;min-width:260px;padding:8px 12px;overflow-y:auto;border-right:1px solid var(--line-soft);font-size:12px;">' +
+                    '<div style="width:300px;min-width:260px;padding:var(--space-4) var(--space-6);overflow-y:auto;border-right:1px solid var(--line-soft);font-size:var(--size-sm);">' +
 
                     // Asset section
                     '<div style="' + hdr + '">Asset</div>' +
@@ -123,8 +123,8 @@
 
                 // --- Right panel: Waterfall table ---
                 var chartHtml =
-                    '<div id="phc-waterfall-container" style="flex:1;display:flex;flex-direction:column;padding:8px;overflow-y:auto;">' +
-                    '<div style="text-align:center;font-size:12px;font-weight:600;color:var(--text-2);padding:4px 0 8px 0;">Basis Waterfall: Storm Attenuation</div>' +
+                    '<div id="phc-waterfall-container" style="flex:1;display:flex;flex-direction:column;padding:var(--space-4);overflow-y:auto;">' +
+                    '<div style="text-align:center;font-size:var(--size-sm);font-weight:600;color:var(--text-2);padding:var(--space-2) 0 var(--space-4) 0;">Basis Waterfall: Storm Attenuation</div>' +
                     '</div>';
 
                 container.innerHTML = detailHtml + chartHtml;
@@ -242,13 +242,13 @@
 
                 var maxCount = Math.max(gaugeCount, 1);
                 if (!container) return;
-                var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;">';
-                html += '<thead><tr style="border-bottom:2px solid var(--line-strong);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' +
-                    '<th style="padding:6px 8px;text-align:left;">Stage</th>' +
-                    '<th style="padding:6px 8px;text-align:right;">Storms</th>' +
-                    '<th style="padding:6px 8px;text-align:right;">Spread</th>' +
-                    '<th style="padding:6px 8px;text-align:right;">Loss</th>' +
-                    '<th style="padding:6px 12px;text-align:left;width:45%;">Attenuation</th>' +
+                var html = '<table style="width:100%;border-collapse:collapse;font-size:var(--size-sm);font-family:Arial,sans-serif;">';
+                html += '<thead><tr style="border-bottom:2px solid var(--line-strong);font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' +
+                    '<th style="padding:var(--space-3) var(--space-4);text-align:left;">Stage</th>' +
+                    '<th style="padding:var(--space-3) var(--space-4);text-align:right;">Storms</th>' +
+                    '<th style="padding:var(--space-3) var(--space-4);text-align:right;">Spread</th>' +
+                    '<th style="padding:var(--space-3) var(--space-4);text-align:right;">Loss</th>' +
+                    '<th style="padding:var(--space-3) var(--space-6);text-align:left;width:45%;">Attenuation</th>' +
                     '</tr></thead><tbody>';
 
                 steps.forEach(function(s, i) {
@@ -289,14 +289,14 @@
                         : 'border-bottom:1px solid var(--code);';
 
                     html += '<tr style="' + rowStyle + '">' +
-                        '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label + '</td>' +
-                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + countCell + '</td>' +
-                        '<td style="padding:8px;text-align:right;color:var(--text-2);">' + s.spread.toFixed(1) + 'bp</td>' +
-                        '<td style="padding:8px;text-align:right;">' + lossCell + '</td>' +
-                        '<td style="padding:8px 12px;">' +
+                        '<td style="padding:var(--space-4);font-weight:600;color:' + s.color + ';">' + s.label + '</td>' +
+                        '<td style="padding:var(--space-4);text-align:right;font-weight:700;font-size:var(--size-14);color:' + s.color + ';">' + countCell + '</td>' +
+                        '<td style="padding:var(--space-4);text-align:right;color:var(--text-2);">' + s.spread.toFixed(1) + 'bp</td>' +
+                        '<td style="padding:var(--space-4);text-align:right;">' + lossCell + '</td>' +
+                        '<td style="padding:var(--space-4) var(--space-6);">' +
                         (s.countMissing ? '' :
-                        '<div style="background:var(--sunken);border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
-                        '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:3px 0 0 3px;"></div>' +
+                        '<div style="background:var(--sunken);border-radius:var(--radius-sm);height:18px;position:relative;overflow:hidden;">' +
+                        '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:var(--radius-sm) 0 0 var(--radius-sm);"></div>' +
                         '</div>') +
                         '</td></tr>';
                 });
@@ -358,34 +358,34 @@
                     _indSteps.forEach(function(s) { _sumSq += (s.spread || 0) * (s.spread || 0); });
                     var _allIn = Math.sqrt(_sumSq);
 
-                    var ih = '<div style="margin-top:16px;border-top:2px solid var(--line);padding-top:10px;">';
-                    ih += '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:0 8px 6px;">' +
+                    var ih = '<div style="margin-top:var(--space-8);border-top:2px solid var(--line);padding-top:var(--space-5);">';
+                    ih += '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:0 var(--space-4) var(--space-3);">' +
                           'Independent perils \u2014 all-in (\u221a\u03a3 squares)</div>';
-                    ih += '<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Arial,sans-serif;"><tbody>';
+                    ih += '<table style="width:100%;border-collapse:collapse;font-size:var(--size-sm);font-family:Arial,sans-serif;"><tbody>';
                     // Basis row: which flood/wind leg the all-in is built on.
                     ih += '<tr style="border-bottom:1px solid var(--code);">' +
-                        '<td style="padding:8px;font-weight:600;color:var(--blue-grey-dark);">Flood/wind basis' +
-                        ' <span style="color:var(--disabled);font-weight:400;font-size:10px;">' + _fwBaseLabel + '</span></td>' +
-                        '<td style="padding:8px;"></td>' +
-                        '<td style="padding:8px;text-align:right;color:var(--text-2);">' + _fwBase.toFixed(1) + 'bp</td>' +
-                        '<td style="padding:8px;"></td><td style="padding:8px 12px;"></td></tr>';
+                        '<td style="padding:var(--space-4);font-weight:600;color:var(--blue-grey-dark);">Flood/wind basis' +
+                        ' <span style="color:var(--disabled);font-weight:400;font-size:var(--size-xxs);">' + _fwBaseLabel + '</span></td>' +
+                        '<td style="padding:var(--space-4);"></td>' +
+                        '<td style="padding:var(--space-4);text-align:right;color:var(--text-2);">' + _fwBase.toFixed(1) + 'bp</td>' +
+                        '<td style="padding:var(--space-4);"></td><td style="padding:var(--space-4) var(--space-6);"></td></tr>';
                     _indSteps.forEach(function(s) {
                         var barPct = (maxCount > 0) ? (s.count / maxCount * 100) : 0;
                         ih += '<tr style="border-bottom:1px solid var(--code);">' +
-                            '<td style="padding:8px;font-weight:600;color:' + s.color + ';">' + s.label +
-                            ' <span style="color:var(--disabled);font-weight:400;font-size:10px;">' + s.sub + '</span></td>' +
-                            '<td style="padding:8px;text-align:right;font-weight:700;font-size:14px;color:' + s.color + ';">' + s.count.toLocaleString() + '</td>' +
-                            '<td style="padding:8px;text-align:right;color:var(--text-2);">' + s.spread.toFixed(1) + 'bp</td>' +
-                            '<td style="padding:8px;text-align:right;"></td>' +
-                            '<td style="padding:8px 12px;width:45%;">' +
-                            '<div style="background:var(--sunken);border-radius:3px;height:18px;position:relative;overflow:hidden;">' +
-                            '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:3px 0 0 3px;"></div>' +
+                            '<td style="padding:var(--space-4);font-weight:600;color:' + s.color + ';">' + s.label +
+                            ' <span style="color:var(--disabled);font-weight:400;font-size:var(--size-xxs);">' + s.sub + '</span></td>' +
+                            '<td style="padding:var(--space-4);text-align:right;font-weight:700;font-size:var(--size-14);color:' + s.color + ';">' + s.count.toLocaleString() + '</td>' +
+                            '<td style="padding:var(--space-4);text-align:right;color:var(--text-2);">' + s.spread.toFixed(1) + 'bp</td>' +
+                            '<td style="padding:var(--space-4);text-align:right;"></td>' +
+                            '<td style="padding:var(--space-4) var(--space-6);width:45%;">' +
+                            '<div style="background:var(--sunken);border-radius:var(--radius-sm);height:18px;position:relative;overflow:hidden;">' +
+                            '<div style="background:' + s.color + '33;border-right:2px solid ' + s.color + ';height:100%;width:' + barPct + '%;min-width:2px;border-radius:var(--radius-sm) 0 0 var(--radius-sm);"></div>' +
                             '</div></td></tr>';
                     });
                     ih += '<tr style="border-top:2px solid var(--divider);">' +
-                        '<td style="padding:8px;font-weight:700;color:var(--text);">All-in PRS</td>' +
-                        '<td style="padding:8px;"></td>' +
-                        '<td style="padding:8px;text-align:right;font-weight:700;font-size:15px;color:var(--text);">' +
+                        '<td style="padding:var(--space-4);font-weight:700;color:var(--text);">All-in PRS</td>' +
+                        '<td style="padding:var(--space-4);"></td>' +
+                        '<td style="padding:var(--space-4);text-align:right;font-weight:700;font-size:var(--size-lg);color:var(--text);">' +
                         _allIn.toFixed(1) + 'bp</td>' +
                         '<td colspan="2"></td></tr>';
                     ih += '</tbody></table></div>';

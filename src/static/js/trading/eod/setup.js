@@ -30,22 +30,22 @@
                 // Submit bar
                 var submitBar = document.createElement('div');
                 submitBar.id = 'td-eod-submit-bar';
-                submitBar.style.cssText = 'padding:12px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:16px;background:var(--header-from);';
+                submitBar.style.cssText = 'padding:var(--space-6) var(--space-8);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:var(--space-8);background:var(--header-from);';
 
                 var today = new Date().toISOString().split('T')[0];
                 submitBar.innerHTML =
                     '<button id="td-eod-submit-btn" onclick="tdSubmitEod()" ' +
-                        'style="padding:8px 24px;font-size:13px;font-weight:700;background:var(--accent);color:var(--inverse);border:none;border-radius:4px;cursor:pointer;">' +
+                        'style="padding:var(--space-4) var(--space-10);font-size:var(--size-md);font-weight:700;background:var(--accent);color:var(--inverse);border:none;border-radius:var(--radius-4);cursor:pointer;">' +
                         'EOD Submit</button>' +
                     '<input type="date" id="td-eod-date" value="' + today + '" ' +
-                        'style="padding:5px 8px;font-size:12px;border:1px solid var(--divider);border-radius:4px;">' +
-                    '<span id="td-eod-status" style="font-size:12px;color:var(--text-3);"></span>';
+                        'style="padding:var(--space-3) var(--space-4);font-size:var(--size-sm);border:1px solid var(--divider);border-radius:var(--radius-4);">' +
+                    '<span id="td-eod-status" style="font-size:var(--size-sm);color:var(--text-3);"></span>';
                 view.appendChild(submitBar);
 
                 // P&L summary cards
                 var cards = document.createElement('div');
                 cards.id = 'td-eod-cards';
-                cards.style.cssText = 'padding:10px 16px;display:flex;gap:16px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap;';
+                cards.style.cssText = 'padding:var(--space-5) var(--space-8);display:flex;gap:var(--space-8);border-bottom:1px solid var(--line-soft);flex-wrap:wrap;';
                 view.appendChild(cards);
 
                 // Two-column layout: history table + chart/attribution
@@ -55,8 +55,8 @@
                 // Left: history table
                 var histWrap = document.createElement('div');
                 histWrap.id = 'td-eod-history-wrap';
-                histWrap.style.cssText = 'width:340px;overflow-y:auto;border-right:1px solid var(--line-soft);padding:8px;';
-                histWrap.innerHTML = '<div style="font-size:11px;font-weight:600;color:var(--text-2);padding:4px 8px;">EOD History</div>';
+                histWrap.style.cssText = 'width:340px;overflow-y:auto;border-right:1px solid var(--line-soft);padding:var(--space-4);';
+                histWrap.innerHTML = '<div style="font-size:var(--size-xs);font-weight:600;color:var(--text-2);padding:var(--space-2) var(--space-4);">EOD History</div>';
                 body.appendChild(histWrap);
 
                 // Right: chart + attribution
@@ -65,12 +65,12 @@
 
                 var chartWrap = document.createElement('div');
                 chartWrap.id = 'td-eod-chart-wrap';
-                chartWrap.style.cssText = 'flex:1;padding:12px;min-height:200px;';
+                chartWrap.style.cssText = 'flex:1;padding:var(--space-6);min-height:200px;';
                 rightPane.appendChild(chartWrap);
 
                 var attrWrap = document.createElement('div');
                 attrWrap.id = 'td-eod-attribution';
-                attrWrap.style.cssText = 'height:180px;padding:8px 12px;border-top:1px solid var(--line-soft);overflow-y:auto;';
+                attrWrap.style.cssText = 'height:180px;padding:var(--space-4) var(--space-6);border-top:1px solid var(--line-soft);overflow-y:auto;';
                 rightPane.appendChild(attrWrap);
 
                 body.appendChild(rightPane);

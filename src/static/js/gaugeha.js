@@ -33,7 +33,7 @@
                 graphPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:var(--radius-lg);' +
                     'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
@@ -41,18 +41,18 @@
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
-                    'border-radius:8px 8px 0 0;';
+                    'padding:var(--space-5) var(--space-8);border-bottom:1px solid var(--line-soft);background:var(--wash);' +
+                    'border-radius:var(--radius-lg) var(--radius-lg) 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'gauge-graph-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
+                title.style.cssText = 'font-weight:bold;font-size:var(--size-14);color:var(--text);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
-                    'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:var(--text-3);padding:0 8px;line-height:1;';
+                    'border:none;background:none;font-size:var(--size-24);cursor:pointer;' +
+                    'color:var(--text-3);padding:0 var(--space-4);line-height:1;';
                 closeBtn.onclick = hideGraphPanel;
 
                 header.appendChild(title);
@@ -61,7 +61,7 @@
                 // Chart container
                 var chartBox = document.createElement('div');
                 chartBox.id = 'gauge-chart-container';
-                chartBox.style.cssText = 'flex:1;padding:12px 16px;position:relative;min-height:0;';
+                chartBox.style.cssText = 'flex:1;padding:var(--space-6) var(--space-8);position:relative;min-height:0;';
 
                 var canvas = document.createElement('canvas');
                 canvas.id = 'gauge-history-chart';
@@ -71,19 +71,19 @@
                 var statsBar = document.createElement('div');
                 statsBar.id = 'gauge-stats-bar';
                 statsBar.style.cssText =
-                    'padding:8px 16px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--text-2);' +
-                    'display:flex;gap:16px;flex-wrap:wrap;';
+                    'padding:var(--space-4) var(--space-8);border-top:1px solid var(--line-soft);font-size:var(--size-sm);color:var(--text-2);' +
+                    'display:flex;gap:var(--space-8);flex-wrap:wrap;';
 
                 // Footer with time range
                 var footer = document.createElement('div');
                 footer.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:8px 16px;border-top:1px solid var(--line-soft);background:var(--wash);' +
-                    'border-radius:0 0 8px 8px;font-size:12px;';
+                    'padding:var(--space-4) var(--space-8);border-top:1px solid var(--line-soft);background:var(--wash);' +
+                    'border-radius:0 0 var(--radius-lg) var(--radius-lg);font-size:var(--size-sm);';
 
                 var timeRange = document.createElement('div');
                 timeRange.innerHTML =
-                    '<select id="gauge-time-range" style="padding:4px 8px;border:1px solid var(--divider);border-radius:4px;">' +
+                    '<select id="gauge-time-range" style="padding:var(--space-2) var(--space-4);border:1px solid var(--divider);border-radius:var(--radius-4);">' +
                     '<option value="30">Last 30 Days</option>' +
                     '<option value="90">Last 90 Days</option>' +
                     '<option value="365" selected>Last Year</option>' +

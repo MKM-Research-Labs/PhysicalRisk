@@ -34,53 +34,53 @@
                 overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--scrim);z-index:3000;display:flex;align-items:center;justify-content:center;';
 
                 var dialog = document.createElement('div');
-                dialog.style.cssText = 'background:var(--panel);border-radius:8px;box-shadow:var(--shadow-modal);width:420px;max-width:90vw;font-family:Arial,sans-serif;';
+                dialog.style.cssText = 'background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow-modal);width:420px;max-width:90vw;font-family:Arial,sans-serif;';
 
                 // Header
                 var hdr = document.createElement('div');
-                hdr.style.cssText = 'padding:16px 20px;border-bottom:1px solid var(--line-soft);';
-                hdr.innerHTML = '<div style="font-size:14px;font-weight:700;color:var(--text);">Edit ' + spec.label + '</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">Model: ' + modelId + '</div>';
+                hdr.style.cssText = 'padding:var(--space-8) var(--space-wide);border-bottom:1px solid var(--line-soft);';
+                hdr.innerHTML = '<div style="font-size:var(--size-14);font-weight:700;color:var(--text);">Edit ' + spec.label + '</div><div style="font-size:var(--size-xs);color:var(--muted);margin-top:var(--space-1);">Model: ' + modelId + '</div>';
 
                 // Body
                 var body = document.createElement('div');
-                body.style.cssText = 'padding:16px 20px;';
+                body.style.cssText = 'padding:var(--space-8) var(--space-wide);';
 
                 // Current value
-                body.innerHTML = '<div style="font-size:11px;color:var(--text-3);margin-bottom:12px;">Current value: <b>' + (currentVal || '\u2014') + '</b></div>';
+                body.innerHTML = '<div style="font-size:var(--size-xs);color:var(--text-3);margin-bottom:var(--space-6);">Current value: <b>' + (currentVal || '\u2014') + '</b></div>';
 
                 // Input
                 var inputHtml = '';
                 if (spec.type === 'choice') {
-                    inputHtml = '<select id="mg-edit-value" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;">';
+                    inputHtml = '<select id="mg-edit-value" style="width:100%;padding:var(--space-4);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);">';
                     spec.options.forEach(function(opt) {
                         inputHtml += '<option value="' + opt + '"' + (opt === currentVal ? ' selected' : '') + '>' + opt + '</option>';
                     });
                     inputHtml += '</select>';
                 } else if (spec.type === 'date') {
-                    inputHtml = '<input type="date" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;">';
+                    inputHtml = '<input type="date" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:var(--space-4);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;">';
                 } else {
-                    inputHtml = '<input type="text" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;box-sizing:border-box;">';
+                    inputHtml = '<input type="text" id="mg-edit-value" value="' + currentVal + '" style="width:100%;padding:var(--space-4);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);box-sizing:border-box;">';
                 }
-                body.innerHTML += '<label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:4px;">New Value</label>' + inputHtml;
+                body.innerHTML += '<label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-2);">New Value</label>' + inputHtml;
 
                 // Reason
-                body.innerHTML += '<div style="margin-top:12px;"><label style="font-size:10px;color:var(--text-3);display:block;margin-bottom:4px;">Reason for Change (required)</label><textarea id="mg-edit-reason" rows="3" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;resize:vertical;box-sizing:border-box;" placeholder="Explain why this change is being made..."></textarea></div>';
+                body.innerHTML += '<div style="margin-top:var(--space-6);"><label style="font-size:var(--size-xxs);color:var(--text-3);display:block;margin-bottom:var(--space-2);">Reason for Change (required)</label><textarea id="mg-edit-reason" rows="3" style="width:100%;padding:var(--space-4);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);resize:vertical;box-sizing:border-box;" placeholder="Explain why this change is being made..."></textarea></div>';
 
                 // Error
-                body.innerHTML += '<div id="mg-edit-error" style="display:none;margin-top:8px;padding:6px 10px;background:var(--danger-bg-soft);color:var(--red-dark);border-radius:4px;font-size:11px;"></div>';
+                body.innerHTML += '<div id="mg-edit-error" style="display:none;margin-top:var(--space-4);padding:var(--space-3) var(--space-5);background:var(--danger-bg-soft);color:var(--red-dark);border-radius:var(--radius-4);font-size:var(--size-xs);"></div>';
 
                 // Footer
                 var footer = document.createElement('div');
-                footer.style.cssText = 'padding:12px 20px;border-top:1px solid var(--line-soft);display:flex;gap:8px;justify-content:flex-end;';
+                footer.style.cssText = 'padding:var(--space-6) var(--space-wide);border-top:1px solid var(--line-soft);display:flex;gap:var(--space-4);justify-content:flex-end;';
 
                 var cancelBtn = document.createElement('button');
                 cancelBtn.textContent = 'Cancel';
-                cancelBtn.style.cssText = 'padding:8px 18px;font-size:12px;border:1px solid var(--line-strong);border-radius:4px;cursor:pointer;background:var(--panel);color:var(--text-3);';
+                cancelBtn.style.cssText = 'padding:var(--space-4) var(--space-9);font-size:var(--size-sm);border:1px solid var(--line-strong);border-radius:var(--radius-4);cursor:pointer;background:var(--panel);color:var(--text-3);';
                 cancelBtn.onclick = function() { overlay.remove(); };
 
                 var confirmBtn = document.createElement('button');
                 confirmBtn.textContent = 'Confirm Change';
-                confirmBtn.style.cssText = 'padding:8px 18px;font-size:12px;border:none;border-radius:4px;cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:600;';
+                confirmBtn.style.cssText = 'padding:var(--space-4) var(--space-9);font-size:var(--size-sm);border:none;border-radius:var(--radius-4);cursor:pointer;background:var(--accent);color:var(--inverse);font-weight:600;';
                 confirmBtn.onclick = function() {
                     var newVal = document.getElementById('mg-edit-value').value.trim();
                     var reason = document.getElementById('mg-edit-reason').value.trim();
