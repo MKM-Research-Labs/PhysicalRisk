@@ -43,20 +43,20 @@
                     {
                         label: 'Survival Probability (%)',
                         data: survivalPct,
-                        borderColor: '#1976D2',
-                        backgroundColor: '#1976D222',
+                        borderColor: Theme.value('accent'),
+                        backgroundColor: Theme.value('chart-wash-accent-hex'),
                         fill: true, tension: 0.3, pointRadius: 5,
-                        pointBackgroundColor: '#1976D2', borderWidth: 2,
+                        pointBackgroundColor: Theme.value('accent'), borderWidth: 2,
                         yAxisID: 'y'
                     },
                     {
                         label: 'Flood Spread (bp)',
                         data: spreadLine,
-                        borderColor: '#F44336',
+                        borderColor: Theme.value('red-bright'),
                         borderDash: [6, 3],
                         borderWidth: 2,
                         pointRadius: 3,
-                        pointBackgroundColor: '#F44336',
+                        pointBackgroundColor: Theme.value('red-bright'),
                         fill: false,
                         yAxisID: 'y1'
                     }
@@ -70,9 +70,9 @@
                 var perilSpreads = {};
                 if (perilTs) {
                     [
-                        ['flood_or_wind', 'Flood \u222A Wind (union)', '#7E57C2', [2, 2]],
-                        ['wind_only',     'Wind only',                  '#26A69A', [4, 4]],
-                        ['flood_and_wind','Flood \u2229 Wind (joint)', '#5E35B1', [1, 3]],
+                        ['flood_or_wind', 'Flood \u222A Wind (union)', Theme.value('product-edge'), [2, 2]],
+                        ['wind_only',     'Wind only',                  Theme.value('teal-mid'), [4, 4]],
+                        ['flood_and_wind','Flood \u2229 Wind (joint)', Theme.value('product'), [1, 3]],
                     ].forEach(function(spec) {
                         var k = spec[0];
                         var leg = (perilTs[k] && perilTs[k].prs_spread_bps) || [];
@@ -98,8 +98,8 @@
                 // as flat lines, only when the bow/baw scenario files were run.
                 var sd = phcData.spread_decomposition || {};
                 [
-                    ['bow_spread_bps', 'BRI \u222A Wind (union)', '#6A1B9A', [8, 4]],
-                    ['baw_spread_bps', 'BRI \u2229 Wind (joint)', '#4A148C', [2, 4]],
+                    ['bow_spread_bps', 'BRI \u222A Wind (union)', Theme.value('purple-deep'), [8, 4]],
+                    ['baw_spread_bps', 'BRI \u2229 Wind (joint)', Theme.value('purple-dark'), [2, 4]],
                 ].forEach(function(spec) {
                     var v = sd[spec[0]];
                     if (v == null) return;
@@ -162,16 +162,16 @@
                 var zone = phcData.flood_zone || '';
 
                 var barItems = [
-                    '<span style="color:#1976D2;font-weight:bold;">Event Count</span>',
+                    '<span style="color:var(--accent);font-weight:bold;">Event Count</span>',
                     '<span><b>Zone:</b> ' + zone + '</span>',
                     '<span><b>Floods:</b> ' + phcData.flood_count + '</span>',
-                    '<span><b>Flood Spread:</b> <span style="color:#F44336;">' + spreadBps.toFixed(1) + ' bp</span></span>',
+                    '<span><b>Flood Spread:</b> <span style="color:var(--red-bright);">' + spreadBps.toFixed(1) + ' bp</span></span>',
                 ];
                 if (perilTs) {
                     barItems.push(
-                        '<span><b>Flood\u222AWind:</b> <span style="color:#7E57C2;">' +
+                        '<span><b>Flood\u222AWind:</b> <span style="color:var(--product-edge);">' +
                         (perilSpreads.flood_or_wind || 0).toFixed(1) + ' bp</span></span>',
-                        '<span><b>Wind only:</b> <span style="color:#26A69A;">' +
+                        '<span><b>Wind only:</b> <span style="color:var(--teal-mid);">' +
                         (perilSpreads.wind_only || 0).toFixed(1) + ' bp</span></span>');
                 }
                 barItems.push(

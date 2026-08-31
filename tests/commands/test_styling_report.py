@@ -61,9 +61,14 @@ class TestGatedSurfaces:
         detail = ", ".join(f'{f["path"]}:{f["line"]} {f["snippet"]}' for f in findings[:20])
         assert findings == [], f"undefined design tokens: {detail}"
 
-    def test_css_and_html_are_the_gated_surfaces(self):
-        """Widening the gate is a deliberate act, not a side effect of a rename."""
-        assert set(GATED_SUFFIXES) == {".css", ".html"}
+    def test_every_served_asset_type_is_gated(self):
+        """Narrowing the gate must be a deliberate act, not a side effect of a rename.
+
+        ``.js`` joined on completion of step 6. If a later change drops one of these,
+        thousands of literals become invisible again and this is the only thing that
+        would notice.
+        """
+        assert set(GATED_SUFFIXES) == {".css", ".html", ".js"}
 
     def test_the_scan_actually_reached_the_assets(self, scan):
         """A scan that found nothing to look at would pass every assertion above."""
@@ -72,21 +77,18 @@ class TestGatedSurfaces:
 
 
 class TestReportedBacklog:
-    def test_javascript_is_reported_not_gated(self):
-        assert REPORTED_SUFFIXES == (".js",)
+    def test_nothing_is_merely_reported(self):
+        """Step 6 finished, so every served asset type is gated.
 
-    def test_backlog_is_not_growing(self, scan):
-        """A ceiling, lowered as step 6 converts each batch.
-
-        Not an exact figure: that would fail on every commit that converts a file,
-        which trains people to edit the number rather than read it. A ceiling only
-        fails when the backlog *grows*, which is the thing worth blocking.
+        The bucket is kept rather than removed: a new asset type — a ``.jsx``, a
+        template language — should surface here as a backlog to work through, not pass
+        silently because nobody added it to the gate.
         """
-        assert scan["backlog"], "the backlog is empty — gate .js and delete this test"
-        assert len(scan["backlog"]) <= 3200, (
-            f'JavaScript colour backlog grew to {len(scan["backlog"])}; it should only '
-            f'shrink as step 6 converts each batch'
-        )
+        assert REPORTED_SUFFIXES == ()
+
+    def test_the_backlog_is_empty(self, scan):
+        """The 3,137 JavaScript colour literals step 6 began with are gone."""
+        assert scan["backlog"] == []
 
 
 class TestScanner:

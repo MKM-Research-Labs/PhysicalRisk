@@ -69,15 +69,15 @@ class TestTerrainEffectRow:
 
     def test_terrain_colour_green_negative(self, js):
         """Negative terrain delta (risk reduction) should be green."""
-        assert "#2E7D32" in js  # Green colour code
+        assert "var(--green-dark)" in js  # green: terrain reduces the spread
 
     def test_terrain_colour_orange_positive(self, js):
         """Positive terrain delta (risk increase) should be orange."""
-        assert "#E65100" in js  # Orange colour code
+        assert "var(--amber-deep)" in js  # amber: terrain adds to the spread
 
     def test_terrain_row_background(self, js):
         """Terrain row should have purple-tinted background."""
-        assert '#F3E5F5' in js
+        assert 'var(--purple-bg)' in js
 
     def test_selected_zone_shown_in_detail(self, js):
         """Detail column should show the selected zone name."""

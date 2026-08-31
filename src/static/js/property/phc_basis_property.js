@@ -67,23 +67,23 @@
 
                 // Colour by damage ratio (grey -> orange -> red)
                 var colors = data.map(function(d) {
-                    if (d.damageRatio <= 0) return '#BDBDBD';
-                    if (d.damageRatio < 0.1) return '#FFB74D';
-                    if (d.damageRatio < 0.3) return '#FF9800';
-                    if (d.damageRatio < 0.6) return '#F44336';
-                    return '#B71C1C';
+                    if (d.damageRatio <= 0) return Theme.value('faint');
+                    if (d.damageRatio < 0.1) return Theme.value('amber-mid');
+                    if (d.damageRatio < 0.3) return Theme.value('amber-bright');
+                    if (d.damageRatio < 0.6) return Theme.value('red-bright');
+                    return Theme.value('red-deep');
                 });
 
                 // Summary cards
                 var summaryHtml =
                     '<div style="padding:8px 0 4px 0;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;">' +
-                    '<div style="padding:4px 10px;background:#E8F5E9;border-radius:4px;border-left:3px solid #4CAF50;">' +
+                    '<div style="padding:4px 10px;background:var(--ok-bg);border-radius:4px;border-left:3px solid var(--green-bright);">' +
                     '<b>Hedged</b><br>' + qTopRight + ' storms</div>' +
-                    '<div style="padding:4px 10px;background:#FFF3E0;border-radius:4px;border-left:3px solid #FF9800;">' +
+                    '<div style="padding:4px 10px;background:var(--warn-bg-warm);border-radius:4px;border-left:3px solid var(--amber-bright);">' +
                     '<b>Basis Risk</b> (gauge triggers, property dry)<br>' + qBottomRight + ' storms</div>' +
-                    '<div style="padding:4px 10px;background:#FFEBEE;border-radius:4px;border-left:3px solid #F44336;">' +
+                    '<div style="padding:4px 10px;background:var(--danger-bg-soft);border-radius:4px;border-left:3px solid var(--red-bright);">' +
                     '<b>Unhedged</b> (property floods, no trigger)<br>' + qTopLeft + ' storms</div>' +
-                    '<div style="padding:4px 10px;background:#F5F5F5;border-radius:4px;border-left:3px solid #9E9E9E;">' +
+                    '<div style="padding:4px 10px;background:var(--sunken);border-radius:4px;border-left:3px solid var(--grey);">' +
                     '<b>No Event</b><br>' + qBottomLeft + ' storms</div>' +
                     '</div>';
 
@@ -113,9 +113,9 @@
                 if (severeLevel > 0) {
                     annotations.severeLine = {
                         type: 'line', xMin: severeLevel, xMax: severeLevel,
-                        borderColor: '#F44336', borderWidth: 2, borderDash: [6, 3],
+                        borderColor: Theme.value('red-bright'), borderWidth: 2, borderDash: [6, 3],
                         label: { display: true, content: 'Gauge Severe Trigger',
-                                 position: 'start', backgroundColor: '#F44336', color: '#fff',
+                                 position: 'start', backgroundColor: Theme.value('red-bright'), color: Theme.value('panel'),
                                  font: { size: 10 }, padding: 3, rotation: 270 }
                     };
                     annotations.qBR = {
@@ -124,7 +124,7 @@
                         yValue: 0.001,
                         content: ['Basis Risk'],
                         font: { size: 10, style: 'italic' },
-                        color: '#FF9800',
+                        color: Theme.value('amber-bright'),
                     };
                     annotations.qTR = {
                         type: 'label',
@@ -132,7 +132,7 @@
                         yValue: (Math.max.apply(null, data.map(function(d) { return d.y; }).concat([0.1]))) * 0.85,
                         content: ['Hedged'],
                         font: { size: 10, style: 'italic' },
-                        color: '#4CAF50',
+                        color: Theme.value('green-bright'),
                     };
                 }
 
@@ -143,7 +143,7 @@
                             label: 'Storm Impact',
                             data: data,
                             backgroundColor: colors,
-                            borderColor: colors.map(function(c) { return c === '#BDBDBD' ? '#BDBDBD' : c; }),
+                            borderColor: colors.map(function(c) { return c === Theme.value('faint') ? Theme.value('faint') : c; }),
                             pointRadius: 4,
                             pointHoverRadius: 7,
                         }]
@@ -220,8 +220,8 @@
                         var uw = (po.flood_or_wind && po.flood_or_wind.spread_bps) || 0;
                         var ww = (po.wind_only && po.wind_only.spread_bps) || 0;
                         statsHtml +=
-                            '<span style="color:#7E57C2;"><b>Flood\u222AWind:</b> ' + uw.toFixed(1) + ' bps</span>' +
-                            '<span style="color:#26A69A;"><b>Wind only:</b> ' + ww.toFixed(1) + ' bps</span>';
+                            '<span style="color:var(--product-edge);"><b>Flood\u222AWind:</b> ' + uw.toFixed(1) + ' bps</span>' +
+                            '<span style="color:var(--teal-mid);"><b>Wind only:</b> ' + ww.toFixed(1) + ' bps</span>';
                     }
                     bar.innerHTML = statsHtml;
                 }

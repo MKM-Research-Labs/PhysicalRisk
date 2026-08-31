@@ -29,7 +29,7 @@
                 });
 
                 var html = '<label style="margin-right:8px;font-weight:600;">Storm:</label>';
-                html += '<select id="storm-selector" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;max-width:400px;">';
+                html += '<select id="storm-selector" style="padding:4px 8px;border:1px solid var(--divider);border-radius:4px;max-width:400px;">';
                 html += '<option value="sim">Flood Simulation (default)</option>';
 
                 sorted.forEach(function(r, i) {
@@ -100,8 +100,8 @@
                     {
                         label: chartTitle,
                         data: levels,
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33,150,243,0.1)',
+                        borderColor: Theme.value('accent-bright'),
+                        backgroundColor: Theme.value('chart-wash-bright'),
                         fill: true,
                         tension: 0.3,
                         pointRadius: 1,
@@ -112,19 +112,19 @@
                 if (fs.FloodAlert) datasets.push({
                     label: 'Alert (' + fs.FloodAlert.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.FloodAlert),
-                    borderColor: '#FFC107', borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
+                    borderColor: Theme.value('amber-yellow'), borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
                 });
                 if (fs.FloodWarning) datasets.push({
                     label: 'Warning (' + fs.FloodWarning.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.FloodWarning),
-                    borderColor: '#FF9800', borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
+                    borderColor: Theme.value('amber-bright'), borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
                 });
                 if (fs.SevereFloodWarning) {
                     var severeIdx = datasets.length;
                     datasets.push({
                         label: 'Severe (' + fs.SevereFloodWarning.toFixed(1) + 'm)',
                         data: Array(n).fill(fs.SevereFloodWarning),
-                        borderColor: '#F44336', borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
+                        borderColor: Theme.value('red-bright'), borderDash: [5,5], borderWidth: 1, pointRadius: 0, fill: false
                     });
                     // Red shading: invisible copy of main line, fills down to the severe line
                     datasets.push({
@@ -132,7 +132,7 @@
                         data: levels.slice(),
                         borderWidth: 0,
                         pointRadius: 0,
-                        fill: { target: severeIdx, above: 'rgba(244,67,54,0.25)', below: 'rgba(0,0,0,0)' },
+                        fill: { target: severeIdx, above: Theme.value('chart-fill-danger'), below: Theme.value('chart-transparent') },
                         tension: 0.3
                     });
                 }
@@ -220,10 +220,10 @@
                 var severeVal = fs.SevereFloodWarning || Infinity;
 
                 var colors = values.map(function(v) {
-                    if (v >= severeVal) return 'rgba(244,67,54,0.8)';
-                    if (v >= warnVal) return 'rgba(255,152,0,0.8)';
-                    if (v >= alertVal) return 'rgba(255,193,7,0.8)';
-                    return 'rgba(76,175,80,0.8)';
+                    if (v >= severeVal) return Theme.value('chart-fill-severe');
+                    if (v >= warnVal) return Theme.value('chart-fill-warning');
+                    if (v >= alertVal) return Theme.value('chart-fill-alert');
+                    return Theme.value('chart-fill-green');
                 });
 
                 currentChart = new Chart(ctx, {
@@ -280,6 +280,6 @@
                 var bar = document.getElementById('storm-stats-bar');
                 bar.innerHTML = [
                     '<span><b>Top 20 events shown</b></span>',
-                    '<span style="color:#F44336;">Click a bar to view timeline</span>',
+                    '<span style="color:var(--red-bright);">Click a bar to view timeline</span>',
                 ].join('');
             }

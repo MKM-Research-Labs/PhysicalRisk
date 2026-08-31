@@ -84,13 +84,13 @@ class TestHistoricalChart:
         assert 'SevereFloodWarning' in hist_js
 
     def test_alert_colour_amber(self, hist_js):
-        assert '#FFC107' in hist_js
+        assert "Theme.value('amber-yellow')" in hist_js
 
     def test_warning_colour_orange(self, hist_js):
-        assert '#FF9800' in hist_js
+        assert "Theme.value('amber-bright')" in hist_js
 
     def test_severe_colour_red(self, hist_js):
-        assert '#F44336' in hist_js
+        assert "Theme.value('red-bright')" in hist_js
 
     def test_daily_observations_field(self, hist_js):
         assert 'daily_observations' in hist_js

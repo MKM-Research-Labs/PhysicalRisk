@@ -33,29 +33,29 @@
                 var datasets = [{
                     label: 'Water Level (m)',
                     data: levels,
-                    borderColor: '#2196F3',
-                    backgroundColor: 'rgba(33,150,243,0.1)',
+                    borderColor: Theme.value('accent-bright'),
+                    backgroundColor: Theme.value('chart-wash-bright'),
                     fill: true,
                     tension: 0.4,
                     pointRadius: 4,
-                    pointBackgroundColor: '#2196F3',
+                    pointBackgroundColor: Theme.value('accent-bright'),
                     borderWidth: 2
                 }];
 
                 if (fs.FloodAlert) datasets.push({
                     label: 'Alert (' + fs.FloodAlert.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.FloodAlert),
-                    borderColor: '#FFC107', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false
+                    borderColor: Theme.value('amber-yellow'), borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false
                 });
                 if (fs.FloodWarning) datasets.push({
                     label: 'Warning (' + fs.FloodWarning.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.FloodWarning),
-                    borderColor: '#FF9800', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false
+                    borderColor: Theme.value('amber-bright'), borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false
                 });
                 if (fs.SevereFloodWarning) datasets.push({
                     label: 'Severe (' + fs.SevereFloodWarning.toFixed(1) + 'm)',
                     data: Array(n).fill(fs.SevereFloodWarning),
-                    borderColor: '#F44336', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false
+                    borderColor: Theme.value('red-bright'), borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false
                 });
 
                 currentChart = new Chart(ctx, {
@@ -95,9 +95,9 @@
                     '<span><b>GEV \u03BC:</b> ' + (gev.location != null ? gev.location.toFixed(2) : 'N/A') + '</span>',
                     '<span><b>GEV \u03C3:</b> ' + (gev.scale != null ? gev.scale.toFixed(4) : 'N/A') + '</span>',
                     '<span><b>GEV \u03BE:</b> ' + (gev.shape != null ? gev.shape.toFixed(3) : 'N/A') + '</span>',
-                    '<span style="color:#FFC107;"><b>P(Alert):</b> ' + (probs.alert ? (probs.alert * 100).toFixed(2) : '0') + '%/yr</span>',
-                    '<span style="color:#FF9800;"><b>P(Warning):</b> ' + (probs.warning ? (probs.warning * 100).toFixed(2) : '0') + '%/yr</span>',
-                    '<span style="color:#F44336;"><b>P(Severe):</b> ' + (probs.severe ? (probs.severe * 100).toFixed(2) : '0') + '%/yr</span>'
+                    '<span style="color:var(--amber-yellow);"><b>P(Alert):</b> ' + (probs.alert ? (probs.alert * 100).toFixed(2) : '0') + '%/yr</span>',
+                    '<span style="color:var(--amber-bright);"><b>P(Warning):</b> ' + (probs.warning ? (probs.warning * 100).toFixed(2) : '0') + '%/yr</span>',
+                    '<span style="color:var(--red-bright);"><b>P(Severe):</b> ' + (probs.severe ? (probs.severe * 100).toFixed(2) : '0') + '%/yr</span>'
                 ].join('');
             }
 
@@ -123,26 +123,26 @@
                             {
                                 label: 'Alert \u2014 P(flood)',
                                 data: tsAlert.map(function(t) { return t.cumulative_default_prob * 100; }),
-                                borderColor: '#FFC107',
-                                backgroundColor: 'rgba(255,193,7,0.15)',
+                                borderColor: Theme.value('amber-yellow'),
+                                backgroundColor: Theme.value('chart-wash-alert'),
                                 fill: true, tension: 0.3, pointRadius: 5,
-                                pointBackgroundColor: '#FFC107', borderWidth: 2
+                                pointBackgroundColor: Theme.value('amber-yellow'), borderWidth: 2
                             },
                             {
                                 label: 'Warning \u2014 P(flood)',
                                 data: tsWarning.map(function(t) { return t.cumulative_default_prob * 100; }),
-                                borderColor: '#FF9800',
-                                backgroundColor: 'rgba(255,152,0,0.15)',
+                                borderColor: Theme.value('amber-bright'),
+                                backgroundColor: Theme.value('chart-wash-warning'),
                                 fill: true, tension: 0.3, pointRadius: 5,
-                                pointBackgroundColor: '#FF9800', borderWidth: 2
+                                pointBackgroundColor: Theme.value('amber-bright'), borderWidth: 2
                             },
                             {
                                 label: 'Severe \u2014 P(flood)',
                                 data: tsSevere.map(function(t) { return t.cumulative_default_prob * 100; }),
-                                borderColor: '#F44336',
-                                backgroundColor: 'rgba(244,67,54,0.15)',
+                                borderColor: Theme.value('red-bright'),
+                                backgroundColor: Theme.value('chart-wash-severe'),
                                 fill: true, tension: 0.3, pointRadius: 5,
-                                pointBackgroundColor: '#F44336', borderWidth: 2
+                                pointBackgroundColor: Theme.value('red-bright'), borderWidth: 2
                             }
                         ]
                     },
@@ -184,11 +184,11 @@
                 var s5 = tsSevere[4] ? (tsSevere[4].cumulative_default_prob * 100).toFixed(2) : '0';
 
                 bar.innerHTML = [
-                    '<span style="color:#FFC107;"><b>Alert 1yr:</b> ' + a1 + '%</span>',
-                    '<span style="color:#FFC107;"><b>5yr:</b> ' + a5 + '%</span>',
-                    '<span style="color:#FF9800;"><b>Warning 1yr:</b> ' + w1 + '%</span>',
-                    '<span style="color:#FF9800;"><b>5yr:</b> ' + w5 + '%</span>',
-                    '<span style="color:#F44336;"><b>Severe 1yr:</b> ' + s1 + '%</span>',
-                    '<span style="color:#F44336;"><b>5yr:</b> ' + s5 + '%</span>'
+                    '<span style="color:var(--amber-yellow);"><b>Alert 1yr:</b> ' + a1 + '%</span>',
+                    '<span style="color:var(--amber-yellow);"><b>5yr:</b> ' + a5 + '%</span>',
+                    '<span style="color:var(--amber-bright);"><b>Warning 1yr:</b> ' + w1 + '%</span>',
+                    '<span style="color:var(--amber-bright);"><b>5yr:</b> ' + w5 + '%</span>',
+                    '<span style="color:var(--red-bright);"><b>Severe 1yr:</b> ' + s1 + '%</span>',
+                    '<span style="color:var(--red-bright);"><b>5yr:</b> ' + s5 + '%</span>'
                 ].join('');
             }

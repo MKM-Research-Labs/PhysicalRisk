@@ -42,25 +42,25 @@
                         '<td style="padding:2px 8px;font-weight:600;">' + p.label + '</td>' +
                         '<td style="padding:2px 8px;text-align:right;">' + (p.S_t * 100).toFixed(2) + '%</td>' +
                         '<td style="padding:2px 8px;text-align:right;">' + p.df.toFixed(4) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:#1976D2;">' + fmtNum(p.premCF) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:#1976D2;">' + fmtNum(p.premPV) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:#F44336;">' + fmtNum(p.protCF) + '</td>' +
-                        '<td style="padding:2px 8px;text-align:right;color:#F44336;">' + fmtNum(p.protPV) + '</td>' +
+                        '<td style="padding:2px 8px;text-align:right;color:var(--accent);">' + fmtNum(p.premCF) + '</td>' +
+                        '<td style="padding:2px 8px;text-align:right;color:var(--accent);">' + fmtNum(p.premPV) + '</td>' +
+                        '<td style="padding:2px 8px;text-align:right;color:var(--red-bright);">' + fmtNum(p.protCF) + '</td>' +
+                        '<td style="padding:2px 8px;text-align:right;color:var(--red-bright);">' + fmtNum(p.protPV) + '</td>' +
                         '</tr>';
                 });
 
                 // Totals row
                 tableRows +=
-                    '<tr style="border-top:2px solid #333;font-weight:bold;background:#f0f0f0;">' +
+                    '<tr style="border-top:2px solid var(--text);font-weight:bold;background:var(--code);">' +
                     '<td style="padding:4px 8px;">TOTAL</td>' +
                     '<td></td><td></td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:#1976D2;">' +
+                    '<td style="padding:4px 8px;text-align:right;color:var(--accent);">' +
                         fmtNum(periods.reduce(function(s,p){ return s+p.premCF; }, 0)) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:#1976D2;font-weight:bold;">' +
+                    '<td style="padding:4px 8px;text-align:right;color:var(--accent);font-weight:bold;">' +
                         fmtMoney(result.totalPremPV) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:#F44336;">' +
+                    '<td style="padding:4px 8px;text-align:right;color:var(--red-bright);">' +
                         fmtNum(periods.reduce(function(s,p){ return s+p.protCF; }, 0)) + '</td>' +
-                    '<td style="padding:4px 8px;text-align:right;color:#F44336;font-weight:bold;">' +
+                    '<td style="padding:4px 8px;text-align:right;color:var(--red-bright);font-weight:bold;">' +
                         fmtMoney(result.totalProtPV) + '</td>' +
                     '</tr>';
 
@@ -89,15 +89,15 @@
                             {
                                 label: 'PV Premium ($K)',
                                 data: premPVs,
-                                backgroundColor: 'rgba(25,118,210,0.6)',
-                                borderColor: '#1976D2',
+                                backgroundColor: Theme.value('chart-fill-accent-mid'),
+                                borderColor: Theme.value('accent'),
                                 borderWidth: 1
                             },
                             {
                                 label: 'PV Protection ($K)',
                                 data: protPVs,
-                                backgroundColor: 'rgba(244,67,54,0.6)',
-                                borderColor: '#F44336',
+                                backgroundColor: Theme.value('chart-fill-severe'),
+                                borderColor: Theme.value('red-bright'),
                                 borderWidth: 1
                             }
                         ]
@@ -151,18 +151,18 @@
                                 {
                                     label: 'Hazard Curve (' + _trig2 + ')',
                                     data: hcRates,
-                                    borderColor: '#1565c0',
-                                    backgroundColor: 'rgba(21,101,192,0.1)',
+                                    borderColor: Theme.value('accent-mid'),
+                                    backgroundColor: Theme.value('chart-fill-accent'),
                                     fill: true,
                                     tension: 0.3,
                                     pointRadius: 5,
-                                    pointBackgroundColor: '#1565c0',
+                                    pointBackgroundColor: Theme.value('accent-mid'),
                                     borderWidth: 2
                                 },
                                 {
                                     label: 'Trade Spread',
                                     data: Array(hcLabels.length).fill(tradeSpdVal),
-                                    borderColor: '#c62828',
+                                    borderColor: Theme.value('red-dark'),
                                     borderDash: [6, 3],
                                     borderWidth: 1.5,
                                     pointRadius: 0,
@@ -234,7 +234,7 @@
 
                 // Stats bar
                 var bar = document.getElementById('hazard-stats-bar');
-                var npvColor = result.npv >= 0 ? '#4CAF50' : '#F44336';
+                var npvColor = result.npv >= 0 ? Theme.value('green-bright') : Theme.value('red-bright');
                 var dirLabel = result.isPayer ? 'Pay' : 'Rcv';
 
                 // Check if counterparty selected for commit button
@@ -246,29 +246,29 @@
                 }
                 var commitBtn = '';
                 if (isTradeReview) {
-                    commitBtn = '<span style="color:#1565c0;font-size:10px;font-weight:600;margin-left:8px;">Trade Review</span>';
+                    commitBtn = '<span style="color:var(--accent-mid);font-size:10px;font-weight:600;margin-left:8px;">Trade Review</span>';
                 } else if (isCloseOut) {
                     commitBtn = ctpySelected ?
                         '<button id="prs-commit-btn" onclick="commitPRSTrade()" ' +
-                        'style="padding:4px 14px;background:#ef5350;color:white;border:none;border-radius:3px;' +
+                        'style="padding:4px 14px;background:var(--red-soft);color:var(--inverse);border:none;border-radius:3px;' +
                         'cursor:pointer;font-weight:bold;font-size:11px;margin-left:8px;">Close Out</button>' :
-                        '<span style="color:#aaa;font-size:10px;margin-left:8px;">(select ctpy to close out)</span>';
+                        '<span style="color:var(--disabled);font-size:10px;margin-left:8px;">(select ctpy to close out)</span>';
                 } else if (ctpySelected) {
                     commitBtn = '<button id="prs-commit-btn" onclick="commitPRSTrade()" ' +
-                    'style="padding:4px 14px;background:#4CAF50;color:white;border:none;border-radius:3px;' +
+                    'style="padding:4px 14px;background:var(--green-bright);color:var(--inverse);border:none;border-radius:3px;' +
                     'cursor:pointer;font-weight:bold;font-size:11px;margin-left:8px;">Commit</button>';
                 } else {
-                    commitBtn = '<span style="color:#aaa;font-size:10px;margin-left:8px;">(select ctpy to commit)</span>';
+                    commitBtn = '<span style="color:var(--disabled);font-size:10px;margin-left:8px;">(select ctpy to commit)</span>';
                 }
 
                 var ctpyTag = ctpyDisplayName ?
-                    '<span><b>Ctpy:</b> <span style="color:#1565C0;">' + ctpyDisplayName + '</span></span>' :
-                    '<span style="color:#aaa;"><b>Ctpy:</b> none</span>';
+                    '<span><b>Ctpy:</b> <span style="color:var(--accent-mid);">' + ctpyDisplayName + '</span></span>' :
+                    '<span style="color:var(--disabled);"><b>Ctpy:</b> none</span>';
 
                 bar.innerHTML = [
                     ctpyTag,
-                    '<span style="font-weight:bold;color:' + (result.isPayer ? '#1976D2' : '#E65100') + ';">' + dirLabel + '</span>',
-                    '<span><b>Fair Spread:</b> <span style="font-size:13px;color:#1976D2;">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
+                    '<span style="font-weight:bold;color:' + (result.isPayer ? Theme.value('accent') : Theme.value('amber-deep')) + ';">' + dirLabel + '</span>',
+                    '<span><b>Fair Spread:</b> <span style="font-size:13px;color:var(--accent);">' + result.fairSpreadBps.toFixed(1) + ' bps</span></span>',
                     '<span><b>Running:</b> ' + result.spreadBps.toFixed(0) + ' bps</span>',
                     '<span style="color:' + npvColor + ';"><b>NPV:</b> ' + fmtMoney(result.npv) + '</span>',
                     '<span><b>Premium Leg:</b> ' + fmtMoney(result.totalPremPV) + '</span>',

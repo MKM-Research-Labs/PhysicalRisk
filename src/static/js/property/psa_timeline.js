@@ -22,13 +22,13 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:#999;text-align:center;margin-top:40px;">No flood events</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events</p>';
                     return;
                 }
 
                 var events = propStormData.flood_events.filter(function(e) { return e.flooded; });
                 if (events.length === 0) {
-                    content.innerHTML = '<p style="color:#999;text-align:center;margin-top:40px;">No flooded events with hydrograph data</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flooded events with hydrograph data</p>';
                     return;
                 }
                 var info = propStormData.property_info || {};
@@ -39,8 +39,8 @@
 
                 // Storm selector
                 var selectorHtml = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
-                    '<span style="font-size:11px;font-weight:600;color:#555;">Storm:</span>' +
-                    '<select id="prop-timeline-select" style="flex:1;padding:3px 6px;font-size:11px;border:1px solid #ddd;border-radius:3px;">';
+                    '<span style="font-size:11px;font-weight:600;color:var(--text-2);">Storm:</span>' +
+                    '<select id="prop-timeline-select" style="flex:1;padding:3px 6px;font-size:11px;border:1px solid var(--line-strong);border-radius:3px;">';
                 events.forEach(function(e, i) {
                     var sel = (selectedStormId && e.storm_id === selectedStormId) || (!selectedStormId && i === 0) ? ' selected' : '';
                     selectorHtml += '<option value="' + e.storm_id + '"' + sel + '>' +
@@ -51,7 +51,7 @@
                 content.innerHTML = selectorHtml +
                     '<div id="prop-timeline-typhoon-banner"></div>' +
                     '<canvas id="prop-timeline-chart" height="300"></canvas>' +
-                    '<div id="prop-timeline-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#555;padding:8px 0;border-top:1px solid #eee;"></div>';
+                    '<div id="prop-timeline-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
 
                 document.getElementById('prop-timeline-select').onchange = function() {
                     renderTimeline(this.value);
@@ -72,19 +72,19 @@
                         var t = event.typhoon;
                         var peak = (t.peak_wind_ms != null) ? t.peak_wind_ms.toFixed(1) : '?';
                         var wd = (t.wind_damage_ratio != null) ? (t.wind_damage_ratio * 100).toFixed(1) + '%' : '—';
-                        var wdColor = (t.wind_damage_ratio || 0) >= 0.5 ? '#d32f2f'
-                                    : (t.wind_damage_ratio || 0) >= 0.1 ? '#f57c00'
-                                    : '#333';
+                        var wdColor = (t.wind_damage_ratio || 0) >= 0.5 ? Theme.value('red')
+                                    : (t.wind_damage_ratio || 0) >= 0.1 ? Theme.value('amber')
+                                    : Theme.value('text');
                         banner.innerHTML =
-                            '<div style="background:linear-gradient(90deg,#fff3e0 0%,#ffe0b2 100%);' +
-                            'border:1px solid #ef6c00;border-left:5px solid #bf360c;' +
+                            '<div style="background:linear-gradient(90deg,var(--warn-bg-warm) 0%,var(--warn-line-pale) 100%);' +
+                            'border:1px solid var(--amber-dark);border-left:5px solid var(--orange-deep);' +
                             'border-radius:4px;padding:6px 12px;margin:4px 0 8px;' +
                             'display:flex;align-items:center;gap:12px;font-size:12px;">' +
                               '<span style="font-size:18px;">⚡</span>' +
-                              '<span style="font-weight:700;color:#bf360c;letter-spacing:0.5px;">TYPHOON</span>' +
-                              '<span style="color:#333;">' + (t.event_id || '?') + ' &nbsp;·&nbsp; ' +
+                              '<span style="font-weight:700;color:var(--orange-deep);letter-spacing:0.5px;">TYPHOON</span>' +
+                              '<span style="color:var(--text);">' + (t.event_id || '?') + ' &nbsp;·&nbsp; ' +
                                   '<b>' + (t.scenario_family || '?') + '</b> family</span>' +
-                              '<span style="color:#333;">peak <b>' + peak + ' m/s</b></span>' +
+                              '<span style="color:var(--text);">peak <b>' + peak + ' m/s</b></span>' +
                               '<span style="color:' + wdColor + ';">wind damage <b>' + wd + '</b></span>' +
                             '</div>';
                     } else {
@@ -95,7 +95,7 @@
                 var readings = event.readings || [];
                 if (readings.length === 0) {
                     document.getElementById('prop-timeline-stats').innerHTML =
-                        '<span style="color:#999;">No hydrograph readings for this storm</span>';
+                        '<span style="color:var(--muted-2);">No hydrograph readings for this storm</span>';
                     return;
                 }
 
@@ -106,7 +106,7 @@
                 var datasets = [];
 
                 // Gauge elevations (river level — local minima, lowest lines)
-                var gaugeColors = ['#B71C1C', '#E65100', '#4A148C'];
+                var gaugeColors = [Theme.value('red-deep'), Theme.value('amber-deep'), Theme.value('purple-dark')];
                 var gaugeStyles = [[4, 3], [6, 3], [8, 4]];
                 nearestGauges.forEach(function(g, gi) {
                     var gaugeElev = g.gauge_elevation_m;
@@ -130,7 +130,7 @@
                             datasets.push({
                                 label: '★ Severe (' + fs.severe.toFixed(1) + 'm)',
                                 data: new Array(readings.length).fill(fs.severe),
-                                borderColor: '#d32f2f',
+                                borderColor: Theme.value('red'),
                                 borderDash: [8, 4],
                                 pointRadius: 0,
                                 borderWidth: 1.5,
@@ -141,7 +141,7 @@
                             datasets.push({
                                 label: '★ Warning (' + fs.warning.toFixed(1) + 'm)',
                                 data: new Array(readings.length).fill(fs.warning),
-                                borderColor: '#ff9800',
+                                borderColor: Theme.value('amber-bright'),
                                 borderDash: [6, 3],
                                 pointRadius: 0,
                                 borderWidth: 1,
@@ -152,7 +152,7 @@
                             datasets.push({
                                 label: '★ Alert (' + fs.alert.toFixed(1) + 'm)',
                                 data: new Array(readings.length).fill(fs.alert),
-                                borderColor: '#ffc107',
+                                borderColor: Theme.value('amber-yellow'),
                                 borderDash: [4, 3],
                                 pointRadius: 0,
                                 borderWidth: 1,
@@ -166,7 +166,7 @@
                 datasets.push({
                     label: 'Property Ground (' + elevation.toFixed(1) + 'm)',
                     data: new Array(readings.length).fill(elevation),
-                    borderColor: '#1565C0',
+                    borderColor: Theme.value('accent-mid'),
                     borderDash: [2, 2],
                     pointRadius: 0,
                     borderWidth: 1.5,
@@ -178,7 +178,7 @@
                 datasets.push({
                     label: 'Property Floor (' + threshold.toFixed(2) + 'm)',
                     data: new Array(readings.length).fill(threshold),
-                    borderColor: '#f44336',
+                    borderColor: Theme.value('red-bright'),
                     borderDash: [6, 3],
                     pointRadius: 0,
                     borderWidth: 2,
@@ -189,8 +189,8 @@
                 datasets.push({
                     label: 'Water Level (m AOD)',
                     data: wseData,
-                    borderColor: '#ff9800',
-                    backgroundColor: 'rgba(255,152,0,0.1)',
+                    borderColor: Theme.value('amber-bright'),
+                    backgroundColor: Theme.value('chart-wash-amber'),
                     fill: true,
                     tension: 0.3,
                     pointRadius: 0,
@@ -204,7 +204,7 @@
                     data: wseData.slice(),
                     borderWidth: 0,
                     pointRadius: 0,
-                    fill: { target: floorIdx, above: 'rgba(244,67,54,0.25)', below: 'rgba(0,0,0,0)' },
+                    fill: { target: floorIdx, above: Theme.value('chart-fill-danger'), below: Theme.value('chart-transparent') },
                     tension: 0.3
                 });
 

@@ -84,7 +84,7 @@ class TestBasisSHEJS:
         assert "ctx.fill()" in js
 
     def test_cross_section_draws_water(self, js):
-        assert "rgba(33, 150, 243" in js  # blue water fill
+        assert "Theme.value('chart-wash-accent')" in js  # blue water fill
 
     def test_cross_section_severe_line(self, js):
         assert "'Severe'" in js

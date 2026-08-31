@@ -124,7 +124,7 @@
                     renderResults(data);
                 }} catch (error) {{
                     document.getElementById('loan-pricer-results').innerHTML =
-                        '<p style="color:#d32f2f;text-align:center;">Error: ' + error.message + '</p>';
+                        '<p style="color:var(--red);text-align:center;">Error: ' + error.message + '</p>';
                 }} finally {{
                     if (btn) {{ btn.disabled = false; btn.textContent = 'Re-price'; }}
                 }}
@@ -144,7 +144,7 @@
                 var title = document.getElementById('loan-pricer-title');
                 var results = document.getElementById('loan-pricer-results');
                 title.textContent = 'Loan Pricer: ' + assetId;
-                results.innerHTML = '<p style="color:#999;text-align:center;">Loading...</p>';
+                results.innerHTML = '<p style="color:var(--muted-2);text-align:center;">Loading...</p>';
                 lpPanel.style.display = 'flex';
 
                 try {{
@@ -156,7 +156,7 @@
                     renderResults(data);
                 }} catch (error) {{
                     results.innerHTML =
-                        '<p style="color:#d32f2f;text-align:center;">Error: ' + error.message + '</p>';
+                        '<p style="color:var(--red);text-align:center;">Error: ' + error.message + '</p>';
                 }}
             }}
 

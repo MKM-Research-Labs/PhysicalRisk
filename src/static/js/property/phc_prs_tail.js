@@ -77,7 +77,7 @@
 
                     var data = await response.json();
                     if (data.status === 'success') {
-                        if (btn) { btn.textContent = 'Committed'; btn.style.background = '#1976D2'; }
+                        if (btn) { btn.textContent = 'Committed'; btn.style.background = 'var(--accent)'; }
                         if (window.showSuccess) window.showSuccess('Trade ' + data.swap_id + ' committed');
 
                         // Show PDF inline via panel
@@ -106,7 +106,7 @@
                     }
                 } catch (error) {
                     console.error('Property PRS commit error:', error);
-                    if (btn) { btn.textContent = 'Commit'; btn.disabled = false; btn.style.background = '#4CAF50'; }
+                    if (btn) { btn.textContent = 'Commit'; btn.disabled = false; btn.style.background = 'var(--green-bright)'; }
                     if (window.showError) window.showError('Commit failed: ' + error.message);
                 }
             };

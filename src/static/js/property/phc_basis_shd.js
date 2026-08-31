@@ -61,7 +61,7 @@
                 avgRetention = storms.length > 0 ? avgRetention / storms.length : 0;
 
                 var summaryHtml =
-                    '<div style="padding:8px 0 4px 0;font-size:12px;color:#555;">' +
+                    '<div style="padding:8px 0 4px 0;font-size:12px;color:var(--text-2);">' +
                     '<b>Distance Effect:</b> Gauge ' + distanceKm.toFixed(1) + 'km from property' +
                     ' &nbsp;|&nbsp; Avg retention: ' + (avgRetention * 100).toFixed(0) + '%' +
                     ' &nbsp;|&nbsp; <b>' + withDepthCount + '</b> of <b>' + storms.length +
@@ -119,7 +119,7 @@
 
                 // Draw decay curve (exponential-like: retention = 1 - d/25 for d<25km)
                 ctx.beginPath();
-                ctx.strokeStyle = '#1976D2';
+                ctx.strokeStyle = Theme.value('accent');
                 ctx.lineWidth = 2;
                 for (var i = 0; i <= 100; i++) {
                     var d = maxDist * i / 100;
@@ -135,13 +135,13 @@
                 ctx.lineTo(xPos(maxDist), yPos(0));
                 ctx.lineTo(xPos(0), yPos(0));
                 ctx.closePath();
-                ctx.fillStyle = 'rgba(25, 118, 210, 0.08)';
+                ctx.fillStyle = Theme.value('chart-fill-accent');
                 ctx.fill();
 
                 // Mark property distance
                 var propRet = Math.max(0, 1 - distanceKm / 25);
                 ctx.setLineDash([4, 3]);
-                ctx.strokeStyle = '#F44336';
+                ctx.strokeStyle = Theme.value('red-bright');
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.moveTo(xPos(distanceKm), yPos(0));
@@ -153,13 +153,13 @@
                 // Property marker
                 ctx.beginPath();
                 ctx.arc(xPos(distanceKm), yPos(propRet), 5, 0, Math.PI * 2);
-                ctx.fillStyle = '#F44336';
+                ctx.fillStyle = Theme.value('red-bright');
                 ctx.fill();
 
                 // Gauge marker at origin
                 ctx.beginPath();
                 ctx.arc(xPos(0), yPos(1), 5, 0, Math.PI * 2);
-                ctx.fillStyle = '#4CAF50';
+                ctx.fillStyle = Theme.value('green-bright');
                 ctx.fill();
 
                 // Selected storm highlight
@@ -167,32 +167,32 @@
                     var stormRet = selectedStorm.retention_factor;
                     ctx.beginPath();
                     ctx.arc(xPos(distanceKm), yPos(stormRet), 8, 0, Math.PI * 2);
-                    ctx.strokeStyle = '#FF9800';
+                    ctx.strokeStyle = Theme.value('amber-bright');
                     ctx.lineWidth = 2;
                     ctx.stroke();
-                    ctx.fillStyle = '#FF9800';
+                    ctx.fillStyle = Theme.value('amber-bright');
                     ctx.font = 'bold 9px Arial';
                     ctx.fillText('Storm ' + selectedStorm.storm_id, xPos(distanceKm) + 12, yPos(stormRet) + 3);
                 }
 
                 // Labels
-                ctx.fillStyle = '#4CAF50';
+                ctx.fillStyle = Theme.value('green-bright');
                 ctx.font = 'bold 10px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Gauge', xPos(0), yPos(1) - 10);
 
-                ctx.fillStyle = '#F44336';
+                ctx.fillStyle = Theme.value('red-bright');
                 ctx.fillText('Property', xPos(distanceKm), yPos(propRet) - 10);
                 ctx.fillText(distanceKm.toFixed(1) + 'km', xPos(distanceKm), yPos(0) + 14);
 
                 // Retention label
-                ctx.fillStyle = '#1565C0';
+                ctx.fillStyle = Theme.value('accent-mid');
                 ctx.font = '10px Arial';
                 ctx.textAlign = 'left';
                 ctx.fillText((propRet * 100).toFixed(0) + '%', xPos(0) + 4, yPos(propRet) - 4);
 
                 // Axes
-                ctx.strokeStyle = '#999';
+                ctx.strokeStyle = Theme.value('muted-2');
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(pad.left, pad.top);
@@ -201,7 +201,7 @@
                 ctx.stroke();
 
                 // Axis labels
-                ctx.fillStyle = '#666';
+                ctx.fillStyle = Theme.value('text-3');
                 ctx.font = '10px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Distance (km)', pad.left + plotW / 2, h - 5);
@@ -213,7 +213,7 @@
                 ctx.restore();
 
                 // Title
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = Theme.value('text');
                 ctx.font = 'bold 11px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Distance Decay', w / 2, 14);

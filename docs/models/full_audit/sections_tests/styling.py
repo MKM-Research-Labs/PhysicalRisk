@@ -80,10 +80,16 @@ _JS_LINE_COMMENT = re.compile(r"(?<!:)//.*$", re.MULTILINE)
 _ASSET_DIRS = ("src/static", "src/templates", "tools")
 
 #: Suffixes at zero and held there. A literal in one of these fails the build.
-GATED_SUFFIXES = (".css", ".html")
+#:
+#: ``.js`` joined on completion of step 6 of
+#: docs/refactor/theme_centralisation_plan.md, when the backlog of 3,137 JavaScript
+#: colour literals reached zero. Every asset the platform serves is now gated, and the
+#: reported bucket below is empty — kept, rather than deleted, because a new asset type
+#: should surface as a backlog rather than be silently exempt.
+GATED_SUFFIXES = (".css", ".html", ".js")
 
-#: Suffixes scanned and reported but not yet gated — step 6's remaining work.
-REPORTED_SUFFIXES = (".js",)
+#: Scanned and reported but not gated. Empty: nothing is awaiting conversion.
+REPORTED_SUFFIXES = ()
 
 #: The one place a visual parameter may be written down.
 SANCTIONED = SANCTIONED_PACKAGE
@@ -215,8 +221,8 @@ def _build_styling(styles) -> list:
                  '<b>var(--name)</b> in CSS and HTML, <b>Theme.value(\'name\')</b> in '
                  'JavaScript — rather than writing a colour down. CSS and HTML are a '
                  'zero-tolerance gate (tests/commands/test_styling_report.py); '
-                 'JavaScript is reported as a backlog while step 6 of the theme '
-                 'migration converts it. A <b>var()</b> naming an undefined token is '
+                 'Every served asset type is gated as of step 6 of the theme '
+                 'migration. A <b>var()</b> naming an undefined token is '
                  'gated everywhere: the browser drops the declaration silently, so '
                  'that failure reaches a screen invisibly.', styles['body']),
              Spacer(1, 2 * mm)]

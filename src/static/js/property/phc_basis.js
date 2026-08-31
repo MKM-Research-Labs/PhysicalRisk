@@ -33,9 +33,9 @@
                 });
 
                 var thresholdInfo = [
-                    { key: 'any_flood', color: '#4CAF50', label: 'Any Flood' },
-                    { key: 'moderate', color: '#FF9800', label: 'Moderate' },
-                    { key: 'severe', color: '#F44336', label: 'Severe' }
+                    { key: 'any_flood', color: Theme.value('green-bright'), label: 'Any Flood' },
+                    { key: 'moderate', color: Theme.value('amber-bright'), label: 'Moderate' },
+                    { key: 'severe', color: Theme.value('red-bright'), label: 'Severe' }
                 ];
 
                 var datasets = thresholdInfo.map(function(ti) {

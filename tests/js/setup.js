@@ -71,17 +71,28 @@ const path = require('path');
 const repoRoot = path.resolve(__dirname, '../..');
 let themeCss = '';
 try {
+  // config/__init__.py builds a PortfolioConfig at import time, which mkdirs into the
+  // data/ symlink — an external disk. Importing it here would make the JavaScript unit
+  // tests fail whenever that disk is unmounted, for tokens that have nothing to do with
+  // it. Stubbing the parent package loads config.theme alone, off the repo only.
   themeCss = execFileSync(
-    '/Users/newdavid/Documents/PhysicalRisk/.venv/bin/python',
+    'python3',
     ['-c',
-     "import sys; sys.path.insert(0, 'src')\n"
-     + 'from visual.theme_css import theme_css\n'
-     + 'print(theme_css())'],
+     'import sys, types, pathlib\n'
+     + 'root = pathlib.Path(".").resolve()\n'
+     + 'sys.path.insert(0, str(root))\n'
+     + 'pkg = types.ModuleType("config")\n'
+     + 'pkg.__path__ = [str(root / "config")]\n'
+     + 'sys.modules["config"] = pkg\n'
+     + 'from config.theme import THEME_GROUPS\n'
+     + 'print(":root {")\n'
+     + '[print(f"  --{n}: {v};") for _, g in THEME_GROUPS for n, v in g.items()]\n'
+     + 'print("}")'],
     { cwd: repoRoot, encoding: 'utf8' });
 } catch (err) {
-  // Python unavailable (a bare `npx jest` on a machine without the venv). The tests
-  // that assert a resolved colour will fail loudly rather than silently pass on an
-  // empty palette, which is the right way round.
+  // Python unavailable entirely. The tests that assert a resolved colour then fail
+  // loudly rather than silently passing against an empty palette, which is the right
+  // way round — a green suite that proved nothing is worse than a red one.
   themeCss = '';
 }
 

@@ -41,8 +41,8 @@
                 activeTab = idx;
                 var tabs = document.querySelectorAll('.phc-tab');
                 tabs.forEach(function(t, i) {
-                    t.style.color = i === idx ? '#1976D2' : '#888';
-                    t.style.borderBottomColor = i === idx ? '#1976D2' : 'transparent';
+                    t.style.color = i === idx ? 'var(--accent)' : 'var(--muted)';
+                    t.style.borderBottomColor = i === idx ? 'var(--accent)' : 'transparent';
                 });
 
                 var controls = document.getElementById('phc-controls');
@@ -74,8 +74,8 @@
                     subBar = document.createElement('div');
                     subBar.id = 'phc-basis-subtab-bar';
                     subBar.style.cssText =
-                        'display:flex;gap:0;border-bottom:1px solid #e0e0e0;padding:0 16px;' +
-                        'background:#f0f4f8;';
+                        'display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 16px;' +
+                        'background:var(--bg);';
 
                     basisSubTabNames.forEach(function(name, i) {
                         var btn = document.createElement('button');
@@ -84,7 +84,7 @@
                         btn.textContent = name;
                         btn.style.cssText =
                             'padding:6px 14px;border:none;background:none;cursor:pointer;' +
-                            'font-size:11px;font-weight:600;color:#888;border-bottom:2px solid transparent;' +
+                            'font-size:11px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;' +
                             'margin-bottom:-1px;transition:all 0.2s;';
                         btn.onclick = function() {
                             basisActiveSubTab = i;
@@ -107,8 +107,8 @@
                 // Update sub-tab styling
                 var subTabs = document.querySelectorAll('.phc-basis-subtab');
                 subTabs.forEach(function(t, i) {
-                    t.style.color = i === idx ? '#1565C0' : '#888';
-                    t.style.borderBottomColor = i === idx ? '#1565C0' : 'transparent';
+                    t.style.color = i === idx ? 'var(--accent-mid)' : 'var(--muted)';
+                    t.style.borderBottomColor = i === idx ? 'var(--accent-mid)' : 'transparent';
                 });
 
                 // Destroy any existing charts before rendering

@@ -22,7 +22,7 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:#999;text-align:center;margin-top:40px;">No flood events for this property</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events for this property</p>';
                     return;
                 }
 
@@ -32,7 +32,7 @@
                 var info = propStormData.property_info || {};
 
                 if (depths.length === 0) {
-                    content.innerHTML = '<p style="color:#999;text-align:center;margin-top:40px;">No valid flood depth data</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No valid flood depth data</p>';
                     return;
                 }
 
@@ -56,7 +56,7 @@
                     '<div style="flex:1;">' +
                     '<canvas id="prop-dist-chart" height="260"></canvas>' +
                     '</div></div>' +
-                    '<div id="prop-dist-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#555;padding:8px 0;border-top:1px solid #eee;"></div>';
+                    '<div id="prop-dist-stats" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
 
                 var ctx = document.getElementById('prop-dist-chart').getContext('2d');
                 currentChart = new Chart(ctx, {
@@ -66,8 +66,8 @@
                         datasets: [{
                             label: 'Flood Events',
                             data: bins,
-                            backgroundColor: 'rgba(33,150,243,0.6)',
-                            borderColor: 'rgba(33,150,243,1)',
+                            backgroundColor: Theme.value('chart-fill-bright'),
+                            borderColor: Theme.value('chart-fill-accent-solid'),
                             borderWidth: 1
                         }]
                     },
@@ -110,7 +110,7 @@
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
-                    content.innerHTML = '<p style="color:#999;text-align:center;margin-top:40px;">No flood events</p>';
+                    content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:40px;">No flood events</p>';
                     return;
                 }
 
@@ -122,15 +122,15 @@
                 var labels = top.map(function(e) { return e.storm_id.substring(0, 16); });
                 var depths = top.map(function(e) { return e.flood_depth_m; });
                 var colors = depths.map(function(d) {
-                    if (d >= 2.0) return '#d32f2f';
-                    if (d >= 1.0) return '#f57c00';
-                    if (d >= 0.5) return '#fbc02d';
-                    return '#42a5f5';
+                    if (d >= 2.0) return Theme.value('red');
+                    if (d >= 1.0) return Theme.value('amber');
+                    if (d >= 0.5) return Theme.value('gold-bright');
+                    return Theme.value('accent-light');
                 });
 
                 content.innerHTML =
                     '<canvas id="prop-worst-chart" height="350"></canvas>' +
-                    '<div id="prop-worst-stats" style="display:flex;gap:16px;font-size:11px;color:#555;padding:8px 0;border-top:1px solid #eee;"></div>';
+                    '<div id="prop-worst-stats" style="display:flex;gap:16px;font-size:11px;color:var(--text-2);padding:8px 0;border-top:1px solid var(--line-soft);"></div>';
 
                 var ctx = document.getElementById('prop-worst-chart').getContext('2d');
                 currentChart = new Chart(ctx, {
@@ -170,6 +170,6 @@
 
                 document.getElementById('prop-worst-stats').innerHTML = [
                     '<span><b>Top ' + top.length + ' storms shown</b></span>',
-                    '<span style="color:#1976d2;">Click a bar to view depth vs time</span>',
+                    '<span style="color:var(--accent);">Click a bar to view depth vs time</span>',
                 ].join('');
             }

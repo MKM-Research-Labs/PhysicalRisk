@@ -34,8 +34,8 @@
                     '<canvas id="hist-timeseries-chart" style="width:100%;height:100%;"></canvas>' +
                     '</div>' +
                     '<div id="hist-storms-panel" style="flex:2;min-width:0;display:flex;flex-direction:column;overflow:hidden;">' +
-                    '<div style="font-size:11px;font-weight:700;color:#333;padding:4px 8px;border-bottom:1px solid #eee;background:#f8f9fa;">Flood Storm Scenarios</div>' +
-                    '<div id="hist-storms-list" style="flex:1;overflow-y:auto;padding:4px;font-size:10px;color:#888;">Loading storms...</div>' +
+                    '<div style="font-size:11px;font-weight:700;color:var(--text);padding:4px 8px;border-bottom:1px solid var(--line-soft);background:var(--wash);">Flood Storm Scenarios</div>' +
+                    '<div id="hist-storms-list" style="flex:1;overflow-y:auto;padding:4px;font-size:10px;color:var(--muted);">Loading storms...</div>' +
                     '</div></div>';
 
                 var gaugeId = _ghcGaugeId();
@@ -96,8 +96,8 @@
                     var datasets = [{
                         label: 'Water Level',
                         data: tsLevels,
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33,150,243,0.05)',
+                        borderColor: Theme.value('accent-bright'),
+                        backgroundColor: Theme.value('chart-wash-bright'),
                         fill: true,
                         borderWidth: 0.8,
                         pointRadius: 0,
@@ -108,17 +108,17 @@
                     if (stages.FloodAlert) datasets.push({
                         label: 'Alert (' + stages.FloodAlert.toFixed(1) + 'm)',
                         data: Array(n).fill(stages.FloodAlert),
-                        borderColor: '#FFC107', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false
+                        borderColor: Theme.value('amber-yellow'), borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false
                     });
                     if (stages.FloodWarning) datasets.push({
                         label: 'Warning (' + stages.FloodWarning.toFixed(1) + 'm)',
                         data: Array(n).fill(stages.FloodWarning),
-                        borderColor: '#FF9800', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false
+                        borderColor: Theme.value('amber-bright'), borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false
                     });
                     if (stages.SevereFloodWarning) datasets.push({
                         label: 'Severe (' + stages.SevereFloodWarning.toFixed(1) + 'm)',
                         data: Array(n).fill(stages.SevereFloodWarning),
-                        borderColor: '#F44336', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false
+                        borderColor: Theme.value('red-bright'), borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false
                     });
 
                     _histChart1 = new Chart(tsCtx.getContext('2d'), {
@@ -165,9 +165,9 @@
                         '<span><b>Mean:</b> ' + mean + 'm</span>',
                         '<span><b>Std Dev:</b> ' + sd + 'm</span>',
                         '<span><b>Max:</b> ' + maxL + 'm</span>',
-                        '<span style="color:#FFC107;"><b>Alert:</b> ' + (exc.alert || 0) + ' yr</span>',
-                        '<span style="color:#FF9800;"><b>Warning:</b> ' + (exc.warning || 0) + ' yr</span>',
-                        '<span style="color:#F44336;"><b>Severe:</b> ' + (exc.severe || 0) + ' yr</span>'
+                        '<span style="color:var(--amber-yellow);"><b>Alert:</b> ' + (exc.alert || 0) + ' yr</span>',
+                        '<span style="color:var(--amber-bright);"><b>Warning:</b> ' + (exc.warning || 0) + ' yr</span>',
+                        '<span style="color:var(--red-bright);"><b>Severe:</b> ' + (exc.severe || 0) + ' yr</span>'
                     ].join('');
                 }
             }
@@ -183,14 +183,14 @@
                     .then(function(r) { return r.json(); })
                     .then(function(result) {
                         if (result.status !== 'success' || !result.storms || result.storms.length === 0) {
-                            listEl.innerHTML = '<div style="padding:12px;color:#aaa;text-align:center;">No storm scenarios available for this gauge</div>';
+                            listEl.innerHTML = '<div style="padding:12px;color:var(--disabled);text-align:center;">No storm scenarios available for this gauge</div>';
                             return;
                         }
                         _renderStormList(result.storms, gaugeId);
                     })
                     .catch(function(err) {
                         console.error('[Historical] Storm fetch error:', err);
-                        listEl.innerHTML = '<div style="padding:12px;color:#c62828;">Failed to load storms</div>';
+                        listEl.innerHTML = '<div style="padding:12px;color:var(--red-dark);">Failed to load storms</div>';
                     });
             }
 
@@ -200,7 +200,7 @@
 
                 var triggerColors = Theme.ramp('trigger_level');
 
-                var html = '<div style="padding:2px 4px;font-size:9px;color:#888;margin-bottom:4px;">' +
+                var html = '<div style="padding:2px 4px;font-size:9px;color:var(--muted);margin-bottom:4px;">' +
                     storms.length + ' storms breached alert at this gauge</div>';
 
                 // Show top 30 storms (sorted by peak level desc)
@@ -208,27 +208,28 @@
                 for (var i = 0; i < shown; i++) {
                     var s = storms[i];
                     var maxTrig = s.max_trigger || 'alert';
-                    var trigColor = triggerColors[maxTrig] || '#888';
+                    var trigColor = triggerColors[maxTrig] || Theme.value('muted');
                     var peakLevel = s.peak_level_m ? s.peak_level_m.toFixed(2) : '?';
                     var durationHrs = s.duration_hours || 0;
                     var category = s.intensity_category || '';
 
                     html +=
                         '<div class="hist-storm-row" data-storm-id="' + s.storm_id + '" data-gauge-id="' + gaugeId + '" ' +
-                        'style="padding:5px 8px;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:6px;" ' +
-                        'onmouseover="this.style.background=\'#e3f2fd\'" onmouseout="this.style.background=\'\'">' +
+                        'style="padding:5px 8px;border-bottom:1px solid var(--code);cursor:pointer;display:flex;align-items:center;gap:6px;" ' +
+                        'onmouseover="this.style.background=\'' + Theme.value('accent-soft') + '\'" ' +
+                        'onmouseout="this.style.background=\'\'">' +
                         '<span style="width:6px;height:6px;border-radius:50%;background:' + trigColor + ';flex-shrink:0;"></span>' +
                         '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-size:10px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+                        '<div style="font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
                         (s.name ? s.name + ' (' + s.storm_id + ')' : s.storm_id) + '</div>' +
-                        '<div style="font-size:9px;color:#888;">' + category + ' | ' + (s.gauges_severe || 0) + ' sev | ' + Math.round(s.effective_precipitation_mm || 0) + 'mm</div>' +
+                        '<div style="font-size:9px;color:var(--muted);">' + category + ' | ' + (s.gauges_severe || 0) + ' sev | ' + Math.round(s.effective_precipitation_mm || 0) + 'mm</div>' +
                         '</div>' +
-                        '<span style="font-size:9px;color:#1565c0;">\u2192</span>' +
+                        '<span style="font-size:9px;color:var(--accent-mid);">\u2192</span>' +
                         '</div>';
                 }
 
                 if (storms.length > shown) {
-                    html += '<div style="padding:6px 8px;font-size:9px;color:#888;text-align:center;">+ ' + (storms.length - shown) + ' more storms</div>';
+                    html += '<div style="padding:6px 8px;font-size:9px;color:var(--muted);text-align:center;">+ ' + (storms.length - shown) + ' more storms</div>';
                 }
 
                 listEl.innerHTML = html;

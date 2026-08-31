@@ -20,9 +20,9 @@
 
             function buildPRSControls() {
                 var controls = document.getElementById('phc-controls');
-                var inputStyle = 'padding:3px 6px;border:1px solid #ccc;border-radius:3px;width:90px;font-size:11px;';
-                var labelStyle = 'font-weight:600;font-size:11px;color:#555;margin-right:3px;';
-                var selectStyle = 'padding:3px 6px;border:1px solid #ccc;border-radius:3px;font-size:11px;';
+                var inputStyle = 'padding:3px 6px;border:1px solid var(--divider);border-radius:3px;width:90px;font-size:11px;';
+                var labelStyle = 'font-weight:600;font-size:11px;color:var(--text-2);margin-right:3px;';
+                var selectStyle = 'padding:3px 6px;border:1px solid var(--divider);border-radius:3px;font-size:11px;';
 
                 // Build counterparty options
                 var ctpyOptions = '<option value="">-- Select --</option>';

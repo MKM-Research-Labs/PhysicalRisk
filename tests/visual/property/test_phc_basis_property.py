@@ -77,15 +77,15 @@ class TestBasisPropertyJS:
 
     def test_colour_by_damage_ratio(self, js):
         assert "damageRatio" in js
-        assert "'#FFB74D'" in js  # light orange
-        assert "'#FF9800'" in js  # orange
-        assert "'#F44336'" in js  # red
-        assert "'#B71C1C'" in js  # dark red
+        assert "Theme.value('amber-mid')" in js  # light orange
+        assert "Theme.value('amber-bright')" in js  # orange
+        assert "Theme.value('red-bright')" in js  # red
+        assert "Theme.value('red-deep')" in js  # dark red
 
     def test_summary_cards_rendered(self, js):
-        assert "#E8F5E9" in js  # green card bg
-        assert "#FFF3E0" in js  # orange card bg
-        assert "#FFEBEE" in js  # red card bg
+        assert "var(--ok-bg)" in js  # green card bg
+        assert "var(--warn-bg-warm)" in js  # orange card bg
+        assert "var(--danger-bg-soft)" in js  # red card bg
 
     def test_click_sets_selected_storm(self, js):
         assert "basisSelectedStorm" in js

@@ -59,9 +59,9 @@
                     if (blBtn) {
                         var _setBlotterEnabled = function (enabled) {
                             blBtn.disabled = !enabled;
-                            blBtn.style.color = enabled ? '#1565c0' : '#bbb';
+                            blBtn.style.color = enabled ? 'var(--accent-mid)' : 'var(--faint)';
                             blBtn.style.cursor = enabled ? 'pointer' : 'default';
-                            blBtn.style.background = enabled ? '#e3f2fd' : '#f5f5f5';
+                            blBtn.style.background = enabled ? 'var(--accent-soft)' : 'var(--sunken)';
                         };
                         try {
                             var agResp = await fetch(baseUrl + '/api/v1/trading/blotter/active-gauges', {mode: 'cors'});

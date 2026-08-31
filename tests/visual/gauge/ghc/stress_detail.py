@@ -90,9 +90,9 @@ class TestSurfaceTable:
 
     def test_surface_trigger_band_shading(self, stress_js):
         """Surface table applies trigger-band background colours."""
-        assert '#FFEBEE' in stress_js  # severe
-        assert '#FFF3E0' in stress_js  # warning
-        assert '#FFF8E1' in stress_js  # alert
+        assert 'var(--danger-bg-soft)' in stress_js  # severe
+        assert 'var(--warn-bg-warm)' in stress_js  # warning
+        assert 'var(--warn-bg)' in stress_js  # alert
 
     def test_surface_ko_trim(self, stress_js):
         """Surface footer references KO trimming."""

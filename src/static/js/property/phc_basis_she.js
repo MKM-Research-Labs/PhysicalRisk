@@ -69,7 +69,7 @@
 
                 // Summary
                 var summaryHtml =
-                    '<div style="padding:8px 0 4px 0;font-size:12px;color:#555;">' +
+                    '<div style="padding:8px 0 4px 0;font-size:12px;color:var(--text-2);">' +
                     '<b>Elevation Effect:</b> Gauge at ' + gaugeElev.toFixed(1) + 'm, ' +
                     'Property at ' + propElev.toFixed(1) + 'm ' +
                     '(+' + heightDiff.toFixed(1) + 'm, floor +' + floorLevel.toFixed(1) + 'm)' +
@@ -145,9 +145,9 @@
                 ctx.lineTo(w - pad.right, yPos(minE));
                 ctx.lineTo(pad.left, yPos(minE));
                 ctx.closePath();
-                ctx.fillStyle = '#E8D5B7';
+                ctx.fillStyle = Theme.value('ground-fill');
                 ctx.fill();
-                ctx.strokeStyle = '#8D6E63';
+                ctx.strokeStyle = Theme.value('ground-line');
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
@@ -155,14 +155,14 @@
                 if (floorLevel > 0) {
                     var floorY = yPos(propElev + floorLevel);
                     ctx.setLineDash([3, 3]);
-                    ctx.strokeStyle = '#1976D2';
+                    ctx.strokeStyle = Theme.value('accent');
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(propX - 20, floorY);
                     ctx.lineTo(propX + 40, floorY);
                     ctx.stroke();
                     ctx.setLineDash([]);
-                    ctx.fillStyle = '#1976D2';
+                    ctx.fillStyle = Theme.value('accent');
                     ctx.font = '9px Arial';
                     ctx.fillText('Floor +' + floorLevel.toFixed(1) + 'm', propX + 42, floorY + 3);
                 }
@@ -173,7 +173,7 @@
                     var waterWSE = gaugeElev + waterAbove;
                     var waterY = yPos(waterWSE);
 
-                    ctx.fillStyle = 'rgba(33, 150, 243, 0.25)';
+                    ctx.fillStyle = Theme.value('chart-wash-accent');
                     ctx.beginPath();
                     ctx.moveTo(pad.left, waterY);
                     ctx.lineTo(gaugeX, waterY);
@@ -186,7 +186,7 @@
                     ctx.closePath();
                     ctx.fill();
 
-                    ctx.strokeStyle = '#2196F3';
+                    ctx.strokeStyle = Theme.value('accent-bright');
                     ctx.lineWidth = 2;
                     ctx.beginPath();
                     ctx.moveTo(pad.left, waterY);
@@ -194,7 +194,7 @@
                     ctx.lineTo(propX, yPos(propWaterWSE));
                     ctx.stroke();
 
-                    ctx.fillStyle = '#1565C0';
+                    ctx.fillStyle = Theme.value('accent-mid');
                     ctx.font = 'bold 10px Arial';
                     ctx.fillText('Storm ' + selectedStorm.storm_id, pad.left + 5, waterY - 5);
                 }
@@ -203,20 +203,20 @@
                 if (severeLevel > 0) {
                     var sevY = yPos(gaugeElev + severeLevel);
                     ctx.setLineDash([5, 3]);
-                    ctx.strokeStyle = '#F44336';
+                    ctx.strokeStyle = Theme.value('red-bright');
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(pad.left, sevY);
                     ctx.lineTo(gaugeX + 30, sevY);
                     ctx.stroke();
                     ctx.setLineDash([]);
-                    ctx.fillStyle = '#F44336';
+                    ctx.fillStyle = Theme.value('red-bright');
                     ctx.font = '9px Arial';
                     ctx.fillText('Severe', gaugeX + 32, sevY + 3);
                 }
 
                 // Labels
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = Theme.value('text');
                 ctx.font = 'bold 11px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Gauge', gaugeX, yPos(gaugeElev) + 15);
@@ -230,13 +230,13 @@
                 ctx.translate(12, h / 2);
                 ctx.rotate(-Math.PI / 2);
                 ctx.font = '10px Arial';
-                ctx.fillStyle = '#666';
+                ctx.fillStyle = Theme.value('text-3');
                 ctx.textAlign = 'center';
                 ctx.fillText('Elevation (m AOD)', 0, 0);
                 ctx.restore();
 
                 // Title
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = Theme.value('text');
                 ctx.font = 'bold 11px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Elevation Cross-Section', w / 2, 14);

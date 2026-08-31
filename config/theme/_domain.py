@@ -67,6 +67,14 @@ DEPTH = {
     "depth-5": "#1a5276",
 }
 
+# --- Ground. The SHE panel draws a cross-section of the riverbank, so it needs earth
+# and not a chart colour: a sand fill under a darker soil line. Nothing else in the
+# platform draws a physical material.
+GROUND = {
+    "ground-fill": "#e8d5b7",
+    "ground-line": "#8d6e63",
+}
+
 # --- The map's other choropleth families, from src/visual/layer. ------------------
 # Kept as families rather than folded into HUE because a layer legend needs a light
 # fill and a dark stroke that belong together, and separating them across groups is
@@ -184,6 +192,26 @@ CHART = {
     "chart-wash-bright": "rgba(33, 150, 243, 0.1)",
     "chart-fill-red": "rgba(244, 67, 54, 0.7)",
     "chart-fill-amber": "rgba(230, 81, 0, 0.8)",
+    "chart-fill-accent-solid": "rgba(33, 150, 243, 1)",
+    "chart-fill-accent-mid": "rgba(25, 118, 210, 0.6)",
+    "chart-wash-accent": "rgba(33, 150, 243, 0.25)",
+    "chart-wash-amber": "rgba(255, 152, 0, 0.1)",
+    "chart-fill-red-mid": "rgba(244, 67, 54, 0.6)",
+    "chart-fill-neutral": "rgba(120, 120, 120, 0.55)",
+    "chart-wash-neutral": "rgba(120, 120, 120, 0.16)",
+    # The term chart writes its accent fill as an eight-digit hex -- #1976D222 is the
+    # accent at 13% alpha. Same colour, a different spelling, and one no ``rgba(``
+    # search would ever have found.
+    "chart-wash-accent-hex": "#1976d222",
+    # The trigger levels in their chart-stroke tones, as a wash under a line and as a
+    # solid bar fill. The console drew each at four opacities; two forms is the scale.
+    "chart-wash-alert": "rgba(255, 193, 7, 0.08)",
+    "chart-wash-warning": "rgba(255, 152, 0, 0.08)",
+    "chart-wash-severe": "rgba(244, 67, 54, 0.08)",
+    "chart-fill-alert": "rgba(255, 193, 7, 0.8)",
+    "chart-fill-warning": "rgba(255, 152, 0, 0.8)",
+    "chart-fill-severe": "rgba(244, 67, 54, 0.8)",
+    "chart-fill-green": "rgba(76, 175, 80, 0.8)",
 }
 
 # --- Series colours for a chart with no meaning to carry. -------------------------
@@ -233,5 +261,5 @@ SEQUENCE = {
 
 __all__ = [
     "PERIL", "DEPTH", "MAP", "MARKER", "FLOOD", "SIGN", "SERIES", "DATASET",
-    "SEQUENCE", "CHART", "LOG",
+    "SEQUENCE", "CHART", "LOG", "GROUND",
 ]

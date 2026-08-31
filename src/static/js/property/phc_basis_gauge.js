@@ -56,12 +56,12 @@
                 });
 
                 var colors = data.map(function(d) {
-                    return d.isSevere ? '#F44336' : '#BDBDBD';
+                    return d.isSevere ? Theme.value('red-bright') : Theme.value('faint');
                 });
 
                 // Summary
                 var summaryHtml =
-                    '<div style="padding:8px 0 4px 0;font-size:12px;color:#555;">' +
+                    '<div style="padding:8px 0 4px 0;font-size:12px;color:var(--text-2);">' +
                     '<b>Gauge:</b> ' + (primaryGauge.gauge_id || 'Unknown').substring(0, 20) +
                     ' &nbsp;|&nbsp; <b>' + severeCount + '</b> of <b>' + storms.length +
                     '</b> storms exceed severe (' + (severeLevel > 0 ? severeLevel.toFixed(2) + 'm' : 'n/a') + ')' +
@@ -80,27 +80,27 @@
                 if (severeLevel > 0) {
                     annotations.severeLine = {
                         type: 'line', yMin: severeLevel, yMax: severeLevel,
-                        borderColor: '#F44336', borderWidth: 2, borderDash: [6, 3],
+                        borderColor: Theme.value('red-bright'), borderWidth: 2, borderDash: [6, 3],
                         label: { display: true, content: 'Severe ' + severeLevel.toFixed(2) + 'm',
-                                 position: 'end', backgroundColor: '#F44336', color: '#fff',
+                                 position: 'end', backgroundColor: Theme.value('red-bright'), color: Theme.value('panel'),
                                  font: { size: 10 }, padding: 3 }
                     };
                 }
                 if (warningLevel > 0) {
                     annotations.warningLine = {
                         type: 'line', yMin: warningLevel, yMax: warningLevel,
-                        borderColor: '#FF9800', borderWidth: 1.5, borderDash: [4, 4],
+                        borderColor: Theme.value('amber-bright'), borderWidth: 1.5, borderDash: [4, 4],
                         label: { display: true, content: 'Warning ' + warningLevel.toFixed(2) + 'm',
-                                 position: 'end', backgroundColor: '#FF9800', color: '#fff',
+                                 position: 'end', backgroundColor: Theme.value('amber-bright'), color: Theme.value('panel'),
                                  font: { size: 9 }, padding: 2 }
                     };
                 }
                 if (alertLevel > 0) {
                     annotations.alertLine = {
                         type: 'line', yMin: alertLevel, yMax: alertLevel,
-                        borderColor: '#FFC107', borderWidth: 1, borderDash: [3, 3],
+                        borderColor: Theme.value('amber-yellow'), borderWidth: 1, borderDash: [3, 3],
                         label: { display: true, content: 'Alert ' + alertLevel.toFixed(2) + 'm',
-                                 position: 'end', backgroundColor: '#FFC107', color: '#333',
+                                 position: 'end', backgroundColor: Theme.value('amber-yellow'), color: Theme.value('text'),
                                  font: { size: 9 }, padding: 2 }
                     };
                 }

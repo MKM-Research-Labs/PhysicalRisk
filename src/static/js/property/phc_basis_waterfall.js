@@ -31,8 +31,8 @@
 
                 var labels = ['Gauge', 'SHE (elevation)', 'SHD (distance)', 'Property'];
                 var values = [gaugeSpread, sheSpread, shdSpread, propSpread];
-                var baseColors = ['#EF5350', '#FF9800', '#66BB6A', '#42A5F5'];
-                var mutedColors = ['#FFCDD2', '#FFE0B2', '#C8E6C9', '#BBDEFB'];
+                var baseColors = [Theme.value('red-soft'), Theme.value('amber-bright'), Theme.value('green-soft'), Theme.value('accent-light')];
+                var mutedColors = [Theme.value('danger-line-alt'), Theme.value('warn-line-pale'), Theme.value('ok-line'), Theme.value('accent-border')];
 
                 // 5th stage — BRI-adjusted (resilient) spread. Only present once
                 // the propertybri stage has run; raising the effective flood
@@ -41,8 +41,8 @@
                 if (hasBri) {
                     labels.push('BRI (resilient)');
                     values.push(sd.bri_spread_bps || 0);
-                    baseColors.push('#7E57C2');
-                    mutedColors.push('#D1C4E9');
+                    baseColors.push(Theme.value('product-edge'));
+                    mutedColors.push(Theme.value('purple-pale'));
                 }
 
                 // Colours: muted for inactive, bold for active step
@@ -103,8 +103,8 @@
                     datasets.push({
                         label: 'Before',
                         data: beforeValues,
-                        backgroundColor: 'rgba(120,120,120,0.16)',
-                        borderColor: 'rgba(120,120,120,0.55)',
+                        backgroundColor: Theme.value('chart-wash-neutral'),
+                        borderColor: Theme.value('chart-fill-neutral'),
                         borderWidth: 1,
                         barPercentage: 0.7,
                         categoryPercentage: 0.8,
@@ -145,7 +145,7 @@
                                 beginAtZero: true,
                                 suggestedMax: Math.max.apply(null, values.concat(beforeValues)) * 1.15,
                                 title: { display: true, text: 'Spread (bps)', font: { size: 11 } },
-                                grid: { color: '#f0f0f0' },
+                                grid: { color: Theme.value('code') },
                             },
                             y: {
                                 grid: { display: false },
@@ -154,7 +154,7 @@
                                         return { size: 11, weight: context.index === activeStep ? 'bold' : 'normal' };
                                     },
                                     color: function(context) {
-                                        return context.index === activeStep ? baseColors[activeStep] : '#666';
+                                        return context.index === activeStep ? baseColors[activeStep] : Theme.value('text-3');
                                     },
                                 },
                             }

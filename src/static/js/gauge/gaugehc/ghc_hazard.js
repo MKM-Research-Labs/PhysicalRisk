@@ -80,9 +80,9 @@
 
                 var filter = _hcTriggerFilter;
                 var triggerDefs = [
-                    {key:'alert', label:'Alert', color:'#FFC107', rates: alertRates},
-                    {key:'warning', label:'Warning', color:'#FF9800', rates: warningRates},
-                    {key:'severe', label:'Severe', color:'#F44336', rates: severeRates}
+                    {key:'alert', label:'Alert', color:Theme.value('amber-yellow'), rates: alertRates},
+                    {key:'warning', label:'Warning', color:Theme.value('amber-bright'), rates: warningRates},
+                    {key:'severe', label:'Severe', color:Theme.value('red-bright'), rates: severeRates}
                 ];
 
                 var datasets = [];
@@ -92,18 +92,12 @@
                         label: td.label + ' (base)',
                         data: td.rates,
                         borderColor: td.color,
-                        backgroundColor: td.color.replace(')', ',0.08)').replace('rgb', 'rgba').replace('#FFC107', 'rgba(255,193,7,0.08)').replace('#FF9800', 'rgba(255,152,0,0.08)').replace('#F44336', 'rgba(244,67,54,0.08)'),
+                        backgroundColor: Theme.ramp('trigger_level_chart_wash')[td.key],
                         fill: true, tension: 0, pointRadius: 4,
                         pointBackgroundColor: td.color, borderWidth: 2
                     });
                 });
 
-                // Fix backgroundColor for hex colors
-                datasets.forEach(function(ds) {
-                    if (ds.borderColor === '#FFC107') ds.backgroundColor = 'rgba(255,193,7,0.08)';
-                    else if (ds.borderColor === '#FF9800') ds.backgroundColor = 'rgba(255,152,0,0.08)';
-                    else if (ds.borderColor === '#F44336') ds.backgroundColor = 'rgba(244,67,54,0.08)';
-                });
 
                 // Overlay market curves if available
                 var gaugeId = hazardData.gauge_id || '';
@@ -169,7 +163,7 @@
                 // Stats bar with trigger dropdown
                 var bar = document.getElementById('hazard-stats-bar');
                 var selHtml = '<select id="hc-trigger-select" onchange="window._hcTriggerChanged(this.value)" ' +
-                    'style="padding:2px 6px;font-size:10px;border:1px solid #ccc;border-radius:3px;background:white;margin-right:8px;">' +
+                    'style="padding:2px 6px;font-size:10px;border:1px solid var(--divider);border-radius:3px;background:var(--panel);margin-right:8px;">' +
                     '<option value="all"' + (filter === 'all' ? ' selected' : '') + '>All Triggers</option>' +
                     '<option value="alert"' + (filter === 'alert' ? ' selected' : '') + '>Alert</option>' +
                     '<option value="warning"' + (filter === 'warning' ? ' selected' : '') + '>Warning</option>' +
@@ -184,7 +178,7 @@
                     statsItems.push('<span style="color:' + td.color + ';"><b>' + td.label + ' 1Y:</b> ' + r1 + ' bps</span>');
                     statsItems.push('<span style="color:' + td.color + ';"><b>5Y:</b> ' + rLast + ' bps</span>');
                 });
-                statsItems.push('<span style="color:#666;"><i>1 bp = 0.01%</i></span>');
+                statsItems.push('<span style="color:var(--text-3);"><i>1 bp = 0.01%</i></span>');
 
                 bar.innerHTML = selHtml + statsItems.join('');
             }

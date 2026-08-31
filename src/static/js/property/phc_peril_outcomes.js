@@ -36,7 +36,7 @@
 
                 var order = ['flood_only', 'wind_only', 'flood_or_wind', 'flood_and_wind'];
                 var labels = ['Flood only', 'Wind only', 'Flood \u222A Wind', 'Flood \u2229 Wind'];
-                var colors = ['#42A5F5', '#26A69A', '#7E57C2', '#5E35B1'];
+                var colors = [Theme.value('accent-light'), Theme.value('teal-mid'), Theme.value('product-edge'), Theme.value('product')];
                 // BRI-anchored combined perils (bow/baw) — same union/intersection
                 // but on the BRI-resilient flood leg. Appended only when present
                 // (catchments/runs that produced the bow/baw scenario files), so
@@ -44,12 +44,12 @@
                 if (perils.bri_or_wind) {
                     order.push('bri_or_wind');
                     labels.push('BRI \u222A Wind');
-                    colors.push('#6A1B9A');
+                    colors.push(Theme.value('purple-deep'));
                 }
                 if (perils.bri_and_wind) {
                     order.push('bri_and_wind');
                     labels.push('BRI \u2229 Wind');
-                    colors.push('#4A148C');
+                    colors.push(Theme.value('purple-dark'));
                 }
 
                 var spreads = order.map(function(k) {
@@ -84,7 +84,7 @@
                                 display: true,
                                 text: 'Peril outcomes (property node)',
                                 font: { size: 11, weight: 'bold' },
-                                color: '#444',
+                                color: Theme.value('rv-ink-2'),
                             },
                             tooltip: {
                                 callbacks: {
@@ -101,7 +101,7 @@
                                 beginAtZero: true,
                                 suggestedMax: Math.max.apply(null, spreads) * 1.15 || 1,
                                 title: { display: true, text: 'Spread (bps)', font: { size: 10 } },
-                                grid: { color: '#f0f0f0' },
+                                grid: { color: Theme.value('code') },
                             },
                             y: { grid: { display: false }, ticks: { font: { size: 10 } } }
                         },

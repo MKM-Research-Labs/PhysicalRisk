@@ -67,14 +67,14 @@ class TestBasisSHDJS:
         assert "1 - d / 25" in js
 
     def test_gauge_marker_at_origin(self, js):
-        assert "'#4CAF50'" in js  # green gauge marker
+        assert "Theme.value('green-bright')" in js  # green gauge marker
 
     def test_property_marker(self, js):
-        assert "'#F44336'" in js  # red property marker
+        assert "Theme.value('red-bright')" in js  # red property marker
 
     def test_selected_storm_highlight(self, js):
         """Selected storm gets a highlight circle."""
-        assert "'#FF9800'" in js  # orange highlight
+        assert "Theme.value('amber-bright')" in js  # orange highlight
 
     def test_click_sets_selected_storm(self, js):
         assert "basisSelectedStorm" in js

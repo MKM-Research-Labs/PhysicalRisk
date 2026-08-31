@@ -71,17 +71,17 @@
 
                 var chipStyle = 'display:inline-flex;align-items:center;gap:4px;padding:4px 10px;' +
                     'border-radius:12px;font-weight:600;font-size:11px;';
-                var arrowStyle = 'color:#bbb;font-size:16px;margin:0 4px;';
+                var arrowStyle = 'color:var(--faint);font-size:16px;margin:0 4px;';
                 var countStyle = 'font-size:15px;font-weight:700;';
-                var labelStyle = 'font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;';
-                var detailStyle = 'font-size:9px;color:#999;line-height:1.1;';
+                var labelStyle = 'font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;';
+                var detailStyle = 'font-size:9px;color:var(--muted-2);line-height:1.1;';
 
                 // Resilient (BRI) chip — only rendered when a BRI curve exists.
                 var briChip = '';
                 if (hasBri) {
                     briChip =
                         '<span style="' + arrowStyle + '">\u2192</span>' +
-                        '<div style="' + chipStyle + 'background:#EDE7F6;color:#4527A0;flex-direction:column;min-width:70px;text-align:center;">' +
+                        '<div style="' + chipStyle + 'background:var(--product-bg);color:var(--product-ink);flex-direction:column;min-width:70px;text-align:center;">' +
                         '<span style="' + countStyle + '">' + briCount + '</span>' +
                         '<span style="' + labelStyle + '">BRI resilient</span>' +
                         '<span style="' + detailStyle + '">' + briSpread.toFixed(1) + 'bp</span>' +
@@ -92,7 +92,7 @@
                     '<div style="display:flex;align-items:center;gap:2px;">' +
 
                     // Gauge
-                    '<div style="' + chipStyle + 'background:#FFEBEE;color:#C62828;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<div style="' + chipStyle + 'background:var(--danger-bg-soft);color:var(--red-dark);flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + gaugeCount + '</span>' +
                     '<span style="' + labelStyle + '">gauge severe</span>' +
                     '<span style="' + detailStyle + '">' + gaugeSpread.toFixed(0) + 'bp</span>' +
@@ -101,7 +101,7 @@
                     '<span style="' + arrowStyle + '">\u2192</span>' +
 
                     // SHE (elevation)
-                    '<div style="' + chipStyle + 'background:#FFF3E0;color:#E65100;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<div style="' + chipStyle + 'background:var(--warn-bg-warm);color:var(--amber-deep);flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + sheCount + '</span>' +
                     '<span style="' + labelStyle + '">SHE</span>' +
                     '<span style="' + detailStyle + '">+' + elevDiff.toFixed(1) + 'm</span>' +
@@ -110,7 +110,7 @@
                     '<span style="' + arrowStyle + '">\u2192</span>' +
 
                     // SHD (distance)
-                    '<div style="' + chipStyle + 'background:#E8F5E9;color:#2E7D32;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<div style="' + chipStyle + 'background:var(--ok-bg);color:var(--green-dark);flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + shdCount + '</span>' +
                     '<span style="' + labelStyle + '">SHD</span>' +
                     '<span style="' + detailStyle + '">' + distKm.toFixed(1) + 'km</span>' +
@@ -119,7 +119,7 @@
                     '<span style="' + arrowStyle + '">\u2192</span>' +
 
                     // Asset (residential property or commercial asset)
-                    '<div style="' + chipStyle + 'background:#E3F2FD;color:#1565C0;flex-direction:column;min-width:70px;text-align:center;">' +
+                    '<div style="' + chipStyle + 'background:var(--accent-soft);color:var(--accent-mid);flex-direction:column;min-width:70px;text-align:center;">' +
                     '<span style="' + countStyle + '">' + propFloods + '</span>' +
                     '<span style="' + labelStyle + '">asset</span>' +
                     '<span style="' + detailStyle + '">' + propSpread.toFixed(1) + 'bp</span>' +
@@ -129,7 +129,7 @@
                     briChip +
 
                     // Separator + spread summary
-                    '<div style="margin-left:12px;padding-left:12px;border-left:1px solid #ddd;font-size:10px;color:#666;line-height:1.5;">' +
+                    '<div style="margin-left:12px;padding-left:12px;border-left:1px solid var(--line-strong);font-size:10px;color:var(--text-3);line-height:1.5;">' +
                     '<div><b>Gauge:</b> ' + gaugeName + '</div>' +
                     '<div><b>Spread:</b> ' + gaugeSpread.toFixed(1) + 'bp \u2192 ' + propSpread.toFixed(1) + 'bp</div>' +
                     '<div><b>Basis:</b> ' + (gaugeSpread - propSpread).toFixed(1) + 'bp</div>' +

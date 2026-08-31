@@ -85,9 +85,9 @@ class TestHistoricalTab:
         """Storm rows should show trigger-colored dots."""
         from visual.interactivity.gauge.gaugehc import ghc_historical
         js = ghc_historical.get_js()
-        assert '#FFC107' in js  # Alert
-        assert '#FF9800' in js  # Warning
-        assert '#F44336' in js  # Severe
+        assert "Theme.value('amber-yellow')" in js  # Alert
+        assert "Theme.value('amber-bright')" in js  # Warning
+        assert "Theme.value('red-bright')" in js  # Severe
 
     def test_historical_shows_flood_stages(self):
         """Chart should show flood stage threshold lines."""

@@ -124,25 +124,25 @@
                 lpPanel.style.cssText =
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;';
 
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var title = document.createElement('span');
                 title.id = 'loan-pricer-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
 
                 var closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
                     'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
+                    'color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 header.appendChild(title);
@@ -156,7 +156,7 @@
                 form.id = 'loan-pricer-form';
                 form.style.cssText =
                     'width:46%;padding:12px 16px;overflow-y:auto;font-size:13px;' +
-                    'border-right:1px solid #eee;';
+                    'border-right:1px solid var(--line-soft);';
 
                 // Right: pricing results
                 var results = document.createElement('div');

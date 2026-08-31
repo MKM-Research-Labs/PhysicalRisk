@@ -78,8 +78,8 @@ class TestBasisGaugeJS:
 
     def test_colours_by_severity(self, js):
         """Severe storms red, others grey."""
-        assert "'#F44336'" in js  # red
-        assert "'#BDBDBD'" in js  # grey
+        assert "Theme.value('red-bright')" in js  # red
+        assert "Theme.value('faint')" in js  # grey
 
     def test_tooltip_shows_storm_id(self, js):
         assert "Storm " in js

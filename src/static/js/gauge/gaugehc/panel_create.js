@@ -27,8 +27,8 @@
                     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
                     'width:' + PANEL_W + ';height:' + PANEL_H + ';' +
                     'max-width:1400px;max-height:900px;min-width:600px;min-height:400px;' +
-                    'background:white;border:1px solid #ccc;border-radius:8px;' +
-                    'box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:2000;' +
+                    'background:var(--panel);border:1px solid var(--divider);border-radius:8px;' +
+                    'box-shadow:var(--shadow-toast);z-index:2000;' +
                     'display:none;flex-direction:column;font-family:Arial,sans-serif;' +
                     'resize:both;overflow:hidden;';
 
@@ -36,7 +36,7 @@
                 var header = document.createElement('div');
                 header.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:10px 16px;border-bottom:1px solid #eee;background:#f8f9fa;' +
+                    'padding:10px 16px;border-bottom:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:8px 8px 0 0;';
 
                 var leftHeader = document.createElement('div');
@@ -44,7 +44,7 @@
 
                 var title = document.createElement('span');
                 title.id = 'hazard-panel-title';
-                title.style.cssText = 'font-weight:bold;font-size:14px;color:#333;';
+                title.style.cssText = 'font-weight:bold;font-size:14px;color:var(--text);';
 
                 leftHeader.appendChild(title);
 
@@ -52,7 +52,7 @@
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText =
                     'border:none;background:none;font-size:24px;cursor:pointer;' +
-                    'color:#666;padding:0 8px;line-height:1;';
+                    'color:var(--text-3);padding:0 8px;line-height:1;';
                 closeBtn.onclick = hidePanel;
 
                 header.appendChild(leftHeader);
@@ -62,7 +62,7 @@
                 var tabBar = document.createElement('div');
                 tabBar.id = 'hazard-tab-bar';
                 tabBar.style.cssText =
-                    'display:flex;gap:0;border-bottom:1px solid #ddd;padding:0;background:#f8f9fa;' +
+                    'display:flex;gap:0;border-bottom:1px solid var(--line-strong);padding:0;background:var(--wash);' +
                     'border-radius:0;overflow:hidden;';
 
                 var tabs = ['PRS Pricing', 'Hazard Curve', 'Return Period', 'Flood Probability', 'Historical', 'Stress Test'];
@@ -74,7 +74,7 @@
                     tab.style.cssText =
                         'padding:6px 14px;border:none;cursor:pointer;' +
                         'font-size:11px;font-weight:600;' +
-                        (i === 0 ? 'background:#1976d2;color:white;' : 'background:#f5f5f5;color:#555;');
+                        (i === 0 ? 'background:var(--accent);color:var(--inverse);' : 'background:var(--sunken);color:var(--text-2);');
                     tab.onclick = function() { switchTab(i); };
                     tabBar.appendChild(tab);
                 });
@@ -85,7 +85,7 @@
                 blotterBtn.textContent = 'Gauge Blotter';
                 blotterBtn.style.cssText =
                     'padding:6px 14px;border:none;font-size:11px;font-weight:600;' +
-                    'cursor:default;background:#f5f5f5;color:#bbb;';
+                    'cursor:default;background:var(--sunken);color:var(--faint);';
                 blotterBtn.disabled = true;
                 blotterBtn.onclick = function() {
                     if (blotterBtn.disabled) return;
@@ -101,7 +101,7 @@
                 // Controls area (for PRS inputs on Tab 3)
                 var controls = document.createElement('div');
                 controls.id = 'hazard-controls';
-                controls.style.cssText = 'padding:0;display:none;border-bottom:1px solid #eee;';
+                controls.style.cssText = 'padding:0;display:none;border-bottom:1px solid var(--line-soft);';
 
                 // Chart container
                 var chartBox = document.createElement('div');
@@ -116,7 +116,7 @@
                 var statsBar = document.createElement('div');
                 statsBar.id = 'hazard-stats-bar';
                 statsBar.style.cssText =
-                    'padding:8px 16px;border-top:1px solid #eee;font-size:12px;color:#555;' +
+                    'padding:8px 16px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--text-2);' +
                     'display:flex;gap:16px;flex-wrap:wrap;';
 
                 // Footer
@@ -124,12 +124,12 @@
                 footer.id = 'hazard-footer';
                 footer.style.cssText =
                     'display:flex;justify-content:space-between;align-items:center;' +
-                    'padding:8px 16px;border-top:1px solid #eee;background:#f8f9fa;' +
+                    'padding:8px 16px;border-top:1px solid var(--line-soft);background:var(--wash);' +
                     'border-radius:0 0 8px 8px;font-size:12px;';
 
                 var statusSpan = document.createElement('span');
                 statusSpan.id = 'hazard-status';
-                statusSpan.style.color = '#666';
+                statusSpan.style.color = 'var(--text-3)';
                 footer.appendChild(statusSpan);
 
                 hazardPanel.appendChild(header);

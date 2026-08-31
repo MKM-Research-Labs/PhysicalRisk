@@ -20,11 +20,11 @@
 
             function selectHtml(id, label, options) {{
                 var h = '<div style="margin-bottom:6px;">' +
-                    '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                    '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
                     label + '</label>' +
                     '<select id="' + id + '" ' +
                     'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                    'border:1px solid #ccc;border-radius:4px;font-size:13px;">';
+                    'border:1px solid var(--divider);border-radius:4px;font-size:13px;">';
                 options.forEach(function(o) {{
                     // Accept either a plain string (value === text) or a
                     // {{value, label}} object so the same helper builds both the
@@ -41,21 +41,21 @@
             // it visually and toggleState reads it back for the overrides.
             function toggleHtml(id, label) {{
                 return '<div style="margin-bottom:6px;">' +
-                    '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                    '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
                     label + '</label>' +
                     '<button id="' + id + '" type="button" data-on="0" ' +
-                    'style="width:100%;box-sizing:border-box;padding:6px;border:1px solid #ccc;' +
+                    'style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--divider);' +
                     'border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;' +
-                    'background:#f5f5f5;color:#888;">Off</button></div>';
+                    'background:var(--sunken);color:var(--muted);">Off</button></div>';
             }}
 
             function setToggle(btn, on) {{
                 if (!btn) return;
                 btn.setAttribute('data-on', on ? '1' : '0');
                 btn.textContent = on ? 'On' : 'Off';
-                btn.style.background = on ? '#1565C0' : '#f5f5f5';
-                btn.style.color = on ? '#fff' : '#888';
-                btn.style.borderColor = on ? '#1565C0' : '#ccc';
+                btn.style.background = on ? 'var(--accent-mid)' : 'var(--sunken)';
+                btn.style.color = on ? 'var(--panel)' : 'var(--muted)';
+                btn.style.borderColor = on ? 'var(--accent-mid)' : 'var(--divider)';
             }}
 
             function toggleState(id) {{
@@ -65,19 +65,19 @@
 
             function buildForm() {{
                 var form = document.getElementById('loan-pricer-form');
-                var html = '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
-                    'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
+                var html = '<div style="font-weight:700;font-size:12px;color:var(--accent-mid);' +
+                    'border-bottom:1px solid var(--accent-border);padding-bottom:4px;margin-bottom:8px;">' +
                     'Loan Inputs</div>';
                 FIELDS.forEach(function(f) {{
                     // In standalone mode the coupon is derived (rating + hazard),
                     // so the contractual rate isn't a free input.
                     if (standaloneMode && f.id === 'lp-interest_rate') return;
                     html += '<div style="margin-bottom:6px;">' +
-                        '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                        '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
                         f.label + '</label>' +
                         '<input id="' + f.id + '" type="number" step="any" ' +
                         'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                        'border:1px solid #ccc;border-radius:4px;font-size:13px;"></div>';
+                        'border:1px solid var(--divider);border-radius:4px;font-size:13px;"></div>';
                 }});
                 // Standalone calculator exposes the coupon build-up drivers:
                 // borrower credit rating + wind hazard category. The flood leg
@@ -94,7 +94,7 @@
                     // above sets the basis; fire and seismic are independent
                     // legs folded into the all-in coupon by root-sum-of-squares
                     // when toggled on (their spreads come from the asset curve).
-                    html += '<div style="font-size:11px;color:#888;text-transform:uppercase;' +
+                    html += '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;' +
                         'letter-spacing:0.5px;margin:8px 0 2px;">Independent Perils</div>';
                     html += toggleHtml('lp-include_fire', 'Fire');
                     html += toggleHtml('lp-include_seismic', 'Seismic');
@@ -103,14 +103,14 @@
                     // rate the borrower pays, while the model coupon stays visible
                     // in the build-up as the "Original Contractual Coupon".
                     html += '<div style="margin-bottom:6px;">' +
-                        '<label style="display:block;color:#666;font-size:11px;margin-bottom:2px;">' +
+                        '<label style="display:block;color:var(--text-3);font-size:11px;margin-bottom:2px;">' +
                         'Contractual Coupon (%)</label>' +
                         '<input id="lp-contractual_coupon" type="number" step="any" ' +
                         'style="width:100%;box-sizing:border-box;padding:4px 6px;' +
-                        'border:1px solid #ccc;border-radius:4px;font-size:13px;"></div>';
+                        'border:1px solid var(--divider);border-radius:4px;font-size:13px;"></div>';
                 }}
                 html += '<button id="lp-reprice-btn" ' +
-                    'style="width:100%;margin-top:4px;padding:8px;background:#1565C0;color:white;' +
+                    'style="width:100%;margin-top:4px;padding:8px;background:var(--accent-mid);color:var(--inverse);' +
                     'border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">' +
                     'Re-price</button>';
                 form.innerHTML = html;
@@ -175,14 +175,14 @@
             function renderResults(data) {{
                 var p = (data && data.pricing) || {{}};
                 var rows = [
-                    ['Fair Value', fmtCurrency(p.mortgage_value), '#1B5E20'],
-                    ['Discount to Par', fmtCurrency(p.discount_to_par), '#C62828'],
-                    ['Discount %', fmtNum(p.discount_percentage, 2) + '%', '#C62828'],
-                    ['Discount Rate', fmtPct(p.discount_rate), '#333'],
-                    ['LTV Ratio', fmtPct(p.ltv_ratio), '#333'],
-                    ['Monthly Payment', fmtCurrency(p.monthly_payment), '#333'],
-                    ['Annual Payment', fmtCurrency(p.annual_payment), '#333'],
-                    ['PV Cashflows', fmtCurrency(p.pv_cashflows), '#333']
+                    ['Fair Value', fmtCurrency(p.mortgage_value), 'var(--green-deep)'],
+                    ['Discount to Par', fmtCurrency(p.discount_to_par), 'var(--red-dark)'],
+                    ['Discount %', fmtNum(p.discount_percentage, 2) + '%', 'var(--red-dark)'],
+                    ['Discount Rate', fmtPct(p.discount_rate), 'var(--text)'],
+                    ['LTV Ratio', fmtPct(p.ltv_ratio), 'var(--text)'],
+                    ['Monthly Payment', fmtCurrency(p.monthly_payment), 'var(--text)'],
+                    ['Annual Payment', fmtCurrency(p.annual_payment), 'var(--text)'],
+                    ['PV Cashflows', fmtCurrency(p.pv_cashflows), 'var(--text)']
                 ];
                 var html = '';
                 // Coupon build-up (standalone calculator only): show how the
@@ -208,7 +208,7 @@
                         : 'Flood Hazard (PRS \u00b7 category)';
                     if (standaloneOriginAssetId && window.viewPropertyHazard) {{
                         floodLabel += ' <a href="#" id="lp-flood-prs-link" ' +
-                            'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
+                            'style="color:var(--accent-mid);text-decoration:underline;font-size:11px;" ' +
                             'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
                     }}
                     // The wind leg is either PRS-priced from the asset's modelled
@@ -219,9 +219,9 @@
                         ? 'Wind Hazard (PRS \u00b7 combined)'
                         : 'Wind Hazard (static)';
                     var couponRows = [
-                        ['Original Contractual Coupon', fmtPct(c.rate), '#0D47A1'],
-                        ['Risk-free (curve)', fmtPct(c.risk_free), '#333'],
-                        ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), '#333']
+                        ['Original Contractual Coupon', fmtPct(c.rate), 'var(--accent-ink)'],
+                        ['Risk-free (curve)', fmtPct(c.risk_free), 'var(--text)'],
+                        ['Credit Spread (' + (c.credit_rating || '') + ')', fmtPct(c.credit_spread), 'var(--text)']
                     ];
                     // When the user picked a PRS scenario the coupon carries a
                     // single hazard leg (that scenario's modelled spread); show
@@ -237,48 +237,48 @@
                         var prsLabel = 'PRS Hazard (' + scLabel + ')';
                         if (standaloneOriginAssetId && window.viewPropertyHazard) {{
                             prsLabel += ' <a href="#" id="lp-flood-prs-link" ' +
-                                'style="color:#1565C0;text-decoration:underline;font-size:11px;" ' +
+                                'style="color:var(--accent-mid);text-decoration:underline;font-size:11px;" ' +
                                 'title="Open the PRS pricer for this asset">&#8599; PRS pricer</a>';
                         }}
                         // The flood/wind basis (pre-RSS). Falls back to the all-in
                         // for older payloads that don't carry flood_wind_base.
                         var basis = (c.flood_wind_base != null) ? c.flood_wind_base : c.hazard_spread;
-                        couponRows.push([prsLabel, fmtPct(basis), '#333']);
+                        couponRows.push([prsLabel, fmtPct(basis), 'var(--text)']);
                     }} else {{
-                        couponRows.push([floodLabel, fmtPct(c.flood_spread), '#333']);
-                        couponRows.push([windLabel, fmtPct(c.wind_spread), '#333']);
+                        couponRows.push([floodLabel, fmtPct(c.flood_spread), 'var(--text)']);
+                        couponRows.push([windLabel, fmtPct(c.wind_spread), 'var(--text)']);
                     }}
                     // Independent peril legs — shown when their toggle is on, then
                     // the all-in (root-sum-of-squares of the basis + peril legs).
                     if (c.fire_included) {{
                         var fl = (c.fire_spread > 0) ? '' : ' · no asset leg';
-                        couponRows.push(['Fire (independent' + fl + ')', fmtPct(c.fire_spread), '#BF360C']);
+                        couponRows.push(['Fire (independent' + fl + ')', fmtPct(c.fire_spread), 'var(--orange-deep)']);
                     }}
                     if (c.seismic_included) {{
                         var sl = (c.seismic_spread > 0) ? '' : ' · no asset leg';
                         couponRows.push(['Seismic (independent' + sl + ')', fmtPct(c.seismic_spread), Theme.value('peril-seismic-row')]);
                     }}
                     if (c.fire_included || c.seismic_included) {{
-                        couponRows.push(['All-in Hazard (√Σ sq)', fmtPct(c.hazard_spread), '#0D47A1']);
+                        couponRows.push(['All-in Hazard (√Σ sq)', fmtPct(c.hazard_spread), 'var(--accent-ink)']);
                     }}
-                    html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
-                        'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
+                    html += '<div style="font-weight:700;font-size:12px;color:var(--accent-mid);' +
+                        'border-bottom:1px solid var(--accent-border);padding-bottom:4px;margin-bottom:8px;">' +
                         'Coupon Build-up</div>';
                     couponRows.forEach(function(r) {{
                         html += '<div style="display:flex;justify-content:space-between;padding:3px 0;' +
-                            'border-bottom:1px solid #f5f5f5;">' +
-                            '<span style="color:#666;">' + r[0] + '</span>' +
+                            'border-bottom:1px solid var(--sunken);">' +
+                            '<span style="color:var(--text-3);">' + r[0] + '</span>' +
                             '<span style="font-weight:600;color:' + r[2] + ';">' + r[1] + '</span></div>';
                     }});
                     html += '<div style="height:12px;"></div>';
                 }}
-                html += '<div style="font-weight:700;font-size:12px;color:#1565C0;' +
-                    'border-bottom:1px solid #BBDEFB;padding-bottom:4px;margin-bottom:8px;">' +
+                html += '<div style="font-weight:700;font-size:12px;color:var(--accent-mid);' +
+                    'border-bottom:1px solid var(--accent-border);padding-bottom:4px;margin-bottom:8px;">' +
                     'Pricing Results</div>';
                 rows.forEach(function(r) {{
                     html += '<div style="display:flex;justify-content:space-between;padding:3px 0;' +
-                        'border-bottom:1px solid #f5f5f5;">' +
-                        '<span style="color:#666;">' + r[0] + '</span>' +
+                        'border-bottom:1px solid var(--sunken);">' +
+                        '<span style="color:var(--text-3);">' + r[0] + '</span>' +
                         '<span style="font-weight:600;color:' + r[2] + ';">' + r[1] + '</span></div>';
                 }});
                 document.getElementById('loan-pricer-results').innerHTML = html;

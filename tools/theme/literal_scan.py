@@ -61,7 +61,12 @@ _CSS_DECLARATION = re.compile(
 
 #: The quoted string literals on a line, so a hex can be judged by the string it lives
 #: in rather than by its neighbours 60 characters away.
-_STRINGS = re.compile(r"'[^']*'|\"[^\"]*\"")
+#:
+#: Escapes are part of the pattern, not an afterthought: a naive ``'[^']*'`` stops at
+#: the first ``\'`` and reports the rest of an escaped string as unquoted code. That is
+#: how an inline ``onmouseover="this.style.background=\'#e3f2fd\'"`` was rewritten into
+#: a syntax error — the colour looked like it stood on its own when it did not.
+_STRINGS = re.compile(r"'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"")
 
 #: Below this ΔE, a literal is treated as the token it is nearest to. See the module
 #: docstring: 1.5 is comfortably inside the just-noticeable difference for flat colour.
@@ -178,4 +183,25 @@ def scan(root, tokens):
                 }
 
 
-__all__ = ["HEX", "NEAR_DELTA_E", "classify", "delta_e", "nearest_token", "scan"]
+def substitutable(line, match):
+    """Whether a bare ``Theme.value(...)`` can replace this literal in place.
+
+    It cannot when the colour sits *inside* a string that carries other text —
+    ``'stroke="#333" stroke-width="2"'`` or an escaped inline handler. Writing the call
+    there produces ``'stroke=Theme.value('text') …'``, which closes the string early
+    and is a syntax error. Both cases occurred; both were caught by ``node --check``
+    rather than by review, which is the argument for running it on every file after
+    every batch.
+
+    A literal that is the *whole* string (``'#333'``) is safe: the quotes are stripped
+    afterwards and the call stands on its own.
+    """
+    for m in _STRINGS.finditer(line):
+        if m.start() <= match.start() < m.end():
+            inner = m.group(0)[1:-1]
+            return inner.strip() == match.group(0)
+    return True
+
+
+__all__ = ["HEX", "NEAR_DELTA_E", "classify", "delta_e", "nearest_token", "scan",
+           "substitutable"]

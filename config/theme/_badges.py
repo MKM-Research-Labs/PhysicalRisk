@@ -88,6 +88,24 @@ TRIGGER_LEVEL_CHART_TOKENS = {
     "clean": "muted-2",
 }
 
+#: The chart form's translucent fills. ``ghc_hazard.js`` built these by chaining
+#: ``.replace(')', ',0.08)')`` over a hex, then ran a second loop to correct the result
+#: because the chain does not work on a hex at all — two spellings of the same intent,
+#: neither of which a scan could read as a colour. Named here, both loops go away.
+TRIGGER_LEVEL_CHART_WASH_TOKENS = {
+    "alert": "chart-wash-alert",
+    "warning": "chart-wash-warning",
+    "severe": "chart-wash-severe",
+    "clean": "chart-transparent",
+}
+
+TRIGGER_LEVEL_CHART_FILL_TOKENS = {
+    "alert": "chart-fill-alert",
+    "warning": "chart-fill-warning",
+    "severe": "chart-fill-severe",
+    "clean": "chart-transparent",
+}
+
 #: The tint form, for a chip or a banner background.
 TRIGGER_LEVEL_BG_TOKENS = {
     "alert": "warn-bg",
@@ -219,6 +237,8 @@ BADGE_COLOUR_DEFAULTS = {
     "trigger_level_dark": "text-3",
     "trigger_level_bg": "sunken",
     "trigger_level_chart": "muted-2",
+    "trigger_level_chart_wash": "chart-transparent",
+    "trigger_level_chart_fill": "chart-transparent",
     "review_status": "grey",
     "priority": "grey",
     "task_status": "grey",
@@ -240,6 +260,8 @@ BADGE_TOKEN_RAMPS = {
     "trigger_level_dark": TRIGGER_LEVEL_DARK_TOKENS,
     "trigger_level_bg": TRIGGER_LEVEL_BG_TOKENS,
     "trigger_level_chart": TRIGGER_LEVEL_CHART_TOKENS,
+    "trigger_level_chart_wash": TRIGGER_LEVEL_CHART_WASH_TOKENS,
+    "trigger_level_chart_fill": TRIGGER_LEVEL_CHART_FILL_TOKENS,
     "review_status": REVIEW_STATUS_TOKENS,
     "priority": PRIORITY_TOKENS,
     "task_status": TASK_STATUS_TOKENS,
@@ -257,7 +279,8 @@ BADGE_TOKEN_RAMPS = {
 
 __all__ = [
     "TRIGGER_LEVEL_TOKENS", "TRIGGER_LEVEL_DARK_TOKENS", "TRIGGER_LEVEL_BG_TOKENS",
-    "TRIGGER_LEVEL_CHART_TOKENS",
+    "TRIGGER_LEVEL_CHART_TOKENS", "TRIGGER_LEVEL_CHART_WASH_TOKENS",
+    "TRIGGER_LEVEL_CHART_FILL_TOKENS",
     "MISSION_CRITICALITY_TOKENS", "REVIEW_STATUS_TOKENS", "LIFECYCLE_TOKENS",
     "MEETING_STATUS_TOKENS", "MRC_STATE_TOKENS", "PRODUCT_STATUS_TOKENS",
     "REVIEW_THREAD_TOKENS", "ATTENTION_TOKENS",

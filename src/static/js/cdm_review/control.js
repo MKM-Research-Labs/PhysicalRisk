@@ -25,8 +25,8 @@
     var expanded = false;
 
     var DEFAULT_CSS = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
-        'width:90vw;max-width:1200px;height:85vh;background:white;border-radius:8px;' +
-        'box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:2000;display:none;' +
+        'width:90vw;max-width:1200px;height:85vh;background:var(--panel);border-radius:8px;' +
+        'box-shadow:var(--shadow-modal);z-index:2000;display:none;' +
         'flex-direction:column;font-family:Arial,Helvetica,sans-serif;overflow:hidden;';
 
     function buildPanel() {
@@ -37,11 +37,11 @@
         // Header — title + expand/close, matching the other workstream panels.
         var header = document.createElement('div');
         header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;' +
-            'padding:10px 16px;border-bottom:1px solid #eee;flex-shrink:0;';
+            'padding:10px 16px;border-bottom:1px solid var(--line-soft);flex-shrink:0;';
 
         var title = document.createElement('span');
         title.textContent = 'CDM Asset Review';
-        title.style.cssText = 'font-size:14px;font-weight:700;color:#333;';
+        title.style.cssText = 'font-size:14px;font-weight:700;color:var(--text);';
 
         var actions = document.createElement('div');
         actions.style.cssText = 'display:flex;align-items:center;gap:2px;';
@@ -50,14 +50,14 @@
         expandBtn.innerHTML = '&#x26F6;';
         expandBtn.title = 'Expand';
         expandBtn.style.cssText = 'border:none;background:none;font-size:18px;cursor:pointer;' +
-            'color:#666;padding:0 6px;line-height:1;';
+            'color:var(--text-3);padding:0 6px;line-height:1;';
         expandBtn.onclick = function () { toggleExpand(expandBtn); };
 
         var closeBtn = document.createElement('button');
         closeBtn.innerHTML = '&times;';
         closeBtn.title = 'Close';
         closeBtn.style.cssText = 'border:none;background:none;font-size:24px;cursor:pointer;' +
-            'color:#666;padding:0 8px;line-height:1;';
+            'color:var(--text-3);padding:0 8px;line-height:1;';
         closeBtn.onclick = hidePanel;
 
         actions.appendChild(expandBtn);
@@ -128,12 +128,13 @@
                 btn.setAttribute('role', 'button');
                 // Plain house icon (placeholder).
                 btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" ' +
-                    'stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    'stroke="' + Theme.value('text') + '" stroke-width="2" ' +
+                    'stroke-linecap="round" stroke-linejoin="round">' +
                     '<path d="M3 10.5L12 3l9 7.5"/>' +
                     '<path d="M5 9.5V21h14V9.5"/>' +
                     '<path d="M9.5 21v-6h5v6"/></svg>';
                 btn.style.cssText = 'display:flex;align-items:center;justify-content:center;' +
-                    'width:30px;height:30px;cursor:pointer;background:white;';
+                    'width:30px;height:30px;cursor:pointer;background:var(--panel);';
 
                 L.DomEvent.disableClickPropagation(container);
                 L.DomEvent.on(btn, 'click', function (e) {

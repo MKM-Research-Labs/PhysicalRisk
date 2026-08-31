@@ -94,9 +94,9 @@
 
                 var colors = labels.map(function(l) {
                     var v = parseFloat(l) + binWidth / 2;
-                    if (v >= severeVal) return 'rgba(244,67,54,0.7)';
-                    if (v >= warnVal) return 'rgba(255,152,0,0.7)';
-                    return 'rgba(255,193,7,0.7)';
+                    if (v >= severeVal) return Theme.value('chart-fill-severe');
+                    if (v >= warnVal) return Theme.value('chart-fill-warning');
+                    return Theme.value('chart-fill-alert');
                 });
 
                 var datasets = [{
@@ -113,27 +113,27 @@
                     annotations.alert = {
                         type: 'line', scaleID: 'x',
                         value: ((fs.FloodAlert - min) / binWidth).toFixed(1),
-                        borderColor: '#FFC107', borderDash: [5,5], borderWidth: 2,
+                        borderColor: Theme.value('amber-yellow'), borderDash: [5,5], borderWidth: 2,
                         label: { display: true, content: 'Alert ' + fs.FloodAlert.toFixed(1) + 'm',
-                                 position: 'start', font: { size: 9 }, backgroundColor: 'rgba(255,193,7,0.8)' }
+                                 position: 'start', font: { size: 9 }, backgroundColor: Theme.value('chart-fill-alert') }
                     };
                 }
                 if (fs.FloodWarning && fs.FloodWarning >= min && fs.FloodWarning <= max) {
                     annotations.warning = {
                         type: 'line', scaleID: 'x',
                         value: ((fs.FloodWarning - min) / binWidth).toFixed(1),
-                        borderColor: '#FF9800', borderDash: [5,5], borderWidth: 2,
+                        borderColor: Theme.value('amber-bright'), borderDash: [5,5], borderWidth: 2,
                         label: { display: true, content: 'Warning ' + fs.FloodWarning.toFixed(1) + 'm',
-                                 position: 'start', font: { size: 9 }, backgroundColor: 'rgba(255,152,0,0.8)' }
+                                 position: 'start', font: { size: 9 }, backgroundColor: Theme.value('chart-fill-warning') }
                     };
                 }
                 if (fs.SevereFloodWarning && fs.SevereFloodWarning >= min && fs.SevereFloodWarning <= max) {
                     annotations.severe = {
                         type: 'line', scaleID: 'x',
                         value: ((fs.SevereFloodWarning - min) / binWidth).toFixed(1),
-                        borderColor: '#F44336', borderDash: [5,5], borderWidth: 2,
+                        borderColor: Theme.value('red-bright'), borderDash: [5,5], borderWidth: 2,
                         label: { display: true, content: 'Severe ' + fs.SevereFloodWarning.toFixed(1) + 'm',
-                                 position: 'start', font: { size: 9 }, backgroundColor: 'rgba(244,67,54,0.8)' }
+                                 position: 'start', font: { size: 9 }, backgroundColor: Theme.value('chart-fill-severe') }
                     };
                 }
 
@@ -180,8 +180,8 @@
                     '<span><b>Mean:</b> ' + mean.toFixed(2) + 'm</span>',
                     '<span><b>Median:</b> ' + median.toFixed(2) + 'm</span>',
                     '<span><b>Max:</b> ' + max.toFixed(2) + 'm</span>',
-                    '<span style="color:#FFC107;"><b>Alert:</b> ' + nAlert + ' (' + (numSeqs > 0 ? (nAlert/numSeqs*100).toFixed(1) : '0') + '%)</span>',
-                    '<span style="color:#FF9800;"><b>Warning:</b> ' + nWarn + ' (' + (numSeqs > 0 ? (nWarn/numSeqs*100).toFixed(1) : '0') + '%)</span>',
-                    '<span style="color:#F44336;"><b>Severe:</b> ' + nSevere + ' (' + (numSeqs > 0 ? (nSevere/numSeqs*100).toFixed(1) : '0') + '%)</span>',
+                    '<span style="color:var(--amber-yellow);"><b>Alert:</b> ' + nAlert + ' (' + (numSeqs > 0 ? (nAlert/numSeqs*100).toFixed(1) : '0') + '%)</span>',
+                    '<span style="color:var(--amber-bright);"><b>Warning:</b> ' + nWarn + ' (' + (numSeqs > 0 ? (nWarn/numSeqs*100).toFixed(1) : '0') + '%)</span>',
+                    '<span style="color:var(--red-bright);"><b>Severe:</b> ' + nSevere + ' (' + (numSeqs > 0 ? (nSevere/numSeqs*100).toFixed(1) : '0') + '%)</span>',
                 ].join('');
             }

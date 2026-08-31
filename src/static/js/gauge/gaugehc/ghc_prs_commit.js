@@ -73,7 +73,7 @@
                     var data = await response.json();
                     if (data.status === 'success') {
                         var actionLabel = isCloseOut ? 'Closed' : 'Committed';
-                        if (btn) { btn.textContent = actionLabel; btn.style.background = '#1976D2'; }
+                        if (btn) { btn.textContent = actionLabel; btn.style.background = 'var(--accent)'; }
                         var msg = isCloseOut
                             ? 'Trade ' + closeOutSwapId + ' closed. Offsetting trade ' + data.swap_id
                             : 'Trade ' + data.swap_id + ' committed';
@@ -103,9 +103,9 @@
                                 var blBtn = document.getElementById('hazard-blotter-link');
                                 if (blBtn) {
                                     blBtn.disabled = false;
-                                    blBtn.style.color = '#1565c0';
+                                    blBtn.style.color = 'var(--accent-mid)';
                                     blBtn.style.cursor = 'pointer';
-                                    blBtn.style.background = '#e3f2fd';
+                                    blBtn.style.background = 'var(--accent-soft)';
                                 }
                             }
                         } catch (e) { /* non-critical */ }
@@ -117,7 +117,7 @@
                     }
                 } catch (error) {
                     console.error('PRS commit error:', error);
-                    if (btn) { btn.textContent = isCloseOut ? 'Close Out' : 'Commit'; btn.disabled = false; btn.style.background = isCloseOut ? '#ef5350' : '#4CAF50'; }
+                    if (btn) { btn.textContent = isCloseOut ? 'Close Out' : 'Commit'; btn.disabled = false; btn.style.background = isCloseOut ? 'var(--red-soft)' : 'var(--green-bright)'; }
                     if (window.showError) window.showError('Failed: ' + error.message);
                 }
             };
