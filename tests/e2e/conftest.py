@@ -36,6 +36,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.e2e import _js_coverage
 from tests.e2e._helpers import (
     ROOT,
     _free_port,
@@ -365,6 +366,13 @@ def _browser_page(browser, base_url):
     page.set_default_timeout(60_000)
     page.set_default_navigation_timeout(180_000)
 
+    # V8 precise coverage, opt-in via MKM_E2E_JS_COVERAGE=1. Started before the
+    # first navigation so module top-level execution counts, not just handlers
+    # fired by tests.
+    _jscov = _js_coverage.JsCoverageCollector(page)
+    if _js_coverage.enabled():
+        _jscov.start()
+
     viz_url = f"{base_url}/visualization"
     page.goto(viz_url, wait_until="networkidle", timeout=180_000)
 
@@ -394,6 +402,17 @@ def _browser_page(browser, base_url):
         page.wait_for_timeout(15_000)
 
     yield page
+
+    # Take coverage before the context closes — the profiler dies with it.
+    # Each batch is a separate pytest session, so each write is per-session and
+    # tools/coverage/js_coverage_report.py unions them.
+    if _js_coverage.enabled():
+        try:
+            _jscov.write(
+                ROOT / "audit" / "e2e" / "js_coverage", f"session-{os.getpid()}"
+            )
+        except Exception:
+            pass
 
     context.close()
 
