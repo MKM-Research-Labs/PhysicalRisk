@@ -76,6 +76,36 @@ class TestGatedSurfaces:
         assert scan["tokens"] > 200
 
 
+class TestPythonSurfaces:
+    """Python draws too — the PDF generators, the map layers, the popups.
+
+    354 colour literals lived there until step 8: 213 ``colors.HexColor('#…')`` calls
+    in the report builders, a private nine-colour palette in the audit's own constants
+    that 21 modules imported, and matplotlib figures picking their own greys.
+    """
+
+    def test_no_colour_literals_in_python(self, scan):
+        findings = [f for f in scan["gated"] if f["path"].endswith(".py")]
+        detail = ", ".join(f'{f["path"]}:{f["line"]} {f["snippet"]}' for f in findings[:20])
+        assert findings == [], f"colour literals in Python: {detail}"
+
+    def test_the_python_scan_reached_the_source(self, scan):
+        """A scan that found no files to read would pass the assertion above."""
+        assert scan["scanned"] > 1000
+
+    def test_a_colour_in_a_python_comment_is_not_a_finding(self):
+        """Explaining why colours are not written down must not be a finding.
+
+        ``#`` starts a comment and starts a colour, so a naive split loses both.
+        """
+        found = scan_text("x = colour('accent')  # was #1976d2\n", "x.py", ".py")
+        assert found["literals"] == []
+
+    def test_a_colour_in_a_python_string_is_a_finding(self):
+        found = scan_text("x = '#1976d2'\n", "x.py", ".py")
+        assert [f["snippet"] for f in found["literals"]] == ["#1976d2"]
+
+
 class TestReportedBacklog:
     def test_nothing_is_merely_reported(self):
         """Step 6 finished, so every served asset type is gated.

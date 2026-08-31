@@ -31,6 +31,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 from .formatters import fmt_gbp
 from .layouts import white_hdr_style
 from .styles import PURPLE_TABLE_STYLE
+from reports.theme_pdf import pdf_colour
 
 
 def build_page4_rloan(
@@ -43,7 +44,7 @@ def build_page4_rloan(
     elements: List = []
 
     elements.append(Paragraph('MORTGAGE IMPACT ANALYSIS', styles['SectionHeader']))
-    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#1A237E')))
+    elements.append(HRFlowable(width='100%', thickness=1, color=pdf_colour('navy')))
     elements.append(Spacer(1, 0.1 * 72))
 
     if rloan_record is None:
@@ -54,12 +55,12 @@ def build_page4_rloan(
                            parent=styles['Normal'],
                            fontSize=12,
                            alignment=TA_CENTER,
-                           textColor=colors.HexColor('#546E7A'))
+                           textColor=pdf_colour('blue-grey-dark'))
         )]]
         no_mtg_tbl = Table(no_mtg, colWidths=[6.5 * 72])
         no_mtg_tbl.setStyle(TableStyle([
-            ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#ECEFF1')),
-            ('BOX',           (0, 0), (-1, -1), 1, colors.HexColor('#90A4AE')),
+            ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('blue-grey-bg')),
+            ('BOX',           (0, 0), (-1, -1), 1, pdf_colour('blue-grey-pale')),
             ('TOPPADDING',    (0, 0), (-1, -1), 20),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
         ]))
@@ -90,9 +91,9 @@ def build_page4_rloan(
     ]
     pre_tbl = Table(pre_rows, colWidths=[3.5 * 72, 3.0 * 72])
     pre_tbl.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#E8F5E9')),
-        ('BOX',           (0, 0), (-1, -1), 1,   colors.HexColor('#2E7D32')),
-        ('INNERGRID',     (0, 0), (-1, -1), 0.3, colors.HexColor('#A5D6A7')),
+        ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('ok-bg')),
+        ('BOX',           (0, 0), (-1, -1), 1,   pdf_colour('green-dark')),
+        ('INNERGRID',     (0, 0), (-1, -1), 0.3, pdf_colour('green-pale')),
         ('TOPPADDING',    (0, 0), (-1, -1), 5),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
         ('LEFTPADDING',   (0, 0), (-1, -1), 8),
@@ -134,9 +135,9 @@ def build_page4_rloan(
 
         if neg_eq:
             ltv_row_styles += [
-                ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#FFCDD2')),
+                ('BACKGROUND', (0, row_idx), (-1, row_idx), pdf_colour('danger-line-alt')),
                 ('FONTNAME',   (0, row_idx), (-1, row_idx), 'Helvetica-Bold'),
-                ('TEXTCOLOR',  (5, row_idx), (5, row_idx),  colors.HexColor('#B71C1C')),
+                ('TEXTCOLOR',  (5, row_idx), (5, row_idx),  pdf_colour('red-deep')),
             ]
 
         ltv_rows.append([
@@ -151,20 +152,20 @@ def build_page4_rloan(
 
     ltv_tbl = Table(ltv_rows, colWidths=ltv_col_w, repeatRows=1)
     ltv_tbl.setStyle(TableStyle([
-        ('BACKGROUND',     (0, 0), (-1, 0),  colors.HexColor('#1A237E')),
+        ('BACKGROUND',     (0, 0), (-1, 0),  pdf_colour('navy')),
         ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.white),
         ('FONTNAME',       (0, 0), (-1, 0),  'Helvetica-Bold'),
         ('FONTSIZE',       (0, 0), (-1, -1), 8),
         ('ALIGN',          (2, 1), (-1, -1), 'CENTER'),
-        ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
-        ('BOX',            (0, 0), (-1, -1), 1,   colors.HexColor('#1A237E')),
+        ('GRID',           (0, 0), (-1, -1), 0.4, pdf_colour('blue-grey-mist')),
+        ('BOX',            (0, 0), (-1, -1), 1,   pdf_colour('navy')),
         ('TOPPADDING',     (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING',  (0, 0), (-1, -1), 4),
         ('LEFTPADDING',    (0, 0), (-1, -1), 4),
         ('RIGHTPADDING',   (0, 0), (-1, -1), 4),
         ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-         [colors.white, colors.HexColor('#E3F2FD')]),
+         [colors.white, pdf_colour('accent-soft')]),
     ] + ltv_row_styles))
     elements.append(ltv_tbl)
     elements.append(Spacer(1, 0.14 * 72))
@@ -200,7 +201,7 @@ def build_page4_rloan(
 
         if neg:
             sl_row_styles.append(
-                ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#FFCDD2'))
+                ('BACKGROUND', (0, row_idx), (-1, row_idx), pdf_colour('danger-line-alt'))
             )
 
         seq_id_disp = seq_id[:16] if len(seq_id) > 16 else seq_id
@@ -252,9 +253,9 @@ def build_page4_rloan(
     ]
     mtg_sum_tbl = Table(mtg_sum_rows, colWidths=[4.5 * 72, 2.0 * 72])
     mtg_sum_tbl.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#FFF8E1')),
-        ('BOX',           (0, 0), (-1, -1), 1.5, colors.HexColor('#F57F17')),
-        ('INNERGRID',     (0, 0), (-1, -1), 0.4, colors.HexColor('#FFE082')),
+        ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('warn-bg')),
+        ('BOX',           (0, 0), (-1, -1), 1.5, pdf_colour('gold-dark')),
+        ('INNERGRID',     (0, 0), (-1, -1), 0.4, pdf_colour('warn-line-soft')),
         ('TOPPADDING',    (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
         ('LEFTPADDING',   (0, 0), (-1, -1), 10),

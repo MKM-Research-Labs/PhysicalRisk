@@ -46,7 +46,9 @@ The scan (``scan_repo`` / ``scan_text``) is exercised by the gate test in
 compliance section for the consolidated audit report.
 """
 
+import io
 import re
+import tokenize
 from pathlib import Path
 
 from reportlab.lib.units import mm
@@ -79,6 +81,17 @@ _JS_LINE_COMMENT = re.compile(r"(?<!:)//.*$", re.MULTILINE)
 #: Trees whose assets the console and the tools actually serve.
 _ASSET_DIRS = ("src/static", "src/templates", "tools")
 
+#: Python trees that draw: the report generators, the map layers and popups, the
+#: document generators under docs/models. Scanned as of step 8, when their 354 colour
+#: literals reached zero.
+_PYTHON_DIRS = ("src", "config", "docs", "tools")
+
+#: Exempt from the Python scan. ``config/theme`` is the sanctioned home; the audit
+#: package and the migration tooling both carry colour-shaped text in their own regexes
+#: and prose, and flagging a scanner for containing the pattern it searches for is a
+#: finding that can never be cleared.
+_PYTHON_EXEMPT = ("config/theme", "tools/theme", "docs/models/full_audit")
+
 #: Suffixes at zero and held there. A literal in one of these fails the build.
 #:
 #: ``.js`` joined on completion of step 6 of
@@ -96,6 +109,23 @@ SANCTIONED = SANCTIONED_PACKAGE
 
 #: This module holds colour-shaped text in its own regexes and prose.
 _SELF = "docs/models/full_audit"
+
+
+def _python_files(root: Path):
+    """Every first-party Python module the scan covers."""
+    seen = set()
+    for directory in _PYTHON_DIRS:
+        base = root / directory
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.py")):
+            relative = str(path.relative_to(root))
+            if "__pycache__" in relative or relative.startswith(_PYTHON_EXEMPT):
+                continue
+            if relative in seen:
+                continue
+            seen.add(relative)
+            yield path
 
 
 def _asset_files(root: Path):
@@ -128,10 +158,42 @@ def _without_comments(text: str, suffix: str) -> str:
     Naming a colour while explaining why colours are not written down here must not
     itself be a finding.
     """
+    if suffix == ".py":
+        return _strip_python_comments(text)
     text = _CSS_COMMENT.sub(_blank, text)
     if suffix == ".js":
         text = _JS_LINE_COMMENT.sub(_blank, text)
     return text
+
+
+#: A colour literal in Python. Narrower than the CSS pattern: a bare six-character hex
+#: string is far more likely to be an identifier, a commit SHA or a hash prefix than a
+#: colour, so only the ``#``-anchored form is a finding here.
+_PY_COLOUR = re.compile(r"(?<!&)#[0-9a-fA-F]{3}\b|(?<!&)#[0-9a-fA-F]{6}\b")
+
+
+def _strip_python_comments(text: str) -> str:
+    """*text* with Python comments blanked, keeping every line in place.
+
+    Tokenising rather than cutting at the first ``#`` is what keeps a colour inside a
+    string visible while a colour named in a comment is not — and a ``#`` is the start
+    of a comment and the start of a colour, so a naive split loses both.
+    """
+    lines = text.splitlines(keepends=True)
+    starts, offset = [], 0
+    for line in lines:
+        starts.append(offset)
+        offset += len(line)
+    try:
+        comments = [tok for tok in
+                    tokenize.generate_tokens(io.StringIO(text).readline)
+                    if tok.type == tokenize.COMMENT]
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        return text
+    for tok in reversed(comments):
+        row, (start, end) = tok.start[0] - 1, (tok.start[1], tok.end[1])
+        lines[row] = lines[row][:start] + " " * (end - start) + lines[row][end:]
+    return "".join(lines)
 
 
 #: A ``var()`` reference being string-concatenated. ``var(--accent) + '20'`` produces
@@ -155,10 +217,14 @@ def scan_text(text: str, path: str, suffix: str) -> dict:
     """The literals and undefined token references in one file's text."""
     literals, undefined = [], []
     clean = _without_comments(text, suffix)
+    # Python gets the narrower pattern: a bare six-character hex string there is far
+    # more likely to be an identifier or a hash prefix than a colour, and `rgba(` in a
+    # docstring is prose.
+    pattern = _PY_COLOUR if suffix == ".py" else _COLOUR
     for number, line in enumerate(clean.splitlines(), start=1):
         if _COMPUTED_COLOUR.search(line):
             continue
-        for match in _COLOUR.finditer(line):
+        for match in pattern.finditer(line):
             literals.append({"path": path, "line": number,
                              "snippet": match.group(0).rstrip("(").strip()})
     # The same comment-stripped text as the literal scan. theme.js documents its own
@@ -196,6 +262,14 @@ def scan_repo(root: Path = None) -> dict:
             gated.extend(found["literals"])
         else:
             backlog.extend(found["literals"])
+        undefined.extend(found["undefined"])
+        concatenated.extend(found["concatenated"])
+
+    for path in _python_files(root):
+        scanned += 1
+        relative = str(path.relative_to(root))
+        found = scan_text(path.read_text(encoding="utf-8"), relative, ".py")
+        gated.extend(found["literals"])
         undefined.extend(found["undefined"])
         concatenated.extend(found["concatenated"])
     return {

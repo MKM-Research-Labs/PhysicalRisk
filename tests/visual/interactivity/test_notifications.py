@@ -34,6 +34,7 @@ import json
 from unittest.mock import MagicMock
 
 import pytest
+from config.theme import colour
 
 
 class TestBuildTemplatesJs:
@@ -60,7 +61,7 @@ class TestBuildTemplatesJs:
         from visual.interactivity.notifications import NotificationSystem
         ns = NotificationSystem()
         parsed = json.loads(ns._build_templates_js())
-        assert parsed['info']['color'] == '#2196F3'
+        assert parsed['info']['color'] == colour('accent-bright')
 
 
 class TestBuildPositionCss:

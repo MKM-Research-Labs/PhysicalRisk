@@ -31,6 +31,7 @@ from ._constants import NAVY, STEEL, GREEN, AMBER, RED, GREY, _TBL_STYLE_BASE
 from .helpers import (
     _load_json_report, _status, _status_inv, _status_colour, _map_sev,
 )
+from reports.theme_pdf import pdf_colour
 
 
 def _build_e2e(styles) -> list:
@@ -120,7 +121,7 @@ def _build_e2e(styles) -> list:
     tbl = Table(tbl_data, colWidths=[90 * mm, 40 * mm, 38 * mm])
     style_cmds = list(_TBL_STYLE_BASE)
     if failed > 0:
-        style_cmds.append(('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#FFEBEE')))
+        style_cmds.append(('BACKGROUND', (0, 3), (-1, 3), pdf_colour('danger-bg-soft')))
     tbl.setStyle(TableStyle(style_cmds))
     elems.append(tbl)
 
@@ -241,10 +242,10 @@ def _build_roadmap(junit: dict, cov: dict, styles) -> list:
         ])
         if sev == 'CRITICAL':
             row_extras.append(('BACKGROUND', (0, i), (-1, i),
-                                colors.HexColor('#FFEBEE')))
+                                pdf_colour('danger-bg-soft')))
         elif sev == 'HIGH':
             row_extras.append(('BACKGROUND', (0, i), (-1, i),
-                                colors.HexColor('#FFF8E1')))
+                                pdf_colour('warn-bg')))
 
     tbl = Table(tbl_data, colWidths=[16 * mm, 20 * mm, 60 * mm, 72 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + row_extras))

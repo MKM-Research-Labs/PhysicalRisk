@@ -35,6 +35,7 @@ Layout::
     _badges.py    this platform's own workflow-state ramps — triggers, lineage
     _governance.py the ramps shared with MKM-ModelRisk    — RAG, MRC, lifecycle
     registry.py   THEME, THEME_GROUPS                     — the flat view emitters use
+    resolve.py    colour(token)                            — the Python lookup
 
 See docs/refactor/theme_centralisation_plan.md for the migration this package is
 step 1 of, and docs/rules/coding_rules.md R7 for the rule it exists to satisfy.
@@ -71,6 +72,7 @@ from ._status import (
     STATUS_TOKEN_RAMPS, STORM_INTENSITY_BOUNDS_MS, STORM_INTENSITY_TOKENS,
     STORM_INTENSITY_TOP,
 )
+from .resolve import colour
 from .registry import (
     SANCTIONED_PACKAGE, STATUS_COLOUR_DEFAULTS, STATUS_COLOUR_TOKENS, THEME,
     THEME_GROUPS,

@@ -31,15 +31,16 @@ from typing import Any, Dict
 import folium
 
 from visual.interactivity._jsbundle import js_static
+from config.theme import colour
 
 
 class NotificationType(Enum):
     """Notification types with associated styling."""
-    INFO = ("info", "ℹ️", "#2196F3", "#E3F2FD")
-    SUCCESS = ("success", "✅", "#4CAF50", "#E8F5E8")
-    WARNING = ("warning", "⚠️", "#FF9800", "#FFF3E0")
-    ERROR = ("error", "❌", "#f44336", "#FFEBEE")
-    LOADING = ("loading", "🔄", "#9E9E9E", "#F5F5F5")
+    INFO = ("info", "ℹ️", colour('accent-bright'), colour('accent-soft'))
+    SUCCESS = ("success", "✅", colour('green-bright'), colour('flood-none'))
+    WARNING = ("warning", "⚠️", colour('amber-bright'), colour('warn-bg-warm'))
+    ERROR = ("error", "❌", colour('red-bright'), colour('danger-bg-soft'))
+    LOADING = ("loading", "🔄", colour('grey'), colour('sunken'))
 
     def __init__(self, key: str, icon: str, color: str, background: str):
         self.key = key

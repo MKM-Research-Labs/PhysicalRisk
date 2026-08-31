@@ -24,6 +24,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+from reports.theme_pdf import pdf_colour
 
 
 class EODPnLDetailPage:
@@ -34,12 +35,12 @@ class EODPnLDetailPage:
         self.section_style = ParagraphStyle(
             'EODSection', parent=styles['Heading2'],
             fontSize=13, spaceBefore=16, spaceAfter=8,
-            textColor=colors.HexColor('#1565C0'),
+            textColor=pdf_colour('accent-mid'),
         )
         self.subsection_style = ParagraphStyle(
             'EODSubSection', parent=styles['Heading3'],
             fontSize=11, spaceBefore=10, spaceAfter=6,
-            textColor=colors.HexColor('#37474F'),
+            textColor=pdf_colour('slate-dark'),
         )
 
     def get_content(self, snapshot: dict) -> list:
@@ -76,7 +77,7 @@ class EODPnLDetailPage:
                 1.1 * inch, 1.0 * inch, 0.9 * inch,
                 0.7 * inch, 0.7 * inch, 0.8 * inch])
             t.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4CAF50')),
+                ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('green-bright')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8),
@@ -119,7 +120,7 @@ class EODPnLDetailPage:
                 1.1 * inch, 1.0 * inch, 0.7 * inch,
                 0.9 * inch, 0.9 * inch])
             t.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FF9800')),
+                ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('amber-bright')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8),
@@ -127,7 +128,7 @@ class EODPnLDetailPage:
                 ('ALIGN', (3, 0), (-1, -1), 'RIGHT'),
                 ('TOPPADDING', (0, 0), (-1, -1), 3),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#FFF3E0')),
+                ('BACKGROUND', (0, -1), (-1, -1), pdf_colour('warn-bg-warm')),
                 ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
             ]))
             elements.append(t)

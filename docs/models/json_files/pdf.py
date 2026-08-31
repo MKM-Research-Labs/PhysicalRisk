@@ -38,8 +38,9 @@ from docs.models.full_audit._constants import NAVY, GREEN, RED, GREY
 from docs.models.full_audit.styles import _styles
 from docs.models.full_audit.helpers import _header_footer
 from docs.models.full_audit.sections_tests.json_files import GATED
+from config.theme import colour
 
-_ROW_ALT = HexColor('#F4F6FA')
+_ROW_ALT = HexColor(colour('header-from'))
 
 _TABLE_STYLE = TableStyle([
     ('BACKGROUND', (0, 0), (-1, 0), NAVY),

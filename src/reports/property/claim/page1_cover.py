@@ -28,6 +28,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from config.format import property_title_py
 from .formatters import fmt_gbp
+from reports.theme_pdf import pdf_colour
 
 
 def build_page1_cover(
@@ -51,12 +52,12 @@ def build_page1_cover(
     banner_data = [[Paragraph(f'CLAIM REFERENCE: {claim_ref}', styles['ClaimRefBanner'])]]
     banner_table = Table(banner_data, colWidths=[6.5 * 72])
     banner_table.setStyle(TableStyle([
-        ('BACKGROUND',     (0, 0), (-1, -1), colors.HexColor('#C62828')),
+        ('BACKGROUND',     (0, 0), (-1, -1), pdf_colour('red-dark')),
         ('TOPPADDING',     (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING',  (0, 0), (-1, -1), 8),
         ('LEFTPADDING',    (0, 0), (-1, -1), 12),
         ('RIGHTPADDING',   (0, 0), (-1, -1), 12),
-        ('BOX',            (0, 0), (-1, -1), 1.5, colors.HexColor('#B71C1C')),
+        ('BOX',            (0, 0), (-1, -1), 1.5, pdf_colour('red-deep')),
     ]))
     elements.append(banner_table)
     elements.append(Spacer(1, 0.2 * 72))
@@ -110,9 +111,9 @@ def build_page1_cover(
 
     info_table = Table(info_rows, colWidths=[3.25 * 72, 3.25 * 72])
     info_table.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#E3F2FD')),
-        ('BOX',           (0, 0), (-1, -1), 1,   colors.HexColor('#1565C0')),
-        ('INNERGRID',     (0, 0), (-1, -1), 0.3, colors.HexColor('#90CAF9')),
+        ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('accent-soft')),
+        ('BOX',           (0, 0), (-1, -1), 1,   pdf_colour('accent-mid')),
+        ('INNERGRID',     (0, 0), (-1, -1), 0.3, pdf_colour('accent-pale')),
         ('TOPPADDING',    (0, 0), (-1, -1), 5),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
         ('LEFTPADDING',   (0, 0), (-1, -1), 8),
@@ -145,11 +146,11 @@ def build_page1_cover(
     ]
     summary_table = Table(summary_data, colWidths=[1.625 * 72] * 4)
     summary_table.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, 0),  colors.HexColor('#283593')),
+        ('BACKGROUND',    (0, 0), (-1, 0),  pdf_colour('navy-mid')),
         ('TEXTCOLOR',     (0, 0), (-1, 0),  colors.white),
-        ('BACKGROUND',    (0, 1), (-1, -1), colors.HexColor('#F5F5F5')),
-        ('BOX',           (0, 0), (-1, -1), 1.5, colors.HexColor('#1A237E')),
-        ('INNERGRID',     (0, 0), (-1, -1), 0.5, colors.HexColor('#9E9E9E')),
+        ('BACKGROUND',    (0, 1), (-1, -1), pdf_colour('sunken')),
+        ('BOX',           (0, 0), (-1, -1), 1.5, pdf_colour('navy')),
+        ('INNERGRID',     (0, 0), (-1, -1), 0.5, pdf_colour('grey')),
         ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING',    (0, 0), (-1, -1), 6),
@@ -157,7 +158,7 @@ def build_page1_cover(
     ]))
     elements.append(summary_table)
     elements.append(Spacer(1, 0.25 * 72))
-    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#90A4AE')))
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=pdf_colour('blue-grey-pale')))
     elements.append(Spacer(1, 0.1 * 72))
     elements.append(Paragraph(
         'This report is generated from MKM Physical Risk Platform flood simulation data.',

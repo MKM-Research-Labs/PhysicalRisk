@@ -32,6 +32,7 @@ import folium
 
 from ..utils.color_schemes import ColorSchemes
 from .popup_builder import PopupBuilder
+from config.theme import colour
 
 
 class GaugePopupBuilder(PopupBuilder):
@@ -118,7 +119,7 @@ class GaugePopupBuilder(PopupBuilder):
             {self.create_data_row("Data Transmission", data_transmission)}
         """
 
-        return self.create_section("Measurement Approach", content, "#FEF9E7", "#7D6608")
+        return self.create_section("Measurement Approach", content, colour('layer-olive-wash'), colour('layer-olive'))
 
     def create_flood_thresholds_section(self, info: Dict[str, Any]) -> str:
         """
@@ -142,7 +143,7 @@ class GaugePopupBuilder(PopupBuilder):
             {self.create_data_row("Severe Warning", f"{self.safe_format_float(severe_warning)} m")}
         """
 
-        return self.create_section("Flood Thresholds", content, "#FADBD8", "#943126")
+        return self.create_section("Flood Thresholds", content, colour('layer-clay-wash'), colour('layer-clay'))
 
     def create_historical_context_section(self, info: Dict[str, Any]) -> str:
         """
@@ -167,7 +168,7 @@ class GaugePopupBuilder(PopupBuilder):
             {self.create_data_row("Level 3 Exceedance Frequency", f"{frequency_exceed_level3} times")}
         """
 
-        return self.create_section("Historical Context", content, "#E8F8F5", "#148F77")
+        return self.create_section("Historical Context", content, colour('layer-teal-wash'), colour('layer-teal'))
 
     def create_flood_risk_data_section(self, flood_info: Dict[str, Any]) -> str:
         """
@@ -196,7 +197,7 @@ class GaugePopupBuilder(PopupBuilder):
             {self.create_data_row("Max Gauge Reading", f"{self.safe_format_float(max_gauge_reading)} m")}
         """
 
-        return self.create_section("Flood Risk Data", content, "#FADBD8", "#943126")
+        return self.create_section("Flood Risk Data", content, colour('layer-clay-wash'), colour('layer-clay'))
 
     def create_complete_gauge_popup_content(self, gauge_id: str, lat: float, lon: float,
                                           info: Dict[str, Any],
@@ -221,7 +222,7 @@ class GaugePopupBuilder(PopupBuilder):
         header = self.create_header("Flood Gauge Analysis", f"ID: {gauge_id}")
 
         # Location information - create as a paragraph, not a section
-        location_content = f'<p style="color: #2874A6; margin-top: 10px;"><b>Location:</b> {location_desc} ({lat:.4f}°N, {lon:.4f}°E)</p>'
+        location_content = f'<p style="color: var(--depth-4); margin-top: 10px;"><b>Location:</b> {location_desc} ({lat:.4f}°N, {lon:.4f}°E)</p>'
 
         # Create all sections
         equipment_section = self.create_equipment_details_section(info)

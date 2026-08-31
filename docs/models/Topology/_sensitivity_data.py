@@ -29,6 +29,7 @@ import numpy as np
 from sklearn.datasets import make_classification
 
 from config import config
+from config.theme import colour
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +37,10 @@ SEED = 42
 FIGURES_DIR = config.get_project_root() / "docs" / "models" / "Topology" / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
 
-MKM_BLUE = "#1565C0"
-MKM_RED = "#C62828"
-MKM_GREY = "#616161"
-MKM_LIGHT = "#E3F2FD"
+MKM_BLUE = colour('accent-mid')
+MKM_RED = colour('red-dark')
+MKM_GREY = colour('grey-dark')
+MKM_LIGHT = colour('accent-soft')
 
 def generate_weather_data(n_samples=2000, n_features=50, n_storm_types=5, seed=SEED):
     """

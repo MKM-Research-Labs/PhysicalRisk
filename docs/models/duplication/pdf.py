@@ -43,6 +43,7 @@ except ImportError:
 
 from ._paths import MIN_LINES, MIN_TOKENS
 from .jscpd_runner import _jscpd_version
+from reports.theme_pdf import pdf_colour
 
 
 def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
@@ -56,13 +57,13 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
     )
 
     styles = getSampleStyleSheet()
-    BLUE = colors.HexColor('#1565c0')
-    DARK = colors.HexColor('#212121')
-    GREY = colors.HexColor('#757575')
-    LIGHT_BG = colors.HexColor('#f5f5f5')
-    RED = colors.HexColor('#c62828')
-    GREEN = colors.HexColor('#2e7d32')
-    AMBER = colors.HexColor('#e65100')
+    BLUE = pdf_colour('accent-mid')
+    DARK = pdf_colour('log-bg')
+    GREY = pdf_colour('text-4')
+    LIGHT_BG = pdf_colour('sunken')
+    RED = pdf_colour('red-dark')
+    GREEN = pdf_colour('green-dark')
+    AMBER = pdf_colour('amber-deep')
 
     title_s = ParagraphStyle('DupTitle', parent=styles['Title'],
                               fontSize=20, spaceAfter=4, textColor=BLUE)
@@ -135,12 +136,12 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e3f2fd')),
+        ('BACKGROUND', (0, -1), (-1, -1), pdf_colour('accent-soft')),
         ('TEXTCOLOR', (1, -1), (1, -1), rating_col),
         ('FONTNAME', (1, -1), (1, -1), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 1), (-1, -1), 10),
         ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, LIGHT_BG]),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('GRID', (0, 0), (-1, -1), 0.5, pdf_colour('divider')),
         ('LEFTPADDING', (0, 0), (-1, -1), 8),
         ('RIGHTPADDING', (0, 0), (-1, -1), 8),
         ('TOPPADDING', (0, 0), (-1, -1), 5),
@@ -170,7 +171,7 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+            ('GRID', (0, 0), (-1, -1), 0.5, pdf_colour('divider')),
             ('LEFTPADDING', (0, 0), (-1, -1), 6),
             ('RIGHTPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
@@ -197,7 +198,7 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
         ('FONTSIZE', (0, 0), (-1, 0), 9),
         ('FONTSIZE', (0, 1), (-1, -1), 8),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('GRID', (0, 0), (-1, -1), 0.5, pdf_colour('divider')),
         ('LEFTPADDING', (0, 0), (-1, -1), 5),
         ('RIGHTPADDING', (0, 0), (-1, -1), 5),
         ('TOPPADDING', (0, 0), (-1, -1), 3),
@@ -231,7 +232,7 @@ def _make_pdf(analysis: dict, run_at: datetime) -> bytes:
         ('FONTSIZE', (0, 0), (-1, 0), 8),
         ('FONTSIZE', (0, 1), (-1, -1), 7),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('GRID', (0, 0), (-1, -1), 0.5, pdf_colour('divider')),
         ('LEFTPADDING', (0, 0), (-1, -1), 4),
         ('RIGHTPADDING', (0, 0), (-1, -1), 4),
         ('TOPPADDING', (0, 0), (-1, -1), 3),

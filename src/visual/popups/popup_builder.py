@@ -30,6 +30,7 @@ from typing import Any
 import folium
 
 from ..utils.color_schemes import ColorSchemes
+from config.theme import colour
 
 
 class PopupBuilder:
@@ -39,8 +40,8 @@ class PopupBuilder:
         """Initialize the popup builder."""
         pass
 
-    def create_section(self, title: str, content: str, background_color: str = "#EBF5FB",
-                      title_color: str = "#1a5276") -> str:
+    def create_section(self, title: str, content: str, background_color: str = colour('depth-1'),
+                      title_color: str = colour('depth-5')) -> str:
         """
         Create a styled section for a popup.
 
@@ -60,7 +61,7 @@ class PopupBuilder:
         </div>
         """
 
-    def create_header(self, title: str, subtitle: str = "", main_color: str = "#1a5276") -> str:
+    def create_header(self, title: str, subtitle: str = "", main_color: str = colour('depth-5')) -> str:
         """
         Create a popup header.
 
@@ -72,7 +73,7 @@ class PopupBuilder:
         Returns:
             HTML string for the header
         """
-        subtitle_html = f'<p style="color: #566573; font-size: 0.9em;">{subtitle}</p>' if subtitle else ""
+        subtitle_html = f'<p style="color: var(--layer-neutral); font-size: 0.9em;">{subtitle}</p>' if subtitle else ""
 
         return f"""
         <h4 style="margin-bottom: 5px; color: {main_color};">{title}</h4>

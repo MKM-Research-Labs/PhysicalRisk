@@ -28,6 +28,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .formatters import seq_type_color
 from .layouts import body_style, white_hdr_style
+from reports.theme_pdf import pdf_colour
 
 
 def build_page2_chronology(
@@ -38,7 +39,7 @@ def build_page2_chronology(
     elements: List = []
 
     elements.append(Paragraph('STORM EVENT CHRONOLOGY', styles['SectionHeader']))
-    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#1A237E')))
+    elements.append(HRFlowable(width='100%', thickness=1, color=pdf_colour('navy')))
     elements.append(Spacer(1, 0.1 * 72))
 
     elements.append(Paragraph(
@@ -116,15 +117,15 @@ def build_page2_chronology(
 
     tbl = Table(rows, colWidths=col_widths, repeatRows=1)
     tbl.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, 0),  colors.HexColor('#1A237E')),
+        ('BACKGROUND',    (0, 0), (-1, 0),  pdf_colour('navy')),
         ('TEXTCOLOR',     (0, 0), (-1, 0),  colors.white),
         ('FONTNAME',      (0, 0), (-1, 0),  'Helvetica-Bold'),
         ('FONTSIZE',      (0, 0), (-1, -1), 8),
         ('ALIGN',         (0, 0), (-1, 0),  'CENTER'),
         ('ALIGN',         (3, 1), (4, -1),  'CENTER'),
         ('ALIGN',         (5, 1), (-1, -1), 'CENTER'),
-        ('GRID',          (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
-        ('BOX',           (0, 0), (-1, -1), 1,   colors.HexColor('#1A237E')),
+        ('GRID',          (0, 0), (-1, -1), 0.4, pdf_colour('blue-grey-mist')),
+        ('BOX',           (0, 0), (-1, -1), 1,   pdf_colour('navy')),
         ('TOPPADDING',    (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
         ('LEFTPADDING',   (0, 0), (-1, -1), 4),

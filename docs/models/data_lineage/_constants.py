@@ -28,6 +28,7 @@ sys.path.insert(0, str(_root / 'src'))
 
 try:
     from reportlab.lib import colors
+    from reports.theme_pdf import pdf_colour
 except ImportError:
     print("ERROR: reportlab is required.  pip install reportlab")
     sys.exit(1)
@@ -37,14 +38,14 @@ except ImportError:
 # Colours — consistent with full_audit
 # ---------------------------------------------------------------------------
 
-NAVY = colors.HexColor('#1A237E')
-STEEL = colors.HexColor('#37474F')
-BLUE = colors.HexColor('#1565C0')
-GREEN = colors.HexColor('#2E7D32')
-AMBER = colors.HexColor('#E65100')
-RED = colors.HexColor('#B71C1C')
-LIGHT_BG = colors.HexColor('#F5F5F5')
-HEADER_BG = colors.HexColor('#E8EAF6')
+NAVY = pdf_colour('navy')
+STEEL = pdf_colour('slate-dark')
+BLUE = pdf_colour('accent-mid')
+GREEN = pdf_colour('green-dark')
+AMBER = pdf_colour('amber-deep')
+RED = pdf_colour('red-deep')
+LIGHT_BG = pdf_colour('sunken')
+HEADER_BG = pdf_colour('info-bg')
 
 # ---------------------------------------------------------------------------
 # Paths

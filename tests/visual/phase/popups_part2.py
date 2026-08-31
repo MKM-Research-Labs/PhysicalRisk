@@ -21,6 +21,7 @@
 """Tests for popup builder modules — part 2: gauge popup, integration, error handling."""
 
 import pytest
+from config.theme import colour
 
 
 class TestGaugePopupBuilder:
@@ -175,8 +176,8 @@ class TestPopupIntegration:
     def test_section_background_consistent(self):
         prop_section = self.prop_builder.create_section("Test", "<p>Content</p>")
         gauge_section = self.gauge_builder.create_section("Test", "<p>Content</p>")
-        assert 'background-color: #EBF5FB' in prop_section
-        assert 'background-color: #EBF5FB' in gauge_section
+        assert f'background-color: {colour("depth-1")}' in prop_section
+        assert f'background-color: {colour("depth-1")}' in gauge_section
 
     def test_inheritance_from_base(self):
         from visual.popups import PopupBuilder

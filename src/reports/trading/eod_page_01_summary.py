@@ -24,6 +24,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+from reports.theme_pdf import pdf_colour
 
 
 class EODSummaryPage:
@@ -33,7 +34,7 @@ class EODSummaryPage:
         styles = getSampleStyleSheet()
         self.title_style = ParagraphStyle(
             'EODTitle', parent=styles['Title'],
-            fontSize=20, spaceAfter=6, textColor=colors.HexColor('#1565C0'),
+            fontSize=20, spaceAfter=6, textColor=pdf_colour('accent-mid'),
         )
         self.subtitle_style = ParagraphStyle(
             'EODSubtitle', parent=styles['Normal'],
@@ -42,7 +43,7 @@ class EODSummaryPage:
         self.section_style = ParagraphStyle(
             'EODSection', parent=styles['Heading2'],
             fontSize=13, spaceBefore=16, spaceAfter=8,
-            textColor=colors.HexColor('#1565C0'),
+            textColor=pdf_colour('accent-mid'),
         )
 
     def get_content(self, snapshot: dict) -> list:
@@ -68,7 +69,7 @@ class EODSummaryPage:
             return f"{sign}GBP {abs(v):,.0f}"
 
         def pnl_color(v):
-            return colors.HexColor('#2E7D32') if v >= 0 else colors.HexColor('#C62828')
+            return pdf_colour('green-dark') if v >= 0 else pdf_colour('red-dark')
 
         summary_data = [
             ["Metric", "Value"],
@@ -83,12 +84,12 @@ class EODSummaryPage:
 
         t = Table(summary_data, colWidths=[2.8 * inch, 3.5 * inch])
         t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('accent-mid')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#E3F2FD')),
+            ('BACKGROUND', (0, 1), (0, -1), pdf_colour('accent-soft')),
             ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('TOPPADDING', (0, 0), (-1, -1), 5),

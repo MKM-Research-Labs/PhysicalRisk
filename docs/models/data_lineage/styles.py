@@ -27,6 +27,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import HRFlowable, Spacer, TableStyle
 
 from ._constants import NAVY, STEEL, GREEN, AMBER, RED
+from reports.theme_pdf import pdf_colour
 
 
 def _styles():
@@ -40,7 +41,7 @@ def _styles():
                                    fontSize=12, textColor=STEEL,
                                    spaceAfter=4, alignment=TA_CENTER),
         'meta': ParagraphStyle('DLMeta', parent=base['Normal'],
-                               fontSize=9, textColor=colors.HexColor('#546E7A'),
+                               fontSize=9, textColor=pdf_colour('blue-grey-dark'),
                                alignment=TA_CENTER, spaceAfter=2),
         'h2': ParagraphStyle('DLH2', parent=base['Heading2'],
                               fontSize=14, textColor=NAVY,
@@ -53,14 +54,14 @@ def _styles():
         'body': ParagraphStyle('DLBody', parent=base['BodyText'],
                                fontSize=9, leading=13),
         'small': ParagraphStyle('DLSmall', parent=base['Normal'],
-                                fontSize=7.5, textColor=colors.HexColor('#78909C'),
+                                fontSize=7.5, textColor=pdf_colour('blue-grey-light'),
                                 leading=11),
         'code': ParagraphStyle('DLCode', parent=base['Code'],
                                fontSize=8, leading=11,
-                               textColor=colors.HexColor('#333333')),
+                               textColor=pdf_colour('text')),
         'note': ParagraphStyle('DLNote', parent=base['BodyText'],
                                fontSize=8, leading=11,
-                               textColor=colors.HexColor('#666666'),
+                               textColor=pdf_colour('text-3'),
                                leftIndent=12),
     }
 
@@ -75,11 +76,11 @@ def _header_style():
         ('BOTTOMPADDING',  (0, 0), (-1, 0), 8),
         ('BACKGROUND',     (0, 1), (-1, -1), colors.white),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-         [colors.white, colors.HexColor('#f4f6f9')]),
+         [colors.white, pdf_colour('header-from')]),
         ('FONTNAME',       (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE',       (0, 1), (-1, -1), 8),
         ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
-        ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#cccccc')),
+        ('GRID',           (0, 0), (-1, -1), 0.4, pdf_colour('divider')),
         ('TOPPADDING',     (0, 1), (-1, -1), 4),
         ('BOTTOMPADDING',  (0, 1), (-1, -1), 4),
     ])
@@ -88,7 +89,7 @@ def _header_style():
 def _section_rule(story):
     story.append(Spacer(1, 0.15 * inch))
     story.append(HRFlowable(width='100%', thickness=1,
-                             color=colors.HexColor('#bdc3c7')))
+                             color=pdf_colour('silver')))
     story.append(Spacer(1, 0.1 * inch))
 
 

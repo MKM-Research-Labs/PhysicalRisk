@@ -21,6 +21,7 @@
 """Tests for popup builder modules — part 1: imports, base, and property popup."""
 
 import pytest
+from config.theme import colour
 
 
 class TestPopupImports:
@@ -87,7 +88,7 @@ class TestPopupBuilderBase:
         section = self.builder.create_section("Test Section", "<p>Test content</p>")
         assert "Test Section" in section
         assert "Test content" in section
-        assert "background-color: #EBF5FB" in section
+        assert f'background-color: {colour("depth-1")}' in section
 
     def test_create_data_row(self):
         row = self.builder.create_data_row("Test Label", "Test Value")

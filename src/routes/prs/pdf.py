@@ -23,6 +23,7 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from reports.theme_pdf import pdf_colour
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +38,12 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
 
     def _blue_table_style():
         return TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('accent-mid')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#E3F2FD')),
+            ('BACKGROUND', (0, 1), (0, -1), pdf_colour('accent-soft')),
             ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
@@ -51,12 +52,12 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
 
     def _orange_table_style():
         return TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E65100')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('amber-deep')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FFF3E0')),
+            ('BACKGROUND', (0, 1), (0, -1), pdf_colour('warn-bg-warm')),
             ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
@@ -96,7 +97,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         'PRSTitle', parent=styles['Title'],
-        fontSize=18, spaceAfter=6, textColor=colors.HexColor('#1565C0'),
+        fontSize=18, spaceAfter=6, textColor=pdf_colour('accent-mid'),
     )
     subtitle_style = ParagraphStyle(
         'PRSSubtitle', parent=styles['Normal'],
@@ -105,7 +106,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
     section_style = ParagraphStyle(
         'PRSSection', parent=styles['Heading2'],
         fontSize=12, spaceBefore=14, spaceAfter=6,
-        textColor=colors.HexColor('#1565C0'),
+        textColor=pdf_colour('accent-mid'),
     )
     normal = styles['Normal']
 
@@ -260,7 +261,7 @@ def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> 
         col_w = [0.8 * inch, 0.8 * inch, 0.8 * inch, 0.9 * inch, 0.9 * inch, 0.9 * inch, 0.9 * inch]
         t3 = Table(cf_rows, colWidths=col_w)
         t3.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('accent-mid')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),

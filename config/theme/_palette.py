@@ -107,6 +107,7 @@ TEXT = {
     "faint": "#bbbbbb",
     "inverse": "#ffffff",
     "black": "#000000",
+    "near-black": "#1a1a1a",
 }
 
 # --- Red / Amber / Green is this platform's risk vocabulary, not a colour choice. -
@@ -121,6 +122,11 @@ RAG = {
     "green-deep": "#1b5e20",
     "green-soft": "#66bb6a",
     "green-pale": "#a5d6a7",
+    "green-wash": "#d5f5e3",
+    "green-leaf": "#8bc34a",
+    "green-forest": "#1e8449",
+    "bootstrap-green": "#28a745",
+    "bootstrap-blue": "#007bff",
     "amber": "#f57c00",
     "amber-deep": "#e65100",
     "amber-dark": "#ef6c00",
@@ -177,6 +183,11 @@ HUE = {
     "blue-grey-dark": "#546e7a",
     "blue-grey-light": "#78909c",
     "blue-grey-pale": "#90a4ae",
+    "blue-grey-mist": "#b0bec5",
+    "blue-grey-haze": "#cfd8dc",
+    "slate-ink": "#2c3e50",
+    "silver": "#bdc3c7",
+    "indigo-soft": "#9fa8da",
     "blue-grey-bg": "#eceff1",
     "steel": "#6b7686",
     "purple": "#7b1fa2",

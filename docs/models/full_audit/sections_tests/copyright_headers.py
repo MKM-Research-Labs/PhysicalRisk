@@ -40,6 +40,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .._constants import NAVY, _TBL_STYLE_BASE, _root
+from reports.theme_pdf import pdf_colour
 
 # Single source of truth for the canonical license text.
 _CANONICAL_SOURCE = ('docs', 'shared', 'copyright.py')
@@ -306,7 +307,7 @@ def _build_copyright_headers(styles) -> list:
         ])
     tbl = Table(data, colWidths=[96 * mm, 72 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF3E0')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('warn-bg-warm')),
     ]))
     elems.append(tbl)
     return elems

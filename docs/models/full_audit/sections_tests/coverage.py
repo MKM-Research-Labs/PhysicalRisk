@@ -27,6 +27,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .._constants import NAVY, STEEL, GREEN, AMBER, RED, _TBL_STYLE_BASE
+from reports.theme_pdf import pdf_colour
 
 
 def _build_coverage(cov: dict, styles) -> list:
@@ -93,7 +94,7 @@ def _build_coverage(cov: dict, styles) -> list:
         if rate < 70:
             idx = len(tbl_data) - 1
             row_extras.append(('BACKGROUND', (0, idx), (-1, idx),
-                                colors.HexColor('#FFEBEE')))
+                                pdf_colour('danger-bg-soft')))
 
     tbl = Table(tbl_data, colWidths=[78 * mm, 22 * mm, 22 * mm, 26 * mm, 20 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + row_extras))

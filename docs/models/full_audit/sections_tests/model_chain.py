@@ -66,6 +66,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .._constants import NAVY, _TBL_STYLE_BASE, _root
+from reports.theme_pdf import pdf_colour
 
 # This audit reports drift without failing the build: the inventory currently
 # carries known stale entries (e.g. post-rename source_module paths).  Flip to
@@ -243,7 +244,7 @@ def _build_model_chain(styles) -> list:
         ])
     tbl = Table(data, colWidths=[30 * mm, 46 * mm, 92 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF3E0')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('warn-bg-warm')),
     ]))
     elems.append(tbl)
     return elems

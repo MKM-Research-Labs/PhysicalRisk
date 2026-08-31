@@ -24,26 +24,27 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import TableStyle
+from reports.theme_pdf import pdf_colour
 
 # ── Shared TableStyle constants ──────────────────────────────────────────────
 # Purple header with alternating lavender rows — used by page3 (sequence-level
 # assessment) and page4 (sequence-level LTV).
 
 PURPLE_TABLE_STYLE = TableStyle([
-    ('BACKGROUND',     (0, 0), (-1, 0),  colors.HexColor('#4A148C')),
+    ('BACKGROUND',     (0, 0), (-1, 0),  pdf_colour('purple-dark')),
     ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.white),
     ('FONTNAME',       (0, 0), (-1, 0),  'Helvetica-Bold'),
     ('FONTSIZE',       (0, 0), (-1, -1), 8),
     ('ALIGN',          (2, 1), (-1, -1), 'CENTER'),
-    ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
-    ('BOX',            (0, 0), (-1, -1), 1,   colors.HexColor('#4A148C')),
+    ('GRID',           (0, 0), (-1, -1), 0.4, pdf_colour('blue-grey-mist')),
+    ('BOX',            (0, 0), (-1, -1), 1,   pdf_colour('purple-dark')),
     ('TOPPADDING',     (0, 0), (-1, -1), 4),
     ('BOTTOMPADDING',  (0, 0), (-1, -1), 4),
     ('LEFTPADDING',    (0, 0), (-1, -1), 4),
     ('RIGHTPADDING',   (0, 0), (-1, -1), 4),
     ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
     ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-     [colors.white, colors.HexColor('#F3E5F5')]),
+     [colors.white, pdf_colour('purple-bg')]),
 ])
 
 
@@ -59,7 +60,7 @@ def setup_styles():
          parent=base['Normal'],
          fontSize=22,
          fontName='Helvetica-Bold',
-         textColor=colors.HexColor('#1A237E'),
+         textColor=pdf_colour('navy'),
          alignment=TA_CENTER,
          spaceAfter=6)
 
@@ -67,7 +68,7 @@ def setup_styles():
          parent=base['Normal'],
          fontSize=14,
          fontName='Helvetica',
-         textColor=colors.HexColor('#283593'),
+         textColor=pdf_colour('navy-mid'),
          alignment=TA_CENTER,
          spaceAfter=10)
 
@@ -83,7 +84,7 @@ def setup_styles():
          parent=base['Normal'],
          fontSize=13,
          fontName='Helvetica-Bold',
-         textColor=colors.HexColor('#1A237E'),
+         textColor=pdf_colour('navy'),
          spaceBefore=10,
          spaceAfter=4)
 
@@ -91,7 +92,7 @@ def setup_styles():
          parent=base['Normal'],
          fontSize=11,
          fontName='Helvetica-Bold',
-         textColor=colors.HexColor('#1B5E20'),
+         textColor=pdf_colour('green-deep'),
          spaceBefore=8,
          spaceAfter=3)
 
@@ -109,7 +110,7 @@ def setup_styles():
          parent=base['Normal'],
          fontSize=9,
          leading=13,
-         textColor=colors.HexColor('#4A148C'))
+         textColor=pdf_colour('purple-dark'))
 
     _add('Disclaimer',
          parent=base['Normal'],
@@ -122,20 +123,20 @@ def setup_styles():
          parent=base['Normal'],
          fontSize=8,
          leading=10,
-         textColor=colors.HexColor('#546E7A'),
+         textColor=pdf_colour('blue-grey-dark'),
          alignment=TA_CENTER)
 
     _add('SignatureLine',
          parent=base['Normal'],
          fontSize=9,
          leading=13,
-         textColor=colors.HexColor('#212121'))
+         textColor=pdf_colour('log-bg'))
 
     _add('StatsBar',
          parent=base['Normal'],
          fontSize=9,
          fontName='Helvetica-Bold',
-         textColor=colors.HexColor('#37474F'),
+         textColor=pdf_colour('slate-dark'),
          alignment=TA_CENTER)
 
     return base

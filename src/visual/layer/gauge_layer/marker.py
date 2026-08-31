@@ -85,36 +85,36 @@ def create_gauge_popup(gauge_info: Dict[str, Any], flood_info: Dict[str, Any],
     gauge_name = gauge_info.get('gauge_name', '')
     popup_content = f"""
     <div style="font-family: Arial; width: 320px; max-height: 400px; overflow-y: auto;">
-        <h4 style="margin-bottom: 5px; color: #1a5276;">{gauge_name if gauge_name else 'Flood Gauge'}</h4>
-        <p style="color: #566573; font-size: 0.9em;">ID: {gauge_info['gauge_id']}</p>
-        <p style="color: #2874A6; margin-top: 10px;"><b>Location:</b> {location_desc}</p>
-        <p style="color: #2874A6; margin-top: 5px;"><b>Coordinates:</b> {gauge_info['lat']:.4f}N, {gauge_info['lon']:.4f}E</p>
+        <h4 style="margin-bottom: 5px; color: var(--depth-5);">{gauge_name if gauge_name else 'Flood Gauge'}</h4>
+        <p style="color: var(--layer-neutral); font-size: 0.9em;">ID: {gauge_info['gauge_id']}</p>
+        <p style="color: var(--depth-4); margin-top: 10px;"><b>Location:</b> {location_desc}</p>
+        <p style="color: var(--depth-4); margin-top: 5px;"><b>Coordinates:</b> {gauge_info['lat']:.4f}N, {gauge_info['lon']:.4f}E</p>
 
-        <div style="background-color: #EBF5FB; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            <h5 style="margin-top: 0; color: #1a5276;">Equipment Details</h5>
+        <div style="background-color: var(--depth-1); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <h5 style="margin-top: 0; color: var(--depth-5);">Equipment Details</h5>
             <p><b>Type:</b> {gauge_info['gauge_type']}</p>
             <p><b>Owner:</b> {gauge_info['gauge_owner']}</p>
             <p><b>Status:</b> <span style="color: {ColorSchemes.get_operational_status_color(gauge_info['operational_status'])};">{gauge_info['operational_status']}</span></p>
             <p><b>Installed:</b> {gauge_info['installation_date']}</p>
         </div>
 
-        <div style="background-color: #F5EEF8; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            <h5 style="margin-top: 0; color: #6C3483;">Sensor & Data</h5>
+        <div style="background-color: var(--layer-violet-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <h5 style="margin-top: 0; color: var(--layer-violet);">Sensor & Data</h5>
             <p><b>Ground Elevation:</b> {DataFormatter.safe_format_float(gauge_info['ground_elevation'])} m AOD</p>
             <p><b>Data Source:</b> {gauge_info['data_source']}</p>
             <p><b>Measurement:</b> {gauge_info['measurement_frequency']}, {gauge_info['measurement_method']}</p>
             <p><b>Certification:</b> {gauge_info['certification_status']}</p>
         </div>
 
-        <div style="background-color: #FADBD8; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            <h5 style="margin-top: 0; color: #943126;">Flood Thresholds</h5>
+        <div style="background-color: var(--layer-clay-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <h5 style="margin-top: 0; color: var(--layer-clay);">Flood Thresholds</h5>
             <p><b>Alert Level:</b> {DataFormatter.safe_format_float(gauge_info['flood_alert'])} m</p>
             <p><b>Warning Level:</b> {DataFormatter.safe_format_float(gauge_info['flood_warning'])} m</p>
             <p><b>Severe Warning:</b> {DataFormatter.safe_format_float(gauge_info['severe_warning'])} m</p>
         </div>
 
-        <div style="background-color: #E8F8F5; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            <h5 style="margin-top: 0; color: #148F77;">Historical Context</h5>
+        <div style="background-color: var(--layer-teal-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <h5 style="margin-top: 0; color: var(--layer-teal);">Historical Context</h5>
             <p><b>Historical High:</b> {DataFormatter.safe_format_float(gauge_info['historical_high'])} m (on {gauge_info['historical_high_date']})</p>
             <p><b>Last Level 3 Exceedance:</b> {gauge_info['last_level3_date']}</p>
             <p><b>Level 3 Exceedance Frequency:</b> {gauge_info['frequency_exceed_level3']} times</p>

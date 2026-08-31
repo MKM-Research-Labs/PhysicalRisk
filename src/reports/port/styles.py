@@ -26,15 +26,16 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Table, TableStyle
+from reports.theme_pdf import pdf_colour
 
 # ---- Colours ----
-BLUE = colors.HexColor('#1565C0')
+BLUE = pdf_colour('accent-mid')
 DARK_BLUE = colors.darkblue
-LIGHT_BLUE = colors.HexColor('#E3F2FD')
-LIGHT_GREEN = colors.HexColor('#E8F5E9')
-LIGHT_AMBER = colors.HexColor('#FFF8E1')
-LIGHT_RED = colors.HexColor('#FFEBEE')
-GREY = colors.HexColor('#757575')
+LIGHT_BLUE = pdf_colour('accent-soft')
+LIGHT_GREEN = pdf_colour('ok-bg')
+LIGHT_AMBER = pdf_colour('warn-bg')
+LIGHT_RED = pdf_colour('danger-bg-soft')
+GREY = pdf_colour('text-4')
 
 # ---- Reusable table style ----
 HDR_STYLE = [
@@ -50,7 +51,7 @@ HDR_STYLE = [
     ('TOPPADDING', (0, 1), (-1, -1), 2),
     ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#BDBDBD')),
+    ('GRID', (0, 0), (-1, -1), 0.4, pdf_colour('faint')),
     ('BOX', (0, 0), (-1, -1), 0.8, colors.black),
 ]
 
@@ -118,7 +119,7 @@ class StylesMixin:
             ('TOPPADDING', (0, 0), (-1, -1), 3),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('LINEBELOW', (0, 0), (-1, -1), 0.3, colors.HexColor('#E0E0E0')),
-            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#FAFAFA')]),
+            ('LINEBELOW', (0, 0), (-1, -1), 0.3, pdf_colour('line')),
+            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, pdf_colour('raised')]),
         ]))
         return t

@@ -28,6 +28,10 @@ sys.path.insert(0, str(_root / 'src'))
 
 try:
     from reportlab.lib import colors
+
+    # The token resolver imports reportlab as well, so it belongs inside the same
+    # guard: without reportlab neither is importable, and one clear message beats two.
+    from reports.theme_pdf import pdf_colour
 except ImportError:
     print("ERROR: reportlab is required.  pip install reportlab")
     sys.exit(1)
@@ -45,15 +49,19 @@ OUTPUT_PDF = AUDIT_DIR / 'full_audit_report.pdf'
 # Colours
 # ---------------------------------------------------------------------------
 
-NAVY = colors.HexColor('#1A237E')
-STEEL = colors.HexColor('#37474F')
-BLUE = colors.HexColor('#1565C0')
-LIGHT_BG = colors.HexColor('#F5F5F5')
-HEADER_BG = colors.HexColor('#E8EAF6')
-GREEN = colors.HexColor('#2E7D32')
-AMBER = colors.HexColor('#E65100')
-RED = colors.HexColor('#B71C1C')
-GREY = colors.HexColor('#90A4AE')
+# The nine names 21 audit modules import. They were a private palette — nine colours
+# written down here and nowhere else, which is exactly the thing §4.8 exists to find —
+# and are now resolved from config/theme. The names stay, because they are the audit's
+# own vocabulary and every importer reads better for them; only the values move.
+NAVY = pdf_colour('navy')
+STEEL = pdf_colour('slate-dark')
+BLUE = pdf_colour('accent-mid')
+LIGHT_BG = pdf_colour('sunken')
+HEADER_BG = pdf_colour('info-bg')
+GREEN = pdf_colour('green-dark')
+AMBER = pdf_colour('amber-deep')
+RED = pdf_colour('red-deep')
+GREY = pdf_colour('blue-grey-pale')
 
 # ---------------------------------------------------------------------------
 # Base table style — shared by all section tables
@@ -65,7 +73,7 @@ _TBL_STYLE_BASE = [
     ('BACKGROUND',     (0, 0), (-1, 0),  NAVY),
     ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.white),
     ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
-    ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#CFD8DC')),
+    ('GRID',           (0, 0), (-1, -1), 0.4, pdf_colour('blue-grey-haze')),
     ('BOX',            (0, 0), (-1, -1), 1.0, STEEL),
     ('FONTSIZE',       (0, 1), (-1, -1), 8),
     ('TOPPADDING',     (0, 0), (-1, -1), 4),

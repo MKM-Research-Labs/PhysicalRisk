@@ -51,12 +51,12 @@ def create_property_popup(property_info: Dict[str, Any], property_flood_info: Di
 
     popup_content = f"""
         <div style="font-family: Arial; width: 320px; max-height: 400px; overflow-y: auto;">
-            <h4 style="margin-bottom: 5px; color: #1a5276;">{prop_label}</h4>
-            <p style="color: #2874A6; margin-top: 10px;"><b>Address:</b> {address_str}</p>
-            <p style="color: #2874A6; margin-top: 5px;"><b>Postcode:</b> {postcode}</p>
+            <h4 style="margin-bottom: 5px; color: var(--depth-5);">{prop_label}</h4>
+            <p style="color: var(--depth-4); margin-top: 10px;"><b>Address:</b> {address_str}</p>
+            <p style="color: var(--depth-4); margin-top: 5px;"><b>Postcode:</b> {postcode}</p>
 
-            <div style="background-color: #EBF5FB; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5 style="margin-top: 0; color: #1a5276;">Property Details</h5>
+            <div style="background-color: var(--depth-1); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <h5 style="margin-top: 0; color: var(--depth-5);">Property Details</h5>
                 <p><b>Type:</b> {property_info.get('property_type', 'N/A')}</p>
                 <p><b>Building:</b> {property_info.get('building_type', 'N/A')}</p>
                 <p><b>Construction:</b> {property_info.get('construction_type', 'N/A')}</p>
@@ -65,8 +65,8 @@ def create_property_popup(property_info: Dict[str, Any], property_flood_info: Di
                 <p><b>Current Value:</b> {DataFormatter.format_currency(property_value)}</p>
             </div>
 
-            <div style="background-color: #FEF9E7; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5 style="margin-top: 0; color: #7D6608;">Elevation &amp; Flood Zone</h5>
+            <div style="background-color: var(--layer-olive-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <h5 style="margin-top: 0; color: var(--layer-olive);">Elevation &amp; Flood Zone</h5>
                 <p><b>Ground Elevation:</b> {DataFormatter.safe_format_float(elevation) if elevation != 'N/A' else 'N/A'} m AOD</p>
                 <p><b>Floor Level:</b> {DataFormatter.safe_format_float(floor_level) if floor_level != 'N/A' else 'N/A'} m</p>
                 <p><b>Flood Zone:</b> {flood_zone}</p>
@@ -88,8 +88,8 @@ def create_flood_risk_section(property_flood_info: Dict[str, Any]) -> str:
     risk_color = ColorSchemes.get_flood_risk_color(risk_level)
 
     return f"""
-        <div style="background-color: #FEF9E7; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            <h5 style="margin-top: 0; color: #7D6608;">Flood Risk Assessment</h5>
+        <div style="background-color: var(--layer-olive-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <h5 style="margin-top: 0; color: var(--layer-olive);">Flood Risk Assessment</h5>
             <p><b>Property Elevation:</b> {DataFormatter.safe_format_float(property_flood_info.get('property_elevation', 0), 2)} m</p>
             <p><b>Water Level:</b> {DataFormatter.safe_format_float(property_flood_info.get('water_level', 0), 2)} m</p>
             <p><b>Flood Depth:</b> {DataFormatter.safe_format_float(property_flood_info.get('flood_depth', 0), 2)} m</p>
@@ -114,11 +114,11 @@ def create_rloan_section(rloan_info: Dict[str, Any], property_value: Any) -> str
             ltv_ratio = rloan_info.get('loan_to_value_ratio', rloan_info.get('LoanToValueRatio', 0))
 
     return f"""
-        <div style="margin-top: 20px; border-top: 3px solid #8E44AD; padding-top: 10px;">
-            <h4 style="margin-bottom: 5px; color: #8E44AD; text-align: center; background-color: #E8DAEF; padding: 5px; border-radius: 5px;">MORTGAGE DETAILS</h4>
+        <div style="margin-top: 20px; border-top: 3px solid var(--layer-violet-soft); padding-top: 10px;">
+            <h4 style="margin-bottom: 5px; color: var(--layer-violet-soft); text-align: center; background-color: var(--layer-violet-bg); padding: 5px; border-radius: 5px;">MORTGAGE DETAILS</h4>
 
-            <div style="background-color: #E8DAEF; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5 style="margin-top: 0; color: #6C3483;">Loan Information</h5>
+            <div style="background-color: var(--layer-violet-bg); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <h5 style="margin-top: 0; color: var(--layer-violet);">Loan Information</h5>
                 <p><b>Lender:</b> {provider}</p>
                 <p><b>Loan Amount:</b> {DataFormatter.format_currency(loan_amount)}</p>
                 <p><b>Interest Rate:</b> {DataFormatter.safe_format_float(interest_rate * 100 if interest_rate and interest_rate < 1 else interest_rate, 2)}%</p>

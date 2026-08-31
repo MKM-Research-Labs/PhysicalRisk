@@ -24,6 +24,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+from reports.theme_pdf import pdf_colour
 
 
 class EODPositionsPage:
@@ -34,7 +35,7 @@ class EODPositionsPage:
         self.section_style = ParagraphStyle(
             'EODSection', parent=styles['Heading2'],
             fontSize=13, spaceBefore=16, spaceAfter=8,
-            textColor=colors.HexColor('#1565C0'),
+            textColor=pdf_colour('accent-mid'),
         )
 
     def get_content(self, snapshot: dict) -> list:
@@ -135,7 +136,7 @@ class EODPositionsPage:
         t = Table(rows, colWidths=col_widths)
 
         style_cmds = [
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('accent-mid')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 7.5),
@@ -145,7 +146,7 @@ class EODPositionsPage:
             ('TOPPADDING', (0, 0), (-1, -1), 3),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
             # Total row
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#E3F2FD')),
+            ('BACKGROUND', (0, -1), (-1, -1), pdf_colour('accent-soft')),
             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
         ]
 
@@ -154,7 +155,7 @@ class EODPositionsPage:
             style_cmds.extend([
                 ('SPAN', (0, row_idx), (-1, row_idx)),
                 ('BACKGROUND', (0, row_idx), (-1, row_idx),
-                 colors.HexColor('#E8EAF6')),
+                 pdf_colour('info-bg')),
                 ('FONTNAME', (0, row_idx), (-1, row_idx), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, row_idx), (-1, row_idx), 7),
                 ('ALIGN', (0, row_idx), (-1, row_idx), 'LEFT'),

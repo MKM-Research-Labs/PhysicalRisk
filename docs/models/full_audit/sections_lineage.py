@@ -27,6 +27,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from ._constants import NAVY, STEEL, GREEN, AMBER, RED, _root, _TBL_STYLE_BASE
 from .helpers import _load_json_report, _status, _status_inv
+from reports.theme_pdf import pdf_colour
 
 
 def _build_data_lineage(styles) -> list:
@@ -89,7 +90,7 @@ def _build_data_lineage(styles) -> list:
     tbl = Table(tbl_data, colWidths=[90 * mm, 40 * mm, 38 * mm])
     style_cmds = list(_TBL_STYLE_BASE)
     if failed > 0:
-        style_cmds.append(('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#FFEBEE')))
+        style_cmds.append(('BACKGROUND', (0, 3), (-1, 3), pdf_colour('danger-bg-soft')))
     tbl.setStyle(TableStyle(style_cmds))
     elems.append(tbl)
 

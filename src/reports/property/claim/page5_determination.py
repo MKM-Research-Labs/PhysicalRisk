@@ -30,6 +30,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .formatters import fmt_gbp
+from reports.theme_pdf import pdf_colour
 
 
 def build_page5_determination(
@@ -44,7 +45,7 @@ def build_page5_determination(
     elements: List = []
 
     elements.append(Paragraph('CLAIM DETERMINATION', styles['SectionHeader']))
-    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#1A237E')))
+    elements.append(HRFlowable(width='100%', thickness=1, color=pdf_colour('navy')))
     elements.append(Spacer(1, 0.1 * 72))
 
     prop_id = prop_data.get('property_id', 'UNKNOWN')
@@ -60,9 +61,9 @@ def build_page5_determination(
     ]
     ref_tbl = Table(ref_rows, colWidths=[2.5 * 72, 4.0 * 72])
     ref_tbl.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#E8EAF6')),
-        ('BOX',           (0, 0), (-1, -1), 1.5, colors.HexColor('#1A237E')),
-        ('INNERGRID',     (0, 0), (-1, -1), 0.3, colors.HexColor('#9FA8DA')),
+        ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('info-bg')),
+        ('BOX',           (0, 0), (-1, -1), 1.5, pdf_colour('navy')),
+        ('INNERGRID',     (0, 0), (-1, -1), 0.3, pdf_colour('indigo-soft')),
         ('TOPPADDING',    (0, 0), (-1, -1), 5),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
         ('LEFTPADDING',   (0, 0), (-1, -1), 8),
@@ -131,12 +132,12 @@ def build_page5_determination(
 
         if is_damage:
             det_row_styles.append(
-                ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#FFCDD2'))
+                ('BACKGROUND', (0, row_idx), (-1, row_idx), pdf_colour('danger-line-alt'))
             )
         elif is_neg:
             det_row_styles += [
-                ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#FF8A80')),
-                ('TEXTCOLOR',  (0, row_idx), (-1, row_idx), colors.HexColor('#B71C1C')),
+                ('BACKGROUND', (0, row_idx), (-1, row_idx), pdf_colour('red-pale')),
+                ('TEXTCOLOR',  (0, row_idx), (-1, row_idx), pdf_colour('red-deep')),
                 ('FONTNAME',   (0, row_idx), (-1, row_idx), 'Helvetica-Bold'),
             ]
 
@@ -149,19 +150,19 @@ def build_page5_determination(
 
     det_tbl = Table(det_table_data, colWidths=[4.5 * 72, 2.0 * 72])
     det_tbl.setStyle(TableStyle([
-        ('BACKGROUND',     (0, 0), (-1, 0),  colors.HexColor('#37474F')),
+        ('BACKGROUND',     (0, 0), (-1, 0),  pdf_colour('slate-dark')),
         ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.white),
         ('FONTNAME',       (0, 0), (-1, 0),  'Helvetica-Bold'),
         ('FONTSIZE',       (0, 0), (-1, -1), 9),
-        ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
-        ('BOX',            (0, 0), (-1, -1), 1.5, colors.HexColor('#37474F')),
+        ('GRID',           (0, 0), (-1, -1), 0.4, pdf_colour('blue-grey-mist')),
+        ('BOX',            (0, 0), (-1, -1), 1.5, pdf_colour('slate-dark')),
         ('TOPPADDING',     (0, 0), (-1, -1), 5),
         ('BOTTOMPADDING',  (0, 0), (-1, -1), 5),
         ('LEFTPADDING',    (0, 0), (-1, -1), 8),
         ('RIGHTPADDING',   (0, 0), (-1, -1), 8),
         ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-         [colors.white, colors.HexColor('#ECEFF1')]),
+         [colors.white, pdf_colour('blue-grey-bg')]),
     ] + det_row_styles))
     elements.append(det_tbl)
     elements.append(Spacer(1, 0.16 * 72))
@@ -175,7 +176,7 @@ def build_page5_determination(
         styles['BodyText9']
     ))
     elements.append(Spacer(1, 0.18 * 72))
-    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#CFD8DC')))
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=pdf_colour('blue-grey-haze')))
     elements.append(Spacer(1, 0.12 * 72))
 
     # Signature block
@@ -189,7 +190,7 @@ def build_page5_determination(
         elements.append(Paragraph(f'<b>{label}</b>  {value}', styles['SignatureLine']))
 
     elements.append(Spacer(1, 0.18 * 72))
-    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#CFD8DC')))
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=pdf_colour('blue-grey-haze')))
     elements.append(Spacer(1, 0.08 * 72))
 
     # Disclaimer

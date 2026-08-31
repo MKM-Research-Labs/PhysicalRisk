@@ -25,6 +25,7 @@ from typing import Any, Dict, List
 
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, Spacer, Table
+from config.theme import colour
 
 
 class _FloodHistoryBuildersMixin:
@@ -67,15 +68,15 @@ class _FloodHistoryBuildersMixin:
 
         # Create plot
         fig, ax = plt.subplots(figsize=(7.0, 3.0), dpi=150)
-        ax.plot(dates, levels, color='#1976D2', linewidth=0.3, alpha=0.7)
+        ax.plot(dates, levels, color=colour('accent'), linewidth=0.3, alpha=0.7)
 
         # Warning level lines
         if alert_level:
-            ax.axhline(y=alert_level, color='#FFA726', linestyle='--', linewidth=1.0, label=f'Alert ({alert_level:.1f}m)')
+            ax.axhline(y=alert_level, color=colour('amber-soft'), linestyle='--', linewidth=1.0, label=f'Alert ({alert_level:.1f}m)')
         if warning_level:
-            ax.axhline(y=warning_level, color='#EF5350', linestyle='--', linewidth=1.0, label=f'Warning ({warning_level:.1f}m)')
+            ax.axhline(y=warning_level, color=colour('red-soft'), linestyle='--', linewidth=1.0, label=f'Warning ({warning_level:.1f}m)')
         if severe_level:
-            ax.axhline(y=severe_level, color='#B71C1C', linestyle='-', linewidth=1.2, label=f'Severe ({severe_level:.1f}m)')
+            ax.axhline(y=severe_level, color=colour('red-deep'), linestyle='-', linewidth=1.2, label=f'Severe ({severe_level:.1f}m)')
 
         ax.set_xlabel('Date', fontsize=8)
         ax.set_ylabel('Water Level (m)', fontsize=8)

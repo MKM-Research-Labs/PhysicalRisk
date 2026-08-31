@@ -30,6 +30,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 from .formatters import fmt_gbp, seq_type_color
 from .layouts import body_style, white_hdr_style
 from .styles import PURPLE_TABLE_STYLE
+from reports.theme_pdf import pdf_colour
 
 
 def build_page3_damage(
@@ -41,7 +42,7 @@ def build_page3_damage(
     elements: List = []
 
     elements.append(Paragraph('FLOOD DAMAGE ASSESSMENT', styles['SectionHeader']))
-    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#1A237E')))
+    elements.append(HRFlowable(width='100%', thickness=1, color=pdf_colour('navy')))
     elements.append(Spacer(1, 0.08 * 72))
 
     note_data = [[Paragraph(
@@ -53,8 +54,8 @@ def build_page3_damage(
     )]]
     note_tbl = Table(note_data, colWidths=[6.5 * 72])
     note_tbl.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#EDE7F6')),
-        ('BOX',           (0, 0), (-1, -1), 1,  colors.HexColor('#7B1FA2')),
+        ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('product-bg')),
+        ('BOX',           (0, 0), (-1, -1), 1,  pdf_colour('purple')),
         ('TOPPADDING',    (0, 0), (-1, -1), 7),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
         ('LEFTPADDING',   (0, 0), (-1, -1), 10),
@@ -131,14 +132,14 @@ def build_page3_damage(
 
     tbl2 = Table(rows2, colWidths=col_w, repeatRows=1)
     tbl2.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, 0),  colors.HexColor('#1B5E20')),
+        ('BACKGROUND',    (0, 0), (-1, 0),  pdf_colour('green-deep')),
         ('TEXTCOLOR',     (0, 0), (-1, 0),  colors.white),
         ('FONTNAME',      (0, 0), (-1, 0),  'Helvetica-Bold'),
         ('FONTSIZE',      (0, 0), (-1, -1), 8),
         ('ALIGN',         (2, 1), (3, -1),  'CENTER'),
         ('ALIGN',         (6, 0), (6, -1),  'CENTER'),
-        ('GRID',          (0, 0), (-1, -1), 0.4, colors.HexColor('#B0BEC5')),
-        ('BOX',           (0, 0), (-1, -1), 1,   colors.HexColor('#1B5E20')),
+        ('GRID',          (0, 0), (-1, -1), 0.4, pdf_colour('blue-grey-mist')),
+        ('BOX',           (0, 0), (-1, -1), 1,   pdf_colour('green-deep')),
         ('TOPPADDING',    (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
         ('LEFTPADDING',   (0, 0), (-1, -1), 4),
@@ -176,7 +177,7 @@ def build_page3_damage(
         seq_id_disp = seq_id[:12] if len(seq_id) > 12 else seq_id
         if pct_value > 5.0:
             seq_row_styles.append(
-                ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#FFCDD2'))
+                ('BACKGROUND', (0, row_idx), (-1, row_idx), pdf_colour('danger-line-alt'))
             )
 
         seq_rows.append([
@@ -212,9 +213,9 @@ def build_page3_damage(
     ]
     sum_tbl = Table(summary_rows, colWidths=[4.0 * 72, 2.5 * 72])
     sum_tbl.setStyle(TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), colors.HexColor('#FFF3E0')),
-        ('BOX',           (0, 0), (-1, -1), 1.5, colors.HexColor('#E65100')),
-        ('INNERGRID',     (0, 0), (-1, -1), 0.4, colors.HexColor('#FFCC80')),
+        ('BACKGROUND',    (0, 0), (-1, -1), pdf_colour('warn-bg-warm')),
+        ('BOX',           (0, 0), (-1, -1), 1.5, pdf_colour('amber-deep')),
+        ('INNERGRID',     (0, 0), (-1, -1), 0.4, pdf_colour('warn-line-pale-2')),
         ('TOPPADDING',    (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
         ('LEFTPADDING',   (0, 0), (-1, -1), 10),

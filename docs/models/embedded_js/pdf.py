@@ -38,6 +38,7 @@ except ImportError:
 from docs.models.hardcoding.pdf_helpers import (
     _risk_label, _styles, _header_style, _section_rule,
 )
+from reports.theme_pdf import pdf_colour
 
 
 def _violation_table(rows, count_label, count_key):
@@ -112,16 +113,16 @@ def create_pdf_report(findings: dict, output_path: Path, root: Path):
     for row_idx, row in enumerate(summary_data[1:], 1):
         status = row[3]
         if status == 'COMPLIANT':
-            ts.add('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#27ae60'))
+            ts.add('TEXTCOLOR', (3, row_idx), (3, row_idx), pdf_colour('marker-green'))
             ts.add('FONTNAME', (3, row_idx), (3, row_idx), 'Helvetica-Bold')
         elif status == 'ACTION REQUIRED':
-            ts.add('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#c0392b'))
+            ts.add('TEXTCOLOR', (3, row_idx), (3, row_idx), pdf_colour('marker-red'))
             ts.add('FONTNAME', (3, row_idx), (3, row_idx), 'Helvetica-Bold')
         elif status == 'REVIEW':
-            ts.add('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#e67e22'))
+            ts.add('TEXTCOLOR', (3, row_idx), (3, row_idx), pdf_colour('marker-orange'))
             ts.add('FONTNAME', (3, row_idx), (3, row_idx), 'Helvetica-Bold')
     last = len(summary_data) - 1
-    ts.add('BACKGROUND', (0, last), (-1, last), colors.HexColor('#ecf0f1'))
+    ts.add('BACKGROUND', (0, last), (-1, last), pdf_colour('blue-grey-bg'))
     ts.add('FONTNAME', (0, last), (-1, last), 'Helvetica-Bold')
     tbl.setStyle(ts)
     story.append(tbl)

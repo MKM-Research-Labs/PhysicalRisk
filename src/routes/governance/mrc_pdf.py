@@ -38,6 +38,7 @@ from reportlab.platypus import (
 
 from . import governance_bp
 from ._helpers import _load_meetings
+from reports.theme_pdf import pdf_colour
 
 
 def _build_meeting_pdf(meeting):
@@ -58,7 +59,7 @@ def _build_meeting_pdf(meeting):
         parent=styles["Title"],
         fontSize=18,
         spaceAfter=6,
-        textColor=colors.HexColor("#1565c0"),
+        textColor=pdf_colour('accent-mid'),
     )
     heading_style = ParagraphStyle(
         "SectionHeading",
@@ -66,7 +67,7 @@ def _build_meeting_pdf(meeting):
         fontSize=13,
         spaceBefore=16,
         spaceAfter=8,
-        textColor=colors.HexColor("#1565c0"),
+        textColor=pdf_colour('accent-mid'),
         borderWidth=0,
         borderPadding=0,
     )
@@ -82,18 +83,18 @@ def _build_meeting_pdf(meeting):
         parent=styles["Normal"],
         fontSize=9,
         leading=12,
-        textColor=colors.HexColor("#555555"),
+        textColor=pdf_colour('text-2'),
     )
 
     def _styled_table(table_data, col_widths):
         """Create a table with standard MRC styling and trailing spacer."""
         t = Table(table_data, colWidths=col_widths)
         t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565c0")),
+            ("BACKGROUND", (0, 0), (-1, 0), pdf_colour('accent-mid')),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
             ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+            ("GRID", (0, 0), (-1, -1), 0.5, pdf_colour('divider')),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("TOPPADDING", (0, 0), (-1, -1), 4),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 4),

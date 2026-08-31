@@ -30,6 +30,7 @@ from typing import Any, Dict
 import folium
 
 from visual.utils.pdf_viewer import pdf_viewer_js
+from config.theme import colour
 
 
 class GaugePDFPanel:
@@ -48,7 +49,7 @@ class GaugePDFPanel:
             panel_width=self.panel_width,
             panel_height=self.panel_height,
             default_title="Gauge Report",
-            btn_color="#007bff",
+            btn_color=colour('bootstrap-blue'),
             event_name="gaugePdfReady",
             event_id_key="gaugeId",
             display_name_js="window.gaugeDisplayName(entityId)",

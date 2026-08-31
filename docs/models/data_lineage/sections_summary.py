@@ -31,6 +31,7 @@ from .collect import _compute_verdict, _compute_health, _health_colour
 from .styles import (
     _header_style, _section_rule, _status_colour, _status_label,
 )
+from reports.theme_pdf import pdf_colour
 
 
 def _build_cover(data: dict, story: list, S: dict):
@@ -68,7 +69,7 @@ def _build_cover(data: dict, story: list, S: dict):
         ('FONTSIZE',      (0, 1), (0, 1), 16),
         ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
         ('TEXTCOLOR',     (0, 1), (0, 1), health_col),
-        ('BACKGROUND',    (0, 1), (0, 1), colors.HexColor('#FAFAFA')),
+        ('BACKGROUND',    (0, 1), (0, 1), pdf_colour('raised')),
         ('BOX',           (0, 0), (-1, -1), 1, NAVY),
         ('TOPPADDING',    (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
@@ -152,7 +153,7 @@ def _build_exec_summary(data: dict, story: list, S: dict):
         ('FONTSIZE',      (0, 1), (0, 1), 14),
         ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
         ('TEXTCOLOR',     (0, 1), (0, 1), verdict_col),
-        ('BACKGROUND',    (0, 1), (0, 1), colors.HexColor('#FAFAFA')),
+        ('BACKGROUND',    (0, 1), (0, 1), pdf_colour('raised')),
         ('BOX',           (0, 0), (-1, -1), 1, NAVY),
         ('TOPPADDING',    (0, 0), (-1, -1), 6),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),

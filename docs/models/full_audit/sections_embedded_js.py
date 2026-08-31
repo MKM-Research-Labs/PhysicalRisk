@@ -33,6 +33,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from ._constants import NAVY, _root, _TBL_STYLE_BASE
 from .helpers import _status_colour
+from reports.theme_pdf import pdf_colour
 
 
 def _build_embedded_js(styles) -> list:
@@ -134,7 +135,7 @@ def _build_embedded_js(styles) -> list:
     ] + body_rows[1:]
     det_tbl = Table(det_tbl_data, colWidths=[88 * mm, 22 * mm, 36 * mm, 22 * mm])
     det_tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFEBEE')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('danger-bg-soft')),
     ]))
     elems.append(det_tbl)
 

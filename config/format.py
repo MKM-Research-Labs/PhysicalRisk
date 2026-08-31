@@ -226,13 +226,13 @@ def percentile_selector_html(pct_id: str, storm_sel_id: str) -> str:
     options_html = ''.join(opts)
 
     return (
-        f'<span style="font-size:11px;font-weight:600;color:#333;margin-left:8px;">Percentile:</span>'
+        f'<span style="font-size:11px;font-weight:600;color:var(--text);margin-left:8px;">Percentile:</span>'
         f'<select id="{pct_id}" style="padding:4px 8px;font-size:11px;'
-        f'border:1px solid #ccc;border-radius:3px;">'
+        f'border:1px solid var(--divider);border-radius:3px;">'
         f'{options_html}</select>'
         f'<button onclick="_applyPercentile(&#39;{pct_id}&#39;,&#39;{storm_sel_id}&#39;)" '
-        f'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid #1565c0;'
-        f'border-radius:3px;background:#e3f2fd;color:#1565c0;cursor:pointer;">Go</button>'
+        f'style="padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--accent-mid);'
+        f'border-radius:3px;background:var(--accent-soft);color:var(--accent-mid);cursor:pointer;">Go</button>'
     )
 
 

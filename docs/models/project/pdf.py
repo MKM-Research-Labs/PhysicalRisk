@@ -38,6 +38,7 @@ except ImportError:
     sys.exit(1)
 
 from ._constants import CODE_EXTENSIONS, MIN_LINES
+from reports.theme_pdf import pdf_colour
 
 
 def _add_init_audit_section(story, init_issues, styles, heading_style, body_style):
@@ -77,7 +78,7 @@ def _add_init_audit_section(story, init_issues, styles, heading_style, body_styl
     col_widths = [2.8 * inch, 0.5 * inch, 1.4 * inch, 1.0 * inch, 0.55 * inch, 0.65 * inch]
     tbl = Table(table_data, colWidths=col_widths, repeatRows=1)
     tbl_style = TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('BACKGROUND',    (0, 0), (-1, 0), pdf_colour('slate-ink')),
         ('TEXTCOLOR',     (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN',         (0, 0), (-1, 0), 'CENTER'),
         ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -85,7 +86,7 @@ def _add_init_audit_section(story, init_issues, styles, heading_style, body_styl
         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
         ('FONTNAME',      (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE',      (0, 1), (-1, -1), 8),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f5f5f5')]),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, pdf_colour('sunken')]),
         ('GRID',          (0, 0), (-1, -1), 0.4, colors.grey),
         ('VALIGN',        (0, 0), (-1, -1), 'TOP'),
         ('ALIGN',         (1, 1), (1, -1), 'RIGHT'),
@@ -96,7 +97,7 @@ def _add_init_audit_section(story, init_issues, styles, heading_style, body_styl
     for row_idx, iss in enumerate(init_issues, start=1):
         if iss.routes:
             tbl_style.add('BACKGROUND', (0, row_idx), (-1, row_idx),
-                          colors.HexColor('#fdecea'))
+                          pdf_colour('danger-bg'))
     tbl.setStyle(tbl_style)
     story.append(tbl)
     story.append(Spacer(1, 0.2 * inch))
@@ -131,12 +132,12 @@ def create_pdf_report(large_files, all_files, output_path: Path,
 
     title_style = ParagraphStyle(
         'CTitle', parent=styles['Heading1'],
-        fontSize=24, textColor=colors.HexColor('#1a1a1a'),
+        fontSize=24, textColor=pdf_colour('near-black'),
         spaceAfter=30, alignment=TA_CENTER,
     )
     heading_style = ParagraphStyle(
         'CHeading', parent=styles['Heading2'],
-        fontSize=16, textColor=colors.HexColor('#2c3e50'),
+        fontSize=16, textColor=pdf_colour('slate-ink'),
         spaceAfter=12, spaceBefore=12,
     )
     body_style = ParagraphStyle(
@@ -192,7 +193,7 @@ def create_pdf_report(large_files, all_files, output_path: Path,
         tbl = Table(table_data,
                     colWidths=[0.5 * inch, 3.5 * inch, 0.6 * inch, 0.7 * inch, 0.8 * inch])
         tbl_style = TableStyle([
-            ('BACKGROUND',  (0, 0), (-1, 0), colors.HexColor('#3498db')),
+            ('BACKGROUND',  (0, 0), (-1, 0), pdf_colour('marker-blue')),
             ('TEXTCOLOR',   (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN',       (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME',    (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -206,7 +207,7 @@ def create_pdf_report(large_files, all_files, output_path: Path,
             ('ALIGN',       (4, 1), (4, -1), 'CENTER'),
             ('FONTNAME',    (0, 1), (-1, -1), 'Helvetica'),
             ('FONTSIZE',    (0, 1), (-1, -1), 9),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')]),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, pdf_colour('code')]),
             ('GRID',        (0, 0), (-1, -1), 0.5, colors.grey),
             ('VALIGN',      (0, 0), (-1, -1), 'MIDDLE'),
         ])

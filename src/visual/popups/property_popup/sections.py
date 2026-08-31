@@ -23,6 +23,7 @@
 from typing import Any, Dict
 
 from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
+from config.theme import colour
 
 
 def create_property_section(builder, prop: Dict[str, Any], property_id: str,
@@ -74,7 +75,7 @@ def create_flood_info_section(builder, flood_info: Dict[str, Any]) -> str:
             {builder.create_data_row("Value at Risk", builder.format_currency(flood_info.get('value_at_risk', 'N/A')))}
         """
 
-    return builder.create_section("Detailed Flood Risk Information", content, "#D5F5E3", "#1E8449")
+    return builder.create_section("Detailed Flood Risk Information", content, colour('green-wash'), colour('green-forest'))
 
 
 def create_rloan_section(builder, rloan_info: Dict[str, Any],
@@ -120,11 +121,11 @@ def create_rloan_section(builder, rloan_info: Dict[str, Any],
         """
 
     header_html = """
-        <div style="margin-top: 20px; border-top: 3px solid #8E44AD; padding-top: 10px;">
-            <h4 style="margin-bottom: 5px; color: #8E44AD; text-align: center; background-color: #E8DAEF; padding: 5px; border-radius: 5px;">MORTGAGE DETAILS</h4>
+        <div style="margin-top: 20px; border-top: 3px solid var(--layer-violet-soft); padding-top: 10px;">
+            <h4 style="margin-bottom: 5px; color: var(--layer-violet-soft); text-align: center; background-color: var(--layer-violet-bg); padding: 5px; border-radius: 5px;">MORTGAGE DETAILS</h4>
         """
 
-    section_html = builder.create_section("Loan Information", content, "#E8DAEF", "#6C3483")
+    section_html = builder.create_section("Loan Information", content, colour('layer-violet-bg'), colour('layer-violet'))
 
     return header_html + section_html + "</div>"
 

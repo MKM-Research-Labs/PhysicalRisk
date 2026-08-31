@@ -62,14 +62,14 @@ def create_commercial_popup(asset: Dict[str, Any],
 
     content = f"""
         <div style="font-family: Arial; width: 320px; max-height: 400px; overflow-y: auto;">
-            <h4 style="margin-bottom: 5px; color: #6C3483;">
+            <h4 style="margin-bottom: 5px; color: var(--layer-violet);">
                 {ctype} &mdash; {pid}
             </h4>
-            <p style="color: #6C3483; margin-top: 10px;"><b>Address:</b> {address_str}</p>
-            <p style="color: #6C3483; margin-top: 5px;"><b>Postcode:</b> {postcode}</p>
+            <p style="color: var(--layer-violet); margin-top: 10px;"><b>Address:</b> {address_str}</p>
+            <p style="color: var(--layer-violet); margin-top: 5px;"><b>Postcode:</b> {postcode}</p>
 
-            <div style="background-color: #F5EEF8; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5 style="margin-top: 0; color: #6C3483;">Commercial Asset</h5>
+            <div style="background-color: var(--layer-violet-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <h5 style="margin-top: 0; color: var(--layer-violet);">Commercial Asset</h5>
                 <p><b>Type:</b> {ctype}</p>
                 {f'<p><b>Use Class (UKO):</b> {use_class}</p>' if use_class else ''}
                 <p><b>Occupancy:</b> {occupancy}</p>
@@ -105,8 +105,8 @@ def _loan_section(loan: Dict[str, Any]) -> str:
     term_years = term_months // 12 if term_months else "?"
 
     return f"""
-        <div style="background-color: #FDEBD0; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            <h5 style="margin-top: 0; color: #6E2C00;">Loan</h5>
+        <div style="background-color: var(--layer-earth-wash); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <h5 style="margin-top: 0; color: var(--layer-earth);">Loan</h5>
             <p><b>Loan ID:</b> {loan_id}</p>
             <p><b>Lender:</b> {lender}</p>
             <p><b>Original:</b> {DataFormatter.format_currency(original)}</p>

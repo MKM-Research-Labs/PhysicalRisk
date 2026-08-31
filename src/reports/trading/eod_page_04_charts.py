@@ -28,6 +28,8 @@ from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.graphics.charts.lineplots import LinePlot
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.widgets.markers import makeMarker
+from reports.theme_pdf import pdf_colour
+from config.theme import colour
 
 
 class EODChartsPage:
@@ -38,7 +40,7 @@ class EODChartsPage:
         self.section_style = ParagraphStyle(
             'EODSection', parent=styles['Heading2'],
             fontSize=13, spaceBefore=16, spaceAfter=8,
-            textColor=colors.HexColor('#1565C0'),
+            textColor=pdf_colour('accent-mid'),
         )
 
     def get_content(self, snapshot: dict, pnl_series: list) -> list:
@@ -76,7 +78,7 @@ class EODChartsPage:
 
         # Title
         d.add(String(10, height + 15, 'Running P&L Over Time',
-                      fontSize=10, fillColor=colors.HexColor('#333')))
+                      fontSize=10, fillColor=colors.HexColor(colour('text'))))
 
         # Data
         data = [(p.get('running_pnl', 0)) for p in pnl_series[-30:]]
@@ -91,7 +93,7 @@ class EODChartsPage:
         lp.width = width - 80
         lp.height = height - 40
         lp.data = [[(i, v) for i, v in enumerate(data)]]
-        lp.lines[0].strokeColor = colors.HexColor('#1565C0')
+        lp.lines[0].strokeColor = pdf_colour('accent-mid')
         lp.lines[0].strokeWidth = 2
         lp.xValueAxis.valueMin = 0
         lp.xValueAxis.valueMax = max(n - 1, 1)
@@ -115,7 +117,7 @@ class EODChartsPage:
 
         d = Drawing(width, height + 30)
         d.add(String(10, height + 15, 'Daily P&L',
-                      fontSize=10, fillColor=colors.HexColor('#333')))
+                      fontSize=10, fillColor=colors.HexColor(colour('text'))))
 
         series = pnl_series[-30:]
         n = len(series)
@@ -132,9 +134,9 @@ class EODChartsPage:
         # Color bars green/red
         for i, p in enumerate(series):
             if p.get('daily_pnl', 0) >= 0:
-                bc.bars[(0, i)].fillColor = colors.HexColor('#4CAF50')
+                bc.bars[(0, i)].fillColor = pdf_colour('green-bright')
             else:
-                bc.bars[(0, i)].fillColor = colors.HexColor('#EF5350')
+                bc.bars[(0, i)].fillColor = pdf_colour('red-soft')
 
         bc.categoryAxis.labels.fontSize = 7
         bc.categoryAxis.categoryNames = [
@@ -173,7 +175,7 @@ class EODChartsPage:
         height = max(80, len(sorted_gauges) * 18 + 40)
         d = Drawing(width, height + 30)
         d.add(String(10, height + 15, 'Running P&L by Gauge (Top 10)',
-                      fontSize=10, fillColor=colors.HexColor('#333')))
+                      fontSize=10, fillColor=colors.HexColor(colour('text'))))
 
         # Simple horizontal bars
         bar_area_x = 120
@@ -183,12 +185,12 @@ class EODChartsPage:
         for i, (gid, pnl) in enumerate(sorted_gauges):
             y = height - 10 - i * 18
             bar_w = abs(pnl) / max_val * bar_area_w * 0.8
-            bar_color = (colors.HexColor('#4CAF50') if pnl >= 0
-                         else colors.HexColor('#EF5350'))
+            bar_color = (pdf_colour('green-bright') if pnl >= 0
+                         else pdf_colour('red-soft'))
 
             # Gauge label
             d.add(String(5, y - 3, gid,
-                          fontSize=7, fillColor=colors.HexColor('#333')))
+                          fontSize=7, fillColor=colors.HexColor(colour('text'))))
 
             # Bar
             if pnl >= 0:
@@ -203,6 +205,6 @@ class EODChartsPage:
                           y - 3,
                           f'\u00a3{pnl:,.0f}',
                           fontSize=7,
-                          fillColor=colors.HexColor('#333')))
+                          fillColor=colors.HexColor(colour('text'))))
 
         return d

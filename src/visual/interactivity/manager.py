@@ -118,7 +118,7 @@ class InteractivityManager:
         copyright_html = """
         <div style="position:fixed;bottom:10px;right:10px;
              background:rgba(255,255,255,0.85);padding:4px 10px;
-             border-radius:3px;font-size:11px;color:#555;
+             border-radius:3px;font-size:11px;color:var(--text-2);
              box-shadow:0 1px 3px rgba(0,0,0,0.15);z-index:1000;
              font-family:Arial,sans-serif;">
             &copy; 2025-2026 MKM Research Labs

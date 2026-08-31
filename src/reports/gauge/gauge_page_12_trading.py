@@ -32,6 +32,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from .gauge_page_00_base import GaugeBasePage
+from config.theme import colour
 
 logger = logging.getLogger(__name__)
 
@@ -183,9 +184,9 @@ class GaugeTradingPage(GaugeBasePage):
         rows = [header]
 
         trigger_colors = {
-            'alert': '#FFC107',
-            'warning': '#FF9800',
-            'severe': '#F44336',
+            'alert': colour('amber-yellow'),
+            'warning': colour('amber-bright'),
+            'severe': colour('red-bright'),
         }
 
         for trigger in ['alert', 'warning', 'severe']:

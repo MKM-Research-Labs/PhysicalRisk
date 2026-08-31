@@ -59,6 +59,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 from config.path.registry import DATA_SUBDIRS, PROJECT_ROOT_DIRS, SANCTIONED_PACKAGE
 
 from .._constants import NAVY, _TBL_STYLE_BASE, _root
+from reports.theme_pdf import pdf_colour
 
 # Directories never descended: the sanctioned config package, tests (which may
 # legitimately build tmp paths), vendored code, caches, the ``data`` symlink to
@@ -362,7 +363,7 @@ def _build_path_definitions(styles) -> list:
         ])
     tbl = Table(data, colWidths=[52 * mm, 12 * mm, 44 * mm, 60 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF3E0')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('warn-bg-warm')),
     ]))
     elems.append(tbl)
     return elems

@@ -26,6 +26,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .._constants import NAVY, GREEN, AMBER, RED, _TBL_STYLE_BASE, _root
+from reports.theme_pdf import pdf_colour
 
 
 def _build_modularisation(styles) -> list:
@@ -84,7 +85,7 @@ def _build_modularisation(styles) -> list:
             if lc > 600:
                 idx = len(tbl_data) - 1
                 row_extras.append(('BACKGROUND', (0, idx), (-1, idx),
-                                    colors.HexColor('#FFF3E0')))
+                                    pdf_colour('warn-bg-warm')))
 
         tbl = Table(tbl_data, colWidths=[108 * mm, 14 * mm, 18 * mm, 28 * mm])
         tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + row_extras))
@@ -184,7 +185,7 @@ def _build_init_audit(styles) -> list:
         ])
     tbl = Table(data, colWidths=[96 * mm, 16 * mm, 22 * mm, 18 * mm, 16 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF3E0')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('warn-bg-warm')),
     ]))
     elems.append(tbl)
 

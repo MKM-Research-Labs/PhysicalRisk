@@ -21,6 +21,7 @@
 """Shared styles and severity helpers for the hard-coding audit PDF."""
 
 import sys
+from reports.theme_pdf import pdf_colour
 
 try:
     from reportlab.lib import colors
@@ -35,10 +36,10 @@ except ImportError:
 
 def _risk_colour(count: int):
     if count == 0:
-        return colors.HexColor('#27ae60')   # green
+        return pdf_colour('marker-green')   # green
     if count <= 5:
-        return colors.HexColor('#f39c12')   # amber
-    return colors.HexColor('#c0392b')       # red
+        return pdf_colour('marker-amber')   # amber
+    return pdf_colour('marker-red')       # red
 
 
 def _risk_label(count: int) -> str:
@@ -53,40 +54,40 @@ def _styles():
     base = getSampleStyleSheet()
     return {
         'title': ParagraphStyle('HCTitle', parent=base['Heading1'],
-                                fontSize=22, textColor=colors.HexColor('#1a1a1a'),
+                                fontSize=22, textColor=pdf_colour('near-black'),
                                 spaceAfter=20, alignment=TA_CENTER),
         'h2': ParagraphStyle('HCH2', parent=base['Heading2'],
-                              fontSize=14, textColor=colors.HexColor('#2c3e50'),
+                              fontSize=14, textColor=pdf_colour('slate-ink'),
                               spaceAfter=8, spaceBefore=14),
         'h3': ParagraphStyle('HCH3', parent=base['Heading3'],
-                              fontSize=11, textColor=colors.HexColor('#34495e'),
+                              fontSize=11, textColor=pdf_colour('marker-slate'),
                               spaceAfter=6, spaceBefore=10),
         'body': ParagraphStyle('HCBody', parent=base['BodyText'],
                                fontSize=9, leading=13),
         'code': ParagraphStyle('HCCode', parent=base['Code'],
                                fontSize=8, leading=11,
-                               textColor=colors.HexColor('#333333')),
+                               textColor=pdf_colour('text')),
         'note': ParagraphStyle('HCNote', parent=base['BodyText'],
                                fontSize=8, leading=11,
-                               textColor=colors.HexColor('#666666'),
+                               textColor=pdf_colour('text-3'),
                                leftIndent=12),
     }
 
 
 def _header_style():
     return TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('BACKGROUND',    (0, 0), (-1, 0), pdf_colour('slate-ink')),
         ('TEXTCOLOR',     (0, 0), (-1, 0), colors.whitesmoke),
         ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE',      (0, 0), (-1, 0), 9),
         ('ALIGN',         (0, 0), (-1, 0), 'CENTER'),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
         ('BACKGROUND',    (0, 1), (-1, -1), colors.white),
-        ('ROWBACKGROUNDS',(0, 1), (-1, -1), [colors.white, colors.HexColor('#f4f6f9')]),
+        ('ROWBACKGROUNDS',(0, 1), (-1, -1), [colors.white, pdf_colour('header-from')]),
         ('FONTNAME',      (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE',      (0, 1), (-1, -1), 8),
         ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
-        ('GRID',          (0, 0), (-1, -1), 0.4, colors.HexColor('#cccccc')),
+        ('GRID',          (0, 0), (-1, -1), 0.4, pdf_colour('divider')),
         ('TOPPADDING',    (0, 1), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
     ])
@@ -94,15 +95,15 @@ def _header_style():
 
 def _severity_badge_colour(label: str):
     return {
-        'HIGH':   colors.HexColor('#c0392b'),
-        'MEDIUM': colors.HexColor('#e67e22'),
-        'LOW':    colors.HexColor('#27ae60'),
-        'INFO':   colors.HexColor('#3498db'),
+        'HIGH':   pdf_colour('marker-red'),
+        'MEDIUM': pdf_colour('marker-orange'),
+        'LOW':    pdf_colour('marker-green'),
+        'INFO':   pdf_colour('marker-blue'),
     }.get(label, colors.grey)
 
 
 def _section_rule(story):
     story.append(Spacer(1, 0.15 * inch))
     story.append(HRFlowable(width='100%', thickness=1,
-                             color=colors.HexColor('#bdc3c7')))
+                             color=pdf_colour('silver')))
     story.append(Spacer(1, 0.1 * inch))

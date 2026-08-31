@@ -41,6 +41,7 @@ from .eod_page_01_summary import EODSummaryPage
 from .eod_page_02_positions import EODPositionsPage
 from .eod_page_03_pnl_detail import EODPnLDetailPage
 from .eod_page_04_charts import EODChartsPage
+from reports.theme_pdf import pdf_colour
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,7 @@ class EODReportGenerator:
         def _header_footer(canvas, doc):
             canvas.saveState()
             # Header line
-            canvas.setStrokeColor(colors.HexColor('#1565C0'))
+            canvas.setStrokeColor(pdf_colour('accent-mid'))
             canvas.setLineWidth(1)
             canvas.line(0.6 * inch, 10.3 * inch,
                         7.9 * inch, 10.3 * inch)

@@ -32,6 +32,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, Spacer, Table
 
 from .gauge_page_00_base import GaugeBasePage
+from config.theme import colour
 
 
 class GaugeCurrentRiskPage(GaugeBasePage):
@@ -114,19 +115,19 @@ class GaugeCurrentRiskPage(GaugeBasePage):
         # Determine risk category
         if percentile >= 95:
             risk_label = "Very High"
-            risk_color = '#B71C1C'
+            risk_color = colour('red-deep')
         elif percentile >= 80:
             risk_label = "High"
-            risk_color = '#E53935'
+            risk_color = colour('red-alt')
         elif percentile >= 60:
             risk_label = "Elevated"
-            risk_color = '#FFA726'
+            risk_color = colour('amber-soft')
         elif percentile >= 40:
             risk_label = "Normal"
-            risk_color = '#66BB6A'
+            risk_color = colour('green-soft')
         else:
             risk_label = "Low"
-            risk_color = '#1976D2'
+            risk_color = colour('accent')
 
         # Header text
         elements.append(Paragraph(
@@ -148,11 +149,11 @@ class GaugeCurrentRiskPage(GaugeBasePage):
         theta = np.linspace(np.pi, 0, 100)
         # Background arc segments (green-yellow-orange-red)
         segments = [
-            (0, 40, '#4CAF50'),    # Low-Normal (green)
-            (40, 60, '#8BC34A'),   # Normal (light green)
-            (60, 80, '#FFC107'),   # Elevated (amber)
-            (80, 95, '#FF5722'),   # High (deep orange)
-            (95, 100, '#B71C1C'),  # Very High (dark red)
+            (0, 40, colour('green-bright')),    # Low-Normal (green)
+            (40, 60, colour('green-leaf')),   # Normal (light green)
+            (60, 80, colour('amber-yellow')),   # Elevated (amber)
+            (80, 95, colour('orange-bright')),   # High (deep orange)
+            (95, 100, colour('red-deep')),  # Very High (dark red)
         ]
         for start, end, color in segments:
             s_idx = int(start)
@@ -171,9 +172,9 @@ class GaugeCurrentRiskPage(GaugeBasePage):
         # Labels
         ax1.text(0, -0.15, f"{percentile:.0f}th", ha='center', fontsize=14, fontweight='bold',
                  color=risk_color)
-        ax1.text(0, -0.30, "percentile", ha='center', fontsize=8, color='#666')
-        ax1.text(-0.9, -0.05, '0', fontsize=7, color='#999')
-        ax1.text(0.85, -0.05, '100', fontsize=7, color='#999')
+        ax1.text(0, -0.30, "percentile", ha='center', fontsize=8, color=colour('text-3'))
+        ax1.text(-0.9, -0.05, '0', fontsize=7, color=colour('muted-2'))
+        ax1.text(0.85, -0.05, '100', fontsize=7, color=colour('muted-2'))
         ax1.set_xlim(-1.1, 1.1)
         ax1.set_ylim(-0.4, 1.0)
         ax1.set_aspect('equal')
@@ -181,7 +182,7 @@ class GaugeCurrentRiskPage(GaugeBasePage):
         ax1.set_title(f'{month_name} Distribution', fontsize=9, fontweight='bold')
 
         # Right: Histogram with current reading marker
-        ax2.hist(same_month_levels, bins=30, color='#90CAF9', edgecolor='#1565C0', alpha=0.7)
+        ax2.hist(same_month_levels, bins=30, color=colour('accent-pale'), edgecolor=colour('accent-mid'), alpha=0.7)
         ax2.axvline(x=current_level, color=risk_color, linewidth=2, linestyle='-',
                      label=f'Current: {current_level:.2f}m')
 
@@ -189,10 +190,10 @@ class GaugeCurrentRiskPage(GaugeBasePage):
         metadata = hd.get('gauge_metadata', {})
         flood_stages = metadata.get('flood_stages', {})
         if flood_stages.get('FloodAlert'):
-            ax2.axvline(x=flood_stages['FloodAlert'], color='#FFA726', linewidth=1,
+            ax2.axvline(x=flood_stages['FloodAlert'], color=colour('amber-soft'), linewidth=1,
                          linestyle='--', label=f"Alert ({flood_stages['FloodAlert']:.1f}m)")
         if flood_stages.get('FloodWarning'):
-            ax2.axvline(x=flood_stages['FloodWarning'], color='#EF5350', linewidth=1,
+            ax2.axvline(x=flood_stages['FloodWarning'], color=colour('red-soft'), linewidth=1,
                          linestyle='--', label=f"Warning ({flood_stages['FloodWarning']:.1f}m)")
 
         ax2.set_xlabel('Water Level (m)', fontsize=8)

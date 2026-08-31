@@ -27,6 +27,7 @@ Tests for PopupBuilder HTML element methods:
 """
 
 from visual.popups.popup_builder import PopupBuilder
+from config.theme import colour
 
 
 # ===========================================================================
@@ -64,7 +65,7 @@ class TestCreateSection:
 
     def test_default_background_color_in_html(self, builder):
         result = builder.create_section("T", "C")
-        assert "#EBF5FB" in result
+        assert colour("depth-1") in result
 
     def test_default_title_color_in_html(self, builder):
         result = builder.create_section("T", "C")
@@ -146,7 +147,7 @@ class TestCreateHeader:
 
     def test_subtitle_has_color_style(self, builder):
         result = builder.create_header("Title", subtitle="Some subtitle")
-        assert "#566573" in result
+        assert "var(--layer-neutral)" in result
 
 
 # ===========================================================================

@@ -41,6 +41,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak,
 )
+from reports.theme_pdf import pdf_colour
 
 
 class PRSPortfolioReport:
@@ -209,13 +210,13 @@ class PRSPortfolioReport:
 
         t = Table(rows, repeatRows=1)
         t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('accent-mid')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F5F5F5')]),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, pdf_colour('sunken')]),
         ]))
         return t
 
@@ -246,13 +247,13 @@ class PRSPortfolioReport:
         col_widths = [105, 50, 55, 45, 45, 45, 55, 55, 55, 55, 55]
         t = Table(rows, colWidths=col_widths, repeatRows=1)
         t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#37474F')),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_colour('slate-dark')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTNAME', (0, 1), (-1, -1), 'Courier'),
             ('FONTSIZE', (0, 0), (-1, -1), 7),
             ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#BDBDBD')),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#FAFAFA')]),
+            ('GRID', (0, 0), (-1, -1), 0.5, pdf_colour('faint')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, pdf_colour('raised')]),
         ]))
         return t

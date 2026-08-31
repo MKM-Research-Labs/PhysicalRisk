@@ -25,6 +25,7 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 
 from ._constants import NAVY, STEEL
+from reports.theme_pdf import pdf_colour
 
 
 def _styles():
@@ -40,7 +41,7 @@ def _styles():
             alignment=TA_CENTER),
         'cover_meta': ParagraphStyle(
             'FAMeta', parent=base['Normal'],
-            fontSize=9, textColor=colors.HexColor('#546E7A'),
+            fontSize=9, textColor=pdf_colour('blue-grey-dark'),
             alignment=TA_CENTER, spaceAfter=2),
         'h2': ParagraphStyle(
             'FAH2', parent=base['Heading2'],
@@ -55,7 +56,7 @@ def _styles():
             fontSize=9, leading=13),
         'small': ParagraphStyle(
             'FASmall', parent=base['Normal'],
-            fontSize=7.5, textColor=colors.HexColor('#78909C'), leading=11),
+            fontSize=7.5, textColor=pdf_colour('blue-grey-light'), leading=11),
         'tbl_hdr': ParagraphStyle(
             'FATHdr', parent=base['Normal'],
             fontSize=8.5, textColor=colors.white, fontName='Helvetica-Bold'),

@@ -26,6 +26,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Table
 
+from config.theme import colour
+from reports.theme_pdf import pdf_colour
 from reports.port.styles import (
     ALT_ROWS_AMBER,
     ALT_ROWS_BLUE,
@@ -67,7 +69,9 @@ class TestColourConstants:
         assert LIGHT_RED == colors.HexColor('#FFEBEE')
 
     def test_grey(self):
-        assert GREY == colors.HexColor('#757575')
+        # #757575 was consolidated onto text-4 (#777777) in step 8 — 1.4 dE, which is
+        # below what anyone can see, and one mid grey instead of two.
+        assert GREY == pdf_colour('text-4')
 
 
 # ---------------------------------------------------------------------------

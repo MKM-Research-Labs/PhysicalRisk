@@ -21,6 +21,7 @@
 """Shared colours, styles, and table helpers for the model risk report."""
 
 import sys
+from reports.theme_pdf import pdf_colour
 
 try:
     from reportlab.lib import colors
@@ -41,16 +42,16 @@ except ImportError:
 # Colours
 # ---------------------------------------------------------------------------
 
-NAVY = colors.HexColor('#1A237E')
-STEEL = colors.HexColor('#37474F')
-BLUE = colors.HexColor('#1565C0')
-GREEN = colors.HexColor('#2E7D32')
-AMBER = colors.HexColor('#E65100')
-RED = colors.HexColor('#B71C1C')
-LIGHT_GREEN = colors.HexColor('#E8F5E9')
-LIGHT_AMBER = colors.HexColor('#FFF3E0')
-LIGHT_RED = colors.HexColor('#FFEBEE')
-LIGHT_BG = colors.HexColor('#F5F5F5')
+NAVY = pdf_colour('navy')
+STEEL = pdf_colour('slate-dark')
+BLUE = pdf_colour('accent-mid')
+GREEN = pdf_colour('green-dark')
+AMBER = pdf_colour('amber-deep')
+RED = pdf_colour('red-deep')
+LIGHT_GREEN = pdf_colour('ok-bg')
+LIGHT_AMBER = pdf_colour('warn-bg-warm')
+LIGHT_RED = pdf_colour('danger-bg-soft')
+LIGHT_BG = pdf_colour('sunken')
 
 RAG_COLOURS = {
     'Green': GREEN, 'Amber': AMBER, 'Red': RED,
@@ -79,7 +80,7 @@ def get_styles():
             alignment=TA_CENTER),
         'meta': ParagraphStyle(
             'MRMeta', parent=base['Normal'],
-            fontSize=9, textColor=colors.HexColor('#546E7A'),
+            fontSize=9, textColor=pdf_colour('blue-grey-dark'),
             alignment=TA_CENTER, spaceAfter=2),
         'h2': ParagraphStyle(
             'MRH2', parent=base['Heading2'],
@@ -94,11 +95,11 @@ def get_styles():
             fontSize=9, leading=13),
         'small': ParagraphStyle(
             'MRSmall', parent=base['Normal'],
-            fontSize=7.5, textColor=colors.HexColor('#78909C'), leading=11),
+            fontSize=7.5, textColor=pdf_colour('blue-grey-light'), leading=11),
         'note': ParagraphStyle(
             'MRNote', parent=base['BodyText'],
             fontSize=8, leading=11,
-            textColor=colors.HexColor('#666666'), leftIndent=12),
+            textColor=pdf_colour('text-3'), leftIndent=12),
     }
 
 
@@ -116,11 +117,11 @@ def tbl_style():
         ('BOTTOMPADDING',  (0, 0), (-1, 0), 7),
         ('BACKGROUND',     (0, 1), (-1, -1), colors.white),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-         [colors.white, colors.HexColor('#f4f6f9')]),
+         [colors.white, pdf_colour('header-from')]),
         ('FONTNAME',       (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE',       (0, 1), (-1, -1), 7.5),
         ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
-        ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#cccccc')),
+        ('GRID',           (0, 0), (-1, -1), 0.4, pdf_colour('divider')),
         ('TOPPADDING',     (0, 1), (-1, -1), 3),
         ('BOTTOMPADDING',  (0, 1), (-1, -1), 3),
     ])
@@ -129,5 +130,5 @@ def tbl_style():
 def section_rule(story):
     story.append(Spacer(1, 0.12 * inch))
     story.append(HRFlowable(width='100%', thickness=1,
-                             color=colors.HexColor('#bdc3c7')))
+                             color=pdf_colour('silver')))
     story.append(Spacer(1, 0.08 * inch))

@@ -27,6 +27,7 @@ import folium
 from folium.plugins import HeatMap
 
 import database
+from config.theme import colour
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ def add_flood_heatmap(base_map, input_dir: Path, loaded_data) -> None:
         radius=80,
         blur=50,
         max_zoom=13,
-        gradient={'0.2': '#2196F3', '0.5': '#FFA726', '0.8': '#EF5350', '1.0': '#B71C1C'}
+        gradient={'0.2': colour('accent-bright'), '0.5': colour('amber-soft'), '0.8': colour('red-soft'), '1.0': colour('red-deep')}
     ).add_to(heatmap_group)
     heatmap_group.add_to(base_map)
     logger.info("Added worst-case flood heatmap (storm %s, %d gauges, %d properties)",

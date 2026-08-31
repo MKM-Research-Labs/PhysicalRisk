@@ -30,6 +30,7 @@ from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from .._constants import NAVY, GREEN, AMBER, RED, GREY, _TBL_STYLE_BASE
 from ..helpers import _load_json_report
+from reports.theme_pdf import pdf_colour
 
 
 def _build_test_detail(junit: dict, styles) -> list:
@@ -81,7 +82,7 @@ def _build_test_detail(junit: dict, styles) -> list:
         if f > 0:
             idx = len(tbl_data) - 1
             row_extras.append(('BACKGROUND', (0, idx), (-1, idx),
-                                colors.HexColor('#FFEBEE')))
+                                pdf_colour('danger-bg-soft')))
 
     tbl = Table(tbl_data, colWidths=[58 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm])
     style_cmds = list(_TBL_STYLE_BASE) + row_extras
@@ -154,7 +155,7 @@ def _build_skipped_tests(styles) -> list:
         ])
     tbl = Table(data, colWidths=[104 * mm, 46 * mm, 18 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFF8E1')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('warn-bg')),
     ]))
     elems.append(tbl)
     return elems
@@ -221,7 +222,7 @@ def _build_unit_failures(styles) -> list:
         ])
     tbl = Table(data, colWidths=[50 * mm, 53 * mm, 65 * mm])
     tbl.setStyle(TableStyle(list(_TBL_STYLE_BASE) + [
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#FFEBEE')),
+        ('BACKGROUND', (0, 1), (-1, -1), pdf_colour('danger-bg-soft')),
     ]))
     elems.append(tbl)
 

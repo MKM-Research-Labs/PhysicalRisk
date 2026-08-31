@@ -22,6 +22,7 @@
 
 import colorsys
 from typing import List, Tuple
+from config.theme import colour
 
 
 class _GradientMixin:
@@ -29,7 +30,7 @@ class _GradientMixin:
 
     @classmethod
     def create_gradient_color(cls, value: float, min_value: float, max_value: float,
-                            start_color: str = '#4CAF50', end_color: str = '#F44336') -> str:
+                            start_color: str = colour('green-bright'), end_color: str = colour('red-bright')) -> str:
         """
         Create a gradient color based on a value within a range.
 
