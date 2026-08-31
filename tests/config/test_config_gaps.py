@@ -148,3 +148,154 @@ class TestGaugeTitle:
         from config.format import gauge_title_py
 
         assert gauge_title_py("Kingston", "GAUGE-001") == "Kingston (GAUGE-001)"
+
+
+class TestDiscountCurveShortEnd:
+    def test_a_tenor_below_the_curve_takes_the_shortest_point(self):
+        """The curve is clamped at both ends; only the long end had a test.
+
+        Extrapolating below the shortest quoted tenor would invent a rate the same way
+        extrapolating above the longest would.
+        """
+        from config.loan import DISCOUNT_CURVE, discount_rate
+
+        shortest = min(DISCOUNT_CURVE)
+        assert discount_rate(shortest / 2) == DISCOUNT_CURVE[shortest]
+
+    def test_a_tenor_inside_the_curve_interpolates(self):
+        from config.loan import DISCOUNT_CURVE, discount_rate
+
+        tenors = sorted(DISCOUNT_CURVE)
+        midpoint = (tenors[0] + tenors[1]) / 2
+        low, high = DISCOUNT_CURVE[tenors[0]], DISCOUNT_CURVE[tenors[1]]
+        assert min(low, high) <= discount_rate(midpoint) <= max(low, high)
+
+
+class TestServerPortValidation:
+    @pytest.mark.parametrize("value", ["0", "65536", "-1"])
+    def test_a_port_outside_the_valid_range_is_rejected(self, monkeypatch, value):
+        """Better to refuse at startup than to bind nothing and look healthy."""
+        from config.server import _validated_port
+
+        monkeypatch.setenv("MKM_SERVER_PORT", value)
+        with pytest.raises(ValueError, match="outside valid range"):
+            _validated_port()
+
+    @pytest.mark.parametrize("value", ["1", "65535"])
+    def test_the_range_boundaries_are_accepted(self, monkeypatch, value):
+        from config.server import _validated_port
+
+        monkeypatch.setenv("MKM_SERVER_PORT", value)
+        assert _validated_port() == int(value)
+
+
+class TestDisplayNameLastResort:
+    def test_a_catchment_class_with_no_usable_name_falls_back(self, monkeypatch):
+        """A params module can have the right shape and still name nothing.
+
+        The search finds a class carrying DISPLAYNAME, reads it, and gets None. That
+        is not an error — it is an incomplete catchment definition — so the label
+        degrades to the generic word rather than rendering "None" in a heading.
+        """
+        import types
+
+        from config import config, visual
+
+        module = types.ModuleType("params")
+
+        class _Catchment:
+            DISPLAYNAME = None
+            NAME = None
+
+        module.SomeCatchment = _Catchment
+        monkeypatch.setattr(config, "load_params_module", lambda: module)
+        assert visual.get_catchment_display_name() == "catchment"
+
+
+class TestStormControlLazyPatch:
+    """Applying storm_control.json to a generator module that is not imported yet.
+
+    The patcher walks a table of module paths. Most are already in ``sys.modules`` by
+    the time it runs; the ones that are not have to be imported on demand, and a module
+    that cannot be imported at all must be skipped rather than abort the apply — a
+    generator absent from this deployment should not stop the others being configured.
+    """
+
+    @staticmethod
+    def _control(monkeypatch, module_path):
+        import types
+
+        from config import storm_control
+
+        monkeypatch.setattr(
+            storm_control, "_GENERATOR_PATCHES",
+            {"some_key": (module_path, "SOME_CONSTANT")})
+        monkeypatch.setattr(
+            storm_control, "load_storm_control",
+            lambda _catchment: {"sections": {"s": {"some_key": "patched"}}})
+        return storm_control
+
+    def test_an_already_imported_module_is_patched_in_place(self, monkeypatch):
+        import sys
+        import types
+
+        storm_control = self._control(monkeypatch, "mkm_fake_target")
+        target = types.ModuleType("mkm_fake_target")
+        target.SOME_CONSTANT = "original"
+        monkeypatch.setitem(sys.modules, "mkm_fake_target", target)
+        storm_control.apply_storm_control("thames")
+        assert target.SOME_CONSTANT == "patched"
+
+    def test_a_not_yet_imported_module_is_imported_then_patched(self, monkeypatch):
+        """The lazy branch: the generator has not been loaded when config is applied.
+
+        ``wave`` stands in for a generator module — a real, importable module that the
+        platform does not otherwise load, so ``sys.modules.get`` misses and the import
+        actually happens. Using a fake name would exercise the ImportError branch
+        instead, which is the next test.
+        """
+        import sys
+
+        storm_control = self._control(monkeypatch, "wave")
+        monkeypatch.delitem(sys.modules, "wave", raising=False)
+        storm_control.apply_storm_control("thames")
+        assert sys.modules["wave"].SOME_CONSTANT == "patched"
+        del sys.modules["wave"].SOME_CONSTANT
+
+    def test_a_key_absent_from_the_control_file_is_skipped(self, monkeypatch):
+        """Only the keys the file actually carries are patched.
+
+        Without the skip, a control file listing three of thirty parameters would
+        overwrite the other twenty-seven with nothing.
+        """
+        import types
+
+        from config import storm_control
+
+        target = types.ModuleType("mkm_untouched")
+        target.SOME_CONSTANT = "original"
+        monkeypatch.setattr(storm_control, "_GENERATOR_PATCHES",
+                            {"absent_key": ("mkm_untouched", "SOME_CONSTANT")})
+        monkeypatch.setattr(
+            storm_control, "load_storm_control",
+            lambda _c: {"sections": {"s": {"other_key": 1}}})
+        storm_control.apply_storm_control("thames")
+        assert target.SOME_CONSTANT == "original"
+
+    def test_an_unimportable_module_is_skipped_not_fatal(self, monkeypatch):
+        storm_control = self._control(monkeypatch, "mkm_module_that_does_not_exist")
+        storm_control.apply_storm_control("thames")   # must not raise
+
+    def test_no_control_file_is_not_an_error(self, monkeypatch):
+        """A deployment that never wrote one runs on the Python defaults."""
+        from config import storm_control
+
+        monkeypatch.setattr(storm_control, "load_storm_control", lambda _c: {})
+        storm_control.apply_storm_control("thames")
+
+    def test_a_control_file_with_no_sections_is_not_an_error(self, monkeypatch):
+        from config import storm_control
+
+        monkeypatch.setattr(storm_control, "load_storm_control",
+                            lambda _c: {"sections": {}})
+        storm_control.apply_storm_control("thames")

@@ -151,7 +151,10 @@ def discount_rate(term_years: float) -> float:
         if lo <= term_years <= hi:
             frac = (term_years - lo) / (hi - lo)
             return DISCOUNT_CURVE[lo] + frac * (DISCOUNT_CURVE[hi] - DISCOUNT_CURVE[lo])
-    return DISCOUNT_CURVE[tenors[-1]]
+    # Unreachable: the two clamps above exclude everything outside the curve, so the
+    # loop's bracketing pair always matches. Kept as the correct answer should either
+    # clamp ever be loosened — a pricing function should not fall off the end.
+    return DISCOUNT_CURVE[tenors[-1]]  # pragma: no cover
 
 
 def credit_spread_for_rating(rating: str) -> float:

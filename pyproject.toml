@@ -34,7 +34,13 @@ python_functions = ["test_*"]
 # points (83.9% observed vs the true 99.3%) even though every test passes and
 # each module is fully covered when run in isolation. ctrace is immune.
 core = "ctrace"
-source = ["src", "tools/cdm_property_editor"]
+# config/ was absent until 2026-08-31, which meant the package holding every
+# parameter the platform runs on -- paths, model constants, and since rule R7 every
+# colour and scale token -- was the one package coverage could not see. It measured
+# 94% when first looked at, so it was not merely unmeasured but genuinely below the
+# gate; the fallback branches every accessor wraps in a bare `except` were untested,
+# and those are exactly the ones that run on a fresh checkout.
+source = ["src", "config", "tools/cdm_property_editor"]
 omit = [
     "tests/*",
     "*/static/*",
