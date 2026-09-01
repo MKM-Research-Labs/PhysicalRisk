@@ -202,40 +202,58 @@ class TestClassifierAvailability:
         )
         assert result["total_gauges"] > 0, "No gauges in classifier summary"
 
-    def test_trained_classifiers_loadable_in_stress_tab(self, map_page, first_gauge_id):
+    def test_trained_classifiers_loadable_in_stress_tab(self, map_page):
         """A trained classifier must be usable by the stress test endpoint.
 
         This catches the scenario where .joblib files exist but were trained
         against old storm data (BitGenerator/version mismatch).
+
+        Searches for a gauge that actually has a ready classifier rather than
+        testing ``first_gauge_id`` and skipping when that one happens not to —
+        which is what it did before, so it only ever ran by luck. It still
+        skips when the environment has no trained classifier at all, because
+        classifiers are trained per gauge through the UI and their absence is
+        genuinely environmental rather than a defect.
         """
-        result = map_page.evaluate(f"""async () => {{
-            try {{
-                var cfg = window.__BACKEND_CONFIG || {{}};
+        result = map_page.evaluate("""async () => {
+            try {
+                var cfg = window.__BACKEND_CONFIG || {};
                 var baseUrl = cfg.url || '';
-                // Check if this gauge has a classifier
-                var statusResp = await fetch(
-                    baseUrl + '/api/v1/trading/stress/classifier-status/{first_gauge_id}'
-                );
-                var statusData = await statusResp.json();
-                if (statusData.status !== 'ready') {{
-                    return {{ skip: true, reason: 'No classifier for ' + '{first_gauge_id}' }};
-                }}
-                // Try to use it via the stress endpoint
+                var summary = await (await fetch(
+                    baseUrl + '/api/v1/trading/classifiers/summary')).json();
+                var rows = summary.gauges || summary.classifiers || [];
+                var ready = null;
+                for (var i = 0; i < rows.length; i++) {
+                    var gid = rows[i].gauge_id || rows[i].id;
+                    if (!gid) continue;
+                    var st = await (await fetch(
+                        baseUrl + '/api/v1/trading/stress/classifier-status/' + gid
+                    )).json();
+                    if (st.status === 'ready') { ready = gid; break; }
+                }
+                if (!ready) {
+                    return { skip: true,
+                             reason: 'No gauge in the catchment has a ready '
+                                     + 'classifier — train one via the '
+                                     + 'Classifiers tab' };
+                }
+                var statusData = { status: 'ready' };
                 var stressResp = await fetch(
-                    baseUrl + '/api/v1/trading/stress/storms?gauge_id={first_gauge_id}'
+                    baseUrl + '/api/v1/trading/stress/storms?gauge_id=' + ready
                 );
                 var stressData = await stressResp.json();
-                return {{
+                return {
+                    gauge_id: ready,
                     classifier_status: statusData.status,
                     stress_http: stressResp.status,
                     stress_status: stressData.status,
                     storm_count: (stressData.storms || []).length,
                     message: stressData.message || null
-                }};
-            }} catch (e) {{
-                return {{ error: e.message }};
-            }}
-        }}""")
+                };
+            } catch (e) {
+                return { error: e.message };
+            }
+        }""")
         if result.get("skip"):
             pytest.skip(result["reason"])
         assert "error" not in result, (

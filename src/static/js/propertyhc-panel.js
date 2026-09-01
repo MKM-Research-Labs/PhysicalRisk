@@ -120,7 +120,15 @@ __PHC_PANEL_BASIS_STRIP_JS__
 
             window.PropertyHazardCurvePanel = {
                 show: showPanel,
-                hide: hidePanel
+                hide: hidePanel,
+                // Read-only view of the loaded payload. All panel state lives
+                // inside this IIFE, so page.evaluate — which runs in global
+                // scope — cannot see `phcData`. Three e2e tests asserting the
+                // spread decomposition skipped on every run for that reason,
+                // reporting green while verifying nothing. Exposing the data
+                // read-only lets them check the model's numbers directly
+                // instead of scraping formatted text out of the DOM.
+                getData: function() { return phcData; }
             };
 
             console.log('Property hazard curve panel ready');

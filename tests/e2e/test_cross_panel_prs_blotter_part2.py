@@ -223,8 +223,11 @@ class TestStormScenarioTabConsistency:
             return Array.from(rows).map(td => td.textContent.trim());
         }""")
 
-        if not worst_ids or not hist_ids:
-            pytest.skip("Could not extract storm IDs")
+        # Both lists are the subject of the comparison — empty means the tabs
+        # did not render, which is the regression to catch, not a reason to
+        # pass silently.
+        assert worst_ids, "Worst Storms chart produced no storm labels"
+        assert hist_ids, "Flood History table produced no storm IDs"
 
         # Worst storms labels may be truncated — check prefix match
         for ws_id in worst_ids[:5]:

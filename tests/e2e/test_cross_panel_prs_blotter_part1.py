@@ -120,20 +120,39 @@ class TestGaugePRSToBlotterRoundTrip:
 
         map_page.evaluate(CLOSE_ALL_JS)
 
-    def test_04_blotter_button_muted_for_gauge_without_trades(self, map_page, first_gauge_id):
-        """For gauge without trades, blotter button should be muted."""
-        # Check if first_gauge_id has trades
-        has_trades = map_page.evaluate(f"""async () => {{
-            var cfg = window.__BACKEND_CONFIG || {{}};
-            var resp = await fetch((cfg.url || '') + '/api/v1/trading/blotter/active-gauges');
-            var data = await resp.json();
-            return (data.gauge_ids || []).indexOf('{first_gauge_id}') !== -1;
-        }}""")
+    def test_04_blotter_button_muted_for_gauge_without_trades(self, map_page):
+        """For gauge without trades, blotter button should be muted.
 
-        if has_trades:
-            pytest.skip(f"{first_gauge_id} has trades — can't test muted state")
+        Finds an untraded gauge rather than testing ``first_gauge_id``, which
+        is derived from ``first_traded_gauge_id`` and therefore *always* has
+        trades — this test skipped on every run for that reason and never once
+        checked the muted state.
+        """
+        untraded = map_page.evaluate("""async () => {
+            var cfg = window.__BACKEND_CONFIG || {};
+            var base = cfg.url || '';
+            var active = await (await fetch(
+                base + '/api/v1/trading/blotter/active-gauges')).json();
+            var traded = new Set(active.gauge_ids || []);
+            var all = await (await fetch(base + '/api/v1/gauges')).json();
+            var ids = (all.gauges || all || []).map(function(g) {
+                return g.gauge_id || (g.Header && g.Header.GaugeID) || g.id;
+            }).filter(Boolean);
+            // Synthetic gauges are never traded by design, so they would make
+            // this pass without exercising a real untraded instrument.
+            var real = ids.filter(function(i) { return i.indexOf('SYNTH-') !== 0; });
+            for (var i = 0; i < real.length; i++) {
+                if (!traded.has(real[i])) return real[i];
+            }
+            return null;
+        }""")
 
-        open_gauge_panel(map_page, first_gauge_id)
+        assert untraded, (
+            "Every real gauge has trades — cannot verify the muted state. "
+            "Seed the book with fewer instruments, or widen the gauge set"
+        )
+
+        open_gauge_panel(map_page, untraded)
         map_page.wait_for_timeout(5_000)
 
         disabled = map_page.evaluate(

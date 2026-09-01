@@ -201,8 +201,12 @@ class TestCommercialLoanReport:
 
         loan_item = map_page.locator(".ctx-menu-item",
                                      has_text="Generate Loan Report")
-        if loan_item.count() == 0:
-            pytest.skip("No 'Generate Loan Report' menu item")
+        # Sibling tests confirm window.generateLoanReport exists and the route
+        # returns a PDF, so the menu item missing is a UI gap, not absent data.
+        assert loan_item.count() > 0, (
+            "Commercial context menu has no 'Generate Loan Report' item — the "
+            "entry point this test exercises is missing"
+        )
         loan_item.first.click()
 
         map_page.wait_for_timeout(8_000)

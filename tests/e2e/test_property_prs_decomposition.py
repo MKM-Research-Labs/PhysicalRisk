@@ -51,8 +51,11 @@ class TestPropertyPRSDecomposition:
             "(window.PropertyHazardCurvePanel && "
             "typeof window.PropertyHazardCurvePanel.show === 'function')"
         )
-        if not has_fn:
-            pytest.skip("Property hazard panel function not available")
+        assert has_fn, (
+            "Neither window.viewPropertyHazard nor "
+            "PropertyHazardCurvePanel.show is available — the panel these "
+            "tests exercise did not load"
+        )
 
         # Hard-close any existing panel first: close_all_panels only sets
         # display:none, leaving phcData and the EA-zone dropdown override from
@@ -106,16 +109,16 @@ class TestPropertyPRSDecomposition:
 
         # Extract the spread decomposition data from the loaded phcData
         decomp = map_page.evaluate("""() => {
-            // phcData is set by the pricer when a property is loaded
-            if (typeof phcData === 'undefined' || !phcData) return null;
-            return phcData.spread_decomposition || null;
+            var panel = window.PropertyHazardCurvePanel;
+            var d = panel && panel.getData && panel.getData();
+            return d ? (d.spread_decomposition || null) : null;
         }""")
 
-        if decomp is None:
-            pytest.skip(
-                "phcData.spread_decomposition not available — "
-                "property may not have hazard curve data"
-            )
+        assert decomp is not None, (
+            "spread_decomposition missing from the loaded panel payload — "
+            "every property in the catchment has one, so this is a load or "
+            "attachment defect rather than absent data"
+        )
 
         # At minimum, property_spread_bps should be non-zero
         prop_spread = decomp.get("property_spread_bps", 0)
@@ -145,12 +148,15 @@ class TestPropertyPRSDecomposition:
         self._open_prs_tab(map_page, first_property_id)
 
         decomp = map_page.evaluate("""() => {
-            if (typeof phcData === 'undefined' || !phcData) return null;
-            return phcData.spread_decomposition || null;
+            var panel = window.PropertyHazardCurvePanel;
+            var d = panel && panel.getData && panel.getData();
+            return d ? (d.spread_decomposition || null) : null;
         }""")
 
         if decomp is None:
-            pytest.skip("phcData.spread_decomposition not available")
+            raise AssertionError(
+                "spread_decomposition missing from the loaded panel payload"
+            )
 
         gauge = decomp.get("gauge_spread_bps", 0)
         prop_ = decomp.get("property_spread_bps", 0)
@@ -182,7 +188,10 @@ class TestPropertyPRSDecomposition:
         # Check EA zone dropdown exists
         zone_el = map_page.locator("#phc-ea-zone")
         if zone_el.count() == 0:
-            pytest.skip("EA zone dropdown not found")
+            raise AssertionError(
+                "EA zone dropdown not found — it is the control this test "
+                "manipulates"
+            )
 
         # Get the current (actual) zone
         actual_zone = map_page.evaluate(
@@ -213,7 +222,10 @@ class TestPropertyPRSDecomposition:
 
         zone_el = map_page.locator("#phc-ea-zone")
         if zone_el.count() == 0:
-            pytest.skip("EA zone dropdown not found")
+            raise AssertionError(
+                "EA zone dropdown not found — it is the control this test "
+                "manipulates"
+            )
 
         # The dropdown is initialised to the property's actual zone by
         # phc_prs.py when controls are first built. We cannot read phcData
@@ -248,7 +260,9 @@ class TestPropertyPRSDecomposition:
         self._open_prs_tab(map_page, first_property_id)
 
         result = map_page.evaluate("""() => {
-            if (typeof phcData === 'undefined' || !phcData) return null;
+            var panel = window.PropertyHazardCurvePanel;
+            var phcData = panel && panel.getData && panel.getData();
+            if (!phcData) return null;
             var sd = phcData.spread_decomposition || {};
             var ngs = phcData.nearest_gauges || [];
             var synth = ngs.find(g => (g.gauge_id || '').startsWith('SYNTH-'));
@@ -259,7 +273,10 @@ class TestPropertyPRSDecomposition:
         }""")
 
         if result is None:
-            pytest.skip("phcData not available")
+            raise AssertionError(
+                "panel payload not available via "
+                "PropertyHazardCurvePanel.getData()"
+            )
 
         # If a synthetic gauge exists, gauge_spread should be non-zero
         if result["has_synth"]:
@@ -298,8 +315,11 @@ class TestCommercialPRSIndependentPerils:
             "(window.PropertyHazardCurvePanel && "
             "typeof window.PropertyHazardCurvePanel.show === 'function')"
         )
-        if not has_fn:
-            pytest.skip("Property hazard panel function not available")
+        assert has_fn, (
+            "Neither window.viewPropertyHazard nor "
+            "PropertyHazardCurvePanel.show is available — the panel these "
+            "tests exercise did not load"
+        )
 
         # Hard-close first so phcData is nulled and controls rebuild (see the
         # sibling _open_prs_tab in TestPropertyPRSDecomposition).

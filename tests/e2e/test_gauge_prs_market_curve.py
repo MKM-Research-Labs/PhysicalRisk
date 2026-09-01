@@ -159,8 +159,10 @@ class TestGaugePRSMarketCurve:
                 sample: data.slice(0, 3)
             };
         }""")
-        if not result.get('exists'):
-            pytest.skip(f"Chart not available: {result.get('reason')}")
+        assert result.get('exists'), (
+            f"PV premium chart not rendered on open: {result.get('reason')}. "
+            "The chart is what this test verifies, so its absence fails"
+        )
         if not result.get('has_premium'):
             pytest.fail(
                 f"No PV Premium dataset found. Datasets: {result.get('labels')}"

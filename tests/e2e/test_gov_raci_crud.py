@@ -95,8 +95,11 @@ class TestRACIMatrixInteraction:
             )
             is_interactive = dropdown.count() > 0
 
-        if not is_interactive:
-            pytest.skip("RACI cells do not appear interactive")
+        assert is_interactive, (
+            "RACI matrix cells are not interactive — no clickable cell, "
+            "dropdown or menu found. This is the behaviour under test, so it "
+            "fails rather than skips"
+        )
 
 
 class TestMRCMeetingCRUD:

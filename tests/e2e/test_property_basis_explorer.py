@@ -53,7 +53,10 @@ class TestBasisExplorerPanel:
             "typeof window.PropertyHazardCurvePanel.show === 'function')"
         )
         if not has_fn:
-            pytest.skip("Property hazard panel function not available")
+            raise AssertionError(
+                "Property hazard panel entry point not available — the panel "
+                "these tests exercise did not load"
+            )
 
         open_property_panel(map_page, first_property_id)
         switch_to_basis_explorer_tab(map_page)
@@ -95,11 +98,16 @@ class TestBasisExplorerPanel:
         """phcData.storm_details must be populated."""
         self._open_basis_explorer(map_page, first_property_id)
         storms = map_page.evaluate("""() => {
-            if (typeof phcData === 'undefined' || !phcData) return null;
-            return phcData.storm_details || null;
+            var panel = window.PropertyHazardCurvePanel;
+            var d = panel && panel.getData && panel.getData();
+            return d ? (d.storm_details || null) : null;
         }""")
-        if storms is None:
-            pytest.skip("storm_details not available (data may need regeneration)")
+        # Every property in the catchment carries storm_details, so absence
+        # here is a load defect, not the data-regeneration issue the old skip
+        # message blamed.
+        assert storms is not None, (
+            "storm_details missing from the loaded panel payload"
+        )
         assert isinstance(storms, list)
         assert len(storms) > 0, "storm_details is empty"
 
@@ -107,11 +115,11 @@ class TestBasisExplorerPanel:
         """Each storm in storm_details must have the required fields."""
         self._open_basis_explorer(map_page, first_property_id)
         storms = map_page.evaluate("""() => {
-            if (typeof phcData === 'undefined' || !phcData) return null;
-            return phcData.storm_details || null;
+            var panel = window.PropertyHazardCurvePanel;
+            var d = panel && panel.getData && panel.getData();
+            return d ? (d.storm_details || null) : null;
         }""")
-        if not storms:
-            pytest.skip("storm_details not available")
+        assert storms, "storm_details missing or empty in the panel payload"
         required = {"storm_id", "gauge_peak_m", "flood_depth_m",
                     "damage_ratio", "flooded", "retention_factor"}
         for storm in storms[:5]:  # check first 5

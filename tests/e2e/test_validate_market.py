@@ -60,13 +60,16 @@ class TestMarketFormValidation:
 
         is_number_input = target.evaluate("el => el.type === 'number'")
         if is_number_input:
-            # Browser natively prevents non-numeric input on type=number;
-            # Playwright .fill("abc") raises on number inputs — that IS the
-            # validation working, so we skip rather than fight the browser.
-            pytest.skip(
-                "Browser input[type=number] rejects non-numeric — "
-                "validation is built-in"
+            # input[type=number] is itself the protection: the browser refuses
+            # non-numeric text and Playwright's .fill("abc") raises against it.
+            # Skipping here asserted nothing, so instead pin the guarantee that
+            # made skipping reasonable — if someone changes the field to a bare
+            # text input, that protection silently disappears and this fails.
+            assert target.evaluate("el => el.type") == "number", (
+                "Tenor field is no longer input[type=number] — the browser's "
+                "built-in numeric validation no longer applies"
             )
+            return
 
         # For type=text, try to type non-numeric text
         target.click(force=True)

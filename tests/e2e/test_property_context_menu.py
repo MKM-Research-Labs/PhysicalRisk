@@ -114,8 +114,9 @@ class TestPropertyContextMenu:
         _right_click_property_marker(map_page)
 
         menu = map_page.locator(".ctx-menu")
-        if menu.count() == 0:
-            pytest.skip("No context menu appeared")
+        assert menu.count() > 0, (
+            "Right-clicking a property marker produced no .ctx-menu"
+        )
 
         items = map_page.locator(".ctx-menu-item")
         assert items.count() >= 2, f"Only {items.count()} menu items found"
@@ -141,8 +142,13 @@ class TestPropertyContextMenu:
         _right_click_property_marker(map_page)
 
         header = map_page.locator(".ctx-menu-header")
-        if header.count() == 0:
-            pytest.skip("No context menu header found")
+        # A missing header is the regression this test exists to catch, so it
+        # must fail rather than skip. The marker/menu preconditions above are
+        # what may legitimately be unavailable.
+        assert header.count() > 0, (
+            "Context menu opened but has no .ctx-menu-header — the header is "
+            "what this test verifies"
+        )
 
         text = header.first.inner_text()
         assert len(text) > 0, "Context menu header is empty"

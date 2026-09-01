@@ -54,8 +54,10 @@ class TestEODSubmit:
             "button:has-text('EOD'), button:has-text('Run'), "
             "button[id*='eod-submit'], button[id*='eod-snap']"
         ).first
-        if submit_btn.count() == 0 or not submit_btn.is_visible():
-            pytest.skip("No EOD submit button found")
+        assert submit_btn.count() > 0 and submit_btn.is_visible(), (
+            "No visible EOD submit button — the control this test exercises "
+            "is absent, which is a failure, not a reason to skip"
+        )
 
         # Count history entries before
         history_rows = view.locator("tr, [class*='history-item'], li")
