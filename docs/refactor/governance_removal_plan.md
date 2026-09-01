@@ -196,7 +196,21 @@ Source and its tests must be removed **atomically**. Revised slices:
 
 Each slice is committed and verified on its own.
 
-### 7.5 Superseded
+### 7.5 ⚠️ Slice C blocker found during slice B
+
+**The trading desk depends on a governance route.**
+`src/static/js/storm/sp_control/setup_dom.js:202` opens the Control tab's User
+Guide from `/api/v1/governance/<guide_key>/guide/pdf`, defined at
+`src/routes/governance/audit.py:168` with a key map at line 159 that includes
+`storm-control`.
+
+Deleting the governance blueprint outright therefore breaks a live trading-desk
+feature and the e2e tests `test_guide_pdf_endpoints_respond` and
+`test_user_guide_button_opens_pdf`. **Slice C must relocate the guide-PDF route
+out of governance before removing the blueprint** — it serves operational user
+guides, not governance.
+
+### 7.6 Superseded
 
 **Do not begin Stage 1** *(superseded by §7.3 — no transfer required)*. Five of seven data types are not yet safely
 transferable, two of them with no destination at all. Removing governance now

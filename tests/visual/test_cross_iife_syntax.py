@@ -123,29 +123,6 @@ class TestContractD_JSSyntax:
         if script:
             iife_node_check(script, 'StormPortfolioPanel')
 
-    def test_governance_submodules_syntax(self):
-        """Governance JS sub-modules must be syntactically valid."""
-        sys.path.insert(0, _IIFE_SRC)
-        import config  # noqa
-        files = [
-            ('visual.interactivity.governance.mg_documents', 'get_js'),
-            ('visual.interactivity.governance.mg_bibliography', 'get_js'),
-            ('visual.interactivity.governance.mg_audit_reports', 'get_js'),
-        ]
-        for module_path, fn in files:
-            try:
-                import importlib
-                mod = importlib.import_module(module_path)
-                js = getattr(mod, fn)()
-                iife_node_check(js, module_path)
-            except ImportError:
-                pass  # Module may not exist yet
-
-
-# ---------------------------------------------------------------------------
-# CONTRACT E — all get_js() calls must not raise Python exceptions
-# ---------------------------------------------------------------------------
-
 class TestContractE_PanelGeneration:
     """Every panel's get_js() must complete without raising a Python exception.
 
@@ -213,16 +190,6 @@ class TestContractE_PanelGeneration:
         from visual.interactivity.startup import get_js
         js = get_js()
         assert len(js) > 1000
-
-    def test_governance_docs_generates(self):
-        from visual.interactivity.governance import mg_documents
-        js = mg_documents.get_js()
-        assert len(js) > 500
-
-    def test_governance_bibliography_generates(self):
-        from visual.interactivity.governance import mg_bibliography
-        js = mg_bibliography.get_js()
-        assert len(js) > 500
 
     def test_storm_sp_table_generates(self):
         from visual.interactivity.storm import sp_table

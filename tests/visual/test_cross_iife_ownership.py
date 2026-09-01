@@ -138,16 +138,6 @@ class TestContractB_CacheConsumers:
         src = iife_src_file('src/visual/interactivity/trading/port_stress/setup.py')
         assert 'window._tdPrePortStorms = null' in src
 
-    # --- _tdPreGovDocs ---
-
-    def test_gov_docs_reads_window_pre_gov_docs(self):
-        src = iife_src_file('src/visual/interactivity/governance/mg_documents.py')
-        assert 'window._tdPreGovDocs' in src
-
-    def test_gov_docs_nulls_cache_after_consume(self):
-        src = iife_src_file('src/visual/interactivity/governance/mg_documents.py')
-        assert 'window._tdPreGovDocs = null' in src
-
     # --- _preStorms ---
 
     def test_storm_portfolio_reads_window_pre_storms(self):
@@ -227,10 +217,6 @@ class TestContractC_NoBareReads:
     def test_port_stress_no_bare_pre_port_storms(self):
         self._check_no_bare_read(
             'src/visual/interactivity/trading/port_stress/setup.py', '_tdPrePortStorms')
-
-    def test_gov_docs_no_bare_pre_gov_docs(self):
-        self._check_no_bare_read(
-            'src/visual/interactivity/governance/mg_documents.py', '_tdPreGovDocs')
 
     def test_storm_table_no_bare_pre_storms(self):
         self._check_no_bare_read(

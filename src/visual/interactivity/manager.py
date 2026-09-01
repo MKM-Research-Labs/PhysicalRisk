@@ -43,7 +43,6 @@ from .property.propertydetails import PropertyDetailsPanel
 from .property.propertyhc import PropertyHazardCurvePanel
 from .property.propertypdf import PropertyPDFPanel
 from .property.propertysa import PropertyStormAnalysis
-from .governance.modelgovernance import ModelGovernancePanel
 from .trading.tradingdesk import TradingDeskPanel
 from .trading.td_main_map import MainMapFS01
 from .cdm_review import CdmReviewControl
@@ -78,7 +77,6 @@ class InteractivityManager:
         self.rloan_detail = RLoanDetailPanel()
         self.loan_pricer = LoanPricerPanel()
         self.storm_portfolio = StormPortfolioPanel()
-        self.model_governance = ModelGovernancePanel()
         self.trading_desk = TradingDeskPanel()
         self.cdm_review = CdmReviewControl()
         self.main_map_fs01 = MainMapFS01()
@@ -107,7 +105,6 @@ class InteractivityManager:
         self.rloan_detail.add_to_map(folium_map)
         self.loan_pricer.add_to_map(folium_map)
         self.storm_portfolio.add_to_map(folium_map)
-        self.model_governance.add_to_map(folium_map)
         self.trading_desk.add_to_map(folium_map)
         # Added right after the Pi (Trader's Workstation) so the house icon
         # stacks directly below it in the top-right control column.

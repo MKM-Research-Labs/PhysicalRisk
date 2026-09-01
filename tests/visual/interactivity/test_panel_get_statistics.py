@@ -94,13 +94,3 @@ class TestStormPortfolioPanelStats:
         assert "panel_height" in stats
         assert stats["panel_width"] == "960px"
         assert stats["panel_height"] == "640px"
-
-
-class TestModelGovernancePanelStats:
-    def test_get_statistics(self):
-        from visual.interactivity.governance.modelgovernance import ModelGovernancePanel
-
-        panel = ModelGovernancePanel()
-        stats = panel.get_statistics()
-        assert "panel_width" in stats
-        assert "panel_height" in stats

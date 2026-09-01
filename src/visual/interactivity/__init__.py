@@ -56,7 +56,6 @@ from .property.rloandetail import RLoanDetailPanel  # noqa: F401
 from .property.propertyhc import PropertyHazardCurvePanel  # noqa: F401
 from .property.propertypdf import PropertyPDFPanel  # noqa: F401
 from .property.propertysa import PropertyStormAnalysis  # noqa: F401
-from .governance.modelgovernance import ModelGovernancePanel  # noqa: F401
 from .trading.tradingdesk import TradingDeskPanel  # noqa: F401
 from .trading.td_main_map import MainMapFS01  # noqa: F401
 
@@ -72,7 +71,6 @@ __all__ = [
     "GaugePDFPanel",
     "PropertyPDFPanel",
     "RLoanDetailPanel",
-    "ModelGovernancePanel",
     "StormPortfolioPanel",
     "TradingDeskPanel",
     "MainMapFS01",

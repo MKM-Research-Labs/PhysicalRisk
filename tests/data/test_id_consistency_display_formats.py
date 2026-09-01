@@ -43,7 +43,6 @@ _GAUGE_TITLE_FILES = [
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/property/phc_hazard.py',
     'src/visual/interactivity/property/propertyhc/panel_basis_strip.py',
-    'src/visual/interactivity/governance/models/mg_lineage.py',
     'src/visual/layer/gauge_layer/marker.py',
 ]
 

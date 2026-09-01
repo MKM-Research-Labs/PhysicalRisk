@@ -93,21 +93,6 @@ class TestStormPortfolioCache:
         assert 'window._preStorms = null' in src
 
 
-class TestGovernanceDocumentsCache:
-
-    def test_checks_gov_docs_cache(self):
-        src = _src('src/visual/interactivity/governance/mg_documents.py')
-        assert 'window._tdPreGovDocs' in src
-
-    def test_apply_documents_function_exists(self):
-        src = _src('src/visual/interactivity/governance/mg_documents.py')
-        assert '_applyDocuments' in src
-
-    def test_clears_cache_after_use(self):
-        src = _src('src/visual/interactivity/governance/mg_documents.py')
-        assert 'window._tdPreGovDocs = null' in src
-
-
 # ---------------------------------------------------------------------------
 # Tests: health route registered at /api/v1/health
 # ---------------------------------------------------------------------------

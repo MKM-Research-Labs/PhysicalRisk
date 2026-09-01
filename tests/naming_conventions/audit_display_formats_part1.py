@@ -167,7 +167,6 @@ _GAUGE_HARDCODED = [
     'src/visual/interactivity/trading/aggregate/map_view.py',
     'src/visual/interactivity/property/phc_hazard.py',
     'src/visual/interactivity/property/propertyhc/panel_basis_strip.py',
-    'src/visual/interactivity/governance/models/mg_lineage.py',
     'src/visual/interactivity/trading/market/render.py',
     'src/reports/gauge/gauge_integrator.py',
     'src/reports/port/sections.py',
