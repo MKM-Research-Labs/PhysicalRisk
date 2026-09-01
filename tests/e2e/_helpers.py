@@ -66,7 +66,7 @@ def close_all_data_panels(page):
     """Close all panels and dismiss notifications (for data load tests)."""
     page.evaluate("""() => {
         ['trading-desk-panel','hazard-curve-panel','property-hc-panel',
-         'prop-storm-panel','mortgage-detail-panel','mg-panel','property-pdf-panel'].forEach(id => {
+         'prop-storm-panel','mortgage-detail-panel','property-pdf-panel'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
@@ -85,7 +85,6 @@ PANEL_IDS_TO_CLOSE = [
     "property-hc-panel",
     "prop-storm-panel",
     "mortgage-detail-panel",
-    "mg-panel",
     "property-pdf-panel",
     "storm-portfolio-panel",
     "gauge-pdf-panel",
@@ -140,7 +139,7 @@ def close_storm_portfolio(page):
 def cpf_close_all_panels(page):
     """Close every known panel and remove context menus."""
     page.evaluate("""() => {
-        ['trading-desk-panel','hazard-curve-panel','property-hc-panel','prop-storm-panel','mortgage-detail-panel','mg-panel','property-pdf-panel'].forEach(id => {
+        ['trading-desk-panel','hazard-curve-panel','property-hc-panel','prop-storm-panel','mortgage-detail-panel','property-pdf-panel'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });

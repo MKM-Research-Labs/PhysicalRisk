@@ -252,3 +252,38 @@ Prerequisites, in ModelRisk:
    is validated rather than hand-loaded.
 
 Only item 1 is large. Items 2–4 are decisions first and code second.
+
+
+---
+
+## 8. Completion — 2026-09-01
+
+All five slices done. Governance is out of PhysicalRisk.
+
+| Slice | Contents | Commit |
+|---|---|---|
+| A | e2e governance tests (12 files, 76 tests) | `0dcab770` |
+| B | JS + `visual/interactivity/governance` + tests | `07c2f5a2` |
+| C | `src/routes/governance` + `tests/routes/governance` (12,585 lines) | `11ca3f64` |
+| D | doc generators + 26 model doc dirs (82,548 lines) | `527b5a34` |
+| E | `src/models/audit.py`, config accessor, residual wiring | this commit |
+
+**Extracted rather than deleted:** `src/routes/guides.py` — the six workflow
+user guides are operational, and the Control tab depends on one.
+
+**Retained deliberately:** the data-lineage engine and its test phase;
+`docs/models/shared/` (every retained guide `\input`s its `mkm_header.tex`);
+the six workflow guide directories; the content directories with no Python;
+and `config/theme/_governance.py`, whose ramps are shared with ModelRisk and
+cost nothing.
+
+**Recovery:** tag `pre-governance-removal`, plus the exported data at
+`~/Documents/PhysicalRisk-governance-export-2026-09-01` with a verified
+SHA-256 manifest.
+
+⚠️ **Next full run will differ.** The audit package no longer contains
+`model_risk_report.pdf` or `test_report.pdf`, and per-model `test_results.tex`
+is no longer generated — `phys.py test` previously attributed 154 of 844 test
+files to 28 model groups, and that evidence chain has ended by design. Stale
+copies of the two removed PDFs may still sit in `data/output/audit/`; they are
+no longer in the artefact manifest, so the freshness gate ignores them.

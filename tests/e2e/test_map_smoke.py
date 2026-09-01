@@ -71,28 +71,13 @@ class TestMarkers:
 
 
 class TestCoreControls:
-    """The Pi button and governance button must be accessible."""
+    """The Pi button must be accessible."""
 
     def test_pi_button_exists(self, map_page):
         """The Trader's Workstation (Π) button must be on the map."""
         # Search for the Pi symbol in Leaflet controls
         pi_btn = map_page.locator("text=Π").first
         assert pi_btn.is_visible(), "Π button not found"
-
-    def test_governance_button_exists(self, map_page):
-        """A governance/regulatory button must exist in the controls."""
-        # The governance panel button is in the Leaflet control area
-        mg_btn = map_page.locator("#mg-panel-btn").or_(
-            map_page.locator("[title*='Governance']").or_(
-                map_page.locator("[title*='Regulatory']").or_(
-                    map_page.locator("[title*='Model']")
-                )
-            )
-        )
-        # At least one governance-related control should exist
-        assert mg_btn.count() >= 1 or map_page.locator("#mg-panel").count() >= 1, (
-            "No governance button or panel found"
-        )
 
     def test_startup_preloader_completed(self, map_page):
         """The startup preloader popup should be hidden after data loads."""

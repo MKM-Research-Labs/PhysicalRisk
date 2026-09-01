@@ -135,22 +135,6 @@ class _ProcessMixin:
         avg_transmission = basis['avg_transmission']
         idw_gauge_spreads = basis['idw_gauge_spreads']
 
-        from models.audit import log_model_usage
-        audit_params = {
-            "property_id": prop_id,
-            "flood_count": flood_count,
-            "num_storms": num_storms,
-            "spread_bps": spread_bps,
-        }
-        if wind_info is not None:
-            audit_params["wind_count"] = wind_info["wind_count"]
-            audit_params["union_count"] = wind_info["union_count"]
-            audit_params["joint_count"] = wind_info["joint_count"]
-            audit_params["union_spread_bps"] = wind_info["union_spread_bps"]
-            audit_params["joint_spread_bps"] = wind_info["joint_spread_bps"]
-        log_model_usage("prs", "prs_spread", parameters=audit_params,
-                        context="Property PRS spread (event count)")
-
         flood_depths = [e['flood_depth_m'] for e in flood_events if e.get('flooded', False)]
         summary_data = {
             'avg_basis_bps': round(float(avg_basis), 2),

@@ -213,26 +213,6 @@ class PortfolioPaths:
         """Top-level ``data`` directory (the shared data root containing input/output/catch)."""
         return self.project_root / 'data'
 
-    def get_governance_data_dir(self) -> Path:
-        """Version-controlled governance data directory.
-
-        Governance metadata (model inventory, MRC meetings, audit log, BCBS239
-        assessment, RACI, bibliography, document manifest + uploads) is
-        repo-level content and lives in the git tree, NOT under data/ (the
-        shared, per-deployment data area). Kept beside the governance docs
-        generators under docs/models/.
-
-        Test-only override: when MKM_GOVERNANCE_DATA_OVERRIDE points at a
-        directory, use it instead of the real one. This lets the e2e suite run
-        the Flask subprocess against a tmp copy so mutating governance
-        endpoints (MRC + document uploads) never write into the version-
-        controlled tree, even if the suite is SIGKILLed mid-run.
-        """
-        override = os.getenv('MKM_GOVERNANCE_DATA_OVERRIDE')
-        if override:
-            return Path(override)
-        return self.project_root / 'docs' / 'models' / 'governance_data'
-
     def get_input_path(self, filename: str) -> Path:
         """Get path to file in input directory."""
         return self.input_dir / filename

@@ -139,21 +139,3 @@ class TestEnvironmentOverrides:
         monkeypatch.setenv("MKM_OUTPUT_DIR", "elsewhere/out")
         assert paths.get_output_dir() == tmp_path / "elsewhere/out"
 
-
-class TestGovernanceDataDir:
-    def test_lives_in_the_git_tree_not_under_data(self, paths, tmp_path):
-        """Governance data is repo content, not per-deployment data.
-
-        It sits beside the generators under docs/models precisely so it is version
-        controlled; putting it under data/ would place the model inventory on a shared
-        drive where it is neither reviewed nor backed up with the code.
-        """
-        result = paths.get_governance_data_dir()
-        assert result == tmp_path / "docs" / "models" / "governance_data"
-        assert "data" not in result.relative_to(tmp_path).parts[:1]
-
-    def test_override_redirects_it(self, paths, tmp_path, monkeypatch):
-        """The e2e Flask subprocess must never write into the version-controlled tree."""
-        elsewhere = tmp_path / "scratch"
-        monkeypatch.setenv("MKM_GOVERNANCE_DATA_OVERRIDE", str(elsewhere))
-        assert paths.get_governance_data_dir() == elsewhere

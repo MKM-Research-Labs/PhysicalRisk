@@ -98,15 +98,6 @@ class TestPortfolioPathOverrides:
         instance._init_paths("thames")
         assert instance.input_dir == elsewhere
 
-    def test_governance_override_redirects_the_repo_tree(self, monkeypatch, tmp_path):
-        from config.path import PortfolioPaths
-
-        elsewhere = tmp_path / "scratch-governance"
-        monkeypatch.setenv("MKM_GOVERNANCE_DATA_OVERRIDE", str(elsewhere))
-        instance = PortfolioPaths.__new__(PortfolioPaths)
-        instance.project_root = tmp_path
-        assert instance.get_governance_data_dir() == elsewhere
-
     def test_results_path_joins_the_results_dir(self, tmp_path):
         from config.path import PortfolioPaths
 

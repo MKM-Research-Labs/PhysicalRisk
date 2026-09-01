@@ -98,21 +98,3 @@ class ConfigPaths:
     def get_data_dir(self) -> Path:
         """Top-level ``data`` directory (the shared data root containing input/output/catch)."""
         return self._get_project_root() / 'data'
-
-    def get_governance_data_dir(self) -> Path:
-        """Version-controlled governance data directory.
-
-        Governance metadata (model inventory, MRC meetings, audit log, BCBS239
-        assessment, RACI, bibliography, document manifest + uploads) is
-        repo-level content and lives in the git tree, NOT under data/ (the
-        shared, per-deployment data area). Kept beside the governance docs
-        generators under docs/models/.
-
-        Test-only override: MKM_GOVERNANCE_DATA_OVERRIDE redirects this to a
-        tmp dir so the e2e Flask subprocess never writes into the version-
-        controlled tree.
-        """
-        override = os.getenv('MKM_GOVERNANCE_DATA_OVERRIDE')
-        if override:
-            return Path(override)
-        return self._get_project_root() / 'docs' / 'models' / 'governance_data'

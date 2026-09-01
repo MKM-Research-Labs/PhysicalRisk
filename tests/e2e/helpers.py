@@ -22,7 +22,7 @@
 Shared helper functions for e2e tests.
 
 Provides panel open/close, trading desk, gauge panel, property panel,
-and governance panel helpers used across all split e2e test files.
+used across all split e2e test files.
 """
 
 import pytest
@@ -38,7 +38,6 @@ PANEL_IDS_TO_CLOSE = [
     "property-hc-panel",
     "prop-storm-panel",
     "mortgage-detail-panel",
-    "mg-panel",
     "property-pdf-panel",
     "storm-portfolio-panel",
     "gauge-pdf-panel",

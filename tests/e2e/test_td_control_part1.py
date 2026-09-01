@@ -54,7 +54,6 @@ PANEL_IDS_TO_CLOSE = [
     "property-hc-panel",
     "prop-storm-panel",
     "mortgage-detail-panel",
-    "mg-panel",
     "property-pdf-panel",
     "storm-portfolio-panel",
     "gauge-pdf-panel",

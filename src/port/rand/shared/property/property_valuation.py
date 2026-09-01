@@ -122,11 +122,6 @@ def calculate_property_value(location_info: Dict[str, Any]) -> float:
         noise_factor=noise_factor,
     )
 
-    from models.audit import log_model_usage
-    log_model_usage("valuation", "property_valuation", parameters={
-        "area": area,
-        "final_value": round(result, 2),
-    }, context="Property valuation calculation")
 
     return result
 
@@ -285,10 +280,5 @@ def calculate_insurance_premium(location_info: Dict[str, Any]) -> float:
         contents_premium=contents_premium,
     )
 
-    from models.audit import log_model_usage
-    log_model_usage("insurance", "insurance_premium", parameters={
-        "property_value": round(property_value, 2),
-        "final_premium": round(result, 2),
-    }, context="Insurance premium calculation")
 
     return result

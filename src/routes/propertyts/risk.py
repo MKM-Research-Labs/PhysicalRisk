@@ -173,14 +173,6 @@ def portfolio_var():
     cmort_var_95, cmort_es_95 = cond_var_es(nonzero_mort, 95)
     cmort_var_999, cmort_es_999 = cond_var_es(nonzero_mort, 99.9)
 
-    from models.audit import log_model_usage
-    log_model_usage("risk_analytics", "portfolio_var", parameters={
-        "num_properties": len(prop_values),
-        "num_storms": n_storms,
-        "var_95": prop_var_95,
-        "es_95": prop_es_95,
-        "var_999": prop_var_999,
-    }, context="Portfolio VaR computation", source="api")
 
     # Probability of any loss
     prob_loss = round(len(nonzero_prop) / n_storms * 100, 4) if n_storms > 0 else 0

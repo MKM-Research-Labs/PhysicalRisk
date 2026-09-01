@@ -191,17 +191,5 @@ class PropertyTimeSeriesGenerator(LoaderMixin, FloodMixin, GeneratorInitMixin):
         self.log(f"  Gauge→Property ratio: {summary_stats['gauge_to_property_ratio']}%")
         self.log(f"  Max depth: {summary_stats['max_depth_m']:.2f}m")
 
-        from models.audit import log_model_usage
-        log_model_usage("depth_damage", "depth_damage_batch", parameters={
-            "properties_processed": len(properties),
-            "properties_with_floods": summary_stats['properties_with_floods'],
-            "total_flood_events": summary_stats['total_flood_events'],
-            "max_depth_m": round(summary_stats['max_depth_m'], 4),
-            "max_damage_ratio": round(summary_stats['max_damage_ratio'], 4),
-        }, context="Property flood timeseries batch complete")
-        log_model_usage("spatial", "idw_interpolation_batch", parameters={
-            "properties_processed": len(properties),
-            "gauges_available": len(gauges),
-        }, context="IDW spatial interpolation batch complete")
 
         return summary_stats

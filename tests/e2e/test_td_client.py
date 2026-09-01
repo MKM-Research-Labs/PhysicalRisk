@@ -63,7 +63,7 @@ class TestClientTab:
         map_page.evaluate("""() => {
             ['trading-desk-panel', 'hazard-curve-panel', 'property-hc-panel',
              'prop-storm-panel', 'storm-portfolio-panel', 'gauge-pdf-panel',
-             'mortgage-detail-panel', 'mg-panel', 'property-pdf-panel'].forEach(id => {
+             'mortgage-detail-panel', 'property-pdf-panel'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });

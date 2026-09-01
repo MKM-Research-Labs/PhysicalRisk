@@ -148,14 +148,6 @@ def price_prs_endpoint():
             use_term_structure=True
         )
 
-        from models.audit import log_model_usage
-        log_model_usage("prs", "prs_pricing_api", parameters={
-            "gauge_id": gauge_id,
-            "trigger_level": trigger_level,
-            "notional": data.get('notional', 10_000_000),
-            "tenor_years": data.get('tenor_years', 5),
-            "fair_spread_bps": results.get('fair_spread_bps'),
-        }, context="API PRS pricing request", source="api")
 
         return jsonify({
             'status': 'success',

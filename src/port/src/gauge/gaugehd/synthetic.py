@@ -70,22 +70,10 @@ def generate_from_gauge_portfolio(
     seed = hash(gauge_id) % (2**32)
     daily_observations = generate_synthetic_timeseries(gauge_data, years=years, seed=seed)
 
-    from models.audit import log_model_usage
-    log_model_usage("gev", "synthetic_generation", parameters={
-        "gauge_id": gauge_id,
-        "years": years,
-        "observations": len(daily_observations),
-    }, context="Synthetic timeseries generation")
 
     # Calculate statistics
     stats = calculate_level_statistics(daily_observations, flood_stages)
 
-    log_model_usage("gev", "level_statistics", parameters={
-        "gauge_id": gauge_id,
-        "num_observations": len(daily_observations),
-        "mean_level": stats.get('mean_level'),
-        "max_level": stats.get('max_level'),
-    }, context="Gauge level statistics calculation")
 
     # Build output structure
     output_data = {
