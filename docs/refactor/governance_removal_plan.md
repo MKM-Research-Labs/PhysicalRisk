@@ -126,3 +126,63 @@ e2e test loads.
    than governance process. Included above; worth confirming.
 3. **`test_interpretation`** (600 lines) reads audit output and is not
    governance-specific. Proposed: retain.
+
+---
+
+## 7. Stage 0 results — 2026-09-01
+
+### 7.1 Done
+
+- **Recovery tag** `pre-governance-removal` created and pushed. The whole
+  subsystem is recoverable from it.
+- **Data exported** to `~/Documents/PhysicalRisk-governance-export-2026-09-01`
+  (3.8 MB, 9 files) with a verified SHA-256 `MANIFEST.sha256`.
+- Note the data was already version-controlled under
+  `docs/models/governance_data/`, so risk **R3 (irrecoverable data) is lower
+  than stated** — git history holds it regardless. The export exists for
+  handover, not rescue.
+- `governance_docs/` and `mrc_uploads/` contain only `.gitkeep` — there are **no
+  uploaded documents** to migrate.
+
+### 7.2 Parity against MKM-ModelRisk — **the gate does not pass yet**
+
+Checked against ModelRisk at `1c2b95d`: 13 migrations, 30 `src/governance`
+modules, and ingest contracts for model_inventory, model_chain, data_lineage,
+field_lineage, document and ml_training_run.
+
+| PhysicalRisk data | Size | ModelRisk home | Verdict |
+|---|---:|---|---|
+| `model_inventory.json` | 264 KB | module + ingest contract + view | ✅ **Ready** |
+| `governance_documents.json` | 2 entries | `documents.py` + `document.schema.json` | ✅ **Ready** |
+| `mrc_meetings.json` | 12 KB | `mrc/` + `0004_mrc_meeting_view.sql` | ⚠️ Feature exists, **no ingest contract** |
+| `bibliography.json` | 3.5 KB | `bibliography/` | ⚠️ Feature exists, **no ingest contract** |
+| `raci_matrix.json` | 7.6 KB | RACI as four roles scaffolded on a *Product* | ⚠️ **Shape mismatch** — a standalone matrix has no equivalent |
+| `bcbs239_assessment.json` | 13.8 KB | none — BCBS 239 appears only as the *rationale* for field lineage | ❌ **No home** |
+| `model_audit_log.json` | **10,000 events** | event store exists; no importer, no audit-trail module | ❌ **No import path** |
+
+⚠️ **Method note:** an initial grep suggested RACI was in ModelRisk's schema.
+That match was the word "ra**ci**ng" in a comment. Re-checked with word
+boundaries — RACI is a Product role concept there, not PhysicalRisk's matrix.
+Verify parity claims with `grep -w`, not substring.
+
+### 7.3 What Stage 0 concluded
+
+**Do not begin Stage 1.** Five of seven data types are not yet safely
+transferable, two of them with no destination at all. Removing governance now
+would strand the BCBS 239 assessment and a 10,000-event audit trail with
+nothing on the other side to receive them.
+
+Prerequisites, in ModelRisk:
+
+1. **An audit-trail import path.** 10,000 events with a stable shape
+   (`action`, `context`, `event_type`, `model_id`, `parameters`, `source`,
+   `timestamp`, `user`) — a natural fit for the existing event store, but
+   nothing maps onto it today.
+2. **A decision on BCBS 239.** Either build the assessment feature, or accept
+   that the assessment is retired and record that as a deliberate loss.
+3. **A RACI decision.** Map the matrix onto Product roles, or keep it as a
+   distinct artefact.
+4. **Ingest contracts for `mrc_meetings` and `bibliography`**, so the transfer
+   is validated rather than hand-loaded.
+
+Only item 1 is large. Items 2–4 are decisions first and code second.
