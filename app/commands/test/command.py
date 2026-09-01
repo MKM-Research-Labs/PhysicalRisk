@@ -23,9 +23,11 @@
 import os
 import sys
 import subprocess as sp
+import time
 
 from config import config
 
+from .artefacts import artefact_manifest, report_artefacts
 from .audit import _check_deps, _parse_coverage_pct, _run_audit_reports
 from .e2e import _run_e2e_tests
 from .helpers import _cleanup_worktree_data, _resolve_python
@@ -113,6 +115,13 @@ def cmd_test(args):
         do_lineage = getattr(args, 'run_all', False) or getattr(args, 'lineage', False)
         do_audit   = getattr(args, 'audit', False)
         do_pdf     = getattr(args, 'pdf', False)
+
+        # Read before any phase runs: every artefact this run is responsible for
+        # must have an mtime at or after this instant.
+        run_started = time.time()
+        phases_run = {name for name, ran in (
+            ('unit', do_unit), ('e2e', do_e2e), ('lineage', do_lineage),
+            ('audit', do_audit), ('pdf', do_pdf)) if ran}
 
         # ---- Capture git commit SHA ----
         git_sha = None
@@ -239,37 +248,24 @@ def cmd_test(args):
         _assessment_path = os.path.join(
             audit_dir,
             _assessments[-1] if _assessments else 'assessment_<date>_<sha>.pdf')
-        artefacts = [
-            ('JUnit XML',              junit_xml),
-            ('Coverage XML',           cov_xml),
-            ('Coverage HTML',          cov_html),
-            ('Data Lineage Results',   os.path.join(audit_dir, 'data_lineage_results.json')),
-            ('Data Lineage JUnit',     os.path.join(audit_dir, 'data_lineage_junit.xml')),
-            ('E2E Results',            os.path.join(audit_dir, 'e2e', 'e2e_results.json')),
-            ('E2E JUnit',              os.path.join(audit_dir, 'e2e', 'e2e_junit.xml')),
-            ('Test Report PDF',        os.path.join(audit_dir, 'test_report.pdf')),
-            ('Large File Report PDF',  os.path.join(audit_dir, 'large_file_report.pdf')),
-            ('Large Test Report TXT',  os.path.join(audit_dir, 'large_test_report.txt')),
-            ('Init Audit Report PDF',  os.path.join(audit_dir, 'init_audit_report.pdf')),
-            ('Init Audit Results JSON', os.path.join(audit_dir, 'init_audit_results.json')),
-            ('Code Duplication PDF',   os.path.join(audit_dir, 'code_duplication_report.pdf')),
-            ('Hard-Coding Audit PDF',  os.path.join(audit_dir, 'hardcoding_report.pdf')),
-            ('Embedded JS/CSS PDF',    os.path.join(audit_dir, 'embedded_js_report.pdf')),
-            ('JSON-File Audit PDF',    os.path.join(audit_dir, 'json_files_report.pdf')),
-            ('Database-Usage Audit PDF', os.path.join(audit_dir, 'database_usage_report.pdf')),
-            ('Data Lineage PDF',       os.path.join(audit_dir, 'data_lineage_report.pdf')),
-            ('Model Risk Report PDF',  os.path.join(audit_dir, 'model_risk_report.pdf')),
-            ('Full Audit Report PDF',  os.path.join(audit_dir, 'full_audit_report.pdf')),
-            ('Assessment PDF',         _assessment_path),
-        ]
-        for label, path in artefacts:
-            exists = os.path.exists(path)
-            size = ''
-            if exists and os.path.isfile(path):
-                size = f' ({os.path.getsize(path) / 1024:.1f} KB)'
-            status = 'OK' if exists else 'MISSING'
-            print(f' [{status}] {label}: {path}{size}')
+        artefacts = artefact_manifest(
+            audit_dir, junit_xml, cov_xml, cov_html, _assessment_path)
+        stale = report_artefacts(artefacts, run_started, phases_run)
         print()
+        if stale:
+            # Loud on purpose. A generator that dies on import leaves its last
+            # good artefact on disk, so the old existence-only check reported it
+            # as current — that is how four PDFs went four weeks out of date
+            # without anyone noticing.
+            print('=' * 60)
+            print(f' WARNING: {len(stale)} artefact(s) NOT regenerated this run')
+            print('=' * 60)
+            for label in stale:
+                print(f'   - {label}')
+            print(' Their generator failed; the file on disk is from an earlier')
+            print(' run and is NOT evidence for this one. Check the generator')
+            print(' output above for an import error or traceback.')
+            print()
         if do_unit:
             print('Status:', 'ALL PASS' if pytest_ok else 'TEST FAILURES — see junit.xml')
 
