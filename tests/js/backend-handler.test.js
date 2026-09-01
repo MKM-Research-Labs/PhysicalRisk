@@ -158,7 +158,7 @@ describe('BackendHandler', () => {
 
     test('generateReport(null) calls showError', async () => {
         await handler.generateReport(null);
-        expect(global.showError).toHaveBeenCalledWith(expect.stringContaining('Property ID'));
+        expect(global.showError).toHaveBeenCalledWith(expect.stringContaining('propertyId'));
         expect(global.fetch).not.toHaveBeenCalled();
     });
 
@@ -179,7 +179,7 @@ describe('BackendHandler', () => {
 
     test('generateGaugeReport(null) calls showError', async () => {
         await handler.generateGaugeReport(null);
-        expect(global.showError).toHaveBeenCalledWith(expect.stringContaining('Gauge ID'));
+        expect(global.showError).toHaveBeenCalledWith(expect.stringContaining('gaugeId'));
         expect(global.fetch).not.toHaveBeenCalled();
     });
 
@@ -255,7 +255,7 @@ describe('BackendHandler', () => {
         global.fetch.mockResolvedValue({ ok: true });
         await handler.checkBackendHealth();
         expect(global.fetch).toHaveBeenCalledWith(
-            'http://localhost:5013/health',
+            '/health',
             expect.objectContaining({ method: 'GET', mode: 'cors' })
         );
     });

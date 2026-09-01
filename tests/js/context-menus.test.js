@@ -105,7 +105,9 @@ describe('ContextMenuHandler', () => {
         const firstItem = menu.children[0];
         firstItem.click();
 
-        expect(global.generateReport).toHaveBeenCalledWith('PROP-789');
+        // showMenu was called without a display name, so the handler
+        // forwards null as the second argument it now passes through.
+        expect(global.generateReport).toHaveBeenCalledWith('PROP-789', null);
         delete global.generateReport;
     });
 

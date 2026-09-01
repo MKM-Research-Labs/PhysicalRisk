@@ -31,6 +31,12 @@ module.exports = {
   // coverage. Note an ignore pattern on '.claude' cannot do this job: a
   // worktree lives *inside* .claude/worktrees/, so it would discard the
   // worktree's own tests when run from there.
-  roots: ['<rootDir>/tests/js'],
+  // Both entries matter, for different reasons. tests/js scopes DISCOVERY to
+  // this checkout (see above). src/static/js must be listed too because
+  // collectCoverageFrom only resolves within roots — with tests/js alone, jest
+  // reports coverage over the four modules the tests require and nothing else,
+  // which turned a real 2% into a fictitious 58%. testMatch only matches
+  // **/tests/js/**/*.test.js, so adding the source tree cannot pull in tests.
+  roots: ['<rootDir>/tests/js', '<rootDir>/src/static/js'],
   setupFiles: ['<rootDir>/tests/js/setup.js']
 };
