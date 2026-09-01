@@ -165,9 +165,40 @@ That match was the word "ra**ci**ng" in a comment. Re-checked with word
 boundaries — RACI is a Product role concept there, not PhysicalRisk's matrix.
 Verify parity claims with `grep -w`, not substring.
 
-### 7.3 What Stage 0 concluded
+### 7.3 RESOLVED by decision, 2026-09-01
 
-**Do not begin Stage 1.** Five of seven data types are not yet safely
+**There is no transfer.** MKM-ModelRisk is already functional with its own
+data, so nothing needs to move. This is a clean-out: the audit log, BCBS 239
+assessment, RACI matrix, bibliography and MRC meetings are all removed rather
+than migrated. §7.2's parity table is therefore moot — recorded above only
+because it is the evidence that nothing was stranded by accident.
+
+The recovery tag and the verified export remain the safety net: everything
+deleted is recoverable from `pre-governance-removal`.
+
+### 7.4 ⚠️ Ordering correction to §3
+
+The staging in §3 is **wrong for the coverage gate**. Removing
+`tests/routes/governance/` (8,224 lines) in Stage 1 while
+`src/routes/governance/` (3,641 lines) survives until Stage 3 would leave that
+source uncovered and drop the total far below `fail_under = 99` — a red build
+for two whole stages.
+
+Source and its tests must be removed **atomically**. Revised slices:
+
+| Slice | Contents | Coverage effect |
+|---|---|---|
+| **A** | e2e governance tests (12 files, 83 tests) | none — e2e is `--ignore`d and contributes no coverage |
+| **B** | JS + `visual/interactivity/governance` **+ their unit tests** | neutral |
+| **C** | `src/routes/governance` **+ `tests/routes/governance`** | neutral |
+| **D** | doc generators + model docs **+ their tests** | neutral |
+| **E** | audit wiring, artefact manifest, stale PDFs | none |
+
+Each slice is committed and verified on its own.
+
+### 7.5 Superseded
+
+**Do not begin Stage 1** *(superseded by §7.3 — no transfer required)*. Five of seven data types are not yet safely
 transferable, two of them with no destination at all. Removing governance now
 would strand the BCBS 239 assessment and a 10,000-event audit trail with
 nothing on the other side to receive them.
