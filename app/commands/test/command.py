@@ -27,9 +27,10 @@ import time
 
 from config import config
 
-from .artefacts import artefact_manifest, report_artefacts
+from .artefacts import artefact_manifest, report_artefacts, run_verdict
 from .audit import _check_deps, _parse_coverage_pct, _run_audit_reports
 from .e2e import _run_e2e_tests
+from .js import _run_js_tests
 from .helpers import _cleanup_worktree_data, _resolve_python
 from .lineage import _run_data_lineage_tests
 from .reports import _write_failures_report
@@ -92,7 +93,8 @@ def cmd_test(args):
 
         # ---- Resolve which suites and outputs to run ----
         has_suite = (getattr(args, 'unit', False) or getattr(args, 'e2e', False)
-                     or getattr(args, 'lineage', False) or getattr(args, 'run_all', False))
+                     or getattr(args, 'lineage', False) or getattr(args, 'js', False)
+                     or getattr(args, 'run_all', False))
         has_output = getattr(args, 'audit', False)
 
         if not has_suite and not has_output:
@@ -103,6 +105,7 @@ def cmd_test(args):
         do_unit    = getattr(args, 'run_all', False) or getattr(args, 'unit', False)
         do_e2e     = getattr(args, 'run_all', False) or getattr(args, 'e2e', False)
         do_lineage = getattr(args, 'run_all', False) or getattr(args, 'lineage', False)
+        do_js      = getattr(args, 'run_all', False) or getattr(args, 'js', False)
         do_audit   = getattr(args, 'audit', False)
         do_pdf     = getattr(args, 'pdf', False)
 
@@ -111,6 +114,7 @@ def cmd_test(args):
         run_started = time.time()
         phases_run = {name for name, ran in (
             ('unit', do_unit), ('e2e', do_e2e), ('lineage', do_lineage),
+            ('js', do_js),
             ('audit', do_audit), ('pdf', do_pdf)) if ran}
 
         # ---- Capture git commit SHA ----
@@ -139,6 +143,8 @@ def cmd_test(args):
             phases.append('unit')
         if do_e2e:
             phases.append('e2e')
+        if do_js:
+            phases.append('js')
         if do_audit:
             phases.append('audit reports')
         print(f' Phases  : {", ".join(phases)}')
@@ -156,6 +162,7 @@ def cmd_test(args):
         coverage_pct = None
         data_lineage_results = None
         e2e_results = None
+        js_results = None
 
         # ------------------------------------------------------------------
         # 1. Data lineage consistency checks (BCBS 239 P3)
@@ -217,6 +224,13 @@ def cmd_test(args):
             e2e_results = _run_e2e_tests(project_root, audit_dir, _python_exe)
 
         # ------------------------------------------------------------------
+        # JavaScript unit tests (jest)
+        # ------------------------------------------------------------------
+        if do_js:
+            print('\nRunning JavaScript unit tests (jest)...')
+            js_results = _run_js_tests(project_root, audit_dir)
+
+        # ------------------------------------------------------------------
         # 4. Audit reports (doc generators)
         # ------------------------------------------------------------------
         if do_audit:
@@ -256,26 +270,10 @@ def cmd_test(args):
             print(' run and is NOT evidence for this one. Check the generator')
             print(' output above for an import error or traceback.')
             print()
-        problems = []
-        if do_unit and not pytest_ok:
-            problems.append('TEST FAILURES — see junit.xml')
-        if stale:
-            problems.append(
-                f'{len(stale)} STALE ARTEFACT(S) — evidence package incomplete')
-        if problems:
-            print('Status:', '; '.join(problems))
-        elif do_unit:
-            print('Status: ALL PASS')
-
         # Clean up any worktree data copies created by E2E tests during this run
         print()
         print('--- Worktree data cleanup (post-run) ---')
         _cleanup_worktree_data(str(project_root))
 
-        # Two independent failures. The unit verdict: pytest returns non-zero
-        # for a failing test or a missed coverage gate (without --unit there is
-        # no verdict and pytest_ok stays True). And stale artefacts: one its
-        # phase should have rewritten but did not means a failed generator, and
-        # a package that passes an earlier run off as this one. MISSING does not
-        # fail — an artefact whose phase never ran is absent by design.
-        return 0 if (pytest_ok and not stale) else 1
+        return run_verdict(do_unit, pytest_ok, stale, js_results)
+

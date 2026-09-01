@@ -37,7 +37,7 @@ from app.commands.test.artefacts import (
 )
 
 NOW = 1_000_000.0
-ALL_PHASES = {'unit', 'e2e', 'lineage', 'audit', 'pdf'}
+ALL_PHASES = {'unit', 'e2e', 'lineage', 'audit', 'pdf', 'js'}
 
 
 def _touch(path, mtime):
@@ -158,3 +158,14 @@ class TestRaceOnDisappearingFile:
 
         monkeypatch.setattr(os.path, 'getmtime', _boom)
         assert classify(p, 'audit', NOW, ALL_PHASES) == ('MISSING', '')
+
+
+class TestJsArtefacts:
+    def test_the_three_js_outputs_are_registered(self):
+        """Without these the jest phase would run and report nothing, which is
+        how the front end went unmeasured in the first place."""
+        entries = {label: phase for label, _, phase in artefact_manifest(
+            '/audit', '/audit/junit.xml', '/audit/coverage.xml',
+            '/audit/coverage', '/audit/assessment_x.pdf')}
+        for label in ('JS Test Results', 'JS Coverage Summary', 'JS Coverage XML'):
+            assert entries.get(label) == 'js', label

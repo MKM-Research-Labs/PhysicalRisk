@@ -49,8 +49,11 @@ def register_parser(subparsers):
         "--lineage", action="store_true",
         help="Data lineage consistency checks (BCBS 239)")
     suites.add_argument(
+        "--js", action="store_true",
+        help="JavaScript unit tests (jest) with coverage")
+    suites.add_argument(
         "--all", action="store_true", dest="run_all",
-        help="All three suites (default when no suite flag given)")
+        help="All suites (default when no suite flag given)")
 
     # Output options
     outputs = sp_test.add_argument_group("output options")

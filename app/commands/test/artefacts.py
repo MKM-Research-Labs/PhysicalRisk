@@ -59,6 +59,9 @@ def artefact_manifest(audit_dir, junit_xml, cov_xml, cov_html, assessment_path):
         ('Data Lineage JUnit',       _p('data_lineage_junit.xml'),     'lineage'),
         ('E2E Results',              os.path.join(audit_dir, 'e2e', 'e2e_results.json'), 'e2e'),
         ('E2E JUnit',                os.path.join(audit_dir, 'e2e', 'e2e_junit.xml'),    'e2e'),
+        ('JS Test Results',          os.path.join(audit_dir, 'js', 'js_results.json'),    'js'),
+        ('JS Coverage Summary',      os.path.join(audit_dir, 'js', 'coverage-summary.json'), 'js'),
+        ('JS Coverage XML',          os.path.join(audit_dir, 'js', 'js_coverage.xml'),   'js'),
         ('Large File Report PDF',    _p('large_file_report.pdf'),      'audit'),
         ('Large Test Report TXT',    _p('large_test_report.txt'),      'audit'),
         ('Init Audit Report PDF',    _p('init_audit_report.pdf'),      'audit'),
@@ -120,3 +123,36 @@ def report_artefacts(artefacts, run_started, phases_run):
         if status == 'STALE':
             stale.append(label)
     return stale
+
+
+def run_verdict(do_unit, pytest_ok, stale, js_results):
+    """Print the Status line and return the process exit code.
+
+    Three independent failures. The unit verdict: pytest returns non-zero for a
+    failing test or a missed coverage gate (without --unit there is no verdict
+    and ``pytest_ok`` stays True). Stale artefacts: one its phase should have
+    rewritten but did not means a failed generator, and a package that passes an
+    earlier run off as this one. And a failing JS suite, on the same footing as
+    the Python one — a front end that fails its own tests is not a passing build.
+
+    MISSING does not fail: an artefact whose phase never ran is absent by
+    design, and a skipped JS phase (no node_modules) reports SKIPPED with zero
+    failures, so it cannot fail a run on a machine without a JS toolchain.
+    """
+    js_failed = int(js_results.get('failed', 0)) if js_results else 0
+
+    problems = []
+    if do_unit and not pytest_ok:
+        problems.append('TEST FAILURES — see junit.xml')
+    if js_failed:
+        problems.append(f'{js_failed} JS TEST FAILURES — see audit/js/')
+    if stale:
+        problems.append(
+            f'{len(stale)} STALE ARTEFACT(S) — evidence package incomplete')
+
+    if problems:
+        print('Status:', '; '.join(problems))
+    elif do_unit:
+        print('Status: ALL PASS')
+
+    return 0 if (pytest_ok and not stale and not js_failed) else 1

@@ -157,6 +157,9 @@ _ALLOWLIST = {
     'app/commands/test/reports.py':
         'writes test_failures_report.json (parsed from junit.xml) to the audit '
         'dir; reporting artifact, not DB state',
+    'app/commands/test/js.py':
+        'writes js_results.json and reads jest/istanbul coverage summaries in '
+        'the audit dir; reporting artifact, not DB state',
     # Pre-regeneration safety backup: copies the output dir's *.json to a
     # timestamped .backups/ folder (shutil.copy2, no content read). A file-backend
     # maintenance utility; database backups are handled separately (pg_dump, WP5.2).
