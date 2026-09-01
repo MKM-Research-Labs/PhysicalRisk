@@ -59,9 +59,6 @@ def artefact_manifest(audit_dir, junit_xml, cov_xml, cov_html, assessment_path):
         ('Data Lineage JUnit',       _p('data_lineage_junit.xml'),     'lineage'),
         ('E2E Results',              os.path.join(audit_dir, 'e2e', 'e2e_results.json'), 'e2e'),
         ('E2E JUnit',                os.path.join(audit_dir, 'e2e', 'e2e_junit.xml'),    'e2e'),
-        # LaTeX compilation is opt-in via --pdf; the audit phase alone writes
-        # only the .tex, so this must not be judged against the audit phase.
-        ('Test Report PDF',          _p('test_report.pdf'),            'pdf'),
         ('Large File Report PDF',    _p('large_file_report.pdf'),      'audit'),
         ('Large Test Report TXT',    _p('large_test_report.txt'),      'audit'),
         ('Init Audit Report PDF',    _p('init_audit_report.pdf'),      'audit'),
@@ -72,7 +69,6 @@ def artefact_manifest(audit_dir, junit_xml, cov_xml, cov_html, assessment_path):
         ('JSON-File Audit PDF',      _p('json_files_report.pdf'),      'audit'),
         ('Database-Usage Audit PDF', _p('database_usage_report.pdf'),  'audit'),
         ('Data Lineage PDF',         _p('data_lineage_report.pdf'),    'audit'),
-        ('Model Risk Report PDF',    _p('model_risk_report.pdf'),      'audit'),
         ('Full Audit Report PDF',    _p('full_audit_report.pdf'),      'audit'),
         ('Assessment PDF',           assessment_path,                  'audit'),
     ]

@@ -18,72 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Shared fixtures for model_risk report tests."""
+"""Shared fixtures for data lineage report tests.
+
+The model_risk fixtures that used to live here went with the governance
+report generator; the data-lineage ones below serve tests that remain.
+"""
 
 import pytest
 
-from tests.commands.model_risk_helpers_part1 import (
-    _make_model, _make_bcbs, _make_raci, _make_role, _make_principle,
-)
-from tests.commands.model_risk_helpers_part2 import (
-    _full_data, SAMPLE_JUNIT_EMPTY, SAMPLE_VQ, SAMPLE_REMEDIATION,
-    SAMPLE_ASSUMPTIONS, SAMPLE_TEST_COVERAGE, SAMPLE_RISK_RATING,
-)
-
-
-@pytest.fixture
-def mr_pkg():
-    """Import the model_risk package."""
-    from docs.models import model_risk
-    return model_risk
-
-
-@pytest.fixture
-def data_mod():
-    """Import the data module."""
-    from docs.models.model_risk import data
-    return data
-
-
-@pytest.fixture
-def styles_mod():
-    """Import the styles module."""
-    from docs.models.model_risk import styles
-    return styles
-
-
-@pytest.fixture
-def sections_mod():
-    """Import the sections package."""
-    from docs.models.model_risk import sections
-    return sections
-
-
-@pytest.fixture
-def sample_data():
-    """Build a full sample data dict."""
-    return _full_data()
-
-
-@pytest.fixture
-def empty_data():
-    """Minimal data — no models, meetings, etc."""
-    return _full_data(
-        models=[],
-        meetings=[],
-        bcbs=_make_bcbs(),
-        raci=_make_raci(),
-        audit_log=[],
-        junit=SAMPLE_JUNIT_EMPTY,
-        coverage_pct=None,
-        audit_files=[],
-        sensitivity_generators=[],
-    )
-
-
-# ---------------------------------------------------------------------------
-# Shared fixtures for data lineage report tests
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def dl_mod():

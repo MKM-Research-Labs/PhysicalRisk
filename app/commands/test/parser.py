@@ -61,9 +61,6 @@ def register_parser(subparsers):
         "--pdf", action="store_true",
         help="Compile LaTeX reports to PDF")
     outputs.add_argument(
-        "--params", action="store_true",
-        help="Generate parameter inventory report")
-    outputs.add_argument(
         "--check-deps", action="store_true",
         help="Verify required Python dependencies are installed")
     outputs.add_argument(

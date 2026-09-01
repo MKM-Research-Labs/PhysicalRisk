@@ -211,20 +211,6 @@ class TestJsonFilesScanRepo:
         assert not any(f.startswith('src/models/') for f in files)
         assert any(f.startswith('src/port/') for f in files)
 
-    def test_excludes_governance_subsystem(self, tmp_path):
-        """src/routes/governance (model_inventory et al. — separate migration)
-        is out of scope; non-governance routes stay in scope."""
-        gov = tmp_path / "src" / "routes" / "governance"
-        gov.mkdir(parents=True)
-        (gov / "_helpers.py").write_text('json.load(open("model_inventory.json"))\n')
-        other = tmp_path / "src" / "routes" / "trading"
-        other.mkdir(parents=True)
-        (other / "eod.py").write_text('json.load(open("market_state.json"))\n')
-        scan = scanner.scan_repo(tmp_path)
-        files = scan['files']
-        assert not any(f.startswith('src/routes/governance/') for f in files)
-        assert any(f.startswith('src/routes/trading/') for f in files)
-
     def test_unreadable_file_is_skipped(self, tmp_path):
         (tmp_path / "binary.py").write_bytes(b'\xff\xfe not utf8 \x80\n')
         scan = scanner.scan_repo(tmp_path)  # must not raise

@@ -76,30 +76,7 @@ def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
         if coverage_pct is not None:
             print(f' Coverage (from existing xml): {coverage_pct:.1f}%')
 
-    # 4a. Model test documentation (LaTeX)
-    print('\nGenerating model documentation...')
-    doc_cmd = [python_exe, '-m', 'docs.models.test_results.generator']
-    if do_pdf:
-        doc_cmd.append('--pdf')
-    if git_sha:
-        doc_cmd.extend(['--git-sha', git_sha])
-    if coverage_pct is not None:
-        doc_cmd.extend(['--coverage-pct', f'{coverage_pct:.2f}'])
-    e2e_xml = os.path.join(audit_dir, 'e2e', 'e2e_junit.xml')
-    if os.path.exists(e2e_xml):
-        doc_cmd.extend(['--e2e-junit', e2e_xml])
-    sp.run(doc_cmd, cwd=str(project_root))
-
-    # Copy generated PDF into audit directory
-    _test_report_pdf = os.path.join(
-        str(project_root),
-        'docs', 'models', 'test_results', 'test_results', 'test_report.pdf')
-    if os.path.exists(_test_report_pdf):
-        dest = os.path.join(audit_dir, 'test_report.pdf')
-        shutil.copy2(_test_report_pdf, dest)
-        print(f' Copied test_report.pdf → {dest}')
-
-    # 4b-4f. Code analyses + consolidated audit
+    # Code analyses + consolidated audit
     for label, module in (
         ('code modularisation analysis',   'docs.models.project'),
         ('__init__.py substantive-code audit', 'docs.models.init_audit'),
@@ -109,11 +86,10 @@ def _run_audit_reports(project_root, audit_dir, python_exe, coverage_pct,
         ('json-file audit',                'docs.models.json_files'),
         ('database-usage audit',           'docs.models.database_usage'),
         ('data lineage report (BCBS 239)', 'docs.models.data_lineage'),
-        ('model risk governance report',   'docs.models.model_risk'),
         ('full audit report',              'docs.models.full_audit'),
         # Interpretation of the run — reads the junit/coverage artefacts written
-        # above and writes assessment_<date>_<sha>.pdf into the audit dir, where
-        # the governance Audit Reports panel surfaces it. Runs last: it is the
+        # above and writes assessment_<date>_<sha>.pdf into the audit dir.
+        # Runs last: it is the
         # read-only "so what" over everything the earlier steps produced.
         ('test-interpretation assessment', 'docs.models.test_interpretation'),
     ):

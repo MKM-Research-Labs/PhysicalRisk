@@ -75,16 +75,6 @@ def cmd_test(args):
         if getattr(args, 'check_deps', False):
             return _check_deps()
 
-        # ---- Handle --params early exit ----
-        if getattr(args, 'params', False):
-            print('Generating parameter inventory...')
-            cmd = [sys.executable, '-m', 'docs.models.parameter_inventory.generator']
-            if getattr(args, 'pdf', False):
-                cmd.append('--pdf')
-            project_root = config.get_project_root()
-            result = sp.run(cmd, cwd=str(project_root))
-            return result.returncode
-
         project_root = config.get_project_root()
 
         # Clean stale worktree data copies before tests start to free disk space

@@ -120,10 +120,6 @@ def _build_modularisation(styles) -> list:
     from .database_usage import _build_database_usage
     elems.extend(_build_database_usage(styles))
 
-    # 4.7 — model-chain consistency audit (model_inventory.json dependency graph)
-    from .model_chain import _build_model_chain
-    elems.extend(_build_model_chain(styles))
-
     from .styling import _build_styling
     elems.extend(_build_styling(styles))
 

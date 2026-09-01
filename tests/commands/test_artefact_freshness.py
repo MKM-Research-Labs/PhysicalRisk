@@ -117,12 +117,12 @@ class TestManifest:
                      'init_audit_report.pdf', 'large_file_report.pdf'):
             assert any(name in p for p in paths), name
 
-    def test_test_report_pdf_is_gated_on_the_pdf_phase(self):
-        """LaTeX compilation is opt-in; the audit phase writes only the .tex,
-        so judging it against the audit phase would cry stale on every run."""
-        phase = next(ph for label, _, ph in self._manifest()
-                     if label == 'Test Report PDF')
-        assert phase == 'pdf'
+    def test_every_phase_is_one_the_runner_can_report(self):
+        """A typo'd phase would silently never match phases_run, so the
+        artefact could never be judged stale — the failure mode this whole
+        module exists to remove."""
+        phases = {ph for _, _, ph in self._manifest()}
+        assert phases <= ALL_PHASES, phases - ALL_PHASES
 
 
 class TestReportArtefacts:

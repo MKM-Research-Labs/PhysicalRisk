@@ -94,10 +94,6 @@ _ALLOWLIST = {
         'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
     'docs/models/duplication/_paths.py':
         'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
-    'docs/models/sensitivities/generate_all.py':
-        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
-    'docs/models/sensitivities/generate_all_analysis.py':
-        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
     'docs/models/project/pdf.py':
         'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
     'docs/models/hardcoding/pdf_helpers.py':
