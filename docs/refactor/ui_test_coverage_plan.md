@@ -89,3 +89,101 @@ because every colour resolves through one finite token table, which §4.8
 already verifies statically across 1,456 files at zero violations. Phase 3.6
 adds the runtime half of that argument. State this distinction plainly in the
 review rather than implying e2e covers it.
+
+---
+
+# Part 2 — Getting JavaScript coverage from 2.71% to a defensible number
+
+**Revised 2026-09-01**, after the governance removal and after correcting a
+measurement bug of my own making.
+
+## A. Where we actually are
+
+| | Value |
+|---|---:|
+| Served JS modules | **130** (was 159; governance took 29) |
+| Statements | **10,167** |
+| Covered by unit tests | **276 — 2.71%** |
+| Modules with unit tests | **4** |
+| JS tests | 87, all passing |
+
+⚠️ **A 57.86% reading was published in error.** The `roots` fix in `eb0925ef`
+scoped jest discovery to this checkout, and `collectCoverageFrom` only resolves
+within `roots` — so the denominator collapsed to the 477 statements the tests
+already import. Fixed in `712c821a`. **Never quote a coverage percentage
+without checking the denominator is the whole shipped surface.**
+
+The rise from 2.06% to 2.71% is *not* progress: the numerator never moved. It
+is 3,218 statements of governance JS leaving the denominator.
+
+## B. Why "99% like Python" is the wrong target for JS
+
+At the current density — 87 tests covering 276 statements, ~3.2 statements per
+test — reaching 99% by unit tests alone implies roughly **3,000 more tests**.
+That is a multi-month programme, not three weeks, and much of it would be
+low-value: jsdom cannot meaningfully exercise Leaflet map rendering, Chart.js
+canvases, or the Folium console's inline bootstrap.
+
+**The number that matters is what the whole suite exercises, not what jest
+exercises.** The e2e suite drives a real Chromium over the real front end, so a
+large share of those 130 modules already executes on every run — and none of it
+is counted. The Phase 0 collector (built, `11136c30`) measures exactly that and
+**has still never been run**.
+
+So the target is a **combined measured figure** — jest plus e2e, unioned — with
+a ratchet, not a fixed 99%.
+
+## C. Plan
+
+### Phase 0 — take the measurement (free, this run)
+Run the suite with the collector armed:
+
+```
+MKM_E2E_JS_COVERAGE=1 python phys.py test --all --audit
+python -m docs.models.js_coverage.report
+```
+
+Everything downstream is sized off that number. Expect it to be far above
+2.71%; the useful output is the ranked list of modules **no test touches at
+all**.
+
+### Phase 1 — put JS in the test command (the explicit ask)
+1. A `js` phase in `app/commands/test/`, running jest with coverage, gated on
+   `node_modules` being present (skip cleanly, like the playwright preflight).
+2. Emit `audit/js/js_coverage.json` + the jest JUnit XML, and add both to
+   `artefacts.py` under the new phase so the freshness gate covers them.
+3. Merge the jest and e2e figures into one reported number.
+
+### Phase 2 — ratchet, never a cliff
+Set `coverageThreshold` just under the *measured combined* figure and raise it
+per tranche. A 99% gate on a 2.71% baseline gets switched off within a week;
+a ratchet that can only go up never regresses and always tells the truth.
+
+### Phase 3 — close the gap by risk, not by percentage
+Work the never-touched list from Phase 0, in this order:
+
+1. **Modules with money or trade state** — the PRS pricers, blotter, commit
+   paths. `commitPRSTrade` and `commitPropertyPRSTrade` still have no test of
+   any kind.
+2. **Pure-logic modules** — formatters, mappers, calculators. Cheap in jsdom,
+   high statement yield per test, no DOM needed.
+3. **Panel render paths** — assert structure, not pixels.
+4. **Leave alone**: Leaflet/Chart.js rendering internals, the Folium inline
+   bootstrap. e2e covers these better than jsdom ever will; unit-testing them
+   is how a coverage push turns into theatre.
+
+### Phase 4 — the five uninstrumentable files
+`propertysa.js` and four `loanpricer/template/_part*.js` fail babel because
+their embedded HTML parses as JSX. They are concat fragments assembled by the
+Python loader, not modules. Either exclude them explicitly from
+`collectCoverageFrom` (and say so in the report) or teach the loader to emit
+whole modules. Until then the denominator is quietly wrong in the other
+direction.
+
+## D. What to tell a reviewer
+
+The honest position, which is defensible: *back-end coverage is measured and
+gated at 99%; front-end coverage is now measured for the first time, reported
+in the audit package, and ratcheted upward each release.* That is a stronger
+story than a large number nobody can reproduce — and it is the opposite of what
+the 57.86% reading would have supported.
