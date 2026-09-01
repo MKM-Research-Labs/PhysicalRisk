@@ -198,7 +198,7 @@ class TestControlTab:
             return openedUrl;
         }""")
         assert result is not None, "window.open was not called"
-        assert "/governance/storm-control/guide/pdf" in result, (
+        assert "/guides/storm-control/pdf" in result, (
             f"Expected guide PDF URL, got: {result}"
         )
 

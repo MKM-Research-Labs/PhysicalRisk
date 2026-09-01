@@ -199,7 +199,7 @@
             function openControlGuide() {
                 var cfg = window.__BACKEND_CONFIG || {};
                 var base = cfg.url || '';
-                window.open(base + '/api/v1/governance/storm-control/guide/pdf', '_blank');
+                window.open(base + '/api/v1/guides/storm-control/pdf', '_blank');
             }
 
             function ctrlMarkDirty() {

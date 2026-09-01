@@ -235,7 +235,7 @@ class TestControlAPI:
             for (var i = 0; i < keys.length; i++) {
                 try {
                     var resp = await fetch(
-                        baseUrl + '/api/v1/governance/' + keys[i] + '/guide/pdf'
+                        baseUrl + '/api/v1/guides/' + keys[i] + '/pdf'
                     );
                     results[keys[i]] = {
                         http_status: resp.status,
@@ -266,7 +266,7 @@ class TestControlAPI:
         result = map_page.evaluate("""async () => {
             var cfg = window.__BACKEND_CONFIG || {};
             var baseUrl = cfg.url || '';
-            var resp = await fetch(baseUrl + '/api/v1/governance/nonexistent/guide/pdf');
+            var resp = await fetch(baseUrl + '/api/v1/guides/nonexistent/pdf');
             return { http_status: resp.status };
         }""")
         assert result["http_status"] == 404

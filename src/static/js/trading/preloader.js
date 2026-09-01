@@ -25,8 +25,7 @@
                 ['_tdPreStressStorms', 'Stress scenarios',       '/api/v1/trading/stress/storms'],
                 ['_tdPrePortStorms',   'Portfolio storms',       '/api/v1/trading/stress/portfolio-storms'],
                 ['_tdPreEodHistory',   'EOD history',            '/api/v1/trading/eod/history'],
-                ['_tdPreYieldCurve',   'Yield curve',            '/api/v1/trading/yield-curve'],
-                ['_tdPreGovDocs',      'Regulatory documents',   '/api/v1/governance/documents']
+                ['_tdPreYieldCurve',   'Yield curve',            '/api/v1/trading/yield-curve']
             ];
 
             function _tdCreatePreloaderPopup() {
@@ -151,8 +150,6 @@
                         return data.storms.length + ' storms';
                     if (key === '_tdPreGauges' && data && data.gauges)
                         return data.gauges.length + ' gauges';
-                    if (key === '_tdPreGovDocs' && data && data.documents)
-                        return data.documents.length + ' docs';
                     return null;
                 }
 

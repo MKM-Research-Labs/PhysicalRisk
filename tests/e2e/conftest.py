@@ -64,23 +64,9 @@ from tests.e2e._helpers import (
 # Guard mutable data files against E2E mutation
 # ---------------------------------------------------------------------------
 
-_MRC_PATH = ROOT / "docs" / "models" / "governance_data" / "mrc_meetings.json"
-_MRC_BACKUP = ROOT / "docs" / "models" / "governance_data" / ".mrc_meetings.json.bak"
-
 # Shared across conftest and test_td_control — Playwright tests stub
 # window.prompt() with this value to exercise the admin password gate.
 E2E_ADMIN_PW = "e2etestpw"
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _protect_mrc_meetings():
-    """Snapshot mrc_meetings.json before E2E tests and restore afterwards."""
-    if _MRC_PATH.exists():
-        shutil.copy2(_MRC_PATH, _MRC_BACKUP)
-    yield
-    if _MRC_BACKUP.exists():
-        shutil.copy2(_MRC_BACKUP, _MRC_PATH)
-        _MRC_BACKUP.unlink()
 
 
 def _volume_mount_root(path):
@@ -186,6 +172,12 @@ def _isolated_catchment_dir(tmp_path_factory):
 @pytest.fixture(scope="session", autouse=True)
 def _isolated_governance_dir(tmp_path_factory):
     """Point the Flask subprocess at a tmp copy of docs/models/governance_data/.
+
+    NOTE: this outlives the governance routes on purpose. ``log_model_usage``
+    (src/models/audit.py) still appends to ``model_audit_log.json`` from six
+    pipeline modules and a live route, so without this isolation an e2e run
+    would write into the version-controlled governance tree. It comes out with
+    src/models/audit.py, not with the governance blueprint.
 
     Governance metadata now lives in the version-controlled tree
     (``docs/models/governance_data/``), not under ``data/``. The MRC and

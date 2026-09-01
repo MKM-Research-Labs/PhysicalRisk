@@ -31,7 +31,7 @@ def register_blueprints(app: Flask) -> None:
     from .commercial import commercial_bp
     from .counterparty import counterparty_bp
     from .gauges import gauges_bp
-    from .governance import governance_bp
+    from .guides import guides_bp
     from .health import health_bp
     from .theme import theme_bp
     from .perils import perils_bp
@@ -56,5 +56,5 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(counterparty_bp, url_prefix="/api/v1")
     app.register_blueprint(prs_bp, url_prefix="/api/v1")
     app.register_blueprint(trading_bp, url_prefix="/api/v1")
-    app.register_blueprint(governance_bp, url_prefix="/api/v1")
     app.register_blueprint(perils_bp, url_prefix="/api/v1")
+    app.register_blueprint(guides_bp, url_prefix="/api/v1")

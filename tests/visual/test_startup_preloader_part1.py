@@ -76,17 +76,8 @@ class TestStartupPreloaderCacheVars:
     def test_declares_td_pre_yield_curve(self):
         assert 'window._tdPreYieldCurve' in _src('src/visual/interactivity/startup.py')
 
-    def test_declares_td_pre_gov_docs(self):
-        assert 'window._tdPreGovDocs' in _src('src/visual/interactivity/startup.py')
-
     def test_declares_pre_storms(self):
         assert 'window._preStorms' in _src('src/visual/interactivity/startup.py')
-
-    def test_declares_pre_gov_audit(self):
-        assert 'window._preGovAudit' in _src('src/visual/interactivity/startup.py')
-
-    def test_declares_pre_gov_bib(self):
-        assert 'window._preGovBib' in _src('src/visual/interactivity/startup.py')
 
     def test_declares_pre_property_ts(self):
         assert 'window._prePropertyTS' in _src('src/visual/interactivity/startup.py')
@@ -112,7 +103,7 @@ class TestStartupPreloaderBehaviour:
         """Sets window._tdPreloadDone so any IIFE can read it via global scope."""
         assert 'window._tdPreloadDone = true' in _src('src/visual/interactivity/startup.py')
 
-    def test_all_fourteen_endpoints_present(self):
+    def test_all_eleven_endpoints_present(self):
         js = _src('src/visual/interactivity/startup.py')
         endpoints = [
             '/api/v1/trading/blotter',
@@ -122,10 +113,7 @@ class TestStartupPreloaderBehaviour:
             '/api/v1/trading/stress/portfolio-storms',
             '/api/v1/trading/eod/history',
             '/api/v1/trading/yield-curve',
-            '/api/v1/governance/documents',
             '/api/v1/propertyts/storms',
-            '/api/v1/governance/audit-trail',
-            '/api/v1/governance/bibliography',
             '/api/v1/propertyts/summary',
             '/api/v1/gauges/history/summary',
             '/api/v1/rloans',

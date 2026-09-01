@@ -23,7 +23,6 @@ Tests for the global page-load startup preloader (part 2).
 
 Verifies:
   6. Storm portfolio panel uses _preStorms cache variable
-  7. Governance documents panel uses _tdPreGovDocs cache variable
   8. InteractivityManager wires startup preloader in FIRST
   9. Health endpoint registered at /api/v1/health
  10. _startupDetail() stat labels -- every dataset has a stat handler
@@ -201,25 +200,10 @@ class TestStartupDetailStats:
         assert "Object.keys(data.yield_curve).length" in src
         assert "' tenors'" in src
 
-    def test_gov_docs_stat_uses_documents_length(self):
-        src = self._src()
-        assert "key === '_tdPreGovDocs'" in src
-        assert "data.documents.length + ' docs'" in src
-
     def test_pre_storms_stat_uses_storms_length(self):
         src = self._src()
         assert "key === '_preStorms'" in src
         assert "data.storms.length + ' storms'" in src
-
-    def test_gov_audit_stat_uses_events_length(self):
-        src = self._src()
-        assert "key === '_preGovAudit'" in src
-        assert "data.total_entries + ' events'" in src
-
-    def test_gov_bib_stat_uses_references_length(self):
-        src = self._src()
-        assert "key === '_preGovBib'" in src
-        assert "data.references.length + ' refs'" in src
 
     def test_property_ts_stat_uses_total_properties(self):
         src = self._src()
@@ -237,14 +221,14 @@ class TestStartupDetailStats:
         assert "key === '_preMortgages'" in src
         assert "data.mortgages" in src
 
-    def test_all_fourteen_keys_have_stat_handler(self):
+    def test_all_eleven_keys_have_stat_handler(self):
         """Every dataset key must appear in _startupDetail -- no silent blanks."""
         src = self._src()
         keys = [
             '_tdPreBlotter', '_tdPreMarket', '_tdPreGauges',
             '_tdPreStressStorms', '_tdPrePortStorms', '_tdPreEodHistory',
-            '_tdPreYieldCurve', '_tdPreGovDocs', '_preStorms',
-            '_preGovAudit', '_preGovBib', '_prePropertyTS', '_preGaugeHist',
+            '_tdPreYieldCurve', '_preStorms',
+            '_prePropertyTS', '_preGaugeHist',
             '_preMortgages',
         ]
         for k in keys:

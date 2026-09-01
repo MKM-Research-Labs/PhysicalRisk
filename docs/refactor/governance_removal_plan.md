@@ -210,7 +210,28 @@ feature and the e2e tests `test_guide_pdf_endpoints_respond` and
 out of governance before removing the blueprint** — it serves operational user
 guides, not governance.
 
-### 7.6 Superseded
+### 7.6 ⚠️ Found during slice C — `src/models/audit.py`
+
+`log_model_usage` (`src/models/audit.py`) appends to
+`docs/models/governance_data/model_audit_log.json` — the 10,000-event audit
+trail — and is called from **six non-governance modules**:
+
+- `src/port/rand/shared/property/property_valuation.py` (×2)
+- `src/port/src/property/hc/pricing/_process.py`
+- `src/port/src/property/ts/generator.py`
+- `src/port/src/gauge/gaugehd/synthetic.py`
+- `src/routes/propertyts/risk.py`
+
+So the audit trail is not a governance-UI feature: it is model-usage telemetry
+wired into the port pipeline. "All goes including the audit" means these six
+call sites must be edited too, which is why it is **not** part of slice C.
+
+Consequence for the e2e harness: `_isolated_governance_dir` **must survive**
+the governance blueprint. Without it an e2e run writes into the
+version-controlled governance tree through `log_model_usage`. It comes out with
+`src/models/audit.py`, not with the routes.
+
+### 7.7 Superseded
 
 **Do not begin Stage 1** *(superseded by §7.3 — no transfer required)*. Five of seven data types are not yet safely
 transferable, two of them with no destination at all. Removing governance now

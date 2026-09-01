@@ -25,14 +25,10 @@
             window._tdPrePortStorms   = null;
             window._tdPreEodHistory   = null;
             window._tdPreYieldCurve   = null;
-            window._tdPreGovDocs      = null;
             window._preStorms         = null;
-            window._preGovAudit       = null;
-            window._preGovBib         = null;
             window._prePropertyTS     = null;
             window._preGaugeHist      = null;
             window._preMortgages      = null;
-            window._preAuditReports   = null;
             window._preCommercial     = null;
             window._preCommercialLoans = null;
             window._propertyNames     = {};  // propertyId → address lookup
@@ -105,14 +101,10 @@
                 ['_tdPrePortStorms',   'Portfolio storms',     '/api/v1/trading/stress/portfolio-storms'],
                 ['_tdPreEodHistory',   'EOD history',          '/api/v1/trading/eod/history'],
                 ['_tdPreYieldCurve',   'Yield curve',          '/api/v1/trading/yield-curve'],
-                ['_tdPreGovDocs',      'Regulatory documents', '/api/v1/governance/documents'],
                 ['_preStorms',         'Storm scenarios',      '/api/v1/propertyts/storms'],
-                ['_preGovAudit',       'Audit trail',          '/api/v1/governance/audit-trail?limit=200'],
-                ['_preGovBib',         'Bibliography',         '/api/v1/governance/bibliography'],
                 ['_prePropertyTS',     'Property flood TS',    '/api/v1/propertyts/summary'],
                 ['_preGaugeHist',      'Gauge history',        '/api/v1/gauges/history/summary'],
                 ['_preMortgages',      'Mortgages',            '/api/v1/rloans'],
-                ['_preAuditReports',   'Audit reports',        '/api/v1/governance/audit-reports'],
                 ['_prePropertyNames',  'Property names',       '/api/v1/properties'],
                 ['_preCommercial',     'Commercial assets',    '/api/v1/commercial'],
                 ['_preCommercialLoans', 'Commercial loans',    '/api/v1/commercial-loans'],
@@ -129,14 +121,10 @@
                 if (key === '_tdPrePortStorms'    && data.storms)       return data.storms.length + ' storms';
                 if (key === '_tdPreEodHistory'    && data.history)      return data.history.length + ' snapshots';
                 if (key === '_tdPreYieldCurve'    && data.yield_curve)  return Object.keys(data.yield_curve).length + ' tenors';
-                if (key === '_tdPreGovDocs'       && data.documents)    return data.documents.length + ' docs';
                 if (key === '_preStorms'          && data.storms)       return data.storms.length + ' storms';
-                if (key === '_preGovAudit'        && data.entries)       return data.total_entries + ' events';
-                if (key === '_preGovBib'          && data.references)   return data.references.length + ' refs';
                 if (key === '_prePropertyTS'      && data.data && data.data.summary) return data.data.summary.properties_with_floods + ' flooded';
                 if (key === '_preGaugeHist'       && data.count != null) return data.count + ' gauges';
                 if (key === '_preMortgages'       && data.mortgages)     return data.mortgages.length + ' mortgages';
-                if (key === '_preAuditReports'    && data.reports)       return data.reports.filter(function(r){return r.filename.endsWith('.pdf');}).length + ' PDFs';
                 if (key === '_prePropertyNames'   && data.properties)   return data.properties.length + ' properties';
                 if (key === '_preCommercial'      && data.commercial_assets) return data.commercial_assets.length + ' assets';
                 if (key === '_preCommercialLoans' && data.commercial_loans)  return data.commercial_loans.length + ' loans';

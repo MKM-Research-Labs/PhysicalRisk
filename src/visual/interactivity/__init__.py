@@ -31,7 +31,6 @@ Sub-modules:
 - property/: Property panels (rloandetail, propertyhc, propertypdf, propertysa)
 - storm/: Storm portfolio panel
 - trading/: Trading desk panels
-- governance/: Model governance panel
 """
 
 from .manager import InteractivityManager  # noqa: F401

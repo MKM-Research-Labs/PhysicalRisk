@@ -22,7 +22,7 @@
 Global page-load startup preloader.
 
 Runs on DOMContentLoaded and pre-fetches ALL data needed across every panel:
-storms, trader data, governance documents, gauge locations.  Shows a centered
+storms, trader data, gauge locations.  Shows a centered
 progress popup with a spinner-to-tick row per dataset.
 
 Panels consume the pre-fetched data via window._pre* cache variables so that
@@ -39,10 +39,7 @@ Datasets pre-fetched:
   _tdPrePortStorms   — /api/v1/trading/stress/portfolio-storms
   _tdPreEodHistory   — /api/v1/trading/eod/history
   _tdPreYieldCurve   — /api/v1/trading/yield-curve
-  _tdPreGovDocs      — /api/v1/governance/documents
   _preStorms         — /api/v1/propertyts/storms
-  _preGovAudit       — /api/v1/governance/audit-trail?limit=200
-  _preGovBib         — /api/v1/governance/bibliography
   _prePropertyTS     — /api/v1/propertyts/summary
   _preGaugeHist      — /api/v1/gauges/history/summary
   _preCommercial     — /api/v1/commercial            (Commercial assets count)

@@ -241,7 +241,7 @@ class TestControlTabFieldRenderers:
 
     def test_guide_button_opens_pdf_endpoint(self, dom_js):
         """openControlGuide must target the governance PDF route."""
-        assert '/api/v1/governance/storm-control/guide/pdf' in dom_js
+        assert '/api/v1/guides/storm-control/pdf' in dom_js
 
     def test_open_control_guide_uses_window_open(self, dom_js):
         """openControlGuide must use window.open to open PDF in new tab."""

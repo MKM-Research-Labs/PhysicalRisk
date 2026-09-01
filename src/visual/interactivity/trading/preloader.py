@@ -34,7 +34,6 @@ Datasets preloaded (stored on window._td* variables):
   _tdPrePortStorms   — /api/v1/trading/stress/portfolio-storms
   _tdPreEodHistory   — /api/v1/trading/eod/history
   _tdPreYieldCurve   — /api/v1/trading/yield-curve
-  _tdPreGovDocs      — /api/v1/governance/documents
 """
 
 from visual.interactivity._jsbundle import js_static
