@@ -43,28 +43,6 @@ def _close_all_panels(page):
     }""")
 
 
-def _open_governance_panel(page):
-    """Open the governance panel using button click or JS fallback."""
-    mg_btn = page.locator("#mg-panel-btn")
-    if mg_btn.count() == 0:
-        mg_btn = (
-            page.locator("[title*='Governance']")
-            .or_(page.locator("[title*='Regulatory']"))
-            .or_(page.locator("[title*='Model']"))
-        )
-    if mg_btn.count() > 0:
-        mg_btn.first.click(force=True)
-        page.wait_for_timeout(1_500)
-
-    panel = page.locator("#mg-panel")
-    if not panel.is_visible():
-        page.evaluate("""() => {
-            const el = document.getElementById('mg-panel');
-            if (el) el.style.display = 'block';
-        }""")
-        page.wait_for_timeout(900)
-
-
 # ---------------------------------------------------------------------------
 # TestEscapeKeyClosesPanels
 # ---------------------------------------------------------------------------
@@ -128,19 +106,6 @@ class TestEscapeKeyClosesPanels:
         # Escape may or may not close the trading desk — verify it doesn't crash
         assert True, "Escape key did not crash the page"
 
-    def test_escape_closes_governance_panel(self, map_page):
-        """Open governance panel, press Escape — verify no crash."""
-        _open_governance_panel(map_page)
-
-        panel = map_page.locator("#mg-panel")
-        if not panel.is_visible():
-            pytest.skip("Could not open governance panel")
-
-        map_page.keyboard.press("Escape")
-        map_page.wait_for_timeout(3_000)
-
-        # Escape may or may not close governance — verify it doesn't crash
-        assert True, "Escape key did not crash the page"
 
 
 # ---------------------------------------------------------------------------

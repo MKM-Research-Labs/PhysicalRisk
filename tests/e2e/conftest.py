@@ -42,8 +42,6 @@ from tests.e2e._helpers import (
     _free_port,
     _wait_for_server,
     # Re-export helpers so existing `from tests.e2e.conftest import X` works
-    get_first_meeting_id,
-    open_meeting_detail,
     close_all_data_panels,
     PANEL_IDS_TO_CLOSE,
     CLOSE_PANELS_JS,

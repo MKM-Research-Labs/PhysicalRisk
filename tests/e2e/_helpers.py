@@ -62,60 +62,6 @@ def _wait_for_server(port: int, timeout: float = 30.0) -> bool:
 # MRC CRUD helpers (shared by test_gov_mrc_crud.py)
 # ---------------------------------------------------------------------------
 
-def get_first_meeting_id(map_page):
-    """Fetch first meeting ID from API."""
-    result = map_page.evaluate("""async () => {
-        var cfg = window.__BACKEND_CONFIG || {};
-        var baseUrl = cfg.url || '';
-        var resp = await fetch(
-            baseUrl + '/api/v1/governance/mrc/meetings'
-        );
-        var data = await resp.json();
-        var meetings = data.meetings || [];
-        if (meetings.length === 0) return { skip: true };
-        return { id: meetings[0].id };
-    }""")
-    if result.get("skip"):
-        return None
-    return result.get("id")
-
-
-def open_meeting_detail(map_page):
-    """Open MRC tab and click first meeting row to get detail view."""
-    from tests.e2e.helpers import (
-        close_all_panels,
-        open_governance,
-        switch_governance_tab,
-    )
-    close_all_panels(map_page)
-    open_governance(map_page)
-    switch_governance_tab(map_page, "mrc")
-    map_page.wait_for_timeout(6_000)  # API load
-
-    content = map_page.locator("#mg-content")
-    # Click first meeting row in the table
-    rows = content.locator("tr[data-meeting-id]").or_(
-        content.locator("tr").filter(has_text="MRC")
-    ).or_(
-        content.locator("[onclick*='viewMeeting']").or_(
-            content.locator("[onclick*='openMeeting']")
-        )
-    )
-    if rows.count() > 0:
-        rows.first.click(force=True)
-        map_page.wait_for_timeout(6_000)
-        return True
-
-    # Fallback: try clicking any clickable row after header
-    all_rows = content.locator("tr")
-    if all_rows.count() > 1:
-        all_rows.nth(1).click(force=True)
-        map_page.wait_for_timeout(6_000)
-        return True
-
-    return False
-
-
 def close_all_data_panels(page):
     """Close all panels and dismiss notifications (for data load tests)."""
     page.evaluate("""() => {
