@@ -266,16 +266,26 @@ def cmd_test(args):
             print(' run and is NOT evidence for this one. Check the generator')
             print(' output above for an import error or traceback.')
             print()
-        if do_unit:
-            print('Status:', 'ALL PASS' if pytest_ok else 'TEST FAILURES — see junit.xml')
+        problems = []
+        if do_unit and not pytest_ok:
+            problems.append('TEST FAILURES — see junit.xml')
+        if stale:
+            problems.append(
+                f'{len(stale)} STALE ARTEFACT(S) — evidence package incomplete')
+        if problems:
+            print('Status:', '; '.join(problems))
+        elif do_unit:
+            print('Status: ALL PASS')
 
         # Clean up any worktree data copies created by E2E tests during this run
         print()
         print('--- Worktree data cleanup (post-run) ---')
         _cleanup_worktree_data(str(project_root))
 
-        # Report the unit suite's verdict as the exit status. pytest returns
-        # non-zero for a failing test *or* a missed coverage gate, so both
-        # surface. The audit/PDF phases are evidence generation, not a verdict,
-        # and do not affect it; without --unit there is no verdict to report.
-        return 0 if pytest_ok else 1
+        # Two independent failures. The unit verdict: pytest returns non-zero
+        # for a failing test or a missed coverage gate (without --unit there is
+        # no verdict and pytest_ok stays True). And stale artefacts: one its
+        # phase should have rewritten but did not means a failed generator, and
+        # a package that passes an earlier run off as this one. MISSING does not
+        # fail — an artefact whose phase never ran is absent by design.
+        return 0 if (pytest_ok and not stale) else 1

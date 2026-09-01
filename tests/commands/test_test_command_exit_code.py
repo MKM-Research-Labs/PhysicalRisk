@@ -24,6 +24,7 @@ The child pytest is stubbed, so these pin the contract — a failing suite must
 exit non-zero — without running the real 13-minute suite.
 """
 
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -94,3 +95,53 @@ def test_aborts_with_one_when_preflight_blocks(_stub_run, monkeypatch):
     monkeypatch.setattr(cmd, 'check_live_services', lambda *a, **k: 1)
     _stub_run(0)
     assert cmd.cmd_test(_args()) == 1
+
+
+def _stale(audit_dir, name='hardcoding_report.pdf', age_days=26):
+    """Write an artefact dated well before the run starts.
+
+    ``audit_dir`` is the stubbed ``get_reports_dir('audit')`` result, which is
+    ``tmp_path`` itself — not a subdirectory of it.
+    """
+    import os
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    f = audit_dir / name
+    f.write_text('old')
+    old = time.time() - age_days * 86400
+    os.utime(f, (old, old))
+    return f
+
+
+def test_returns_one_when_an_artefact_is_stale(_stub_run, tmp_path):
+    """A generator that dies on import leaves its last good PDF on disk. The
+    suite can pass while the evidence package is four weeks out of date — that
+    must not exit zero."""
+    _stub_run(0)
+    _stale(tmp_path)
+    assert cmd.cmd_test(_args(audit=True)) == 1
+
+
+def test_stale_artefact_is_named_in_the_output(_stub_run, tmp_path, capsys):
+    _stub_run(0)
+    _stale(tmp_path)
+    cmd.cmd_test(_args(audit=True))
+    out = capsys.readouterr().out
+    assert '[STALE] Hard-Coding Audit PDF' in out
+    assert 'NOT regenerated this run' in out
+    assert 'STALE ARTEFACT(S)' in out
+
+
+def test_stale_does_not_fail_when_its_phase_did_not_run(_stub_run, tmp_path):
+    """Without --audit the doc generators never ran, so an old PDF is carried
+    over rather than defective. Failing here would make the check cry wolf on
+    every `--unit` run and get it switched off."""
+    _stub_run(0)
+    _stale(tmp_path)
+    assert cmd.cmd_test(_args(audit=False)) == 0
+
+
+def test_missing_artefact_does_not_fail_the_run(_stub_run, tmp_path):
+    """An artefact whose phase never wrote it is absent by design, not broken;
+    test_report.pdf is MISSING on every run without --pdf."""
+    _stub_run(0)
+    assert cmd.cmd_test(_args(audit=True)) == 0
