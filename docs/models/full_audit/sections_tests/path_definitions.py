@@ -98,6 +98,14 @@ _ALLOWLIST = {
         'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
     'docs/models/sensitivities/generate_all_analysis.py':
         'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/project/pdf.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/hardcoding/pdf_helpers.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/embedded_js/pdf.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
+    'docs/models/js_coverage/report.py':
+        'doc-generator bootstrap — derives root to import config (chicken-and-egg)',
 
     # ---- Standalone CLI tools / analysis scripts run outside the app: they
     # establish their own sys.path before the package (and config) is importable.

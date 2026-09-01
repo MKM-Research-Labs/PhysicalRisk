@@ -42,12 +42,14 @@ import json
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
+# Same bootstrap as the sibling generators (full_audit, data_lineage): these run
+# as `python -m docs.models.<pkg>`, which does not put the repo root on sys.path.
+ROOT = pathlib.Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 
+from config import config  # noqa: E402
 from tests.e2e._js_coverage import merge_intervals  # noqa: E402
-
-ROOT = pathlib.Path(__file__).resolve().parents[2]
-DEFAULT_IN = ROOT / "audit" / "e2e" / "js_coverage"
+DEFAULT_IN = config.get_output_dir() / "audit" / "e2e" / "js_coverage"
 JS_DIR = ROOT / "src" / "static" / "js"
 
 # Concat fragments, not standalone modules: the JS-300-line split emits these

@@ -38,6 +38,11 @@ except ImportError:
 from docs.models.hardcoding.pdf_helpers import (
     _risk_label, _styles, _header_style, _section_rule,
 )
+# These generators run as `python -m docs.models.<pkg>`, which does NOT put src/
+# on sys.path, so the shared token resolver is not importable without this.
+# Same bootstrap as full_audit/_constants.py and data_lineage/_constants.py.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'src'))
+
 from reports.theme_pdf import pdf_colour
 
 

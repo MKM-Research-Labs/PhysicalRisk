@@ -34,7 +34,7 @@ from tests.e2e._js_coverage import (
     merge_intervals,
     normalise_url,
 )
-from tools.coverage.js_coverage_report import build_report, load_sessions
+from docs.models.js_coverage.report import build_report, load_sessions
 
 
 class TestMergeIntervals:

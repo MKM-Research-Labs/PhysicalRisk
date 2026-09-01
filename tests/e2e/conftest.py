@@ -409,7 +409,8 @@ def _browser_page(browser, base_url):
     if _js_coverage.enabled():
         try:
             _jscov.write(
-                ROOT / "audit" / "e2e" / "js_coverage", f"session-{os.getpid()}"
+                ROOT / "data" / "output" / "audit" / "e2e" / "js_coverage",
+                f"session-{os.getpid()}",
             )
         except Exception:
             pass
