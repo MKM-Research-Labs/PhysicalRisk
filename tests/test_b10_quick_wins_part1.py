@@ -31,7 +31,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
@@ -83,33 +83,6 @@ class TestJSONFileConfigGet:
 
 # ---------------------------------------------------------------------------
 # 3. src/models/audit.py line 150 — entries truncation (> 10000)
-# ---------------------------------------------------------------------------
-
-class TestAuditTruncation:
-
-    def test_entries_truncated_above_10000(self, tmp_path):
-        """When audit log exceeds 10 000 entries, it keeps only the last 10 000."""
-        from models.audit import log_model_usage, _get_audit_path
-
-        audit_file = tmp_path / "data" / "model_audit_log.json"
-        audit_file.parent.mkdir(parents=True, exist_ok=True)
-
-        # Seed with 10 000 entries
-        seed_entries = [{"seq": i} for i in range(10_000)]
-        audit_file.write_text(json.dumps(seed_entries))
-
-        with patch("models.audit._get_audit_path", return_value=str(audit_file)):
-            log_model_usage(
-                model_ref="TEST-TRUNC",
-                action="test",
-            )
-
-        entries = json.loads(audit_file.read_text())
-        assert len(entries) == 10_000
-        # The first seeded entry (seq=0) should have been dropped
-        assert entries[0].get("seq") == 1 or entries[0].get("model_id") is not None
-
-
 # ---------------------------------------------------------------------------
 # 4. src/models/risk/risk_assessor/ltv.py line 114 — ltv_ratio > 1 (percentage)
 # ---------------------------------------------------------------------------

@@ -23,7 +23,6 @@ Tests for PropertyTimeSeriesGenerator.generate() — ratio branch and logging.
 """
 
 import json
-from unittest.mock import patch
 
 from db_helpers import tmp_catchment
 
@@ -119,8 +118,7 @@ class TestGenerateRatioBranch:
         self._make_gaugets_dir(gaugets_dir, with_alert_storms=False)
 
         with tmp_catchment(input_dir, "thames"):
-            with patch("models.audit.log_model_usage"):
-                result = gen.generate()
+            result = gen.generate()
 
         assert result["gauge_to_property_ratio"] == 0.0
 
@@ -145,7 +143,6 @@ class TestGenerateRatioBranch:
         gen.log = lambda msg: log_messages.append(msg)
 
         with tmp_catchment(input_dir, "thames"):
-            with patch("models.audit.log_model_usage"):
-                gen.generate()
+            gen.generate()
 
         assert any("50" in m for m in log_messages)

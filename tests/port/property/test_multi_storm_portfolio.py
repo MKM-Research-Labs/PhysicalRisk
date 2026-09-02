@@ -26,7 +26,6 @@ across multi-storm sequences in the portfolio summary.
 """
 
 import json
-from unittest.mock import patch
 
 import pytest
 from db_helpers import tmp_catchment
@@ -110,8 +109,7 @@ class TestGenerateWithMultiStormGaugets:
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False)
 
         with tmp_catchment(input_dir, "thames"):
-            with patch("models.audit.log_model_usage"):
-                result = gen.generate()
+            result = gen.generate()
 
         # 2 severe storms at gauge for 1 property
         assert result["total_storms_at_gauge"] == 2
@@ -137,8 +135,7 @@ class TestGenerateWithMultiStormGaugets:
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False)
 
         with tmp_catchment(input_dir, "thames"):
-            with patch("models.audit.log_model_usage"):
-                gen.generate()
+            gen.generate()
             summary = database.get_portfolio_flood_summary("thames")
 
         assert summary is not None
@@ -165,8 +162,7 @@ class TestGenerateWithMultiStormGaugets:
         gen = PropertyTimeSeriesGenerator(output_dir=tmp_path, verbose=False)
 
         with tmp_catchment(input_dir, "thames"):
-            with patch("models.audit.log_model_usage"):
-                result = gen.generate()
+            result = gen.generate()
 
         assert result["total_storms_at_gauge"] == 0
         assert result["properties_with_floods"] == 0

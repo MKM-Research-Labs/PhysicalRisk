@@ -26,7 +26,6 @@ Each storm event has independent damage computed from its own flood depth.
 """
 
 import json
-from unittest.mock import patch
 
 import pytest
 
@@ -51,11 +50,10 @@ class TestDoubletSequence:
         prop = make_prop(elevation=4.0, floor_level=0.2)
         gaugets = make_gaugets_multi_storm(storm_defs=self.STORM_DEFS)
 
-        with patch("models.audit.log_model_usage"):
-            result = gen._process_property(
-                prop, make_gauge_lookup(elevation=3.0),
-                gaugets, pts_dir
-            )
+        result = gen._process_property(
+            prop, make_gauge_lookup(elevation=3.0),
+            gaugets, pts_dir
+        )
 
         assert result is not None
         prop_file = pts_dir / "PROP-001.json"
@@ -76,11 +74,10 @@ class TestDoubletSequence:
         prop = make_prop(elevation=4.0, floor_level=0.2)
         gaugets = make_gaugets_multi_storm(storm_defs=self.STORM_DEFS)
 
-        with patch("models.audit.log_model_usage"):
-            gen._process_property(
-                prop, make_gauge_lookup(elevation=3.0),
-                gaugets, pts_dir
-            )
+        gen._process_property(
+            prop, make_gauge_lookup(elevation=3.0),
+            gaugets, pts_dir
+        )
 
         with open(pts_dir / "PROP-001.json") as f:
             data = json.load(f)
@@ -98,11 +95,10 @@ class TestDoubletSequence:
         prop = make_prop(elevation=4.0, floor_level=0.2)
         gaugets = make_gaugets_multi_storm(storm_defs=self.STORM_DEFS)
 
-        with patch("models.audit.log_model_usage"):
-            gen._process_property(
-                prop, make_gauge_lookup(elevation=3.0),
-                gaugets, pts_dir
-            )
+        gen._process_property(
+            prop, make_gauge_lookup(elevation=3.0),
+            gaugets, pts_dir
+        )
 
         with open(pts_dir / "PROP-001.json") as f:
             data = json.load(f)
@@ -120,10 +116,9 @@ class TestDoubletSequence:
         prop = make_prop(elevation=4.0, floor_level=0.2)
         gaugets = make_gaugets_multi_storm(storm_defs=self.STORM_DEFS)
 
-        with patch("models.audit.log_model_usage"):
-            result = gen._process_property(
-                prop, make_gauge_lookup(elevation=3.0),
-                gaugets, pts_dir
-            )
+        result = gen._process_property(
+            prop, make_gauge_lookup(elevation=3.0),
+            gaugets, pts_dir
+        )
 
         assert result["summary"]["floods_at_nearest_gauge"] == 2
