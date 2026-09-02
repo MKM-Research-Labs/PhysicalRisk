@@ -106,20 +106,24 @@ def covered_intervals(entry):
     return intervals, total
 
 
-def normalise_url(url, page_url=""):
+def normalise_url(url, page_url="", script_id=""):
     """Map a script URL to a repo-relative path, or a bucket name.
 
-    Inline scripts report the *page* URL (the Folium console inlines much of
-    its front end), so they cannot be attributed to a file — they are bucketed
-    separately rather than silently dropped or blamed on a served module.
+    Inline scripts report the *page* URL (the Folium console inlines its front
+    end), so they cannot be attributed to a file. They must also be kept apart
+    from EACH OTHER: byte offsets are per-script, so merging two inline scripts
+    under one key unions incomparable address spaces. The first run of this
+    collector did exactly that and reported a single interval spanning 769,420
+    bytes — which read as 100% coverage and meant nothing. The script id keeps
+    them distinct.
     """
     if not url:
-        return "<inline>"
+        return f"<inline#{script_id}>" if script_id else "<inline>"
     marker = "/static/js/"
     idx = url.find(marker)
     if idx == -1:
         if page_url and url.split("?")[0] == page_url.split("?")[0]:
-            return "<inline>"
+            return f"<inline#{script_id}>" if script_id else "<inline>"
         return f"<external:{url.split('?')[0]}>"
     return "src/static/js/" + url[idx + len(marker):].split("?")[0]
 
@@ -162,7 +166,8 @@ class JsCoverageCollector:
 
         out = {}
         for entry in result.get("result", []):
-            path = normalise_url(entry.get("url", ""), page_url)
+            path = normalise_url(entry.get("url", ""), page_url,
+                                 str(entry.get("scriptId", "")))
             intervals, total = covered_intervals(entry)
             if total <= 0:
                 continue

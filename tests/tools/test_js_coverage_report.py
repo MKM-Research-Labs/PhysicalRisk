@@ -114,10 +114,25 @@ class TestNormaliseUrl:
         assert normalise_url("") == "<inline>"
 
     def test_page_url_is_inline(self):
-        """The Folium console inlines much of its front end; those scripts
-        report the page URL and must not be blamed on a served module."""
+        """The Folium console inlines its front end; those scripts report the
+        page URL and must not be blamed on a served module."""
         page = "http://127.0.0.1:5013/visualization"
         assert normalise_url(page, page) == "<inline>"
+
+    def test_inline_scripts_are_kept_apart_by_script_id(self):
+        """Byte offsets are per-script. Bucketing every inline script under one
+        key unions incomparable address spaces — the first real run did that
+        and produced a single 769,420-byte interval that read as 100%."""
+        page = "http://127.0.0.1:5013/visualization"
+        a = normalise_url(page, page, "3")
+        b = normalise_url(page, page, "8")
+        assert a != b, "distinct inline scripts must not share a bucket"
+        assert a == "<inline#3>" and b == "<inline#8>"
+
+    def test_served_module_ignores_script_id(self):
+        """A real file is identified by path; its script id is irrelevant."""
+        url = "http://x/static/js/theme.js"
+        assert normalise_url(url, "", "42") == "src/static/js/theme.js"
 
     def test_external_bucketed(self):
         assert normalise_url(
