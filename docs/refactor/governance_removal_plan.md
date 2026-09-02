@@ -287,3 +287,20 @@ is no longer generated — `phys.py test` previously attributed 154 of 844 test
 files to 28 model groups, and that evidence chain has ended by design. Stale
 copies of the two removed PDFs may still sit in `data/output/audit/`; they are
 no longer in the artefact manifest, so the freshness gate ignores them.
+
+
+## 9. Post-removal defect — 2026-09-01, fixed `01966e45`
+
+The first full run after the removal produced **17 unit failures**, all from
+slice E. `src/models/audit.py` was deleted after grepping `src/` for
+`log_model_usage` and finding nine call sites — but four port test files wrapped
+those calls in `patch("models.audit.log_model_usage")`, and one test imported
+the module directly.
+
+⚠️ **When deleting a module, grep `tests/` for code that PATCHES it, not just
+`src/` for code that imports it.** A `mock.patch` target is a string; it is a
+reference the import graph cannot show, so neither an import scan nor an AST
+walk over source will find it.
+
+The patch blocks were removed rather than repointed — with the call sites gone
+there was nothing to silence, and the wrapper only obscured the call under test.
