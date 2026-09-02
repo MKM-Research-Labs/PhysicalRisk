@@ -128,6 +128,59 @@ def normalise_url(url, page_url="", script_id=""):
     return "src/static/js/" + url[idx + len(marker):].split("?")[0]
 
 
+# A fragment must be at least this long before we trust a text match. Short
+# files could appear verbatim inside a longer one and be attributed twice.
+_MIN_MATCH_BYTES = 200
+
+
+def shipped_modules():
+    """``{repo-relative path: inlined text}`` for every served JS module.
+
+    The text is what the page actually receives — the loader strips each file's
+    leading ``//`` licence block before inlining — so it is matched against the
+    blob in exactly the form it was embedded.
+    """
+    from config import config
+    from visual.interactivity._jsbundle import _strip_inlined_header
+
+    js_dir = pathlib.Path(config.get_static_dir()) / "js"
+    root = pathlib.Path(config.get_project_root())
+    out = {}
+    for f in sorted(js_dir.rglob("*.js")):
+        try:
+            text = _strip_inlined_header(f.read_text(encoding="utf-8"))
+        except OSError:
+            continue
+        if len(text) >= _MIN_MATCH_BYTES:
+            out[str(f.relative_to(root))] = text
+    return out
+
+
+def map_inline_to_modules(source, intervals, modules):
+    """Attribute an inline blob's covered ranges to the modules inside it.
+
+    The console inlines its whole front end, so V8 reports one anonymous script
+    rather than 126 files and coverage cannot be attributed by URL. Each module
+    is located by its own text within the blob, and the blob's covered
+    intervals are clipped to that span and rebased to module-relative offsets.
+
+    Returns ``{path: {"covered": [[s, e], ...], "total": int}}``. Modules that
+    do not appear verbatim — templated fragments whose placeholders are
+    substituted at render time — are simply absent, never guessed at.
+    """
+    found = {}
+    for path, text in modules.items():
+        start = source.find(text)
+        if start == -1:
+            continue
+        end = start + len(text)
+        rel = [(max(s, start) - start, min(e, end) - start)
+               for s, e in intervals if e > start and s < end]
+        found[path] = {"covered": [list(i) for i in merge_intervals(rel)],
+                       "total": len(text)}
+    return found
+
+
 class JsCoverageCollector:
     """Attach V8 precise coverage to a Playwright page for one pytest session."""
 
@@ -140,6 +193,9 @@ class JsCoverageCollector:
         try:
             self._cdp = self._page.context.new_cdp_session(self._page)
             self._cdp.send("Profiler.enable")
+            # Needed for Debugger.getScriptSource, which is how an inline
+            # blob is mapped back to the modules concatenated into it.
+            self._cdp.send("Debugger.enable")
             self._cdp.send(
                 "Profiler.startPreciseCoverage",
                 {"callCount": False, "detailed": True},
@@ -148,6 +204,17 @@ class JsCoverageCollector:
         except Exception:
             self._cdp = None
             return False
+
+    def _script_source(self, script_id):
+        """Source text of a parsed script, or "" if it cannot be fetched."""
+        if not script_id:
+            return ""
+        try:
+            return self._cdp.send(
+                "Debugger.getScriptSource", {"scriptId": str(script_id)}
+            ).get("scriptSource", "")
+        except Exception:
+            return ""
 
     def collect(self):
         """Return ``{path: {"covered": [[s, e], ...], "total": int}}``."""
@@ -164,6 +231,11 @@ class JsCoverageCollector:
         except Exception:
             page_url = ""
 
+        try:
+            modules = shipped_modules()
+        except Exception:
+            modules = {}
+
         out = {}
         for entry in result.get("result", []):
             path = normalise_url(entry.get("url", ""), page_url,
@@ -171,6 +243,21 @@ class JsCoverageCollector:
             intervals, total = covered_intervals(entry)
             if total <= 0:
                 continue
+
+            # An inline blob is the console's whole front end concatenated.
+            # Resolve it to the modules inside rather than reporting one
+            # anonymous script that can never be attributed to a file.
+            if path.startswith("<inline") and modules:
+                source = self._script_source(entry.get("scriptId"))
+                if source:
+                    for mod, rec in map_inline_to_modules(
+                            source, intervals, modules).items():
+                        prev = out.setdefault(mod, {"covered": [], "total": 0})
+                        prev["covered"] = merge_intervals(
+                            [tuple(i) for i in prev["covered"]]
+                            + [tuple(i) for i in rec["covered"]])
+                        prev["total"] = max(prev["total"], rec["total"])
+
             prev = out.setdefault(path, {"covered": [], "total": 0})
             prev["covered"] = merge_intervals(
                 [tuple(i) for i in prev["covered"]] + intervals

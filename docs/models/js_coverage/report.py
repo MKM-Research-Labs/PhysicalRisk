@@ -25,6 +25,13 @@ batches three files at a time), each writing its own
 ``audit/e2e/js_coverage/session-<pid>.json``. This unions them so a byte
 executed in any batch counts once.
 
+**Inline resolution:** the console inlines its whole front end, so V8 reports
+one anonymous script rather than 126 files. The collector locates each module's
+text within that blob and rebases its covered ranges, which is what makes the
+per-file numbers below possible at all. Any ``<inline#...>`` bucket that
+survives is the residue nothing matched — templated fragments and third-party
+snippets — and is reported separately rather than folded into the percentage.
+
 **Why the shipped-file enumeration matters:** V8 only reports scripts the
 browser actually loaded. A module never fetched by any test does not appear in
 the profiler output at all — so a percentage computed over "scripts V8 told us
@@ -150,7 +157,8 @@ def main(argv=None):
     print(f"  never loaded by any test: {rep['files_never_loaded']} "
           f"of {rep['files']}")
     if rep["buckets"]:
-        print("  unattributable (inline/external), reported separately:")
+        print("  unattributed residue (inline blobs, external CDN), "
+              "excluded from the percentage above:")
         for name, b in sorted(rep["buckets"].items()):
             print(f"    {name}: {b['covered']:,} / {b['total']:,} bytes")
     print(f"\nLowest {args.top}:")

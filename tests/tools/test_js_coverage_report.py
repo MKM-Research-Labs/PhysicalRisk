@@ -31,8 +31,10 @@ import pytest
 from tests.e2e._js_coverage import (
     covered_intervals,
     enabled,
+    map_inline_to_modules,
     merge_intervals,
     normalise_url,
+    shipped_modules,
 )
 from docs.models.js_coverage.report import build_report, load_sessions
 
@@ -181,3 +183,61 @@ class TestReport:
         assert rep["files"] > 0
         assert rep["files_never_loaded"] == rep["files"]
         assert rep["pct"] == 0.0
+
+
+class TestInlineOffsetMapping:
+    """The console inlines its whole front end into one anonymous script, so
+    coverage can only reach a file by locating that file's text in the blob."""
+
+    MOD_A = "function alpha() { return 1; }\n" + "// pad alpha\n" * 40
+    MOD_B = "function beta() { return 2; }\n" + "// pad beta\n" * 40
+
+    def _blob(self):
+        return "HEADER;\n" + self.MOD_A + self.MOD_B + "FOOTER;\n"
+
+    def test_attributes_a_covered_span_to_the_right_module(self):
+        blob = self._blob()
+        start = blob.find(self.MOD_A)
+        # the whole of module A executed, nothing else
+        out = map_inline_to_modules(
+            blob, [(start, start + len(self.MOD_A))],
+            {"a.js": self.MOD_A, "b.js": self.MOD_B})
+        assert out["a.js"]["covered"] == [[0, len(self.MOD_A)]]
+        assert out["a.js"]["total"] == len(self.MOD_A)
+        assert out["b.js"]["covered"] == []
+
+    def test_offsets_are_rebased_to_the_module(self):
+        """A span at blob offset N inside a module starting at K must report
+        N-K, or every module would look covered from its first byte."""
+        blob = self._blob()
+        start = blob.find(self.MOD_B)
+        out = map_inline_to_modules(
+            blob, [(start + 10, start + 20)], {"b.js": self.MOD_B})
+        assert out["b.js"]["covered"] == [[10, 20]]
+
+    def test_span_crossing_a_boundary_is_clipped(self):
+        """A covered range spanning two modules must not credit either with
+        bytes belonging to the other."""
+        blob = self._blob()
+        a0 = blob.find(self.MOD_A)
+        b0 = blob.find(self.MOD_B)
+        out = map_inline_to_modules(
+            blob, [(a0 + len(self.MOD_A) - 5, b0 + 5)],
+            {"a.js": self.MOD_A, "b.js": self.MOD_B})
+        assert out["a.js"]["covered"] == [[len(self.MOD_A) - 5, len(self.MOD_A)]]
+        assert out["b.js"]["covered"] == [[0, 5]]
+
+    def test_absent_module_is_omitted_not_guessed(self):
+        """Templated fragments are substituted at render time and never appear
+        verbatim. They must be missing, not reported at zero."""
+        out = map_inline_to_modules(
+            self._blob(), [(0, 10)], {"missing.js": "nowhere to be found" * 20})
+        assert "missing.js" not in out
+
+    def test_shipped_modules_reads_the_served_tree(self):
+        mods = shipped_modules()
+        assert mods, "no served JS modules found"
+        assert all(p.startswith("src/static/js/") for p in mods)
+        # the loader strips the licence header before inlining, so the text we
+        # match against must not carry it either
+        assert not any(v.lstrip().startswith("// Copyright") for v in mods.values())
