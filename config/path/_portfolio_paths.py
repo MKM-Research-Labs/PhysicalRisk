@@ -28,6 +28,21 @@ from pathlib import Path
 class PortfolioPaths:
     """Path attributes and methods for the PortfolioConfig singleton."""
 
+    def _data_root(self) -> Path:
+        """Root of the data tree — ``MKM_DATA_ROOT``, else ``<repo>/data``.
+
+        The default is a symlink to external storage on the development
+        machine, which makes the whole CLI unusable when that volume is not
+        mounted: ``PortfolioConfig`` is built at import time and mkdirs the
+        input dir, so even ``phys.py --help`` dies on the dangling link.
+
+        Pointing this at a local directory decouples a run from that volume,
+        which is what lets a small throwaway portfolio be generated, tested
+        against, and deleted without going near the shared tree.
+        """
+        override = os.getenv('MKM_DATA_ROOT')
+        return Path(override) if override else self.project_root / 'data'
+
     def _init_paths(self, catchment_id: str) -> None:
         """Initialise all path attributes. Call once from PortfolioConfig.__init__."""
         # config/path/ package is at: root/config/path/ → root = parents[2]
@@ -47,11 +62,11 @@ class PortfolioPaths:
         if override:
             self.input_dir = Path(override)
         else:
-            self.input_dir = self.project_root / 'data' / 'input' / catchment_id
-        self.results_dir = self.project_root / 'data' / 'output' / 'results'
+            self.input_dir = self._data_root() / 'input' / catchment_id
+        self.results_dir = self._data_root() / 'output' / 'results'
 
         # Catchment definitions under data/
-        self.catchments_dir = self.project_root / 'data' / 'catch'
+        self.catchments_dir = self._data_root() / 'catch'
 
         # Source directories under src/
         self.cdm_dir = self.port_dir / 'cdm'
@@ -70,7 +85,7 @@ class PortfolioPaths:
 
     def _setup_paths(self) -> None:
         """Add necessary paths to sys.path for imports."""
-        self.data_root = self.project_root / 'data'
+        self.data_root = self._data_root()
         paths_to_add = [
             self.project_root,
             self.src_root,
@@ -101,7 +116,7 @@ class PortfolioPaths:
 
     def get_input_root(self) -> Path:
         """Root directory holding every catchment's input (``data/input``)."""
-        return self.project_root / 'data' / 'input'
+        return self._data_root() / 'input'
 
     def get_gaugehd_dir(self) -> Path:
         """Get gauge historical daily data directory."""
@@ -146,7 +161,7 @@ class PortfolioPaths:
             prs_dir = self.input_dir / 'prs'
             prs_dir.mkdir(exist_ok=True, parents=True)
             return prs_dir
-        base = self.project_root / 'data' / 'output'
+        base = self._data_root() / 'output'
         if report_type:
             d = base / report_type
             d.mkdir(exist_ok=True, parents=True)
@@ -156,23 +171,23 @@ class PortfolioPaths:
 
     def get_property_reports_dir(self) -> Path:
         """Get property reports directory."""
-        d = self.project_root / 'data' / 'output' / 'property'
+        d = self._data_root() / 'output' / 'property'
         d.mkdir(exist_ok=True, parents=True)
         return d
 
     def get_gauge_reports_dir(self) -> Path:
         """Get gauge reports directory."""
-        d = self.project_root / 'data' / 'output' / 'gauge'
+        d = self._data_root() / 'output' / 'gauge'
         d.mkdir(exist_ok=True, parents=True)
         return d
 
     def get_output_dir(self) -> Path:
         """Get output directory for UI-generated reports."""
-        return self.project_root / 'data' / 'output'
+        return self._data_root() / 'output'
 
     def get_results_dir(self) -> Path:
         """Get results directory."""
-        d = self.project_root / 'data' / 'output' / 'results'
+        d = self._data_root() / 'output' / 'results'
         d.mkdir(exist_ok=True, parents=True)
         return d
 
@@ -211,7 +226,7 @@ class PortfolioPaths:
 
     def get_data_dir(self) -> Path:
         """Top-level ``data`` directory (the shared data root containing input/output/catch)."""
-        return self.project_root / 'data'
+        return self._data_root()
 
     def get_input_path(self, filename: str) -> Path:
         """Get path to file in input directory."""

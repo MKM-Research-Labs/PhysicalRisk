@@ -290,3 +290,67 @@ class TestStormControlLazyPatch:
         monkeypatch.setattr(storm_control, "load_storm_control",
                             lambda _c: {"sections": {}})
         storm_control.apply_storm_control("thames")
+
+
+class TestDataRootOverride:
+    """``MKM_DATA_ROOT`` moves the whole data tree, not just the input dir.
+
+    Without it the tree resolves under ``<repo>/data``, which on the
+    development machine is a symlink to external storage — and because
+    ``PortfolioConfig`` is constructed at import time and mkdirs the input dir,
+    an absent volume makes even ``phys.py --help`` fail. The override is what
+    lets a throwaway portfolio be generated, tested and deleted locally.
+    """
+
+    @staticmethod
+    def _paths(monkeypatch, project_root, data_root=None):
+        from config.path import PortfolioPaths
+
+        if data_root is not None:
+            monkeypatch.setenv("MKM_DATA_ROOT", str(data_root))
+        else:
+            monkeypatch.delenv("MKM_DATA_ROOT", raising=False)
+        monkeypatch.delenv("MKM_CATCHMENT_INPUT_OVERRIDE", raising=False)
+        instance = PortfolioPaths.__new__(PortfolioPaths)
+        instance.project_root = project_root
+        return instance
+
+    def test_defaults_to_the_repo_data_dir(self, monkeypatch, tmp_path):
+        p = self._paths(monkeypatch, tmp_path)
+        assert p._data_root() == tmp_path / "data"
+
+    def test_override_moves_the_root(self, monkeypatch, tmp_path):
+        elsewhere = tmp_path / "throwaway"
+        p = self._paths(monkeypatch, tmp_path, elsewhere)
+        assert p._data_root() == elsewhere
+
+    def test_every_branch_of_the_tree_follows(self, monkeypatch, tmp_path):
+        """input, output, results and catch must all move together — one left
+        behind would still reach for the unmounted volume."""
+        elsewhere = tmp_path / "throwaway"
+        p = self._paths(monkeypatch, tmp_path, elsewhere)
+        p._init_paths("thames")
+        assert p.input_dir == elsewhere / "input" / "thames"
+        assert p.results_dir == elsewhere / "output" / "results"
+        assert p.catchments_dir == elsewhere / "catch"
+        # get_input_dir returns the catchment dir, not its parent
+        assert p.get_input_dir() == elsewhere / "input" / "thames"
+        assert p.get_output_dir() == elsewhere / "output"
+        assert p.get_data_dir() == elsewhere
+
+    def test_catchment_input_override_still_wins_for_input(
+            self, monkeypatch, tmp_path):
+        """The e2e suite points MKM_CATCHMENT_INPUT_OVERRIDE at a tmp catchment
+        copy; the narrower override must not be overruled by the broader one."""
+        from config.path import PortfolioPaths
+
+        data_root = tmp_path / "throwaway"
+        catchment = tmp_path / "just-this-catchment"
+        monkeypatch.setenv("MKM_DATA_ROOT", str(data_root))
+        monkeypatch.setenv("MKM_CATCHMENT_INPUT_OVERRIDE", str(catchment))
+        instance = PortfolioPaths.__new__(PortfolioPaths)
+        instance.project_root = tmp_path
+        instance._init_paths("thames")
+        assert instance.input_dir == catchment
+        # ...but everything else still follows the data root
+        assert instance.results_dir == data_root / "output" / "results"
