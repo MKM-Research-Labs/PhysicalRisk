@@ -26,6 +26,7 @@ each stage in order, then runs the summary + PDFs + lineage check.
 """
 
 from config import config
+from config.port import stage_seed
 from database import backend_configured
 from database.config_binding import use_configured_backend
 
@@ -229,6 +230,31 @@ def cmd_port(args):
         if getattr(args, 'repair_manifest', False):
             _repair_manifest(output_dir, catchment)
             return
+
+        # Seed before any stage runs. Generation randomness reaches the global
+        # RNGs from 313 call sites across 26 modules in src/port, so seeding
+        # them once here is what makes a run reproducible — threading a
+        # generator through every site would be a far larger change for the
+        # same effect. Determinism relies on stage order being fixed, which it
+        # is: the pipeline is sequential. (Classifier training under --stressm
+        # does use a process pool, so its output is not covered by this.)
+        if getattr(args, 'seed', None) is not None:
+            import random as _random
+
+            import numpy as _np
+            _random.seed(args.seed)
+            _np.random.seed(args.seed)
+            print(f"RNG seeded: {args.seed}")
+
+        # The three stages that own a seed take it from the run seed unless the
+        # caller named one explicitly. Without --seed this is a no-op: they keep
+        # their documented "None = nondeterministic" default.
+        for _stage, _attr in (('typhoon', 'typhoon_seed'),
+                              ('fire', 'fire_seed'),
+                              ('seismic', 'seismic_seed')):
+            if getattr(args, _attr, None) is None:
+                setattr(args, _attr,
+                        stage_seed(getattr(args, 'seed', None), _stage))
 
         ctx = _build_context(args)
 

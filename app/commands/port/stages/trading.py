@@ -24,6 +24,7 @@ import time
 
 import database
 from config import config
+from config.port import stage_seed
 
 from ..context import StageContext
 
@@ -97,7 +98,7 @@ def run_blotter(ctx: StageContext):
         trades = generate_thames_central_book(
             output_dir=blotter_dir,
             catchment_id=ctx.catchment,
-            seed=42,
+            seed=stage_seed(getattr(args, 'seed', None), 'book'),
         )
         _book_generator_name = "port.src.book.generate_thames_central_book"
     else:
@@ -107,7 +108,7 @@ def run_blotter(ctx: StageContext):
             output_dir=blotter_dir,
             num_gauges=12,
             catchment_id=ctx.catchment,
-            seed=42,
+            seed=stage_seed(getattr(args, 'seed', None), 'book'),
         )
         _book_generator_name = "port.src.book.generate_market_making_book"
 
@@ -115,7 +116,7 @@ def run_blotter(ctx: StageContext):
     prop_trades = generate_property_book(
         output_dir=blotter_dir,
         catchment_id=ctx.catchment,
-        seed=43,
+        seed=stage_seed(getattr(args, 'seed', None), 'book_property'),
         include_resilient=True,
     )
     trades.extend(prop_trades)
@@ -143,7 +144,8 @@ def run_blotter(ctx: StageContext):
         # Migrated to the seam: signature is now (trades, catchment=None, seed); it
         # reads/writes through database against the active catchment. (Was being
         # called with the old dir-based signature, which collided on `seed`.)
-        num_eods = generate_historical_eod_series(trades, seed=42)
+        num_eods = generate_historical_eod_series(
+            trades, seed=stage_seed(getattr(args, 'seed', None), 'eod'))
         print(f"  Generated {num_eods} historical EOD snapshots")
         if num_eods == 0:
             print("  ⚠️  WARNING: 0 EOD snapshots generated — "

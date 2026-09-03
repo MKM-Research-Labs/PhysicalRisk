@@ -34,3 +34,4 @@ Subsections:
 from config.port._book import *  # noqa: F401,F403
 from config.port._storm import *  # noqa: F401,F403
 from config.port._misc import *  # noqa: F401,F403
+from config.port._seeds import *  # noqa: F401,F403

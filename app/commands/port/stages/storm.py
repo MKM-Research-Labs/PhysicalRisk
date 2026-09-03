@@ -25,6 +25,7 @@ import time
 from pathlib import Path
 
 from config import config
+from config.port import stage_seed
 
 from ..context import StageContext
 
@@ -69,7 +70,7 @@ def run_stressm(ctx: StageContext):
         output_dir=config.get_output_dir(),
         count=args.num_sims,
         catchment_id=ctx.catchment,
-        seed=42,
+        seed=stage_seed(getattr(args, 'seed', None), 'stressm'),
         verbose=args.verbose,
         gauge_id=args.gauge_id,
         train_classifier=False,

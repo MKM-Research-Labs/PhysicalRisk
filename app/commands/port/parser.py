@@ -151,6 +151,12 @@ def register_parser(subparsers):
                     help="Number of typhoon events to simulate (default 50)")
     sp.add_argument("--num-typhoon-particles", type=int, default=100,
                     help="Particles per event in the SMC engine (default 100)")
+    sp.add_argument("--seed", type=int, default=None,
+                    help="RNG seed for the whole run — makes the generated "
+                         "portfolio reproducible. Omit for today's behaviour: "
+                         "the stages that had a fixed seed keep it, the rest "
+                         "stay nondeterministic. Per-stage --*-seed flags "
+                         "still override this.")
     sp.add_argument("--typhoon-seed", type=int, default=None,
                     help="RNG seed for typhoon simulation; None = nondeterministic")
     sp.add_argument("--typhoon-no-plausibility", action="store_true",
