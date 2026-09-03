@@ -40,6 +40,51 @@ from tests.data._id_consistency_helpers import (
 )
 
 
+# Accepted lineage drift, as measured on the full thames portfolio by the run
+# of 2026-09-02 (git 35480e5a). A ratchet, not a permanent exemption: MORE
+# mismatches than this fails as new drift, FEWER also fails, asking for the
+# number to be lowered so an improvement cannot silently regress.
+#
+# Before this the check only called warnings.warn(), so it could not fail on
+# any dataset — the 23 below were being printed and passed over on every run.
+# Asserting outright would put the build red until a full regeneration, which
+# is a ~24-hour job, so the current level is accepted and frozen instead.
+#
+# It clears itself: the next full `phys.py port` should take this to 0, at
+# which point the second branch fails and asks for the baseline to follow.
+KNOWN_HASH_DRIFT = 23
+
+
+
+def assert_drift_within_baseline(mismatches, baseline):
+    """Ratchet the lineage drift: it may only ever go down.
+
+    Raises when there are MORE mismatches than *baseline* — new drift — and
+    also when there are FEWER, asking for the baseline to be lowered so a
+    clearance cannot silently regress later. Extracted from the test so the
+    comparison can be exercised without the full portfolio attached.
+    """
+    count = len(mismatches)
+    if count == baseline:
+        return
+
+    detail = "\n".join(f"  - {m}" for m in list(mismatches)[:10])
+    if count > 10:
+        detail += f"\n  ... and {count - 10} more"
+
+    if count > baseline:
+        raise AssertionError(
+            f"{count} output hash mismatches, above the accepted baseline of "
+            f"{baseline}. Data has drifted further from the manifest:\n"
+            f"{detail}\n  Regenerate with: python3 phys.py port"
+        )
+    raise AssertionError(
+        f"only {count} output hash mismatches remain, below the accepted "
+        f"baseline of {baseline}. The drift has been cleared — lower "
+        f"KNOWN_HASH_DRIFT to {count} to lock the improvement in."
+    )
+
+
 class TestDataLineage:
     """Data lineage manifest must be consistent (BCBS 239 P2/P3)."""
 
@@ -88,13 +133,7 @@ class TestDataLineage:
                 if current != recorded:
                     mismatches.append(f"{step_name}/{name}: recorded={recorded[:12]}... current={current[:12]}...")
 
-        if mismatches:
-            import warnings
-            warnings.warn(
-                f"{len(mismatches)} output hash mismatches -- data modified since last pipeline run:\n"
-                + "\n".join(f"  - {m}" for m in mismatches[:10])
-                + "\n  Re-run: python3 phys.py port"
-            )
+        assert_drift_within_baseline(mismatches, KNOWN_HASH_DRIFT)
 
     def test_lineage_file_exists(self):
         """Data lineage file should exist after a port run."""
