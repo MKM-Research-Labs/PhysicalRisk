@@ -104,14 +104,40 @@ class TestStressStormsFilePart2:
             )
         return result
 
-    def test_storms_cover_multiple_gauges(self, storms):
-        gauges = {gr["gauge_id"] for s in storms for gr in s.get("gauge_responses", [])}
-        if len(gauges) < 10:
-            pytest.skip(
-                f"Partial storm data ({len(gauges)} gauges covered); full "
-                f"pipeline not generated. Run `python phys.py port --gaugets`."
-            )
-        assert len(gauges) >= 10, f"Expected storms to cover >= 10 gauges, got {len(gauges)}"
+    def test_storms_cover_every_gauge(self, storms):
+        """Stress storms must produce a response for every generated gauge.
+
+        Was ``>= 10`` guarded by a skip when fewer than 10 were covered, so the
+        assertion was unreachable when false. The threshold also assumed the
+        full portfolio; a 10-gauge set is a legitimate dataset.
+
+        Comparing against the gauges actually generated is scale-free and
+        catches the real defect — a gauge the storm pipeline silently skipped.
+        """
+        covered = {gr["gauge_id"] for s in storms
+                   for gr in s.get("gauge_responses", [])}
+
+        gauge_path = pathlib.Path(config.get_input_dir()) / "gauge.json"
+        if not gauge_path.exists():
+            pytest.skip(f"gauge.json not generated at {gauge_path}")
+        gauges = json.loads(gauge_path.read_text()).get("gauges", [])
+        expected = {
+            (g.get("GaugeHeader", {}).get("Header", {}).get("GaugeID")
+             or g.get("gauge_id"))
+            for g in gauges
+        }
+        expected.discard(None)
+        if not expected:
+            pytest.skip("gauge.json has no gauges")
+
+        # Synthetic gauges are not storm-driven, so they are not expected here.
+        expected = {g for g in expected if not str(g).startswith("SYNTH-")}
+
+        missing = expected - covered
+        assert not missing, (
+            f"storms cover {len(covered)} gauges but {len(missing)} of "
+            f"{len(expected)} have no response: {sorted(missing)[:5]}"
+        )
 
     def test_intensity_categories_present(self, storms):
         cats = {s.get("intensity_category") for s in storms}
@@ -206,22 +232,4 @@ class TestStressStormsFilePart2:
         ]
         assert not bad, (
             f"storm_id values not matching '{STORM_ID_PREFIX}-' prefix: {bad[:5]}"
-        )
-
-    def test_52_unique_gauge_ids_in_responses(self, storms):
-        """Thames catchment has 52 gauges; all must be represented."""
-        gauge_ids = {
-            gr["gauge_id"]
-            for s in storms
-            for gr in s.get("gauge_responses", [])
-        }
-        if len(gauge_ids) < 52:
-            pytest.skip(
-                f"Partial storm data ({len(gauge_ids)}/52 gauge IDs); full "
-                f"pipeline not generated. Run `python phys.py port --gaugets`."
-            )
-        assert len(gauge_ids) == 52, (
-            f"Expected 52 unique gauge IDs in stress_storms responses, "
-            f"got {len(gauge_ids)}. "
-            "Run `python phys.py port --gaugets` to regenerate."
         )

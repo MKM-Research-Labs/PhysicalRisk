@@ -28,6 +28,10 @@ import json
 
 import pytest
 
+from tests._dataset import full_dataset_only
+
+from config.port import NUM_BUSINESS_DAYS
+
 from tests.data.conftest import PRS_DIR, EOD_DIR, TRADE_MARKS
 
 
@@ -55,8 +59,20 @@ class TestPRSTradeData:
     def test_trades_are_present(self, prs_files):
         assert len(prs_files) >= 1, "Expected at least one PRS trade file"
 
+    @full_dataset_only
     def test_trade_count_thames_central(self, prs_files):
-        """Thames Central book has 16 trades."""
+        """Thames Central book size — full portfolio only.
+
+        Unlike the other volume checks this one cannot be made relational. The
+        book matches ten specific inner-London gauges by NAME ('Chelsea
+        Bridge', 'Westminster Bridge', ...) and writes a trade per spec whose
+        gauge it finds, so its size depends on which named gauges exist rather
+        than on how many were generated. On a small synthetic set the expected
+        count is not a function of anything the test can see.
+
+        It stays a fixed expectation against the real portfolio, where those
+        gauges are present, and is skipped on a generated fixture.
+        """
         assert len(prs_files) >= 16, (
             f"Expected >= 16 trades for Thames Central book, got {len(prs_files)}"
         )
@@ -139,9 +155,17 @@ class TestEODSnapshotData:
         )
 
     def test_eod_snapshot_count(self, eod_files):
-        """Should have ~63 EOD snapshots (3 months of business days)."""
-        assert len(eod_files) >= 50, (
-            f"Only {len(eod_files)} EOD snapshots (expected ~63). "
+        """One EOD snapshot per simulated business day.
+
+        The generator runs ``NUM_BUSINESS_DAYS`` days, so that constant is the
+        expected count — not the ``>= 50`` magic number this used to carry,
+        which was an approximation of the same 63 and would have to move by
+        hand if the window changed. The count does not scale with portfolio
+        size, so this holds on a small generated set too.
+        """
+        assert len(eod_files) == NUM_BUSINESS_DAYS, (
+            f"{len(eod_files)} EOD snapshots, expected {NUM_BUSINESS_DAYS} "
+            f"(one per simulated business day). "
             "Run `python phys.py port --blotter` to regenerate."
         )
 

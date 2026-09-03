@@ -25,8 +25,11 @@ Gauge hazard curves (gaugehc.json), market state (market_state.json).
 """
 
 import json
+import pathlib
 
 import pytest
+
+from config import config as _config
 
 from tests.data.conftest import (
     GAUGEHC_PATH,
@@ -55,14 +58,36 @@ class TestGaugehcData:
     def test_has_hazard_curves_key(self, gaugehc):
         assert "hazard_curves" in gaugehc, "gaugehc.json missing top-level 'hazard_curves' key"
 
-    def test_gauge_count_at_least_40(self, gaugehc):
-        count = len(gaugehc["hazard_curves"])
-        if count < 40:
-            pytest.skip(
-                f"Partial port data ({count} gauges on disk); full pipeline "
-                f"not generated. Run `python phys.py port` to exercise this check."
-            )
-        assert count >= 40, f"Expected at least 40 gauges, got {count}"
+    def test_every_gauge_has_a_hazard_curve(self, gaugehc):
+        """Hazard-curve coverage must be complete for the generated gauge set.
+
+        Was ``count >= 40`` guarded by a skip when ``count < 40`` — so the
+        assertion was unreachable when false and the check could not fail. The
+        magic 40 also assumed the full portfolio; a smaller generated set is a
+        legitimate dataset, not a broken one.
+
+        Comparing against the gauges actually generated is both scale-free and
+        stronger: a missing curve now fails at any size.
+        """
+        gauge_path = pathlib.Path(_config.get_input_dir()) / "gauge.json"
+        if not gauge_path.exists():
+            pytest.skip(f"gauge.json not generated at {gauge_path}")
+
+        gauges = json.loads(gauge_path.read_text()).get("gauges", [])
+        expected = {
+            (g.get("GaugeHeader", {}).get("Header", {}).get("GaugeID")
+             or g.get("gauge_id"))
+            for g in gauges
+        }
+        expected.discard(None)
+        if not expected:
+            pytest.skip("gauge.json has no gauges")
+
+        missing = expected - set(gaugehc["hazard_curves"])
+        assert not missing, (
+            f"{len(missing)} of {len(expected)} gauges have no hazard curve: "
+            f"{sorted(missing)[:5]}"
+        )
 
     def test_each_gauge_has_required_fields(self, gaugehc):
         missing = {}
