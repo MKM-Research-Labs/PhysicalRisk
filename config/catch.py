@@ -172,17 +172,26 @@ class CatchmentMixin:
         Excludes underscore-prefixed names (private modules) and the
         known infrastructure files (``base.py``, ``base_catchment.py``).
         """
-        if not self.catchments_dir.exists():
-            return []
-        return sorted({
-            p.stem for p in self.catchments_dir.iterdir()
+        # Union both homes: a catchment vendored into the repo and one still
+        # under the data root must both be selectable, or migrating one would
+        # make the others vanish from the list.
+        names = set()
+        search = (self.catchment_search_paths()
+                  if hasattr(self, 'catchment_search_paths')
+                  else [self.catchments_dir])
+        for directory in search:
+            if not directory.exists():
+                continue
+            names |= {
+            p.stem for p in directory.iterdir()
             if (
                 (p.is_file() and p.suffix == ".py" and not p.stem.startswith('_')
                  and p.stem not in self._CATCHMENT_INFRASTRUCTURE_NAMES) or
                 (p.is_dir() and not p.name.startswith('_') and not p.name.startswith('.')
                  and p.name not in self._CATCHMENT_INFRASTRUCTURE_NAMES)
             )
-        })
+            }
+        return sorted(names)
 
     def get_catchment(self) -> 'BaseCatchment':
         """

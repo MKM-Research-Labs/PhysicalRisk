@@ -354,3 +354,63 @@ class TestDataRootOverride:
         assert instance.input_dir == catchment
         # ...but everything else still follows the data root
         assert instance.results_dir == data_root / "output" / "results"
+
+
+class TestCatchmentSearchPaths:
+    """Catchment parameters are generation INPUTS and configuration, so the
+    preferred home is the version-controlled ``catch/`` package. Un-migrated
+    catchments must keep resolving under the data root, so both are searched.
+    """
+
+    @staticmethod
+    def _paths(monkeypatch, project_root, data_root):
+        from config.path import PortfolioPaths
+
+        monkeypatch.setenv("MKM_DATA_ROOT", str(data_root))
+        instance = PortfolioPaths.__new__(PortfolioPaths)
+        instance.project_root = project_root
+        return instance
+
+    def test_repo_is_searched_before_the_data_root(self, monkeypatch, tmp_path):
+        p = self._paths(monkeypatch, tmp_path, tmp_path / "d")
+        assert p.catchment_search_paths() == [
+            tmp_path / "catch", tmp_path / "d" / "catch"]
+
+    def test_falls_through_while_the_package_is_empty(self, monkeypatch, tmp_path):
+        """The vendored package ships with __init__.py and README.md before any
+        catchment is migrated. Treating those as content would point every
+        consumer at a directory holding no parameters."""
+        repo_catch = tmp_path / "catch"
+        repo_catch.mkdir()
+        (repo_catch / "__init__.py").write_text("")
+        (repo_catch / "README.md").write_text("# docs")
+        data_catch = tmp_path / "d" / "catch"
+        data_catch.mkdir(parents=True)
+        (data_catch / "thames.py").write_text("BOUNDS = (0, 0, 1, 1)")
+
+        p = self._paths(monkeypatch, tmp_path, tmp_path / "d")
+        assert p._catchments_dir() == data_catch
+
+    def test_repo_wins_once_a_catchment_is_vendored(self, monkeypatch, tmp_path):
+        repo_catch = tmp_path / "catch"
+        repo_catch.mkdir()
+        (repo_catch / "__init__.py").write_text("")
+        (repo_catch / "thames.py").write_text("BOUNDS = (0, 0, 1, 1)")
+        data_catch = tmp_path / "d" / "catch"
+        data_catch.mkdir(parents=True)
+        (data_catch / "thames.py").write_text("BOUNDS = (9, 9, 9, 9)")
+
+        p = self._paths(monkeypatch, tmp_path, tmp_path / "d")
+        assert p._catchments_dir() == repo_catch
+
+    def test_a_directory_catchment_also_counts(self, monkeypatch, tmp_path):
+        """Catchments come as a module or a package; both are selectable."""
+        repo_catch = tmp_path / "catch"
+        (repo_catch / "halong").mkdir(parents=True)
+        (repo_catch / "__init__.py").write_text("")
+        p = self._paths(monkeypatch, tmp_path, tmp_path / "d")
+        assert p._holds_a_catchment(repo_catch)
+
+    def test_missing_directory_is_not_a_catchment_home(self, monkeypatch, tmp_path):
+        from config.path import PortfolioPaths
+        assert not PortfolioPaths._holds_a_catchment(tmp_path / "nope")

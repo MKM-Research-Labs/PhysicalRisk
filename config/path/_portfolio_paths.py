@@ -43,6 +43,40 @@ class PortfolioPaths:
         override = os.getenv('MKM_DATA_ROOT')
         return Path(override) if override else self.project_root / 'data'
 
+    def _catchments_dir(self) -> Path:
+        """Directory holding catchment parameters — repo first, data root next.
+
+        Returns the repo's ``catch/`` when it contains at least one catchment,
+        otherwise ``<data root>/catch``. ``catchment_search_paths`` is the
+        honest view for callers that must see both.
+        """
+        for candidate in self.catchment_search_paths():
+            if self._holds_a_catchment(candidate):
+                return candidate
+        return self._data_root() / 'catch'
+
+    @staticmethod
+    def _holds_a_catchment(directory) -> bool:
+        """True when *directory* contains a selectable catchment.
+
+        Deliberately stricter than "is not empty": the vendored package ships
+        with ``__init__.py`` and ``README.md`` before any catchment has been
+        migrated into it, and treating those as content would point every
+        consumer at a directory holding no parameters at all.
+        """
+        if not directory.exists():
+            return False
+        for entry in directory.iterdir():
+            if entry.name.startswith(('_', '.')):
+                continue
+            if entry.is_dir() or entry.suffix == '.py':
+                return True
+        return False
+
+    def catchment_search_paths(self) -> list:
+        """Every place a catchment's parameters may live, in priority order."""
+        return [self.project_root / 'catch', self._data_root() / 'catch']
+
     def _init_paths(self, catchment_id: str) -> None:
         """Initialise all path attributes. Call once from PortfolioConfig.__init__."""
         # config/path/ package is at: root/config/path/ → root = parents[2]
@@ -66,7 +100,11 @@ class PortfolioPaths:
         self.results_dir = self._data_root() / 'output' / 'results'
 
         # Catchment definitions under data/
-        self.catchments_dir = self._data_root() / 'catch'
+        # Catchment parameters are generation INPUTS and configuration, so the
+        # preferred home is the version-controlled ``catch/`` package in the
+        # repo. Un-migrated catchments still resolve under the data root, so
+        # both are searched and the repo copy wins.
+        self.catchments_dir = self._catchments_dir()
 
         # Source directories under src/
         self.cdm_dir = self.port_dir / 'cdm'
