@@ -19,11 +19,11 @@
 # SOFTWARE.
 
 """
-Top-level re-export of the ``data/.port_admin`` path helper.
+Top-level re-export of the ``.port_admin`` path helper.
 
 The web admin-password decorator (``require_admin_password``) was retired in WP5 —
 mutating endpoints are gated by RBAC capability now (``routes._rbac``). Only the
-``_admin_file_path`` locator remains (``data/.port_admin`` is still owned by the CLI
+``_admin_file_path`` locator remains (the credential is still owned by the CLI
 ``python phys.py port`` setup), re-exported here for the blueprint-agnostic import path.
 """
 

@@ -30,7 +30,7 @@ from config import config
 
 # Known password used by `port_admin_pw` fixture. The fixture installs a
 # tmp ``.port_admin`` file with this password's hash and points
-# ``app.commands.port._ADMIN_FILE`` at it; tests then authenticate via
+# ``app.commands.port._admin_file_path`` at it; tests then authenticate via
 # the ``MKM_PORT_ADMIN_PASSWORD`` env var rather than mocking out the
 # ``_authenticate`` function. Mocking the gate hides any breakage in
 # the auth path itself; this fixture exercises the real verification.
@@ -42,7 +42,7 @@ def port_admin_pw(monkeypatch, tmp_path):
     """Authenticate cmd_port without bypassing the password gate.
 
     Sets up a tmp admin file with a known password's hash, points the
-    ``_ADMIN_FILE`` constant at it, and exposes the password via the
+    ``_admin_file_path`` locator at it, and exposes the password via the
     ``MKM_PORT_ADMIN_PASSWORD`` env var. Also redirects
     ``config.input_dir`` to ``tmp_path`` as defence-in-depth so any
     generator that slips through unmocked writes to tmp rather than
@@ -62,8 +62,8 @@ def port_admin_pw(monkeypatch, tmp_path):
     # actual module-level binding in app.commands.port.auth — the verify
     # function looks up the name locally in auth.py, so patching only
     # the re-export silently misses.
-    monkeypatch.setattr(port_cmd, "_ADMIN_FILE", admin_file)
-    monkeypatch.setattr(port_auth, "_ADMIN_FILE", admin_file)
+    monkeypatch.setattr(port_cmd, "_admin_file_path", lambda: admin_file)
+    monkeypatch.setattr(port_auth, "_admin_file_path", lambda: admin_file)
     monkeypatch.setenv("MKM_PORT_ADMIN_PASSWORD", _TEST_PORT_PW)
 
     original_input_dir = getattr(config, "input_dir", None)

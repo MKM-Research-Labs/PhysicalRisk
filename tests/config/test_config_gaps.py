@@ -325,18 +325,44 @@ class TestDataRootOverride:
         assert p._data_root() == elsewhere
 
     def test_every_branch_of_the_tree_follows(self, monkeypatch, tmp_path):
-        """input, output, results and catch must all move together — one left
-        behind would still reach for the unmounted volume."""
+        """input, output and results must all move together — one left behind
+        would still reach for the unmounted volume."""
         elsewhere = tmp_path / "throwaway"
         p = self._paths(monkeypatch, tmp_path, elsewhere)
         p._init_paths("thames")
         assert p.input_dir == elsewhere / "input" / "thames"
         assert p.results_dir == elsewhere / "output" / "results"
-        assert p.catchments_dir == elsewhere / "catch"
         # get_input_dir returns the catchment dir, not its parent
         assert p.get_input_dir() == elsewhere / "input" / "thames"
         assert p.get_output_dir() == elsewhere / "output"
         assert p.get_data_dir() == elsewhere
+
+    def test_the_admin_credential_follows_too(self, monkeypatch, tmp_path):
+        """The port gate's credential sits beside the portfolio it guards.
+
+        Anchored to the repo instead, a throwaway root would resolve to
+        ``<repo>/data/.port_admin`` — a dangling symlink with the volume
+        detached, which crashes the first-run branch on ``mkdir``.
+        """
+        elsewhere = tmp_path / "throwaway"
+        p = self._paths(monkeypatch, tmp_path, elsewhere)
+        assert p.get_admin_credential_path() == elsewhere / ".port_admin"
+
+    def test_catch_is_deliberately_exempt(self, monkeypatch, tmp_path):
+        """Catchment parameters are the one branch that does NOT follow.
+
+        They are version-controlled generation inputs, so a vendored
+        ``catch/`` in the repo is preferred over the data root — that is
+        what makes a run possible with the volume detached at all. The
+        resolution order itself is covered by
+        :class:`TestCatchmentSearchPaths`; what matters here is only that
+        the answer is never the unmounted default.
+        """
+        elsewhere = tmp_path / "throwaway"
+        p = self._paths(monkeypatch, tmp_path, elsewhere)
+        p._init_paths("thames")
+        assert p.catchments_dir in p.catchment_search_paths()
+        assert p.catchments_dir != p.project_root / "data" / "catch"
 
     def test_catchment_input_override_still_wins_for_input(
             self, monkeypatch, tmp_path):

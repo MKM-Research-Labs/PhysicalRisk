@@ -266,6 +266,17 @@ class PortfolioPaths:
         """Top-level ``data`` directory (the shared data root containing input/output/catch)."""
         return self._data_root()
 
+    def get_admin_credential_path(self) -> Path:
+        """Salted-hash file for the ``port`` admin gate (``<data root>/.port_admin``).
+
+        Anchored to the data root rather than the repo so the credential
+        travels with the portfolio it protects. A throwaway root under
+        ``MKM_DATA_ROOT`` therefore starts with no credential and takes the
+        first-run setup branch, instead of resolving to a dangling symlink
+        when the shared volume is detached.
+        """
+        return self._data_root() / '.port_admin'
+
     def get_input_path(self, filename: str) -> Path:
         """Get path to file in input directory."""
         return self.input_dir / filename

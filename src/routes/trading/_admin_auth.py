@@ -19,12 +19,12 @@
 # SOFTWARE.
 
 """
-Locator for the ``data/.port_admin`` credential file.
+Locator for the ``.port_admin`` credential file.
 
 The **web** admin-password gate (``require_admin_password`` / ``X-Admin-Password``)
 was retired in WP5: mutating endpoints are now gated by RBAC capability
 (``@require(FUNC_TRADE_PRS, …)`` — see ``routes._rbac``). What remains here is only the
-path helper, kept because ``data/.port_admin`` is still owned by the CLI
+path helper, kept because the credential is still owned by the CLI
 ``python phys.py port`` first-run setup (``app/commands/port/auth.py``) and the test
 suites redirect it via ``MKM_ADMIN_FILE_PATH``.
 """
@@ -32,7 +32,7 @@ suites redirect it via ``MKM_ADMIN_FILE_PATH``.
 import os
 from pathlib import Path
 
-_ADMIN_FILE = Path("data/.port_admin")
+from config import config
 
 
 def _admin_file_path() -> Path:
@@ -40,9 +40,10 @@ def _admin_file_path() -> Path:
 
     Checks ``MKM_ADMIN_FILE_PATH`` first so the E2E test suite can redirect
     the Flask subprocess to a tmp file without ever touching ``data/.port_admin``.
-    Falls back to the real file for all non-test runs.
+    Falls back to ``config.get_admin_credential_path()`` — the same
+    accessor the CLI gate uses, so the two halves cannot drift apart.
     """
     override = os.environ.get("MKM_ADMIN_FILE_PATH")
     if override:
         return Path(override)
-    return _ADMIN_FILE
+    return config.get_admin_credential_path()
