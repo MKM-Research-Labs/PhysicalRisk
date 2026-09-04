@@ -39,7 +39,14 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: 2026-09-04: 2.71% (276/10167 statements, 4 of 125 files touched, 87 tests).
 #: 2026-09-04: 3.76% (383/10167, 6 of 125 files, 110 tests) — tranche 1 covered
 #: the two PRS trade-commit paths, the modules the plan ranks first on risk.
-BASELINE_PCT = 3.7
+#: 2026-09-04: 4.91% (500/10167, 7 of 125 files, 131 tests) — tranche 2 covered
+#: the blotter trade actions: view, close-out settlement, contract retrieval.
+#:
+#: Ceiling note: 83 of the 119 still-uncovered files (5937 statements, 58% of
+#: the tree) are concat fragments declaring bare functions, unreachable by
+#: require(). Jest can therefore reach roughly 40% at best; the rest needs the
+#: browser-side V8 measurement, which reads the bundle the loader assembles.
+BASELINE_PCT = 4.9
 
 #: How far above the baseline coverage may sit before the run asks for the
 #: baseline to be raised. Wide enough to absorb a statement or two moving
