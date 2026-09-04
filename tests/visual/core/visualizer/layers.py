@@ -135,3 +135,70 @@ class TestAddInteractivityException:
         vis.interactivity.setup_map_interactivity.side_effect = RuntimeError("setup fail")
         base_map = folium.Map()
         vis._add_interactivity(base_map)  # should not raise
+
+
+class TestCommercialLayerAndAutoZoom:
+    """Two coordinator branches nothing else reaches."""
+
+    @staticmethod
+    def _vis(tmp_path):
+        from visual.core.visualizer import TCEventVisualization
+        return TCEventVisualization(
+            input_dir=tmp_path / "i",
+            output_dir=tmp_path / "o",
+            enable_interactivity=False,
+        )
+
+    def test_commercial_layer_exception_logged(self, tmp_path):
+        """A failing commercial layer must not take the map down with it.
+
+        The gauge and property layers already have this cover; the commercial
+        one was added later and never got it, so a raise here would have
+        aborted the whole render.
+        """
+        vis = self._vis(tmp_path)
+        vis.gauge_layer.add_to_map = lambda *a: None
+        vis.property_layer.add_to_map = lambda *a: None
+        vis.commercial_layer.add_to_map = lambda *a: (
+            _ for _ in ()).throw(RuntimeError("commercial fail"))
+        vis.loaded_data = _make_loaded_data()
+        base_map = folium.Map()
+        vis._add_layer(base_map)  # should not raise
+
+    @staticmethod
+    def _ready(vis, coords):
+        """Drive create_event_map as far as the auto-zoom, no further."""
+        base_map = MagicMock()
+        vis.map_builder = MagicMock()
+        vis.map_builder.create_map.return_value = base_map
+        vis.data_loader = MagicMock()
+        vis.data_loader.load_all_data.return_value = _make_loaded_data()
+        vis.data_loader.is_data_complete.return_value = True
+        vis._extract_coordinates = lambda: coords
+        return base_map
+
+    def test_two_or_more_markers_fit_the_view_to_their_bounds(self, tmp_path):
+        """Auto-zoom frames every marker rather than centring on one."""
+        vis = self._vis(tmp_path)
+        base_map = self._ready(vis, [(51.4, -0.3), (51.6, -0.1)])
+        vis.create_event_map("out.html")
+
+        assert base_map.fit_bounds.called
+        assert base_map.fit_bounds.call_args[0][0] == [[51.4, -0.3], [51.6, -0.1]]
+
+    def test_bounds_span_the_extremes_not_the_first_and_last(self, tmp_path):
+        """Order must not matter — min/max, not endpoints."""
+        vis = self._vis(tmp_path)
+        base_map = self._ready(
+            vis, [(51.5, -0.2), (51.9, -0.5), (51.2, -0.05)])
+        vis.create_event_map("out.html")
+
+        assert base_map.fit_bounds.call_args[0][0] == [[51.2, -0.5], [51.9, -0.05]]
+
+    def test_a_single_marker_skips_the_bounds_fit(self, tmp_path):
+        """One marker gives no box to fit; create_map centres on it instead."""
+        vis = self._vis(tmp_path)
+        base_map = self._ready(vis, [(51.5, -0.2)])
+        vis.create_event_map("out.html")
+
+        assert not base_map.fit_bounds.called

@@ -215,3 +215,42 @@ class TestBlotterErrorHandlers:
             assert resp.status_code == 500
             data = json.loads(resp.data)
             assert data['status'] == 'error'
+
+
+class TestActiveGaugesEdgeCases:
+    """Two paths in active-gauges that no other test reaches."""
+
+    def test_a_missing_trade_document_is_skipped(self, trading_env):
+        """iter_prs_trade_ids can name a document get_prs_trade cannot return
+        — a delete between the two calls, or a key present with no body. The
+        id is skipped rather than dereferenced."""
+        from server import create_app
+        with patch('routes.trading.blotter.database.get_prs_trade',
+                   return_value=None):
+            app = create_app()
+            app.config['TESTING'] = True
+            resp = app.test_client().get(
+                '/api/v1/trading/blotter/active-gauges')
+        data = json.loads(resp.data)
+        assert resp.status_code == 200
+        assert data['status'] == 'success'
+        assert data['gauge_ids'] == []
+
+    def test_an_unreadable_store_returns_500(self, trading_env):
+        """The handler re-raises deliberately so Flask returns 500 and the
+        browser's .catch() takes its fail-open path. Swallowing it here would
+        report an empty gauge list as success, quietly disabling every gauge's
+        blotter button."""
+        from server import create_app
+        with patch('routes.trading.blotter.database.iter_prs_trade_ids',
+                   side_effect=RuntimeError('store unreadable')):
+            app = create_app()
+            # TESTING alone re-raises through the test client, which would
+            # assert on the exception rather than on the 500 the browser
+            # actually receives. PROPAGATE_EXCEPTIONS off restores the
+            # production response.
+            app.config['TESTING'] = True
+            app.config['PROPAGATE_EXCEPTIONS'] = False
+            resp = app.test_client().get(
+                '/api/v1/trading/blotter/active-gauges')
+        assert resp.status_code == 500
